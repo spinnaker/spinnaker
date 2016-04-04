@@ -48,18 +48,19 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
                                        @JsonProperty("accountId") String accountId,
                                        @JsonProperty("defaultKeyPair") String defaultKeyPair,
                                        @JsonProperty("regions") List<AWSRegion> regions,
+                                       @JsonProperty("defaultSecurityGroups") List<String> defaultSecurityGroups,
                                        @JsonProperty("requiredGroupMembership") List<String> requiredGroupMembership,
                                        @JsonProperty("assumeRole") String assumeRole,
                                        @JsonProperty("sessionName") String sessionName) {
-        this(name, environment, accountType, accountId, defaultKeyPair, regions, requiredGroupMembership, null, assumeRole, sessionName);
+        this(name, environment, accountType, accountId, defaultKeyPair, regions, defaultSecurityGroups, requiredGroupMembership, null, assumeRole, sessionName);
     }
 
     public AssumeRoleAmazonCredentials(AssumeRoleAmazonCredentials copy, AWSCredentialsProvider credentialsProvider) {
-        this(copy.getName(), copy.getEnvironment(), copy.getAccountType(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), copy.getRequiredGroupMembership(), credentialsProvider, copy.getAssumeRole(), copy.getSessionName());
+        this(copy.getName(), copy.getEnvironment(), copy.getAccountType(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), copy.getDefaultSecurityGroups(), copy.getRequiredGroupMembership(), credentialsProvider, copy.getAssumeRole(), copy.getSessionName());
     }
 
-    AssumeRoleAmazonCredentials(String name, String environment, String accountType, String accountId, String defaultKeyPair, List<AWSRegion> regions, List<String> requiredGroupMembership, AWSCredentialsProvider credentialsProvider, String assumeRole, String sessionName) {
-        super(name, environment, accountType, accountId, defaultKeyPair, regions, requiredGroupMembership, createSTSCredentialsProvider(credentialsProvider, accountId, assumeRole, sessionName == null ? DEFAULT_SESSION_NAME : sessionName));
+    AssumeRoleAmazonCredentials(String name, String environment, String accountType, String accountId, String defaultKeyPair, List<AWSRegion> regions, List<String> defaultSecurityGroups, List<String> requiredGroupMembership, AWSCredentialsProvider credentialsProvider, String assumeRole, String sessionName) {
+        super(name, environment, accountType, accountId, defaultKeyPair, regions, defaultSecurityGroups, requiredGroupMembership, createSTSCredentialsProvider(credentialsProvider, accountId, assumeRole, sessionName == null ? DEFAULT_SESSION_NAME : sessionName));
         this.assumeRole = assumeRole;
         this.sessionName = sessionName == null ? DEFAULT_SESSION_NAME : sessionName;
     }
