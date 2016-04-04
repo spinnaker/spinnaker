@@ -82,6 +82,8 @@
         </dd>
         <dt ng-if="instance.serverGroup">VPC</dt>
         <dd ng-if="instance.serverGroup"><vpc-tag vpc-id="instance.vpcId"></vpc-tag></dd>
+        <dt ng-if="instance.imageId">Image ID</dt>
+        <dd ng-if="instance.imageId">{{instance.imageId}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">
