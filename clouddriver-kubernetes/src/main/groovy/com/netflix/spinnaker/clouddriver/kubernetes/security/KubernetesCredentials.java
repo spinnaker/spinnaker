@@ -76,7 +76,7 @@ public class KubernetesCredentials {
         secretBuilder = secretBuilder.withNewMetadata().withName(secretName).endMetadata();
 
         HashMap<String, String> secretData = new HashMap<>(1);
-        String dockerCfg = String.format("{ \"%s\": { \"auth\": \"%s\", \"email\": \"%s\" } }", account.getV2Endpoint(), account.getBasicAuth(), account.getEmail());
+        String dockerCfg = String.format("{ \"%s\": { \"auth\": \"%s\", \"email\": \"%s\" } }", account.getAddress(), account.getBasicAuth(), account.getEmail());
         try {
           dockerCfg = new String(Base64.getEncoder().encode(dockerCfg.getBytes("UTF-8")), "UTF-8");
         } catch (UnsupportedEncodingException uee) {

@@ -101,7 +101,6 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
       replicationControllerBuilder = replicationControllerBuilder.addNewImagePullSecret(imagePullSecret)
     }
 
-
     if (description.volumeSources) {
       task.updateStatus BASE_PHASE, "Adding pod volume sources... "
       def volumeSources = description.volumeSources.findResults { volumeSource ->
