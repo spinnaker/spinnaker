@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
+import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
 import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
@@ -29,6 +31,9 @@ class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
 
   static final List<String> DEFAULT_VPC_SECURITY_GROUPS = ["nf-infrastructure-vpc", "nf-datacenter-vpc"]
   static final List<String> DEFAULT_SECURITY_GROUPS = ["nf-infrastructure", "nf-datacenter"]
+
+  @Autowired
+  MortService mortService
 
   @Value('${default.bake.account:default}')
   String defaultBakeAccount
@@ -92,12 +97,24 @@ class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
     operation.keyPair = (operation.keyPair ?: "nf-${operation.credentials}-keypair-a").toString()
 
     operation.securityGroups = operation.securityGroups ?: []
-    //TODO(cfieber)- remove the VPC special case asap
+    def defaultSecurityGroupsForAccount
     if (operation.subnetType && !operation.subnetType.contains('vpc0')) {
-      addAllNonEmpty(operation.securityGroups, defaultVpcSecurityGroups)
+      //TODO(cfieber)- remove the VPC special case asap
+      defaultSecurityGroupsForAccount = defaultVpcSecurityGroups
     } else {
-      addAllNonEmpty(operation.securityGroups, defaultSecurityGroups)
+      defaultSecurityGroupsForAccount = defaultSecurityGroups
     }
+
+    try {
+      // Check for any explicitly provided per-account security group defaults (and use them)
+      def accountDetails = mortService.getAccountDetails(operation.credentials as String)
+      if (accountDetails.defaultSecurityGroups != null) {
+        defaultSecurityGroupsForAccount = accountDetails.defaultSecurityGroups as List<String>
+      }
+    } catch(Exception e) {
+      log.error("Unable to lookup default security groups", e)
+    }
+    addAllNonEmpty(operation.securityGroups as List<String>, defaultSecurityGroupsForAccount)
 
     return operation
   }
