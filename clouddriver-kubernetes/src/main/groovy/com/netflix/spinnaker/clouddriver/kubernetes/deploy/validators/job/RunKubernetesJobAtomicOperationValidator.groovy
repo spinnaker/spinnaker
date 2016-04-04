@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.servergroup
+package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.job
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesVolumeSourceType
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.job.KubernetesJobDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.KubernetesContainerValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.KubernetesVolumeSourceValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
@@ -30,15 +29,15 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
-@KubernetesOperation(AtomicOperations.CREATE_SERVER_GROUP)
-@Component("deployKubernetesAtomicOperationValidator")
-class DeployKubernetesAtomicOperationValidator extends DescriptionValidator<DeployKubernetesAtomicOperationDescription> {
+@KubernetesOperation(AtomicOperations.RUN_JOB)
+@Component
+class RunKubernetesJobAtomicOperationValidator extends DescriptionValidator<KubernetesJobDescription> {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, DeployKubernetesAtomicOperationDescription description, Errors errors) {
-    def helper = new StandardKubernetesAttributeValidator("deployKubernetesAtomicOperationDescription", errors)
+  void validate(List priorDescriptions, KubernetesJobDescription description, Errors errors) {
+    def helper = new StandardKubernetesAttributeValidator("runKubernetesJobAtomicOperationDescription", errors)
 
     if (!helper.validateCredentials(description.account, accountCredentialsProvider)) {
       return
@@ -49,9 +48,9 @@ class DeployKubernetesAtomicOperationValidator extends DescriptionValidator<Depl
     helper.validateApplication(description.application, "application")
     helper.validateStack(description.stack, "stack")
     helper.validateDetails(description.freeFormDetails, "details")
-    helper.validateNonNegative(description.targetSize, "targetSize")
+    helper.validatePositive(description.completions, "completions")
+    helper.validatePositive(description.parallelism, "parallelism")
     helper.validateNamespace(credentials, description.namespace, "namespace")
-    helper.validateRestartPolicy(description.restartPolicy, "restartPolicy")
 
     description.volumeSources.eachWithIndex { source, idx ->
       KubernetesVolumeSourceValidator.validate(source, helper, "volumeSources[${idx}]")
@@ -61,13 +60,10 @@ class DeployKubernetesAtomicOperationValidator extends DescriptionValidator<Depl
       helper.validateName(name, "loadBalancers[${idx}]")
     }
 
-    description.securityGroups.eachWithIndex { name, idx ->
-      helper.validateName(name, "securityGroups[${idx}]")
-    }
-
     helper.validateNotEmpty(description.containers, "containers")
     description.containers.eachWithIndex { container, idx ->
       KubernetesContainerValidator.validate(container, helper, "container[${idx}]")
     }
   }
 }
+

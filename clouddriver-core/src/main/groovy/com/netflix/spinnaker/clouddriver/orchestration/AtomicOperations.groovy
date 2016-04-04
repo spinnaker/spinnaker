@@ -49,4 +49,7 @@ final class AtomicOperations {
   // Security Group operations
   public static final String DELETE_SECURITY_GROUP = "deleteSecurityGroup"
   public static final String UPSERT_SECURITY_GROUP = "upsertSecurityGroup"
+
+  // Job operations
+  public static final String RUN_JOB = "runJob"
 }

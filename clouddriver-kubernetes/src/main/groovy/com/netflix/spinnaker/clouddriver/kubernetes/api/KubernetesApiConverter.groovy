@@ -106,6 +106,219 @@ class KubernetesApiConverter {
     return loadBalancerDescription
   }
 
+  static Volume toVolumeSource(KubernetesVolumeSource volumeSource) {
+    Volume volume = new Volume(name: volumeSource.name)
+
+    switch (volumeSource.type) {
+      case KubernetesVolumeSourceType.EMPTYDIR:
+        def res = new EmptyDirVolumeSourceBuilder()
+
+        switch (volumeSource.emptyDir.medium) {
+          case KubernetesStorageMediumType.MEMORY:
+            res = res.withMedium("Memory")
+            break
+
+          default:
+            res = res.withMedium("") // Empty string is default...
+        }
+
+        volume.emptyDir = res.build()
+        break
+
+      case KubernetesVolumeSourceType.HOSTPATH:
+        def res = new HostPathVolumeSourceBuilder().withPath(volumeSource.hostPath.path)
+        volume.hostPath = res.build()
+        break
+
+      case KubernetesVolumeSourceType.PERSISTENTVOLUMECLAIM:
+        def res = new PersistentVolumeClaimVolumeSourceBuilder()
+            .withClaimName(volumeSource.persistentVolumeClaim.claimName)
+            .withReadOnly(volumeSource.persistentVolumeClaim.readOnly)
+        volume.persistentVolumeClaim = res.build()
+        break
+
+      case KubernetesVolumeSourceType.SECRET:
+        def res = new SecretVolumeSourceBuilder()
+            .withSecretName(volumeSource.secret.secretName)
+        volume.secret = res.build()
+        break
+
+      default:
+        return null
+    }
+
+    return volume
+  }
+
+  static Container toContainer(KubernetesContainerDescription container) {
+    KubernetesUtil.normalizeImageDescription(container.imageDescription)
+    def imageId = KubernetesUtil.getImageId(container.imageDescription)
+    def containerBuilder = new ContainerBuilder().withName(container.name).withImage(imageId)
+
+    if (container.ports) {
+      container.ports.forEach {
+        containerBuilder = containerBuilder.addNewPort()
+        if (it.name) {
+          containerBuilder = containerBuilder.withName(it.name)
+        }
+
+        if (it.containerPort) {
+          containerBuilder = containerBuilder.withContainerPort(it.containerPort)
+        }
+
+        if (it.hostPort) {
+          containerBuilder = containerBuilder.withHostPort(it.hostPort)
+        }
+
+        if (it.protocol) {
+          containerBuilder = containerBuilder.withProtocol(it.protocol)
+        }
+
+        if (it.hostIp) {
+          containerBuilder = containerBuilder.withHostIP(it.hostIp)
+        }
+        containerBuilder = containerBuilder.endPort()
+      }
+    }
+
+    [liveness: container.livenessProbe, readiness: container.readinessProbe].each { k, v ->
+      def probe = v
+      if (probe) {
+        switch (k) {
+          case 'liveness':
+            containerBuilder = containerBuilder.withNewLivenessProbe()
+            break
+          case 'readiness':
+            containerBuilder = containerBuilder.withNewReadinessProbe()
+            break
+        }
+
+        containerBuilder = containerBuilder.withInitialDelaySeconds(probe.initialDelaySeconds)
+
+        if (probe.timeoutSeconds) {
+          containerBuilder = containerBuilder.withTimeoutSeconds(probe.timeoutSeconds)
+        }
+
+        if (probe.failureThreshold) {
+          containerBuilder = containerBuilder.withFailureThreshold(probe.failureThreshold)
+        }
+
+        if (probe.successThreshold) {
+          containerBuilder = containerBuilder.withSuccessThreshold(probe.successThreshold)
+        }
+
+        if (probe.periodSeconds) {
+          containerBuilder = containerBuilder.withPeriodSeconds(probe.periodSeconds)
+        }
+
+        switch (probe.handler.type) {
+          case KubernetesHandlerType.EXEC:
+            containerBuilder = containerBuilder.withNewExec().withCommand(probe.handler.execAction.commands).endExec()
+            break
+
+          case KubernetesHandlerType.TCP:
+            containerBuilder = containerBuilder.withNewTcpSocket().withNewPort(probe.handler.tcpSocketAction.port).endTcpSocket()
+            break
+
+          case KubernetesHandlerType.HTTP:
+            containerBuilder = containerBuilder.withNewHttpGet()
+            def get = probe.handler.httpGetAction
+
+            if (get.host) {
+              containerBuilder = containerBuilder.withHost(get.host)
+            }
+
+            if (get.path) {
+              containerBuilder = containerBuilder.withPath(get.path)
+            }
+
+            containerBuilder = containerBuilder.withPort(new IntOrString(get.port))
+
+            if (get.uriScheme) {
+              containerBuilder = containerBuilder.withScheme(get.uriScheme)
+            }
+
+            containerBuilder = containerBuilder.endHttpGet()
+            break
+        }
+
+        switch (k) {
+          case 'liveness':
+            containerBuilder = containerBuilder.endLivenessProbe()
+            break
+          case 'readiness':
+            containerBuilder = containerBuilder.endReadinessProbe()
+            break
+        }
+      }
+    }
+
+    containerBuilder = containerBuilder.withNewResources()
+    if (container.requests) {
+      def requests = [:]
+
+      if (container.requests.memory) {
+        requests.memory = container.requests.memory
+      }
+
+      if (container.requests.cpu) {
+        requests.cpu = container.requests.cpu
+      }
+      containerBuilder = containerBuilder.withRequests(requests)
+    }
+
+    if (container.limits) {
+      def limits = [:]
+
+      if (container.limits.memory) {
+        limits.memory = container.limits.memory
+      }
+
+      if (container.limits.cpu) {
+        limits.cpu = container.limits.cpu
+      }
+
+      containerBuilder = containerBuilder.withLimits(limits)
+    }
+
+    containerBuilder = containerBuilder.endResources()
+
+    if (container.volumeMounts) {
+      def volumeMounts = container.volumeMounts.collect { mount ->
+        def res = new VolumeMountBuilder()
+
+        return res.withMountPath(mount.mountPath)
+            .withName(mount.name)
+            .withReadOnly(mount.readOnly)
+            .build()
+      }
+
+      containerBuilder = containerBuilder.withVolumeMounts(volumeMounts)
+    }
+
+    if (container.envVars) {
+      def envVars = container.envVars.collect { envVar ->
+        def res = new EnvVarBuilder()
+
+        return res.withName(envVar.name)
+            .withValue(envVar.value)
+            .build()
+      }
+
+      containerBuilder = containerBuilder.withEnv(envVars)
+    }
+
+    if (container.command) {
+      containerBuilder = containerBuilder.withCommand(container.command)
+    }
+
+    if (container.args) {
+      containerBuilder = containerBuilder.withArgs(container.args)
+    }
+
+    return containerBuilder.build()
+  }
+
   static KubernetesContainerDescription fromContainer(Container container) {
     if (!container) {
       return null
