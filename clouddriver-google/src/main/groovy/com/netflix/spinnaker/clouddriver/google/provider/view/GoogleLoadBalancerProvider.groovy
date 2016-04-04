@@ -73,7 +73,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
 
       def loadBalancerServerGroup = new LoadBalancerServerGroup(
           name: serverGroup.name,
-          isDisabled: false, // Given this relationship started from a load balancer, it's inherently enabled.
+          isDisabled: serverGroup.disabled,
           detachedInstances: [],
           instances: [])
 
