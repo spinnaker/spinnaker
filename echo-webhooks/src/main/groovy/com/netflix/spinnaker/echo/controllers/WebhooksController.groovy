@@ -21,11 +21,7 @@ import com.netflix.spinnaker.echo.model.Event
 import com.netflix.spinnaker.echo.model.Metadata
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @Slf4j
@@ -61,11 +57,26 @@ class WebhooksController {
       }
     }
 
-    log.info("Webhook ${source}:${type}:${event.content}")
+    log.info("Webhook ${type}:${source}:${event.content}")
 
     if (sendEvent) {
       propagator.processEvent(event)
     }
   }
 
+  @RequestMapping(value = '/webhooks/{type}', method = RequestMethod.POST)
+  void forwardEvent(@PathVariable String type, @RequestBody Map postedEvent) {
+    Event event = new Event()
+    event.details = new Metadata()
+    event.details.type = type
+    event.content = postedEvent
+
+    if (event.content.source != null) {
+      event.details.source = event.content.source;
+    }
+
+    log.info("Webhook ${type}:${event.details.source}:${event.content}")
+
+    propagator.processEvent(event)
+  }
 }

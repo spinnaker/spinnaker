@@ -27,4 +27,8 @@ dependencies {
   compile spinnaker.dependency("okHttp")
   compile spinnaker.dependency("eurekaClient")
   compile spinnaker.dependency("kork")
+
+  compile group: 'org.codehaus.groovy', name: 'groovy', version: "2.4.5"
+  testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
+
 }
