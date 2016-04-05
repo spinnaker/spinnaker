@@ -133,20 +133,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
       return result;
     }
 
-    /* TODO(lwander) To be incorporated later.
-    function refreshNamespaces(command) {
-      return accountService.getAccountDetails(command.account).then(function(details) {
-        command.backingData.filtered.namespaces = details.namespaces;
-      });
-    }
-
-    function refreshDockerRegistries(command) {
-      return accountService.getAccountDetails(command.account).then(function(details) {
-        command.backingData.filtered.dockerRegistries = details.dockerRegistries;
-      });
-    }
-    */
-
     function refreshLoadBalancers(command, skipCommandReconfiguration) {
       return cacheInitializer.refreshCache('loadBalancers').then(function() {
         return loadBalancerReader.listLoadBalancers('kubernetes').then(function(loadBalancers) {
