@@ -42,6 +42,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance2
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup2
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
 
 import java.util.concurrent.TimeUnit
@@ -309,12 +310,12 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
 
   void moveOnDemandDataToNamespace(CacheResultBuilder cacheResultBuilder, GoogleServerGroup2 googleServerGroup) {
     def serverGroupKey = Keys.getServerGroupKey(googleServerGroup.name, accountName, googleServerGroup.zone)
-    Map<String, List<CacheData>> onDemandData = objectMapper.readValue(
-        cacheResultBuilder.onDemand.toKeep[serverGroupKey].attributes.cacheResults,
-        new TypeReference<Map<String, List<CacheData>>>() {})
+    Map<String, List<MutableCacheData>> onDemandData = objectMapper.readValue(
+        cacheResultBuilder.onDemand.toKeep[serverGroupKey].attributes.cacheResults as String,
+        new TypeReference<Map<String, List<MutableCacheData>>>() {})
 
-    onDemandData.each { String namespace, List<CacheData> cacheDatas ->
-      cacheDatas.each { CacheData cacheData ->
+    onDemandData.each { String namespace, List<MutableCacheData> cacheDatas ->
+      cacheDatas.each { MutableCacheData cacheData ->
         cacheResultBuilder.namespace(namespace).keep(cacheData.id).with {
           attributes = cacheData.attributes
           relationships = cacheData.relationships
@@ -322,7 +323,15 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
         cacheResultBuilder.onDemand.toKeep.remove(cacheData.id)
       }
     }
+  }
 
+  // TODO(lwander) this was taken from the netflix cluster caching, and should probably be shared between all providers.
+  @Canonical
+  static class MutableCacheData implements CacheData {
+    String id
+    int ttlSeconds = -1
+    Map<String, Object> attributes = [:]
+    Map<String, Collection<String>> relationships = [:].withDefault { [] as Set }
   }
 
   class InstanceGroupManagerListCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceGroupManagerList> implements FailureLogger {
