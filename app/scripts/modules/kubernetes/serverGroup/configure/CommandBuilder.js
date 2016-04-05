@@ -33,6 +33,7 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
       var command = {
         account: defaultAccount,
         application: application.name,
+        strategy: '',
         targetSize: 1,
         cloudProvider: 'kubernetes',
         selectedProvider: 'kubernetes',
@@ -127,6 +128,7 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
       let contextImages = findUpstreamImages(current, pipeline.stages) || [];
       contextImages = contextImages.concat(findTriggerImages(pipeline.triggers));
       return $q.when({
+        strategy: '',
         viewState: {
           contextImages: contextImages,
           mode: 'editPipeline',
@@ -145,6 +147,8 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
       });
       command.groupByRegistry = groupByRegistry;
       command.buildImageId = buildImageId;
+      command.strategy = command.strategy || '';
+      command.selectedProvider = 'kubernetes';
       command.viewState = {
         mode: 'editPipeline',
         contextImages: contextImages,
@@ -183,6 +187,7 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
       command.selectedProvider = 'kubernetes';
       command.account = serverGroup.account;
       command.buildImageId = buildImageId;
+      command.strategy = '';
 
       command.containers.map((container) => {
         container.imageDescription.imageId = buildImageId(container.imageDescription);

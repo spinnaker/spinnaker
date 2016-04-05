@@ -68,7 +68,7 @@
         </ui-select>
       </div>
     </div>
-
+    <deployment-strategy-selector label-columns="3" field-columns="9" ng-if="!command.viewState.disableStrategySelection && command.selectedProvider" command="command"></deployment-strategy-selector>
     <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
       <div class="col-md-9 col-md-offset-2">
         <div class="well-compact" ng-class="basicSettingsController.showPreviewAsWarning() ? 'alert alert-warning' : 'well'">
