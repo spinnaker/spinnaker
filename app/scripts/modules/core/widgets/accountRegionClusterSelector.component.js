@@ -18,6 +18,7 @@ module.exports = angular
         accounts: '=',
         clusterField: '@',
         singleRegion: '=',
+        showAllRegions: '=?'
       },
       templateUrl: require('./accountRegionClusterSelector.component.html'),
       controllerAs: 'vm',
@@ -26,6 +27,8 @@ module.exports = angular
         this.clusterField = this.clusterField || 'cluster';
 
         let vm = this;
+        let showAllRegions = vm.showAllRegions || false;
+
         let isTextInputForClusterFiled;
 
         let regions;
@@ -33,7 +36,7 @@ module.exports = angular
         let setRegionList = () => {
           let accountFilter = (cluster) => cluster.account === vm.component.credentials;
           let regionList = appListExtractorService.getRegions([vm.application], accountFilter);
-          vm.regions = regionList.length ? regionList : regions;
+          vm.regions = showAllRegions ? regions : regionList.length ? regionList : regions;
         };
 
 
