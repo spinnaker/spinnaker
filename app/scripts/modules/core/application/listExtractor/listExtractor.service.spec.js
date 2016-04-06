@@ -114,7 +114,7 @@ describe('appListExtractorService', function () {
 
       let result = service.getRegions(appList);
       expect(result.length).toEqual(3);
-      expect(result).toEqual(['us-west-1', 'us-west-2', 'eu-east-1']);
+      expect(result).toEqual(['eu-east-1', 'us-west-1', 'us-west-2']);
     });
 
   });

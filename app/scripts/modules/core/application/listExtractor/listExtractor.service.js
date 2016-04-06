@@ -18,6 +18,7 @@ module.exports = angular
         .map('region')
         .compact()
         .unique()
+        .sort()
         .value();
     };
 
@@ -46,9 +47,9 @@ module.exports = angular
 
     let clusterFilterForCredentialsAndRegion = (credentials, region) => {
       return (cluster) => {
-        let acctFilter = credentials ? cluster.account === credentials : true;
+        let acctFilter = cluster && credentials ? cluster.account === credentials : true;
 
-        let regionFilter = Array.isArray(region) && region.length
+        let regionFilter = cluster && Array.isArray(region) && region.length
           ? _.some( cluster.serverGroups, (sg) => _.some(region, (region) => region === sg.region))
           : _.isString(region) //region is just a string not an array
           ? _.any(cluster.serverGroups, (sg) => sg.region === region)
