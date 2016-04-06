@@ -201,7 +201,11 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
     }
 
     List<Map> deploymentDetails = imageSummaries.collect { location, summaries ->
-      summaries.collect { summary ->
+      summaries.findResults { summary ->
+        if (config.imageNamePattern && !(summary.imageName ==~ config.imageNamePattern)) {
+          return null
+        }
+
         def result = [
           ami              : summary.imageId, // TODO(ttomsu): Deprecate and remove this value.
           imageId          : summary.imageId,
