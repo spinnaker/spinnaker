@@ -48,7 +48,7 @@ import sys
 from citest.service_testing import HttpContractBuilder
 from citest.service_testing import NoOpOperation
 import citest.gcp_testing as gcp
-import citest.json_contract as jc
+import citest.json_predicate as jp
 import citest.service_testing as st
 
 # Spinnaker modules.
@@ -202,14 +202,14 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
               .list_resources('instances'))
     for name in names:
       # If one of our instances still exists, it should be STOPPING.
-      name_matches_pred = jc.PathContainsPredicate('name', name)
-      is_stopping_pred = jc.PathEqPredicate('status', 'STOPPING')
+      name_matches_pred = jp.PathContainsPredicate('name', name)
+      is_stopping_pred = jp.PathEqPredicate('status', 'STOPPING')
 
       # We want the condition to apply to all the observed objects so we'll
       # map the constraint over the observation. Otherwise, if dont map it,
       # then we'd expect the constraint to hold somewhere among the observed
       # objects, but not necessarily all of them.
-      clause.add_mapped_constraint(jc.IF(name_matches_pred, is_stopping_pred))
+      clause.add_constraint(jp.IF(name_matches_pred, is_stopping_pred))
 
     # pylint: disable=bad-continuation
     payload = self.agent.type_to_payload(
@@ -241,8 +241,8 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Server Group Tags Added')
         .inspect_resource('managed-instance-groups', server_group_name)
         .contains_pred_list(
-            [jc.PathContainsPredicate('name', server_group_name),
-             jc.PathContainsPredicate(
+            [jp.PathContainsPredicate('name', server_group_name),
+             jp.PathContainsPredicate(
                  "tags/items", ['test-tag-1', 'test-tag-2'])]))
 
     return st.OperationContract(
@@ -307,30 +307,30 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Http Health Check Added')
         .list_resources('http-health-checks')
         .contains_pred_list(
-            [jc.PathContainsPredicate('name', self.__use_http_lb_hc_name),
-             jc.PathContainsPredicate(None, health_check)]))
+            [jp.PathContainsPredicate('name', self.__use_http_lb_hc_name),
+             jp.PathContainsPredicate(None, health_check)]))
     (builder.new_clause_builder('Forwarding Rule Added', retryable_for_secs=15)
        .list_resources('forwarding-rules')
        .contains_pred_list(
-           [jc.PathContainsPredicate('name', self.__use_http_lb_fr_name),
-            jc.PathContainsPredicate('portRange', port_range)]))
+           [jp.PathContainsPredicate('name', self.__use_http_lb_fr_name),
+            jp.PathContainsPredicate('portRange', port_range)]))
     (builder.new_clause_builder('Backend Service Added')
        .list_resources('backend-services')
        .contains_pred_list(
-           [jc.PathContainsPredicate('name', self.__use_http_lb_bs_name),
-            jc.PathElementsContainPredicate(
+           [jp.PathContainsPredicate('name', self.__use_http_lb_bs_name),
+            jp.PathElementsContainPredicate(
                 'healthChecks', self.__use_http_lb_hc_name)]))
     (builder.new_clause_builder('Url Map Added')
        .list_resources('url-maps')
        .contains_pred_list(
-           [jc.PathContainsPredicate('name', self.__use_http_lb_map_name),
-            jc.PathContainsPredicate(
+           [jp.PathContainsPredicate('name', self.__use_http_lb_map_name),
+            jp.PathContainsPredicate(
                 'defaultService', self.__use_http_lb_bs_name)]))
     (builder.new_clause_builder('Target Http Proxy Added')
        .list_resources('target-http-proxies')
        .contains_pred_list(
-           [jc.PathContainsPredicate('name', self.__use_http_lb_proxy_name),
-            jc.PathContainsPredicate('urlMap', self.__use_http_lb_map_name)]))
+           [jp.PathContainsPredicate('name', self.__use_http_lb_proxy_name),
+            jp.PathContainsPredicate('urlMap', self.__use_http_lb_map_name)]))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -415,8 +415,8 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Health Check Added', retryable_for_secs=15)
        .list_resources('http-health-checks')
        .contains_pred_list(
-           [jc.PathContainsPredicate('name', self.__use_lb_hc_name),
-            jc.PathContainsPredicate(None, health_check)]))
+           [jp.PathContainsPredicate('name', self.__use_lb_hc_name),
+            jp.PathContainsPredicate(None, health_check)]))
 
     return st.OperationContract(
       self.new_post_operation(
@@ -476,15 +476,15 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
                                 retryable_for_secs=15)
        .list_resources('target-pools')
        .contains_pred_list(
-          [jc.PathContainsPredicate('name', self.__use_lb_tp_name),
-           jc.PathEqPredicate('region', self.bindings['TEST_GCE_REGION']),
-           jc.PathElementsContainPredicate(
+          [jp.PathContainsPredicate('name', self.__use_lb_tp_name),
+           jp.PathEqPredicate('region', self.bindings['TEST_GCE_REGION']),
+           jp.PathElementsContainPredicate(
               'instances', self.use_instance_names[0]),
-           jc.PathElementsContainPredicate(
+           jp.PathElementsContainPredicate(
               'instances', self.use_instance_names[1])])
        .excludes_pred_list(
-           [jc.PathContainsPredicate('name', self.__use_lb_tp_name),
-            jc.PathElementsContainPredicate(
+           [jp.PathContainsPredicate('name', self.__use_lb_tp_name),
+            jp.PathElementsContainPredicate(
                 'instances', self.use_instance_names[2])]))
 
     return st.OperationContract(
@@ -522,10 +522,10 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
           'target-pools',
           extra_args=['--region', self.bindings['TEST_GCE_REGION']])
        .excludes_pred_list(
-          [jc.PathContainsPredicate('name', self.__use_lb_tp_name),
-           jc.PathElementsContainPredicate(
+          [jp.PathContainsPredicate('name', self.__use_lb_tp_name),
+           jp.PathElementsContainPredicate(
               'instances', self.use_instance_names[0]),
-           jc.PathElementsContainPredicate(
+           jp.PathElementsContainPredicate(
               'instances', self.use_instance_names[1])]))
 
     return st.OperationContract(
@@ -566,7 +566,8 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     builder = HttpContractBuilder(self.agent)
     (builder.new_clause_builder('Has Expected Images')
        .get_url_path('/gce/images/find')
-       .add_constraint(jc.EQUIVALENT(expect_images)))
+       .add_constraint(jp.PathPredicate(jp.DONT_ENUMERATE_TERMINAL,
+                                        jp.EQUIVALENT(expect_images))))
 
     return st.OperationContract(
         NoOpOperation('List Available Images'),

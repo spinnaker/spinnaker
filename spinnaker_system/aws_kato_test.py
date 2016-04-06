@@ -61,7 +61,7 @@ import sys
 
 # citest modules.
 import citest.aws_testing as aws
-import citest.json_contract as jc
+import citest.json_predicate as jp
 import citest.service_testing as st
 
 # Spinnaker modules.
@@ -152,12 +152,13 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
          command='describe-load-balancers',
          args=['--load-balancer-names', self.__use_lb_name])
      .contains_pred_list([
-         jc.PathContainsPredicate(
+         jp.PathContainsPredicate(
              'LoadBalancerDescriptions/HealthCheck', health_check),
-         jc.PathPredicate(
-             'LoadBalancerDescriptions/AvailabilityZones',
-             jc.LIST_SIMILAR(avail_zones)),
-         jc.PathElementsContainPredicate(
+         jp.PathPredicate(
+             'LoadBalancerDescriptions/AvailabilityZones{0}'.format(
+                 jp.DONT_ENUMERATE_TERMINAL),
+             jp.LIST_SIMILAR(avail_zones)),
+         jp.PathElementsContainPredicate(
              'LoadBalancerDescriptions/ListenerDescriptions', listener)
          ])
     )

@@ -4,7 +4,7 @@ import sys
 
 # citest modules.
 import citest.gcp_testing as gcp
-import citest.json_contract as jc
+import citest.json_predicate as jp
 import citest.service_testing as st
 
 # Spinnaker modules.
@@ -233,8 +233,8 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
      .list_resources('managed-instance-groups')
      .contains_path_value('baseInstanceName', self.__server_group_name)
      .excludes_pred_list([
-         jc.PathContainsPredicate('baseInstanceName', self.__server_group_name),
-         jc.PathContainsPredicate('targetPools', 'https')]))
+         jp.PathContainsPredicate('baseInstanceName', self.__server_group_name),
+         jp.PathContainsPredicate('targetPools', 'https')]))
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job, description='Server Group Test - disable server group',
@@ -263,8 +263,8 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Server Group Enabled', retryable_for_secs=90)
      .list_resources('managed-instance-groups')
      .contains_pred_list([
-         jc.PathContainsPredicate('baseInstanceName', self.__server_group_name),
-         jc.PathContainsPredicate('targetPools', 'https')]))
+         jp.PathContainsPredicate('baseInstanceName', self.__server_group_name),
+         jp.PathContainsPredicate('targetPools', 'https')]))
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job, description='Server Group Test - enable server group',
