@@ -57,7 +57,6 @@ module.exports = angular.module('spinnaker.cf.serverGroup.details.resize.control
           serverGroupName: serverGroup.name,
           targetSize: capacity.desired, // TODO(GLT): Unify on this or capacity
           region: serverGroup.region,
-          zone: serverGroup.zones[0],
           interestingHealthProviderNames: $scope.command.interestingHealthProviderNames,
         });
       };

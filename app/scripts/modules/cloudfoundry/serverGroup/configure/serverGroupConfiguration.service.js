@@ -59,11 +59,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
       return { dirty: {} };
     }
 
-    function configureZones(command) {
-      command.backingData.filtered.zones =
-        command.backingData.credentialsKeyedByAccount[command.credentials].regions[command.region];
-    }
-
     function getSecurityGroups(command) {
       var newSecurityGroups = command.backingData.securityGroups[command.credentials] || { cf: {}};
       newSecurityGroups = _.filter(newSecurityGroups.cf.global, function(securityGroup) {
@@ -146,12 +141,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
         var filteredData = command.backingData.filtered;
         if (command.region) {
           angular.extend(result.dirty, configureInstanceTypes(command).dirty);
-
-          configureZones(command);
-
           angular.extend(result.dirty, configureImages(command).dirty);
-        } else {
-          filteredData.zones = null;
         }
 
         command.viewState.dirty = command.viewState.dirty || {};
@@ -197,7 +187,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
       configureCommand: configureCommand,
       configureInstanceTypes: configureInstanceTypes,
       configureImages: configureImages,
-      configureZones: configureZones,
       refreshSecurityGroups: refreshSecurityGroups,
       refreshInstanceTypes: refreshInstanceTypes,
     };

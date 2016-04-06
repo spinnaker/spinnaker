@@ -22,7 +22,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.disableAsgStag
         },
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'target', },
-        { type: 'requiredField', fieldName: 'zones', },
+        { type: 'requiredField', fieldName: 'regions', },
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
@@ -33,7 +33,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.disableAsgStag
 
     $scope.state = {
       accounts: false,
-      zonesLoaded: false
+      regionsLoaded: false
     };
 
     accountService.listAccounts('cf').then(function (accounts) {
@@ -43,13 +43,13 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.disableAsgStag
 
     ctrl.accountUpdated = function() {
       accountService.getAccountDetails(stage.credentials).then(function(details) {
-        stage.zones = [details.org];
+        stage.regions = [details.org];
       });
     };
 
     $scope.targets = stageConstants.targetList;
 
-    stage.zones = stage.zones || [];
+    stage.regions = stage.regions || [];
     stage.cloudProvider = 'cf';
 
     if (stage.isNew && $scope.application.attributes.platformHealthOnly) {

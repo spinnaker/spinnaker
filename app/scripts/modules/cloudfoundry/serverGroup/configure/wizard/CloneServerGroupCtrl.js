@@ -116,7 +116,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
     this.isValid = function () {
       return $scope.command &&
         ($scope.command.credentials !== null) && ($scope.command.instanceType !== null) &&
-        ($scope.command.region !== null) && ($scope.command.zone !== null) &&
+        ($scope.command.region !== null) &&
         ($scope.command.capacity.desired !== null) &&
         v2modalWizardService.isComplete();
     };

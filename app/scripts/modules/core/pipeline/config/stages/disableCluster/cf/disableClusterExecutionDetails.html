@@ -8,8 +8,8 @@
                     <dd>
                         <account-tag account="stage.context.credentials"></account-tag>
                     </dd>
-                    <dt>Zones</dt>
-                    <dd>{{stage.context.zones.join(', ')}}</dd>
+                    <dt>Regions</dt>
+                    <dd>{{stage.context.regions.join(', ')}}</dd>
                     <dt>Cluster</dt>
                     <dd>{{stage.context.cluster}}</dd>
                     <dt>Keep Enabled</dt>
@@ -22,7 +22,7 @@
             <div class="col-md-11">
                 <dl class="dl-narrow dl-horizontal">
                     <dt>Disabled</dt><dd></dd>
-                    <dt ng-repeat-start="(zone, servergroups) in stage.context['deploy.server.groups']">{{zone}}</dt>
+                    <dt ng-repeat-start="(region, servergroups) in stage.context['deploy.server.groups']">{{region}}</dt>
                     <dd ng-repeat-end>{{servergroups.join(', ')}}</dd>
                 </dl>
             </div>

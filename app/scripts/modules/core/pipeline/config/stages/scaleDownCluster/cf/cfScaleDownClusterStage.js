@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.scaleDownClust
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'remainingFullSizeServerGroups', fieldLabel: 'Keep [X] full size Server Groups'},
-        { type: 'requiredField', fieldName: 'zones', },
+        { type: 'requiredField', fieldName: 'regions', },
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
       strategy: true,
@@ -34,15 +34,15 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.scaleDownClust
       $scope.state.accounts = true;
     });
 
-    $scope.zones = {'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c']};
+    $scope.regions = {'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c']};
 
     ctrl.accountUpdated = function() {
       accountService.getAccountDetails(stage.credentials).then(function(details) {
-        stage.zones = [details.org];
+        stage.regions = [details.org];
       });
     };
 
-    stage.zones = stage.zones || [];
+    stage.regions = stage.regions || [];
     stage.cloudProvider = 'cf';
 
     if (!stage.credentials && $scope.application.defaultCredentials.cf) {
