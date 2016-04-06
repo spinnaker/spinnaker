@@ -47,6 +47,7 @@ import sys
 # citest modules.
 import citest.gcp_testing as gcp
 import citest.json_contract as jc
+import citest.json_predicate as jp
 import citest.service_testing as st
 
 # Spinnaker modules.
@@ -172,8 +173,8 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
                                 retryable_for_secs=30)
      .list_resources('http-health-checks')
      .contains_pred_list(
-         [jc.PathContainsPredicate('name', '%s-hc' % load_balancer_name),
-          jc.DICT_SUBSET(spec)]))
+         [jp.PathContainsPredicate('name', '%s-hc' % load_balancer_name),
+          jp.DICT_SUBSET(spec)]))
     (builder.new_clause_builder('Target Pool Added',
                                 retryable_for_secs=30)
      .list_resources('target-pools')
@@ -182,8 +183,8 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
                                 retryable_for_secs=30)
      .list_resources('forwarding-rules')
      .contains_pred_list([
-          jc.PathContainsPredicate('name', load_balancer_name),
-          jc.PathContainsPredicate('target', target_pool_name)]))
+          jp.PathContainsPredicate('name', load_balancer_name),
+          jp.PathContainsPredicate('target', target_pool_name)]))
 
     return st.OperationContract(
         self.new_post_operation(
