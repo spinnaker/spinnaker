@@ -138,7 +138,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
 
       command.regionChanged = function regionChanged() {
         var result = { dirty: {} };
-        var filteredData = command.backingData.filtered;
         if (command.region) {
           angular.extend(result.dirty, configureInstanceTypes(command).dirty);
           angular.extend(result.dirty, configureImages(command).dirty);
