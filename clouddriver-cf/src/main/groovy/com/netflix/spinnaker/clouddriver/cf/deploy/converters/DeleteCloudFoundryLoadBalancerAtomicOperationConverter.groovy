@@ -37,11 +37,10 @@ class DeleteCloudFoundryLoadBalancerAtomicOperationConverter extends AbstractAto
 
   @Override
   Object convertDescription(Map input) {
-    new DeleteCloudFoundryLoadBalancerDescription([
-        loadBalancerName : input.loadBalancerName,
-        zone             : input.containsKey('zones') ? input.zones[0] : input.containsKey('zone') ? input.zone : input.region,
-        region           : input.region,
-        credentials      : getCredentialsObject(input.credentials as String)
-    ])
+    new DeleteCloudFoundryLoadBalancerDescription(
+      loadBalancerName : input.loadBalancerName,
+      region           : input.region,
+      credentials      : getCredentialsObject(input.credentials as String)
+    )
   }
 }

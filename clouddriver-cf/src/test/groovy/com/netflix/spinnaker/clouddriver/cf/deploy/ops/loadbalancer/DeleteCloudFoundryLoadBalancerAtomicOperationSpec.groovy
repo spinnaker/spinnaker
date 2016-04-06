@@ -41,8 +41,7 @@ class DeleteCloudFoundryLoadBalancerAtomicOperationSpec extends Specification {
     def op = new DeleteCloudFoundryLoadBalancerAtomicOperation(
         new DeleteCloudFoundryLoadBalancerDescription(
             loadBalancerName: "my-load-balancer",
-            region: 'region',
-            zone: "staging",
+            region: "staging",
             credentials: TestCredential.named('baz')))
     op.cloudFoundryClientFactory = new TestCloudFoundryClientFactory(stubClient: client)
 
@@ -60,7 +59,7 @@ class DeleteCloudFoundryLoadBalancerAtomicOperationSpec extends Specification {
 
     task.history == [
         new TaskDisplayStatus(new DefaultTaskStatus(phase:'INIT', status:'Creating task test', state:'STARTED')),
-        new TaskDisplayStatus(new DefaultTaskStatus(phase:'DELETE_LOAD_BALANCER', status:'Initializing deletion of load balancer my-load-balancer in region...', state:'STARTED')),
+        new TaskDisplayStatus(new DefaultTaskStatus(phase:'DELETE_LOAD_BALANCER', status:'Initializing deletion of load balancer my-load-balancer in staging...', state:'STARTED')),
         new TaskDisplayStatus(new DefaultTaskStatus(phase:'DELETE_LOAD_BALANCER', status:"Failed to delete load balancer => Host 'my-load-balancer' not found for domain 'cfapps.io'.", state:'STARTED')),
         new TaskDisplayStatus(new DefaultTaskStatus(phase:'DELETE_LOAD_BALANCER', status:'Done deleting load balancer my-load-balancer.', state:'STARTED')),
     ]
@@ -71,8 +70,7 @@ class DeleteCloudFoundryLoadBalancerAtomicOperationSpec extends Specification {
     def op = new DeleteCloudFoundryLoadBalancerAtomicOperation(
         new DeleteCloudFoundryLoadBalancerDescription(
             loadBalancerName: "my-load-balancer",
-            region: 'region',
-            zone: "staging",
+            region: 'staging',
             credentials: TestCredential.named('baz')))
     op.cloudFoundryClientFactory = new TestCloudFoundryClientFactory(stubClient: client)
 
@@ -86,7 +84,7 @@ class DeleteCloudFoundryLoadBalancerAtomicOperationSpec extends Specification {
 
     task.history == [
         new TaskDisplayStatus(new DefaultTaskStatus(phase:'INIT', status:'Creating task test', state:'STARTED')),
-        new TaskDisplayStatus(new DefaultTaskStatus(phase:'DELETE_LOAD_BALANCER', status:'Initializing deletion of load balancer my-load-balancer in region...', state:'STARTED')),
+        new TaskDisplayStatus(new DefaultTaskStatus(phase:'DELETE_LOAD_BALANCER', status:'Initializing deletion of load balancer my-load-balancer in staging...', state:'STARTED')),
         new TaskDisplayStatus(new DefaultTaskStatus(phase:'DELETE_LOAD_BALANCER', status:'Done deleting load balancer my-load-balancer.', state:'STARTED')),
     ]
   }

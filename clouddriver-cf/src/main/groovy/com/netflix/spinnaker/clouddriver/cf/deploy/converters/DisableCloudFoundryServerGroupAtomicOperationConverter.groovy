@@ -35,11 +35,11 @@ class DisableCloudFoundryServerGroupAtomicOperationConverter extends AbstractAto
 
   @Override
   EnableDisableCloudFoundryServerGroupDescription convertDescription(Map input) {
-    new EnableDisableCloudFoundryServerGroupDescription([
-        serverGroupName     : input.serverGroupName,
-        zone                : input.containsKey('zones') ? input.zones[0] : input.containsKey('zone') ? input.zone : input.region,
-        nativeLoadBalancers : input.nativeLoadBalancers,
-        credentials         : getCredentialsObject(input.credentials as String)
-    ])
+    new EnableDisableCloudFoundryServerGroupDescription(
+      serverGroupName     : input.serverGroupName,
+      region              : input.region,
+      nativeLoadBalancers : input.nativeLoadBalancers,
+      credentials         : getCredentialsObject(input.credentials as String)
+    )
   }
 }

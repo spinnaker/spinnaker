@@ -37,7 +37,7 @@ class ResizeCloudFoundryServerGroupDescriptionValidator extends DescriptionValid
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
     helper.validateServerGroupName(description.serverGroupName)
-    helper.validateZone(description.zone)
+    helper.validateRegion(description.region)
     helper.validatePositiveInt(description.targetSize, "targetSize")
   }
 }

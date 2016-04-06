@@ -35,11 +35,11 @@ class ResizeCloudFoundryServerGroupAtomicOperationConverter extends AbstractAtom
 
   @Override
   Object convertDescription(Map input) {
-    new ResizeCloudFoundryServerGroupDescription([
-        serverGroupName : input.serverGroupName,
-        zone            : input.containsKey('zones') ? input.zones[0] : input.containsKey('zone') ? input.zone : input.region,
-        targetSize      : input?.targetSize ?: input.capacity.desired,
-        credentials     : getCredentialsObject(input.credentials as String)
-    ])
+    new ResizeCloudFoundryServerGroupDescription(
+      serverGroupName : input.serverGroupName,
+      region          : input.region,
+      targetSize      : input?.targetSize ?: input.capacity.desired,
+      credentials     : getCredentialsObject(input.credentials as String)
+    )
   }
 }

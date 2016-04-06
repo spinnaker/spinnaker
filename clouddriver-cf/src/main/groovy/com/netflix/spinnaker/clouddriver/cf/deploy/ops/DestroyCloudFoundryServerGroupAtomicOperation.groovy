@@ -50,7 +50,7 @@ class DestroyCloudFoundryServerGroupAtomicOperation implements AtomicOperation<V
 
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing destruction of server group $description.serverGroupName in $description.zone..."
+    task.updateStatus BASE_PHASE, "Initializing destruction of server group $description.serverGroupName in $description.region..."
 
     def client = cloudFoundryClientFactory.createCloudFoundryClient(description.credentials, true)
 
@@ -62,7 +62,7 @@ class DestroyCloudFoundryServerGroupAtomicOperation implements AtomicOperation<V
           {List<CloudApplication> apps -> !apps.find {it.name == description.serverGroupName}},
           null, task, description.serverGroupName, BASE_PHASE)
 
-      task.updateStatus BASE_PHASE, "Done destroying server group $description.serverGroupName in $description.zone."
+      task.updateStatus BASE_PHASE, "Done destroying server group $description.serverGroupName in $description.region."
     } catch (Exception e) {
       task.updateStatus BASE_PHASE, "Failed to delete server group $description.serverGroupName => $e.message"
     }

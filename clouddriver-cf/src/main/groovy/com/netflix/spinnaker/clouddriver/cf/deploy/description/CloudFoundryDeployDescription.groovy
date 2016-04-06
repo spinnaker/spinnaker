@@ -40,7 +40,7 @@ class CloudFoundryDeployDescription implements DeployDescription {
 
   Map<String, Double> capacity
 
-  @JsonProperty("zone")
+  @JsonProperty("region")
   String space
 
   Integer targetSize

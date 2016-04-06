@@ -46,7 +46,7 @@ class ResizeCloudFoundryServerGroupAtomicOperationSpec extends Specification {
     def op = new ResizeCloudFoundryServerGroupAtomicOperation(
         new ResizeCloudFoundryServerGroupDescription(
             serverGroupName: "my-stack-v000",
-            zone: "staging",
+            region: "staging",
             targetSize: 10,
             credentials: TestCredential.named('baz')))
     op.cloudFoundryClientFactory = new TestCloudFoundryClientFactory(stubClient: clientForNonExistentServerGroup)
@@ -63,7 +63,7 @@ class ResizeCloudFoundryServerGroupAtomicOperationSpec extends Specification {
     def op = new ResizeCloudFoundryServerGroupAtomicOperation(
         new ResizeCloudFoundryServerGroupDescription(
             serverGroupName: "my-stack-v000",
-            zone: "staging",
+            region: "staging",
             targetSize: 10,
             credentials: TestCredential.named('baz')))
     op.cloudFoundryClientFactory = new TestCloudFoundryClientFactory(stubClient: client)

@@ -141,10 +141,6 @@ class StandardCfAttributeValidator {
     validateNotEmpty(region, "region")
   }
 
-  def validateZone(String zone) {
-    validateNotEmpty(zone, "zone")
-  }
-
   def validatePositiveInt(int value, String attribute) {
     def result = true
     if (value < 1) {

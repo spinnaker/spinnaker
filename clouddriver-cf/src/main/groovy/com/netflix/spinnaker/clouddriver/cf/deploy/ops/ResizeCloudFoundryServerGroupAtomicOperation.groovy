@@ -43,13 +43,13 @@ class ResizeCloudFoundryServerGroupAtomicOperation implements AtomicOperation<Vo
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing resize of server group $description.serverGroupName in " +
-        "$description.zone..."
+        "$description.region..."
 
     def client = cloudFoundryClientFactory.createCloudFoundryClient(description.credentials, true)
 
     client.updateApplicationInstances(description.serverGroupName, description.targetSize)
 
-    task.updateStatus BASE_PHASE, "Done resizing server group $description.serverGroupName in $description.zone."
+    task.updateStatus BASE_PHASE, "Done resizing server group $description.serverGroupName in $description.region."
     null
   }
 }

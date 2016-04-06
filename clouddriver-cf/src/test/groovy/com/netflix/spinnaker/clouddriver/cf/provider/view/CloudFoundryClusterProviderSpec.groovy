@@ -112,7 +112,6 @@ class CloudFoundryClusterProviderSpec extends Specification {
 		serverGroup.name == 'testapp-production-v001'
 		serverGroup.loadBalancers == ['my-cool-test-app'] as Set
 		serverGroup.region == 'spinnaker'
-		serverGroup.zones == ['test'] as Set
 		serverGroup.instances.collect {"${it.name} is ${it.healthState}"} == ['testapp-production-v001(0) is Up']
 		serverGroup.createdTime == 1000L
 		serverGroup.instanceCounts.up == 1
