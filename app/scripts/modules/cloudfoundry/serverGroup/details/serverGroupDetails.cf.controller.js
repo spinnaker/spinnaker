@@ -121,7 +121,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
             cloudProvider: 'cf',
             replicaPoolName: serverGroup.name,
             region: serverGroup.region,
-            zone: serverGroup.zones[0],
           });
         };
 
@@ -180,7 +179,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
             cloudProvider: 'cf',
             nativeLoadBalancers: serverGroup.nativeLoadBalancers,
             region: serverGroup.region,
-            zone: serverGroup.zones[0],
           });
         };
 
@@ -210,7 +208,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
             nativeLoadBalancers: serverGroup.nativeLoadBalancers,
             replicaPoolName: serverGroup.name,
             region: serverGroup.region,
-            zone: serverGroup.zones[0],
           });
         };
 

@@ -42,7 +42,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.resizeAsgStage
 
     ctrl.accountUpdated = function() {
       accountService.getAccountDetails(stage.credentials).then(function(details) {
-        stage.zones = [details.org];
+        stage.regions = [details.org];
       });
     };
 

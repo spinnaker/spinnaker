@@ -21,7 +21,7 @@ module.exports = angular.module('spinnaker.cf.serverGroup.details.rollback.contr
         rollbackContext: {
           rollbackServerGroupName: serverGroup.name
         },
-        zone: serverGroup.zones[0],
+        region: serverGroup.region,
       };
 
       if (application && application.attributes) {

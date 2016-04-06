@@ -44,13 +44,11 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
 
       var defaultCredentials = defaults.account || settings.providers.cf.defaults.account;
       var defaultRegion = defaults.region || settings.providers.cf.defaults.region;
-      var defaultZone = defaults.zone || settings.providers.cf.defaults.zone;
 
       var command = {
         application: application.name,
         credentials: defaultCredentials,
         region: defaultRegion,
-        zone: defaultZone,
         network: 'default',
         strategy: '',
         capacity: {
@@ -118,7 +116,6 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
           max: serverGroup.capacity.max,
           desired: serverGroup.capacity.desired
         },
-        zone: serverGroup.zones[0],
         tags: serverGroup.tags,
         availabilityZones: serverGroup.availabilityZones,
         cloudProvider: 'cf',
@@ -127,7 +124,6 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
         source: {
           account: serverGroup.account,
           region: serverGroup.region,
-          zone: serverGroup.zones[0],
           serverGroupName: serverGroup.name,
           asgName: serverGroup.name
         },
@@ -154,9 +150,8 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
 
       var pipelineCluster = _.cloneDeep(originalCluster);
       var region = Object.keys(pipelineCluster.availabilityZones)[0];
-      var zone = pipelineCluster.zone;
       var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('cf', pipelineCluster.instanceType);
-      var commandOptions = {account: pipelineCluster.account, region: region, zone: zone};
+      var commandOptions = {account: pipelineCluster.account, region: region};
       var asyncLoader = $q.all({
         command: buildNewServerGroupCommand(application, commandOptions),
         instanceProfile: instanceTypeCategoryLoader

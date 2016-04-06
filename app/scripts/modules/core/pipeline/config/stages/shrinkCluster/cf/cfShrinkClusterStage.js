@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.shrinkClusterS
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'shrinkToSize', fieldLabel: 'shrink to [X] Server Groups'},
-        { type: 'requiredField', fieldName: 'zones', },
+        { type: 'requiredField', fieldName: 'regions', },
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
@@ -34,11 +34,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.shrinkClusterS
 
     ctrl.accountUpdated = function() {
       accountService.getAccountDetails(stage.credentials).then(function(details) {
-        stage.zones = [details.org];
+        stage.regions = [details.org];
       });
     };
 
-    stage.zones = stage.zones || [];
+    stage.regions = stage.regions || [];
     stage.cloudProvider = 'cf';
 
     if (!stage.credentials && $scope.application.defaultCredentials.cf) {
