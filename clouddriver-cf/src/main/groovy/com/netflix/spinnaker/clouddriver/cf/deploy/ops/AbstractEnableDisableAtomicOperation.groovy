@@ -63,7 +63,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     String presentParticipling = disable ? 'Disabling' : 'Enabling'
 
     task.updateStatus phaseName, "Initializing $verb server group operation for $description.serverGroupName in " +
-        "$description.zone..."
+        "$description.region..."
 
     Names names = Names.parseName(description.serverGroupName)
     if (description.nativeLoadBalancers == null) {
@@ -122,7 +122,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
     }
 
-    task.updateStatus phaseName, "Done ${presentParticipling.toLowerCase()} server group $description.serverGroupName in $description.zone."
+    task.updateStatus phaseName, "Done ${presentParticipling.toLowerCase()} server group $description.serverGroupName in $description.region."
     null
   }
 

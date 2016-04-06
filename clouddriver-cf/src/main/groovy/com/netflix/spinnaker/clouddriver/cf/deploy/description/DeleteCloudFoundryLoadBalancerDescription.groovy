@@ -24,7 +24,6 @@ import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredenti
 class DeleteCloudFoundryLoadBalancerDescription {
   String loadBalancerName
   String region
-  String zone
   String getAccountName() {
     credentials?.name
   }

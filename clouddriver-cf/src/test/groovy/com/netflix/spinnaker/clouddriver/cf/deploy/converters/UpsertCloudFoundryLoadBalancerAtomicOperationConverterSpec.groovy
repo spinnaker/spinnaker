@@ -42,7 +42,7 @@ class UpsertCloudFoundryLoadBalancerAtomicOperationConverterSpec extends Specifi
 
   def "should return UpsertCloudFoundryLoadBalancerDescription and UpsertCloudFoundryLoadBalancerAtomicOperation"() {
     setup:
-    def input = [loadBalancerName: 'load-balancer', region: 'some-region', zone: 'some-zone',
+    def input = [loadBalancerName: 'load-balancer', region: 'some-region',
                  credentials: 'test']
 
     when:
@@ -62,8 +62,7 @@ class UpsertCloudFoundryLoadBalancerAtomicOperationConverterSpec extends Specifi
     setup:
     def application = "load-balancer"
     def region = 'some-region'
-    def zone = 'some-zone'
-    def input = [loadBalancerName: application, region: region, zone: zone,
+    def input = [loadBalancerName: application, region: region,
                  unknownProp: "this",
                  credentials: 'test']
 
@@ -73,7 +72,6 @@ class UpsertCloudFoundryLoadBalancerAtomicOperationConverterSpec extends Specifi
     then:
     description.loadBalancerName == application
     description.region == region
-    description.zone == zone
   }
 
 }

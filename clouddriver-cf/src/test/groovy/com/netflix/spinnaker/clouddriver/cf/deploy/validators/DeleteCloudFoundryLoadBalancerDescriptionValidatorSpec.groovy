@@ -31,7 +31,6 @@ class DeleteCloudFoundryLoadBalancerDescriptionValidatorSpec extends Specificati
 
   private static final LOAD_BALANCER_NAME = "service-registry"
   private static final REGION = "some-region"
-  private static final ZONE = "some-zone"
   private static final ACCOUNT_NAME = "auto"
 
   @Shared
@@ -50,7 +49,6 @@ class DeleteCloudFoundryLoadBalancerDescriptionValidatorSpec extends Specificati
       def description = new DeleteCloudFoundryLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
           region: REGION,
-          zone: ZONE,
           credentials: TestCredential.named(ACCOUNT_NAME))
       def errors = Mock(Errors)
 

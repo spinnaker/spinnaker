@@ -43,7 +43,7 @@ class EnableCloudFoundryServerGroupAtomicOperationConverterSpec extends Specific
 
   def "should return EnableDisableCloudFoundryServerGroupDescription and DisableCloudFoundryServerGroupAtomicOperation"() {
     setup:
-    def input = [serverGroupName: 'demo-staging-v001', zone: 'some-zone',
+    def input = [serverGroupName: 'demo-staging-v001', region: 'some-region',
                  credentials: 'test']
 
     when:
@@ -62,8 +62,8 @@ class EnableCloudFoundryServerGroupAtomicOperationConverterSpec extends Specific
   void "should not fail to serialize unknown properties"() {
     setup:
     def serverGroup = "demo-staging-v001"
-    def zone = 'some-zone'
-    def input = [serverGroupName: serverGroup, zone: zone,
+    def region = 'some-region'
+    def input = [serverGroupName: serverGroup, region: region,
                  unknownProp: "this",
                  credentials: 'test']
 
@@ -72,7 +72,7 @@ class EnableCloudFoundryServerGroupAtomicOperationConverterSpec extends Specific
 
     then:
     description.serverGroupName == serverGroup
-    description.zone == zone
+    description.region == region
   }
 
 }

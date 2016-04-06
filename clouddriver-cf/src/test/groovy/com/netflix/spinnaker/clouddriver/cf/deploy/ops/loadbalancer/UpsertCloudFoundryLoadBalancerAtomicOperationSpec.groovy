@@ -41,8 +41,7 @@ class UpsertCloudFoundryLoadBalancerAtomicOperationSpec extends Specification {
     def op = new UpsertCloudFoundryLoadBalancerAtomicOperation(
         new UpsertCloudFoundryLoadBalancerDescription(
             loadBalancerName: "my-load-balancer",
-            region: 'region',
-            zone: "staging",
+            region: "staging",
             credentials: TestCredential.named('baz')))
     op.cloudFoundryClientFactory = new TestCloudFoundryClientFactory(stubClient: client)
 
@@ -58,7 +57,7 @@ class UpsertCloudFoundryLoadBalancerAtomicOperationSpec extends Specification {
 
     task.history == [
         new TaskDisplayStatus(new DefaultTaskStatus(phase:'INIT', status:'Creating task test', state:'STARTED')),
-        new TaskDisplayStatus(new DefaultTaskStatus(phase:'UPSERT_LOAD_BALANCER', status:'Initializing creation of load balancer my-load-balancer in region...', state:'STARTED')),
+        new TaskDisplayStatus(new DefaultTaskStatus(phase:'UPSERT_LOAD_BALANCER', status:'Initializing creation of load balancer my-load-balancer in staging...', state:'STARTED')),
     ]
 
     Exception e = thrown()
@@ -70,8 +69,7 @@ class UpsertCloudFoundryLoadBalancerAtomicOperationSpec extends Specification {
     def op = new UpsertCloudFoundryLoadBalancerAtomicOperation(
         new UpsertCloudFoundryLoadBalancerDescription(
             loadBalancerName: "my-load-balancer",
-            region: 'region',
-            zone: "staging",
+            region: "staging",
             credentials: TestCredential.named('baz')))
     op.cloudFoundryClientFactory = new TestCloudFoundryClientFactory(stubClient: client)
 
@@ -85,7 +83,7 @@ class UpsertCloudFoundryLoadBalancerAtomicOperationSpec extends Specification {
 
     task.history == [
         new TaskDisplayStatus(new DefaultTaskStatus(phase:'INIT', status:'Creating task test', state:'STARTED')),
-        new TaskDisplayStatus(new DefaultTaskStatus(phase:'UPSERT_LOAD_BALANCER', status:'Initializing creation of load balancer my-load-balancer in region...', state:'STARTED')),
+        new TaskDisplayStatus(new DefaultTaskStatus(phase:'UPSERT_LOAD_BALANCER', status:'Initializing creation of load balancer my-load-balancer in staging...', state:'STARTED')),
         new TaskDisplayStatus(new DefaultTaskStatus(phase:'UPSERT_LOAD_BALANCER', status:'Done creating load balancer my-load-balancer.', state:'STARTED')),
     ]
   }

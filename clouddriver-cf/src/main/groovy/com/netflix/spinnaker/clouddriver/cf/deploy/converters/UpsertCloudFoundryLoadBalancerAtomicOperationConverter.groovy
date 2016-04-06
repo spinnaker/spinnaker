@@ -38,11 +38,10 @@ class UpsertCloudFoundryLoadBalancerAtomicOperationConverter extends AbstractAto
 
   @Override
   Object convertDescription(Map input) {
-    new UpsertCloudFoundryLoadBalancerDescription([
-        loadBalancerName : input.loadBalancerName,
-        zone             : input.zone,
-        region           : input.region,
-        credentials      : getCredentialsObject(input.credentials as String)
-    ])
+    new UpsertCloudFoundryLoadBalancerDescription(
+      loadBalancerName : input.loadBalancerName,
+      region           : input.region,
+      credentials      : getCredentialsObject(input.credentials as String)
+    )
   }
 }

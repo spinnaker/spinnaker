@@ -79,7 +79,7 @@ class DisableCloudFoundryServerGroupAtomicOperationSpec extends Specification {
     def op = new DisableCloudFoundryServerGroupAtomicOperation(
         new EnableDisableCloudFoundryServerGroupDescription(
             serverGroupName: serverGroupName,
-            zone: "staging",
+            region: "staging",
             credentials: TestCredential.named('baz')))
     op.cloudFoundryClientFactory = new TestCloudFoundryClientFactory(stubClient: client)
     op.clusterProvider = clusterProvider
@@ -161,7 +161,7 @@ class DisableCloudFoundryServerGroupAtomicOperationSpec extends Specification {
     def op = new DisableCloudFoundryServerGroupAtomicOperation(
         new EnableDisableCloudFoundryServerGroupDescription(
             serverGroupName: serverGroupName,
-            zone: "staging",
+            region: "staging",
             credentials: TestCredential.named('baz')))
     op.cloudFoundryClientFactory = new TestCloudFoundryClientFactory(stubClient: client)
     op.clusterProvider = clusterProvider
@@ -258,7 +258,7 @@ class DisableCloudFoundryServerGroupAtomicOperationSpec extends Specification {
     def op = new DisableCloudFoundryServerGroupAtomicOperation(
         new EnableDisableCloudFoundryServerGroupDescription(
             serverGroupName: serverGroupName,
-            zone: "staging",
+            region: "staging",
             credentials: TestCredential.named('baz')))
     op.cloudFoundryClientFactory = new TestCloudFoundryClientFactory(stubClient: client)
     op.clusterProvider = clusterProvider
@@ -343,7 +343,7 @@ class DisableCloudFoundryServerGroupAtomicOperationSpec extends Specification {
     def op = new DisableCloudFoundryServerGroupAtomicOperation(
         new EnableDisableCloudFoundryServerGroupDescription(
             serverGroupName: serverGroupName,
-            zone: "staging",
+            region: "staging",
             credentials: TestCredential.named('baz')))
     op.cloudFoundryClientFactory = new TestCloudFoundryClientFactory(stubClient: client)
     op.clusterProvider = clusterProvider

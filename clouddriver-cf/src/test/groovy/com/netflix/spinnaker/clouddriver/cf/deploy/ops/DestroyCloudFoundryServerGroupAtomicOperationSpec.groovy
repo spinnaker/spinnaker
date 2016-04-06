@@ -55,7 +55,7 @@ class DestroyCloudFoundryServerGroupAtomicOperationSpec extends Specification {
     def op = new DestroyCloudFoundryServerGroupAtomicOperation(
         new DestroyCloudFoundryServerGroupDescription(
             serverGroupName: "my-stack-v000",
-            zone: "staging",
+            region: "staging",
             credentials: TestCredential.named('baz')))
     op.cloudFoundryClientFactory = new TestCloudFoundryClientFactory(stubClient: clientForNonExistentServerGroup)
 
@@ -71,7 +71,7 @@ class DestroyCloudFoundryServerGroupAtomicOperationSpec extends Specification {
     def op = new DestroyCloudFoundryServerGroupAtomicOperation(
         new DestroyCloudFoundryServerGroupDescription(
             serverGroupName: "my-stack-v000",
-            zone: "staging",
+            region: "staging",
             credentials: TestCredential.named('baz')))
     op.cloudFoundryClientFactory = new TestCloudFoundryClientFactory(stubClient: client)
     op.operationPoller = new OperationPoller(100, 100)
@@ -97,7 +97,7 @@ class DestroyCloudFoundryServerGroupAtomicOperationSpec extends Specification {
     def op = new DestroyCloudFoundryServerGroupAtomicOperation(
         new DestroyCloudFoundryServerGroupDescription(
             serverGroupName: "my-stack-v000",
-            zone: "staging",
+            region: "staging",
             credentials: TestCredential.named('baz')))
     op.cloudFoundryClientFactory = new TestCloudFoundryClientFactory(stubClient: client)
     op.operationPoller = new OperationPoller(1, 3)

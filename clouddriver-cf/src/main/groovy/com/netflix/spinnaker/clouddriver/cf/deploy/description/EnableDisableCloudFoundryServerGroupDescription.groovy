@@ -21,7 +21,7 @@ import com.netflix.spinnaker.clouddriver.cf.model.CloudFoundryLoadBalancer
 
 class EnableDisableCloudFoundryServerGroupDescription {
   String serverGroupName
-  String zone
+  String region
   String getAccountName() {
     credentials?.name
   }

@@ -27,7 +27,7 @@ import spock.lang.Specification
 class ResizeCloudFoundryServerGroupDescriptionValidatorSpec extends Specification {
 
   private static final SERVER_GROUP_NAME = "spinnaker-test-v000"
-  private static final ZONE = "us-central1-b"
+  private static final REGION = "some-region"
   private static final ACCOUNT_NAME = "auto"
   private static final TARGET_SIZE = 4
 
@@ -45,7 +45,7 @@ class ResizeCloudFoundryServerGroupDescriptionValidatorSpec extends Specificatio
   void "pass validation with proper description inputs"() {
     setup:
     def description = new ResizeCloudFoundryServerGroupDescription(serverGroupName: SERVER_GROUP_NAME,
-        zone: ZONE,
+        region: REGION,
         targetSize: TARGET_SIZE,
         credentials: TestCredential.named(ACCOUNT_NAME))
     def errors = Mock(Errors)
@@ -68,7 +68,7 @@ class ResizeCloudFoundryServerGroupDescriptionValidatorSpec extends Specificatio
     then:
       1 * errors.rejectValue('credentials', _)
       1 * errors.rejectValue('serverGroupName', _)
-      1 * errors.rejectValue('zone', _)
+      1 * errors.rejectValue('region', _)
       1 * errors.rejectValue('targetSize', _)
   }
 }

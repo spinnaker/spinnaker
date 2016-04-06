@@ -79,7 +79,7 @@ class EnableCloudFoundryServerGroupAtomicOperationSpec extends Specification {
     def op = new EnableCloudFoundryServerGroupAtomicOperation(
         new EnableDisableCloudFoundryServerGroupDescription(
             serverGroupName: serverGroupName,
-            zone: "test",
+            region: "test",
             credentials: TestCredential.named('baz')))
     op.cloudFoundryClientFactory = new TestCloudFoundryClientFactory(stubClient: client)
     op.clusterProvider = clusterProvider
@@ -160,7 +160,7 @@ class EnableCloudFoundryServerGroupAtomicOperationSpec extends Specification {
     def op = new EnableCloudFoundryServerGroupAtomicOperation(
         new EnableDisableCloudFoundryServerGroupDescription(
             serverGroupName: serverGroupName,
-            zone: "test",
+            region: "test",
             credentials: TestCredential.named('baz')))
     op.cloudFoundryClientFactory = new TestCloudFoundryClientFactory(stubClient: client)
     op.clusterProvider = clusterProvider
@@ -253,7 +253,7 @@ class EnableCloudFoundryServerGroupAtomicOperationSpec extends Specification {
     def op = new EnableCloudFoundryServerGroupAtomicOperation(
         new EnableDisableCloudFoundryServerGroupDescription(
             serverGroupName: serverGroupName,
-            zone: "test",
+            region: "test",
             credentials: TestCredential.named('baz')))
     op.cloudFoundryClientFactory = new TestCloudFoundryClientFactory(stubClient: client)
     op.clusterProvider = clusterProvider
@@ -338,7 +338,7 @@ class EnableCloudFoundryServerGroupAtomicOperationSpec extends Specification {
     def op = new EnableCloudFoundryServerGroupAtomicOperation(
         new EnableDisableCloudFoundryServerGroupDescription(
             serverGroupName: serverGroupName,
-            zone: "test",
+            region: "test",
             credentials: TestCredential.named('baz')))
     op.cloudFoundryClientFactory = new TestCloudFoundryClientFactory(stubClient: client)
     op.clusterProvider = clusterProvider

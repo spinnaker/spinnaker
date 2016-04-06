@@ -20,7 +20,7 @@ import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredenti
 
 class DestroyCloudFoundryServerGroupDescription {
   String serverGroupName
-  String zone
+  String region
   String getAccountName() {
     credentials?.name
   }
