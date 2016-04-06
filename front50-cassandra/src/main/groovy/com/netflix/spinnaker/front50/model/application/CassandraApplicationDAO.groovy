@@ -41,8 +41,9 @@ import javax.annotation.PostConstruct
 
 @Slf4j
 @Component
-@ConditionalOnExpression('${cassandra.enabled:true}')
+@ConditionalOnExpression('${cassandra.enabled:false}')
 class CassandraApplicationDAO implements ApplicationDAO {
+
   private static final MapSerializer<String, String> mapSerializer = new MapSerializer<String, String>(UTF8Type.instance, UTF8Type.instance)
   private static final ListSerializer<String> listSerializer = new ListSerializer(UTF8Type.instance)
 

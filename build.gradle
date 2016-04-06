@@ -59,6 +59,9 @@ allprojects { project ->
         if (it.requested.group == "org.apache.xbean") {
           it.useVersion "4.4"
         }
+        if (it.requested.group == "org.springframework.data" && it.requested.name == "spring-data-commons") {
+          it.useVersion "1.12.0.RELEASE"
+        }
       }
     }
   }

@@ -50,7 +50,7 @@ class CassandraApplicationDAOSpec extends Specification {
 
   void setupSpec() {
     System.setProperty('netflix.environment', 'local')
-    System.setProperty('spinnaker.cassandra.enabled', 'true')
+    System.setProperty('cassandra.enabled', 'true')
     System.setProperty('spinnaker.cassandra.embedded', 'true')
     System.setProperty('spinnaker.cassandra.name', 'global')
     System.setProperty('spinnaker.cassandra.cluster', 'spinnaker')
