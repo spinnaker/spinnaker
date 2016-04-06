@@ -135,6 +135,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.checkPreconditions.failPipeline': '' +
       '<p><strong>Checked</strong> - the overall pipeline will fail whenever this precondition is false.</p>' +
       '<p><strong>Unchecked</strong> - the overall pipeline will continue executing but this particular branch will stop.</p>',
+    'pipeline.config.checkPreconditions.expectedSize': 'Number of server groups in the selected cluster',
     'pipeline.config.checkPreconditions.expression': '<p>Value must evaluate to "true".</p>' +
       '<p>Use of the <b>Spring Expression Language</b> allows for complex evaluations.</p>',
     'pipeline.config.deploy.template': '<p>Select an existing cluster to use as a template for this deployment, and we\'ll pre-fill ' +
