@@ -26,7 +26,7 @@ module.exports = angular
         .remove({
           propId: fastProperty.propertyId,
           cmcTicket: fastProperty.cmcTicket,
-          env: fastProperty.env,
+          env: fastProperty.env || 'prod',
         });
     }
 

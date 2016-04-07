@@ -10,15 +10,13 @@
         <h3>Fast Properties</h3>
       </div>
 
-
-
       <div class="col-md-6">
         <form class="form form-inline">
           <div class="form-group">
             <!--<div class="col-md-12">-->
             <label >Filter </label>
             <input type="search"
-                   style="width: 500px"
+                   style="width: 295px"
                    placeholder="Search properties"
                    class="form-control input-md search"
                    focus
@@ -31,12 +29,12 @@
       <div class="col-md-3 ">
         <button type="button" class="btn btn-primary pull-right" ng-click="fp.newFastPropertyModal()">Start New Property Promotion</button>
       </div>
-
     </div>
 
 
      <div class="row content">
-       <div class="rollout" ng-show="fp.promotions.length > 0 && fp.promotionPaneOpen">
+
+       <div class="rollout" ng-show="fp.promotions.length > 0">
 
          <div class="clickable" ng-click="fp.togglePromotionPane()">
            <span class="pull-left glyphicon glyphicon-chevron-{{fp.promotionPaneOpen ? 'down' : 'up'}}"></span>
@@ -48,8 +46,8 @@
            </h3>
          </div>
 
-         <div class="row">
-           <div class="col-md-5 col-md-offset-4">
+         <div class="row" ng-if="fp.promotionPaneOpen">
+           <div class="col-md-6 col-md-offset-4">
              <div class="btn-group">
                <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('')" uib-btn-radio="''">
                  <a href>All</a>
@@ -69,7 +67,13 @@
              </div>
            </div>
 
-           <fast-property-promotion promotions="fp.promotions" filtered-promotions="fp.filteredPromotions" application="fp.application"></fast-property-promotion>
+           <fast-property-promotion
+             promotions="fp.promotions"
+             filtered-promotions="fp.filteredPromotions"
+             promotion-pane-open="fp.promotionPaneOpen"
+             application="fp.application">
+
+           </fast-property-promotion>
          </div>
 
        </div>
@@ -79,107 +83,15 @@
          <h4>We couldn't find any properties for {{application.name}} <span ng-if="fp.filterString">with filter: <b>{{fp.filterString}}</b></span></h4>
        </div>
 
-       <h3 ng-if="fp.filteredPage.length > 0">Properties</h3>
-       <div class="row" ng-if="fp.filteredPage.length > 0">
+
+       <h3 ng-if="fp.filteredPage">Properties</h3>
+       <div class="row" ng-if="fp.filteredPage">
          <div class="col-md-12">
-           <table  class="table table-hover" style="table-layout: fixed; width: 100%">
-             <thead>
-             <tr>
-               <th width="10%" label="Name" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Property</th>
-               <th width="15%" label="Created" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Value</th>
-               <th width="10%" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Updated</th>
-               <th width="5%" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Region</th>
-               <th width="10%" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Stack</th>
-               <th width="20%" label="Updated" skrt-model="fp.sortModel" on-change="ctrl.filterApplications()">Additional Scope</th>
-               <th width="10%" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Expiration</th>
-               <th width="5%" label="edit"></th>
-               <th width="5%" label="edit"></th>
-             </tr>
-             </thead>
-             <tbody>
-             <tr class="" ng-repeat="property in fp.filteredPage">
 
-               <td style="word-wrap: break-word">
-                 {{ property.key }}
-               </td>
+           <div ng-repeat="(propKey, properties) in fp.filteredPage">
+              <fast-property-pod key="propKey" values="properties" ></fast-property-pod>
+           </div>
 
-               <td style="word-wrap: break-word">
-                 {{ property.value}}
-               </td>
-
-               <td>
-                 {{ property.ts | fastPropertyTime }}
-               </td>
-
-               <td>
-                 {{ property.region }}
-               </td>
-
-               <td>
-                 {{ property.stack}}
-               </td>
-
-               <td class="small-fp-scopes">
-                 <dl>
-                   <dt ng-if="property.env">Env</dt>
-                   <dd ng-if="property.env">{{property.env}}</dd>
-
-                   <dt ng-if="property.cluster" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('cluster') > -1}">Cluster</dt>
-                   <dd ng-if="property.cluster" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('cluster') > -1}">
-                     {{property.cluster}}
-                     <i
-                         class="error-message glyphicon glyphicon-exclamation-sign"
-                         ng-if="!property.isValid && property.errors.indexOf('cluster') > -1"
-                         style="display: inline; padding-left: 5px"
-                         uib-tooltip="{{property.cluster}} is not in service"
-                         tooltip-placement="right">
-                     </i>
-                   </dd>
-
-                   <dt ng-if="property.asg" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('asg') > -1}">ASG</dt>
-                   <dd ng-if="property.asg" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('asg') > -1}">
-                     {{property.asg}}
-                     <i
-                         class="error-message glyphicon glyphicon-exclamation-sign"
-                         ng-if="!property.isValid && property.errors.indexOf('asg') > -1"
-                         style="display: inline; padding-left: 5px"
-                         uib-tooltip="{{property.asg}} is not in service"
-                         tooltip-placement="right">
-                     </i>
-                   </dd>
-
-                   <dt ng-if="property.zone">AZ</dt>
-                   <dd ng-if="property.zone">
-                     {{property.zone}}
-                   </dd>
-
-                   <dt ng-if="property.serverId" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('serverId') > -1 }">Instance</dt>
-                   <dd ng-if="property.serverId" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('serverId') > -1 }">
-                     {{property.serverId}} {{property.errors.indexOf('serverId')}}
-                       <i
-                         class="error-message glyphicon glyphicon-exclamation-sign"
-                         ng-if="!property.isValid && property.errors.indexOf('serverId') > -1"
-                         style="display: inline; padding-left: 5px"
-                         uib-tooltip="{{property.serverId}} is not in service"
-                         tooltip-placement="right">
-                       </i>
-                   </dd>
-                 </dl>
-
-               </td>
-
-               <td>
-                 {{ property.ttl }}
-               </td>
-
-               <td>
-                 <span class="clickable clickable-sm glyphicon glyphicon-pencil" ng-click="fp.editFastProperty(property)"></span>
-                 <span class="clickable clickable-sm glyphicon glyphicon-trash" ng-click="fp.delete(property)"></span>
-               </td>
-
-             </tr>
-             </tbody>
-           </table>
          </div>
        </div>
      </div>

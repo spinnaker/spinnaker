@@ -14,6 +14,10 @@ module.exports = angular
       return Restangular.all('fastproperties').all('application').one(appName).get();
     }
 
+    function getPropByIdAndEnv(id, env) {
+      return Restangular.all('fastproperties').one('id', id).one('env', env).get();
+    }
+
     function fetchImpactCountForScope(fastPropertyScope) {
       return Restangular.all('fastproperties').all('impact').post(fastPropertyScope);
     }
@@ -46,6 +50,7 @@ module.exports = angular
       fetchForAppName: fetchForAppName,
       fetchImpactCountForScope: fetchImpactCountForScope,
       loadPromotions: loadPromotions,
-      loadPromotionsByApp: loadPromotionsByApp
+      loadPromotionsByApp: loadPromotionsByApp,
+      getPropByIdAndEnv: getPropByIdAndEnv
     };
   });

@@ -1,0 +1,86 @@
+<div class="row rollup-entry sub-group">
+  <div class="rollup-summary">
+    <div class="container-fluid no-padding">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="rollup-title-cell">
+            <h5 style="margin-left: 15px">
+              <span class="glyphicon glyphicon-equalizer"></span>
+              {{fpPod.key}}
+            </h5>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="rollup-details" style="margin: 15px;">
+    <table class="table" style="word-break: break-all">
+      <thead>
+        <tr>
+          <th width="20%" label="Created" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Value</th>
+          <th width="20%" label="Region" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Region</th>
+          <th width="20%" label="Env" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Env</th>
+          <th width="40%" label="Addition Scope" skrt-model="fp.sortModel" on-change="ctrl.filterApplications()">Additional Scope</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          ng-repeat="property in fpPod.values"
+          ng-click="fpPod.showPropertyDetails(property.propertyId)"
+          class="clickable"
+          ng-class="{ activeProperty: fpPod.$state.includes('**.propertyDetails', {propertyId: property.propertyId}) }" >
+
+          <td>{{property.value}}</td>
+          <td>{{property.region}}</td>
+          <td><account-tag account="property.env"></account-tag></td>
+
+          <td class="small-fp-scopes">
+            <dl>
+              <dt ng-if="property.cluster" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('cluster') > -1}">Cluster</dt>
+              <dd ng-if="property.cluster" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('cluster') > -1}">
+                {{property.cluster}}
+                <i
+                  class="error-message glyphicon glyphicon-exclamation-sign"
+                  ng-if="!property.isValid && property.errors.indexOf('cluster') > -1"
+                  style="display: inline; padding-left: 5px"
+                  uib-tooltip="{{property.cluster}} is not in service"
+                  tooltip-placement="right">
+                </i>
+              </dd>
+
+              <dt ng-if="property.asg" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('asg') > -1}">ASG</dt>
+              <dd ng-if="property.asg" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('asg') > -1}">
+                {{property.asg}}
+                <i
+                  class="error-message glyphicon glyphicon-exclamation-sign"
+                  ng-if="!property.isValid && property.errors.indexOf('asg') > -1"
+                  style="display: inline; padding-left: 5px"
+                  uib-tooltip="{{property.asg}} is not in service"
+                  tooltip-placement="right">
+                </i>
+              </dd>
+
+              <dt ng-if="property.zone">AZ</dt>
+              <dd ng-if="property.zone">
+                {{property.zone}}
+              </dd>
+
+              <dt ng-if="property.serverId" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('serverId') > -1 }">Instance</dt>
+              <dd ng-if="property.serverId" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('serverId') > -1 }">
+                {{property.serverId}} {{property.errors.indexOf('serverId')}}
+                <i
+                  class="error-message glyphicon glyphicon-exclamation-sign"
+                  ng-if="!property.isValid && property.errors.indexOf('serverId') > -1"
+                  style="display: inline; padding-left: 5px"
+                  uib-tooltip="{{property.serverId}} is not in service"
+                  tooltip-placement="right">
+                </i>
+              </dd>
+            </dl>
+
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

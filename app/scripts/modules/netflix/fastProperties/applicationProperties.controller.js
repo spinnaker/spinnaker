@@ -74,6 +74,12 @@ module.exports = angular
       return $filter('anyFieldFilter') (vm.properties, {key: vm.filterString, value: vm.filterString});
     };
 
+    let groupBy = _.curry((key, coll) => {
+      return _.groupBy(coll, key);
+    });
+
+    let groupByKey = groupBy('key');
+
     vm.updateStateFilter = function(state) {
       if(state) {
         vm.filteredPromotions = vm.promotions.filter(function(promotion) {
@@ -91,7 +97,16 @@ module.exports = angular
 
     vm.setFilteredProperties = function() {
       vm.filteredProps = vm.filterProperties();
-      vm.filteredPage = vm.filteredResultPage();
+      vm.filteredPage = groupByKey(vm.filteredResultPage());
+    };
+
+    vm.showPropertyDetails = (propertyId) => {
+      if($state.current.name.indexOf('.properties.propertyDetails') !== -1 ) {
+        $state.go('^.propertyDetails', {propertyId: propertyId}, {inherit: true});
+      } else {
+        $state.go('.propertyDetails', {propertyId: propertyId}, {inherit: true});
+      }
+
     };
 
     vm.delete = function(property) {

@@ -12,7 +12,7 @@ module.exports = angular
       url: '/rollouts',
       views: {
         'master': {
-          templateUrl: require('./fastPropertyRollouts.html'),
+          templateUrl: require('./dataNav/fastPropertyRollouts.html'),
           controller: 'FastPropertyRolloutController',
           controllerAs: 'rollout'
         }
@@ -24,12 +24,57 @@ module.exports = angular
       }
     };
 
-    var appFastProperties = {
+    var appFastPropertyDetails = {
+      name: 'propertyDetails',
+      url: '/:propertyId',
+      views: {
+        'detail@../propInsights': {
+          templateUrl: require('./fastPropertyDetails.html'),
+          controller: 'FastPropertiesDetailsController',
+          controllerAs: 'details'
+        }
+      },
+      resolve: {
+        fastProperty: ['$stateParams', function($stateParams) {
+          return {
+            propertyId: $stateParams.propertyId,
+          };
+        }]
+      },
+      data: {
+        pageTitleDetails: {
+          title: 'Fast Property Details',
+          propertyId: 'propertyId',
+          accountParam: 'accountId',
+          regionParam: 'region'
+        },
+        history: {
+          type: 'properties',
+        },
+      }
+    };
+
+    var mainProperty = {
       name: 'properties',
       url: '/properties',
       views: {
-        'insight': {
+        'master': {
           templateUrl: require('./applicationProperties.html'),
+          controller: 'ApplicationPropertiesController',
+          controllerAs: 'fp'
+        },
+      },
+      children: [
+        appFastPropertyDetails
+      ]
+    };
+
+    var appFastProperties = {
+      name: 'propInsights',
+      abstract: true,
+      views: {
+        'insight': {
+          templateUrl: require('./mainApplicationProperties.html'),
           controller: 'ApplicationPropertiesController',
           controllerAs: 'fp'
         }
@@ -38,7 +83,10 @@ module.exports = angular
         pageTitleSection: {
           title: 'Fast Properties'
         }
-      }
+      },
+      children: [
+        mainProperty
+      ]
     };
 
     var fastProperties = {
@@ -47,7 +95,7 @@ module.exports = angular
       reloadOnSearch: false,
       views: {
         'master': {
-          templateUrl: require('./properties.html'),
+          templateUrl: require('./dataNav/properties.html'),
           controller: 'FastPropertiesController',
           controllerAs: 'fp'
         }
@@ -60,7 +108,7 @@ module.exports = angular
       reloadOnSearch: false,
       views: {
         'main@': {
-          templateUrl: require('./main.html'),
+          templateUrl: require('./dataNav/main.html'),
           controller: 'FastPropertyDataController',
           controllerAs: 'data'
         }

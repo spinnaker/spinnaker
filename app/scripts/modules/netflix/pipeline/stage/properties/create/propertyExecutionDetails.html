@@ -13,7 +13,7 @@
           <tr ng-repeat="prop in properties">
             <td>
               <strong ng-if="!prop.propertyId">{{ prop.key }}</strong>
-              <strong ng-if="prop.propertyId"><a target="_blank" ng-href="http://persistedproperties.us-east-1.dyn{{prop.env}}.netflix.net:7001/fastproperty/show?propId={{prop.propertyId}}" >{{prop.key}}</a></strong>
+              <strong ng-if="prop.propertyId"><a ui-sref="^.propInsights.properties.propertyDetails({propertyId: prop.propertyId})" >{{prop.key}}</a></strong>
             </td>
             <td>
               <strong>{{ prop.value }}</strong>
