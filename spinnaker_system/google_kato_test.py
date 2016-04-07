@@ -516,7 +516,8 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     # just the record. Leaving it as is because displaying this type of
     # error is usually helpful for development.
     builder = gcp.GceContractBuilder(self.gce_observer)
-    (builder.new_clause_builder('Instances not in Target Pool')
+    (builder.new_clause_builder('Instances not in Target Pool',
+                                retryable_for_secs=5)
        .list_resources(
           'target-pools',
           extra_args=['--region', self.bindings['TEST_GCE_REGION']])
@@ -594,9 +595,7 @@ class GoogleKatoIntegrationTest(st.AgentTestCase):
         retry_interval_secs=10, max_retries=9)
 
   def test_w_deregister_load_balancer_instances(self):
-    self.run_test_case(
-        self.scenario.deregister_load_balancer_instances(),
-        max_retries=5)
+    self.run_test_case(self.scenario.deregister_load_balancer_instances())
 
   def test_x_terminate_instances(self):
     # delete 1 which was in a different zone than the other two.
