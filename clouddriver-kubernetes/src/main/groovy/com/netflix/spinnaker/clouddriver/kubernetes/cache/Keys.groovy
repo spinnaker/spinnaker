@@ -26,6 +26,7 @@ class Keys {
     INSTANCES,
     LOAD_BALANCERS,
     SECURITY_GROUPS,
+    JOBS,
     ON_DEMAND,
 
     static String provider = "kubernetes"
@@ -71,6 +72,21 @@ class Keys {
             cluster: parts[4],
             stack: names.stack,
             detail: names.detail
+        ]
+        break
+      case Namespace.JOBS.ns:
+        def names = Names.parseName(parts[4])
+        result << [
+            application: names.app,
+            account: parts[2],
+            name: parts[4],
+            namespace: parts[3],
+            stack: names.stack,
+            cluster: names.cluster,
+            detail: names.detail,
+            sequence: names.sequence?.toString(),
+            job: parts[4],
+            region: parts[3]
         ]
         break
       case Namespace.SERVER_GROUPS.ns:
@@ -141,6 +157,10 @@ class Keys {
 
   static String getServerGroupKey(String account, String namespace, String replicationControllerName) {
     "${Namespace.provider}:${Namespace.SERVER_GROUPS}:${account}:${namespace}:${replicationControllerName}"
+  }
+
+  static String getJobKey(String account, String namespace, String jobName) {
+    "${Namespace.provider}:${Namespace.JOBS}:${account}:${namespace}:${jobName}"
   }
 
   static String getLoadBalancerKey(String account, String namespace, String serviceName) {

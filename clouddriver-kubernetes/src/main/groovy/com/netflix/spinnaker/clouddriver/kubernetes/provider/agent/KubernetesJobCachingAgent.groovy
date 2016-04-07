@@ -1,11 +1,11 @@
 /*
  * Copyright 2016 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,14 +34,13 @@ import com.netflix.spinnaker.clouddriver.kubernetes.provider.view.MutableCacheDa
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import groovy.util.logging.Slf4j
 import io.fabric8.kubernetes.api.model.Pod
-import io.fabric8.kubernetes.api.model.ReplicationController
+import io.fabric8.kubernetes.api.model.extensions.Job
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 
 @Slf4j
-class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
-
+class KubernetesJobCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
   final KubernetesCloudProvider kubernetesCloudProvider
   final String accountName
   final String namespace
@@ -54,22 +53,22 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
     INFORMATIVE.forType(Keys.Namespace.APPLICATIONS.ns),
     INFORMATIVE.forType(Keys.Namespace.CLUSTERS.ns),
     INFORMATIVE.forType(Keys.Namespace.LOAD_BALANCERS.ns),
-    AUTHORITATIVE.forType(Keys.Namespace.SERVER_GROUPS.ns),
+    AUTHORITATIVE.forType(Keys.Namespace.JOBS.ns),
     INFORMATIVE.forType(Keys.Namespace.INSTANCES.ns),
   ] as Set)
 
-  KubernetesServerGroupCachingAgent(KubernetesCloudProvider kubernetesCloudProvider,
-                                    String accountName,
-                                    KubernetesCredentials credentials,
-                                    String namespace,
-                                    ObjectMapper objectMapper,
-                                    Registry registry) {
+  KubernetesJobCachingAgent(KubernetesCloudProvider kubernetesCloudProvider,
+                            String accountName,
+                            KubernetesCredentials credentials,
+                            String namespace,
+                            ObjectMapper objectMapper,
+                            Registry registry) {
     this.kubernetesCloudProvider = kubernetesCloudProvider
     this.accountName = accountName
     this.credentials = credentials
     this.objectMapper = objectMapper
     this.namespace = namespace
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "$kubernetesCloudProvider.id:$OnDemandAgent.OnDemandType.ServerGroup")
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "$kubernetesCloudProvider.id:$OnDemandAgent.OnDemandType.Job")
   }
 
   @Override
@@ -79,7 +78,7 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
 
   @Override
   String getAgentType() {
-    "${accountName}/${namespace}/${KubernetesServerGroupCachingAgent.simpleName}"
+    "${accountName}/${namespace}/${KubernetesJobCachingAgent.simpleName}"
   }
 
   @Override
@@ -98,7 +97,7 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
 
   @Override
   OnDemandAgent.OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data) {
-    if (!data.containsKey("serverGroupName")) {
+    if (!data.containsKey("jobName")) {
       return null
     }
 
@@ -110,25 +109,25 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
       return null
     }
 
-    def serverGroupName = data.serverGroupName.toString()
+    def jobName = data.jobName.toString()
 
-    ReplicationController replicationController = metricsSupport.readData {
-      loadReplicationController(serverGroupName)
+    Job job = metricsSupport.readData {
+      loadJob(jobName)
     }
 
     CacheResult result = metricsSupport.transformData {
-      buildCacheResult([replicationController], [:], [], Long.MAX_VALUE)
+      buildCacheResult([job], [:], [], Long.MAX_VALUE)
     }
 
     def jsonResult = objectMapper.writeValueAsString(result.cacheResults)
 
     if (result.cacheResults.values().flatten().isEmpty()) {
       // Avoid writing an empty onDemand cache record (instead delete any that may have previously existed).
-      providerCache.evictDeletedItems(Keys.Namespace.ON_DEMAND.ns, [Keys.getServerGroupKey(accountName, namespace, serverGroupName)])
+      providerCache.evictDeletedItems(Keys.Namespace.ON_DEMAND.ns, [Keys.getJobKey(accountName, namespace, jobName)])
     } else {
       metricsSupport.onDemandStore {
         def cacheData = new DefaultCacheData(
-          Keys.getServerGroupKey(accountName, namespace, serverGroupName),
+          Keys.getJobKey(accountName, namespace, jobName),
           10 * 60, // ttl is 10 minutes
           [
             cacheTime: System.currentTimeMillis(),
@@ -144,9 +143,9 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
     }
 
     // Evict this server group if it no longer exists.
-    Map<String, Collection<String>> evictions = replicationController ? [:] : [
-      (Keys.Namespace.SERVER_GROUPS.ns): [
-        Keys.getServerGroupKey(accountName, namespace, serverGroupName)
+    Map<String, Collection<String>> evictions = job ? [:] : [
+      (Keys.Namespace.JOBS.ns): [
+        Keys.getJobKey(accountName, namespace, jobName)
       ]
     ]
 
@@ -183,31 +182,31 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
 
   @Override
   boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    OnDemandAgent.OnDemandType.ServerGroup == type && cloudProvider == kubernetesCloudProvider.id
+    OnDemandAgent.OnDemandType.Job == type && cloudProvider == kubernetesCloudProvider.id
   }
 
-  List<ReplicationController> loadReplicationControllers() {
-    credentials.apiAdaptor.getReplicationControllers(namespace)
+  List<Job> loadJobs() {
+    credentials.apiAdaptor.getJobs(namespace)
   }
 
-  ReplicationController loadReplicationController(String name) {
-    credentials.apiAdaptor.getReplicationController(namespace, name)
+  Job loadJob(String name) {
+    credentials.apiAdaptor.getJob(namespace, name)
   }
 
-  List<Pod> loadPods(String replicationControllerName) {
-    credentials.apiAdaptor.getReplicationControllerPods(namespace, replicationControllerName)
+  List<Pod> loadPods(String jobName) {
+    credentials.apiAdaptor.getJobPods(namespace, jobName)
   }
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
     Long start = System.currentTimeMillis()
-    List<ReplicationController> replicationControllerList = loadReplicationControllers()
+    List<Job> jobList = loadJobs()
 
     def evictFromOnDemand = []
     def keepInOnDemand = []
 
     providerCache.getAll(Keys.Namespace.ON_DEMAND.ns,
-      replicationControllerList.collect { Keys.getServerGroupKey(accountName, namespace, it.metadata.name) }).each {
+      jobList.collect { Keys.getJobKey(accountName, namespace, it.metadata.name) }).each {
       // Ensure that we don't overwrite data that was inserted by the `handle` method while we retrieved the
       // replication controllers. Furthermore, cache data that hasn't been processed needs to be updated in the ON_DEMAND
       // cache, so don't evict data without a processedCount > 0.
@@ -218,7 +217,7 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
       }
     }
 
-    def result = buildCacheResult(replicationControllerList, keepInOnDemand.collectEntries { [(it.id): it] }, evictFromOnDemand*.id, start)
+    def result = buildCacheResult(jobList, keepInOnDemand.collectEntries { [(it.id): it] }, evictFromOnDemand*.id, start)
 
     result.cacheResults[Keys.Namespace.ON_DEMAND.ns].each {
       it.attributes.processedTime = System.currentTimeMillis()
@@ -242,78 +241,78 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
     }
   }
 
-  private CacheResult buildCacheResult(List<ReplicationController> replicationControllers, Map<String, CacheData> onDemandKeep, List<String> onDemandEvict, Long start) {
+  private CacheResult buildCacheResult(List<Job> jobs, Map<String, CacheData> onDemandKeep, List<String> onDemandEvict, Long start) {
     log.info("Describing items in ${agentType}")
 
     Map<String, MutableCacheData> cachedApplications = MutableCacheData.mutableCacheMap()
     Map<String, MutableCacheData> cachedClusters = MutableCacheData.mutableCacheMap()
-    Map<String, MutableCacheData> cachedServerGroups = MutableCacheData.mutableCacheMap()
+    Map<String, MutableCacheData> cachedJobs = MutableCacheData.mutableCacheMap()
     Map<String, MutableCacheData> cachedInstances = MutableCacheData.mutableCacheMap()
     Map<String, MutableCacheData> cachedLoadBalancers = MutableCacheData.mutableCacheMap()
 
-    for (ReplicationController replicationController : replicationControllers) {
-      if (!replicationController) {
+    for (Job job : jobs) {
+      if (!job) {
         continue
       }
 
-      def onDemandData = onDemandKeep ? onDemandKeep[Keys.getServerGroupKey(accountName, namespace, replicationController.metadata.name)] : null
+      def onDemandData = onDemandKeep ? onDemandKeep[Keys.getJobKey(accountName, namespace, job.metadata.name)] : null
 
       if (onDemandData && onDemandData.attributes.cacheTime >= start) {
         Map<String, List<CacheData>> cacheResults = objectMapper.readValue(onDemandData.attributes.cacheResults as String, new TypeReference<Map<String, List<MutableCacheData>>>() { })
         cache(cacheResults, Keys.Namespace.APPLICATIONS.ns, cachedApplications)
         cache(cacheResults, Keys.Namespace.CLUSTERS.ns, cachedClusters)
-        cache(cacheResults, Keys.Namespace.SERVER_GROUPS.ns, cachedServerGroups)
+        cache(cacheResults, Keys.Namespace.JOBS.ns, cachedJobs)
         cache(cacheResults, Keys.Namespace.INSTANCES.ns, cachedInstances)
       } else {
-        def replicationControllerName = replicationController.metadata.name
-        def pods = loadPods(replicationControllerName)
-        def names = Names.parseName(replicationControllerName)
+        def jobName = job.metadata.name
+        def pods = loadPods(jobName)
+        def names = Names.parseName(jobName)
         def applicationName = names.app
         def clusterName = names.cluster
 
-        def serverGroupKey = Keys.getServerGroupKey(accountName, namespace, replicationControllerName)
+        def jobKey = Keys.getJobKey(accountName, namespace, jobName)
         def applicationKey = Keys.getApplicationKey(applicationName)
         def clusterKey = Keys.getClusterKey(accountName, applicationName, clusterName)
         def instanceKeys = []
-        def loadBalancerKeys = KubernetesUtil.getDescriptionLoadBalancers(replicationController).collect({
+        def loadBalancerKeys = KubernetesUtil.getJobLoadBalancers(job).collect({
           Keys.getLoadBalancerKey(accountName, namespace, it)
         })
 
         cachedApplications[applicationKey].with {
           attributes.name = applicationName
           relationships[Keys.Namespace.CLUSTERS.ns].add(clusterKey)
-          relationships[Keys.Namespace.SERVER_GROUPS.ns].add(serverGroupKey)
+          relationships[Keys.Namespace.JOBS.ns].add(jobKey)
           relationships[Keys.Namespace.LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
         }
 
         cachedClusters[clusterKey].with {
           attributes.name = clusterName
           relationships[Keys.Namespace.APPLICATIONS.ns].add(applicationKey)
-          relationships[Keys.Namespace.SERVER_GROUPS.ns].add(serverGroupKey)
+          relationships[Keys.Namespace.JOBS.ns].add(jobKey)
           relationships[Keys.Namespace.LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
         }
 
         pods.forEach { pod ->
-          def key = Keys.getInstanceKey(accountName, namespace, replicationControllerName, pod.metadata.name)
+          def key = Keys.getInstanceKey(accountName, namespace, jobName, pod.metadata.name)
           instanceKeys << key
           cachedInstances[key].with {
             relationships[Keys.Namespace.APPLICATIONS.ns].add(applicationKey)
             relationships[Keys.Namespace.CLUSTERS.ns].add(clusterKey)
-            relationships[Keys.Namespace.SERVER_GROUPS.ns].add(serverGroupKey)
+            relationships[Keys.Namespace.JOBS.ns].add(jobKey)
             relationships[Keys.Namespace.LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
           }
         }
 
         loadBalancerKeys.forEach { loadBalancerKey ->
           cachedLoadBalancers[loadBalancerKey].with {
-            relationships[Keys.Namespace.SERVER_GROUPS.ns].add(serverGroupKey)
+            relationships[Keys.Namespace.JOBS.ns].add(jobKey)
             relationships[Keys.Namespace.INSTANCES.ns].addAll(instanceKeys)
           }
         }
 
-        cachedServerGroups[serverGroupKey].with {
-          attributes.name = replicationControllerName
-          attributes.replicationController = replicationController
+        cachedJobs[jobKey].with {
+          attributes.name = jobName
+          attributes.job = job
           relationships[Keys.Namespace.APPLICATIONS.ns].add(applicationKey)
           relationships[Keys.Namespace.CLUSTERS.ns].add(clusterKey)
           relationships[Keys.Namespace.LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
@@ -324,14 +323,14 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
 
     log.info("Caching ${cachedApplications.size()} applications in ${agentType}")
     log.info("Caching ${cachedClusters.size()} clusters in ${agentType}")
-    log.info("Caching ${cachedServerGroups.size()} server groups in ${agentType}")
+    log.info("Caching ${cachedJobs.size()} jobs in ${agentType}")
     log.info("Caching ${cachedInstances.size()} instances in ${agentType}")
 
     new DefaultCacheResult([
       (Keys.Namespace.APPLICATIONS.ns): cachedApplications.values(),
       (Keys.Namespace.LOAD_BALANCERS.ns): cachedLoadBalancers.values(),
       (Keys.Namespace.CLUSTERS.ns): cachedClusters.values(),
-      (Keys.Namespace.SERVER_GROUPS.ns): cachedServerGroups.values(),
+      (Keys.Namespace.JOBS.ns): cachedJobs.values(),
       (Keys.Namespace.INSTANCES.ns): cachedInstances.values(),
       (Keys.Namespace.ON_DEMAND.ns): onDemandKeep.values()
     ],[
