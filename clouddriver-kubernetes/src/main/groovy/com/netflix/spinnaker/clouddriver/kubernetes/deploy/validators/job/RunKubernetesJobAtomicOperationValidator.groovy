@@ -48,8 +48,6 @@ class RunKubernetesJobAtomicOperationValidator extends DescriptionValidator<Kube
     helper.validateApplication(description.application, "application")
     helper.validateStack(description.stack, "stack")
     helper.validateDetails(description.freeFormDetails, "details")
-    helper.validatePositive(description.completions, "completions")
-    helper.validatePositive(description.parallelism, "parallelism")
     helper.validateNamespace(credentials, description.namespace, "namespace")
 
     description.volumeSources.eachWithIndex { source, idx ->
