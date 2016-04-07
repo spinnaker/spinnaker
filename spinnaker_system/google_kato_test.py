@@ -594,7 +594,9 @@ class GoogleKatoIntegrationTest(st.AgentTestCase):
         retry_interval_secs=10, max_retries=9)
 
   def test_w_deregister_load_balancer_instances(self):
-    self.run_test_case(self.scenario.deregister_load_balancer_instances())
+    self.run_test_case(
+        self.scenario.deregister_load_balancer_instances(),
+        max_retries=5)
 
   def test_x_terminate_instances(self):
     # delete 1 which was in a different zone than the other two.
@@ -635,4 +637,3 @@ def main():
 
 if __name__ == '__main__':
   sys.exit(main())
-
