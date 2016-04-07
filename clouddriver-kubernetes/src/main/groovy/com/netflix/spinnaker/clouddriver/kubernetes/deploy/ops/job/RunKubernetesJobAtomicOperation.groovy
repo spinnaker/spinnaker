@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesJobNameResolver
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.job.KubernetesJobDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.job.KubernetesJobRestartPolicy
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.extensions.Job
 import io.fabric8.kubernetes.api.model.extensions.JobBuilder
@@ -69,9 +70,13 @@ class RunKubernetesJobAtomicOperation implements AtomicOperation<Void> {
 
     task.updateStatus BASE_PHASE, "Setting completions and parallelism..."
 
-    jobBuilder = jobBuilder.withParallelism(description.parallelism).withCompletions(description.completions)
-        .withNewTemplate()
-        .withNewMetadata()
+    jobBuilder = jobBuilder.withParallelism(description.parallelism ?: 1).withCompletions(description.completions ?: 1)
+
+    if (description.activeDeadlineSeconds) {
+      jobBuilder = jobBuilder.withActiveDeadlineSeconds(description.activeDeadlineSeconds)
+    }
+
+    jobBuilder = jobBuilder.withNewTemplate().withNewMetadata()
 
     task.updateStatus BASE_PHASE, "Setting job spec labels..."
 
@@ -83,7 +88,16 @@ class RunKubernetesJobAtomicOperation implements AtomicOperation<Void> {
 
     jobBuilder = jobBuilder.endMetadata().withNewSpec()
 
-    jobBuilder = jobBuilder.withRestartPolicy("OnFailure")
+    switch (description.restartPolicy) {
+      case KubernetesJobRestartPolicy.NEVER:
+        jobBuilder = jobBuilder.withRestartPolicy("Never")
+        break
+
+      case KubernetesJobRestartPolicy.ONFAILURE:
+      default:
+        jobBuilder = jobBuilder.withRestartPolicy("OnFailure")
+    }
+
 
     task.updateStatus BASE_PHASE, "Adding image pull secrets... "
     jobBuilder = jobBuilder.withImagePullSecrets()

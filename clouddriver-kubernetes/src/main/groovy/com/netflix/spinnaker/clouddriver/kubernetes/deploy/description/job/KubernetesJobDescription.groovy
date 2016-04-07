@@ -31,7 +31,13 @@ class KubernetesJobDescription extends KubernetesAtomicOperationDescription {
   String namespace
   Integer parallelism
   Integer completions
+  Integer activeDeadlineSeconds
+  KubernetesJobRestartPolicy restartPolicy
   List<String> loadBalancers
   List<KubernetesContainerDescription> containers
   List<KubernetesVolumeSource> volumeSources
+}
+
+enum KubernetesJobRestartPolicy {
+  NEVER, ONFAILURE
 }
