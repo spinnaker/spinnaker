@@ -54,7 +54,7 @@ class KubernetesJobCachingAgent implements CachingAgent, OnDemandAgent, AccountA
     INFORMATIVE.forType(Keys.Namespace.CLUSTERS.ns),
     INFORMATIVE.forType(Keys.Namespace.LOAD_BALANCERS.ns),
     AUTHORITATIVE.forType(Keys.Namespace.JOBS.ns),
-    INFORMATIVE.forType(Keys.Namespace.INSTANCES.ns),
+    INFORMATIVE.forType(Keys.Namespace.PROCESSES.ns),
   ] as Set)
 
   KubernetesJobCachingAgent(KubernetesCloudProvider kubernetesCloudProvider,
@@ -247,7 +247,7 @@ class KubernetesJobCachingAgent implements CachingAgent, OnDemandAgent, AccountA
     Map<String, MutableCacheData> cachedApplications = MutableCacheData.mutableCacheMap()
     Map<String, MutableCacheData> cachedClusters = MutableCacheData.mutableCacheMap()
     Map<String, MutableCacheData> cachedJobs = MutableCacheData.mutableCacheMap()
-    Map<String, MutableCacheData> cachedInstances = MutableCacheData.mutableCacheMap()
+    Map<String, MutableCacheData> cachedProcesses = MutableCacheData.mutableCacheMap()
     Map<String, MutableCacheData> cachedLoadBalancers = MutableCacheData.mutableCacheMap()
 
     for (Job job : jobs) {
@@ -262,7 +262,7 @@ class KubernetesJobCachingAgent implements CachingAgent, OnDemandAgent, AccountA
         cache(cacheResults, Keys.Namespace.APPLICATIONS.ns, cachedApplications)
         cache(cacheResults, Keys.Namespace.CLUSTERS.ns, cachedClusters)
         cache(cacheResults, Keys.Namespace.JOBS.ns, cachedJobs)
-        cache(cacheResults, Keys.Namespace.INSTANCES.ns, cachedInstances)
+        cache(cacheResults, Keys.Namespace.PROCESSES.ns, cachedProcesses)
       } else {
         def jobName = job.metadata.name
         def pods = loadPods(jobName)
@@ -273,7 +273,7 @@ class KubernetesJobCachingAgent implements CachingAgent, OnDemandAgent, AccountA
         def jobKey = Keys.getJobKey(accountName, namespace, jobName)
         def applicationKey = Keys.getApplicationKey(applicationName)
         def clusterKey = Keys.getClusterKey(accountName, applicationName, clusterName)
-        def instanceKeys = []
+        def processKeys = []
         def loadBalancerKeys = KubernetesUtil.getJobLoadBalancers(job).collect({
           Keys.getLoadBalancerKey(accountName, namespace, it)
         })
@@ -293,9 +293,9 @@ class KubernetesJobCachingAgent implements CachingAgent, OnDemandAgent, AccountA
         }
 
         pods.forEach { pod ->
-          def key = Keys.getInstanceKey(accountName, namespace, jobName, pod.metadata.name)
-          instanceKeys << key
-          cachedInstances[key].with {
+          def key = Keys.getProcessKey(accountName, namespace, jobName, pod.metadata.name)
+          processKeys << key
+          cachedProcesses[key].with {
             relationships[Keys.Namespace.APPLICATIONS.ns].add(applicationKey)
             relationships[Keys.Namespace.CLUSTERS.ns].add(clusterKey)
             relationships[Keys.Namespace.JOBS.ns].add(jobKey)
@@ -306,7 +306,7 @@ class KubernetesJobCachingAgent implements CachingAgent, OnDemandAgent, AccountA
         loadBalancerKeys.forEach { loadBalancerKey ->
           cachedLoadBalancers[loadBalancerKey].with {
             relationships[Keys.Namespace.JOBS.ns].add(jobKey)
-            relationships[Keys.Namespace.INSTANCES.ns].addAll(instanceKeys)
+            relationships[Keys.Namespace.PROCESSES.ns].addAll(processKeys)
           }
         }
 
@@ -316,7 +316,7 @@ class KubernetesJobCachingAgent implements CachingAgent, OnDemandAgent, AccountA
           relationships[Keys.Namespace.APPLICATIONS.ns].add(applicationKey)
           relationships[Keys.Namespace.CLUSTERS.ns].add(clusterKey)
           relationships[Keys.Namespace.LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
-          relationships[Keys.Namespace.INSTANCES.ns].addAll(instanceKeys)
+          relationships[Keys.Namespace.PROCESSES.ns].addAll(processKeys)
         }
       }
     }
@@ -324,14 +324,14 @@ class KubernetesJobCachingAgent implements CachingAgent, OnDemandAgent, AccountA
     log.info("Caching ${cachedApplications.size()} applications in ${agentType}")
     log.info("Caching ${cachedClusters.size()} clusters in ${agentType}")
     log.info("Caching ${cachedJobs.size()} jobs in ${agentType}")
-    log.info("Caching ${cachedInstances.size()} instances in ${agentType}")
+    log.info("Caching ${cachedProcesses.size()} processes in ${agentType}")
 
     new DefaultCacheResult([
       (Keys.Namespace.APPLICATIONS.ns): cachedApplications.values(),
       (Keys.Namespace.LOAD_BALANCERS.ns): cachedLoadBalancers.values(),
       (Keys.Namespace.CLUSTERS.ns): cachedClusters.values(),
       (Keys.Namespace.JOBS.ns): cachedJobs.values(),
-      (Keys.Namespace.INSTANCES.ns): cachedInstances.values(),
+      (Keys.Namespace.PROCESSES.ns): cachedProcesses.values(),
       (Keys.Namespace.ON_DEMAND.ns): onDemandKeep.values()
     ],[
       (Keys.Namespace.ON_DEMAND.ns): onDemandEvict,

@@ -24,6 +24,7 @@ class Keys {
     CLUSTERS,
     SERVER_GROUPS,
     INSTANCES,
+    PROCESSES,
     LOAD_BALANCERS,
     SECURITY_GROUPS,
     JOBS,
@@ -128,6 +129,18 @@ class Keys {
             region: parts[3]
         ]
         break
+      case Namespace.PROCESSES.ns:
+        def names = Names.parseName(parts[4])
+        result << [
+            application: names.app,
+            account: parts[2],
+            serverGroup: parts[4],
+            namespace: parts[3],
+            name: parts[5],
+            processId: parts[5],
+            region: parts[3]
+        ]
+        break
       case Namespace.SECURITY_GROUPS.ns:
         def names = Names.parseName(parts[4])
         result << [
@@ -169,6 +182,10 @@ class Keys {
 
   static String getInstanceKey(String account, String namespace, String replicationControllerName, String name) {
     "${Namespace.provider}:${Namespace.INSTANCES}:${account}:${namespace}:${replicationControllerName}:${name}"
+  }
+
+  static String getProcessKey(String account, String namespace, String jobName, String name) {
+    "${Namespace.provider}:${Namespace.PROCESSES}:${account}:${namespace}:${jobName}:${name}"
   }
 
   static String getSecurityGroupKey(String account, String namespace, String ingressName) {

@@ -18,49 +18,32 @@ package com.netflix.spinnaker.clouddriver.kubernetes.model
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.model.HealthState
-import com.netflix.spinnaker.clouddriver.model.Instance
+import com.netflix.spinnaker.clouddriver.model.Process
 import io.fabric8.kubernetes.api.model.Pod
-import io.fabric8.kubernetes.client.internal.SerializationUtils
 
-class KubernetesInstance implements Instance, Serializable {
+class KubernetesProcess implements Process, Serializable {
   String name
-  String instanceId
-  Long launchTime
-  String zone
+  String id
+  String location
+  String jobId
   List<Map<String, String>> health
-  String serverGroupName
-  Pod pod
   List<String> loadBalancers
-  String providerType = "kubernetes"
-  String yaml
+  Pod pod
 
-  boolean isAttached(String serviceName) {
-    KubernetesUtil.getPodLoadBalancerStates(pod)?.get(KubernetesUtil.loadBalancerKey(serviceName)) == "true"
-  }
-
-  KubernetesInstance(Pod pod, List<String> loadBalancers) {
-    this.name = pod.metadata?.name
-    this.instanceId = this.name
-    this.launchTime = KubernetesModelUtil.translateTime(pod.status?.startTime)
-    this.zone = pod.metadata?.namespace
-    this.pod = pod
-    this.yaml = SerializationUtils.dumpWithoutRuntimeStateAsYaml(pod)
+  KubernetesProcess(Pod pod, List<String> loadBalancers) {
+    this.name = pod.metadata.name
     this.loadBalancers = loadBalancers
+    this.id = this.name
+    this.location = pod.metadata.namespace
 
     def mapper = new ObjectMapper()
     this.health = pod.status?.containerStatuses?.collect {
       (Map<String, String>) mapper.convertValue(new KubernetesHealth(it.image, it), new TypeReference<Map<String, String>>() {})
     } ?: []
-
-    this.health.addAll(KubernetesUtil.getPodLoadBalancerStates(pod).collect { key, value ->
-      (Map<String, String>) mapper.convertValue(new KubernetesHealth(key, value), new TypeReference<Map<String, String>>() {})
-    } ?: [])
-
     this.health << (Map<String, String>) mapper.convertValue(new KubernetesHealth(pod), new TypeReference<Map<String, String>>() {})
 
-    this.serverGroupName = pod.metadata?.labels?.get(KubernetesUtil.REPLICATION_CONTROLLER_LABEL)
+    this.pod = pod
   }
 
   @Override
