@@ -50,7 +50,7 @@
           <select class="form-control input-sm" ng-model="securityGroup.vpcId"
                   ng-change="ctrl.vpcUpdated()"
                   ng-if="securityGroup.regions.length">
-            <option value="">None (EC2 Classic)</option>
+            <option value="" ng-if="!hideClassic">None (EC2 Classic)</option>
             <option ng-repeat="vpc in activeVpcs | orderBy: 'label'" value="{{vpc.ids[0]}}" ng-selected="securityGroup.vpcId === vpc.ids[0]">{{vpc.label}}</option>
             <option ng-if="activeVpcs.length && deprecatedVpcs.length" disabled>---------------</option>
             <option ng-repeat="vpc in deprecatedVpcs | orderBy: 'label'" value="{{vpc.ids[0]}}" ng-selected="securityGroup.vpcId === vpc.ids[0]">{{vpc.label}}</option>

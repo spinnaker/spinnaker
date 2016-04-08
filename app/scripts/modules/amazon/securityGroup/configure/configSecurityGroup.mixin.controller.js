@@ -5,25 +5,27 @@ var angular = require('angular');
 module.exports = angular
   .module('spinnaker.amazon.securityGroup.baseConfig.controller', [
     require('angular-ui-router'),
-    require('../../../core/task/monitor/taskMonitorService.js'),
-    require('../../../core/securityGroup/securityGroup.write.service.js'),
-    require('../../../core/account/account.service.js'),
-    require('../../vpc/vpc.read.service.js'),
-    require('../../../core/modal/wizard/v2modalWizard.service.js'),
-    require('../../../core/utils/lodash.js'),
+    require('../../../core/task/monitor/taskMonitorService'),
+    require('../../../core/securityGroup/securityGroup.write.service'),
+    require('../../../core/account/account.service'),
+    require('../../vpc/vpc.read.service'),
+    require('../../../core/modal/wizard/v2modalWizard.service'),
+    require('../../../core/utils/lodash'),
+    require('../../../core/config/settings'),
   ])
   .controller('awsConfigSecurityGroupMixin', function ($scope,
-                                                             $state,
-                                                             $modalInstance,
-                                                             taskMonitorService,
-                                                             application,
-                                                             securityGroup,
-                                                             securityGroupReader,
-                                                             securityGroupWriter,
-                                                             accountService,
-                                                             v2modalWizardService,
-                                                             cacheInitializer,
-                                                             vpcReader,
+                                                       $state,
+                                                       $modalInstance,
+                                                       taskMonitorService,
+                                                       application,
+                                                       securityGroup,
+                                                       securityGroupReader,
+                                                       securityGroupWriter,
+                                                       accountService,
+                                                       v2modalWizardService,
+                                                       cacheInitializer,
+                                                       vpcReader,
+                                                       settings,
                                                              _ ) {
 
 
@@ -43,6 +45,8 @@ module.exports = angular
     };
 
     $scope.wizard = v2modalWizardService;
+
+    $scope.hideClassic = false;
 
     ctrl.addMoreItems = function() {
       $scope.state.infiniteScroll.currentItems += $scope.state.infiniteScroll.numToAdd;
@@ -105,20 +109,10 @@ module.exports = angular
       });
     };
 
-    //ctrl.ifVcsFoundInAllRegions = function() {
-    //  var foundInAllRegions = true;
-    //  _.forEach($scope.securityGroup.regions, function(region) {
-    //    if (!_.some(vpcsToTest, { region: region, account: $scope.securityGroup.credentials })) {
-    //      foundInAllRegions = false;
-    //    }
-    //  });
-    //  return foundInAllRegions;
-    //};
-
     ctrl.regionUpdated = function() {
       var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
       vpcReader.listVpcs().then(function(vpcs) {
-        var vpcsByName = _.groupBy(vpcs, 'label');
+        var vpcsByName = _.groupBy(vpcs.filter(vpc => vpc.account === account), 'label');
         $scope.allVpcs = vpcs;
         var available = [];
         _.forOwn(vpcsByName, function(vpcsToTest, label) {
@@ -140,6 +134,17 @@ module.exports = angular
         $scope.activeVpcs = available.filter(function(vpc) { return !vpc.deprecated; });
         $scope.deprecatedVpcs = available.filter(function(vpc) { return vpc.deprecated; });
         $scope.vpcs = available;
+
+        let lockoutDate = _.get(settings, 'providers.aws.classicLaunchLockout');
+        if (lockoutDate) {
+          let createTs = Number(_.get(application, 'attributes.createTs', 0));
+          if (createTs >= lockoutDate) {
+            $scope.hideClassic = true;
+            if (!securityGroup.vpcId && available.length) {
+              securityGroup.vpcId = $scope.activeVpcs.length ? $scope.activeVpcs[0].ids[0] : available[0].ids[0];
+            }
+          }
+        }
 
         var match = _.find(available, function(vpc) {
           return vpc.ids.indexOf($scope.securityGroup.vpcId) !== -1;

@@ -14,7 +14,14 @@
         </div>
       </div>
       <region-select-field read-only="command.viewState.readOnlyFields.region" label-columns="3" component="command" field="region" account="command.credentials" provider="'aws'" regions="command.backingData.filtered.regions"></region-select-field>
-      <subnet-select-field read-only="command.viewState.readOnlyFields.subnet" label-columns="3" help-key="aws.serverGroup.subnet" component="command" field="subnetType" region="command.region" subnets="command.backingData.filtered.subnetPurposes"></subnet-select-field>
+      <subnet-select-field read-only="command.viewState.readOnlyFields.subnet"
+                           label-columns="3"
+                           help-key="aws.serverGroup.subnet"
+                           component="command"
+                           field="subnetType"
+                           region="command.region"
+                           application="application"
+                           subnets="command.backingData.filtered.subnetPurposes"></subnet-select-field>
       <div class="form-group">
         <div class="col-md-3 sm-label-right">
           Stack

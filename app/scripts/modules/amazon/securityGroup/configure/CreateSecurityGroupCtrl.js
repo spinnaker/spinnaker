@@ -9,11 +9,12 @@ module.exports = angular.module('spinnaker.amazon.securityGroup.create.controlle
   require('../../../core/cache/cacheInitializer.js'),
   require('../../../core/task/monitor/taskMonitorService.js'),
   require('../../../core/securityGroup/securityGroup.read.service.js'),
+  require('../../../core/config/settings.js'),
 ])
   .controller('awsCreateSecurityGroupCtrl', function($scope, $modalInstance, $state, $controller,
                                                   accountService, securityGroupReader,
                                                   taskMonitorService, cacheInitializer, infrastructureCaches,
-                                                  _, application, securityGroup ) {
+                                                  _, application, securityGroup, settings ) {
 
     $scope.pages = {
       location: require('./createSecurityGroupProperties.html'),
@@ -27,6 +28,7 @@ module.exports = angular.module('spinnaker.amazon.securityGroup.create.controlle
       $modalInstance: $modalInstance,
       application: application,
       securityGroup: securityGroup,
+      settings: settings,
     }));
 
 
