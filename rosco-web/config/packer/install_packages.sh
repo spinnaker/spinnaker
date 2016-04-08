@@ -61,7 +61,8 @@ EOF
     sudo yum -y update
   fi
 
-  sudo yum -y install $packages
+  # Enforce the package installation order.
+  for package in $packages; do sudo yum -y install $package; done
 }
 
 function main() {
