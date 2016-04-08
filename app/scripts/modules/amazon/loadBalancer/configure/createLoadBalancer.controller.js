@@ -39,6 +39,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     };
 
     $scope.isNew = isNew;
+    $scope.application = application;
     // if this controller is used in the context of "Create Load Balancer" stage,
     // then forPipelineConfig flag will be true. In that case, the Load Balancer
     // modal dialog will just return the Load Balancer object.

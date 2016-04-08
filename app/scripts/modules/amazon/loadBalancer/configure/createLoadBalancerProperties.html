@@ -69,7 +69,14 @@
       provider="'aws'" >
     </load-balancer-availability-zone-selector>
 
-    <subnet-select-field label-columns="3" help-key="aws.loadBalancer.subnet" component="loadBalancer" field="subnetType" region="loadBalancer.region" subnets="subnets" on-change="ctrl.subnetUpdated()"></subnet-select-field>
+    <subnet-select-field label-columns="3"
+                         help-key="aws.loadBalancer.subnet"
+                         component="loadBalancer"
+                         field="subnetType"
+                         region="loadBalancer.region"
+                         subnets="subnets"
+                         application="application"
+                         on-change="ctrl.subnetUpdated()"></subnet-select-field>
     <!--Adding support for public facing elb. Display only for vpc-->
     <div class="form-group" ng-if="loadBalancer.vpcId && !state.hideInternalFlag">
       <div class="col-md-3 sm-label-right"><b>Internal</b></div>

@@ -89,8 +89,9 @@ describe('Controller: CreateSecurityGroup', function () {
           taskMonitorService: this.taskMonitorService,
           securityGroupWriter: this.securityGroupWriter,
           vpcReader: this.vpcReader,
-          application: {},
+          application: this.application || { attributes: {}},
           securityGroup: { regions: [], securityGroupIngress: [] },
+          settings: this.settings || {},
         });
         this.$scope.$digest();
       };
@@ -190,6 +191,95 @@ describe('Controller: CreateSecurityGroup', function () {
         expect(this.v2modalWizardService.markDirty).toHaveBeenCalledWith('Ingress');
       });
 
+    });
+
+    describe('classic locking', function () {
+      function init(self) {
+        self.initializeCtrl();
+        self.ctrl.regionUpdated();
+        self.$scope.$digest();
+      }
+
+      it('does not hide classic when aws provider not configured', function () {
+        init(this);
+        expect(this.$scope.hideClassic).toBe(false);
+      });
+
+      it('does not hide classic when classicLaunchLockout not configured', function () {
+        this.settings = { providers: { aws: {} } };
+        init(this);
+        expect(this.$scope.hideClassic).toBe(false);
+      });
+
+      it('does not hide classic when application has no attributes', function () {
+        this.settings = { providers: { aws: { classicLaunchLockout: 10 } } };
+        init(this);
+        expect(this.$scope.hideClassic).toBe(false);
+
+        this.application = {};
+        init(this);
+        expect(this.$scope.hideClassic).toBe(false);
+      });
+
+      it('does not hide classic when application is older than lockout date', function () {
+        this.application = { attributes: { createTs: 9}};
+        init(this);
+        expect(this.$scope.hideClassic).toBe(false);
+      });
+
+      it('hides classic when application createTs is numeric and the same as lockout', function () {
+        this.settings = { providers: { aws: { classicLaunchLockout: 10 } } };
+        this.application = { attributes: { createTs: 10}};
+        init(this);
+        expect(this.$scope.hideClassic).toBe(true);
+      });
+
+      it('hides classic when application createTs is numeric and after lockout', function () {
+        this.settings = { providers: { aws: { classicLaunchLockout: 10 } } };
+        this.application = { attributes: { createTs: 11}};
+        init(this);
+        expect(this.$scope.hideClassic).toBe(true);
+      });
+
+      it('hides classic when application createTs is a string and the same as lockout', function () {
+        this.settings = { providers: { aws: { classicLaunchLockout: 10 } } };
+        this.application = { attributes: { createTs: '10'}};
+        init(this);
+        expect(this.$scope.hideClassic).toBe(true);
+      });
+
+      it('hides classic when application createTs is a string and after lockout', function () {
+        this.settings = { providers: { aws: { classicLaunchLockout: 10 } } };
+        this.application = { attributes: { createTs: '11'}};
+        init(this);
+        expect(this.$scope.hideClassic).toBe(true);
+      });
+
+      it('sets vpcId to first active if classic is locked', function () {
+        this.settings = { providers: { aws: { classicLaunchLockout: 10 } } };
+        this.application = { attributes: { createTs: 10}};
+        this.initializeCtrl();
+
+        this.$scope.securityGroup.credentials = 'prod';
+        this.$scope.securityGroup.regions = ['us-east-1'];
+        this.ctrl.regionUpdated();
+        this.$scope.$digest();
+
+        expect(this.$scope.securityGroup.vpcId).toBe('vpc1-pe');
+      });
+
+      it('leaves vpcId alone if already selected and classic locked', function () {
+        this.settings = { providers: { aws: { classicLaunchLockout: 10 } } };
+
+        this.application = { attributes: { createTs: 10}};
+        this.initializeCtrl();
+        this.$scope.securityGroup.vpcId = 'vpc2-te';
+        this.$scope.securityGroup.credentials = 'test';
+        this.$scope.securityGroup.regions = ['us-east-1'];
+        this.ctrl.regionUpdated();
+        this.$scope.$digest();
+        expect(this.$scope.securityGroup.vpcId).toBe('vpc2-te');
+      });
     });
 
   });
