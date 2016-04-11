@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.con
 ])
   .controller('azureSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, app, InsightFilterStateModel,
                                                     confirmationModalService, azureSecurityGroupWriter, securityGroupReader,
-                                                    $modal, _) {
+                                                    $uibModal, _) {
 
     const application = app;
     const securityGroup = resolvedSecurityGroup;
@@ -53,7 +53,7 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.con
     });
 
     this.editInboundRules = function editInboundRules() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('../configure/editSecurityGroup.html'),
         controller: 'azureEditSecurityGroupCtrl as ctrl',
         resolve: {
@@ -67,7 +67,7 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.con
 
 
     this.cloneSecurityGroup = function cloneSecurityGroup() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('../clone/cloneSecurityGroup.html'),
         controller: 'azureCloneSecurityGroupController as ctrl',
         resolve: {

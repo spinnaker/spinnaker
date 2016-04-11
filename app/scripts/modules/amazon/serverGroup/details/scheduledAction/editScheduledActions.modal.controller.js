@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.scheduledActi
   require('../../../../core/task/monitor/taskMonitor.module.js'),
   require('../../../../core/task/taskExecutor.js'),
 ])
-  .controller('EditScheduledActionsCtrl', function($scope, $modalInstance, taskMonitorService, taskExecutor, _,
+  .controller('EditScheduledActionsCtrl', function($scope, $uibModalInstance, taskMonitorService, taskExecutor, _,
                                                      application, serverGroup) {
     $scope.command = {
       scheduledActions: serverGroup.scheduledActions.map((action) => {
@@ -49,7 +49,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.scheduledActi
       };
 
       var taskMonitorConfig = {
-        modalInstance: $modalInstance,
+        modalInstance: $uibModalInstance,
         application: application,
         title: 'Update Scheduled Actions for ' + serverGroup.name,
         onTaskComplete: application.serverGroups.refresh,
@@ -60,5 +60,5 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.scheduledActi
       $scope.taskMonitor.submit(submitMethod);
     };
 
-    this.cancel = $modalInstance.dismiss;
+    this.cancel = $uibModalInstance.dismiss;
   });

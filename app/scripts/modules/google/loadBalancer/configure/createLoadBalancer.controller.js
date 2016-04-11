@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
   require('../../gceRegionSelectField.directive.js'),
   require('../../../core/search/search.service.js'),
 ])
-  .controller('gceCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, _,
+  .controller('gceCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state, _,
                                                     accountService, gceLoadBalancerTransformer,
                                                     application, loadBalancer, isNew, loadBalancerReader,
                                                     searchService, v2modalWizardService, loadBalancerWriter, taskMonitorService) {
@@ -40,7 +40,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
       if ($scope.$$destroyed) {
         return;
       }
-      $modalInstance.close();
+      $uibModalInstance.close();
       var newStateParams = {
         name: $scope.loadBalancer.name,
         accountId: $scope.loadBalancer.credentials,
@@ -62,7 +62,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: (isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
-      modalInstance: $modalInstance,
+      modalInstance: $uibModalInstance,
       onTaskComplete: onTaskComplete,
     });
 
@@ -217,6 +217,6 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
     };
 
     this.cancel = function () {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
   });

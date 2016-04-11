@@ -20,17 +20,17 @@
         </select>
       </div>
       <div class="form-group" ng-if="state === 'success'" style="margin-top: 30px">
-        <alert type="success">
+        <uib-alert type="success">
           <p>
             <span class="glyphicon glyphicon-ok-circle"></span>
             Successfully requested a new canary analysis
           </p>
-        </alert>
+        </uib-alert>
       </div>
       <div class="form-group" ng-if="state === 'error'" style="margin-top: 30px">
-        <alert type="danger">
+        <uib-alert type="danger">
           <p>There was an error with this request. Please try again later.</p>
-        </alert>
+        </uib-alert>
       </div>
     </div>
     <div class="modal-footer">

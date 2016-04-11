@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.rollback.c
       require('../../../../core/task/monitor/taskMonitorService.js'),
       require('../../../common/footer.directive.js'),
     ])
-    .controller('awsRollbackServerGroupCtrl', function ($scope, $modalInstance, serverGroupWriter,
+    .controller('awsRollbackServerGroupCtrl', function ($scope, $uibModalInstance, serverGroupWriter,
                                                         taskMonitorService,
                                                         application, serverGroup, disabledServerGroups) {
       $scope.serverGroup = serverGroup;
@@ -49,7 +49,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.rollback.c
         };
 
         var taskMonitorConfig = {
-          modalInstance: $modalInstance,
+          modalInstance: $uibModalInstance,
           application: application,
           title: 'Rollback ' + serverGroup.name,
         };
@@ -60,6 +60,6 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.rollback.c
       };
 
       this.cancel = function () {
-        $modalInstance.dismiss();
+        $uibModalInstance.dismiss();
       };
     });

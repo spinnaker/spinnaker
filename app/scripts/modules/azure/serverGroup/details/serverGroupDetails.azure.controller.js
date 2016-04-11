@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
   require('../../../core/insight/insightFilterState.model.js'),
 ])
   .controller('azureServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
-                                                     serverGroupReader, azureServerGroupCommandBuilder, $modal, confirmationModalService, _, serverGroupWriter,
+                                                     serverGroupReader, azureServerGroupCommandBuilder, $uibModal, confirmationModalService, _, serverGroupWriter,
                                                      subnetReader) {
 
     $scope.state = {
@@ -209,7 +209,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
     };
 
     this.cloneServerGroup = function cloneServerGroup(serverGroup) {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('../configure/wizard/serverGroupWizard.html'),
         controller: 'azureCloneServerGroupCtrl as ctrl',
         resolve: {

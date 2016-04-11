@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.cf.serverGroup.details.resize.control
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js')
 ])
-  .controller('cfResizeServerGroupCtrl', function($scope, $modalInstance, serverGroupWriter, taskMonitorService,
+  .controller('cfResizeServerGroupCtrl', function($scope, $uibModalInstance, serverGroupWriter, taskMonitorService,
                                                    application, serverGroup) {
 
     // TODO: Rip out min/max and just use desired capacity.
@@ -62,7 +62,7 @@ module.exports = angular.module('spinnaker.cf.serverGroup.details.resize.control
       };
 
       var taskMonitorConfig = {
-        modalInstance: $modalInstance,
+        modalInstance: $uibModalInstance,
         application: application,
         title: 'Resizing ' + serverGroup.name,
         onTaskComplete: application.serverGroups.refresh,
@@ -74,6 +74,6 @@ module.exports = angular.module('spinnaker.cf.serverGroup.details.resize.control
     };
 
     this.cancel = function () {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
   });

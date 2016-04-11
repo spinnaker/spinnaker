@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.rollback.c
       require('../../../../core/task/monitor/taskMonitorService.js'),
       require('../../../common/footer.directive.js'),
     ])
-    .controller('gceRollbackServerGroupCtrl', function ($scope, $modalInstance, serverGroupWriter,
+    .controller('gceRollbackServerGroupCtrl', function ($scope, $uibModalInstance, serverGroupWriter,
                                                         taskMonitorService,
                                                         application, serverGroup, disabledServerGroups) {
       $scope.serverGroup = serverGroup;
@@ -52,7 +52,7 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.rollback.c
         };
 
         var taskMonitorConfig = {
-          modalInstance: $modalInstance,
+          modalInstance: $uibModalInstance,
           application: application,
           title: 'Rollback ' + serverGroup.name,
         };
@@ -63,6 +63,6 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.rollback.c
       };
 
       this.cancel = function () {
-        $modalInstance.dismiss();
+        $uibModalInstance.dismiss();
       };
     });

@@ -28,12 +28,12 @@ describe('Controller: createPipelineModal', function() {
       application.pipelineConfigs.data = configs;
       this.$scope = $rootScope.$new();
       this.pipelineConfigService = pipelineConfigService;
-      this.$modalInstance = { close: angular.noop };
+      this.$uibModalInstance = { close: angular.noop };
       this.controller = $controller('CreatePipelineModalCtrl', {
         $scope: this.$scope,
         application: application,
         pipelineConfigService: this.pipelineConfigService,
-        $modalInstance: this.$modalInstance,
+        $uibModalInstance: this.$uibModalInstance,
         target: null,
         _: _,
         $log: $log,
@@ -94,7 +94,7 @@ describe('Controller: createPipelineModal', function() {
         submitted = pipeline;
         return $q.when(null);
       });
-      spyOn(this.$modalInstance, 'close');
+      spyOn(this.$uibModalInstance, 'close');
 
       this.$scope.command.name = 'new pipeline';
 
@@ -105,7 +105,7 @@ describe('Controller: createPipelineModal', function() {
       expect(submitted.application).toBe('the_app');
       expect(submitted.stages).toEqual([]);
       expect(submitted.triggers).toEqual([]);
-      expect(this.$modalInstance.close).toHaveBeenCalledWith('1234-5678');
+      expect(this.$uibModalInstance.close).toHaveBeenCalledWith('1234-5678');
     });
 
     it('uses copy of plain version of pipeline', function () {
@@ -137,7 +137,7 @@ describe('Controller: createPipelineModal', function() {
         submitted = pipeline;
         return $q.when(null);
       });
-      spyOn(this.$modalInstance, 'close');
+      spyOn(this.$uibModalInstance, 'close');
 
       this.$scope.command.name = 'new pipeline';
       this.$scope.command.template = toCopy;
@@ -166,7 +166,7 @@ describe('Controller: createPipelineModal', function() {
         submitted = pipeline;
         return $q.when(null);
       });
-      spyOn(this.$modalInstance, 'close');
+      spyOn(this.$uibModalInstance, 'close');
 
       this.$scope.command.name = 'new pipeline';
 

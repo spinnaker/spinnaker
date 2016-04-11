@@ -18,7 +18,7 @@ describe('Controller: FeedbackModalCtrl', function () {
       scope = $rootScope.$new();
       controller = $controller('FeedbackModalCtrl', {
         $scope: scope,
-        $modalInstance: {}
+        $uibModalInstance: {}
       });
     })
   );

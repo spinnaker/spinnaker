@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
   require('angular-ui-router'),
   require('../../../../core/modal/wizard/v2modalWizard.service.js'),
 ])
-  .controller('cfCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $state,
+  .controller('cfCloneServerGroupCtrl', function($scope, $uibModalInstance, _, $q, $state,
                                                   serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                   cfServerGroupConfigurationService,
                                                   serverGroupCommand, application, title) {
@@ -70,7 +70,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: 'Creating your server group',
-      modalInstance: $modalInstance,
+      modalInstance: $uibModalInstance,
       onTaskComplete: onTaskComplete,
     });
 
@@ -145,7 +145,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
       $scope.command.memory = $scope.command.memory;
 
         if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
-        return $modalInstance.close($scope.command);
+        return $uibModalInstance.close($scope.command);
       }
       $scope.taskMonitor.submit(
         function() {
@@ -155,7 +155,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
     };
 
     this.cancel = function () {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
 
     if (!$scope.state.requiresTemplateSelection) {

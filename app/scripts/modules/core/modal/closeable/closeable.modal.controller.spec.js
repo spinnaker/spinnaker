@@ -18,7 +18,7 @@ describe('Controller: CloseableModalCtrl', function () {
       scope = $rootScope.$new();
       controller = $controller('CloseableModalCtrl', {
         $scope: scope,
-        $modalInstance: {}
+        $uibModalInstance: {}
       });
     })
   );

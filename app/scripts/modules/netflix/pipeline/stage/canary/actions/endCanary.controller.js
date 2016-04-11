@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.actions
   require('../../../../../core/delivery/details/executionDetailsSection.service.js'),
   require('../../../../../core/delivery/details/executionDetailsSectionNav.directive.js'),
 ])
-  .controller('EndCanaryCtrl', function ($scope, $http, $modalInstance, settings, canaryId) {
+  .controller('EndCanaryCtrl', function ($scope, $http, $uibModalInstance, settings, canaryId) {
 
     $scope.command = {
       reason: null,
@@ -29,6 +29,6 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.actions
         });
     };
 
-    this.cancel = $modalInstance.dismiss;
+    this.cancel = $uibModalInstance.dismiss;
 
   });

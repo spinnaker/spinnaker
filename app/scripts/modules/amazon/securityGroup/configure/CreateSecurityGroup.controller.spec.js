@@ -82,7 +82,7 @@ describe('Controller: CreateSecurityGroup', function () {
       this.initializeCtrl = function() {
         this.ctrl = $controller('awsCreateSecurityGroupCtrl', {
           $scope: this.$scope,
-          $modalInstance: { result: this.$q.when(null) },
+          $uibModalInstance: { result: this.$q.when(null) },
           accountService: this.accountService,
           securityGroupReader: this.securityGroupReader,
           v2modalWizardService: this.v2modalWizardService,

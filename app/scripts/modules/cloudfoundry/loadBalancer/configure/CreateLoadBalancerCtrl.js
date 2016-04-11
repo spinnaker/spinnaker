@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
   require('../../../core/task/monitor/taskMonitorService.js'),
   require('../../../core/search/search.service.js'),
 ])
-  .controller('cfCreateLoadBalancerCtrl', function($scope, $modalInstance, $state,
+  .controller('cfCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
                                                  application, loadBalancer, isNew, loadBalancerReader,
                                                  accountService, cfLoadBalancerTransformer,
                                                  _, searchService, modalWizardService, loadBalancerWriter, taskMonitorService) {
@@ -36,7 +36,7 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
       if ($scope.$$destroyed) {
         return;
       }
-      $modalInstance.close();
+      $uibModalInstance.close();
       var newStateParams = {
         name: $scope.loadBalancer.name,
         accountId: $scope.loadBalancer.credentials,
@@ -58,7 +58,7 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: (isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
-      modalInstance: $modalInstance,
+      modalInstance: $uibModalInstance,
       onTaskComplete: onTaskComplete,
     });
 
@@ -163,6 +163,6 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
     };
 
     this.cancel = function () {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
   });

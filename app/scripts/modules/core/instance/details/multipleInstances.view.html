@@ -18,7 +18,7 @@
           <button type="button" class="btn btn-sm btn-primary dropdown-toggle" ng-disabled="disabled" uib-dropdown-toggle>
             Actions <span class="caret"></span>
           </button>
-          <ul class="uib-dropdown-menu" role="menu">
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
             <li><a href ng-click="vm.registerWithDiscovery()" ng-if="vm.canRegisterWithDiscovery()">Enable in Discovery</a></li>
             <li><a href ng-click="vm.deregisterWithDiscovery()" ng-if="vm.canDeregisterWithDiscovery()">Disable in Discovery</a></li>
             <li><a href ng-click="vm.registerWithLoadBalancers()" ng-if="vm.canRegisterWithLoadBalancers()">Register with Load Balancer</a></li>

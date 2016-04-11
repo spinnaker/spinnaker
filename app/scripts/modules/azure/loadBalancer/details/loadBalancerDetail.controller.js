@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller
   require('../../../core/presentation/collapsibleSection/collapsibleSection.directive.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
-  .controller('azureLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, app, InsightFilterStateModel,
+  .controller('azureLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $uibModal, loadBalancer, app, InsightFilterStateModel,
                                                    securityGroupReader, _, confirmationModalService, azureLoadBalancerWriter, loadBalancerReader, $q) {
 
     $scope.state = {
@@ -72,7 +72,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller
     });
 
     this.editLoadBalancer = function editLoadBalancer() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('../configure/editLoadBalancer.html'),
         controller: 'azureCreateLoadBalancerCtrl as ctrl',
         resolve: {

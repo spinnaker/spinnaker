@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.serverGroup.configure.titan.cloneServerGroup', [
   require('angular-ui-router'),
 ])
-  .controller('titanCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $state,
+  .controller('titanCloneServerGroupCtrl', function($scope, $uibModalInstance, _, $q, $state,
                                                   serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                   titanServerGroupConfigurationService,
                                                   serverGroupCommand, application, title) {
@@ -64,7 +64,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan.cloneServ
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: 'Creating your server group',
-      modalInstance: $modalInstance,
+      modalInstance: $uibModalInstance,
       onTaskComplete: onTaskComplete,
     });
 
@@ -89,7 +89,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan.cloneServ
     this.clone = function () {
       let command = angular.copy($scope.command);
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
-        return $modalInstance.close(command);
+        return $uibModalInstance.close(command);
       }
       $scope.taskMonitor.submit(
         function() {
@@ -99,7 +99,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan.cloneServ
     };
 
     this.cancel = function () {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
 
     if (!$scope.state.requiresTemplateSelection) {

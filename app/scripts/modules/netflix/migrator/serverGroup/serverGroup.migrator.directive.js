@@ -47,7 +47,7 @@ module.exports = angular
     };
   })
   .controller('MigratorCtrl', function ($scope, $timeout,
-                                        $modalInstance,
+                                        $uibModalInstance,
                                         migratorService, taskReader,
                                         serverGroup, application) {
 
@@ -140,7 +140,7 @@ module.exports = angular
 
     this.cancel = () => {
       $timeout.cancel(this.task.poller);
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
 
   });

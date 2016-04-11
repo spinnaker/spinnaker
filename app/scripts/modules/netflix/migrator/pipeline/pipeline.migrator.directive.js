@@ -84,7 +84,7 @@ module.exports = angular
     };
   })
   .controller('PipelineMigratorCtrl', function ($scope, pipeline, application, actionableDeployStages,
-                                                $modalInstance, taskReader, $timeout, $state,
+                                                $uibModalInstance, taskReader, $timeout, $state,
                                                 migratorService, pipelineConfigService, scrollToService,
                                                 cacheInitializer) {
 
@@ -180,7 +180,7 @@ module.exports = angular
 
     this.cancel = () => {
       $timeout.cancel(this.task.poller);
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
 
     this.submit = () => {

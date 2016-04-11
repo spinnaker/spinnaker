@@ -7,10 +7,10 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.rename',
   require('../../services/dirtyPipelineTracker.service.js'),
   require('../../services/pipelineConfigService.js'),
 ])
-  .controller('RenamePipelineModalCtrl', function($scope, application, pipeline, _, $modalInstance, $log,
+  .controller('RenamePipelineModalCtrl', function($scope, application, pipeline, _, $uibModalInstance, $log,
                                                   dirtyPipelineTracker, pipelineConfigService) {
 
-    this.cancel = $modalInstance.dismiss;
+    this.cancel = $uibModalInstance.dismiss;
 
     var currentName = pipeline.name;
 
@@ -32,7 +32,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.rename',
             dirtyPipelineTracker.add(pipeline.name);
           }
           application.pipelineConfigs.refresh();
-          $modalInstance.close();
+          $uibModalInstance.close();
         },
         function(response) {
           $log.warn(response);

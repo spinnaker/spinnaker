@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
   require('../../../core/task/monitor/taskMonitorService.js'),
   require('../../../core/securityGroup/securityGroup.write.service.js'),
 ])
-  .controller('gceEditSecurityGroupCtrl', function($scope, $modalInstance, $state,
+  .controller('gceEditSecurityGroupCtrl', function($scope, $uibModalInstance, $state,
                                                    accountService, securityGroupReader,
                                                    taskMonitorService, cacheInitializer, infrastructureCaches,
                                                    _, application, securityGroup, securityGroupWriter, $controller) {
@@ -27,7 +27,7 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
 
     angular.extend(this, $controller('gceConfigSecurityGroupMixin', {
       $scope: $scope,
-      $modalInstance: $modalInstance,
+      $uibModalInstance: $uibModalInstance,
       application: application,
       securityGroup: securityGroup,
     }));
@@ -37,7 +37,7 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: 'Updating your security group',
-      modalInstance: $modalInstance,
+      modalInstance: $uibModalInstance,
       onTaskComplete: application.securityGroups.refresh,
     });
 
@@ -88,7 +88,7 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
       ruleset.splice(index, 1);
     };
 
-    $scope.taskMonitor.onApplicationRefresh = $modalInstance.dismiss;
+    $scope.taskMonitor.onApplicationRefresh = $uibModalInstance.dismiss;
 
     this.upsert = function () {
       $scope.taskMonitor.submit(
@@ -118,6 +118,6 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
     };
 
     this.cancel = function () {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
   });

@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.titan.serverGroup.details.resize.cont
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js')
 ])
-  .controller('titanResizeServerGroupCtrl', function($scope, $modalInstance, serverGroupWriter, taskMonitorService,
+  .controller('titanResizeServerGroupCtrl', function($scope, $uibModalInstance, serverGroupWriter, taskMonitorService,
                                                 application, serverGroup) {
     $scope.serverGroup = serverGroup;
     $scope.currentSize = {
@@ -50,7 +50,7 @@ module.exports = angular.module('spinnaker.titan.serverGroup.details.resize.cont
       };
 
       var taskMonitorConfig = {
-        modalInstance: $modalInstance,
+        modalInstance: $uibModalInstance,
         application: application,
         title: 'Resizing ' + serverGroup.name,
       };
@@ -61,6 +61,6 @@ module.exports = angular.module('spinnaker.titan.serverGroup.details.resize.cont
     };
 
     this.cancel = function () {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
   });

@@ -21,7 +21,7 @@ describe('Controller: ConfirmationModal', function () {
         $scope: $scope,
         taskMonitorService: _taskMonitorService_,
         params: params,
-        $modalInstance: modalInstance,
+        $uibModalInstance: modalInstance,
       });
     };
   }));

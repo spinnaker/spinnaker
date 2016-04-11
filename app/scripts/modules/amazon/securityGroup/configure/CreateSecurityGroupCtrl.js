@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.amazon.securityGroup.create.controlle
   require('../../../core/securityGroup/securityGroup.read.service.js'),
   require('../../../core/config/settings.js'),
 ])
-  .controller('awsCreateSecurityGroupCtrl', function($scope, $modalInstance, $state, $controller,
+  .controller('awsCreateSecurityGroupCtrl', function($scope, $uibModalInstance, $state, $controller,
                                                   accountService, securityGroupReader,
                                                   taskMonitorService, cacheInitializer, infrastructureCaches,
                                                   _, application, securityGroup, settings ) {
@@ -25,7 +25,7 @@ module.exports = angular.module('spinnaker.amazon.securityGroup.create.controlle
 
     angular.extend(this, $controller('awsConfigSecurityGroupMixin', {
       $scope: $scope,
-      $modalInstance: $modalInstance,
+      $uibModalInstance: $uibModalInstance,
       application: application,
       securityGroup: securityGroup,
       settings: settings,

@@ -22,7 +22,7 @@
         <button type="button" class="btn btn-sm btn-primary dropdown-toggle" ng-disabled="disabled" uib-dropdown-toggle>
           Security Group Actions <span class="caret"></span>
         </button>
-        <ul class="uib-dropdown-menu" role="menu">
+        <ul class="dropdown-menu" uib-dropdown-menu role="menu">
           <li><a href ng-click="ctrl.deleteSecurityGroup()">Delete Security Group</a></li>
           <li><a href ng-click="ctrl.editInboundRules()">Edit Inbound Rules</a></li>
           <li><a href ng-click="ctrl.cloneSecurityGroup()">Clone Security Group</a></li>
@@ -58,7 +58,7 @@
         <dt>Access</dt>
         <dd>{{rule.access}}</dd>
         <dt>Protocol</dt>
-        <dd>{{rule.protocol}}</dd>        
+        <dd>{{rule.protocol}}</dd>
         <dt>Src Addr Prefix</dt>
         <dd>{{rule.sourceAddressPrefix}}</dd>
         <dt>Src Port Range</dt>
@@ -66,10 +66,10 @@
         <dt>Dest Addr Prefix</dt>
         <dd>{{rule.destinationAddressPrefix}}</dd>
         <dt>Dest Port Range</dt>
-        <dd>{{rule.destinationPortRange}}</dd>  
-        <hr/>                                                    
+        <dd>{{rule.destinationPortRange}}</dd>
+        <hr/>
       </dl>
-      
+
     </collapsible-section>
   </div>
 </div>

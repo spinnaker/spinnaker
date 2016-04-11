@@ -70,7 +70,7 @@
        this.initializeCtrl = function() {
          this.ctrl = $controller('azureCreateSecurityGroupCtrl', {
            $scope: this.$scope,
-           $modalInstance: { result: this.$q.when(null) },
+           $uibModalInstance: { result: this.$q.when(null) },
            accountService: this.accountService,
            securityGroupReader: this.securityGroupReader,
            modalWizardService: this.modalWizardService,

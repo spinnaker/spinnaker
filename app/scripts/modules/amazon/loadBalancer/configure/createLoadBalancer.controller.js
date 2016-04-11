@@ -21,7 +21,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
   require('../../subnet/subnetSelectField.directive.js'),
   require('../../../core/config/settings.js'),
 ])
-  .controller('awsCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, _,
+  .controller('awsCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state, _,
                                                     accountService, awsLoadBalancerTransformer, securityGroupReader,
                                                     cacheInitializer, infrastructureCaches, loadBalancerReader,
                                                     v2modalWizardService, loadBalancerWriter, taskMonitorService,
@@ -59,7 +59,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
       if ($scope.$$destroyed) {
         return;
       }
-      $modalInstance.close();
+      $uibModalInstance.close();
       var newStateParams = {
         name: $scope.loadBalancer.name,
         accountId: $scope.loadBalancer.credentials,
@@ -83,7 +83,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: (isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
-      modalInstance: $modalInstance,
+      modalInstance: $uibModalInstance,
       onTaskComplete: onTaskComplete
     });
 
@@ -380,7 +380,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
       if ($scope.forPipelineConfig) {
         // don't submit to backend for creation. Just return the loadBalancer object
         formatListeners().then(function () {
-          $modalInstance.close($scope.loadBalancer);
+          $uibModalInstance.close($scope.loadBalancer);
         });
       } else {
         $scope.taskMonitor.submit(
@@ -394,6 +394,6 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     };
 
     this.cancel = function () {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
   });

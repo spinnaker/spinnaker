@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.core.pipeline.create.controller', [
   require('../../pipeline/config/services/pipelineConfigService.js'),
 ])
   .controller('CreatePipelineModalCtrl', function($scope, application,
-                                                  _, pipelineConfigService, $modalInstance, $log) {
+                                                  _, pipelineConfigService, $uibModalInstance, $log) {
 
     var noTemplate = {
       name: 'None',
@@ -32,7 +32,7 @@ module.exports = angular.module('spinnaker.core.pipeline.create.controller', [
       strategy: false,
     };
 
-    this.cancel = $modalInstance.dismiss;
+    this.cancel = $uibModalInstance.dismiss;
 
     this.createPipeline = () => {
       var template = $scope.command.template;
@@ -66,7 +66,7 @@ module.exports = angular.module('spinnaker.core.pipeline.create.controller', [
               $scope.viewState.errorMessage = 'Sorry, there was an error retrieving your new pipeline. Please refresh the browser.';
               $scope.viewState.submitting = false;
             } else {
-              $modalInstance.close(newPipeline.id);
+              $uibModalInstance.close(newPipeline.id);
             }
           });
         },
