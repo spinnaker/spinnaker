@@ -52,6 +52,8 @@
         <dd><account-tag account="loadBalancer.account" pad="right"></account-tag> {{loadBalancer.region}}</dd>
         <dt>VPC</dt>
         <dd><vpc-tag vpc-id="loadBalancer.elb.vpcid"></vpc-tag></dd>
+        <dt>Subnet</dt>
+        <dd>{{ctrl.getFirstSubnetPurpose(loadBalancer.subnetDetails)}}</dd>
       </dl>
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
         <dt>Availability Zones</dt>

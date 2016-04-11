@@ -47,4 +47,34 @@ describe('Controller: LoadBalancerDetailsCtrl', function () {
     expect(controller).toBeDefined();
   });
 
+  describe('Get the first subnets purpose', function () {
+    it('should return empty string if there are no subnets ', function () {
+      let subnetDetails = [];
+      let result = controller.getFirstSubnetPurpose(subnetDetails);
+      expect(result).toEqual('');
+    });
+
+    it('should return empty string if no subnetDetail is submitted', function () {
+      let result = controller.getFirstSubnetPurpose();
+      expect(result).toEqual('');
+    });
+
+    it('should return empty string if undefined subnetDetail is submitted', function () {
+      let result = controller.getFirstSubnetPurpose(undefined);
+      expect(result).toEqual('');
+    });
+
+    it('should return the first purpose of subnetDetail if there is only one', function () {
+      let subnetDetails = [{purpose:'internal(vpc0)'}];
+      let result = controller.getFirstSubnetPurpose(subnetDetails);
+      expect(result).toEqual('internal(vpc0)');
+    });
+
+    it('should return the first purpose of subnetDetail if there are multiple', function () {
+      let subnetDetails = [{purpose:'internal(vpc0)'}, {purpose:'internal(vpc1)'}];
+      let result = controller.getFirstSubnetPurpose(subnetDetails);
+      expect(result).toEqual('internal(vpc0)');
+    });
+  });
+
 });
