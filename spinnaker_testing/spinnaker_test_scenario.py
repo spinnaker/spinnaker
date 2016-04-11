@@ -27,6 +27,7 @@ import citest.service_testing as sk
 import citest.service_testing.http_agent as http_agent
 import citest.aws_testing as aws
 import citest.gcp_testing as gcp
+import citest.kube_testing as kube
 
 
 class SpinnakerTestScenario(sk.AgentTestScenario):
@@ -147,6 +148,13 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
              ' Only used when managing jobs running on GCE.'
              ' If left empty then use the configured primary account.')
 
+    # Kubernetes management parameters
+    parser.add_argument(
+        '--kube_credentials', default=defaults.get('KUBE_CREDENTIALS', None),
+        help='Spinnaker account name to use for test operations.'
+             ' Only used when managing jobs running on Kubernetes.')
+
+
     # AWS management parameters
     parser.add_argument(
         '--aws_profile', default=defaults.get('AWS_PROFILE', None),
@@ -231,6 +239,11 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     return self.__gce_observer
 
   @property
+  def kube_observer(self):
+    """The observer for inspecting Kubernetes platform state, if configured."""
+    return self.__kube_observer
+
+  @property
   def aws_observer(self):
     """The observer for inspecting AWS platform state, if configured."""
     return self.__aws_observer
@@ -250,6 +263,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     try:
       self.__init_google_bindings()
       self.__init_aws_bindings()
+      self.__init_kubernetes_bindings()
     finally:
       JournalLogger.end_context()
 
@@ -323,6 +337,13 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
           '--managed_gce_project was not set nor could it be inferred.'
           ' Therefore, we will not be able to observe Google Compute Engine.')
 
+  def __init_kubernetes_bindings(self):
+    bindings = self.bindings  # base class made a copy
+    if bindings.get('KUBE_CREDENTIALS'):
+      self.__kube_observer = kube.KubeCtlAgent()
+    else:
+      self.__kube_observer = None
+
   def __update_bindings_with_subsystem_configuration(self, agent):
     """Helper function for setting agent bindings from actual configuration.
 
@@ -342,6 +363,10 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     if not self.bindings['GCE_CREDENTIALS']:
       self.bindings['GCE_CREDENTIALS'] = self.agent.deployed_config.get(
           'providers.google.primaryCredentials.name', None)
+
+    if not self.bindings['KUBE_CREDENTIALS']:
+      self.bindings['KUBE_CREDENTIALS'] = self.agent.deployed_config.get(
+          'providers.kubernetes.primaryCredentials.name', None)
 
     if not self.bindings['AWS_CREDENTIALS']:
       self.bindings['AWS_CREDENTIALS'] = self.agent.deployed_config.get(
