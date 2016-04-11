@@ -5,7 +5,6 @@ let angular = require('angular');
 module.exports = angular
   .module('cluster.filter.service', [
     require('angular-ui-router'),
-    require('exports?"debounce"!angular-debounce'),
     require('./clusterFilter.model'),
     require('./multiselect.model'),
     require('../../utils/lodash'),
@@ -13,7 +12,7 @@ module.exports = angular
     require('../../filterModel/filter.model.service'),
   ])
   .factory('clusterFilterService', function (ClusterFilterModel, MultiselectModel, _, waypointService, $log, $stateParams, $state,
-                                             filterModelService, debounce) {
+                                             filterModelService) {
 
     var lastApplication = null;
 
@@ -229,7 +228,7 @@ module.exports = angular
      * Grouping logic
      */
     // this gets called every time the URL changes, so we debounce it a tiny bit
-    var updateClusterGroups = debounce((application) => {
+    var updateClusterGroups = _.debounce((application) => {
       if (!application) {
         application = lastApplication;
         if (!lastApplication) {

@@ -10,23 +10,21 @@ describe('Service: securityGroupFilterService', function () {
   var resultJson;
   var $timeout;
 
-  beforeEach(
+  beforeEach(function() {
+    spyOn(_, 'debounce').and.callFake(fn => (app) => $timeout(fn(app)));
     window.module(
       require('../../utils/lodash.js'),
       require('./securityGroup.filter.service.js'),
       require('./securityGroup.filter.model.js')
-    )
-  );
-
-  beforeEach(
+    );
     window.inject(
       function (securityGroupFilterService, _SecurityGroupFilterModel_, _$timeout_) {
         service = securityGroupFilterService;
         SecurityGroupFilterModel = _SecurityGroupFilterModel_;
         $timeout = _$timeout_;
       }
-    )
-  );
+    );
+  });
 
   beforeEach(function () {
     app = {

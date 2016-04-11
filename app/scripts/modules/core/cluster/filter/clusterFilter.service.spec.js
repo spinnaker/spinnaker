@@ -9,40 +9,30 @@ describe('Service: clusterFilterService', function () {
   var MultiselectModel;
   var applicationJSON;
   var groupedJSON;
-  var _;
   var $timeout;
 
-  beforeEach(
+  beforeEach(function() {
+    spyOn(_, 'debounce').and.callFake(fn => (app) => $timeout(fn(app)));
     window.module(
       require('./clusterFilter.service.js'),
       require('./clusterFilter.model.js'),
       require('../../../../../../test/mock/mockApplicationData.js')
-    )
-  );
-
-  beforeEach(
+    );
     window.inject(
-      function (clusterFilterService, _ClusterFilterModel_, _MultiselectModel_, ___, _$timeout_) {
-        _ = ___;
+      function (clusterFilterService, _ClusterFilterModel_, _MultiselectModel_, _$timeout_, _applicationJSON_, _groupedJSON_) {
         service = clusterFilterService;
         ClusterFilterModel = _ClusterFilterModel_;
         MultiselectModel = _MultiselectModel_;
         $timeout = _$timeout_;
         ClusterFilterModel.groups = [];
-      }
-    )
-  );
 
-  beforeEach(
-    window.inject(
-      function (_applicationJSON_, _groupedJSON_) {
         applicationJSON = _applicationJSON_;
         groupedJSON = _groupedJSON_;
         groupedJSON[0].subgroups[0].cluster = applicationJSON.clusters[0];
         groupedJSON[1].subgroups[0].cluster = applicationJSON.clusters[1];
       }
-    )
-  );
+    );
+  });
 
   beforeEach(function() {
     this.verifyTags = function(expectedTags) {

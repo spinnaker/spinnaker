@@ -5,7 +5,6 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.core.delivery.filter.executionFilter.service', [
     require('angular-ui-router'),
-    require('exports?"debounce"!angular-debounce'),
     require('./executionFilter.model.js'),
     require('../../utils/lodash.js'),
     require('../../utils/waypoints/waypoint.service.js'),
@@ -13,7 +12,7 @@ module.exports = angular
     require('../../orchestratedItem/timeBoundaries.service.js'),
   ])
   .factory('executionFilterService', function (ExecutionFilterModel, _, timeBoundaries, waypointService, $log,
-                                               filterModelService, debounce) {
+                                               filterModelService) {
 
     var lastApplication = null;
 
@@ -163,7 +162,7 @@ module.exports = angular
     }
 
     // this gets called every time the URL changes, so we debounce it a tiny bit
-    var updateExecutionGroups = debounce((application) => {
+    var updateExecutionGroups = _.debounce((application) => {
       if (!application) {
         application = lastApplication;
         if (!lastApplication) {
