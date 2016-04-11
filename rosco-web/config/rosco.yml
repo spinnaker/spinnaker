@@ -64,6 +64,8 @@ aws:
     # TODO(duftler): Support additional store types beyond ebs.
     # TODO(duftler): Support additional operating systems.
     # TODO(duftler): Feels like just about everything here could be (optionally) specified per bake.
+    # AMIs sourced from: https://cloud-images.ubuntu.com/locator/ec2/
+    # Images should be considered placeholders
     - baseImage:
         id: ubuntu
         shortDescription: v12.04
@@ -75,6 +77,11 @@ aws:
         instanceType: t2.micro
         sourceAmi: ami-d4aed0bc
         sshUserName: ubuntu
+      - region: us-west-1
+        virtualizationType: hvm
+        instanceType: t2.micro
+        sourceAmi: ami-4f285a2f
+        sshUserName: ubuntu
       - region: us-west-2
         virtualizationType: hvm
         instanceType: t2.micro
@@ -84,6 +91,11 @@ aws:
         virtualizationType: pv
         instanceType: m3.medium
         sourceAmi: ami-8007b2e8
+        sshUserName: ubuntu
+      - region: us-west-1
+        virtualizationType: pv
+        instanceType: m3.medium
+        sourceAmi: ami-3a12605a
         sshUserName: ubuntu
 #      No exact equivalent available in us-west-2
 #      - region: us-west-2
@@ -102,6 +114,11 @@ aws:
         instanceType: t2.micro
         sourceAmi: ami-9eaa1cf6
         sshUserName: ubuntu
+      - region: us-west-1
+        virtualizationType: hvm
+        instanceType: t2.micro
+        sourceAmi: ami-12512d72
+        sshUserName: ubuntu
       - region: us-west-2
         virtualizationType: hvm
         instanceType: t2.micro
@@ -111,6 +128,11 @@ aws:
         virtualizationType: pv
         instanceType: m3.medium
         sourceAmi: ami-98aa1cf0
+        sshUserName: ubuntu
+      - region: us-west-1
+        virtualizationType: pv
+        instanceType: m3.medium
+        sourceAmi: ami-59502c39
         sshUserName: ubuntu
       - region: us-west-2
         virtualizationType: pv
