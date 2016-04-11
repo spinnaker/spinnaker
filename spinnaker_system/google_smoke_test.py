@@ -78,13 +78,8 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
     Args:
       parser: argparse.ArgumentParser
     """
-    super(GoogleSmokeTestScenario, cls).initArgumentParser(parser, defaults=defaults)
-
-    defaults = defaults or {}
-    parser.add_argument(
-        '--test_component_detail',
-        default='fe',
-        help='Refinement for component name to create.')
+    super(GoogleSmokeTestScenario, cls).initArgumentParser(
+        parser, defaults=defaults)
 
   def __init__(self, bindings, agent=None):
     """Constructor.
@@ -94,13 +89,12 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
       agent: [GateAgent] The agent for invoking the test operations on Gate.
     """
     super(GoogleSmokeTestScenario, self).__init__(bindings, agent)
-
     bindings = self.bindings
-    bindings['TEST_APP_COMPONENT_NAME'] = (
-        '{app}-{stack}-{detail}'.format(
-            app=bindings['TEST_APP'],
-            stack=bindings['TEST_STACK'],
-            detail=bindings['TEST_COMPONENT_DETAIL']))
+
+    self.__lb_detail = 'lb'
+    self.__lb_name = '{app}-{stack}-{detail}'.format(
+        app=bindings['TEST_APP'], stack=bindings['TEST_STACK'],
+        detail=self.__lb_detail)
 
     # We'll call out the app name because it is widely used
     # because it scopes the context of our activities.
@@ -131,9 +125,8 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
     the contract builder for more info on what the expectations are.
     """
     bindings = self.bindings
-    load_balancer_name = bindings['TEST_APP_COMPONENT_NAME']
     target_pool_name = '{0}/targetPools/{1}-tp'.format(
-        bindings['TEST_GCE_REGION'], load_balancer_name)
+        bindings['TEST_GCE_REGION'], self.__lb_name)
 
     spec = {
         'checkIntervalSec': 9,
@@ -148,12 +141,12 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
             'cloudProvider': 'gce',
             'provider': 'gce',
             'stack': bindings['TEST_STACK'],
-            'detail': bindings['TEST_COMPONENT_DETAIL'],
+            'detail': self.__lb_detail,
             'credentials': bindings['GCE_CREDENTIALS'],
             'region': bindings['TEST_GCE_REGION'],
             'ipProtocol': 'TCP',
             'portRange': spec['port'],
-            'loadBalancerName': load_balancer_name,
+            'loadBalancerName': self.__lb_name,
             'healthCheck': {
                 'port': spec['port'],
                 'timeoutSec': spec['timeoutSec'],
@@ -165,7 +158,7 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
             'availabilityZones': {bindings['TEST_GCE_REGION']: []},
             'user': '[anonymous]'
         }],
-        description='Create Load Balancer: ' + load_balancer_name,
+        description='Create Load Balancer: ' + self.__lb_name,
         application=self.TEST_APP)
 
     builder = gcp.GceContractBuilder(self.gce_observer)
@@ -173,17 +166,17 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
                                 retryable_for_secs=30)
      .list_resources('http-health-checks')
      .contains_pred_list(
-         [jp.PathContainsPredicate('name', '%s-hc' % load_balancer_name),
+         [jp.PathContainsPredicate('name', '%s-hc' % self.__lb_name),
           jp.DICT_SUBSET(spec)]))
     (builder.new_clause_builder('Target Pool Added',
                                 retryable_for_secs=30)
      .list_resources('target-pools')
-     .contains_path_value('name', '%s-tp' % load_balancer_name))
+     .contains_path_value('name', '%s-tp' % self.__lb_name))
     (builder.new_clause_builder('Forwarding Rules Added',
                                 retryable_for_secs=30)
      .list_resources('forwarding-rules')
      .contains_pred_list([
-          jp.PathContainsPredicate('name', load_balancer_name),
+          jp.PathContainsPredicate('name', self.__lb_name),
           jp.PathContainsPredicate('target', target_pool_name)]))
 
     return st.OperationContract(
@@ -197,20 +190,19 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
     To verify the operation, we just check that the GCP resources
     created by upsert_load_balancer are no longer visible on GCP.
     """
-    load_balancer_name = self.bindings['TEST_APP_COMPONENT_NAME']
     bindings = self.bindings
     payload = self.agent.make_json_payload_from_kwargs(
         job=[{
             'type': 'deleteLoadBalancer',
             'cloudProvider': 'gce',
-            'loadBalancerName': load_balancer_name,
+            'loadBalancerName': self.__lb_name,
             'region': bindings['TEST_GCE_REGION'],
             'regions': [bindings['TEST_GCE_REGION']],
             'credentials': bindings['GCE_CREDENTIALS'],
             'user': '[anonymous]'
         }],
         description='Delete Load Balancer: {0} in {1}:{2}'.format(
-            load_balancer_name,
+            self.__lb_name,
             bindings['GCE_CREDENTIALS'],
             bindings['TEST_GCE_REGION']),
         application=self.TEST_APP)
@@ -218,13 +210,13 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Health Check Removed', retryable_for_secs=30)
      .list_resources('http-health-checks')
-     .excludes_path_value('name', '%s-hc' % load_balancer_name))
+     .excludes_path_value('name', '%s-hc' % self.__lb_name))
     (builder.new_clause_builder('TargetPool Removed')
      .list_resources('target-pools')
-     .excludes_path_value('name', '%s-tp' % load_balancer_name))
+     .excludes_path_value('name', '%s-tp' % self.__lb_name))
     (builder.new_clause_builder('Forwarding Rule Removed')
      .list_resources('forwarding-rules')
-     .excludes_path_value('name', load_balancer_name))
+     .excludes_path_value('name', self.__lb_name))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -257,14 +249,14 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
             'stack': bindings['TEST_STACK'],
             'instanceType': 'f1-micro',
             'type': 'createServerGroup',
-            'loadBalancers': [bindings['TEST_APP_COMPONENT_NAME']],
+            'loadBalancers': [self.__lb_name],
             'availabilityZones': {
                 bindings['TEST_GCE_REGION']: [bindings['TEST_GCE_ZONE']]
             },
             'instanceMetadata': {
                 'startup-script': ('sudo apt-get update'
                                    ' && sudo apt-get install apache2 -y'),
-                'load-balancer-names': bindings['TEST_APP_COMPONENT_NAME']
+                'load-balancer-names': self.__lb_name
             },
             'account': bindings['GCE_CREDENTIALS'],
             'authScopes': ['compute'],
