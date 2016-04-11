@@ -95,6 +95,10 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
       }
     });
 
+    this.getFirstSubnetPurpose = function(subnetDetailsList = []) {
+      return _.first(subnetDetailsList.map(subnet => subnet.purpose)) || '';
+    };
+
     this.editLoadBalancer = function editLoadBalancer() {
       $uibModal.open({
         templateUrl: require('../configure/editLoadBalancer.html'),
