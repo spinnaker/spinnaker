@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.details.elasticIp.con
   require('./elasticIp.write.service.js'),
   require('../../../core/task/monitor/taskMonitorService.js')
 ])
-  .controller('ElasticIpCtrl', function($scope, $modalInstance, elasticIpWriter, taskMonitorService,
+  .controller('ElasticIpCtrl', function($scope, $uibModalInstance, elasticIpWriter, taskMonitorService,
                                         application, serverGroup, elasticIp, onTaskComplete) {
     $scope.serverGroup = serverGroup;
     $scope.elasticIp = elasticIp;
@@ -19,7 +19,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.details.elasticIp.con
       var taskMonitorConfig = {
         application: application,
         title: 'Associating Elastic IP with ' + serverGroup.cluster,
-        modalInstance: $modalInstance,
+        modalInstance: $uibModalInstance,
         onTaskComplete: onTaskComplete
       };
 
@@ -37,7 +37,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.details.elasticIp.con
         var taskMonitorConfig = {
           application: application,
           title: 'Disassociating Elastic IP with ' + serverGroup.cluster,
-          modalInstance: $modalInstance,
+          modalInstance: $uibModalInstance,
           onTaskComplete: onTaskComplete
         };
 
@@ -52,6 +52,6 @@ module.exports = angular.module('spinnaker.aws.serverGroup.details.elasticIp.con
     };
 
     this.cancel = function () {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
   });

@@ -13,7 +13,7 @@ module.exports = angular
     require('./step/stepPolicyAction.component.js'),
     require('./alarm/alarmConfigurer.component.js'),
   ])
-  .controller('awsUpsertScalingPolicyCtrl', function ($modalInstance, _, scalingPolicyWriter,
+  .controller('awsUpsertScalingPolicyCtrl', function ($uibModalInstance, _, scalingPolicyWriter,
                                                       taskMonitorService,
                                                       serverGroupReader, serverGroup, application, policy) {
 
@@ -190,7 +190,7 @@ module.exports = angular
       var submitMethod = () => scalingPolicyWriter.upsertScalingPolicy(application, command);
 
       var taskMonitorConfig = {
-        modalInstance: $modalInstance,
+        modalInstance: $uibModalInstance,
         application: application,
         title: this.action + ' scaling policy for ' + serverGroup.name,
       };
@@ -200,7 +200,7 @@ module.exports = angular
       this.taskMonitor.submit(submitMethod);
     };
 
-    this.cancel = $modalInstance.dismiss;
+    this.cancel = $uibModalInstance.dismiss;
 
     this.initialize();
   });

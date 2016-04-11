@@ -13,11 +13,11 @@ describe('Controller: renamePipelineModal', function() {
   beforeEach(window.inject(function ($controller, $rootScope, _) {
     this.initializeController = function (pipeline) {
       this.$scope = $rootScope.$new();
-      this.$modalInstance = { close: angular.noop };
+      this.$uibModalInstance = { close: angular.noop };
       this.controller = $controller('EditPipelineJsonModalCtrl', {
         $scope: this.$scope,
         pipeline: pipeline,
-        $modalInstance: this.$modalInstance,
+        $uibModalInstance: this.$uibModalInstance,
         _: _,
       });
     };
@@ -81,7 +81,7 @@ describe('Controller: renamePipelineModal', function() {
     };
 
     this.initializeController(pipeline);
-    spyOn(this.$modalInstance, 'close');
+    spyOn(this.$uibModalInstance, 'close');
 
     var converted = JSON.parse(this.$scope.command.pipelineJSON);
     converted.application = 'someOtherApp';
@@ -94,7 +94,7 @@ describe('Controller: renamePipelineModal', function() {
     expect(pipeline.application).toBe('myApp');
     expect(pipeline.bar.updated).toBe(true);
 
-    expect(this.$modalInstance.close).toHaveBeenCalled();
+    expect(this.$uibModalInstance.close).toHaveBeenCalled();
   });
 
   it ('updateApplicationFromJson displays an error message when malformed JSON provided', function() {

@@ -93,7 +93,7 @@
          this.ctrl = $controller('azureCloneServerGroupCtrl', {
            $scope: this.$scope,
            settings: this.settings,
-           $modalInstance: this.modalInstance,
+           $uibModalInstance: this.modalInstance,
            accountService: this.accountService,
            serverGroupWriter: this.serverGroupWriter,
            azureImageReader: this.azureImageReader,
@@ -211,7 +211,7 @@
          this.ctrl = $controller('azureCloneServerGroupCtrl', {
            $scope: this.$scope,
            settings: this.settings,
-           $modalInstance: this.modalInstance,
+           $uibModalInstance: this.modalInstance,
            accountService: this.accountService,
            serverGroupWriter: this.serverGroupWriter,
            azureInstanceTypeService: this.azureInstanceTypeService,
@@ -366,7 +366,7 @@
          this.ctrl = $controller('azureCloneServerGroupCtrl', {
            $scope: this.$scope,
            settings: this.settings,
-           $modalInstance: this.modalInstance,
+           $uibModalInstance: this.modalInstance,
            accountService: this.accountService,
            serverGroupWriter: this.serverGroupWriter,
            azureInstanceTypeService: this.azureInstanceTypeService,

@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.netflix.feedback.modal.controller', [
   require('../../core/authentication/authentication.service.js'),
   require('../../core/config/settings.js'),
 ])
-  .controller('FeedbackModalCtrl', function($scope, $location, $http, $modalInstance, settings, authenticationService) {
+  .controller('FeedbackModalCtrl', function($scope, $location, $http, $uibModalInstance, settings, authenticationService) {
 
     $scope.states = {
       EDITING: 0,
@@ -70,6 +70,6 @@ module.exports = angular.module('spinnaker.netflix.feedback.modal.controller', [
     };
 
     this.cancel = function () {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
   });

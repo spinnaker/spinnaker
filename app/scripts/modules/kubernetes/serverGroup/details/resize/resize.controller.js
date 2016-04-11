@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.resize
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js')
 ])
-  .controller('kubernetesResizeServerGroupController', function($scope, $modalInstance, serverGroupWriter, taskMonitorService,
+  .controller('kubernetesResizeServerGroupController', function($scope, $uibModalInstance, serverGroupWriter, taskMonitorService,
                                                           application, serverGroup) {
     $scope.serverGroup = serverGroup;
     $scope.currentSize = { desired: serverGroup.replicas };
@@ -46,7 +46,7 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.resize
       };
 
       var taskMonitorConfig = {
-        modalInstance: $modalInstance,
+        modalInstance: $uibModalInstance,
         application: application,
         title: 'Resizing ' + serverGroup.name,
       };
@@ -57,6 +57,6 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.resize
     };
 
     this.cancel = function () {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
   });

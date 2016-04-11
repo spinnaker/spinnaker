@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
   require('../../../core/utils/selectOnDblClick.directive.js'),
   require('../../../core/cloudProvider/cloudProvider.registry.js'),
 ])
-  .controller('azureInstanceDetailsCtrl', function ($scope, $state, $modal, InsightFilterStateModel,
+  .controller('azureInstanceDetailsCtrl', function ($scope, $state, $uibModal, InsightFilterStateModel,
                                                     instanceWriter, confirmationModalService, recentHistoryService,
                                                     cloudProviderRegistry, instanceReader, _, instance, app, $q) {
 
@@ -343,7 +343,7 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
     };
 
     this.showConsoleOutput = function () {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('../../../core/instance/details/console/consoleOutput.modal.html'),
         controller: 'ConsoleOutputCtrl as ctrl',
         size: 'lg',

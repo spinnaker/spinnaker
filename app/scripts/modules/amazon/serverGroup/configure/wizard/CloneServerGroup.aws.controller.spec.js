@@ -93,7 +93,7 @@ describe('Controller: awsCloneServerGroup', function () {
         this.ctrl = $controller('awsCloneServerGroupCtrl', {
           $scope: this.$scope,
           settings: this.settings,
-          $modalInstance: this.modalInstance,
+          $uibModalInstance: this.modalInstance,
           accountService: this.accountService,
           serverGroupWriter: this.serverGroupWriter,
           awsImageReader: this.awsImageReader,
@@ -211,7 +211,7 @@ describe('Controller: awsCloneServerGroup', function () {
         this.ctrl = $controller('awsCloneServerGroupCtrl', {
           $scope: this.$scope,
           settings: this.settings,
-          $modalInstance: this.modalInstance,
+          $uibModalInstance: this.modalInstance,
           accountService: this.accountService,
           serverGroupWriter: this.serverGroupWriter,
           awsInstanceTypeService: this.awsInstanceTypeService,
@@ -366,7 +366,7 @@ describe('Controller: awsCloneServerGroup', function () {
         this.ctrl = $controller('awsCloneServerGroupCtrl', {
           $scope: this.$scope,
           settings: this.settings,
-          $modalInstance: this.modalInstance,
+          $uibModalInstance: this.modalInstance,
           accountService: this.accountService,
           serverGroupWriter: this.serverGroupWriter,
           awsInstanceTypeService: this.awsInstanceTypeService,

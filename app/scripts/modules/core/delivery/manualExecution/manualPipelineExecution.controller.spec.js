@@ -19,7 +19,7 @@ describe('Controller: ManualPipelineExecution', function () {
         pipeline: pipeline,
         pipelineConfig: pipelineConfig,
         _: _,
-        $modalInstance: modalInstance || {}
+        $uibModalInstance: modalInstance || {}
       });
     };
   }));

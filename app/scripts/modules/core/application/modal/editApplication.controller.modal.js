@@ -9,7 +9,7 @@ module.exports = angular
     require('../../account/account.service.js'),
     require('../../task/task.read.service.js'),
   ])
-  .controller('EditApplicationController', function ($window, $state, $modalInstance, application, applicationWriter,
+  .controller('EditApplicationController', function ($window, $state, $uibModalInstance, application, applicationWriter,
                                                      _, accountService, taskReader) {
     var vm = this;
     this.data = {};
@@ -28,7 +28,7 @@ module.exports = angular
     function closeModal() {
       vm.data.cloudProviders = null; // wha? prevents a fight with the ui-select directive trying to invalidate the selections
       vm.applicationAttributes.cloudProviders = vm.applicationAttributes.cloudProviders.join(',');
-      $modalInstance.close(vm.applicationAttributes);
+      $uibModalInstance.close(vm.applicationAttributes);
     }
 
     function extractErrorMsg(error) {

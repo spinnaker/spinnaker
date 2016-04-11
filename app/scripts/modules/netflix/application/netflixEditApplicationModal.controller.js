@@ -25,7 +25,7 @@ module.exports = angular
     require('../../core/utils/lodash.js'),
     require('../../core/account/account.service.js'),
   ])
-  .controller('netflixEditApplicationController', function($controller, $window, $state, $modalInstance, application, applicationWriter,
+  .controller('netflixEditApplicationController', function($controller, $window, $state, $uibModalInstance, application, applicationWriter,
                                                             _, accountService) {
 
     if (application.attributes.legacyUdf === undefined) {
@@ -34,7 +34,7 @@ module.exports = angular
     angular.extend(this, $controller('EditApplicationController', {
       $window: $window,
       $state: $state,
-      $modalInstance: $modalInstance,
+      $uibModalInstance: $uibModalInstance,
       application: application,
       applicationWriter: applicationWriter,
       _ : _,

@@ -17,7 +17,7 @@ describe('Controller: gceCreateLoadBalancerCtrl', function () {
     this.$scope = $rootScope.$new();
     this.ctrl = $controller('gceCreateLoadBalancerCtrl', {
       $scope: this.$scope,
-      $modalInstance: { dismiss: angular.noop, result: { then: angular.noop } },
+      $uibModalInstance: { dismiss: angular.noop, result: { then: angular.noop } },
       application: {name: 'testApp'},
       loadBalancer: null,
       isNew: true

@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.con
   require('./resizeCapacity.directive.js'),
   require('../../../common/footer.directive.js'),
 ])
-  .controller('awsResizeServerGroupCtrl', function($scope, $modalInstance, serverGroupWriter,
+  .controller('awsResizeServerGroupCtrl', function($scope, $uibModalInstance, serverGroupWriter,
                                                    taskMonitorService,
                                                    application, serverGroup) {
     $scope.serverGroup = serverGroup;
@@ -62,7 +62,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.con
       };
 
       var taskMonitorConfig = {
-        modalInstance: $modalInstance,
+        modalInstance: $uibModalInstance,
         application: application,
         title: 'Resizing ' + serverGroup.name,
       };
@@ -73,6 +73,6 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.con
     };
 
     this.cancel = function () {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
   });

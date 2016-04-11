@@ -13,7 +13,7 @@ module.exports = angular
   ])
   .controller('azureConfigSecurityGroupMixin', function ($scope,
                                                              $state,
-                                                             $modalInstance,
+                                                             $uibModalInstance,
                                                              taskMonitorService,
                                                              application,
                                                              securityGroup,
@@ -49,7 +49,7 @@ module.exports = angular
       if ($scope.$$destroyed) {
         return;
       }
-      $modalInstance.close();
+      $uibModalInstance.close();
       var newStateParams = {
         name: $scope.securityGroup.name,
         accountId: $scope.securityGroup.credentials || $scope.securityGroup.accountName,
@@ -72,7 +72,7 @@ module.exports = angular
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: 'Creating your security group',
-      modalInstance: $modalInstance,
+      modalInstance: $uibModalInstance,
       onTaskComplete: onTaskComplete,
     });
 
@@ -208,7 +208,7 @@ module.exports = angular
     };
 
     ctrl.cancel = function () {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
 
     ctrl.getCurrentNamePattern = function() {

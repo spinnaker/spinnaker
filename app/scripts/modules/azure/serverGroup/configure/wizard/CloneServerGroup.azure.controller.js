@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
   require('../../../../core/task/monitor/taskMonitorService.js'),
   require('../../../../core/modal/wizard/v2modalWizard.service.js'),
 ])
-  .controller('azureCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,
+  .controller('azureCloneServerGroupCtrl', function($scope, $uibModalInstance, _, $q, $exceptionHandler, $state,
                                                   serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                   azureServerGroupConfigurationService, serverGroupCommand,
                                                   azureServerGroupTransformer, application, title) {
@@ -78,7 +78,7 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
       application: application,
       title: 'Creating your server group',
       forceRefreshMessage: 'Getting your new server group from Azure...',
-      modalInstance: $modalInstance,
+      modalInstance: $uibModalInstance,
       onTaskComplete: onTaskComplete,
     });
 
@@ -157,7 +157,7 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
 
     this.submit = function () {
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
-        return $modalInstance.close($scope.command);
+        return $uibModalInstance.close($scope.command);
       }
       $scope.taskMonitor.submit(
         function() {
@@ -167,7 +167,7 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
     };
 
     this.cancel = function () {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
 
     this.toggleSuspendedProcess = function(process) {

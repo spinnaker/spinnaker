@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.gce.securityGroup.create.controller',
   require('../../../core/task/monitor/taskMonitorService.js'),
   require('../../../core/securityGroup/securityGroup.read.service.js'),
 ])
-  .controller('gceCreateSecurityGroupCtrl', function($scope, $modalInstance, $state, $controller,
+  .controller('gceCreateSecurityGroupCtrl', function($scope, $uibModalInstance, $state, $controller,
                                                   accountService, securityGroupReader,
                                                   taskMonitorService, cacheInitializer, infrastructureCaches,
                                                   _, application, securityGroup ) {
@@ -29,7 +29,7 @@ module.exports = angular.module('spinnaker.gce.securityGroup.create.controller',
 
     angular.extend(this, $controller('gceConfigSecurityGroupMixin', {
       $scope: $scope,
-      $modalInstance: $modalInstance,
+      $uibModalInstance: $uibModalInstance,
       application: application,
       securityGroup: securityGroup,
     }));

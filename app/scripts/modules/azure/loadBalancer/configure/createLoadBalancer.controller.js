@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
   require('../../../core/region/regionSelectField.directive.js'),
   require('../../../core/account/accountSelectField.directive.js'),
 ])
-  .controller('azureCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, _,
+  .controller('azureCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state, _,
                                                     accountService, azureLoadBalancerTransformer,
                                                     cacheInitializer, infrastructureCaches, loadBalancerReader,
                                                     v2modalWizardService, azureLoadBalancerWriter, taskMonitorService,
@@ -43,7 +43,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
       if ($scope.$$destroyed) {
         return;
       }
-      $modalInstance.close();
+      $uibModalInstance.close();
       var newStateParams = {
         name: $scope.loadBalancer.name,
         accountId: $scope.loadBalancer.credentials,
@@ -67,7 +67,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: (isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
-      modalInstance: $modalInstance,
+      modalInstance: $uibModalInstance,
       onTaskComplete: onTaskComplete,
     });
 
@@ -203,6 +203,6 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
     };
 
     this.cancel = function () {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
   });

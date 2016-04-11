@@ -10,7 +10,7 @@ module.exports = angular
     require('../../../core/utils/lodash.js'),
     require('../configure/CreateSecurityGroupCtrl.js')
   ])
-  .controller('azureCloneSecurityGroupController', function($scope, $modalInstance, $controller, $state, taskMonitorService, accountService,
+  .controller('azureCloneSecurityGroupController', function($scope, $uibModalInstance, $controller, $state, taskMonitorService, accountService,
     azureSecurityGroupWriter, securityGroup, application, _) {
     var ctrl = this;
 
@@ -35,7 +35,7 @@ module.exports = angular
     };
 
     ctrl.cancel = function () {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
 
     ctrl.updateName = function() {
@@ -57,7 +57,7 @@ module.exports = angular
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: 'Updating your security group',
-      modalInstance: $modalInstance,
+      modalInstance: $uibModalInstance,
       onTaskComplete: onTaskComplete,
     });
 
@@ -87,7 +87,7 @@ module.exports = angular
       if ($scope.$$destroyed) {
         return;
       }
-      $modalInstance.close();
+      $uibModalInstance.close();
       var newStateParams = {
         name: $scope.securityGroup.name,
         accountId: $scope.securityGroup.credentials || $scope.securityGroup.accountName,
@@ -137,7 +137,7 @@ module.exports = angular
       ruleset[b].priority = priorityB;
     }
 
-    $scope.taskMonitor.onApplicationRefresh = $modalInstance.dismiss;
+    $scope.taskMonitor.onApplicationRefresh = $uibModalInstance.dismiss;
 
     ctrl.upsert = function () {
       $scope.taskMonitor.submit(

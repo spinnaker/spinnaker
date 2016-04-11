@@ -5,9 +5,9 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.pipeline.config.actions.editJson', [
   require('../../../../utils/lodash.js'),
 ])
-  .controller('EditPipelineJsonModalCtrl', function($scope, pipeline, _, $modalInstance) {
+  .controller('EditPipelineJsonModalCtrl', function($scope, pipeline, _, $uibModalInstance) {
 
-    this.cancel = $modalInstance.dismiss;
+    this.cancel = $uibModalInstance.dismiss;
 
     function removeImmutableFields(obj) {
       delete obj.name;
@@ -49,7 +49,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.editJson
         angular.extend(pipeline, parsed);
         updateStageCounter();
 
-        $modalInstance.close();
+        $uibModalInstance.close();
       } catch (e) {
         $scope.command.invalid = true;
         $scope.command.errorMessage = e.message;

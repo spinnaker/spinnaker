@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.contr
   require('../../../namespace/selectField.directive.js'),
   require('../../transformer.js'),
 ])
-  .controller('kubernetesUpsertSecurityGroupController', function($q, $scope, $modalInstance, $state,
+  .controller('kubernetesUpsertSecurityGroupController', function($q, $scope, $uibModalInstance, $state,
                                                                  application, securityGroup,
                                                                  accountService, kubernetesSecurityGroupTransformer, securityGroupReader, loadBalancerReader,
                                                                  _, searchService, v2modalWizardService, securityGroupWriter, taskMonitorService) {
@@ -39,7 +39,7 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.contr
       if ($scope.$$destroyed) {
         return;
       }
-      $modalInstance.close();
+      $uibModalInstance.close();
       var newStateParams = {
         name: $scope.securityGroup.name,
         accountId: $scope.securityGroup.account,
@@ -61,7 +61,7 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.contr
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: ($scope.isNew ? 'Creating ' : 'Updating ') + 'your security group',
-      modalInstance: $modalInstance,
+      modalInstance: $uibModalInstance,
       onTaskComplete: onTaskComplete,
     });
 
@@ -178,6 +178,6 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.contr
     };
 
     this.cancel = function () {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
   });

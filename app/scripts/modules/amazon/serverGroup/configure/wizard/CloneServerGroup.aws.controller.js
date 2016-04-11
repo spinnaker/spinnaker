@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
   require('../../../../core/serverGroup/configure/common/serverGroupCommand.registry.js'),
   require('../../../../core/task/modal/reason.directive.js'),
   ])
-  .controller('awsCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $state,
+  .controller('awsCloneServerGroupCtrl', function($scope, $uibModalInstance, _, $q, $state,
                                                   serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                   overrideRegistry, awsServerGroupConfigurationService,
                                                   serverGroupCommandRegistry,
@@ -80,7 +80,7 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: 'Creating your server group',
-      modalInstance: $modalInstance,
+      modalInstance: $uibModalInstance,
       onTaskComplete: onTaskComplete,
     });
 
@@ -176,7 +176,7 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
 
     this.submit = function () {
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
-        return $modalInstance.close($scope.command);
+        return $uibModalInstance.close($scope.command);
       }
       $scope.taskMonitor.submit(
         function() {
@@ -186,7 +186,7 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
     };
 
     this.cancel = function () {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
 
     if (!$scope.state.requiresTemplateSelection) {

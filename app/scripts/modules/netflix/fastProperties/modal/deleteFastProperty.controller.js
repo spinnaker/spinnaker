@@ -9,7 +9,7 @@ module.exports = angular
     require('../fastProperty.write.service.js'),
     require('../../../core/utils/lodash.js'),
   ])
-  .controller('DeleteFastPropertyModalController', function ($modalInstance, accountService, fastProperty, fastPropertyWriter, _) {
+  .controller('DeleteFastPropertyModalController', function ($uibModalInstance, accountService, fastProperty, fastPropertyWriter, _) {
     var vm = this;
 
     vm.fastProperty = fastProperty;
@@ -17,14 +17,14 @@ module.exports = angular
     vm.verification = {};
 
     vm.cancel = function() {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
 
     vm.formDisabled = () => !vm.verification.verified || _.isEmpty(vm.fastProperty.cmcTicket);
 
     vm.confirm = function() {
       fastPropertyWriter.deleteFastProperty(vm.fastProperty).then(function () {
-        $modalInstance.close();
+        $uibModalInstance.close();
       });
     };
 

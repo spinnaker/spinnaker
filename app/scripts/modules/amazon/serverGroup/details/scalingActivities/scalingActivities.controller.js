@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.scalingActivities.controller', [
   require('../../../../core/serverGroup/serverGroup.read.service.js'),
   require('../../../../core/utils/lodash.js'),
 ])
-  .controller('ScalingActivitiesCtrl', function($scope, $modalInstance, serverGroupReader, applicationName, account, clusterName, serverGroup, _) {
+  .controller('ScalingActivitiesCtrl', function($scope, $uibModalInstance, serverGroupReader, applicationName, account, clusterName, serverGroup, _) {
     var ctrl = this;
     this.viewState = {
       loading: true,
@@ -52,5 +52,5 @@ module.exports = angular.module('spinnaker.scalingActivities.controller', [
     this.isSuccessful = function(activity) {
       return activity.statusCode === 'Successful';
     };
-    $scope.close = $modalInstance.dismiss;
+    $scope.close = $uibModalInstance.dismiss;
   });

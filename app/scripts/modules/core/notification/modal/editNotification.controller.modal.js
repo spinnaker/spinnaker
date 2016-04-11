@@ -8,7 +8,7 @@ module.exports = angular
   .module('spinnaker.core.notification.modal.editNotification.modal.controller', [
     require('../../utils/lodash.js'),
   ])
-  .controller('EditNotificationController', function ($scope, $modalInstance, notification, level, _) {
+  .controller('EditNotificationController', function ($scope, $uibModalInstance, notification, level, _) {
     var vm = this;
 
     vm.notification = angular.copy(notification);
@@ -61,7 +61,7 @@ module.exports = angular
           vm.notification.when.push(option);
         }
       });
-      $modalInstance.close(vm.notification);
+      $uibModalInstance.close(vm.notification);
     };
 
     $scope.$watch('selectedWhenOptions', function (a, b) {

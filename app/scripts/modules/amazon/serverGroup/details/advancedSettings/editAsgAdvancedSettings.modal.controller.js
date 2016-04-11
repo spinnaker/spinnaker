@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.advancedSetti
   require('../../../../core/task/taskExecutor.js'),
   require('../../configure/serverGroupCommandBuilder.service.js'),
 ])
-  .controller('EditAsgAdvancedSettingsCtrl', function($scope, $modalInstance, taskMonitorService, taskExecutor, _,
+  .controller('EditAsgAdvancedSettingsCtrl', function($scope, $uibModalInstance, taskMonitorService, taskExecutor, _,
                                                      application, serverGroup, awsServerGroupCommandBuilder) {
 
     $scope.command = awsServerGroupCommandBuilder.buildUpdateServerGroupCommand(serverGroup);
@@ -27,7 +27,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.advancedSetti
       };
 
       var taskMonitorConfig = {
-        modalInstance: $modalInstance,
+        modalInstance: $uibModalInstance,
         application: application,
         title: 'Update Advanced Settings for ' + serverGroup.name,
         onTaskComplete: application.serverGroups.refresh,
@@ -38,5 +38,5 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.advancedSetti
       $scope.taskMonitor.submit(submitMethod);
     };
 
-    this.cancel = $modalInstance.dismiss;
+    this.cancel = $uibModalInstance.dismiss;
   });

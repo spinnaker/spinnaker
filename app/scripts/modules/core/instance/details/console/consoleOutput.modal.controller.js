@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.instance.details.console.controller', [
   require('../../instance.read.service.js'),
 ])
-  .controller('ConsoleOutputCtrl', function($scope, $modalInstance, instanceReader, instance) {
+  .controller('ConsoleOutputCtrl', function($scope, $uibModalInstance, instanceReader, instance) {
     $scope.vm = {
       loading: true,
       instanceId: instance.instanceId,
@@ -22,6 +22,6 @@ module.exports = angular.module('spinnaker.core.instance.details.console.control
       }
     );
 
-    $scope.close = $modalInstance.dismiss;
+    $scope.close = $uibModalInstance.dismiss;
 
   });

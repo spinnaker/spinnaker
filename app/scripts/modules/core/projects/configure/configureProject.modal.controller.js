@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
   require('../../account/account.service.js'),
   require('../../pipeline/config/services/pipelineConfigService.js'),
 ])
-  .controller('ConfigureProjectModalCtrl', function ($scope, projectConfig, $modalInstance, $q,
+  .controller('ConfigureProjectModalCtrl', function ($scope, projectConfig, $uibModalInstance, $q,
                                                      pipelineConfigService, applicationReader, projectWriter,
                                                      projectReader, accountService, taskMonitorService,
                                                      v2modalWizardService, $timeout) {
@@ -142,9 +142,9 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
       var submitMethod = () => projectWriter.deleteProject($scope.command);
 
       var taskMonitorConfig = {
-        modalInstance: $modalInstance,
+        modalInstance: $uibModalInstance,
         title: 'Deleting ' + $scope.command.name,
-        onTaskComplete: () => $modalInstance.close({action: 'delete'})
+        onTaskComplete: () => $uibModalInstance.close({action: 'delete'})
       };
 
       $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);
@@ -165,9 +165,9 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
       let descriptor = $scope.command.id ? 'Updating ' : 'Creating ';
 
       var taskMonitorConfig = {
-        modalInstance: $modalInstance,
+        modalInstance: $uibModalInstance,
         title: descriptor + $scope.command.name,
-        onTaskComplete: () => $modalInstance.close({action: 'upsert', name: $scope.command.name})
+        onTaskComplete: () => $uibModalInstance.close({action: 'upsert', name: $scope.command.name})
       };
 
       $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);
@@ -178,6 +178,6 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
     this.showSubmitButton = () => v2modalWizardService.allPagesVisited();
 
 
-    this.cancel = $modalInstance.dismiss;
+    this.cancel = $uibModalInstance.dismiss;
 
   });

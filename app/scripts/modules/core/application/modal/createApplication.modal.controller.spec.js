@@ -18,7 +18,7 @@ describe('Controller: CreateApplicationModalCtrl', function () {
       scope = $rootScope.$new();
       controller = $controller('CreateApplicationModalCtrl', {
         $scope: scope,
-        $modalInstance: {}
+        $uibModalInstance: {}
       });
     })
   );

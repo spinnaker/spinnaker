@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.p
   require('../../../../core/task/monitor/taskMonitor.module.js'),
   require('../../../../core/task/taskExecutor.js'),
   ])
-  .controller('ModifyScalingProcessesCtrl', function($scope, $modalInstance, taskMonitorService, taskExecutor, application, serverGroup, processes, _) {
+  .controller('ModifyScalingProcessesCtrl', function($scope, $uibModalInstance, taskMonitorService, taskExecutor, application, serverGroup, processes, _) {
     $scope.command = angular.copy(processes);
     $scope.serverGroup = serverGroup;
     $scope.verification = {};
@@ -72,7 +72,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.p
       };
 
       var taskMonitorConfig = {
-        modalInstance: $modalInstance,
+        modalInstance: $uibModalInstance,
         application: application,
         title: 'Update Auto Scaling Processes for ' + serverGroup.name,
         onTaskComplete: application.serverGroups.refresh,
@@ -83,5 +83,5 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.p
       $scope.taskMonitor.submit(submitMethod);
     };
 
-    this.cancel = $modalInstance.dismiss;
+    this.cancel = $uibModalInstance.dismiss;
   });

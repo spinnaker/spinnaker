@@ -185,9 +185,9 @@ module.exports = angular
       'mouseenter focus': 'mouseleave blur'
     });
   })
-  .config(function($modalProvider) {
-    $modalProvider.options.backdrop = 'static';
-    $modalProvider.options.keyboard = false;
+  .config(function($uibModalProvider) {
+    $uibModalProvider.options.backdrop = 'static';
+    $uibModalProvider.options.keyboard = false;
   })
   .config(function(RestangularProvider, settings) {
     RestangularProvider.setBaseUrl(settings.gateUrl);

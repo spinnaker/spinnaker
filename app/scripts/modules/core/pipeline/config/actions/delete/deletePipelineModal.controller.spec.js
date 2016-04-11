@@ -17,13 +17,13 @@ describe('Controller: deletePipelineModal', function() {
       this.$state = $state;
       this.$scope = $rootScope.$new();
       this.pipelineConfigService = pipelineConfigService;
-      this.$modalInstance = { close: angular.noop };
+      this.$uibModalInstance = { close: angular.noop };
       this.controller = $controller('DeletePipelineModalCtrl', {
         $scope: this.$scope,
         application: application,
         pipeline: pipeline,
         pipelineConfigService: this.pipelineConfigService,
-        $modalInstance: this.$modalInstance,
+        $uibModalInstance: this.$uibModalInstance,
         $log: $log,
         $state: $state,
       });
@@ -64,7 +64,7 @@ describe('Controller: deletePipelineModal', function() {
         return $q.when(null);
       });
       spyOn(this.pipelineConfigService, 'savePipeline');
-      spyOn(this.$modalInstance, 'close');
+      spyOn(this.$uibModalInstance, 'close');
       spyOn(this.$state, 'go').and.callFake(function (target, params, options) {
         newStateTarget = target;
         newStateOptions = options;

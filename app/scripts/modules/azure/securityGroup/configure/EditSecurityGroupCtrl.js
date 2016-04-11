@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.edit.contro
   require('../../../core/task/monitor/taskMonitorService.js'),
     require('../securityGroup.write.service.js'),
 ])
-  .controller('azureEditSecurityGroupCtrl', function($scope, $modalInstance, $exceptionHandler, $state,
+  .controller('azureEditSecurityGroupCtrl', function($scope, $uibModalInstance, $exceptionHandler, $state,
                                                 accountService, securityGroupReader,
                                                 taskMonitorService, cacheInitializer, infrastructureCaches,
                                                 _, application, securityGroup, azureSecurityGroupWriter) {
@@ -35,7 +35,7 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.edit.contro
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: 'Updating your security group',
-      modalInstance: $modalInstance,
+      modalInstance: $uibModalInstance,
       onTaskComplete: onTaskComplete,
     });
 
@@ -82,7 +82,7 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.edit.contro
       if ($scope.$$destroyed) {
         return;
       }
-      $modalInstance.close();
+      $uibModalInstance.close();
       var newStateParams = {
         name: $scope.securityGroup.name,
         accountId: $scope.securityGroup.credentials || $scope.securityGroup.accountName,
@@ -135,7 +135,7 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.edit.contro
       ruleset[b].priority = priorityB;
     }
 
-    $scope.taskMonitor.onApplicationRefresh = $modalInstance.dismiss;
+    $scope.taskMonitor.onApplicationRefresh = $uibModalInstance.dismiss;
 
     this.upsert = function () {
       $scope.taskMonitor.submit(
@@ -156,6 +156,6 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.edit.contro
     };
 
     this.cancel = function () {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
   });

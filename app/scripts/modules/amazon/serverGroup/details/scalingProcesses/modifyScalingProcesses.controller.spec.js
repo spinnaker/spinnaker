@@ -10,7 +10,7 @@ describe('Controller: modifyScalingProcesses', function() {
   );
 
   beforeEach(window.inject(function($controller, $rootScope, _) {
-    this.$modalInstance = { close: angular.noop };
+    this.$uibModalInstance = { close: angular.noop };
     this.taskMonitorService = { buildTaskMonitor: angular.noop };
     this.taskExecutor = { executeTask: angular.noop };
     this.$scope = $rootScope.$new();
@@ -27,7 +27,7 @@ describe('Controller: modifyScalingProcesses', function() {
         application: { serverGroups: { refresh: angular.noop } },
         taskMonitorService: this.taskMonitorService,
         taskExecutor: this.taskExecutor,
-        $modalInstance: this.$modalInstance,
+        $uibModalInstance: this.$uibModalInstance,
         _: _,
       });
     };

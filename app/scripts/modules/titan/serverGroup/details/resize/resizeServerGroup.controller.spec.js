@@ -18,7 +18,7 @@ describe('Controller: titanResizeServerGroupCtrl', function () {
       scope = $rootScope.$new();
       controller = $controller('titanResizeServerGroupCtrl', {
         $scope: scope,
-        $modalInstance: {},
+        $uibModalInstance: {},
         application: {},
         serverGroup: {
           capacity:{

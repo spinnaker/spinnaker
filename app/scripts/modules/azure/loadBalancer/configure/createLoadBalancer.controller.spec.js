@@ -16,7 +16,7 @@ describe('Controller: azureCreateLoadBalancerCtrl', function () {
     this.$scope = $rootScope.$new();
     this.ctrl = $controller('azureCreateLoadBalancerCtrl', {
       $scope: this.$scope,
-      $modalInstance: { dismiss: angular.noop, result: { then: angular.noop } },
+      $uibModalInstance: { dismiss: angular.noop, result: { then: angular.noop } },
       application: {name: 'app'},
       loadBalancer: null,
       isNew: true

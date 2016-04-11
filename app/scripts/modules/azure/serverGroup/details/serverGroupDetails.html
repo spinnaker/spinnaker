@@ -34,7 +34,7 @@
           <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
             Server Group Actions <span class="caret"></span>
           </button>
-          <ul class="uib-dropdown-menu" role="menu">
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
             <li><a href ng-click="ctrl.resizeServerGroup()">Resize</a></li>
             <li><a href ng-if="!serverGroup.isDisabled" ng-click="ctrl.disableServerGroup()">Disable</a></li>
             <li><a href ng-if="serverGroup.isDisabled" ng-click="ctrl.enableServerGroup()">Enable</a></li>
@@ -47,7 +47,7 @@
           <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
             Insight <span class="caret"></span>
           </button>
-          <ul class="uib-dropdown-menu" role="menu">
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
             <li ng-repeat="action in serverGroup.insightActions"><a target=_blank href="{{action.url}}">{{action.label}}</a></li>
           </ul>
         </div>
@@ -57,7 +57,7 @@
   </div>
   <div class="content" ng-if="!state.loading">
     <h4 class="text-center" ng-if="serverGroup.isDisabled">[SERVER GROUP IS DISABLED]</h4>
-    
+
     <collapsible-section heading="Running Tasks" expanded="true" body-class="details-running-tasks" ng-if="serverGroup.runningTasks.length > 0 || runningExecutions().length > 0">
       <div class="container-fluid no-padding" ng-repeat="task in serverGroup.runningTasks | orderBy:'-startTime'">
         <div class="row">
@@ -95,7 +95,7 @@
         </div>
       </div>
     </collapsible-section>
-    
+
     <collapsible-section heading="Server Group Information" expanded="true">
       <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
         <dt>Created</dt>
@@ -111,7 +111,7 @@
         <dd>{{serverGroup.sku.name}}</dd>
       </dl>
     </collapsible-section>
-    
+
     <collapsible-section heading="Size" expanded="true">
       <dl class="dl-horizontal"
           ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
@@ -119,7 +119,7 @@
         <dd>{{serverGroup.instances.length}}</dd>
       </dl>
     </collapsible-section>
-    
+
     <collapsible-section heading="Health" expanded="true">
       <dl class="dl-horizontal"
           ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
@@ -130,7 +130,7 @@
         </dd>
       </dl>
     </collapsible-section>
-    
+
     <collapsible-section heading="Security Groups">
       <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
         <dt>Name</dt>

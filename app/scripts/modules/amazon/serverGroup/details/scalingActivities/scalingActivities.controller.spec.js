@@ -31,7 +31,7 @@ describe('Controller: ScalingActivitiesCtrl', function () {
           name: 'asg-v001',
           region: 'us-east-1'
         },
-        $modalInstance: jasmine.createSpyObj('$modalInstance', ['dismiss'])
+        $uibModalInstance: jasmine.createSpyObj('$uibModalInstance', ['dismiss'])
       });
     });
   });

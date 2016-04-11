@@ -19,7 +19,7 @@
                   uib-dropdown-toggle>
             Actions <span class="caret"></span>
           </button>
-          <ul class="uib-dropdown-menu" role="menu">
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
             <li><a href ng-click="vm.destroyServerGroups()">Destroy</a></li>
             <li><a href ng-click="vm.disableServerGroups()" ng-if="vm.canDisable()">Disable</a></li>
             <li><a href ng-click="vm.enableServerGroups()" ng-if="vm.canEnable()">Enable</a></li>

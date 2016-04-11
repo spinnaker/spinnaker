@@ -20,12 +20,12 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.pr
         controllerAs: 'preconditionListCtrl'
       };
     })
-    .controller('PreconditionListCtrl', function ($scope, $modal, _) {
+    .controller('PreconditionListCtrl', function ($scope, $uibModal, _) {
 
       var vm = this;
 
       vm.editPrecondition = function (precondition, strategy) {
-        var modalInstance = $modal.open({
+        var modalInstance = $uibModal.open({
           templateUrl: require('./modal/editPrecondition.html'),
           controller: 'EditPreconditionController',
           controllerAs: 'editPrecondition',

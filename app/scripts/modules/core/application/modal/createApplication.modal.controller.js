@@ -13,7 +13,7 @@ module.exports = angular
     require('./validation/applicationNameValidationMessages.directive.js'),
     require('./validation/validateApplicationName.directive.js'),
   ])
-  .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $modalInstance, accountService,
+  .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $uibModalInstance, accountService,
                                                      applicationWriter, applicationReader, _, taskReader, $timeout) {
 
     let applicationLoader = applicationReader.listApplications();

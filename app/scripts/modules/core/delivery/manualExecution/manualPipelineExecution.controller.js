@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
   require('../../utils/lodash.js'),
   require('../../pipeline/config/pipelineConfigProvider.js'),
 ])
-  .controller('ManualPipelineExecutionCtrl', function (_, $modalInstance, pipeline, application, pipelineConfig) {
+  .controller('ManualPipelineExecutionCtrl', function (_, $uibModalInstance, pipeline, application, pipelineConfig) {
 
     this.command = {
       pipeline: pipeline,
@@ -87,10 +87,10 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
       if (pipeline.parameterConfig !== undefined && pipeline.parameterConfig.length) {
         selectedTrigger.parameters = this.parameters;
       }
-      $modalInstance.close(command);
+      $uibModalInstance.close(command);
     };
 
-    this.cancel = $modalInstance.dismiss;
+    this.cancel = $uibModalInstance.dismiss;
 
 
     /**

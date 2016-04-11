@@ -13,7 +13,7 @@ module.exports = angular
     require('./fastPropertyWizardManagement.service'),
     require('./fastPropertyScopeBuilder.service'),
   ])
-  .controller('FastPropertyUpsertController', function ($scope, $controller, $templateCache, $compile, $modalInstance, $q, _,
+  .controller('FastPropertyUpsertController', function ($scope, $controller, $templateCache, $compile, $uibModalInstance, $q, _,
                                                         settings, applicationList, applicationReader, fastPropertyReader,
                                                         fastPropertyStrategy, clusters, appName, fastProperty, isEditing,
                                                         appListExtractorService, fastPropertyWizardManagementService,
@@ -226,7 +226,7 @@ module.exports = angular
 
     vm.setControllerToScope = (controller) => {
       if(controller) {
-        let ctrl = $controller(controller, {parentVM: vm, modalInstance: $modalInstance});
+        let ctrl = $controller(controller, {parentVM: vm, modalInstance: $uibModalInstance});
         vm.submit = ctrl.submit;
         vm.update = ctrl.update;
       }

@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
   require('../../../../core/task/monitor/taskMonitorService.js'),
   require('../configuration.service.js'),
 ])
-  .controller('kubernetesCloneServerGroupController', function($scope, $modalInstance, _, $q, $state,
+  .controller('kubernetesCloneServerGroupController', function($scope, $uibModalInstance, _, $q, $state,
                                                          serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                          kubernetesServerGroupConfigurationService,
                                                          serverGroupCommand, application, title) {
@@ -39,7 +39,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
       application: application,
       title: 'Creating your server group',
       forceRefreshMessage: 'Getting your new server group from Kubernetes...',
-      modalInstance: $modalInstance,
+      modalInstance: $uibModalInstance,
       forceRefreshEnabled: true
     });
 
@@ -80,7 +80,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
 
     this.clone = function () {
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode == 'createPipeline') {
-        return $modalInstance.close($scope.command);
+        return $uibModalInstance.close($scope.command);
       }
       $scope.taskMonitor.submit(
         function() {
@@ -90,7 +90,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
     };
 
     this.cancel = function () {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
 
     if (!$scope.state.requiresTemplateSelection) {

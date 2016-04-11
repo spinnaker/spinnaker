@@ -18,7 +18,7 @@ describe('Controller: gceResizeServerGroupCtrl', function () {
       scope = $rootScope.$new();
       controller = $controller('gceResizeServerGroupCtrl', {
         $scope: scope,
-        $modalInstance: {},
+        $uibModalInstance: {},
         application: {},
         serverGroup: {
           asg:{

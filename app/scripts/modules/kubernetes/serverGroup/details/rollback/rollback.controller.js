@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.rollba
       require('../../../../core/serverGroup/serverGroup.write.service.js'),
       require('../../../../core/task/monitor/taskMonitorService.js'),
     ])
-    .controller('kubernetesRollbackServerGroupController', function ($scope, $modalInstance, serverGroupWriter,
+    .controller('kubernetesRollbackServerGroupController', function ($scope, $uibModalInstance, serverGroupWriter,
                                                                      taskMonitorService,
                                                                      application, serverGroup, disabledServerGroups) {
       $scope.serverGroup = serverGroup;
@@ -47,7 +47,7 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.rollba
         };
 
         var taskMonitorConfig = {
-          modalInstance: $modalInstance,
+          modalInstance: $uibModalInstance,
           application: application,
           title: 'Rollback ' + serverGroup.name,
         };
@@ -58,6 +58,6 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.rollba
       };
 
       this.cancel = function () {
-        $modalInstance.dismiss();
+        $uibModalInstance.dismiss();
       };
     });
