@@ -111,9 +111,6 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
 
     defaults = defaults or {}
     parser.add_argument(
-     '--test_component_detail', default='fe',
-     help='Refinement for component name to create.')
-    parser.add_argument(
       '--jenkins_master', default='jenkins1',
       help='The name of the jenkins master as configured in igor.')
     parser.add_argument(

@@ -88,12 +88,6 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
     super(AwsSmokeTestScenario, cls).initArgumentParser(parser,
                                                         defaults=defaults)
 
-    defaults = defaults or {}
-    parser.add_argument(
-        '--test_component_detail',
-        default='fe',
-        help='Refinement for component name to create.')
-
   def __init__(self, bindings, agent=None):
     """Constructor.
 
@@ -102,13 +96,12 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
       agent: [GateAgent] The agent for invoking the test operations on Gate.
     """
     super(AwsSmokeTestScenario, self).__init__(bindings, agent)
-
     bindings = self.bindings
-    bindings['TEST_APP_COMPONENT_NAME'] = (
-        '{app}-{stack}-{detail}'.format(
-            app=bindings['TEST_APP'],
-            stack=bindings['TEST_STACK'],
-            detail=bindings['TEST_COMPONENT_DETAIL']))
+
+    self.__lb_detail = 'lb'
+    self.__lb_name = '{app}-{stack}-{detail}'.format(
+        app=bindings['TEST_APP'], stack=bindings['TEST_STACK'],
+        detail=self.__lb_detail)
 
     # We'll call out the app name because it is widely used
     # because it scopes the context of our activities.
@@ -142,13 +135,13 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
       use_vpc: [bool] if True configure a VPC otherwise dont.
     """
     bindings = self.bindings
-    load_balancer_name = bindings['TEST_APP_COMPONENT_NAME']
 
     # We're assuming that the given region has 'A' and 'B' availability
     # zones. This seems conservative but might be brittle since we permit
     # any region.
     region = bindings['TEST_AWS_REGION']
     avail_zones = [region + 'a', region + 'b']
+    load_balancer_name = self.__lb_name
 
     if use_vpc:
       # TODO(ewiseblatt): 20160301
@@ -215,7 +208,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
             'credentials': bindings['AWS_CREDENTIALS'],
             'name': load_balancer_name,
             'stack': bindings['TEST_STACK'],
-            'detail': '',
+            'detail': self.__lb_detail,
             'region': bindings['TEST_AWS_REGION'],
 
             'availabilityZones': {region: avail_zones},
@@ -282,7 +275,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
       use_vpc: [bool] if True delete the VPC load balancer, otherwise
          the non-VPC load balancer.
     """
-    load_balancer_name = self.bindings['TEST_APP_COMPONENT_NAME']
+    load_balancer_name = self.__lb_name
     if not use_vpc:
       # This is the second load balancer, where we decorated the name in upsert.
       load_balancer_name += '-pub'
@@ -326,7 +319,6 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
     for the server group was created.
     """
     bindings = self.bindings
-    load_balancer_name = bindings['TEST_APP_COMPONENT_NAME']
 
     # Spinnaker determines the group name created,
     # which will be the following:
@@ -345,7 +337,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
             'strategy':'',
             'capacity': {'min':2, 'max':2, 'desired':2},
             'targetHealthyDeployPercentage': 100,
-            'loadBalancers': [load_balancer_name],
+            'loadBalancers': [self.__lb_name],
             'cooldown': 8,
             'healthCheckType': 'EC2',
             'healthCheckGracePeriod': 40,
@@ -396,6 +388,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
     is no longer visible on AWS (or is in the process of terminating).
     """
     bindings = self.bindings
+
     group_name = '{app}-{stack}-v000'.format(
         app=self.TEST_APP, stack=bindings['TEST_STACK'])
 
