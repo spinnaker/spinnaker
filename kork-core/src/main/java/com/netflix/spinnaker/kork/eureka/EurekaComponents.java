@@ -19,6 +19,7 @@ package com.netflix.spinnaker.kork.eureka;
 import com.netflix.appinfo.*;
 import com.netflix.discovery.DefaultEurekaClientConfig;
 import com.netflix.discovery.DiscoveryClient;
+import com.netflix.discovery.EurekaClient;
 import com.netflix.discovery.EurekaClientConfig;
 import com.netflix.discovery.StatusChangeEvent;
 import com.netflix.eventbus.impl.EventBusImpl;
@@ -62,8 +63,14 @@ public class EurekaComponents {
   }
 
   @Bean
+  @Deprecated //prefer to use EurekaClient interface rather than directly depending on DiscoveryClient
   public DiscoveryClient discoveryClient(ApplicationInfoManager applicationInfoManager, EurekaClientConfig eurekaClientConfig, DiscoveryClient.DiscoveryClientOptionalArgs optionalArgs) {
     return new DiscoveryClient(applicationInfoManager, eurekaClientConfig, optionalArgs);
+  }
+
+  @Bean
+  public EurekaClient eurekaClient(DiscoveryClient discoveryClient) {
+    return discoveryClient;
   }
 
   @Bean

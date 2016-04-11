@@ -21,7 +21,7 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.metrics.AwsSdkMetrics;
 import com.amazonaws.retry.RetryPolicy;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.aws.SpectatorMetricsCollector;
+import com.netflix.spectator.aws.SpectatorMetricCollector;
 import com.netflix.spinnaker.kork.metrics.SpectatorConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -48,8 +48,8 @@ public class AwsComponents {
   }
 
   @Bean
-  SpectatorMetricsCollector spectatorMetricsCollector(Registry registry) {
-    SpectatorMetricsCollector collector = new SpectatorMetricsCollector(registry);
+  SpectatorMetricCollector spectatorMetricsCollector(Registry registry) {
+    SpectatorMetricCollector collector = new SpectatorMetricCollector(registry);
     AwsSdkMetrics.setMetricCollector(collector);
     return collector;
   }
