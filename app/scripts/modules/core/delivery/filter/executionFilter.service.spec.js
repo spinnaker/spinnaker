@@ -7,14 +7,12 @@ describe('Service: executionFilterService', function () {
   var ExecutionFilterModel;
   var $timeout;
 
-  beforeEach(
+  beforeEach(function() {
+    spyOn(_, 'debounce').and.callFake(fn => (app) => $timeout(fn(app)));
     window.module(
       require('./executionFilter.service.js'),
       require('./executionFilter.model.js')
-    )
-  );
-
-  beforeEach(
+    );
     window.inject(
       function (_$location_, executionFilterService, _ExecutionFilterModel_, _$timeout_) {
         service = executionFilterService;
@@ -22,8 +20,8 @@ describe('Service: executionFilterService', function () {
         $timeout = _$timeout_;
         ExecutionFilterModel.groups = [];
       }
-    )
-  );
+    );
+  });
 
   describe('Updating execution groups', function () {
 

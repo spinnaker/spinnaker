@@ -10,15 +10,12 @@ describe('Service: loadBalancerFilterService', function () {
   var resultJson;
   var $timeout;
 
-  beforeEach(
+  beforeEach(function() {
+    spyOn(_, 'debounce').and.callFake(fn => (app) => $timeout(fn(app)));
     window.module(
-      require('../../utils/lodash.js'),
       require('./loadBalancer.filter.service.js'),
       require('./loadBalancer.filter.model.js')
-    )
-  );
-
-  beforeEach(
+    );
     window.inject(
       function (loadBalancerFilterService, _LoadBalancerFilterModel_, _$timeout_) {
         service = loadBalancerFilterService;
@@ -26,8 +23,8 @@ describe('Service: loadBalancerFilterService', function () {
         $timeout = _$timeout_;
         LoadBalancerFilterModel.groups = [];
       }
-    )
-  );
+    );
+  });
 
   beforeEach(function () {
     app = {
@@ -94,7 +91,6 @@ describe('Service: loadBalancerFilterService', function () {
       it('should not match on partial vpc name', function () {
         LoadBalancerFilterModel.sortFilter.filter = 'vpc:main-old';
         service.updateLoadBalancerGroups(app);
-        $timeout.flush();
         expect(LoadBalancerFilterModel.groups).toEqual([]);
       });
     });

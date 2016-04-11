@@ -6,12 +6,11 @@ module.exports = angular
   .module('spinnaker.core.loadBalancer.filter.service', [
     require('./loadBalancer.filter.model.js'),
     require('../../utils/lodash.js'),
-    require('exports?"debounce"!angular-debounce'),
     require('../../utils/waypoints/waypoint.service.js'),
     require('../../filterModel/filter.model.service.js'),
   ])
   .factory('loadBalancerFilterService', function (LoadBalancerFilterModel, _, waypointService, filterModelService,
-                                                  $log, debounce) {
+                                                  $log) {
 
     var isFilterable = filterModelService.isFilterable,
         getCheckValues = filterModelService.getCheckValues;
@@ -100,7 +99,7 @@ module.exports = angular
      * @param application
      * @returns {*}
      */
-    var updateLoadBalancerGroups = debounce((application) => {
+    var updateLoadBalancerGroups = _.debounce((application) => {
       if (!application) {
         application = lastApplication;
         if (!lastApplication) {

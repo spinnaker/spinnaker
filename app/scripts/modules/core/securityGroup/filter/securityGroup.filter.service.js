@@ -6,12 +6,11 @@ module.exports = angular
   .module('securityGroup.filter.service', [
     require('./securityGroup.filter.model.js'),
     require('../../utils/lodash.js'),
-    require('exports?"debounce"!angular-debounce'),
     require('../../utils/waypoints/waypoint.service.js'),
     require('../../filterModel/filter.model.service.js'),
   ])
   .factory('securityGroupFilterService', function (SecurityGroupFilterModel, _, waypointService, filterModelService,
-                                                  $log, debounce) {
+                                                  $log) {
 
     var lastApplication = null;
 
@@ -60,7 +59,7 @@ module.exports = angular
      * @param application
      * @returns {*}
      */
-    var updateSecurityGroups = debounce((application) => {
+    var updateSecurityGroups = _.debounce((application) => {
       if (!application) {
         application = lastApplication;
         if (!lastApplication) {
