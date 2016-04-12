@@ -75,6 +75,7 @@ module.exports = angular
         advancedMode: false,
         metricsLoaded: false,
         selectedMetric: null,
+        noDefaultMetrics: false,
       };
 
       this.alarmUpdated = new rx.Subject();
@@ -108,6 +109,10 @@ module.exports = angular
           return;
         }
         let alarm = this.alarm;
+        if (this.viewState.advancedMode) {
+          this.alarmUpdated.onNext();
+          return;
+        }
         if (this.viewState.selectedMetric) {
           let selected = this.viewState.selectedMetric,
               dimensionsChanged = selected && dimensionsToString(alarm) !== dimensionsToString(selected),
@@ -123,9 +128,7 @@ module.exports = angular
             this.alarmUpdated.onNext();
           }
         } else {
-          if (!this.viewState.advancedMode) {
-            alarm.namespace = null;
-          }
+          alarm.namespace = null;
           alarm.metricName = null;
           this.alarmUpdated.onNext();
         }
@@ -176,12 +179,19 @@ module.exports = angular
             this.viewState.metricsLoaded = true;
             results.forEach(transformAvailableMetric);
             this.metrics = results.sort((a, b) => a.label.localeCompare(b.label));
-            let currentDimensions = this.alarm.dimensions.sort(dimensionSorter).map(d => d.value).join(', ');
+            let currentDimensions = alarm.dimensions.sort(dimensionSorter).map(d => d.value).join(', ');
             let [selected] = this.metrics.filter(metric =>
               metric.name === alarm.metricName && metric.namespace === alarm.namespace &&
               metric.dimensionValues === currentDimensions
             );
-            this.viewState.selectedMetric = selected;
+            if (!results.length && !this.viewState.advancedMode) {
+              this.viewState.noDefaultMetrics = true;
+              alarm.namespace = alarm.namespace || this.namespaces[0];
+              this.advancedMode();
+            }
+            if (selected) {
+              this.viewState.selectedMetric = selected;
+            }
             this.metricChanged();
           })
         .catch(() => {

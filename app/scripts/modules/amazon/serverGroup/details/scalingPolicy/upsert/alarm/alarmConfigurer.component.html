@@ -27,6 +27,9 @@
             ng-options="stat for stat in $ctrl.statistics">
     </select>
     <span class="input-label" style="vertical-align: top; margin-top: 7px"> of </span>
+    <div class="text-center" style="display: inline-block; width: 100px; margin-top: 7px" ng-if="!$ctrl.viewState.metricsLoaded">
+      <span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span>
+    </div>
     <div style="display: inline-block; width: 500px" ng-if="$ctrl.viewState.metricsLoaded">
       <select class="form-control input-sm"
               required
@@ -42,24 +45,32 @@
               ng-if="$ctrl.viewState.advancedMode"
               ng-options="namespace for namespace in $ctrl.namespaces">
       </select>
-      <select class="form-control input-sm"
-              required
-              ng-model="$ctrl.viewState.selectedMetric"
-              ng-change="$ctrl.metricChanged()"
-              ng-if="$ctrl.viewState.advancedMode"
-              ng-options="metric as metric.advancedLabel for metric in $ctrl.metrics">
-      </select>
+      <div style="display: inline-block; width: 300px; position: relative; top: -3px"
+           ng-if="$ctrl.viewState.advancedMode">
+        <input type="text" class="form-control input-sm" style="width: 100%"
+               required
+               uib-typeahead="option.name as option.name for option in $ctrl.metrics | filter: $viewValue"
+               typeahead-show-hint="true"
+               typeahead-min-length="0"
+               typeahead-editable="true"
+               typeahead-on-select="$ctrl.metricChanged()"
+               ng-change="$ctrl.metricChanged()"
+               ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
+               ng-model="$ctrl.alarm.metricName"
+               placeholder="name"/>
+      </div>
       <a href class="small"
          ng-if="!$ctrl.viewState.advancedMode"
          ng-click="$ctrl.advancedMode()">
         Search all metrics <help-field key="aws.scalingPolicy.search.all"></help-field>
       </a>
-      <span class="input-label" ng-if="$ctrl.viewState.advancedMode && $ctrl.metrics.length === 0">
-        No metrics found for selected namespace + dimensions
+      <span class="input-label" style="margin-left: 5px"
+            ng-if="$ctrl.viewState.advancedMode && $ctrl.metrics.length === 0">
+        <strong>Note:</strong> no metrics found for selected namespace + dimensions
       </span>
       <div style="padding-left: 5px;">
         <a href class="small"
-           ng-if="$ctrl.viewState.advancedMode"
+           ng-if="$ctrl.viewState.advancedMode && !$ctrl.viewState.noDefaultMetrics"
            ng-click="$ctrl.simpleMode()">
           Only show metrics for this auto scaling group <help-field key="aws.scalingPolicy.search.restricted"></help-field>
         </a>

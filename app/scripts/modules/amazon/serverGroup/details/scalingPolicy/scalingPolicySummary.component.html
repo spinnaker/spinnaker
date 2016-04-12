@@ -5,7 +5,8 @@
        popover-trigger="mouseenter">
     <div>
       <strong>Whenever</strong>
-      {{alarm.statistic}} of {{alarm.metricName}} is <span ng-bind-html="alarm.comparator"></span> {{alarm.threshold}}
+      {{alarm.statistic}} of <span class="alarm-name">{{alarm.metricName}}</span>
+      is <span ng-bind-html="alarm.comparator"></span> {{alarm.threshold}}
     </div>
     <div>
       <strong>for at least</strong>
