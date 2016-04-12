@@ -4,14 +4,24 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.aws.validation.applicationName', [
-    require('../../core/application/modal/validation/applicationName.validator.js'),
+    require('../../core/application/modal/validation/applicationName.validator'),
+    require('../../core/config/settings'),
+    require('../../core/utils/lodash'),
   ])
-  .factory('awsApplicationNameValidator', function () {
+  .factory('awsApplicationNameValidator', function (settings, _) {
 
     function validateSpecialCharacters(name, errors) {
       let pattern = /^[a-zA-Z_0-9.]*$/g;
       if (!pattern.test(name)) {
         errors.push('Only dot(.) and underscore(_) special characters are allowed.');
+      }
+    }
+
+    function validateClassicLock(warnings) {
+      let lockoutDate = _.get(settings, 'providers.aws.classicLaunchLockout');
+      if (lockoutDate && lockoutDate < new Date().getTime()) {
+        warnings.push('New applications deployed to AWS are restricted to VPC; you cannot create server groups, ' +
+          'load balancers, or security groups in EC2 Classic.');
       }
     }
 
@@ -61,6 +71,7 @@ module.exports = angular
           errors = [];
 
       if (name && name.length) {
+        validateClassicLock(warnings);
         validateSpecialCharacters(name, errors);
         validateLoadBalancerCharacters(name, warnings);
         validateLength(name, warnings, errors);
