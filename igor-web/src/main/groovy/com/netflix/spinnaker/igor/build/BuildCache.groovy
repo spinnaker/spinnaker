@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.igor.jenkins
+package com.netflix.spinnaker.igor.build
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -21,12 +21,14 @@ import org.springframework.stereotype.Service
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 
+
 /**
- * Shared jenkinsCache of build details for jenkins
+ * Shared cache of build details
  */
 @SuppressWarnings(['PropertyName', 'DuplicateNumberLiteral'])
 @Service
-class JenkinsCache {
+class BuildCache {
+
     @Autowired
     JedisPool jedisPool
 
@@ -34,16 +36,18 @@ class JenkinsCache {
     @Value('${spinnaker.jedis.prefix:igor}')
     String prefix
 
+    String id = 'builds'
+
     List<String> getJobNames(String master) {
         Jedis resource = jedisPool.resource
-        List<String> jobs = resource.keys("${prefix}:${master}:*").collect { extractJobName(it) }.sort()
+        List<String> jobs = resource.keys("${baseKey()}:${master}:*").collect { extractJobName(it) }.sort()
         jedisPool.returnResource(resource)
         jobs
     }
 
     List<String> getTypeaheadResults(String search) {
         Jedis resource = jedisPool.resource
-        List<String> results = resource.keys("${prefix}:*:*${search.toUpperCase()}*:*").collect {
+        List<String> results = resource.keys("${baseKey()}:*:*${search.toUpperCase()}*:*").collect {
             extractTypeaheadResult(it)
         }.sort()
         jedisPool.returnResource(resource)
@@ -80,16 +84,19 @@ class JenkinsCache {
     }
 
     private String makeKey(String master, String job) {
-        "${prefix}:${master}:${job.toUpperCase()}:${job}"
+        "${baseKey()}:${master}:${job.toUpperCase()}:${job}"
     }
 
     private static String extractJobName(String key) {
-        key.split(':')[3]
+        key.split(':')[4]
     }
 
     private static String extractTypeaheadResult(String key) {
         def parts = key.split(':')
-        "${parts[1]}:${parts[3]}"
+        "${parts[2]}:${parts[4]}"
     }
 
+    private String baseKey() {
+        return "${prefix}:${id}"
+    }
 }

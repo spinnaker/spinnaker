@@ -22,7 +22,6 @@ import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifact
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
-import com.netflix.spinnaker.igor.jenkins.client.model.TestResults
 import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import spock.lang.Shared

@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.igor.jenkins
 
 import com.netflix.spinnaker.igor.history.EchoService
-import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildsList
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
+import com.netflix.spinnaker.igor.service.BuildMasters
 import spock.lang.Specification
 
 /**
@@ -38,7 +38,7 @@ class BuildMonitorSpec extends Specification {
     final MASTER = 'MASTER'
 
     void setup() {
-        monitor = new BuildMonitor(cache: cache, jenkinsMasters: new JenkinsMasters(map: [MASTER: jenkinsService]))
+        monitor = new BuildMonitor(cache: cache, buildMasters: new BuildMasters(map: [MASTER: jenkinsService]))
     }
 
     void 'flag a new build not found in the cache'() {

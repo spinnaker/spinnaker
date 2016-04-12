@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.igor.jenkins
+package com.netflix.spinnaker.igor.build
 
-import com.netflix.config.ConfigurationManager
 import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
+import com.netflix.spinnaker.igor.model.BuildServiceProvider
+import com.netflix.spinnaker.igor.service.BuildMasters
 import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import spock.lang.Shared
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 
-import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
@@ -42,8 +42,8 @@ class InfoControllerSpec extends Specification {
     }
 
     MockMvc mockMvc
-    JenkinsCache cache
-    JenkinsMasters masters
+    BuildCache cache
+    BuildMasters buildMasters
 
     @Shared
     JenkinsService service
@@ -56,20 +56,20 @@ class InfoControllerSpec extends Specification {
     }
 
     void setup() {
-        cache = Mock(JenkinsCache)
-        masters = Mock(JenkinsMasters)
-        mockMvc = MockMvcBuilders.standaloneSetup(new InfoController(cache: cache, masters: masters)).build()
+        cache = Mock(BuildCache)
+        buildMasters = Mock(BuildMasters)
+        mockMvc = MockMvcBuilders.standaloneSetup(new InfoController(buildCache: cache, buildMasters: buildMasters)).build()
         server = new MockWebServer()
     }
 
-    void 'is able to get a list of jenkins masters'() {
+    void 'is able to get a list of jenkins buildMasters'() {
         when:
         MockHttpServletResponse response = mockMvc.perform(get('/masters/')
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * masters.map >> ['master2': [], 'build.masters.blah': [], 'master1': []]
-        response.contentAsString == '["build.masters.blah","master1","master2"]'
+        1 * buildMasters.map >> ['master2': [], 'build.buildMasters.blah': [], 'master1': []]
+        response.contentAsString == '["build.buildMasters.blah","master1","master2"]'
     }
 
     void 'is able to get jobs for a jenkins master'() {
@@ -78,11 +78,12 @@ class InfoControllerSpec extends Specification {
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * masters.map >> [ 'master1' : [ 'jobs' : [ 'list': [
+        2 * buildMasters.map >> [ 'master1' : [ 'jobs' : [ 'list': [
             ['name': 'job1'],
             ['name': 'job2'],
             ['name': 'job3']
         ] ] ] ]
+        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> buildMasters.map
         response.contentAsString == '["job1","job2","job3"]'
     }
 
@@ -92,13 +93,14 @@ class InfoControllerSpec extends Specification {
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * masters.map >> [ 'master1' : [ 'jobs' : [ 'list': [
+        2 * buildMasters.map >> [ 'master1' : [ 'jobs' : [ 'list': [
             ['name': 'folder', 'list': [
                 ['name': 'job1'],
                 ['name': 'job2']
             ] ],
             ['name': 'job3']
         ] ] ] ]
+        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> buildMasters.map
         response.contentAsString == '["folder/job/job1","folder/job/job2","job3"]'
     }
 
@@ -121,7 +123,7 @@ class InfoControllerSpec extends Specification {
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * masters.map >> ['master2': [], 'build.masters.blah': [], 'master1': service]
+        1 * buildMasters.map >> ['master2': [], 'build.buildMasters.blah': [], 'master1': service]
         response.contentAsString == '{"description":null,"displayName":"My-Build","name":"My-Build","buildable":true,"color":"red","url":"http://jenkins.builds.net/job/My-Build/","parameterDefinitionList":[{"defaultName":"pullRequestSourceBranch","defaultValue":"master","name":"pullRequestSourceBranch","description":null,"type":"StringParameterDefinition"},{"defaultName":"generation","defaultValue":"4","name":"generation","description":null,"type":"StringParameterDefinition"}],"upstreamProjectList":[{"name":"Upstream-Build","url":"http://jenkins.builds.net/job/Upstream-Build/","color":"blue"}],"downstreamProjectList":[{"name":"First-Downstream-Build","url":"http://jenkins.builds.net/job/First-Downstream-Build/","color":"blue"},{"name":"Second-Downstream-Build","url":"http://jenkins.builds.net/job/Second-Downstream-Build/","color":"blue"},{"name":"Third-Downstream-Build","url":"http://jenkins.builds.net/job/Third-Downstream-Build/","color":"red"}],"concurrentBuild":false}'
     }
 
@@ -134,7 +136,7 @@ class InfoControllerSpec extends Specification {
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * masters.map >> ['master2': [], 'build.masters.blah': [], 'master1': service]
+        1 * buildMasters.map >> ['master2': [], 'build.buildMasters.blah': [], 'master1': service]
         response.contentAsString == '{"description":null,"displayName":"My-Build","name":"My-Build","buildable":true,"color":"red","url":"http://jenkins.builds.net/job/My-Build/","parameterDefinitionList":[' +
             '{"defaultName":"someParam","defaultValue":"first","name":"someParam","description":null,"type":"ChoiceParameterDefinition","choices":["first","second"]}' +
             '],"upstreamProjectList":[{"name":"Upstream-Build","url":"http://jenkins.builds.net/job/Upstream-Build/","color":"blue"}],"downstreamProjectList":[{"name":"First-Downstream-Build","url":"http://jenkins.builds.net/job/First-Downstream-Build/","color":"blue"},{"name":"Second-Downstream-Build","url":"http://jenkins.builds.net/job/Second-Downstream-Build/","color":"blue"},{"name":"Third-Downstream-Build","url":"http://jenkins.builds.net/job/Third-Downstream-Build/","color":"red"}],"concurrentBuild":false}'
@@ -149,7 +151,7 @@ class InfoControllerSpec extends Specification {
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * masters.map >> ['master2': [], 'build.masters.blah': [], 'master1': service]
+        1 * buildMasters.map >> ['master2': [], 'build.buildMasters.blah': [], 'master1': service]
         response.contentAsString == '{"description":null,"displayName":"My-Build","name":"My-Build","buildable":true,"color":"red","url":"http://jenkins.builds.net/job/My-Build/","parameterDefinitionList":[{"defaultName":"pullRequestSourceBranch","defaultValue":"master","name":"pullRequestSourceBranch","description":null,"type":"StringParameterDefinition"},{"defaultName":"generation","defaultValue":"4","name":"generation","description":null,"type":"StringParameterDefinition"}],"upstreamProjectList":[{"name":"Upstream-Build","url":"http://jenkins.builds.net/job/Upstream-Build/","color":"blue"}],"downstreamProjectList":[{"name":"First-Downstream-Build","url":"http://jenkins.builds.net/job/First-Downstream-Build/","color":"blue"},{"name":"Second-Downstream-Build","url":"http://jenkins.builds.net/job/Second-Downstream-Build/","color":"blue"},{"name":"Third-Downstream-Build","url":"http://jenkins.builds.net/job/Third-Downstream-Build/","color":"red"}],"concurrentBuild":false}'
     }
 

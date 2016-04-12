@@ -14,27 +14,26 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.igor.jenkins
+package com.netflix.spinnaker.igor.build
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.igor.build.BuildCache
+import com.netflix.spinnaker.igor.build.BuildController
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
-import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifact
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildsList
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.ParameterDefinition
-import com.netflix.spinnaker.igor.jenkins.client.model.ParameterDefinition
 import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
-import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
-import com.squareup.okhttp.mockwebserver.MockResponse
+import com.netflix.spinnaker.igor.model.BuildServiceProvider
+import com.netflix.spinnaker.igor.service.BuildMasters
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.util.NestedServletException
 import retrofit.client.Header
 import retrofit.client.Response
 import spock.lang.Shared
@@ -51,8 +50,8 @@ import java.util.concurrent.Executors
 class BuildControllerSpec extends Specification {
 
     MockMvc mockMvc
-    JenkinsMasters masters
-    JenkinsCache cache
+    BuildMasters buildMasters
+    BuildCache cache
     JenkinsClient client
 
     @Shared
@@ -72,11 +71,11 @@ class BuildControllerSpec extends Specification {
 
     void setup() {
         client = Mock(JenkinsClient)
-        cache = Mock(JenkinsCache)
-        masters = new JenkinsMasters(map: [MASTER: client])
+        cache = Mock(BuildCache)
+        buildMasters = Mock(BuildMasters)
         server = new MockWebServer()
         mockMvc = MockMvcBuilders.standaloneSetup(new BuildController(
-            executor: Executors.newSingleThreadExecutor(), masters: masters, objectMapper: new ObjectMapper())).build()
+            executor: Executors.newSingleThreadExecutor(), buildMasters: buildMasters, objectMapper: new ObjectMapper())).build()
     }
 
     void 'get the status of a build'() {
@@ -88,6 +87,8 @@ class BuildControllerSpec extends Specification {
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
+        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: client]
+        2 * buildMasters.map >> [MASTER: client]
         response.contentAsString == "{\"building\":false,\"number\":${BUILD_NUMBER}}"
     }
 
@@ -100,6 +101,8 @@ class BuildControllerSpec extends Specification {
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
+        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: client]
+        1 * buildMasters.map >> [MASTER: client]
         response.contentAsString == "{\"number\":${QUEUED_JOB_NUMBER}}"
     }
 
@@ -112,6 +115,8 @@ class BuildControllerSpec extends Specification {
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
+        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: client]
+        1 * buildMasters.map >> [MASTER: client]
         response.contentAsString == "[{\"building\":false,\"number\":111},{\"building\":false,\"number\":222}]"
     }
 
@@ -126,6 +131,8 @@ class BuildControllerSpec extends Specification {
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
+        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: client]
+        1 * buildMasters.map >> [MASTER: client]
         response.contentAsString == "{}"
     }
 
@@ -139,6 +146,8 @@ class BuildControllerSpec extends Specification {
           .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
+        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: client]
+        1 * buildMasters.map >> [MASTER: client]
         response.contentAsString == BUILD_NUMBER.toString()
 
     }
@@ -153,6 +162,8 @@ class BuildControllerSpec extends Specification {
           .contentType(MediaType.APPLICATION_JSON).param("name", "myName")).andReturn().response
 
         then:
+        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: client]
+        1 * buildMasters.map >> [MASTER: client]
         response.contentAsString == BUILD_NUMBER.toString()
     }
 
@@ -167,6 +178,8 @@ class BuildControllerSpec extends Specification {
           .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
+        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: client]
+        1 * buildMasters.map >> [MASTER: client]
         response.contentAsString == BUILD_NUMBER.toString()
     }
 
@@ -179,6 +192,8 @@ class BuildControllerSpec extends Specification {
           .contentType(MediaType.APPLICATION_JSON).param("foo", "bar")).andReturn().response
 
         then:
+        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: client]
+        1 * buildMasters.map >> [MASTER: client]
         response.status == HttpStatus.INTERNAL_SERVER_ERROR.value()
     }
 
@@ -195,6 +210,8 @@ class BuildControllerSpec extends Specification {
             .contentType(MediaType.APPLICATION_JSON).param("foo", "bat")).andReturn().response
 
         then:
+        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: client]
+        1 * buildMasters.map >> [MASTER: client]
         response.status == HttpStatus.BAD_REQUEST.value()
         response.errorMessage == "`bat` is not a valid choice for `foo`. Valid choices are: bar, baz"
     }

@@ -17,12 +17,13 @@
 package com.netflix.spinnaker.igor.config
 
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
-import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
+import com.netflix.spinnaker.igor.service.BuildMasters
 import com.squareup.okhttp.Credentials
 import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -48,12 +49,19 @@ class JenkinsConfig {
     @Value('${client.timeout:30000}')
     int clientTimeout
 
+    @Autowired(required = false)
+    BuildMasters buildMasters
+
     @Bean
-    JenkinsMasters jenkinsMasters(@Valid JenkinsProperties jenkinsProperties) {
-        new JenkinsMasters(map: jenkinsProperties?.masters?.collectEntries { JenkinsProperties.JenkinsHost host ->
+    Map<String, JenkinsService> jenkinsMasters(@Valid JenkinsProperties jenkinsProperties) {
+        log.info "creating jenkinsMasters"
+        Map<String, JenkinsService> jenkinsMasters = ( jenkinsProperties?.masters?.collectEntries { JenkinsProperties.JenkinsHost host ->
             log.info "bootstrapping ${host.address} as ${host.name}"
             [(host.name): jenkinsService(host.name, jenkinsClient(host.address, host.username, host.password, clientTimeout))]
         })
+
+        buildMasters.map.putAll jenkinsMasters
+        jenkinsMasters
     }
 
     static JenkinsService jenkinsService(String jenkinsHostId, JenkinsClient jenkinsClient) {
