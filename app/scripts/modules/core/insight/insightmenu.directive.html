@@ -5,7 +5,7 @@
       <button type="button" class="btn btn-default dropdown-toggle" uib-dropdown-toggle>
         Actions <span class="caret"></span>
       </button>
-      <ul class="uib-dropdown-menu" ng-class="{'dropdown-menu-right': rightAlign}" role="menu">
+      <ul uib-dropdown-menu class="uib-dropdown-menu" ng-class="{'dropdown-menu-right': rightAlign}" role="menu">
         <li ng-repeat="action in actions">
           <a href ng-if="action.disableAutoClose"
                   ng-click="action.action(status)"
