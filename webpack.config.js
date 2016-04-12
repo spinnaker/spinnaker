@@ -15,7 +15,7 @@ module.exports = {
     settings: './settings.js',
     app: './app/scripts/app.js',
     vendor: ['jquery', 'angular', 'angular-animate', 'angular-ui-bootstrap', 'angular-ui-router', 'restangular',
-      'source-sans-pro', 'angular-cache', 'angular-debounce', 'angular-marked', 'angular-messages', 'angular-sanitize',
+      'source-sans-pro', 'angular-cache', 'angular-marked', 'angular-messages', 'angular-sanitize',
       'bootstrap', 'clipboard', 'd3', 'jquery-ui', 'moment-timezone', 'rx'
     ]
   },
