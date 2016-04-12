@@ -39,6 +39,8 @@ module.exports = angular
     require('exports?"ui.select"!ui-select'),
     require('imports?define=>false!exports?"angularSpinner"!angular-spinner'),
 
+    require('./projects/projects.module.js'),
+
     require('./application/application.module.js'),
 
     require('./account/accountLabelColor.directive.js'),

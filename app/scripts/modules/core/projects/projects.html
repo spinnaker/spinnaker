@@ -1,0 +1,68 @@
+<div class="container applications global-search-header">
+  <div class="row">
+    <div class="col-md-3">
+      <h2 data-purpose="view-header">Projects</h2>
+    </div>
+    <div class="col-md-4 col-sm-12">
+      <form class="form form-horizontal">
+        <div class="form-group">
+          <div class="col-md-12">
+            <input type="search"
+                   placeholder="Search projects"
+                   class="form-control input-md"
+                   focus
+                   ng-model="viewState.projectFilter"
+                   ng-change="ctrl.filterProjects()"/>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="col-md-offset-3 col-md-2 pull-right">
+      <insight-menu data-purpose="projects-menu"
+                    actions="menuActions"
+                    right-align="true">
+      </insight-menu>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-12">
+    <h2 ng-if="!projectsLoaded" class="text-center" style="margin-bottom: 250px">
+      <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
+    </h2>
+    <table ng-if="projectsLoaded" class="table table-hover">
+      <thead>
+        <tr>
+          <th width="20%" sort-toggle key="name" label="Name" sort-model="viewState.sortModel" on-change="ctrl.filterProjects()"></th>
+          <th width="20%" sort-toggle key="createTs" label="Created" sort-model="viewState.sortModel" on-change="ctrl.filterProjects()"></th>
+          <th width="20%" sort-toggle key="updateTs" label="Updated" sort-model="viewState.sortModel" on-change="ctrl.filterProjects()"></th>
+          <th width="25%" sort-toggle key="email" label="Owner" sort-model="viewState.sortModel" on-change="ctrl.filterProjects()"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="clickable" ng-repeat="project in ctrl.resultPage()" ui-sref="home.project.dashboard({project: project.name.toLowerCase()})">
+          <td>
+            <a href ui-sref="home.project.dashboard({project: project.name.toLowerCase()})">
+              {{ project.name.toLowerCase() }}
+            </a>
+          </td>
+          <td>
+            {{ project.createTs | timestamp }}
+          </td>
+          <td>
+            {{ project.updateTs | timestamp }}
+          </td>
+          <td>
+            {{ project.email }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <uib-pagination ng-if="projectsLoaded"
+                items-per-page="pagination.itemsPerPage"
+                total-items="filteredProjects.length"
+                max-size="pagination.maxSize"
+                ng-model="pagination.currentPage"
+      ></uib-pagination>
+  </div>
+</div>
