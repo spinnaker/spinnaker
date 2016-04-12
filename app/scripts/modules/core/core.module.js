@@ -161,18 +161,6 @@ module.exports = angular
       });
     });
   })
-  .run(function($templateCache) {
-    $templateCache.put('template/popover/popover.html',
-      '<div tooltip-animation-class="fade"' +
-      '  uib-tooltip-classes' +
-      '  ng-class="{ in: isOpen() }">' +
-      '  <div class="arrow"></div>' +
-      '  <div class="popover-inner">' +
-      '      <h3 class="popover-title" ng-bind="title" ng-if="title"></h3>' +
-      '      <div class="popover-content" ng-bind-html="content"></div>' +
-      '  </div>' +
-      '  </div>');
-  })
   .config(function ($logProvider, statesProvider) {
     statesProvider.setStates();
     $logProvider.debugEnabled(true);
