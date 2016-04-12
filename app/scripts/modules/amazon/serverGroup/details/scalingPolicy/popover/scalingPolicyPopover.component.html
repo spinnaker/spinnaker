@@ -12,36 +12,32 @@
     <dt>then</dt>
     <dd ng-if="$ctrl.policy.stepAdjustments.length">
       <div ng-repeat="stepAdjustment in $ctrl.policy.stepAdjustments">
-        if
-        <span ng-if="$ctrl.alarm.comparisonOperator.indexOf('Greater') === 0">
-          <span ng-if="stepAdjustment.metricIntervalUpperBound">
-            {{$ctrl.alarm.threshold + stepAdjustment.metricIntervalUpperBound}}
-            &gt;
+        <span ng-if="$ctrl.policy.stepAdjustments.length > 1">
+          if {{$ctrl.alarm.metricName}}
+          <span ng-if="$ctrl.alarm.comparisonOperator.indexOf('Greater') === 0">
+            <span ng-if="stepAdjustment.metricIntervalUpperBound !== undefined && stepAdjustment.metricIntervalLowerBound !== undefined">
+              is between
+              {{$ctrl.alarm.threshold + stepAdjustment.metricIntervalLowerBound}}
+              and
+              {{$ctrl.alarm.threshold + stepAdjustment.metricIntervalUpperBound}}
+            </span>
+            <span ng-if="stepAdjustment.metricIntervalUpperBound === undefined">
+              is greater than {{$ctrl.alarm.threshold + stepAdjustment.metricIntervalLowerBound}}
+            </span>
           </span>
-          {{$ctrl.alarm.metricName}}
-          <span ng-if="stepAdjustment.metricIntervalLowerBound">
-            &ge; {{$ctrl.alarm.threshold + stepAdjustment.metricIntervalLowerBound}}
-          </span>
-          <span ng-if="!stepAdjustment.metricIntervalLowerBound">
-            <span ng-bind-html="$ctrl.alarm.comparator"></span>
-            {{$ctrl.alarm.threshold}}
-          </span>
-        </span>
 
-        <span ng-if="$ctrl.alarm.comparisonOperator.indexOf('Less') === 0">
-          <span ng-if="stepAdjustment.metricIntervalLowerBound">
-            {{$ctrl.alarm.threshold + stepAdjustment.metricIntervalLowerBound}}
-            &lt;
-          </span>
-          {{$ctrl.alarm.metricName}}
-          <span ng-if="stepAdjustment.metricIntervalUpperBound">
-             &le; {{$ctrl.alarm.threshold + stepAdjustment.metricIntervalUpperBound}}
-          </span>
-          <span ng-if="!stepAdjustment.metricIntervalUpperBound">
-            <span ng-bind-html="$ctrl.alarm.comparator"></span>
-            {{$ctrl.alarm.threshold}}
-          </span>
-        </span>,
+          <span ng-if="$ctrl.alarm.comparisonOperator.indexOf('Less') === 0">
+            <span ng-if="stepAdjustment.metricIntervalUpperBound !== undefined && stepAdjustment.metricIntervalLowerBound !== undefined">
+              is between
+              {{$ctrl.alarm.threshold + stepAdjustment.metricIntervalLowerBound}}
+              and
+              {{$ctrl.alarm.threshold + stepAdjustment.metricIntervalUpperBound}}
+            </span>
+            <span ng-if="stepAdjustment.metricIntervalLowerBound === undefined">
+              is less than {{$ctrl.alarm.threshold + stepAdjustment.metricIntervalUpperBound}}
+            </span>
+          </span>,
+        </span>
         <span ng-if="$ctrl.policy.adjustmentType === 'ExactCapacity'">
           set capacity
           to {{stepAdjustment.scalingAdjustment}} instance<span ng-if="stepAdjustment.scalingAdjustment > 1">s</span>

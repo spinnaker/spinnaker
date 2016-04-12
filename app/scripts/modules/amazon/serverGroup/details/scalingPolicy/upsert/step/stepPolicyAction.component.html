@@ -34,11 +34,12 @@
     <span ng-if="$ctrl.viewState.comparatorBound === 'max'">
       <span class="input-label" ng-if="!$last">
         is between
+        <span class="input-label" ng-bind="step.metricIntervalLowerBound"></span>
+        <span class="input-label">and</span>
       </span>
-      <span class="input-label" ng-bind="step.metricIntervalLowerBound"></span>
-      <span class="input-label" ng-if="!$last">and</span>
       <span class="input-label" ng-if="$last">
         is greater than
+        <span class="input-label" ng-bind="step.metricIntervalLowerBound"></span>
       </span>
 
       <input type="number"
@@ -67,7 +68,6 @@
       <span class="input-label" ng-if="$last">
         is less than
       </span>
-
       <span class="input-label text-right" ng-bind="step.metricIntervalUpperBound"></span>
     </span>
 

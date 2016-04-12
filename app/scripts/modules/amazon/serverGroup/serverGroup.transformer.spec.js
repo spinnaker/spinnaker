@@ -111,9 +111,9 @@ describe('awsServerGroupTransformer', function () {
         scalingPolicies: [
           {
             stepAdjustments: [
-              { scalingAdjustment: 10 },
-              { scalingAdjustment: 0 },
-              { scalingAdjustment: -5 }
+              { scalingAdjustment: 10, metricIntervalLowerBound: 0 },
+              { scalingAdjustment: 0, metricIntervalLowerBound: 6 },
+              { scalingAdjustment: -5, metricIntervalLowerBound: 11 }
           ]}
         ]
       };
@@ -121,6 +121,58 @@ describe('awsServerGroupTransformer', function () {
       var steps = serverGroup.scalingPolicies[0].stepAdjustments;
       expect(steps.map(a => a.absAdjustment)).toEqual([10, 0, 5]);
       expect(steps.map(a => a.operator)).toEqual(['increase', 'increase', 'decrease']);
+    });
+
+    describe('sorting step adjustments', function () {
+
+      beforeEach(function () {
+        this.test = function(steps, expected) {
+          var serverGroup = {
+            scalingPolicies: [
+              {
+                stepAdjustments: steps
+              }
+            ]
+          };
+          transformer.normalizeServerGroupDetails(serverGroup);
+          var check = serverGroup.scalingPolicies[0].stepAdjustments;
+          expect(check.map(s => s.id)).toEqual(expected);
+        };
+      });
+
+      it('reverse sorts step adjustments by lower bound when none have an upper bound defined', function () {
+        this.test(
+          [
+            {id: 1, scalingAdjustment: 10, metricIntervalLowerBound: 3},
+            {id: 2, scalingAdjustment: 0, metricIntervalLowerBound: 5},
+            {id: 3, scalingAdjustment: -5, metricIntervalLowerBound: 1}
+          ],
+          [3, 1, 2]
+        );
+      });
+
+      it('reverse sorts step adjustments by lower bound when some do not have an upper bound defined', function () {
+        this.test(
+          [
+            {id: 1, scalingAdjustment: 10, metricIntervalLowerBound: 3, metricIntervalUpperBound: 5},
+            {id: 2, scalingAdjustment: 0, metricIntervalLowerBound: 5},
+            {id: 3, scalingAdjustment: -5, metricIntervalLowerBound: 1, metricIntervalUpperBound: 3}
+          ],
+          [3, 1, 2]
+        );
+      });
+
+      it('reverse sorts step adjustments by upper bound when all have an upper bound defined', function () {
+        this.test(
+          [
+            {id: 1, scalingAdjustment: 10, metricIntervalLowerBound: 3, metricIntervalUpperBound: 5},
+            {id: 2, scalingAdjustment: 0, metricIntervalLowerBound: 5, metricIntervalUpperBound: 9},
+            {id: 3, scalingAdjustment: -5, metricIntervalLowerBound: 1, metricIntervalUpperBound: 0}
+          ],
+          [2, 1, 3]
+        );
+      });
+
     });
   });
 });
