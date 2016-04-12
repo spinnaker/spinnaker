@@ -33,7 +33,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.bake.service', [
     }
 
     function getVmTypes() {
-      return $q.when(['pv', 'hvm']);
+      return $q.when(['hvm', 'pv']);
     }
 
     function getStoreTypes() {
