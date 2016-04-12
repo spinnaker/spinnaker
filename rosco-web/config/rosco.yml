@@ -60,12 +60,8 @@ aws:
     templateFile: aws-ebs.json
     defaultVirtualizationType: hvm
     baseImages:
-    # TODO(duftler): Identify proper base amis.
-    # TODO(duftler): Support additional store types beyond ebs.
-    # TODO(duftler): Support additional operating systems.
-    # TODO(duftler): Feels like just about everything here could be (optionally) specified per bake.
     # AMIs sourced from: https://cloud-images.ubuntu.com/locator/ec2/
-    # Images should be considered placeholders
+    # Images should be considered placeholders.
     - baseImage:
         id: ubuntu
         shortDescription: v12.04
