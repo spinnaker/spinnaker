@@ -32,6 +32,9 @@ module.exports = angular.module('spinnaker.aws.serverGroup.transformer', [
       adjuster.operator = adjuster.scalingAdjustment < 0 ? 'decrease' : 'increase';
       adjuster.absAdjustment = Math.abs(adjuster.scalingAdjustment);
     }
+    
+    let upperBoundSorter = (a, b) => b.metricIntervalUpperBound - a.metricIntervalUpperBound,
+        lowerBoundSorter = (a, b) => a.metricIntervalLowerBound - b.metricIntervalLowerBound;
 
     let transformScalingPolicy = (policy) => {
       policy.alarms = policy.alarms || [];
@@ -39,6 +42,9 @@ module.exports = angular.module('spinnaker.aws.serverGroup.transformer', [
       addAdjustmentAttributes(policy); // simple policies
       if (policy.stepAdjustments && policy.stepAdjustments.length) {
         policy.stepAdjustments.forEach(addAdjustmentAttributes); // step policies
+        let sorter = policy.stepAdjustments.every(a => a.metricIntervalUpperBound !== undefined) ?
+          upperBoundSorter : lowerBoundSorter;
+        policy.stepAdjustments.sort(sorter);
       }
     };
 
