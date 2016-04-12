@@ -20,6 +20,7 @@ import com.netflix.spinnaker.cats.agent.*;
 import com.netflix.spinnaker.cats.module.CatsModuleAware;
 import com.netflix.spinnaker.cats.redis.JedisSource;
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import redis.clients.jedis.Jedis;
 
 import java.util.Arrays;
@@ -27,12 +28,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
+@SuppressFBWarnings
 public class ClusteredAgentScheduler extends CatsModuleAware implements AgentScheduler, Runnable {
     private final JedisSource jedisSource;
     private final NodeIdentity nodeIdentity;
