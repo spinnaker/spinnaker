@@ -22,6 +22,10 @@ providers:
     enabled: ${SPINNAKER_GOOGLE_ENABLED:false}
     defaultRegion: ${SPINNAKER_GOOGLE_DEFAULT_REGION}
     defaultZone: ${SPINNAKER_GOOGLE_DEFAULT_ZONE}
+
+    # If you are managing only one account, you can enter it here.
+    # If you are managing multiple accounts, you will need to add them to
+    # clouddriver.yml (preferably make your own clouddriver-local.yml)
     primaryCredentials:
       name: my-google-account
       # The project is the Google Project ID for the project to manage with Spinnaker.
@@ -37,6 +41,10 @@ providers:
     enabled: false
     defaultOrg: spinnaker-cf-org
     defaultSpace: spinnaker-cf-space
+
+    # If you are managing only one account, you can enter it here.
+    # If you are managing multiple accounts, you will need to add them to
+    # clouddriver.yml (preferably make your own clouddriver-local.yml)
     primaryCredentials:
       name: my-cf-account
       api: my-cf-api-uri
@@ -51,6 +59,10 @@ providers:
     # set enabled and provide primary credentials for deploying.
     # Enabling kubernetes is dependent on dockerRegistry being enabled.
     enabled: ${SPINNAKER_KUBERNETES_ENABLED:false}
+
+    # If you are managing only one account, you can enter it here.
+    # If you are managing multiple accounts, you will need to add them to
+    # clouddriver.yml (preferably make your own clouddriver-local.yml)
     primaryCredentials:
       # These credentials use authentication information at ~/.kube/config
       # by default.
@@ -62,6 +74,10 @@ providers:
     # you must specifiy where these container images exist first.
     # Enabling dockerRegistry is independent of other providers.
     enabled: ${SPINNAKER_KUBERNETES_ENABLED:false}
+
+    # If you are managing only one account/repository, you can enter it here.
+    # If you are managing multiple accounts/repositories, you add them to
+    # clouddriver.yml (preferably make your own clouddriver-local.yml)
     primaryCredentials:
       name: my-docker-registry-account
       address: https://index.docker.io/
