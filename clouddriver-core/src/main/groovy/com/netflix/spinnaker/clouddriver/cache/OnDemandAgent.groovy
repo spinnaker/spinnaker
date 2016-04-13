@@ -32,6 +32,7 @@ interface OnDemandAgent {
     ServerGroup,
     SecurityGroup,
     LoadBalancer,
+    Job,
 
     static OnDemandType fromString(String s) {
       OnDemandType t = values().find { it.toString().equalsIgnoreCase(s) }

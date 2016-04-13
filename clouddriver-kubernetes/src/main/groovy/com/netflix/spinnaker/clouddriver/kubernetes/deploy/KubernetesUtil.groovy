@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesI
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.ReplicationController
+import io.fabric8.kubernetes.api.model.extensions.Job
 import org.springframework.beans.factory.annotation.Value
 
 class KubernetesUtil {
@@ -144,6 +145,16 @@ class KubernetesUtil {
   static List<String> getDescriptionLoadBalancers(ReplicationController rc) {
     def loadBalancers = []
     rc.spec?.template?.metadata?.labels?.each { key, val ->
+      if (isLoadBalancerLabel(key)) {
+        loadBalancers.push(key.substring(LOAD_BALANCER_LABEL_PREFIX_LENGTH, key.length()))
+      }
+    }
+    return loadBalancers
+  }
+
+  static List<String> getJobLoadBalancers(Job job) {
+    def loadBalancers = []
+    job.spec?.template?.metadata?.labels?.each { key, val ->
       if (isLoadBalancerLabel(key)) {
         loadBalancers.push(key.substring(LOAD_BALANCER_LABEL_PREFIX_LENGTH, key.length()))
       }

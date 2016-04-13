@@ -67,7 +67,7 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
 
     task.updateStatus basePhase, "Finding affected pods..."
 
-    List<Pod> pods = credentials.apiAdaptor.getPods(namespace, description.serverGroupName)
+    List<Pod> pods = credentials.apiAdaptor.getReplicationControllerPods(namespace, description.serverGroupName)
 
     task.updateStatus basePhase, "Resetting service labels for each pod..."
 

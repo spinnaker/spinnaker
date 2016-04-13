@@ -113,11 +113,19 @@ class KubernetesApiAdaptor {
     }
   }
 
-  List<Pod> getPods(String namespace, String replicationControllerName) {
+  List<Pod> getReplicationControllerPods(String namespace, String replicationControllerName) {
     try {
       client.pods().inNamespace(namespace).withLabel(KubernetesUtil.REPLICATION_CONTROLLER_LABEL, replicationControllerName).list().items
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Get Pods", e)
+      throw new KubernetesOperationException("Get Replication Controller Pods", e)
+    }
+  }
+
+  List<Pod> getJobPods(String namespace, String jobName) {
+    try {
+      client.pods().inNamespace(namespace).withLabel(KubernetesUtil.JOB_LABEL, jobName).list().items
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Get Job Pods", e)
     }
   }
 
@@ -302,6 +310,14 @@ class KubernetesApiAdaptor {
       client.extensions().jobs().inNamespace(namespace).list().items
     } catch (KubernetesClientException e) {
       throw new KubernetesOperationException("Get Jobs", e)
+    }
+  }
+
+  Job getJob(String namespace, String name) {
+    try {
+      client.extensions().jobs().inNamespace(namespace).withName(name).get()
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Get Job", e)
     }
   }
 }
