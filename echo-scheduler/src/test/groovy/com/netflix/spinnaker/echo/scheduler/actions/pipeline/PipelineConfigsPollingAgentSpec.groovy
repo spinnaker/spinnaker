@@ -32,7 +32,7 @@ class PipelineConfigsPollingAgentSpec extends Specification {
     def gaugeService = Stub(GaugeService)
     def actionsOperator = Mock(ActionsOperator)
     def pipelineCache = Mock(PipelineCache)
-    @Subject pollingAgent = new PipelineConfigsPollingAgent(counterService, gaugeService, pipelineCache, actionsOperator, 1000000)
+    @Subject pollingAgent = new PipelineConfigsPollingAgent(counterService, gaugeService, pipelineCache, actionsOperator, 1000000, 'America/Los_Angeles')
 
     void 'when a new pipeline trigger is added, a scheduled action instance is registered with an id same as the trigger id'() {
         given:
@@ -181,6 +181,7 @@ class PipelineConfigsPollingAgentSpec extends Specification {
         ActionInstance actionInstance = ActionInstance.newActionInstance()
             .withId(id)
             .withTrigger(new CronTrigger(cronExpression))
+            .withParameters([triggerTimeZoneId: 'America/Los_Angeles'])
             .build()
         actionInstance.disabled = !enabled
         return actionInstance

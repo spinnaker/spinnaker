@@ -25,6 +25,7 @@ import com.netflix.spinnaker.echo.scheduler.actions.pipeline.impl.PipelineTrigge
 import rx.functions.Action1
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static com.netflix.spinnaker.echo.scheduler.actions.pipeline.impl.PipelineTriggerConverter.isInSync
 
@@ -43,13 +44,14 @@ class PipelineTriggerActionConverterSpec extends Specification {
         Trigger trigger = new Trigger(true, '123-456', 'cron', null, null, null, null, '* 0/30 * * * ? *', null, null, null, null, null, null, null, null)
 
         when:
-        Map parameters = PipelineTriggerConverter.toParameters(pipeline, trigger)
+        Map parameters = PipelineTriggerConverter.toParameters(pipeline, trigger, 'America/New_York')
 
         then:
         parameters.id == pipeline.id
         parameters.triggerId == trigger.id
         parameters.triggerType == trigger.type
         parameters.triggerCronExpression == trigger.cronExpression
+        parameters.triggerTimeZoneId == 'America/New_York'
         parameters.triggerEnabled == Boolean.toString(trigger.enabled)
     }
 
@@ -85,7 +87,7 @@ class PipelineTriggerActionConverterSpec extends Specification {
         Trigger trigger = new Trigger(true, '123-456', 'cron', null, null, null, null, '* 0/30 * * * ? *', null, null, null, null, null, null, null, null)
 
         when:
-        ActionInstance actionInstance = PipelineTriggerConverter.toScheduledAction(pipeline, trigger)
+        ActionInstance actionInstance = PipelineTriggerConverter.toScheduledAction(pipeline, trigger, 'America/Los_Angeles')
 
         then:
         actionInstance.id == trigger.id
@@ -100,18 +102,28 @@ class PipelineTriggerActionConverterSpec extends Specification {
         actionInstance.parameters.triggerId == trigger.id
         actionInstance.parameters.triggerType == trigger.type
         actionInstance.parameters.triggerCronExpression == trigger.cronExpression
+        actionInstance.parameters.triggerTimeZoneId == 'America/Los_Angeles'
         actionInstance.parameters.triggerEnabled == Boolean.toString(trigger.enabled)
     }
 
-    void 'isInSync() should return true if cronExpression of the trigger and ActionInstance match'() {
+    @Unroll
+    void 'isInSync() should return true if cronExpression and timezone of the trigger and ActionInstance match'() {
         setup:
-        Trigger trigger = Trigger.builder().cronExpression('* 0/30 * * * ? *').build()
+        Trigger trigger = Trigger.builder().type(Trigger.Type.CRON.toString()).cronExpression('* 0/30 * * * ? *').build()
         ActionInstance actionInstance = ActionInstance.newActionInstance()
             .withTrigger(new CronTrigger(trigger.cronExpression))
+            .withParameters([triggerTimeZoneId: actionInstanceTimeZoneId])
             .build()
 
         expect:
-        isInSync(actionInstance, trigger)
+        isInSync(actionInstance, trigger, currentTimeZoneId) == expectedInSync
+
+        where:
+        actionInstanceTimeZoneId | currentTimeZoneId  | expectedInSync
+        'America/New_York'       | 'America/New_York' | true
+        'America/Los_Angeles'    | 'America/New_York' | false
+        null                     | 'America/New_York' | false
+        ''                       | 'America/New_York' | false
     }
 
     void 'isInSync() should return true if trigger is not a cron trigger'() {
@@ -131,7 +143,7 @@ class PipelineTriggerActionConverterSpec extends Specification {
             .build()
 
         expect:
-        isInSync(actionInstance, trigger)
+        isInSync(actionInstance, trigger, null)
     }
 
 }

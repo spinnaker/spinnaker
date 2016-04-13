@@ -25,12 +25,13 @@ import com.netflix.spinnaker.echo.scheduler.actions.pipeline.PipelineTriggerActi
 
 class PipelineTriggerConverter {
 
-  static Map<String, String> toParameters(Pipeline pipeline, Trigger trigger) {
+  static Map<String, String> toParameters(Pipeline pipeline, Trigger trigger, String timeZoneId) {
     [
       id                   : pipeline.id,
       triggerId            : trigger.id,
       triggerType          : trigger.type,
       triggerCronExpression: trigger.cronExpression,
+      triggerTimeZoneId    : timeZoneId,
       triggerEnabled       : Boolean.toString(trigger.enabled)
     ]
   }
@@ -51,26 +52,27 @@ class PipelineTriggerConverter {
     return existingPipeline.withTrigger(trigger)
   }
 
-  static ActionInstance toScheduledAction(Pipeline pipeline, Trigger trigger) {
+  static ActionInstance toScheduledAction(Pipeline pipeline, Trigger trigger, String timeZoneId) {
     ActionInstance.ActionInstanceBuilder actionInstanceBuilder = ActionInstance.newActionInstance()
       .withId(trigger.id)
       .withName("Pipeline Trigger")
       .withGroup(pipeline.id)
       .withAction(PipelineTriggerAction)
-      .withParameters(toParameters(pipeline, trigger))
+      .withParameters(toParameters(pipeline, trigger, timeZoneId))
 
     if (Trigger.Type.CRON.toString().equalsIgnoreCase(trigger.type)) {
-      actionInstanceBuilder.withTrigger(new CronTrigger(trigger.cronExpression))
+      actionInstanceBuilder.withTrigger(new CronTrigger(trigger.cronExpression, timeZoneId, new Date()))
     }
 
     actionInstanceBuilder.build()
   }
 
-  static boolean isInSync(ActionInstance actionInstance, Trigger trigger) {
+  static boolean isInSync(ActionInstance actionInstance, Trigger trigger, String timeZoneId) {
     if (trigger.type == Trigger.Type.CRON.toString()) {
       return (
         actionInstance.trigger instanceof CronTrigger &&
-          trigger.cronExpression == ((CronTrigger) actionInstance.trigger).cronExpression
+          trigger.cronExpression == ((CronTrigger) actionInstance.trigger).cronExpression &&
+          timeZoneId == actionInstance?.context?.parameters?.triggerTimeZoneId
       )
     }
     return true

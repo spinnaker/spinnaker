@@ -45,19 +45,22 @@ class PipelineConfigsPollingAgent extends AbstractPollingAgent {
   private final PipelineCache pipelineCache
   private final long intervalMs
   private final ActionsOperator actionsOperator
+  private final String timeZoneId
 
   @Autowired
   PipelineConfigsPollingAgent(CounterService counterService,
                               GaugeService gaugeService,
                               PipelineCache pipelineCache,
                               ActionsOperator actionsOperator,
-                              @Value('${scheduler.pipelineConfigsPoller.pollingIntervalMs:30000}') long intervalMs) {
+                              @Value('${scheduler.pipelineConfigsPoller.pollingIntervalMs:30000}') long intervalMs,
+                              @Value('${scheduler.cron.timezone:America/Los_Angeles}') String timeZoneId) {
     super()
     this.counterService = counterService
     this.gaugeService = gaugeService
     this.pipelineCache = pipelineCache
     this.actionsOperator = actionsOperator
     this.intervalMs = intervalMs
+    this.timeZoneId = timeZoneId
   }
 
   @Override
@@ -123,14 +126,14 @@ class PipelineConfigsPollingAgent extends AbstractPollingAgent {
         try {
           if (trigger) {
             if (trigger.enabled) {
-              if (!PipelineTriggerConverter.isInSync(actionInstance, trigger)) {
+              if (!PipelineTriggerConverter.isInSync(actionInstance, trigger, timeZoneId)) {
                 /**
                  * The trigger has been updated, so we need to update the scheduled action
                  */
                 log.info("Trigger '${trigger}' has been updated and enabled. Recreating the scheduled action...")
                 Pipeline pipeline = pipelines.find { it.triggers.contains(trigger) }
                 ActionInstance updatedActionInstance = PipelineTriggerConverter.toScheduledAction(pipeline,
-                  trigger)
+                  trigger, timeZoneId)
                 actionsOperator.updateActionInstance(updatedActionInstance)
 
                 log.info("Successfully updated scheduled action '${actionInstance.id}' as the corresponding " +
@@ -193,7 +196,7 @@ class PipelineConfigsPollingAgent extends AbstractPollingAgent {
              * ActionInstances are grouped by pipeline id. Pass in enough parameters to the ActionInstance for it
              * to construct the Pipeline instance back
              */
-            ActionInstance actionInstance = PipelineTriggerConverter.toScheduledAction(pipeline, trigger)
+            ActionInstance actionInstance = PipelineTriggerConverter.toScheduledAction(pipeline, trigger, timeZoneId)
             actionsOperator.registerActionInstance(actionInstance)
             log.info("Registered scheduled trigger '${actionInstance.id}' for ${trigger} of ${pipeline}")
             counterService.increment("newTriggers.count")
