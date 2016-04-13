@@ -128,6 +128,24 @@ services:
       username:
       password:
 
+  travis:
+    # If you are integrating Travis, set its location here using the baseUrl
+    # and adress fields and provide the githubToken for authentication.
+    # You must also enable the "igor" service listed separately.
+    #
+    # If you have multiple travis servers, you will need to list
+    # them in an igor-local.yml. See travis.masters in config/igor.yml.
+    #
+    # Note that travis is not installed with Spinnaker so you must obtain this
+    # on your own if you are interested.
+    enabled: false
+    defaultMaster:
+      name: ci # The display name for this server. Gets prefixed with "travis-"
+      baseUrl: https://travis-ci.com
+      address: https://api.travis-ci.org
+      githubToken: # GitHub scopes currently required by Travis is required.
+
+
   clouddriver:
     # Controls whether UserDataProviders are used to populate user data of new server groups.
     # If false, user data is copied over from ancestor server groups on both CopyLastAsgAtomicOperation and
