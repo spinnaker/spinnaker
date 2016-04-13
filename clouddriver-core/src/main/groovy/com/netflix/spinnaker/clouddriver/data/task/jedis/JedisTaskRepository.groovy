@@ -26,7 +26,6 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
-import org.springframework.beans.factory.annotation.Autowired
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 
@@ -38,15 +37,19 @@ class JedisTaskRepository implements TaskRepository {
 
   private static final int TASK_TTL = (int) TimeUnit.HOURS.toSeconds(12);
 
-  @Autowired
-  JedisPool jedisPool
+  private final JedisPool jedisPool
+  private final Optional<JedisPool> jedisPoolPrevious
+  private final ObjectMapper mapper = new ObjectMapper()
 
-  ObjectMapper mapper = new ObjectMapper()
+  JedisTaskRepository(JedisPool jedisPool, Optional<JedisPool> jedisPoolPrevious) {
+    this.jedisPool = jedisPool
+    this.jedisPoolPrevious = jedisPoolPrevious
+  }
 
   @Override
   Task create(String phase, String status) {
     String taskId = jedis { it.incr('taskCounter') }
-    def task = new JedisTask(taskId, System.currentTimeMillis(), this)
+    def task = new JedisTask(taskId, System.currentTimeMillis(), this, false)
     addToHistory(new DefaultTaskStatus(phase, status, TaskState.STARTED), task)
     set(taskId, task)
     task
@@ -54,11 +57,21 @@ class JedisTaskRepository implements TaskRepository {
 
   @Override
   Task get(String id) {
-    Map<String, String> taskMap = jedis { it.hgetAll("task:${id}") }
-    new JedisTask(
-      taskMap.id,
-      Long.parseLong(taskMap.startTimeMs),
-      this)
+    def getTask = { Jedis jedis -> jedis.hgetAll("task:${id}") }
+    Map<String, String> taskMap = jedis getTask
+    boolean oldTask = jedisPoolPrevious.isPresent() && (taskMap == null || taskMap.isEmpty())
+    if (oldTask) {
+      taskMap = jedisWithPool(jedisPoolPrevious.get(), getTask)
+    }
+    if (taskMap.id && taskMap.startTimeMs) {
+      return new JedisTask(
+        taskMap.id,
+        Long.parseLong(taskMap.startTimeMs),
+        this,
+        oldTask
+      )
+    }
+    return null
   }
 
   @Override
@@ -72,12 +85,11 @@ class JedisTaskRepository implements TaskRepository {
     String taskId = "task:${task.id}"
     jedis {
       def pipe = it.pipelined()
-      pipe.hset(taskId, 'id', task.id)
-      pipe.hset(taskId, 'startTimeMs', task.startTimeMs as String)
-      pipe.sadd(RUNNING_TASK_KEY, id)
+      pipe.hmset(taskId, [id: task.id, startTimeMs: task.startTimeMs as String])
       pipe.expire(taskId, TASK_TTL)
       pipe.sync()
     }
+    jedis { it.sadd(RUNNING_TASK_KEY, id) }
   }
 
   void addResultObjects(List<Object> objects, JedisTask task) {
@@ -93,12 +105,15 @@ class JedisTaskRepository implements TaskRepository {
 
   List<Object> getResultObjects(JedisTask task) {
     String resultId = "taskResult:${task.id}"
-    jedis { it.lrange(resultId, 0, -1) }.collect { mapper.readValue(it, Map) }
+    def pool = poolForTask(task)
+    jedisWithPool(pool) { it.lrange(resultId, 0, -1) }.collect { mapper.readValue(it, Map) }
   }
 
   DefaultTaskStatus currentState(JedisTask task) {
     String historyId = "taskHistory:${task.id}"
-    Map<String, String> history = mapper.readValue(jedis { it.lindex(historyId, -1) }, HISTORY_TYPE)
+    def pool = poolForTask(task)
+
+    Map<String, String> history = mapper.readValue(jedisWithPool(pool) { it.lindex(historyId, -1) }, HISTORY_TYPE)
     new DefaultTaskStatus(history.phase, history.status, TaskState.valueOf(history.state))
   }
 
@@ -108,17 +123,18 @@ class JedisTaskRepository implements TaskRepository {
     jedis {
       def pipe = it.pipelined()
       pipe.rpush(historyId, hist)
-      if (status.isCompleted()) {
-        pipe.srem(RUNNING_TASK_KEY, task.id)
-      }
       pipe.expire(historyId, TASK_TTL)
       pipe.sync()
+    }
+    if (status.isCompleted()) {
+      jedis { it.srem(RUNNING_TASK_KEY, task.id) }
     }
   }
 
   List<Status> getHistory(JedisTask task) {
     String historyId = "taskHistory:${task.id}"
-    jedis { it.lrange(historyId, 0, -1) }.collect {
+    def pool = poolForTask(task)
+    jedisWithPool(pool) { it.lrange(historyId, 0, -1) }.collect {
       Map<String, String> history = mapper.readValue(it, HISTORY_TYPE)
       new TaskDisplayStatus(new DefaultTaskStatus(history.phase, history.status, TaskState.valueOf(history.state)))
     }
@@ -126,10 +142,22 @@ class JedisTaskRepository implements TaskRepository {
 
   private <T> T jedis(@ClosureParams(value = SimpleType,
     options = ['redis.clients.jedis.Jedis']) Closure<T> withJedis) {
-    jedisPool.getResource().withCloseable {
+    return jedisWithPool(jedisPool, withJedis)
+  }
+
+  private JedisPool poolForTask(JedisTask task) {
+    if (task.previousRedis && jedisPoolPrevious.isPresent()) {
+      return jedisPoolPrevious.get()
+    }
+    return jedisPool
+  }
+
+  private static <T> T jedisWithPool(JedisPool pool,
+                                     @ClosureParams(value = SimpleType,
+                                       options = ['redis.clients.jedis.Jedis']) Closure<T> withJedis) {
+    pool.getResource().withCloseable {
       Jedis jedis = (Jedis) it
       return withJedis.call(jedis)
     }
   }
-
 }

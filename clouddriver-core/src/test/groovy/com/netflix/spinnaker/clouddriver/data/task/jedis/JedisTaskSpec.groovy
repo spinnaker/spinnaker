@@ -19,8 +19,6 @@ package com.netflix.spinnaker.clouddriver.data.task.jedis
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.clouddriver.data.task.Status
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
-import redis.clients.jedis.Jedis
-import redis.clients.jedis.JedisPool
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -38,11 +36,7 @@ class JedisTaskSpec extends Specification {
 
   void setup() {
     repository = Mock(JedisTaskRepository)
-
-    repository.jedisPool = Stub(JedisPool) {
-      getResource() >> Stub(Jedis)
-    }
-    task = new JedisTask('666', System.currentTimeMillis(), repository)
+    task = new JedisTask('666', System.currentTimeMillis(), repository, false)
   }
 
   void 'updating task status adds a history entry'() {

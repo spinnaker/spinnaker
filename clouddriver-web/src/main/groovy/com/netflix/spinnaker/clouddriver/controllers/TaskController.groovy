@@ -19,10 +19,15 @@ package com.netflix.spinnaker.clouddriver.controllers
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+
+import javax.servlet.http.HttpServletRequest
 
 @RequestMapping("/task")
 @RestController
@@ -32,11 +37,31 @@ class TaskController {
 
   @RequestMapping(value = "/{id}", method = RequestMethod.GET)
   Task get(@PathVariable("id") String id) {
-    taskRepository.get id
+    Task t = taskRepository.get(id)
+    if (!t) {
+      throw new TaskNotFoundException(id)
+    }
+    return t
   }
 
   @RequestMapping(method = RequestMethod.GET)
   List<Task> list() {
     taskRepository.list()
+  }
+
+  @ExceptionHandler(TaskNotFoundException)
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  Map handleTaskNotFoundException(HttpServletRequest req, TaskNotFoundException e) {
+    [id: e.id, resourceUri: "/task/$e.id".toString(), status: HttpStatus.NOT_FOUND.value(), reason: HttpStatus.NOT_FOUND.reasonPhrase]
+  }
+
+
+  static class TaskNotFoundException extends Exception {
+    final String id
+
+    public TaskNotFoundException(String id) {
+      super("Task $id not found")
+      this.id = id
+    }
   }
 }

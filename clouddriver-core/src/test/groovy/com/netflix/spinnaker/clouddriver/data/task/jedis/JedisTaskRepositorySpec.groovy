@@ -34,15 +34,35 @@ class JedisTaskRepositorySpec extends Specification {
   JedisPool jedisPool
 
   def setupSpec() {
-    taskRepository = new JedisTaskRepository()
     jedisPool = new JedisPool("localhost", 6379)
-    taskRepository.jedisPool = jedisPool
+    taskRepository = new JedisTaskRepository(jedisPool, Optional.empty())
   }
 
   def setup() {
     jedisPool.resource.withCloseable {
       ((Jedis) it).flushDB()
     }
+  }
+
+  void "reads from previous redis if task missing"() {
+    given:
+    def previousJedisPool = new JedisPool(URI.create("redis://localhost:6379/1"))
+    previousJedisPool.resource.withCloseable { it.flushDB() }
+    def currentPool = new JedisPool(URI.create("redis://localhost:6379/2"))
+    currentPool.resource.withCloseable { it.flushDB() }
+    def taskR = new JedisTaskRepository(previousJedisPool, Optional.empty())
+    def oldPoolTask = taskR.create("starting", "foo")
+    oldPoolTask.complete()
+
+    def newTaskR = new JedisTaskRepository(currentPool, Optional.of(previousJedisPool))
+
+    when:
+    def fromOldPool = newTaskR.get(oldPoolTask.id)
+
+    then:
+    fromOldPool.id == oldPoolTask.id
+    fromOldPool.startTimeMs == oldPoolTask.startTimeMs
+    fromOldPool.status.status == oldPoolTask.status.status
   }
 
   void "creating a new task returns task with unique id"() {
