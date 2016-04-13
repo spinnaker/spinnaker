@@ -310,7 +310,7 @@ function add_apt_repositories() {
     gpg=$(curl -s -f "https://bintray.com/user/downloadSubjectPublicKey?username=$REPOSITORY_ORG") || true
     if [ ! -z "$gpg" ]; then
         echo "$gpg" | apt-key add -
-    fi   
+    fi
   fi
   echo "deb $REPOSITORY_URL $DISTRIB_CODENAME spinnaker" | tee /etc/apt/sources.list.d/spinnaker-dev.list > /dev/null
   # Java 8
@@ -448,26 +448,27 @@ EOF
     exit 13
   fi
 
-  apt-get install -y --force-yes cassandra=2.1.11 cassandra-tools=2.1.11
-  local apt_status=$?
-  if [ $apt_status -eq 0 ]; then
-       apt-mark hold cassandra cassandra-tools
-       sleep 1
-  else      
-    if [ $apt_status -eq 100 ] && [ "$DOWNLOAD" == "true" ]; then
-        mkdir /tmp/casspkgs && pushd /tmp/casspkgs
-        for pkg in cassandra cassandra-tools;do
-          curl -L -O $package_url/${pkg}_2.1.11_all.deb
-        done
-        dpkg -i *.deb
-        apt-mark hold cassandra cassandra-tools
-        popd
-        rm -rf /tmp/casspkgs
+  local cassandra_packages=$(apt-cache search cassandra)
+  if [ -z "$cassanrda_packages" ]; then
+    if [ "$DOWNLOAD" == "true" ]; then
+      echo "cassandra not found in apt-cache, downloading from $package_url..."
+      mkdir /tmp/casspkgs && pushd /tmp/casspkgs
+      for pkg in cassandra cassandra-tools;do
+        curl -L -O $package_url/${pkg}_2.1.11_all.deb
+      done
+      dpkg -i *.deb
+      apt-mark hold cassandra cassandra-tools
+      popd
+      rm -rf /tmp/casspkgs
     else
-        echo "Error installing cassandra."
-        echo "cannot continue installation; exiting."
-        exit 13
+      echo "Error installing cassandra."
+      echo "cannot continue installation; exiting."
+      exit 13
     fi
+  else
+    apt-get install -y --force-yes cassandra=2.1.11 cassandra-tools=2.1.11
+    apt-mark hold cassandra cassandra-tools
+    sleep 1
   fi
 
   # Let cassandra start
@@ -608,10 +609,6 @@ else
   echo "Not enabling a cloud provider"
 fi
 
-if [ "x$GOOGLE_PROJECT_ID" != "x" ]; then
-  write_default_value "SPINNAKER_GOOGLE_PROJECT_ID" $GOOGLE_PROJECT_ID
-fi
-
 ## Remove
 
 if [ "x$homebase" == "x"  ]; then
@@ -634,7 +631,8 @@ fi
 ##
 
 start spinnaker
-  cat <<EOF
+
+cat <<EOF
 
 To stop all spinnaker subsystems:
   sudo stop spinnaker
