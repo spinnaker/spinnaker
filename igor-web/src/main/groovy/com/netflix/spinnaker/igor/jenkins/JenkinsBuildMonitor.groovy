@@ -47,7 +47,7 @@ import java.util.concurrent.TimeUnit
 @Service
 @SuppressWarnings('CatchException')
 @ConditionalOnProperty('jenkins.enabled')
-class BuildMonitor implements PollingMonitor {
+class JenkinsBuildMonitor implements PollingMonitor {
 
     @Autowired
     Environment environment
