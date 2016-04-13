@@ -490,6 +490,25 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
         ]
       };
 
+      var projects = {
+        name: 'projects',
+        url: '/projects',
+        views: {
+          'main@': {
+            templateUrl: require('../projects/projects.html'),
+            controller: 'ProjectsCtrl',
+            controllerAs: 'ctrl'
+          }
+        },
+        data: {
+          pageTitleMain: {
+            label: 'Projects'
+          }
+        },
+        children: [
+        ],
+      };
+
       var infrastructure = {
         name: 'infrastructure',
         url: '/infrastructure?q',
@@ -607,6 +626,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
         name: 'home',
         abstract: true,
         children: [
+          projects,
           applications,
           infrastructure,
           project,
