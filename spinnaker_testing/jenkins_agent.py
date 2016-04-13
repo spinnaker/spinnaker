@@ -169,7 +169,7 @@ class BaseJenkinsOperation(base_agent.AgentOperation):
     return self.__data
 
   def __init__(self, title, jenkins_agent,
-               status_class=JenkinsOperationStatus):
+               status_class=JenkinsOperationStatus, max_wait_secs=None):
     """Construct a BaseJenkinsOperation
 
     Args:
@@ -179,7 +179,8 @@ class BaseJenkinsOperation(base_agent.AgentOperation):
       status_class [AgentOperationStatus]: The status class that will
        confirm success of the action resulting from the Jenkins trigger.
     """
-    super(BaseJenkinsOperation, self).__init__(title, jenkins_agent)
+    super(BaseJenkinsOperation, self).__init__(title, jenkins_agent,
+                                               max_wait_secs=max_wait_secs)
     if not jenkins_agent or not isinstance(jenkins_agent, JenkinsAgent):
       raise TypeError('agent not a  JenkinsAgent: '
                       + jenkins_agent.__class__.__name__)
