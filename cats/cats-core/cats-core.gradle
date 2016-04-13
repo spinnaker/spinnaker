@@ -1,14 +1,3 @@
 dependencies {
-  compile spinnaker.dependency("frigga")
-
   testCompile project(":cats:cats-test")
-
-  // Seems there is a bug in the findbugs module - no idea why this won't go away.
-  // There is no "new String()" constructor anywhere in that file...
-  //
-  // com.netflix.spinnaker.cats.mem.InMemoryCache$Glob.handleDelim(String) invokes inefficient new String(String) constructor
-  // In class com.netflix.spinnaker.cats.mem.InMemoryCache$Glob
-  // In method com.netflix.spinnaker.cats.mem.InMemoryCache$Glob.handleDelim(String)
-  // At InMemoryCache.java:[line 335]
-  tasks.findbugsMain.enabled = false
 }

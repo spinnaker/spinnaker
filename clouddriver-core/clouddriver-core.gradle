@@ -7,6 +7,7 @@ dependencies {
   compile spinnaker.dependency('korkWeb')
   compile spinnaker.dependency('eurekaClient')
   compile spinnaker.dependency("jedis")
+  compile spinnaker.dependency("frigga")
 
   compile project(':cats:cats-core')
   compile project(':cats:cats-redis')
