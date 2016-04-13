@@ -40,9 +40,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredentials> {
-    public GoogleNamedAccountCredentials(String accountName, String environment, String accountType, String projectName, String jsonKey, List<String> imageProjects, String applicationName) {
-      this(accountName, environment, accountType, projectName, jsonKey, imageProjects, null, applicationName);
-    }
 
     public GoogleNamedAccountCredentials(String accountName, String environment, String accountType, String projectName, String jsonKey, List<String> imageProjects, List<String> requiredGroupMembership, String applicationName) {
       this.accountName = accountName;

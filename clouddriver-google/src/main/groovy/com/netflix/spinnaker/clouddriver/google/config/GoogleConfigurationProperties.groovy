@@ -31,6 +31,7 @@ class GoogleConfigurationProperties {
     String project
     String jsonPath
     List<String> imageProjects
+    List<String> requiredGroupMembership
 
     public InputStream getInputStream() {
       if (jsonPath) {

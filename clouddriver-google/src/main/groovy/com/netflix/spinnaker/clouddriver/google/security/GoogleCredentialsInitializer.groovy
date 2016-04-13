@@ -76,6 +76,7 @@ class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizab
                                                               managedAccount.project,
                                                               jsonKey,
                                                               managedAccount.imageProjects,
+                                                              managedAccount.requiredGroupMembership,
                                                               googleApplicationName)
 
         if (!managedAccount.project) {
