@@ -10,9 +10,17 @@ jenkins:
       username: ${services.jenkins.defaultMaster.username}
       password: ${services.jenkins.defaultMaster.password}
 
+travis:
+  enabled: ${services.travis.enabled:false}
+  masters:
+    - name: ${services.travis.defaultMaster.name}
+      baseUrl: ${services.travis.defaultMaster.baseUrl}
+      address: ${services.travis.defaultMaster.address}
+      githubToken: ${services.travis.defaultMaster.githubToken}
+
 redis:
   connection: ${services.redis.connection:redis://localhost:6379}
-  
+
 # Igor depends on Clouddriver and Echo. These are normally configured
 # in spinnaker[-local].yml (if present), otherwise, uncomment this.
 # services:
