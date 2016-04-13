@@ -11,11 +11,18 @@ class AzureInstance implements Instance, Serializable {
   HealthState healthState
   Long launchTime
   String zone
+  String instanceType
   List<Map<String, String>> health
+
+  AzureInstance(){
+    zone = 'N/A'
+  }
 
   static AzureInstance build(VirtualMachineScaleSetVM vm) {
     AzureInstance instance = new AzureInstance()
     instance.name = vm.name
+    instance.instanceType = vm.sku.name
+
     vm.instanceView.statuses.each { status ->
       def codes = status.code.split('/')
       switch (codes[0]) {
