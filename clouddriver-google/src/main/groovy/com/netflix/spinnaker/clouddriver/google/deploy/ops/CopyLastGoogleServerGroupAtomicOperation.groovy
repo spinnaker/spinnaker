@@ -104,7 +104,10 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
     newDescription.application = description.application ?: ancestorNames.app
     newDescription.stack = description.stack ?: ancestorNames.stack
     newDescription.freeFormDetails = description.freeFormDetails ?: ancestorNames.detail
-    newDescription.targetSize = description.targetSize ?: ancestorServerGroup.targetSize
+    newDescription.targetSize =
+        description.targetSize != null
+        ? description.targetSize
+        : ancestorServerGroup.targetSize
 
     def project = description.credentials.project
     def compute = description.credentials.compute

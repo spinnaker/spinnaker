@@ -42,6 +42,7 @@ import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGrou
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final String ACCOUNT_NAME = "auto"
@@ -157,11 +158,12 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     instanceGroupManagerList = new InstanceGroupManagerList(items: [instanceGroupManager])
   }
 
+  @Unroll
   void "operation builds description based on ancestor server group; overrides everything"() {
     setup:
       def description = new BasicGoogleDeployDescription(application: APPLICATION_NAME,
                                                          stack: STACK_NAME,
-                                                         targetSize: 4,
+                                                         targetSize: targetSize,
                                                          image: "backports-$IMAGE",
                                                          instanceType: "n1-standard-8",
                                                          disks: [new GoogleDisk(type: "pd-ssd", sizeGb: 250)],
@@ -218,6 +220,9 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                                                                   maxNumReplicas: 5))
 
       1 * basicGoogleDeployHandlerMock.handle(newDescription, _) >> deploymentResult
+
+    where:
+      targetSize << [4, 0]
   }
 
   void "operation builds description based on ancestor server group; overrides nothing"() {
