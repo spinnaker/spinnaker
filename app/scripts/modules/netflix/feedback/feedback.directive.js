@@ -5,13 +5,16 @@ require('./feedback.less');
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.feedback.directive', [
+  require('../../core/config/settings')
 ])
-  .directive('feedback', function($location) {
+  .directive('feedback', function($location, settings) {
     return {
       restrict: 'E',
       replace: true,
       templateUrl: require('./feedback.html'),
       controller: function($scope, $uibModal) {
+
+        $scope.slackConfig = settings.feedback ? settings.feedback.slack : null;
 
         $scope.state = {
           showMenu: false,

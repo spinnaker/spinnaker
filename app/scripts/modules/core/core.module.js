@@ -189,7 +189,7 @@ module.exports = angular
     };
   })
   .config(function($compileProvider) {
-    $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|mailto|hipchat):/);
+    $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|mailto|hipchat|slack):/);
   })
   .config(function($animateProvider) {
     $animateProvider.classNameFilter(/animated/);
