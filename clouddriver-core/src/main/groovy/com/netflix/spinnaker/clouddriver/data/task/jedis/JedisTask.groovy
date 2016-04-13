@@ -31,30 +31,38 @@ class JedisTask implements Task {
   final String id
   final long startTimeMs
 
-  JedisTask(String id, long startTimeMs, JedisTaskRepository repository) {
+  @JsonIgnore
+  final boolean previousRedis
+
+  JedisTask(String id, long startTimeMs, JedisTaskRepository repository, boolean previousRedis) {
     this.id = id
     this.startTimeMs = startTimeMs
     this.repository = repository
+    this.previousRedis = previousRedis
   }
 
   @Override
   void updateStatus(String phase, String status) {
+    checkMutable()
     repository.addToHistory(repository.currentState(this).update(phase, status), this)
     log.info "[$phase] - $status"
   }
 
   @Override
   void complete() {
+    checkMutable()
     repository.addToHistory(repository.currentState(this).update(TaskState.COMPLETED), this)
   }
 
   @Override
   void fail() {
+    checkMutable()
     repository.addToHistory(repository.currentState(this).update(TaskState.FAILED), this)
   }
 
   @Override
   public void addResultObjects(List<Object> results) {
+    checkMutable()
     if (results) {
       repository.currentState(this).ensureUpdateable()
       repository.addResultObjects(results, this)
@@ -77,5 +85,11 @@ class JedisTask implements Task {
   @Override
   Status getStatus() {
     repository.currentState(this)
+  }
+
+  private void checkMutable() {
+    if (previousRedis) {
+      throw new IllegalStateException("Read-only task")
+    }
   }
 }
