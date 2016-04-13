@@ -84,6 +84,7 @@ ospackage {
   }
 
   configurationFile('/etc/default/spinnaker\n')
+  configurationFile('/etc/apache2/sites-available/spinnaker.conf\n')
 
   File configDir
   FileCollection collection = files { configDir.listFiles() }
