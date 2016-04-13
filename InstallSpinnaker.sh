@@ -449,7 +449,7 @@ EOF
   fi
 
   local cassandra_packages=$(apt-cache search cassandra)
-  if [ -z "$cassanrda_packages" ]; then
+  if [ -z "$cassandra_packages" ]; then
     if [ "$DOWNLOAD" == "true" ]; then
       echo "cassandra not found in apt-cache, downloading from $package_url..."
       mkdir /tmp/casspkgs && pushd /tmp/casspkgs
