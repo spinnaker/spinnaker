@@ -88,7 +88,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
     def cacheResultBuilder = new CacheResultBuilder(startTime: System.currentTimeMillis())
 
     List<GoogleServerGroup2> serverGroups = getServerGroups()
-    def serverGroupKeys = serverGroups.collect { Keys.getServerGroupKey(it.name, accountName, it.zone) }
+    def serverGroupKeys = serverGroups.collect { Keys.getServerGroupKey(it.name, accountName, it.region) }
 
     providerCache.getAll(ON_DEMAND.ns, serverGroupKeys).each { CacheData cacheData ->
       // Ensure that we don't overwrite data that was inserted by the `handle` method while we retrieved the
@@ -169,15 +169,16 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
       buildCacheResult(cacheResultBuilder, serverGroup ? [serverGroup] : [])
     }
 
+    def dataRegion = credentials.regionFromZone(data.zone as String)
     if (result.cacheResults.values().flatten().empty) {
       // Avoid writing an empty onDemand cache record (instead delete any that may have previously existed).
       providerCache.evictDeletedItems(ON_DEMAND.ns, [Keys.getServerGroupKey(data.serverGroupName as String,
                                                                             accountName,
-                                                                            data.zone as String)])
+                                                                            dataRegion)])
     } else {
       metricsSupport.onDemandStore {
         def cacheData = new DefaultCacheData(
-            Keys.getServerGroupKey(data.serverGroupName as String, accountName, data.zone as String),
+            Keys.getServerGroupKey(data.serverGroupName as String, accountName, dataRegion),
             TimeUnit.MINUTES.toSeconds(10) as Integer, // ttl
             [
                 cacheTime     : System.currentTimeMillis(),
@@ -196,7 +197,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
     if (!serverGroup) {
       evictions[SERVER_GROUPS.ns].add(Keys.getServerGroupKey(data.serverGroupName as String,
                                                              accountName,
-                                                             data.zone as String))
+                                                             dataRegion))
     }
 
     log.info("On demand cache refresh succeeded. Data: ${data}")
@@ -205,14 +206,14 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
         sourceAgentType: getOnDemandAgentType(),
         cacheResult: result,
         evictions: evictions,
-        authoritativeTypes: [SERVER_GROUPS.ns]
+        // Do not include "authoritativeTypes" here, as it will result in all other cache entries getting deleted!
     )
   }
 
   @Override
   Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
     def keyOwnedByThisAgent = { Map<String, String> parsedKey ->
-      parsedKey && parsedKey.account == accountName && region == credentials.regionFromZone(parsedKey.zone)
+      parsedKey && parsedKey.account == accountName && parsedKey.region == region
     }
 
     def keys = providerCache.getIdentifiers(ON_DEMAND.ns).findAll { String key ->
@@ -220,9 +221,8 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
     }
 
     providerCache.getAll(ON_DEMAND.ns, keys).collect { CacheData cacheData ->
-      def parse = Keys.parse(cacheData.id)
       [
-          details       : parse + [region: credentials.regionFromZone(parse.zone)],
+          details       : Keys.parse(cacheData.id),
           cacheTime     : cacheData.attributes.cacheTime,
           processedCount: cacheData.attributes.processedCount,
           processedTime : cacheData.attributes.processedTime
@@ -245,11 +245,6 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
 
       def instanceKeys = []
       def loadBalancerKeys = []
-
-      if (shouldUseOnDemandData(cacheResultBuilder, serverGroup)) {
-        moveOnDemandDataToNamespace(cacheResultBuilder, serverGroup)
-        return
-      }
 
       cacheResultBuilder.namespace(APPLICATIONS.ns).keep(appKey).with {
         attributes.name = applicationName
@@ -276,17 +271,21 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
                                                     loadBalancerName)
       }
 
-      cacheResultBuilder.namespace(SERVER_GROUPS.ns).keep(serverGroupKey).with {
-        attributes = objectMapper.convertValue(serverGroup, ATTRIBUTES)
-        relationships[APPLICATIONS.ns].add(appKey)
-        relationships[CLUSTERS.ns].add(clusterKey)
-        relationships[INSTANCES.ns].addAll(instanceKeys)
-        relationships[LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
-      }
-
       loadBalancerKeys.each { String loadBalancerKey ->
         cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keep(loadBalancerKey).with {
           relationships[SERVER_GROUPS.ns].add(serverGroupKey)
+        }
+      }
+
+      if (shouldUseOnDemandData(cacheResultBuilder, serverGroup)) {
+        moveOnDemandDataToNamespace(cacheResultBuilder, serverGroup)
+      } else {
+        cacheResultBuilder.namespace(SERVER_GROUPS.ns).keep(serverGroupKey).with {
+          attributes = objectMapper.convertValue(serverGroup, ATTRIBUTES)
+          relationships[APPLICATIONS.ns].add(appKey)
+          relationships[CLUSTERS.ns].add(clusterKey)
+          relationships[INSTANCES.ns].addAll(instanceKeys)
+          relationships[LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
         }
       }
     }
@@ -297,19 +296,20 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
     log.info("Caching ${cacheResultBuilder.namespace(INSTANCES.ns).keepSize()} instance relationships in ${agentType}")
     log.info("Caching ${cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keepSize()} load balancer relationships in ${agentType}")
     log.info("Caching ${cacheResultBuilder.onDemand.toKeep.size()} onDemand entries in ${agentType}")
+    log.info("Evicting ${cacheResultBuilder.onDemand.toEvict.size()} onDemand entries in ${agentType}")
 
     cacheResultBuilder.build()
   }
 
   boolean shouldUseOnDemandData(CacheResultBuilder cacheResultBuilder, GoogleServerGroup2 googleServerGroup) {
-    def serverGroupKey = Keys.getServerGroupKey(googleServerGroup.name, accountName, googleServerGroup.zone)
+    def serverGroupKey = Keys.getServerGroupKey(googleServerGroup.name, accountName, googleServerGroup.region)
     CacheData cacheData = cacheResultBuilder.onDemand.toKeep[serverGroupKey]
 
     return cacheData ? cacheData.attributes.cacheTime >= cacheResultBuilder.startTime : false
   }
 
   void moveOnDemandDataToNamespace(CacheResultBuilder cacheResultBuilder, GoogleServerGroup2 googleServerGroup) {
-    def serverGroupKey = Keys.getServerGroupKey(googleServerGroup.name, accountName, googleServerGroup.zone)
+    def serverGroupKey = Keys.getServerGroupKey(googleServerGroup.name, accountName, googleServerGroup.region)
     Map<String, List<MutableCacheData>> onDemandData = objectMapper.readValue(
         cacheResultBuilder.onDemand.toKeep[serverGroupKey].attributes.cacheResults as String,
         new TypeReference<Map<String, List<MutableCacheData>>>() {})

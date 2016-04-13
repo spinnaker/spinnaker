@@ -125,7 +125,7 @@ class Keys {
             application: names.app.toLowerCase(),
             cluster    : parts[2],
             account    : parts[3],
-            zone       : parts[4],
+            region     : parts[4],
             serverGroup: parts[5],
             stack      : names.stack,
             detail     : names.detail,
@@ -189,9 +189,9 @@ class Keys {
 
   static String getServerGroupKey(String managedInstanceGroupName,
                                   String account,
-                                  String zone) {
+                                  String region) {
     Names names = Names.parseName(managedInstanceGroupName)
-    "$GoogleCloudProvider.GCE:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${zone}:${names.group}"
+    "$GoogleCloudProvider.GCE:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}"
   }
 
   static String getSubnetKey(String subnetName,
