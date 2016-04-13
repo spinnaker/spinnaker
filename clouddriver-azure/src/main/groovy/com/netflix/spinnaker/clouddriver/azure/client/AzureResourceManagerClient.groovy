@@ -30,8 +30,10 @@ import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import groovy.transform.Canonical
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import okhttp3.logging.HttpLoggingInterceptor
 
+@Slf4j
 @CompileStatic
 class AzureResourceManagerClient extends AzureBaseClient {
 
@@ -48,13 +50,14 @@ class AzureResourceManagerClient extends AzureBaseClient {
   }
 
   /**
-   *
-   * @param credentials
-   * @param template
-   * @param resourceGroupName
-   * @param region
-   * @param resourceName
-   * @param templateParams
+   * Create a given set of resources in Azure based on template provided
+   * @param credentials - AzureCredentials to use
+   * @param template - ARM Template that defines the resources to be created
+   * @param resourceGroupName - name of the resource group where the resources will be created
+   * @param region - Azure region to create the resources in
+   * @param resourceName - name of the main resource to be created
+   * @param resourceType - type of the main resource to be created
+   * @param templateParams - key/value list of parameters to pass to the template
    * @return
    */
   DeploymentExtended createResourceFromTemplate(AzureCredentials credentials,
@@ -84,11 +87,10 @@ class AzureResourceManagerClient extends AzureBaseClient {
   }
 
   /**
-   *
-   * @param creds
-   * @param resourceGroupName
-   * @param region
-   * @return
+   * Create a resource group in Azure
+   * @param resourceGroupName - name of the resource group to create
+   * @param region - region to create the resource group in
+   * @return instance of the Azure SDK ResourceGroup class
    */
   ResourceGroup createResourceGroup(String resourceGroupName, String region) {
     try {
@@ -105,12 +107,12 @@ class AzureResourceManagerClient extends AzureBaseClient {
   }
 
   /**
-   *
-   * @param creds
-   * @param resourceGroupName
-   * @param virtualNetworkName
-   * @param region
-   * @return
+   * Initialize the resource group and virtual network
+   * @param creds - AzureCredentials
+   * @param resourceGroupName - name of the resource group
+   * @param virtualNetworkName - name of the virtual network to be created/initialized
+   * @param region - Azure region
+   * @return - instance of the Azure SDK ResourceGroup class
    */
   ResourceGroup initializeResourceGroupAndVNet(AzureCredentials creds, String resourceGroupName, String virtualNetworkName, String region) {
     ResourceGroup resourceGroupParameters = new ResourceGroup()
@@ -128,22 +130,20 @@ class AzureResourceManagerClient extends AzureBaseClient {
   }
 
   /**
-   *
-   * @param creds
-   * @param resourceGroupName
-   * @return
+   * Check to see if a resource group already exists in the subscription
+   * @param resourceGroupName name of the resource group to look for
+   * @return True if it already exists
    */
   boolean resourceGroupExists(String resourceGroupName) {
     client.getResourceGroupsOperations().checkExistence(resourceGroupName).body
   }
 
   /**
-   *
-   * @param creds
-   * @param resourceGroupName
-   * @param deploymentName
-   * @param operationCount
-   * @return
+   * Retrieve the operations associated with a given deployment in Azure
+   * @param resourceGroupName - name of the resource group where the deployment exists
+   * @param deploymentName - name of the deployment
+   * @param operationCount - number of operations to return. Default is 10
+   * @return List of Azure SDK DeploymentOperations objects
    */
   List<DeploymentOperation> getDeploymentOperations(String resourceGroupName,
                                                     String deploymentName,
@@ -152,11 +152,10 @@ class AzureResourceManagerClient extends AzureBaseClient {
   }
 
   /**
-   *
-   * @param creds
-   * @param resourceGroupName
-   * @param deploymentName
-   * @return
+   * Retrieve the deployment resource from Azure
+   * @param resourceGroupName - name of the resource group where the deployment exists
+   * @param deploymentName - name of the deployment
+   * @return Azure SDK DeploymentExtended object
    */
   DeploymentExtended getDeployment(String resourceGroupName, String deploymentName) {
     client.getDeploymentsOperations().get(resourceGroupName, deploymentName).body
@@ -175,11 +174,11 @@ class AzureResourceManagerClient extends AzureBaseClient {
   }
 
   /**
-   *
-   * @param creds
-   * @param resourceGroupName
-   * @param virtualNetworkName
-   * @param region
+   * Create the virtual network resource in Azure if it does not exist
+   * @param creds - AzureCredentials instance
+   * @param resourceGroupName - name of the resource group to lookup/create the virtual network resource in
+   * @param virtualNetworkName - name of the virtual network to lookup/create
+   * @param region - Azure region to lookup/create virtual network resource in
    */
   private static void initializeResourceGroupVNet(AzureCredentials creds, String resourceGroupName, String virtualNetworkName = null, String region) {
     def vNetName = virtualNetworkName ?
@@ -195,13 +194,13 @@ class AzureResourceManagerClient extends AzureBaseClient {
   }
 
   /**
-   *
-   * @param resourceManagementClient
-   * @param resourceGroupName
-   * @param deploymentMode
-   * @param deploymentName
-   * @param template
-   * @param templateParameters
+   * Deploy the resource template to Azure
+   * @param resourceManagementClient - the Azure SDK ResourceManagementClient instance
+   * @param resourceGroupName - name of the resource group where the template will be deployed
+   * @param deploymentMode - Deployment Mode
+   * @param deploymentName - name of the deployment
+   * @param template - the ARM template to be deployed
+   * @param templateParameters - key/value list of parameters that will be passed to the template
    * @return Azure Deployment object
    */
   private static DeploymentExtended createTemplateDeployment(
@@ -219,7 +218,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
     // Deserialize to pass it as an instance of a JSON Node object
     deploymentProperties.setTemplate(mapper.readTree(template))
 
-    // initialize the parameters for this template
+    // initialize the parameters for resourceManagementClientthis template
     if (templateParameters) {
       Map<String, ParameterValue> parameters = new HashMap<String, ParameterValue>()
       for (Map.Entry<String, String> entry : templateParameters.entrySet()) {
@@ -240,16 +239,42 @@ class AzureResourceManagerClient extends AzureBaseClient {
   }
 
   /**
-   *
-   * @param subscriptionId
-   * @param credentials
-   * @return
+   * initialize the Azure client that will be used for interactions(s) with this provider in Azure
+   * @param credentials - Credentials that will be used for authentication with Azure
+   * @return - an initialized instance of the Azure ResourceManagementClient object
    */
   private ResourceManagementClient initializeClient(ApplicationTokenCredentials credentials) {
     ResourceManagementClient resourceManagementClient = new ResourceManagementClientImpl(credentials)
     resourceManagementClient.setSubscriptionId(this.subscriptionId)
     resourceManagementClient.setLogLevel(HttpLoggingInterceptor.Level.NONE)
     resourceManagementClient
+  }
+
+  /**
+   * Register the Resource Provider in Azure
+   * @param namespace - the namespace for the Resource Provider to register
+   */
+  void registerProvider(String namespace) {
+    def ops = client.getProvidersOperations()
+    try {
+      if (ops.get(namespace).body.registrationState != "Registered") {
+        log.info("Registering Azure provider: ${namespace}")
+        ops.register(namespace)
+        log.info("Azure provider ${namespace} registered")
+      }
+    } catch (Exception e) {
+      // Something went wrong. log the exception
+      log.error("Unable to register Azure Provider: ${namespace}", e)
+    }
+  }
+
+  /**
+   * The namespace for the Azure Resource Provider
+   * @return namespace of the resource provider
+   */
+  @Override
+  String getProviderNamespace() {
+    "Microsoft.Resources"
   }
 
   @Canonical

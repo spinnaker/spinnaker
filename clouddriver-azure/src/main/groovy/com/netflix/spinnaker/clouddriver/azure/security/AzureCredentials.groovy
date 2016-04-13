@@ -51,5 +51,16 @@ class AzureCredentials {
     computeClient = new AzureComputeClient(this.subscriptionId, token)
 
     storageClient = new AzureStorageClient(this.subscriptionId, token)
+    registerProviders()
+  }
+
+  /**
+   * For each client, register the associated provider.
+   */
+  private void registerProviders() {
+    resourceManagerClient.register(resourceManagerClient)
+    networkClient.register(resourceManagerClient)
+    computeClient.register(resourceManagerClient)
+    storageClient.register(resourceManagerClient)
   }
 }

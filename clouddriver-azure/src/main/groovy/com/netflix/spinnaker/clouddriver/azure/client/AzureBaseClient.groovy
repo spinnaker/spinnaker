@@ -31,7 +31,6 @@ import groovy.util.logging.Slf4j
 public abstract class AzureBaseClient {
   final String subscriptionId
   final static long AZURE_ATOMICOPERATION_RETRY = 5
-
   static ObjectMapper mapper
 
   /**
@@ -121,5 +120,21 @@ public abstract class AzureBaseClient {
   static Boolean resourceNotFound(int responseStatusCode) {
     responseStatusCode == HttpURLConnection.HTTP_NO_CONTENT || responseStatusCode == HttpURLConnection.HTTP_NOT_FOUND
   }
+
+  /***
+   * register the resource provider in the subscription
+   * @param resourceManagerClient - an instance of the AzureResourceManagerClient
+   */
+  void register(AzureResourceManagerClient resourceManagerClient) {
+    if (resourceManagerClient && !"".equals(providerNamespace)) {
+      resourceManagerClient.registerProvider(providerNamespace)
+    }
+  }
+
+  /***
+   * The namespace for the Azure Resource Provider
+   * @return namespace of the resource provider
+   */
+  protected abstract String getProviderNamespace()
 
 }
