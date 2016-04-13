@@ -26,19 +26,19 @@ import com.netflix.spinnaker.igor.service.BuildMasters
 import spock.lang.Specification
 
 /**
- * Tests for BuildMonitor
+ * Tests for JenkinsBuildMonitor
  */
 @SuppressWarnings(['DuplicateNumberLiteral', 'PropertyName'])
-class BuildMonitorSpec extends Specification {
+class JenkinsBuildMonitorSpec extends Specification {
 
     JenkinsCache cache = Mock(JenkinsCache)
     JenkinsService jenkinsService = Mock(JenkinsService)
-    BuildMonitor monitor
+    JenkinsBuildMonitor monitor
 
     final MASTER = 'MASTER'
 
     void setup() {
-        monitor = new BuildMonitor(cache: cache, buildMasters: new BuildMasters(map: [MASTER: jenkinsService]))
+        monitor = new JenkinsBuildMonitor(cache: cache, buildMasters: new BuildMasters(map: [MASTER: jenkinsService]))
     }
 
     void 'flag a new build not found in the cache'() {

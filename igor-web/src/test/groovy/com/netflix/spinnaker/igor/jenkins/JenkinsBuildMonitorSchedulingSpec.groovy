@@ -30,11 +30,11 @@ import java.util.concurrent.TimeUnit
  * Ensures that build monitor runs periodically
  */
 @SuppressWarnings(['PropertyName'])
-class BuildMonitorSchedulingSpec extends Specification {
+class JenkinsBuildMonitorSchedulingSpec extends Specification {
 
     JenkinsCache cache = Mock(JenkinsCache)
     JenkinsService jenkinsService = Mock(JenkinsService)
-    BuildMonitor monitor
+    JenkinsBuildMonitor monitor
 
     final MASTER = 'MASTER'
     final PROJECTS = new ProjectsList(list: [])
@@ -44,7 +44,7 @@ class BuildMonitorSchedulingSpec extends Specification {
         given:
         cache.getJobNames(MASTER) >> []
         BuildMasters buildMasters = Mock(BuildMasters)
-        monitor = new BuildMonitor(cache: cache, buildMasters: buildMasters)
+        monitor = new JenkinsBuildMonitor(cache: cache, buildMasters: buildMasters)
         monitor.worker = scheduler.createWorker()
         monitor.pollInterval = 1
 
