@@ -20,7 +20,7 @@ import com.amazonaws.metrics.AwsSdkMetrics
 import com.amazonaws.retry.RetryPolicy
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.awsobjectmapper.AmazonObjectMapper
-import com.netflix.spectator.aws.SpectatorMetricsCollector
+import com.netflix.spectator.aws.SpectatorMetricCollector
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.aws.agent.CleanupDetachedInstancesAgent
@@ -80,7 +80,7 @@ class AwsConfiguration {
   int maxConnectionsPerRoute
 
   @Autowired
-  SpectatorMetricsCollector spectatorMetricsCollector
+  SpectatorMetricCollector spectatorMetricCollector
 
   @PostConstruct
   void checkMetricsEnabled() {
