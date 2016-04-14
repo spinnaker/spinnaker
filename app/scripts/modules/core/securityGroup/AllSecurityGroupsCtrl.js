@@ -48,7 +48,7 @@ module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
         $uibModal.open({
           templateUrl: provider.createSecurityGroupTemplateUrl,
           controller: `${provider.createSecurityGroupController} as ctrl`,
-          size: cloudProviderRegistry.getValue(selectedProvider, 'v2wizard') ? 'lg' : 'md',
+          size: 'lg',
           resolve: {
             securityGroup: function () {
               return {

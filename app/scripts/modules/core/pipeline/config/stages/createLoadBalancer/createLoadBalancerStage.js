@@ -38,7 +38,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.createLoadBalance
         $uibModal.open({
           templateUrl: config.createLoadBalancerTemplateUrl,
           controller: `${config.createLoadBalancerController} as ctrl`,
-          size: cloudProviderRegistry.getValue(selectedProvider, 'v2wizard') ? 'lg' : 'md',
+          size: 'lg',
           resolve: {
             application: () => $scope.application,
             loadBalancer: () => null,
@@ -59,7 +59,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.createLoadBalance
         $uibModal.open({
           templateUrl: config.editLoadBalancerTemplateUrl,
           controller: `${config.createLoadBalancerController} as ctrl`,
-          size: cloudProviderRegistry.getValue(selectedProvider, 'v2wizard') ? 'lg' : 'md',
+          size: 'lg',
           resolve: {
             application: () => $scope.application,
             loadBalancer: () => angular.copy(loadBalancer),
