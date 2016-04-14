@@ -41,6 +41,7 @@ class KubernetesConfigParser {
     Cluster currentCluster = KubeConfigUtils.getCluster(kubeConfig, currentContext);
     config.setApiVersion("v1") // TODO(lwander) Make config parameter when new versions arrive.
     config.setNoProxy([] as String[])
+    config.setUserAgent("Spinnaker/Clouddriver")
     if (currentCluster != null) {
       if (!currentCluster.getServer().endsWith("/")) {
         config.setMasterUrl(currentCluster.getServer() + "/")
