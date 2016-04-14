@@ -139,7 +139,9 @@ module.exports = angular
     };
 
     this.cancel = () => {
-      $timeout.cancel(this.task.poller);
+      if (this.task && this.task.poller) {
+        $timeout.cancel(this.task.poller);
+      }
       $uibModalInstance.dismiss();
     };
 
