@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.echo.notification
 import com.netflix.spinnaker.echo.model.Event
-import com.netflix.spinnaker.echo.slack.SlackMessage
 import com.netflix.spinnaker.echo.slack.SlackService
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang.WordUtils
@@ -39,16 +38,11 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
   @Override
   void sendNotifications(Map preference, String application, Event event, Map config, String status) {
     try {
-      boolean notify = false
-      if (status == 'failed') {
-        notify = true
-      }
-
-      String buildInfo = ''
+      String buildInfo = ' '
 
       if (config.type == 'pipeline' || config.type == 'stage') {
         if (event.content?.execution?.trigger?.buildInfo?.url) {
-          buildInfo = """build <${event.content.execution.trigger.buildInfo.url}|${
+          buildInfo = """ build <${event.content.execution.trigger.buildInfo.url}|${
             event.content.execution.trigger.buildInfo.number as Integer
           }> """
         }
@@ -70,16 +64,13 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
           config.type == 'stage' ? 'executions/details' : config.link
         }/${event.content?.execution?.id}|${
           event.content?.execution?.name ?: event.content?.execution?.description
-        }> ${buildInfo} ${config.type == 'task' ? 'task' : 'pipeline'} ${status == 'starting' ? 'is' : 'has'} ${
+        }>${buildInfo}${config.type == 'task' ? 'task' : 'pipeline'} ${status == 'starting' ? 'is' : 'has'} ${
           status == 'complete' ? 'completed successfully' : status
         }"""
 
-      slackService.sendMessage(token,
-        new SlackMessage(
-          text: message,
-          channel: preference.address
-        )
-      )
+      String address = preference.address.startsWith('#') ? preference.address : "#${preference.address}"
+
+      slackService.sendMessage(token, message, address, true)
 
     } catch (Exception e) {
       log.error('failed to send slack message ', e)

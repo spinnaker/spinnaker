@@ -36,7 +36,7 @@ class SlackConfig {
 
   @Bean
   Endpoint slackEndpoint() {
-    newFixedEndpoint('https://hooks.slack.com')
+    newFixedEndpoint('https://slack.com')
   }
 
   @Bean
