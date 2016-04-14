@@ -71,6 +71,7 @@ module.exports = angular.module('spinnaker.kubernetes', [
         createSecurityGroupController: 'kubernetesUpsertSecurityGroupController',
       },
       serverGroup: {
+        skipUpstreamStageCheck: true,
         transformer: 'kubernetesServerGroupTransformer',
         detailsTemplateUrl: require('./serverGroup/details/details.html'),
         detailsController: 'kubernetesServerGroupDetailsController',

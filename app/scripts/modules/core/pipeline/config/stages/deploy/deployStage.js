@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
   require('../../../../cloudProvider/cloudProvider.registry.js'),
   require('../stageConstants.js'),
 ])
-  .config(function (pipelineConfigProvider) {
+  .config(function (pipelineConfigProvider, cloudProviderRegistryProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Deploy',
       description: 'Deploys the previously baked or found image',
@@ -23,7 +23,15 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
         {
           type: 'stageBeforeType',
           stageTypes: ['bake', 'findAmi', 'findImage'],
-          message: 'You must have a Bake or Find Image stage before any deploy stage.'
+          message: 'You must have a Bake or Find Image stage before any deploy stage.',
+          skipValidation: (pipeline, stage) => {
+            if (!stage.clusters || !stage.clusters.length) {
+              return true;
+            }
+            return stage.clusters.every(cluster =>
+              cloudProviderRegistryProvider.$get().getValue(cluster.provider, 'serverGroup.skipUpstreamStageCheck')
+            );
+          }
         },
       ],
       strategy: true,
@@ -82,7 +90,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
         $uibModal.open({
           templateUrl: config.cloneServerGroupTemplateUrl,
           controller: `${config.cloneServerGroupController} as ctrl`,
-          size: cloudProviderRegistry.getValue(selectedProvider, 'v2wizard') ? 'lg' : 'md',
+          size: 'lg',
           resolve: {
             title: function () {
               return 'Configure Deployment Cluster';
