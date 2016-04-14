@@ -8,7 +8,6 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.deployIni
   require('../serverGroupCommandBuilder.service.js'),
 ])
   .controller('azureDeployInitializerCtrl', function($scope, azureServerGroupCommandBuilder, serverGroupReader, _) {
-    var controller = this;
 
     $scope.templates = [];
     if (!$scope.command.viewState.disableNoTemplateSelection) {
@@ -66,7 +65,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.deployIni
       });
     }
 
-    controller.selectTemplate = function () {
+    this.selectTemplate = function () {
       var selection = $scope.command.viewState.template;
       if (selection && selection.cluster && selection.serverGroup) {
         return buildCommandFromTemplate(selection.serverGroup);
@@ -75,9 +74,9 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.deployIni
       }
     };
 
-    controller.useTemplate = function() {
+    this.useTemplate = function() {
       $scope.state.loaded = false;
-      controller.selectTemplate().then(function() {
+      this.selectTemplate().then(function() {
         $scope.$emit('template-selected');
       });
     };

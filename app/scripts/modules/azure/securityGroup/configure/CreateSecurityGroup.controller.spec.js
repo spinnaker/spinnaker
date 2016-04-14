@@ -1,6 +1,6 @@
  'use strict';
 
- xdescribe('Controller: Azure.CreateSecurityGroup', function () {
+ describe('Controller: Azure.CreateSecurityGroup', function () {
 
    beforeEach(
      window.module(
@@ -13,7 +13,7 @@
 
      // Initialize the controller and a mock scope
      beforeEach(window.inject(function ($controller, $rootScope, $q, accountService, securityGroupReader, modalWizardService,
-                                 taskMonitorService, securityGroupWriter) {
+                                 taskMonitorService, azureSecurityGroupWriter) {
 
        this.$scope = $rootScope.$new();
        this.$q = $q;
@@ -21,7 +21,7 @@
        this.securityGroupReader = securityGroupReader;
        this.modalWizardService = modalWizardService;
        this.taskMonitorService = taskMonitorService;
-       this.securityGroupWriter = securityGroupWriter;
+       this.securityGroupWriter = azureSecurityGroupWriter;
 
        spyOn(this.accountService, 'listAccounts').and.returnValue(
          $q.when(['prod', 'test'])
@@ -86,56 +86,7 @@
 
      it('initializes with no security groups available for ingress permissions', function () {
        this.initializeCtrl();
-       expect(this.$scope.availableSecurityGroups.length).toBe(0);
-     });
-
-     it('sets up available security groups once an account and region are selected', function () {
-       this.initializeCtrl();
-       this.$scope.securityGroup.credentials = 'prod';
-       this.ctrl.accountUpdated();
-       this.$scope.$digest();
-       expect(this.$scope.availableSecurityGroups.length).toBe(0);
-
-       this.$scope.securityGroup.regions = ['us-east-1'];
-       this.ctrl.accountUpdated();
-       this.$scope.$digest();
-       expect(this.$scope.availableSecurityGroups.length).toBe(2);
-       expect(this.$scope.existingSecurityGroupNames).toEqual(['group1', 'group2']);
-     });
-
-     it('filters existing names based on join of groups from all regions', function() {
-       this.initializeCtrl();
-       this.$scope.securityGroup.credentials = 'test';
-       this.$scope.securityGroup.regions = ['us-east-1', 'us-west-1'];
-       this.$scope.securityGroup.vpcId = 'vpc2-te';
-       this.ctrl.accountUpdated();
-       this.$scope.$digest();
-       expect(this.$scope.availableSecurityGroups.length).toBe(0);
-       expect(this.$scope.existingSecurityGroupNames.sort()).toEqual(['group3', 'group4', 'group5']);
-     });
-
-     it('filters available names based on intersection of groups from all regions', function() {
-       this.initializeCtrl();
-       this.$scope.securityGroup.credentials = 'test';
-       this.$scope.securityGroup.regions = ['us-east-1', 'us-west-1'];
-       this.$scope.securityGroup.vpcId = 'vpc1-tw';
-       this.ctrl.accountUpdated();
-       this.$scope.$digest();
-       expect(this.$scope.availableSecurityGroups.length).toBe(1);
-     });
-
-     it('filters VPCs based on account + region', function() {
-       this.initializeCtrl();
-       this.$scope.securityGroup.credentials = 'test';
-       this.$scope.securityGroup.regions = ['us-east-1', 'us-west-1'];
-       this.ctrl.accountUpdated();
-       this.$scope.$digest();
-       expect(_.pluck(this.$scope.vpcs, 'label').sort()).toEqual(['vpc 2']);
-
-       this.$scope.securityGroup.regions = ['us-east-1'];
-       this.ctrl.accountUpdated();
-       this.$scope.$digest();
-       expect(_.pluck(this.$scope.vpcs, 'label').sort()).toEqual(['vpc 1', 'vpc 2']);
+       expect(this.$scope.securityGroup.securityRules.length).toBe(0);
      });
 
    });
