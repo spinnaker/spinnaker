@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.security
 
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesConfiguration
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable
@@ -42,6 +43,10 @@ class KubernetesCredentialsInitializer implements CredentialsInitializerSynchron
 
   @Autowired
   ApplicationContext appContext;
+
+
+  @Autowired
+  KubernetesConfiguration configuration
 
   @Autowired
   List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers
@@ -70,6 +75,7 @@ class KubernetesCredentialsInitializer implements CredentialsInitializerSynchron
     accountsToAdd.each { KubernetesConfigurationProperties.ManagedAccount managedAccount ->
       try {
         def kubernetesAccount = new KubernetesNamedAccountCredentials(accountCredentialsRepository,
+                                                                      configuration.kubernetesApplicationName(),
                                                                       managedAccount.name,
                                                                       managedAccount.environment ?: managedAccount.name,
                                                                       managedAccount.accountType ?: managedAccount.name,

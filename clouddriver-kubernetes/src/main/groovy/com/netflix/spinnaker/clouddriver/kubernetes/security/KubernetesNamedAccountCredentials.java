@@ -29,6 +29,7 @@ import java.util.List;
 
 public class KubernetesNamedAccountCredentials implements AccountCredentials<KubernetesCredentials> {
   public KubernetesNamedAccountCredentials(AccountCredentialsRepository accountCredentialsRepository,
+                                           String userAgent,
                                            String accountName,
                                            String environment,
                                            String accountType,
@@ -37,10 +38,11 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
                                            String kubeconfigFile,
                                            List<String> namespaces,
                                            List<LinkedDockerRegistryConfiguration> dockerRegistries) {
-    this(accountCredentialsRepository, accountName, environment, accountType, cluster, user, kubeconfigFile, namespaces, dockerRegistries, null);
+    this(accountCredentialsRepository, userAgent, accountName, environment, accountType, cluster, user, kubeconfigFile, namespaces, dockerRegistries, null);
   }
 
   public KubernetesNamedAccountCredentials(AccountCredentialsRepository accountCredentialsRepository,
+                                           String userAgent,
                                            String accountName,
                                            String environment,
                                            String accountType,
@@ -61,6 +63,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     this.accountType = accountType;
     this.cluster = cluster;
     this.user = user;
+    this.userAgent = userAgent;
     this.kubeconfigFile = kubeconfigFile != null && kubeconfigFile.length() > 0 ?
       kubeconfigFile : System.getProperty("user.home") + "/.kube/config";
     this.namespaces = namespaces;
@@ -106,6 +109,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
 
   private KubernetesCredentials buildCredentials() {
     Config config = KubernetesConfigParser.parse(kubeconfigFile, cluster, user, namespaces);
+    config.setUserAgent(userAgent);
     if (namespaces == null || namespaces.isEmpty()) {
       namespaces = Collections.singletonList(config.getNamespace());
     }
@@ -149,6 +153,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
   private final String accountType;
   private final String cluster;
   private final String user;
+  private final String userAgent;
   private final String kubeconfigFile;
   private List<String> namespaces;
   private final KubernetesCredentials credentials;
