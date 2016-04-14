@@ -40,7 +40,7 @@ class ResizeAsgAtomicOperationConverterUnitSpec extends Specification {
     converter.accountCredentialsProvider = accountCredentialsProvider
   }
 
-  void "shrinkClusterDescription type returns ShrinkClusterDescription and ShrinkClusterAtomicOperation"() {
+  void "resizeAsgDescription type returns ResizeAsgDescription and ResizeAsgAtomicOperation"() {
     setup:
     def input = [asgName: "myasg-stack-v000", regions: ["us-west-1"], credentials: "test"]
 
