@@ -27,6 +27,12 @@
 // var titanPrimaryAccount = ${providers.titan.primaryCredentials.name};
 // var kubernetesDefaultNamespace = ${providers.kubernetes.primaryCredentials.namespace};
 // var kubernetesPrimaryAccount = ${providers.kubernetes.primaryCredentials.name};
+// var emailEnabled = ${services.echo.notifications.mail.enabled};
+// var hipchatEnabled = ${services.echo.notifications.hipchat.enabled};
+// var hipchatBotName = ${services.echo.notifications.hipchat.botName};
+// var smsEnabled = ${services.echo.notifications.sms.enabled};
+// var slackEnabled = ${services.echo.notifications.slack.enabled};
+// var slackBotName = ${services.echo.notifications.slack.botName};
 
 // END reconfigure_spinnaker
 /**
@@ -77,6 +83,22 @@ window.spinnakerSettings = {
         account: kubernetesPrimaryAccount,
         namespace: kubernetesDefaultNamespace
       },
+    }
+  },
+  notifications: {
+    email: {
+      enabled: emailEnabled
+    },
+    hipchat: {
+      enabled: hipchatEnabled,
+      botName: hipchatBotName
+    },
+    sms: {
+      enabled: smsEnabled
+    },
+    slack: {
+      enabled: slackEnabled,
+      botName: slackBotName
     }
   },
   authEnabled: authEnabled,

@@ -191,13 +191,14 @@ services:
         enabled: false
         url: # the hipchat server to connect to
         token: #the hipchat auth token
+        botName: # the username of the bot
       sms:
         enabled: false
         account: # twilio account id
         token: # twilio auth token
         from: # phone number by which sms messages are sent
-      # See https://api.slack.com/incoming-webhooks for details about using incoming webhooks
-      # and how to register your own webhook.
+      # See https://api.slack.com/bot-users for details about using bots and how to create your own bot user
       slack:
         enabled: false
-        token: # the part after http://hooks.slack.com/services/
+        token: # the API token for the bot
+        botName: # the username of the bot
