@@ -32,7 +32,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.transformer', [
       adjuster.operator = adjuster.scalingAdjustment < 0 ? 'decrease' : 'increase';
       adjuster.absAdjustment = Math.abs(adjuster.scalingAdjustment);
     }
-    
+
     let upperBoundSorter = (a, b) => b.metricIntervalUpperBound - a.metricIntervalUpperBound,
         lowerBoundSorter = (a, b) => a.metricIntervalLowerBound - b.metricIntervalLowerBound;
 
