@@ -29,6 +29,26 @@ jenkins:
 
 Currently Jenkins is used within Spinnaker to trigger builds and provide artifact information for the bake stages. 
 
+## Configuring Travis Masters
+
+In your configuration block ( either in igor.yml, igor-local.yml, spinnaker.yml or spinnaker-local.yml ), you can define multiple masters blocks by using the list format.
+
+To authenticate with travis you use a "Personal access token" on a git user with permissions `read:org, repo, user`. This is added in `settings -> Personal access tokens`
+on github/github-enterprise.
+
+```
+travis:
+  enabled: true
+  # Travis names are prefixed with travis- inside igor.
+  masters:
+  - name: ci # This will show as travis-ci inside spinnaker.
+    baseUrl: https://travis-ci.org
+    address: https://api.travis-ci.org
+    githubToken: 6a7729bdba8c4f9abc58b175213d83f072d1d832
+```
+
+Currently Travis is used within Spinnaker to trigger pipelines and provide artifact information for the bake stages.
+
 ## Git Repositories
 
 ```
