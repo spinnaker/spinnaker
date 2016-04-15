@@ -86,7 +86,7 @@ class CloudFoundryServerGroupCreatorSpec extends Specification {
 
     then:
     ise = thrown()
-    ise.message == "No image could be found in south-pole-1."
+    ise.message == "Neither an image nor a repository/artifact could be found in south-pole-1."
   }
 
 }

@@ -71,8 +71,8 @@ class CloudFoundryServerGroupCreator implements ServerGroupCreator {
       }
     }
 
-    if (!operation.image) {
-      throw new IllegalStateException("No image could be found in ${stage.context.zone}.")
+    if (!operation.image && !operation.repository && !operation.artifact) {
+      throw new IllegalStateException("Neither an image nor a repository/artifact could be found in ${stage.context.zone}.")
     }
 
 
