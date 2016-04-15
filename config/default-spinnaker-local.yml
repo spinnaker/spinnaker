@@ -67,6 +67,7 @@ providers:
       # These credentials use authentication information at ~/.kube/config
       # by default.
       name: my-kubernetes-account
+      namespace: default
       dockerRegistryAccount: ${providers.dockerRegistry.primaryCredentials.name}
 
   dockerRegistry:
