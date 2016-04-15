@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.travis.service
 
 import com.netflix.spinnaker.igor.build.model.GenericBuild
+import com.netflix.spinnaker.igor.build.model.GenericGitRevision
 import com.netflix.spinnaker.igor.build.model.GenericJobConfiguration
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildService
@@ -36,7 +37,7 @@ import retrofit.client.Response
 import retrofit.mime.TypedByteArray
 
 @Slf4j
-class TravisService implements BuildService{
+class TravisService implements BuildService {
     final String baseUrl
     final String groupKey
     final String githubToken
@@ -88,10 +89,20 @@ class TravisService implements BuildService{
         builds.builds.first()
     }
 
+    @Override
     GenericBuild getGenericBuild(String repoSlug, int buildNumber) {
         Build build = getBuild(repoSlug, buildNumber)
         GenericBuild genericBuild = getGenericBuild(build, repoSlug)
         genericBuild
+    }
+
+    @Override
+    List<GenericGitRevision> getGenericGitRevisions(String repoSlug, int buildNumber) {
+        Builds builds = getBuilds(repoSlug, buildNumber)
+        if (builds.commits?.branch) {
+            return builds.commits*.genericGitRevision()
+        }
+        return null
     }
 
     Map<String, Object> getBuildProperties(String repoSlug, int buildNumber) {

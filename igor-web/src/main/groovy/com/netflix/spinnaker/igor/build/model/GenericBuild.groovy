@@ -16,23 +16,39 @@
 
 package com.netflix.spinnaker.igor.build.model
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonProperty
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 class GenericBuild {
     boolean building
     String fullDisplayName
     int number
-    int duration
+    Integer duration
     String timestamp
     Result result
     List<GenericArtifact> artifacts;
     String url
+    @JsonProperty("scm")
+    List<GenericGitRevision> genericGitRevisions
 
-    GenericBuild(boolean building, int number, int duration, Result result, String name, String url) {
+    GenericBuild(boolean building, int number) {
         this.building = building
         this.number = number
+    }
+
+    GenericBuild(boolean building, int number, int duration, Result result, String name, String url) {
+        this(building, number)
         this.duration = duration
         this.result = result
         this.fullDisplayName = "${name} #${number}"
         this.url = url
+    }
+
+    GenericBuild(boolean building, int number, int duration, Result result, String name, String url, String timestamp, String fullDisplayName) {
+        this(building, number, duration, result, name, url)
+        this.timestamp = timestamp
+        this.fullDisplayName = fullDisplayName
     }
 
 }

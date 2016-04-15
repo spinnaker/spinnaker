@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.igor.service
+package com.netflix.spinnaker.igor.build.model
 
-import com.netflix.spinnaker.igor.build.model.GenericBuild
-import com.netflix.spinnaker.igor.build.model.GenericGitRevision
-import com.netflix.spinnaker.igor.model.BuildServiceProvider
+class GenericGitRevision {
+    String branch
 
-interface BuildService {
-    BuildServiceProvider buildServiceProvider()
+    String name
 
-    List<GenericGitRevision> getGenericGitRevisions(String job, int buildNumber)
+    String sha1
 
-    GenericBuild getGenericBuild(String job, int buildNumber)
-
+    GenericGitRevision(String name, String branch, String sha1) {
+        this.name = name
+        this.branch = branch
+        this.sha1 = sha1
+    }
 }
