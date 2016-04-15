@@ -89,7 +89,6 @@ class DockerRegistryClient {
     ])
     Response get(@Path(value="path", encode=false) String path, @Header("Authorization") String token, @Header("User-Agent") String agent)
 
-
     @GET("/v2/")
     @Headers([
       "User-Agent: Spinnaker-Clouddriver",
