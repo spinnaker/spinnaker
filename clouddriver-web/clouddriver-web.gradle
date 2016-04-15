@@ -3,6 +3,7 @@ apply plugin: 'nebula.ospackage'
 
 ext {
   springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
+  repackage = System.getProperty('springBoot.repackage', "false")
 }
 
 tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
@@ -39,7 +40,7 @@ dependencies {
   runtime 'org.eclipse.jetty:jetty-servlets:9.2.11.v20150529'
 }
 
-tasks.bootRepackage.enabled = false
+tasks.bootRepackage.enabled = project.repackage
 
 applicationName = 'clouddriver'
 applicationDefaultJvmArgs = ["-Djava.security.egd=file:/dev/./urandom"]

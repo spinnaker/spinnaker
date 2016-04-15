@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.clouddriver.cf.deploy.converters
-
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.cf.TestCredential
+import com.netflix.spinnaker.clouddriver.cf.deploy.description.CloudFoundryDeployDescription
 import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
 import com.netflix.spinnaker.clouddriver.deploy.DeployAtomicOperation
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import com.netflix.spinnaker.clouddriver.cf.deploy.description.CloudFoundryDeployDescription
+import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
-
 /**
  * Test cases for {@link CloudFoundryDeployAtomicOperationConverter}
  *
@@ -33,15 +33,22 @@ class CloudFoundryDeployAtomicOperationConverterSpec extends Specification {
   @Shared
   ObjectMapper mapper = new ObjectMapper()
 
+  private static final ACCOUNT_NAME = "test"
+
   @Shared
   CloudFoundryDeployAtomicOperationConverter converter
 
   def setupSpec() {
+    def credentialsRepo = new MapBackedAccountCredentialsRepository()
+
+    credentialsRepo.save(ACCOUNT_NAME, TestCredential.named(ACCOUNT_NAME))
+
     def accountCredentialsProvider = Stub(AccountCredentialsProvider) {
-      getCredentials('test') >> Stub(CloudFoundryAccountCredentials)
+      getCredentials(ACCOUNT_NAME) >> Stub(CloudFoundryAccountCredentials)
     }
     this.converter = new CloudFoundryDeployAtomicOperationConverter(objectMapper: mapper,
-        accountCredentialsProvider: accountCredentialsProvider
+        accountCredentialsProvider: accountCredentialsProvider,
+        repository: credentialsRepo
     )
   }
 

@@ -60,6 +60,10 @@ class CloudFoundryDeployAtomicOperationConverter extends AbstractAtomicOperation
       def artifactAccount = (CloudFoundryAccountCredentials) repository.getOne(parts[2])
       converted.username = artifactAccount.artifactUsername
       converted.password = artifactAccount.artifactPassword
+    } else if (input.containsKey('credentials')) {
+      def artifactAccount = (CloudFoundryAccountCredentials) repository.getOne(input.credentials)
+      converted.username = artifactAccount.artifactUsername
+      converted.password = artifactAccount.artifactPassword
     }
 
     /**
