@@ -134,11 +134,6 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     return fullUrl.substring(fullUrl.lastIndexOf('/') + 1);
   }
 
-  @Override
-  public String getProvider() {
-    return getCloudProvider();
-  }
-
   public String getAccountName() {
     return accountName;
   }

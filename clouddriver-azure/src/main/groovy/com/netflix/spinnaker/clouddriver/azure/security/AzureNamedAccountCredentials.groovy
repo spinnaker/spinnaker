@@ -78,11 +78,6 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
     accountName
   }
 
-  @Override
-  public String getProvider() {
-    getCloudProvider()
-  }
-
   private AzureCredentials buildCredentials() {
     new AzureCredentials(this.tenantId, this.clientId, this.appKey, this.subscriptionId)
   }

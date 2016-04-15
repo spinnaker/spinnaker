@@ -69,11 +69,6 @@ class CredentialsControllerSpec extends Specification {
     }
 
     @Override
-    String getProvider() {
-      getCloudProvider()
-    }
-
-    @Override
     List<String> getRequiredGroupMembership() {
       ["test"]
     }

@@ -74,15 +74,6 @@ public interface AccountCredentials<T> {
      * Provides the name of the cloud provider. Typically something like 'aws', 'gce' or 'docker'.
      *
      * @return the name of the cloud provider
-     * @deprecated use getCloudProvider()
-     */
-    @Deprecated
-    String getProvider();
-
-    /**
-     * Provides the name of the cloud provider. Typically something like 'aws', 'gce' or 'docker'.
-     *
-     * @return the name of the cloud provider
      */
     String getCloudProvider();
 
