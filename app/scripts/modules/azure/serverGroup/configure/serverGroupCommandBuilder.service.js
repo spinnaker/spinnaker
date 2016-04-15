@@ -5,15 +5,15 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.service', [
   require('../../image/image.reader.js'),
 ])
-  .factory('azureServerGroupCommandBuilder', function ($q, settings, azureImageReader) {
+  .factory('azureServerGroupCommandBuilder', function ($q, azureImageReader) {
 
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
 
       var imageLoader = azureImageReader.findImages({ provider: 'azure', });
 
-      var defaultCredentials = defaults.account || application.defaultCredentials || settings.providers.azure.defaults.account;
-      var defaultRegion = defaults.region || application.defaultRegion || settings.providers.azure.defaults.region;
+      var defaultCredentials = defaults.account || application.defaultCredentials;
+      var defaultRegion = defaults.region || application.defaultRegion;
 
       return $q.all({
         images: imageLoader,

@@ -1,6 +1,6 @@
  'use strict';
 
- xdescribe('DeployInitializerCtrl', function() {
+ describe('DeployInitializerCtrl', function() {
 
    beforeEach(
      window.module(

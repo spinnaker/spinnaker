@@ -6,6 +6,7 @@ require('../configure/serverGroup.configure.azure.module.js');
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.serverGroup.details.controller', [
+  require('angular-ui-router'),
   require('../configure/serverGroupCommandBuilder.service.js'),
   require('../../../core/serverGroup/serverGroup.read.service.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
@@ -15,8 +16,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
   require('../../../core/insight/insightFilterState.model.js'),
 ])
   .controller('azureServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
-                                                     serverGroupReader, azureServerGroupCommandBuilder, $uibModal, confirmationModalService, _, serverGroupWriter,
-                                                     subnetReader) {
+                                                     serverGroupReader, azureServerGroupCommandBuilder, $uibModal, confirmationModalService, _, serverGroupWriter) {
 
     $scope.state = {
       loading: true
@@ -57,16 +57,6 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
         if (!_.isEmpty($scope.serverGroup)) {
 
           $scope.image = details.image ? details.image : undefined;
-
-          var vpc = $scope.serverGroup.asg ? $scope.serverGroup.asg.vpczoneIdentifier : '';
-
-          if (vpc !== '') {
-            var subnetId = vpc.split(',')[0];
-            subnetReader.listSubnets().then(function(subnets) {
-              var subnet = _(subnets).find({'id': subnetId});
-              $scope.serverGroup.subnetType = subnet.purpose;
-            });
-          }
 
           if (details.image && details.image.description) {
             var tags = details.image.description.split(', ');
@@ -154,7 +144,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
       }
     };
 
-    this.isLastServerGroupInRegion = function (serverGroup, app ) {
+    this.isLastServerGroupInRegion = (serverGroup, app ) => {
       try {
         var cluster = _.find(app.clusters, {name: serverGroup.cluster, account:serverGroup.account});
         return _.filter(cluster.serverGroups, {region: serverGroup.region}).length === 1;
