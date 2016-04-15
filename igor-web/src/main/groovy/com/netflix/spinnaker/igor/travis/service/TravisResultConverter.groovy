@@ -24,7 +24,7 @@ import groovy.util.logging.Slf4j
 @Slf4j
 class TravisResultConverter {
     static Result getResultFromTravisState(String state) {
-        switch(state) {
+        switch (state) {
             case "started":
                 return Result.BUILDING
                 break

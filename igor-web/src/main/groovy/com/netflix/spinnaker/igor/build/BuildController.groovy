@@ -213,8 +213,8 @@ class BuildController {
                 log.error("Unable to get properties `${job}`", e)
             }
             map
-        } else if (travisMasters.map.containsKey(master)) {
-            travisMasters.map[master].getBuildProperties(job, buildNumber)
+        } else if (buildMasters.filteredMap(BuildServiceProvider.TRAVIS).containsKey(master)) {
+            buildMasters.map[master].getBuildProperties(job, buildNumber)
         } else {
             throw new MasterNotFoundException("Could not find master '${master}' to get properties")
 

@@ -67,33 +67,33 @@ class TravisService implements BuildService {
             log.debug "account: " + it.login
             log.debug "repos:" + it.reposCount
         }
-        accounts
+        return accounts
     }
 
     List<Build> getBuilds() {
         Builds builds = travisClient.builds(getAccessToken())
         log.debug "fetched " + builds.builds.size() + " builds"
-        builds.builds
+        return builds.builds
     }
 
     Build getBuild(Repo repo, int buildNumber) {
-        travisClient.build(getAccessToken(), repo.id, buildNumber)
+        return travisClient.build(getAccessToken(), repo.id, buildNumber)
     }
 
     Builds getBuilds(String repoSlug, int buildNumber) {
-        travisClient.builds(getAccessToken(), repoSlug, buildNumber)
+        return travisClient.builds(getAccessToken(), repoSlug, buildNumber)
     }
 
     Build getBuild(String repoSlug, int buildNumber) {
         Builds builds = getBuilds(repoSlug, buildNumber)
-        builds.builds.first()
+        return builds.builds.first()
     }
 
     @Override
     GenericBuild getGenericBuild(String repoSlug, int buildNumber) {
         Build build = getBuild(repoSlug, buildNumber)
         GenericBuild genericBuild = getGenericBuild(build, repoSlug)
-        genericBuild
+        return genericBuild
     }
 
     @Override
@@ -107,13 +107,13 @@ class TravisService implements BuildService {
 
     Map<String, Object> getBuildProperties(String repoSlug, int buildNumber) {
         Build build = getBuild(repoSlug, buildNumber)
-        PropertyParser.extractPropertiesFromLog(getLog(build))
+        return PropertyParser.extractPropertiesFromLog(getLog(build))
     }
 
     List<Build> getBuilds(Repo repo) {
         Builds builds = travisClient.builds(getAccessToken(), repo.id)
         log.debug "fetched " + builds.builds.size() + " builds"
-        builds.builds
+        return builds.builds
     }
 
     List<GenericBuild> getBuilds(String repoSlug) {
@@ -122,13 +122,13 @@ class TravisService implements BuildService {
         builds.builds.each { build ->
             list.add getGenericBuild(build, repoSlug)
         }
-        list
+        return list
     }
 
     List<Repo> getRepos() {
         Repos repos = travisClient.repos(getAccessToken())
         log.debug "fetched " + repos.repos.size() + " repos"
-        repos.repos
+        return repos.repos
     }
 
     List<Repo> getReposForAccounts() {
@@ -141,13 +141,13 @@ class TravisService implements BuildService {
             }
             repos.addAll accountRepos.repos
         }
-        repos
+        return repos
     }
 
     Job getJob(int jobId) {
         log.debug "fetching job for ${jobId}"
         Jobs jobs = travisClient.jobs(getAccessToken(), jobId)
-        jobs.job
+        return jobs.job
     }
 
     String getLog(Build build) {
@@ -156,28 +156,28 @@ class TravisService implements BuildService {
             Job job = getJob(it.intValue())
             buildLog += getLog(job.logId)
         }
-        buildLog
+        return buildLog
     }
 
     String getLog(int logId) {
         log.debug "fetching log for ${logId}"
         Response response = travisClient.log(getAccessToken(), logId)
         String job_log = new String(((TypedByteArray) response.getBody()).getBytes());
-        job_log
+        return job_log
     }
 
     Repo getRepo(int repositoryId) {
-        travisClient.repo(getAccessToken(), repositoryId)
+        return travisClient.repo(getAccessToken(), repositoryId)
     }
 
     Repo getRepo(String repoSlug) {
-        travisClient.repo(getAccessToken(), repoSlug)
+        return travisClient.repo(getAccessToken(), repoSlug)
     }
 
     GenericBuild getGenericBuild(Build build, String repoSlug) {
         GenericBuild genericBuild = TravisBuildConverter.genericBuild(build, repoSlug, baseUrl)
         genericBuild.artifacts = ArtifactParser.getArtifactsFromLog(getLog(build))
-        genericBuild
+        return genericBuild
     }
 
     GenericJobConfiguration getJobConfig(String repoSlug) {

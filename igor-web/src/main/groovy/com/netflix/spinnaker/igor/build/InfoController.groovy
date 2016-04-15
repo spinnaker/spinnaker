@@ -85,7 +85,7 @@ class InfoController {
 
         def jenkinsService = buildMasters.filteredMap(BuildServiceProvider.JENKINS)[master]
         def otherService = buildMasters.map[master]
-        if (jenkinsService){
+        if (jenkinsService) {
             def jobList = []
             def recursiveGetJobs
 
