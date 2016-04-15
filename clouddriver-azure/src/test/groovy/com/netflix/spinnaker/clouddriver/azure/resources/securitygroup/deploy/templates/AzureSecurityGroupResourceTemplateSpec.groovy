@@ -32,7 +32,7 @@ class AzureSecurityGroupResourceTemplateSpec extends Specification {
   def 'should generate a correct Azure Security Group create template'(){
     String template = AzureSecurityGroupResourceTemplate.getTemplate(description)
 
-    expect: template == expectedFullTemplate
+    expect: template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"') == expectedFullTemplate
   }
 
   UpsertAzureSecurityGroupDescription createNoRulesDescription(){
@@ -100,7 +100,9 @@ class AzureSecurityGroupResourceTemplateSpec extends Specification {
     "location" : "[parameters('location')]",
     "tags" : {
       "appName" : "azureMASM",
-      "detail" : "d11"
+      "stack" : "none",
+      "detail" : "d11",
+      "createdTime" : "1234567890"
     },
     "dependsOn" : [ ],
     "properties" : {

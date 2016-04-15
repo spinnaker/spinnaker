@@ -31,8 +31,4 @@ class AzureResourceOpsDescription {
   Long createdTime
   long lastReadTime
   Map<String,String> tags = [:]
-
-  Long getCreatedTime() {
-    this.lastReadTime
-  }
 }

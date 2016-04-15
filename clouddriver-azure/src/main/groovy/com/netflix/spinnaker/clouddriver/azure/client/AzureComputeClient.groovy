@@ -174,6 +174,27 @@ public class AzureComputeClient extends AzureBaseClient {
     )
   }
 
+  ServiceResponse<Void> disableServerGroup(String resourceGroupName, String serverGroupName) {
+    VirtualMachineScaleSetsOperations ops = getAzureOps(
+      client.&getVirtualMachineScaleSetsOperations, "Get operations object", "Failed to get operation object") as VirtualMachineScaleSetsOperations
+
+    List<String> instanceIds = this.getServerGroupInstances(resourceGroupName,serverGroupName)?.collect {it.resourceId}
+
+    ops.powerOff(resourceGroupName, serverGroupName, instanceIds)
+
+    // TODO: investigate if we can deallocate the VMs
+    //ops.deallocate(resourceGroupName, serverGroupName, instanceIds)
+  }
+
+  ServiceResponse<Void> enableServerGroup(String resourceGroupName, String serverGroupName) {
+    VirtualMachineScaleSetsOperations ops = getAzureOps(
+      client.&getVirtualMachineScaleSetsOperations, "Get operations object", "Failed to get operation object") as VirtualMachineScaleSetsOperations
+
+    List<String> instanceIds = this.getServerGroupInstances(resourceGroupName,serverGroupName)?.collect {it.resourceId}
+
+    ops.start(resourceGroupName, serverGroupName, instanceIds)
+  }
+
   Collection<AzureInstance> getServerGroupInstances(String resourceGroupName, String serverGroupName) {
     def vmOps = this.client.virtualMachineScaleSetVMsOperations
     def instances = new ArrayList<AzureInstance>()

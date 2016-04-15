@@ -20,12 +20,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.DestroyAzureServerGroupDescription
+import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.EnableDisableDestroyAzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.ops.DestroyAzureServerGroupAtomicOperation
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.ops.converters.DestroyAzureServerGroupAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
-import org.mockito.Mock
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -74,7 +73,7 @@ class DestroyAzureServerGroupAtomicOperationSpec extends Specification {
 
     when:
     DestroyAzureServerGroupAtomicOperation operation = converter.convertOperation(mapper.readValue(input, Map))
-    DestroyAzureServerGroupDescription description = converter.convertDescription(mapper.readValue(input, Map))
+    EnableDisableDestroyAzureServerGroupDescription description = converter.convertDescription(mapper.readValue(input, Map))
 
     then:
     operation
@@ -89,7 +88,7 @@ class DestroyAzureServerGroupAtomicOperationSpec extends Specification {
 
     when:
     DestroyAzureServerGroupAtomicOperation operation = converter.convertOperation(mapper.readValue(input, Map))
-    DestroyAzureServerGroupDescription description = converter.convertDescription(mapper.readValue(input, Map))
+    EnableDisableDestroyAzureServerGroupDescription description = converter.convertDescription(mapper.readValue(input, Map))
 
     then:
     operation

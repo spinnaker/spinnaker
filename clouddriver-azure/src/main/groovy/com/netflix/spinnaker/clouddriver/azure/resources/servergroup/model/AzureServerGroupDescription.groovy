@@ -55,6 +55,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
   String securityGroupName
   String subnetId
   List<String> storageAccountNames
+  Boolean isDisabled // TODO add implementation to handle when a server group has been enabled/disabled
 
   static class AzureScaleSetSku {
     String name
@@ -127,7 +128,8 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     azureSG.securityGroupName = scaleSet.tags?.securityGroupName
     azureSG.loadBalancerName = scaleSet.tags?.loadBalancerName
     azureSG.subnetId = scaleSet.tags?.subnetId
-    azureSG.image = new AzureNamedImage( isCustom:  scaleSet.tags?.customImage)
+    azureSG.createdTime = scaleSet.tags?.createdTime?.toLong()
+    azureSG.image = new AzureNamedImage( isCustom:  scaleSet.tags?.customImage, imageName: scaleSet.tags?.imageName)
     if (!azureSG.image.isCustom) {
       // Azure server group which was created using Azure Market Store images will have a number of storage accounts
       //   that were created at the time the server group was created; these storage account should be in saved in the
@@ -142,15 +144,13 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     azureSG.upgradePolicy = getPolicyFromMode(scaleSet.upgradePolicy.mode)
 
     // Get the image reference data
-    def image = new AzureNamedImage()
     def imgRef = scaleSet.virtualMachineProfile?.storageProfile?.imageReference
     if (imgRef) {
-      image.offer = imgRef.offer
-      image.publisher = imgRef.publisher
-      image.sku = imgRef.sku
-      image.version = imgRef.version
+      azureSG.image.offer = imgRef.offer
+      azureSG.image.publisher = imgRef.publisher
+      azureSG.image.sku = imgRef.sku
+      azureSG.image.version = imgRef.version
     }
-    azureSG.image = image
 
     // get the OS configuration data
     def osConfig = new AzureOperatingSystemConfig()

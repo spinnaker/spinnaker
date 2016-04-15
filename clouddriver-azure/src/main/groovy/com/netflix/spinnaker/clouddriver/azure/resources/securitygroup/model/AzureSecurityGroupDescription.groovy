@@ -22,7 +22,6 @@ class AzureSecurityGroupDescription extends AzureResourceOpsDescription {
   String securityGroupName
   String resourceId
   String id
-  String etag
   String location
   String type
   Map<String, String> tags = [:]

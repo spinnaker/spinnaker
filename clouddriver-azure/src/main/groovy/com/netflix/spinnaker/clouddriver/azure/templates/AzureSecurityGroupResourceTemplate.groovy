@@ -74,7 +74,12 @@ class AzureSecurityGroupResourceTemplate {
       name = "[variables('securityGroupName')]"
       type = "Microsoft.Network/networkSecurityGroups"
       location = "[parameters('location')]"
-      tags = ["appName":description.appName, "detail":description.detail?:"none"]
+      def currentTime = System.currentTimeMillis()
+      tags = [:]
+      tags.appName = description.appName
+      tags.stack = description.stack ?: "none"
+      tags.detail = description.detail ?: "none"
+      tags.createdTime = currentTime.toString()
 
       properties = new SecurityGroupProperties(description)
     }

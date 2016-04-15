@@ -136,6 +136,8 @@ class AzureNetworkClient extends AzureBaseClient {
     description.cluster = azureLoadBalancer.tags?.cluster
     description.serverGroup = azureLoadBalancer.tags?.serverGroup
     description.vnet = azureLoadBalancer.tags?.vnet
+    description.createdTime = azureLoadBalancer.tags?.createdTime?.toLong()
+    description.tags = azureLoadBalancer.tags
     description.region = azureLoadBalancer.location
 
     for (def rule : azureLoadBalancer.loadBalancingRules) {
@@ -408,9 +410,13 @@ class AzureNetworkClient extends AzureBaseClient {
     sgItem.cloudProvider = "azure"
     sgItem.provisioningState = item.provisioningState
     sgItem.resourceGuid = item.resourceGuid
-    sgItem.etag = item.etag
     sgItem.resourceId = item.id
     sgItem.tags = item.tags
+    def parsedName = Names.parseName(item.name)
+    sgItem.stack = item.tags?.stack ?: parsedName.stack
+    sgItem.detail = item.tags?.detail ?: parsedName.detail
+    sgItem.appName = item.tags?.appName ?: parsedName.app
+    sgItem.createdTime = item.tags?.createdTime?.toLong()
     sgItem.type = item.type
     sgItem.securityRules = new ArrayList<AzureSecurityGroupDescription.AzureSGRule>()
     item.securityRules?.each {rule -> sgItem.securityRules += new AzureSecurityGroupDescription.AzureSGRule(

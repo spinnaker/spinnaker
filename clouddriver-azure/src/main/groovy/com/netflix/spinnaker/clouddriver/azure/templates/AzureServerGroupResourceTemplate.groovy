@@ -170,6 +170,7 @@ class AzureServerGroupResourceTemplate {
       name = String.format("[concat(variables('%s')[copyIndex()])]", ServerGroupTemplateVariables.uniqueStorageNamesArrayVar)
       type = "Microsoft.Storage/storageAccounts"
       location = "[parameters('location')]"
+      def currentTime = System.currentTimeMillis()
 
       copy = new CopyOperation("storageLoop", description.getStorageAccountCount())
       tags = [:]
@@ -178,6 +179,7 @@ class AzureServerGroupResourceTemplate {
       tags.detail = description.detail
       tags.cluster = description.clusterName
       tags.serverGroupName = description.name
+      tags.createdTime = currentTime.toString()
 
       properties = new StorageAccountProperties()
     }
@@ -232,11 +234,13 @@ class AzureServerGroupResourceTemplate {
       name = description.name
       type = "Microsoft.Compute/virtualMachineScaleSets"
       location = "[parameters('location')]"
+      def currentTime = System.currentTimeMillis()
       tags = [:]
       tags.appName = description.application
       tags.stack = description.stack
       tags.detail = description.detail
       tags.cluster = description.clusterName
+      tags.createdTime = currentTime.toString()
       if (description.loadBalancerName) tags.loadBalancerName = description.loadBalancerName
       if (description.securityGroupName) tags.securityGroupName = description.securityGroupName
       if (description.subnetId) tags.subnetId = description.subnetId

@@ -21,7 +21,7 @@ import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOps
 class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
   String loadBalancerName
   String vnet
-  String securityGroups
+  String securityGroup
   String dnsName
   String cluster
   String serverGroup

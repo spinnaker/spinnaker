@@ -95,12 +95,15 @@ class AzureLoadBalancerResourceTemplate {
       name = "[variables('loadBalancerName')]"
       type = "Microsoft.Network/loadBalancers"
       location = "[parameters('location')]"
+      def currentTime = System.currentTimeMillis()
       tags = [:]
       tags.appName = description.appName
       tags.stack = description.stack
       tags.detail = description.detail
+      tags.createdTime = currentTime.toString()
       if (description.cluster) tags.cluster = description.cluster
       if (description.serverGroup) tags.serverGroup = description.serverGroup
+      if (description.securityGroup) tags.securityGroup = description.securityGroup
       if (description.vnet) tags.vnet = description.vnet
 
       properties = new LoadBalancerProperties(description)

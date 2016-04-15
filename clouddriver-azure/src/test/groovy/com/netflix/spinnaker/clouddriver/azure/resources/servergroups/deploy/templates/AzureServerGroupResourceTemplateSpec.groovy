@@ -31,14 +31,14 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
   def 'should generate correct ServerGroup resource template'() {
     String template = AzureServerGroupResourceTemplate.getTemplate(description)
 
-    expect:    template == expectedFullTemplate
+    expect: template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"') == expectedFullTemplate
   }
 
   def 'should generate correct ServerGroup resource template with custom image'() {
     description = createDescription(true)
     String template = AzureServerGroupResourceTemplate.getTemplate(description)
 
-    expect:    template == expectedFullTemplateWithCustomImage
+    expect: template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"') == expectedFullTemplateWithCustomImage
   }
 
   private static AzureServerGroupDescription createDescription(boolean withCustomImage) {
@@ -121,7 +121,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "stack" : "st1",
       "detail" : "d11",
       "cluster" : "azureMASM-st1-d11",
-      "serverGroupName" : "azureMASM-st1-d11"
+      "serverGroupName" : "azureMASM-st1-d11",
+      "createdTime" : "1234567890"
     },
     "copy" : {
       "name" : "storageLoop",
@@ -140,6 +141,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "stack" : "st1",
       "detail" : "d11",
       "cluster" : "azureMASM-st1-d11",
+      "createdTime" : "1234567890",
       "loadBalancerName" : "azureMASM-st1-d11",
       "imageIsCustom" : "false",
       "storageAccountNames" : "[concat(uniqueString(concat(resourceGroup().id, subscription().id, 'azuremasmst1d11', '0')), 'sa')]"
@@ -221,6 +223,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "stack" : "st1",
       "detail" : "d11",
       "cluster" : "azureMASM-st1-d11",
+      "createdTime" : "1234567890",
       "loadBalancerName" : "azureMASM-st1-d11",
       "imageIsCustom" : "true"
     },

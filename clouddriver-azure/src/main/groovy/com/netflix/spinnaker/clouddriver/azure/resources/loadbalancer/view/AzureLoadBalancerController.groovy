@@ -70,13 +70,13 @@ class AzureLoadBalancerController {
         name: azureLoadBalancerDescription.loadBalancerName
       ]
 
-      // return constant values in order to test the "deck" details view for a given load balancer
-      lbDetail.createdTime = azureLoadBalancerDescription.createdTime ?: 1448944139570
+      lbDetail.createdTime = azureLoadBalancerDescription.createdTime
+      lbDetail.serverGroup = azureLoadBalancerDescription.serverGroup
       lbDetail.vnet = azureLoadBalancerDescription.vnet ?: "vnet-unassigned"
       lbDetail.dnsName = azureLoadBalancerDescription.dnsName ?: "dnsname-unassigned"
 
       lbDetail.probes = azureLoadBalancerDescription.probes
-      lbDetail.securityGroups = azureLoadBalancerDescription.securityGroups
+      lbDetail.securityGroup = azureLoadBalancerDescription.securityGroup
       lbDetail.loadBalancingRules = azureLoadBalancerDescription.loadBalancingRules
       lbDetail.inboundNATRules = azureLoadBalancerDescription.inboundNATRules
       lbDetail.tags = azureLoadBalancerDescription.tags

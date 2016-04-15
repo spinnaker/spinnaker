@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 The original authors.
+ * Copyright 2016 The original authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.ops.conver
 import com.netflix.spinnaker.clouddriver.azure.AzureOperation
 import com.netflix.spinnaker.clouddriver.azure.common.AzureAtomicOperationConverterHelper
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.EnableDisableDestroyAzureServerGroupDescription
-import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.ops.DestroyAzureServerGroupAtomicOperation
+import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.ops.EnableAzureServerGroupAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
@@ -27,16 +27,16 @@ import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
 @Slf4j
-@AzureOperation(AtomicOperations.DESTROY_SERVER_GROUP)
-@Component("destroyAzureServerGroupDescription")
-class DestroyAzureServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
-  DestroyAzureServerGroupAtomicOperationConverter() {
-    log.info("Constructor....DestroyAzureServerGroupAtomicOperationConverter")
+@AzureOperation(AtomicOperations.ENABLE_SERVER_GROUP)
+@Component("enableAzureServerGroupDescription")
+class EnableAzureServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport{
+  EnableAzureServerGroupAtomicOperationConverter() {
+    log.info("Constructor....EnableAzureServerGroupAtomicOperationConverter")
   }
 
   @Override
   AtomicOperation convertOperation(Map input) {
-    new DestroyAzureServerGroupAtomicOperation(convertDescription(input))
+    new EnableAzureServerGroupAtomicOperation(convertDescription(input))
   }
 
   @Override

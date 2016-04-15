@@ -22,7 +22,7 @@ import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.Azure
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.DestroyAzureServerGroupDescription
+import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.EnableDisableDestroyAzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationException
 
 class DestroyAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
@@ -32,9 +32,9 @@ class DestroyAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
     TaskRepository.threadLocalTask.get()
   }
 
-  private final DestroyAzureServerGroupDescription description
+  private final EnableDisableDestroyAzureServerGroupDescription description
 
-  DestroyAzureServerGroupAtomicOperation(DestroyAzureServerGroupDescription description) {
+  DestroyAzureServerGroupAtomicOperation(EnableDisableDestroyAzureServerGroupDescription description) {
     this.description = description
   }
 

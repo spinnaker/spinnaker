@@ -29,14 +29,14 @@ class AzureLoadBalancerResourceTemplateSpec extends Specification {
   def 'should generate correct LoadBalancer create template'(){
     String template = AzureLoadBalancerResourceTemplate.getTemplate(description)
 
-    expect: template == expectedFullTemplate
+    expect: template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"') == expectedFullTemplate
   }
 
   AzureLoadBalancerDescription createDescription(){
     AzureLoadBalancerDescription description = new AzureLoadBalancerDescription()
     description.cloudProvider = 'azure'
-    description.appName = 'azureMASM'
-    description.loadBalancerName = 'azureMASM-st1-d11'
+    description.appName = 'azuremasm'
+    description.loadBalancerName = 'azuremasm-st1-d11'
     description.stack = 'st1'
     description.detail = 'd11'
     description.region = 'westus'
@@ -52,7 +52,8 @@ class AzureLoadBalancerResourceTemplateSpec extends Specification {
     probe.unhealthyThreshold = 2
 
     description.probes.add(probe)
-    description.securityGroups = null
+    description.securityGroup = "azuremasm-sg1"
+    description.vnet = "azuremasm-vnet-westus"
     description.loadBalancingRules = new ArrayList<AzureLoadBalancerDescription.AzureLoadBalancingRule>()
 
     AzureLoadBalancerDescription.AzureLoadBalancingRule rule = new AzureLoadBalancerDescription.AzureLoadBalancingRule()
@@ -74,7 +75,7 @@ class AzureLoadBalancerResourceTemplateSpec extends Specification {
     natRule.port = 80
 
     description.inboundNATRules.add(natRule)
-    description.name = 'azureMASM-st1-d11'
+    description.name = 'azuremasm-st1-d11'
     description.user = '[anonymous]'
 
     return description
@@ -123,9 +124,12 @@ class AzureLoadBalancerResourceTemplateSpec extends Specification {
     "type" : "Microsoft.Network/loadBalancers",
     "location" : "[parameters('location')]",
     "tags" : {
-      "appName" : "azureMASM",
+      "appName" : "azuremasm",
       "stack" : "st1",
-      "detail" : "d11"
+      "detail" : "d11",
+      "createdTime" : "1234567890",
+      "securityGroup" : "azuremasm-sg1",
+      "vnet" : "azuremasm-vnet-westus"
     },
     "dependsOn" : [ "[concat('Microsoft.Network/publicIPAddresses/',variables('publicIPAddressName'))]" ],
     "properties" : {

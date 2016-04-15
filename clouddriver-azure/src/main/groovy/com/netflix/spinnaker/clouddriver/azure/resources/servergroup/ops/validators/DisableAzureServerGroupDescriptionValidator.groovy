@@ -26,9 +26,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
-@AzureOperation(AtomicOperations.DESTROY_SERVER_GROUP)
-@Component("DestroyAzureServerGroupDescriptionValidator")
-class DestroyAzureServerGroupDescriptionValidator extends
+@AzureOperation(AtomicOperations.DISABLE_SERVER_GROUP)
+@Component("disableAzureServerGroupDescriptionValidator")
+class DisableAzureServerGroupDescriptionValidator extends
   DescriptionValidator<EnableDisableDestroyAzureServerGroupDescription> {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
