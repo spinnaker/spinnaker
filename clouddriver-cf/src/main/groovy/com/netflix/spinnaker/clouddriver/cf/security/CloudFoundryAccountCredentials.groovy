@@ -43,11 +43,6 @@ class CloudFoundryAccountCredentials implements AccountCredentials<CloudCredenti
   }
 
   @Override
-  String getProvider() {
-    getCloudProvider()
-  }
-
-  @Override
   String getCloudProvider() {
     CLOUD_PROVIDER
   }

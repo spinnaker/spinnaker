@@ -216,9 +216,6 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
     }
 
     @Override
-    public String getProvider() { return getCloudProvider(); }
-
-    @Override
     public String getCloudProvider() {
        return CLOUD_PROVIDER;
     }

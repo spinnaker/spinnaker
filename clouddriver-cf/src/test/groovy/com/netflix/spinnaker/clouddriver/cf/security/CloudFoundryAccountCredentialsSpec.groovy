@@ -37,7 +37,6 @@ class CloudFoundryAccountCredentialsSpec extends Specification {
     cloudCredentials.email == username
     cloudCredentials.password == password
     credentials.cloudProvider == 'cf'
-    credentials.provider == 'cf'
     credentials.requiredGroupMembership == []
     credentials.regions == [(org): [space]]
   }

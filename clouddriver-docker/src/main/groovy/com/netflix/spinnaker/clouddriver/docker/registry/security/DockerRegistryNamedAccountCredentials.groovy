@@ -118,11 +118,6 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
     }
   }
 
-  @Override
-  public String getProvider() {
-    return getCloudProvider()
-  }
-
   private static final String CLOUD_PROVIDER = "dockerRegistry"
   final String accountName
   final String environment

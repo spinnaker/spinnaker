@@ -44,11 +44,6 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
   }
 
   @Override
-  String getProvider() {
-    getCloudProvider()
-  }
-
-  @Override
   String getCloudProvider() {
     CLOUD_PROVIDER
   }
