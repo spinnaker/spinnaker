@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.docker.registry.exception.DockerRegistr
 import com.netflix.spinnaker.clouddriver.docker.registry.provider.DockerRegistryProvider
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryCredentials
 import groovy.util.logging.Slf4j
+import retrofit.RetrofitError
 
 import static java.util.Collections.unmodifiableSet
 
@@ -100,15 +101,22 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware {
     tagMap.forEach { repository, tags ->
       tags.forEach { tag ->
         def tagKey = Keys.getTaggedImageKey(accountName, repository, tag)
-        cachedTags[tagKey].with {
-          attributes.name = "${repository}:${tag}".toString()
-          attributes.account = accountName
-          def digest = credentials.client.getDigest(repository, tag)
-          if (!digest) {
-            throw new DockerRegistryConfigException("The selected docker registry ${credentials.client.address} " +
-                "does not provide a 'Docker-Content-Digest' header, needed for image verification and build triggers.")
+        def digest = null
+        try {
+          digest = credentials.client.getDigest(repository, tag)
+        } catch (Exception e) {
+          log.warn("Image $tagKey does not have a manifest; will not be placed in the cache: $e.message")
+          return
+        }
+
+        if (!digest) {
+          log.warn("Image $tagKey does not have a manifest; will not be placed in the cache")
+        } else {
+          cachedTags[tagKey].with {
+            attributes.name = "${repository}:${tag}".toString()
+            attributes.account = accountName
+            attributes.digest = digest
           }
-          attributes.digest = digest
         }
 
       }
