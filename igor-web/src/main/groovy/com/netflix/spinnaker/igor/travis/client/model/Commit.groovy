@@ -16,23 +16,28 @@
 
 package com.netflix.spinnaker.igor.travis.client.model
 
-import com.fasterxml.jackson.annotation.JsonInclude
+import com.google.gson.annotations.SerializedName
+import com.netflix.spinnaker.igor.build.model.GenericGitRevision
 import groovy.transform.CompileStatic
 import org.simpleframework.xml.Default
-import org.simpleframework.xml.ElementList
 import org.simpleframework.xml.Root
 
 @Default
 @CompileStatic
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@Root(strict = false)
-class Builds {
-    @ElementList(required = false, name = "builds", inline = true)
-    List<Build> builds
+@Root(name = 'commits')
+class Commit {
+    int id
 
-    @ElementList(required = false, name = "jobs", inline = true)
-    List<Job> jobs
+    String sha
 
-    @ElementList(required = false, name = "commits", inline = true)
-    List<Commit> commits
+    String branch
+
+    String message
+
+    @SerializedName("author_name")
+    String authorName
+
+    GenericGitRevision genericGitRevision() {
+        return new GenericGitRevision(branch, branch, sha)
+    }
 }

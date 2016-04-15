@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.build
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
@@ -52,27 +53,17 @@ class BuildController {
     ObjectMapper objectMapper
 
     @RequestMapping(value = '/builds/status/{buildNumber}/{master}/**')
-    Map getJobStatus(@PathVariable String master, @PathVariable Integer buildNumber, HttpServletRequest request) {
+    GenericBuild getJobStatus(@PathVariable String master, @PathVariable Integer buildNumber, HttpServletRequest request) {
         def job = (String) request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(5).join('/')
-        if (buildMasters.filteredMap(BuildServiceProvider.JENKINS).containsKey(master)) {
-            Map result = objectMapper.convertValue(buildMasters.map[master].getBuild(job, buildNumber), Map)
+        if (buildMasters.map.containsKey(master)) {
+            GenericBuild build = buildMasters.map[master].getGenericBuild(job, buildNumber)
             try {
-                Map scm = objectMapper.convertValue(buildMasters.map[master].getGitDetails(job, buildNumber), Map)
-                if (scm?.action?.lastBuiltRevision?.branch?.name) {
-                    result.scm = scm?.action.lastBuiltRevision
-                    result.scm = result.scm.branch.collect {
-                        it.branch = it.name.split('/').last()
-                        it
-                    }
-                }
+                build.genericGitRevisions = buildMasters.map[master].getGenericGitRevisions(job, buildNumber)
             } catch (Exception e) {
                 log.error("could not get scm results for $master / $job / $buildNumber")
             }
-            result
-        } else if (buildMasters.filteredMap(BuildServiceProvider.TRAVIS).containsKey(master)) {
-            Map result = objectMapper.convertValue(buildMasters.map[master].getGenericBuild(job, buildNumber), Map)
-            result
+            return build
         } else {
             throw new MasterNotFoundException("Master '${master}' not found")
         }

@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.igor.jenkins.client.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.netflix.spinnaker.igor.build.model.GenericBuild
+import com.netflix.spinnaker.igor.build.model.Result
 import groovy.transform.CompileStatic
 import org.simpleframework.xml.Default
 import org.simpleframework.xml.Element
@@ -56,6 +58,11 @@ class Build {
      */
     @ElementList(required = false, name = "action", inline = true)
     List<TestResults> testResults
+
+    GenericBuild genericBuild(String jobName) {
+        return new GenericBuild(building, number.intValue(), duration.intValue(), result as Result, jobName, url, timestamp, fullDisplayName)
+    }
+
 }
 
 

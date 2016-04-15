@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.igor.jenkins.client.model
 
+import com.netflix.spinnaker.igor.build.model.GenericGitRevision
 import groovy.transform.CompileStatic
 import org.simpleframework.xml.Default
 import org.simpleframework.xml.Element
 import org.simpleframework.xml.ElementList
-import org.simpleframework.xml.Path
 import org.simpleframework.xml.Root
 
 /**
@@ -32,6 +32,15 @@ import org.simpleframework.xml.Root
 class ScmDetails {
     @Element(required = false)
     Action action
+
+    List<GenericGitRevision> genericGitRevisions() {
+        if (action?.lastBuiltRevision?.branch?.name) {
+            return action.lastBuiltRevision.branch.collect() { Branch branch ->
+                new GenericGitRevision(branch.name, branch.name.split('/').last(), branch.sha1)
+            }
+        }
+        return null
+    }
 }
 
 class Action{

@@ -18,6 +18,8 @@
 package com.netflix.spinnaker.igor.jenkins.service
 
 import com.netflix.spinnaker.hystrix.SimpleHystrixCommand
+import com.netflix.spinnaker.igor.build.model.GenericBuild
+import com.netflix.spinnaker.igor.build.model.GenericGitRevision
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildDependencies
@@ -96,6 +98,11 @@ class JenkinsService implements BuildService{
         return jenkinsClient.getBuild(encode(jobName), buildNumber)
     }
 
+    @Override
+    GenericBuild getGenericBuild(String jobName, int buildNumber) {
+        return getBuild(jobName, buildNumber).genericBuild(jobName)
+    }
+
     ScmDetails getGitDetails(String jobName, Integer buildNumber) {
         new SimpleHystrixCommand<ScmDetails>(
             groupKey, buildCommandKey("getGitDetails"), {
@@ -148,5 +155,14 @@ class JenkinsService implements BuildService{
     @Override
     BuildServiceProvider buildServiceProvider() {
         return BuildServiceProvider.JENKINS
+    }
+
+    @Override
+    List<GenericGitRevision> getGenericGitRevisions(String job, int buildNumber) {
+        ScmDetails scmDetails = getGitDetails(job, buildNumber)
+        if (scmDetails?.action?.lastBuiltRevision?.branch?.name) {
+            return scmDetails.genericGitRevisions()
+        }
+        return null
     }
 }

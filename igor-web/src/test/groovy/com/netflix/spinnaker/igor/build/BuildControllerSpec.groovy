@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.build
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.igor.build.BuildCache
 import com.netflix.spinnaker.igor.build.BuildController
+import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifact
@@ -26,8 +27,10 @@ import com.netflix.spinnaker.igor.jenkins.client.model.BuildsList
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.ParameterDefinition
 import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
+import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildMasters
+import com.netflix.spinnaker.igor.service.BuildService
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -53,6 +56,7 @@ class BuildControllerSpec extends Specification {
     BuildMasters buildMasters
     BuildCache cache
     JenkinsClient client
+    BuildService service
 
     @Shared
     MockWebServer server
@@ -71,6 +75,7 @@ class BuildControllerSpec extends Specification {
 
     void setup() {
         client = Mock(JenkinsClient)
+        service = Mock(BuildService)
         cache = Mock(BuildCache)
         buildMasters = Mock(BuildMasters)
         server = new MockWebServer()
@@ -80,15 +85,14 @@ class BuildControllerSpec extends Specification {
 
     void 'get the status of a build'() {
         given:
-        1 * client.getBuild(JOB_NAME, BUILD_NUMBER) >> new Build(number: BUILD_NUMBER)
+        1 * service.getGenericBuild(JOB_NAME, BUILD_NUMBER) >> new GenericBuild(false, BUILD_NUMBER)
 
         when:
         MockHttpServletResponse response = mockMvc.perform(get("/builds/status/${BUILD_NUMBER}/${MASTER}/${JOB_NAME}")
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: client]
-        2 * buildMasters.map >> [MASTER: client]
+        3 * buildMasters.map >> [MASTER: service]
         response.contentAsString == "{\"building\":false,\"number\":${BUILD_NUMBER}}"
     }
 
