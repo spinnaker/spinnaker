@@ -1,5 +1,6 @@
 ext {
   springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
+  repackage = System.getProperty('springBoot.repackage', "false")
 }
 
 tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
@@ -118,4 +119,4 @@ buildDeb {
   dependsOn installDist
 }
 
-tasks.bootRepackage.enabled = false
+tasks.bootRepackage.enabled = project.repackage
