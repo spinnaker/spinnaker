@@ -23,7 +23,7 @@ if __name__ == '__main__':
   try:
     configurator = Configurator()
     configurator.update_deck_settings()
-  except (RuntimeError, IOError) as e:
+  except (RuntimeError, IOError, ValueError) as e:
     sys.stderr.write(str(e) + '\n')
     sys.exit(-1)
 

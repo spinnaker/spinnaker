@@ -172,10 +172,30 @@ class Configurator(object):
       source = f.read()
 
     settings = self.process_deck_settings(source)
+    self.check_deck_settings(settings)
+
     target_path = os.path.join(self.deck_install_dir, 'settings.js')
     print 'Rewriting deck settings in "{path}".'.format(path=target_path)
     with open(target_path, 'w') as f:
       f.write(''.join(settings))
+
+  def check_deck_settings(self, source):
+    """Check the javascript for references to unresolved spring variables.
+
+    We're going to assume that $ does not appear anywhere. If in fact
+    $ is needed for some other reason we can be more explicit looking for ${.*}.
+    However we will be more conservative to catch typos like forgetting the
+    opening or closing }.
+
+    Args: source [string]
+    Raises: ValueError if it found any
+    """
+    bad_lines = []
+    for match in re.finditer(r'^(?!\s*//\s*var\s+)(.*\$.*)', source, re.MULTILINE):
+      bad_lines.append(match.group(1))
+    if bad_lines:
+      raise ValueError('The settings.js seems to contain unresolved variable references.'
+                       '\n  {0}'.format('\n  '.join(bad_lines)))
 
   def process_deck_settings(self, source):
     offset = source.find('// BEGIN reconfigure_spinnaker')
