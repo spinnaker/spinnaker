@@ -31,6 +31,7 @@ import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildMasters
 import com.netflix.spinnaker.igor.service.BuildService
+import com.netflix.spinnaker.igor.travis.service.TravisService
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -57,6 +58,7 @@ class BuildControllerSpec extends Specification {
     BuildCache cache
     JenkinsClient client
     BuildService service
+    TravisService travisService
 
     @Shared
     MockWebServer server
@@ -76,6 +78,7 @@ class BuildControllerSpec extends Specification {
     void setup() {
         client = Mock(JenkinsClient)
         service = Mock(BuildService)
+        travisService = Mock(TravisService)
         cache = Mock(BuildCache)
         buildMasters = Mock(BuildMasters)
         server = new MockWebServer()
@@ -138,6 +141,22 @@ class BuildControllerSpec extends Specification {
         1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: client]
         1 * buildMasters.map >> [MASTER: client]
         response.contentAsString == "{}"
+    }
+
+    void 'get properties of a travis build'() {
+        given:
+        1 * travisService.getBuildProperties(JOB_NAME, BUILD_NUMBER) >> ['foo': 'bar']
+
+        when:
+        MockHttpServletResponse response = mockMvc.perform(
+            get("/builds/properties/${BUILD_NUMBER}/${FILE_NAME}/${MASTER}/${JOB_NAME}")
+                .accept(MediaType.APPLICATION_JSON)).andReturn().response
+
+        then:
+        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> new HashMap<String, BuildService>()
+        1 * buildMasters.filteredMap(BuildServiceProvider.TRAVIS) >> [MASTER: travisService]
+        1 * buildMasters.map >> [MASTER: travisService]
+        response.contentAsString == "{\"foo\":\"bar\"}"
     }
 
     void 'trigger a build without parameters'() {
