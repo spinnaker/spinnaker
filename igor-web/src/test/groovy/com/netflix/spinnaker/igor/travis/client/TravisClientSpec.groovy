@@ -24,7 +24,10 @@ import com.netflix.spinnaker.igor.travis.client.model.Build
 import com.netflix.spinnaker.igor.travis.client.model.Builds
 import com.netflix.spinnaker.igor.travis.client.model.Job
 import com.netflix.spinnaker.igor.travis.client.model.Jobs
+import com.netflix.spinnaker.igor.travis.client.model.RepoRequest
+import com.netflix.spinnaker.igor.travis.client.model.RepoWrapper
 import com.netflix.spinnaker.igor.travis.client.model.Repos
+import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse
 import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import retrofit.client.Response
@@ -120,6 +123,35 @@ class TravisClientSpec extends Specification {
         repos.repos.first().lastBuildId == 118583435
     }
 
+    def "repoWrapper(accessToken, repoSlug)"() {
+        given:
+        setResponse '''
+        {
+        "repo": {
+            "id": 8059977,
+            "slug": "gardalize/travistest",
+            "active": true,
+            "description": "testing travis stuff",
+            "last_build_id": 123621158,
+            "last_build_number": "51",
+            "last_build_state": "passed",
+            "last_build_duration": 38,
+            "last_build_language": null,
+            "last_build_started_at": "2016-04-16T21:26:35Z",
+            "last_build_finished_at": "2016-04-16T21:27:13Z",
+            "github_language": "Ruby"
+            }
+        }
+        '''
+
+        when:
+        RepoWrapper repoWrapper = client.repoWrapper("someToken", "gardalize/travistest")
+
+        then:
+        repoWrapper.repo.slug == "gardalize/travistest"
+        repoWrapper.repo.lastBuildDuration == 38
+    }
+
 
     def "Job"() {
         given:
@@ -132,6 +164,43 @@ class TravisClientSpec extends Specification {
         Job job = jobs.job
         job.id     == 118582578
         job.logId == 85633918
+    }
+
+    def "triggerBuild()" () {
+        given:
+        setResponse '''{
+            "@type": "pending",
+            "remaining_requests": 10,
+            "repository": {
+                "@type": "repository",
+                "@href": "/repo/8059977",
+                "@representation": "minimal",
+                "id": 8059977,
+                "name": "travistest",
+                "slug": "gardalize/travistest"
+            },
+            "request": {
+                "repository": {
+                    "id": 54667513,
+                    "owner_name": "gardalize",
+                    "name": "travistest"
+                },
+                "user": {
+                    "id": 337980
+                },
+                "message": "Triggered from spinnaker",
+                "branch": "master",
+                "config": {
+                }
+            },
+            "resource_type": "request"
+        }'''
+
+        when:
+        TriggerResponse triggerResponse = client.triggerBuild("someToken", "some/build", new RepoRequest("master"))
+
+        then:
+        triggerResponse.remainingRequests == 10
     }
 
     def "Log"() {
@@ -211,6 +280,17 @@ class TravisClientSpec extends Specification {
         build.number == 31
         build.duration == 8
         build.finishedAt.getTime() == 1458051084000
+    }
+
+    def "getBuilds(accessToken, repoSlug, buildNumber) with no build found"() {
+        given:
+        setResponse '''{"builds":[],"commits":[]}'''
+
+        when:
+        Builds builds = client.builds("someToken", "some/build", 31)
+
+        then:
+        builds.builds.size() == 0
     }
 
     private void setResponse(String body) {

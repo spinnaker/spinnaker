@@ -22,8 +22,13 @@ import com.netflix.spinnaker.igor.travis.client.model.Build
 import com.netflix.spinnaker.igor.travis.client.model.Builds
 import com.netflix.spinnaker.igor.travis.client.model.Jobs
 import com.netflix.spinnaker.igor.travis.client.model.Repo
+import com.netflix.spinnaker.igor.travis.client.model.RepoRequest
+import com.netflix.spinnaker.igor.travis.client.model.RepoWrapper
 import com.netflix.spinnaker.igor.travis.client.model.Repos
+import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse
 import retrofit.client.Response
+import retrofit.http.Body
+import retrofit.http.EncodedPath
 import retrofit.http.GET
 import retrofit.http.Header
 import retrofit.http.Headers
@@ -68,7 +73,11 @@ interface TravisClient {
     Repo repo(@Header("Authorization") String accessToken, @Path('repositoryId') int repositoryId)
 
     @GET('/repos/{repo_slug}')
-    Repo repo(@Header("Authorization") String accessToken, @Path('repo_slug') String repoSlug)
+    RepoWrapper repoWrapper(@Header("Authorization") String accessToken, @EncodedPath('repo_slug') String repoSlug)
+
+    @POST('/repo/{repoSlug}/requests')
+    @Headers("Travis-API-Version: 3")
+    TriggerResponse triggerBuild(@Header("Authorization") String accessToken, @Path('repoSlug') String repoSlug, @Body RepoRequest repoRequest)
 
     @GET('/jobs/{job_id}')
     Jobs jobs(@Header("Authorization") String accessToken , @Path('job_id') int jobId)
