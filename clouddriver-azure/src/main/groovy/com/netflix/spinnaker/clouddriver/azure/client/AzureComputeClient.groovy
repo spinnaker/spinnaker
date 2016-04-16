@@ -207,4 +207,13 @@ public class AzureComputeClient extends AzureBaseClient {
     }
     instances
   }
+
+  /***
+   * The namespace for the Azure Resource Provider
+   * @return namespace of the resource provider
+   */
+  @Override
+  String getProviderNamespace() {
+    "Microsoft.Compute"
+  }
 }

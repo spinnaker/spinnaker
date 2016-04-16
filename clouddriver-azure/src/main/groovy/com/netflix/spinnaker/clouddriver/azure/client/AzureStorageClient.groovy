@@ -236,4 +236,13 @@ class AzureStorageClient extends AzureBaseClient {
     )
   }
 
+  /***
+   * The namespace for the Azure Resource Provider
+   * @return namespace of the resource provider
+   */
+  @Override
+  String getProviderNamespace() {
+    "Microsoft.Storage"
+  }
+
 }

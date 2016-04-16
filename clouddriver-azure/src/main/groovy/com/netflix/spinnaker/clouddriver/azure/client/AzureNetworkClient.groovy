@@ -603,4 +603,13 @@ class AzureNetworkClient extends AzureBaseClient {
     networkManagementClient
   }
 
+  /***
+   * The namespace for the Azure Resource Provider
+   * @return namespace of the resource provider
+   */
+  @Override
+  String getProviderNamespace() {
+    "Microsoft.Network"
+  }
+
 }
