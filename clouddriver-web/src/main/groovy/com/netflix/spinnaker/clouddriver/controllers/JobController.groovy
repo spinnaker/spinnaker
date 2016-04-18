@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/jobs")
 class JobController {
 
-  @Autowired
+  @Autowired(required = false)
   List<JobProvider> jobProviders
 
   @Autowired

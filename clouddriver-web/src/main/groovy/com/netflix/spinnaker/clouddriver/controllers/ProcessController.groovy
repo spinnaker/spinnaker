@@ -27,10 +27,10 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/processs")
+@RequestMapping("/processes")
 class ProcessController {
 
-  @Autowired
+  @Autowired(required = false)
   List<ProcessProvider> processProviders
 
   @Autowired
