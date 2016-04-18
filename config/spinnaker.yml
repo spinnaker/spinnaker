@@ -45,11 +45,12 @@ services:
       mail:
         enabled: false
         host: # the smtp host
-        fromAddress: #the address for which emails are sent from
+        fromAddress: # the address for which emails are sent from
       hipchat:
         enabled: false
         url: # the hipchat server to connect to
-        token: #the hipchat auth token
+        token: # the hipchat auth token
+        botName: # the username of the bot
       sms:
         enabled: false
         account: # twilio account id
@@ -57,7 +58,8 @@ services:
         from: # phone number by which sms messages are sent
       slack:
         enabled: false
-        token: # the part after http://hooks.slack.com/services/
+        token: # the API token for the bot
+        botName: # the username of the bot
 
   deck:
     host: ${services.default.host}
