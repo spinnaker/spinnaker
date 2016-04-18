@@ -16,14 +16,21 @@
 
 
 package com.netflix.spinnaker.echo.slack
+
 import retrofit.client.Response
-import retrofit.http.Body
+import retrofit.http.Field
+import retrofit.http.FormUrlEncoded
 import retrofit.http.POST
-import retrofit.http.Path
+import retrofit.http.Query
 
 interface SlackService {
 
-  @POST('/services/{token}')
-  Response sendMessage(@Path(value='token', encode=false) String token, @Body SlackMessage message)
+  @FormUrlEncoded
+  @POST('/api/chat.postMessage')
+  Response sendMessage(
+    @Query('token') String token,
+    @Field('attachments') String message,
+    @Field('channel') String channel,
+    @Field('as_user') boolean asUser)
 
 }

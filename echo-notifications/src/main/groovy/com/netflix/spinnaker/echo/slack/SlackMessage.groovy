@@ -17,9 +17,28 @@
 
 package com.netflix.spinnaker.echo.slack
 
+import groovy.json.JsonBuilder
+import groovy.transform.Canonical
+
+@Canonical
 class SlackMessage {
 
-  String text
-  String channel
+  String body
+  String color = '#cccccc'
 
+  /**
+   * To display a message with a colored vertical bar on the left, Slack expects the message to be in an "attachments"
+   * field as a JSON string of an array of objects, e.g.
+   *   [{"fallback":"plain-text summary", "text":"the message to send", "color":"#hexcolor"}]
+   * @return a stringified version of the JSON array containing the attachment
+   */
+  String buildMessage() {
+    new JsonBuilder([
+        [
+          fallback: body,
+          text: body,
+          color: color
+        ]
+      ]).toString()
+  }
 }
