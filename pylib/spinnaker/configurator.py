@@ -202,6 +202,8 @@ class Configurator(object):
       offset = match.end()
       name = match.group(1)
       value = self.bindings.replace(match.group(2))
+      if value is None:
+        value = ''
       if isinstance(value, bool):
         # Convert to javascript bool value by lowercasing the string
         settings.append('var {name} = {value};\n'.format(
