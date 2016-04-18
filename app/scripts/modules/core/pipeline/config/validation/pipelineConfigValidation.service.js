@@ -82,7 +82,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.validator.servic
             if (toTest.type === 'deploy' && toTest.clusters && toTest.clusters.length) {
               toTest.clusters.forEach(function(cluster) {
                 var clusterName = namingService.getClusterName(cluster.application, cluster.stack, cluster.freeFormDetails);
-                if (clusterName === stage.cluster && cluster.account === stage.credentials && cluster.availabilityZones.hasOwnProperty(region)) {
+                if (clusterName === stage.cluster && cluster.account === stage.credentials && cluster.availabilityZones && cluster.availabilityZones.hasOwnProperty(region)) {
                   regionFound = true;
                 }
               });

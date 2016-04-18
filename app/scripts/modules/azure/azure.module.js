@@ -9,6 +9,7 @@ templates.keys().forEach(function(key) {
 });
 
 module.exports = angular.module('spinnaker.azure', [
+  require('../core/pipeline/config/stages/destroyAsg/azure/azureDestroyAsgStage.js'),
   require('../core/cloudProvider/cloudProvider.registry.js'),
   require('./serverGroup/details/serverGroup.details.module.js'),
   require('./serverGroup/serverGroup.transformer.js'),
