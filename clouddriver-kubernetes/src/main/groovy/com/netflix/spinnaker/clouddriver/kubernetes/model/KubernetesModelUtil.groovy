@@ -16,10 +16,37 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.model
 
+import com.netflix.spinnaker.clouddriver.model.HealthState
+
 import java.text.SimpleDateFormat
 
 class KubernetesModelUtil {
   static long translateTime(String time) {
     time ? (new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX").parse(time)).getTime() : 0
+  }
+
+  static HealthState getHealthState(health) {
+    someUpRemainingUnknown(health) ? HealthState.Up :
+        anyStarting(health) ? HealthState.Starting :
+            anyDown(health) ? HealthState.Down :
+                anyOutOfService(health) ? HealthState.OutOfService :
+                    HealthState.Unknown
+  }
+
+  private static boolean anyDown(List<Map<String, String>> healthsList) {
+    healthsList.any { it.state == HealthState.Down.name() }
+  }
+
+  private static boolean someUpRemainingUnknown(List<Map<String, String>> healthsList) {
+    List<Map<String, String>> knownHealthList = healthsList.findAll { it.state != HealthState.Unknown.name() }
+    knownHealthList ? knownHealthList.every { it.state == HealthState.Up.name() } : false
+  }
+
+  private static boolean anyStarting(List<Map<String, String>> healthsList) {
+    healthsList.any { it.state == HealthState.Starting.name() }
+  }
+
+  private static boolean anyOutOfService(List<Map<String, String>> healthsList) {
+    healthsList.any { it.state == HealthState.OutOfService.name() }
   }
 }

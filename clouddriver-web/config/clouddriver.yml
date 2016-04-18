@@ -36,6 +36,8 @@ swagger:
     - .*instances.*
     - .*reports.*
     - .*docker.*
+    - .*job.*
+    - .*process.*
 
 default:
   # legacyServerPort is a non-ssl listener, if ssl is enabled. -1 to disable
