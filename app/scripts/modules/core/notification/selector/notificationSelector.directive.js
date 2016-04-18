@@ -7,30 +7,31 @@ module.exports = angular.module('spinnaker.core.notification.selector.directive'
   .directive('notificationSelector', function() {
     return {
       restrict: 'E',
-      scope: {
+      bindToController: {
         notification: '=',
         level: '='
       },
       templateUrl: require('./notificationSelector.html'),
       controller: 'NotificationSelectorCtrl',
-      controllerAs: 'notificationCtrl'
+      controllerAs: 'vm'
     };
   })
-  .controller('NotificationSelectorCtrl', function($scope, notificationTypeService) {
+  .controller('NotificationSelectorCtrl', function(notificationTypeService) {
 
-    $scope.notificationTypes = notificationTypeService.listNotificationTypes();
+    this.notificationTypes = notificationTypeService.listNotificationTypes();
 
-    if (!$scope.notification.type && $scope.notificationTypes && $scope.notificationTypes.length) {
-      $scope.notification.type = $scope.notificationTypes[0].key;
+    this.updateNotificationType = function () {
+      this.notification.address = null;
+      let notificationConfig = notificationTypeService.getNotificationType(this.notification.type);
+      this.notificationConfig = notificationConfig ? notificationConfig.config : {};
+      this.addressTemplateUrl = notificationConfig ? notificationConfig.addressTemplateUrl : '';
+    };
+
+    if (!this.notification.type && this.notificationTypes && this.notificationTypes.length) {
+      this.notification.type = this.notificationTypes[0].key;
+      this.notificationConfig = this.notificationTypes[0].config;
     }
 
-    this.clearAddress = function () {
-      $scope.notification.address = null;
-    };
-
-    this.getNotificationAddressTemplateUrl = function () {
-      var notificationConfig = notificationTypeService.getNotificationType($scope.notification.type);
-      return notificationConfig ? notificationConfig.addressTemplateUrl : '';
-    };
+    this.updateNotificationType();
 
   });

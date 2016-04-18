@@ -3,8 +3,14 @@
   <div class="col-sm-9">
     <input name="Slack"
            class="form-control input-sm "
-           ng-model="notification.address"
+           ng-model="vm.notification.address"
            placeholder="enter a Slack channel"
            required />
+  </div>
+  <div class="col-sm-9 col-sm-offset-3"
+       ng-if="vm.notificationConfig.botName">
+    <strong>Note:</strong> You will need to invite the
+    <strong select-on-dbl-click>{{vm.notificationConfig.botName}}</strong>
+    bot to this channel to receive Slack notifications<br/>
   </div>
 </div>
