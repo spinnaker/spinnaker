@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.notification
 import com.netflix.spinnaker.echo.model.Event
+import com.netflix.spinnaker.echo.slack.SlackMessage
 import com.netflix.spinnaker.echo.slack.SlackService
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang.WordUtils
@@ -40,6 +41,20 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
     try {
       String buildInfo = ' '
 
+      String color = '#CCCCCC'
+
+      if (status == 'failed') {
+        color = '#B82525'
+      }
+
+      if (status == 'starting') {
+        color = '#2275B8'
+      }
+
+      if (status == 'complete') {
+        color = '#769D3E'
+      }
+
       if (config.type == 'pipeline' || config.type == 'stage') {
         if (event.content?.execution?.trigger?.buildInfo?.url) {
           buildInfo = """ build <${event.content.execution.trigger.buildInfo.url}|${
@@ -51,13 +66,13 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
       log.info("Send Slack message to" +
         " ${preference.address} for ${application} ${config.type} ${status} ${event.content?.execution?.id}")
 
-      String message = ''
+      String body = ''
 
       if (config.type == 'stage') {
-        message = """Stage ${event.content?.context?.stageDetails.name} for """
+        body = """Stage ${event.content?.context?.stageDetails.name} for """
       }
 
-      message +=
+      body +=
         """${WordUtils.capitalize(application)}'s <${
           spinnakerUrl
         }/#/applications/${application}/${
@@ -70,7 +85,7 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
 
       String address = preference.address.startsWith('#') ? preference.address : "#${preference.address}"
 
-      slackService.sendMessage(token, message, address, true)
+      slackService.sendMessage(token, new SlackMessage(body, color).buildMessage(), address, true)
 
     } catch (Exception e) {
       log.error('failed to send slack message ', e)

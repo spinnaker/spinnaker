@@ -48,7 +48,7 @@ class SlackNotificationService implements NotificationService {
     def body = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.BODY)
     notification.to.each {
       String address = it.startsWith('#') ? it : "#${it}"
-      slack.sendMessage(token, body, address, true)
+      slack.sendMessage(token, new SlackMessage(body).buildMessage(), address, true)
     }
   }
 }

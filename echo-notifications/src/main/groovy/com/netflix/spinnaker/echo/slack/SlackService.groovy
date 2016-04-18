@@ -29,7 +29,7 @@ interface SlackService {
   @POST('/api/chat.postMessage')
   Response sendMessage(
     @Query('token') String token,
-    @Field('text') String text,
+    @Field('attachments') String message,
     @Field('channel') String channel,
     @Field('as_user') boolean asUser)
 
