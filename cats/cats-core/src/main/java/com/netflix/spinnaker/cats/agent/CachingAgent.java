@@ -55,12 +55,20 @@ public interface CachingAgent extends Agent {
       this.providerRegistry = providerRegistry;
     }
 
-    @Override
     public void executeAgent(Agent agent) {
+      storeAgentResult(agent, executeAgentWithoutStore(agent));
+    }
+
+    public CacheResult executeAgentWithoutStore(Agent agent) {
       CachingAgent cachingAgent = (CachingAgent) agent;
       ProviderCache cache = providerRegistry.getProviderCache(cachingAgent.getProviderName());
 
-      CacheResult result = cachingAgent.loadData(cache);
+      return cachingAgent.loadData(cache);
+    }
+
+    public void storeAgentResult(Agent agent, CacheResult result) {
+      CachingAgent cachingAgent = (CachingAgent) agent;
+      ProviderCache cache = providerRegistry.getProviderCache(cachingAgent.getProviderName());
       Collection<AgentDataType> providedTypes = cachingAgent.getProvidedDataTypes();
       Collection<String> authoritative = new HashSet<>(providedTypes.size());
       for (AgentDataType type : providedTypes) {
@@ -68,6 +76,7 @@ public interface CachingAgent extends Agent {
           authoritative.add(type.getTypeName());
         }
       }
+
       cache.putCacheResult(agent.getAgentType(), authoritative, result);
     }
   }

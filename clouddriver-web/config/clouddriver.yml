@@ -5,6 +5,8 @@ server:
 
 redis:
   connection: redis://localhost:6379
+  scheduler: default
+  parallelism: -1
 
 services:
   front50:

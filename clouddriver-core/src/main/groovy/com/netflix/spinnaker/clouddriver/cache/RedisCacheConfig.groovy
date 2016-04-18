@@ -26,6 +26,7 @@ import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions
 import com.netflix.spinnaker.cats.redis.cache.RedisNamedCacheFactory
 import com.netflix.spinnaker.cats.redis.cluster.AgentIntervalProvider
 import com.netflix.spinnaker.cats.redis.cluster.ClusteredAgentScheduler
+import com.netflix.spinnaker.cats.redis.cluster.ClusteredSortAgentScheduler
 import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeIdentity
 import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeStatusProvider
 import com.netflix.spinnaker.cats.redis.cluster.NodeStatusProvider
@@ -43,6 +44,11 @@ import java.util.concurrent.TimeUnit
 @Configuration
 @ConditionalOnProperty('redis.connection')
 class RedisCacheConfig {
+  @Value('${redis.scheduler:default}')
+  String schedulerType
+
+  @Value('${redis.parallelism:-1}')
+  Integer parallelism
 
   @Bean
   JedisSource jedisSource(JedisPool jedisPool) {
@@ -88,12 +94,18 @@ class RedisCacheConfig {
   @Bean
   @ConditionalOnProperty(value = 'caching.writeEnabled', matchIfMissing = true)
   AgentScheduler agentScheduler(JedisSource jedisSource, @Value('${redis.connection:redis://localhost:6379}') String redisConnection, AgentIntervalProvider agentIntervalProvider, NodeStatusProvider nodeStatusProvider) {
-    URI redisUri = URI.create(redisConnection)
-    String redisHost = redisUri.getHost()
-    int redisPort = redisUri.getPort()
-    if (redisPort == -1) {
-      redisPort = 6379
+    if (schedulerType.equalsIgnoreCase('default')) {
+      URI redisUri = URI.create(redisConnection)
+      String redisHost = redisUri.getHost()
+      int redisPort = redisUri.getPort()
+      if (redisPort == -1) {
+        redisPort = 6379
+      }
+      new ClusteredAgentScheduler(jedisSource, new DefaultNodeIdentity(redisHost, redisPort), agentIntervalProvider, nodeStatusProvider)
+    } else if (schedulerType.equalsIgnoreCase('sort')) {
+      new ClusteredSortAgentScheduler(jedisSource, nodeStatusProvider, agentIntervalProvider, parallelism ?: -1);
+    } else {
+      throw new IllegalStateException("redis.scheduler must be one of 'default', 'sort', or ''.");
     }
-    new ClusteredAgentScheduler(jedisSource, new DefaultNodeIdentity(redisHost, redisPort), agentIntervalProvider, nodeStatusProvider)
   }
 }
