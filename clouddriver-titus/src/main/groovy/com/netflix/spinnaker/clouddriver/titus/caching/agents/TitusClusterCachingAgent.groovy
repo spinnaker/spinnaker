@@ -15,9 +15,11 @@
  */
 
 package com.netflix.spinnaker.clouddriver.titus.caching.agents
+
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.collect.ImmutableSet
 import com.netflix.frigga.Names
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
@@ -141,10 +143,10 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
       Keys.getServerGroupKey(data.serverGroupName, data.account, data.region),
       10 * 60, // ttl is 10 minutes
       [
-        cacheTime: System.currentTimeMillis(),
-        cacheResults: "[{}]",
+        cacheTime     : System.currentTimeMillis(),
+        cacheResults  : "[{}]",
         processedCount: 1,
-        processedTime: System.currentTimeMillis()
+        processedTime : System.currentTimeMillis()
       ],
       [:]
     )]], result.evictions)
@@ -163,11 +165,11 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
     }
     return providerCache.getAll('onDemand', keys, RelationshipCacheFilter.none()).collect {
       [
-        id: it.id,
-        details  : Keys.parse(it.id),
-        cacheTime: it.attributes.cacheTime,
+        id            : it.id,
+        details       : Keys.parse(it.id),
+        cacheTime     : it.attributes.cacheTime,
         processedCount: it.attributes.processedCount,
-        processedTime: it.attributes.processedTime
+        processedTime : it.attributes.processedTime
       ]
     }
   }
@@ -258,7 +260,7 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
 
   private void cacheInstances(ServerGroupData data, Map<String, CacheData> instances) {
     for (Job.TaskSummary task : data.job.tasks) {
-      instances[Keys.getInstanceKey(task.id, account.name, region)].with {
+      instances[Keys.getInstanceKey(task.id)].with {
         relationships[SERVER_GROUPS.ns].add(data.serverGroup)
       }
     }
@@ -278,7 +280,7 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
       appName = Keys.getApplicationKey(name.app)
       cluster = Keys.getClusterKey(name.cluster, name.app, account)
       serverGroup = Keys.getServerGroupKey(job.name, account, region)
-      instanceIds = (job.tasks.id.collect { Keys.getInstanceKey(it, account, region) } as Set).asImmutable()
+      instanceIds = (job.tasks.id.collect { Keys.getInstanceKey(it) } as Set).asImmutable()
     }
   }
 

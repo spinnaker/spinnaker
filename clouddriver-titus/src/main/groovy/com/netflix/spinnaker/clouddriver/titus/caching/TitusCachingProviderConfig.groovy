@@ -25,7 +25,6 @@ import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.caching.agents.TitusClusterCachingAgent
-import com.netflix.spinnaker.clouddriver.titus.caching.agents.TitusImageCachingAgent
 import com.netflix.spinnaker.clouddriver.titus.caching.agents.TitusInstanceCachingAgent
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -46,7 +45,6 @@ class TitusCachingProviderConfig {
     allAccounts.each { NetflixTitusCredentials account ->
       account.regions.each { region ->
         agents << new TitusClusterCachingAgent(titusCloudProvider, titusClientProvider, account, region.name, objectMapper, registry)
-        agents << new TitusImageCachingAgent(titusClientProvider, account, region.name, objectMapper)
         agents << new TitusInstanceCachingAgent(titusClientProvider, account, region.name, objectMapper)
       }
     }

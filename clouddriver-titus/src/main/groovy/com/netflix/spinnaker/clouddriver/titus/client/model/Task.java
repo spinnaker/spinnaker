@@ -201,4 +201,5 @@ public class Task {
     public void setSnapshots(String snapshots) {
         this.snapshots = snapshots;
     }
+
 }

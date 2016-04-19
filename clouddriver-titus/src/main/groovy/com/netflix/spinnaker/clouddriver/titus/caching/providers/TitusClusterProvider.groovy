@@ -15,11 +15,13 @@
  */
 
 package com.netflix.spinnaker.clouddriver.titus.caching.providers
+
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.core.provider.agent.ExternalHealthProvider
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.titus.caching.Keys
 import com.netflix.spinnaker.clouddriver.titus.caching.TitusCachingProvider
@@ -52,6 +54,9 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
     this.objectMapper = objectMapper
   }
 
+  @Autowired(required = false)
+  List<ExternalHealthProvider> externalHealthProviders
+
   /**
    *
    * @return
@@ -60,7 +65,9 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
   Map<String, Set<TitusCluster>> getClusters() {
     Collection<CacheData> clusterData = cacheView.getAll(CLUSTERS.ns)
     Collection<TitusCluster> clustersList = translateClusters(clusterData, false)
-    Map<String, Set<TitusCluster>> clusters = clustersList.groupBy { it.accountName }.collectEntries { k, v -> [k, new HashSet(v)] }
+    Map<String, Set<TitusCluster>> clusters = clustersList.groupBy {
+      it.accountName
+    }.collectEntries { k, v -> [k, new HashSet(v)] }
     clusters
   }
 
@@ -99,7 +106,9 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
     if (application == null) {
       return [] as Set
     }
-    Collection<String> clusterKeys = application.relationships[CLUSTERS.ns].findAll { Keys.parse(it).account == account }
+    Collection<String> clusterKeys = application.relationships[CLUSTERS.ns].findAll {
+      Keys.parse(it).account == account
+    }
     Collection<CacheData> clusters = cacheView.getAll(CLUSTERS.ns, clusterKeys)
     translateClusters(clusters, true) as Set<TitusCluster>
   }
@@ -193,7 +202,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
       Job job = objectMapper.readValue(json, Job)
       TitusServerGroup serverGroup = new TitusServerGroup(job)
       serverGroup.instances = serverGroupEntry.relationships[INSTANCES.ns]?.findResults { instances.get(it) } as Set
-      [(serverGroupEntry.id) : serverGroup]
+      [(serverGroupEntry.id): serverGroup]
     }
     serverGroups
   }
@@ -213,15 +222,17 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
     // Adding health to instances
     Map<String, String> healthKeysToInstance = [:]
     instanceData.each { instanceEntry ->
-      Map<String, String> instanceKey = Keys.parse(instanceEntry.id)
-      titusCachingProvider.healthAgents.each {
-        def key = Keys.getInstanceHealthKey(instanceKey.instanceId, instanceKey.account, instanceKey.region, it.healthId)
-        healthKeysToInstance.put(key, instanceEntry.id)
+      externalHealthProviders.each { externalHealthProvider ->
+        externalHealthProvider.agents.each { externalHealthAgent ->
+          def key = Keys.getInstanceHealthKey(instanceEntry.attributes.task.id, externalHealthAgent.healthId)
+          healthKeysToInstance.put(key, instanceEntry.id)
+        }
       }
     }
     Collection<CacheData> healths = cacheView.getAll(HEALTH.ns, healthKeysToInstance.keySet(), RelationshipCacheFilter.none())
     healths.each { healthEntry ->
       def instanceId = healthKeysToInstance.get(healthEntry.id)
+      healthEntry.attributes.remove('lastUpdatedTimestamp')
       instances[instanceId].health << healthEntry.attributes
     }
 
@@ -231,7 +242,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
   // Resolving cache data relationships
 
   private Collection<CacheData> resolveRelationshipDataForCollection(Collection<CacheData> sources, String relationship, CacheFilter cacheFilter = null) {
-    Collection<String> relationships = sources.findResults { it.relationships[relationship]?: [] }.flatten()
+    Collection<String> relationships = sources.findResults { it.relationships[relationship] ?: [] }.flatten()
     relationships ? cacheView.getAll(relationship, relationships, cacheFilter) : []
   }
 

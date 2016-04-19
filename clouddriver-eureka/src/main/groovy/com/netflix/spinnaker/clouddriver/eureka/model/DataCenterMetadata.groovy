@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.aws.discovery
+package com.netflix.spinnaker.clouddriver.eureka.model
 
-import retrofit.RestAdapter
-import retrofit.converter.Converter
+import com.fasterxml.jackson.annotation.JsonProperty
+import groovy.transform.EqualsAndHashCode
 
-import java.util.regex.Pattern
+@EqualsAndHashCode
+class DataCenterMetadata {
+  @JsonProperty('accountId')
+  String accountId
 
-class DiscoveryApiFactory {
+  @JsonProperty('availability-zone')
+  String availabilityZone
 
-  private Converter discoveryConverter
+  @JsonProperty('instance-id')
+  String instanceId
 
-  DiscoveryApiFactory(Converter discoveryConverter) {
-    this.discoveryConverter = discoveryConverter
-  }
+  @JsonProperty('ami-id')
+  String amiId
 
-  public DiscoveryApi createApi(String endpointTemplate, String region) {
-    new RestAdapter.Builder()
-      .setConverter(discoveryConverter)
-      .setEndpoint(endpointTemplate.replaceAll(Pattern.quote('{{region}}'), region))
-      .build()
-      .create(DiscoveryApi)
-  }
+  @JsonProperty('instance-type')
+  String instanceType
 }
+
