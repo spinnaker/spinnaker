@@ -15,14 +15,16 @@
  */
 
 package com.netflix.spinnaker.echo.config
-
 import com.netflix.astyanax.Keyspace
 import com.netflix.fenzo.triggers.TriggerOperator
+import com.netflix.fenzo.triggers.persistence.InMemoryTriggerDao
 import com.netflix.fenzo.triggers.persistence.TriggerDao
 import com.netflix.scheduledactions.ActionsOperator
 import com.netflix.scheduledactions.DaoConfigurer
 import com.netflix.scheduledactions.persistence.ActionInstanceDao
 import com.netflix.scheduledactions.persistence.ExecutionDao
+import com.netflix.scheduledactions.persistence.InMemoryActionInstanceDao
+import com.netflix.scheduledactions.persistence.InMemoryExecutionDao
 import com.netflix.scheduledactions.persistence.cassandra.CassandraActionInstanceDao
 import com.netflix.scheduledactions.persistence.cassandra.CassandraExecutionDao
 import com.netflix.scheduledactions.persistence.cassandra.CassandraTriggerDao
@@ -44,18 +46,39 @@ import java.util.concurrent.TimeUnit
 class SchedulerConfiguration {
 
     @Bean
+    @ConditionalOnExpression('${spinnaker.cassandra.enabled:true}')
     ActionInstanceDao actionInstanceDao(Keyspace keyspace) {
         new CassandraActionInstanceDao(keyspace)
     }
 
     @Bean
+    @ConditionalOnExpression('${spinnaker.cassandra.enabled:true}')
     ExecutionDao executionDao(Keyspace keyspace) {
         new CassandraExecutionDao(keyspace)
     }
 
     @Bean
+    @ConditionalOnExpression('${spinnaker.cassandra.enabled:true}')
     TriggerDao triggerDao(Keyspace keyspace) {
         new CassandraTriggerDao(keyspace)
+    }
+
+    @Bean
+    @ConditionalOnExpression('${spinnaker.inMemory.enabled:false}')
+    ActionInstanceDao inMemoryActionInstanceDAO() {
+        new InMemoryActionInstanceDao()
+    }
+
+    @Bean
+    @ConditionalOnExpression('${spinnaker.inMemory.enabled:false}')
+    ExecutionDao inMemoryExecutionDao() {
+        new InMemoryExecutionDao()
+    }
+
+    @Bean
+    @ConditionalOnExpression('${spinnaker.inMemory.enabled:false}')
+    TriggerDao inMemoryTriggerDao() {
+        new InMemoryTriggerDao()
     }
 
     @Bean
