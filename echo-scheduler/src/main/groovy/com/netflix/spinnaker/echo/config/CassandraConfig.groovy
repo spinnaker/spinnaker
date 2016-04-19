@@ -15,20 +15,20 @@
  */
 
 package com.netflix.spinnaker.echo.config
-
 import com.netflix.astyanax.Keyspace
 import com.netflix.astyanax.connectionpool.exceptions.ConnectionException
 import com.netflix.spinnaker.kork.astyanax.AstyanaxKeyspaceFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
-
 /**
  * Enables Cassandra for this project
  */
 @Configuration
+@ConditionalOnExpression('${spinnaker.cassandra.enabled:true}')
 @SuppressWarnings('GStringExpressionWithinString')
 class CassandraConfig {
 
