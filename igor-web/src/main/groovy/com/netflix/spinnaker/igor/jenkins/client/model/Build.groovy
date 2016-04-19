@@ -60,7 +60,11 @@ class Build {
     List<TestResults> testResults
 
     GenericBuild genericBuild(String jobName) {
-        return new GenericBuild(building, number.intValue(), duration.intValue(), result as Result, jobName, url, timestamp, fullDisplayName)
+        GenericBuild genericBuild = new GenericBuild(building, number.intValue(), duration.intValue(), result as Result, jobName, url, timestamp, fullDisplayName)
+        if (artifacts) {
+            genericBuild.artifacts = artifacts*.getGenericArtifact()
+        }
+        return genericBuild
     }
 
 }

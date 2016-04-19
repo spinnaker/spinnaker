@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.jenkins.client.model
 
+import com.netflix.spinnaker.igor.build.model.GenericArtifact
 import groovy.transform.CompileStatic
 import org.simpleframework.xml.Default
 import org.simpleframework.xml.Element
@@ -33,4 +34,8 @@ class BuildArtifact {
     String displayPath
     @Element(required = false)
     String relativePath
+
+    GenericArtifact getGenericArtifact() {
+        return new GenericArtifact(fileName, displayPath, relativePath)
+    }
 }
