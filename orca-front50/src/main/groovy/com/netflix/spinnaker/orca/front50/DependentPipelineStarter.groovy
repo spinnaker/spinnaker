@@ -69,7 +69,7 @@ class DependentPipelineStarter {
 
     def augmentedContext = [:]
     augmentedContext.put('trigger', pipelineConfig.trigger)
-    def processedPipeline = ContextParameterProcessor.process(pipelineConfig, augmentedContext)
+    def processedPipeline = ContextParameterProcessor.process(pipelineConfig, augmentedContext, false)
 
     json = objectMapper.writeValueAsString(processedPipeline)
 

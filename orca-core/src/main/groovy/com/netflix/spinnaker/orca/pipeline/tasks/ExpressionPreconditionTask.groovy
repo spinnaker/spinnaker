@@ -41,7 +41,7 @@ class ExpressionPreconditionTask implements PreconditionTask {
 
     String expression = ContextParameterProcessor.process([
         "expression": '${' + stageData.expression + '}'
-    ], augmentedContext).expression
+    ], augmentedContext, true).expression
 
     def matcher = expression =~ /\$\{(.*)\}/
     if (matcher.matches()) {
