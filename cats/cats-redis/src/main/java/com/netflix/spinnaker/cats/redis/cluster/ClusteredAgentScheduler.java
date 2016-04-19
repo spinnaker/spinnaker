@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.concurrent.*;
 
 @SuppressFBWarnings
-public class ClusteredAgentScheduler extends CatsModuleAware implements AgentScheduler, Runnable {
+public class ClusteredAgentScheduler extends CatsModuleAware implements AgentScheduler<AgentLock>, Runnable {
     private final JedisSource jedisSource;
     private final NodeIdentity nodeIdentity;
     private final AgentIntervalProvider intervalProvider;
