@@ -315,4 +315,23 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
             listeners: [ new Listener(loadBalancerPort: 80, instancePort: 8501, protocol: "HTTP", instanceProtocol: "HTTP") ]
     ))
   }
+
+  void "should ignore the old listener of pre-2012 ELBs"() {
+    setup:
+    def oldListener = new ListenerDescription().withListener(new Listener(null, 0, 0))
+    def listener = new ListenerDescription().withListener(new Listener("HTTP", 111, 80))
+    def loadBalancer = new LoadBalancerDescription(listenerDescriptions: [oldListener, listener])
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * loadBalancing.describeLoadBalancers(_) >> new DescribeLoadBalancersResult(loadBalancerDescriptions: [loadBalancer])
+    1 * loadBalancing.deleteLoadBalancerListeners(new DeleteLoadBalancerListenersRequest(loadBalancerPorts: [111]))
+    0 * loadBalancing.deleteLoadBalancerListeners(_)
+    1 * loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(
+      listeners: [ new Listener(loadBalancerPort: 80, instancePort: 8501, protocol: "HTTP", instanceProtocol: "HTTP") ]
+    ))
+    0 * loadBalancing.createLoadBalancerListeners(_)
+  }
 }
