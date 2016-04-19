@@ -40,6 +40,9 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
           }
         });
       }
+      if (!summary) {
+        $state.go('^');
+      }
       return summary;
     }
 
