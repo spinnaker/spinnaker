@@ -87,23 +87,26 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
 
       task.updateStatus BASE_PHASE, "Setting up listeners for ${loadBalancerName} in ${region}..."
       def listeners = []
-      for (UpsertAmazonLoadBalancerDescription.Listener listener : description.listeners) {
-        def awsListener = new Listener()
-        awsListener.withLoadBalancerPort(listener.externalPort).withInstancePort(listener.internalPort)
+      // ignore the old listener :0 => :0, which AWS adds to ELBs created sometime before 2012-09-26
+      description.listeners
+        .findAll { it.internalPort != 0 && it.externalPort != 0 && it.externalProtocol }
+        .each { UpsertAmazonLoadBalancerDescription.Listener listener ->
+          def awsListener = new Listener()
+          awsListener.withLoadBalancerPort(listener.externalPort).withInstancePort(listener.internalPort)
 
-        awsListener.withProtocol(listener.externalProtocol.name())
-        if (listener.internalProtocol && (listener.externalProtocol != listener.internalProtocol)) {
-          awsListener.withInstanceProtocol(listener.internalProtocol.name())
-        } else {
-          awsListener.withInstanceProtocol(listener.externalProtocol.name())
+          awsListener.withProtocol(listener.externalProtocol.name())
+          if (listener.internalProtocol && (listener.externalProtocol != listener.internalProtocol)) {
+            awsListener.withInstanceProtocol(listener.internalProtocol.name())
+          } else {
+            awsListener.withInstanceProtocol(listener.externalProtocol.name())
+          }
+          if (listener.sslCertificateId) {
+            task.updateStatus BASE_PHASE, "Attaching listener with SSL Certificate: ${listener.sslCertificateId}"
+            awsListener.withSSLCertificateId(listener.sslCertificateId)
+          }
+          listeners << awsListener
+          task.updateStatus BASE_PHASE, "Appending listener ${awsListener.protocol}:${awsListener.loadBalancerPort} -> ${awsListener.instanceProtocol}:${awsListener.instancePort}"
         }
-        if (listener.sslCertificateId) {
-          task.updateStatus BASE_PHASE, "Attaching listener with SSL Certificate: ${listener.sslCertificateId}"
-          awsListener.withSSLCertificateId(listener.sslCertificateId)
-        }
-        listeners << awsListener
-        task.updateStatus BASE_PHASE, "Appending listener ${awsListener.protocol}:${awsListener.loadBalancerPort} -> ${awsListener.instanceProtocol}:${awsListener.instancePort}"
-      }
 
       try {
         loadBalancer = loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest([loadBalancerName]))?.
@@ -163,7 +166,10 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
     def loadBalancerName = loadBalancer.loadBalancerName
 
     if (listeners) {
-      def existingListeners = loadBalancer.listenerDescriptions*.listener
+      def existingListeners = loadBalancer.listenerDescriptions*.listener.findAll {
+        // ignore the old listener :0 => :0, which AWS adds to ELBs created sometime before 2012-09-26
+        it.protocol && it.instancePort != 0 && it.loadBalancerPort != 0
+      }
       def listenersToRemove = existingListeners.findAll {
         // existed previously but were not supplied in upsert and should be deleted
         !listeners.contains(it)
