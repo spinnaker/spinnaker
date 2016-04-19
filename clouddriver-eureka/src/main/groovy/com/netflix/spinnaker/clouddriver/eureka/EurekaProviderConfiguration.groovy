@@ -59,7 +59,7 @@ class EurekaProviderConfiguration {
     eurekaAccountConfigurationProperties.accounts.each { EurekaAccountConfigurationProperties.EurekaAccount accountConfig ->
       accountConfig.regions.each { region ->
         String eurekaHost = accountConfig.readOnlyUrl.replaceAll(Pattern.quote('{{region}}'), region)
-        agents << new EurekaCachingAgent(eurekaApiFactory.createApi(eurekaHost, region), region, objectMapper, eurekaHost, eurekaAwareProviderList)
+        agents << new EurekaCachingAgent(eurekaApiFactory.createApi(eurekaHost), region, objectMapper, eurekaHost, eurekaAwareProviderList)
       }
     }
     EurekaCachingProvider eurekaCachingProvider = new EurekaCachingProvider(agents)
