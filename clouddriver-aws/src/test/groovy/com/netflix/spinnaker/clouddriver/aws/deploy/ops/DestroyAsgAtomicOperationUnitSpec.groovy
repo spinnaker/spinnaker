@@ -23,11 +23,11 @@ import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.amazonaws.services.autoscaling.model.Instance
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest
+import com.netflix.spinnaker.clouddriver.aws.TestCredential
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.DestroyAsgDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.aws.TestCredential
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.DestroyAsgDescription
 import spock.lang.Specification
 
 class DestroyAsgAtomicOperationUnitSpec extends Specification {
@@ -46,10 +46,12 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
   void "should not fail delete when ASG does not exist"() {
     setup:
     def op = new DestroyAsgAtomicOperation(
-            new DestroyAsgDescription(
-                    asgName: "my-stack-v000",
-                    regions: ["us-east-1"],
-                    credentials: TestCredential.named('baz')))
+      new DestroyAsgDescription(
+        asgs: [[
+          serverGroupName: "my-stack-v000",
+          region         : "us-east-1"
+        ]],
+        credentials: TestCredential.named('baz')))
     op.amazonClientProvider = provider
 
     when:
@@ -63,10 +65,12 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
   void "should delete ASG and Launch Config and terminate instances"() {
     setup:
     def op = new DestroyAsgAtomicOperation(
-            new DestroyAsgDescription(
-                    asgName: "my-stack-v000",
-                    regions: ["us-east-1"],
-                    credentials: TestCredential.named('baz')))
+      new DestroyAsgDescription(
+        asgs: [[
+          serverGroupName: "my-stack-v000",
+          region         : "us-east-1"
+        ]],
+        credentials: TestCredential.named('baz')))
     op.amazonClientProvider = provider
 
     when:
@@ -90,10 +94,12 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
   void "should not delete launch config when not available"() {
     setup:
     def op = new DestroyAsgAtomicOperation(
-        new DestroyAsgDescription(
-            asgName: "my-stack-v000",
-            regions: ["us-east-1"],
-            credentials: TestCredential.named('baz')))
+      new DestroyAsgDescription(
+        asgs: [[
+          serverGroupName: "my-stack-v000",
+          region         : "us-east-1"
+        ]],
+        credentials: TestCredential.named('baz')))
     op.amazonClientProvider = provider
 
     when:
@@ -115,8 +121,10 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
     setup:
     def op = new DestroyAsgAtomicOperation(
       new DestroyAsgDescription(
-        asgName: "my-stack-v000",
-        regions: ["us-east-1"],
+        asgs: [[
+          serverGroupName: "my-stack-v000",
+          region         : "us-east-1"
+        ]],
         credentials: TestCredential.named('baz')))
     op.amazonClientProvider = provider
     def instances = (100..315).collect { new Instance(instanceId: "i-123${it}") }

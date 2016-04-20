@@ -18,6 +18,9 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
 class DestroyAsgDescription extends AbstractAmazonCredentialsDescription {
 
+  String serverGroupName
+  String region
+
   List<AsgDescription> asgs = []
 
   @Deprecated

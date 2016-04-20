@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ResizeAsgDescription
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
@@ -27,7 +27,6 @@ import org.springframework.validation.Errors
 class ResizeAsgDescriptionValidator extends AmazonDescriptionValidationSupport<ResizeAsgDescription> {
   @Override
   void validate(List priorDescriptions, ResizeAsgDescription description, Errors errors) {
-    validateAsgNameAndRegions description, errors
-    validateCapacity description, errors
+    validateAsgsWithCapacity description, errors
   }
 }

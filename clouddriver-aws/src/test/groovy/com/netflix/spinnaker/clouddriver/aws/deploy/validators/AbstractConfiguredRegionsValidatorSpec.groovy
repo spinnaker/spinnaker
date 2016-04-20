@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
-import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AbstractAmazonCredentialsDescription
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.AsgDescription
+import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
@@ -42,15 +43,16 @@ abstract class AbstractConfiguredRegionsValidatorSpec extends Specification {
     validator.validate([], description, errors)
 
     then:
-    1 * errors.rejectValue("asgName", _)
-    1 * errors.rejectValue("regions", _)
+    1 * errors.rejectValue("asgs", _)
   }
 
   void "region is validated against configuration"() {
     setup:
     def description = getDescription()
     description.credentials = TestCredential.named('test')
-    description.regions = ["us-east-5"]
+    description.asgs = [new AsgDescription(
+      region: "us-east-5"
+    )]
     def errors = Mock(Errors)
 
     when:
@@ -60,7 +62,9 @@ abstract class AbstractConfiguredRegionsValidatorSpec extends Specification {
     1 * errors.rejectValue("regions", _)
 
     when:
-    description.regions = description.credentials.regions.collect { it.name }
+    description.asgs = description.credentials.regions.collect {new AsgDescription(
+      region: it.name
+    )}
     validator.validate([], description, errors)
 
     then:

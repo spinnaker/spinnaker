@@ -41,14 +41,11 @@ class ResumeAsgProcessesAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
-    String descriptor = description.asgName ?: description.asgs.collect { it.toString() }
+    String descriptor = description.asgs.collect { it.toString() }
     task.updateStatus BASE_PHASE, "Initializing Resume ASG Processes operation for $descriptor..."
 
-    for (region in description.regions) {
-      resumeProcess(description.asgName, region)
-    }
     for (asg in description.asgs) {
-      resumeProcess(asg.asgName, asg.region)
+      resumeProcess(asg.serverGroupName, asg.region)
     }
     task.updateStatus BASE_PHASE, "Finished Resume ASG Processes operation for $descriptor."
     null

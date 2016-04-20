@@ -21,6 +21,6 @@ import org.springframework.validation.Errors
 abstract class AbstractEnableDisableAsgDescriptionValidator extends AmazonDescriptionValidationSupport<EnableDisableAsgDescription> {
   @Override
   void validate(List priorDescriptions, EnableDisableAsgDescription description, Errors errors) {
-    validateAsgNameAndRegions description, errors
+    validateAsgs description, errors
   }
 }

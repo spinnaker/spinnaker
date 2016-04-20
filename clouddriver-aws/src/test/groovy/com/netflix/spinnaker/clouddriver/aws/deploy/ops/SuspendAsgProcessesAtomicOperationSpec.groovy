@@ -15,13 +15,12 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.SuspendAsgProcessesAtomicOperation
-import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.SuspendAsgProcessesDescription
 import com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -41,7 +40,19 @@ class SuspendAsgProcessesAtomicOperationSpec extends Specification {
   }
 
   void 'should suspend ASG processes'() {
-    def description = new SuspendAsgProcessesDescription(asgName: "asg1", processes: ["Launch", "Terminate"], regions: ["us-west-1", "us-east-1"])
+    def description = new SuspendAsgProcessesDescription(
+      asgs: [
+        [
+          serverGroupName: "asg1",
+          region         : "us-west-1"
+        ],
+        [
+          serverGroupName: "asg1",
+          region         : "us-east-1"
+        ],
+      ],
+      processes: ["Launch", "Terminate"]
+    )
     @Subject operation = new SuspendAsgProcessesAtomicOperation(description)
     operation.regionScopedProviderFactory = mockRegionScopedProviderFactory
 
@@ -56,16 +67,28 @@ class SuspendAsgProcessesAtomicOperationSpec extends Specification {
     and:
     task.history*.status == [
       "Creating task 1",
-      "Initializing Suspend ASG Processes operation for asg1...",
+      "Initializing Suspend ASG Processes operation for [[serverGroupName:asg1, region:us-west-1], [serverGroupName:asg1, region:us-east-1]]...",
       "Suspending ASG processes (Launch, Terminate) for asg1 in us-west-1...",
       "Suspending ASG processes (Launch, Terminate) for asg1 in us-east-1...",
-      "Finished Suspend ASG Processes operation for asg1."
+      "Finished Suspend ASG Processes operation for [[serverGroupName:asg1, region:us-west-1], [serverGroupName:asg1, region:us-east-1]]."
     ]
     0 * mockAsgService._
   }
 
   void 'should not suspend ASG processes in region if ASG name is invalid'() {
-    def description = new SuspendAsgProcessesDescription(asgName: "asg1", processes: ["Launch", "Terminate"], regions: ["us-west-1", "us-east-1"])
+    def description = new SuspendAsgProcessesDescription(
+      asgs: [
+        [
+          serverGroupName: "asg1",
+          region         : "us-west-1"
+        ],
+        [
+          serverGroupName: "asg1",
+          region         : "us-east-1"
+        ],
+      ],
+      processes: ["Launch", "Terminate"]
+    )
     @Subject operation = new SuspendAsgProcessesAtomicOperation(description)
     operation.regionScopedProviderFactory = mockRegionScopedProviderFactory
 
@@ -79,16 +102,28 @@ class SuspendAsgProcessesAtomicOperationSpec extends Specification {
     and:
     task.history*.status == [
       "Creating task 1",
-      "Initializing Suspend ASG Processes operation for asg1...",
+      "Initializing Suspend ASG Processes operation for [[serverGroupName:asg1, region:us-west-1], [serverGroupName:asg1, region:us-east-1]]...",
       "No ASG named 'asg1' found in us-west-1.",
       "Suspending ASG processes (Launch, Terminate) for asg1 in us-east-1...",
-      "Finished Suspend ASG Processes operation for asg1."
+      "Finished Suspend ASG Processes operation for [[serverGroupName:asg1, region:us-west-1], [serverGroupName:asg1, region:us-east-1]]."
     ]
     0 * mockAsgService._
   }
 
   void 'should not suspend ASG processes in region if there is an error'() {
-    def description = new SuspendAsgProcessesDescription(asgName: "asg1", processes: ["Launch", "Terminate"], regions: ["us-west-1", "us-east-1"])
+    def description = new SuspendAsgProcessesDescription(
+      asgs: [
+        [
+          serverGroupName: "asg1",
+          region         : "us-west-1"
+        ],
+        [
+          serverGroupName: "asg1",
+          region         : "us-east-1"
+        ],
+      ],
+      processes: ["Launch", "Terminate"]
+    )
     @Subject operation = new SuspendAsgProcessesAtomicOperation(description)
     operation.regionScopedProviderFactory = mockRegionScopedProviderFactory
 
@@ -105,11 +140,11 @@ class SuspendAsgProcessesAtomicOperationSpec extends Specification {
     and:
     task.history*.status == [
       "Creating task 1",
-      "Initializing Suspend ASG Processes operation for asg1...",
+      "Initializing Suspend ASG Processes operation for [[serverGroupName:asg1, region:us-west-1], [serverGroupName:asg1, region:us-east-1]]...",
       "Suspending ASG processes (Launch, Terminate) for asg1 in us-west-1...",
       "Could not suspend processes for ASG 'asg1' in region us-west-1! Reason: Uh oh!",
       "Suspending ASG processes (Launch, Terminate) for asg1 in us-east-1...",
-      "Finished Suspend ASG Processes operation for asg1."
+      "Finished Suspend ASG Processes operation for [[serverGroupName:asg1, region:us-west-1], [serverGroupName:asg1, region:us-east-1]]."
     ]
     0 * mockAsgService._
   }

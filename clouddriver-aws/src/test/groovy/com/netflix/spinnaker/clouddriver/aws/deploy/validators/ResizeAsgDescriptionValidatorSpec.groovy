@@ -16,28 +16,28 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ResizeAsgDescription
 import org.springframework.validation.Errors
+import spock.lang.Shared
 
-class ResizeAsgDescriptionValidatorSpec extends AbstractConfiguredRegionsValidatorSpec {
+class ResizeAsgDescriptionValidatorSpec {
 
-  @Override
-  DescriptionValidator getDescriptionValidator() {
-    return new ResizeAsgDescriptionValidator()
-  }
-
-  @Override
-  ResizeAsgDescription getDescription() {
-    new ResizeAsgDescription()
-  }
+  @Shared
+  DescriptionValidator validator = new ResizeAsgDescriptionValidator()
 
   void "invalid capacity fails validation"() {
     setup:
-    def description = new ResizeAsgDescription(asgName: "foo", credentials: Stub(NetflixAmazonCredentials))
-    description.capacity.min = 5
-    description.capacity.max = 3
+    def description = new ResizeAsgDescription(
+      asgs: [new ResizeAsgDescription.AsgTargetDescription(
+        serverGroupName: "foo",
+        region: "us-west-1",
+        capacity: new ResizeAsgDescription.Capacity(min: 5, max: 3)
+      )],
+      credentials: Stub(NetflixAmazonCredentials)
+    )
     def errors = Mock(Errors)
 
     when:
@@ -47,12 +47,48 @@ class ResizeAsgDescriptionValidatorSpec extends AbstractConfiguredRegionsValidat
     1 * errors.rejectValue('capacity', _, ['5', '3'], _)
 
     when:
-    description.capacity.min = 3
-    description.capacity.max = 5
-    description.capacity.desired = 7
+    description.asgs[0].capacity = new ResizeAsgDescription.Capacity(min: 3, max: 5, desired: 7)
     validator.validate([], description, errors)
 
     then:
     1 * errors.rejectValue('capacity', _, ['3', '5', '7'], _)
+  }
+
+  void "empty description fails validation"() {
+    setup:
+    def description = new ResizeAsgDescription()
+    description.credentials = TestCredential.named('test')
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue("asgs", _)
+  }
+
+  void "region is validated against configuration"() {
+    setup:
+    def description = new ResizeAsgDescription()
+    description.credentials = TestCredential.named('test')
+    description.asgs = [new ResizeAsgDescription.AsgTargetDescription(
+      region: "us-east-5"
+    )]
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue("regions", _)
+
+    when:
+    description.asgs = description.credentials.regions.collect {new ResizeAsgDescription.AsgTargetDescription(
+      region: it.name
+    )}
+    validator.validate([], description, errors)
+
+    then:
+    0 * errors.rejectValue("regions", _)
   }
 }

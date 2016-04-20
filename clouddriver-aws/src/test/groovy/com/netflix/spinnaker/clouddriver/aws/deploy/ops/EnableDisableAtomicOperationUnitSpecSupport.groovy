@@ -18,23 +18,25 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
-import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
-import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableAsgDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.DiscoverySupport
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.Eureka
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import spock.lang.Shared
 import spock.lang.Specification
 
 abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification {
   @Shared
   def description = new EnableDisableAsgDescription([
-      asgName    : "kato-main-v000",
-      regions    : ["us-west-1"],
+      asgs       : [[
+        serverGroupName: "kato-main-v000",
+        region         : "us-west-1"
+      ]],
       credentials: TestCredential.named('foo')
   ])
 
