@@ -122,7 +122,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
               def describeSG = new DescribeSecurityGroupsRequest().withGroupIds(groupIds)
               def provider = sourceRegionScopedProvider ?: regionScopedProvider
               def resolvedNames = provider.amazonEC2.describeSecurityGroups(describeSG).securityGroups.findResults {
-                if (it.vpcId == classicLinkVpcId && groupIds.contains(it.groupId)) {
+                if (it.vpcId == description.classicLinkVpcId && groupIds.contains(it.groupId)) {
                   return it.groupName
                 }
                 return null
