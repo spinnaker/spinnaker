@@ -24,7 +24,7 @@ import org.springframework.validation.Errors
 class SuspendAsgProcessesDescriptionValidator extends AmazonDescriptionValidationSupport<SuspendAsgProcessesDescription> {
   @Override
   void validate(List priorDescriptions, SuspendAsgProcessesDescription description, Errors errors) {
-    validateAsgNameAndRegions description, errors
+    validateAsgs description, errors
     def invalidProcessTypes = description.processes.findAll { !AutoScalingProcessType.parse(it) }
     if (invalidProcessTypes) {
       errors.rejectValue "processes", "suspendAsgProcessesDescription.processes.not.valid"

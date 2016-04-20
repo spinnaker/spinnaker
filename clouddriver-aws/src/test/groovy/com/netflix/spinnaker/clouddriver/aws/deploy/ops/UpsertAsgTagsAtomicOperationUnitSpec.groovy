@@ -37,7 +37,13 @@ class UpsertAsgTagsAtomicOperationUnitSpec extends Specification {
     def mockAutoScaling = Mock(AmazonAutoScaling)
     def mockAmazonClientProvider = Mock(AmazonClientProvider)
     mockAmazonClientProvider.getAutoScaling(_, _, _) >> mockAutoScaling
-    def description = new UpsertAsgTagsDescription(asgName: "myasg-stack-v000", tags: ["key": "value"], regions: ["us-west-1"])
+    def description = new UpsertAsgTagsDescription(
+      asgs: [[
+        serverGroupName: "myasg-stack-v000",
+        region         : "us-west-1"
+      ]],
+      tags: ["key": "value"]
+    )
     description.credentials = TestCredential.named('baz')
     def operation = new UpsertAsgTagsAtomicOperation(description)
     operation.amazonClientProvider = mockAmazonClientProvider
@@ -65,7 +71,13 @@ class UpsertAsgTagsAtomicOperationUnitSpec extends Specification {
     def mockAutoScaling = Mock(AmazonAutoScaling)
     def mockAmazonClientProvider = Mock(AmazonClientProvider)
     mockAmazonClientProvider.getAutoScaling(_, _, _) >> mockAutoScaling
-    def description = new UpsertAsgTagsDescription(asgName: "myasg-stack-v000", tags: ["key": "value"], regions: ["us-west-1"])
+    def description = new UpsertAsgTagsDescription(
+      asgs: [[
+        serverGroupName: "myasg-stack-v000",
+        region         : "us-west-1"
+      ]],
+      tags: ["key": "value"]
+    )
     description.credentials = TestCredential.named('baz')
     def operation = new UpsertAsgTagsAtomicOperation(description)
     operation.amazonClientProvider = mockAmazonClientProvider

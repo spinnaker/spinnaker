@@ -23,23 +23,15 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.description
  * override will also be achieved.
  */
 class EnableDisableAsgDescription extends AbstractAmazonCredentialsDescription {
-  List<AsgDescription> asgs = []
 
   String serverGroupName
+  String region
+
+  List<AsgDescription> asgs = []
 
   @Deprecated
   String asgName
 
   @Deprecated
   List<String> regions = []
-
-  List<AsgDescription> getAsgs() {
-    if (asgs) {
-      return asgs
-    }
-
-    return regions.collect {
-      new AsgDescription(serverGroupName: (serverGroupName ?: asgName), region: it)
-    }
-  }
 }

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
+
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.AsgDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ResumeAsgProcessesDescription
-import com.netflix.spinnaker.clouddriver.aws.deploy.validators.ResumeAsgProcessesDescriptionValidator
 import org.springframework.validation.Errors
 import spock.lang.Specification
 
@@ -25,8 +26,16 @@ class ResumeAsgProcessesDescriptionValidatorSpec extends Specification {
 
   void "pass validation with proper description inputs"() {
     def description = new ResumeAsgProcessesDescription(
-      asgName: "asg1",
-      regions: ["us-west-1", "us-east-1"],
+      asgs: [
+        new AsgDescription(
+          serverGroupName: "asg1",
+          region: "us-west-1"
+        ),
+        new AsgDescription(
+          serverGroupName: "asg1",
+          region: "us-east-1"
+        )
+      ],
       processes: ["Launch", "Terminate"]
     )
     def errors = Mock(Errors)
@@ -40,8 +49,16 @@ class ResumeAsgProcessesDescriptionValidatorSpec extends Specification {
 
   void "invalid process names fails validation"() {
     def description = new ResumeAsgProcessesDescription(
-      asgName: "asg1",
-      regions: ["us-west-1", "us-east-1"],
+      asgs: [
+        new AsgDescription(
+          serverGroupName: "asg1",
+          region: "us-west-1"
+        ),
+        new AsgDescription(
+          serverGroupName: "asg1",
+          region: "us-east-1"
+        )
+      ],
       processes: ["Laugh", "Terminate"]
     )
     def errors = Mock(Errors)

@@ -22,11 +22,11 @@ import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
 import com.amazonaws.services.autoscaling.model.DeleteLaunchConfigurationRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.DestroyAsgDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.DestroyAsgDescription
 import org.springframework.beans.factory.annotation.Autowired
 
 class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
@@ -48,13 +48,10 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
-    String descriptor = description.asgName ?: description.asgs.collect { it.toString() }
+    String descriptor = description.asgs.collect { it.toString() }
     task.updateStatus BASE_PHASE, "Initializing ASG Destroy operation for $descriptor..."
-    for (region in description.regions) {
-      deleteAsg(description.asgName, region)
-    }
     for (asg in description.asgs) {
-      deleteAsg(asg.asgName, asg.region)
+      deleteAsg(asg.serverGroupName, asg.region)
     }
 
     task.updateStatus BASE_PHASE, "Finished Destroy ASG operation for $descriptor."

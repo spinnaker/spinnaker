@@ -27,7 +27,7 @@ import org.springframework.validation.Errors
 class UpsertAsgTagsDescriptionValidator extends AmazonDescriptionValidationSupport<UpsertAsgTagsDescription> {
   @Override
   void validate(List priorDescriptions, UpsertAsgTagsDescription description, Errors errors) {
-    validateAsgNameAndRegions description, errors
+    validateAsgs description, errors
     if (!description.tags) {
       errors.rejectValue("tags", "upsertAsgTagsDescription.tags.empty")
     }

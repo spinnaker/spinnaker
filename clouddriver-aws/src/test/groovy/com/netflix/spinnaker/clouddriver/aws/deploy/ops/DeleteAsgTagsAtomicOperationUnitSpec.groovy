@@ -16,11 +16,11 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.*
+import com.netflix.spinnaker.clouddriver.aws.TestCredential
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAsgTagsDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.aws.TestCredential
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAsgTagsDescription
 import spock.lang.Specification
 
 class DeleteAsgTagsAtomicOperationUnitSpec extends Specification {
@@ -33,7 +33,13 @@ class DeleteAsgTagsAtomicOperationUnitSpec extends Specification {
   }
 
   void "should delete tags on ASG by name"() {
-    def description = new DeleteAsgTagsDescription(asgName: "myasg-stack-v000", tagKeys: ["key"], regions: ["us-west-1"])
+    def description = new DeleteAsgTagsDescription(
+      asgs   : [[
+        serverGroupName: "myasg-stack-v000",
+        region         : "us-west-1"
+      ]],
+      tagKeys: ["key"]
+    )
     description.credentials = TestCredential.named('baz')
     def operation = new DeleteAsgTagsAtomicOperation(description)
     operation.amazonClientProvider = mockAmazonClientProvider

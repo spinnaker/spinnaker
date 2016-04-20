@@ -17,11 +17,11 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.Instance
 import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
-import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
-import com.netflix.spinnaker.clouddriver.data.task.TaskState
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableAsgDescription
 import com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType
+import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
+import com.netflix.spinnaker.clouddriver.data.task.TaskState
 
 class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitSpecSupport {
 
@@ -75,8 +75,10 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
   void 'should skip discovery if not enabled for account'() {
     setup:
     def noDiscovery = new EnableDisableAsgDescription([
-      asgName    : "kato-main-v000",
-      regions    : ["us-west-1"],
+      asgs: [[
+        serverGroupName: "kato-main-v000",
+        region         : "us-west-1"
+      ]],
       credentials: TestCredential.named('foo')
     ])
 

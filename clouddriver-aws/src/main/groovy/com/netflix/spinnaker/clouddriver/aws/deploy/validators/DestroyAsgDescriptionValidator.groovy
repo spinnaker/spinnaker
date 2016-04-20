@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DestroyAsgDescription
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
@@ -27,6 +27,6 @@ import org.springframework.validation.Errors
 class DestroyAsgDescriptionValidator extends AmazonDescriptionValidationSupport<DestroyAsgDescription> {
   @Override
   void validate(List priorDescriptions, DestroyAsgDescription description, Errors errors) {
-    validateAsgNameAndRegions description, errors
+    validateAsgs description, errors
   }
 }

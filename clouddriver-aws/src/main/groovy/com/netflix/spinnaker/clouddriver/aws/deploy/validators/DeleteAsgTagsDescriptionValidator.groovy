@@ -23,7 +23,7 @@ import org.springframework.validation.Errors
 class DeleteAsgTagsDescriptionValidator extends AmazonDescriptionValidationSupport<DeleteAsgTagsDescription> {
   @Override
   void validate(List priorDescriptions, DeleteAsgTagsDescription description, Errors errors) {
-    validateAsgNameAndRegions description, errors
+    validateAsgs description, errors
     description.tagKeys.each {
       if (!it) {
         errors.rejectValue("tagKeys", "deleteAsgTagsDescription.tagKey.invalid")

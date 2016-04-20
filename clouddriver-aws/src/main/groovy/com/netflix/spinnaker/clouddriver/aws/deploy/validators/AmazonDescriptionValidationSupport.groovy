@@ -16,26 +16,22 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
-import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AbstractAmazonCredentialsDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AsgDescription
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.ResizeAsgDescription
+import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import org.springframework.validation.Errors
 
 public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmazonCredentialsDescription> extends DescriptionValidator<T> {
 
   abstract void validate(List priorDescriptions, T description, Errors errors)
 
-  static void validateAsgNameAndRegions(T description, Errors errors) {
+  static void validateAsgs(T description, Errors errors) {
     if (!description.asgs) {
-      validateAsgName description, errors
-      validateRegions description, errors
+      errors.rejectValue("asgs", "${description.getClass().simpleName}.empty")
     } else {
-      if (!description.asgs.size()) {
-        errors.rejectValue("asgs", "${description.getClass().simpleName}.empty")
-      } else {
-        description.asgs.each { AsgDescription asgDescription ->
-          validateAsgDescription description, asgDescription, errors
-        }
+      description.asgs.each { AsgDescription asgDescription ->
+        validateAsgDescription description, asgDescription, errors
       }
     }
   }
@@ -47,10 +43,25 @@ public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmaz
     }
 
     if (!asgDescription.region) {
-      errors.rejectValue("regions", "${key}.regions.empty")
+      errors.rejectValue("region", "${key}.region.empty")
     } else {
       validateRegions description, [asgDescription.region], key, errors
     }
+  }
+
+  static void validateAsgsWithCapacity(T description, Errors errors) {
+    if (!description.asgs) {
+      errors.rejectValue("asgs", "${description.getClass().simpleName}.empty")
+    } else {
+      description.asgs.each { ResizeAsgDescription.AsgTargetDescription asgDescription ->
+        validateAsgDescriptionWithCapacity description, asgDescription, errors
+      }
+    }
+  }
+
+  static void validateAsgDescriptionWithCapacity(T description, ResizeAsgDescription.AsgTargetDescription asgDescription, Errors errors) {
+    validateAsgDescription description, asgDescription, errors
+    validateCapacity asgDescription, errors
   }
 
   static void validateAsgName(T description, Errors errors) {
@@ -58,11 +69,6 @@ public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmaz
     if (!description.asgName) {
       errors.rejectValue("asgName", "${key}.asgName.empty")
     }
-  }
-
-  static void validateRegions(T description, Errors errors) {
-    def key = description.getClass().simpleName
-    validateRegions(description, description.regions, key, errors)
   }
 
   static void validateRegion(T description, String regionName, String errorKey, Errors errors) {
@@ -98,7 +104,7 @@ public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmaz
     }
   }
 
-  static void validateCapacity(T description, Errors errors) {
+  static void validateCapacity(def description, Errors errors) {
     if (description.capacity.min > description.capacity.max) {
       errors.rejectValue "capacity", "resizeAsgDescription.capacity.transposed", [description.capacity.min, description.capacity.max] as String[], "Capacity min and max appear transposed"
     }

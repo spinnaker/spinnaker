@@ -21,12 +21,12 @@ import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.DescribeScheduledActionsRequest
 import com.amazonaws.services.autoscaling.model.PutScheduledUpdateGroupActionRequest
 import com.amazonaws.services.autoscaling.model.ScheduledUpdateGroupAction
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAsgScheduledActionsDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAsgScheduledActionsDescription
-import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator
 import org.springframework.beans.factory.annotation.Autowired
 
 class UpsertAsgScheduledActionsOperation implements AtomicOperation<Void> {
@@ -52,11 +52,11 @@ class UpsertAsgScheduledActionsOperation implements AtomicOperation<Void> {
   Void operate(List priorOutputs) {
     boolean hasSucceeded = true
 
-    String descriptor = description.asgs.findResults { "${it.asgName} in ${it.region}" }.join(", ")
+    String descriptor = description.asgs.findResults { "${it.serverGroupName} in ${it.region}" }.join(", ")
     task.updateStatus BASE_PHASE, "Initializing Upsert ASG Scheduled Actions operation for $descriptor..."
 
     for (asg in description.asgs) {
-      hasSucceeded = upsertAsgScheduledActions(asg.asgName, asg.region)
+      hasSucceeded = upsertAsgScheduledActions(asg.serverGroupName, asg.region)
     }
 
     if (!hasSucceeded) {

@@ -19,11 +19,11 @@ import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.Instance
 import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
-import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
-import com.netflix.spinnaker.clouddriver.data.task.TaskState
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableAsgDescription
 import com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType
+import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
+import com.netflix.spinnaker.clouddriver.data.task.TaskState
 import retrofit.client.Response
 
 class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitSpecSupport {
@@ -101,9 +101,11 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
   void 'should skip discovery if not enabled for account'() {
     setup:
     def noDiscovery = new EnableDisableAsgDescription([
-        asgName    : "kato-main-v000",
-        regions    : ["us-west-1"],
-        credentials: TestCredential.named('foo')
+      asgs: [[
+        serverGroupName: "kato-main-v000",
+        region         : "us-west-1"
+      ]],
+      credentials: TestCredential.named('foo')
     ])
 
     def noDiscoveryOp = new DisableAsgAtomicOperation(noDiscovery)

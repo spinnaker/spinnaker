@@ -17,12 +17,15 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
 class ResumeAsgProcessesDescription extends AbstractAmazonCredentialsDescription {
 
-  List<AsgDescription> asgs
+  String serverGroupName
+  String region
+
+  List<AsgDescription> asgs = []
   List<String> processes
 
   @Deprecated
   String asgName
 
   @Deprecated
-  List<String> regions
+  List<String> regions = []
 }

@@ -42,7 +42,19 @@ class ResumeAsgProcessesAtomicOperationSpec extends Specification {
   }
 
   void 'should resume ASG processes'() {
-    def description = new ResumeAsgProcessesDescription(asgName: "asg1", processes: ["Launch", "Terminate"], regions: ["us-west-1", "us-east-1"])
+    def description = new ResumeAsgProcessesDescription(
+      asgs: [
+        [
+          serverGroupName: "asg1",
+          region         : "us-west-1"
+        ],
+        [
+          serverGroupName: "asg1",
+          region         : "us-east-1"
+        ],
+      ],
+      processes: ["Launch", "Terminate"]
+    )
     @Subject operation = new ResumeAsgProcessesAtomicOperation(description)
     operation.regionScopedProviderFactory = mockRegionScopedProviderFactory
 
@@ -57,16 +69,28 @@ class ResumeAsgProcessesAtomicOperationSpec extends Specification {
     and:
     task.history*.status == [
       "Creating task 1",
-      "Initializing Resume ASG Processes operation for asg1...",
+      "Initializing Resume ASG Processes operation for [[serverGroupName:asg1, region:us-west-1], [serverGroupName:asg1, region:us-east-1]]...",
       "Resuming ASG processes (Launch, Terminate) for asg1 in us-west-1...",
       "Resuming ASG processes (Launch, Terminate) for asg1 in us-east-1...",
-      "Finished Resume ASG Processes operation for asg1."
+      "Finished Resume ASG Processes operation for [[serverGroupName:asg1, region:us-west-1], [serverGroupName:asg1, region:us-east-1]]."
     ]
     0 * mockAsgService._
   }
 
   void 'should not resume ASG processes in region if ASG name is invalid'() {
-    def description = new ResumeAsgProcessesDescription(asgName: "asg1", processes: ["Launch", "Terminate"], regions: ["us-west-1", "us-east-1"])
+    def description = new ResumeAsgProcessesDescription(
+      asgs: [
+        [
+          serverGroupName: "asg1",
+          region         : "us-west-1"
+        ],
+        [
+          serverGroupName: "asg1",
+          region         : "us-east-1"
+        ],
+      ],
+      processes: ["Launch", "Terminate"]
+    )
     @Subject operation = new ResumeAsgProcessesAtomicOperation(description)
     operation.regionScopedProviderFactory = mockRegionScopedProviderFactory
 
@@ -80,16 +104,28 @@ class ResumeAsgProcessesAtomicOperationSpec extends Specification {
     and:
     task.history*.status == [
       "Creating task 1",
-      "Initializing Resume ASG Processes operation for asg1...",
+      "Initializing Resume ASG Processes operation for [[serverGroupName:asg1, region:us-west-1], [serverGroupName:asg1, region:us-east-1]]...",
       "No ASG named 'asg1' found in us-west-1.",
       "Resuming ASG processes (Launch, Terminate) for asg1 in us-east-1...",
-      "Finished Resume ASG Processes operation for asg1."
+      "Finished Resume ASG Processes operation for [[serverGroupName:asg1, region:us-west-1], [serverGroupName:asg1, region:us-east-1]]."
     ]
     0 * mockAsgService._
   }
 
   void 'should not resume ASG processes in region if there is an error'() {
-    def description = new ResumeAsgProcessesDescription(asgName: "asg1", processes: ["Launch", "Terminate"], regions: ["us-west-1", "us-east-1"])
+    def description = new ResumeAsgProcessesDescription(
+      asgs: [
+        [
+          serverGroupName: "asg1",
+          region         : "us-west-1"
+        ],
+        [
+          serverGroupName: "asg1",
+          region         : "us-east-1"
+        ],
+      ],
+      processes: ["Launch", "Terminate"]
+    )
     @Subject operation = new ResumeAsgProcessesAtomicOperation(description)
     operation.regionScopedProviderFactory = mockRegionScopedProviderFactory
 
@@ -106,11 +142,11 @@ class ResumeAsgProcessesAtomicOperationSpec extends Specification {
     and:
     task.history*.status == [
       "Creating task 1",
-      "Initializing Resume ASG Processes operation for asg1...",
+      "Initializing Resume ASG Processes operation for [[serverGroupName:asg1, region:us-west-1], [serverGroupName:asg1, region:us-east-1]]...",
       "Resuming ASG processes (Launch, Terminate) for asg1 in us-west-1...",
       "Could not resume processes for ASG 'asg1' in region us-west-1! Reason: Uh oh!",
       "Resuming ASG processes (Launch, Terminate) for asg1 in us-east-1...",
-      "Finished Resume ASG Processes operation for asg1."
+      "Finished Resume ASG Processes operation for [[serverGroupName:asg1, region:us-west-1], [serverGroupName:asg1, region:us-east-1]]."
     ]
     0 * mockAsgService._
   }

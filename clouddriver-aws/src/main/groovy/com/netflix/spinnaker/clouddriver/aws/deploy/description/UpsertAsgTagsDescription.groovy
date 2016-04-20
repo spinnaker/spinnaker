@@ -18,6 +18,9 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
 class UpsertAsgTagsDescription extends AbstractAmazonCredentialsDescription {
 
+  String serverGroupName
+  String region
+
   List<AsgDescription> asgs = []
   Map<String, String> tags
 

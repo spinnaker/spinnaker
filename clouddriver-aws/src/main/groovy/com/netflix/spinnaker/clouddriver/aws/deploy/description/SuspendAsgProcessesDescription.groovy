@@ -16,6 +16,10 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
 class SuspendAsgProcessesDescription extends AbstractAmazonCredentialsDescription {
+
+  String serverGroupName
+  String region
+
   List<AsgDescription> asgs = []
   List<String> processes
 

@@ -15,12 +15,12 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.SuspendAsgProcessesDescription
 import com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 class SuspendAsgProcessesAtomicOperation implements AtomicOperation<Void> {
@@ -41,13 +41,10 @@ class SuspendAsgProcessesAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
-    String descriptor = description.asgName ?: description.asgs.collect { it.toString() }
+    String descriptor = description.asgs.collect { it.toString() }
     task.updateStatus BASE_PHASE, "Initializing Suspend ASG Processes operation for $descriptor..."
-    for (region in description.regions) {
-      suspendProcesses(description.asgName, region)
-    }
     for (asg in description.asgs) {
-      suspendProcesses(asg.asgName, asg.region)
+      suspendProcesses(asg.serverGroupName, asg.region)
     }
     task.updateStatus BASE_PHASE, "Finished Suspend ASG Processes operation for $descriptor."
     null

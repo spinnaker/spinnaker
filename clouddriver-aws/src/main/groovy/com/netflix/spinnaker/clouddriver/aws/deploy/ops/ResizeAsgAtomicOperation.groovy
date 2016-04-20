@@ -18,11 +18,11 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.ResizeAsgDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.ResizeAsgDescription
 import org.springframework.beans.factory.annotation.Autowired
 
 class ResizeAsgAtomicOperation implements AtomicOperation<Void> {
@@ -43,16 +43,11 @@ class ResizeAsgAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
-    String descriptor = description.asgName ?:
-        description.asgs.size() == 1 ? description.asgs[0].toString() :
-        description.asgs.collect { it.toString() }
+    String descriptor = description.asgs.collect { it.toString() }
     task.updateStatus PHASE, "Initializing Resize ASG operation for $descriptor..."
 
-    for (String region : description.regions) {
-      resizeAsg(description.asgName, region, description.capacity)
-    }
     for (asg in description.asgs) {
-      resizeAsg(asg.asgName, asg.region, asg.capacity)
+      resizeAsg(asg.serverGroupName, asg.region, asg.capacity)
     }
     task.updateStatus PHASE, "Finished Resize ASG operation for $descriptor."
     null

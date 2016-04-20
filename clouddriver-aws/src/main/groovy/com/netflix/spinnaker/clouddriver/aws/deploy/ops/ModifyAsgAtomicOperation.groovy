@@ -18,11 +18,11 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyAsgDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyAsgDescription
 import org.springframework.beans.factory.annotation.Autowired
 
 class ModifyAsgAtomicOperation implements AtomicOperation<Void> {
@@ -48,7 +48,7 @@ class ModifyAsgAtomicOperation implements AtomicOperation<Void> {
     String descriptor = description.asgs.collect { it.toString() }
     task.updateStatus BASE_PHASE, "Initializing Update ASG operation for $descriptor..."
     for (asg in description.asgs) {
-      hasSucceeded = modifyAsg(asg.asgName, asg.region)
+      hasSucceeded = modifyAsg(asg.serverGroupName, asg.region)
     }
 
     if (!hasSucceeded) {

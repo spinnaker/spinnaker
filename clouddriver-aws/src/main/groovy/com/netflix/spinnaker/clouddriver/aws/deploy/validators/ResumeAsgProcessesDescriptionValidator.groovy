@@ -24,7 +24,7 @@ import org.springframework.validation.Errors
 class ResumeAsgProcessesDescriptionValidator extends AmazonDescriptionValidationSupport<ResumeAsgProcessesDescription> {
   @Override
   void validate(List priorDescriptions, ResumeAsgProcessesDescription description, Errors errors) {
-    validateAsgNameAndRegions description, errors
+    validateAsgs description, errors
     def invalidProcessTypes = description.processes.findAll { !AutoScalingProcessType.parse(it) }
     if (invalidProcessTypes) {
       errors.rejectValue "processes", "createNetworkInterfaceDescription.processes.not.valid"
