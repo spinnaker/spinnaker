@@ -44,105 +44,105 @@ class DestroyAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing Destroy Azure Server Group Operation..."
-    for (region in description.regions) {
-      if (description.serverGroupName) description.name = description.serverGroupName
-      if (!description.application) description.application = description.appName ?: Names.parseName(description.name).app
-      task.updateStatus BASE_PHASE, "Destroying server group ${description.name} " + "in ${region}..."
 
-      if (!description.credentials) {
-        throw new IllegalArgumentException("Unable to resolve credentials for the selected Azure account.")
-      }
+    def region = description.region
+    if (description.serverGroupName) description.name = description.serverGroupName
+    if (!description.application) description.application = description.appName ?: Names.parseName(description.name).app
+    task.updateStatus BASE_PHASE, "Destroying server group ${description.name} " + "in ${region}..."
 
-      def errList = new ArrayList<String>()
+    if (!description.credentials) {
+      throw new IllegalArgumentException("Unable to resolve credentials for the selected Azure account.")
+    }
 
-      try {
-        String resourceGroupName = AzureUtilities.getResourceGroupName(description.application, region)
-        AzureServerGroupDescription serverGroupDescription = description.credentials.computeClient.getServerGroup(resourceGroupName, description.name)
+    def errList = new ArrayList<String>()
 
-        if (!serverGroupDescription) {
-          task.updateStatus(BASE_PHASE, "Destroy Server Group Operation failed: could not find server group ${description.name} in ${region}")
-          errList.add("could not find server group ${description.name} in ${region}")
-        } else {
-          try {
-            description
-              .credentials
-              .computeClient
-              .destroyServerGroup(resourceGroupName, description.name)
+    try {
+      String resourceGroupName = AzureUtilities.getResourceGroupName(description.application, region)
+      AzureServerGroupDescription serverGroupDescription = description.credentials.computeClient.getServerGroup(resourceGroupName, description.name)
 
-            task.updateStatus BASE_PHASE, "Done destroying Azure server group ${description.name} in ${region}."
-          } catch (Exception e) {
-            task.updateStatus(BASE_PHASE, "Deletion of server group ${description.name} failed: ${e.message}")
-            errList.add("Failed to delete server group ${description.name}: ${e.message}")
+      if (!serverGroupDescription) {
+        task.updateStatus(BASE_PHASE, "Destroy Server Group Operation failed: could not find server group ${description.name} in ${region}")
+        errList.add("could not find server group ${description.name} in ${region}")
+      } else {
+        try {
+          description
+            .credentials
+            .computeClient
+            .destroyServerGroup(resourceGroupName, description.name)
+
+          task.updateStatus BASE_PHASE, "Done destroying Azure server group ${description.name} in ${region}."
+        } catch (Exception e) {
+          task.updateStatus(BASE_PHASE, "Deletion of server group ${description.name} failed: ${e.message}")
+          errList.add("Failed to delete server group ${description.name}: ${e.message}")
+        }
+
+        // Clean-up the storrage account, load balancer and the subnet that where attached to the server group
+        if (errList.isEmpty()) {
+
+          // Delete storage accounts if any
+          serverGroupDescription.storageAccountNames?.each { def storageAccountName ->
+            task.updateStatus(BASE_PHASE, "Deleting storage account ${storageAccountName} " + "in ${region}...")
+            try {
+              description
+                .credentials
+                .storageClient
+                .deleteStorageAccount(resourceGroupName, storageAccountName)
+
+              task.updateStatus(BASE_PHASE, "Deletion of Azure storage account ${storageAccountName} in ${region} has succeeded.")
+            } catch (Exception e) {
+              task.updateStatus(BASE_PHASE, "Deletion of Azure storage account ${storageAccountName} failed: ${e.message}")
+              errList.add("Failed to delete storage account ${storageAccountName}: ${e.message}")
+            }
           }
 
-          // Clean-up the storrage account, load balancer and the subnet that where attached to the server group
-          if (errList.isEmpty()) {
+          // Delete load balancer attached to server group
+          if (serverGroupDescription.loadBalancerName) {
+            task.updateStatus(BASE_PHASE, "Deleting load balancer ${serverGroupDescription.loadBalancerName} " + "in ${region}...")
+            try {
+              description
+                .credentials
+                .networkClient
+                .deleteLoadBalancer(resourceGroupName, serverGroupDescription.loadBalancerName)
 
-            // Delete storage accounts if any
-            serverGroupDescription.storageAccountNames?.each { def storageAccountName ->
-              task.updateStatus(BASE_PHASE, "Deleting storage account ${storageAccountName} " + "in ${region}...")
-              try {
-                description
-                  .credentials
-                  .storageClient
-                  .deleteStorageAccount(resourceGroupName, storageAccountName)
-
-                task.updateStatus(BASE_PHASE, "Deletion of Azure storage account ${storageAccountName} in ${region} has succeeded.")
-              } catch (Exception e) {
-                task.updateStatus(BASE_PHASE, "Deletion of Azure storage account ${storageAccountName} failed: ${e.message}")
-                errList.add("Failed to delete storage account ${storageAccountName}: ${e.message}")
-              }
+              task.updateStatus(BASE_PHASE, "Deletion of Azure load balancer ${serverGroupDescription.loadBalancerName} in ${region} has succeeded.")
+            } catch (Exception e) {
+              task.updateStatus(BASE_PHASE, "Deletion of Azure load balancer ${serverGroupDescription.loadBalancerName} failed: ${e.message}")
+              errList.add("Failed to delete ${serverGroupDescription.loadBalancerName}: ${e.message}")
             }
+          }
 
-            // Delete load balancer attached to server group
-            if (serverGroupDescription.loadBalancerName) {
-              task.updateStatus(BASE_PHASE, "Deleting load balancer ${serverGroupDescription.loadBalancerName} " + "in ${region}...")
-              try {
-                description
-                  .credentials
-                  .networkClient
-                  .deleteLoadBalancer(resourceGroupName, serverGroupDescription.loadBalancerName)
+          // Delete subnet attached to server group
+          if (serverGroupDescription.subnetId) {
+            String subnetName = AzureUtilities.getNameFromResourceId(serverGroupDescription.subnetId)
+            String virtualNetworkName = AzureUtilities.getVirtualNetworkName(resourceGroupName)
+            task.updateStatus(BASE_PHASE, "Deleting subnet ${subnetName} " + "in ${region}...")
+            try {
+              description
+                .credentials
+                .networkClient
+                .deleteSubnet(resourceGroupName, virtualNetworkName, subnetName)
 
-                task.updateStatus(BASE_PHASE, "Deletion of Azure load balancer ${serverGroupDescription.loadBalancerName} in ${region} has succeeded.")
-              } catch (Exception e) {
-                task.updateStatus(BASE_PHASE, "Deletion of Azure load balancer ${serverGroupDescription.loadBalancerName} failed: ${e.message}")
-                errList.add("Failed to delete ${serverGroupDescription.loadBalancerName}: ${e.message}")
-              }
-            }
-
-            // Delete subnet attached to server group
-            if (serverGroupDescription.subnetId) {
-              String subnetName = AzureUtilities.getNameFromResourceId(serverGroupDescription.subnetId)
-              String virtualNetworkName = AzureUtilities.getVirtualNetworkName(resourceGroupName)
-              task.updateStatus(BASE_PHASE, "Deleting subnet ${subnetName} " + "in ${region}...")
-              try {
-                description
-                  .credentials
-                  .networkClient
-                  .deleteSubnet(resourceGroupName, virtualNetworkName, subnetName)
-
-                task.updateStatus(BASE_PHASE, "Deletion of subnet ${subnetName} in ${region} has succeeded.")
-              } catch (Exception e) {
-                task.updateStatus(BASE_PHASE, "Deletion of subnet ${subnetName} in ${virtualNetworkName} failed: ${e.message}")
-                errList.add("Failed to delete subnet ${subnetName} in ${virtualNetworkName}: ${e.message}")
-              }
+              task.updateStatus(BASE_PHASE, "Deletion of subnet ${subnetName} in ${region} has succeeded.")
+            } catch (Exception e) {
+              task.updateStatus(BASE_PHASE, "Deletion of subnet ${subnetName} in ${virtualNetworkName} failed: ${e.message}")
+              errList.add("Failed to delete subnet ${subnetName} in ${virtualNetworkName}: ${e.message}")
             }
           }
         }
-      } catch (Exception e) {
-        task.updateStatus(BASE_PHASE, "Destroying server group ${description.name} failed: ${e.message}")
-        errList.add("Failed to destroy server group ${description.name}: ${e.message}")
       }
+    } catch (Exception e) {
+      task.updateStatus(BASE_PHASE, "Destroying server group ${description.name} failed: ${e.message}")
+      errList.add("Failed to destroy server group ${description.name}: ${e.message}")
+    }
 
-      if (errList.isEmpty()) {
-        task.updateStatus BASE_PHASE, "Destroy Azure Server Group Operation for ${description.name} succeeded."
-      }
-      else {
-        errList.add(" Go to Azure Portal for more info")
-        throw new AtomicOperationException(
-          error: "Failed to destroy ${description.name}",
-          errors: errList)
-      }
+    if (errList.isEmpty()) {
+      task.updateStatus BASE_PHASE, "Destroy Azure Server Group Operation for ${description.name} succeeded."
+    }
+    else {
+      errList.add(" Go to Azure Portal for more info")
+      throw new AtomicOperationException(
+        error: "Failed to destroy ${description.name}",
+        errors: errList)
     }
 
     null

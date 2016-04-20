@@ -69,7 +69,7 @@ class DestroyAzureServerGroupAtomicOperationSpec extends Specification {
 
   void "Create DestroyAzureServerGroupAtomicOperation object simple test"() {
     setup:
-    def input = '''{ "serverGroupName": "testazure-web1-d1-v000", "name": "testazure-web1-d1-v000", "account" : "my-azure-account", "cloudProvider" : "azure", "appName" : "testazure", "regions": ["westus"], "credentials": "my-azure-account" }'''
+    def input = '''{ "serverGroupName": "testazure-web1-d1-v000", "name": "testazure-web1-d1-v000", "account" : "my-azure-account", "cloudProvider" : "azure", "appName" : "testazure", "region": "westus", "credentials": "my-azure-account" }'''
 
     when:
     DestroyAzureServerGroupAtomicOperation operation = converter.convertOperation(mapper.readValue(input, Map))
@@ -79,12 +79,12 @@ class DestroyAzureServerGroupAtomicOperationSpec extends Specification {
     operation
     description.name == "testazure-web1-d1-v000"
     description.accountName == "my-azure-account"
-    description.regions[0] == "westus"
+    description.region == "westus"
   }
 
   void "Create DestroyAzureServerGroupAtomicOperation object with no name and acccountName"() {
     setup:
-    def input = '''{ "serverGroupName": "testazure-web1-d1-v000", "cloudProvider" : "azure", "appName" : "testazure", "regions": ["westus", "eastus"], "credentials": "my-azure-account" }'''
+    def input = '''{ "serverGroupName": "testazure-web1-d1-v000", "cloudProvider" : "azure", "appName" : "testazure", "region": "eastus", "credentials": "my-azure-account" }'''
 
     when:
     DestroyAzureServerGroupAtomicOperation operation = converter.convertOperation(mapper.readValue(input, Map))
@@ -94,6 +94,6 @@ class DestroyAzureServerGroupAtomicOperationSpec extends Specification {
     operation
     description.serverGroupName == "testazure-web1-d1-v000"
     description.accountName == "my-azure-account"
-    description.regions[1] == "eastus"
+    description.region == "eastus"
   }
 }

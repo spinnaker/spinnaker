@@ -38,7 +38,7 @@ class DestroyAzureServerGroupDescriptionValidator extends
     def helper = new StandardAzureAttributeValidator("EnableDisableDestroyAzureServerGroupDescription", errors)
 
     helper.validateCredentials(description.credentials, accountCredentialsProvider)
-    helper.validateRegionList(description.regions)
+    helper.validateRegion(description.region)
     helper.validateName(description.serverGroupName, "serverGroupName")
   }
 }

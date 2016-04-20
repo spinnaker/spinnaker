@@ -44,51 +44,51 @@ class DisableAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing Disable Azure Server Group Operation..."
-    for (region in description.regions) {
-      if (description.serverGroupName) description.name = description.serverGroupName
-      if (!description.application) description.application = description.appName ?: Names.parseName(description.name).app
-      task.updateStatus BASE_PHASE, "Disablinging server group ${description.name} " + "in ${region}..."
 
-      if (!description.credentials) {
-        throw new IllegalArgumentException("Unable to resolve credentials for the selected Azure account.")
-      }
+    def region = description.region
+    if (description.serverGroupName) description.name = description.serverGroupName
+    if (!description.application) description.application = description.appName ?: Names.parseName(description.name).app
+    task.updateStatus BASE_PHASE, "Disablinging server group ${description.name} " + "in ${region}..."
 
-      def errList = new ArrayList<String>()
+    if (!description.credentials) {
+      throw new IllegalArgumentException("Unable to resolve credentials for the selected Azure account.")
+    }
 
-      try {
-        String resourceGroupName = AzureUtilities.getResourceGroupName(description.application, region)
-        AzureServerGroupDescription serverGroupDescription = description.credentials.computeClient.getServerGroup(resourceGroupName, description.name)
+    def errList = new ArrayList<String>()
 
-        if (!serverGroupDescription) {
-          task.updateStatus(BASE_PHASE, "Disable Server Group Operation failed: could not find server group ${description.name} in ${region}")
-          errList.add("could not find server group ${description.name} in ${region}")
-        } else {
-          try {
-            description
-              .credentials
-              .computeClient
-              .disableServerGroup(resourceGroupName, description.name)
+    try {
+      String resourceGroupName = AzureUtilities.getResourceGroupName(description.application, region)
+      AzureServerGroupDescription serverGroupDescription = description.credentials.computeClient.getServerGroup(resourceGroupName, description.name)
 
-            task.updateStatus BASE_PHASE, "Done disabling Azure server group ${description.name} in ${region}."
-          } catch (Exception e) {
-            task.updateStatus(BASE_PHASE, "Disabling of server group ${description.name} failed: ${e.message}")
-            errList.add("Failed to disable server group ${description.name}: ${e.message}")
-          }
+      if (!serverGroupDescription) {
+        task.updateStatus(BASE_PHASE, "Disable Server Group Operation failed: could not find server group ${description.name} in ${region}")
+        errList.add("could not find server group ${description.name} in ${region}")
+      } else {
+        try {
+          description
+            .credentials
+            .computeClient
+            .disableServerGroup(resourceGroupName, description.name)
+
+          task.updateStatus BASE_PHASE, "Done disabling Azure server group ${description.name} in ${region}."
+        } catch (Exception e) {
+          task.updateStatus(BASE_PHASE, "Disabling of server group ${description.name} failed: ${e.message}")
+          errList.add("Failed to disable server group ${description.name}: ${e.message}")
         }
-      } catch (Exception e) {
-        task.updateStatus(BASE_PHASE, "Disabling server group ${description.name} failed: ${e.message}")
-        errList.add("Failed to disable server group ${description.name}: ${e.message}")
       }
+    } catch (Exception e) {
+      task.updateStatus(BASE_PHASE, "Disabling server group ${description.name} failed: ${e.message}")
+      errList.add("Failed to disable server group ${description.name}: ${e.message}")
+    }
 
-      if (errList.isEmpty()) {
-        task.updateStatus BASE_PHASE, "Disable Azure Server Group Operation for ${description.name} succeeded."
-      }
-      else {
-        errList.add(" Go to Azure Portal for more info")
-        throw new AtomicOperationException(
-          error: "Failed to disable ${description.name}",
-          errors: errList)
-      }
+    if (errList.isEmpty()) {
+      task.updateStatus BASE_PHASE, "Disable Azure Server Group Operation for ${description.name} succeeded."
+    }
+    else {
+      errList.add(" Go to Azure Portal for more info")
+      throw new AtomicOperationException(
+        error: "Failed to disable ${description.name}",
+        errors: errList)
     }
 
     null

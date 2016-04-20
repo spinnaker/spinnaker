@@ -18,5 +18,8 @@ package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model
 
 class EnableDisableDestroyAzureServerGroupDescription extends AzureServerGroupDescription{
   String serverGroupName
+  String region
+
+  @Deprecated
   List<String> regions
 }
