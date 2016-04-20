@@ -59,6 +59,14 @@ class StageData {
     region ?: availabilityZones?.keySet()?.getAt(0)
   }
 
+  Boolean getUseSourceCapacity() {
+    if (source?.useSourceCapacity != null) {
+      return source.useSourceCapacity
+    }
+
+    return useSourceCapacity ?: false
+  }
+
   static class Source {
     String account
     String region

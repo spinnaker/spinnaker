@@ -76,4 +76,20 @@ class StageDataSpec extends Specification {
       "test"  | null        || "test"
       null    | "test"      || "test"
   }
+
+  @Unroll
+  void "should check both useSourceCapacity and source.useSourceCapacity"() {
+    expect:
+    new StageData(useSourceCapacity: useSourceCapacity, source: source).getUseSourceCapacity() == expectedUseSourceCapacity
+
+    where:
+    useSourceCapacity | source                                         || expectedUseSourceCapacity
+    true              | null                                           || true
+    true              | new StageData.Source(useSourceCapacity: true)  || true
+    true              | new StageData.Source(useSourceCapacity: false) || false
+    false             | new StageData.Source(useSourceCapacity: true)  || true
+    false             | null                                           || false
+    null              | new StageData.Source()                         || false
+    null              | null                                           || false
+  }
 }

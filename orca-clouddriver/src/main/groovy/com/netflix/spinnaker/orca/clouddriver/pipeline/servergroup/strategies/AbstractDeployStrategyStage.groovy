@@ -17,8 +17,10 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.AbstractCloudProviderAwareStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ApplySourceServerGroupCapacityStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
+import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityTask
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.DetermineSourceServerGroupTask
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.kato.tasks.DiffTask
@@ -40,6 +42,9 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
   @Autowired(required = false)
   List<DiffTask> diffTasks
 
+  @Autowired(required = false)
+  List<DeployStagePreProcessor> deployStagePreProcessors = []
+
   AbstractDeployStrategyStage(String name) {
     super(name)
   }
@@ -60,6 +65,24 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
 
     // TODO(ttomsu): This is currently an AWS-only stage. I need to add and support the "useSourceCapacity" option.
     List<Step> steps = [buildStep(stage, "determineSourceServerGroup", DetermineSourceServerGroupTask)]
+
+    def stageData = stage.mapTo(StageData)
+    deployStagePreProcessors.findAll { it.supports(stage) }.each {
+      def defaultContext = [
+        credentials  : stageData.account,
+        cloudProvider: stageData.cloudProvider
+      ]
+      it.beforeStageDefinitions().each {
+        injectBefore(stage, it.name, it.stageBuilder, defaultContext + it.context)
+      }
+      it.afterStageDefinitions().each {
+        injectAfter(stage, it.name, it.stageBuilder, defaultContext + it.context)
+      }
+      it.additionalSteps().each {
+        steps << buildStep(stage, it.name, it.taskClass)
+      }
+    }
+
     if (!strategy.replacesBasicSteps()) {
       steps.addAll((basicSteps(stage) ?: []) as List<Step>)
 
