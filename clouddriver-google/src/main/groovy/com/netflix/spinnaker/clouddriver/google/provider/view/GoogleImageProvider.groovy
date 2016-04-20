@@ -31,8 +31,6 @@ import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.IMAGES
 
 @Slf4j
-@ConditionalOnProperty(value = "google.providerImpl", havingValue = "new")
-@Primary // TODO(ttomsu): Delete when GoogleResourceRetriever is deleted.
 @Component
 class GoogleImageProvider implements ImageProvider {
 

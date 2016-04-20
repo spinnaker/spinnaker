@@ -23,7 +23,7 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
-import com.netflix.spinnaker.clouddriver.google.model.GoogleApplication2
+import com.netflix.spinnaker.clouddriver.google.model.GoogleApplication
 import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,7 +33,6 @@ import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.APPLICATIONS
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.CLUSTERS
 
-@ConditionalOnProperty(value = "google.providerImpl", havingValue = "new")
 @Component
 class GoogleApplicationProvider implements ApplicationProvider {
   @Autowired
@@ -49,7 +48,7 @@ class GoogleApplicationProvider implements ApplicationProvider {
   ObjectMapper objectMapper
   
   @Override
-  Set<GoogleApplication2.View> getApplications(boolean expand) {
+  Set<GoogleApplication.View> getApplications(boolean expand) {
     def filter = expand ? RelationshipCacheFilter.include(CLUSTERS.ns) : RelationshipCacheFilter.none()
     cacheView.getAll(APPLICATIONS.ns,
                      cacheView.filterIdentifiers(APPLICATIONS.ns, "$GoogleCloudProvider.GCE:*"),
@@ -57,7 +56,7 @@ class GoogleApplicationProvider implements ApplicationProvider {
   }
 
   @Override
-  GoogleApplication2.View getApplication(String name) {
+  GoogleApplication.View getApplication(String name) {
     CacheData cacheData = cacheView.get(APPLICATIONS.ns,
                                         Keys.getApplicationKey(name),
                                         RelationshipCacheFilter.include(CLUSTERS.ns))
@@ -66,8 +65,8 @@ class GoogleApplicationProvider implements ApplicationProvider {
     }
   }
 
-  GoogleApplication2.View applicationFromCacheData(CacheData cacheData) {
-    GoogleApplication2.View applicationView = objectMapper.convertValue(cacheData.attributes, GoogleApplication2)?.view
+  GoogleApplication.View applicationFromCacheData(CacheData cacheData) {
+    GoogleApplication.View applicationView = objectMapper.convertValue(cacheData.attributes, GoogleApplication)?.view
 
     cacheData.relationships[CLUSTERS.ns].each { String clusterKey ->
       def clusterKeyParsed = Keys.parse(clusterKey)

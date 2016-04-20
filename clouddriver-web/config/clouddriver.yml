@@ -123,7 +123,6 @@ azure:
 
 google:
   enabled: false
-  providerImpl: new # or new
   baseImageProjects:
   - centos-cloud
   - coreos-cloud

@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2016 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,41 +17,27 @@
 package com.netflix.spinnaker.clouddriver.google.model
 
 import com.netflix.spinnaker.clouddriver.model.Application
+import groovy.transform.Canonical
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 
-@Deprecated
 @CompileStatic
 @EqualsAndHashCode(includes = ["name"])
-class GoogleApplication implements Application, Serializable {
+class GoogleApplication {
   String name
-  Map<String, Set<String>> clusterNames = Collections.synchronizedMap(new HashMap<String, Set<String>>())
-  Map<String, String> attributes = Collections.synchronizedMap(new HashMap<String, String>())
-  // accountName -> clusterName -> cluster (I think?)
-  // TODO(ttomsu): If the above is correct, make `getClusterNames` a method that uses this amalgamation field.
-  Map<String, Map<String, GoogleCluster>> clusters = Collections.synchronizedMap(new HashMap<String, Map<String, GoogleCluster>>())
 
-  // Used as a deep copy-constructor.
-  public static GoogleApplication newInstance(GoogleApplication originalGoogleApplication) {
-    GoogleApplication copyGoogleApplication = new GoogleApplication(name: originalGoogleApplication.name)
+  View getView() {
+    new View()
+  }
 
-    originalGoogleApplication.clusterNames.each { accountNameKey, originalClusterNames ->
-      copyGoogleApplication.clusterNames[accountNameKey] = new HashSet<String>()
-      copyGoogleApplication.clusterNames[accountNameKey].addAll(originalClusterNames)
-    }
+  @Canonical
+  class View implements Application {
+    String name = GoogleApplication.this.name
+    Map<String, String> attributes = [:]
 
-    originalGoogleApplication.attributes.each {
-      copyGoogleApplication.attributes[it.key] = it.value
-    }
-
-    originalGoogleApplication.clusters.each { accountNameKey, originalClustersMap ->
-      copyGoogleApplication.clusters[accountNameKey] = new HashMap<String, GoogleCluster>()
-
-      originalClustersMap.each { clusterNameKey, originalCluster ->
-        copyGoogleApplication.clusters[accountNameKey][clusterNameKey] = GoogleCluster.newInstance(originalCluster)
-      }
-    }
-
-    copyGoogleApplication
+    /**
+     * Account name -> cluster names
+     */
+    Map<String, Set<String>> clusterNames = [:].withDefault {[] as Set}
   }
 }

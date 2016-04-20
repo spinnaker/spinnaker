@@ -38,8 +38,8 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
-import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance2
-import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup2
+import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.transform.Canonical
@@ -87,7 +87,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
   CacheResult loadData(ProviderCache providerCache) {
     def cacheResultBuilder = new CacheResultBuilder(startTime: System.currentTimeMillis())
 
-    List<GoogleServerGroup2> serverGroups = getServerGroups()
+    List<GoogleServerGroup> serverGroups = getServerGroups()
     def serverGroupKeys = serverGroups.collect { Keys.getServerGroupKey(it.name, accountName, it.region) }
 
     providerCache.getAll(ON_DEMAND.ns, serverGroupKeys).each { CacheData cacheData ->
@@ -111,18 +111,18 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
     cacheResults
   }
 
-  private List<GoogleServerGroup2> getServerGroups() {
+  private List<GoogleServerGroup> getServerGroups() {
     List<String> zones = compute.regions().get(project, region).execute().getZones().collect { Utils.getLocalName(it) }
     constructServerGroups(null /*onDemandServerGroupName*/, zones)
   }
 
-  private GoogleServerGroup2 getServerGroup(String onDemandServerGroupName, String zone) {
+  private GoogleServerGroup getServerGroup(String onDemandServerGroupName, String zone) {
     def serverGroups = constructServerGroups(onDemandServerGroupName, [zone])
     serverGroups ? serverGroups.first() : null
   }
 
-  private List<GoogleServerGroup2> constructServerGroups(String onDemandServerGroupName, List<String> zones) {
-    List<GoogleServerGroup2> serverGroups = []
+  private List<GoogleServerGroup> constructServerGroups(String onDemandServerGroupName, List<String> zones) {
+    List<GoogleServerGroup> serverGroups = []
 
     BatchRequest igmlRequest = buildBatchRequest()
     BatchRequest instanceGroupsRequest = buildBatchRequest()
@@ -160,7 +160,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
       return null
     }
 
-    GoogleServerGroup2 serverGroup = metricsSupport.readData {
+    GoogleServerGroup serverGroup = metricsSupport.readData {
       getServerGroup(data.serverGroupName as String, data.zone as String)
     }
 
@@ -231,10 +231,10 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
 
   }
 
-  private CacheResult buildCacheResult(CacheResultBuilder cacheResultBuilder, List<GoogleServerGroup2> serverGroups) {
+  private CacheResult buildCacheResult(CacheResultBuilder cacheResultBuilder, List<GoogleServerGroup> serverGroups) {
     log.info "Describing items in $agentType"
 
-    serverGroups.each { GoogleServerGroup2 serverGroup ->
+    serverGroups.each { GoogleServerGroup serverGroup ->
       def names = Names.parseName(serverGroup.name)
       def applicationName = names.app
       def clusterName = names.cluster
@@ -258,7 +258,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
         relationships[SERVER_GROUPS.ns].add(serverGroupKey)
       }
 
-      serverGroup.instances.each { GoogleInstance2 partialInstance ->
+      serverGroup.instances.each { GoogleInstance partialInstance ->
         def instanceKey = Keys.getInstanceKey(accountName, serverGroup.region, partialInstance.name)
         instanceKeys << instanceKey
         cacheResultBuilder.namespace(INSTANCES.ns).keep(instanceKey).relationships[SERVER_GROUPS.ns].add(serverGroupKey)
@@ -301,14 +301,14 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
     cacheResultBuilder.build()
   }
 
-  boolean shouldUseOnDemandData(CacheResultBuilder cacheResultBuilder, GoogleServerGroup2 googleServerGroup) {
+  boolean shouldUseOnDemandData(CacheResultBuilder cacheResultBuilder, GoogleServerGroup googleServerGroup) {
     def serverGroupKey = Keys.getServerGroupKey(googleServerGroup.name, accountName, googleServerGroup.region)
     CacheData cacheData = cacheResultBuilder.onDemand.toKeep[serverGroupKey]
 
     return cacheData ? cacheData.attributes.cacheTime >= cacheResultBuilder.startTime : false
   }
 
-  void moveOnDemandDataToNamespace(CacheResultBuilder cacheResultBuilder, GoogleServerGroup2 googleServerGroup) {
+  void moveOnDemandDataToNamespace(CacheResultBuilder cacheResultBuilder, GoogleServerGroup googleServerGroup) {
     def serverGroupKey = Keys.getServerGroupKey(googleServerGroup.name, accountName, googleServerGroup.region)
     Map<String, List<MutableCacheData>> onDemandData = objectMapper.readValue(
         cacheResultBuilder.onDemand.toKeep[serverGroupKey].attributes.cacheResults as String,
@@ -337,7 +337,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
   class InstanceGroupManagerListCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceGroupManagerList> implements FailureLogger {
 
     String onDemandServerGroupName
-    List<GoogleServerGroup2> serverGroups
+    List<GoogleServerGroup> serverGroups
     String zone
     BatchRequest instanceGroupsRequest
     BatchRequest autoscalerRequest
@@ -356,7 +356,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
         def appName = names.app.toLowerCase()
 
         if (appName && shouldIncludeServerGroup(instanceGroupManager.name as String)) {
-          def serverGroup = new GoogleServerGroup2(
+          def serverGroup = new GoogleServerGroup(
               name: instanceGroupManager.name,
               region: region,
               zone: zone,
@@ -392,12 +392,12 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
 
   class InstanceGroupsCallback<InstanceGroupsListInstances> extends JsonBatchCallback<InstanceGroupsListInstances> implements FailureLogger {
 
-    GoogleServerGroup2 serverGroup
+    GoogleServerGroup serverGroup
 
     @Override
     void onSuccess(InstanceGroupsListInstances instanceGroupsListInstances, HttpHeaders responseHeaders) throws IOException {
       instanceGroupsListInstances?.items?.each { InstanceWithNamedPorts instance ->
-        serverGroup.instances << new GoogleInstance2(name: Utils.getLocalName(instance.instance as String))
+        serverGroup.instances << new GoogleInstance(name: Utils.getLocalName(instance.instance as String))
       }
     }
   }
@@ -407,7 +407,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
 
     private static final String LOAD_BALANCER_NAMES = "load-balancer-names"
 
-    GoogleServerGroup2 serverGroup
+    GoogleServerGroup serverGroup
     List<String> loadBalancerNames
 
     @Override
@@ -449,7 +449,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
 
   class AutoscalerAggregatedListCallback<AutoscalerAggregatedList> extends JsonBatchCallback<AutoscalerAggregatedList> implements FailureLogger {
 
-    List<GoogleServerGroup2> serverGroups
+    List<GoogleServerGroup> serverGroups
 
     @Override
     void onSuccess(AutoscalerAggregatedList autoscalerAggregatedList, HttpHeaders responseHeaders) throws IOException {

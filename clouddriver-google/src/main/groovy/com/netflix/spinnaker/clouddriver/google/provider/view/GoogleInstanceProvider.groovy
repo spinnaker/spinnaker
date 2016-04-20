@@ -22,8 +22,8 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
-import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance2
-import com.netflix.spinnaker.clouddriver.google.model.GoogleLoadBalancer2
+import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
+import com.netflix.spinnaker.clouddriver.google.model.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
@@ -36,10 +36,9 @@ import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
-@ConditionalOnProperty(value = "google.providerImpl", havingValue = "new")
 @Component
 @Slf4j
-class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2.View> {
+class GoogleInstanceProvider implements InstanceProvider<GoogleInstance.View> {
 
   @Autowired
   final Cache cacheView
@@ -56,7 +55,7 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2.View> {
   final String platform = GoogleCloudProvider.GCE
 
   @Override
-  GoogleInstance2.View getInstance(String account, String region, String id) {
+  GoogleInstance.View getInstance(String account, String region, String id) {
     Set<GoogleSecurityGroup> securityGroups = securityGroupProvider.getAll(false)
     def key = Keys.getInstanceKey(account, region, id)
     getInstanceCacheDatas([key])?.findResult { CacheData cacheData ->
@@ -65,9 +64,9 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2.View> {
   }
 
   /**
-   * Non-interface method for efficient building of GoogleInstance2 models during cluster or server group requests.
+   * Non-interface method for efficient building of GoogleInstance models during cluster or server group requests.
    */
-  List<GoogleInstance2> getInstances(List<String> instanceKeys, Set<GoogleSecurityGroup> securityGroups) {
+  List<GoogleInstance> getInstances(List<String> instanceKeys, Set<GoogleSecurityGroup> securityGroups) {
     getInstanceCacheDatas(instanceKeys)?.collect {
       instanceFromCacheData(it, securityGroups)
     }
@@ -100,13 +99,13 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2.View> {
     return null
   }
 
-  GoogleInstance2 instanceFromCacheData(CacheData cacheData, Set<GoogleSecurityGroup> securityGroups) {
-    GoogleInstance2 instance = objectMapper.convertValue(cacheData.attributes, GoogleInstance2)
+  GoogleInstance instanceFromCacheData(CacheData cacheData, Set<GoogleSecurityGroup> securityGroups) {
+    GoogleInstance instance = objectMapper.convertValue(cacheData.attributes, GoogleInstance)
 
     def loadBalancerKeys = cacheData.relationships[LOAD_BALANCERS.ns]
     if (loadBalancerKeys) {
       cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys).each { CacheData loadBalancerCacheData ->
-        GoogleLoadBalancer2 loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleLoadBalancer2)
+        GoogleLoadBalancer loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleLoadBalancer)
         def foundHealths = loadBalancer.healths.findAll { GoogleLoadBalancerHealth health ->
           health.instanceName == instance.name
         }
@@ -118,8 +117,6 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2.View> {
           //   to receive them."
           // This implies that the load balancer state should be UNHEALTHY in cases where the platform health state is
           // not RUNNING.
-          //
-          // See com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleLoadBalancerCachingAgent.TargetPoolInstanceHealthCallback.onSuccess
           instance.loadBalancerHealths.addAll(foundHealths)
         }
       }

@@ -53,9 +53,6 @@ class GoogleInfrastructureProviderConfig {
   @Autowired
   GoogleConfiguration googleConfiguration
 
-  @Value('${google.providerImpl}')
-  String providerImpl
-
   @Bean
   @DependsOn('googleNamedAccountCredentials')
   GoogleInfrastructureProvider googleInfrastructureProvider(AccountCredentialsRepository accountCredentialsRepository,
@@ -118,27 +115,25 @@ class GoogleInfrastructureProviderConfig {
                                                            region)
         }
 
-        if (providerImpl == "new") {
-          newlyAddedAgents << new GoogleInstanceCachingAgent(googleConfiguration.googleApplicationName(),
-                                                             credentials,
-                                                             objectMapper)
-          newlyAddedAgents << new GoogleImageCachingAgent(googleConfiguration.googleApplicationName(),
-                                                          credentials,
-                                                          objectMapper,
-                                                          credentials.imageProjects,
-                                                          googleConfiguration.googleConfigurationProperties().baseImageProjects)
-          credentials.regions.keySet().each { String region ->
-            newlyAddedAgents << new GoogleLoadBalancerCachingAgent(googleConfiguration.googleApplicationName(),
-                                                                   credentials,
-                                                                   objectMapper,
-                                                                   region,
-                                                                   registry)
-            newlyAddedAgents << new GoogleServerGroupCachingAgent(googleConfiguration.googleApplicationName(),
-                                                                  credentials,
-                                                                  objectMapper,
-                                                                  region,
-                                                                  registry)
-          }
+        newlyAddedAgents << new GoogleInstanceCachingAgent(googleConfiguration.googleApplicationName(),
+                                                           credentials,
+                                                           objectMapper)
+        newlyAddedAgents << new GoogleImageCachingAgent(googleConfiguration.googleApplicationName(),
+                                                        credentials,
+                                                        objectMapper,
+                                                        credentials.imageProjects,
+                                                        googleConfiguration.googleConfigurationProperties().baseImageProjects)
+        credentials.regions.keySet().each { String region ->
+          newlyAddedAgents << new GoogleLoadBalancerCachingAgent(googleConfiguration.googleApplicationName(),
+                                                                 credentials,
+                                                                 objectMapper,
+                                                                 region,
+                                                                 registry)
+          newlyAddedAgents << new GoogleServerGroupCachingAgent(googleConfiguration.googleApplicationName(),
+                                                                credentials,
+                                                                objectMapper,
+                                                                region,
+                                                                registry)
         }
 
         // If there is an agent scheduler, then this provider has been through the AgentController in the past.

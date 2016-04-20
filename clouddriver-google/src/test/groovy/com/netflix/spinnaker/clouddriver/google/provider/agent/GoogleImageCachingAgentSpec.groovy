@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent
 import com.google.api.services.compute.model.DeprecationStatus
 import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.ImageList
-import com.netflix.spinnaker.clouddriver.google.model.callbacks.ImagesCallback
+
 import spock.lang.Specification
 
 class GoogleImageCachingAgentSpec extends Specification {
@@ -41,7 +41,8 @@ class GoogleImageCachingAgentSpec extends Specification {
                                  buildImage("otheros-9-something-v20141021", true),
                                  buildImage("otheros-9-something-v20141108", true)])
 
-      def imagesCallback2 = new ImagesCallback(imageList, true)
+      def imagesCallback2 = new GoogleImageCachingAgent.LatestImagesCallback(new GoogleImageCachingAgent())
+      imagesCallback2.imageList = imageList
       def imageListResult2 = new ImageList()
       imageListResult2.setItems([buildImage("ubuntu-1404-trusty-v20141028", false),
                                  buildImage("ubuntu-1404-trusty-v20141029", true),

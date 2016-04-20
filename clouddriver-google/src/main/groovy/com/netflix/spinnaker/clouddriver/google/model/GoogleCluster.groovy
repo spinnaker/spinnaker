@@ -16,35 +16,33 @@
 
 package com.netflix.spinnaker.clouddriver.google.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.model.Cluster
+import groovy.transform.Canonical
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 
-@Deprecated
 @CompileStatic
 @EqualsAndHashCode(includes = ["name", "accountName"])
-class GoogleCluster implements Cluster, Serializable {
+class GoogleCluster {
   String name
-  String type = GoogleCloudProvider.GCE
   String accountName
-  Set<GoogleServerGroup> serverGroups = Collections.synchronizedSet(new HashSet<GoogleServerGroup>())
-  Set<GoogleLoadBalancer> loadBalancers = Collections.synchronizedSet(new HashSet<GoogleLoadBalancer>())
 
-  // Used as a deep copy-constructor.
-  public static GoogleCluster newInstance(GoogleCluster originalGoogleCluster) {
-    GoogleCluster copyGoogleCluster = new GoogleCluster(name: originalGoogleCluster.name,
-                                                        type: originalGoogleCluster.type,
-                                                        accountName: originalGoogleCluster.accountName)
+  @JsonIgnore
+  View getView() {
+    new View()
+  }
 
-    originalGoogleCluster.serverGroups.each { originalServerGroup ->
-      copyGoogleCluster.serverGroups << GoogleServerGroup.newInstance(originalServerGroup)
-    }
+  @Canonical
+  class View implements Cluster {
 
-    originalGoogleCluster.loadBalancers.each { originalLoadBalancer ->
-      copyGoogleCluster.loadBalancers << GoogleLoadBalancer.newInstance(originalLoadBalancer)
-    }
+    final String type = GoogleCloudProvider.GCE
 
-    copyGoogleCluster
+    String name = GoogleCluster.this.name
+    String accountName = GoogleCluster.this.accountName
+
+    Set<GoogleServerGroup.View> serverGroups = [] as Set
+    Set<GoogleLoadBalancer.View> loadBalancers = [] as Set
   }
 }

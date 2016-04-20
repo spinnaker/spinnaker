@@ -19,8 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.model.callbacks
 import com.google.api.services.compute.model.Instance
 import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.Metadata
-import com.netflix.spinnaker.clouddriver.google.model.GoogleApplication
-import com.netflix.spinnaker.clouddriver.google.model.GoogleCluster
+
 import org.springframework.util.ClassUtils
 
 import java.text.SimpleDateFormat
@@ -67,37 +66,6 @@ class Utils {
     } else {
       return []
     }
-  }
-
-  static GoogleCluster retrieveOrCreatePathToCluster(
-    Map<String, GoogleApplication> tempAppMap, String accountName, String appName, String clusterName) {
-    if (!tempAppMap[appName]) {
-      tempAppMap[appName] = new GoogleApplication(name: appName)
-    }
-
-    if (!tempAppMap[appName].clusterNames[accountName]) {
-      tempAppMap[appName].clusterNames[accountName] = new HashSet<String>()
-      tempAppMap[appName].clusters[accountName] = new HashMap<String, GoogleCluster>()
-    }
-
-    if (!tempAppMap[appName].clusters[accountName][clusterName]) {
-      tempAppMap[appName].clusters[accountName][clusterName] =
-        new GoogleCluster(name: clusterName, accountName: accountName)
-    }
-
-    tempAppMap[appName].clusterNames[accountName] << clusterName
-
-    return tempAppMap[appName].clusters[accountName][clusterName]
-  }
-
-  static Map<String, GoogleApplication> deepCopyApplicationMap(Map<String, GoogleApplication> originalAppMap) {
-    Map copyMap = new HashMap<String, GoogleApplication>()
-
-    originalAppMap.each { appNameKey, originalGoogleApplication ->
-      copyMap[appNameKey] = GoogleApplication.newInstance(originalGoogleApplication)
-    }
-
-    return copyMap
   }
 
   static Object getImmutableCopy(def value) {

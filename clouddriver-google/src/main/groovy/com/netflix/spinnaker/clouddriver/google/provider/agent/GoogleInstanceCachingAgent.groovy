@@ -26,7 +26,7 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
-import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance2
+import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleInstanceHealth
 import groovy.transform.InheritConstructors
@@ -49,12 +49,12 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    List<GoogleInstance2> instances = getInstances()
+    List<GoogleInstance> instances = getInstances()
     buildCacheResults(providerCache, instances)
   }
 
-  List<GoogleInstance2> getInstances() {
-    List<GoogleInstance2> instances = new ArrayList<GoogleInstance2>()
+  List<GoogleInstance> getInstances() {
+    List<GoogleInstance> instances = new ArrayList<GoogleInstance>()
 
     BatchRequest instancesRequest = buildBatchRequest()
     InstanceAggregatedListCallback instancesCallback = new InstanceAggregatedListCallback(instances: instances)
@@ -64,10 +64,10 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
     instances
   }
 
-  CacheResult buildCacheResults(ProviderCache providerCache, List<GoogleInstance2> googleInstances) {
+  CacheResult buildCacheResults(ProviderCache providerCache, List<GoogleInstance> googleInstances) {
     CacheResultBuilder cacheResultBuilder = new CacheResultBuilder()
 
-    googleInstances.each { GoogleInstance2 instance ->
+    googleInstances.each { GoogleInstance instance ->
       def instanceKey = Keys.getInstanceKey(accountName, instance.region, instance.name)
       cacheResultBuilder.namespace(INSTANCES.ns).keep(instanceKey).with {
         attributes = objectMapper.convertValue(instance, ATTRIBUTES)
@@ -81,7 +81,7 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
 
   class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCallback<InstanceAggregatedList> implements FailureLogger {
 
-    List<GoogleInstance2> instances
+    List<GoogleInstance> instances
 
     @Override
     void onSuccess(InstanceAggregatedList instanceAggregatedList, HttpHeaders responseHeaders) throws IOException {
@@ -92,7 +92,7 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
               Utils.getTimeFromTimestamp(instance.creationTimestamp) :
               Long.MAX_VALUE
           String instanceName = Utils.getLocalName(instance.name)
-          def googleInstance = new GoogleInstance2(
+          def googleInstance = new GoogleInstance(
               name: instanceName,
               instanceType: Utils.getLocalName(instance.machineType),
               launchTime: instanceTimestamp,
