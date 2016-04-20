@@ -37,26 +37,23 @@
             <tbody>
             <tr ng-repeat="rule in securityGroup.securityGroupIngress">
               <td>
-                <span class="form-control-static" ng-if="rule.existing">
-                  <account-tag account="rule.accountName" ng-if="rule.accountName !== securityGroup.accountName"></account-tag>
-                  {{rule.name}}
-                </span>
-                <ui-select ng-if="!rule.existing" ng-model="rule.name" class="form-control input-sm" required style="width: 244px">
-                  <ui-select-match>{{$select.selected}}</ui-select-match>
-                  <ui-select-choices repeat="securityGroup as securityGroup in availableSecurityGroups | filter: $select.search | limitTo: state.infiniteScroll.currentItems"
-                                     infinite-scroll="ctrl.addMoreItems()"
-                                     infinite-scroll-distance="2">
-                    <span ng-bind-html="securityGroup | highlight: $select.search"></span>
-                  </ui-select-choices>
-                </ui-select>
+                <ingress-rule-group-selector rule="rule"
+                                             ng-if="state.securityGroupsLoaded"
+                                             security-group="securityGroup"
+                                             vpcs="allVpcs"
+                                             accounts="accounts"
+                                             all-security-groups="allSecurityGroups"
+                                             coordinates-changed="coordinatesChanged"
+                                             all-security-groups-updated="allSecurityGroupsUpdated"></ingress-rule-group-selector>
               </td>
               <td><select class="form-control input-sm" ng-model="rule.type"
                           ng-options="protocol as protocol.toUpperCase() for protocol in ['tcp', 'udp', 'icmp']" required></select></td>
               <td><input class="form-control input-sm" type="number" min="0" ng-model="rule.startPort" required/></td>
               <td><input class="form-control input-sm" type="number" min="0" ng-model="rule.endPort" required/></td>
-              <td><a class="btn btn-link sm-label"
-                     ng-click="ctrl.removeRule(securityGroup.securityGroupIngress, $index)"><span
-                class="glyphicon glyphicon-trash"></span></a></td>
+              <td><a class="sm-label"
+                     ng-click="ctrl.removeRule(securityGroup.securityGroupIngress, $index)">
+                <span class="glyphicon glyphicon-trash"></span></a>
+              </td>
             </tr>
             </tbody>
             <tfoot>

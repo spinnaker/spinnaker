@@ -154,7 +154,7 @@ describe('Controller: CreateSecurityGroup', function () {
 
     describe('security group removal', function () {
       beforeEach(function () {
-        spyOn(this.v2modalWizardService, 'markDirty').and.callFake(angular.noop);
+        spyOn(this.v2modalWizardService, 'markDirty').and.returnValue(null);
         this.initializeCtrl();
         let securityGroup = this.$scope.securityGroup;
         securityGroup.credentials = 'prod';

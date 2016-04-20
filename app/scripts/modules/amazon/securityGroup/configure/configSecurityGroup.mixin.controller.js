@@ -12,6 +12,7 @@ module.exports = angular
     require('../../../core/modal/wizard/v2modalWizard.service'),
     require('../../../core/utils/lodash'),
     require('../../../core/config/settings'),
+    require('./ingressRuleGroupSelector.component'),
   ])
   .controller('awsConfigSecurityGroupMixin', function ($scope,
                                                        $state,
@@ -24,15 +25,13 @@ module.exports = angular
                                                        accountService,
                                                        v2modalWizardService,
                                                        cacheInitializer,
+                                                       infrastructureCaches,
                                                        vpcReader,
-                                                       settings,
-                                                             _ ) {
+                                                       settings, _, rx) {
 
 
 
     var ctrl = this;
-
-    $scope.isNew = true;
 
     $scope.state = {
       submitting: false,
@@ -52,6 +51,8 @@ module.exports = angular
       $scope.state.infiniteScroll.currentItems += $scope.state.infiniteScroll.numToAdd;
     };
 
+    let getAccount = () => $scope.securityGroup.accountName || $scope.securityGroup.credentials;
+
     function onApplicationRefresh() {
       // If the user has already closed the modal, do not navigate to the new details view
       if ($scope.$$destroyed) {
@@ -60,7 +61,7 @@ module.exports = angular
       $uibModalInstance.close();
       var newStateParams = {
         name: $scope.securityGroup.name,
-        accountId: $scope.securityGroup.credentials || $scope.securityGroup.accountName,
+        accountId: getAccount(),
         region: $scope.securityGroup.regions[0],
         vpcId: $scope.securityGroup.vpcId,
         provider: 'aws',
@@ -86,6 +87,13 @@ module.exports = angular
 
     $scope.securityGroup = securityGroup;
 
+    ctrl.initializeAccounts = () => {
+      return accountService.listAccounts('aws').then(function(accounts) {
+        $scope.accounts = accounts;
+        ctrl.accountUpdated();
+      });
+    };
+
     ctrl.upsert = function () {
       $scope.taskMonitor.submit(
         function() {
@@ -100,31 +108,30 @@ module.exports = angular
     }
 
     ctrl.accountUpdated = function() {
-      var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
-      accountService.getRegionsForAccount(account).then(function(regions) {
-        $scope.regions = _.pluck(regions, 'name');
+      accountService.getRegionsForAccount(getAccount()).then(regions => {
+        $scope.regions = regions.map(region => region.name);
         clearSecurityGroups();
         ctrl.regionUpdated();
-        ctrl.updateName();
+        if ($scope.state.isNew) {
+          ctrl.updateName();
+        }
       });
     };
 
     ctrl.regionUpdated = function() {
-      var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
+      var account = getAccount(),
+          regions = $scope.securityGroup.regions || [];
       vpcReader.listVpcs().then(function(vpcs) {
         var vpcsByName = _.groupBy(vpcs.filter(vpc => vpc.account === account), 'label');
         $scope.allVpcs = vpcs;
         var available = [];
         _.forOwn(vpcsByName, function(vpcsToTest, label) {
-          var foundInAllRegions = true;
-          _.forEach($scope.securityGroup.regions, function(region) {
-            if (!_.some(vpcsToTest, { region: region, account: account })) {
-              foundInAllRegions = false;
-            }
+          var foundInAllRegions = regions.every(region => {
+            return vpcsToTest.some(test => test.region === region && test.account === account);
           });
           if (foundInAllRegions) {
             available.push( {
-              ids: _.pluck(vpcsToTest, 'id'),
+              ids: vpcsToTest.filter(t => regions.indexOf(t.region) > -1).map(vpc => vpc.id),
               label: label,
               deprecated: vpcsToTest[0].deprecated,
             });
@@ -155,18 +162,19 @@ module.exports = angular
     };
 
     this.vpcUpdated = function() {
-      var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName,
-        regions = $scope.securityGroup.regions;
-      if (account && regions && regions.length) {
+      var account = getAccount(),
+          regions = $scope.securityGroup.regions;
+      if (account && regions.length) {
         configureFilteredSecurityGroups();
       } else {
         clearSecurityGroups();
       }
+      $scope.coordinatesChanged.onNext();
     };
 
     function configureFilteredSecurityGroups() {
       var vpcId = $scope.securityGroup.vpcId || null;
-      var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
+      var account = getAccount();
       var regions = $scope.securityGroup.regions || [];
       var existingSecurityGroupNames = [];
       var availableSecurityGroups = [];
@@ -204,8 +212,12 @@ module.exports = angular
     };
 
     function clearInvalidSecurityGroups() {
-      var removed = $scope.state.removedRules;
-      $scope.securityGroup.securityGroupIngress = $scope.securityGroup.securityGroupIngress.filter(function(rule) {
+      var removed = $scope.state.removedRules,
+          securityGroup = $scope.securityGroup;
+      $scope.securityGroup.securityGroupIngress = securityGroup.securityGroupIngress.filter(rule => {
+        if (rule.accountName !== securityGroup.accountName || (rule.vpcId && rule.vpcId !== securityGroup.vpcId)) {
+          return true;
+        }
         if (rule.name && $scope.availableSecurityGroups.indexOf(rule.name) === -1 && removed.indexOf(rule.name) === -1) {
           removed.push(rule.name);
           return false;
@@ -227,10 +239,18 @@ module.exports = angular
       });
     };
 
+    this.getSecurityGroupRefreshTime = function() {
+      return infrastructureCaches.securityGroups.getStats().ageMax;
+    };
+
     var allSecurityGroups = {};
+
+    $scope.allSecurityGroupsUpdated = new rx.Subject();
+    $scope.coordinatesChanged = new rx.Subject();
 
     ctrl.initializeSecurityGroups = function() {
       return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
+        $scope.state.securityGroupsLoaded = true;
         allSecurityGroups = securityGroups;
         var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
         var region = $scope.securityGroup.regions[0];
@@ -244,6 +264,8 @@ module.exports = angular
         }
 
         $scope.availableSecurityGroups = _.pluck(availableGroups, 'name');
+        $scope.allSecurityGroups = securityGroups;
+        $scope.allSecurityGroupsUpdated.onNext();
       });
     };
 
