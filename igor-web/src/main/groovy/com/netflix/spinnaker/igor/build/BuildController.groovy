@@ -70,18 +70,24 @@ class BuildController {
     }
 
     @RequestMapping(value = '/builds/queue/{master}/{item}')
-    QueuedJob getQueueLocation(@PathVariable String master, @PathVariable int item){
-        if (!buildMasters.filteredMap(BuildServiceProvider.JENKINS).containsKey(master)) {
-            throw new MasterNotFoundException("Master '${master}' not found")
-        }
-        try {
-            return buildMasters.map[master].getQueuedItem(item)
-        } catch (RetrofitError e) {
-            if (e.response?.status == HttpStatus.NOT_FOUND.value()) {
-                throw new QueuedJobNotFoundException("Queued job '${item}' not found for master '${master}'.")
+    Object getQueueLocation(@PathVariable String master, @PathVariable int item){
+        if (buildMasters.filteredMap(BuildServiceProvider.JENKINS).containsKey(master)) {
+
+            try {
+                return buildMasters.map[master].getQueuedItem(item)
+            } catch (RetrofitError e) {
+                if (e.response?.status == HttpStatus.NOT_FOUND.value()) {
+                    throw new QueuedJobNotFoundException("Queued job '${item}' not found for master '${master}'.")
+                }
+                throw e
             }
-            throw e
+        } else if (buildMasters.filteredMap(BuildServiceProvider.TRAVIS).containsKey(master)) {
+            log.info "pretending that I have a queue in travis for ${master}:${item}"
+            return buildMasters.map[master].queuedBuild(item)
+        } else {
+            throw new MasterNotFoundException("Master '${master}' not found, item: ${item}")
         }
+
     }
 
     @RequestMapping(value = '/builds/all/{master}/**')
@@ -136,41 +142,43 @@ class BuildController {
         @RequestParam Map<String, String> requestParams, HttpServletRequest request) {
         def job = (String) request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(4).join('/')
-        if (!buildMasters.filteredMap(BuildServiceProvider.JENKINS).containsKey(master)) {
+        if (buildMasters.filteredMap(BuildServiceProvider.JENKINS).containsKey(master)) {
+            def response
+            def jenkinsService = buildMasters.map[master]
+            JobConfig jobConfig = jenkinsService.getJobConfig(job)
+
+            if (jobConfig.parameterDefinitionList?.size() > 0) {
+                validateJobParameters(jobConfig, requestParams)
+            }
+            if (requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
+                response = jenkinsService.buildWithParameters(job, requestParams)
+            } else if (!requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
+                // account for when you just want to fire a job with the default parameter values by adding a dummy param
+                response = jenkinsService.buildWithParameters(job, ['startedBy': "igor"])
+            } else if (!requestParams && (!jobConfig.parameterDefinitionList || jobConfig.parameterDefinitionList.size() == 0)) {
+                response = jenkinsService.build(job)
+            } else { // Jenkins will reject the build, so don't even try
+                // we should throw a BuildJobError, but I get a bytecode error : java.lang.VerifyError: Bad <init> method call from inside of a branch
+                throw new RuntimeException("job : ${job}, passing params to a job which doesn't need them")
+            }
+
+            if (response.status != 201) {
+                throw new BuildJobError("Received a non-201 status when submitting job '${job}' to master '${master}'")
+            }
+
+            log.info("Submitted build job `${job}`")
+            def locationHeader = response.headers.find { it.name == "Location" }
+            if (!locationHeader) {
+                throw new QueuedJobDeterminationError("Could not find Location header for job '${job}'")
+            }
+            def queuedLocation = locationHeader.value
+
+            queuedLocation.split('/')[-1]
+        } else if (buildMasters.filteredMap(BuildServiceProvider.TRAVIS).containsKey(master)) {
+            return buildMasters.map[master].triggerBuild(job)
+        } else {
             throw new MasterNotFoundException("Master '${master}' not found")
         }
-
-        def response
-        def jenkinsService = buildMasters.map[master]
-        JobConfig jobConfig = jenkinsService.getJobConfig(job)
-
-        if (jobConfig.parameterDefinitionList?.size() > 0) {
-            validateJobParameters(jobConfig, requestParams)
-        }
-        if (requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
-            response = jenkinsService.buildWithParameters(job, requestParams)
-        } else if (!requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
-            // account for when you just want to fire a job with the default parameter values by adding a dummy param
-            response = jenkinsService.buildWithParameters(job, ['startedBy': "igor"])
-        } else if (!requestParams && (!jobConfig.parameterDefinitionList || jobConfig.parameterDefinitionList.size() == 0)) {
-            response = jenkinsService.build(job)
-        } else { // Jenkins will reject the build, so don't even try
-            // we should throw a BuildJobError, but I get a bytecode error : java.lang.VerifyError: Bad <init> method call from inside of a branch
-            throw new RuntimeException("job : ${job}, passing params to a job which doesn't need them")
-        }
-
-        if (response.status != 201) {
-            throw new BuildJobError("Received a non-201 status when submitting job '${job}' to master '${master}'")
-        }
-
-        log.info("Submitted build job `${job}`")
-        def locationHeader = response.headers.find { it.name == "Location" }
-        if (!locationHeader) {
-            throw new QueuedJobDeterminationError("Could not find Location header for job '${job}'")
-        }
-        def queuedLocation = locationHeader.value
-
-        queuedLocation.split('/')[-1]
     }
 
     static void validateJobParameters(JobConfig jobConfig, Map<String, String> requestParams) {

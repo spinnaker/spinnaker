@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.config
 
 import com.netflix.spinnaker.igor.service.BuildMasters
+import com.netflix.spinnaker.igor.travis.TravisCache
 import com.netflix.spinnaker.igor.travis.client.TravisClient
 import com.netflix.spinnaker.igor.travis.client.model.Build
 import com.netflix.spinnaker.igor.travis.service.TravisService
@@ -52,6 +53,9 @@ class TravisConfig {
     @Autowired(required = false)
     BuildMasters buildMasters
 
+    @Autowired
+    TravisCache travisCache
+
     @Bean
     Map<String, TravisService> travisMasters(@Valid TravisProperties travisProperties) {
         log.info "creating travisMasters"
@@ -59,14 +63,14 @@ class TravisConfig {
             String travisName = "travis-${host.name}"
             log.info "bootstrapping ${host.address} as ${travisName}"
 
-            [(travisName): travisService(travisName, host.baseUrl, host.githubToken, travisClient(host.address, clientTimeout))]
+            [(travisName): travisService(travisName, host.baseUrl, host.githubToken, travisClient(host.address, clientTimeout), travisCache)]
         })
         buildMasters.map.putAll travisMasters
         travisMasters
     }
 
-    static TravisService travisService(String travisHostId, String baseUrl, String githubToken, TravisClient travisClient) {
-        return new TravisService(travisHostId, baseUrl, githubToken, travisClient)
+    static TravisService travisService(String travisHostId, String baseUrl, String githubToken, TravisClient travisClient, TravisCache travisCache) {
+        return new TravisService(travisHostId, baseUrl, githubToken, travisClient, travisCache)
     }
 
     static TravisClient travisClient(String address, int timeout = 30000) {

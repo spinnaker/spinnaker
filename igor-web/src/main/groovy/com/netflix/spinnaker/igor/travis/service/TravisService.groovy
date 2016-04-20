@@ -21,6 +21,7 @@ import com.netflix.spinnaker.igor.build.model.GenericGitRevision
 import com.netflix.spinnaker.igor.build.model.GenericJobConfiguration
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildService
+import com.netflix.spinnaker.igor.travis.TravisCache
 import com.netflix.spinnaker.igor.travis.client.TravisClient
 import com.netflix.spinnaker.igor.travis.client.logparser.ArtifactParser
 import com.netflix.spinnaker.igor.travis.client.logparser.PropertyParser
@@ -31,8 +32,11 @@ import com.netflix.spinnaker.igor.travis.client.model.Builds
 import com.netflix.spinnaker.igor.travis.client.model.Job
 import com.netflix.spinnaker.igor.travis.client.model.Jobs
 import com.netflix.spinnaker.igor.travis.client.model.Repo
+import com.netflix.spinnaker.igor.travis.client.model.RepoRequest
 import com.netflix.spinnaker.igor.travis.client.model.Repos
+import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
 
@@ -42,14 +46,16 @@ class TravisService implements BuildService {
     final String groupKey
     final String githubToken
     final TravisClient travisClient
+    final TravisCache travisCache
     private AccessToken accessToken
     private Accounts accounts
 
-    TravisService(String travisHostId, String baseUrl, String githubToken, TravisClient travisClient) {
+    TravisService(String travisHostId, String baseUrl, String githubToken, TravisClient travisClient, TravisCache travisCache) {
         this.groupKey     = "travis-${travisHostId}"
         this.githubToken  = githubToken
         this.travisClient = travisClient
         this.baseUrl      = baseUrl
+        this.travisCache  = travisCache
     }
 
     void setAccessToken() {
@@ -57,6 +63,9 @@ class TravisService implements BuildService {
     }
 
     String getAccessToken() {
+        if (!accessToken) {
+            setAccessToken()
+        }
         return "token " + accessToken.accessToken
     }
 
@@ -86,7 +95,7 @@ class TravisService implements BuildService {
 
     Build getBuild(String repoSlug, int buildNumber) {
         Builds builds = getBuilds(repoSlug, buildNumber)
-        return builds.builds.first()
+        return builds.builds.size() > 0 ? builds.builds.first() : null
     }
 
     @Override
@@ -171,7 +180,7 @@ class TravisService implements BuildService {
     }
 
     Repo getRepo(String repoSlug) {
-        return travisClient.repo(getAccessToken(), repoSlug)
+        return travisClient.repoWrapper(getAccessToken(), repoSlug).repo
     }
 
     GenericBuild getGenericBuild(Build build, String repoSlug) {
@@ -188,6 +197,27 @@ class TravisService implements BuildService {
 
     String getUrl(String repoSlug) {
         return "${baseUrl}/${repoSlug}"
+    }
+
+    int triggerBuild (String repoSlug) {
+        Repo repo = getRepo(repoSlug)
+        RepoRequest repoRequest = new RepoRequest("master")
+        TriggerResponse triggerResponse = travisClient.triggerBuild(getAccessToken(), repoSlug, repoRequest)
+        if (triggerResponse.remainingRequests) {
+            log.info "${groupKey}: remaining requests: ${triggerResponse.remainingRequests}"
+        }
+        return travisCache.setQueuedJob(groupKey, repoSlug, repo.lastBuildNumber+1)
+    }
+
+    Map<String, Integer> queuedBuild(int queueId) {
+        Map queuedJob = travisCache.getQueuedJob(groupKey, queueId)
+        Build build = getBuild(queuedJob.jobName, queuedJob.buildNumber)
+        if (build) {
+            log.info "removing ${queueId} from ${groupKey} travisCache"
+            travisCache.remove(groupKey, queueId)
+            return ["number":build.number]
+        }
+        return null
     }
 
     @Override

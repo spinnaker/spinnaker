@@ -25,6 +25,9 @@ import groovy.util.logging.Slf4j
 class TravisResultConverter {
     static Result getResultFromTravisState(String state) {
         switch (state) {
+            case "created":
+                return Result.NOT_BUILT
+                break
             case "started":
                 return Result.BUILDING
                 break
@@ -41,8 +44,8 @@ class TravisResultConverter {
                 return Result.FAILURE
                 break
             default:
-                log.info ("could not convert ${state} to result, setting FAILURE")
-                return Result.FAILURE
+                log.info ("could not convert ${state}")
+                throw new IllegalArgumentException("state: ${state} is not known to TravisResultConverter.")
                 break
         }
 
