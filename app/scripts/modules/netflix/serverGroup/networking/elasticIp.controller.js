@@ -7,9 +7,10 @@ module.exports = angular.module('spinnaker.aws.serverGroup.details.elasticIp.con
   require('../../../core/task/monitor/taskMonitorService.js')
 ])
   .controller('ElasticIpCtrl', function($scope, $uibModalInstance, elasticIpWriter, taskMonitorService,
-                                        application, serverGroup, elasticIp, onTaskComplete) {
+                                        application, serverGroup, elasticIp, onTaskComplete, settings) {
     $scope.serverGroup = serverGroup;
     $scope.elasticIp = elasticIp;
+    $scope.gateUrl = settings.gateUrl;
 
     $scope.verification = {};
 

@@ -50,7 +50,9 @@
         <div class="col-md-4">
           <p>
           <input type="text" class="form-control input-sm" maxlength="15" ng-model="elasticIp.address" placeholder="xxx.xxx.xxx.xxx">
+          <a target="_blank" ng-href="{{gateUrl}}/elasticIps/{{serverGroup.account}}/{{serverGroup.region}}?available=true&type={{elasticIp.type}}&assigned=false">Available Elastic IPs</a>
           </p>
+
         </div>
       </div>
 
