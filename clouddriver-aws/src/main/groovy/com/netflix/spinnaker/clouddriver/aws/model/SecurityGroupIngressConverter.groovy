@@ -56,6 +56,9 @@ class SecurityGroupIngressConverter {
     ipPermissions.collect { IpPermission ipPermission ->
       ipPermission.userIdGroupPairs.collect {
         it.groupName = null
+        it.vpcId = null
+        it.peeringStatus = null
+        it.vpcPeeringConnectionId = null
         new IpPermission()
           .withFromPort(ipPermission.fromPort)
           .withToPort(ipPermission.toPort)
