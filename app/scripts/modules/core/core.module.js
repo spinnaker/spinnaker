@@ -109,6 +109,7 @@ module.exports = angular
     require('./pipeline/config/stages/wait/waitStage.module.js'),
     require('./pipeline/config/stages/waitForParentTasks/waitForParentTasks.js'),
     require('./pipeline/config/stages/createLoadBalancer/createLoadBalancerStage.module.js'),
+    require('./pipeline/config/stages/applySourceServerGroupCapacity/applySourceServerGroupCapacityStage.module.js'),
     require('./pipeline/config/preconditions/preconditions.module.js'),
     require('./pipeline/config/preconditions/types/clusterSize/clusterSize.precondition.type.module.js'),
     require('./pipeline/config/preconditions/types/expression/expression.precondition.type.module.js'),

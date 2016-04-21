@@ -1,0 +1,22 @@
+<div ng-controller="applySourceServerGroupCapacityDetailsCtrl">
+  <execution-details-section-nav sections="configSections"></execution-details-section-nav>
+  <div class="step-section-details" ng-if="detailsSection === 'capacitySnapshot'">
+    <div class="row">
+      <div class="col-md-12">
+        <dl class="dl-narrow dl-horizontal">
+          <dt>Min</dt>
+          <dd>{{parentDeployStage.context.sourceServerGroupCapacitySnapshot.min}}</dd>
+          <dt>Desired</dt>
+          <dd>{{parentDeployStage.context.sourceServerGroupCapacitySnapshot.desired}}</dd>
+          <dt>Max</dt>
+          <dd>{{parentDeployStage.context.sourceServerGroupCapacitySnapshot.max}}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+  <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
+    <div class="row">
+      <execution-step-details item="stage"></execution-step-details>
+    </div>
+  </div>
+</div>
