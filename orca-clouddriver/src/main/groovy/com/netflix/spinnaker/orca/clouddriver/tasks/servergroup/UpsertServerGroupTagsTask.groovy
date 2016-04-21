@@ -45,7 +45,7 @@ class UpsertServerGroupTagsTask extends AbstractCloudProviderAwareTask implement
       }
     } else if (stage.context.asgs) {
       deployServerGroups = (stage.context.asgs as Collection<Map>).collectEntries {
-        [(it.region): [stage.context.serverGroupName ?: stage.context.asgName]]
+        [(it.region): [it.serverGroupName ?: it.asgName]]
       }
     }
 
