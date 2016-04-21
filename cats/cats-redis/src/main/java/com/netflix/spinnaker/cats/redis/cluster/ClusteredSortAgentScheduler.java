@@ -61,6 +61,7 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware implements Agen
   private static final String ADD_AGENT_SCRIPT = "addAgentScript";
   private static final String VALID_SCORE_SCRIPT = "validScoreScript";
   private static final String SWAP_SET_SCRIPT = "swapSetScript";
+  private static final String REMOVE_AGENT_SCRIPT = "removeAgentScript";
   private static final String CONDITIONAL_SWAP_SET_SCRIPT = "conditionalSwapSetScript";
 
   private ConcurrentHashMap<String, String> scriptShas;
@@ -129,6 +130,10 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware implements Agen
         "    return redis.call('zadd', KEYS[1], ARGV[2], ARGV[1])\n" +
         "  else return nil end\n" +
         "else return nil end\n"));
+
+      scriptShas.put(REMOVE_AGENT_SCRIPT, jedis.scriptLoad(
+        "redis.call('zrem', KEYS[1], ARGV[1])\n" +
+        "redis.call('zrem', KEYS[2], ARGV[1])\n"));
     }
   }
 
@@ -184,8 +189,15 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware implements Agen
   public boolean lockValid(ClusteredSortAgentLock lock) {
     try (Jedis jedis = jedisSource.getJedis()) {
       return jedis.evalsha(getScriptSha(VALID_SCORE_SCRIPT, jedis), 1, WORKING_SET,
-                                        lock.getAgent().getAgentType(),
-                                        lock.getAcquireScore()) != null;
+                           lock.getAgent().getAgentType(),
+                           lock.getAcquireScore()) != null;
+    }
+  }
+
+  public void unschedule(Agent agent) {
+    agents.remove(agent.getAgentType());
+    try (Jedis jedis = jedisSource.getJedis()) {
+      jedis.evalsha(getScriptSha(REMOVE_AGENT_SCRIPT, jedis), 2, WAITING_SET, WORKING_SET, agent.getAgentType());
     }
   }
 
