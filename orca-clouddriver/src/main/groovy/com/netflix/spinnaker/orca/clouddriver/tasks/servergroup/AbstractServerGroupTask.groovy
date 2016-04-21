@@ -58,6 +58,11 @@ abstract class AbstractServerGroupTask extends AbstractCloudProviderAwareTask im
     String account = getCredentials(stage)
 
     def operation = convert(stage)
+    if (!operation) {
+      // nothing to do but succeed
+      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    }
+
     def taskId = kato.requestOperations(cloudProvider, [[(serverGroupAction): operation]])
         .toBlocking()
         .first()
