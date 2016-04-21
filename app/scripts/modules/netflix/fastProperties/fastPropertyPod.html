@@ -48,6 +48,11 @@
                 </i>
               </dd>
 
+              <dt ng-if="property.stack">Stack</dt>
+              <dd ng-if="property.stack">
+                {{property.stack}}
+              </dd>
+
               <dt ng-if="property.asg" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('asg') > -1}">ASG</dt>
               <dd ng-if="property.asg" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('asg') > -1}">
                 {{property.asg}}
