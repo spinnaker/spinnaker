@@ -167,7 +167,7 @@ class DiscoverySupport {
     def containsDiscoveryStatus = false
 
     serverGroup*.instances*.health.flatten().each { Map<String, String> health ->
-      if (targetDiscoveryStatus.equalsIgnoreCase(health?.discoveryStatus)) {
+      if (targetDiscoveryStatus.equalsIgnoreCase(health?.eurekaStatus)) {
         containsDiscoveryStatus = true
       }
     }
