@@ -385,4 +385,30 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
 
   }
 
+  void "should ignore name, peering status, vpcPeeringConnectionId, and vpcId when comparing ingress rules"() {
+    final existingSecurityGroup = Mock(SecurityGroupLookupFactory.SecurityGroupUpdater)
+    final ingressSecurityGroup = Mock(SecurityGroupLookupFactory.SecurityGroupUpdater)
+    description.securityGroupIngress = [
+      new SecurityGroupIngress(name: "bar", startPort: 111, endPort: 112, ipProtocol: "tcp", accountName: "test")
+    ]
+    description.vpcId = null
+
+    when:
+    op.operate([])
+
+    then:
+    1 * securityGroupLookup.getAccountIdForName("test") >> "accountId1"
+    1 * securityGroupLookup.getSecurityGroupByName("test", "bar", null) >> ingressSecurityGroup
+
+    then:
+    1 * securityGroupLookup.getSecurityGroupByName("test", "foo", null) >> existingSecurityGroup
+    1 * ingressSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "bar", groupId: "124")
+    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
+      new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
+        new UserIdGroupPair(userId: "accountId1", groupName: "baz", groupId: "124", vpcId: "vpc-123", vpcPeeringConnectionId: "pca", peeringStatus: "active")])
+    ])
+    0 * _
+
+  }
+
 }
