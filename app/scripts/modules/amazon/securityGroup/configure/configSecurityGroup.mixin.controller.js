@@ -186,8 +186,9 @@ module.exports = angular
           regionalVpcId = _.find($scope.allVpcs, { account: account, region: region, name: baseVpc.name }).id;
         }
 
-        var regionalSecurityGroups = _.filter(allSecurityGroups[account].aws[region], { vpcId: regionalVpcId }),
-          regionalGroupNames = _.pluck(regionalSecurityGroups, 'name');
+        var regionalGroupNames = _.get(allSecurityGroups, [account, 'aws', region].join('.'), [])
+          .filter(sg => sg.vpcId === regionalVpcId)
+          .map(sg => sg.name);
 
         existingSecurityGroupNames = _.uniq(existingSecurityGroupNames.concat(regionalGroupNames));
 

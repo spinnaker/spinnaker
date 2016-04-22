@@ -47,11 +47,9 @@ module.exports = angular
             regionalVpcId = regionalVpc ? regionalVpc.id : undefined;
           }
 
-          var regionalGroupNames = this.allSecurityGroups[account].aws[region]
-            .filter(group => group.vpcId === regionalVpcId)
-            .map(group => group.name);
-
-          existingSecurityGroupNames = _.uniq(existingSecurityGroupNames.concat(regionalGroupNames));
+          var regionalGroupNames = _.get(this.allSecurityGroups, [account, 'aws', region].join('.'), [])
+            .filter(sg => sg.vpcId === regionalVpcId)
+            .map(sg => sg.name);
 
           if (!availableSecurityGroups.length) {
             availableSecurityGroups = existingSecurityGroupNames;
@@ -63,7 +61,7 @@ module.exports = angular
           this.configureAvailableVpcs();
         }
         this.availableSecurityGroups = availableSecurityGroups;
-        if (availableSecurityGroups.indexOf(this.rule.name) === -1) {
+        if (availableSecurityGroups.indexOf(this.rule.name) === -1 && !this.rule.existing) {
           this.rule.name = null;
         }
       };
@@ -79,7 +77,7 @@ module.exports = angular
           deprecated: vpc.deprecated,
         });
       };
-      
+
       let reconcileRuleVpc = (filtered) => {
         if (this.rule.vpcId) {
           if (!this.securityGroup.vpcId) {
