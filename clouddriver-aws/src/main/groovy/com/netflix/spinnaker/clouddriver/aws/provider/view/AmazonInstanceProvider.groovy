@@ -21,6 +21,7 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.core.provider.agent.ExternalHealthProvider
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
@@ -35,6 +36,9 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.IN
 class AmazonInstanceProvider implements InstanceProvider<AmazonInstance> {
 
   private final Cache cacheView
+
+  @Autowired(required = false)
+  List<ExternalHealthProvider> externalHealthProviders
 
   @Autowired
   AmazonInstanceProvider(Cache cacheView) {
@@ -60,7 +64,18 @@ class AmazonInstanceProvider implements InstanceProvider<AmazonInstance> {
     if (instanceEntry.relationships[HEALTH.ns]) {
       instance.health.addAll(cacheView.getAll(HEALTH.ns, instanceEntry.relationships[HEALTH.ns])*.attributes)
     }
-
+    externalHealthProviders.each { externalHealthProvider ->
+      def healthKeys = []
+      externalHealthProvider.agents.each { externalHealthAgent ->
+        healthKeys << Keys.getInstanceHealthKey(instance.name, account, region, externalHealthAgent.healthId)
+      }
+      healthKeys.unique().each { key ->
+        def externalHealth = cacheView.getAll(HEALTH.ns, key)
+        if (externalHealth) {
+          instance.health.addAll(externalHealth*.attributes)
+        }
+      }
+    }
     instance
   }
 
