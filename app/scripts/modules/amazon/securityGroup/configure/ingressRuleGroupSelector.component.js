@@ -51,6 +51,8 @@ module.exports = angular
             .filter(sg => sg.vpcId === regionalVpcId)
             .map(sg => sg.name);
 
+          existingSecurityGroupNames = _.uniq(existingSecurityGroupNames.concat(regionalGroupNames));
+
           if (!availableSecurityGroups.length) {
             availableSecurityGroups = existingSecurityGroupNames;
           } else {
