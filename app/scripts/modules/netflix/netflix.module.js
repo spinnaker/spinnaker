@@ -17,6 +17,7 @@ module.exports = angular
     require('./feedback/feedback.module.js'),
     require('./instance/aws/netflixAwsInstanceDetails.controller.js'),
     require('./pipeline/stage/canary/canaryStage.module.js'),
+    require('./pipeline/stage/acaTask/acaTaskStage.module'),
     require('./pipeline/stage/properties'),
     require('./pipeline/stage/quickPatchAsg/quickPatchAsgStage.module.js'),
     require('./pipeline/stage/quickPatchAsg/bulkQuickPatchStage/bulkQuickPatchStage.module.js'),
