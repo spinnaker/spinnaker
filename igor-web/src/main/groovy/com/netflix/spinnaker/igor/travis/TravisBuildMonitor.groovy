@@ -20,6 +20,7 @@ import com.netflix.appinfo.InstanceInfo
 import com.netflix.discovery.DiscoveryClient
 import com.netflix.spinnaker.igor.build.BuildCache
 import com.netflix.spinnaker.igor.build.model.GenericBuild
+import com.netflix.spinnaker.igor.build.model.GenericGitRevision
 import com.netflix.spinnaker.igor.build.model.GenericProject
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.history.model.GenericBuildContent
@@ -27,10 +28,13 @@ import com.netflix.spinnaker.igor.history.model.GenericBuildEvent
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.polling.PollingMonitor
 import com.netflix.spinnaker.igor.service.BuildMasters
+import com.netflix.spinnaker.igor.service.BuildService
 import com.netflix.spinnaker.igor.travis.client.model.Build
+import com.netflix.spinnaker.igor.travis.client.model.Commit
 import com.netflix.spinnaker.igor.travis.client.model.Repo
 import com.netflix.spinnaker.igor.travis.service.TravisBuildConverter
 import com.netflix.spinnaker.igor.travis.service.TravisResultConverter
+import com.netflix.spinnaker.igor.travis.service.TravisService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -125,18 +129,21 @@ class TravisBuildMonitor implements PollingMonitor{
         log.info('Checking for new builds for ' + master)
         List<String> cachedRepoSlugs = buildCache.getJobNames(master)
         List<Map> results = []
-        buildMasters.map[master].setAccessToken()
+
+        TravisService travisService = buildMasters.map[master]
+
+        travisService.setAccessToken()
         lastPoll = System.currentTimeMillis()
-        buildMasters.map[master].getAccounts()
+        travisService.getAccounts()
         def startTime = System.currentTimeMillis()
-        List<Repo> repos = buildMasters.map[master].getReposForAccounts()
+        List<Repo> repos = travisService.getReposForAccounts()
         log.info("Took ${System.currentTimeMillis() - startTime}ms to retrieve ${repos.size()} repositories (master: ${master})")
         List<String> repoSlugs = repos*.slug
         Observable.from(cachedRepoSlugs).filter { String name ->
             !(name in repoSlugs)
         }.subscribe(
             { String repoSlug ->
-                if (!buildMasters.map[master].getRepo(repoSlug)) {
+                if (!travisService.hasRepo(repoSlug)) {
                     log.info "Removing ${master}:${repoSlug}"
                     buildCache.remove(master, repoSlug)
                 }
@@ -161,13 +168,14 @@ class TravisBuildMonitor implements PollingMonitor{
 
                             log.info "sending build events for builds between ${lastBuild} and ${currentBuild}"
                             for (int buildNumber = lastBuild+1; buildNumber < currentBuild; buildNumber++) {
-                                Build build = buildMasters.map[master].getBuild(repo, buildNumber) //rewrite to afterNumber list thing
-                                log.info "pushing event for ${master}:${repo.slug}:${build.number}"
-                                String url = "${buildMasters.map[master].baseUrl}/${repo.slug}/builds/${build.id}"
-                                GenericProject project = new GenericProject(repo.slug, new GenericBuild((build.state == BUILD_IN_PROGRESS), build.number, build.duration, TravisResultConverter.getResultFromTravisState(build.state), repo.slug, url))
-
-                                echoService.postEvent(
-                                    new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis')))
+                                Build build = travisService.getBuild(repo, buildNumber) //rewrite to afterNumber list thing
+                                if (build?.state) {
+                                    log.info "pushing event for ${master}:${repo.slug}:${build.number}"
+                                    String url = "${travisService.baseUrl}/${repo.slug}/builds/${build.id}"
+                                    GenericProject project = new GenericProject(repo.slug, new GenericBuild((build.state == BUILD_IN_PROGRESS), build.number, build.duration, TravisResultConverter.getResultFromTravisState(build.state), repo.slug, url))
+                                    echoService.postEvent(
+                                        new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis')))
+                                }
                             }
                         }
                     }
@@ -180,12 +188,28 @@ class TravisBuildMonitor implements PollingMonitor{
                     if (echoService) {
                         log.info "pushing event for ${master}:${repo.slug}:${repo.lastBuildNumber}"
 
-                        GenericProject project = new GenericProject(repo.slug, TravisBuildConverter.genericBuild(repo, buildMasters.map[master].baseUrl))
+                        GenericProject project = new GenericProject(repo.slug, TravisBuildConverter.genericBuild(repo, travisService.baseUrl))
                         echoService.postEvent(
                             new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis'))
                         )
 
                     }
+                    Commit commit = travisService.getCommit(repo.slug, repo.lastBuildNumber)
+                    if (commit) {
+                        String branchedSlug = "${repo.slug}/${commit.branchNameWithTagHandling()}"
+                        buildCache.setLastBuild(master, branchedSlug, repo.lastBuildNumber, repo.lastBuildState == BUILD_IN_PROGRESS)
+                        if (echoService) {
+                            log.info "pushing event for ${master}:${branchedSlug}:${repo.lastBuildNumber}"
+
+                            GenericProject project = new GenericProject(branchedSlug, TravisBuildConverter.genericBuild(repo, travisService.baseUrl))
+                            echoService.postEvent(
+                                new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis'))
+                            )
+
+                        }
+                    }
+
+
                     results << [previous: cachedBuild, current: repo]
                 }
             }, {

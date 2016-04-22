@@ -293,6 +293,88 @@ class TravisClientSpec extends Specification {
         builds.builds.size() == 0
     }
 
+    def "commits, identify tag"() {
+        given:
+        setResponse '''{
+            "builds": [{
+                           "id": 281721,
+                           "repository_id": 1993,
+                           "commit_id": 156529,
+                           "number": "39",
+                           "pull_request": false,
+                           "pull_request_title": null,
+                           "pull_request_number": null,
+                           "state": "passed",
+                           "started_at": "2016-04-19T09:19:25Z",
+                           "finished_at": "2016-04-19T09:23:08Z",
+                           "duration": 223,
+                           "job_ids": [281722]
+                       }],
+            "commits": [{
+                            "id": 156529,
+                            "sha": "1537853a99a3b90abe53d74ff7d908eec7641138",
+                            "branch": "v1.17.4",
+                            "message": "Some message",
+                            "committed_at": "2016-04-12T15:46:54Z",
+                            "author_name": "Some user",
+                            "author_email": "some.user@domain.com",
+                            "committer_name": "Some user",
+                            "committer_email": "some.user@domain.com",
+                            "compare_url": "https://github.domain/org/repo/compare/v1.17.4",
+                            "pull_request_number": null
+                        }]
+        }'''
+
+        when:
+        Builds builds = client.builds("someToken", "org/repo", 39)
+
+        then:
+        builds.commits.first().isTag() == true
+
+    }
+
+    def "commits, dont mark regular branches as tags"() {
+        given:
+        setResponse '''
+            {
+                "builds": [{
+                               "id": 273844,
+                               "repository_id": 1993,
+                               "commit_id": 152035,
+                               "number": "38",
+                               "pull_request": false,
+                               "pull_request_title": null,
+                               "pull_request_number": null,
+                               "state": "passed",
+                               "started_at": "2016-04-12T15:47:18Z",
+                               "finished_at": "2016-04-12T15:49:57Z",
+                               "duration": 159,
+                               "job_ids": [273845]
+                           }],
+                "commits": [{
+                            "id": 152035,
+                            "sha": "153abe7853a99a3b3553d74ff7d908eec7641138",
+                            "branch": "sch_master",
+                            "message": "some commit",
+                            "committed_at": "2016-04-12T15:46:54Z",
+                            "author_name": "Some user",
+                            "author_email": "some.user@domain.com",
+                            "committer_name": "Some user",
+                            "committer_email": "some.user@domain.com",
+                                "compare_url": "https://github.domain/org/repo/compare/845cddf3543f...153abe7853a9",
+                                "pull_request_number": null
+                            }]
+            }
+        '''
+
+        when:
+        Builds builds = client.builds("someToken", "org/repo", 38)
+
+        then:
+        builds.commits.first().isTag() == false
+
+    }
+
     private void setResponse(String body) {
         server.enqueue(
             new MockResponse()

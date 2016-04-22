@@ -23,6 +23,8 @@ import org.springframework.stereotype.Service
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 
+import java.util.concurrent.TimeUnit
+
 
 /*
     This creates an internal queue for igor triggered travis jobs.
@@ -58,7 +60,7 @@ class TravisCache {
 
     int setQueuedJob(String master, String jobName, int buildNumber) {
         Jedis resource = jedisPool.getResource()
-        int queueId = (int) (long) new Date().getTime()
+        int queueId = (int) (long) TimeUnit.MILLISECONDS.toSeconds(new Date().getTime())
         resource.withCloseable {
             while (resource.exists(makeKey(master, queueId))) {
                 queueId++;

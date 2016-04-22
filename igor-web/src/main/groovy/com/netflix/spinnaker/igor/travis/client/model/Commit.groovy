@@ -37,7 +37,24 @@ class Commit {
     @SerializedName("author_name")
     String authorName
 
+    @SerializedName("compare_url")
+    String compareUrl
+
     GenericGitRevision genericGitRevision() {
         return new GenericGitRevision(branch, branch, sha)
+    }
+
+    boolean isTag(){
+        if (!compareUrl) {
+            return false
+        }
+        return compareUrl.split("/compare/").last().matches(branch)
+    }
+
+    String branchNameWithTagHandling() {
+        if (isTag()) {
+            return "tags"
+        }
+        return branch
     }
 }
