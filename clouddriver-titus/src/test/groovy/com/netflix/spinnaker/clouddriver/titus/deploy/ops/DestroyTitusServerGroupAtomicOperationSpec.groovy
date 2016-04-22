@@ -36,7 +36,7 @@ class DestroyTitusServerGroupAtomicOperationSpec extends Specification {
   }
 
   NetflixTitusCredentials testCredentials = new NetflixTitusCredentials(
-    'test', 'test', 'test', [new TitusRegion('us-east-1', 'test', 'http://foo')]
+    'test', 'test', 'test', [new TitusRegion('us-east-1', 'test', 'http://foo')], 'test'
   )
 
   DestroyTitusServerGroupDescription description = new DestroyTitusServerGroupDescription(

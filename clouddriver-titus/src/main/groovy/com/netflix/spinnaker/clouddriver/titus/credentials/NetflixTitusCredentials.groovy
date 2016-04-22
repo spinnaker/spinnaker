@@ -28,14 +28,16 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
   final String environment
   final String accountType
   final List<String> requiredGroupMembership = Collections.emptyList()
+  final String bastionHost
 
   private final List<TitusRegion> regions
 
-  NetflixTitusCredentials(String name, String environment, String accountType, List<TitusRegion> regions) {
+  NetflixTitusCredentials(String name, String environment, String accountType, List<TitusRegion> regions, String bastionHost) {
     this.name = name
     this.environment = environment
     this.accountType = accountType
     this.regions = regions?.asImmutable() ?: Collections.emptyList()
+    this.bastionHost = bastionHost
   }
 
   @Override
