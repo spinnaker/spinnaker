@@ -27,6 +27,7 @@ import spock.lang.Specification
 
 class TerminateGoogleInstancesDescriptionValidatorSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
+  private static final REGION = "us-central1"
   private static final ZONE = "us-central1-b"
   private static final MANAGED_INSTANCE_GROUP_NAME = "my-app7-dev-v000"
   private static final INSTANCE_IDS = ["my-app7-dev-v000-instance1", "my-app7-dev-v000-instance2"]
@@ -61,7 +62,7 @@ class TerminateGoogleInstancesDescriptionValidatorSpec extends Specification {
 
   void "pass validation with proper description inputs with managed instance group"() {
     setup:
-      def description = new TerminateGoogleInstancesDescription(zone: ZONE,
+      def description = new TerminateGoogleInstancesDescription(region: REGION,
                                                                 serverGroupName: MANAGED_INSTANCE_GROUP_NAME,
                                                                 instanceIds: INSTANCE_IDS,
                                                                 accountName: ACCOUNT_NAME)
@@ -72,6 +73,32 @@ class TerminateGoogleInstancesDescriptionValidatorSpec extends Specification {
 
     then:
       0 * errors._
+  }
+
+  void "fail validation with managed instance group and no region"() {
+    setup:
+      def description = new TerminateGoogleInstancesDescription(serverGroupName: MANAGED_INSTANCE_GROUP_NAME,
+                                                                instanceIds: INSTANCE_IDS,
+                                                                accountName: ACCOUNT_NAME)
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue('region', _)
+  }
+
+  void "fail validation without managed instance group and no zone"() {
+    setup:
+      def description = new TerminateGoogleInstancesDescription(instanceIds: INSTANCE_IDS, accountName: ACCOUNT_NAME)
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue('zone', _)
   }
 
   void "invalid instanceIds fail validation"() {

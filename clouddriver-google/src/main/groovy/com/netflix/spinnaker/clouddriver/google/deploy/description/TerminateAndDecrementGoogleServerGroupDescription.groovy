@@ -21,7 +21,10 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 class TerminateAndDecrementGoogleServerGroupDescription {
   String serverGroupName
   List<String> instanceIds
-  String zone
+  String region
   String accountName
   GoogleCredentials credentials
+
+  @Deprecated
+  String zone
 }

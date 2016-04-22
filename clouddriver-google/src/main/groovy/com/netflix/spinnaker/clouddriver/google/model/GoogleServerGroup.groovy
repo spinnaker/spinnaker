@@ -64,6 +64,7 @@ class GoogleServerGroup {
 
     String name = GoogleServerGroup.this.name
     String region = GoogleServerGroup.this.region
+    String zone = GoogleServerGroup.this.zone
     Set<String> zones = [GoogleServerGroup.this.zone]
     Set<GoogleInstance.View> instances = GoogleServerGroup.this.instances.collect { it?.view }
     Map<String, Object> asg = GoogleServerGroup.this.asg

@@ -21,7 +21,9 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.TerminateGoogleInstancesDescription
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * Terminate and delete instances. If the instances are in a managed instance group they will be recreated.
@@ -44,6 +46,9 @@ class TerminateGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
 
   private final TerminateGoogleInstancesDescription description
 
+  @Autowired
+  GoogleClusterProvider googleClusterProvider
+
   TerminateGoogleInstancesAtomicOperation(TerminateGoogleInstancesDescription description) {
     this.description = description
   }
@@ -59,31 +64,34 @@ class TerminateGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
    * If a managed instance group is specified, we rely on the manager to terminate and recreate the instances.
    *
    * curl -X POST -H "Content-Type: application/json" -d '[ { "terminateInstances": { "instanceIds": ["myapp-dev-v000-abcd"], "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "terminateInstances": { "serverGroupName": "myapp-dev-v000", "instanceIds": ["myapp-dev-v000-abcd"], "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "terminateInstances": { "serverGroupName": "myapp-dev-v000", "instanceIds": ["myapp-dev-v000-abcd"], "region": "us-central1", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
    */
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing termination of instances (${description.instanceIds.join(", ")}) in " +
-      "$description.zone..."
+      "${description.region ?: description.zone}..."
 
     def compute = description.credentials.compute
     def project = description.credentials.project
-    def zone = description.zone
+    def region = description.region
+    def serverGroupName = description.serverGroupName
     def instanceIds = description.instanceIds
 
-    if (description.serverGroupName) {
+    if (serverGroupName) {
       task.updateStatus BASE_PHASE, "Recreating instances (${instanceIds.join(", ")}) in server group " +
-          "$description.serverGroupName in $zone..."
+          "$serverGroupName in $region..."
 
-      def managerName = description.serverGroupName
+      def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, description.accountName, region, serverGroupName)
+      def zone = description.zone ?: serverGroup.zone
       def instanceGroupManagers = compute.instanceGroupManagers()
-      def instanceUrls = GCEUtil.deriveInstanceUrls(project, zone, managerName, instanceIds, description.credentials)
+      def instanceUrls = GCEUtil.deriveInstanceUrls(project, zone, serverGroupName, instanceIds, description.credentials)
       def request = new InstanceGroupManagersRecreateInstancesRequest().setInstances(instanceUrls)
 
-      instanceGroupManagers.recreateInstances(project, zone, managerName, request).execute()
+      instanceGroupManagers.recreateInstances(project, zone, serverGroupName, request).execute()
 
-      task.updateStatus BASE_PHASE, "Done recreating instances (${instanceIds.join(", ")}) in $zone."
+      task.updateStatus BASE_PHASE, "Done recreating instances (${instanceIds.join(", ")}) in $region."
     } else {
+      def zone = description.zone
       def firstFailure
       def okIds = []
       def failedIds = []

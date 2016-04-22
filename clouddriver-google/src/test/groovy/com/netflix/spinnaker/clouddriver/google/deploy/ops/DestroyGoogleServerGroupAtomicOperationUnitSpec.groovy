@@ -26,6 +26,8 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DestroyGoogleServerGroupDescription
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import spock.lang.Specification
 import spock.lang.Subject
@@ -36,6 +38,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final SERVER_GROUP_NAME = "spinnaker-test-v000"
   private static final INSTANCE_TEMPLATE_NAME = "$SERVER_GROUP_NAME-${System.currentTimeMillis()}"
   private static final INSTANCE_GROUP_OP_NAME = "spinnaker-test-v000-op"
+  private static final REGION = "us-central1"
   private static final ZONE = "us-central1-b"
   private static final DONE = "DONE"
 
@@ -45,6 +48,8 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
   void "should delete managed instance group"() {
     setup:
+      def googleClusterProviderMock = Mock(GoogleClusterProvider)
+      def serverGroup = new GoogleServerGroup(zone: ZONE).view
       def computeMock = Mock(Compute)
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
       def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
@@ -60,17 +65,20 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def autoscalersGetMock = Mock(Compute.Autoscalers.Get)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new DestroyGoogleServerGroupDescription(serverGroupName: SERVER_GROUP_NAME,
-                                                                zone: ZONE,
+                                                                region: REGION,
                                                                 accountName: ACCOUNT_NAME,
                                                                 credentials: credentials)
       @Subject def operation = new DestroyGoogleServerGroupAtomicOperation(description)
       operation.googleOperationPoller =
         new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+      operation.googleClusterProvider = googleClusterProviderMock
 
     when:
       operation.operate([])
 
     then:
+      1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME) >> serverGroup
+
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
@@ -93,6 +101,8 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
   void "should delete managed instance group and autoscaler if defined"() {
     setup:
+      def googleClusterProviderMock = Mock(GoogleClusterProvider)
+      def serverGroup = new GoogleServerGroup(zone: ZONE).view
       def computeMock = Mock(Compute)
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
       def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
@@ -109,17 +119,20 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def autoscalersDeleteMock = Mock(Compute.Autoscalers.Delete)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new DestroyGoogleServerGroupDescription(serverGroupName: SERVER_GROUP_NAME,
-                                                                zone: ZONE,
+                                                                region: REGION,
                                                                 accountName: ACCOUNT_NAME,
                                                                 credentials: credentials)
       @Subject def operation = new DestroyGoogleServerGroupAtomicOperation(description)
       operation.googleOperationPoller =
         new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+      operation.googleClusterProvider = googleClusterProviderMock
 
     when:
       operation.operate([])
 
     then:
+      1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME) >> serverGroup
+
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager

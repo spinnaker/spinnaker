@@ -37,6 +37,8 @@ import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceN
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDiskType
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 
@@ -314,6 +316,16 @@ class GCEUtil {
     }.collect { securityGroup ->
       securityGroup.targetTags
     }.flatten() - null
+  }
+
+  static GoogleServerGroup.View queryServerGroup(GoogleClusterProvider googleClusterProvider, String accountName, String region, String serverGroupName) {
+    def serverGroup = googleClusterProvider.getServerGroup(accountName, region, serverGroupName)
+
+    if (!serverGroup) {
+      throw new GoogleResourceNotFoundException("Unable to locate server group $serverGroupName in $region.")
+    }
+
+    return serverGroup
   }
 
   static List<String> deriveInstanceUrls(String project,

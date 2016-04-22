@@ -43,7 +43,7 @@ class ModifyGoogleServerGroupInstanceTemplateDescriptionValidator extends Descri
     helper.validateInstanceTypeDisks(googleDeployDefaults.determineInstanceTypeDisk(description.instanceType),
                                      description.disks)
     helper.validateAuthScopes(description.authScopes)
-    helper.validateZone(description.zone)
+    helper.validateRegion(description.region)
     helper.validateServerGroupName(description.serverGroupName)
   }
 }

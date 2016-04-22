@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DestroyGoogleServerGroupDescription
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -31,32 +32,36 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
     TaskRepository.threadLocalTask.get()
   }
 
-  @Autowired
-  private GoogleOperationPoller googleOperationPoller
-
   private final DestroyGoogleServerGroupDescription description
+
+  @Autowired
+  GoogleOperationPoller googleOperationPoller
+
+  @Autowired
+  GoogleClusterProvider googleClusterProvider
 
   DestroyGoogleServerGroupAtomicOperation(DestroyGoogleServerGroupDescription description) {
     this.description = description
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "destroyServerGroup": { "serverGroupName": "myapp-dev-v000", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "destroyServerGroup": { "serverGroupName": "myapp-dev-v000", "region": "us-central1", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
    */
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing destruction of server group $description.serverGroupName in " +
-      "$description.zone..."
+      "$description.region..."
 
     def compute = description.credentials.compute
     def project = description.credentials.project
-    def zone = description.zone
+    def region = description.region
     def serverGroupName = description.serverGroupName
-
+    def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, description.accountName, region, serverGroupName)
+    def zone = serverGroup.zone
     def instanceGroupManager = compute.instanceGroupManagers().get(project, zone, serverGroupName).execute()
 
     // We create a new instance template for each managed instance group. We need to delete it here.
-    def instanceTemplateName = getLocalName(instanceGroupManager.instanceTemplate)
+    def instanceTemplateName = GCEUtil.getLocalName(instanceGroupManager.instanceTemplate)
 
     task.updateStatus BASE_PHASE, "Identified instance template."
 
@@ -84,13 +89,7 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
       task.updateStatus BASE_PHASE, "Deleted autoscaler."
     }
 
-    task.updateStatus BASE_PHASE, "Done destroying server group $serverGroupName in $zone."
+    task.updateStatus BASE_PHASE, "Done destroying server group $serverGroupName in $region."
     null
-  }
-
-  private static String getLocalName(String fullUrl) {
-    int lastIndex = fullUrl.lastIndexOf('/')
-
-    return lastIndex != -1 ? fullUrl.substring(lastIndex + 1) : fullUrl
   }
 }

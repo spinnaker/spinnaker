@@ -23,5 +23,8 @@ import groovy.transform.Canonical
 @Canonical
 class ModifyGoogleServerGroupInstanceTemplateDescription extends BaseGoogleInstanceDescription {
   String serverGroupName
+  String region
+
+  @Deprecated
   String zone
 }

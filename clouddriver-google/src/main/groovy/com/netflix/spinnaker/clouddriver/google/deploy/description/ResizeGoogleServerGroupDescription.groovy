@@ -21,13 +21,16 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 class ResizeGoogleServerGroupDescription {
   String serverGroupName
   Integer targetSize
-  String zone
+  String region
   String accountName
   GoogleCredentials credentials
   /**
    * targetSize takes precedence if it and capacity are both specified.
    */
   Capacity capacity
+
+  @Deprecated
+  String zone
 
   /**
    * Reuse Spinnaker's notion of capacity in an effort to make Orca more generic.

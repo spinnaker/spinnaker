@@ -21,7 +21,9 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.AbandonAndDecrementGoogleServerGroupDescription
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * Abandon instances from a managed instance group, and decrement the size of the managed instance group.
@@ -40,6 +42,9 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpera
 
   private final AbandonAndDecrementGoogleServerGroupDescription description
 
+  @Autowired
+  GoogleClusterProvider googleClusterProvider
+
   AbandonAndDecrementGoogleServerGroupAtomicOperation(AbandonAndDecrementGoogleServerGroupDescription description) {
     this.description = description
   }
@@ -47,17 +52,20 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpera
   /**
    * Attempt to abandon the specified instanceIds and remove from the specified managed instance group.
    *
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "abandonAndDecrementGoogleServerGroupDescription": { "serverGroupName": "myapp-dev-v000", "instanceIds": ["myapp-dev-v000-abcd"], "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "abandonAndDecrementGoogleServerGroupDescription": { "serverGroupName": "myapp-dev-v000", "instanceIds": ["myapp-dev-v000-abcd"], "region": "us-central1", "credentials": "my-account-name" }} ]' localhost:7002/ops
    */
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing abandon and decrement of instances " +
-      "(${description.instanceIds.join(", ")}) from server group ${description.serverGroupName}..."
+      "(${description.instanceIds.join(", ")}) from server group $description.serverGroupName in " +
+      "$description.region..."
 
     def project = description.credentials.project
     def compute = description.credentials.compute
-    def zone = description.zone
+    def region = description.region
     def serverGroupName = description.serverGroupName
+    def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, description.accountName, region, serverGroupName)
+    def zone = serverGroup.zone
     def instanceIds = description.instanceIds
     def instanceUrls = GCEUtil.deriveInstanceUrls(project, zone, serverGroupName, instanceIds, description.credentials)
     def abandonRequest = new InstanceGroupManagersAbandonInstancesRequest().setInstances(instanceUrls)
@@ -65,7 +73,7 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpera
     compute.instanceGroupManagers().abandonInstances(project, zone, serverGroupName, abandonRequest).execute()
 
     task.updateStatus BASE_PHASE, "Done abandoning and decrementing instances " +
-      "(${description.instanceIds.join(", ")}) from server group ${serverGroupName}."
+      "(${description.instanceIds.join(", ")}) from server group $serverGroupName in $region."
     null
   }
 }

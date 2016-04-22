@@ -36,7 +36,13 @@ class TerminateGoogleInstancesDescriptionValidator extends DescriptionValidator<
     StandardGceAttributeValidator helper = new StandardGceAttributeValidator("terminateGoogleInstancesDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
-    helper.validateZone(description.zone)
+
+    if (description.serverGroupName) {
+      helper.validateRegion(description.region)
+    } else {
+      helper.validateZone(description.zone)
+    }
+
     helper.validateInstanceIds(description.instanceIds)
   }
 }

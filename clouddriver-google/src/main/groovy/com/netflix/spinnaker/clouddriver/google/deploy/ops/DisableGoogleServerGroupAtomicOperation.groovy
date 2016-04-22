@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 import com.netflix.spinnaker.clouddriver.google.deploy.description.EnableDisableGoogleServerGroupDescription
 
 /**
- * curl -X POST -H "Content-Type: application/json" -d '[ { "disableServerGroup": { "serverGroupName": "myapp-dev-v000", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
+ * curl -X POST -H "Content-Type: application/json" -d '[ { "disableServerGroup": { "serverGroupName": "myapp-dev-v000", "region": "us-central1", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
  */
 class DisableGoogleServerGroupAtomicOperation extends AbstractEnableDisableAtomicOperation {
   final String phaseName = "DISABLE_SERVER_GROUP"

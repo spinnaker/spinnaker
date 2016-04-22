@@ -36,7 +36,7 @@ class UpsertGoogleServerGroupTagsDescriptionValidator extends DescriptionValidat
     def helper = new StandardGceAttributeValidator("upsertGoogleServerGroupTagsDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
-    helper.validateZone(description.zone)
+    helper.validateRegion(description.region)
     helper.validateServerGroupName(description.serverGroupName)
     helper.validateTags(description.tags)
   }

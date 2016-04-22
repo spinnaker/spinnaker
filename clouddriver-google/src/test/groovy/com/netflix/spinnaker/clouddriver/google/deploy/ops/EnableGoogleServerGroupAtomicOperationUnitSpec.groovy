@@ -30,6 +30,8 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.EnableDisableGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import spock.lang.Specification
 import spock.lang.Subject
@@ -59,11 +61,11 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final ZONE = "us-central1-b"
   private static final REGION = "us-central1"
 
+  def googleClusterProviderMock
+  def serverGroup
   def computeMock
   def instanceGroupsMock
   def instanceGroupsListInstancesMock
-  def zonesMock
-  def zonesGetMock
   def instanceGroupManagersMock
   def instanceGroupManagersGetMock
   def instanceTemplatesMock
@@ -74,7 +76,6 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   def targetPoolsAddInstanceMock
   def instanceGroupManagersSetTargetPoolsMock
 
-  def zone
   def instanceGroupManager
   def instanceGroupsListInstances
   def instanceMetadata
@@ -91,12 +92,10 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   }
 
   def setup() {
+    googleClusterProviderMock = Mock(GoogleClusterProvider)
+    serverGroup = new GoogleServerGroup(zone: ZONE).view
     computeMock = Mock(Compute)
     credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
-
-    zonesMock = Mock(Compute.Zones)
-    zonesGetMock = Mock(Compute.Zones.Get)
-    zone = new Zone(region: REGION)
 
     instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
     instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
@@ -126,7 +125,7 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     instanceGroupManagersSetTargetPoolsMock = Mock(Compute.InstanceGroupManagers.SetTargetPools)
 
     description = new EnableDisableGoogleServerGroupDescription(serverGroupName: SERVER_GROUP_NAME,
-                                                                zone: ZONE,
+                                                                region: REGION,
                                                                 accountName: ACCOUNT_NAME,
                                                                 credentials: credentials)
   }
@@ -134,14 +133,13 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   void "should add instances and attach load balancers"() {
     setup:
       @Subject def operation = new EnableGoogleServerGroupAtomicOperation(description)
+      operation.googleClusterProvider = googleClusterProviderMock
 
     when:
       operation.operate([])
 
     then:
-      1 * computeMock.zones() >> zonesMock
-      1 * zonesMock.get(PROJECT_NAME, ZONE) >> zonesGetMock
-      1 * zonesGetMock.execute() >> zone
+      1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME) >> serverGroup
 
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
@@ -178,14 +176,13 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def forwardingRulesList2 = new ForwardingRuleList(items: forwardingRules2)
 
       @Subject def operation = new EnableGoogleServerGroupAtomicOperation(description)
+      operation.googleClusterProvider = googleClusterProviderMock
 
     when:
       operation.operate([])
 
     then:
-      1 * computeMock.zones() >> zonesMock
-      1 * zonesMock.get(PROJECT_NAME, ZONE) >> zonesGetMock
-      1 * zonesGetMock.execute() >> zone
+      1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME) >> serverGroup
 
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock

@@ -36,7 +36,7 @@ class TerminateAndDecrementGoogleServerGroupDescriptionValidator extends Descrip
     StandardGceAttributeValidator helper = new StandardGceAttributeValidator("terminateAndDecrementGoogleServerGroupDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
-    helper.validateZone(description.zone)
+    helper.validateRegion(description.region)
     helper.validateInstanceIds(description.instanceIds)
     helper.validateServerGroupName(description.serverGroupName)
   }

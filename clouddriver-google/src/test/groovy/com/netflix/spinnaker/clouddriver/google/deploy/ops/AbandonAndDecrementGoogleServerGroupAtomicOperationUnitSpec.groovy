@@ -22,6 +22,8 @@ import com.google.api.services.compute.model.InstanceGroupManagersAbandonInstanc
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.AbandonAndDecrementGoogleServerGroupDescription
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import spock.lang.Specification
 import spock.lang.Subject
@@ -30,6 +32,7 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperationUnitSpec extends Specif
   private static final SERVER_GROUP_NAME = "my-server-group"
   private static final SERVER_GROUP_SELF_LINK =
     "https://www.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instanceGroupManagers/$SERVER_GROUP_NAME"
+  private static final REGION = "us-central1"
   private static final ZONE = "us-central1-f"
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
@@ -43,8 +46,10 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperationUnitSpec extends Specif
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
-  void "should terminate instances"() {
+  void "should abandon instances"() {
     setup:
+      def googleClusterProviderMock = Mock(GoogleClusterProvider)
+      def serverGroup = new GoogleServerGroup(zone: ZONE).view
       def computeMock = Mock(Compute)
       def request = new InstanceGroupManagersAbandonInstancesRequest().setInstances(INSTANCE_URLS)
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
@@ -55,16 +60,18 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperationUnitSpec extends Specif
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new AbandonAndDecrementGoogleServerGroupDescription(
           serverGroupName: SERVER_GROUP_NAME,
-          zone: ZONE,
+          region: REGION,
           instanceIds: INSTANCE_IDS,
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new AbandonAndDecrementGoogleServerGroupAtomicOperation(description)
+      operation.googleClusterProvider = googleClusterProviderMock
 
     when:
       operation.operate([])
 
     then:
+      1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME) >> serverGroup
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager

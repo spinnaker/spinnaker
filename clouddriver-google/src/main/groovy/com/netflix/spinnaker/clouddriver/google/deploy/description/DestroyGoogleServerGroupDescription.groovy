@@ -20,7 +20,10 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 
 class DestroyGoogleServerGroupDescription {
   String serverGroupName
-  String zone
+  String region
   String accountName
   GoogleCredentials credentials
+
+  @Deprecated
+  String zone
 }

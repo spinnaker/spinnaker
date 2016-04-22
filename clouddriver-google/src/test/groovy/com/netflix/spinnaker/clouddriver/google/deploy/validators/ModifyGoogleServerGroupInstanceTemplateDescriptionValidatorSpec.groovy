@@ -28,7 +28,7 @@ import spock.lang.Specification
 
 class ModifyGoogleServerGroupInstanceTemplateDescriptionValidatorSpec extends Specification {
   private static final SERVER_GROUP_NAME = "spinnaker-test-v000"
-  private static final ZONE = "us-central1-b"
+  private static final REGION = "us-central1"
   private static final IMAGE = "debian-7-wheezy-v20140415"
   private static final INSTANCE_TYPE = "f1-micro"
   private static final INSTANCE_METADATA = [
@@ -57,7 +57,7 @@ class ModifyGoogleServerGroupInstanceTemplateDescriptionValidatorSpec extends Sp
   void "pass validation with minimum proper description inputs"() {
     setup:
       def description = new ModifyGoogleServerGroupInstanceTemplateDescription(serverGroupName: SERVER_GROUP_NAME,
-                                                                               zone: ZONE,
+                                                                               region: REGION,
                                                                                accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
 
@@ -71,7 +71,7 @@ class ModifyGoogleServerGroupInstanceTemplateDescriptionValidatorSpec extends Sp
   void "pass validation with all optional inputs"() {
     setup:
       def description = new ModifyGoogleServerGroupInstanceTemplateDescription(serverGroupName: SERVER_GROUP_NAME,
-                                                                               zone: ZONE,
+                                                                               region: REGION,
                                                                                image: IMAGE,
                                                                                instanceType: INSTANCE_TYPE,
                                                                                instanceMetadata: INSTANCE_METADATA,
@@ -99,7 +99,7 @@ class ModifyGoogleServerGroupInstanceTemplateDescriptionValidatorSpec extends Sp
       // The point of being explicit here is only to verify the context and property names.
       // We'll assume the policies are covered by the tests on the underlying validator.
       1 * errors.rejectValue('serverGroupName', "modifyGoogleServerGroupInstanceTemplateDescription.serverGroupName.empty")
-      1 * errors.rejectValue('zone', "modifyGoogleServerGroupInstanceTemplateDescription.zone.empty")
+      1 * errors.rejectValue('region', "modifyGoogleServerGroupInstanceTemplateDescription.region.empty")
       1 * errors.rejectValue('credentials', "modifyGoogleServerGroupInstanceTemplateDescription.credentials.empty")
   }
 }

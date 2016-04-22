@@ -18,8 +18,11 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.ResizeGoogleServerGroupDescription
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import org.springframework.beans.factory.annotation.Autowired
 
 class ResizeGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "RESIZE_SERVER_GROUP"
@@ -30,28 +33,36 @@ class ResizeGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
 
   private final ResizeGoogleServerGroupDescription description
 
+  @Autowired
+  GoogleClusterProvider googleClusterProvider
+
   ResizeGoogleServerGroupAtomicOperation(ResizeGoogleServerGroupDescription description) {
     this.description = description
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "resizeServerGroup": { "serverGroupName": "myapp-dev-v000", "targetSize": 2, "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "resizeServerGroup": { "serverGroupName": "myapp-dev-v000", "targetSize": 2, "region": "us-central1", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
    */
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing resize of server group $description.serverGroupName in " +
-      "$description.zone..."
+      "$description.region..."
 
-    def project = description.credentials.project
     def compute = description.credentials.compute
+    def project = description.credentials.project
+    def region = description.region
+    def serverGroupName = description.serverGroupName
+    def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, description.accountName, region, serverGroupName)
+    def zone = serverGroup.zone
     int targetSize = description.targetSize instanceof Number ? description.targetSize : description.capacity.desired
+    def instanceGroupManagers = compute.instanceGroupManagers()
 
-    compute.instanceGroupManagers().resize(project,
-                                           description.zone,
-                                           description.serverGroupName,
-                                           targetSize).execute()
+    instanceGroupManagers.resize(project,
+                                 zone,
+                                 serverGroupName,
+                                 targetSize).execute()
 
-    task.updateStatus BASE_PHASE, "Done resizing server group $description.serverGroupName in $description.zone."
+    task.updateStatus BASE_PHASE, "Done resizing server group $serverGroupName in $region."
     null
   }
 }

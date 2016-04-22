@@ -84,6 +84,7 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
     task.updateStatus BASE_PHASE, "Initializing copy of server group $description.source.serverGroupName..."
 
     // Locate the ancestor server group.
+    // TODO(duftler): Replace this with a call to GoogleClusterProvider.
     InstanceGroupManager ancestorServerGroup = GCEUtil.queryManagedInstanceGroupInRegion(description.credentials.project,
                                                                                          description.source.region,
                                                                                          description.source.serverGroupName,

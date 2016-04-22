@@ -21,7 +21,9 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.TerminateAndDecrementGoogleServerGroupDescription
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * Terminate and delete instances from a managed instance group, and decrement the size of the managed instance group.
@@ -48,6 +50,9 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpe
 
   private final TerminateAndDecrementGoogleServerGroupDescription description
 
+  @Autowired
+  GoogleClusterProvider googleClusterProvider
+
   TerminateAndDecrementGoogleServerGroupAtomicOperation(TerminateAndDecrementGoogleServerGroupDescription description) {
     this.description = description
   }
@@ -55,17 +60,19 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpe
   /**
    * Attempt to terminate the specified instances and remove them from the specified managed instance group.
    *
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "terminateInstanceAndDecrementServerGroup": { "serverGroupName": "myapp-dev-v000", "instanceIds": ["myapp-dev-v000-abcd"], "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "terminateInstanceAndDecrementServerGroup": { "serverGroupName": "myapp-dev-v000", "instanceIds": ["myapp-dev-v000-abcd"], "region": "us-central1", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
    */
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing terminate and decrement of instances " +
-      "(${description.instanceIds.join(", ")}) from server group ${description.serverGroupName} in $description.zone..."
+      "(${description.instanceIds.join(", ")}) from server group ${description.serverGroupName} in $description.region..."
 
     def project = description.credentials.project
     def compute = description.credentials.compute
-    def zone = description.zone
+    def region = description.region
     def serverGroupName = description.serverGroupName
+    def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, description.accountName, region, serverGroupName)
+    def zone = serverGroup.zone
     def instanceIds = description.instanceIds
     def instanceUrls = GCEUtil.deriveInstanceUrls(project, zone, serverGroupName, instanceIds, description.credentials)
     def deleteRequest = new InstanceGroupManagersDeleteInstancesRequest().setInstances(instanceUrls)
@@ -73,7 +80,7 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpe
     compute.instanceGroupManagers().deleteInstances(project, zone, serverGroupName, deleteRequest).execute()
 
     task.updateStatus BASE_PHASE, "Done terminating and decrementing instances " +
-      "(${description.instanceIds.join(", ")}) from server group ${serverGroupName} in $zone."
+      "(${description.instanceIds.join(", ")}) from server group ${serverGroupName} in $region."
     null
   }
 }

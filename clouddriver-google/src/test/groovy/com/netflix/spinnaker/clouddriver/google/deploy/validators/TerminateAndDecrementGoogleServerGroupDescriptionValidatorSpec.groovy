@@ -28,7 +28,7 @@ import spock.lang.Specification
 class TerminateAndDecrementGoogleServerGroupDescriptionValidatorSpec extends Specification {
   private static final SERVER_GROUP_NAME = "server-group-name"
   private static final ACCOUNT_NAME = "auto"
-  private static final ZONE = "us-central1-b"
+  private static final REGION = "us-central1"
   private static final INSTANCE_IDS = ["my-app7-dev-v000-instance1", "my-app7-dev-v000-instance2"]
 
   @Shared
@@ -48,7 +48,7 @@ class TerminateAndDecrementGoogleServerGroupDescriptionValidatorSpec extends Spe
   void "pass validation with proper description inputs"() {
     setup:
       def description = new TerminateAndDecrementGoogleServerGroupDescription(
-          zone: ZONE, serverGroupName: SERVER_GROUP_NAME, instanceIds: INSTANCE_IDS, accountName: ACCOUNT_NAME)
+          region: REGION, serverGroupName: SERVER_GROUP_NAME, instanceIds: INSTANCE_IDS, accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
 
     when:
@@ -80,7 +80,7 @@ class TerminateAndDecrementGoogleServerGroupDescriptionValidatorSpec extends Spe
 
     then:
       1 * errors.rejectValue('credentials', _)
-      1 * errors.rejectValue('zone', _)
+      1 * errors.rejectValue('region', _)
       1 * errors.rejectValue('serverGroupName', _)
       1 * errors.rejectValue('instanceIds', _)
   }

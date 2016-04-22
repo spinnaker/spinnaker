@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.description.ModifyGoogleServerGroupInstanceTemplateDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -42,41 +43,45 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
   private static final String accessConfigName = "External NAT"
   private static final String accessConfigType = "ONE_TO_ONE_NAT"
 
-  @Autowired
-  private GoogleConfigurationProperties googleConfigurationProperties
-
-  @Autowired
-  private GoogleConfiguration.DeployDefaults googleDeployDefaults
-
-  @Autowired
-  private GoogleOperationPoller googleOperationPoller
-
-  @Autowired
-  String googleApplicationName
-
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
 
   private final ModifyGoogleServerGroupInstanceTemplateDescription description
 
+  @Autowired
+  GoogleConfigurationProperties googleConfigurationProperties
+
+  @Autowired
+  GoogleConfiguration.DeployDefaults googleDeployDefaults
+
+  @Autowired
+  GoogleOperationPoller googleOperationPoller
+
+  @Autowired
+  GoogleClusterProvider googleClusterProvider
+
+  @Autowired
+  String googleApplicationName
+
   ModifyGoogleServerGroupInstanceTemplateAtomicOperation(ModifyGoogleServerGroupInstanceTemplateDescription description) {
     this.description = description
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "updateLaunchConfig": { "serverGroupName": "myapp-dev-v000", "zone": "us-central1-f", "instanceType": "n1-standard-2", "tags": ["some-tag-1", "some-tag-2"], "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "updateLaunchConfig": { "serverGroupName": "myapp-dev-v000", "region": "us-central1", "instanceType": "n1-standard-2", "tags": ["some-tag-1", "some-tag-2"], "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
    */
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing modification of instance template for $description.serverGroupName " +
-      "in $description.zone..."
+      "in $description.region..."
 
     def compute = description.credentials.compute
     def project = description.credentials.project
-    def zone = description.zone
-    def region = GCEUtil.getRegionFromZone(project, zone, compute)
+    def region = description.region
     def serverGroupName = description.serverGroupName
+    def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, description.accountName, region, serverGroupName)
+    def zone = serverGroup.zone
 
     def instanceGroupManagers = compute.instanceGroupManagers()
     def instanceTemplates = compute.instanceTemplates()
@@ -99,7 +104,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
     def properties = [:] + description.properties
 
     // Remove the properties we don't want to compare or override.
-    properties.keySet().removeAll(["class", "serverGroupName", "zone", "accountName", "credentials"])
+    properties.keySet().removeAll(["class", "serverGroupName", "region", "accountName", "credentials"])
 
     // Collect all of the map entries with non-null values into a new map.
     def overriddenProperties = properties.findResults { key, value ->
@@ -119,7 +124,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
     def newDescription = new BaseGoogleInstanceDescription(newDescriptionProperties)
 
     if (newDescription == originalDescription) {
-      task.updateStatus BASE_PHASE, "No changes required for instance template of $serverGroupName in $zone."
+      task.updateStatus BASE_PHASE, "No changes required for instance template of $serverGroupName in $region."
     } else {
       def instanceTemplateProperties = instanceTemplate.properties
 
@@ -214,7 +219,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
       instanceTemplates.delete(project, origInstanceTemplateName).execute()
     }
 
-    task.updateStatus BASE_PHASE, "Done modifying instance template of $serverGroupName in $zone."
+    task.updateStatus BASE_PHASE, "Done modifying instance template of $serverGroupName in $region."
     null
   }
 }

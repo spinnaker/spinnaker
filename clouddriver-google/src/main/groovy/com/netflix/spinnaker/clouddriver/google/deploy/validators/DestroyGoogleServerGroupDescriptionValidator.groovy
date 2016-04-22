@@ -37,6 +37,6 @@ class DestroyGoogleServerGroupDescriptionValidator extends DescriptionValidator<
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
     helper.validateServerGroupName(description.serverGroupName)
-    helper.validateZone(description.zone)
+    helper.validateRegion(description.region)
   }
 }

@@ -21,7 +21,10 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 class UpsertGoogleServerGroupTagsDescription {
   String serverGroupName
   List<String> tags
-  String zone
+  String region
   String accountName
   GoogleCredentials credentials
+
+  @Deprecated
+  String zone
 }

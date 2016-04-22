@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 class UpsertGoogleServerGroupTagsDescriptionValidatorSpec extends Specification {
   private static final SERVER_GROUP_NAME = "spinnaker-test-v000"
-  private static final ZONE = "us-central1-b"
+  private static final REGION = "us-central1"
   private static final ACCOUNT_NAME = "auto"
   private static final TAGS = ["some-tag-1", "some-tag-2"]
 
@@ -48,7 +48,7 @@ class UpsertGoogleServerGroupTagsDescriptionValidatorSpec extends Specification 
   void "pass validation with proper description inputs"() {
     setup:
       def description = new UpsertGoogleServerGroupTagsDescription(serverGroupName: SERVER_GROUP_NAME,
-                                                                   zone: ZONE,
+                                                                   region: REGION,
                                                                    tags: TAGS,
                                                                    accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
@@ -63,7 +63,7 @@ class UpsertGoogleServerGroupTagsDescriptionValidatorSpec extends Specification 
   void "pass validation with empty tag list"() {
     setup:
       def description = new UpsertGoogleServerGroupTagsDescription(serverGroupName: SERVER_GROUP_NAME,
-                                                                   zone: ZONE,
+                                                                   region: REGION,
                                                                    tags: [],
                                                                    accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
@@ -78,7 +78,7 @@ class UpsertGoogleServerGroupTagsDescriptionValidatorSpec extends Specification 
   void "pass validation with null tag list"() {
     setup:
       def description = new UpsertGoogleServerGroupTagsDescription(serverGroupName: SERVER_GROUP_NAME,
-                                                                   zone: ZONE,
+                                                                   region: REGION,
                                                                    tags: null,
                                                                    accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
@@ -93,7 +93,7 @@ class UpsertGoogleServerGroupTagsDescriptionValidatorSpec extends Specification 
   void "tag list containing empty item fails validation"() {
     setup:
       def description = new UpsertGoogleServerGroupTagsDescription(serverGroupName: SERVER_GROUP_NAME,
-                                                                   zone: ZONE,
+                                                                   region: REGION,
                                                                    tags: TAGS + "",
                                                                    accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
@@ -117,7 +117,7 @@ class UpsertGoogleServerGroupTagsDescriptionValidatorSpec extends Specification 
       // The point of being explicit here is only to verify the context and property names.
       // We'll assume the policies are covered by the tests on the underlying validator.
       1 * errors.rejectValue('serverGroupName', "upsertGoogleServerGroupTagsDescription.serverGroupName.empty")
-      1 * errors.rejectValue('zone', "upsertGoogleServerGroupTagsDescription.zone.empty")
+      1 * errors.rejectValue('region', "upsertGoogleServerGroupTagsDescription.region.empty")
       1 * errors.rejectValue('credentials', "upsertGoogleServerGroupTagsDescription.credentials.empty")
   }
 }

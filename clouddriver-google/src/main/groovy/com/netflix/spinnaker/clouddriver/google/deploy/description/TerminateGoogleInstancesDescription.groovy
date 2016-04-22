@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 class TerminateGoogleInstancesDescription  {
   String serverGroupName
   List<String> instanceIds
+  String region
   String zone
   String accountName
   GoogleCredentials credentials

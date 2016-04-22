@@ -24,6 +24,8 @@ import com.google.api.services.compute.model.Zone
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.EnableDisableGoogleServerGroupDescription
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import spock.lang.Specification
 import spock.lang.Subject
@@ -46,9 +48,9 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final ZONE = "us-central1-b"
   private static final REGION = "us-central1"
 
+  def googleClusterProviderMock
+  def serverGroup
   def computeMock
-  def zonesMock
-  def zonesGetMock
   def instanceGroupManagersMock
   def instanceGroupManagersGetMock
   def targetPoolsMock
@@ -57,7 +59,6 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   def targetPool
   def instanceGroupManagersSetTargetPoolsMock
 
-  def zone
   def instanceGroupManager
   def items
   def credentials
@@ -68,12 +69,10 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   }
 
   def setup() {
+    googleClusterProviderMock = Mock(GoogleClusterProvider)
+    serverGroup = new GoogleServerGroup(zone: ZONE).view
     computeMock = Mock(Compute)
     credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
-
-    zonesMock = Mock(Compute.Zones)
-    zonesGetMock = Mock(Compute.Zones.Get)
-    zone = new Zone(region: REGION)
 
     instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
     instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
@@ -87,7 +86,7 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     instanceGroupManagersSetTargetPoolsMock = Mock(Compute.InstanceGroupManagers.SetTargetPools)
 
     description = new EnableDisableGoogleServerGroupDescription(serverGroupName: SERVER_GROUP_NAME,
-                                                                zone: ZONE,
+                                                                region: REGION,
                                                                 accountName: ACCOUNT_NAME,
                                                                 credentials: credentials)
   }
@@ -95,14 +94,13 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   void "should remove instances and detach load balancers"() {
     setup:
       @Subject def operation = new DisableGoogleServerGroupAtomicOperation(description)
+      operation.googleClusterProvider = googleClusterProviderMock
 
     when:
       operation.operate([])
 
     then:
-      1 * computeMock.zones() >> zonesMock
-      1 * zonesMock.get(PROJECT_NAME, ZONE) >> zonesGetMock
-      1 * zonesGetMock.execute() >> zone
+      1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME) >> serverGroup
 
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
