@@ -212,9 +212,13 @@ providers:
     # set enabled and provide primary credentials for deploying.
     # Enabling azure is independent of other providers.
     enabled: false
-    defaultRegion: West US
+    defaultRegion: westus
     primaryCredentials:
       name: my-azure-account
+      clientId: my-client-id
+      appKey: my-app-key
+      tenantId: my-tenant-id
+      subscriptionId: my-subscription-id
   titan:
     # If you want to deploy some services to titan,
     # set enabled and provide primary credentials for deploying.
