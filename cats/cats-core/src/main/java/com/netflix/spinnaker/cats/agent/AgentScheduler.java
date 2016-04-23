@@ -24,21 +24,27 @@ public interface AgentScheduler<T extends AgentLock> {
     default void unschedule(Agent agent) {};
 
     /**
-     * @return True iff this scheduler supports synchronization between LoadData & OnDemand cache updates.
+     * @return True iff this scheduler supports synchronization between LoadData and OnDemand cache updates.
      */
     default boolean isAtomic() { return false; };
 
     /**
+     * @param agent The agent being locked.
+     *
      * @return A "Lock" that will allow exclusive access to updating this agent's cache data. null iff isAtomic == false.
      */
     default T tryLock(Agent agent) { return null; };
 
     /**
+     * @param lock The lock being released.
+     *
      * @return True iff the lock was still in our possession when the release call was made.
      */
     default boolean tryRelease(T lock) { return false; };
 
     /**
+     * @param lock The lock being checked for validity.
+     *
      * @return True iff the lock is still in our possession.
      */
     default boolean lockValid(T lock) { return false; };
