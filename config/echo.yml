@@ -46,3 +46,5 @@ scheduler:
   pipelineConfigsPoller:
     enabled: true
     pollingIntervalMs: 30000
+  cron:
+    timezone: ${services.echo.cron.timezone}
