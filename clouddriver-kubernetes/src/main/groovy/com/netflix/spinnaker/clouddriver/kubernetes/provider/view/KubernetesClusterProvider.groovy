@@ -127,7 +127,7 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
     Collection<CacheData> allInstances = resolveRelationshipDataForCollection(cacheView, serverGroupData, Keys.Namespace.INSTANCES.ns, RelationshipCacheFilter.none())
     Collection<CacheData> allLoadBalancers = resolveRelationshipDataForCollection(cacheView, serverGroupData, Keys.Namespace.LOAD_BALANCERS.ns, RelationshipCacheFilter.include(Keys.Namespace.SECURITY_GROUPS.ns))
 
-    Map<String, Set<KubernetesInstance>> instances = KubernetesProviderUtils.serverGroupToInstanceMap(objectMapper, allInstances)
+    Map<String, Set<KubernetesInstance>> instances = KubernetesProviderUtils.controllerToInstanceMap(objectMapper, allInstances)
 
     def securityGroups = loadBalancerToSecurityGroupMap(cacheView, allLoadBalancers)
 
@@ -193,7 +193,7 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
     Set<CacheData> instances = KubernetesProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.INSTANCES.ns, Keys.getInstanceKey(account, namespace, name, "*"))
 
     def replicationController = objectMapper.convertValue(serverGroupData.attributes.replicationController, ReplicationController)
-    def res = new KubernetesServerGroup(replicationController, KubernetesProviderUtils.serverGroupToInstanceMap(objectMapper, instances)[name], account)
+    def res = new KubernetesServerGroup(replicationController, KubernetesProviderUtils.controllerToInstanceMap(objectMapper, instances)[name], account)
     res.loadBalancers?.each {
       res.securityGroups.addAll(securityGroups[it])
     }

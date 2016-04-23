@@ -23,7 +23,6 @@ import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesInstance
-import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesProcess
 import io.fabric8.kubernetes.api.model.Pod
 
 class KubernetesProviderUtils {
@@ -49,21 +48,7 @@ class KubernetesProviderUtils {
     relationships ? cacheView.getAll(relationship, relationships, cacheFilter) : []
   }
 
-  static Map<String, Set<KubernetesProcess>> jobToProcessMap(ObjectMapper objectMapper, Collection<CacheData> processes) {
-    Map<String, Set<KubernetesProcess>> processMap = [:].withDefault { _ -> [] as Set }
-    processes?.forEach {
-      def pod = objectMapper.convertValue(it.attributes.pod, Pod)
-      def loadBalancers = it.relationships[Keys.Namespace.LOAD_BALANCERS.ns].collect {
-        Keys.parse(it).name
-      }
-
-      KubernetesProcess process = new KubernetesProcess(pod, loadBalancers)
-      processMap[process.jobId].add(process)
-    }
-    return processMap
-  }
-
-  static Map<String, Set<KubernetesInstance>> serverGroupToInstanceMap(ObjectMapper objectMapper, Collection<CacheData> instances) {
+  static Map<String, Set<KubernetesInstance>> controllerToInstanceMap(ObjectMapper objectMapper, Collection<CacheData> instances) {
     Map<String, Set<KubernetesInstance>> instanceMap = [:].withDefault { _ -> [] as Set }
     instances?.forEach {
       def pod = objectMapper.convertValue(it.attributes.pod, Pod)
@@ -72,7 +57,7 @@ class KubernetesProviderUtils {
       }
 
       KubernetesInstance instance = new KubernetesInstance(pod, loadBalancers)
-      instanceMap[instance.serverGroupName].add(instance)
+      instanceMap[instance.controllerName].add(instance)
     }
     return instanceMap
   }

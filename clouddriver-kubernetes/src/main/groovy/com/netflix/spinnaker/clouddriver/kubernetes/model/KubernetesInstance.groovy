@@ -30,7 +30,7 @@ class KubernetesInstance implements Instance, Serializable {
   Long launchTime
   String zone
   List<Map<String, String>> health
-  String serverGroupName
+  String controllerName
   Pod pod
   List<String> loadBalancers
   String providerType = "kubernetes"
@@ -60,7 +60,8 @@ class KubernetesInstance implements Instance, Serializable {
 
     this.health << (Map<String, String>) mapper.convertValue(new KubernetesHealth(pod), new TypeReference<Map<String, String>>() {})
 
-    this.serverGroupName = pod.metadata?.labels?.get(KubernetesUtil.REPLICATION_CONTROLLER_LABEL)
+    this.controllerName = pod.metadata?.labels?.get(KubernetesUtil.REPLICATION_CONTROLLER_LABEL) ?:
+        pod.metadata?.labels?.get(KubernetesUtil.JOB_LABEL) ?: null
   }
 
   @Override

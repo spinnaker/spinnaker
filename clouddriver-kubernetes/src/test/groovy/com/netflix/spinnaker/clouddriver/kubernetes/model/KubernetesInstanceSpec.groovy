@@ -168,6 +168,6 @@ class KubernetesInstanceSpec extends Specification {
       def instance = new KubernetesInstance(podMock, [])
 
     then:
-      instance.serverGroupName == REPLICATION_CONTROLLER
+      instance.controllerName == REPLICATION_CONTROLLER
   }
 }

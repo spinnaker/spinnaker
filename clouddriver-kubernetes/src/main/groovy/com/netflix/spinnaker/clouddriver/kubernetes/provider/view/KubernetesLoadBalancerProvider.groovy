@@ -70,7 +70,7 @@ class KubernetesLoadBalancerProvider implements LoadBalancerProvider<KubernetesL
 
     def instances = cacheView.getAll(Keys.Namespace.INSTANCES.ns, instanceKeys)
 
-    def instanceMap = KubernetesProviderUtils.serverGroupToInstanceMap(objectMapper, instances)
+    def instanceMap = KubernetesProviderUtils.controllerToInstanceMap(objectMapper, instances)
 
     Map<String, KubernetesServerGroup> serverGroupMap = allServerGroups.collectEntries { serverGroupData ->
       ReplicationController replicationController = objectMapper.convertValue(serverGroupData.attributes.replicationController, ReplicationController)

@@ -27,7 +27,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/jobs")
+@RequestMapping("/applications/{application}/jobs")
 class JobController {
 
   @Autowired(required = false)
@@ -38,7 +38,8 @@ class JobController {
 
   @ApiOperation(value = "Get a Job", notes = "Composed of many running `Process` objects")
   @RequestMapping(value = "/{account}/{location}/{id:.+}", method = RequestMethod.GET)
-  Job getJob(@ApiParam(value = "Account job was created by", required = true) @PathVariable String account,
+  Job getJob(@ApiParam(value = "Application name", required = true) @PathVariable String application,
+             @ApiParam(value = "Account job was created by", required = true) @PathVariable String account,
              @ApiParam(value = "Namespace, region, or zone job is running in", required = true) @PathVariable String location,
              @ApiParam(value = "Unique identifier of job being looked up", required = true) @PathVariable String id) {
     Collection<Job> jobMatches = jobProviders.findResults {
@@ -48,6 +49,19 @@ class JobController {
       throw new JobNotFoundException(name: id)
     }
     jobMatches.first()
+  }
+
+  @ApiOperation(value = "Get all Jobs in given application", notes = "Composed of many running `Process` objects")
+  @RequestMapping(method = RequestMethod.GET)
+  List<Job> getJobsByApp(@ApiParam(value = "Application name", required = true) @PathVariable String application,
+                         @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand) {
+    Collection<Job> jobMatches = jobProviders.collect {
+      it.getJobsByApp(application)
+    }.flatten()
+    if (!jobMatches) {
+      jobMatches = []
+    }
+    return jobMatches
   }
 
   static class JobNotFoundException extends RuntimeException {
