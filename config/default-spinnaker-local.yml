@@ -15,6 +15,19 @@ providers:
       # Store actual credentials in $HOME/.aws/credentials. See spinnaker.yml for
       # more information, including alternatives.
 
+  azure:
+    # If you want to deploy some services to Microsoft Azure (azure),
+    # set enabled and provide primary credentials for deploying.
+    # Enabling azure is independent of other providers.
+    enabled: ${SPINNAKER_AZURE_ENABLED:false}
+    defaultRegion: ${SPINNAKER_AZURE_DEFAULT_REGION}
+    primaryCredentials:
+      name: my-azure-account
+      clientId:
+      appKey:
+      tenantId:
+      subscriptionId:
+    # To set azure credentials, enter values in spinnaker-local.yml 
   google:
     # If you want to deploy some services to Google Cloud Platform (google),
     # set enabled and provide primary credentials for deploying.
