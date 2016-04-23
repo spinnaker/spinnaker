@@ -2,6 +2,10 @@
 # In order for Spinnaker to discover it, it must be copied to a file named
 # "spinnaker-local.yml" and placed in the $HOME/.spinnaker directory.
 
+global:
+  spinnaker:
+    timezone: 'America/Los_Angeles'
+
 providers:
   aws:
     # If you want to deploy some services to Amazon Web Services (AWS),
@@ -167,7 +171,6 @@ services:
     #baseUrl: http://spinnaker.mydomain.com
     #gateUrl: ${services.deck.baseUrl}/gate
     #bakeryUrl: ${services.deck.baseUrl}/rosco
-    timezone: 'America/Los_Angeles' # See: http://momentjs.com/timezone/docs/#/data-utilities/
     auth:
       enabled: false
 
