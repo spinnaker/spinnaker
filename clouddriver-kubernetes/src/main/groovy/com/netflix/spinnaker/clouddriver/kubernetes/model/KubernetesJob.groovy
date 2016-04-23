@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.model
 import com.netflix.spinnaker.clouddriver.model.Job
 import com.netflix.spinnaker.clouddriver.model.JobState
 import com.netflix.spinnaker.clouddriver.model.Process
+import io.fabric8.kubernetes.api.model.extensions.JobCondition
 
 class KubernetesJob implements Job, Serializable {
   String name
@@ -52,7 +53,9 @@ class KubernetesJob implements Job, Serializable {
 
   @Override
   JobState getJobState() {
-    job.status.succeeded == job.spec.completions ? JobState.Succeeded :
-      job.status.active > 0 ? JobState.Running : JobState.Unknown  // TODO(lwander) figure out how to extract failure state
+    job.status.succeeded == job.spec.completions ? JobState.Succeeded : // Succeeded if threshold is met.
+      job.status.active > 0 ? JobState.Running : // Otherwise, if anything is running, don't stop.
+        job.status.conditions.find { JobCondition condition -> condition.type == "Failed" } ? JobState.Failed : // Condition reporting failure means we are done.
+          job.status.active == 0 ? JobState.Starting : JobState.Unknown // If nothing is running, we are starting, otherwise we have negative active jobs.
   }
 }
