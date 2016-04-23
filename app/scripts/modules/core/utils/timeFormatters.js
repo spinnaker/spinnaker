@@ -66,4 +66,11 @@ module.exports = angular.module('spinnaker.core.utils.timeFormatters', [
       }
       return '-';
     };
+  })
+  .component('systemTimezone', {
+    template: `<span ng-bind="$ctrl.tz"></span>`,
+    controller: function(momentService, settings) {
+      var zone = settings.defaultTimeZone || 'America/Los_Angeles';
+      this.tz = momentService.tz(new Date().getTime(), zone).zoneAbbr();
+    }
   });

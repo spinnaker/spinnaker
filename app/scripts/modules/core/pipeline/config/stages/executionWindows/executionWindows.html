@@ -35,7 +35,7 @@
   </div>
   <div class="form-group">
     <p class="col-md-9 col-md-offset-1 form-control-static">
-      This stage will only run within the following windows (all times in PST):
+      This stage will only run within the following windows (all times in <system-timezone></system-timezone>):
     </p>
   </div>
   <div ng-repeat="window in stage.restrictedExecutionWindow.whitelist" class="window-entry">
