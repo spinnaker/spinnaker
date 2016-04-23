@@ -23,11 +23,6 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTaskStage',
         controller: 'AcaTaskStageCtrl',
         controllerAs: 'acaTaskStageCtrl',
         validators: [
-          {
-            type: 'stageBeforeType',
-            stageTypes: ['bake', 'findAmi', 'findImage'],
-            message: 'You must have a Bake or Find AMI stage before a canary stage.'
-          },
         ],
       });
     }
