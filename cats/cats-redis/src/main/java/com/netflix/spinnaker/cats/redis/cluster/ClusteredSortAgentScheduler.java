@@ -40,7 +40,7 @@ import java.util.concurrent.*;
  * we already have a (30s / 1) * (# of clouddrivers) factor of improvement.
  */
 @SuppressFBWarnings
-public class ClusteredSortAgentScheduler extends CatsModuleAware implements AgentScheduler, Runnable {
+public class ClusteredSortAgentScheduler extends CatsModuleAware implements AgentScheduler<ClusteredSortAgentLock>, Runnable {
   private final JedisSource jedisSource;
   private final NodeStatusProvider nodeStatusProvider;
   private final AgentIntervalProvider intervalProvider;
@@ -59,6 +59,7 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware implements Agen
   private static final String WAITING_SET = "WAITZ";
   private static final String WORKING_SET = "WORKZ";
   private static final String ADD_AGENT_SCRIPT = "addAgentScript";
+  private static final String VALID_SCORE_SCRIPT = "validScoreScript";
   private static final String SWAP_SET_SCRIPT = "swapSetScript";
   private static final String CONDITIONAL_SWAP_SET_SCRIPT = "conditionalSwapSetScript";
 
@@ -94,16 +95,27 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware implements Agen
       // of the agent.
       // Swap happens from KEYS[1] -> KEYS[2] with the agent type being ARGV[1], and the score being ARGV[2].
       scriptShas.put(SWAP_SET_SCRIPT, jedis.scriptLoad(
-          "if redis.call('zrank', KEYS[1], ARGV[1]) ~= nil then\n" +
+          "local score = redis.call('zscore', KEYS[1], ARGV[1])\n" +
+          "if score ~= nil then\n" +
           "  redis.call('zrem', KEYS[1], ARGV[1])\n" +
-          "  return redis.call('zadd', KEYS[2], ARGV[2], ARGV[1])\n" +
+          "  redis.call('zadd', KEYS[2], ARGV[2], ARGV[1])\n" +
+          "  return score\n" +
           "else return nil end\n"
       ));
 
       scriptShas.put(CONDITIONAL_SWAP_SET_SCRIPT, jedis.scriptLoad(
-          "if redis.call('zrank', KEYS[1], ARGV[1]) == ARGV[3] then\n" +
+          "local score = redis.call('zscore', KEYS[1], ARGV[1])\n" +
+          "if score == ARGV[3] then\n" +
           "  redis.call('zrem', KEYS[1], ARGV[1])\n" +
-          "  return redis.call('zadd', KEYS[2], ARGV[2], ARGV[1])\n" +
+          "  redis.call('zadd', KEYS[2], ARGV[2], ARGV[1])\n" +
+          "  return score\n" +
+          "else return nil end\n"
+      ));
+
+      scriptShas.put(VALID_SCORE_SCRIPT, jedis.scriptLoad(
+          "local score = redis.call('zscore', KEYS[1], ARGV[1])\n" +
+          "if score == ARGV[2] then\n" +
+          "  return score\n" +
           "else return nil end\n"
       ));
 
@@ -154,6 +166,35 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware implements Agen
   }
 
   @Override
+  public ClusteredSortAgentLock tryLock(Agent agent) {
+    ScoreTuple scores = acquireAgent(agent);
+    if (scores != null) {
+      return new ClusteredSortAgentLock(agent, scores.acquireScore, scores.releaseScore);
+    } else {
+      return null;
+    }
+  }
+
+  @Override
+  public boolean tryRelease(ClusteredSortAgentLock lock) {
+    return conditionalReleaseAgent(lock.getAgent(), lock.getAcquireScore(), lock.getReleaseScore()) != null;
+  }
+
+  @Override
+  public boolean lockValid(ClusteredSortAgentLock lock) {
+    try (Jedis jedis = jedisSource.getJedis()) {
+      return jedis.evalsha(getScriptSha(VALID_SCORE_SCRIPT, jedis), 1, WORKING_SET,
+                                        lock.getAgent().getAgentType(),
+                                        lock.getAcquireScore()) != null;
+    }
+  }
+
+  @Override
+  public boolean isAtomic() {
+    return true;
+  }
+
+  @Override
   public void run() {
     if (!nodeStatusProvider.isNodeEnabled()) {
       return;
@@ -171,41 +212,64 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware implements Agen
     return String.format("%d", TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()) + offset);
   }
 
-  private String acquireAgent(Agent agent) {
+  private String agentScore(Agent agent) {
     try (Jedis jedis = jedisSource.getJedis()) {
-      String score = score(intervalProvider.getInterval(agent).getTimeout());
-      if (jedis.evalsha(getScriptSha(SWAP_SET_SCRIPT, jedis),
+      Double score = jedis.zscore(WORKING_SET, agent.getAgentType());
+      if (score != null) {
+        return score.toString();
+      }
+
+      score = jedis.zscore(WAITING_SET, agent.getAgentType());
+      if (score != null) {
+        return score.toString();
+      }
+
+      return null;
+    }
+  }
+
+  private ScoreTuple acquireAgent(Agent agent) {
+    try (Jedis jedis = jedisSource.getJedis()) {
+      String acquireScore = score(intervalProvider.getInterval(agent).getTimeout());
+      Object releaseScore = jedis.evalsha(getScriptSha(SWAP_SET_SCRIPT, jedis),
           Arrays.asList(WAITING_SET, WORKING_SET),
-          Arrays.asList(agent.getAgentType(), score)) != null) {
-        return score;
-      } else {
-        return null;
-      }
+          Arrays.asList(agent.getAgentType(), acquireScore));
+
+      return releaseScore != null ? new ScoreTuple(acquireScore, releaseScore.toString()) : null;
     }
   }
 
-  private boolean conditionalReleaseAgent(Agent agent, String acquireScore) {
+  private ScoreTuple conditionalReleaseAgent(Agent agent, String acquireScore) {
     try (Jedis jedis = jedisSource.getJedis()) {
-      if (jedis.evalsha(getScriptSha(CONDITIONAL_SWAP_SET_SCRIPT, jedis),
+      String newAcquireScore = score(intervalProvider.getInterval(agent).getInterval());
+      Object releaseScore = jedis.evalsha(getScriptSha(CONDITIONAL_SWAP_SET_SCRIPT, jedis),
           Arrays.asList(WORKING_SET, WAITING_SET),
-          Arrays.asList(agent.getAgentType(), score(intervalProvider.getInterval(agent).getInterval()),
-              acquireScore)) != null) {
-        return true;
-      } else {
-        return false;
-      }
+          Arrays.asList(agent.getAgentType(), newAcquireScore,
+              acquireScore));
+
+      return releaseScore != null ? new ScoreTuple(newAcquireScore, releaseScore.toString()) : null;
     }
   }
 
-  private boolean releaseAgent(Agent agent) {
+  private ScoreTuple conditionalReleaseAgent(Agent agent, String acquireScore, String newAcquireScore) {
     try (Jedis jedis = jedisSource.getJedis()) {
-      if (jedis.evalsha(getScriptSha(SWAP_SET_SCRIPT, jedis),
+      Object releaseScore = jedis.evalsha(getScriptSha(CONDITIONAL_SWAP_SET_SCRIPT, jedis),
           Arrays.asList(WORKING_SET, WAITING_SET),
-          Arrays.asList(agent.getAgentType(), score(intervalProvider.getInterval(agent).getInterval()))) != null) {
-        return true;
-      } else {
-        return false;
-      }
+          Arrays.asList(agent.getAgentType(), newAcquireScore,
+              acquireScore)).toString();
+
+      return releaseScore != null ? new ScoreTuple(newAcquireScore, releaseScore.toString()) : null;
+    }
+  }
+
+  private ScoreTuple releaseAgent(Agent agent) {
+    try (Jedis jedis = jedisSource.getJedis()) {
+      String acquireScore = score(intervalProvider.getInterval(agent).getInterval());
+      Object releaseScore = jedis.evalsha(getScriptSha(SWAP_SET_SCRIPT, jedis),
+          Arrays.asList(WORKING_SET, WAITING_SET),
+          Arrays.asList(agent.getAgentType(), acquireScore)).toString();
+
+      return releaseScore != null ? new ScoreTuple(acquireScore, releaseScore.toString()) : null;
     }
   }
 
@@ -239,11 +303,11 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware implements Agen
         String agent = keys.remove(0);
 
         AgentWorker worker = agents.get(agent);
-        String score;
+        ScoreTuple score;
         if (worker != null && (score = acquireAgent(worker.agent)) != null) {
           // This score is used to determine if the worker thread running the agent is allowed to store its results.
           // If on release of this agent, the scores don't match, this agent was rescheduled by a separate thread.
-          worker.setScore(score);
+          worker.setScore(score.acquireScore);
           workers.add(worker);
         }
       }
@@ -287,10 +351,20 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware implements Agen
         // Regardless of success or failure, we need to try and release this agent. If the release is successful (we
         // own this agent), and a result was created, we can store it.
         scheduler.runningAgents.ifPresent(Semaphore::release);
-        if (scheduler.conditionalReleaseAgent(agent, acquireScore) && result != null) {
+        if (scheduler.conditionalReleaseAgent(agent, acquireScore) != null && result != null) {
           agentExecution.storeAgentResult(agent, result);
         }
       }
+    }
+  }
+
+  private static class ScoreTuple {
+    private final String acquireScore;
+    private final String releaseScore;
+
+    public ScoreTuple(String acquireScore, String releaseScore) {
+      this.acquireScore = acquireScore;
+      this.releaseScore = releaseScore;
     }
   }
 

@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.cache
 
+import com.netflix.spinnaker.cats.agent.Agent
+import com.netflix.spinnaker.cats.agent.AgentLock
+import com.netflix.spinnaker.cats.agent.AgentScheduler
+import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.Provider
 import groovy.util.logging.Slf4j
@@ -30,6 +34,9 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
 
   private final List<Provider> providers
   private final CatsModule catsModule
+
+  @Autowired
+  AgentScheduler agentScheduler
 
   @Autowired
   public CatsOnDemandCacheUpdater(List<Provider> providers, CatsModule catsModule) {
@@ -58,12 +65,21 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
     boolean hasOnDemandResults = false
     for (OnDemandAgent agent : onDemandAgents) {
       try {
+        AgentLock lock = null;
+        if (agentScheduler.atomic && !(lock = agentScheduler.tryLock((Agent) agent))) {
+          hasOnDemandResults = true // force Orca to retry
+          continue;
+        }
         final long startTime = System.nanoTime()
         def providerCache = catsModule.getProviderRegistry().getProviderCache(agent.providerName)
         OnDemandAgent.OnDemandResult result = agent.handle(providerCache, data)
         if (result) {
+          if (agentScheduler.atomic && !(agentScheduler.lockValid(lock))) {
+            hasOnDemandResults = true // force Orca to retry
+            continue;
+          }
           if (result.cacheResult) {
-            hasOnDemandResults = !(result.cacheResult.cacheResults ?: [:]).values().flatten().isEmpty()
+            hasOnDemandResults = !(result.cacheResult.cacheResults ?: [:]).values().flatten().isEmpty() && !agentScheduler.atomic
             agent.metricsSupport.cacheWrite {
               providerCache.putCacheResult(result.sourceAgentType, result.authoritativeTypes, result.cacheResult)
             }
@@ -74,6 +90,9 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
                 providerCache.evictDeletedItems(evictType, ids)
               }
             }
+          }
+          if (agentScheduler.atomic && !(agentScheduler.tryRelease(lock))) {
+            throw new IllegalStateException("We likely just wrote stale data. If you're seeing this, file a github issue: https://github.com/spinnaker/spinnaker/issues")
           }
           final long elapsed = System.nanoTime() - startTime
           agent.metricsSupport.recordTotalRunTimeNanos(elapsed)
@@ -90,6 +109,10 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
 
   @Override
   Collection<Map> pendingOnDemandRequests(OnDemandAgent.OnDemandType type, String cloudProvider) {
+    if (agentScheduler.atomic) {
+      return []
+    }
+
     Collection<OnDemandAgent> onDemandAgents = onDemandAgents.findAll { it.handles(type, cloudProvider) }
     return onDemandAgents.collect {
       def providerCache = catsModule.getProviderRegistry().getProviderCache(it.providerName)
