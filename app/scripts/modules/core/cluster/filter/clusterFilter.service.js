@@ -241,24 +241,43 @@ module.exports = angular
       var filter = ClusterFilterModel.sortFilter.filter.toLowerCase();
       var serverGroups = filterServerGroupsForDisplay(application.serverGroups.data, filter);
 
-      var grouped = _.groupBy(serverGroups, 'account');
+      var accountGroupings = _.groupBy(serverGroups, 'account');
 
-      _.forOwn(grouped, function(group, key) {
-        var subGroupings = _.groupBy(group, 'cluster'),
-          subGroups = [];
+      _.forOwn(accountGroupings, function(accountGroup, accountKey) {
+        var categoryGroupings = _.groupBy(accountGroup, 'category'),
+          clusterGroups = [];
 
-        _.forOwn(subGroupings, function(subGroup, subKey) {
-          var subGroupings = _.groupBy(subGroup, 'region'),
-            subSubGroups = [];
+        _.forOwn(categoryGroupings, function(categoryGroup, categoryKey) {
+          var clusterGroupings = _.groupBy(categoryGroup, 'cluster');
 
-          _.forOwn(subGroupings, function(subSubGroup, subSubKey) {
-            subSubGroups.push( { heading: subSubKey, serverGroups: subSubGroup } );
+          _.forOwn(clusterGroupings, function(clusterGroup, clusterKey) {
+            var regionGroupings = _.groupBy(clusterGroup, 'region'),
+              regionGroups = [];
+
+            _.forOwn(regionGroupings, function(regionGroup, regionKey) {
+              regionGroups.push( {
+                heading: regionKey,
+                serverGroups: regionGroup,
+                category: categoryKey
+              } );
+            });
+
+            var cluster = getCluster(application, clusterKey, accountKey, categoryKey);
+            if (cluster) {
+              clusterGroups.push( {
+                heading: clusterKey,
+                subgroups: _.sortBy(regionGroups, 'heading'),
+                cluster: cluster
+              } );
+            }
           });
-          subGroups.push( { heading: subKey, subgroups: _.sortBy(subSubGroups, 'heading'), cluster: getCluster(application, subKey, key) } );
+
         });
 
-        groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
-
+        groups.push( {
+          heading: accountKey,
+          subgroups: _.sortBy(clusterGroups, 'heading')
+        } );
       });
 
       sortGroupsByHeading(groups);
@@ -269,15 +288,15 @@ module.exports = angular
       return groups;
     }, 25);
 
-    function getCluster(application, clusterName, account) {
-      return _.find(application.clusters, {account: account, name: clusterName });
+    function getCluster(application, clusterName, account, category) {
+      return _.find(application.clusters, {account: account, name: clusterName, category: category });
     }
 
     function diffSubgroups(oldGroups, newGroups) {
       var groupsToRemove = [];
 
       oldGroups.forEach(function(oldGroup, idx) {
-        var newGroup = _.find(newGroups, { heading: oldGroup.heading });
+        var newGroup = _.find(newGroups, { heading: oldGroup.heading, category: oldGroup.category });
         if (!newGroup) {
           groupsToRemove.push(idx);
         } else {
@@ -304,15 +323,19 @@ module.exports = angular
     }
 
     function diffServerGroups(oldGroup, newGroup) {
+      if (oldGroup.category !== newGroup.category) {
+        return;
+      }
+
       var toRemove = [];
       oldGroup.serverGroups.forEach(function(serverGroup, idx) {
         var newServerGroup = _.find(newGroup.serverGroups, { name: serverGroup.name, account: serverGroup.account, region: serverGroup.region });
         if (!newServerGroup) {
-          $log.debug('server group no longer found, removing:', serverGroup.name, serverGroup.account, serverGroup.region);
+          $log.debug('server group no longer found, removing:', serverGroup.name, serverGroup.account, serverGroup.region, serverGroup.category);
           toRemove.push(idx);
         } else {
           if (serverGroup.stringVal !== newServerGroup.stringVal) {
-            $log.debug('change detected, updating server group:', serverGroup.name, serverGroup.account, serverGroup.region);
+            $log.debug('change detected, updating server group:', serverGroup.name, serverGroup.account, serverGroup.region, serverGroup.category);
             oldGroup.serverGroups[idx] = newServerGroup;
           }
           if (serverGroup.executions || newServerGroup.executions) {
@@ -378,6 +401,11 @@ module.exports = angular
           var detail = {};
           detail[result.detail] = true;
           ClusterFilterModel.sortFilter.detail = detail;
+        }
+        if (result.category) {
+          var category = {};
+          category[result.category] = true;
+          ClusterFilterModel.sortFilter.category = category;
         }
         if ($stateParams.application === result.application) {
           updateClusterGroups();

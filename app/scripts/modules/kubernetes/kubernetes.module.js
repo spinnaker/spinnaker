@@ -20,6 +20,7 @@ module.exports = angular.module('spinnaker.kubernetes', [
   require('./container/configurer.directive.js'),
   require('./container/probe.directive.js'),
   require('./instance/details/details.kubernetes.module.js'),
+  require('./job/job.module.js'),
   require('./loadBalancer/configure/configure.kubernetes.module.js'),
   require('./loadBalancer/details/details.kubernetes.module.js'),
   require('./loadBalancer/transformer.js'),
@@ -79,6 +80,9 @@ module.exports = angular.module('spinnaker.kubernetes', [
         cloneServerGroupTemplateUrl: require('./serverGroup/configure/wizard/wizard.html'),
         commandBuilder: 'kubernetesServerGroupCommandBuilder',
         configurationService: 'kubernetesServerGroupConfigurationService',
+      },
+      job: {
+        transformer: 'kubernetesJobTransformer',
       },
     });
   });

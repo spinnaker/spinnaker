@@ -19,6 +19,7 @@ module.exports = angular
       { model: 'account', param: 'acct', type: 'object', },
       { model: 'region', param: 'reg', type: 'object', },
       { model: 'stack', param: 'stack', type: 'object', },
+      { model: 'category', param: 'category', type: 'object', },
       { model: 'status', type: 'object', filterTranslator: {Up: 'Healthy', Down: 'Unhealthy', OutOfService: 'Out of Service'}},
       { model: 'availabilityZone', param: 'zone', type: 'object', filterLabel: 'availability zone' },
       { model: 'instanceType', type: 'object', filterLabel: 'instance type'},
