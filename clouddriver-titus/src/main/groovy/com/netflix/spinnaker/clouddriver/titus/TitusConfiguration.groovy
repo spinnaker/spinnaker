@@ -32,6 +32,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
 
 import javax.annotation.PostConstruct
+import java.util.regex.Pattern
 
 @Configuration
 @ConditionalOnProperty('titus.enabled')
@@ -59,11 +60,15 @@ class TitusConfiguration {
 
   @Bean(name = "netflixTitusCredentials")
   List<NetflixTitusCredentials> netflixTitusCredentials(TitusCredentialsConfig titusCredentialsConfig,
-                                                        AccountCredentialsRepository repository) {
+                                                        AccountCredentialsRepository repository,
+                                                        @Value('${titus.defaultBastionHostTemplate}') String defaultBastionHostTemplate) {
     List<NetflixTitusCredentials> accounts = new ArrayList<>()
     for (TitusCredentialsConfig.Account account in titusCredentialsConfig.accounts) {
       List<TitusRegion> regions = account.regions.collect { new TitusRegion(it.name, account.name, it.endpoint) }
-      NetflixTitusCredentials credentials = new NetflixTitusCredentials(account.name, account.environment, account.accountType, regions)
+      if (!account.bastionHost && defaultBastionHostTemplate) {
+        account.bastionHost = defaultBastionHostTemplate.replaceAll(Pattern.quote('{{environment}}'), account.environment)
+      }
+      NetflixTitusCredentials credentials = new NetflixTitusCredentials(account.name, account.environment, account.accountType, regions, account.bastionHost)
       accounts.add(credentials)
       repository.save(account.name, credentials)
     }
@@ -90,8 +95,10 @@ class TitusConfiguration {
       String name
       String environment
       String accountType
+      String bastionHost
       List<Region> regions
     }
+
     static class Region {
       String name
       String endpoint
