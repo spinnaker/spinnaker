@@ -32,6 +32,7 @@ class TitusDeployDescription extends AbstractTitusCredentialsDescription impleme
   Resources resources = new Resources()
   Map env
   String entryPoint
+  String iamProfile
 
   @Canonical
   static class Capacity {
