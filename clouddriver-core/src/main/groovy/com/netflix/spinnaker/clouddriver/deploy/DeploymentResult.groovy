@@ -17,7 +17,11 @@
 package com.netflix.spinnaker.clouddriver.deploy
 
 class DeploymentResult {
+  // TODO(lwander) deprecate in favor of `deployedNames` and `deployedNamesByLocation`
   List<String> serverGroupNames = []
   Map<String, String> serverGroupNameByRegion = [:]
   List<String> messages = []
+
+  List<String> deployedNames = []
+  Map <String, List<String>> deployedNamesByLocation = [:]
 }

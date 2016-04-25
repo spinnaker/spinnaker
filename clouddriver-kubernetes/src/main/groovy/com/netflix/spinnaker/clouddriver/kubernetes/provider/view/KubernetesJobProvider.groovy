@@ -42,7 +42,7 @@ class KubernetesJobProvider implements JobProvider<KubernetesJob> {
   @Override
   KubernetesJob getJob(String account, String location, String id) {
     String jobKey = Keys.getJobKey(account, location, id)
-    CacheData jobData = cacheView.get(Keys.Namespace.SERVER_GROUPS.ns, jobKey)
+    CacheData jobData = cacheView.get(Keys.Namespace.JOBS.ns, jobKey)
     if (!jobData) {
       return null
     }
