@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.details.controller', [
+module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTask.details.controller', [
   require('angular-ui-router'),
   require('../../../../core/utils/lodash.js'),
   require('../../../../core/delivery/details/executionDetailsSection.service.js'),
