@@ -16,6 +16,7 @@ module.exports = angular
     require('./alert/alertHandler.js'),
     require('./feedback/feedback.module.js'),
     require('./instance/aws/netflixAwsInstanceDetails.controller.js'),
+    require('./instance/titan/netflixTitanInstanceDetails.controller.js'),
     require('./pipeline/stage/canary/canaryStage.module.js'),
     require('./pipeline/stage/acaTask/acaTaskStage.module'),
     require('./pipeline/stage/properties'),
@@ -55,6 +56,16 @@ module.exports = angular
         'aws',
         'serverGroup.detailsTemplateUrl',
         require('./serverGroup/awsServerGroupDetails.html')
+      );
+      cloudProviderRegistry.overrideValue(
+        'titan',
+        'instance.detailsTemplateUrl',
+        require('./instance/titan/instanceDetails.html')
+      );
+      cloudProviderRegistry.overrideValue(
+        'titan',
+        'instance.detailsController',
+        'netflixTitanInstanceDetailsCtrl'
       );
     }
   });

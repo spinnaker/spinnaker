@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.instance.detail.titan.controller', [
 ])
   .controller('titanInstanceDetailsCtrl', function ($scope, $q, $state, $uibModal, InsightFilterStateModel,
                                                     instanceWriter, confirmationModalService, recentHistoryService,
-                                                    cloudProviderRegistry, instanceReader, _, instance, app) {
+                                                    cloudProviderRegistry, instanceReader, _, instance, app, overrides) {
 
     // needed for standalone instances
     $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('titan', 'instance.detailsTemplateUrl');
@@ -85,6 +85,9 @@ module.exports = angular.module('spinnaker.instance.detail.titan.controller', [
           $scope.instance.loadBalancers = loadBalancers;
           $scope.baseIpAddress = $scope.instance.placement.host;
           $scope.instance.externalIpAddress = $scope.instance.placement.host;
+          if (overrides.instanceDetailsLoaded) {
+            overrides.instanceDetailsLoaded();
+          }
         },
           autoClose
         );
