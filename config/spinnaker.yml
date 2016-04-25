@@ -219,7 +219,10 @@ providers:
       appKey:
       tenantId:
       subscriptionId:
-    # To set azure credentials, enter values for: clientId, appKey, tenantId, subscriptionId.  See spinnaker documentation - cloud provider setup for instructions on how to retrieve these values.
+    # To set azure credentials, enter values for: clientId, appKey, tenantId, 
+    # subscriptionId.  See http://www.spinnaker.io/docs/target-deployment-setup
+    # for instructions on how to retrieve these values from your Azure 
+    # subscription.
   titan:
     # If you want to deploy some services to titan,
     # set enabled and provide primary credentials for deploying.
