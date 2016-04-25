@@ -2,6 +2,10 @@
 # In order for Spinnaker to discover it, it must be copied to a file named
 # "spinnaker-local.yml" and placed in the $HOME/.spinnaker directory.
 
+global:
+  spinnaker:
+    timezone: 'America/Los_Angeles'
+
 providers:
   aws:
     # If you want to deploy some services to Amazon Web Services (AWS),
@@ -15,6 +19,22 @@ providers:
       # Store actual credentials in $HOME/.aws/credentials. See spinnaker.yml for
       # more information, including alternatives.
 
+  azure:
+    # If you want to deploy some services to Microsoft Azure (azure),
+    # set enabled and provide primary credentials for deploying.
+    # Enabling azure is independent of other providers.
+    enabled: ${SPINNAKER_AZURE_ENABLED:false}
+    defaultRegion: ${SPINNAKER_AZURE_DEFAULT_REGION:westus}
+    primaryCredentials:
+      name: my-azure-account
+      clientId:
+      appKey:
+      tenantId:
+      subscriptionId:
+    # To set azure credentials, enter values for: clientId, appKey, tenantId, 
+    # subscriptionId.  See http://www.spinnaker.io/docs/target-deployment-setup
+    # for instructions on how to retrieve these values from your Azure 
+    # subscription.
   google:
     # If you want to deploy some services to Google Cloud Platform (google),
     # set enabled and provide primary credentials for deploying.
@@ -167,7 +187,6 @@ services:
     #baseUrl: http://spinnaker.mydomain.com
     #gateUrl: ${services.deck.baseUrl}/gate
     #bakeryUrl: ${services.deck.baseUrl}/rosco
-    timezone: 'America/Los_Angeles' # See: http://momentjs.com/timezone/docs/#/data-utilities/
     auth:
       enabled: false
 

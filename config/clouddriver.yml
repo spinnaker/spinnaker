@@ -33,6 +33,16 @@ aws:
   # See providers.aws.primaryCredentials in spinnaker.yml for more
   # info on setting environment variables.
 
+azure:
+  enabled: ${providers.azure.enabled:false}
+
+  accounts:
+    - name: ${providers.azure.primaryCredentials.name}
+      clientId: ${providers.azure.primaryCredentials.clientId}
+      appKey: ${providers.azure.primaryCredentials.appKey}
+      tenantId: ${providers.azure.primaryCredentials.tenantId}
+      subscriptionId: ${providers.azure.primaryCredentials.subscriptionId}
+
 google:
   enabled: ${providers.google.enabled:false}
 
@@ -69,5 +79,5 @@ dockerRegistry:
         - ${providers.dockerRegistry.primaryCredentials.repository}
 
 credentials:
-  primaryAccountTypes: ${providers.aws.primaryCredentials.name}, ${providers.google.primaryCredentials.name}, ${providers.cf.primaryCredentials.name}
-  challengeDestructiveActionsEnvironments: ${providers.aws.primaryCredentials.name}, ${providers.google.primaryCredentials.name}, ${providers.cf.primaryCredentials.name}
+  primaryAccountTypes: ${providers.aws.primaryCredentials.name}, ${providers.google.primaryCredentials.name}, ${providers.cf.primaryCredentials.name}, ${providers.azure.primaryCredentials.name}
+  challengeDestructiveActionsEnvironments: ${providers.aws.primaryCredentials.name}, ${providers.google.primaryCredentials.name}, ${providers.cf.primaryCredentials.name}, ${providers.azure.primaryCredentials.name}

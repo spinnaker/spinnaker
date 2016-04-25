@@ -10,6 +10,7 @@
 global:
   spinnaker:
     environment: test
+    timezone: 'America/Los_Angeles'
 
 services:
   default:
@@ -39,6 +40,7 @@ services:
     baseUrl: ${services.default.protocol}://${services.echo.host}:${services.echo.port}
     cron:
       enabled: true
+      timezone: ${global.spinnaker.timezone}
     notifications:
       # allow pipeline triggers to run periodically via cron expressions
       # If you wish for spinnaker to send notifications, configure the following blocks
@@ -67,7 +69,7 @@ services:
     baseUrl: ${services.default.protocol}://${services.deck.host}:${services.deck.port}
     gateUrl: ${services.gate.baseUrl}
     bakeryUrl: ${services.bakery.baseUrl}
-    timezone: 'America/Los_Angeles'
+    timezone: ${global.spinnaker.timezone}
     auth:
       enabled: false
 
@@ -103,6 +105,7 @@ services:
     host: ${services.default.host}
     port: 8083
     baseUrl: ${services.default.protocol}://${services.orca.host}:${services.orca.port}
+    timezone: ${global.spinnaker.timezone}
     enabled: true
 
   oort:
@@ -212,9 +215,17 @@ providers:
     # set enabled and provide primary credentials for deploying.
     # Enabling azure is independent of other providers.
     enabled: false
-    defaultRegion: West US
+    defaultRegion: westus
     primaryCredentials:
       name: my-azure-account
+      clientId:
+      appKey:
+      tenantId:
+      subscriptionId:
+    # To set azure credentials, enter values for: clientId, appKey, tenantId, 
+    # subscriptionId.  See http://www.spinnaker.io/docs/target-deployment-setup
+    # for instructions on how to retrieve these values from your Azure 
+    # subscription.
   titan:
     # If you want to deploy some services to titan,
     # set enabled and provide primary credentials for deploying.

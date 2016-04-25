@@ -322,6 +322,14 @@ function add_apt_repositories() {
 function install_java() {
   if [ "$DOWNLOAD" != "true" ];then
     apt-get install -y --force-yes openjdk-8-jdk
+    
+    # https://bugs.launchpad.net/ubuntu/+source/ca-certificates-java/+bug/983302
+    # It seems a circular dependency was introduced on 2016-04-22 with an openjdk-8 release, where
+    # the JRE relies on the ca-certificates-java package, which itself relies on the JRE. D'oh!
+    # This causes the /etc/ssl/certs/java/cacerts file to never be generated, causing a startup
+    # failure in Clouddriver.
+    dpkg --purge --force-depends ca-certificates-java
+    apt-get install ca-certificates-java
   elif [[ "x`java -version 2>&1|head -1`" != *"1.8.0"* ]];then
     echo "you must manually install java 8 and then rerun this script; exiting"
     exit 13
