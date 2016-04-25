@@ -46,7 +46,7 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware implements Agen
   private final AgentIntervalProvider intervalProvider;
   private final ExecutorService agentWorkPool;
 
-  private static final Integer NOW = 0;
+  private static final int NOW = 0;
   private static final int REDIS_REFRESH_PERIOD = 30;
   private int runCount = 0;
 
@@ -125,15 +125,15 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware implements Agen
       // KEYS[1] and KEYS[2] are checked for inclusion. If the agent is in neither ARGV[1] is added to KEYS[1] with score
       // ARGV[2].
       scriptShas.put(ADD_AGENT_SCRIPT, jedis.scriptLoad(
-        "if redis.call('zrank', KEYS[1], ARGV[1]) ~= nil then\n" +
-        "  if redis.call('zrank', KEYS[2], ARGV[1]) ~= nil then\n" +
-        "    return redis.call('zadd', KEYS[1], ARGV[2], ARGV[1])\n" +
-        "  else return nil end\n" +
-        "else return nil end\n"));
+          "if redis.call('zrank', KEYS[1], ARGV[1]) ~= nil then\n" +
+          "  if redis.call('zrank', KEYS[2], ARGV[1]) ~= nil then\n" +
+          "    return redis.call('zadd', KEYS[1], ARGV[2], ARGV[1])\n" +
+          "  else return nil end\n" +
+          "else return nil end\n"));
 
       scriptShas.put(REMOVE_AGENT_SCRIPT, jedis.scriptLoad(
-        "redis.call('zrem', KEYS[1], ARGV[1])\n" +
-        "redis.call('zrem', KEYS[2], ARGV[1])\n"));
+          "redis.call('zrem', KEYS[1], ARGV[1])\n" +
+          "redis.call('zrem', KEYS[2], ARGV[1])\n"));
     }
   }
 
@@ -166,7 +166,7 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware implements Agen
 
     agents.put(agent.getAgentType(), new AgentWorker(agent, (CachingAgent.CacheExecution)agentExecution, executionInstrumentation, this));
     try (Jedis jedis = jedisSource.getJedis()) {
-      jedis.evalsha(getScriptSha(ADD_AGENT_SCRIPT, jedis), 2, WAITING_SET, WORKING_SET, agent.getAgentType(), score(NOW));
+      jedis.evalsha(getScriptSha(ADD_AGENT_SCRIPT, jedis), 2, WAITING_SET, WORKING_SET, agent.getAgentType(), score(jedis, NOW));
     }
   }
 
@@ -220,8 +220,13 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware implements Agen
     }
   }
 
-  private static String score(long offset) {
-    return String.format("%d", TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()) + offset);
+  private static String score(Jedis jedis, long offset) {
+    List<String> times = jedis.time();
+    if (times == null || times.size() != 2) {
+      throw new IllegalStateException("Error retrieving time from Redis");
+    }
+    int time = Integer.parseInt(jedis.time().get(0));
+    return String.format("%d", time + offset);
   }
 
   private String agentScore(Agent agent) {
@@ -242,7 +247,7 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware implements Agen
 
   private ScoreTuple acquireAgent(Agent agent) {
     try (Jedis jedis = jedisSource.getJedis()) {
-      String acquireScore = score(intervalProvider.getInterval(agent).getTimeout());
+      String acquireScore = score(jedis, intervalProvider.getInterval(agent).getTimeout());
       Object releaseScore = jedis.evalsha(getScriptSha(SWAP_SET_SCRIPT, jedis),
           Arrays.asList(WAITING_SET, WORKING_SET),
           Arrays.asList(agent.getAgentType(), acquireScore));
@@ -253,7 +258,7 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware implements Agen
 
   private ScoreTuple conditionalReleaseAgent(Agent agent, String acquireScore) {
     try (Jedis jedis = jedisSource.getJedis()) {
-      String newAcquireScore = score(intervalProvider.getInterval(agent).getInterval());
+      String newAcquireScore = score(jedis, intervalProvider.getInterval(agent).getInterval());
       Object releaseScore = jedis.evalsha(getScriptSha(CONDITIONAL_SWAP_SET_SCRIPT, jedis),
           Arrays.asList(WORKING_SET, WAITING_SET),
           Arrays.asList(agent.getAgentType(), newAcquireScore,
@@ -276,7 +281,7 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware implements Agen
 
   private ScoreTuple releaseAgent(Agent agent) {
     try (Jedis jedis = jedisSource.getJedis()) {
-      String acquireScore = score(intervalProvider.getInterval(agent).getInterval());
+      String acquireScore = score(jedis, intervalProvider.getInterval(agent).getInterval());
       Object releaseScore = jedis.evalsha(getScriptSha(SWAP_SET_SCRIPT, jedis),
           Arrays.asList(WORKING_SET, WAITING_SET),
           Arrays.asList(agent.getAgentType(), acquireScore)).toString();
@@ -290,12 +295,12 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware implements Agen
       // Occasionally repopulate the agents in case redis went down. If they already exist, this is a NOOP
       if (runCount % REDIS_REFRESH_PERIOD == 0) {
         for (String agent : agents.keySet()) {
-          jedis.evalsha(getScriptSha(ADD_AGENT_SCRIPT, jedis), 2, WAITING_SET, WORKING_SET, agent, score(NOW));
+          jedis.evalsha(getScriptSha(ADD_AGENT_SCRIPT, jedis), 2, WAITING_SET, WORKING_SET, agent, score(jedis, NOW));
         }
       }
 
       // First cull threads in the WORKING set that have been there too long (TIMEOUT time).
-      Set<String> oldKeys = jedis.zrangeByScore(WORKING_SET, "-inf", score(NOW));
+      Set<String> oldKeys = jedis.zrangeByScore(WORKING_SET, "-inf", score(jedis, NOW));
       for (String key : oldKeys) {
         // Ignore result, since if this agent was released between now and the above jedis call, our work was done
         // for us.
@@ -307,7 +312,7 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware implements Agen
 
       // Now look for agents that have been in the queue for at least INTERVAL time.
       List<String> keys = new ArrayList<>();
-      keys.addAll(jedis.zrangeByScore(WAITING_SET, "-inf", score(NOW)));
+      keys.addAll(jedis.zrangeByScore(WAITING_SET, "-inf", score(jedis, NOW)));
       Set<AgentWorker> workers = new HashSet<>();
 
       // Loop until we either run out of threads to use, or agents (which are keys) to run.
