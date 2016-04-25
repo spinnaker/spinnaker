@@ -39,26 +39,42 @@ class KubernetesJobProvider implements JobProvider<KubernetesJob> {
     this.objectMapper = objectMapper
   }
 
-  @Override
-  KubernetesJob getJob(String account, String location, String id) {
-    String jobKey = Keys.getJobKey(account, location, id)
-    CacheData jobData = cacheView.get(Keys.Namespace.JOBS.ns, jobKey)
+  private KubernetesJob translateJob(CacheData jobData) {
     if (!jobData) {
       return null
     }
 
-    Collection<CacheData> allLoadBalancers = KubernetesClusterProvider.resolveRelationshipDataForCollection(cacheView, [jobData], Keys.Namespace.LOAD_BALANCERS.ns, RelationshipCacheFilter.include(Keys.Namespace.SECURITY_GROUPS.ns))
+    String account = jobData.attributes.account
+    String location = jobData.attributes.namespace
+
+    Collection<CacheData> allLoadBalancers = KubernetesClusterProvider.resolveRelationshipDataForCollection(cacheView, [jobData],
+                                                                                                            Keys.Namespace.LOAD_BALANCERS.ns,
+                                                                                                            RelationshipCacheFilter.include(Keys.Namespace.SECURITY_GROUPS.ns))
 
     def securityGroups = KubernetesClusterProvider.loadBalancerToSecurityGroupMap(cacheView, allLoadBalancers)
 
-    Set<CacheData> instances = KubernetesProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.PROCESSES.ns, Keys.getInstanceKey(account, location, id, "*"))
+    Set<CacheData> processes = KubernetesProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.PROCESSES.ns,
+                                                                                Keys.getProcessKey(account, location, (String)jobData.attributes.name, "*"))
 
     def job = objectMapper.convertValue(jobData.attributes.job, Job)
-    def res = new KubernetesJob(job, KubernetesProviderUtils.jobToProcessMap(objectMapper, instances)[id], account)
+    def res = new KubernetesJob(job, KubernetesProviderUtils.controllerToInstanceMap(objectMapper, processes)[(String)jobData.attributes.name], account)
     res.loadBalancers?.each {
       res.securityGroups.addAll(securityGroups[it])
     }
 
     return res
+  }
+
+  @Override
+  KubernetesJob getJob(String account, String location, String id) {
+    String jobKey = Keys.getJobKey(account, location, id)
+    return translateJob(cacheView.get(Keys.Namespace.SERVER_GROUPS.ns, jobKey))
+  }
+
+  @Override
+  List<KubernetesJob> getJobsByApp(String app) {
+    Set<CacheData> jobs = KubernetesProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.JOBS.ns, Keys.getJobKey("*", "*", "$app-*"))
+
+    return jobs?.collect { translateJob(it) } ?: []
   }
 }

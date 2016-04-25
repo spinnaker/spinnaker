@@ -20,4 +20,6 @@ public interface JobProvider<T extends Job> {
   String getPlatform()
 
   T getJob(String account, String location, String id)
+
+  List<T> getJobsByApp(String app)
 }

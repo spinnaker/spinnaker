@@ -313,6 +313,8 @@ class KubernetesJobCachingAgent implements CachingAgent, OnDemandAgent, AccountA
         cachedJobs[jobKey].with {
           attributes.name = jobName
           attributes.job = job
+          attributes.account = accountName
+          attributes.namespace = namespace
           relationships[Keys.Namespace.APPLICATIONS.ns].add(applicationKey)
           relationships[Keys.Namespace.CLUSTERS.ns].add(clusterKey)
           relationships[Keys.Namespace.LOAD_BALANCERS.ns].addAll(loadBalancerKeys)

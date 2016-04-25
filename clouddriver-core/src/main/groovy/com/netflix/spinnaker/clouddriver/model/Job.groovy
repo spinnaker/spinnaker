@@ -25,15 +25,19 @@ package com.netflix.spinnaker.clouddriver.model
 interface Job {
   String getName()
 
+  String getCluster()
+
   String getAccount()
 
   String getId()
 
   String getLocation()
 
+  String getProvider()
+
   JobState getJobState()
 
-  Set<Process> getProcesses()
+  Set<Instance> getInstances()
 
   Long getLaunchTime()
 

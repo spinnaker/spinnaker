@@ -16,28 +16,32 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.model
 
+import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.Job
 import com.netflix.spinnaker.clouddriver.model.JobState
-import com.netflix.spinnaker.clouddriver.model.Process
 import io.fabric8.kubernetes.api.model.extensions.JobCondition
 
 class KubernetesJob implements Job, Serializable {
   String name
+  String cluster
   String account
   String id
   String location
-  Set<Process> processes
+  String provider = "kubernetes"
+  Set<Instance> instances
   Long launchTime
   Set<String> loadBalancers
   Set<String> securityGroups
   io.fabric8.kubernetes.api.model.extensions.Job job
 
-  KubernetesJob(io.fabric8.kubernetes.api.model.extensions.Job job, Set<KubernetesProcess> processes, String account) {
+  KubernetesJob(io.fabric8.kubernetes.api.model.extensions.Job job, Set<KubernetesInstance> instances, String account) {
     this.name = job.metadata.name
+    this.cluster = Names.parseName(this.name).cluster
     this.location = job.metadata.namespace
     this.job = job
     this.account = account
-    this.processes = processes
+    this.instances = instances ?: [] as Set
     this.launchTime = KubernetesModelUtil.translateTime(job.metadata.creationTimestamp)
   }
 
