@@ -156,7 +156,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
     if (!data.containsKey("serverGroupName") ||
         data.account != accountName ||
         data.region != region ||
-        data.zone.empty) {
+        !data.zone) {
       return null
     }
 
