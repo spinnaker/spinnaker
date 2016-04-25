@@ -52,8 +52,6 @@ class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
 
   def setup() {
     System.properties."pollers.stalePipelines.enabled" = "false"
-    TimeZone.'default' = TimeZone.getTimeZone("America/Los_Angeles")
-    System.setProperty("user.timezone", "America/Los_Angeles")
   }
 
   def "pipeline should inject a stage before if current stage context has restrictExecutionDuringWindow set to true"() {
@@ -63,7 +61,9 @@ class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
 
   void 'stage should be scheduled at #expectedTime when triggered at #scheduledTime with time windows #timeWindows'() {
     when:
-    Date result = SuspendExecutionDuringTimeWindowTask.calculateScheduledTime(scheduledTime, timeWindows)
+    SuspendExecutionDuringTimeWindowTask suspendExecutionDuringTimeWindowTask = new SuspendExecutionDuringTimeWindowTask()
+    suspendExecutionDuringTimeWindowTask.timeZoneId = "America/Los_Angeles"
+    Date result = suspendExecutionDuringTimeWindowTask.calculateScheduledTime(scheduledTime, timeWindows)
 
     then:
     result.equals(expectedTime)
@@ -115,7 +115,9 @@ class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
 
   void 'stage should be scheduled at #expectedTime when triggered at #scheduledTime with time windows #stage in stage context'() {
     when:
-    Date result = SuspendExecutionDuringTimeWindowTask.getTimeInWindow(stage, scheduledTime)
+    SuspendExecutionDuringTimeWindowTask suspendExecutionDuringTimeWindowTask = new SuspendExecutionDuringTimeWindowTask()
+    suspendExecutionDuringTimeWindowTask.timeZoneId = "America/Los_Angeles"
+    Date result = suspendExecutionDuringTimeWindowTask.getTimeInWindow(stage, scheduledTime)
 
     then:
     result.equals(expectedTime)

@@ -15,18 +15,24 @@
  */
 
 package com.netflix.spinnaker.orca.pipeline
+
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 import java.util.concurrent.TimeUnit
+
+import static java.util.Calendar.DAY_OF_MONTH
+import static java.util.Calendar.HOUR_OF_DAY
+import static java.util.Calendar.MINUTE
+import static java.util.Calendar.SECOND
 
 /**
  * A stage that suspends execution of pipeline if the current stage is restricted to run during a time window and
@@ -52,24 +58,20 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
     long backoffPeriod = 60000
     long timeout = TimeUnit.DAYS.toMillis(2)
 
-    private static final int HOUR_OF_DAY = Calendar.HOUR_OF_DAY
-    private static final int MINUTE = Calendar.MINUTE
-    private static final int SECOND = Calendar.SECOND
-
     private static final int DAY_START_HOUR = 0
     private static final int DAY_START_MIN = 0
     private static final int DAY_END_HOUR = 23
     private static final int DAY_END_MIN = 59
 
+    @Value('${tasks.executionWindow.timezone:America/Los_Angeles}')
+    String timeZoneId
+
     @Override
     TaskResult execute(Stage stage) {
-      TimeZone.'default' = TimeZone.getTimeZone("America/Los_Angeles")
-      System.setProperty("user.timezone", "America/Los_Angeles")
-
-      Date now = getCurrentDate()
+      Date now = new Date()
       Date scheduledTime
       try {
-        scheduledTime = getTimeInWindow(stage, getCurrentDate())
+        scheduledTime = getTimeInWindow(stage, now)
       } catch (Exception e) {
         return new DefaultTaskResult(ExecutionStatus.TERMINAL, [failureReason: 'Exception occurred while calculating time window: ' + e.message])
       }
@@ -88,7 +90,7 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
      * @return
      */
     @VisibleForTesting
-    private static Date getTimeInWindow(Stage stage, Date scheduledTime) {  // Passing in the current date to allow unit testing
+    private Date getTimeInWindow(Stage stage, Date scheduledTime) {  // Passing in the current date to allow unit testing
       try {
         Map restrictedExecutionWindow = stage.context.restrictedExecutionWindow as Map
         List whitelist = restrictedExecutionWindow.whitelist as List<Map>
@@ -108,23 +110,26 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
     }
 
     @VisibleForTesting
-    private static Date calculateScheduledTime(Date scheduledTime, List<TimeWindow> whitelistWindows) throws IncorrectTimeWindowsException {
+    private Date calculateScheduledTime(Date scheduledTime, List<TimeWindow> whitelistWindows) throws IncorrectTimeWindowsException {
       return calculateScheduledTime(scheduledTime, whitelistWindows, false)
     }
 
-    private static Date calculateScheduledTime(Date scheduledTime, List<TimeWindow> whitelistWindows, boolean dayIncremented) throws IncorrectTimeWindowsException {
+    private Date calculateScheduledTime(Date scheduledTime, List<TimeWindow> whitelistWindows, boolean dayIncremented) throws IncorrectTimeWindowsException {
 
       boolean inWindow = false
       Collections.sort(whitelistWindows)
       List<TimeWindow> normalized = normalizeTimeWindows(whitelistWindows)
+      Calendar calendar = Calendar.instance
+      calendar.setTimeZone(TimeZone.getTimeZone(timeZoneId))
+      calendar.setTime(scheduledTime)
 
       for (TimeWindow timeWindow : normalized) {
-        HourMinute hourMin = new HourMinute(scheduledTime[HOUR_OF_DAY], scheduledTime[MINUTE])
+        HourMinute hourMin = new HourMinute(calendar[HOUR_OF_DAY], calendar[MINUTE])
         int index = timeWindow.indexOf(hourMin)
         if (index == -1) {
-          scheduledTime[HOUR_OF_DAY] = timeWindow.start.hour
-          scheduledTime[MINUTE] = timeWindow.start.min
-          scheduledTime[SECOND] = 0
+          calendar[HOUR_OF_DAY] = timeWindow.start.hour
+          calendar[MINUTE] = timeWindow.start.min
+          calendar[SECOND] = 0
           inWindow = true
           break
         } else if (index == 0) {
@@ -135,19 +140,19 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
 
       if (!inWindow) {
         if (!dayIncremented) {
-          scheduledTime[HOUR_OF_DAY] = DAY_START_HOUR
-          scheduledTime[MINUTE] = DAY_START_MIN
-          scheduledTime[SECOND] = 0
-          return calculateScheduledTime(scheduledTime, whitelistWindows, true)
+          calendar[HOUR_OF_DAY] = DAY_START_HOUR
+          calendar[MINUTE] = DAY_START_MIN
+          calendar[SECOND] = 0
+          return calculateScheduledTime(calendar.time, whitelistWindows, true)
         } else {
           throw new IncorrectTimeWindowsException("Couldn't calculate a suitable time within given time windows")
         }
       }
 
       if (dayIncremented) {
-        scheduledTime = scheduledTime + 1
+        calendar.add(DAY_OF_MONTH, 1)
       }
-      return scheduledTime
+      return calendar.time
     }
 
     private static List<TimeWindow> normalizeTimeWindows(List<TimeWindow> timeWindows) {
@@ -175,13 +180,6 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
       }
       Collections.sort(normalized)
       return normalized
-    }
-
-    private static Date getCurrentDate() {
-      Calendar calendar = Calendar.instance
-      calendar.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))
-      calendar.setTime(new Date())
-      return calendar.time
     }
 
     private static class HourMinute implements Comparable {
