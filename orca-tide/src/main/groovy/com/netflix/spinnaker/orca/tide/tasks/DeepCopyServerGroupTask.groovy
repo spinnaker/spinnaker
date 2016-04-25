@@ -39,7 +39,7 @@ class DeepCopyServerGroupTask implements Task {
     def settings = stage.mapTo(DeepCopySettings)
 
     def taskId = tideService.deepCopyServerGroup(source.account, source.region, source.asgName,
-      settings.allowIngressFromClassic, settings.dryRun, target)
+      settings.allowIngressFromClassic, target.subnetType, settings.dryRun, target)
 
     def outputs = [
         "tide.task.id": taskId
