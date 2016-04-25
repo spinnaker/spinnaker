@@ -118,6 +118,7 @@ module.exports = angular
     require('./search/search.module.js'),
     require('./securityGroup/securityGroup.module.js'),
     require('./serverGroup/serverGroup.module.js'),
+    require('./job/job.module.js'),
 
     require('./task/task.module.js'),
 

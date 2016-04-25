@@ -33,6 +33,14 @@
     </div>
   </filter-section>
 
+  <filter-section heading="Category" expanded="true">
+    <div class="checkbox" ng-repeat="category in clustersFilters.categoryHeadings | orderBy: 'toString()' ">
+      <label>
+        <input type="checkbox" ng-model="sortFilter.category[heading]" ng-change="clustersFilters.updateClusterGroups()"/>{{heading}}
+      </label>
+    </div>
+  </filter-section>
+
   <filter-section heading="Stack" expanded="true">
     <div class="checkbox" ng-repeat="heading in clustersFilters.stackHeadings | orderBy: 'toString()' ">
       <label>

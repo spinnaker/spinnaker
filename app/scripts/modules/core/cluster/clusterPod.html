@@ -5,10 +5,12 @@
         <div class="col-md-12">
           <div class="rollup-title-cell">
             <h5>
-              <account-label-color account="{{parentHeading}}"></account-label-color>
-              <span class="glyphicon glyphicon-th"></span>
-              {{grouping.heading}}
-              <health-counts container="grouping.cluster.instanceCounts"></health-counts>
+              <div class="{{grouping.cluster.category}}">
+                <account-label-color account="{{parentHeading}}"></account-label-color>
+                <span class="glyphicon glyphicon-th"></span>
+                {{grouping.heading}}
+                <health-counts container="grouping.cluster.instanceCounts"></health-counts>
+              </div>
             </h5>
           </div>
         </div>
