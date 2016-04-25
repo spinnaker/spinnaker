@@ -85,8 +85,13 @@ class CleanupDetachedInstancesAgent implements RunnableAgent, CustomScheduledAge
           }
 
           if (instanceIdsToTerminate) {
-            log.info("Terminating instances (instanceIds: ${instanceIdsToTerminate.join(",")})")
-            amazonEC2.terminateInstances(new TerminateInstancesRequest().withInstanceIds(instanceIdsToTerminate))
+            // terminate up to 20 instances at a time (avoids any AWS limits on # of concurrent terminations)
+            instanceIdsToTerminate.collate(20).each {
+              log.info("Terminating instances in ${credentials.name}/${region.name} (instanceIds: ${it.join(",")})")
+              amazonEC2.terminateInstances(new TerminateInstancesRequest().withInstanceIds(it))
+              Thread.sleep(500)
+            }
+
           }
 
           if (result.nextToken) {

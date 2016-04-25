@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
+import com.amazonaws.services.ec2.model.DescribeAccountAttributesRequest
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -71,7 +72,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
   final Collection<NetflixAmazonCredentials> accounts
   final ObjectMapper objectMapper
   final AccountReservationDetailSerializer accountReservationDetailSerializer
-
+  final Set<String> vpcOnlyAccounts
 
   ReservationReportCachingAgent(AmazonClientProvider amazonClientProvider,
                                 Collection<NetflixAmazonCredentials> accounts,
@@ -88,6 +89,24 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
     this.objectMapper = objectMapper.copy().enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).registerModule(module)
     this.scheduler = scheduler
     this.ctx = ctx
+    this.vpcOnlyAccounts = determineVpcOnlyAccounts()
+  }
+
+  private Set<String> determineVpcOnlyAccounts() {
+    def vpcOnlyAccounts = []
+
+    accounts.each { credentials ->
+      def amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, credentials.regions[0].name)
+      def describeAccountAttributesResult = amazonEC2.describeAccountAttributes(
+        new DescribeAccountAttributesRequest().withAttributeNames("supported-platforms")
+      )
+      if (describeAccountAttributesResult.accountAttributes[0].attributeValues*.attributeValue == ["VPC"]) {
+        vpcOnlyAccounts << credentials.name
+      }
+    }
+
+    log.info("VPC Only Accounts: ${vpcOnlyAccounts.join(", ")}")
+    return vpcOnlyAccounts
   }
 
   @Override
@@ -227,7 +246,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
           def reservation = getReservation(it.availabilityZone, osType.name, it.instanceType)
           reservation.totalReserved.addAndGet(it.instanceCount)
 
-          if (osType.isVpc) {
+          if (osType.isVpc || vpcOnlyAccounts.contains(credentials.name)) {
             reservation.getAccount(credentials.name).reservedVpc.addAndGet(it.instanceCount)
           } else {
             reservation.getAccount(credentials.name).reserved.addAndGet(it.instanceCount)
