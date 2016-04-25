@@ -16,8 +16,8 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
 
     function loadServerGroups(applicationName) {
       var serverGroupLoader = $q.all({
-        serverGroups: Restangular.one('applications', applicationName).all('serverGroups').getList(),
-        jobs: Restangular.one('applications', applicationName).all('jobs').getList(),
+        serverGroups: Restangular.one('applications', applicationName).all('serverGroups').getList().then(g => g, () => []),
+        jobs: Restangular.one('applications', applicationName).all('jobs').getList().then(jobs => jobs, () => []),
       });
       return serverGroupLoader.then(function(results) {
         results.serverGroups = results.serverGroups || [];
