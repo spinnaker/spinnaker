@@ -18,3 +18,10 @@ SPINNAKER_GOOGLE_DEFAULT_REGION=us-central1
 # Default zone you desire to operate in
 SPINNAKER_GOOGLE_DEFAULT_ZONE=us-central1-f
 
+## Azure
+
+# If you plan on using Azure set this to true
+SPINNAKER_AZURE_ENABLED=false
+# Default region you desire to operate in
+SPINNAKER_AZURE_DEFAULT_REGION=westus
+

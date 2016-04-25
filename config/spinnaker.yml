@@ -215,9 +215,17 @@ providers:
     # set enabled and provide primary credentials for deploying.
     # Enabling azure is independent of other providers.
     enabled: false
-    defaultRegion: West US
+    defaultRegion: westus
     primaryCredentials:
       name: my-azure-account
+      clientId:
+      appKey:
+      tenantId:
+      subscriptionId:
+    # To set azure credentials, enter values for: clientId, appKey, tenantId, 
+    # subscriptionId.  See http://www.spinnaker.io/docs/target-deployment-setup
+    # for instructions on how to retrieve these values from your Azure 
+    # subscription.
   titan:
     # If you want to deploy some services to titan,
     # set enabled and provide primary credentials for deploying.
