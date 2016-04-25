@@ -32,6 +32,7 @@ public class Task {
     private Map<String, String> env;
     private String version;
     private String entryPoint;
+    private String iamProfile;
     private String host;
     private Date submittedAt;
     private Date launchedAt;
@@ -128,6 +129,14 @@ public class Task {
 
     public void setEntryPoint(String entryPoint) {
         this.entryPoint = entryPoint;
+    }
+
+    public String getIamProfile() {
+      return iamProfile;
+    }
+
+    public void setIamProfile(String entryPoint) {
+      this.iamProfile = iamProfile;
     }
 
     public String getHost() {

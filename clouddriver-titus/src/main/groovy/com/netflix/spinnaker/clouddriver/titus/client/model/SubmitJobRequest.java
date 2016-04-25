@@ -63,6 +63,7 @@ public class SubmitJobRequest {
     private String detail;
     private String user;
     private String entryPoint;
+    private String iamProfile;
     private int instancesMin;
     private int instancesMax;
     private int instancesDesired;
@@ -160,9 +161,13 @@ public class SubmitJobRequest {
         return this;
     }
 
-
     public SubmitJobRequest withEntryPoint(String entryPoint) {
       this.entryPoint = entryPoint;
+      return this;
+    }
+
+    public SubmitJobRequest withIamProfile(String iamProfile) {
+      this.iamProfile = iamProfile;
       return this;
     }
 
@@ -252,6 +257,8 @@ public class SubmitJobRequest {
     }
 
     public String getEntryPoint() { return entryPoint; }
+
+    public String getIamProfile() { return iamProfile; }
 
     public Map<String, String> getLabels() {
         return labels;

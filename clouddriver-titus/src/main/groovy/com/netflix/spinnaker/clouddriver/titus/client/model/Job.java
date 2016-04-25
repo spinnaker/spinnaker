@@ -158,6 +158,7 @@ public class Job {
     private String user;
     private String version;
     private String entryPoint;
+    private String iamProfile;
     private int instances;
     private int instancesMin;
     private int instancesMax;
@@ -334,4 +335,9 @@ public class Job {
     public void setTasks(List<TaskSummary> tasks) {
         this.tasks = tasks;
     }
+
+    public String getIamProfile() { return iamProfile; }
+
+    public void setIamProfile(String iamProfile) { this.iamProfile = iamProfile; }
+
 }
