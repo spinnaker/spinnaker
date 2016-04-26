@@ -58,6 +58,8 @@ class MonitorKatoTask implements RetryableTask {
     Map<String, ? extends Object> outputs = [:]
     if (status == ExecutionStatus.SUCCEEDED) {
       def deployed = getDeployedNames(katoTask)
+      // The below two checks aren't mutually exclusive since both `deploy.server.groups` and `deploy.jobs` can initially
+      // by empty, although only one of them needs to be filled.
       if (!stage.context.containsKey("deploy.server.groups")) {
         outputs["deploy.server.groups"] = getServerGroupNames(katoTask)
       }
