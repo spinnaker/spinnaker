@@ -296,7 +296,8 @@ module.exports = angular
       var groupsToRemove = [];
 
       oldGroups.forEach(function(oldGroup, idx) {
-        var newGroup = _.find(newGroups, { heading: oldGroup.heading, category: oldGroup.category });
+        var [newGroup] = (newGroups || []).filter(group => group.heading === oldGroup.heading &&
+          group.category === oldGroup.category);
         if (!newGroup) {
           groupsToRemove.push(idx);
         } else {
