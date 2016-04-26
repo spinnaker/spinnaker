@@ -73,6 +73,7 @@ class AzureLoadBalancerController {
       lbDetail.createdTime = azureLoadBalancerDescription.createdTime
       lbDetail.serverGroup = azureLoadBalancerDescription.serverGroup
       lbDetail.vnet = azureLoadBalancerDescription.vnet ?: "vnet-unassigned"
+      lbDetail.subnet = azureLoadBalancerDescription.subnet ?: "subnet-unassigned"
       lbDetail.dnsName = azureLoadBalancerDescription.dnsName ?: "dnsname-unassigned"
 
       lbDetail.probes = azureLoadBalancerDescription.probes

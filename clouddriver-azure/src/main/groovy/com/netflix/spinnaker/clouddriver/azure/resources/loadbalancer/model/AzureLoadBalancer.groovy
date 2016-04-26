@@ -27,6 +27,7 @@ class AzureLoadBalancer implements LoadBalancer {
   String name
   String region
   String vnet
+  String subnet
   String type = AZURE_LOAD_BALANCER_TYPE
   Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
 

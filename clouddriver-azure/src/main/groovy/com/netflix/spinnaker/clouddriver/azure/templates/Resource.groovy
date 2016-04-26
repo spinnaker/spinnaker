@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.azure.templates
 
+import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
+
 class DependingResource extends Resource{
   ArrayList<String> dependsOn = new ArrayList<String>()
 
@@ -43,3 +45,33 @@ class Resource {
   String location
   Map<String, String> tags
 }
+
+class PublicIpResource extends Resource{
+  PublicIPProperties properties = new PublicIPProperties()
+
+  PublicIpResource() {
+    apiVersion = '''[variables('apiVersion')]'''
+    name = '''[variables('publicIPAddressName')]'''
+    type = '''Microsoft.Network/publicIPAddresses'''
+    location = '''[parameters('location')]'''
+  }
+}
+
+class PublicIPProperties {
+  String publicIPAllocationMethod = '''[variables('publicIPAddressType')]'''
+}
+
+class PublicIPPropertiesWithDns extends PublicIPProperties{
+  DnsSettings dnsSettings = new DnsSettings()
+}
+
+class DnsSettings{
+  String domainNameLabel = '''[variables('dnsNameForLBIP')]'''
+
+  static String getUniqueDNSName(String name) {
+    String noDashName = name.replaceAll("-", "").toLowerCase()
+    "[concat('${AzureUtilities.DNS_NAME_PREFIX}', uniqueString(concat(resourceGroup().id, subscription().id, '$noDashName')))]"
+  }
+
+}
+

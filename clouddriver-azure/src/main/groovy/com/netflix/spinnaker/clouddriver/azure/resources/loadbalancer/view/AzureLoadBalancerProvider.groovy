@@ -78,6 +78,7 @@ class AzureLoadBalancerProvider implements LoadBalancerProvider<AzureLoadBalance
       name: loadBalancerDescription.loadBalancerName,
       region: loadBalancerDescription.region,
       vnet: loadBalancerDescription.vnet?: "vnet-unassigned",
+      subnet: loadBalancerDescription.subnet?: "subnet-unassigned",
       serverGroups: [new LoadBalancerServerGroup(name: loadBalancerDescription.serverGroup, isDisabled: false, detachedInstances: [], instances: [])]
     )
   }

@@ -110,6 +110,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
       lbDescription.detail = description.detail
       lbDescription.securityGroup = description.securityGroup?.name
       lbDescription.vnet = virtualNetworkName
+      lbDescription.subnet = subnetName
 
       task.updateStatus(BASE_PHASE, "Create new load balancer ${description.loadBalancerName} in ${description.region}...")
       DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(description.credentials,

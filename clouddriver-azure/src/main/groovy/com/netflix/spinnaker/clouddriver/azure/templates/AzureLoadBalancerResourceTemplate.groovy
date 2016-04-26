@@ -42,7 +42,7 @@ class AzureLoadBalancerResourceTemplate {
       parameters = new LoadBalancerParameters()
       variables = new LoadBalancerTemplateVariables(description)
 
-      resources.add(new PublicIpResource())
+      resources.add(new PublicIpResource(properties: new PublicIPPropertiesWithDns()))
 
       LoadBalancer lb = new LoadBalancer(description)
       lb.addDependency(resources[0])
@@ -51,6 +51,7 @@ class AzureLoadBalancerResourceTemplate {
   }
 
   static class LoadBalancerTemplateVariables{
+    String apiVersion = "2015-05-01-preview"
     String loadBalancerName
     String virtualNetworkName
     String publicIPAddressName
@@ -73,7 +74,7 @@ class AzureLoadBalancerResourceTemplate {
       publicIPAddressName = AzureUtilities.PUBLICIP_NAME_PREFIX + description.loadBalancerName.toLowerCase()
       loadBalancerFrontEnd = AzureUtilities.LBFRONTEND_NAME_PREFIX + description.loadBalancerName.toLowerCase()
       loadBalancerBackEnd = AzureUtilities.LBBACKEND_NAME_PREFIX + description.loadBalancerName.toLowerCase()
-      dnsNameForLBIP = AzureUtilities.DNS_NAME_PREFIX + description.loadBalancerName.toLowerCase()
+      dnsNameForLBIP = DnsSettings.getUniqueDNSName(description.loadBalancerName.toLowerCase())
       ipConfigName = AzureUtilities.IPCONFIG_NAME_PREFIX + description.loadBalancerName.toLowerCase()
     }
   }
@@ -91,7 +92,7 @@ class AzureLoadBalancerResourceTemplate {
     LoadBalancerProperties properties
 
     LoadBalancer(AzureLoadBalancerDescription description) {
-      apiVersion = "2015-05-01-preview"
+      apiVersion = "[variables('apiVersion')]"
       name = "[variables('loadBalancerName')]"
       type = "Microsoft.Network/loadBalancers"
       location = "[parameters('location')]"
@@ -105,6 +106,7 @@ class AzureLoadBalancerResourceTemplate {
       if (description.serverGroup) tags.serverGroup = description.serverGroup
       if (description.securityGroup) tags.securityGroup = description.securityGroup
       if (description.vnet) tags.vnet = description.vnet
+      if (description.subnet) tags.subnet = description.subnet
 
       properties = new LoadBalancerProperties(description)
     }
@@ -185,26 +187,6 @@ class AzureLoadBalancerResourceTemplate {
 
   static class SubnetProperties{
     def addressPrefix = '''[variables('subnetPrefix')]'''
-  }
-
-  static class PublicIpResource extends Resource{
-
-    PublicIpResource() {
-      apiVersion = '2015-05-01-preview'
-      name = '''[variables('publicIPAddressName')]'''
-      type = '''Microsoft.Network/publicIPAddresses'''
-      location = '''[parameters('location')]'''
-    }
-    PublicIPProperties properties = new PublicIPProperties()
-  }
-
-  static class PublicIPProperties{
-    String publicIPAllocationMethod = '''[variables('publicIPAddressType')]'''
-    DnsSettings dnsSettings = new DnsSettings()
-  }
-
-  static class DnsSettings{
-    String domainNameLabel = '''[variables('dnsNameForLBIP')]'''
   }
 
   static class NetworkInterfaceProperties{
