@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.kubernetes
 
-import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
+import com.netflix.spinnaker.orca.clouddriver.tasks.job.JobRunner
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
-class KubernetesServerGroupCreator implements ServerGroupCreator {
+class KubernetesJobRunner implements JobRunner {
 
   boolean katoResultExpected = false
   String cloudProvider = "kubernetes"
@@ -44,3 +44,4 @@ class KubernetesServerGroupCreator implements ServerGroupCreator {
     return [[(OPERATION): operation]]
   }
 }
+
