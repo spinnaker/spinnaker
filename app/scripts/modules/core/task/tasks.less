@@ -2,16 +2,13 @@
 
 .tasks-wrapper {
   display: flex;
-  display: -webkit-flex;
 }
 
 .tasks {
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;
-  display: -webkit-flex;
   flex-direction: column;
-  -webkit-flex-direction: column;
 
   @media (min-width: 768px) and (max-width: 992px) {
     width: 768px;
@@ -33,7 +30,6 @@
       font-weight: 600;
     }
     flex: 0 0 auto;
-    -webkit-flex: 0 0 auto;
     z-index: 4;
     box-shadow: 0 20px 10px -10px @lightest_grey;
     padding-bottom: 0;
@@ -51,7 +47,6 @@
   > .tasks-content {
     padding: 10px 15px;
     flex: 1 1 auto;
-    -webkit-flex: 1 1 auto;
     overflow-y: auto;
   }
 
