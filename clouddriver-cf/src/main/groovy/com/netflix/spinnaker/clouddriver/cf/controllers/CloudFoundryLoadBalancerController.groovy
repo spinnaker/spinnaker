@@ -42,8 +42,9 @@ class CloudFoundryLoadBalancerController {
 
   @RequestMapping(method = RequestMethod.GET)
   List<CloudFoundryLoadBalancerAccount> list() {
-    Collection<String> loadBalancers = cacheView.getIdentifiers(LOAD_BALANCERS.ns)
-    getSummaryForLoadBalancers(loadBalancers).values() as List
+    def searchKey = Keys.getLoadBalancerKey('*', '*', '*')
+    Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey)
+    getSummaryForLoadBalancers(identifiers).values() as List
   }
 
   @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)

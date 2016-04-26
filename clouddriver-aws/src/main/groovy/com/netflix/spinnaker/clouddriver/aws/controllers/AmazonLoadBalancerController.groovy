@@ -42,8 +42,9 @@ class AmazonLoadBalancerController {
 
   @RequestMapping(method = RequestMethod.GET)
   List<AmazonLoadBalancerSummary> list() {
-    Collection<String> loadBalancers = cacheView.getIdentifiers(LOAD_BALANCERS.ns)
-    getSummaryForLoadBalancers(loadBalancers).values() as List
+    def searchKey = Keys.getLoadBalancerKey('*', '*', '*', null) + '*'
+    Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey)
+    getSummaryForLoadBalancers(identifiers).values() as List
   }
 
   @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)
