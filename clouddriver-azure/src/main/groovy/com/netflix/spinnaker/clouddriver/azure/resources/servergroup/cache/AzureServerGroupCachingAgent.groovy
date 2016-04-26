@@ -134,7 +134,8 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
     }
 
     def cacheResult = metricsSupport.transformData {
-      buildCacheResult(providerCache, [serverGroup], [:], [])
+      def serverGroups = serverGroup ? [serverGroup] : []
+      buildCacheResult(providerCache, serverGroups, [:], [])
     }
 
     if (cacheResult.cacheResults.values().flatten().isEmpty()) {
@@ -184,7 +185,7 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
       Map<String, MutableCacheData> cachedServerGroups = MutableCacheData.mutableCacheMap()
       Map<String, MutableCacheData> cachedInstances = MutableCacheData.mutableCacheMap()
 
-      serverGroups.each { serverGroup ->
+      serverGroups?.each { serverGroup ->
 
         // see if this server group is in the onDemand cache
         def serverGroupKey = Keys.getServerGroupKey(azureCloudProvider, serverGroup.name, region, accountName)
