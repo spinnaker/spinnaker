@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.netflix.instance.aws.controller', [
+module.exports = angular.module('spinnaker.netflix.instance.titan.controller', [
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
   require('../../../core/utils/lodash.js'),
