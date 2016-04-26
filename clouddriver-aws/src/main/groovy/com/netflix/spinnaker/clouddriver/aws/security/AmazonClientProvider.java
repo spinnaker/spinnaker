@@ -34,6 +34,10 @@ import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClient;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
+import com.amazonaws.services.lambda.AWSLambda;
+import com.amazonaws.services.lambda.AWSLambdaAsync;
+import com.amazonaws.services.lambda.AWSLambdaAsyncClient;
+import com.amazonaws.services.lambda.AWSLambdaClient;
 import com.amazonaws.services.route53.AmazonRoute53;
 import com.amazonaws.services.route53.AmazonRoute53Client;
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
@@ -225,6 +229,16 @@ public class AmazonClientProvider {
     checkCredentials(amazonCredentials);
     return getProxyHandler(AmazonEC2.class, AmazonEC2Client.class, amazonCredentials, region);
 
+  }
+
+  public AWSLambda getAmazonLambda(NetflixAmazonCredentials amazonCredentials, String region) {
+    checkCredentials(amazonCredentials);
+    return getProxyHandler(AWSLambda.class, AWSLambdaClient.class, amazonCredentials, region);
+  }
+
+  public AWSLambdaAsync getAmazonLambdaAsync(NetflixAmazonCredentials amazonCredentials, String region) {
+    checkCredentials(amazonCredentials);
+    return getProxyHandler(AWSLambdaAsync.class, AWSLambdaAsyncClient.class, amazonCredentials, region);
   }
 
   public AmazonAutoScaling getAutoScaling(NetflixAmazonCredentials amazonCredentials, String region) {
