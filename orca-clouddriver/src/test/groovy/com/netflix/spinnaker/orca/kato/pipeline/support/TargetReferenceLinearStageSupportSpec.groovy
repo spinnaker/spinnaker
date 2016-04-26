@@ -63,8 +63,8 @@ class TargetReferenceLinearStageSupportSpec extends Specification {
     stage.beforeStages.size() == 1
     stage.afterStages.size() == 3
     stage.afterStages*.name == ["targetReferenceLinearStageSupportStage", "targetReferenceLinearStageSupportStage", "targetReferenceLinearStageSupportStage"]
-    stage.context.regions == ["us-east-1"]
-    stage.afterStages*.context.regions.flatten() == ["us-west-1", "us-west-2", "eu-west-2"]
+    stage.context.region == "us-east-1"
+    stage.afterStages*.context.region.flatten() == ["us-west-1", "us-west-2", "eu-west-2"]
     1 * targetReferenceSupport.isDynamicallyBound(stage) >> true
   }
 
@@ -80,8 +80,8 @@ class TargetReferenceLinearStageSupportSpec extends Specification {
 
     then:
     stage.beforeStages.size() == 0
-    stage.afterStages.size() == 2
-    stage.afterStages*.name == ["targetReferenceLinearStageSupportStage", "targetReferenceLinearStageSupportStage"]
+    stage.afterStages.size() == 3
+    stage.afterStages*.name == ["targetReferenceLinearStageSupportStage", "targetReferenceLinearStageSupportStage", "targetReferenceLinearStageSupportStage"]
     1 * targetReferenceSupport.isDynamicallyBound(stage) >> false
     1 * targetReferenceSupport.getTargetAsgReferences(stage) >> [
       new TargetReference(region: "us-east-1", asg: [name: "asg-v001"]),

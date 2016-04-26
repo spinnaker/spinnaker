@@ -59,12 +59,13 @@ class TargetServerGroupSpec extends Specification {
   def "params from stage"() {
     when:
       def context = [
-        asgName      : asgName,
-        cloudProvider: provider,
-        cluster      : cluster,
-        regions      : regions,
-        target       : target,
-        zones        : zones,
+        serverGroupName: serverGroupName,
+        cloudProvider  : provider,
+        cluster        : cluster,
+        regions        : regions,
+        region         : region,
+        target         : target,
+        zones          : zones,
       ]
       def stage = new TestStage(context: context)
       def p = TargetServerGroup.Params.fromStage(stage)
@@ -76,11 +77,18 @@ class TargetServerGroupSpec extends Specification {
       p.cluster == "test-app"
 
     where:
-      asgName         | target        | cluster    | zones            | regions        | provider || locations
-      "test-app-v001" | null          | null       | ["north-pole-1"] | null           | null     || [new Location(type: Location.Type.ZONE, value:"north-pole-1")]
-      null            | "current_asg" | "test-app" | null             | ["north-pole"] | null     || [new Location(type: Location.Type.REGION, value:"north-pole")]
-      null            | "current_asg" | "test-app" | ["north-pole-1"] | ["north-pole"] | "gce"    || [new Location(type: Location.Type.ZONE, value:"north-pole-1")]
-      null            | "current_asg" | "test-app" | ["north-pole-1"] | ["north-pole"] | "aws"    || [new Location(type: Location.Type.REGION, value:"north-pole")]
+      serverGroupName | target        | cluster    | zones            | regions        | region       | provider | locations
+      "test-app-v001" | null          | null       | ["north-pole-1"] | null           | null         | "gce"    | [new Location(type: Location.Type.ZONE, value:"north-pole-1")]
+
+      "test-app-v001" | "current_asg" | "test-app" | null             | ["north-pole"] | null         | null     | [new Location(type: Location.Type.REGION, value:"north-pole")]
+      "test-app-v001" | "current_asg" | "test-app" | null             | ["north-pole"] | null         | null     | [new Location(type: Location.Type.REGION, value:"north-pole")]
+      "test-app-v001" | "current_asg" | "test-app" | ["north-pole-1"] | ["north-pole"] | null         | "gce"    | [new Location(type: Location.Type.REGION, value:"north-pole")]
+      "test-app-v001" | "current_asg" | "test-app" | ["north-pole-1"] | ["north-pole"] | null         | "aws"    | [new Location(type: Location.Type.REGION, value:"north-pole")]
+
+      "test-app-v001" | "current_asg" | "test-app" | null             | null           | "north-pole" | null     | [new Location(type: Location.Type.REGION, value:"north-pole")]
+      "test-app-v001" | "current_asg" | "test-app" | null             | null           | "north-pole" | null     | [new Location(type: Location.Type.REGION, value:"north-pole")]
+      "test-app-v001" | "current_asg" | "test-app" | ["north-pole-1"] | null           | "north-pole" | "gce"    | [new Location(type: Location.Type.REGION, value:"north-pole")]
+      "test-app-v001" | "current_asg" | "test-app" | ["north-pole-1"] | null           | "north-pole" | "aws"    | [new Location(type: Location.Type.REGION, value:"north-pole")]
 
   }
 }

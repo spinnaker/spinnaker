@@ -32,7 +32,7 @@ class Location {
   String value
 
   /**
-   * @return The all lowercase, plural form of this location type ("regions" or "zones")
+   * @return The all lowercase, plural form of this location type ("regions", "zones" or "namespaces")
    */
   @JsonIgnore
   String pluralType() {
@@ -40,7 +40,7 @@ class Location {
   }
 
   /**
-   * @return The all lowercase, singular form of this location type ("region" or "zone")
+   * @return The all lowercase, singular form of this location type ("region", "zone" or "namespace")
    */
   @JsonIgnore
   String singularType() {

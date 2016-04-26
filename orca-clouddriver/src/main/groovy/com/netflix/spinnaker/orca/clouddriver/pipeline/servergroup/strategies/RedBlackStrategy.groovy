@@ -45,11 +45,11 @@ class RedBlackStrategy implements Strategy {
     def cleanupConfig = AbstractDeployStrategyStage.CleanupConfig.fromStage(stage)
 
     Map baseContext = [
-        (cleanupConfig.location.pluralType()): [cleanupConfig.location.value],
-        cluster                              : cleanupConfig.cluster,
-        credentials                          : cleanupConfig.account,
-        cloudProvider                        : cleanupConfig.cloudProvider,
-        interestingHealthProviderNames       : stage.context.interestingHealthProviderNames
+        (cleanupConfig.location.singularType()): cleanupConfig.location.value,
+        cluster                                : cleanupConfig.cluster,
+        credentials                            : cleanupConfig.account,
+        cloudProvider                          : cleanupConfig.cloudProvider,
+        interestingHealthProviderNames         : stage.context.interestingHealthProviderNames
     ]
 
     if (stageData?.maxRemainingAsgs && (stageData?.maxRemainingAsgs > 0)) {

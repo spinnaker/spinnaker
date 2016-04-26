@@ -96,13 +96,11 @@ abstract class AbstractAwsScalingProcessTask extends AbstractCloudProviderAwareT
   }
 
   static class StageData {
-    List<String> regions
+    String region
     String asgName
 
     Map<String, List<String>> getAffectedServerGroupMap() {
-      regions.collectEntries {
-        [(it): [asgName]]
-      }
+      return [(region): [asgName]]
     }
   }
 }

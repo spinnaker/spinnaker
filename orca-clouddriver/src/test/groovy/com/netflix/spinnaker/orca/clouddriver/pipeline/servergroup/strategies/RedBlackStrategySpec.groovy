@@ -56,7 +56,7 @@ class RedBlackStrategySpec extends Specification {
           credentials                   : "testAccount",
           cloudProvider                 : "aws",
           cluster                       : "unit-tests",
-          regions                       : ["north"],
+          region                        : "north",
           remainingEnabledServerGroups  : 1,
           preferLargerOverNewer         : false,
           interestingHealthProviderNames: null

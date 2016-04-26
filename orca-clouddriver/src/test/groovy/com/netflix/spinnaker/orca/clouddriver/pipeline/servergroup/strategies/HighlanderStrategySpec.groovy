@@ -55,7 +55,7 @@ class HighlanderStrategySpec extends Specification {
       stage.afterStages.last().stageBuilder == shrinkClusterStage
       stage.afterStages.last().context == [
           credentials                   : "testAccount",
-          (locationType)                : [locationValue],
+          (locationType)                : locationValue,
           cluster                       : "unit-tests",
           cloudProvider                 : cloudProvider,
           shrinkToSize                  : 1,
@@ -66,8 +66,8 @@ class HighlanderStrategySpec extends Specification {
 
     where:
       cloudProvider | locationType | locationValue | interestingHealthProviderNames | propagatedInterestingHealthProviderNames
-      "aws"         | "regions"    | "north"       | null                           | null
-      "gce"         | "zones"      | "pole-1a"     | null                           | null
-      "gce"         | "zones"      | "pole-1a"     | ["Google"]                     | ["Google"]
+      "aws"         | "region"     | "north"       | null                           | null
+      "gce"         | "zone"       | "pole-1a"     | null                           | null
+      "gce"         | "zone"       | "pole-1a"     | ["Google"]                     | ["Google"]
   }
 }

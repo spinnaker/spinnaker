@@ -56,13 +56,10 @@ class TargetServerGroup {
     def loc = getLocation()
     if (loc.type == Location.Type.REGION) {
       op.region = loc.value
-      op.regions = [loc.value]
     } else if (loc.type == Location.Type.ZONE) {
       op.zone = loc.value
-      op.zones = [loc.value]
     } else if (loc.type == Location.Type.NAMESPACE) {
       op.namespace = loc.value
-      op.namespaces = [loc.value]
     } else {
       throw new IllegalStateException("unsupported location type $loc.type")
     }
@@ -71,26 +68,20 @@ class TargetServerGroup {
 
   public static class Support {
     static Location resolveLocation(String cloudProvider, String zone, String namespace, String region) {
-      if (cloudProvider == "gce") {
-        if (!zone) {
-          throw new IllegalArgumentException("No zone specified.")
-        } else {
-          return Location.zone(zone)
-        }
-      }
-
-      if (namespace) {
+      if (cloudProvider == "gce" && zone) {
+        return Location.zone(zone)
+      } else if (namespace) {
         return Location.namespace(namespace)
       } else if (region) {
         return Location.region(region)
       } else {
-        throw new IllegalArgumentException("No known location type provided. Must be `region` or `namespace`.")
+        throw new IllegalArgumentException("No known location type provided. Must be `region`, `zone` or `namespace`.")
       }
-    }
+     }
 
     static Location locationFromServerGroup(Map<String, Object> serverGroup) {
       try {
-        return resolveLocation(serverGroup.type, serverGroup.zones?.getAt(0), serverGroup.namespace, serverGroup.region)
+        return resolveLocation(serverGroup.type, serverGroup.zone, serverGroup.namespace, serverGroup.region)
       } catch (e) {
         throw new IllegalArgumentException("Incorrect location specified for ${serverGroup.serverGroupName ?: serverGroup.name}: ${e.message}")
       }
@@ -142,10 +133,10 @@ class TargetServerGroup {
       }
     }
 
-    // asgName used when specifically targeting a server group
+    // serverGroupName used when specifically targeting a server group
     // TODO(ttomsu): This feels dirty - consider structuring to enable an 'exact' Target that just specifies the exact
     // server group name to fetch?
-    String asgName
+    String serverGroupName
 
     // Alternatively to asgName, the combination of target and cluster can be used.
     Target target
@@ -156,27 +147,28 @@ class TargetServerGroup {
     String cloudProvider = "aws"
 
     String getApp() {
-      Names.parseName(asgName ?: cluster)?.app
+      Names.parseName(serverGroupName ?: cluster)?.app
     }
 
     String getCluster() {
-      cluster ?: Names.parseName(asgName)?.cluster
+      cluster ?: Names.parseName(serverGroupName)?.cluster
     }
 
     static Params fromStage(Stage stage) {
       Params p = stage.mapTo(Params)
 
-      if (stage.context.zones) {
-        if (stage.context.regions && stage.context.cloudProvider != "gce") {
-          // Prefer regions if both are specified, except for GCE.
-          p.locations = stage.context.regions.collect { String r -> Location.region(r) }
-        } else {
-          p.locations = stage.context.zones.collect { String z -> Location.zone(z) }
-        }
-      } else {
-        // Default to regions.
+      if (stage.context.region) {
+        p.locations = [Location.region(stage.context.region)]
+      } else if (stage.context.regions) {
         p.locations = stage.context.regions.collect { String r -> Location.region(r) }
-        p.locations.addAll(stage.context.namespaces.collect { String r -> Location.namespace(r) })
+      } else if (stage.context.namespace) {
+        p.locations = [Location.namespace(stage.context.namespace)]
+      } else if (stage.context.namespaces) {
+        p.locations = stage.context.namespaces.collect { String n -> Location.namespace(n) }
+      } else if (stage.context.cloudProvider == "gce" && stage.context.zones) {
+        p.locations = stage.context.zones.collect { String z -> Location.zone(z) }
+      } else {
+        p.locations = []
       }
       p
     }

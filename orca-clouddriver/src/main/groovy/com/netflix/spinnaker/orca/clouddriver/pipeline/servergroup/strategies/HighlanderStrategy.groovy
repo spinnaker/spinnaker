@@ -36,14 +36,14 @@ class HighlanderStrategy implements Strategy {
   void composeFlow(Stage stage) {
     def cleanupConfig = AbstractDeployStrategyStage.CleanupConfig.fromStage(stage)
     Map shrinkContext = [
-        (cleanupConfig.location.pluralType()): [cleanupConfig.location.value],
-        cluster                              : cleanupConfig.cluster,
-        credentials                          : cleanupConfig.account,
-        cloudProvider                        : cleanupConfig.cloudProvider,
-        shrinkToSize                         : 1,
-        allowDeleteActive                    : true,
-        retainLargerOverNewer                : false,
-        interestingHealthProviderNames       : stage.context.interestingHealthProviderNames
+        (cleanupConfig.location.singularType()): cleanupConfig.location.value,
+        cluster                                : cleanupConfig.cluster,
+        credentials                            : cleanupConfig.account,
+        cloudProvider                          : cleanupConfig.cloudProvider,
+        shrinkToSize                           : 1,
+        allowDeleteActive                      : true,
+        retainLargerOverNewer                  : false,
+        interestingHealthProviderNames         : stage.context.interestingHealthProviderNames
     ]
     LinearStage.injectAfter(stage, "shrinkCluster", shrinkClusterStage, shrinkContext)
   }

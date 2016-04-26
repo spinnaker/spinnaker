@@ -61,23 +61,20 @@ abstract class TargetReferenceLinearStageSupport extends LinearStage {
   }
 
   private List<Map<String, Object>> buildStaticTargetDescriptions(Stage stage) {
-    def targets = targetReferenceSupport.getTargetAsgReferences(stage)
+    List<TargetReference> targets = targetReferenceSupport.getTargetAsgReferences(stage)
 
-    Map<String, Map<String, Object>> descriptions = [:]
-    for (target in targets) {
+    return targets.collect { TargetReference target ->
       def region = target.region
       def asg = target.asg
 
       def description = new HashMap(stage.context)
-      if (descriptions.containsKey(asg.name)) {
-        ((List<String>) descriptions.get(asg.name).regions) << region
-      } else {
-        description.asgName = asg.name
-        description.regions = [region]
-        descriptions[asg.name as String] = description
-      }
+
+      description.asgName = asg.name
+      description.serverGroupName = asg.name
+      description.region = region
+
+      return description
     }
-    descriptions.values().toList()
   }
 
   private void composeDynamicTargets(Stage stage) {
@@ -92,10 +89,10 @@ abstract class TargetReferenceLinearStageSupport extends LinearStage {
       injectBefore(stage, "determineTargetReferences", determineTargetReferenceStage, injectedContext)
 
       if (configuredRegions.size() > 1) {
-        stage.context.regions = [configuredRegions.remove(0)]
+        stage.context.region = configuredRegions.remove(0)
         for (region in configuredRegions) {
           def description = new HashMap(stage.context)
-          description.regions = [region]
+          description.region = region
           injectAfter(stage, this.type, this, description)
         }
       }

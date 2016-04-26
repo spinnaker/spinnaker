@@ -59,7 +59,7 @@ class TargetServerGroupResolverSpec extends Specification {
     when:
       tsgs = subject.resolveByParams(new TargetServerGroup.Params(
         cloudProvider: "gce",
-        asgName: "test-app-v010",
+        serverGroupName: "test-app-v010",
         credentials: "testCreds",
         locations: [new Location(type: Location.Type.REGION, value: "north-pole")]
       ))
@@ -67,15 +67,15 @@ class TargetServerGroupResolverSpec extends Specification {
     then:
       1 * oort.getServerGroup("test", "testCreds", "test-app", "test-app-v010", null, "gce") >>
         new Response("clouddriver", 200, 'ok', [], new TypedString(mapper.writeValueAsString([[
-                                                                                                name : "test-app-v010",
-                                                                                                zones: ["north-pole"],
-                                                                                                data : 123,
-                                                                                                type : "gce",
+                                                                                                name  : "test-app-v010",
+                                                                                                region: "north-pole",
+                                                                                                data  : 123,
+                                                                                                type  : "gce",
                                                                                               ]])))
       tsgs.size() == 1
       tsgs[0].data == 123
       tsgs[0].getLocation()
-      tsgs[0].getLocation().type == Location.Type.ZONE
+      tsgs[0].getLocation().type == Location.Type.REGION
       tsgs[0].getLocation().value == "north-pole"
 
     when: "null params returns empty list"
@@ -108,7 +108,7 @@ class TargetServerGroupResolverSpec extends Specification {
       Stage stageLookingForRefs = Mock(Stage) {
         getId() >> "3"
         getParentStageId() >> "1"
-        getContext() >> [regions: ["north-pole"]]
+        getContext() >> [region: "north-pole"]
         Execution e = Spy(Execution)
         getExecution() >> e
         e.stages >> [commonParent, dtsgStage, it]
@@ -124,7 +124,7 @@ class TargetServerGroupResolverSpec extends Specification {
       stageLookingForRefs = Mock(Stage) {
         getId() >> "3"
         getParentStageId() >> "1"
-        getContext() >> [regions: ["east-1"]] // doesn't exist.
+        getContext() >> [region: "east-1"] // doesn't exist.
         Execution e = Spy(Execution)
         getExecution() >> e
         e.stages >> [commonParent, dtsgStage, it]

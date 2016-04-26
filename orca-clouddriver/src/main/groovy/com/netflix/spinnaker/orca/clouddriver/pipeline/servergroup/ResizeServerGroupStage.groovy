@@ -67,12 +67,12 @@ class ResizeServerGroupStage extends TargetServerGroupLinearStageSupport {
       name: "resumeScalingProcesses",
       stage: modifyAwsScalingProcessStage,
       context: [
-        asgName      : descriptor.asgName,
-        cloudProvider: descriptor.cloudProvider,
-        credentials  : descriptor.credentials,
-        regions      : descriptor.regions,
-        action       : "resume",
-        processes    : ["Launch", "Terminate"]
+        serverGroupName: descriptor.asgName,
+        cloudProvider  : descriptor.cloudProvider,
+        credentials    : descriptor.credentials,
+        region         : descriptor.region,
+        action         : "resume",
+        processes      : ["Launch", "Terminate"]
       ]
     )]
   }
@@ -86,11 +86,11 @@ class ResizeServerGroupStage extends TargetServerGroupLinearStageSupport {
       name: "suspendScalingProcesses",
       stage: modifyAwsScalingProcessStage,
       context: [
-        asgName      : descriptor.asgName,
-        cloudProvider: descriptor.cloudProvider,
-        credentials  : descriptor.credentials,
-        regions      : descriptor.regions,
-        action       : "suspend"
+        serverGroupName: descriptor.asgName,
+        cloudProvider  : descriptor.cloudProvider,
+        credentials    : descriptor.credentials,
+        region         : descriptor.region,
+        action         : "suspend"
       ]
     )]
   }

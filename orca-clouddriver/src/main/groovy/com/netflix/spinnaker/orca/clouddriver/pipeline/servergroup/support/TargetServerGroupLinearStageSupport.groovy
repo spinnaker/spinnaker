@@ -91,8 +91,7 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
       if (location.type == Location.Type.ZONE) {
         description.zone = location.value
       } else if (location.type == Location.Type.REGION) {
-        // Clouddriver operations work with multiple values here, but we're choosing to only use 1 per operation.
-        description.regions = [location.value]
+        description.region = location.value
       }
       description.deployServerGroupsRegion = target.region
       description.targetLocation = [type: location.type.name(), value: location.value]
@@ -119,16 +118,17 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
       remove("regions")
     }
 
-    def locationType = params.locations[0].pluralType()
+    def singularLocationType = params.locations[0].singularType()
+    def pluralLocationType = params.locations[0].pluralType()
 
     Map dtsgContext = new HashMap(stage.context)
-    dtsgContext[locationType] = params.locations.collect { it.value }
+    dtsgContext[pluralLocationType] = params.locations.collect { it.value }
 
     // The original stage.context object is reused here because concrete subclasses must actually perform the requested
     // operation. All future copies of the subclass (operating on different regions/zones) use a copy of the context.
     def initialLocation = params.locations.head()
     def remainingLocations = params.locations.tail()
-    stage.context[locationType] = [initialLocation.value]
+    stage.context[singularLocationType] = initialLocation.value
     stage.context.targetLocation = [type: initialLocation.type.name(), value: initialLocation.value]
 
     preDynamic(stage.context).each {
@@ -140,7 +140,7 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
 
     for (location in remainingLocations) {
       def ctx = new HashMap(stage.context)
-      ctx[locationType] = [location.value]
+      ctx[singularLocationType] = location.value
       ctx.targetLocation = [type: location.type.name(), value: location.value]
       preDynamic(ctx).each {
         // Operations done after the first pre-postDynamic injection must all be added with injectAfter.
