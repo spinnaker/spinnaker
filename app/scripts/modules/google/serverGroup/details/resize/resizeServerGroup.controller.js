@@ -59,7 +59,6 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.resize.con
           serverGroupName: serverGroup.name,
           targetSize: capacity.desired,
           region: serverGroup.region,
-          zone: serverGroup.zones[0],
           interestingHealthProviderNames: $scope.command.interestingHealthProviderNames,
           reason: $scope.command.reason,
         });

@@ -244,9 +244,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         katoPhaseToMonitor: 'DESTROY_ASG'
       };
 
-      var submitMethod = (params) => serverGroupWriter.destroyServerGroup(serverGroup, app, angular.extend(params, {
-        zone: serverGroup.zones[0],
-      }));
+      var submitMethod = (params) => serverGroupWriter.destroyServerGroup(serverGroup, app, params);
 
       var stateParams = {
         name: serverGroup.name,
@@ -299,11 +297,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         title: 'Disabling ' + serverGroup.name
       };
 
-      var submitMethod = (params) => {
-        return serverGroupWriter.disableServerGroup(serverGroup, app, angular.extend(params, {
-          zone: serverGroup.zones[0],
-        }));
-      };
+      var submitMethod = (params) => serverGroupWriter.disableServerGroup(serverGroup, app, params);
 
       var confirmationModalParams = {
         header: 'Really disable ' + serverGroup.name + '?',
@@ -332,11 +326,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         title: 'Enabling ' + serverGroup.name,
       };
 
-      var submitMethod = (params) => {
-        return serverGroupWriter.enableServerGroup(serverGroup, app, angular.extend(params, {
-          zone: serverGroup.zones[0],
-        }));
-      };
+      var submitMethod = (params) => serverGroupWriter.enableServerGroup(serverGroup, app, params);
 
       var confirmationModalParams = {
         header: 'Really enable ' + serverGroup.name + '?',

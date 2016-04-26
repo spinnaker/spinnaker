@@ -13,9 +13,7 @@ module.exports = angular
       params.asgName = serverGroup.name;
       params.serverGroupName = serverGroup.name;
       params.type = 'destroyServerGroup';
-      params.regions = [serverGroup.region];  // Needed for AWS
-      params.region = serverGroup.region;     // Needed for Titan, GCE
-      params.zones = serverGroup.zones;
+      params.region = serverGroup.region;
       params.credentials = serverGroup.account;
       params.cloudProvider = serverGroup.type;
 
@@ -30,9 +28,7 @@ module.exports = angular
       params.asgName = serverGroup.name;
       params.serverGroupName = serverGroup.name;
       params.type = 'disableServerGroup';
-      params.regions = [serverGroup.region];
       params.region = serverGroup.region;
-      params.zones = serverGroup.zones;
       params.credentials = serverGroup.account;
       params.cloudProvider = serverGroup.type;
 
@@ -47,9 +43,7 @@ module.exports = angular
       params.asgName = serverGroup.name;
       params.serverGroupName = serverGroup.name;
       params.type = 'enableServerGroup';
-      params.regions = [serverGroup.region];
       params.region = serverGroup.region;
-      params.zones = serverGroup.zones;
       params.credentials = serverGroup.account;
       params.cloudProvider = serverGroup.type;
 
@@ -62,8 +56,7 @@ module.exports = angular
 
     function rollbackServerGroup(serverGroup, application, params = {}) {
       params.type = 'rollbackServerGroup';
-      params.regions = [serverGroup.region];
-      params.zones = serverGroup.zones;
+      params.region = serverGroup.region;
       params.credentials = serverGroup.account;
       params.cloudProvider = serverGroup.type;
 
@@ -78,9 +71,7 @@ module.exports = angular
       params.asgName = serverGroup.name;
       params.serverGroupName = serverGroup.name;
       params.type = 'resizeServerGroup';
-      params.regions = [serverGroup.region];
       params.region = serverGroup.region;
-      params.zones = serverGroup.zones;
       params.credentials = serverGroup.account;
       params.cloudProvider = serverGroup.type;
       return taskExecutor.executeTask({
