@@ -160,7 +160,8 @@ module.exports = angular
         target = { vpcName: 'vpc0', };
 
     this.migrationOptions = {
-      allowIngressFromClassic: true
+      allowIngressFromClassic: true,
+      subnetType: 'internal',
     };
 
     var migrationConfig = {
@@ -187,6 +188,7 @@ module.exports = angular
       this.viewState.executing = true;
       migrationConfig.dryRun = false;
       migrationConfig.allowIngressFromClassic = this.migrationOptions.allowIngressFromClassic;
+      migrationConfig.target.subnetType = this.migrationOptions.subnetType;
       let executor = migratorService.executeMigration(migrationConfig);
       executor.then(migrationStarted, errorMode);
     };

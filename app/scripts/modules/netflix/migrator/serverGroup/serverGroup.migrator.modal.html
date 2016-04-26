@@ -17,11 +17,6 @@
       </div>
 
       <div class="row preview" ng-if="vm.preview && !vm.viewState.computing && !vm.viewState.executing && !vm.viewState.error">
-        <div class="form-group">
-          <div class="col-md-6 col-md-offset-1 checkbox">
-            <label><input type="checkbox" ng-model="vm.migrationOptions.allowIngressFromClassic"/> Allow Access From EC2 Classic </label>
-          </div>
-        </div>
         <div class="col-md-10 col-md-offset-1">
           <div ng-if="!vm.viewState.migrationComplete">
             <p>This will migrate
@@ -67,6 +62,30 @@
         <h4 ng-if="!vm.preview">We could not calculate an execution plan for {{vm.component.name}} at this time.</h4>
         <h4 ng-if="vm.preview">We could not perform the migration of {{vm.component.name}} at this time.</h4>
         <p><strong>Reason:</strong> {{vm.viewState.error}}</p>
+      </div>
+    </div>
+
+    <div ng-if="!vm.viewState.migrationComplete" class="migration-options">
+      <div class="row">
+        <div class="col-md-10 col-md-offset-1">
+          <h4>Migration Options</h4>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-10 col-md-offset-1 checkbox">
+          <label><input type="checkbox" ng-model="vm.migrationOptions.allowIngressFromClassic"/> Allow Access From EC2 Classic </label>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-10 col-md-offset-1">
+          Place the new ASG in the
+          <select class="form-control input-sm"
+                  style="display: inline; width: auto"
+                  ng-model="vm.migrationOptions.subnetType"
+                  ng-options="type for type in ['internal', 'external']"></select>
+          subnet
+        </div>
       </div>
     </div>
 

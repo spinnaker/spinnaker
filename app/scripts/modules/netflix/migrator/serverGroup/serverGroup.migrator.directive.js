@@ -97,7 +97,8 @@ module.exports = angular
     };
 
     this.migrationOptions = {
-      allowIngressFromClassic: true
+      allowIngressFromClassic: true,
+      subnetType: 'internal',
     };
 
     this.source = {
@@ -134,6 +135,7 @@ module.exports = angular
       this.viewState.executing = true;
       migrationConfig.dryRun = false;
       migrationConfig.allowIngressFromClassic = this.migrationOptions.allowIngressFromClassic;
+      migrationConfig.target.subnetType = this.migrationOptions.subnetType;
       let executor = migratorService.executeMigration(migrationConfig);
       executor.then(migrationStarted, errorMode);
     };
