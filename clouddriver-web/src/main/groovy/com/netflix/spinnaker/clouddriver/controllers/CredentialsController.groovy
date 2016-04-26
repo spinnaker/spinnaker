@@ -21,9 +21,14 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.MessageSource
+import org.springframework.context.i18n.LocaleContextHolder
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -42,6 +47,9 @@ class CredentialsController {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
+  @Autowired
+  MessageSource messageSource
+
   @RequestMapping(method = RequestMethod.GET)
   List<Map> list() {
     accountCredentialsProvider.all.collect(this.&renderSummary)
@@ -49,7 +57,12 @@ class CredentialsController {
 
   @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)
   Map getAccount(@PathVariable("name") String name) {
-    renderDetail(accountCredentialsProvider.getCredentials(name))
+    def accountDetail = renderDetail(accountCredentialsProvider.getCredentials(name))
+    if (!accountDetail) {
+      throw new AccountNotFoundException(account: name)
+    }
+
+    return accountDetail
   }
 
   Map renderSummary(AccountCredentials accountCredentials) {
@@ -74,6 +87,18 @@ class CredentialsController {
     cred.primaryAccount = primaryAccountTypes.contains(accountCredentials.accountType)
 
     return cred
+  }
+
+  @ExceptionHandler
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  Map handleAccountNotFound(AccountNotFoundException ex) {
+    def message = messageSource.getMessage("account.not.found", [ex.account] as String[], "account.not.found", LocaleContextHolder.locale)
+    [error: "account.not.found", message: message, status: HttpStatus.NOT_FOUND]
+  }
+
+  @ResponseStatus(value=HttpStatus.NOT_FOUND)
+  static class AccountNotFoundException extends RuntimeException {
+    String account
   }
 
 }
