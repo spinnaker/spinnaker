@@ -78,7 +78,7 @@ class InfoControllerSpec extends Specification {
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        2 * buildMasters.map >> [ 'master1' : [ 'jobs' : [ 'list': [
+        1 * buildMasters.map >> [ 'master1' : [ 'jobs' : [ 'list': [
             ['name': 'job1'],
             ['name': 'job2'],
             ['name': 'job3']
@@ -93,7 +93,7 @@ class InfoControllerSpec extends Specification {
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        2 * buildMasters.map >> [ 'master1' : [ 'jobs' : [ 'list': [
+        1 * buildMasters.map >> [ 'master1' : [ 'jobs' : [ 'list': [
             ['name': 'folder', 'list': [
                 ['name': 'job1'],
                 ['name': 'job2']
@@ -102,6 +102,19 @@ class InfoControllerSpec extends Specification {
         ] ] ] ]
         1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> buildMasters.map
         response.contentAsString == '["folder/job/job1","folder/job/job2","job3"]'
+    }
+
+    void 'is able to get jobs for a travis master'() {
+        when:
+        MockHttpServletResponse response = mockMvc.perform(get('/jobs/travis-master1')
+            .accept(MediaType.APPLICATION_JSON)).andReturn().response
+
+        then:
+        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> ["travis-master1": []]
+        1 * buildMasters.map >> ["travis-master1": []]
+        1 * cache.getJobNames('travis-master1') >> ["some-job"]
+        response.contentAsString == '["some-job"]'
+
     }
 
     private void setResponse(String body) {

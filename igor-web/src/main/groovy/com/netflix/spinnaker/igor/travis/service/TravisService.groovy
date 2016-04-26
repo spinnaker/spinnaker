@@ -29,6 +29,7 @@ import com.netflix.spinnaker.igor.travis.client.model.AccessToken
 import com.netflix.spinnaker.igor.travis.client.model.Accounts
 import com.netflix.spinnaker.igor.travis.client.model.Build
 import com.netflix.spinnaker.igor.travis.client.model.Builds
+import com.netflix.spinnaker.igor.travis.client.model.Commit
 import com.netflix.spinnaker.igor.travis.client.model.Job
 import com.netflix.spinnaker.igor.travis.client.model.Jobs
 import com.netflix.spinnaker.igor.travis.client.model.Repo
@@ -37,6 +38,7 @@ import com.netflix.spinnaker.igor.travis.client.model.Repos
 import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
 
@@ -99,14 +101,16 @@ class TravisService implements BuildService {
     }
 
     @Override
-    GenericBuild getGenericBuild(String repoSlug, int buildNumber) {
+    GenericBuild getGenericBuild(String inputRepoSlug, int buildNumber) {
+        String repoSlug = cleanRepoSlug(inputRepoSlug)
         Build build = getBuild(repoSlug, buildNumber)
         GenericBuild genericBuild = getGenericBuild(build, repoSlug)
         return genericBuild
     }
 
     @Override
-    List<GenericGitRevision> getGenericGitRevisions(String repoSlug, int buildNumber) {
+    List<GenericGitRevision> getGenericGitRevisions(String inputRepoSlug, int buildNumber) {
+        String repoSlug = cleanRepoSlug(inputRepoSlug)
         Builds builds = getBuilds(repoSlug, buildNumber)
         if (builds.commits?.branch) {
             return builds.commits*.genericGitRevision()
@@ -125,7 +129,8 @@ class TravisService implements BuildService {
         return builds.builds
     }
 
-    List<GenericBuild> getBuilds(String repoSlug) {
+    List<GenericBuild> getBuilds(String inputRepoSlug) {
+        String repoSlug = cleanRepoSlug(inputRepoSlug)
         Builds builds = travisClient.builds(getAccessToken(), repoSlug)
         List<GenericBuild> list = new ArrayList<GenericBuild>()
         builds.builds.each { build ->
@@ -139,6 +144,15 @@ class TravisService implements BuildService {
         log.debug "fetched " + repos.repos.size() + " repos"
         return repos.repos
     }
+
+    Commit getCommit(String repoSlug, int buildNumber) {
+        Builds builds = getBuilds(repoSlug, buildNumber)
+        if (builds.commits) {
+            return builds.commits.first()
+        }
+        throw new NoSuchFieldException("No commit found for ${repoSlug}:${buildNumber}")
+    }
+
 
     List<Repo> getReposForAccounts() {
         log.debug "fetching repos for relevant accounts only"
@@ -199,9 +213,11 @@ class TravisService implements BuildService {
         return "${baseUrl}/${repoSlug}"
     }
 
-    int triggerBuild (String repoSlug) {
+    int triggerBuild (String inputRepoSlug) {
+        String repoSlug = cleanRepoSlug(inputRepoSlug)
         Repo repo = getRepo(repoSlug)
-        RepoRequest repoRequest = new RepoRequest("master")
+        String branch = branchFromRepoSlug(inputRepoSlug)
+        RepoRequest repoRequest = new RepoRequest(branch.empty? "master" : branch)
         TriggerResponse triggerResponse = travisClient.triggerBuild(getAccessToken(), repoSlug, repoRequest)
         if (triggerResponse.remainingRequests) {
             log.info "${groupKey}: remaining requests: ${triggerResponse.remainingRequests}"
@@ -220,8 +236,34 @@ class TravisService implements BuildService {
         return null
     }
 
+    boolean hasRepo(String inputRepoSlug) {
+        String repoSlug = cleanRepoSlug(inputRepoSlug)
+        try {
+            getRepo(repoSlug)
+        } catch (RetrofitError error) {
+            if (error.getResponse()) {
+                if (error.getResponse().status == 404) {
+                    log.debug "repo not found ${repoSlug}"
+                    return false
+                }
+            }
+            log.info "Error requesting repo ${repoSlug}: ${error.message}"
+            return true
+        }
+        return true
+    }
+
     @Override
     BuildServiceProvider buildServiceProvider() {
         return BuildServiceProvider.TRAVIS
+    }
+
+    protected String cleanRepoSlug(String inputRepoSlug) {
+        def parts = inputRepoSlug.tokenize('/')
+        return "${parts[0]}/${parts[1]}"
+    }
+
+    protected String branchFromRepoSlug(String inputRepoSlug) {
+        return inputRepoSlug.tokenize('/').drop(2).join('/')
     }
 }

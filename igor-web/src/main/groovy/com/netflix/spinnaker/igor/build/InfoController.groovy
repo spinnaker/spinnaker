@@ -74,8 +74,7 @@ class InfoController {
             )
             return masterList
         } else {
-            List<Object> masterList = buildMasters.map.keySet().sort()
-            masterList //TODO: return raw?
+            return buildMasters.map.keySet().sort()
         }
     }
 
@@ -84,7 +83,6 @@ class InfoController {
         log.info('Getting list of jobs for master: {}', master)
 
         def jenkinsService = buildMasters.filteredMap(BuildServiceProvider.JENKINS)[master]
-        def otherService = buildMasters.map[master]
         if (jenkinsService) {
             def jobList = []
             def recursiveGetJobs
@@ -104,7 +102,7 @@ class InfoController {
             recursiveGetJobs(jenkinsService.jobs.list)
 
             return jobList
-        } else if (otherService) {
+        } else if (buildMasters.map.containsKey(master)) {
             return buildCache.getJobNames(master)
         } else {
             throw new MasterNotFoundException("Master '${master}' does not exist")
