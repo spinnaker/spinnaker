@@ -91,7 +91,6 @@
           </div>
         </div>
       </div>
-
     </collapsible-section>
     <collapsible-section heading="Titan Job Information" expanded="true">
       <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
@@ -99,6 +98,8 @@
         <dd>{{serverGroup.id}}</dd>
         <dt>Created</dt>
         <dd>{{serverGroup.createdTime | timestamp}}</dd>
+        <dt ng-if="serverGroup.iamProfile">IAM Profile</dt>
+        <dd ng-if="serverGroup.iamProfile">{{serverGroup.iamProfile}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Placement Constraints" expanded="true">
@@ -155,6 +156,8 @@
         <dd ng-if="serverGroup.image.dockerImageName">{{serverGroup.image.dockerImageName}}</dd>
         <dt ng-if="serverGroup.image.dockerImageVersion">Image Version</dt>
         <dd ng-if="serverGroup.image.dockerImageVersion">{{serverGroup.image.dockerImageVersion}}</dd>
+        <dt ng-if="serverGroup.entryPoint">Command</dt>
+        <dd ng-if="serverGroup.entryPoint">{{serverGroup.entryPoint}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Environment">
