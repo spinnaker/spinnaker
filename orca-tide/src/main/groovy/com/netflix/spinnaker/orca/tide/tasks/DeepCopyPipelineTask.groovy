@@ -43,6 +43,7 @@ class DeepCopyPipelineTask implements Task {
         targetVpcName: target.vpcName
     ]
     def taskId = tideService.deepCopyPipeline(source.pipelineId, settings.allowIngressFromClassic, settings.dryRun,
+      target.subnetType,
       pipelineVpcMigrateDefinition)
 
     def outputs = [
