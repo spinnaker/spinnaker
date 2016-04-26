@@ -22,7 +22,6 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.rollback.c
         rollbackContext: {
           rollbackServerGroupName: serverGroup.name
         },
-        zone: serverGroup.zones[0],
       };
 
       if (application && application.attributes) {
