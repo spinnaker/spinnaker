@@ -111,7 +111,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
       new TargetServerGroup(serverGroup: it)
     }.groupBy { it.getLocation() }
 
-    def locations = stage.context.regions ?: stage.context.zones ?: []
+    def locations = stage.context.regions ?: stage.context.zones ?: stage.context.region ? [stage.context.region] : []
     List<TargetServerGroup> filteredServerGroups = locations.collect {
       TargetServerGroup.Support.locationFromCloudProviderValue(clusterSelection.cloudProvider, it)
     }.findResults { Location l ->
