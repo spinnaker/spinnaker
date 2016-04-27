@@ -50,8 +50,8 @@ fi
 
 function print_usage() {
   cat <<EOF
-usage: $0 [--cloud_provider <aws|google|none|both>]
-    [--aws_region <region>] [--google_region <region>]
+usage: $0 [--cloud_provider <aws|google|azure|both|none>]
+    [--aws_region <region>] [--google_region <region>] [--azure_region <region>]
     [--quiet] [--dependencies_only]
     [--google_cloud_logging] [--google_cloud_monitoring]
     [--repository <debian repository url>]
@@ -60,14 +60,20 @@ usage: $0 [--cloud_provider <aws|google|none|both>]
 
     If run with no arguments you will be prompted for cloud provider and region
 
-    --cloud_provider <arg>      currently supported are google, amazon and none
-                                if "none" is specified you will need to edit
-                                /etc/default/spinnaker manually
+    --cloud_provider <arg>     currently supported are amazon, azure, and google
+				you can install more than one provider by specifying
+				provider1 provider2 ... (Ex. aws google).
+                               if "none" is specified you will need to edit
+                               /etc/default/spinnaker manually
+				NOTE: "both" is deprecated and will be removed in
+				the future
 
     --aws_region <arg>          default region for aws
 
     --google_region <arg>       default region for google
     --google_zone <arg>         default zone for google
+
+    --azure_region <arg>	default region for Azure
 
     --quiet                     sets cloud provider to "none", you will need to
                                 edit /etc/default/spinnaker manually
@@ -109,6 +115,43 @@ function echo_status() {
   fi
 }
 
+function process_provider_list() {
+  AWS_ENABLED=false
+  AZURE_ENABLED=false
+  GOOGLE_ENABLED=false
+
+  #check if aws enabled
+  if [[ "$CLOUD_PROVIDER" =~ "aws" ]] ; then
+    echo "enabling aws provider"
+    AWS_ENABLED=true
+  elif [[ $CLOUD_PROVIDER =~ "amazon" ]] ; then
+    echo "enabling aws provider"
+    AWS_ENABLED=true
+  fi
+
+  #check if azure enabled
+  if [[ $CLOUD_PROVIDER =~ "azure" ]] ; then
+    echo "enabling azure provider"
+    AZURE_ENABLED=true
+  fi
+
+  #check if google enabled
+  if [[ $CLOUD_PROVIDER =~  "google" ]] ; then
+    echo "enabling google provider"
+    GOOGLE_ENABLED=true
+  elif [[ $CLOUD_PROVIDER =~ "gce" ]] ; then
+    echo "enabling google provider"
+    GOOGLE_ENABLED=true
+  fi
+
+  #check if both enabled
+  if [[ $CLOUD_PROVIDER =~ "both" ]] ; then
+    echo "enabling aws & google provider"
+    GOOGLE_ENABLED=true
+    AWS_ENABLED=true
+  fi
+}
+
 function process_args() {
   while [[ $# > 0 ]]
   do
@@ -117,6 +160,7 @@ function process_args() {
     case $key in
       --cloud_provider)
           CLOUD_PROVIDER="$1"
+	  process_provider_list
           shift
           ;;
       --aws_region)
@@ -127,6 +171,10 @@ function process_args() {
           GOOGLE_REGION="$1"
           shift
           ;;
+      --azure_region)
+	  AZURE_REGION="$1"
+	  shift
+	  ;;
       --google_zone)
           GOOGLE_ZONE="$1"
           shift
@@ -182,6 +230,17 @@ function set_aws_region() {
 
     read -e -p "Specify default aws region: " -i "$DEFAULT_AWS_REGION" AWS_REGION
     AWS_REGION=`echo $AWS_REGION | tr '[:upper:]' '[:lower:]'`
+  fi
+}
+
+function set_azure_region() {
+  if [ "x$AZURE_REGION" == "x" ]; then
+    if [ "x$DEFAULT_AZURE_REGION" == "x" ]; then
+      DEFAULT_AZURE_REGION="westus"
+    fi
+
+    read -e -p "Specify default azure region (westus, centralus, eastus, eastus2): " -i "$DEFAULT_AZURE_REGION" AZURE_REGION
+    AZURE_REGION=`echo $AZURE_REGION | tr '[:upper:]' '[:lower:]'`
   fi
 }
 
@@ -531,34 +590,25 @@ set_defaults_from_environ
 process_args "$@"
 
 if [ "x$CLOUD_PROVIDER" == "x" ]; then
-  read -e -p "Specify a cloud provider (aws|google|none|both): " -i "$DEFAULT_CLOUD_PROVIDER" CLOUD_PROVIDER
+  read -e -p "Specify a cloud provider (aws|azure|google|both|none): " -i "$DEFAULT_CLOUD_PROVIDER" CLOUD_PROVIDER
   CLOUD_PROVIDER=`echo $CLOUD_PROVIDER | tr '[:upper:]' '[:lower:]'`
 fi
 
-case $CLOUD_PROVIDER in
-  a|aws|amazon)
-      CLOUD_PROVIDER="amazon"
+process_provider_list
+
+#enable cloud provider specific settings
+if [[ $AWS_ENABLED == true ]] ; then
       set_aws_region
-      ;;
-  g|gce|google)
-      CLOUD_PROVIDER="google"
+fi
+
+if [[ $AZURE_ENABLED  == true ]] ; then
+      set_azure_region
+fi
+
+if [[ $GOOGLE_ENABLED == true ]] ; then
       set_google_region
       set_google_zone
-      ;;
-  n|no|none)
-      CLOUD_PROVIDER="none"
-      ;;
-  both|all)
-      CLOUD_PROVIDER="both"
-      set_aws_region
-      set_google_region
-      set_google_zone
-      ;;
-  *)
-      echo "ERROR: invalid cloud provider '$CLOUD_PROVIDER'"
-      print_usage
-      exit -1
-esac
+fi
 
 
 # add all apt repositories, if
@@ -587,32 +637,23 @@ fi
 ## Spinnaker
 install_spinnaker
 
-
-if [[ "${CLOUD_PROVIDER,,}" == "amazon" || "${CLOUD_PROVIDER,,}" == "google" || "${CLOUD_PROVIDER,,}" == "both" ]]; then
-  case $CLOUD_PROVIDER in
-    amazon)
+#write values to /etc/default/spinnaker
+if [[ $AWS_ENABLED || $AZURE_ENABLED || $GOOGLE_ENABLED ]] ; then
+  if [[ $AWS_ENABLED == true ]] ; then
         write_default_value "SPINNAKER_AWS_ENABLED" "true"
         write_default_value "SPINNAKER_AWS_DEFAULT_REGION" $AWS_REGION
-        write_default_value "SPINNAKER_GOOGLE_ENABLED" "false"
         write_default_value "AWS_VPC_ID" $AWS_VPC_ID
         write_default_value "AWS_SUBNET_ID" $AWS_SUBNET_ID
-        ;;
-    google)
+  fi
+  if [[ $AZURE_ENABLED == true ]] ; then
+	write_default_value "SPINNAKER_AZURE_ENABLED" "true"
+	write_default_value "SPINNAKER_AZURE_DEFAULT_REGION" $AZURE_REGION
+  fi
+  if [[ $GOOGLE_ENABLED == true ]] ; then
         write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
         write_default_value "SPINNAKER_GOOGLE_DEFAULT_REGION" $GOOGLE_REGION
         write_default_value "SPINNAKER_GOOGLE_DEFAULT_ZONE" $GOOGLE_ZONE
-        write_default_value "SPINNAKER_AWS_ENABLED" "false"
-        ;;
-    both)
-        write_default_value "SPINNAKER_AWS_ENABLED" "true"
-        write_default_value "SPINNAKER_AWS_DEFAULT_REGION" $AWS_REGION
-        write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
-        write_default_value "SPINNAKER_GOOGLE_DEFAULT_REGION" $GOOGLE_REGION
-        write_default_value "SPINNAKER_GOOGLE_DEFAULT_ZONE" $GOOGLE_ZONE
-        write_default_value "AWS_VPC_ID" $AWS_VPC_ID
-        write_default_value "AWS_SUBNET_ID" $AWS_SUBNET_ID
-        ;;
-  esac
+  fi
 else
   echo "Not enabling a cloud provider"
 fi
