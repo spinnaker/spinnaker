@@ -79,6 +79,9 @@ interface TravisClient {
     @Headers("Travis-API-Version: 3")
     TriggerResponse triggerBuild(@Header("Authorization") String accessToken, @Path('repoSlug') String repoSlug, @Body RepoRequest repoRequest)
 
+    @POST('/users/sync')
+    Response usersSync(@Header("Authorization") String accessToken)
+
     @GET('/jobs/{job_id}')
     Jobs jobs(@Header("Authorization") String accessToken , @Path('job_id') int jobId)
 

@@ -80,6 +80,10 @@ class TravisBuildMonitor implements PollingMonitor{
     @Value('${spinnaker.build.pollInterval:60}')
     int pollInterval
 
+    @SuppressWarnings('GStringExpressionWithinString')
+    @Value('${travis.repositorySyncEnabled:false}')
+    Boolean repositorySyncEnabled
+
     @Override
     void onApplicationEvent(ContextRefreshedEvent event) {
         log.info('Started')
@@ -217,8 +221,12 @@ class TravisBuildMonitor implements PollingMonitor{
         }, {
         } as Action0
         )
-
         log.info("Last poll took ${System.currentTimeMillis() - lastPoll}ms (master: ${master})")
+        if (repositorySyncEnabled) {
+            startTime = System.currentTimeMillis()
+            travisService.syncRepos()
+            log.info("repositorySync: Took ${System.currentTimeMillis() - startTime}ms to sync repositories for ${master}")
+        }
         results
 
     }
