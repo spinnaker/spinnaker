@@ -253,6 +253,14 @@ class TravisService implements BuildService {
         return true
     }
 
+    void syncRepos() {
+        try {
+            travisClient.usersSync(getAccessToken())
+        } catch (RetrofitError e) {
+            log.error "synchronizing travis repositories failed with error: ${e.message}"
+        }
+    }
+
     @Override
     BuildServiceProvider buildServiceProvider() {
         return BuildServiceProvider.TRAVIS
