@@ -79,11 +79,34 @@
 
   </div>
 
-  <stage-config-field label="Fail Pipeline" help-key="pipeline.config.failPipeline">
-    <div class="checkbox">
+  <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-right">If job fails</label>
+    <div class="radio col-md-4">
       <label>
-        <input type="checkbox" ng-model="stage.failPipeline">
+        <input type="radio"
+               name="failureOption"
+               ng-model="viewState.failureOption"
+               ng-change="jenkinsStageCtrl.failureOptionChanged()"
+               value="fail"/> halt the entire pipeline
+        <help-field key="pipeline.config.jenkins.haltPipelineOnFailure"/>
+      </label>
+      <label>
+        <input type="radio"
+               name="failureOption"
+               ng-model="viewState.failureOption"
+               ng-change="jenkinsStageCtrl.failureOptionChanged()"
+               value="stop"/> halt this branch of the pipeline
+        <help-field key="pipeline.config.jenkins.haltBranchOnFailure"/>
+      </label>
+      <label>
+        <input type="radio"
+               name="failureOption"
+               ng-model="viewState.failureOption"
+               ng-change="jenkinsStageCtrl.failureOptionChanged()"
+               value="ignore"/> ignore the failure
+        <help-field key="pipeline.config.jenkins.ignoreFailure"/>
       </label>
     </div>
-  </stage-config-field>
+  </div>
+
 </div>
