@@ -126,7 +126,8 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
 
     try {
       serverGroup = metricsSupport.readData {
-        creds.computeClient.getServerGroup(resourceGroupName, serverGroupName)
+        def sg = creds.computeClient.getServerGroup(resourceGroupName, serverGroupName)
+        return sg ?: null
       }
     } catch (Exception e ) {
       log.error("handle->Unexpected exception: ${e.message}")

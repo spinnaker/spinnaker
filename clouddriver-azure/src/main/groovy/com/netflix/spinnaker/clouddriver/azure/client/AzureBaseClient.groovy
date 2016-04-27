@@ -54,28 +54,81 @@ public abstract class AzureBaseClient {
     new ApplicationTokenCredentials(clientId, tenantId, secret, AzureEnvironment.AZURE)
   }
 
-  static Object getAzureOps(Closure getOps, String msgRetry, String msgFail, long count = AZURE_ATOMICOPERATION_RETRY) {
-    // The API call might return a timeout exception or some other Azure CloudException that is not the direct result of the operation
-    //   we are trying to execute; retry and if the final retry fails then throw
-    Object result = null
-    long operationRetry = 0
-    while (operationRetry < count) {
+  /**
+   * Wrap the call to an Azure operation to handle retry attempts
+   * @param operation - Operation to be execute
+   * @param count - number of retry attempts
+   * @return ServiceRespone returned from operation. If response results in 404 then return null
+   */
+  static <T> ServiceResponse<T> executeOp(Closure<ServiceResponse<T>> operation, long count = AZURE_ATOMICOPERATION_RETRY) {
+
+    // Ensure that the operation will always at least try once
+    long retryCount = count <= 0 ? count - 1 : 0
+    long interval = 200
+
+    while (retryCount < count) {
       try {
-        operationRetry ++
-        result = getOps()
-        operationRetry = count
-      }
-      catch (Exception e) {
-        sleep(200)
-        log.warn("${msgRetry}: ${e.message}")
-        if (operationRetry >= count) {
-          log.error(msgFail)
+        retryCount++
+        return operation()
+      } catch (Exception e) {
+        // if the resource wasn't found then there is no reason to keep trying
+        if (resourceNotFound(e)) {
+          log.warn("Azure resource(s) not found: $e.message")
+          return null
+        }
+        // if there are still remaining attempts to be made, check to see if we should retry.
+        else if (retryCount < count) {
+          if (!handleTooManyRequestsResponse(e)) {
+            if (canRetry(e)) {
+              log.warn("Retrying Azure operation: $e.message")
+              sleep(interval * retryCount)
+            }
+          }
+        }
+        else {
           throw e
         }
       }
     }
+    null
+  }
 
-    result
+  /**
+   * Determine if the operation can be retried based on the exception encountered
+   * @param e - The exception encountered
+   * @return True if it can be retried
+   */
+  private static boolean canRetry(Exception e) {
+    boolean retry = false
+    if (e.class == CloudException) {
+      def code = (e as CloudException).response.code()
+      retry = (code == HttpURLConnection.HTTP_CLIENT_TIMEOUT
+        || (code >= HttpURLConnection.HTTP_INTERNAL_ERROR && code <= HttpURLConnection.HTTP_GATEWAY_TIMEOUT))
+    } else if (e.class == SocketTimeoutException) {
+      //If we get a socket time out try again
+      retry = true
+    }
+    retry
+  }
+
+  /**
+   * Handle when we get a "Too Many Requests" (429) response
+   * Get the "Retry-After" value (in seconds) from the response headers and "sleep" before retrying
+   * @param e - The exception encountered
+   * @return True if the exception encountered was a 429 Response and it was handled
+   */
+  private static boolean handleTooManyRequestsResponse(Exception e) {
+    if (e.class == CloudException.class) {
+      if ((e as CloudException).response.code() == 429) {
+        int retryAfterIntervalSec = (e as CloudException).response.headers().get("Retry-After").toInteger()
+        if (retryAfterIntervalSec) {
+          log.warn("Received 'Too Many Requests' (429) response from Azure. Retrying in $retryAfterIntervalSec seconds")
+          sleep(retryAfterIntervalSec * 1000) // convert to milliseconds
+          return true
+        }
+      }
+    }
+    false
   }
 
   static ServiceResponse<Void> deleteAzureResource( Closure azureOps, String resourceGroup, String resourceName, String parentResourceName, String msgRetry, String msgFail, long count = AZURE_ATOMICOPERATION_RETRY) {
@@ -94,7 +147,7 @@ public abstract class AzureBaseClient {
         operationRetry = count
       }
       catch (CloudException e) {
-        if (e.body.code == "404") {
+        if (resourceNotFound(e)) {
           // resource was not found; must have been deleted already
           operationRetry = count
         } else {
@@ -117,8 +170,8 @@ public abstract class AzureBaseClient {
     result
   }
 
-  static Boolean resourceNotFound(int responseStatusCode) {
-    responseStatusCode == HttpURLConnection.HTTP_NO_CONTENT || responseStatusCode == HttpURLConnection.HTTP_NOT_FOUND
+  static Boolean resourceNotFound(Exception e) {
+    e.class == CloudException ? (e as CloudException).response.code() == HttpURLConnection.HTTP_NOT_FOUND : false
   }
 
   /***
@@ -126,7 +179,7 @@ public abstract class AzureBaseClient {
    * @param resourceManagerClient - an instance of the AzureResourceManagerClient
    */
   void register(AzureResourceManagerClient resourceManagerClient) {
-    if (resourceManagerClient && !"".equals(providerNamespace)) {
+    if (resourceManagerClient && providerNamespace) {
       resourceManagerClient.registerProvider(providerNamespace)
     }
   }

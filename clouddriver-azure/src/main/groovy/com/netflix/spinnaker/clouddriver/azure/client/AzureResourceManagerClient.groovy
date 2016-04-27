@@ -18,7 +18,12 @@ package com.netflix.spinnaker.clouddriver.azure.client
 
 import com.microsoft.azure.CloudException
 import com.microsoft.azure.credentials.ApplicationTokenCredentials
+import com.microsoft.azure.management.resources.DeploymentOperationsOperations
+import com.microsoft.azure.management.resources.DeploymentsOperations
+import com.microsoft.azure.management.resources.ProvidersOperations
+import com.microsoft.azure.management.resources.ResourceGroupsOperations
 import com.microsoft.azure.management.resources.ResourceManagementClientImpl
+import com.microsoft.azure.management.resources.ResourcesOperations
 import com.microsoft.azure.management.resources.models.Deployment
 import com.microsoft.azure.management.resources.models.DeploymentExtended
 import com.microsoft.azure.management.resources.models.DeploymentMode
@@ -29,12 +34,10 @@ import com.microsoft.azure.management.resources.ResourceManagementClient
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import groovy.transform.Canonical
-import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import okhttp3.logging.HttpLoggingInterceptor
 
 @Slf4j
-@CompileStatic
 class AzureResourceManagerClient extends AzureBaseClient {
 
   private final ResourceManagementClient client
@@ -48,6 +51,21 @@ class AzureResourceManagerClient extends AzureBaseClient {
     super(subscriptionId)
     this.client = initializeClient(credentials)
   }
+
+  @Lazy
+  ResourceGroupsOperations resourceGroupOperations = { client.getResourceGroupsOperations() }()
+
+  @Lazy
+  DeploymentOperationsOperations deploymentOperationOperations = { client.getDeploymentOperationsOperations() }()
+
+  @Lazy
+  DeploymentsOperations deploymentOperations = {client.getDeploymentsOperations()}()
+
+  @Lazy
+  ResourcesOperations resourceOperations = {client.getResourcesOperations()}()
+
+  @Lazy
+  ProvidersOperations providerOperations = {client.getProvidersOperations()}()
 
   /**
    * Create a given set of resources in Azure based on template provided
@@ -99,7 +117,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
       ResourceGroup resourceGroup = new ResourceGroup()
       resourceGroup.setLocation(region)
 
-      client.getResourceGroupsOperations().createOrUpdate(resourceGroupName,resourceGroup).body
+      resourceGroupOperations.createOrUpdate(resourceGroupName,resourceGroup).body
 
     } catch (e) {
       throw new RuntimeException("Unable to create Resource Group ${resourceGroupName} in region ${region}", e)
@@ -121,7 +139,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
     if (!resourceGroupExists(resourceGroupName)) {
       resourceGroup = createResourceGroup(resourceGroupName, region)
     } else {
-      resourceGroup = client.getResourceGroupsOperations().get(resourceGroupName).body
+      resourceGroup = resourceGroupOperations.get(resourceGroupName).body
     }
 
     initializeResourceGroupVNet(creds, resourceGroupName, virtualNetworkName, region)
@@ -135,7 +153,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
    * @return True if it already exists
    */
   boolean resourceGroupExists(String resourceGroupName) {
-    client.getResourceGroupsOperations().checkExistence(resourceGroupName).body
+    resourceGroupOperations.checkExistence(resourceGroupName).body
   }
 
   /**
@@ -148,7 +166,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
   List<DeploymentOperation> getDeploymentOperations(String resourceGroupName,
                                                     String deploymentName,
                                                     Integer operationCount = 10) {
-    client.getDeploymentOperationsOperations().list(resourceGroupName, deploymentName, operationCount).body
+    executeOp({deploymentOperationOperations.list(resourceGroupName, deploymentName, operationCount)})?.body
   }
 
   /**
@@ -158,7 +176,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
    * @return Azure SDK DeploymentExtended object
    */
   DeploymentExtended getDeployment(String resourceGroupName, String deploymentName) {
-    client.getDeploymentsOperations().get(resourceGroupName, deploymentName).body
+    executeOp({deploymentOperations.get(resourceGroupName, deploymentName)}).body
   }
 
   /**
@@ -166,7 +184,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
    */
   void healthCheck() {
     try {
-      client.getResourcesOperations().list(null, 1)
+      resourceOperations.list(null, 1)
     }
     catch (Exception e) {
       throw new Exception("Unable to ping Azure", e)
@@ -255,11 +273,10 @@ class AzureResourceManagerClient extends AzureBaseClient {
    * @param namespace - the namespace for the Resource Provider to register
    */
   void registerProvider(String namespace) {
-    def ops = client.getProvidersOperations()
     try {
-      if (ops.get(namespace).body.registrationState != "Registered") {
+      if (providerOperations.get(namespace).body.registrationState != "Registered") {
         log.info("Registering Azure provider: ${namespace}")
-        ops.register(namespace)
+        providerOperations.register(namespace)
         log.info("Azure provider ${namespace} registered")
       }
     } catch (Exception e) {

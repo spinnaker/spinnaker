@@ -64,8 +64,7 @@ class AzureStorageClient extends AzureBaseClient {
    * @return a ServiceResponse object
    */
   ServiceResponse<Void> deleteStorageAccount(String resourceGroupName, String storageName) {
-    StorageAccountsOperations ops = getAzureOps(
-      client.&getStorageAccountsOperations, "Get operations object", "Failed to get operation object") as StorageAccountsOperations
+    StorageAccountsOperations ops = client.getStorageAccountsOperations()
 
     deleteAzureResource(
       ops.&delete,

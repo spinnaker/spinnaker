@@ -20,19 +20,18 @@ import com.microsoft.azure.CloudException
 import com.microsoft.azure.credentials.ApplicationTokenCredentials
 import com.microsoft.azure.management.compute.ComputeManagementClient
 import com.microsoft.azure.management.compute.ComputeManagementClientImpl
+import com.microsoft.azure.management.compute.VirtualMachineImagesOperations
+import com.microsoft.azure.management.compute.VirtualMachineScaleSetVMsOperations
 import com.microsoft.azure.management.compute.VirtualMachineScaleSetsOperations
-import com.microsoft.azure.management.compute.models.VirtualMachineScaleSet
 import com.microsoft.rest.ServiceResponse
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureInstance
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
-import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import okhttp3.logging.HttpLoggingInterceptor
 
 
 @Slf4j
-@CompileStatic
 public class AzureComputeClient extends AzureBaseClient {
   private final ComputeManagementClient client
 
@@ -45,6 +44,16 @@ public class AzureComputeClient extends AzureBaseClient {
     super(subscriptionId)
     this.client = this.initialize(credentials)
   }
+
+
+  @Lazy
+  private VirtualMachineImagesOperations vmImageOps = {client.getVirtualMachineImagesOperations()}()
+
+  @Lazy
+  private VirtualMachineScaleSetsOperations scaleSetOps = {client.getVirtualMachineScaleSetsOperations()}()
+
+  @Lazy
+  private VirtualMachineScaleSetVMsOperations scaleSetVMOps = {client.getVirtualMachineScaleSetVMsOperations()}()
 
   /**
    * get the ComputeManagementClient which will be used for all interaction related to compute resources in Azure
@@ -68,17 +77,19 @@ public class AzureComputeClient extends AzureBaseClient {
 
     try {
       // Usage of local variables to ease with debugging the code; keeping the content retrieved from Azure JSDK call to help with stepping through the code and inspect the values
-      List<String> publishers = client.getVirtualMachineImagesOperations()?.listPublishers(location)?.body?.collect { it.name }
+      //def ops = client.getVirtualMachineImagesOperations()
+
+      List<String> publishers = executeOp({vmImageOps?.listPublishers(location)}).body.collect { it.name }
       log.info("getVMImagesAll-> Found ${publishers.size()} publisher items in azure/${location}/${ComputeManagementClient.simpleName}")
 
       publishers?.each { publisher ->
-        List<String> offers = client.getVirtualMachineImagesOperations()?.listOffers(location, publisher)?.body?.collect {
+        List<String> offers = executeOp({vmImageOps?.listOffers(location, publisher)})?.body?.collect {
           it.name
         }
         log.info("getVMImagesAll-> Found ${offers.size()} offer items for ${publisher} in azure/${location}/${ComputeManagementClient.simpleName}")
 
         offers?.each { offer ->
-          List<String> skus = client.getVirtualMachineImagesOperations()?.listSkus(location, publisher, offer)?.body?.collect {
+          List<String> skus = executeOp({ vmImageOps?.listSkus(location, publisher, offer)})?.body?.collect {
             it.name
           }
           log.info("getVMImagesAll-> Found ${skus.size()} SKU items for ${publisher}/${offer} in azure/${location}/${ComputeManagementClient.simpleName}")
@@ -86,7 +97,7 @@ public class AzureComputeClient extends AzureBaseClient {
           skus?.each { sku ->
             // Add a try/catch here in order to avoid an all-or-nothing return
             try {
-              List<String> versions = client.getVirtualMachineImagesOperations()?.list(location, publisher, offer, sku, null, 100, "name")?.body?.collect {
+              List<String> versions = executeOp({vmImageOps?.list(location, publisher, offer, sku, null, 100, "name")})?.body?.collect {
                 it.name
               }
               log.info("getVMImagesAll-> Found ${skus.size()} version items for ${publisher}/${offer}/${sku} in azure/${location}/${ComputeManagementClient.simpleName}")
@@ -123,8 +134,9 @@ public class AzureComputeClient extends AzureBaseClient {
     def lastReadTime = System.currentTimeMillis()
 
     try {
-      List<VirtualMachineScaleSet> vmssList = resourceGroup ? this.client.virtualMachineScaleSetsOperations?.list(resourceGroup)?.body
-                                                            : this.client.virtualMachineScaleSetsOperations?.listAll()?.body
+      def vmssList = resourceGroup ? executeOp({ scaleSetOps?.list(resourceGroup) }).body
+        : executeOp({scaleSetOps?.listAll()}).body
+
       vmssList?.each { scaleSet ->
         if (scaleSet.location == region) {
           try {
@@ -145,12 +157,12 @@ public class AzureComputeClient extends AzureBaseClient {
 
   AzureServerGroupDescription getServerGroup(String resourceGroupName, String serverGroupName) {
     try {
-      def vmss = this.client.getVirtualMachineScaleSetsOperations()?.get(resourceGroupName, serverGroupName)?.body
+      def vmss = executeOp({scaleSetOps?.get(resourceGroupName, serverGroupName)})?.body
       def sg = AzureServerGroupDescription.build(vmss)
       sg.lastReadTime = System.currentTimeMillis()
       return sg
     } catch (CloudException e) {
-      if (resourceNotFound(e.response.code())) {
+      if (resourceNotFound(e)) {
         log.warn("ServerGroup: ${e.message} (${serverGroupName} was not found)")
       }
       else {
@@ -161,11 +173,9 @@ public class AzureComputeClient extends AzureBaseClient {
   }
 
   ServiceResponse<Void> destroyServerGroup(String resourceGroupName, String serverGroupName) {
-    VirtualMachineScaleSetsOperations ops = getAzureOps(
-      client.&getVirtualMachineScaleSetsOperations, "Get operations object", "Failed to get operation object") as VirtualMachineScaleSetsOperations
 
     deleteAzureResource(
-      ops.&delete,
+      getScaleSetOps().&delete,
       resourceGroupName,
       serverGroupName,
       null,
@@ -175,36 +185,35 @@ public class AzureComputeClient extends AzureBaseClient {
   }
 
   ServiceResponse<Void> disableServerGroup(String resourceGroupName, String serverGroupName) {
-    VirtualMachineScaleSetsOperations ops = getAzureOps(
-      client.&getVirtualMachineScaleSetsOperations, "Get operations object", "Failed to get operation object") as VirtualMachineScaleSetsOperations
 
     List<String> instanceIds = this.getServerGroupInstances(resourceGroupName,serverGroupName)?.collect {it.resourceId}
 
-    ops.powerOff(resourceGroupName, serverGroupName, instanceIds)
+    getScaleSetOps().powerOff(resourceGroupName, serverGroupName, instanceIds)
 
     // TODO: investigate if we can deallocate the VMs
     //ops.deallocate(resourceGroupName, serverGroupName, instanceIds)
   }
 
   ServiceResponse<Void> enableServerGroup(String resourceGroupName, String serverGroupName) {
-    VirtualMachineScaleSetsOperations ops = getAzureOps(
-      client.&getVirtualMachineScaleSetsOperations, "Get operations object", "Failed to get operation object") as VirtualMachineScaleSetsOperations
 
     List<String> instanceIds = this.getServerGroupInstances(resourceGroupName,serverGroupName)?.collect {it.resourceId}
 
-    ops.start(resourceGroupName, serverGroupName, instanceIds)
+    scaleSetOps.start(resourceGroupName, serverGroupName, instanceIds)
   }
 
+  /**
+   * Get the instances associated with a given server group
+   * @param resourceGroupName - name of the resource group
+   * @param serverGroupName - name of the server group
+   * @return Collection of AzureInstance objects
+   */
   Collection<AzureInstance> getServerGroupInstances(String resourceGroupName, String serverGroupName) {
-    def vmOps = this.client.virtualMachineScaleSetVMsOperations
     def instances = new ArrayList<AzureInstance>()
-    try {
-      vmOps.list(resourceGroupName, serverGroupName, null, null, "instanceView")?.body?.each {
-        instances.add(AzureInstance.build(it))
-      }
-    } catch (Exception e) {
-      log.error("getServerGroupInstances -> Unexpected exception", e)
+
+    executeOp({scaleSetVMOps.list(resourceGroupName, serverGroupName, null, null, "instanceView")}).body.each {
+      instances.add(AzureInstance.build(it))
     }
+
     instances
   }
 

@@ -27,7 +27,7 @@ class AzureInstance implements Instance, Serializable {
     instance.resourceId = vm.instanceId
     instance.vhd = vm.storageProfile?.osDisk?.vhd?.uri
 
-    vm.instanceView.statuses.each { status ->
+    vm.instanceView?.statuses?.each { status ->
       def codes = status.code.split('/')
       switch (codes[0]) {
         case "ProvisioningState":

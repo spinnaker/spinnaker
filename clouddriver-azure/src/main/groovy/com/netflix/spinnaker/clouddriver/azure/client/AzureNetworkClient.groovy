@@ -24,6 +24,7 @@ import com.microsoft.azure.management.network.NetworkManagementClientImpl
 import com.microsoft.azure.management.network.NetworkSecurityGroupsOperations
 import com.microsoft.azure.management.network.PublicIPAddressesOperations
 import com.microsoft.azure.management.network.SubnetsOperations
+import com.microsoft.azure.management.network.VirtualNetworksOperations
 import com.microsoft.azure.management.network.models.AddressSpace
 import com.microsoft.azure.management.network.models.DhcpOptions
 import com.microsoft.azure.management.network.models.LoadBalancer
@@ -39,12 +40,10 @@ import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.Azur
 import com.netflix.spinnaker.clouddriver.azure.resources.network.model.AzureVirtualNetworkDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.model.AzureSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.subnet.model.AzureSubnetDescription
-import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import okhttp3.logging.HttpLoggingInterceptor
 
 @Slf4j
-@CompileStatic
 class AzureNetworkClient extends AzureBaseClient {
 
   private final NetworkManagementClient client
@@ -53,6 +52,22 @@ class AzureNetworkClient extends AzureBaseClient {
     super(subscriptionId)
     this.client = initializeClient(credentials)
   }
+
+  @Lazy
+  private LoadBalancersOperations loadBalancerOps = { client.getLoadBalancersOperations() }()
+
+  @Lazy
+  private VirtualNetworksOperations virtualNetworksOperations = { client.getVirtualNetworksOperations() }()
+
+  @Lazy
+  private SubnetsOperations subnetOperations = { client.getSubnetsOperations() }()
+
+  @Lazy
+  private NetworkSecurityGroupsOperations networkSecurityGroupOperations = { client.getNetworkSecurityGroupsOperations() }()
+
+  @Lazy
+  private PublicIPAddressesOperations publicIPAddressOperations = {client.getPublicIPAddressesOperations() }()
+
 
   /**
    * Retrieve a collection of all load balancer for a give set of credentials and the location
@@ -63,9 +78,9 @@ class AzureNetworkClient extends AzureBaseClient {
     def result = new ArrayList<AzureLoadBalancerDescription>()
 
     try {
-      def loadBalancers = this.client.getLoadBalancersOperations().listAll().body
+      def loadBalancers = executeOp({loadBalancerOps.listAll()})?.body
       def currentTime = System.currentTimeMillis()
-      loadBalancers.each {item ->
+      loadBalancers?.each {item ->
         if (item.location == region) {
           try {
             def lbItem = getDescriptionForLoadBalancer(item)
@@ -103,8 +118,9 @@ class AzureNetworkClient extends AzureBaseClient {
    */
   AzureLoadBalancerDescription getLoadBalancer(String resourceGroupName, String loadBalancerName) {
     try {
+
       def currentTime = System.currentTimeMillis()
-      def item = this.client.getLoadBalancersOperations().get(resourceGroupName, loadBalancerName, null).body
+      def item = executeOp({loadBalancerOps.get(resourceGroupName, loadBalancerName, null)})?.body
       if (item) {
         def lbItem = getDescriptionForLoadBalancer(item)
         lbItem.appName = AzureUtilities.getAppNameFromResourceId(item.id)
@@ -187,7 +203,7 @@ class AzureNetworkClient extends AzureBaseClient {
    * @return a ServiceResponse object
    */
   ServiceResponse deleteLoadBalancer(String resourceGroupName, String loadBalancerName) {
-    def loadBalancer = client.getLoadBalancersOperations().get(resourceGroupName, loadBalancerName, null).body
+    def loadBalancer = loadBalancerOps.get(resourceGroupName, loadBalancerName, null)?.body
 
     if (loadBalancer.frontendIPConfigurations.size() != 1) {
       throw new RuntimeException("Unexpected number of public IP addresses associated with the load balancer (should always be only one)!")
@@ -195,11 +211,8 @@ class AzureNetworkClient extends AzureBaseClient {
 
     def publicIpAddressName = AzureUtilities.getResourceNameFromID(loadBalancer.frontendIPConfigurations.first().getPublicIPAddress().id)
 
-    LoadBalancersOperations ops = getAzureOps(
-      client.&getLoadBalancersOperations, "Get operations object", "Failed to get operation object") as LoadBalancersOperations
-
     deleteAzureResource(
-      ops.&delete,
+      loadBalancerOps.&delete,
       resourceGroupName,
       loadBalancerName,
       null,
@@ -218,11 +231,9 @@ class AzureNetworkClient extends AzureBaseClient {
    * @return a ServiceResponse object
    */
   ServiceResponse deletePublicIp(String resourceGroupName, String publicIpName) {
-    PublicIPAddressesOperations ops = getAzureOps(
-      client.&getPublicIPAddressesOperations, "Get operations object", "Failed to get operation object") as PublicIPAddressesOperations
 
     deleteAzureResource(
-      ops.&delete,
+      publicIPAddressOperations.&delete,
       resourceGroupName,
       publicIpName,
       null,
@@ -238,11 +249,9 @@ class AzureNetworkClient extends AzureBaseClient {
    * @return a ServiceResponse object
    */
   ServiceResponse deleteSecurityGroup(String resourceGroupName, String securityGroupName) {
-    NetworkSecurityGroupsOperations ops = getAzureOps(
-      client.&getNetworkSecurityGroupsOperations, "Get operations object", "Failed to get operation object") as NetworkSecurityGroupsOperations
 
     deleteAzureResource(
-      ops.&delete,
+      networkSecurityGroupOperations.&delete,
       resourceGroupName,
       securityGroupName,
       null,
@@ -278,9 +287,7 @@ class AzureNetworkClient extends AzureBaseClient {
       virtualNetwork.setAddressSpace(addressSpace)
 
       //Create the virtual network for the resource group
-      client.
-        getVirtualNetworksOperations().
-        createOrUpdate(resourceGroupName, virtualNetworkName, virtualNetwork)
+      virtualNetworksOperations.createOrUpdate(resourceGroupName, virtualNetworkName, virtualNetwork)
     }
     catch (e) {
       throw new RuntimeException("Unable to create Virtual network ${virtualNetworkName} in Resource Group ${resourceGroupName}", e)
@@ -307,9 +314,7 @@ class AzureNetworkClient extends AzureBaseClient {
     //This will throw an exception if the it fails. If it returns then the call was successful
     //Log the error Let it bubble up to the caller to handle as they see fit
     try {
-      def op = client
-        .getSubnetsOperations()
-        .createOrUpdate(resourceGroupName, virtualNetworkName, subnetName, subnet)
+      def op = subnetOperations.createOrUpdate(resourceGroupName, virtualNetworkName, subnetName, subnet)
 
       // Return the resource Id
       op.body.id
@@ -330,11 +335,9 @@ class AzureNetworkClient extends AzureBaseClient {
    * @return a ServiceResponse object
    */
   ServiceResponse<Void> deleteSubnet(String resourceGroupName, String virtualNetworkName, String subnetName) {
-    SubnetsOperations ops = getAzureOps(
-      client.&getSubnetsOperations, "Get operations object", "Failed to get operation object") as SubnetsOperations
 
     deleteAzureResource(
-      ops.&delete,
+      subnetOperations.&delete,
       resourceGroupName,
       subnetName,
       virtualNetworkName,
@@ -344,7 +347,7 @@ class AzureNetworkClient extends AzureBaseClient {
   }
 
   private void addSecurityGroupToSubnet(String resourceGroupName, String securityGroupName, Subnet subnet) {
-    def securityGroup = this.client.getNetworkSecurityGroupsOperations().get(resourceGroupName, securityGroupName, null).body
+    def securityGroup = executeOp({networkSecurityGroupOperations.get(resourceGroupName, securityGroupName, null)}).body
     subnet.setNetworkSecurityGroup securityGroup
   }
 
@@ -357,9 +360,9 @@ class AzureNetworkClient extends AzureBaseClient {
     def result = new ArrayList<AzureSecurityGroupDescription>()
 
     try {
-      def securityGroups = this.client.getNetworkSecurityGroupsOperations().listAll().body
+      def securityGroups = executeOp({networkSecurityGroupOperations.listAll()})?.body
       def currentTime = System.currentTimeMillis()
-      securityGroups.each { item ->
+      securityGroups?.each { item ->
         if (item.location == region) {
           try {
             def sgItem = getAzureSecurityGroupDescription(item)
@@ -387,7 +390,7 @@ class AzureNetworkClient extends AzureBaseClient {
    */
   AzureSecurityGroupDescription getNetworkSecurityGroup(String resourceGroupName, String securityGroupName) {
     try {
-      def securityGroup = this.client.getNetworkSecurityGroupsOperations().get(resourceGroupName, securityGroupName, null).body
+      def securityGroup = executeOp({networkSecurityGroupOperations.get(resourceGroupName, securityGroupName, null)})?.body
       def currentTime = System.currentTimeMillis()
       def sgItem = getAzureSecurityGroupDescription(securityGroup)
       sgItem.lastReadTime = currentTime
@@ -477,9 +480,9 @@ class AzureNetworkClient extends AzureBaseClient {
     def result = new ArrayList<AzureSubnetDescription>()
 
     try {
-      def vnets = this.client.getVirtualNetworksOperations().listAll().body
+      def vnets = executeOp({virtualNetworksOperations.listAll()})?.body
       def currentTime = System.currentTimeMillis()
-      vnets.each { item->
+      vnets?.each { item->
         if (item.location == region) {
           try {
             getSubnetForVirtualNetwork(item).each { AzureSubnetDescription subnet ->
@@ -507,10 +510,7 @@ class AzureNetworkClient extends AzureBaseClient {
    * @return virtual network instance, or null if it does not exist
    */
   VirtualNetwork getVirtualNetwork(String resourceGroupName, String virtualNetworkName) {
-    client
-      .getVirtualNetworksOperations()
-      .get(resourceGroupName, virtualNetworkName, null)
-      .body
+    executeOp({virtualNetworksOperations.get(resourceGroupName, virtualNetworkName, null)}).body
   }
 
   /**
@@ -522,9 +522,9 @@ class AzureNetworkClient extends AzureBaseClient {
     def result = new ArrayList<AzureVirtualNetworkDescription>()
 
     try {
-      def vnetList = this.client.getVirtualNetworksOperations().listAll().body
+      def vnetList = executeOp({virtualNetworksOperations.listAll()})?.body
       def currentTime = System.currentTimeMillis()
-      vnetList.each { item ->
+      vnetList?.each { item ->
         if (item.location == region) {
           try {
             def vnet = getAzureVirtualNetworkDescription(item)
@@ -575,7 +575,7 @@ class AzureNetworkClient extends AzureBaseClient {
     String dnsName = "none"
 
     try {
-      def loadBalancer = client.getLoadBalancersOperations().get(resourceGroupName, loadBalancerName, null).body
+      def loadBalancer = executeOp({loadBalancerOps.get(resourceGroupName, loadBalancerName, null)})?.body
       if (loadBalancer.frontendIPConfigurations) {
         if (loadBalancer.frontendIPConfigurations.size() != 1) {
           log.info("getDnsNameForLoadBalancer -> Unexpected number of public IP addresses associated with the load balancer (should be only one)!")
@@ -583,9 +583,7 @@ class AzureNetworkClient extends AzureBaseClient {
 
         def publicIpResource = loadBalancer.frontendIPConfigurations.first()?.getPublicIPAddress()?.id
         PublicIPAddress publicIp = publicIpResource ?
-          client
-            .getPublicIPAddressesOperations()
-            .get(resourceGroupName, AzureUtilities.getNameFromResourceId(publicIpResource), null)?.body
+          executeOp({publicIPAddressOperations.get(resourceGroupName, AzureUtilities.getNameFromResourceId(publicIpResource), null)})?.body
           : null
         dnsName = publicIp ? publicIp.dnsSettings?.fqdn : "none"
       }
