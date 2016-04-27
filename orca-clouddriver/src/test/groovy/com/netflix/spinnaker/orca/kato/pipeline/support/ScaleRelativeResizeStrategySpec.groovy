@@ -65,7 +65,7 @@ class ScaleRelativeResizeStrategySpec extends Specification {
   static final String region = 'us-east-1'
   static final String account = 'test'
   static final String clusterName = application + '-main'
-  static final Location location = TargetServerGroup.Support.locationFromCloudProviderValue(cloudProvider, region)
+  static final Location location = new Location(type: Location.Type.REGION, value: region)
 
   ResizeStrategy.OptionalConfiguration cfg(String direction, Integer scalePct = null, Integer scaleNum = null) {
     def cfg = new ResizeStrategy.OptionalConfiguration()

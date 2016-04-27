@@ -112,10 +112,18 @@ class TargetServerGroupResolver {
         "${stage}")
     }
 
-    def tsg = tsgs.find {
-      def location = it.getLocation().value
-      return (stage.context.region == location) || (stage.context.zone == location) || (stage.context.namespace == location)
-    }
+    // TODO(duftler): Confirm that every stage.context will have a targetLocation at this point, and then drop the else branch.
+    def targetLocation = stage.context.targetLocation
+    def tsg =
+      targetLocation
+      ? tsgs.find {
+          def candidateLocation = it.getLocation(targetLocation.type as Location.Type)
+          return candidateLocation.value == targetLocation.value
+        }
+      : tsgs.find {
+          def location = it.getLocation().value
+          return (stage.context.region == location) || (stage.context.zone == location) || (stage.context.namespace == location)
+        }
     if (!tsg) {
       def locations = []
       stage.context.region && locations << stage.context.region

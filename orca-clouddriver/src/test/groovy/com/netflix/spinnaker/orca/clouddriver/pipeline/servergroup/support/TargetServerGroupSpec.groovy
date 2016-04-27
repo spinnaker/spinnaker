@@ -39,6 +39,36 @@ class TargetServerGroupSpec extends Specification {
   }
 
   @Unroll
+  def "get location with exactLocationType"() {
+    given:
+    TargetServerGroup tsg = new TargetServerGroup(serverGroup: [
+      type: cloudProvider,
+      zone: "north-pole-1",
+      namespace: "santa-prod",
+      region: "north-pole",
+      otherProp: "abc"
+    ])
+
+    when:
+    Location got = tsg.getLocation(exactLocationType)
+
+    then:
+    got
+    got.type == expectedLocationType
+    got.value == expectedLocationValue
+    tsg.otherProp == "abc"
+
+    where:
+    exactLocationType       | cloudProvider | expectedLocationType    | expectedLocationValue
+    Location.Type.ZONE      | "aws"         | Location.Type.ZONE      | "north-pole-1"
+    Location.Type.NAMESPACE | "aws"         | Location.Type.NAMESPACE | "santa-prod"
+    Location.Type.REGION    | "aws"         | Location.Type.REGION    | "north-pole"
+    Location.Type.ZONE      | "gce"         | Location.Type.ZONE      | "north-pole-1"
+    Location.Type.NAMESPACE | "gce"         | Location.Type.NAMESPACE | "santa-prod"
+    Location.Type.REGION    | "gce"         | Location.Type.REGION    | "north-pole"
+  }
+
+  @Unroll
   def "dynamically bound stage"() {
 
     when:

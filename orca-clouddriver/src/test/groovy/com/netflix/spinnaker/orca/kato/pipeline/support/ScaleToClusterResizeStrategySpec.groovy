@@ -95,7 +95,7 @@ class ScaleToClusterResizeStrategySpec extends Specification {
   static final String region = 'us-east-1'
   static final String account = 'test'
   static final String clusterName = application + '-main'
-  static final Location location = TargetServerGroup.Support.locationFromCloudProviderValue(cloudProvider, region)
+  static final Location location = new Location(type: Location.Type.REGION, value: region)
 
   static String asgName() {
     clusterName + '-v' + asgSeq.incrementAndGet()

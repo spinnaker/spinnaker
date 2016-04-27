@@ -38,8 +38,8 @@ class TargetServerGroup {
    * (i.e. "serverGroup.location"). Otherwise, the property 'location' is looked for in the serverGroup map, which is
    * very likely not there.
    */
-  Location getLocation() {
-    return Support.locationFromServerGroup(serverGroup)
+  Location getLocation(Location.Type exactLocationType = null) {
+    return Support.locationFromServerGroup(serverGroup, exactLocationType)
   }
 
   Map toClouddriverOperationPayload(String account) {
@@ -79,7 +79,16 @@ class TargetServerGroup {
       }
      }
 
-    static Location locationFromServerGroup(Map<String, Object> serverGroup) {
+    static Location locationFromServerGroup(Map<String, Object> serverGroup, Location.Type exactLocationType) {
+      switch (exactLocationType) {
+        case (Location.Type.ZONE):
+          return Location.zone(serverGroup.zone)
+        case (Location.Type.NAMESPACE):
+          return Location.namespace(serverGroup.namespace)
+        case (Location.Type.REGION):
+          return Location.region(serverGroup.region)
+      }
+
       try {
         return resolveLocation(serverGroup.type, serverGroup.zone, serverGroup.namespace, serverGroup.region)
       } catch (e) {
@@ -101,11 +110,6 @@ class TargetServerGroup {
       } catch (e) {
         throw new IllegalArgumentException("Incorrect location specified for ${stageData}: ${e.message}")
       }
-    }
-
-    static Location locationFromCloudProviderValue(String cloudProvider, String value) {
-      Location.Type type = cloudProvider == 'gce' ? Location.Type.ZONE : Location.Type.REGION
-      return new Location(type: type, value: value)
     }
   }
   static boolean isDynamicallyBound(Stage stage) {
