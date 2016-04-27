@@ -143,6 +143,7 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
       'region': self.TEST_REGION,
       'zone': self.TEST_ZONE,
       'asgName': self.__server_group_name,
+      'serverGroupName': self.__server_group_name,
       'type': 'resizeServerGroup',
       'regions': [self.TEST_REGION],
       'zones': [self.TEST_ZONE],
