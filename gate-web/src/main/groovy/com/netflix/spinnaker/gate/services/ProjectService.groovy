@@ -43,7 +43,7 @@ class ProjectService {
 
   List<Map> getAll() {
     HystrixFactory.newListCommand(GROUP, "getAll") {
-      return front50Service.getAllProjects().embedded.projects ?: []
+      return front50Service.getAllProjects().embedded?.projects ?: []
     } execute()
   }
 
