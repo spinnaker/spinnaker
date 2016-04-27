@@ -50,6 +50,22 @@ window.spinnakerSettings = {
       },
     }
   },
+  notifications: {
+    email: {
+      enabled: true,
+    },
+    hipchat: {
+      enabled: true,
+      botName: 'Skynet T-800'
+    },
+    sms: {
+      enabled: true,
+    },
+    slack: {
+      enabled: true,
+      botName: 'spinnakerbot'
+    }
+  },
   whatsNew: {
     gistId: '32526cd608db3d811b38',
     fileName: 'news.md',
