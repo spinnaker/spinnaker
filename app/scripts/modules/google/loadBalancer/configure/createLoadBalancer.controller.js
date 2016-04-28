@@ -149,7 +149,12 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
 
     this.accountUpdated = function() {
       accountService.getRegionsForAccount($scope.loadBalancer.credentials).then(function(regions) {
-        $scope.regions = Object.keys(regions);
+        if (_.isArray(regions)) {
+          $scope.regions = _.map(regions, 'name');
+        } else {
+          // TODO(duftler): Remove this once we finish deprecating the old style regions/zones in clouddriver GCE credentials.
+          $scope.regions = _.keys(regions);
+        }
         ctrl.regionUpdated();
       });
     };

@@ -79,7 +79,20 @@ module.exports = angular
         let init = () => {
           accountService.getUniqueAttributeForAllAccounts('regions')(vm.component.cloudProviderType).then((allRegions) => {
             regions = allRegions;
-            return allRegions;
+
+            // TODO(duftler): Remove this once we finish deprecating the old style regions/zones in clouddriver GCE credentials.
+            let regionObjs = _.filter(regions, region => _.isObject(region));
+            if (regionObjs.length) {
+              let oldStyleRegions = _(regionObjs)
+                .map(regionObj => _.keys(regionObj))
+                .flatten()
+                .value();
+              regions = _(regions)
+                .difference(regionObjs)
+                .union(oldStyleRegions)
+                .value();
+            }
+            return regions;
           })
           .then((allRegions) => {
             setRegionList();

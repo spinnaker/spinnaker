@@ -184,8 +184,13 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       if (command.region === null) {
         return result;
       }
-      filteredData.zones =
-        command.backingData.credentialsKeyedByAccount[command.credentials].regions[command.region];
+      let regions = command.backingData.credentialsKeyedByAccount[command.credentials].regions;
+      if (_.isArray(regions)) {
+        filteredData.zones = _.find(regions, {name: command.region}).zones;
+      } else {
+        // TODO(duftler): Remove this once we finish deprecating the old style regions/zones in clouddriver GCE credentials.
+        filteredData.zones = regions[command.region];
+      }
       if (!_(filteredData.zones).contains(command.zone)) {
         command.zone = '';
         result.dirty.zone = true;
@@ -370,7 +375,13 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         var result = { dirty: {} };
         var backingData = command.backingData;
         if (command.credentials) {
-          backingData.filtered.regions = Object.keys(backingData.credentialsKeyedByAccount[command.credentials].regions);
+          let regions = backingData.credentialsKeyedByAccount[command.credentials].regions;
+          if (_.isArray(regions)) {
+            backingData.filtered.regions = _.map(regions, 'name');
+          } else {
+            // TODO(duftler): Remove this once we finish deprecating the old style regions/zones in clouddriver GCE credentials.
+            backingData.filtered.regions = _.keys(regions);
+          }
           if (backingData.filtered.regions.indexOf(command.region) === -1) {
             command.region = null;
             result.dirty.region = true;
