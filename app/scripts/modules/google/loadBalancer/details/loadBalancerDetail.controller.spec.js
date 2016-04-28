@@ -1,8 +1,6 @@
 'use strict';
 
 describe('Controller: LoadBalancerDetailsCtrl', function () {
-  const angular = require('angular');
-
   //NOTE: This is just a skeleton test to test DI.  Please add more tests.;
 
   var controller;

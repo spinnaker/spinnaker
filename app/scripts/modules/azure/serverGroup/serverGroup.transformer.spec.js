@@ -2,7 +2,7 @@
 
 describe('azureServerGroupTransformer', function () {
 
-  var transformer, $scope;
+  var transformer;
 
   beforeEach(
     window.module(
@@ -11,9 +11,8 @@ describe('azureServerGroupTransformer', function () {
   );
 
   beforeEach(function () {
-    window.inject(function (_azureServerGroupTransformer_, $rootScope) {
+    window.inject(function (_azureServerGroupTransformer_) {
       transformer = _azureServerGroupTransformer_;
-      $scope = $rootScope.$new();
     });
   });
 

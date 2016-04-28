@@ -1,7 +1,7 @@
 'use strict';
 
 describe('Jenkins Stage Controller', function () {
-  var controller, scope, igorService, $q;
+  var scope, igorService, $q;
 
   beforeEach(
     window.module(
@@ -15,7 +15,7 @@ describe('Jenkins Stage Controller', function () {
       scope = $rootScope.$new();
       $q = _$q_;
       this.initialize = function(stage) {
-        controller = $controller('JenkinsStageCtrl', {
+        $controller('JenkinsStageCtrl', {
           $scope: scope,
           stage: stage,
           igorService: igorService,

@@ -2,8 +2,7 @@
 
 describe('Service: azureServerGroupConfiguration', function () {
 
-  var service, $q, accountService, securityGroupReader,
-    cacheInitializer, loadBalancerReader, $scope;
+  var service;
 
   beforeEach(
     window.module(
@@ -12,16 +11,8 @@ describe('Service: azureServerGroupConfiguration', function () {
     );
 
 
-  beforeEach(window.inject(function (_azureServerGroupConfigurationService_, _$q_, _accountService_,
-    _securityGroupReader_, _cacheInitializer_,
-    _loadBalancerReader_, $rootScope) {
+  beforeEach(window.inject(function (_azureServerGroupConfigurationService_) {
     service = _azureServerGroupConfigurationService_;
-    $q = _$q_;
-    accountService = _accountService_;
-    securityGroupReader = _securityGroupReader_;
-    cacheInitializer = _cacheInitializer_;
-    loadBalancerReader = _loadBalancerReader_;
-    $scope = $rootScope.$new();
 
     this.allLoadBalancers = [
       {

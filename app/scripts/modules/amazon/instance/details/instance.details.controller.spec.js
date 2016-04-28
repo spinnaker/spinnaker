@@ -6,25 +6,20 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
   var scope;
   var instanceReader;
   var $q;
-  var rx;
-  var refreshStream;
   var applicationReader;
 
   beforeEach(
     window.module(
       require('./instance.details.controller'),
-      require('../../../core/utils/rx'),
       require('../../../core/application/service/applications.read.service')
     )
   );
 
   beforeEach(
-    window.inject(function ($rootScope, $controller, _instanceReader_, _$q_, _rx_, _applicationReader_) {
+    window.inject(function ($rootScope, $controller, _instanceReader_, _$q_, _applicationReader_) {
       scope = $rootScope.$new();
       instanceReader = _instanceReader_;
       $q = _$q_;
-      rx = _rx_;
-      refreshStream = new rx.Subject();
       applicationReader = _applicationReader_;
 
       this.createController = function(application, instance) {

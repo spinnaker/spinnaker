@@ -1,8 +1,6 @@
 'use strict';
 
 describe('Controller: Azure ServerGroupDetailsCtrl', function () {
-  const angular = require('angular');
-
   var controller;
   var $scope;
 
@@ -20,10 +18,10 @@ describe('Controller: Azure ServerGroupDetailsCtrl', function () {
       applicationReader.addSectionToApplication({ key: 'serverGroups', lazy: true }, application);
       applicationReader.addSectionToApplication({ key: 'loadBalancers', lazy: true }, application);
       spyOn($state, 'go').and.returnValue(null);
-      
+
       controller = $controller('azureServerGroupDetailsCtrl', {
         $scope: $scope,
-        $state: $state;
+        $state: $state,
         app: application,
         serverGroup: {}
       });
@@ -31,7 +29,7 @@ describe('Controller: Azure ServerGroupDetailsCtrl', function () {
     );
 
   describe('Determine if a serverGroup is the only one in the Cluster', function () {
-    
+
     it('should return true if the serverGroup is the only one in the Cluster', function () {
 
       var serverGroup = {

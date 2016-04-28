@@ -1,8 +1,6 @@
 'use strict';
 
 describe('Controller: AWS ServerGroupDetailsCtrl', function () {
-  const angular = require('angular');
-
   var controller;
   var $scope;
 

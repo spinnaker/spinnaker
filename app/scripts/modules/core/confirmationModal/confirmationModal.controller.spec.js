@@ -1,7 +1,7 @@
 'use strict';
 
 describe('Controller: ConfirmationModal', function () {
-  var controller, taskMonitorService, params, $scope, $q, modalInstance;
+  var controller, taskMonitorService, params, $scope, modalInstance;
 
   beforeEach(
     window.module(
@@ -9,10 +9,9 @@ describe('Controller: ConfirmationModal', function () {
     )
   );
 
-  beforeEach(window.inject(function($controller, $rootScope, _taskMonitorService_, _$q_) {
+  beforeEach(window.inject(function($controller, $rootScope, _taskMonitorService_) {
     params = null;
     $scope = $rootScope.$new();
-    $q = _$q_;
     taskMonitorService = _taskMonitorService_;
     modalInstance = {};
 

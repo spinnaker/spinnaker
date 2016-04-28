@@ -289,7 +289,8 @@ module.exports = angular
     }, 25);
 
     function getCluster(application, clusterName, account, category) {
-      return _.find(application.clusters, {account: account, name: clusterName, category: category });
+      let [match] = (application.clusters || []).filter(c => c.account === account && c.name === clusterName && c.category === category);
+      return match;
     }
 
     function diffSubgroups(oldGroups, newGroups) {

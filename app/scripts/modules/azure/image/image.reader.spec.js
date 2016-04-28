@@ -18,7 +18,7 @@
 
 describe('Service: Azure Image Reader', function() {
 
-  var service, $http, scope;
+  var service, $http;
 
   beforeEach(
     window.module(
@@ -27,11 +27,10 @@ describe('Service: Azure Image Reader', function() {
   );
 
 
-  beforeEach(window.inject(function (azureImageReader, $httpBackend, $rootScope) {
+  beforeEach(window.inject(function (azureImageReader, $httpBackend) {
 
     service = azureImageReader;
     $http = $httpBackend;
-    scope = $rootScope.$new();
 
   }));
 
