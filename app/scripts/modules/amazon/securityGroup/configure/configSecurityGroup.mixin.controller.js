@@ -143,7 +143,7 @@ module.exports = angular
         $scope.vpcs = available;
 
         let lockoutDate = _.get(settings, 'providers.aws.classicLaunchLockout');
-        if (lockoutDate) {
+        if (!securityGroup.id && lockoutDate) {
           let createTs = Number(_.get(application, 'attributes.createTs', 0));
           if (createTs >= lockoutDate) {
             $scope.hideClassic = true;
