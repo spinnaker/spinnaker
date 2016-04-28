@@ -74,6 +74,8 @@ class TravisBuildMonitor implements PollingMonitor{
 
     Long lastPoll
 
+    static final int NEW_BUILD_EVENT_THRESHOLD = 1
+
     static final String BUILD_IN_PROGRESS = 'started'
 
     @SuppressWarnings('GStringExpressionWithinString')
@@ -167,20 +169,7 @@ class TravisBuildMonitor implements PollingMonitor{
                         addToCache = true
                         log.info "Build changed: ${master}: ${repo.slug} : ${repo.lastBuildNumber} : ${repo.lastBuildState}"
                         if (echoService) {
-                            int currentBuild = repo.lastBuildNumber
-                            int lastBuild = Integer.valueOf(cachedBuild.lastBuildLabel)
-
-                            log.info "sending build events for builds between ${lastBuild} and ${currentBuild}"
-                            for (int buildNumber = lastBuild+1; buildNumber < currentBuild; buildNumber++) {
-                                Build build = travisService.getBuild(repo, buildNumber) //rewrite to afterNumber list thing
-                                if (build?.state) {
-                                    log.info "pushing event for ${master}:${repo.slug}:${build.number}"
-                                    String url = "${travisService.baseUrl}/${repo.slug}/builds/${build.id}"
-                                    GenericProject project = new GenericProject(repo.slug, new GenericBuild((build.state == BUILD_IN_PROGRESS), build.number, build.duration, TravisResultConverter.getResultFromTravisState(build.state), repo.slug, url))
-                                    echoService.postEvent(
-                                        new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis')))
-                                }
-                            }
+                            pushEventsForMissingBuilds(repo, cachedBuild, master, travisService)
                         }
                     }
                 } else {
@@ -189,29 +178,7 @@ class TravisBuildMonitor implements PollingMonitor{
                 if (addToCache) {
                     log.info("Build update [${repo.slug}:${repo.lastBuildNumber}] [status:${repo.lastBuildState}] [running:${repo.lastBuildState == BUILD_IN_PROGRESS}]")
                     buildCache.setLastBuild(master, repo.slug, repo.lastBuildNumber, repo.lastBuildState == BUILD_IN_PROGRESS)
-                    if (echoService) {
-                        log.info "pushing event for ${master}:${repo.slug}:${repo.lastBuildNumber}"
-
-                        GenericProject project = new GenericProject(repo.slug, TravisBuildConverter.genericBuild(repo, travisService.baseUrl))
-                        echoService.postEvent(
-                            new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis'))
-                        )
-
-                    }
-                    Commit commit = travisService.getCommit(repo.slug, repo.lastBuildNumber)
-                    if (commit) {
-                        String branchedSlug = "${repo.slug}/${commit.branchNameWithTagHandling()}"
-                        buildCache.setLastBuild(master, branchedSlug, repo.lastBuildNumber, repo.lastBuildState == BUILD_IN_PROGRESS)
-                        if (echoService) {
-                            log.info "pushing event for ${master}:${branchedSlug}:${repo.lastBuildNumber}"
-
-                            GenericProject project = new GenericProject(branchedSlug, TravisBuildConverter.genericBuild(repo, travisService.baseUrl))
-                            echoService.postEvent(
-                                new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis'))
-                            )
-
-                        }
-                    }
+                    sendEventForBuild(repo, master, travisService)
 
 
                     results << [previous: cachedBuild, current: repo]
@@ -229,5 +196,52 @@ class TravisBuildMonitor implements PollingMonitor{
         }
         results
 
+    }
+
+    private void sendEventForBuild(Repo repo, String master, TravisService travisService) {
+        if (echoService) {
+            log.info "pushing event for ${master}:${repo.slug}:${repo.lastBuildNumber}"
+
+            GenericProject project = new GenericProject(repo.slug, TravisBuildConverter.genericBuild(repo, travisService.baseUrl))
+            echoService.postEvent(
+                new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis'))
+            )
+
+        }
+        Commit commit = travisService.getCommit(repo.slug, repo.lastBuildNumber)
+        if (commit) {
+            String branchedSlug = "${repo.slug}/${commit.branchNameWithTagHandling()}"
+            buildCache.setLastBuild(master, branchedSlug, repo.lastBuildNumber, repo.lastBuildState == BUILD_IN_PROGRESS)
+            if (echoService) {
+                log.info "pushing event for ${master}:${branchedSlug}:${repo.lastBuildNumber}"
+
+                GenericProject project = new GenericProject(branchedSlug, TravisBuildConverter.genericBuild(repo, travisService.baseUrl))
+                echoService.postEvent(
+                    new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis'))
+                )
+
+            }
+        }
+    }
+
+    private void pushEventsForMissingBuilds(Repo repo, Map cachedBuild, String master, TravisService travisService) {
+        int currentBuild = repo.lastBuildNumber
+        int lastBuild = Integer.valueOf(cachedBuild.lastBuildLabel)
+        int nextBuild = lastBuild + NEW_BUILD_EVENT_THRESHOLD
+
+        if (nextBuild < currentBuild) {
+            log.info "sending build events for builds between ${lastBuild} and ${currentBuild}"
+
+            for (int buildNumber = nextBuild; buildNumber < currentBuild; buildNumber++) {
+                Build build = travisService.getBuild(repo, buildNumber) //rewrite to afterNumber list thing
+                if (build?.state) {
+                    log.info "pushing event for ${master}:${repo.slug}:${build.number}"
+                    String url = "${travisService.baseUrl}/${repo.slug}/builds/${build.id}"
+                    GenericProject project = new GenericProject(repo.slug, new GenericBuild((build.state == BUILD_IN_PROGRESS), build.number, build.duration, TravisResultConverter.getResultFromTravisState(build.state), repo.slug, url))
+                    echoService.postEvent(
+                        new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis')))
+                }
+            }
+        }
     }
 }
