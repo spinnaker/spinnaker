@@ -45,27 +45,27 @@ class InfoController {
     @Autowired
     BuildCache buildCache
 
-    @Autowired
+    @Autowired(required = false)
     JenkinsProperties jenkinsProperties
 
     @Autowired
     BuildMasters buildMasters
 
-    @Autowired
+    @Autowired(required = false)
     TravisProperties travisProperties
 
     @RequestMapping(value = '/masters', method = RequestMethod.GET)
     List<Object> listMasters(@RequestParam(value = "showUrl", defaultValue = "false") String showUrl) {
         log.info('Getting list of masters')
         if (showUrl == 'true') {
-            List<Object> masterList = jenkinsProperties.masters.collect {
+            List<Object> masterList = jenkinsProperties?.masters.collect {
                 [
                     "name"   : it.name,
                     "address": it.address
                 ]
             }
             masterList.addAll(
-                travisProperties.masters.collect {
+                travisProperties?.masters.collect {
                     [
                         "name": it.name,
                         "address": it.address
