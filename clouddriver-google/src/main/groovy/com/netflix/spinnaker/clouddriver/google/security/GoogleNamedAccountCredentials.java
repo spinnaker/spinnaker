@@ -75,8 +75,16 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
       return GoogleCloudProvider.GCE;
     }
 
-    public Map<String, List<String>> getRegions() {
-      return regionToZonesMap;
+    public List<Map> getRegions() {
+      List<Map> regionList = new ArrayList<Map>();
+
+      for (Map.Entry<String, List<String>> regionToZonesEntry : regionToZonesMap.entrySet()) {
+        Map regionMap = new HashMap();
+        regionMap.put("name", regionToZonesEntry.getKey());
+        regionMap.put("zones", regionToZonesEntry.getValue());
+        regionList.add(regionMap);
+      }
+      return regionList;
     }
 
     public String regionFromZone(String zone) {

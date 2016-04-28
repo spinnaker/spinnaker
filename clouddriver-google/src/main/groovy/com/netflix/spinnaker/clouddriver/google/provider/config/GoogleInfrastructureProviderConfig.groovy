@@ -99,6 +99,7 @@ class GoogleInfrastructureProviderConfig {
     allAccounts.each { GoogleNamedAccountCredentials credentials ->
       if (!scheduledAccounts.contains(credentials.accountName)) {
         def newlyAddedAgents = []
+        def regions = credentials.regions.collect { it.name }
 
         newlyAddedAgents << new GoogleSecurityGroupCachingAgent(googleConfiguration.googleApplicationName(),
                                                                 credentials,
@@ -108,7 +109,7 @@ class GoogleInfrastructureProviderConfig {
                                                           credentials,
                                                           objectMapper)
 
-        credentials.regions.keySet().each { String region ->
+        regions.each { String region ->
           newlyAddedAgents << new GoogleSubnetCachingAgent(googleConfiguration.googleApplicationName(),
                                                            credentials,
                                                            objectMapper,
@@ -123,7 +124,7 @@ class GoogleInfrastructureProviderConfig {
                                                         objectMapper,
                                                         credentials.imageProjects,
                                                         googleConfiguration.googleConfigurationProperties().baseImageProjects)
-        credentials.regions.keySet().each { String region ->
+        regions.each { String region ->
           newlyAddedAgents << new GoogleLoadBalancerCachingAgent(googleConfiguration.googleApplicationName(),
                                                                  credentials,
                                                                  objectMapper,
