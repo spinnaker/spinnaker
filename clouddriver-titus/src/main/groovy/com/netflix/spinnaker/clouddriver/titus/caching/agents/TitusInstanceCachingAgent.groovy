@@ -33,12 +33,13 @@ import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.HEALTH
+
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.IMAGES
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.SERVER_GROUPS
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
 
 class TitusInstanceCachingAgent implements CachingAgent {
 

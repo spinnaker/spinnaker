@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.APPLICATIONS
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.CLUSTERS
-import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.HEALTH
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.SERVER_GROUPS
 
