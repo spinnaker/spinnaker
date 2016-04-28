@@ -56,12 +56,12 @@ module.exports = angular
           },
         }
 
-      }).result.then(routeToApplication);
+      }).result.then(refreshApp);
     };
 
     function routeToApplication() {
       $state.go(
-        'home.applications.application.properties', {
+        'home.applications.application.propInsights.properties', {
           application: vm.application.name
         }
       );
@@ -79,7 +79,7 @@ module.exports = angular
             return vm.property;
           }
         }
-      }).result.then(refreshApp);
+      }).result.then(routeToApplication);
     };
 
     getProperty();
