@@ -64,7 +64,7 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
 
       this.showRebakeOption = pipeline.stages.some((stage) => stage.type === 'bake');
 
-      if (pipeline.parameterConfig !== undefined && pipeline.parameterConfig.length) {
+      if (pipeline.parameterConfig && pipeline.parameterConfig.length) {
         this.parameters = {};
         pipeline.parameterConfig.forEach((parameter) => {
           this.parameters[parameter.name] = parameter.default;
@@ -84,7 +84,7 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
       command.pipelineName = pipeline.name;
       selectedTrigger.type = 'manual';
 
-      if (pipeline.parameterConfig !== undefined && pipeline.parameterConfig.length) {
+      if (pipeline.parameterConfig && pipeline.parameterConfig.length) {
         selectedTrigger.parameters = this.parameters;
       }
       $uibModalInstance.close(command);
