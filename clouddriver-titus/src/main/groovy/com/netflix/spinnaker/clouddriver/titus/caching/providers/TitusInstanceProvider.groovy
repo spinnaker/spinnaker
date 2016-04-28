@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.titus.caching.providers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.clouddriver.core.provider.agent.ExternalHealthProvider
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
 import com.netflix.spinnaker.clouddriver.titus.caching.Keys
@@ -27,8 +28,8 @@ import com.netflix.spinnaker.clouddriver.titus.model.TitusInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.HEALTH
-import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
 
 @Component
 class TitusInstanceProvider implements InstanceProvider<TitusInstance> {
@@ -36,6 +37,9 @@ class TitusInstanceProvider implements InstanceProvider<TitusInstance> {
   private final Cache cacheView
   private final ObjectMapper objectMapper
   private final TitusCloudProvider titusCloudProvider
+
+  @Autowired(required = false)
+  List<ExternalHealthProvider> externalHealthProviders
 
   @Autowired
   TitusInstanceProvider(Cache cacheView, TitusCloudProvider titusCloudProvider, ObjectMapper objectMapper) {
@@ -53,9 +57,23 @@ class TitusInstanceProvider implements InstanceProvider<TitusInstance> {
     Job.TaskSummary task = objectMapper.convertValue(instanceEntry.attributes.task, Job.TaskSummary)
     Job job = objectMapper.convertValue(instanceEntry.attributes.job, Job)
     TitusInstance instance = new TitusInstance(job, task)
-    if (instanceEntry.relationships[HEALTH.ns]) {
-      instance.health = instance.health ?: []
-      instance.health.addAll(cacheView.getAll(HEALTH.ns, instanceEntry.relationships[HEALTH.ns])*.attributes)
+    instance.health = instance.health ?: []
+    if (instanceEntry.attributes[HEALTH.ns]) {
+      instance.health.addAll(instanceEntry.attributes[HEALTH.ns])
+    }
+    externalHealthProviders.each { externalHealthProvider ->
+      def healthKeys = []
+      externalHealthProvider.agents.each { externalHealthAgent ->
+        healthKeys << Keys.getInstanceHealthKey(instance.name, externalHealthAgent.healthId)
+      }
+      healthKeys.unique().each { key ->
+        def externalHealth = cacheView.getAll(HEALTH.ns, key)
+        if (externalHealth) {
+          def health = externalHealth*.attributes
+          health.each { it.remove('lastUpdatedTimestamp') }
+          instance.health.addAll(health)
+        }
+      }
     }
     instance
   }
