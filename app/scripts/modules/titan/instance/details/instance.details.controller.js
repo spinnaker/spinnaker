@@ -166,6 +166,7 @@ module.exports = angular.module('spinnaker.instance.detail.titan.controller', [
 
     this.enableInstanceInDiscovery = function enableInstanceInDiscovery() {
       var instance = $scope.instance;
+      instance.instanceId = instance.id;
 
       var taskMonitor = {
         application: app,
@@ -187,6 +188,7 @@ module.exports = angular.module('spinnaker.instance.detail.titan.controller', [
 
     this.disableInstanceInDiscovery = function disableInstanceInDiscovery() {
       var instance = $scope.instance;
+      instance.instanceId = instance.id;
 
       var taskMonitor = {
         application: app,
