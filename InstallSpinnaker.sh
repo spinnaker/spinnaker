@@ -120,36 +120,41 @@ function process_provider_list() {
   AZURE_ENABLED=false
   GOOGLE_ENABLED=false
 
-  #check if aws enabled
-  if [[ "$CLOUD_PROVIDER" =~ "aws" ]] ; then
-    echo "enabling aws provider"
-    AWS_ENABLED=true
-  elif [[ $CLOUD_PROVIDER =~ "amazon" ]] ; then
-    echo "enabling aws provider"
-    AWS_ENABLED=true
-  fi
+  arr=($CLOUD_PROVIDER)
 
-  #check if azure enabled
-  if [[ $CLOUD_PROVIDER =~ "azure" ]] ; then
-    echo "enabling azure provider"
-    AZURE_ENABLED=true
-  fi
-
-  #check if google enabled
-  if [[ $CLOUD_PROVIDER =~  "google" ]] ; then
-    echo "enabling google provider"
-    GOOGLE_ENABLED=true
-  elif [[ $CLOUD_PROVIDER =~ "gce" ]] ; then
-    echo "enabling google provider"
-    GOOGLE_ENABLED=true
-  fi
-
-  #check if both enabled
-  if [[ $CLOUD_PROVIDER =~ "both" ]] ; then
-    echo "enabling aws & google provider"
-    GOOGLE_ENABLED=true
-    AWS_ENABLED=true
-  fi
+  for PROVIDER in "${arr[@]}" ; do
+    #check if aws enabled
+    if [[ "$PROVIDER" =~ "aws" ]] ; then
+      echo "enabling aws provider"
+      AWS_ENABLED=true
+    elif [[ $PROVIDER =~ "amazon" ]] ; then
+      echo "enabling aws provider"
+      AWS_ENABLED=true
+    #check if azure enabled
+    elif [[ $PROVIDER =~ "azure" ]] ; then
+      echo "enabling azure provider"
+      AZURE_ENABLED=true
+    #check if google enabled
+    elif [[ $PROVIDER =~  "google" ]] ; then
+      echo "enabling google provider"
+      GOOGLE_ENABLED=true
+    elif [[ $PROVIDER =~ "gce" ]] ; then
+      echo "enabling google provider"
+      GOOGLE_ENABLED=true
+    #check if both enabled
+    elif [[ $PROVIDER =~ "both" ]] ; then
+      echo "enabling both aws and google provider"
+      GOOGLE_ENABLED=true
+      AWS_ENABLED=true
+    #prevent "none" from triggering invalid provider error message.
+    elif [[ $PROVIDER =~ "none" ]] ; then
+      echo "none"
+    else
+      echo "Error invalid cloud provider: $PROVIDER"
+      echo "cannot continue installation; exiting."
+      exit 13
+    fi
+  done
 }
 
 function process_args() {
