@@ -23,6 +23,7 @@ import com.amazonaws.services.autoscaling.model.Ebs
 import com.amazonaws.services.autoscaling.model.InstanceMonitoring
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
+import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProperties
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.aws.deploy.LaunchConfigurationBuilder.LaunchConfigurationSettings
@@ -46,15 +47,18 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
   final SecurityGroupService securityGroupService
   final List<UserDataProvider> userDataProviders
   final LocalFileUserDataProperties localFileUserDataProperties
+  final DeployDefaults deployDefaults
 
   DefaultLaunchConfigurationBuilder(AmazonAutoScaling autoScaling, AsgService asgService,
                                     SecurityGroupService securityGroupService, List<UserDataProvider> userDataProviders,
-                                    LocalFileUserDataProperties localFileUserDataProperties) {
+                                    LocalFileUserDataProperties localFileUserDataProperties,
+                                    DeployDefaults deployDefaults) {
     this.autoScaling = autoScaling
     this.asgService = asgService
     this.securityGroupService = securityGroupService
     this.userDataProviders = (userDataProviders ?: Collections.<UserDataProvider>emptyList()) as List<UserDataProvider>
     this.localFileUserDataProperties = localFileUserDataProperties
+    this.deployDefaults = deployDefaults
   }
 
   /**
@@ -131,8 +135,8 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
       settings = settings.copyWith(suffix: createDefaultSuffix())
     }
 
-    List<String> securityGroupIds = resolveSecurityGroupIds(settings.securityGroups, subnetType)
-    if (!securityGroupIds) {
+    Set<String> securityGroupIds = resolveSecurityGroupIds(settings.securityGroups, subnetType).toSet()
+    if (!securityGroupIds || deployDefaults.addAppGroupToServerGroup) {
       String applicationSecurityGroup = securityGroupService.getSecurityGroupForApplication(application, subnetType)
       if (!applicationSecurityGroup) {
         applicationSecurityGroup = securityGroupService.createSecurityGroup(application, subnetType)
@@ -140,7 +144,7 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
 
       securityGroupIds << applicationSecurityGroup
     }
-    settings = settings.copyWith(securityGroups: securityGroupIds)
+    settings = settings.copyWith(securityGroups: securityGroupIds.toList())
 
     if (settings.classicLinkVpcSecurityGroups) {
       if (!settings.classicLinkVpcId) {

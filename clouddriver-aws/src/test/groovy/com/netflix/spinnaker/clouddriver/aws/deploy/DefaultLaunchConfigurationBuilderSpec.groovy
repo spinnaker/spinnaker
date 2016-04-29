@@ -33,10 +33,11 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
   def userDataProvider = Stub(UserDataProvider) {
     getUserData(_, _, _, _, _, _) >> 'userdata'
   }
+  def deployDefaults = new AwsConfiguration.DeployDefaults()
 
   @Subject
   DefaultLaunchConfigurationBuilder builder = new DefaultLaunchConfigurationBuilder(autoScaling, asgService,
-    securityGroupService, [userDataProvider], null)
+    securityGroupService, [userDataProvider], null, deployDefaults)
 
   void "should lookup security groups when provided by name"() {
     when:
@@ -223,9 +224,67 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
       classicLinkVpcId: "vpc-123")
   }
 
-  void "should look up and attach classic link security group if vpc is linked"() {
-    builder = new DefaultLaunchConfigurationBuilder(autoScaling, asgService, securityGroupService, [userDataProvider], null)
+  void "should add existing app security group if configured to do so"() {
+    given:
+    deployDefaults.addAppGroupToServerGroup = true
 
+    when:
+    builder.buildLaunchConfiguration(application, subnetType, settings)
+
+    then:
+    1 * securityGroupService.getSecurityGroupForApplication(application, subnetType) >> appGroup
+    1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
+      assert req.securityGroups.toList().sort() == expectedGroups.toList().sort()
+    }
+    0 * _
+
+    where:
+    application = 'foo'
+    subnetType = null
+    account = 'prod'
+    securityGroups = ["sg-12345"]
+    appGroup = "sg-$application"
+    expectedGroups = securityGroups + appGroup
+    settings = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
+      account: 'prod',
+      region: 'us-east-1',
+      baseName: 'fooapp-v001',
+      suffix: '20150515',
+      securityGroups: securityGroups)
+  }
+
+  void "should create app security group if addAppGroupToServerGroup and no app group present"() {
+    given:
+    deployDefaults.addAppGroupToServerGroup = true
+
+    when:
+    builder.buildLaunchConfiguration(application, subnetType, settings)
+
+    then:
+    1 * securityGroupService.getSecurityGroupForApplication(application, subnetType) >> null
+    1 * securityGroupService.createSecurityGroup(application, subnetType) >> appGroup
+    1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
+      assert req.securityGroups.toList().sort() == expectedGroups.toList().sort()
+    }
+    0 * _
+
+    where:
+    application = 'foo'
+    subnetType = null
+    account = 'prod'
+    securityGroups = ["sg-12345"]
+    appGroup = "sg-$application"
+    expectedGroups = securityGroups + appGroup
+    settings = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
+      account: 'prod',
+      region: 'us-east-1',
+      baseName: 'fooapp-v001',
+      suffix: '20150515',
+      securityGroups: securityGroups)
+
+  }
+
+  void "should look up and attach classic link security group if vpc is linked"() {
     when:
     builder.buildLaunchConfiguration(application, subnetType, settings)
 
