@@ -103,7 +103,7 @@ class RegionScopedProviderFactory {
     }
 
     LaunchConfigurationBuilder getLaunchConfigurationBuilder() {
-      new DefaultLaunchConfigurationBuilder(getAutoScaling(), getAsgService(), getSecurityGroupService(), userDataProviders, localFileUserDataProperties)
+      new DefaultLaunchConfigurationBuilder(getAutoScaling(), getAsgService(), getSecurityGroupService(), userDataProviders, localFileUserDataProperties, deployDefaults)
     }
 
     Eureka getEureka() {
