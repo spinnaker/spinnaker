@@ -4,6 +4,24 @@ set -o pipefail
 
 REPOSITORY_URL="https://dl.bintray.com/spinnaker/debians"
 
+
+# This script uses the following global variables.
+AWS_ENABLED=false     # set by --cloud_providers
+AZURE_ENABLED=false   # set by --cloud_providers
+GOOGLE_ENABLED=false  # set by --cloud_providers
+
+# Set by --local-install, means download packages
+# rather than adding additional external repositories.
+DOWNLOAD=false        
+
+# Set by --quiet, wont prompt or echo status output.                      
+QUIET=false
+
+# Set by --dependencies only,
+# Install dependencies but not spinnaker itself.
+DEPENDENCIES_ONLY=false
+
+
 ## This script install pre-requisites for Spinnaker
 # To you put this file in the root of a web server
 # curl -L https://foo.com/InstallSpinnaker.sh| sudo bash
@@ -12,18 +30,18 @@ REPOSITORY_URL="https://dl.bintray.com/spinnaker/debians"
 # First guess what sort of operating system
 
 # must have root perms
-if [[ `/usr/bin/id -u` -ne 0 ]];then
+if [[ `/usr/bin/id -u` -ne 0 ]]; then
   echo "$0 must be executed with root permissions; exiting"
   exit 1
 fi
 
-if [ -f /etc/lsb-release ]; then
+if [[ -f /etc/lsb-release ]]; then
   . /etc/lsb-release
   DISTRO=$DISTRIB_ID
-elif [ -f /etc/debian_version ]; then
+elif [[ -f /etc/debian_version ]]; then
   DISTRO=Debian
   # XXX or Ubuntu
-elif [ -f /etc/redhat-release ]; then
+elif [[ -f /etc/redhat-release ]]; then
   if grep -iq cent /etc/redhat-release; then
     DISTRO="CentOS"
   elif grep -iq red /etc/redhat-release; then
@@ -35,8 +53,8 @@ fi
 
 # If not Ubuntu 14.xx.x or higher
 
-if [ "$DISTRO" = "Ubuntu" ]; then
-  if [ "${DISTRIB_RELEASE%%.*}" -lt 14 ]; then
+if [[ "$DISTRO" == "Ubuntu" ]]; then
+  if [[ "${DISTRIB_RELEASE%%.*}" -lt 14 ]]; then
   echo "Not a supported version of Ubuntu"
   echo "Version is $DISTRIB_RELEASE we require 14.04 or higher"
   exit 1
@@ -50,7 +68,7 @@ fi
 
 function print_usage() {
   cat <<EOF
-usage: $0 [--cloud_provider <aws|google|azure|both|none>]
+usage: $0 [--cloud_provider <aws|google|azure|none>]
     [--aws_region <region>] [--google_region <region>] [--azure_region <region>]
     [--quiet] [--dependencies_only]
     [--google_cloud_logging] [--google_cloud_monitoring]
@@ -60,24 +78,20 @@ usage: $0 [--cloud_provider <aws|google|azure|both|none>]
 
     If run with no arguments you will be prompted for cloud provider and region
 
-    --cloud_provider <arg>     currently supported are amazon, azure, and google
-				you can install more than one provider by specifying
-				provider1 provider2 ... (Ex. aws google).
-                               if "none" is specified you will need to edit
-                               /etc/default/spinnaker manually
-				NOTE: "both" is deprecated and will be removed in
-				the future
+    --cloud_provider <arg>      A space separated list of providers to enable.
+                                Providers are "aws", "azure", and "google".
+                                The default is "none".
 
-    --aws_region <arg>          default region for aws
+    --aws_region <arg>          Default region for aws.
 
-    --google_region <arg>       default region for google
-    --google_zone <arg>         default zone for google
+    --google_region <arg>       Default region for google.
+    --google_zone <arg>         Default zone for google.
 
-    --azure_region <arg>	default region for Azure
+    --azure_region <arg>	Default region for Azure.
 
-    --quiet                     sets cloud provider to "none", you will need to
+    --quiet                     Sets cloud provider to "none". You will need to
                                 edit /etc/default/spinnaker manually
-                                cannot be used with --cloud_provider
+                                cannot be used with --cloud_provider.
 
     --repository <url>          Obtain Spinnaker packages from the <url>
                                 rather than the default repository, which is
@@ -85,7 +99,7 @@ usage: $0 [--cloud_provider <aws|google|azure|both|none>]
 
     --dependencies_only         Do not install any Spinnaker services.
                                 Only install the dependencies. This is intended
-                                for development scenarios only
+                                for development scenarios only.
 
     --google_cloud_logging      Install Google Cloud Logging support. This
                                 is independent of installing on Google Cloud
@@ -110,50 +124,54 @@ EOF
 }
 
 function echo_status() {
-  if [ "x$QUIET" != "xtrue" ]; then
+  if ! $QUIET; then
       echo "$@"
   fi
 }
 
 function process_provider_list() {
-  AWS_ENABLED=false
-  AZURE_ENABLED=false
-  GOOGLE_ENABLED=false
+  local arr=($CLOUD_PROVIDER)
 
-  arr=($CLOUD_PROVIDER)
+  for provider in "${arr[@]}" ; do
+    case $provider in
+        aws)
+          echo "enabling aws provider"
+          AWS_ENABLED=true
+          ;;
+        amazon)
+          echo "enabling aws provider"
+          AWS_ENABLED=true
+          ;;
 
-  for PROVIDER in "${arr[@]}" ; do
-    #check if aws enabled
-    if [[ "$PROVIDER" =~ "aws" ]] ; then
-      echo "enabling aws provider"
-      AWS_ENABLED=true
-    elif [[ $PROVIDER =~ "amazon" ]] ; then
-      echo "enabling aws provider"
-      AWS_ENABLED=true
-    #check if azure enabled
-    elif [[ $PROVIDER =~ "azure" ]] ; then
-      echo "enabling azure provider"
-      AZURE_ENABLED=true
-    #check if google enabled
-    elif [[ $PROVIDER =~  "google" ]] ; then
-      echo "enabling google provider"
-      GOOGLE_ENABLED=true
-    elif [[ $PROVIDER =~ "gce" ]] ; then
-      echo "enabling google provider"
-      GOOGLE_ENABLED=true
-    #check if both enabled
-    elif [[ $PROVIDER =~ "both" ]] ; then
-      echo "enabling both aws and google provider"
-      GOOGLE_ENABLED=true
-      AWS_ENABLED=true
-    #prevent "none" from triggering invalid provider error message.
-    elif [[ $PROVIDER =~ "none" ]] ; then
-      echo "none"
-    else
-      echo "Error invalid cloud provider: $PROVIDER"
-      echo "cannot continue installation; exiting."
-      exit 13
-    fi
+        azure)
+          echo "enabling azure provider"
+          AZURE_ENABLED=true
+          ;;
+
+        google)
+          echo "enabling google provider"
+          GOOGLE_ENABLED=true
+          ;;
+        gce)
+          echo "enabling google provider"
+          GOOGLE_ENABLED=true
+          ;;
+
+        both)
+          echo "WARNING: 'both' is deprecated. Use 'aws google' instead"
+          echo "enabling both aws and google provider"
+          GOOGLE_ENABLED=true
+          AWS_ENABLED=true
+          ;;
+
+        none)
+          ;;
+
+        *)
+          echo "Error invalid cloud provider: $PROVIDER"
+          echo "cannot continue installation; exiting."
+          exit 13
+    esac
   done
 }
 
@@ -199,18 +217,19 @@ function process_args() {
           DEPENDENCIES_ONLY=true
           ;;
       --local-install)
-          DOWNLOAD="true"
+          DOWNLOAD=true
           ;;
       --quiet|-q)
-          QUIET="true"
+          QUIET=true
           CLOUD_PROVIDER="none"
           AWS_REGION="none"
+          AZURE_REGION="none"
           GOOGLE_REGION="none"
           GOOGLE_ZONE="none"
           ;;
       --home_dir)
           homebase="$1"
-          if [ "$(basename $homebase)" == "spinnaker" ]; then
+          if [[ "$(basename $homebase)" == "spinnaker" ]]; then
               echo "stripping trailing 'spinnaker' from --home_dir=$homebase"
               homebase=$(dirname $homebase)
           fi
@@ -228,8 +247,8 @@ function process_args() {
 }
 
 function set_aws_region() {
-  if [ "x$AWS_REGION" == "x" ]; then
-    if [ "x$DEFAULT_AWS_REGION" == "x" ]; then
+  if [[ "$AWS_REGION" == "" ]]; then
+    if [[ "$DEFAULT_AWS_REGION" == "" ]]; then
       DEFAULT_AWS_REGION="us-west-2"
     fi
 
@@ -239,8 +258,8 @@ function set_aws_region() {
 }
 
 function set_azure_region() {
-  if [ "x$AZURE_REGION" == "x" ]; then
-    if [ "x$DEFAULT_AZURE_REGION" == "x" ]; then
+  if [[ "$AZURE_REGION" == "" ]]; then
+    if [[ "$DEFAULT_AZURE_REGION" == "" ]]; then
       DEFAULT_AZURE_REGION="westus"
     fi
 
@@ -250,8 +269,8 @@ function set_azure_region() {
 }
 
 function set_google_region() {
-  if [ "x$GOOGLE_REGION" == "x" ]; then
-    if [ "x$DEFAULT_GOOGLE_REGION" == "x" ]; then
+  if [[ "$GOOGLE_REGION" == "" ]]; then
+    if [[ "$DEFAULT_GOOGLE_REGION" == "" ]]; then
       DEFAULT_GOOGLE_REGION="us-central1"
     fi
 
@@ -261,8 +280,8 @@ function set_google_region() {
 }
 
 function set_google_zone() {
-  if [ "x$GOOGLE_ZONE" == "x" ]; then
-    if [ "x$DEFAULT_GOOGLE_ZONE" == "x" ]; then
+  if [[ "$GOOGLE_ZONE" == "" ]]; then
+    if [[ "$DEFAULT_GOOGLE_ZONE" == "" ]]; then
       DEFAULT_GOOGLE_ZONE="us-central1-f"
     fi
 
@@ -367,12 +386,12 @@ function add_apt_repositories() {
   # Spinnaker
   # DL Repo goes here
   REPOSITORY_HOST=$(echo $REPOSITORY_URL | cut -d/ -f3)
-  if [ "$REPOSITORY_HOST" == "dl.bintray.com" ]; then
+  if [[ "$REPOSITORY_HOST" == "dl.bintray.com" ]]; then
     REPOSITORY_ORG=$(echo $REPOSITORY_URL | cut -d/ -f4)
     # Personal repositories might not be signed, so conditionally check.
     gpg=""
     gpg=$(curl -s -f "https://bintray.com/user/downloadSubjectPublicKey?username=$REPOSITORY_ORG") || true
-    if [ ! -z "$gpg" ]; then
+    if [[ ! -z "$gpg" ]]; then
         echo "$gpg" | apt-key add -
     fi
   fi
@@ -384,7 +403,7 @@ function add_apt_repositories() {
 }
 
 function install_java() {
-  if [ "$DOWNLOAD" != "true" ];then
+  if ! $DOWNLOAD; then
     apt-get install -y --force-yes openjdk-8-jdk
     
     # https://bugs.launchpad.net/ubuntu/+source/ca-certificates-java/+bug/983302
@@ -394,7 +413,7 @@ function install_java() {
     # failure in Clouddriver.
     dpkg --purge --force-depends ca-certificates-java
     apt-get install ca-certificates-java
-  elif [[ "x`java -version 2>&1|head -1`" != *"1.8.0"* ]];then
+  elif [[ "x`java -version 2>&1|head -1`" != *"1.8.0"* ]]; then
     echo "you must manually install java 8 and then rerun this script; exiting"
     exit 13
   fi
@@ -438,7 +457,7 @@ function install_platform_dependencies() {
 
 function install_dependencies() {
   # java
-  if [ "$DOWNLOAD" != "true" ];then
+  if ! $DOWNLOAD; then
     apt-get install -y --force-yes unzip
   else
     mkdir /tmp/deppkgs && pushd /tmp/deppkgs
@@ -455,11 +474,11 @@ function install_dependencies() {
 function install_redis_server() {
   apt-get -q -y --force-yes install redis-server
   local apt_status=$?
-  if [ $apt_status -eq 0 ]; then
+  if [[ $apt_status -eq 0 ]]; then
     return
   fi
 
-  if [ $apt_status -eq 100 ] && [ "$DOWNLOAD" == "true" ]; then
+  if $DOWNLOAD && [[ $apt_status -eq 100 ]]; then
     echo "Manually downloading and installing redis-server..."
     mkdir /tmp/deppkgs && pushd /tmp/deppkgs
     curl -L -O http://mirrors.kernel.org/ubuntu/pool/universe/j/jemalloc/libjemalloc1_3.5.1-2_amd64.deb
@@ -477,10 +496,10 @@ function install_redis_server() {
 function install_apache2() {
   echo "updating apt cache..." && apt-get -q update > /dev/null 2>&1
   local apt_status=`apt-get -s -y --force-yes install apache2 > /dev/null 2>&1 ; echo $?`
-  if [ $apt_status -eq 0 ];then
+  if [[ $apt_status -eq 0 ]]; then
     echo "apt sources contain apache2; installing using apt-get"
     apt-get -q -y --force-yes install apache2
-  elif ["$DOWNLOAD" == "true" ] && [ $apt_status -eq 100 ];then
+  elif $DOWNLOAD && [[ $apt_status -eq 100 ]]; then
     echo "no valid apache2 package found in apt sources; attempting to download debs and install locally..."
     mkdir /tmp/apache2 && pushd /tmp/apache2
     curl -L -O http://security.ubuntu.com/ubuntu/pool/main/a/apache2/apache2_2.4.7-1ubuntu4.5_amd64.deb
@@ -506,7 +525,7 @@ function install_cassandra() {
 
   local package_url="http://debian.datastax.com/community/pool"
 
-  if [[ "x`java -version 2>&1|head -1`" != *"1.8.0"* ]];then
+  if [[ "x`java -version 2>&1|head -1`" != *"1.8.0"* ]]; then
     cat <<EOF
 java 8 is not installed, cannot install cassandra
 
@@ -521,8 +540,8 @@ EOF
   fi
 
   local cassandra_packages=$(apt-cache search cassandra)
-  if [ -z "$cassandra_packages" ]; then
-    if [ "$DOWNLOAD" == "true" ]; then
+  if [[ -z "$cassandra_packages" ]]; then
+    if $DOWNLOAD; then
       echo "cassandra not found in apt-cache, downloading from $package_url..."
       mkdir /tmp/casspkgs && pushd /tmp/casspkgs
       for pkg in cassandra cassandra-tools;do
@@ -550,7 +569,7 @@ EOF
     while ! nc -z localhost 7199; do
       sleep 1
       count=`expr $count + 1`
-      if [ $count -eq 30  ];then
+      if [[ $count -eq 30 ]]; then
         break
       fi
     done
@@ -571,8 +590,8 @@ EOF
 function install_spinnaker() {
   apt-get install -y --force-yes --allow-unauthenticated spinnaker
   local apt_status=$?
-  if [ $apt_status -ne 0 ]; then
-    if [ $apt_status -eq 100 ] && [ "$DOWNLOAD" == "true" ];then
+  if [[ $apt_status -ne 0 ]]; then
+    if $DOWNLOAD && [[ $apt_status -eq 100 ]]; then
       install_packages="spinnaker-clouddriver spinnaker-deck spinnaker-echo spinnaker-front50 spinnaker-gate spinnaker-igor spinnaker-orca spinnaker-rosco spinnaker-rush spinnaker_"
       for package in $install_packages;do
         latest=`curl $REPOSITORY_URL/dists/$DISTRIB_CODENAME/spinnaker/binary-amd64/Packages | grep "^Filename" | grep $package | awk '{print $2}' | awk -F'/' '{print $NF}' | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1`
@@ -594,30 +613,30 @@ set_defaults_from_environ
 
 process_args "$@"
 
-if [ "x$CLOUD_PROVIDER" == "x" ]; then
-  read -e -p "Specify a cloud provider (aws|azure|google|both|none): " -i "$DEFAULT_CLOUD_PROVIDER" CLOUD_PROVIDER
+if [[ "$CLOUD_PROVIDER" == "" ]]; then
+  read -e -p "Specify a cloud provider (aws|azure|google|none): " -i "$DEFAULT_CLOUD_PROVIDER" CLOUD_PROVIDER
   CLOUD_PROVIDER=`echo $CLOUD_PROVIDER | tr '[:upper:]' '[:lower:]'`
 fi
 
 process_provider_list
 
 #enable cloud provider specific settings
-if [[ $AWS_ENABLED == true ]] ; then
-      set_aws_region
+if $AWS_ENABLED; then
+  set_aws_region
 fi
 
-if [[ $AZURE_ENABLED  == true ]] ; then
-      set_azure_region
+if $AZURE_ENABLED; then
+  set_azure_region
 fi
 
-if [[ $GOOGLE_ENABLED == true ]] ; then
-      set_google_region
-      set_google_zone
+if $GOOGLE_ENABLED; then
+  set_google_region
+  set_google_zone
 fi
 
 
-# add all apt repositories, if
-if [ "$DOWNLOAD" != "true" ];then
+# Only add external apt repositories if we are not --local_install
+if ! $DOWNLOAD; then
   add_apt_repositories
 fi
 
@@ -635,7 +654,7 @@ unzip -u -o -q packer_0.8.6_linux_amd64.zip -d /usr/bin
 popd
 rm -rf /tmp/packer
 
-if [[ "x$DEPENDENCIES_ONLY" != "x" ]]; then
+if $DEPENDENCIES_ONLY; then
     exit 0
 fi
 
@@ -665,20 +684,20 @@ fi
 
 ## Remove
 
-if [ "x$homebase" == "x"  ]; then
+if [[ "$homebase" == ""  ]]; then
   homebase="/home"
   echo "Setting spinnaker home to $homebase"
 fi
 
-if [ -z `getent group spinnaker` ]; then
+if [[ -z `getent group spinnaker` ]]; then
   groupadd spinnaker
 fi
 
-if [ -z `getent passwd spinnaker` ]; then
+if [[ -z `getent passwd spinnaker` ]]; then
   useradd --gid spinnaker -m --home-dir $homebase/spinnaker spinnaker
 fi
 
-if [ ! -d $homebase/spinnaker ]; then
+if [[ ! -d $homebase/spinnaker ]]; then
   mkdir -p $homebase/spinnaker/.aws
   chown -R spinnaker:spinnaker $homebase/spinnaker
 fi
