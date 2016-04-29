@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.azure.client
 
 import com.microsoft.azure.CloudException
 import com.microsoft.azure.credentials.ApplicationTokenCredentials
+import com.microsoft.azure.management.network.models.VirtualNetwork
 import com.microsoft.azure.management.resources.DeploymentOperationsOperations
 import com.microsoft.azure.management.resources.DeploymentsOperations
 import com.microsoft.azure.management.resources.ProvidersOperations
@@ -117,7 +118,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
       ResourceGroup resourceGroup = new ResourceGroup()
       resourceGroup.setLocation(region)
 
-      resourceGroupOperations.createOrUpdate(resourceGroupName,resourceGroup).body
+      resourceGroupOperations.createOrUpdate(resourceGroupName,resourceGroup)?.body
 
     } catch (e) {
       throw new RuntimeException("Unable to create Resource Group ${resourceGroupName} in region ${region}", e)
@@ -139,7 +140,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
     if (!resourceGroupExists(resourceGroupName)) {
       resourceGroup = createResourceGroup(resourceGroupName, region)
     } else {
-      resourceGroup = resourceGroupOperations.get(resourceGroupName).body
+      resourceGroup = resourceGroupOperations.get(resourceGroupName)?.body
     }
 
     initializeResourceGroupVNet(creds, resourceGroupName, virtualNetworkName, region)
@@ -153,7 +154,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
    * @return True if it already exists
    */
   boolean resourceGroupExists(String resourceGroupName) {
-    resourceGroupOperations.checkExistence(resourceGroupName).body
+    resourceGroupOperations.checkExistence(resourceGroupName)?.body
   }
 
   /**
@@ -176,7 +177,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
    * @return Azure SDK DeploymentExtended object
    */
   DeploymentExtended getDeployment(String resourceGroupName, String deploymentName) {
-    executeOp({deploymentOperations.get(resourceGroupName, deploymentName)}).body
+    executeOp({deploymentOperations.get(resourceGroupName, deploymentName)})?.body
   }
 
   /**
@@ -201,14 +202,15 @@ class AzureResourceManagerClient extends AzureBaseClient {
   private static void initializeResourceGroupVNet(AzureCredentials creds, String resourceGroupName, String virtualNetworkName = null, String region) {
     def vNetName = virtualNetworkName ?
       virtualNetworkName : AzureUtilities.getVirtualNetworkName(resourceGroupName)
+    VirtualNetwork vNet = null
 
     try {
-      creds.networkClient.getVirtualNetwork(resourceGroupName, vNetName)
-      }
-    catch (CloudException ignore) {
+      vNet = creds.networkClient.getVirtualNetwork(resourceGroupName, vNetName)
+    } catch (CloudException ignore) {
       // Assumes that a cloud exception means that the rest call failed to locate the vNet
-      creds.networkClient.createVirtualNetwork(resourceGroupName, vNetName, region)
+      log.warn("Failed to locate Azure Virtual Network ${virtualNetworkName}")
     }
+    if (!vNet) vNet = creds.networkClient.createVirtualNetwork(resourceGroupName, vNetName, region)
   }
 
   /**
@@ -250,10 +252,10 @@ class AzureResourceManagerClient extends AzureBaseClient {
     Deployment deployment = new Deployment()
     deployment.setProperties(deploymentProperties)
 
-    return resourceManagementClient
-      .getDeploymentsOperations()
-      .createOrUpdate(resourceGroupName, deploymentName, deployment)
-      .body
+    return resourceManagementClient?.
+      getDeploymentsOperations()?.
+      createOrUpdate(resourceGroupName, deploymentName, deployment)?.
+      body
   }
 
   /**
@@ -274,7 +276,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
    */
   void registerProvider(String namespace) {
     try {
-      if (providerOperations.get(namespace).body.registrationState != "Registered") {
+      if (providerOperations.get(namespace)?.body?.registrationState != "Registered") {
         log.info("Registering Azure provider: ${namespace}")
         providerOperations.register(namespace)
         log.info("Azure provider ${namespace} registered")

@@ -21,6 +21,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
+import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.cache.AzureAppGatewayCachingAgent
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.cache.AzureLoadBalancerCachingAgent
 import com.netflix.spinnaker.clouddriver.azure.resources.network.cache.AzureNetworkCachingAgent
 import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.cache.AzureSecurityGroupCachingAgent
@@ -97,6 +98,7 @@ class AzureInfrastructureProviderConfig {
           newlyAddedAgents << new AzureVMImageCachingAgent(azureCloudProvider, creds.accountName, creds.credentials, region.name, objectMapper)
           newlyAddedAgents << new AzureCustomImageCachingAgent(azureCloudProvider, creds.accountName, creds.credentials, region.name, creds.vmCustomImages, objectMapper)
           newlyAddedAgents << new AzureServerGroupCachingAgent(azureCloudProvider, creds.accountName, creds.credentials, region.name, objectMapper, registry)
+          newlyAddedAgents << new AzureAppGatewayCachingAgent(azureCloudProvider, creds.accountName, creds.credentials, region.name, objectMapper, registry)
 
           // If there is an agent scheduler, then this provider has been through the AgentController in the past.
           // In that case, we need to do the scheduling here (because accounts have been added to a running system).

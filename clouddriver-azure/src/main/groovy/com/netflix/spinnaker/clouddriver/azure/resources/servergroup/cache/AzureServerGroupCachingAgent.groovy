@@ -233,7 +233,7 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
             relationships[AZURE_LOAD_BALANCERS.ns].add(loadBalancerKey)
           }
 
-          creds.computeClient.getServerGroupInstances(AzureUtilities.getResourceGroupName(serverGroup), serverGroup.name).each { instance ->
+          creds.computeClient.getServerGroupInstances(AzureUtilities.getResourceGroupName(serverGroup), serverGroup.name)?.each { instance ->
             def instanceKey = Keys.getInstanceKey(azureCloudProvider, serverGroup.name, instance.name, region, accountName)
             cachedInstances[instanceKey].with {
               attributes.instance = instance

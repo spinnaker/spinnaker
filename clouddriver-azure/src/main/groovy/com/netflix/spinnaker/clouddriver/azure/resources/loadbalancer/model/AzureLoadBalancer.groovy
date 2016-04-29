@@ -30,6 +30,7 @@ class AzureLoadBalancer implements LoadBalancer {
   String subnet
   String type = AZURE_LOAD_BALANCER_TYPE
   Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
+  String cluster
 
   private static final AZURE_LOAD_BALANCER_TYPE = "azure"
 

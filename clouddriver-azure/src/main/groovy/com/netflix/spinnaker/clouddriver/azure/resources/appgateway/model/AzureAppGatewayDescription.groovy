@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model
 
+import com.microsoft.azure.management.network.models.ApplicationGateway
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
 
 class AzureAppGatewayDescription extends AzureResourceOpsDescription {
@@ -40,7 +42,7 @@ class AzureAppGatewayDescription extends AzureResourceOpsDescription {
     }
 
     String name
-    AzureLoadBalancerProbesType protocol = "HTTP"
+    AzureLoadBalancerProbesType protocol = AzureLoadBalancerProbesType.HTTP
     String host = "localhost"
     String path
     long interval = 120
@@ -58,7 +60,59 @@ class AzureAppGatewayDescription extends AzureResourceOpsDescription {
     AzureLoadBalancingRulesType protocol
     long externalPort
     long backendPort
+    // TODO: add support for HTTPS port mappings
     String sslCertificate
   }
 
+  static AzureAppGatewayDescription getDescriptionForAppGateway(ApplicationGateway appGateway) {
+    AzureAppGatewayDescription description = new AzureAppGatewayDescription(name: appGateway.name)
+    def parsedName = Names.parseName(appGateway.name)
+    description.stack = appGateway.tags?.stack ?: parsedName.stack
+    description.detail = appGateway.tags?.detail ?: parsedName.detail
+    description.appName = appGateway.tags?.appName ?: parsedName.app
+    description.loadBalancerName = appGateway.name
+    description.cluster = appGateway.tags?.cluster
+    description.serverGroups = appGateway.tags?.serverGroups?.split(" ")
+    description.vnet = appGateway.tags?.vnet
+    description.createdTime = appGateway.tags?.createdTime?.toLong()
+    description.tags = appGateway.tags
+    description.region = appGateway.location
+
+    appGateway.requestRoutingRules.each { rule ->
+      def httpListener = appGateway.httpListeners.find { it.id == rule.httpListener.id }
+      // Only HTTP protocol types are supported for now; ignore any other probes
+      // TODO: add support for other protocols (if needed)
+      if (httpListener && httpListener.protocol.toUpperCase() == "HTTP") {
+        def frontendPort = appGateway.frontendPorts?.find { it.id == httpListener.frontendPort.id }
+        def backendHttpSettingsCollection = appGateway.backendHttpSettingsCollection?.find { it.id == rule.backendHttpSettings.id}
+        if (frontendPort && backendHttpSettingsCollection) {
+          description.rules.add(
+            new AzureAppGatewayRule(
+              name: rule.name,
+              externalPort: frontendPort.port,
+              backendPort: backendHttpSettingsCollection.port
+            ))
+        }
+      }
+    }
+
+    // Add the healthcheck probes
+    appGateway.probes.each { probe ->
+      // Only HTTP protocol types are supported for now; ignore any other probes
+      // TODO: add support for other protocols (if needed)
+      if (probe.protocol.toUpperCase() == "HTTP") {
+        def p = new AzureAppGatewayHealthcheckProbe()
+        p.name = probe.name
+        p.path = probe.path
+        p.host = probe.host
+        p.interval = probe.interval
+        p.timeout = probe.timeout
+        p.unhealthyThreshold = probe.unhealthyThreshold
+        p.protocol = AzureAppGatewayHealthcheckProbe.AzureLoadBalancerProbesType.HTTP
+        description.probes.add(p)
+      }
+    }
+
+    description
+  }
 }

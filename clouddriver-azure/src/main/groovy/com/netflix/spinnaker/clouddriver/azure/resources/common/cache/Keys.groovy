@@ -25,6 +25,7 @@ class Keys {
     AZURE_SUBNETS,
     AZURE_NETWORKS,
     AZURE_LOAD_BALANCERS,
+    AZURE_APP_GATEWAYS,
     AZURE_APPLICATIONS,
     AZURE_CLUSTERS,
     AZURE_SERVER_GROUPS,
@@ -79,6 +80,15 @@ class Keys {
       case Namespace.AZURE_LOAD_BALANCERS.ns:
         def names = Names.parseName(parts[2])
         result << [application: names.app, name: parts[2], id: parts[3], cluster: parts[4], appname: parts[5], region: parts[6], account: parts[7]]
+        break
+      case Namespace.AZURE_APP_GATEWAYS.ns:
+        def names = Names.parseName(parts[2])
+        result << [
+          appname: names.app,
+          name:    parts[2],
+          region:  parts[3],
+          account: parts[4]
+        ]
         break
       case Namespace.AZURE_APPLICATIONS.ns:
         result << [application: parts[2].toLowerCase()]
@@ -230,6 +240,22 @@ class Keys {
                                    String region,
                                    String account) {
     "${azureCloudProviderId}:${Namespace.AZURE_LOAD_BALANCERS}:${loadBalancerName}:${loadBalancerId}:${cluster}:${application}:${region}:${account}"
+  }
+
+  static String getAppGatewayKey(AzureCloudProvider azureCloudProvider,
+                                 String appName,
+                                 String name,
+                                 String region,
+                                 String account) {
+    getAppGatewayKey(azureCloudProvider.id, appName, name, region, account)
+  }
+
+  static String getAppGatewayKey(String azureCloudProviderId,
+                                 String appName,
+                                 String name,
+                                 String region,
+                                 String account) {
+    "${azureCloudProviderId}:${Namespace.AZURE_APP_GATEWAYS}:${appName}:${name}:${region}:${account}"
   }
 
   static String getApplicationKey(AzureCloudProvider azureCloudProvider,

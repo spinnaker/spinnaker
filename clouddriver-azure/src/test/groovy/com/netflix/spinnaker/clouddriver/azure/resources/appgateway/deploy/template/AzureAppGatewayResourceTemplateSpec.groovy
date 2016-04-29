@@ -254,7 +254,7 @@ class AzureAppGatewayResourceTemplateSpec extends Specification {
         }
       } ],
       "requestRoutingRules" : [ {
-        "name" : "appGwRouting-rule1",
+        "name" : "rule1",
         "properties" : {
           "ruleType" : "Basic",
           "httpListener" : {
@@ -268,7 +268,7 @@ class AzureAppGatewayResourceTemplateSpec extends Specification {
           }
         }
       }, {
-        "name" : "appGwRouting-rule2",
+        "name" : "rule2",
         "properties" : {
           "ruleType" : "Basic",
           "httpListener" : {

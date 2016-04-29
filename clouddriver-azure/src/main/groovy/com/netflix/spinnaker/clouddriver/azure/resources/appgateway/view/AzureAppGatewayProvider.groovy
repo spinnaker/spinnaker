@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 The original authors.
+ * Copyright 2016 The original authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,30 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.view
+package com.netflix.spinnaker.clouddriver.azure.resources.appgateway.view
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
+import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model.AzureAppGatewayDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
-import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class AzureLoadBalancerProvider implements LoadBalancerProvider<AzureLoadBalancer> {
+class AzureAppGatewayProvider implements LoadBalancerProvider<AzureLoadBalancer> {
 
   private final AzureCloudProvider azureCloudProvider
   private final Cache cacheView
   final ObjectMapper objectMapper
 
   @Autowired
-  AzureLoadBalancerProvider(AzureCloudProvider azureCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
+  AzureAppGatewayProvider(AzureCloudProvider azureCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
     this.azureCloudProvider = azureCloudProvider
     this.cacheView = cacheView
     this.objectMapper = objectMapper
@@ -54,42 +54,57 @@ class AzureLoadBalancerProvider implements LoadBalancerProvider<AzureLoadBalance
    */
   @Override
   Set<AzureLoadBalancer> getApplicationLoadBalancers(String application) {
-    getAllMatchingKeyPattern(Keys.getLoadBalancerKey(azureCloudProvider, '*', '*', application, '*', '*', '*'))
+    getAllMatchingKeyPattern(Keys.getAppGatewayKey(azureCloudProvider, application, '*', '*', '*'))
   }
 
   Set<AzureLoadBalancer> getAllMatchingKeyPattern(String pattern) {
-    loadResults(cacheView.filterIdentifiers(Keys.Namespace.AZURE_LOAD_BALANCERS.ns, pattern))
+    loadResults(cacheView.filterIdentifiers(Keys.Namespace.AZURE_APP_GATEWAYS.ns, pattern))
   }
 
   Set<AzureLoadBalancer> loadResults(Collection<String> identifiers) {
     def transform = this.&fromCacheData
-    def data = cacheView.getAll(Keys.Namespace.AZURE_LOAD_BALANCERS.ns, identifiers, RelationshipCacheFilter.none())
+    def data = cacheView.getAll(Keys.Namespace.AZURE_APP_GATEWAYS.ns, identifiers, RelationshipCacheFilter.none())
     def transformed = data.collect(transform)
 
     return transformed
   }
 
   AzureLoadBalancer fromCacheData(CacheData cacheData) {
-    AzureLoadBalancerDescription loadBalancerDescription = objectMapper.convertValue(cacheData.attributes['loadbalancer'], AzureLoadBalancerDescription)
+    AzureAppGatewayDescription description = objectMapper.convertValue(cacheData.attributes['appgateway'], AzureAppGatewayDescription)
     def parts = Keys.parse(azureCloudProvider, cacheData.id)
 
-    new AzureLoadBalancer(
+    def loadBalancer = new AzureLoadBalancer(
       account: parts.account ?: "none",
-      name: loadBalancerDescription.loadBalancerName,
-      region: loadBalancerDescription.region,
-      vnet: loadBalancerDescription.vnet ?: "vnet-unassigned",
-      subnet: loadBalancerDescription.subnet ?: "subnet-unassigned",
-      serverGroups: [new LoadBalancerServerGroup(name: loadBalancerDescription.serverGroup, isDisabled: false, detachedInstances: [], instances: [])]
+      name: description.loadBalancerName,
+      region: description.region,
+      vnet: description.vnet ?: "vnet-unassigned",
+      subnet: description.subnet ?: "subnet-unassigned",
+      cluster: description.cluster ?: "unassigned"
     )
+    description.serverGroups?.each { serverGroup ->
+      // TODO: add proper check for enable/disable server groups
+      loadBalancer.serverGroups.add(new LoadBalancerServerGroup (
+        name: serverGroup,
+        isDisabled: false,
+        detachedInstances: [],
+        instances: []
+      ))
+    }
+
+    loadBalancer
   }
 
-  AzureLoadBalancerDescription getLoadBalancerDescription(String account, String appName, String region, String loadBalancerName) {
-    def pattern = Keys.getLoadBalancerKey(azureCloudProvider, loadBalancerName, '*', appName, '*', region, account)
-    def identifiers = cacheView.filterIdentifiers(Keys.Namespace.AZURE_LOAD_BALANCERS.ns, pattern)
-    def data = cacheView.getAll(Keys.Namespace.AZURE_LOAD_BALANCERS.ns, identifiers, RelationshipCacheFilter.none())
+  AzureAppGatewayDescription getAppGatewayDescription(String account, String appName, String region, String appGatewayName) {
+    def data = cacheView.getAll(
+      Keys.Namespace.AZURE_APP_GATEWAYS.ns,
+      cacheView.filterIdentifiers(Keys.Namespace.AZURE_APP_GATEWAYS.ns,
+        Keys.getAppGatewayKey(azureCloudProvider, appName, appGatewayName, region, account)),
+      RelationshipCacheFilter.none()
+    )
+//    CacheData cacheData = cacheView.get(Keys.Namespace.AZURE_APP_GATEWAYS.ns, Keys.getAppGatewayKey(azureCloudProvider, appName, appGatewayName, region, account))
     CacheData cacheData = data? data.first() : null
 
-    cacheData? objectMapper.convertValue(cacheData.attributes['loadbalancer'], AzureLoadBalancerDescription) : null
+    cacheData? objectMapper.convertValue(cacheData.attributes['appgateway'], AzureAppGatewayDescription) : null
   }
 
 }

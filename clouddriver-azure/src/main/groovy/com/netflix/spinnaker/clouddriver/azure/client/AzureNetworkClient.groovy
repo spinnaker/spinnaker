@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.azure.client
 
 import com.microsoft.azure.CloudException
 import com.microsoft.azure.credentials.ApplicationTokenCredentials
+import com.microsoft.azure.management.network.ApplicationGatewaysOperations
 import com.microsoft.azure.management.network.LoadBalancersOperations
 import com.microsoft.azure.management.network.NetworkManagementClient
 import com.microsoft.azure.management.network.NetworkManagementClientImpl
@@ -36,6 +37,7 @@ import com.microsoft.azure.management.network.models.VirtualNetwork
 import com.microsoft.rest.ServiceResponse
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
+import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model.AzureAppGatewayDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.network.model.AzureVirtualNetworkDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.model.AzureSecurityGroupDescription
@@ -55,6 +57,9 @@ class AzureNetworkClient extends AzureBaseClient {
 
   @Lazy
   private LoadBalancersOperations loadBalancerOps = { client.getLoadBalancersOperations() }()
+
+  @Lazy
+  private ApplicationGatewaysOperations appGatewayOps = { client.getApplicationGatewaysOperations() }()
 
   @Lazy
   private VirtualNetworksOperations virtualNetworksOperations = { client.getVirtualNetworksOperations() }()
@@ -84,16 +89,10 @@ class AzureNetworkClient extends AzureBaseClient {
         if (item.location == region) {
           try {
             def lbItem = getDescriptionForLoadBalancer(item)
-            lbItem.appName = AzureUtilities.getAppNameFromResourceId(item.id)
-            lbItem.tags = item.tags
-            lbItem.dnsName = getDnsNameForLoadBalancer(AzureUtilities.getResourceGroupNameFromResourceId(item.id), item.name)
-
-            // TODO: investigate and add code to handle changes to publicIP resource associate with current load balancer
-            // There's a small probability that the publicIP resources associated with the current load balancer has changed
-            //  from the time we read the load balancer current properties at the beginning of the current closure/loop
-            //  and we should reflect that in the lastReadTime property.
-            // We currently don't use any of the publicIp properties other than the DNS so we don't need to address that now
-
+            lbItem.dnsName = getDnsNameForPublicIp(
+              AzureUtilities.getResourceGroupNameFromResourceId(item.id),
+              AzureUtilities.getNameFromResourceId(item.frontendIPConfigurations?.first()?.getPublicIPAddress()?.id)
+            )
             lbItem.lastReadTime = currentTime
             result += lbItem
           } catch (RuntimeException re) {
@@ -118,21 +117,14 @@ class AzureNetworkClient extends AzureBaseClient {
    */
   AzureLoadBalancerDescription getLoadBalancer(String resourceGroupName, String loadBalancerName) {
     try {
-
       def currentTime = System.currentTimeMillis()
       def item = executeOp({loadBalancerOps.get(resourceGroupName, loadBalancerName, null)})?.body
       if (item) {
         def lbItem = getDescriptionForLoadBalancer(item)
-        lbItem.appName = AzureUtilities.getAppNameFromResourceId(item.id)
-        lbItem.tags = item.tags
-        lbItem.dnsName = getDnsNameForLoadBalancer(AzureUtilities.getResourceGroupNameFromResourceId(item.id), item.name)
-
-        // TODO: investigate and add code to handle changes to publicIP resource associate with current load balancer
-        // There's a small probability that the publicIP resources associated with the current load balancer has changed
-        //  from the time we read the load balancer current properties at the beginning of the current closure/loop
-        //  and we should reflect that in the lastReadTime property.
-        // We currently don't use any of the publicIp properties other than the DNS so we don't need to address that now
-
+        lbItem.dnsName = getDnsNameForPublicIp(
+          AzureUtilities.getResourceGroupNameFromResourceId(item.id),
+          AzureUtilities.getNameFromResourceId(item.frontendIPConfigurations?.first()?.getPublicIPAddress()?.id)
+        )
         lbItem.lastReadTime = currentTime
         return lbItem
       }
@@ -243,6 +235,95 @@ class AzureNetworkClient extends AzureBaseClient {
   }
 
   /**
+   * Retrieve an Azure Application Gateway for a given set of credentials, resource group and name
+   * @param resourceGroupName the name of the resource group to look into
+   * @param appGatewayName the name of the application gateway
+   * @return a description object which represents an application gateway in Azure or null if the application gateway resource could not be retrieved
+   */
+  AzureAppGatewayDescription getAppGateway(String resourceGroupName, String appGatewayName) {
+    try {
+      def currentTime = System.currentTimeMillis()
+      def appGateway = executeOp({appGatewayOps.get(resourceGroupName, appGatewayName)})?.body
+      if (appGateway) {
+        def agItem = AzureAppGatewayDescription.getDescriptionForAppGateway(appGateway)
+        agItem.dnsName = getDnsNameForPublicIp(
+          AzureUtilities.getResourceGroupNameFromResourceId(appGateway.id),
+          AzureUtilities.getNameFromResourceId(appGateway.frontendIPConfigurations?.first()?.getPublicIPAddress()?.id)
+        )
+        agItem.lastReadTime = currentTime
+        return agItem
+      }
+    } catch (Exception e) {
+      log.error("getAppGateway(${resourceGroupName},${appGatewayName}) -> Cloud Exception ", e)
+    }
+
+    null
+  }
+
+  /**
+   * Retrieve a collection of all application gateways for a given set of credentials and the location
+   * @param region the location where to look for and retrieve all the application gateway resources
+   * @return a Collection of objects which represent an Application Gateway in Azure
+   */
+  Collection<AzureAppGatewayDescription> getAppGatewaysAll(String region) {
+    def result = []
+
+    try {
+      def currentTime = System.currentTimeMillis()
+      def appGateways = executeOp({appGatewayOps.listAll()})?.body
+
+      appGateways.each {item ->
+        if (item.location == region) {
+          try {
+            def agItem = AzureAppGatewayDescription.getDescriptionForAppGateway(item)
+            agItem.dnsName = getDnsNameForPublicIp(
+              AzureUtilities.getResourceGroupNameFromResourceId(item.id),
+              AzureUtilities.getNameFromResourceId(item.frontendIPConfigurations?.first()?.getPublicIPAddress()?.id)
+            )
+            agItem.lastReadTime = currentTime
+            result << agItem
+          } catch (RuntimeException re) {
+            // if we get a runtime exception here, log it but keep processing the rest of the
+            // load balancers
+            log.error("Unable to process application gateway ${item.name}: ${re.message}")
+          }
+        }
+      }
+    } catch (Exception e) {
+      log.error("getAppGatewaysAll -> Unexpected exception ", e)
+    }
+
+    result
+  }
+
+  /**
+   * Delete an Application Gateway resource in Azure
+   * @param resourceGroupName name of the resource group where the Application Gateway resource was created (see application name and region/location)
+   * @param appGatewayName name of the Application Gateway resource to delete
+   * @return a ServiceResponse object
+   */
+  ServiceResponse deleteAppGateway(String resourceGroupName, String appGatewayName) {
+    ServiceResponse result
+    def appGateway = executeOp({appGatewayOps.get(resourceGroupName, appGatewayName)})?.body
+
+    def publicIpAddressName = AzureUtilities.getResourceNameFromID(appGateway?.frontendIPConfigurations?.first()?.getPublicIPAddress()?.id)
+
+    result = deleteAzureResource(
+      appGatewayOps.&delete,
+      resourceGroupName,
+      appGatewayName,
+      null,
+      "Delete Application Gateway ${appGatewayName}",
+      "Failed to delete Application Gateway ${appGatewayName} in ${resourceGroupName}"
+    )
+
+    // delete the public IP resource that was created and associated with the deleted load balancer
+    if (publicIpAddressName) result = deletePublicIp(resourceGroupName, publicIpAddressName)
+
+    result
+  }
+
+  /**
    * Delete a network security group in Azure
    * @param resourceGroupName name of the resource group where the security group was created (see application name and region/location)
    * @param securityGroupName name of the Azure network security group to delete
@@ -317,7 +398,7 @@ class AzureNetworkClient extends AzureBaseClient {
       def op = subnetOperations.createOrUpdate(resourceGroupName, virtualNetworkName, subnetName, subnet)
 
       // Return the resource Id
-      op.body.id
+      op?.body?.id
 
     } catch (Exception e) {
       // Add something to the log to show that the subnet creation failed then rethrow the exception
@@ -347,8 +428,8 @@ class AzureNetworkClient extends AzureBaseClient {
   }
 
   private void addSecurityGroupToSubnet(String resourceGroupName, String securityGroupName, Subnet subnet) {
-    def securityGroup = executeOp({networkSecurityGroupOperations.get(resourceGroupName, securityGroupName, null)}).body
-    subnet.setNetworkSecurityGroup securityGroup
+    def securityGroup = executeOp({networkSecurityGroupOperations.get(resourceGroupName, securityGroupName, null)})?.body
+    subnet.setNetworkSecurityGroup(securityGroup)
   }
 
   /**
@@ -510,7 +591,7 @@ class AzureNetworkClient extends AzureBaseClient {
    * @return virtual network instance, or null if it does not exist
    */
   VirtualNetwork getVirtualNetwork(String resourceGroupName, String virtualNetworkName) {
-    executeOp({virtualNetworksOperations.get(resourceGroupName, virtualNetworkName, null)}).body
+    executeOp({virtualNetworksOperations.get(resourceGroupName, virtualNetworkName, null)})?.body
   }
 
   /**
@@ -566,29 +647,23 @@ class AzureNetworkClient extends AzureBaseClient {
   }
 
   /**
-   * get the dns name associated with a load balancer in Azure
-   * @param resourceGroupName name of the resource group where the load balancer was created (see application name and region/location)
-   * @param loadBalancerName the name of the load balancer in Azure
-   * @return the dns name of the given load balancer
+   * get the dns name associated with a resource via the Public Ip dependency
+   * @param resourceGroupName name of the resource group where the application gateway was created (see application name and region/location)
+   * @param publicIpName the name of the public IP resource
+   * @return the dns name of the Public IP or "dns-not-found"
    */
-  String getDnsNameForLoadBalancer(String resourceGroupName, String loadBalancerName) {
-    String dnsName = "none"
+  String getDnsNameForPublicIp(String resourceGroupName, String publicIpName) {
+    String dnsName = "dns-not-found"
 
     try {
-      def loadBalancer = executeOp({loadBalancerOps.get(resourceGroupName, loadBalancerName, null)})?.body
-      if (loadBalancer.frontendIPConfigurations) {
-        if (loadBalancer.frontendIPConfigurations.size() != 1) {
-          log.info("getDnsNameForLoadBalancer -> Unexpected number of public IP addresses associated with the load balancer (should be only one)!")
-        }
-
-        def publicIpResource = loadBalancer.frontendIPConfigurations.first()?.getPublicIPAddress()?.id
-        PublicIPAddress publicIp = publicIpResource ?
-          executeOp({publicIPAddressOperations.get(resourceGroupName, AzureUtilities.getNameFromResourceId(publicIpResource), null)})?.body
-          : null
-        dnsName = publicIp ? publicIp.dnsSettings?.fqdn : "none"
-      }
+      PublicIPAddress publicIp = publicIpName ?
+        executeOp({publicIPAddressOperations.get(
+          resourceGroupName,
+          publicIpName, null)}
+        )?.body : null
+      if (publicIp?.dnsSettings?.fqdn) dnsName = publicIp.dnsSettings.fqdn
     } catch (Exception e) {
-      log.error("getDnsNameForLoadBalancer -> Unexpected exception ", e)
+      log.error("getDnsNameForPublicIp -> Unexpected exception ", e)
     }
 
     dnsName

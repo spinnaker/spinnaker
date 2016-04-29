@@ -236,7 +236,7 @@ class AzureAppGatewayResourceTemplate {
     AppGatewayRequestRoutingRuleProperties properties
 
     AppGatewayRequestRoutingRule(String ruleName) {
-      name = "appGwRouting-" + ruleName
+      name = ruleName
       properties = new AppGatewayRequestRoutingRuleProperties(ruleName)
     }
 

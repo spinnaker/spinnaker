@@ -210,7 +210,7 @@ public class AzureComputeClient extends AzureBaseClient {
   Collection<AzureInstance> getServerGroupInstances(String resourceGroupName, String serverGroupName) {
     def instances = new ArrayList<AzureInstance>()
 
-    executeOp({scaleSetVMOps.list(resourceGroupName, serverGroupName, null, null, "instanceView")}).body.each {
+    executeOp({scaleSetVMOps.list(resourceGroupName, serverGroupName, null, null, "instanceView")})?.body?.each {
       instances.add(AzureInstance.build(it))
     }
 
