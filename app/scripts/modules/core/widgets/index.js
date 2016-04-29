@@ -8,4 +8,5 @@ module.exports = angular
     require('./accountRegionClusterSelector.component'),
     require('./accountZoneClusterSelector.component'),
     require('./scopeClusterSelector.directive'),
+    require('./notifier/notifier.component.js'),
   ]);

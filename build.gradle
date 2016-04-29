@@ -1,3 +1,6 @@
+import java.nio.file.Paths
+import groovy.json.JsonOutput
+
 buildscript {
   repositories {
     jcenter()
@@ -45,8 +48,20 @@ task karma(type: NodeTask) {
   args = ["start", "--single-run", "--reporters", "progress,jenkins"]
 }
 
+task generateVersionFile << {
+  def buildInfo = [
+    version: project.hasProperty('deckVersion') ? "${deckVersion}" : "n/a",
+    created: new Date().getTime()
+  ]
+  def buildJson = JsonOutput.prettyPrint(JsonOutput.toJson(buildInfo))
+  new File(Paths.get("build", "webpack").toString()).mkdirs()
+  new File(Paths.get("build", "webpack", "version.json").toString()).write(buildJson)
+  new File("version.json").write(buildJson)
+}
+
 webpack.outputs.dir file('build/webpack')
 
+npmInstall.dependsOn 'generateVersionFile'
 webpack.dependsOn 'npmInstall'
 karma.dependsOn 'webpack'
 test.dependsOn 'karma'

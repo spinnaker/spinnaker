@@ -53,6 +53,7 @@ module.exports = angular
     require('./cloudProvider/cloudProviderLabel.directive.js'),
     require('./cloudProvider/serviceDelegate.service.js'),
     require('./cluster/cluster.module.js'),
+    require('./config/versionCheck.service.js'),
     require('./config/settings.js'),
     require('./confirmationModal/confirmationModal.service.js'),
 
