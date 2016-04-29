@@ -2,18 +2,15 @@ server:
   port: ${services.clouddriver.port:7002}
   address: ${services.clouddriver.host:localhost}
 
-#circular
-#services:
-#  front50:
-#    baseUrl: ${services.front50.baseUrl:localhost:8080}
-
 redis:
   connection: ${services.redis.connection:redis://localhost:6379}
 
-# Controls whether UserDataProviders are used to populate user data of new server groups.
-# If false, user data is copied over from ancestor server groups on both CopyLastAsgAtomicOperation and
-# ModifyAsgLaunchConfigurationOperation (only if no user data is provided on the given request).
 udf:
+  # Controls whether UserDataProviders are used to populate user data of new
+  # server groups. If false, user data is copied over from ancestor server
+  # groups on both CopyLastAsgAtomicOperation and
+  # ModifyAsgLaunchConfigurationOperation (only if no user data is provided
+  # on the given request).
   enabled: ${services.clouddriver.aws.udf.enabled:true}
 
 default:
@@ -21,17 +18,16 @@ default:
     env: ${providers.aws.primaryCredentials.name}
 
 aws:
+  # AWS Credentials are passed either as environment variables or through
+  # a standard AWS file $HOME/.aws/credentials
+  # See providers.aws.primaryCredentials in spinnaker.yml for more
+  # info on setting environment variables.
   enabled: ${providers.aws.enabled:false}
   defaults:
     iamRole: ${provider.aws.defaultIAMRole:BaseIAMRole}
   defaultRegions:
     - name: ${providers.aws.defaultRegion:us-east-1}
   defaultFront50Template: ${services.front50.baseUrl}
-
-  # AWS Credentials are passed either as environment variables or through
-  # a standard AWS file $HOME/.aws/credentials
-  # See providers.aws.primaryCredentials in spinnaker.yml for more
-  # info on setting environment variables.
 
 azure:
   enabled: ${providers.azure.enabled:false}

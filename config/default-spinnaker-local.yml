@@ -1,4 +1,7 @@
-# This file is intended to override the default configuration in the spinnaker.yml file.
+# This file is intended to override the default configuration in the
+# spinnaker.yml file while providing guidance on the mostly likely
+# configuration parameters to be changed.
+#
 # In order for Spinnaker to discover it, it must be copied to a file named
 # "spinnaker-local.yml" and placed in the $HOME/.spinnaker directory.
 
@@ -7,82 +10,88 @@ global:
     timezone: 'America/Los_Angeles'
 
 providers:
+  # See http://www.spinnaker.io/v1.0/docs/target-deployment-setup
+  # for general information about configuring spinnaker platform providers.
+
+  # Each of the following providers can be enabled independent of all other
+  # providers unless otherwise noted.
+  #
+  # Each provider can be enabled by setting its 'enabled' attribute to true.
+  # As a rule of thumb, each provider defines a 'primaryCredentials' block
+  # that configures a default account for Spinnaker to use on that platform.
+  # If additional accounts are desired, then add those accounts to a
+  # custom clouddriver-local.yml file and consult clouddriver.yml for more
+  # information on what to add there.
+
   aws:
-    # If you want to deploy some services to Amazon Web Services (AWS),
-    # set enabled and provide primary credentials for deploying.
-    # Enabling AWS is independent of other providers.
+    # For more information on configuring Amazon Web Services (aws), see
+    # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-amazon-web-services-setup
+
     enabled: ${SPINNAKER_AWS_ENABLED:false}
-    defaultRegion: ${SPINNAKER_AWS_DEFAULT_REGION}
+    defaultRegion: ${SPINNAKER_AWS_DEFAULT_REGION:us-west-2}
     defaultIAMRole: BaseIAMRole
     primaryCredentials:
       name: my-aws-account
-      # Store actual credentials in $HOME/.aws/credentials. See spinnaker.yml for
-      # more information, including alternatives.
+      # Store actual credentials in $HOME/.aws/credentials. See spinnaker.yml
+      # for more information, including alternatives.
 
   azure:
-    # If you want to deploy some services to Microsoft Azure (azure),
-    # set enabled and provide primary credentials for deploying.
-    # Enabling azure is independent of other providers.
+    # For more information on configuring Microsoft Azure (azure), see
+    # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-azure-cloud-platform-setup
+
     enabled: ${SPINNAKER_AZURE_ENABLED:false}
     defaultRegion: ${SPINNAKER_AZURE_DEFAULT_REGION:westus}
     primaryCredentials:
       name: my-azure-account
+
+      # To set Azure credentials, enter your Azure supscription values for:
+      # clientId, appKey, tenantId, and subscriptionId.
       clientId:
       appKey:
       tenantId:
       subscriptionId:
-    # To set azure credentials, enter values for: clientId, appKey, tenantId, 
-    # subscriptionId.  See http://www.spinnaker.io/docs/target-deployment-setup
-    # for instructions on how to retrieve these values from your Azure 
-    # subscription.
-  google:
-    # If you want to deploy some services to Google Cloud Platform (google),
-    # set enabled and provide primary credentials for deploying.
-    # Enabling google is independent of other providers.
-    enabled: ${SPINNAKER_GOOGLE_ENABLED:false}
-    defaultRegion: ${SPINNAKER_GOOGLE_DEFAULT_REGION}
-    defaultZone: ${SPINNAKER_GOOGLE_DEFAULT_ZONE}
 
-    # If you are managing only one account, you can enter it here.
-    # If you are managing multiple accounts, you will need to add them to
-    # clouddriver.yml (preferably make your own clouddriver-local.yml)
+  google:
+    # For more information on configuring Google Cloud Platform (google), see
+    # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-google-cloud-platform-setup
+
+    enabled: ${SPINNAKER_GOOGLE_ENABLED:false}
+    defaultRegion: ${SPINNAKER_GOOGLE_DEFAULT_REGION:us-central1}
+    defaultZone: ${SPINNAKER_GOOGLE_DEFAULT_ZONE:us-central1-f}
+
     primaryCredentials:
       name: my-google-account
-      # The project is the Google Project ID for the project to manage with Spinnaker.
-      # The jsonPath is a path to the JSON service credentials downloaded from the
-      # Google Developer's Console.
-      project: ${SPINNAKER_GOOGLE_PROJECT_ID}
+      # The project is the Google Project ID for the project to manage with
+      # Spinnaker.
+      # The jsonPath is a path to the JSON service credentials downloaded
+      # from the Google Developer's Console.
+      project: ${SPINNAKER_GOOGLE_PROJECT_ID:}
       jsonPath: ${SPINNAKER_GOOGLE_PROJECT_CREDENTIALS_PATH:}
 
   cf:
-    # If you want to deploy some services to Cloud Foundry (cf),
-    # set enabled and provide primary credentials for deploying.
-    # Enabling cf is independent of other providers.
+    # For more information on configuring Cloud Foundry (cf) support, see
+    # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-cloud-foundry-platform-setup
+
     enabled: false
     defaultOrg: spinnaker-cf-org
     defaultSpace: spinnaker-cf-space
 
-    # If you are managing only one account, you can enter it here.
-    # If you are managing multiple accounts, you will need to add them to
-    # clouddriver.yml (preferably make your own clouddriver-local.yml)
     primaryCredentials:
       name: my-cf-account
       api: my-cf-api-uri
       console: my-cf-console-base-url
-    # Either uncomment and plugin credentials here, or supply as environment variables for maximum security
-    # account:
-    #   name: my-cf-username
-    #   password: my-cf-password
+      # Either uncomment and plugin credentials here, or supply as
+      # environment variables for maximum security.
+      # account:
+      #   name: my-cf-username
+      #   password: my-cf-password
 
   kubernetes:
-    # If you want to deploy containers to Kubernetes,
-    # set enabled and provide primary credentials for deploying.
-    # Enabling kubernetes is dependent on dockerRegistry being enabled.
-    enabled: ${SPINNAKER_KUBERNETES_ENABLED:false}
+    # For more information on configuring Kubernetes clusters (kubernetes), see
+    # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-kubernetes-cluster-setup
 
-    # If you are managing only one account, you can enter it here.
-    # If you are managing multiple accounts, you will need to add them to
-    # clouddriver.yml (preferably make your own clouddriver-local.yml)
+    # NOTE: enabling kubernetes also requires enabling dockerRegistry.
+    enabled: ${SPINNAKER_KUBERNETES_ENABLED:false}
     primaryCredentials:
       # These credentials use authentication information at ~/.kube/config
       # by default.
@@ -93,12 +102,13 @@ providers:
   dockerRegistry:
     # If you want to deploy containers to a container management solution,
     # you must specifiy where these container images exist first.
-    # Enabling dockerRegistry is independent of other providers.
+
+    # NOTE: Enabling dockerRegistry is independent of other providers.
+    # However, for convienience, we tie docker and kubernetes together
+    # since kubernetes (and only kubernetes) depends on this docker provider
+    # configuration.
     enabled: ${SPINNAKER_KUBERNETES_ENABLED:false}
 
-    # If you are managing only one account/repository, you can enter it here.
-    # If you are managing multiple accounts/repositories, you add them to
-    # clouddriver.yml (preferably make your own clouddriver-local.yml)
     primaryCredentials:
       name: my-docker-registry-account
       address: https://index.docker.io/
@@ -168,11 +178,13 @@ services:
 
 
   clouddriver:
-    # Controls whether UserDataProviders are used to populate user data of new server groups.
-    # If false, user data is copied over from ancestor server groups on both CopyLastAsgAtomicOperation and
-    # ModifyAsgLaunchConfigurationOperation (only if no user data is provided on the given request).
     aws:
       udf:
+        # Controls whether UserDataProviders are used to populate user data of
+        # new server groups. If false, user data is copied over from ancestor
+        # server groups on both CopyLastAsgAtomicOperation and
+        # ModifyAsgLaunchConfigurationOperation (only if no user data is
+        # provided on the given request).
         enabled: true
 
   igor:
@@ -192,16 +204,21 @@ services:
 
   rush:
     # Spinnaker's "rush" subsystem is used by the "rosco" bakery.
-    # You need to provide the fully-qualified path to the directory containing the packer templates.
+    # You need to provide the fully-qualified path to the directory containing
+    # the packer templates.
     # They typically live in rosco's config/packer directory.
     configDir: /opt/rosco/config/packer
 
   echo:
-    # allow pipeline triggers to run periodically via cron expressions
     cron:
+      # Allow pipeline triggers to run periodically via cron expressions.
       enabled: true
-    # If you wish for spinnaker to send notifications, configure the following blocks
+
     notifications:
+      # The following blocks can enable Spinnaker to send notifications
+      # using the corresponding mechanism.
+      # See http://www.spinnaker.io/docs/notifications-and-events-guide
+      # for more information.
       mail:
         enabled: false
         host: # the smtp host
@@ -216,8 +233,9 @@ services:
         account: # twilio account id
         token: # twilio auth token
         from: # phone number by which sms messages are sent
-      # See https://api.slack.com/bot-users for details about using bots and how to create your own bot user
       slack:
+        # See https://api.slack.com/bot-users for details about using bots
+        # and how to create your own bot user.
         enabled: false
         token: # the API token for the bot
         botName: # the username of the bot

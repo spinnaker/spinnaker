@@ -1,11 +1,11 @@
 
-# This file is intended to serve as a master configuration for a Spinnaker deployment.
-# Customizations to the deployment should be made in another file named
-# "spinnaker-local.yml". The distribution has a prototype called
-# "default-spinnaker-local.yml" which calls out the subset of attributes of general
-# interest. It can be copied into a "spinnaker-local.yml" to start with. The prototype
-# does not change any of the default values here, it just surfaces the more critical
-# attributes.
+# This file is intended to serve as a master configuration for a Spinnaker
+# deployment. Customizations to the deployment should be made in another file
+# named "spinnaker-local.yml". The distribution has a prototype called
+# "default-spinnaker-local.yml" which calls out the subset of attributes of
+# general interest. It can be copied into a "spinnaker-local.yml" to start
+# with. The prototype does not change any of the default values here, it just
+# surfaces the more critical attributes.
 
 global:
   spinnaker:
@@ -26,11 +26,13 @@ services:
     host: ${services.default.host}
     port: 7002
     baseUrl: ${services.default.protocol}://${services.clouddriver.host}:${services.clouddriver.port}
-    # Controls whether UserDataProviders are used to populate user data of new server groups.
-    # If false, user data is copied over from ancestor server groups on both CopyLastAsgAtomicOperation and
-    # ModifyAsgLaunchConfigurationOperation (only if no user data is provided on the given request).
     aws:
       udf:
+        # Controls whether UserDataProviders are used to populate user data of
+        # new server groups. If false, user data is copied over from ancestor
+        # server groups on both CopyLastAsgAtomicOperation and
+        # ModifyAsgLaunchConfigurationOperation (only if no user data is
+        # provided on the given request).
         enabled: true
 
   echo:
@@ -39,11 +41,15 @@ services:
     port: 8089
     baseUrl: ${services.default.protocol}://${services.echo.host}:${services.echo.port}
     cron:
+      # Allow pipeline triggers to run periodically via cron expressions.
       enabled: true
       timezone: ${global.spinnaker.timezone}
+
     notifications:
-      # allow pipeline triggers to run periodically via cron expressions
-      # If you wish for spinnaker to send notifications, configure the following blocks
+      # The following blocks can enable Spinnaker to send notifications
+      # using the corresponding mechanism.
+      # See http://www.spinnaker.io/docs/notifications-and-events-guide
+      # for more information.
       mail:
         enabled: false
         host: # the smtp host
@@ -168,9 +174,9 @@ services:
 
 providers:
   aws:
-    # If you want to deploy some services to Amazon Web Services (AWS),
-    # set enabled and provide credentials.
-    # Enabling AWS is independent of other providers.
+    # For more information on configuring Amazon Web Services (aws), see
+    # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-amazon-web-services-setup
+
     enabled: false
     simpleDBEnabled: false
     defaultRegion: us-east-1
@@ -185,9 +191,9 @@ providers:
       # to use (for .aws/credentials).
 
   google:
-    # If you want to deploy some services to Google Cloud Platform (google),
-    # set enabled and provide primary credentials for deploying.
-    # Enabling google is independent of other providers.
+    # For more information on configuring Google Cloud Platform (google), see
+    # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-google-cloud-platform-setup
+
     enabled: false
     defaultRegion: us-central1
     defaultZone: us-central1-f
@@ -198,10 +204,11 @@ providers:
       # downloaded from the Google Developer's Console.
       project:
       jsonPath:
+
   cf:
-    # If you want to deploy some services to Cloud Foundry (cf),
-    # set enabled and provide primary credentials for deploying.
-    # Enabling cf is independent of other providers.
+    # For more information on configuring Cloud Foundry (cf) support, see
+    # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-cloud-foundry-platform-setup
+
     enabled: false
     defaultOrg: spinnaker-cf-org
     defaultSpace: spinnaker-cf-space
@@ -209,23 +216,24 @@ providers:
       name: my-cf-account
       api: my-cf-api-uri
       console: my-cf-console-base-url
-    # You must also supply cf.account.username and cf.account.password through env properties
+      # You must also supply cf.account.username and cf.account.password through env properties
+
   azure:
-    # If you want to deploy some services to Microsoft Azure (azure),
-    # set enabled and provide primary credentials for deploying.
-    # Enabling azure is independent of other providers.
+    # For more information on configuring Microsoft Azure (azure), see
+    # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-azure-cloud-platform-setup
+
     enabled: false
     defaultRegion: westus
     primaryCredentials:
       name: my-azure-account
+
+      # To set Azure credentials, enter your Azure supscription values for:
+      # clientId, appKey, tenantId, and subscriptionId.
       clientId:
       appKey:
       tenantId:
       subscriptionId:
-    # To set azure credentials, enter values for: clientId, appKey, tenantId, 
-    # subscriptionId.  See http://www.spinnaker.io/docs/target-deployment-setup
-    # for instructions on how to retrieve these values from your Azure 
-    # subscription.
+
   titan:
     # If you want to deploy some services to titan,
     # set enabled and provide primary credentials for deploying.
@@ -234,11 +242,12 @@ providers:
     defaultRegion: us-east-1
     primaryCredentials:
       name: my-titan-account
+
   kubernetes:
-    # If you want to deploy some services to kubernetes,
-    # set enabled and provide primary credentials for deploying.
-    # Furthermore, you need to enable the docker registry account.
-    # Enabling kubernetes is independent of other providers.
+    # For more information on configuring Kubernetes clusters (kubernetes), see
+    # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-kubernetes-cluster-setup
+
+    # NOTE: enabling kubernetes also requires enabling dockerRegistry.
     enabled: false
     primaryCredentials:
       name: my-kubernetes-account
