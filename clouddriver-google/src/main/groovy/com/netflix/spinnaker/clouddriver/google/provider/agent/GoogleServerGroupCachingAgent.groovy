@@ -400,7 +400,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
       return new GoogleServerGroup(
           name: instanceGroupManager.name,
           region: region,
-          zone: instanceGroupManager.zone,
+          zone: Utils.getLocalName(instanceGroupManager.zone),
           currentActions: instanceGroupManager.currentActions,
           launchConfig: [createdTime: Utils.getTimeFromTimestamp(instanceGroupManager.creationTimestamp)],
           asg: [minSize        : instanceGroupManager.targetSize,
