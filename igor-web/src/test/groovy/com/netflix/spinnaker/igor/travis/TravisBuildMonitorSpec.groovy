@@ -49,7 +49,6 @@ class TravisBuildMonitorSpec extends Specification {
         List<Map> builds = travisBuildMonitor.changedBuilds(MASTER)
 
         then:
-        1 * travisService.setAccessToken()
         1 * travisService.getReposForAccounts() >> repos
 
         1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo') >> [lastBuildLabel: 3]
@@ -75,11 +74,9 @@ class TravisBuildMonitorSpec extends Specification {
         1 * buildCache.getJobNames(MASTER) >> ['test-org/test-repo']
 
         when:
-        List<Map> builds = travisBuildMonitor.changedBuilds(MASTER)
+        travisBuildMonitor.changedBuilds(MASTER)
 
         then:
-        1 * travisService.getAccounts()
-        1 * travisService.setAccessToken()
         1 * travisService.getReposForAccounts() >> repos
         1 * travisService.getCommit('test-org/test-repo', 4) >> commit
         1 * commit.branchNameWithTagHandling() >> "my_branch"

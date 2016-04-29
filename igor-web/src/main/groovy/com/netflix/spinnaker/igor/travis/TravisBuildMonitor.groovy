@@ -138,9 +138,7 @@ class TravisBuildMonitor implements PollingMonitor{
 
         TravisService travisService = buildMasters.map[master]
 
-        travisService.setAccessToken()
         lastPoll = System.currentTimeMillis()
-        travisService.getAccounts()
         def startTime = System.currentTimeMillis()
         List<Repo> repos = travisService.getReposForAccounts()
         log.info("Took ${System.currentTimeMillis() - startTime}ms to retrieve ${repos.size()} repositories (master: ${master})")

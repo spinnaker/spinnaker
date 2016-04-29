@@ -37,7 +37,6 @@ import com.netflix.spinnaker.igor.travis.client.model.RepoRequest
 import com.netflix.spinnaker.igor.travis.client.model.Repos
 import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse
 import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
@@ -60,25 +59,27 @@ class TravisService implements BuildService {
         this.travisCache  = travisCache
     }
 
-    void setAccessToken() {
-        this.accessToken = travisClient.accessToken(githubToken)
+    @Override
+    BuildServiceProvider buildServiceProvider() {
+        return BuildServiceProvider.TRAVIS
     }
 
-    String getAccessToken() {
-        if (!accessToken) {
-            setAccessToken()
+    @Override
+    List<GenericGitRevision> getGenericGitRevisions(String inputRepoSlug, int buildNumber) {
+        String repoSlug = cleanRepoSlug(inputRepoSlug)
+        Builds builds = getBuilds(repoSlug, buildNumber)
+        if (builds.commits?.branch) {
+            return builds.commits*.genericGitRevision()
         }
-        return "token " + accessToken.accessToken
+        return null
     }
 
-    Accounts getAccounts() {
-        this.accounts = travisClient.accounts(getAccessToken())
-        log.debug "fetched " + accounts.accounts.size() + " accounts"
-        accounts.accounts.each {
-            log.debug "account: " + it.login
-            log.debug "repos:" + it.reposCount
-        }
-        return accounts
+    @Override
+    GenericBuild getGenericBuild(String inputRepoSlug, int buildNumber) {
+        String repoSlug = cleanRepoSlug(inputRepoSlug)
+        Build build = getBuild(repoSlug, buildNumber)
+        GenericBuild genericBuild = getGenericBuild(build, repoSlug)
+        return genericBuild
     }
 
     List<Build> getBuilds() {
@@ -98,24 +99,6 @@ class TravisService implements BuildService {
     Build getBuild(String repoSlug, int buildNumber) {
         Builds builds = getBuilds(repoSlug, buildNumber)
         return builds.builds.size() > 0 ? builds.builds.first() : null
-    }
-
-    @Override
-    GenericBuild getGenericBuild(String inputRepoSlug, int buildNumber) {
-        String repoSlug = cleanRepoSlug(inputRepoSlug)
-        Build build = getBuild(repoSlug, buildNumber)
-        GenericBuild genericBuild = getGenericBuild(build, repoSlug)
-        return genericBuild
-    }
-
-    @Override
-    List<GenericGitRevision> getGenericGitRevisions(String inputRepoSlug, int buildNumber) {
-        String repoSlug = cleanRepoSlug(inputRepoSlug)
-        Builds builds = getBuilds(repoSlug, buildNumber)
-        if (builds.commits?.branch) {
-            return builds.commits*.genericGitRevision()
-        }
-        return null
     }
 
     Map<String, Object> getBuildProperties(String repoSlug, int buildNumber) {
@@ -157,7 +140,7 @@ class TravisService implements BuildService {
     List<Repo> getReposForAccounts() {
         log.debug "fetching repos for relevant accounts only"
         List<Repo> repos = []
-        accounts.accounts.each { account ->
+        getAccounts().accounts.each { account ->
             Repos accountRepos = travisClient.repos(getAccessToken(), account.login)
             accountRepos.repos.each { repo ->
                 log.debug "[${account.login}] [${repo.slug}]"
@@ -261,11 +244,6 @@ class TravisService implements BuildService {
         }
     }
 
-    @Override
-    BuildServiceProvider buildServiceProvider() {
-        return BuildServiceProvider.TRAVIS
-    }
-
     protected String cleanRepoSlug(String inputRepoSlug) {
         def parts = inputRepoSlug.tokenize('/')
         return "${parts[0]}/${parts[1]}"
@@ -273,5 +251,32 @@ class TravisService implements BuildService {
 
     protected String branchFromRepoSlug(String inputRepoSlug) {
         return inputRepoSlug.tokenize('/').drop(2).join('/')
+    }
+
+    private void setAccessToken() {
+        this.accessToken = travisClient.accessToken(githubToken)
+    }
+
+    private String getAccessToken() {
+        if (!accessToken) {
+            setAccessToken()
+        }
+        return "token " + accessToken.accessToken
+    }
+
+    private Accounts getAccounts() {
+        if (!accounts) {
+            setAccounts()
+        }
+        return accounts
+    }
+
+    private void setAccounts() {
+        this.accounts = travisClient.accounts(getAccessToken())
+        log.debug "fetched " + accounts.accounts.size() + " accounts"
+        accounts.accounts.each {
+            log.debug "account: " + it.login
+            log.debug "repos:" + it.reposCount
+        }
     }
 }
