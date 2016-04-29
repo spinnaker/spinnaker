@@ -99,6 +99,10 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
       return null;
     }
 
+    public List<String> getZonesFromRegion(String region) {
+      return region != null && regionToZonesMap != null ? regionToZonesMap.get(region) : null;
+    }
+
     public GoogleCredentials getCredentials() {
       return credentials;
     }

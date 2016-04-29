@@ -20,10 +20,12 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
+import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.model.Autoscaler
 import com.google.api.services.compute.model.AutoscalersScopedList
 import com.google.api.services.compute.model.InstanceGroupManager
+import com.google.api.services.compute.model.InstanceGroupManagerList
 import com.google.api.services.compute.model.InstanceGroupsListInstancesRequest
 import com.google.api.services.compute.model.InstanceWithNamedPorts
 import com.netflix.frigga.Names
@@ -112,34 +114,39 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
   }
 
   private List<GoogleServerGroup> getServerGroups() {
-    List<String> zones = compute.regions().get(project, region).execute().getZones().collect { Utils.getLocalName(it) }
-    constructServerGroups(null /*onDemandServerGroupName*/, zones)
+    constructServerGroups(null /*onDemandServerGroupName*/, region)
   }
 
-  private GoogleServerGroup getServerGroup(String onDemandServerGroupName, String zone) {
-    def serverGroups = constructServerGroups(onDemandServerGroupName, [zone])
+  private GoogleServerGroup getServerGroup(String onDemandServerGroupName, String region) {
+    def serverGroups = constructServerGroups(onDemandServerGroupName, region)
     serverGroups ? serverGroups.first() : null
   }
 
-  private List<GoogleServerGroup> constructServerGroups(String onDemandServerGroupName, List<String> zones) {
+  private List<GoogleServerGroup> constructServerGroups(String onDemandServerGroupName, String region) {
+    List<String> zones = credentials.getZonesFromRegion(region)
     List<GoogleServerGroup> serverGroups = []
 
-    BatchRequest igmlRequest = buildBatchRequest()
+    BatchRequest igmRequest = buildBatchRequest()
     BatchRequest instanceGroupsRequest = buildBatchRequest()
     BatchRequest autoscalerRequest = buildBatchRequest()
 
     zones?.each { String zone ->
-      InstanceGroupManagerListCallback igmlCallback = new InstanceGroupManagerListCallback(
+      InstanceGroupManagerCallbacks instanceGroupManagerCallbacks = new InstanceGroupManagerCallbacks(
           serverGroups: serverGroups,
           zone: zone,
           instanceGroupsRequest: instanceGroupsRequest,
           autoscalerRequest: autoscalerRequest)
       if (onDemandServerGroupName) {
-        igmlCallback.onDemandServerGroupName = onDemandServerGroupName
+        InstanceGroupManagerCallbacks.InstanceGroupManagerSingletonCallback igmCallback =
+          instanceGroupManagerCallbacks.newInstanceGroupManagerSingletonCallback()
+        compute.instanceGroupManagers().get(project, zone, onDemandServerGroupName).queue(igmRequest, igmCallback)
+      } else {
+        InstanceGroupManagerCallbacks.InstanceGroupManagerListCallback igmlCallback =
+          instanceGroupManagerCallbacks.newInstanceGroupManagerListCallback()
+        compute.instanceGroupManagers().list(project, zone).queue(igmRequest, igmlCallback)
       }
-      compute.instanceGroupManagers().list(project, zone).queue(igmlRequest, igmlCallback)
     }
-    executeIfRequestsAreQueued(igmlRequest)
+    executeIfRequestsAreQueued(igmRequest)
     executeIfRequestsAreQueued(instanceGroupsRequest)
     executeIfRequestsAreQueued(autoscalerRequest)
 
@@ -154,14 +161,12 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
   @Override
   OnDemandAgent.OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data) {
     if (!data.containsKey("serverGroupName") ||
-        data.account != accountName ||
-        data.region != region ||
-        !data.zone) {
+      data.account != accountName || data.region != region) {
       return null
     }
 
     GoogleServerGroup serverGroup = metricsSupport.readData {
-      getServerGroup(data.serverGroupName as String, data.zone as String)
+      getServerGroup(data.serverGroupName as String, data.region as String)
     }
 
     def cacheResultBuilder = new CacheResultBuilder(startTime: Long.MAX_VALUE)
@@ -169,16 +174,15 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
       buildCacheResult(cacheResultBuilder, serverGroup ? [serverGroup] : [])
     }
 
-    def dataRegion = credentials.regionFromZone(data.zone as String)
     if (result.cacheResults.values().flatten().empty) {
       // Avoid writing an empty onDemand cache record (instead delete any that may have previously existed).
       providerCache.evictDeletedItems(ON_DEMAND.ns, [Keys.getServerGroupKey(data.serverGroupName as String,
                                                                             accountName,
-                                                                            dataRegion)])
+                                                                            data.region)])
     } else {
       metricsSupport.onDemandStore {
         def cacheData = new DefaultCacheData(
-            Keys.getServerGroupKey(data.serverGroupName as String, accountName, dataRegion),
+            Keys.getServerGroupKey(data.serverGroupName as String, accountName, data.region),
             TimeUnit.MINUTES.toSeconds(10) as Integer, // ttl
             [
                 cacheTime     : System.currentTimeMillis(),
@@ -197,7 +201,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
     if (!serverGroup) {
       evictions[SERVER_GROUPS.ns].add(Keys.getServerGroupKey(data.serverGroupName as String,
                                                              accountName,
-                                                             dataRegion))
+                                                             data.region))
     }
 
     log.info("On demand cache refresh succeeded. Data: ${data}")
@@ -334,61 +338,94 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
     Map<String, Collection<String>> relationships = [:].withDefault { [] as Set }
   }
 
-  class InstanceGroupManagerListCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceGroupManagerList> implements FailureLogger {
+  class InstanceGroupManagerCallbacks {
 
-    String onDemandServerGroupName
     List<GoogleServerGroup> serverGroups
     String zone
     BatchRequest instanceGroupsRequest
     BatchRequest autoscalerRequest
 
-    /**
-     * Include all returned server groups unless this is an on demand request, in which only include the one requested.
-     */
-    boolean shouldIncludeServerGroup(String name) {
-      !onDemandServerGroupName || onDemandServerGroupName == name
+    InstanceGroupManagerSingletonCallback<InstanceGroupManager> newInstanceGroupManagerSingletonCallback() {
+      return new InstanceGroupManagerSingletonCallback<InstanceGroupManager>()
     }
 
-    @Override
-    void onSuccess(InstanceGroupManagerList instanceGroupManagerList, HttpHeaders responseHeaders) throws IOException {
-      instanceGroupManagerList?.items?.each { InstanceGroupManager instanceGroupManager ->
-        def names = Names.parseName(instanceGroupManager.name)
-        def appName = names.app.toLowerCase()
+    InstanceGroupManagerListCallback<InstanceGroupManagerList> newInstanceGroupManagerListCallback() {
+      return new InstanceGroupManagerListCallback<InstanceGroupManagerList>()
+    }
 
-        if (appName && shouldIncludeServerGroup(instanceGroupManager.name as String)) {
-          def serverGroup = new GoogleServerGroup(
-              name: instanceGroupManager.name,
-              region: region,
-              zone: zone,
-              currentActions: instanceGroupManager.currentActions,
-              launchConfig: [createdTime: Utils.getTimeFromTimestamp(instanceGroupManager.creationTimestamp)],
-              asg: [minSize        : instanceGroupManager.targetSize,
-                    maxSize        : instanceGroupManager.targetSize,
-                    desiredCapacity: instanceGroupManager.targetSize])
-          serverGroups << serverGroup
+    class InstanceGroupManagerSingletonCallback<InstanceGroupManager> extends JsonBatchCallback<InstanceGroupManager> {
 
-          InstanceGroupsCallback instanceGroupsCallback = new InstanceGroupsCallback(serverGroup: serverGroup)
-          compute.instanceGroups().listInstances(project,
-                                                 zone,
-                                                 serverGroup.name,
-                                                 new InstanceGroupsListInstancesRequest()).queue(instanceGroupsRequest,
-                                                                                                 instanceGroupsCallback)
-
-          String instanceTemplateName = Utils.getLocalName(instanceGroupManager.instanceTemplate)
-          List<String> loadBalancerNames =
-            Utils.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(instanceGroupManager.getTargetPools())
-          InstanceTemplatesCallback instanceTemplatesCallback = new InstanceTemplatesCallback(serverGroup: serverGroup,
-                                                                                              loadBalancerNames: loadBalancerNames)
-          compute.instanceTemplates().get(project, instanceTemplateName).queue(instanceGroupsRequest,
-                                                                               instanceTemplatesCallback)
+      @Override
+      void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
+        // 404 is thrown if the managed instance group does not exist in the given zone. Any other exception needs to be propagated.
+        if (e.code != 404) {
+          def errorJson = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(e)
+          log.error errorJson
         }
       }
 
-      def autoscalerCallback = new AutoscalerAggregatedListCallback(serverGroups: serverGroups)
-      compute.autoscalers().aggregatedList(project).queue(autoscalerRequest, autoscalerCallback)
+      @Override
+      void onSuccess(InstanceGroupManager instanceGroupManager, HttpHeaders responseHeaders) throws IOException {
+        if (Names.parseName(instanceGroupManager.name)) {
+          GoogleServerGroup serverGroup = buildServerGroupFromInstanceGroupManager(instanceGroupManager)
+          serverGroups << serverGroup
+
+          populateInstancesAndTemplate(instanceGroupManager, serverGroup)
+
+          def autoscalerCallback = new AutoscalerSingletonCallback(serverGroup: serverGroup)
+          compute.autoscalers().get(project, zone, serverGroup.name).queue(autoscalerRequest, autoscalerCallback)
+        }
+      }
+    }
+
+    class InstanceGroupManagerListCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceGroupManagerList> implements FailureLogger {
+
+      @Override
+      void onSuccess(InstanceGroupManagerList instanceGroupManagerList, HttpHeaders responseHeaders) throws IOException {
+        instanceGroupManagerList?.items?.each { InstanceGroupManager instanceGroupManager ->
+          if (Names.parseName(instanceGroupManager.name)) {
+            GoogleServerGroup serverGroup = buildServerGroupFromInstanceGroupManager(instanceGroupManager)
+            serverGroups << serverGroup
+
+            populateInstancesAndTemplate(instanceGroupManager, serverGroup)
+          }
+        }
+
+        def autoscalerCallback = new AutoscalerAggregatedListCallback(serverGroups: serverGroups)
+        compute.autoscalers().aggregatedList(project).queue(autoscalerRequest, autoscalerCallback)
+      }
+    }
+
+    GoogleServerGroup buildServerGroupFromInstanceGroupManager(InstanceGroupManager instanceGroupManager) {
+      return new GoogleServerGroup(
+          name: instanceGroupManager.name,
+          region: region,
+          zone: instanceGroupManager.zone,
+          currentActions: instanceGroupManager.currentActions,
+          launchConfig: [createdTime: Utils.getTimeFromTimestamp(instanceGroupManager.creationTimestamp)],
+          asg: [minSize        : instanceGroupManager.targetSize,
+                maxSize        : instanceGroupManager.targetSize,
+                desiredCapacity: instanceGroupManager.targetSize]
+      )
+    }
+
+    void populateInstancesAndTemplate(InstanceGroupManager instanceGroupManager, GoogleServerGroup serverGroup) {
+      InstanceGroupsCallback instanceGroupsCallback = new InstanceGroupsCallback(serverGroup: serverGroup)
+      compute.instanceGroups().listInstances(project,
+                                             zone,
+                                             serverGroup.name,
+                                             new InstanceGroupsListInstancesRequest()).queue(instanceGroupsRequest,
+                                             instanceGroupsCallback)
+
+      String instanceTemplateName = Utils.getLocalName(instanceGroupManager.instanceTemplate)
+      List<String> loadBalancerNames =
+        Utils.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(instanceGroupManager.getTargetPools())
+      InstanceTemplatesCallback instanceTemplatesCallback = new InstanceTemplatesCallback(serverGroup: serverGroup,
+                                                                                          loadBalancerNames: loadBalancerNames)
+      compute.instanceTemplates().get(project, instanceTemplateName).queue(instanceGroupsRequest,
+                                                                           instanceTemplatesCallback)
     }
   }
-
 
   class InstanceGroupsCallback<InstanceGroupsListInstances> extends JsonBatchCallback<InstanceGroupsListInstances> implements FailureLogger {
 
@@ -444,6 +481,16 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
           serverGroup.setDisabled(loadBalancerNames.empty)
         }
       }
+    }
+  }
+
+  class AutoscalerSingletonCallback<Autoscaler> extends JsonBatchCallback<Autoscaler> implements FailureLogger {
+
+    GoogleServerGroup serverGroup
+
+    @Override
+    void onSuccess(Autoscaler autoscaler, HttpHeaders responseHeaders) throws IOException {
+      serverGroup.autoscalingPolicy = autoscaler.getAutoscalingPolicy()
     }
   }
 
