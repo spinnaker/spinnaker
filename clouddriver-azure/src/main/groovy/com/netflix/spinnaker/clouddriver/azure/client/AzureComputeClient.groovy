@@ -23,6 +23,7 @@ import com.microsoft.azure.management.compute.ComputeManagementClientImpl
 import com.microsoft.azure.management.compute.VirtualMachineImagesOperations
 import com.microsoft.azure.management.compute.VirtualMachineScaleSetVMsOperations
 import com.microsoft.azure.management.compute.VirtualMachineScaleSetsOperations
+import com.microsoft.azure.management.compute.models.VirtualMachineImage
 import com.microsoft.rest.ServiceResponse
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureInstance
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
@@ -124,6 +125,10 @@ public class AzureComputeClient extends AzureBaseClient {
     result
   }
 
+  VirtualMachineImage getVMImage(String location, String publisher, String offer, String skus, String version) {
+    executeOp({vmImageOps.get(location, publisher, offer, skus,version)})?.body
+  }
+
   /**
    *
    * @param Region
@@ -188,7 +193,7 @@ public class AzureComputeClient extends AzureBaseClient {
 
     List<String> instanceIds = this.getServerGroupInstances(resourceGroupName,serverGroupName)?.collect {it.resourceId}
 
-    getScaleSetOps().powerOff(resourceGroupName, serverGroupName, instanceIds)
+    scaleSetOps.powerOff(resourceGroupName, serverGroupName, instanceIds)
 
     // TODO: investigate if we can deallocate the VMs
     //ops.deallocate(resourceGroupName, serverGroupName, instanceIds)
@@ -216,6 +221,8 @@ public class AzureComputeClient extends AzureBaseClient {
 
     instances
   }
+
+
 
   /***
    * The namespace for the Azure Resource Provider

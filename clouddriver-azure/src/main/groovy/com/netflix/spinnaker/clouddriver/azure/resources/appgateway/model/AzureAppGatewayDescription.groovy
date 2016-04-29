@@ -75,7 +75,7 @@ class AzureAppGatewayDescription extends AzureResourceOpsDescription {
     description.serverGroups = appGateway.tags?.serverGroups?.split(" ")
     description.vnet = appGateway.tags?.vnet
     description.createdTime = appGateway.tags?.createdTime?.toLong()
-    description.tags = appGateway.tags
+    description.tags = appGateway.tags ?: [:]
     description.region = appGateway.location
 
     appGateway.requestRoutingRules.each { rule ->

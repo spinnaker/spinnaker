@@ -27,8 +27,8 @@ import com.microsoft.azure.management.network.PublicIPAddressesOperations
 import com.microsoft.azure.management.network.SubnetsOperations
 import com.microsoft.azure.management.network.VirtualNetworksOperations
 import com.microsoft.azure.management.network.models.AddressSpace
+import com.microsoft.azure.management.network.models.ApplicationGatewayBackendAddressPool
 import com.microsoft.azure.management.network.models.DhcpOptions
-import com.microsoft.azure.management.network.models.LoadBalancer
 import com.microsoft.azure.management.network.models.NetworkSecurityGroup
 import com.microsoft.azure.management.network.models.PublicIPAddress
 import com.microsoft.azure.management.network.models.Subnet
@@ -88,7 +88,7 @@ class AzureNetworkClient extends AzureBaseClient {
       loadBalancers?.each {item ->
         if (item.location == region) {
           try {
-            def lbItem = getDescriptionForLoadBalancer(item)
+            def lbItem = AzureLoadBalancerDescription.build(item)
             lbItem.dnsName = getDnsNameForPublicIp(
               AzureUtilities.getResourceGroupNameFromResourceId(item.id),
               AzureUtilities.getNameFromResourceId(item.frontendIPConfigurations?.first()?.getPublicIPAddress()?.id)
@@ -120,7 +120,7 @@ class AzureNetworkClient extends AzureBaseClient {
       def currentTime = System.currentTimeMillis()
       def item = executeOp({loadBalancerOps.get(resourceGroupName, loadBalancerName, null)})?.body
       if (item) {
-        def lbItem = getDescriptionForLoadBalancer(item)
+        def lbItem = AzureLoadBalancerDescription.build(item)
         lbItem.dnsName = getDnsNameForPublicIp(
           AzureUtilities.getResourceGroupNameFromResourceId(item.id),
           AzureUtilities.getNameFromResourceId(item.frontendIPConfigurations?.first()?.getPublicIPAddress()?.id)
@@ -135,59 +135,6 @@ class AzureNetworkClient extends AzureBaseClient {
     null
   }
 
-  private static AzureLoadBalancerDescription getDescriptionForLoadBalancer(LoadBalancer azureLoadBalancer) {
-    AzureLoadBalancerDescription description = new AzureLoadBalancerDescription(loadBalancerName: azureLoadBalancer.name)
-    def parsedName = Names.parseName(azureLoadBalancer.name)
-    description.stack = azureLoadBalancer.tags?.stack ?: parsedName.stack
-    description.detail = azureLoadBalancer.tags?.detail ?: parsedName.detail
-    description.appName = azureLoadBalancer.tags?.appName ?: parsedName.app
-    description.cluster = azureLoadBalancer.tags?.cluster
-    description.serverGroup = azureLoadBalancer.tags?.serverGroup
-    description.vnet = azureLoadBalancer.tags?.vnet
-    description.createdTime = azureLoadBalancer.tags?.createdTime?.toLong()
-    description.tags = azureLoadBalancer.tags
-    description.region = azureLoadBalancer.location
-
-    for (def rule : azureLoadBalancer.loadBalancingRules) {
-      def r = new AzureLoadBalancerDescription.AzureLoadBalancingRule(ruleName: rule.name)
-      r.externalPort = rule.frontendPort
-      r.backendPort = rule.backendPort
-      r.probeName = AzureUtilities.getNameFromResourceId(rule.probe.id)
-      r.persistence = rule.loadDistribution;
-      r.idleTimeout = rule.idleTimeoutInMinutes;
-
-      if (rule.protocol.toLowerCase() == "udp") {
-        r.protocol = AzureLoadBalancerDescription.AzureLoadBalancingRule.AzureLoadBalancingRulesType.UDP
-      } else {
-        r.protocol = AzureLoadBalancerDescription.AzureLoadBalancingRule.AzureLoadBalancingRulesType.TCP
-      }
-      description.loadBalancingRules.add(r)
-    }
-
-    // Add the probes
-    for (def probe : azureLoadBalancer.probes) {
-      def p = new AzureLoadBalancerDescription.AzureLoadBalancerProbe()
-      p.probeName = probe.name
-      p.probeInterval = probe.intervalInSeconds
-      p.probePath = probe.requestPath
-      p.probePort = probe.port
-      p.unhealthyThreshold = probe.numberOfProbes
-      if (probe.protocol.toLowerCase() == "tcp") {
-        p.probeProtocol = AzureLoadBalancerDescription.AzureLoadBalancerProbe.AzureLoadBalancerProbesType.TCP
-      } else {
-        p.probeProtocol = AzureLoadBalancerDescription.AzureLoadBalancerProbe.AzureLoadBalancerProbesType.HTTP
-      }
-      description.probes.add(p)
-    }
-
-    for (def natRule : azureLoadBalancer.inboundNatRules) {
-      def n = new AzureLoadBalancerDescription.AzureLoadBalancerInboundNATRule(ruleName: natRule.name)
-      description.inboundNATRules.add(n)
-    }
-
-    description
-  }
-
   /**
    * Delete a load balancer in Azure
    * @param resourceGroupName name of the resource group where the load balancer was created (see application name and region/location)
@@ -195,9 +142,9 @@ class AzureNetworkClient extends AzureBaseClient {
    * @return a ServiceResponse object
    */
   ServiceResponse deleteLoadBalancer(String resourceGroupName, String loadBalancerName) {
-    def loadBalancer = loadBalancerOps.get(resourceGroupName, loadBalancerName, null)?.body
+    def loadBalancer = executeOp({loadBalancerOps.get(resourceGroupName, loadBalancerName, null)})?.body
 
-    if (loadBalancer.frontendIPConfigurations.size() != 1) {
+    if (loadBalancer?.frontendIPConfigurations?.size() != 1) {
       throw new RuntimeException("Unexpected number of public IP addresses associated with the load balancer (should always be only one)!")
     }
 
@@ -321,6 +268,28 @@ class AzureNetworkClient extends AzureBaseClient {
     if (publicIpAddressName) result = deletePublicIp(resourceGroupName, publicIpAddressName)
 
     result
+  }
+
+  /**
+   * Retrieve the App Gateway backend address pool. Create a new one if it doesn't already exist
+   * @param resourceGroupName - Resource Group where desired resources exist
+   * @param appGatewayName - Name of the Application Gateway
+   * @param backendAddressPoolName - name of the backend address pool to locate/create
+   * @param azureAppGateway - Instance of a ApplicationGateway
+   * @return
+   */
+  String getAppGatewayBackendPool(String resourceGroupName, String appGatewayName, String backendAddressPoolName) {
+    def appGateway = executeOp({appGatewayOps.get(resourceGroupName, appGatewayName)})?.body
+
+    //check to see if there is already an entry in the pool for the given BAP name
+    if (appGateway && !appGateway.backendAddressPools.find({ it.name == backendAddressPoolName })) {
+      appGateway.backendAddressPools.add(new ApplicationGatewayBackendAddressPool(name: backendAddressPoolName))
+      log.info("Adding backend address pool $backendAddressPoolName to Load Balancer ${appGateway.name}")
+      appGateway = executeOp({appGatewayOps.createOrUpdate(resourceGroupName, appGatewayName, appGateway)}).body
+      log.info("Backend address pool $backendAddressPoolName added to LoadBalancer ${appGateway.name}")
+    }
+
+    appGateway?.backendAddressPools?.find({ it.name == backendAddressPoolName })?.id
   }
 
   /**

@@ -56,6 +56,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
   String subnetId
   List<String> storageAccountNames
   Boolean isDisabled // TODO add implementation to handle when a server group has been enabled/disabled
+  List<AzureInboundPortConfig> inboundPortConfigs = []
 
   static class AzureScaleSetSku {
     String name
@@ -67,6 +68,15 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     String adminUserName
     String adminPassword
     String computerNamePrefix
+  }
+
+  static class AzureInboundPortConfig {
+    String name
+    String protocol
+    int frontEndPortRangeStart
+    int frontEndPortRangeEnd
+    int backendPort
+
   }
 
   Integer getStorageAccountCount() {
@@ -179,6 +189,15 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
 
   static Collection<Instance> filterInstancesByHealthState(Set<Instance> instances, HealthState healthState) {
     instances?.findAll { Instance it -> it.getHealthState() == healthState }
+  }
+
+  void addInboundPortConfig(String name, int startRange, int endRange, String protocol, int backendPort) {
+    AzureInboundPortConfig inboundConfig = new AzureInboundPortConfig(name: name)
+    inboundConfig.frontEndPortRangeStart = startRange
+    inboundConfig.frontEndPortRangeEnd = endRange
+    inboundConfig.backendPort = backendPort
+    inboundConfig.protocol = protocol
+    inboundPortConfigs.add(inboundConfig)
   }
 
 }
