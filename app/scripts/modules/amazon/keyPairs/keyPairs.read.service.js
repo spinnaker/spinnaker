@@ -11,7 +11,8 @@ module.exports = angular
     function listKeyPairs() {
       return Restangular.all('keyPairs')
         .withHttpConfig({cache: true})
-        .getList();
+        .getList()
+        .then(keyPairs => keyPairs.sort((a, b) => a.keyName.localeCompare(b.keyName)));
     }
 
     return {
