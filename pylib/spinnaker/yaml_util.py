@@ -16,6 +16,27 @@ import os
 import re
 import yaml
 
+def yml_or_yaml_path(basedir, basename):
+  """Return a path to the requested YAML file.
+
+  Args:
+    basedir [string]: The directory path containing the file.
+    basename [string]: The base filename for the file
+
+  Returns:
+    Path to the YAML file with either a .yml or .yaml extension,
+    depending on which if any exists.
+    If neither exists, return the .yml. If both, then raise an exception.
+  """
+  basepath = os.path.join(basedir, basename)
+  yml_path = basepath + ".yml"
+  yaml_path = basepath + ".yaml"
+  if os.path.exists(yaml_path):
+    if os.path.exists(yml_path):
+      raise ValueError('Both {0} and {1} exist.'.format(yml_path, yaml_path))
+    return yaml_path
+  return yml_path
+
 
 class YamlBindings(object):
   """Implements a map from yaml using variable references similar to spring."""
@@ -172,18 +193,19 @@ class YamlBindings(object):
 
 
 def load_bindings(installed_config_dir, user_config_dir, only_if_local=False):
-    user_local_yml_path = os.path.join(user_config_dir, 'spinnaker-local.yml')
-    install_local_yml_path = os.path.join(installed_config_dir,
-                                          'spinnaker-local.yml')
+    user_local_yml_path = yml_or_yaml_path(user_config_dir, 'spinnaker-local')
+    install_local_yml_path = yml_or_yaml_path(installed_config_dir,
+                                              'spinnaker-local')
 
     have_user_local = os.path.exists(user_local_yml_path)
     have_install_local = os.path.exists(install_local_yml_path)
+
     have_local = have_user_local or have_install_local
     if only_if_local and not have_local:
       return None
 
     bindings = YamlBindings()
-    bindings.import_path(os.path.join(installed_config_dir, 'spinnaker.yml'))
+    bindings.import_path(yml_or_yaml_path(installed_config_dir, 'spinnaker'))
     if have_install_local:
       bindings.import_path(install_local_yml_path)
     if have_user_local:

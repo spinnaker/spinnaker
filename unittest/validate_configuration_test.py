@@ -121,7 +121,8 @@ class ValidateConfigurationTest(unittest.TestCase):
         self.assertEquals('Missing "unresolved".', validator.errors[0])
 
         self.assertFalse(validator.verify_host('missing', True))
-        self.assertEquals('Missing "missing".', validator.errors[len(tests)])
+        self.assertEquals('No host provided for "missing".',
+                          validator.errors[len(tests)])
 
     def test_verify_host_optional_ok(self):
         tests = {
