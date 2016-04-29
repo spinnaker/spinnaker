@@ -107,10 +107,6 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
       return emptyClusterResult(stage, clusterSelection, cluster.get())
     }
 
-    Map<Location, List<TargetServerGroup>> targetServerGroupsByLocation = serverGroups.collect {
-      new TargetServerGroup(serverGroup: it)
-    }.groupBy { it.getLocation() }
-
     def locations =
       stage.context.regions
       ? stage.context.regions.collect { new Location(type: Location.Type.REGION, value: it) }
@@ -119,6 +115,12 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
         : stage.context.region
           ? [new Location(type: Location.Type.REGION, value: stage.context.region)]
           : []
+
+    Location.Type exactLocationType = locations?.getAt(0)?.type
+
+    Map<Location, List<TargetServerGroup>> targetServerGroupsByLocation = serverGroups.collect {
+      new TargetServerGroup(serverGroup: it)
+    }.groupBy { it.getLocation(exactLocationType) }
 
     List<TargetServerGroup> filteredServerGroups = locations.findResults { Location l ->
       def tsgs = targetServerGroupsByLocation[l]
@@ -181,7 +183,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
       return []
     }
 
-    if (!serverGroups.every { it.getLocation() == location }) {
+    if (!serverGroups.every { it.getLocation(location.type) == location }) {
       throw new IllegalStateException("all server groups must be in the same location, found ${serverGroups*.getLocation()}")
     }
 
