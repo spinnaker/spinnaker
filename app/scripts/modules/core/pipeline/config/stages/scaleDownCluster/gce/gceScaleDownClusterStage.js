@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.scaleDownClus
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'remainingFullSizeServerGroups', fieldLabel: 'Keep [X] full size Server Groups'},
-        { type: 'requiredField', fieldName: 'zones', },
+        { type: 'requiredField', fieldName: 'regions', },
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
       strategy: true,
@@ -27,7 +27,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.scaleDownClus
 
     $scope.state = {
       accounts: false,
-      zonesLoaded: false
+      regionsLoaded: false
     };
 
     accountService.listAccounts('gce').then(function (accounts) {
@@ -35,13 +35,14 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.scaleDownClus
       $scope.state.accounts = true;
     });
 
-    $scope.zones = {'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c']};
-
-    stage.zones = stage.zones || [];
+    stage.regions = stage.regions || [];
     stage.cloudProvider = 'gce';
 
     if (!stage.credentials && $scope.application.defaultCredentials.gce) {
       stage.credentials = $scope.application.defaultCredentials.gce;
+    }
+    if (!stage.regions.length && $scope.application.defaultRegions.gce) {
+      stage.regions.push($scope.application.defaultRegions.gce);
     }
 
     if (stage.remainingFullSizeServerGroups === undefined) {
@@ -63,7 +64,5 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.scaleDownClus
       stage.preferLargerOverNewer = 'false';
     }
     stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
-
-    $scope.$watch('stage.credentials', $scope.accountUpdated);
   });
 

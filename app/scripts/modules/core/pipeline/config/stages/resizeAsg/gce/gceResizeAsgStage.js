@@ -22,7 +22,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'target' },
         { type: 'requiredField', fieldName: 'action' },
-        { type: 'requiredField', fieldName: 'zones' },
+        { type: 'requiredField', fieldName: 'regions', },
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'}
       ],
     });
@@ -34,16 +34,13 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
 
     $scope.viewState = {
       accountsLoaded: false,
-      zonesLoaded: false
+      regionsLoaded: false,
     };
 
     accountService.listAccounts('gce').then(function (accounts) {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
     });
-
-    $scope.zones = {'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c']};
-
 
     $scope.resizeTargets = stageConstants.targetList;
 
@@ -78,11 +75,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
     ];
 
     stage.capacity = stage.capacity || {};
-    stage.zones = stage.zones || [];
+    stage.regions = stage.regions || [];
     stage.target = stage.target || $scope.resizeTargets[0].val;
     stage.action = stage.action || $scope.scaleActions[0].val;
     stage.resizeType = stage.resizeType || $scope.resizeTypes[0].val;
-    if (stage.resizeType === 'exact') {
+    if (!stage.action && stage.resizeType === 'exact') {
       stage.action = 'scale_exact';
     }
     stage.cloudProvider = 'gce';
@@ -95,6 +92,9 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
     if (!stage.credentials && $scope.application.defaultCredentials.gce) {
       stage.credentials = $scope.application.defaultCredentials.gce;
     }
+    if (!stage.regions.length && $scope.application.defaultRegions.gce) {
+      stage.regions.push($scope.application.defaultRegions.gce);
+    }
 
     ctrl.updateResizeType = function() {
       if (stage.action === 'scale_exact') {
@@ -105,8 +105,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
         stage.capacity = {};
         if (stage.resizeType === 'pct') {
           delete stage.scaleNum;
-        } else if (stage.resizeType === 'incr') {
+        } else {
+          stage.resizeType = 'incr';
           delete stage.scalePct;
+          stage.scaleNum = stage.scaleNum || 0;
         }
       }
     };

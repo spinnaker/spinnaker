@@ -114,27 +114,6 @@ module.exports = angular
         .value();
     };
 
-    let getZonesByRegion = (appList, accountFilter = defaultAccountFilter, clusterFilter = defaultClusterFilter, regionFilter = defaultRegionFilter, serverGroupFilter = defaultServerGroupFilter) => {
-      return _(appList)
-        .map('clusters').flatten()
-        .filter( accountFilter )
-        .filter( clusterFilter )
-        .map('serverGroups').flatten()
-        .filter( regionFilter )
-        .filter( serverGroupFilter )
-        .value()
-        .reduce((acc, serverGroup) => {
-          serverGroup['instances'].forEach((instance) => {
-            if (acc[serverGroup.region]) {
-              acc[serverGroup.region] = _.uniq(acc[serverGroup.region].concat(instance.availabilityZone));
-            } else {
-              acc[serverGroup.region] = [instance.availabilityZone];
-            }
-          });
-          return acc;
-        }, {});
-    };
-
     let defaultAvailabilityZoneFilter = (/*instance*/) => true;
 
     let getInstances = (appList, clusterFilter = defaultClusterFilter, serverGroupFilter = defaultServerGroupFilter, availabilityZoneFilter = defaultAvailabilityZoneFilter) => {
@@ -159,7 +138,6 @@ module.exports = angular
       clusterFilterForCredentialsAndZone: clusterFilterForCredentialsAndZone,
       getAsgs: getAsgs,
       getZones: getZones,
-      getZonesByRegion: getZonesByRegion,
       getInstances: getInstances,
     };
 

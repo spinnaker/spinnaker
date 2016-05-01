@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.shrinkCluster
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'shrinkToSize', fieldLabel: 'shrink to [X] Server Groups'},
-        { type: 'requiredField', fieldName: 'zones', },
+        { type: 'requiredField', fieldName: 'regions', },
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
@@ -26,7 +26,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.shrinkCluster
 
     $scope.state = {
       accounts: false,
-      zonesLoaded: false
+      regionsLoaded: false
     };
 
     accountService.listAccounts('gce').then(function (accounts) {
@@ -34,13 +34,14 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.shrinkCluster
       $scope.state.accounts = true;
     });
 
-    $scope.zones = {'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c']};
-
-    stage.zones = stage.zones || [];
+    stage.regions = stage.regions || [];
     stage.cloudProvider = 'gce';
 
     if (!stage.credentials && $scope.application.defaultCredentials.gce) {
       stage.credentials = $scope.application.defaultCredentials.gce;
+    }
+    if (!stage.regions.length && $scope.application.defaultRegions.gce) {
+      stage.regions.push($scope.application.defaultRegions.gce);
     }
 
     if (stage.shrinkToSize === undefined) {
@@ -62,7 +63,5 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.shrinkCluster
       stage.retainLargerOverNewer = 'false';
     }
     stage.retainLargerOverNewer = stage.retainLargerOverNewer.toString();
-
-    $scope.$watch('stage.credentials', $scope.accountUpdated);
   });
 

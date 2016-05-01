@@ -8,8 +8,8 @@
           <dd>
             <account-tag account="stage.context.credentials"></account-tag>
           </dd>
-          <dt ng-if="stage.context.zones">Zones</dt>
-          <dd ng-if="stage.context.zones">{{stage.context.zones.join(', ')}}</dd>
+          <dt ng-if="stage.context.regions">Regions</dt>
+          <dd ng-if="stage.context.regions">{{stage.context.regions.join(', ')}}</dd>
           <dt>Cluster</dt>
           <dd>{{stage.context.cluster}}</dd>
         </dl>
@@ -22,8 +22,8 @@
         <div class="well alert alert-info">
           <h4>Results</h4>
           <dl ng-repeat="image in stage.context.amiDetails" class="dl-narrow dl-horizontal">
-            <dt>Zone</dt>
-            <dd>{{image.zone}}</dd>
+            <dt>Region</dt>
+            <dd>{{image.region}}</dd>
             <dt>Image ID</dt>
             <dd>{{image.imageId}}</dd>
             <dt>Name</dt>

@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.findAmiStage'
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'selectionStrategy', fieldLabel: 'Server Group Selection'},
-        { type: 'requiredField', fieldName: 'zones' },
+        { type: 'requiredField', fieldName: 'regions' },
         { type: 'requiredField', fieldName: 'credentials' }
       ]
     });
@@ -26,7 +26,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.findAmiStage'
 
     $scope.state = {
       accounts: false,
-      zonesLoaded: false
+      regionsLoaded: false
     };
 
     accountService.listAccounts('gce').then(function (accounts) {
@@ -52,7 +52,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.findAmiStage'
       description: 'When multiple server groups exist, fail'
     }];
 
-    stage.zones = stage.zones || [];
+    stage.regions = stage.regions || [];
     stage.cloudProvider = 'gce';
     stage.selectionStrategy = stage.selectionStrategy || $scope.selectionStrategies[0].val;
 
@@ -62,6 +62,9 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.findAmiStage'
 
     if (!stage.credentials && $scope.application.defaultCredentials.gce) {
       stage.credentials = $scope.application.defaultCredentials.gce;
+    }
+    if (!stage.regions.length && $scope.application.defaultRegions.gce) {
+      stage.regions.push($scope.application.defaultRegions.gce);
     }
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);

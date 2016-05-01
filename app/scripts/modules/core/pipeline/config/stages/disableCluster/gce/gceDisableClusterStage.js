@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-//BEN_TODO: where is this defined?
-
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableClusterStage', [
   require('../../../../../account/account.service.js'),
   require('./disableClusterExecutionDetails.controller.js')
@@ -17,7 +15,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableCluste
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'remainingEnabledServerGroups', fieldLabel: 'Keep [X] enabled Server Groups'},
-        { type: 'requiredField', fieldName: 'zones', },
+        { type: 'requiredField', fieldName: 'regions', },
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
@@ -28,19 +26,15 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableCluste
 
     $scope.state = {
       accounts: false,
-      zonesLoaded: false
+      regionsLoaded: false
     };
-
 
     accountService.listAccounts('gce').then(function (accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
 
-    $scope.zones = {'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c']};
-
-
-    stage.zones = stage.zones || [];
+    stage.regions = stage.regions || [];
     stage.cloudProvider = 'gce';
 
     if (stage.isNew && $scope.application.attributes.platformHealthOnly) {
@@ -49,6 +43,9 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableCluste
 
     if (!stage.credentials && $scope.application.defaultCredentials.gce) {
       stage.credentials = $scope.application.defaultCredentials.gce;
+    }
+    if (!stage.regions.length && $scope.application.defaultRegions.gce) {
+      stage.regions.push($scope.application.defaultRegions.gce);
     }
 
     if (stage.remainingEnabledServerGroups === undefined) {

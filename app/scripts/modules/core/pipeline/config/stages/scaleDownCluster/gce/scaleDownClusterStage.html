@@ -1,10 +1,10 @@
 <div ng-controller="gceScaleDownClusterStageCtrl as scaleDownClusterStageCtrl" class="form-horizontal">
   <div ng-if="!pipeline.strategy">
-    <account-zone-cluster-selector
+    <account-region-cluster-selector
       application="application"
       component="stage"
       accounts="accounts">
-    </account-zone-cluster-selector>
+    </account-region-cluster-selector>
 
   </div>
   <stage-config-field label="Scale Down Options">
