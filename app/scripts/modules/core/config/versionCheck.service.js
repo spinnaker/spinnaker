@@ -14,7 +14,8 @@ module.exports = angular
     $log.debug('Deck version', currentVersion.version, 'created', $filter('timestamp')(currentVersion.created));
 
     let checkVersion = () => {
-      $timeout(() => $http.get('/version.json').then(versionRetrieved, checkVersion), 60000);
+      let url = '/version.json?_=' + new Date().getTime();
+      $timeout(() => $http.get(url).then(versionRetrieved, checkVersion), 15000);
     };
 
     let versionRetrieved = (response) => {
