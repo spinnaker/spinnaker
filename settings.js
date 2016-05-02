@@ -42,7 +42,7 @@ window.spinnakerSettings = {
     },
     titan: {
       defaults: {
-        account: 'titustest',
+        account: 'titustestvpc',
         region: 'us-east-1'
       },
     },

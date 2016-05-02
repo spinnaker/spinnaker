@@ -23,6 +23,9 @@ module.exports = angular
         var ports = '' + command.resources.ports;
         command.resources.ports = ports.split(/\s*,\s*/);
       }
+      if (command.resources.allocateIpAddress === true ){
+        delete command.resources.ports;
+      }
       delete command.viewState;
       delete command.backingData;
       delete command.selectedProvider;
