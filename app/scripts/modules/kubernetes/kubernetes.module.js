@@ -17,6 +17,7 @@ module.exports = angular.module('spinnaker.kubernetes', [
   require('../core/pipeline/config/stages/enableAsg/kubernetes/kubernetesEnableAsgStage.js'),
   require('../core/pipeline/config/stages/resizeAsg/kubernetes/resizeStage.js'),
   require('./cache/configurer.service.js'),
+  require('./cluster/cluster.kubernetes.module.js'),
   require('./container/configurer.directive.js'),
   require('./container/probe.directive.js'),
   require('./instance/details/details.kubernetes.module.js'),
@@ -83,6 +84,9 @@ module.exports = angular.module('spinnaker.kubernetes', [
       },
       job: {
         transformer: 'kubernetesJobTransformer',
+        cloneJobController: 'kubernetesCloneJobController',
+        cloneJobTemplateUrl: require('./job/configure/wizard/wizard.html'),
+        commandBuilder: 'kubernetesJobCommandBuilder',
       },
     });
   });

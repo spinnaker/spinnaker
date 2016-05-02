@@ -7,52 +7,13 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
   require('../../../core/account/account.service.js'),
   require('../../../core/naming/naming.service.js'),
   require('../../../core/utils/lodash.js'),
+  require('../../cluster/cluster.kubernetes.module.js'),
 ])
-  .factory('kubernetesServerGroupCommandBuilder', function (settings, $q, accountService, namingService, _) {
-    function attemptToSetValidAccount(application, defaultAccount, command) {
-      return accountService.listAccounts('kubernetes').then(function(kubernetesAccounts) {
-        var kubernetesAccountNames = _.pluck(kubernetesAccounts, 'name');
-        var firstKubernetesAccount = null;
-
-        if (application.accounts.length) {
-          firstKubernetesAccount = _.find(application.accounts, function (applicationAccount) {
-            return kubernetesAccountNames.indexOf(applicationAccount) !== -1;
-          });
-        }
-
-        var defaultAccountIsValid = defaultAccount && kubernetesAccountNames.indexOf(defaultAccount) !== -1;
-
-        command.account =
-          defaultAccountIsValid ? defaultAccount : (firstKubernetesAccount ? firstKubernetesAccount : 'my-account-name');
-      });
-    }
-
+  .factory('kubernetesServerGroupCommandBuilder', function (settings, $q, accountService, namingService, _,
+                                                            kubernetesClusterCommandBuilder) {
     function buildNewServerGroupCommand(application, defaults = {}) {
-      var defaultAccount = defaults.account || settings.providers.kubernetes.defaults.account;
-
-      var command = {
-        account: defaultAccount,
-        application: application.name,
-        strategy: '',
-        targetSize: 1,
-        cloudProvider: 'kubernetes',
-        selectedProvider: 'kubernetes',
-        namespace: 'default',
-        containers: [],
-        volumeSources: [],
-        buildImageId: buildImageId,
-        groupByRegistry: groupByRegistry,
-        viewState: {
-          mode: defaults.mode || 'create',
-          disableStrategySelection: true,
-        }
-      };
-
-      if (application && application.attributes && application.attributes.platformHealthOnly) {
-        command.interestingHealthProviderNames = ['Kubernetes'];
-      }
-
-      attemptToSetValidAccount(application, defaultAccount, command);
+      var command = kubernetesClusterCommandBuilder.buildNewClusterCommand(application, defaults);
+      command.targetSize = 1;
 
       return $q.when(command);
     }
@@ -143,10 +104,10 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
       contextImages = contextImages.concat(findTriggerImages(pipeline.triggers));
       command.containers = reconcileUpstreamImages(command.containers, contextImages);
       command.containers.map((container) => {
-        container.imageDescription.imageId = buildImageId(container.imageDescription);
+        container.imageDescription.imageId = kubernetesClusterCommandBuilder.buildImageId(container.imageDescription);
       });
-      command.groupByRegistry = groupByRegistry;
-      command.buildImageId = buildImageId;
+      command.groupByRegistry = kubernetesClusterCommandBuilder.groupByRegistry;
+      command.buildImageId = kubernetesClusterCommandBuilder.buildImageId;
       command.strategy = command.strategy || '';
       command.selectedProvider = 'kubernetes';
       command.viewState = {
@@ -157,41 +118,8 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
       return $q.when(command);
     }
 
-    function groupByRegistry(container) {
-      if (container.imageDescription.fromContext) {
-        return 'Find Image Result(s)';
-      } else if (container.imageDescription.fromTrigger) {
-        return 'Images from Trigger(s)';
-      } else {
-        return container.imageDescription.registry;
-      }
-    }
-
-    function buildImageId(image) {
-      if (image.fromContext) {
-        return `${image.cluster} ${image.pattern}`;
-      } else if (image.fromTrigger && !image.tag) {
-        return `${image.registry}/${image.repository} (Tag resolved at runtime)`;
-      } else {
-        return `${image.registry}/${image.repository}:${image.tag}`;
-      }
-    }
-
     function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
-      mode = mode || 'clone';
-
-      var command = serverGroup.deployDescription;
-
-      command.groupByRegistry = groupByRegistry;
-      command.cloudProvider = 'kubernetes';
-      command.selectedProvider = 'kubernetes';
-      command.account = serverGroup.account;
-      command.buildImageId = buildImageId;
-      command.strategy = '';
-
-      command.containers.map((container) => {
-        container.imageDescription.imageId = buildImageId(container.imageDescription);
-      });
+      var command = kubernetesClusterCommandBuilder.buildClusterCommandFromExisting(application, serverGroup, mode);
 
       command.source = {
         serverGroupName: serverGroup.name,
@@ -200,14 +128,6 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
         region: serverGroup.region,
         namespace: serverGroup.region,
       };
-
-      command.viewState = {
-        mode: mode,
-      };
-
-      if (application && application.attributes && application.attributes.platformHealthOnly) {
-        command.interestingHealthProviderNames = ['Kubernetes'];
-      }
 
       return $q.when(command);
     }
