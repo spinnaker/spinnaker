@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.kork.eureka.EurekaComponents
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
@@ -23,6 +22,7 @@ import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.test.JobCompletionListener
+import com.netflix.spinnaker.orca.test.TestConfiguration
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import groovy.transform.CompileStatic
@@ -70,9 +70,9 @@ class RollingPushStageSpec extends Specification {
 
   def setup() {
     applicationContext.with {
-      register(EmbeddedRedisConfiguration, JesqueConfiguration, EurekaComponents,
+      register(EmbeddedRedisConfiguration, JesqueConfiguration,
                BatchTestConfiguration, OrcaConfiguration, OrcaPersistenceConfiguration,
-               JobCompletionListener)
+               JobCompletionListener, TestConfiguration)
       register(RollingPushStage)
       beanFactory.registerSingleton("endStage", endStage)
       ([preCycleTask, startOfCycleTask, endOfCycleTask] + cycleTasks).each { task ->

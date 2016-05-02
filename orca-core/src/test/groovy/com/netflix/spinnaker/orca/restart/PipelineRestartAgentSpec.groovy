@@ -17,12 +17,9 @@
 package com.netflix.spinnaker.orca.restart
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.appinfo.InstanceInfo
 import com.netflix.appinfo.InstanceInfo.InstanceStatus
 import com.netflix.discovery.StatusChangeEvent
-import com.netflix.discovery.shared.Application
-import com.netflix.discovery.shared.LookupService
-import com.netflix.spinnaker.kork.eureka.EurekaStatusChangedEvent
+import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import net.greghaines.jesque.client.Client
@@ -40,14 +37,12 @@ class PipelineRestartAgentSpec extends Specification {
 
   def executionRepository = Mock(ExecutionRepository)
   def jesqueClient = Mock(Client)
-  def orcaApplication = new Application("orca")
-  def discoveryClient = [getApplication: { it == "orca" ? orcaApplication : null }] as LookupService
-  @Shared def currentInstance = InstanceInfo.Builder.newBuilder().setAppName("orca").setHostName("localhost").build()
+  def instanceStatusProvider = Mock(InstanceStatusProvider)
+  def currentInstanceId = '12345@localhost'
   @Shared scheduler = Schedulers.test()
 
   @Subject
-    pipelineRestarter = new PipelineRestartAgent(new ObjectMapper(), jesqueClient, executionRepository, discoveryClient,
-                                                 currentInstance)
+    pipelineRestarter = new PipelineRestartAgent(new ObjectMapper(), jesqueClient, executionRepository, instanceStatusProvider, currentInstanceId, 'orca')
 
   def setup() {
     pipelineRestarter.scheduler = scheduler // TODO: evil. Make this a constructor param
@@ -65,6 +60,7 @@ class PipelineRestartAgentSpec extends Specification {
 
     then:
     pipelines.eachWithIndex { pipeline, i ->
+      1 * instanceStatusProvider.isInstanceUp('orca', instanceId) >> false
       1 * jesqueClient.enqueue("stalePipeline", { it.args[0].id == pipeline.id })
     }
 
@@ -113,9 +109,6 @@ class PipelineRestartAgentSpec extends Specification {
 
   def "if the executing instance is in discovery it is assumed to still be running the pipeline"() {
     given:
-    orcaApplication.addInstance(InstanceInfo.Builder.newBuilder().setAppName("orca").setHostName(instanceId).build())
-
-    and:
     executionRepository.retrievePipelines() >> Observable.just(pipeline)
 
     and:
@@ -125,6 +118,7 @@ class PipelineRestartAgentSpec extends Specification {
     advanceTime()
 
     then:
+    1 * instanceStatusProvider.isInstanceUp('orca', instanceId) >> true
     0 * jesqueClient.enqueue(*_)
 
     where:
@@ -146,7 +140,7 @@ class PipelineRestartAgentSpec extends Specification {
     0 * jesqueClient.enqueue(*_)
 
     where:
-    instanceId = currentInstance.id
+    instanceId = currentInstanceId
     pipeline = new Pipeline(id: "pipeline1", executingInstance: instanceId)
   }
 
@@ -174,9 +168,9 @@ class PipelineRestartAgentSpec extends Specification {
     pipelineRestarter.onApplicationEvent(statusChangeEvent(STARTING, UP))
   }
 
-  private static EurekaStatusChangedEvent statusChangeEvent(
+  private static RemoteStatusChangedEvent statusChangeEvent(
     InstanceStatus from,
     InstanceStatus to) {
-    new EurekaStatusChangedEvent(new StatusChangeEvent(from, to))
+    new RemoteStatusChangedEvent(new StatusChangeEvent(from, to))
   }
 }

@@ -31,7 +31,7 @@ allprojects {
   group = "com.netflix.spinnaker.orca"
 
   spinnaker {
-    dependenciesVersion = "0.19.0"
+    dependenciesVersion = "0.33.0"
   }
   test {
     testLogging {

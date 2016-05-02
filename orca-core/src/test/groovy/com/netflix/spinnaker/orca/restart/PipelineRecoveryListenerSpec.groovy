@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.orca.restart
 
-import com.netflix.appinfo.InstanceInfo
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
@@ -20,10 +19,10 @@ class PipelineRecoveryListenerSpec extends Specification {
 
   def executionRepository = Stub(ExecutionRepository)
   def pipelineStarter = Mock(PipelineStarter)
-  @Shared currentInstance = InstanceInfo.Builder.newBuilder().setAppName("orca").setHostName("localhost").build()
+  @Shared currentInstanceId = "localhost"
   def registry = new DefaultRegistry()
 
-  @Subject listener = new PipelineRecoveryListener(executionRepository, pipelineStarter, currentInstance, registry)
+  @Subject listener = new PipelineRecoveryListener(executionRepository, pipelineStarter, currentInstanceId, registry)
   def event = new ContextRefreshedEvent(new StaticApplicationContext())
 
   def "resumes pipelines that were in-progress on the current instance"() {
@@ -38,8 +37,8 @@ class PipelineRecoveryListenerSpec extends Specification {
     1 * pipelineStarter.resume(pipeline2)
 
     where:
-    pipeline1 = pipelineWithStatus(RUNNING, currentInstance.id)
-    pipeline2 = pipelineWithStatus(NOT_STARTED, currentInstance.id)
+    pipeline1 = pipelineWithStatus(RUNNING, currentInstanceId)
+    pipeline2 = pipelineWithStatus(NOT_STARTED, currentInstanceId)
   }
 
   def "continues if a restart fails"() {
@@ -56,8 +55,8 @@ class PipelineRecoveryListenerSpec extends Specification {
     1 * pipelineStarter.resume(pipeline2)
 
     where:
-    pipeline1 = pipelineWithStatus(RUNNING, currentInstance.id)
-    pipeline2 = pipelineWithStatus(NOT_STARTED, currentInstance.id)
+    pipeline1 = pipelineWithStatus(RUNNING, currentInstanceId)
+    pipeline2 = pipelineWithStatus(NOT_STARTED, currentInstanceId)
   }
 
   def "tracks successful restarts"() {
@@ -71,7 +70,7 @@ class PipelineRecoveryListenerSpec extends Specification {
     successCount() == old(successCount()) + 1
 
     where:
-    pipeline = pipelineWithStatus(RUNNING, currentInstance.id)
+    pipeline = pipelineWithStatus(RUNNING, currentInstanceId)
   }
 
   def "tracks failed restarts"() {
@@ -88,7 +87,7 @@ class PipelineRecoveryListenerSpec extends Specification {
     failureCount() == old(failureCount()) + 1
 
     where:
-    pipeline = pipelineWithStatus(RUNNING, currentInstance.id)
+    pipeline = pipelineWithStatus(RUNNING, currentInstanceId)
   }
 
   def "ignores pipelines belonging to other instances"() {
@@ -104,7 +103,7 @@ class PipelineRecoveryListenerSpec extends Specification {
 
     where:
     pipeline1 = pipelineWithStatus(RUNNING, "some other instance")
-    pipeline2 = pipelineWithStatus(RUNNING, currentInstance.id)
+    pipeline2 = pipelineWithStatus(RUNNING, currentInstanceId)
   }
 
   @Unroll
@@ -129,8 +128,8 @@ class PipelineRecoveryListenerSpec extends Specification {
     TERMINAL  | _
     SUSPENDED | _
 
-    pipeline1 = pipelineWithStatus(status, currentInstance.id)
-    pipeline2 = pipelineWithStatus(RUNNING, currentInstance.id)
+    pipeline1 = pipelineWithStatus(status, currentInstanceId)
+    pipeline2 = pipelineWithStatus(RUNNING, currentInstanceId)
   }
 
   private Pipeline pipelineWithStatus(ExecutionStatus status, String executingInstance) {

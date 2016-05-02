@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.notifications.scheduling
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.kork.eureka.EurekaStatusChangedEvent
+import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -27,7 +27,6 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.ApplicationListener
 import org.springframework.stereotype.Component
 import redis.clients.jedis.Jedis
@@ -46,7 +45,7 @@ import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
 @Slf4j
 @Component
 @ConditionalOnExpression(value = '${pollers.topApplicationExecutionCleanup.enabled:false}')
-class TopApplicationExecutionCleanupPollingNotificationAgent implements ApplicationListener<EurekaStatusChangedEvent> {
+class TopApplicationExecutionCleanupPollingNotificationAgent implements ApplicationListener<RemoteStatusChangedEvent> {
 
   private Scheduler scheduler = Schedulers.io()
   private Subscription subscription
@@ -80,8 +79,8 @@ class TopApplicationExecutionCleanupPollingNotificationAgent implements Applicat
   }
 
   @Override
-  void onApplicationEvent(EurekaStatusChangedEvent event) {
-    event.statusChangeEvent.with {
+  void onApplicationEvent(RemoteStatusChangedEvent event) {
+    event.source.with {
       if (it.status == UP) {
         log.info("Instance is $it.status... starting top application execution cleanup")
         startPolling()

@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.orca.restart
 
-import com.netflix.appinfo.InstanceInfo
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -8,7 +7,6 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
@@ -27,15 +25,15 @@ class PipelineRecoveryListener implements ApplicationListener<ContextRefreshedEv
 
   private final ExecutionRepository executionRepository
   private final PipelineStarter pipelineStarter
-  private final InstanceInfo currentInstance
+  private final String currentInstanceId
   private final Registry registry
 
   @Autowired
   PipelineRecoveryListener(ExecutionRepository executionRepository,
                            PipelineStarter pipelineStarter,
-                           @Qualifier("instanceInfo") InstanceInfo currentInstance,
+                           String currentInstanceId,
                            Registry registry) {
-    this.currentInstance = currentInstance
+    this.currentInstanceId = currentInstanceId
     this.executionRepository = executionRepository
     this.pipelineStarter = pipelineStarter
     this.registry = registry
@@ -48,7 +46,7 @@ class PipelineRecoveryListener implements ApplicationListener<ContextRefreshedEv
                        .doOnCompleted { log.info("Finished looking for in-progress pipelines owned by this instance") }
                        .doOnError { err -> log.error "Error fetching executions", err }
                        .retry()
-                       .filter { it.status in [NOT_STARTED, RUNNING] && it.executingInstance == currentInstance.id }
+                       .filter { it.status in [NOT_STARTED, RUNNING] && it.executingInstance == currentInstanceId }
                        .doOnNext { log.warn "Found pipeline $it.application $it.name owned by this instance" }
                        .subscribe this.&onResumablePipeline
   }

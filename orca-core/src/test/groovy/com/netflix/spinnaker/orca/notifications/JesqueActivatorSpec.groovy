@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.notifications
 
 import com.netflix.discovery.StatusChangeEvent
-import com.netflix.spinnaker.kork.eureka.EurekaStatusChangedEvent
+import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import net.greghaines.jesque.worker.WorkerPool
 import spock.lang.Specification
 import spock.lang.Subject
@@ -43,7 +43,7 @@ class JesqueActivatorSpec extends Specification {
     STARTING       | UP
     OUT_OF_SERVICE | UP
 
-    event = new EurekaStatusChangedEvent(new StatusChangeEvent(previousStatus, newStatus))
+    event = new RemoteStatusChangedEvent(new StatusChangeEvent(previousStatus, newStatus))
   }
 
   def "activator stops the pool when the application goes from #previousStatus to #newStatus"() {
@@ -59,7 +59,7 @@ class JesqueActivatorSpec extends Specification {
     UP             | DOWN
     UP             | UNKNOWN
 
-    event = new EurekaStatusChangedEvent(new StatusChangeEvent(previousStatus, newStatus))
+    event = new RemoteStatusChangedEvent(new StatusChangeEvent(previousStatus, newStatus))
   }
 
   def "activator does nothing when the application goes from #previousStatus to #newStatus"() {
@@ -75,7 +75,7 @@ class JesqueActivatorSpec extends Specification {
     DOWN           | STARTING
     STARTING       | OUT_OF_SERVICE
 
-    event = new EurekaStatusChangedEvent(new StatusChangeEvent(previousStatus, newStatus))
+    event = new RemoteStatusChangedEvent(new StatusChangeEvent(previousStatus, newStatus))
   }
 
 }

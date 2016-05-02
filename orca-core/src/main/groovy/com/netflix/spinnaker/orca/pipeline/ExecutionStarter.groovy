@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.appinfo.InstanceInfo
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -31,7 +30,6 @@ import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.launch.JobOperator
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 
 @Slf4j
 @CompileStatic
@@ -48,7 +46,7 @@ abstract class ExecutionStarter<T extends Execution> {
   @Autowired protected JobOperator jobOperator
   @Autowired protected JobRepository jobRepository
   @Autowired protected ObjectMapper mapper
-  @Autowired @Qualifier("instanceInfo") protected InstanceInfo currentInstance
+  @Autowired protected String currentInstanceId
 
   T start(String configJson) {
     Map<String, Serializable> config = mapper.readValue(configJson, Map)

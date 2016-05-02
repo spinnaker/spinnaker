@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.orca.restart
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.kork.eureka.EurekaComponents
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.StageBuilder
@@ -13,6 +12,7 @@ import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.test.JobCompletionListener
+import com.netflix.spinnaker.orca.test.TestConfiguration
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import groovy.transform.CompileDynamic
@@ -48,9 +48,9 @@ class RollingRestartSpec extends Specification {
   def setup() {
     def testStage = new RedirectingTestStage("test", task1, task2)
     applicationContext.with {
-      register(EmbeddedRedisConfiguration, JesqueConfiguration, EurekaComponents,
+      register(EmbeddedRedisConfiguration, JesqueConfiguration,
                BatchTestConfiguration, OrcaConfiguration, OrcaPersistenceConfiguration,
-               JobCompletionListener)
+               JobCompletionListener, TestConfiguration)
       beanFactory.registerSingleton("testStage", testStage)
       refresh()
 

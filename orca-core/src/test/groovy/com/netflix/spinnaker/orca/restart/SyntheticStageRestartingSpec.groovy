@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.orca.restart
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.kork.eureka.EurekaComponents
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.StageBuilder
@@ -15,6 +14,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.test.JobCompletionListener
+import com.netflix.spinnaker.orca.test.TestConfiguration
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import groovy.transform.CompileStatic
@@ -52,9 +52,9 @@ class SyntheticStageRestartingSpec extends Specification {
     def afterStage = new StandaloneStageBuilder("after", afterTask)
     def testStage = new SimpleSyntheticStage("test", beforeStage, mainTask, afterStage)
     applicationContext.with {
-      register(EmbeddedRedisConfiguration, JesqueConfiguration, EurekaComponents,
+      register(EmbeddedRedisConfiguration, JesqueConfiguration,
                BatchTestConfiguration, OrcaConfiguration, OrcaPersistenceConfiguration,
-               JobCompletionListener)
+               JobCompletionListener, TestConfiguration)
       beanFactory.registerSingleton("testStage", testStage)
       beanFactory.registerSingleton("beforeStage", beforeStage)
       beanFactory.registerSingleton("afterStage", afterStage)

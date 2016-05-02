@@ -16,8 +16,9 @@
 
 package com.netflix.spinnaker.orca.batch.pipeline
 
+import com.netflix.spinnaker.orca.test.TestConfiguration
+
 import java.util.concurrent.CountDownLatch
-import com.netflix.spinnaker.kork.eureka.EurekaComponents
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -61,7 +62,7 @@ class PipelineStatusSpec extends Specification {
   def setup() {
     applicationContext.with {
       register BatchTestConfiguration,
-               EurekaComponents,
+               TestConfiguration,
                JesqueConfiguration,
                EmbeddedRedisConfiguration,
                OrcaConfiguration
