@@ -53,7 +53,7 @@ class TravisService implements BuildService {
     private Accounts accounts
 
     TravisService(String travisHostId, String baseUrl, String githubToken, TravisClient travisClient, TravisCache travisCache) {
-        this.groupKey     = "travis-${travisHostId}"
+        this.groupKey     = "${travisHostId}"
         this.githubToken  = githubToken
         this.travisClient = travisClient
         this.baseUrl      = baseUrl
@@ -270,7 +270,7 @@ class TravisService implements BuildService {
         try {
             travisClient.usersSync(getAccessToken())
         } catch (RetrofitError e) {
-            log.error "synchronizing travis repositories failed with error: ${e.message}"
+            log.error "synchronizing travis repositories for ${groupKey} failed with error: ${e.message}"
         }
     }
 
