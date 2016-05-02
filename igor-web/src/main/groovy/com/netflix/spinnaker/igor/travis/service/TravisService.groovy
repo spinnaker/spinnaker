@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.travis.service
 
+import com.netflix.spinnaker.hystrix.SimpleHystrixCommand
 import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision
 import com.netflix.spinnaker.igor.build.model.GenericJobConfiguration
@@ -66,20 +67,26 @@ class TravisService implements BuildService {
 
     @Override
     List<GenericGitRevision> getGenericGitRevisions(String inputRepoSlug, int buildNumber) {
-        String repoSlug = cleanRepoSlug(inputRepoSlug)
-        Builds builds = getBuilds(repoSlug, buildNumber)
-        if (builds.commits?.branch) {
-            return builds.commits*.genericGitRevision()
-        }
-        return null
+        new SimpleHystrixCommand<List<GenericGitRevision>>(
+            groupKey, buildCommandKey("getGenericGitRevisions"),
+            {
+                String repoSlug = cleanRepoSlug(inputRepoSlug)
+                Builds builds = getBuilds(repoSlug, buildNumber)
+                return builds.commits?.branch ? builds.commits*.genericGitRevision() : null
+            }
+        ).execute()
     }
 
     @Override
     GenericBuild getGenericBuild(String inputRepoSlug, int buildNumber) {
-        String repoSlug = cleanRepoSlug(inputRepoSlug)
-        Build build = getBuild(repoSlug, buildNumber)
-        GenericBuild genericBuild = getGenericBuild(build, repoSlug)
-        return genericBuild
+        new SimpleHystrixCommand<GenericBuild>(
+            groupKey, buildCommandKey("getGenericBuild"),
+            {
+                String repoSlug = cleanRepoSlug(inputRepoSlug)
+                Build build = getBuild(repoSlug, buildNumber)
+                return getGenericBuild(build, repoSlug)
+            }
+        ).execute()
     }
 
     List<Build> getBuilds() {
@@ -89,11 +96,21 @@ class TravisService implements BuildService {
     }
 
     Build getBuild(Repo repo, int buildNumber) {
-        return travisClient.build(getAccessToken(), repo.id, buildNumber)
+        new SimpleHystrixCommand<Build>(
+            groupKey, buildCommandKey("getBuild"),
+            {
+                return travisClient.build(getAccessToken(), repo.id, buildNumber)
+            }
+        ).execute()
     }
 
     Builds getBuilds(String repoSlug, int buildNumber) {
-        return travisClient.builds(getAccessToken(), repoSlug, buildNumber)
+        new SimpleHystrixCommand<Builds>(
+            groupKey, buildCommandKey("getBuilds"),
+            {
+                return travisClient.builds(getAccessToken(), repoSlug, buildNumber)
+            }
+        ).execute()
     }
 
     Build getBuild(String repoSlug, int buildNumber) {
@@ -130,7 +147,7 @@ class TravisService implements BuildService {
 
     Commit getCommit(String repoSlug, int buildNumber) {
         Builds builds = getBuilds(repoSlug, buildNumber)
-        if (builds.commits) {
+        if (builds?.commits) {
             return builds.commits.first()
         }
         throw new NoSuchFieldException("No commit found for ${repoSlug}:${buildNumber}")
@@ -138,16 +155,24 @@ class TravisService implements BuildService {
 
 
     List<Repo> getReposForAccounts() {
-        log.debug "fetching repos for relevant accounts only"
-        List<Repo> repos = []
-        getAccounts().accounts.each { account ->
-            Repos accountRepos = travisClient.repos(getAccessToken(), account.login)
-            accountRepos.repos.each { repo ->
-                log.debug "[${account.login}] [${repo.slug}]"
+        new SimpleHystrixCommand<List<Repo>>(
+            groupKey, buildCommandKey("getReposForAccounts"),
+            {
+                log.debug "fetching repos for relevant accounts only"
+                List<Repo> repos = []
+                getAccounts().accounts.each { account ->
+                    Repos accountRepos = travisClient.repos(getAccessToken(), account.login)
+                    accountRepos.repos.each { repo ->
+                        log.debug "[${account.login}] [${repo.slug}]"
+                    }
+                    repos.addAll accountRepos.repos
+                }
+                return repos
+            },
+            {
+                return []
             }
-            repos.addAll accountRepos.repos
-        }
-        return repos
+        ).execute()
     }
 
     Job getJob(int jobId) {
@@ -220,20 +245,25 @@ class TravisService implements BuildService {
     }
 
     boolean hasRepo(String inputRepoSlug) {
-        String repoSlug = cleanRepoSlug(inputRepoSlug)
-        try {
-            getRepo(repoSlug)
-        } catch (RetrofitError error) {
-            if (error.getResponse()) {
-                if (error.getResponse().status == 404) {
-                    log.debug "repo not found ${repoSlug}"
-                    return false
+        new SimpleHystrixCommand<Boolean>(
+            groupKey, buildCommandKey("hasRepo"),
+            {
+                String repoSlug = cleanRepoSlug(inputRepoSlug)
+                try {
+                    getRepo(repoSlug)
+                } catch (RetrofitError error) {
+                    if (error.getResponse()) {
+                        if (error.getResponse().status == 404) {
+                            log.debug "repo not found ${repoSlug}"
+                            return false
+                        }
+                    }
+                    log.info "Error requesting repo ${repoSlug}: ${error.message}"
+                    return true
                 }
+                return true
             }
-            log.info "Error requesting repo ${repoSlug}: ${error.message}"
-            return true
-        }
-        return true
+        ).execute()
     }
 
     void syncRepos() {
@@ -278,5 +308,9 @@ class TravisService implements BuildService {
             log.debug "account: " + it.login
             log.debug "repos:" + it.reposCount
         }
+    }
+
+    private String buildCommandKey(String id) {
+        return "${groupKey}-${id}"
     }
 }
