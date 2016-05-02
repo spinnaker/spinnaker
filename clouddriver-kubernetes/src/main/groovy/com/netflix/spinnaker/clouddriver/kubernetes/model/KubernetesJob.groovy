@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.Job
 import com.netflix.spinnaker.clouddriver.model.JobState
 import io.fabric8.kubernetes.api.model.extensions.JobCondition
+import io.fabric8.kubernetes.client.internal.SerializationUtils
 
 class KubernetesJob implements Job, Serializable {
   String name
@@ -33,6 +34,7 @@ class KubernetesJob implements Job, Serializable {
   Long launchTime
   Set<String> loadBalancers
   Set<String> securityGroups
+  String yaml
   io.fabric8.kubernetes.api.model.extensions.Job job
 
   KubernetesJob(io.fabric8.kubernetes.api.model.extensions.Job job, Set<KubernetesInstance> instances, String account) {
@@ -43,6 +45,7 @@ class KubernetesJob implements Job, Serializable {
     this.account = account
     this.instances = instances ?: [] as Set
     this.launchTime = KubernetesModelUtil.translateTime(job.metadata.creationTimestamp)
+    this.yaml = SerializationUtils.dumpWithoutRuntimeStateAsYaml(job)
   }
 
   @Override
