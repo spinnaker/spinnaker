@@ -484,9 +484,18 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
     }
   }
 
-  class AutoscalerSingletonCallback<Autoscaler> extends JsonBatchCallback<Autoscaler> implements FailureLogger {
+  class AutoscalerSingletonCallback<Autoscaler> extends JsonBatchCallback<Autoscaler> {
 
     GoogleServerGroup serverGroup
+
+    @Override
+    void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
+      // 404 is thrown if the autoscaler does not exist in the given zone. Any other exception needs to be propagated.
+      if (e.code != 404) {
+        def errorJson = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(e)
+        log.error errorJson
+      }
+    }
 
     @Override
     void onSuccess(Autoscaler autoscaler, HttpHeaders responseHeaders) throws IOException {
