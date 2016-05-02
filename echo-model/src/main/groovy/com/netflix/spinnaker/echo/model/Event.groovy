@@ -24,4 +24,5 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 public class Event {
   Metadata details
   Map content
+  Map payload
 }

@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.echo.model.trigger
 
-import com.netflix.spinnaker.echo.model.Metadata
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import groovy.transform.Canonical
 
-abstract class TriggerEvent {
-  Metadata details
-  Map payload
+@Canonical
+@JsonIgnoreProperties(ignoreUnknown = true)
+class WebhookEvent extends TriggerEvent {
+  public static final String TYPE = "WEBHOOK"
 }

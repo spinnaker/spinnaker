@@ -41,7 +41,7 @@ class PipelineTriggerActionConverterSpec extends Specification {
 
     void 'toParameters() should return an equivalent map of parameters'() {
         setup:
-        Trigger trigger = new Trigger(true, '123-456', 'cron', null, null, null, null, '* 0/30 * * * ? *', null, null, null, null, null, null, null, null)
+        Trigger trigger = new Trigger(true, '123-456', 'cron', null, null, null, null, '* 0/30 * * * ? *', null, null, null, null, null, null, null, null, null)
 
         when:
         Map parameters = PipelineTriggerConverter.toParameters(pipeline, trigger, 'America/New_York')
@@ -84,7 +84,7 @@ class PipelineTriggerActionConverterSpec extends Specification {
 
     void 'toScheduledAction() should return an equivalent valid ActionInstance'() {
         setup:
-        Trigger trigger = new Trigger(true, '123-456', 'cron', null, null, null, null, '* 0/30 * * * ? *', null, null, null, null, null, null, null, null)
+        Trigger trigger = new Trigger(true, '123-456', 'cron', null, null, null, null, '* 0/30 * * * ? *', null, null, null, null, null, null, null, null, null)
 
         when:
         ActionInstance actionInstance = PipelineTriggerConverter.toScheduledAction(pipeline, trigger, 'America/Los_Angeles')

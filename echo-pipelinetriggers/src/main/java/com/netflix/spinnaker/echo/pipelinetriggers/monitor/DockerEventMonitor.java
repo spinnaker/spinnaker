@@ -94,8 +94,8 @@ public class DockerEventMonitor extends TriggerMonitor {
     String repository = dockerEvent.getContent().getRepository();
     String tag = dockerEvent.getContent().getTag();
     return trigger -> trigger.getType().equals(TRIGGER_TYPE) &&
-      trigger.getRegistry().equals(registry) &&
       trigger.getRepository().equals(repository) &&
+      trigger.getRegistry().equals(registry) &&
       (trigger.getTag() == null || trigger.getTag().equals(tag));
   }
 
