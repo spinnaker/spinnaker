@@ -29,7 +29,7 @@ class YamlBindings(object):
 
   def __getitem__(self, field):
     return self.__get_field_value(field, [], original=field)
-    
+
   def get(self, field, default=None):
     try:
       return self.__get_field_value(field, [], original=field)
@@ -74,7 +74,7 @@ class YamlBindings(object):
 
   def __typed_value(self, value_text):
     """Convert the text of a value into the YAML value.
-    
+
     This is used for type conversion for default values.
     Not particularly efficient, but there doesnt seem to be a direct API.
     """
@@ -130,6 +130,42 @@ class YamlBindings(object):
 
   def replace(self, text):
     return self.__resolve_value(text, [], text)
+
+
+  def __get_flat_keys(self, container):
+    flat_keys = []
+    for key,value in container.items():
+      if isinstance(value, dict):
+        flat_keys.extend([key + '.' + subkey for subkey in self.__get_flat_keys(value)])
+      else:
+        flat_keys.append(key)
+    return flat_keys
+
+
+  @staticmethod
+  def update_yml_source(path, update_dict):
+    """Update the yaml source at the path according to the update dict.
+
+    All the previous bindings not in the update dict remain unchanged.
+    The yaml file at the path is re-written with the new bindings.
+
+    Args:
+      path [string]: Path to a yaml source file.
+      update_dict [dict]: Nested dictionary corresponding to
+          nested yaml properties, keyed by strings.
+    """
+    bindings = YamlBindings()
+    bindings.import_dict(update_dict)
+    updated_keys = bindings.__get_flat_keys(bindings.__map)
+    source = '' # declare so this is in scope for both 'with' blocks
+    with open(path, 'r') as source_file:
+      source = source_file.read()
+      for prop in updated_keys:
+        source = bindings.transform_yaml_source(source, prop)
+
+    with open(path, 'w') as source_file:
+      source_file.write(source)
+
 
   def transform_yaml_source(self, source, key):
     """Transform the given yaml source so its value of key matches the binding.
