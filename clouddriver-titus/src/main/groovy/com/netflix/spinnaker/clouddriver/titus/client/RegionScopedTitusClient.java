@@ -136,8 +136,6 @@ public class RegionScopedTitusClient implements TitusClient {
         if (jobDescription.getUser() == null) {
             jobDescription.setUser("spinnaker");
         }
-        jobDescription.setEnvParam("account", titusRegion.getAccount());
-        jobDescription.setEnvParam("region", titusRegion.getName());
         jobDescription.getLabels().put("name", jobDescription.getName());
         SubmitJobResponse response = execute(titusRestAdapter.submitJob(jobDescription));
         if (response == null) throw new RuntimeException(String.format("Failed to submit a titus job request for %s", jobDescription));
