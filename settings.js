@@ -14,6 +14,7 @@ window.spinnakerSettings = {
   authEndpoint: authEndpoint,
   pollSchedule: 30000,
   defaultTimeZone: process.env.TIMEZONE || 'America/Los_Angeles', // see http://momentjs.com/timezone/docs/#/data-utilities/
+  defaultCategory: 'serverGroup',
   providers: {
     azure: {
       defaults: {
@@ -86,5 +87,6 @@ window.spinnakerSettings = {
     netflixMode: false,
     // whether stages affecting infrastructure (like "Create Load Balancer") should be enabled or not
     infrastructureStages: process.env.INFRA_STAGES === 'enabled',
+    jobs: false,
   },
 };
