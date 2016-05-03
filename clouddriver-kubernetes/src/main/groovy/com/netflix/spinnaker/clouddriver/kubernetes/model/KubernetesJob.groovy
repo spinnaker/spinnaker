@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.model
 
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.Job
 import com.netflix.spinnaker.clouddriver.model.JobState
@@ -57,6 +58,19 @@ class KubernetesJob implements Job, Serializable {
     }
   }
 
+  @Override
+  Job.InstanceCounts getInstanceCounts() {
+    new Job.InstanceCounts(
+        down: (Integer) instances?.count { it.healthState == HealthState.Down } ?: 0,
+        outOfService: (Integer) instances?.count { it.healthState == HealthState.OutOfService } ?: 0,
+        up: (Integer) instances?.count { it.healthState == HealthState.Up } ?: 0,
+        starting: (Integer) instances?.count { it.healthState == HealthState.Starting } ?: 0,
+        unknown: (Integer) instances?.count { it.healthState == HealthState.Unknown } ?: 0,
+        succeeded: (Integer) instances?.count { it.healthState == HealthState.Failed } ?: 0,
+        failed: (Integer) instances?.count { it.healthState == HealthState.Succeeded } ?: 0,
+        total: (Integer) instances?.size(),
+    )
+  }
 
   @Override
   JobState getJobState() {
