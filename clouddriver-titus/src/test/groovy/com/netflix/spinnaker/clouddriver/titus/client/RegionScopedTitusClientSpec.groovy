@@ -33,14 +33,13 @@ class RegionScopedTitusClientSpec extends Specification {
     setup:
     Logger logger = LoggerFactory.getLogger(TitusClient)
     TitusRegion titusRegion = new TitusRegion(
-      "us-east-1", "test", "http://titusapi.main.us-east-1.dyntest.netflix.net:7101/"
+      "us-east-1", "test", "http://titusapi.mainvpc.us-east-1.dyntest.netflix.net:7101/"
     );
     TitusClient titusClient = new RegionScopedTitusClient(titusRegion);
 
     // ******************************************************************************************************************
 
     Map<String, String> env = new HashMap<>();
-    env.put("environment", "test");
     env.put("debug", "true");
 
     SubmitJobRequest submitJobRequest = new SubmitJobRequest()
