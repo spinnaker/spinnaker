@@ -16,10 +16,16 @@
 
 package com.netflix.spinnaker.security
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import groovy.transform.Immutable
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.userdetails.UserDetails
 
+/**
+ * User implements UserDetails in order to properly hook into the Spring Security framework.
+ */
 @Immutable
-class User implements Serializable {
+class User implements Serializable, UserDetails {
   static final long serialVersionUID = 7392392099262597885L
 
   String email
@@ -28,4 +34,25 @@ class User implements Serializable {
 
   Collection<String> roles
   Collection<String> allowedAccounts = []
+
+  @Override
+  List getAuthorities() {
+    roles?.collect { new SimpleGrantedAuthority(it) }
+  }
+
+  /** Not used **/
+  String username
+  @JsonIgnore String password
+
+  @Override
+  boolean isAccountNonExpired() { return true }
+
+  @Override
+  boolean isAccountNonLocked() { return true }
+
+  @Override
+  boolean isCredentialsNonExpired() { return true }
+
+  @Override
+  boolean isEnabled() { return true }
 }

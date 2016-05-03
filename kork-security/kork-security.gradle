@@ -2,6 +2,7 @@ dependencies {
   compile spinnaker.dependency('springSecurityCore')
   compile spinnaker.dependency('groovy')
   spinnaker.group('spockBase')
+  spinnaker.group('jackson')
 
   compile spinnaker.dependency('slf4j')
   testCompile 'ch.qos.logback:logback-classic:1.1.2'
