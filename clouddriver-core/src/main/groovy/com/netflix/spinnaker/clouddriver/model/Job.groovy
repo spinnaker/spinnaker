@@ -46,4 +46,24 @@ interface Job {
   Set<String> getLoadBalancers()
 
   Set<String> getSecurityGroups()
+
+  InstanceCounts getInstanceCounts()
+
+  static class InstanceCounts {
+    int down
+
+    int up
+
+    int starting
+
+    int outOfService
+
+    int failed
+
+    int succeeded
+
+    int unknown
+
+    int total
+  }
 }
