@@ -249,7 +249,7 @@ unique:
 
      self.assertEqual(expect, bindings.transform_yaml_source(expect, 'bogus'))
      self.assertEqual(expect, got)
-                      
+
 
   def test_transform_fail(self):
      bindings = YamlBindings()
@@ -278,6 +278,49 @@ a:
      self.assertEqual([{'elem': True}, {'elem': True}, {'elem': False}, {'elem': False}],
                       bindings.get('root'))
      self.assertEqual(bindings.get('root'), bindings.get('copy'))
+
+  def test_update_yml_source(self):
+    yaml = """
+a: A
+b: 0
+c:
+  - A
+  - B
+d:
+  child:
+    grandchild: x
+e:
+"""
+    fd, temp_path = tempfile.mkstemp()
+    os.write(fd, yaml)
+    os.close(fd)
+
+    update_dict = {
+      'b': 'Z',
+      'd': {
+        'child': {
+          'grandchild': 'xy'
+        }
+      },
+      'e': 'AA'
+    }
+
+    expect = {'a': 'A',
+              'b': 'Z',
+              'c': ['A','B'],
+              'd': {
+                'child': {
+                  'grandchild': 'xy'
+                }
+              },
+              'e': 'AA'}
+
+    YamlBindings.update_yml_source(temp_path, update_dict)
+
+    comparison_bindings = YamlBindings()
+    comparison_bindings.import_path(temp_path)
+    self.assertEqual(expect, comparison_bindings.map)
+    os.remove(temp_path)
 
 if __name__ == '__main__':
   loader = unittest.TestLoader()
