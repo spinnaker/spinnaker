@@ -29,8 +29,8 @@ import redis.clients.jedis.JedisPool
 class JedisConfig {
 
     @Bean
-    JedisPool jedis(@Value('${redis.connection:redis://localhost:6379}') String connection) {
-        new JedisPool(new URI(connection))
+    JedisPool jedis(@Value('${redis.connection:redis://localhost:6379}') String connection, @Value('${redis.timeout:2000}') int timeout) {
+        new JedisPool(new URI(connection), timeout)
     }
 
 }
