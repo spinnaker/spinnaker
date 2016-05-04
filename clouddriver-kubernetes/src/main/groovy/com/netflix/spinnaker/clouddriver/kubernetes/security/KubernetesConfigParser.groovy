@@ -52,7 +52,7 @@ class KubernetesConfigParser {
       config.setCaCertData(currentCluster.getCertificateAuthorityData())
 
       AuthInfo currentAuthInfo = KubeConfigUtils.getUserAuthInfo(kubeConfig, currentContext)
-        if (currentAuthInfo != null) {
+      if (currentAuthInfo != null) {
         config.setClientCertFile(currentAuthInfo.getClientCertificate())
         config.setClientCertData(currentAuthInfo.getClientCertificateData())
         config.setClientKeyFile(currentAuthInfo.getClientKey())
@@ -62,7 +62,7 @@ class KubernetesConfigParser {
         config.setPassword(currentAuthInfo.getPassword())
 
         config.getErrorMessages().put(401, "Unauthorized! Token may have expired! Please log-in again.")
-        config.getErrorMessages().put(403, "Forbidden! User ${config.getUsername()} doesn't have permission.")
+        config.getErrorMessages().put(403, "Forbidden! User ${currentContext.user} doesn't have permission.".toString())
       }
     }
 
