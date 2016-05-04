@@ -196,7 +196,6 @@ class KubernetesApiAdaptor {
 
       edit.endMetadata().done()
     } catch (KubernetesClientException e) {
-      log.error("$e.stackTrace")
       throw new KubernetesOperationException("Toggle Pod Labels", e)
     }
   }
@@ -212,7 +211,6 @@ class KubernetesApiAdaptor {
 
       edit.endMetadata().endTemplate().endSpec().done()
     } catch (KubernetesClientException e) {
-      log.error("$e.stackTrace")
       throw new KubernetesOperationException("Toggle Replication Controller Labels", e)
     }
   }
