@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.job
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.job.KubernetesJobDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.job.RunKubernetesJobDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.KubernetesContainerValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.KubernetesVolumeSourceValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
@@ -31,12 +31,12 @@ import org.springframework.validation.Errors
 
 @KubernetesOperation(AtomicOperations.RUN_JOB)
 @Component
-class RunKubernetesJobAtomicOperationValidator extends DescriptionValidator<KubernetesJobDescription> {
+class RunKubernetesJobAtomicOperationValidator extends DescriptionValidator<RunKubernetesJobDescription> {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, KubernetesJobDescription description, Errors errors) {
+  void validate(List priorDescriptions, RunKubernetesJobDescription description, Errors errors) {
     def helper = new StandardKubernetesAttributeValidator("runKubernetesJobAtomicOperationDescription", errors)
 
     if (!helper.validateCredentials(description.account, accountCredentialsProvider)) {

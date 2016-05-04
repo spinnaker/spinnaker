@@ -320,4 +320,12 @@ class KubernetesApiAdaptor {
       throw new KubernetesOperationException("Get Job", e)
     }
   }
+
+  boolean hardDestroyJob(String namespace, String name) {
+    try {
+      client.extensions().jobs().inNamespace(namespace).withName(name).delete()
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Hard Destroy Job", e)
+    }
+  }
 }

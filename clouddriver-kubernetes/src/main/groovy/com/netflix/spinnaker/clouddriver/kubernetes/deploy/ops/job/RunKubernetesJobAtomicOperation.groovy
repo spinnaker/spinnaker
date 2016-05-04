@@ -22,9 +22,8 @@ import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesJobNameResolver
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.job.KubernetesJobDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.job.KubernetesJobRestartPolicy
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.servergroup.DeployKubernetesAtomicOperation
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.job.RunKubernetesJobDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.extensions.Job
 import io.fabric8.kubernetes.api.model.extensions.JobBuilder
@@ -32,7 +31,7 @@ import io.fabric8.kubernetes.api.model.extensions.JobBuilder
 class RunKubernetesJobAtomicOperation implements AtomicOperation<DeploymentResult> {
   private static final String BASE_PHASE = "RUN_JOB"
 
-  RunKubernetesJobAtomicOperation(KubernetesJobDescription description) {
+  RunKubernetesJobAtomicOperation(RunKubernetesJobDescription description) {
     this.description = description
   }
 
@@ -40,7 +39,7 @@ class RunKubernetesJobAtomicOperation implements AtomicOperation<DeploymentResul
     TaskRepository.threadLocalTask.get()
   }
 
-  KubernetesJobDescription description
+  RunKubernetesJobDescription description
 
   /*
    * curl -X POST -H "Content-Type: application/json" -d  '[ {  "runJob": { "application": "kub", "stack": "test",  "parallelism": 1, "completions": 1, "loadBalancers":  [],  "containers": [ { "name": "librarynginx", "imageDescription": { "repository": "library/nginx" } } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops

@@ -18,21 +18,21 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.job
 
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.KubernetesAtomicOperationConverterHelper
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.job.RunKubernetesJobDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.job.RunKubernetesJobAtomicOperation
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.job.KubernetesJobDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.job.DestroyKubernetesJobAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
-@KubernetesOperation(AtomicOperations.RUN_JOB)
+@KubernetesOperation(AtomicOperations.DESTROY_JOB)
 @Component
-class RunKubernetesJobAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+class DestroyKubernetesJobAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   AtomicOperation convertOperation(Map input) {
-    new RunKubernetesJobAtomicOperation(convertDescription(input))
+    new DestroyKubernetesJobAtomicOperation(convertDescription(input))
   }
 
-  RunKubernetesJobDescription convertDescription(Map input) {
-    KubernetesAtomicOperationConverterHelper.convertDescription(input, this, RunKubernetesJobDescription)
+  KubernetesJobDescription convertDescription(Map input) {
+    KubernetesAtomicOperationConverterHelper.convertDescription(input, this, KubernetesJobDescription)
   }
 }
