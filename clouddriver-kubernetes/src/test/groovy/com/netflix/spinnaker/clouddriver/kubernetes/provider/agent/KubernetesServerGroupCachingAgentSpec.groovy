@@ -67,7 +67,7 @@ class KubernetesServerGroupCachingAgentSpec extends Specification {
     kubernetesCredentials = new KubernetesCredentials(apiMock, [], [], accountCredentialsRepositoryMock)
 
     applicationKey = Keys.getApplicationKey(APP)
-    clusterKey = Keys.getClusterKey(ACCOUNT_NAME, APP, CLUSTER)
+    clusterKey = Keys.getClusterKey(ACCOUNT_NAME, APP, 'serverGroup', CLUSTER)
     serverGroupKey = Keys.getServerGroupKey(ACCOUNT_NAME, NAMESPACE, REPLICATION_CONTROLLER)
     instanceKey = Keys.getInstanceKey(ACCOUNT_NAME, NAMESPACE, REPLICATION_CONTROLLER, POD)
 

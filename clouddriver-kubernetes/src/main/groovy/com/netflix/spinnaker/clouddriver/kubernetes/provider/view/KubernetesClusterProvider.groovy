@@ -75,7 +75,7 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
 
   @Override
   KubernetesCluster getCluster(String applicationName, String account, String name) {
-    CacheData cluster = cacheView.get(Keys.Namespace.CLUSTERS.ns, Keys.getClusterKey(account, applicationName, name))
+    CacheData cluster = cacheView.get(Keys.Namespace.CLUSTERS.ns, Keys.getClusterKey(account, applicationName, "*", name))
     cluster ? translateClusters([cluster], true)[0] : null
   }
 
