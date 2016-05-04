@@ -44,6 +44,7 @@ class KubernetesJobCachingAgent implements CachingAgent, OnDemandAgent, AccountA
   final KubernetesCloudProvider kubernetesCloudProvider
   final String accountName
   final String namespace
+  final String category = 'job'
   final KubernetesCredentials credentials
   final ObjectMapper objectMapper
 
@@ -51,7 +52,7 @@ class KubernetesJobCachingAgent implements CachingAgent, OnDemandAgent, AccountA
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
     INFORMATIVE.forType(Keys.Namespace.APPLICATIONS.ns),
-    INFORMATIVE.forType(Keys.Namespace.CLUSTERS.ns),
+    AUTHORITATIVE.forType(Keys.Namespace.CLUSTERS.ns),
     INFORMATIVE.forType(Keys.Namespace.LOAD_BALANCERS.ns),
     AUTHORITATIVE.forType(Keys.Namespace.JOBS.ns),
     INFORMATIVE.forType(Keys.Namespace.PROCESSES.ns),
@@ -272,7 +273,7 @@ class KubernetesJobCachingAgent implements CachingAgent, OnDemandAgent, AccountA
 
         def jobKey = Keys.getJobKey(accountName, namespace, jobName)
         def applicationKey = Keys.getApplicationKey(applicationName)
-        def clusterKey = Keys.getClusterKey(accountName, applicationName, clusterName)
+        def clusterKey = Keys.getClusterKey(accountName, applicationName, category, clusterName)
         def processKeys = []
         def loadBalancerKeys = KubernetesUtil.getJobLoadBalancers(job).collect({
           Keys.getLoadBalancerKey(accountName, namespace, it)

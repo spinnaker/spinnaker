@@ -45,6 +45,7 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
   final KubernetesCloudProvider kubernetesCloudProvider
   final String accountName
   final String namespace
+  final String category = 'serverGroup'
   final KubernetesCredentials credentials
   final ObjectMapper objectMapper
 
@@ -273,7 +274,7 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
 
         def serverGroupKey = Keys.getServerGroupKey(accountName, namespace, replicationControllerName)
         def applicationKey = Keys.getApplicationKey(applicationName)
-        def clusterKey = Keys.getClusterKey(accountName, applicationName, clusterName)
+        def clusterKey = Keys.getClusterKey(accountName, applicationName, category, clusterName)
         def instanceKeys = []
         def loadBalancerKeys = KubernetesUtil.getDescriptionLoadBalancers(replicationController).collect({
           Keys.getLoadBalancerKey(accountName, namespace, it)

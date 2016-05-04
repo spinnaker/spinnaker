@@ -67,10 +67,11 @@ class Keys {
       case Namespace.CLUSTERS.ns:
         def names = Names.parseName(parts[4])
         result << [
-            application: parts[3],
             account: parts[2],
-            name: parts[4],
-            cluster: parts[4],
+            application: parts[3],
+            category: parts[4], // <- {`serverGroup`, `job`, `daemonSet`, etc...}
+            name: parts[5],
+            cluster: parts[5],
             stack: names.stack,
             detail: names.detail
         ]
@@ -164,8 +165,8 @@ class Keys {
     "${Namespace.provider}:${Namespace.APPLICATIONS}:${application}"
   }
 
-  static String getClusterKey(String account, String application, String clusterName) {
-    "${Namespace.provider}:${Namespace.CLUSTERS}:${account}:${application}:${clusterName}"
+  static String getClusterKey(String account, String application, String category, String clusterName) {
+    "${Namespace.provider}:${Namespace.CLUSTERS}:${account}:${application}:${category}:${clusterName}"
   }
 
   static String getServerGroupKey(String account, String namespace, String replicationControllerName) {
