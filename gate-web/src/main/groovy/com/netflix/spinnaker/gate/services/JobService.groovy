@@ -22,6 +22,7 @@ import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 
 @CompileStatic
 @Component
@@ -39,6 +40,26 @@ class JobService {
     HystrixFactory.newListCommand(GROUP, commandKey) {
       clouddriverService.getJobs(applicationName, expand)
     } execute()
+  }
+
+  Map getForApplicationAndAccountAndRegion(String applicationName, String account, String region, String name) {
+    HystrixFactory.newMapCommand(GROUP, "getJobsForApplicationAccountAndRegion", {
+      try {
+        def context = getContext(applicationName, account, region, name)
+        return clouddriverService.getJobDetails(applicationName, account, region, name) + [
+            "insightActions": insightConfiguration.job.collect { it.applyContext(context) }
+        ]
+      } catch (RetrofitError e) {
+        if (e.response?.status == 404) {
+          return [:]
+        }
+        throw e
+      }
+    }) execute()
+  }
+
+  static Map<String, String> getContext(String application, String account, String region, String jobName) {
+    return ["application": application, "account": account, "region": region, "jobName": jobName]
   }
 }
 

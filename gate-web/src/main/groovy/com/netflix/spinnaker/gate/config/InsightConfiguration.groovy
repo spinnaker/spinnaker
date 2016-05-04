@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component
 @ConfigurationProperties("insights")
 class InsightConfiguration {
   List<Link> serverGroup = []
+  List<Link> job = []
   List<Link> instance = []
 
   static class Link {

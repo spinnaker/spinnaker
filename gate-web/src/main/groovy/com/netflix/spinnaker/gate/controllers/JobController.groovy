@@ -34,4 +34,12 @@ class JobController {
   List getJobs(@PathVariable String applicationName, @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand) {
     jobService.getForApplication(applicationName, expand)
   }
+
+  @RequestMapping(value = "/applications/{applicationName}/jobs/{account}/{region}/{name}", method = RequestMethod.GET)
+  Map getJob(@PathVariable String applicationName, @PathVariable String account,
+             @PathVariable String region,
+             @PathVariable String name,
+             @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand) {
+    jobService.getForApplicationAndAccountAndRegion(applicationName, account, region, name)
+  }
 }
