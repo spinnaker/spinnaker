@@ -266,6 +266,23 @@ class TravisService implements BuildService {
         ).execute()
     }
 
+    String branchedRepoSlug(String repoSlug, int buildNumber, Commit commit) {
+        new SimpleHystrixCommand<String>(
+            groupKey, buildCommandKey("branchedRepoSlug"),
+            {
+                Build build = getBuild(repoSlug, buildNumber)
+                String branchedRepoSlug = "${repoSlug}/"
+                if (build.pullRequest) {
+                    branchedRepoSlug = "${branchedRepoSlug}pull_request_"
+                }
+                return "${branchedRepoSlug}${commit.branchNameWithTagHandling()}"
+            },
+            {
+                return repoSlug
+            }
+        ).execute()
+    }
+
     void syncRepos() {
         try {
             travisClient.usersSync(getAccessToken())
@@ -280,7 +297,7 @@ class TravisService implements BuildService {
     }
 
     protected String branchFromRepoSlug(String inputRepoSlug) {
-        return inputRepoSlug.tokenize('/').drop(2).join('/')
+        return inputRepoSlug.tokenize('/').drop(2).join('/') - "pull_request_"
     }
 
     private void setAccessToken() {

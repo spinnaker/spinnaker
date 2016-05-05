@@ -79,7 +79,7 @@ class TravisBuildMonitorSpec extends Specification {
         then:
         1 * travisService.getReposForAccounts() >> repos
         1 * travisService.getCommit('test-org/test-repo', 4) >> commit
-        1 * commit.branchNameWithTagHandling() >> "my_branch"
+        1 * travisService.branchedRepoSlug('test-org/test-repo', 4, commit) >> "test-org/test-repo/my_branch"
 
         1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo') >> [lastBuildLabel: 3]
         1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo', 4, false)

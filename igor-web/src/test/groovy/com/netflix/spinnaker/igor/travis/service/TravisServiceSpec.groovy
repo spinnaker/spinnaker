@@ -86,6 +86,7 @@ class TravisServiceSpec extends Specification{
         "my-org/repo"                     | ""
         "my-org/repo/branch"              | "branch"
         "my-org/repo/branch/with/slashes" | "branch/with/slashes"
+        "my-org/repo/pull_request_master" | "master"
     }
 
     def "getCommit(repoSlug, buildNumber)"() {
@@ -121,5 +122,37 @@ class TravisServiceSpec extends Specification{
         1 * client.accessToken("someToken") >> accessToken
         1 * client.builds("token someToken", "org/repo", 38) >> builds
         1 * builds.commits >> []
+    }
+
+    def "branchedRepoSlug should return branch prefixed with pull_request if it is a pull request"() {
+        given:
+        Builds builds = Mock(Builds)
+        Build build = Mock(Build)
+        AccessToken accessToken = new AccessToken()
+        accessToken.accessToken = "someToken"
+        Commit commit = Mock(Commit)
+
+        when:
+        String branchedRepoSlug = service.branchedRepoSlug("my/slug", 21, commit)
+
+        then:
+        branchedRepoSlug == "my/slug/pull_request_master"
+        1 * client.accessToken("someToken") >> accessToken
+        1 * client.builds("token someToken", "my/slug", 21) >> builds
+        2 * builds.builds >> [build]
+        1 * build.pullRequest >> true
+        1 * commit.branchNameWithTagHandling() >> "master"
+
+    }
+
+    def "branchedRepoSlug should fallback to input repoSlug if hystrix kicks in"() {
+        given:
+        Commit commit = Mock(Commit)
+
+        when:
+        String branchedRepoSlug = service.branchedRepoSlug("my/slug", 21, commit)
+
+        then:
+        branchedRepoSlug == "my/slug"
     }
 }

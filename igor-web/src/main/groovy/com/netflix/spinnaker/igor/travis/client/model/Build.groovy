@@ -38,6 +38,8 @@ class Build {
     String state
     @SerializedName("finished_at")
     Date finishedAt
+    @SerializedName("pull_request")
+    Boolean pullRequest
     @JsonProperty(value = "job_ids")
     List <Integer> job_ids
 

@@ -208,16 +208,19 @@ class TravisBuildMonitor implements PollingMonitor{
         }
         Commit commit = travisService.getCommit(repo.slug, repo.lastBuildNumber)
         if (commit) {
-            String branchedSlug = "${repo.slug}/${commit.branchNameWithTagHandling()}"
-            buildCache.setLastBuild(master, branchedSlug, repo.lastBuildNumber, repo.lastBuildState == BUILD_IN_PROGRESS)
-            if (echoService) {
-                log.info "pushing event for ${master}:${branchedSlug}:${repo.lastBuildNumber}"
+            String branchedSlug = travisService.branchedRepoSlug(repo.slug, repo.lastBuildNumber, commit)
 
-                GenericProject project = new GenericProject(branchedSlug, TravisBuildConverter.genericBuild(repo, travisService.baseUrl))
-                echoService.postEvent(
-                    new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis'))
-                )
+            if (branchedSlug != repo.slug) {
+                buildCache.setLastBuild(master, branchedSlug, repo.lastBuildNumber, repo.lastBuildState == BUILD_IN_PROGRESS)
+                if (echoService) {
+                    log.info "pushing event for ${master}:${branchedSlug}:${repo.lastBuildNumber}"
 
+                    GenericProject project = new GenericProject(branchedSlug, TravisBuildConverter.genericBuild(repo, travisService.baseUrl))
+                    echoService.postEvent(
+                        new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis'))
+                    )
+
+                }
             }
         }
     }
