@@ -83,10 +83,12 @@ module.exports = angular.module('spinnaker.kubernetes', [
         configurationService: 'kubernetesServerGroupConfigurationService',
       },
       job: {
-        transformer: 'kubernetesJobTransformer',
         cloneJobController: 'kubernetesCloneJobController',
         cloneJobTemplateUrl: require('./job/configure/wizard/wizard.html'),
         commandBuilder: 'kubernetesJobCommandBuilder',
+        detailsTemplateUrl: require('./job/details/details.html'),
+        detailsController: 'kubernetesJobDetailsController',
+        transformer: 'kubernetesJobTransformer',
       },
     });
   });

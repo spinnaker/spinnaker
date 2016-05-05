@@ -145,6 +145,41 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
         }
       };
 
+      var jobDetails = {
+        name: 'job',
+        url: '/jobDetails/:provider/:accountId/:region/:job',
+        views: {
+          'detail@../insight': {
+            templateProvider: ['$templateCache', '$stateParams', 'cloudProviderRegistry', function($templateCache, $stateParams, cloudProviderRegistry) {
+              return $templateCache.get(cloudProviderRegistry.getValue($stateParams.provider, 'job.detailsTemplateUrl')); }],
+            controllerProvider: ['$stateParams', 'cloudProviderRegistry', function($stateParams, cloudProviderRegistry) {
+              return cloudProviderRegistry.getValue($stateParams.provider, 'job.detailsController');
+            }],
+            controllerAs: 'ctrl'
+          }
+        },
+        resolve: {
+          job: ['$stateParams', function($stateParams) {
+            return {
+              name: $stateParams.job,
+              accountId: $stateParams.accountId,
+              region: $stateParams.region
+            };
+          }]
+        },
+        data: {
+          pageTitleDetails: {
+            title: 'Job Details',
+            nameParam: 'job',
+            accountParam: 'accountId',
+            regionParam: 'region'
+          },
+          history: {
+            type: 'jobs',
+          },
+        }
+      };
+
       var loadBalancerDetails = {
         name: 'loadBalancerDetails',
         url: '/loadBalancerDetails/:provider/:accountId/:region/:vpcId/:name',
@@ -276,6 +311,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
           children: [
             loadBalancerDetails,
             serverGroupDetails,
+            jobDetails,
             instanceDetails,
             securityGroupDetails,
             multipleInstances,
@@ -305,6 +341,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
           children: [
             loadBalancerDetails,
             serverGroupDetails,
+            jobDetails,
             instanceDetails,
             securityGroupDetails,
           ],
@@ -332,6 +369,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
           children: [
             loadBalancerDetails,
             serverGroupDetails,
+            jobDetails,
             securityGroupDetails,
           ]
         }

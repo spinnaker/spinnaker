@@ -22,6 +22,7 @@ module.exports = angular
       heading : 'prod',
       subgroups : [ {
         heading : 'in-eu-east-2-only',
+        category: 'serverGroup',
         hasDiscovery: false,
         hasLoadBalancers: false,
         subgroups : [ {
@@ -53,6 +54,7 @@ module.exports = angular
         heading : 'test',
         subgroups : [ {
           heading : 'in-us-west-1-only',
+          category: 'serverGroup',
           hasDiscovery: false,
           hasLoadBalancers: false,
           subgroups : [ {

@@ -110,7 +110,7 @@ module.exports = angular
     };
 
     this.makeServerGroupKey = (serverGroup) =>
-      [serverGroup.type, serverGroup.account, serverGroup.region, serverGroup.name].join(':');
+      [serverGroup.type, serverGroup.account, serverGroup.region, serverGroup.name, serverGroup.category].join(':');
 
     this.serverGroupIsSelected = (serverGroup) => {
       if (!this.serverGroups.length) {
@@ -122,11 +122,17 @@ module.exports = angular
 
     this.toggleServerGroup = (serverGroup) => {
       if (!ClusterFilterModel.sortFilter.multiselect) {
-        let params = {provider: serverGroup.type, accountId: serverGroup.account, region: serverGroup.region, serverGroup: serverGroup.name};
+        let params = {
+          provider: serverGroup.type,
+          accountId: serverGroup.account,
+          region: serverGroup.region,
+          serverGroup: serverGroup.name,
+          job: serverGroup.name,
+        };
         if ($state.includes('**.clusters.*')) {
-          $state.go('^.serverGroup', params);
+          $state.go('^.' + serverGroup.category, params);
         } else {
-          $state.go('.serverGroup', params);
+          $state.go('.' + serverGroup.category, params);
         }
         return;
       }

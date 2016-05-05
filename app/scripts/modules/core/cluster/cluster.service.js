@@ -66,10 +66,8 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
         outOfService: 0,
         total: 0,
       };
-      if (!cluster.serverGroups) {
-        return;
-      }
-      cluster.serverGroups.forEach(function(serverGroup) {
+      var operand = cluster.serverGroups || cluster.jobs || [];
+      operand.forEach(function(serverGroup) {
         if (!serverGroup.instanceCounts) {
           return;
         }

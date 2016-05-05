@@ -72,6 +72,17 @@ module.exports = angular
       };
     }
 
+    function checkCategoryFilters(model) {
+      return function(target) {
+        if (isFilterable(model.sortFilter.category)) {
+          var checkedCategories = getCheckValues(model.sortFilter.category);
+          return _.contains(checkedCategories, target.type) || _.contains(checkedCategories, target.category);
+        } else {
+          return true;
+        }
+      };
+    }
+
     function checkProviderFilters(model) {
       return function(target) {
         if (isFilterable(model.sortFilter.providerType)) {
@@ -298,7 +309,8 @@ module.exports = angular
       checkRegionFilters: checkRegionFilters,
       checkStackFilters: checkStackFilters,
       checkStatusFilters: checkStatusFilters,
-      checkProviderFilters: checkProviderFilters
+      checkProviderFilters: checkProviderFilters,
+      checkCategoryFilters: checkCategoryFilters,
     };
 
   });

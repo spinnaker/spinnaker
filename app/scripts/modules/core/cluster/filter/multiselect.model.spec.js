@@ -74,7 +74,7 @@ describe('Multiselect Model', function () {
 
       describe('server group selection', function () {
         beforeEach(function() {
-          this.serverGroup = {name: 'a', account: 'prod', region: 'us-east-1', type: 'aws'};
+          this.serverGroup = {name: 'a', account: 'prod', region: 'us-east-1', type: 'aws', category: 'serverGroup'};
         });
 
         it('navigates to multipleServerGroups child view when not already there and group is selected', function () {
@@ -109,7 +109,8 @@ describe('Multiselect Model', function () {
           name: 'asg-v001',
           account: 'prod',
           region: 'us-east-1',
-          type: 'aws'
+          type: 'aws',
+          category: 'serverGroup'
         };
       });
 

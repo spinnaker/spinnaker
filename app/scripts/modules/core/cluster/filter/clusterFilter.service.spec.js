@@ -576,6 +576,7 @@ describe('Service: clusterFilterService', function () {
           subgroups: [
             {
               heading: 'cluster-a',
+              category: 'serverGroup',
               cluster: { name: 'cluster-a' },
               subgroups: [
                 {

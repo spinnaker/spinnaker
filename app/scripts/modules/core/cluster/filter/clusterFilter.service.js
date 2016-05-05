@@ -266,6 +266,7 @@ module.exports = angular
             if (cluster) {
               clusterGroups.push( {
                 heading: clusterKey,
+                category: categoryKey,
                 subgroups: _.sortBy(regionGroups, 'heading'),
                 cluster: cluster
               } );
@@ -276,7 +277,7 @@ module.exports = angular
 
         groups.push( {
           heading: accountKey,
-          subgroups: _.sortBy(clusterGroups, 'heading')
+          subgroups: _.sortBy(clusterGroups, ['heading', 'category']),
         } );
       });
 
@@ -295,10 +296,10 @@ module.exports = angular
 
     function diffSubgroups(oldGroups, newGroups) {
       var groupsToRemove = [];
-
       oldGroups.forEach(function(oldGroup, idx) {
-        var [newGroup] = (newGroups || []).filter(group => group.heading === oldGroup.heading &&
-          group.category === oldGroup.category);
+        var [newGroup] = (newGroups || []).filter(group =>
+            group.heading === oldGroup.heading &&
+            group.category === oldGroup.category);
         if (!newGroup) {
           groupsToRemove.push(idx);
         } else {
