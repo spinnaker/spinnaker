@@ -159,6 +159,26 @@ class DefaultImageNameFactorySpec extends Specification {
       packagesParameter == "nflx-djangobase-enhanced=0.1-3 kato redis-server"
   }
 
+  void "should recognize fully-qualified ubuntu package name in any position plus extra packages"() {
+    setup:
+      def clockMock = Mock(Clock)
+      def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
+      def selectedOptions = new BakeOptions.Selected(baseImage: new BakeOptions.BaseImage(id: "ubuntu", packageType: "DEB"))
+      def bakeRequest = new BakeRequest(package_name: "kato nflx-djangobase-enhanced_0.1-3_all redis-server",
+                                        build_number: "12",
+                                        commit_hash: "170cdbd",
+                                        base_os: "ubuntu")
+
+    when:
+      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest, selectedOptions)
+
+    then:
+      1 * clockMock.millis() >> 123456
+      imageName == "kato-all-123456-ubuntu"
+      appVersionStr == null
+      packagesParameter == "kato nflx-djangobase-enhanced=0.1-3 redis-server"
+  }
+
   void "should recognize multiple fully-qualified ubuntu package names but only derive appversion from the first"() {
     setup:
       def clockMock = Mock(Clock)
@@ -176,7 +196,7 @@ class DefaultImageNameFactorySpec extends Specification {
       1 * clockMock.millis() >> 123456
       imageName == "nflx-djangobase-enhanced-all-123456-ubuntu"
       appVersionStr == "nflx-djangobase-enhanced-0.1-h12.170cdbd"
-      packagesParameter == "nflx-djangobase-enhanced=0.1-3 some-package_0.3-h15.290fcab_all"
+      packagesParameter == "nflx-djangobase-enhanced=0.1-3 some-package=0.3-h15.290fcab"
   }
 
   void "should identify version on fully-qualified ubuntu package name without build number and commit hash"() {
