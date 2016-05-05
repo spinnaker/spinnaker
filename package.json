@@ -12,8 +12,8 @@
   },
   "dependencies": {
     "Select2": "git://github.com/select2/select2.git#3.4.8",
-    "angular": "~1.5.0",
-    "angular-animate": "~1.5.0",
+    "angular": "~1.5.5",
+    "angular-animate": "~1.5.5",
     "angular-cache": "^4.2.2",
     "angular-filter": "^0.5.4",
     "angular-hotkeys": "^1.5.0",

@@ -125,8 +125,6 @@ module.exports = angular
 
       this.$onInit = this.setAvailableSecurityGroups;
 
-      // HACK: This won't do anything until a fix for https://github.com/angular/angular.js/issues/14020 is released.
-      // It will probably lead to some very small memory leaks, and possibly some exceptions that the user will not see.
       this.$onDestroy = () => {
         this.subscriptions.forEach(subscription => subscription.dispose());
       };

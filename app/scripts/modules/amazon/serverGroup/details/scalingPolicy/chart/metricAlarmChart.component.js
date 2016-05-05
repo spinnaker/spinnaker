@@ -180,8 +180,6 @@ module.exports = angular
         this.alarmUpdated.subscribe(() => configureChart());
       };
 
-      // HACK: This won't do anything until a fix for https://github.com/angular/angular.js/issues/14020 is released.
-      // It will probably lead to some very small memory leaks, and possibly some exceptions that the user will not see.
       this.$onDestroy = () => {
         if (this.alarmUpdatedCreated) {
           this.alarmUpdated.dispose();
