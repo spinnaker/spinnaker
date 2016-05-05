@@ -25,7 +25,7 @@ def configure_codelab_igor_jenkins():
         'defaultMaster': {
           'name': 'CodelabJenkins',
           'baseUrl': 'http://localhost:9090',
-          'name': 'admin',
+          'username': 'admin',
           'password': 'admin'
         }
       },
