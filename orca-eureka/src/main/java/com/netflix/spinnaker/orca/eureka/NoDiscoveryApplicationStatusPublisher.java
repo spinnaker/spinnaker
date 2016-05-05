@@ -17,28 +17,29 @@
 package com.netflix.spinnaker.orca.eureka;
 
 import com.netflix.discovery.StatusChangeEvent;
-import com.netflix.spinnaker.kork.eureka.EurekaStatusChangedEvent;
+import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UNKNOWN;
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
 
 public class NoDiscoveryApplicationStatusPublisher implements ApplicationListener<ContextRefreshedEvent> {
 
-  private final ApplicationContext context;
+  private final ApplicationEventPublisher publisher;
   private final Logger log = LoggerFactory.getLogger(NoDiscoveryApplicationStatusPublisher.class);
 
-  private static final EurekaStatusChangedEvent DEFAULT_UP_EVENT = new EurekaStatusChangedEvent(new StatusChangeEvent(UNKNOWN, UP));
+  private static final RemoteStatusChangedEvent DEFAULT_UP_EVENT = new RemoteStatusChangedEvent(new StatusChangeEvent(UNKNOWN, UP));
 
-  public NoDiscoveryApplicationStatusPublisher(ApplicationContext context) {
-    this.context = context;
+  public NoDiscoveryApplicationStatusPublisher(ApplicationEventPublisher publisher) {
+    this.publisher = publisher;
   }
 
   @Override public void onApplicationEvent(ContextRefreshedEvent event) {
     log.warn("No discovery client is available, assuming application is up");
-    context.publishEvent(DEFAULT_UP_EVENT);
+    publisher.publishEvent(DEFAULT_UP_EVENT);
   }
 }

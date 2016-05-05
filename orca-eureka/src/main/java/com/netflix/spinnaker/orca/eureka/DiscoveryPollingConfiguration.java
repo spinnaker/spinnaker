@@ -16,34 +16,64 @@
 
 package com.netflix.spinnaker.orca.eureka;
 
+import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.DiscoveryClient;
+import com.netflix.spinnaker.orca.restart.InstanceStatusProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ContextRefreshedEvent;
-import rx.schedulers.Schedulers;
+
+import java.lang.management.ManagementFactory;
+import java.util.Optional;
 
 @Configuration
 public class DiscoveryPollingConfiguration {
 
-  @Autowired(required = false)
-  DiscoveryClient discoveryClient;
+  @Configuration
+  @ConditionalOnMissingBean(DiscoveryClient.class)
+  public static class NoDiscoveryConfiguration {
+    @Autowired
+    ApplicationEventPublisher publisher;
 
-  @Autowired ApplicationContext context;
+    @Value("${spring.application.name:orca}")
+    String appName;
 
-  @Bean
-  public ApplicationListener<ContextRefreshedEvent> discoveryStatusPoller() {
-    if (discoveryClient == null) {
-      return new NoDiscoveryApplicationStatusPublisher(context);
-    } else {
-      return new DiscoveryStatusPoller(
-        discoveryClient,
-        30,
-        Schedulers.io(),
-        context
-      );
+    @Bean
+    public ApplicationListener<ContextRefreshedEvent> discoveryStatusPoller() {
+      return new NoDiscoveryApplicationStatusPublisher(publisher);
+    }
+
+    @Bean
+    public String currentInstanceId() {
+      return ManagementFactory.getRuntimeMXBean().getName();
+    }
+
+    @Bean
+    public InstanceStatusProvider instanceStatusProvider(String currentInstanceId) {
+      return (String app, String instanceId) -> appName.equals(app) && currentInstanceId.equals(instanceId);
+    }
+  }
+
+  @Configuration
+  @ConditionalOnBean(DiscoveryClient.class)
+  public static class DiscoveryConfiguration {
+    @Bean
+    public String currentInstanceId(InstanceInfo instanceInfo) {
+      return instanceInfo.getInstanceId();
+    }
+
+    @Bean
+    public InstanceStatusProvider instanceStatusProvider(DiscoveryClient discoveryClient) {
+      return (String app, String instanceId) -> Optional.ofNullable(discoveryClient.getApplication(app))
+        .map(a -> a.getByInstanceId(instanceId))
+        .map(InstanceInfo::getStatus)
+        .orElse(InstanceInfo.InstanceStatus.UNKNOWN)  == InstanceInfo.InstanceStatus.UP;
     }
   }
 }

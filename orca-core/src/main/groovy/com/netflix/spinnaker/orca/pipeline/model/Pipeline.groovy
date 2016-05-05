@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.pipeline.model
 
 import groovy.transform.CompileStatic
-import com.netflix.appinfo.InstanceInfo
 
 @CompileStatic
 class Pipeline extends Execution<Pipeline> {
@@ -122,8 +121,8 @@ class Pipeline extends Execution<Pipeline> {
       return this
     }
 
-    Builder withExecutingInstance(InstanceInfo instance) {
-      pipeline.executingInstance = instance.id
+    Builder withExecutingInstance(String instanceId) {
+      pipeline.executingInstance = instanceId
       return this
     }
 

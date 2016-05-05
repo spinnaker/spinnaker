@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.orca.eureka
 
+import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import org.springframework.context.ApplicationContext
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.ContextRefreshedEvent
 import spock.lang.Specification
 import spock.lang.Subject
@@ -24,15 +26,15 @@ import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
 
 class NoDiscoveryApplicationStatusPublisherSpec extends Specification {
 
-  def context = Mock(ApplicationContext)
-  @Subject publisher = new NoDiscoveryApplicationStatusPublisher(context)
+  ApplicationEventPublisher eventPublisher = Mock(ApplicationEventPublisher)
+  @Subject publisher = new NoDiscoveryApplicationStatusPublisher(eventPublisher)
 
   def "emits an UP event immediately on context ready"() {
     when:
-    publisher.onApplicationEvent(new ContextRefreshedEvent(context))
+    publisher.onApplicationEvent(new ContextRefreshedEvent(Stub(ApplicationContext)))
 
     then:
-    1 * context.publishEvent({ it.statusChangeEvent.current == UP })
+    1 * eventPublisher.publishEvent({ RemoteStatusChangedEvent e -> e.source.current == UP })
   }
 
 }

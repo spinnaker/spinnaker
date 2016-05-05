@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.orca.restart
 
-import com.netflix.appinfo.InstanceInfo
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -10,7 +9,6 @@ import groovy.util.logging.Slf4j
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobExecutionListener
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
@@ -21,17 +19,17 @@ import org.springframework.stereotype.Component
 class ExecutionTracker implements JobExecutionListener {
 
   private final ExecutionRepository executionRepository
-  private final InstanceInfo currentInstance
+  private final String currentInstanceId
 
   @Autowired
-  ExecutionTracker(ExecutionRepository executionRepository, @Qualifier("instanceInfo") InstanceInfo currentInstance) {
+  ExecutionTracker(ExecutionRepository executionRepository, String currentInstanceId) {
     this.executionRepository = executionRepository
-    log.info "current instance: ${currentInstance.appName} ${currentInstance.id}"
-    this.currentInstance = currentInstance
+    log.info "current instance: ${currentInstanceId}"
+    this.currentInstanceId = currentInstanceId
   }
 
   void beforeExecution(Execution<?> execution) {
-    execution.executingInstance = currentInstance.id
+    execution.executingInstance = currentInstanceId
     // I really don't want to do this but the craziness of the repository API is too much to deal with today
     switch (execution) {
       case Pipeline:

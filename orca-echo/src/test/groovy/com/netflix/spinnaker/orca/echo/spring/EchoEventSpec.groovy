@@ -1,8 +1,5 @@
 package com.netflix.spinnaker.orca.echo.spring
 
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
-
-import com.netflix.spinnaker.kork.eureka.EurekaComponents
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -14,6 +11,7 @@ import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.SimpleStage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.test.TestConfiguration
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,7 +28,7 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
  * ensure that we're making the right assumptions about the statuses we'll get
  * from Batch at runtime, etc.
  */
-@ContextConfiguration(classes = [BatchTestConfiguration, EmbeddedRedisConfiguration, JesqueConfiguration, EurekaComponents, OrcaConfiguration])
+@ContextConfiguration(classes = [BatchTestConfiguration, EmbeddedRedisConfiguration, JesqueConfiguration, OrcaConfiguration, TestConfiguration])
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 class EchoEventSpec extends Specification {
 

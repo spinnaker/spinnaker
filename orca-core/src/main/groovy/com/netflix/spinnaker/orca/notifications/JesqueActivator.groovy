@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.notifications
 
+import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import com.netflix.spinnaker.kork.eureka.EurekaStatusChangedEvent
 import net.greghaines.jesque.worker.WorkerPool
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationListener
@@ -28,7 +28,7 @@ import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
 @Component
 @Slf4j
 @CompileStatic
-class JesqueActivator implements ApplicationListener<EurekaStatusChangedEvent> {
+class JesqueActivator implements ApplicationListener<RemoteStatusChangedEvent> {
 
   private final WorkerPool jesqueWorkerPool
 
@@ -38,8 +38,8 @@ class JesqueActivator implements ApplicationListener<EurekaStatusChangedEvent> {
   }
 
   @Override
-  void onApplicationEvent(EurekaStatusChangedEvent event) {
-    event.statusChangeEvent.with {
+  void onApplicationEvent(RemoteStatusChangedEvent event) {
+    event.source.with {
       if (it.status == UP) {
         log.info("Instance is alive... starting Jesque worker pool")
         jesqueWorkerPool.togglePause(false)

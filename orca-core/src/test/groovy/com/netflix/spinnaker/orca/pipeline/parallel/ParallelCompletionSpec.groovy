@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.orca.pipeline.parallel
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.kork.eureka.EurekaComponents
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
@@ -13,6 +12,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.restart.PipelineRestartingSpec
 import com.netflix.spinnaker.orca.test.JobCompletionListener
+import com.netflix.spinnaker.orca.test.TestConfiguration
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,7 +38,7 @@ class ParallelCompletionSpec extends Specification {
       register(
         EmbeddedRedisConfiguration,
         JesqueConfiguration,
-        EurekaComponents,
+        TestConfiguration,
         JobCompletionListener,
         BatchTestConfiguration,
         OrcaConfiguration,

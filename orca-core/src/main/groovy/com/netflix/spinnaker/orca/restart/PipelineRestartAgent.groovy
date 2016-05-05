@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.orca.restart
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.appinfo.InstanceInfo
-import com.netflix.discovery.shared.LookupService
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.NotificationHandler
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -28,7 +26,7 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import net.greghaines.jesque.client.Client
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
 import rx.Observable
@@ -49,17 +47,19 @@ class PipelineRestartAgent extends AbstractPollingNotificationAgent {
   public static final String NOTIFICATION_TYPE = "stalePipeline"
 
   private final ExecutionRepository executionRepository
-  private final LookupService discoveryClient
-  private final InstanceInfo currentInstance
+  private final InstanceStatusProvider instanceStatusProvider
+  private final String applicationName
+  private final String currentInstanceId
 
   @Autowired
-  PipelineRestartAgent(ObjectMapper mapper, Client jesqueClient, ExecutionRepository executionRepository, LookupService discoveryClient,
-                       @Qualifier("instanceInfo") InstanceInfo currentInstance) {
+  PipelineRestartAgent(ObjectMapper mapper, Client jesqueClient, ExecutionRepository executionRepository, InstanceStatusProvider instanceStatusProvider,
+                       String currentInstanceId, @Value('${spring.application.name:orca}') String applicationName) {
     super(mapper, jesqueClient)
     this.executionRepository = executionRepository
-    this.discoveryClient = discoveryClient
-    log.info "current instance: ${currentInstance.appName} ${currentInstance.id}"
-    this.currentInstance = currentInstance
+    this.instanceStatusProvider = instanceStatusProvider
+    log.info "current instance: ${applicationName} ${currentInstanceId}"
+    this.applicationName = applicationName
+    this.currentInstanceId = currentInstanceId
   }
 
   @Override
@@ -88,7 +88,7 @@ class PipelineRestartAgent extends AbstractPollingNotificationAgent {
         if (!execution.executingInstance) {
           log.info "Pipeline $execution.application $execution.id is $execution.status but it has no record of its executing instance (old pipeline)"
           return false
-        } else if (execution.executingInstance == currentInstance.id) {
+        } else if (execution.executingInstance == currentInstanceId) {
           log.info "Pipeline $execution.application $execution.id is $execution.status but it is already running on this instance"
           return false
         } else if (executingInstanceIsDown(execution)) {
@@ -111,6 +111,6 @@ class PipelineRestartAgent extends AbstractPollingNotificationAgent {
 
   private boolean executingInstanceIsDown(Execution execution) {
     def instanceId = execution.executingInstance
-    instanceId && !discoveryClient.getApplication("orca")?.getByInstanceId(instanceId)
+    return !instanceStatusProvider.isInstanceUp(applicationName, instanceId)
   }
 }

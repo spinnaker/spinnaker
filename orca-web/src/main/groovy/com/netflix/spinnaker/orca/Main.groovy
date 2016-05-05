@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.ErrorConfiguration
 import com.netflix.spinnaker.config.TomcatConfiguration
+import com.netflix.spinnaker.kork.PlatformComponents
 import com.netflix.spinnaker.orca.applications.config.ApplicationConfig
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfiguration
@@ -55,6 +56,7 @@ import org.springframework.scheduling.annotation.EnableAsync
 @EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration])
 @EnableBatchProcessing(modular = true)
 @Import([
+  PlatformComponents,
   WebConfiguration,
   ErrorConfiguration,
   OrcaConfiguration,

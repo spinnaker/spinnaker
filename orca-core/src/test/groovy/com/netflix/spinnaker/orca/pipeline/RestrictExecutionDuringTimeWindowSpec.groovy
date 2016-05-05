@@ -15,7 +15,6 @@
  */
 
 package com.netflix.spinnaker.orca.pipeline
-import com.netflix.spinnaker.kork.eureka.EurekaComponents
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
@@ -25,6 +24,7 @@ import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.test.TestConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.Step
@@ -43,7 +43,7 @@ import static com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWin
 import static com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask.TimeWindow
 
 @Unroll
-@ContextConfiguration(classes = [EmbeddedRedisConfiguration, JesqueConfiguration, EurekaComponents, OrcaConfiguration])
+@ContextConfiguration(classes = [EmbeddedRedisConfiguration, JesqueConfiguration, OrcaConfiguration, TestConfiguration])
 class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
 
   @Autowired ApplicationContext applicationContext;

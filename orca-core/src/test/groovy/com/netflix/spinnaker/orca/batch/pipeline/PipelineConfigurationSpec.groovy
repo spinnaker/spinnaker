@@ -30,6 +30,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
+import com.netflix.spinnaker.orca.test.TestConfiguration
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -40,7 +41,6 @@ import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
 import redis.clients.jedis.Jedis
-import redis.clients.jedis.JedisPool
 import redis.clients.util.Pool
 import spock.lang.AutoCleanup
 import spock.lang.Shared
@@ -50,7 +50,7 @@ import static com.netflix.spinnaker.orca.test.hamcrest.ContainsAllOf.containsAll
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 import static spock.util.matcher.HamcrestSupport.expect
 
-@ContextConfiguration(classes = [BatchTestConfiguration])
+@ContextConfiguration(classes = [BatchTestConfiguration, TestConfiguration])
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 class PipelineConfigurationSpec extends Specification {
 
