@@ -44,9 +44,8 @@ public class DefaultImageNameFactory implements ImageNameFactory {
 
     if (packageNameList) {
       packageNameList.eachWithIndex { packageName, index ->
-
-        PackageNameConverter.OsPackageName osPackageName
-        osPackageName = PackageNameConverter.buildOsPackageName(selectedOptions.baseImage.packageType, packageName)
+        PackageNameConverter.OsPackageName osPackageName =
+          PackageNameConverter.buildOsPackageName(selectedOptions.baseImage.packageType, packageName)
 
         if (osPackageName?.name) {
           packageNameList[index] = osPackageName.name
