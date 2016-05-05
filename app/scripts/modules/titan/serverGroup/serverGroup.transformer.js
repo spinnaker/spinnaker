@@ -23,7 +23,7 @@ module.exports = angular
         var ports = '' + command.resources.ports;
         command.resources.ports = ports.split(/\s*,\s*/);
       }
-      if (command.resources.allocateIpAddress === true ){
+      if (command.resources.allocateIpAddress === true ) {
         delete command.resources.ports;
       }
       delete command.viewState;
