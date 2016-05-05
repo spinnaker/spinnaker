@@ -62,12 +62,12 @@ class KubernetesJob implements Job, Serializable {
   Job.InstanceCounts getInstanceCounts() {
     new Job.InstanceCounts(
         down: (Integer) instances?.count { it.healthState == HealthState.Down } ?: 0,
-        outOfService: (Integer) instances?.count { it.healthState == HealthState.OutOfService } ?: 0,
         up: (Integer) instances?.count { it.healthState == HealthState.Up } ?: 0,
         starting: (Integer) instances?.count { it.healthState == HealthState.Starting } ?: 0,
+        outOfService: (Integer) instances?.count { it.healthState == HealthState.OutOfService } ?: 0,
+        failed: (Integer) instances?.count { it.healthState == HealthState.Failed } ?: 0,
+        succeeded: (Integer) instances?.count { it.healthState == HealthState.Succeeded } ?: 0,
         unknown: (Integer) instances?.count { it.healthState == HealthState.Unknown } ?: 0,
-        succeeded: (Integer) instances?.count { it.healthState == HealthState.Failed } ?: 0,
-        failed: (Integer) instances?.count { it.healthState == HealthState.Succeeded } ?: 0,
         total: (Integer) instances?.size(),
     )
   }
