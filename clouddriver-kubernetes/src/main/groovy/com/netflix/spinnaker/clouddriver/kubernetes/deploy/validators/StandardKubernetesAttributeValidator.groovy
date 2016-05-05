@@ -235,7 +235,16 @@ class StandardKubernetesAttributeValidator {
     value ? validateByContainment(value, attribute, restartPolicyList) : null
   }
 
-  def validateCloneSource(Object value, String attribute) {
+  def validateJobCloneSource(Object value, String attribute) {
+    if (!value) {
+      errors.rejectValue("${context}.${attribute}",  "${context}.${attribute}.empty")
+      return false
+    } else {
+      return validateNotEmpty(value.jobName, attribute)
+    }
+  }
+
+  def validateServerGroupCloneSource(Object value, String attribute) {
     if (!value) {
       errors.rejectValue("${context}.${attribute}",  "${context}.${attribute}.empty")
       return false

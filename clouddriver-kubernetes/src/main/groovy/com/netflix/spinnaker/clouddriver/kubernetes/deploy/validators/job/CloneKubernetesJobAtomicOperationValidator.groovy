@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.servergroup
+package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.job
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.CloneKubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.job.CloneKubernetesJobAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.KubernetesContainerValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
@@ -28,22 +28,22 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
-@KubernetesOperation(AtomicOperations.CLONE_SERVER_GROUP)
+@KubernetesOperation(AtomicOperations.CLONE_JOB)
 @Component
-class CloneKubernetesAtomicOperationValidator extends DescriptionValidator<CloneKubernetesAtomicOperationDescription> {
+class CloneKubernetesJobAtomicOperationValidator extends DescriptionValidator<CloneKubernetesJobAtomicOperationDescription> {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, CloneKubernetesAtomicOperationDescription description, Errors errors) {
-    def helper = new StandardKubernetesAttributeValidator("cloneKubernetesAtomicOperationDescription", errors)
+  void validate(List priorDescriptions, CloneKubernetesJobAtomicOperationDescription description, Errors errors) {
+    def helper = new StandardKubernetesAttributeValidator("cloneKubernetesJobAtomicOperationDescription", errors)
     if (!helper.validateCredentials(description.account, accountCredentialsProvider)) {
       return
     }
 
     KubernetesCredentials credentials = (KubernetesCredentials) accountCredentialsProvider.getCredentials(description.account).credentials
 
-    helper.validateServerGroupCloneSource(description.source, "source")
+    helper.validateJobCloneSource(description.source, "source")
     if (description.application) {
       helper.validateApplication(description.application, "application")
     }
@@ -56,27 +56,21 @@ class CloneKubernetesAtomicOperationValidator extends DescriptionValidator<Clone
       helper.validateDetails(description.freeFormDetails, "details")
     }
 
-    if (description.targetSize != null) {
-      helper.validateNonNegative(description.targetSize, "targetSize")
+    if (description.completions != null) {
+      helper.validateNonNegative(description.completions , "completions")
+    }
+
+    if (description.parallelism != null) {
+      helper.validateNonNegative(description.parallelism , "parallelism")
     }
 
     if (description.namespace) {
       helper.validateNamespace(credentials, description.namespace, "namespace")
     }
 
-    if (description.restartPolicy) {
-      helper.validateRestartPolicy(description.restartPolicy, "restartPolicy")
-    }
-
     if (description.loadBalancers) {
       description.loadBalancers.eachWithIndex { name, idx ->
         helper.validateName(name, "loadBalancers[${idx}]")
-      }
-    }
-
-    if (description.securityGroups) {
-      description.securityGroups.eachWithIndex { name, idx ->
-        helper.validateName(name, "securityGroups[${idx}]")
       }
     }
 

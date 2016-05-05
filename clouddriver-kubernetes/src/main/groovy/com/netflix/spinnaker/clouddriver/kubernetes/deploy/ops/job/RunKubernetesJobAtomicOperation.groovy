@@ -92,11 +92,11 @@ class RunKubernetesJobAtomicOperation implements AtomicOperation<DeploymentResul
     jobBuilder = jobBuilder.endMetadata().withNewSpec()
 
     switch (description.restartPolicy) {
-      case KubernetesJobRestartPolicy.NEVER:
+      case KubernetesJobRestartPolicy.Never:
         jobBuilder = jobBuilder.withRestartPolicy("Never")
         break
 
-      case KubernetesJobRestartPolicy.ONFAILURE:
+      case KubernetesJobRestartPolicy.OnFailure:
       default:
         jobBuilder = jobBuilder.withRestartPolicy("OnFailure")
     }
