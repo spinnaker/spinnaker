@@ -17,29 +17,31 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.job
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.job.RunJobForceCacheRefreshTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.job.RunJobTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.job.WaitOnJobCompletion
+import com.netflix.spinnaker.orca.clouddriver.tasks.job.DestroyJobForceCacheRefreshTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.job.DestroyJobTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
-class RunJobStage extends LinearStage {
-  public static final String PIPELINE_CONFIG_TYPE = "runJob"
+@CompileStatic
+class DestroyJobStage extends LinearStage {
 
-  RunJobStage() {
+  public static final String PIPELINE_CONFIG_TYPE = "destroyJob"
+
+  DestroyJobStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override
-  List<Step> buildSteps(Stage stage) {
+  public List<Step> buildSteps(Stage stage) {
     [
-        buildStep(stage, "runJob", RunJobTask),
-        buildStep(stage, "monitorDeploy", MonitorKatoTask),
-        buildStep(stage, "forceCacheRefresh", RunJobForceCacheRefreshTask),
-        buildStep(stage, "waitOnJobCompletion", WaitOnJobCompletion),
+        buildStep(stage, "destroyJob", DestroyJobTask),
+        buildStep(stage, "monitorDestroy", MonitorKatoTask),
+        buildStep(stage, "forceCacheRefresh", DestroyJobForceCacheRefreshTask),
     ]
   }
 }
+

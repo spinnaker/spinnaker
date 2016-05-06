@@ -27,25 +27,23 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-public class JobForceCacheRefreshTask extends AbstractCloudProviderAwareTask implements Task {
+class DestroyJobForceCacheRefreshTask extends AbstractCloudProviderAwareTask implements Task {
   static final String REFRESH_TYPE = "Job"
 
   @Autowired
-  OortService oortService
+  OortService oort
 
   @Override
   TaskResult execute(Stage stage) {
     String cloudProvider = getCloudProvider(stage)
     String account = getCredentials(stage)
 
-    stage.context."deploy.jobs"?.each { String region, List names ->
-      names.each { name ->
-        oortService.forceCacheUpdate(
-          cloudProvider, REFRESH_TYPE, [account: account, jobName: name, region: region]
-        )
-      }
-    }
+    String name = stage.context.jobName
+    String region = stage.context.region
 
+    def model = [jobName: name, region: region, account: account, evict: true]
+    oort.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
   }
 }
+
