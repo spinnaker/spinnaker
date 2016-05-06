@@ -28,7 +28,7 @@ import spock.lang.Subject
 
 class DockerBakeHandlerSpec extends Specification {
 
-  private static final String PACKAGE_NAME = "kato"
+  private static final String PACKAGES_NAME = "kato-nflx-djangobase-enhanced_0.1-h12.170cdbd_all-mongodb"
   private static final String REGION = "global"
   private static final String TARGET_REPOSITORY = "my-docker-repository:5000"
   private static final String TEMPLATE_FILE = "docker_template.json"
@@ -148,7 +148,7 @@ class DockerBakeHandlerSpec extends Specification {
       def imageNameFactoryMock = Mock(ImageNameFactory)
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-                                        package_name: PACKAGE_NAME,
+                                        package_name: PACKAGES_NAME,
                                         base_os: "ubuntu",
                                         cloud_provider_type: BakeRequest.CloudProviderType.docker)
       def targetImageName = "kato-x8664-timestamp-ubuntu"
@@ -158,7 +158,7 @@ class DockerBakeHandlerSpec extends Specification {
         docker_target_repository: TARGET_REPOSITORY,
         repository: DEBIAN_REPOSITORY,
         package_type: BakeRequest.PackageType.DEB.packageType,
-        packages: PACKAGE_NAME,
+        packages: PACKAGES_NAME,
         configDir: configDir
       ]
 
@@ -173,7 +173,7 @@ class DockerBakeHandlerSpec extends Specification {
       dockerBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND,
                                                       parameterMap,
                                                       "$configDir/$dockerBakeryDefaults.templateFile")
@@ -184,7 +184,7 @@ class DockerBakeHandlerSpec extends Specification {
       def imageNameFactoryMock = Mock(ImageNameFactory)
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-                                        package_name: PACKAGE_NAME,
+                                        package_name: PACKAGES_NAME,
                                         base_os: "trusty",
                                         cloud_provider_type: BakeRequest.CloudProviderType.docker)
       def targetImageName = "kato-x8664-timestamp-trusty"
@@ -194,7 +194,7 @@ class DockerBakeHandlerSpec extends Specification {
         docker_target_repository: TARGET_REPOSITORY,
         repository: DEBIAN_REPOSITORY,
         package_type: BakeRequest.PackageType.DEB.packageType,
-        packages: PACKAGE_NAME,
+        packages: PACKAGES_NAME,
         configDir: configDir
       ]
 
@@ -209,7 +209,7 @@ class DockerBakeHandlerSpec extends Specification {
       dockerBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND,
                                                       parameterMap,
                                                       "$configDir/$dockerBakeryDefaults.templateFile")
@@ -220,7 +220,7 @@ class DockerBakeHandlerSpec extends Specification {
       def imageNameFactoryMock = Mock(ImageNameFactory)
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-                                        package_name: PACKAGE_NAME,
+                                        package_name: PACKAGES_NAME,
                                         base_os: "centos",
                                         cloud_provider_type: BakeRequest.CloudProviderType.docker)
       def targetImageName = "kato-x8664-timestamp-centos"
@@ -230,7 +230,7 @@ class DockerBakeHandlerSpec extends Specification {
         docker_target_repository: TARGET_REPOSITORY,
         repository: YUM_REPOSITORY,
         package_type: BakeRequest.PackageType.RPM.packageType,
-        packages: PACKAGE_NAME,
+        packages: PACKAGES_NAME,
         configDir: configDir
       ]
 
@@ -245,7 +245,7 @@ class DockerBakeHandlerSpec extends Specification {
       dockerBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND,
                                                       parameterMap,
                                                       "$configDir/$dockerBakeryDefaults.templateFile")
@@ -299,7 +299,7 @@ class DockerBakeHandlerSpec extends Specification {
       def imageNameFactoryMock = Mock(ImageNameFactory)
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-                                        package_name: PACKAGE_NAME,
+                                        package_name: PACKAGES_NAME,
                                         base_os: "wily",
                                         cloud_provider_type: BakeRequest.CloudProviderType.docker)
 

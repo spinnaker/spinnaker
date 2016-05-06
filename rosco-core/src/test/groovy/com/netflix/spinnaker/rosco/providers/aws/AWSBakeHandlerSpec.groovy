@@ -29,7 +29,7 @@ import spock.lang.Subject
 
 class AWSBakeHandlerSpec extends Specification {
 
-  private static final String PACKAGE_NAME = "kato"
+  private static final String PACKAGES_NAME = "kato nflx-djangobase-enhanced_0.1-h12.170cdbd_all mongodb"
   private static final String REGION = "us-east-1"
   private static final String SOURCE_UBUNTU_HVM_IMAGE_NAME = "ami-a123456b"
   private static final String SOURCE_UBUNTU_PV_IMAGE_NAME = "ami-a654321b"
@@ -283,7 +283,7 @@ class AWSBakeHandlerSpec extends Specification {
       def imageNameFactoryMock = Mock(ImageNameFactory)
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-                                        package_name: PACKAGE_NAME,
+                                        package_name: PACKAGES_NAME,
                                         base_os: "ubuntu",
                                         vm_type: BakeRequest.VmType.hvm,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
@@ -296,7 +296,7 @@ class AWSBakeHandlerSpec extends Specification {
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
         package_type: BakeRequest.PackageType.DEB.packageType,
-        packages: PACKAGE_NAME,
+        packages: PACKAGES_NAME,
         configDir: configDir
       ]
 
@@ -311,7 +311,7 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
@@ -320,7 +320,7 @@ class AWSBakeHandlerSpec extends Specification {
       def imageNameFactoryMock = Mock(ImageNameFactory)
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-                                        package_name: PACKAGE_NAME,
+                                        package_name: PACKAGES_NAME,
                                         base_os: "amzn",
                                         vm_type: BakeRequest.VmType.hvm,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
@@ -333,7 +333,7 @@ class AWSBakeHandlerSpec extends Specification {
         aws_target_ami: targetImageName,
         repository: YUM_REPOSITORY,
         package_type: BakeRequest.PackageType.RPM.packageType,
-        packages: PACKAGE_NAME,
+        packages: PACKAGES_NAME,
         configDir: configDir
       ]
 
@@ -348,7 +348,7 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
@@ -380,7 +380,7 @@ class AWSBakeHandlerSpec extends Specification {
       def imageNameFactoryMock = Mock(ImageNameFactory)
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-        package_name: PACKAGE_NAME,
+        package_name: PACKAGES_NAME,
         base_os: "amzn",
         vm_type: BakeRequest.VmType.hvm,
         cloud_provider_type: BakeRequest.CloudProviderType.aws)
@@ -393,7 +393,7 @@ class AWSBakeHandlerSpec extends Specification {
         aws_target_ami: targetImageName,
         repository: YUM_REPOSITORY,
         package_type: BakeRequest.PackageType.RPM.packageType,
-        packages: PACKAGE_NAME,
+        packages: PACKAGES_NAME,
         configDir: configDir
       ]
 
@@ -409,7 +409,7 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand("sudo", parameterMap, "$configDir/aws-chroot.json")
   }
 
@@ -418,7 +418,7 @@ class AWSBakeHandlerSpec extends Specification {
       def imageNameFactoryMock = Mock(ImageNameFactory)
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-                                        package_name: PACKAGE_NAME,
+                                        package_name: PACKAGES_NAME,
                                         base_os: "ubuntu",
                                         base_ami: "ami-12345678",
                                         vm_type: BakeRequest.VmType.hvm,
@@ -432,7 +432,7 @@ class AWSBakeHandlerSpec extends Specification {
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
         package_type: BakeRequest.PackageType.DEB.packageType,
-        packages: PACKAGE_NAME,
+        packages: PACKAGES_NAME,
         configDir: configDir
       ]
 
@@ -447,7 +447,7 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
@@ -456,7 +456,7 @@ class AWSBakeHandlerSpec extends Specification {
       def imageNameFactoryMock = Mock(ImageNameFactory)
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-                                        package_name: PACKAGE_NAME,
+                                        package_name: PACKAGES_NAME,
                                         base_os: "ubuntu",
                                         vm_type: BakeRequest.VmType.pv,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
@@ -469,7 +469,7 @@ class AWSBakeHandlerSpec extends Specification {
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
         package_type: BakeRequest.PackageType.DEB.packageType,
-        packages: PACKAGE_NAME,
+        packages: PACKAGES_NAME,
         configDir: configDir
       ]
 
@@ -484,7 +484,7 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
@@ -493,7 +493,7 @@ class AWSBakeHandlerSpec extends Specification {
       def imageNameFactoryMock = Mock(ImageNameFactory)
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-                                        package_name: PACKAGE_NAME,
+                                        package_name: PACKAGES_NAME,
                                         base_os: "ubuntu",
                                         vm_type: BakeRequest.VmType.pv,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws,
@@ -507,7 +507,7 @@ class AWSBakeHandlerSpec extends Specification {
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
         package_type: BakeRequest.PackageType.DEB.packageType,
-        packages: PACKAGE_NAME,
+        packages: PACKAGES_NAME,
         configDir: configDir
       ]
 
@@ -522,7 +522,7 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/somePackerTemplate.json")
   }
 
@@ -531,7 +531,7 @@ class AWSBakeHandlerSpec extends Specification {
       def imageNameFactoryMock = Mock(ImageNameFactory)
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-                                        package_name: PACKAGE_NAME,
+                                        package_name: PACKAGES_NAME,
                                         base_os: "ubuntu",
                                         vm_type: BakeRequest.VmType.pv,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws,
@@ -545,7 +545,7 @@ class AWSBakeHandlerSpec extends Specification {
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
         package_type: BakeRequest.PackageType.DEB.packageType,
-        packages: PACKAGE_NAME,
+        packages: PACKAGES_NAME,
         configDir: configDir,
         someAttr1: "someValue1",
         someAttr2: "someValue2"
@@ -562,7 +562,7 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
@@ -571,7 +571,7 @@ class AWSBakeHandlerSpec extends Specification {
       def imageNameFactoryMock = Mock(ImageNameFactory)
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-                                        package_name: PACKAGE_NAME,
+                                        package_name: PACKAGES_NAME,
                                         base_os: "trusty",
                                         vm_type: BakeRequest.VmType.hvm,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
@@ -584,7 +584,7 @@ class AWSBakeHandlerSpec extends Specification {
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
         package_type: BakeRequest.PackageType.DEB.packageType,
-        packages: PACKAGE_NAME,
+        packages: PACKAGES_NAME,
         configDir: configDir
       ]
 
@@ -599,7 +599,7 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
@@ -652,7 +652,7 @@ class AWSBakeHandlerSpec extends Specification {
       def imageNameFactoryMock = Mock(ImageNameFactory)
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-                                        package_name: PACKAGE_NAME,
+                                        package_name: PACKAGES_NAME,
                                         base_os: "ubuntu",
                                         vm_type: BakeRequest.VmType.hvm,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws,
@@ -666,7 +666,7 @@ class AWSBakeHandlerSpec extends Specification {
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
         package_type: BakeRequest.PackageType.DEB.packageType,
-        packages: PACKAGE_NAME,
+        packages: PACKAGES_NAME,
         upgrade: true,
         configDir: configDir
       ]
@@ -682,7 +682,7 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
@@ -691,7 +691,7 @@ class AWSBakeHandlerSpec extends Specification {
       def imageNameFactoryMock = Mock(ImageNameFactory)
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-                                        package_name: PACKAGE_NAME,
+                                        package_name: PACKAGES_NAME,
                                         base_os: "centos",
                                         vm_type: BakeRequest.VmType.hvm,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
@@ -715,7 +715,7 @@ class AWSBakeHandlerSpec extends Specification {
       def imageNameFactoryMock = Mock(ImageNameFactory)
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-                                        package_name: PACKAGE_NAME,
+                                        package_name: PACKAGES_NAME,
                                         base_os: "trusty",
                                         vm_type: BakeRequest.VmType.pv,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
@@ -737,7 +737,7 @@ class AWSBakeHandlerSpec extends Specification {
   void 'produce a default AWS bakeKey without base ami'() {
     setup:
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-                                        package_name: PACKAGE_NAME,
+                                        package_name: PACKAGES_NAME,
                                         base_os: "centos",
                                         vm_type: BakeRequest.VmType.hvm,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
@@ -749,13 +749,13 @@ class AWSBakeHandlerSpec extends Specification {
       String bakeKey = awsBakeHandler.produceBakeKey(REGION, bakeRequest)
 
     then:
-      bakeKey == "bake:aws:centos:kato:us-east-1:hvm:enhancedNWDisabled"
+      bakeKey == "bake:aws:centos:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb:us-east-1:hvm:enhancedNWDisabled"
   }
 
   void 'produce a default AWS bakeKey with base ami'() {
     setup:
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-                                        package_name: PACKAGE_NAME,
+                                        package_name: PACKAGES_NAME,
                                         base_os: "centos",
                                         vm_type: BakeRequest.VmType.hvm,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws,
@@ -768,13 +768,13 @@ class AWSBakeHandlerSpec extends Specification {
       String bakeKey = awsBakeHandler.produceBakeKey(REGION, bakeRequest)
 
     then:
-      bakeKey == "bake:aws:centos:ami-123456:kato:us-east-1:hvm:enhancedNWDisabled"
+      bakeKey == "bake:aws:centos:ami-123456:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb:us-east-1:hvm:enhancedNWDisabled"
   }
 
   void 'produce a default AWS bakeKey with enhanced network enabled'() {
     setup:
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-                                        package_name: PACKAGE_NAME,
+                                        package_name: PACKAGES_NAME,
                                         base_os: "centos",
                                         vm_type: BakeRequest.VmType.hvm,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws,
@@ -787,13 +787,13 @@ class AWSBakeHandlerSpec extends Specification {
       String bakeKey = awsBakeHandler.produceBakeKey(REGION, bakeRequest)
 
     then:
-      bakeKey == "bake:aws:centos:kato:us-east-1:hvm:enhancedNWEnabled"
+      bakeKey == "bake:aws:centos:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb:us-east-1:hvm:enhancedNWEnabled"
   }
 
   void 'produce a default AWS bakeKey with ami name'() {
     setup:
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-                                        package_name: PACKAGE_NAME,
+                                        package_name: PACKAGES_NAME,
                                         base_os: "centos",
                                         vm_type: BakeRequest.VmType.hvm,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws,
@@ -805,19 +805,19 @@ class AWSBakeHandlerSpec extends Specification {
       String bakeKey = awsBakeHandler.produceBakeKey(REGION, bakeRequest)
 
     then:
-      bakeKey == "bake:aws:centos:kato-app:us-east-1:hvm:enhancedNWDisabled"
+      bakeKey == "bake:aws:centos:kato-app:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb:us-east-1:hvm:enhancedNWDisabled"
   }
 
   void 'do not consider ami suffix when composing bake key'() {
     setup:
       def bakeRequest1 = new BakeRequest(user: "someuser@gmail.com",
-                                         package_name: PACKAGE_NAME,
+                                         package_name: PACKAGES_NAME,
                                          base_os: "centos",
                                          vm_type: BakeRequest.VmType.hvm,
                                          cloud_provider_type: BakeRequest.CloudProviderType.aws,
                                          ami_suffix: "1.0")
       def bakeRequest2 = new BakeRequest(user: "someuser@gmail.com",
-                                         package_name: PACKAGE_NAME,
+                                         package_name: PACKAGES_NAME,
                                          base_os: "centos",
                                          vm_type: BakeRequest.VmType.hvm,
                                          cloud_provider_type: BakeRequest.CloudProviderType.aws,
@@ -830,7 +830,7 @@ class AWSBakeHandlerSpec extends Specification {
       String bakeKey2 = awsBakeHandler.produceBakeKey(REGION, bakeRequest2)
 
     then:
-      bakeKey1 == "bake:aws:centos:kato:us-east-1:hvm:enhancedNWDisabled"
+      bakeKey1 == "bake:aws:centos:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb:us-east-1:hvm:enhancedNWDisabled"
       bakeKey2 == bakeKey1
   }
 }
