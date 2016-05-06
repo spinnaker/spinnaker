@@ -71,14 +71,13 @@ class CaptureSourceServerGroupCapacityTaskSpec extends Specification {
     ])
 
     and:
-    def targetServerGroup = new TargetServerGroup()
-    targetServerGroup.serverGroup = [
+    def targetServerGroup = new TargetServerGroup(
       capacity: [
         min    : 0,
         desired: 5,
         max    : 10
       ]
-    ]
+    )
 
     when:
     def result = task.execute(stage)

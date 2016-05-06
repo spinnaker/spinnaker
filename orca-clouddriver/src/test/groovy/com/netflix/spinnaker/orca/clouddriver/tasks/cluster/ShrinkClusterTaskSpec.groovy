@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
+import java.util.concurrent.atomic.AtomicInteger
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
@@ -26,16 +27,10 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideC
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideClouddriverTask.InstanceCount
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideClouddriverTask.IsActive
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.*
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-
-import java.util.concurrent.atomic.AtomicInteger
 
 class ShrinkClusterTaskSpec extends Specification {
 
@@ -178,7 +173,7 @@ class ShrinkClusterTaskSpec extends Specification {
   }
 
   private TargetServerGroup mkTSG(Map params = [:]) {
-    return new TargetServerGroup(serverGroup: mkSG(params))
+    return new TargetServerGroup(mkSG(params))
   }
 
   private Map<String, Object> mkSG(Map params = [:]) {

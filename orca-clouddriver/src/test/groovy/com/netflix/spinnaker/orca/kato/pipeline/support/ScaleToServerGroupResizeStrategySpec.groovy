@@ -83,13 +83,13 @@ class ScaleToServerGroupResizeStrategySpec extends Specification {
 
     then:
     1 * oortHelper.getTargetServerGroup("test", "s-v001", "us-west-1", "aws") >> {
-      return Optional.of(new TargetServerGroup(serverGroup: [
+      return Optional.of(new TargetServerGroup(
         capacity: [
           min    : 1,
           max    : 2,
           desired: 3
         ]
-      ]))
+      ))
     }
 
     capacity.min == 1

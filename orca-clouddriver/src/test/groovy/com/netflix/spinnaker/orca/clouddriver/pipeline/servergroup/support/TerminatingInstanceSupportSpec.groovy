@@ -44,7 +44,7 @@ class TerminatingInstanceSupportSpec extends Specification {
 
     then:
       1 * oortHelper.getTargetServerGroup("creds", "santa-claus", "north-pole", "aws") >> [
-          new TargetServerGroup(serverGroup: [instances: returnedInstances])
+          new TargetServerGroup(instances: returnedInstances)
       ]
       results == expected
 

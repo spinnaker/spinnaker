@@ -19,10 +19,10 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
+import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.Capacity
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.OptionalConfiguration
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.ResizeAction
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -47,7 +47,7 @@ class ScaleToClusterResizeStrategy implements ResizeStrategy{
     def cluster = oortHelper.getCluster(appName, account, clusterName, cloudProvider)
     List<TargetServerGroup> targetServerGroups = cluster
       .orElse([serverGroups: []])
-      .serverGroups.collect { new TargetServerGroup(serverGroup: it) }
+      .serverGroups.collect { new TargetServerGroup(it) }
       .findAll { it.getLocation() == location }
 
     if (!targetServerGroups) {

@@ -103,7 +103,7 @@ abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudPr
       return missingClusterResult(stage, clusterSelection)
     }
 
-    def serverGroups = cluster.get().serverGroups.collect { new TargetServerGroup(serverGroup: it) }
+    def serverGroups = cluster.get().serverGroups.collect { new TargetServerGroup(it) }
     log.info "Pipeline ${stage.execution?.id} found server groups ${serverGroups.collect { it.region + "->" + it.name }}"
     log.info "Pipeline ${stage.execution?.id} is looking for ${remainingDeployServerGroups.collect { it.region + "->" + it.name }}"
 

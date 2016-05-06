@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
+import groovy.transform.Canonical
+import groovy.util.logging.Slf4j
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -32,8 +34,6 @@ import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.kato.pipeline.CopyLastAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.DeployStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.Canonical
-import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -119,7 +119,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     Location.Type exactLocationType = locations?.getAt(0)?.type
 
     Map<Location, List<TargetServerGroup>> targetServerGroupsByLocation = serverGroups.collect {
-      new TargetServerGroup(serverGroup: it)
+      new TargetServerGroup(it)
     }.groupBy { it.getLocation(exactLocationType) }
 
     List<TargetServerGroup> filteredServerGroups = locations.findResults { Location l ->

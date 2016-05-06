@@ -84,10 +84,10 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
 
     then:
     1 * resolver.resolveByParams(_) >> [
-      new TargetServerGroup(serverGroup: [name: "asg-v001", region: "us-east-1"]),
-      new TargetServerGroup(serverGroup: [name: "asg-v001", region: "us-west-1"]),
-      new TargetServerGroup(serverGroup: [name: "asg-v002", region: "us-west-2"]),
-      new TargetServerGroup(serverGroup: [name: "asg-v003", region: "eu-west-2"]),
+      new TargetServerGroup(name: "asg-v001", region: "us-east-1"),
+      new TargetServerGroup(name: "asg-v001", region: "us-west-1"),
+      new TargetServerGroup(name: "asg-v002", region: "us-west-2"),
+      new TargetServerGroup(name: "asg-v003", region: "eu-west-2"),
     ]
     stage.beforeStages.size() == 0
     stage.afterStages.size() == 3 // one for each region
@@ -117,8 +117,8 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
 
     then:
     (shouldResolve ? 1 : 0) * resolver.resolveByParams(_) >> [
-        new TargetServerGroup(serverGroup: [name: "asg-v001", region: "us-east-1"]),
-        new TargetServerGroup(serverGroup: [name: "asg-v002", region: "us-west-1"]),
+        new TargetServerGroup(name: "asg-v001", region: "us-east-1"),
+        new TargetServerGroup(name: "asg-v002", region: "us-west-1"),
     ]
     stage.beforeStages*.name == beforeNames
     stage.afterStages*.name == ["testPostInjectable", "testPreInjectable", "testSupportStage", "testPostInjectable"]

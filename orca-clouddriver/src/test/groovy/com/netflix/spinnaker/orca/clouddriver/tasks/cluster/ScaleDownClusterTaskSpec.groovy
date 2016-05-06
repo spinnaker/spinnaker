@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
+import java.util.concurrent.atomic.AtomicInteger
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
@@ -24,8 +25,6 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-
-import java.util.concurrent.atomic.AtomicInteger
 
 class ScaleDownClusterTaskSpec extends Specification {
 
@@ -74,8 +73,8 @@ class ScaleDownClusterTaskSpec extends Specification {
   static final AtomicInteger inc = new AtomicInteger()
 
   TargetServerGroup sg(boolean disabled = false, int instances = 10) {
-    new TargetServerGroup(serverGroup: [name: 'foo-v' + inc.incrementAndGet(), region: 'us-east-1', createdTime: inc.incrementAndGet(), disabled: disabled, instances: (0..instances).collect {
+    new TargetServerGroup(name: 'foo-v' + inc.incrementAndGet(), region: 'us-east-1', createdTime: inc.incrementAndGet(), disabled: disabled, instances: (0..instances).collect {
       [[id: 'i' + inc.incrementAndGet(), healthState: disabled ? 'OutOfService' : 'Up']]
-    }])
+    })
   }
 }
