@@ -92,7 +92,7 @@ class ExpressionDict(dict):
       raise ValueError('Cycle looking up variable ' + original)
     saw = saw + [key]
 
-    expression_re = re.compile(r'\${([\._a-zA-Z0-9]+)(:.+?)?}')
+    expression_re = re.compile(r'\${([\._a-zA-Z0-9]+)(:.*?)?}')
     exact_match = expression_re.match(value)
     if exact_match and exact_match.group(0) == value:
       try:
