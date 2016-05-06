@@ -16,19 +16,17 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 
-import com.netflix.frigga.Names
-import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.InheritConstructors
 import groovy.transform.ToString
 import groovy.util.logging.Slf4j
-
-import javax.security.auth.callback.LanguageCallback
+import com.netflix.frigga.Names
+import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 
 /**
  * A TargetServerGroup is a ServerGroup that is dynamically resolved using a target like "current" or "oldest".
  */
-@ToString(includeNames = true)
+@ToString(includeNames = true, includePackage = false)
 class TargetServerGroup {
   // Delegates all Map interface calls to this object.
   @Delegate Map<String, Object> serverGroup = [:]
@@ -45,12 +43,12 @@ class TargetServerGroup {
   Map toClouddriverOperationPayload(String account) {
     //TODO(cfieber) - add an endpoint on Clouddriver to do provider appropriate conversion of a TargetServerGroup
     def op = [
-      credentials: account,
-      accountName: account,
+      credentials    : account,
+      accountName    : account,
       serverGroupName: serverGroup.name,
-      asgName: serverGroup.name,
-      cloudProvider: serverGroup.type,
-      providerType: serverGroup.type
+      asgName        : serverGroup.name,
+      cloudProvider  : serverGroup.type,
+      providerType   : serverGroup.type
     ]
 
     def loc = getLocation()
@@ -77,7 +75,7 @@ class TargetServerGroup {
       } else {
         throw new IllegalArgumentException("No known location type provided. Must be `region`, `zone` or `namespace`.")
       }
-     }
+    }
 
     static Location locationFromServerGroup(Map<String, Object> serverGroup, Location.Type exactLocationType) {
       switch (exactLocationType) {
@@ -112,6 +110,7 @@ class TargetServerGroup {
       }
     }
   }
+
   static boolean isDynamicallyBound(Stage stage) {
     Params.fromStage(stage).target?.isDynamic()
   }
