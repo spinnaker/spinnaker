@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.retrofit
 
 import com.netflix.spinnaker.config.OkHttpClientConfiguration
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
+import com.squareup.okhttp.ConnectionPool
 import com.squareup.okhttp.Interceptor
 import com.squareup.okhttp.Response
 import groovy.transform.CompileStatic
@@ -40,19 +41,32 @@ import retrofit.client.OkClient
 @Import(OkHttpClientConfiguration)
 @EnableConfigurationProperties
 class RetrofitConfiguration {
+
+   @Value('${okHttpClient.connectionPool.maxIdleConnections:5}')
+   int maxIdleConnections
+
+   @Value('${okHttpClient.connectionPool.keepAliveDurationMs:300000}')
+   int keepAliveDurationMs
+
+   @Value('${okHttpClient.retryOnConnectionFailure:true}')
+   boolean retryOnConnectionFailure
+
    @Bean
    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
    Client retrofitClient(OkHttpClientConfiguration okHttpClientConfig) {
+     final String userAgent = "Spinnaker-${System.getProperty('spring.application.name', 'unknown')}/${getClass().getPackage().implementationVersion ?: '1.0'}"
      def cfg = okHttpClientConfig.create()
      cfg.networkInterceptors().add(new Interceptor() {
        @Override
        Response intercept(Interceptor.Chain chain) throws IOException {
-         def userAgent = "Spinnaker-${System.getProperty('spring.config.name', 'unknown')}/1.0"
-         def req = chain.request().newBuilder().removeHeader('User-Agent').addHeader('User-Agent', userAgent).build()
+         def req = chain.request().newBuilder().header('User-Agent', userAgent).build()
          chain.proceed(req)
        }
      })
-    new OkClient(okHttpClientConfig.create())
+     cfg.setConnectionPool(new ConnectionPool(maxIdleConnections, keepAliveDurationMs))
+     cfg.retryOnConnectionFailure = retryOnConnectionFailure
+
+     new OkClient(cfg)
   }
 
   @Bean LogLevel retrofitLogLevel(@Value('${retrofit.logLevel:BASIC}') String retrofitLogLevel) {

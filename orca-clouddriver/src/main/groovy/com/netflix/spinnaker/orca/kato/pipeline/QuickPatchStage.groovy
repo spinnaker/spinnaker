@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import retrofit.RestAdapter
 import retrofit.RetrofitError
+import retrofit.client.Client
 
 import java.util.concurrent.ConcurrentHashMap
 
@@ -64,6 +65,9 @@ class QuickPatchStage extends LinearStage {
 
   @Autowired
   OortHelper oortHelper
+
+  @Autowired
+  Client retrofitClient
 
   public static final String PIPELINE_CONFIG_TYPE = "quickPatch"
 
@@ -170,6 +174,7 @@ class QuickPatchStage extends LinearStage {
   InstanceService createInstanceService(String address) {
     RestAdapter restAdapter = new RestAdapter.Builder()
       .setEndpoint(address)
+      .setClient(retrofitClient)
       .build()
     return restAdapter.create(InstanceService.class)
   }
