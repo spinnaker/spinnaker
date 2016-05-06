@@ -53,4 +53,5 @@ final class AtomicOperations {
   // Job operations
   public static final String RUN_JOB = "runJob"
   public static final String DESTROY_JOB = "destroyJob"
+  public static final String CLONE_JOB = "cloneJob"
 }

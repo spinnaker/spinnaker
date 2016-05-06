@@ -39,5 +39,17 @@ class RunKubernetesJobDescription extends KubernetesAtomicOperationDescription {
 }
 
 enum KubernetesJobRestartPolicy {
-  NEVER, ONFAILURE
+  Never, OnFailure
+
+  static KubernetesJobRestartPolicy fromString(String policy) {
+    switch (policy) {
+      case "Never":
+        return Never
+      case null: // default policy is "OnFailure"
+      case "OnFailure":
+        return OnFailure
+      default:
+        throw new IllegalArgumentException("Unsupported restart policy ${policy}".toString())
+    }
+  }
 }
