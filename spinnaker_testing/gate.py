@@ -94,7 +94,7 @@ class GateTaskStatus(sk.SpinnakerStatus):
 
     exception_details = None
     gate_exception = None
-    variables = doc['variables']
+    variables = doc.get('variables', None)
     if variables:
       for elem in variables:
         if elem['key'] == 'exception':
