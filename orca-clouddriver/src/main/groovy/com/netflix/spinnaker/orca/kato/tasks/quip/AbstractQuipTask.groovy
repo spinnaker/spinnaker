@@ -3,14 +3,15 @@ package com.netflix.spinnaker.orca.kato.tasks.quip
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import retrofit.RestAdapter
+import retrofit.client.Client
 
-/**
- * Created by dzapata on 4/21/15.
- */
 abstract class AbstractQuipTask implements Task {
+  protected abstract Client getRetrofitClient()
+
   InstanceService createInstanceService(String address) {
     RestAdapter restAdapter = new RestAdapter.Builder()
       .setEndpoint(address)
+      .setClient(retrofitClient)
       .build()
     return restAdapter.create(InstanceService.class)
   }

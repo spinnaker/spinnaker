@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.RetrofitError
+import retrofit.client.Client
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Specification
@@ -73,6 +74,7 @@ class VerifyQuipTaskSpec extends Specification {
   def setup() {
     task.oortService = oortService
     task.objectMapper = new ObjectMapper()
+    task.retrofitClient = Stub(Client)
   }
 
   @Unroll

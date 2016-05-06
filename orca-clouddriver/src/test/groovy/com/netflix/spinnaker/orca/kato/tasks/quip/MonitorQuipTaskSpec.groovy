@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.RetrofitError
+import retrofit.client.Client
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Specification
@@ -36,6 +37,7 @@ class MonitorQuipTaskSpec extends Specification {
 
   def setup() {
     task.objectMapper = new ObjectMapper()
+    task.retrofitClient = Stub(Client)
   }
 
   @Unroll

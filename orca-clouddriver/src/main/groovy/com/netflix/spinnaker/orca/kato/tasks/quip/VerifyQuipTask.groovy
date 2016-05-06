@@ -10,6 +10,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
+import retrofit.client.Client
 
 @Component
 class VerifyQuipTask extends AbstractQuipTask implements Task {
@@ -19,6 +20,9 @@ class VerifyQuipTask extends AbstractQuipTask implements Task {
 
   @Autowired
   ObjectMapper objectMapper
+
+  @Autowired
+  Client retrofitClient
 
   @Override
   TaskResult execute(Stage stage) {

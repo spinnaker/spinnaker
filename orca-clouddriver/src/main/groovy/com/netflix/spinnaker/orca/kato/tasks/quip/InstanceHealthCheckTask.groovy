@@ -10,6 +10,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
+import retrofit.client.Client
 
 @Component
 class InstanceHealthCheckTask extends AbstractQuipTask implements RetryableTask  {
@@ -20,6 +21,9 @@ class InstanceHealthCheckTask extends AbstractQuipTask implements RetryableTask 
 
   @Autowired
   OortHelper oortHelper
+
+  @Autowired
+  Client retrofitClient
 
   @Override
   TaskResult execute(Stage stage) {

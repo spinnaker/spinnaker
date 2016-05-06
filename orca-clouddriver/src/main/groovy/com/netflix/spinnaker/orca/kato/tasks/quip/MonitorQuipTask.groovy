@@ -9,10 +9,13 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
+import retrofit.client.Client
 
 @Component
 class MonitorQuipTask extends AbstractQuipTask implements RetryableTask {
   @Autowired ObjectMapper objectMapper
+
+  @Autowired Client retrofitClient
 
   long backoffPeriod = 10000
   long timeout = 600000 // 10mins
