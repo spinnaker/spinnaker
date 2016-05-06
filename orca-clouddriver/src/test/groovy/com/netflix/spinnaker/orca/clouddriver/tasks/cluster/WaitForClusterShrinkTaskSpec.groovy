@@ -51,12 +51,22 @@ class WaitForClusterShrinkTaskSpec extends Specification {
       name: clusterName,
       serverGroups: [
         [
-          name  : "$clusterName-$oldServerGroup".toString(),
-          region: region,
+          name  : "$clusterName-v050".toString(),
+          region: "us-west-1",
+          health: null
+        ],
+        [
+          name  : "$clusterName-v051".toString(),
+          region: "us-west-1",
           health: null
         ],
         [
           name  : "$clusterName-$newServerGroup".toString(),
+          region: region,
+          health: null
+        ],
+        [
+          name  : "$clusterName-$oldServerGroup".toString(),
           region: region,
           health: null
         ]
@@ -70,11 +80,11 @@ class WaitForClusterShrinkTaskSpec extends Specification {
     result.status == RUNNING
 
     where:
-    clusterName = "spindemo-test"
+    clusterName = "spindemo-test-prestaging"
     account = "test"
     region = "us-east-1"
-    oldServerGroup = "v391"
-    newServerGroup = "v392"
+    oldServerGroup = "v167"
+    newServerGroup = "v168"
   }
 
   def "completes if previous ASG is gone"() {

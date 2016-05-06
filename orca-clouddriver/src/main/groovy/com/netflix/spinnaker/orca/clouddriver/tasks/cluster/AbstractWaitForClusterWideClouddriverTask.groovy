@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
 import groovy.transform.Canonical
+import groovy.transform.ToString
 import groovy.util.logging.Slf4j
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -54,19 +55,21 @@ abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudPr
   boolean isServerGroupOperationInProgress(List<TargetServerGroup> currentServerGroups,
                                            List<Map> interestingHealthProviderNames,
                                            DeployServerGroup deployServerGroup) {
-    isServerGroupOperationInProgress(interestingHealthProviderNames,
-      Optional.ofNullable(currentServerGroups.find {
-        // Possible issue here for GCE if multiple server groups are named the same in
-        // different zones but with the same region. However, this is not allowable by
-        // Spinnaker constraints, so we're accepting the risk.
-        it.region == deployServerGroup.region && it.name == deployServerGroup.name
-      }))
+    def matchingServerGroups = Optional.ofNullable(currentServerGroups.find {
+      // Possible issue here for GCE if multiple server groups are named the same in
+      // different zones but with the same region. However, this is not allowable by
+      // Spinnaker constraints, so we're accepting the risk.
+      it.region == deployServerGroup.region && it.name == deployServerGroup.name
+    })
+    log.info "Server groups matching $deployServerGroup : $matchingServerGroups"
+    isServerGroupOperationInProgress(interestingHealthProviderNames, matchingServerGroups)
   }
 
   abstract boolean isServerGroupOperationInProgress(List<Map> interestingHealthProviderNames,
                                                     Optional<TargetServerGroup> serverGroup)
 
   @Canonical
+  @ToString(includeNames = true, includePackage = false)
   static class DeployServerGroup {
     String region
     String name
