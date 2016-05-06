@@ -26,7 +26,7 @@ class TargetServerGroupSpec extends Specification {
 
   def "get location"() {
     given:
-      TargetServerGroup tsg = new TargetServerGroup(serverGroup: [region: "north-pole", otherProp: "abc"])
+      TargetServerGroup tsg = new TargetServerGroup(region: "north-pole", otherProp: "abc")
 
     when:
       Location got = tsg.getLocation()
@@ -41,13 +41,13 @@ class TargetServerGroupSpec extends Specification {
   @Unroll
   def "get location with exactLocationType"() {
     given:
-    TargetServerGroup tsg = new TargetServerGroup(serverGroup: [
+    TargetServerGroup tsg = new TargetServerGroup(
       type: cloudProvider,
       zone: "north-pole-1",
       namespace: "santa-prod",
       region: "north-pole",
       otherProp: "abc"
-    ])
+    )
 
     when:
     Location got = tsg.getLocation(exactLocationType)

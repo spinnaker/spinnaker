@@ -38,158 +38,158 @@ class WaitForAllInstancesDownTaskSpec extends Specification {
 
   void "should check cluster to get server groups"() {
     given:
-      def pipeline = new Pipeline()
-      task.objectMapper = mapper
-      def response = mapper.writeValueAsString([
-        name        : 'front50',
-        serverGroups: [
-          [
-            region   : 'us-east-1',
-            name     : 'front50-v000',
-            asg      : [
-              minSize: 1
-            ],
-            instances: [
-              [
-                health: [ [ state: 'Down' ] ]
-              ]
+    def pipeline = new Pipeline()
+    task.objectMapper = mapper
+    def response = mapper.writeValueAsString([
+      name        : 'front50',
+      serverGroups: [
+        [
+          region   : 'us-east-1',
+          name     : 'front50-v000',
+          asg      : [
+            minSize: 1
+          ],
+          instances: [
+            [
+              health: [[state: 'Down']]
             ]
           ]
         ]
-      ])
+      ]
+    ])
 
-      task.oortService = Stub(OortService) {
-        getCluster(*_) >> new Response('oort', 200, 'ok', [], new TypedString(response))
-      }
-      task.serverGroupCacheForceRefreshTask = Mock(ServerGroupCacheForceRefreshTask) {
-        2 * execute(_) >> new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
-        0 * _
-      }
-      task.oortHelper = Mock(OortHelper) {
-        1 * getTargetServerGroup("test", "front50-v000", "us-east-1", "aws") >> Optional.of(new TargetServerGroup())
-        1 * getTargetServerGroup("test", "front50-v000", "us-east-1", "aws") >> Optional.empty()
-        0 * _
-      }
+    task.oortService = Stub(OortService) {
+      getCluster(*_) >> new Response('oort', 200, 'ok', [], new TypedString(response))
+    }
+    task.serverGroupCacheForceRefreshTask = Mock(ServerGroupCacheForceRefreshTask) {
+      2 * execute(_) >> new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+      0 * _
+    }
+    task.oortHelper = Mock(OortHelper) {
+      1 * getTargetServerGroup("test", "front50-v000", "us-east-1", "aws") >> Optional.of(new TargetServerGroup(region: "us-east-1"))
+      1 * getTargetServerGroup("test", "front50-v000", "us-east-1", "aws") >> Optional.empty()
+      0 * _
+    }
 
     and:
-      def stage = new PipelineStage(pipeline, 'asgActionWaitForDownInstances', [
-        'targetop.asg.disableAsg.name'   : 'front50-v000',
-        'targetop.asg.disableAsg.regions': ['us-east-1'],
-        'account.name'                   : 'test'
-      ]).asImmutable()
+    def stage = new PipelineStage(pipeline, 'asgActionWaitForDownInstances', [
+      'targetop.asg.disableAsg.name'   : 'front50-v000',
+      'targetop.asg.disableAsg.regions': ['us-east-1'],
+      'account.name'                   : 'test'
+    ]).asImmutable()
 
     expect:
-      task.execute(stage).status == ExecutionStatus.SUCCEEDED
+    task.execute(stage).status == ExecutionStatus.SUCCEEDED
 
     when:
-      task.execute(stage)
+    task.execute(stage)
 
     then:
-      IllegalStateException e = thrown()
-      e.message.startsWith("Server group 'us-east-1:front50-v000' does not exist")
+    IllegalStateException e = thrown()
+    e.message.startsWith("Server group 'us-east-1:front50-v000' does not exist")
   }
 
   @Unroll
   void "should succeed as #hasSucceeded based on instance providers #healthProviderNames for instances #instances"() {
     given:
-      def stage = new PipelineStage(new Pipeline(), "")
+    def stage = new PipelineStage(new Pipeline(), "")
 
     expect:
-      hasSucceeded == task.hasSucceeded(stage, [minSize: 0], instances, healthProviderNames)
+    hasSucceeded == task.hasSucceeded(stage, [minSize: 0], instances, healthProviderNames)
 
     where:
-      hasSucceeded || healthProviderNames   | instances
-      true         || null                  | []
-      true         || null                  | [ [ health: [ ] ] ]
-      true         || ['a']                 | []
-      true         || null                  | [ [ health: [ [ type: 'a', state : 'Down' ] ] ] ]
-      false        || null                  | [ [ health: [ [ type: 'a', state : 'Up' ] ] ] ]
-      true         || ['a']                 | [ [ health: [ [ type: 'a', state : 'Down' ] ] ] ]
-      false        || ['a']                 | [ [ health: [ [ type: 'a', state : 'Up' ] ] ] ]
-      false        || ['b']                 | [ [ health: [ [ type: 'a', state : 'Down' ] ] ] ]
-      false        || ['b']                 | [ [ health: [ [ type: 'a', state : 'Up' ] ] ] ]
-      true         || ['a']                 | [ [ health: [ [ type: 'a', state: 'OutOfService' ] ] ] ]
-      true         || ['Amazon']            | [ [ health: [ [ type: 'Amazon', healthClass: 'platform', state: 'Unknown' ] ] ] ]
-      true         || ['GCE']               | [ [ health: [ [ type: 'GCE', healthClass: 'platform', state: 'Unknown' ] ] ] ]
-      true         || ['SomeOtherPlatform'] | [ [ health: [ [ type: 'SomeOtherPlatform', healthClass: 'platform', state: 'Unknown' ] ] ] ]
+    hasSucceeded || healthProviderNames | instances
+    true         || null | []
+    true         || null | [[health: []]]
+    true         || ['a'] | []
+    true         || null | [[health: [[type: 'a', state: 'Down']]]]
+    false        || null | [[health: [[type: 'a', state: 'Up']]]]
+    true         || ['a'] | [[health: [[type: 'a', state: 'Down']]]]
+    false        || ['a'] | [[health: [[type: 'a', state: 'Up']]]]
+    false        || ['b'] | [[health: [[type: 'a', state: 'Down']]]]
+    false        || ['b'] | [[health: [[type: 'a', state: 'Up']]]]
+    true         || ['a'] | [[health: [[type: 'a', state: 'OutOfService']]]]
+    true         || ['Amazon'] | [[health: [[type: 'Amazon', healthClass: 'platform', state: 'Unknown']]]]
+    true         || ['GCE'] | [[health: [[type: 'GCE', healthClass: 'platform', state: 'Unknown']]]]
+    true         || ['SomeOtherPlatform'] | [[health: [[type: 'SomeOtherPlatform', healthClass: 'platform', state: 'Unknown']]]]
 
-      // Multiple health providers.
-      false        || null                  | [ [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Up' ] ] ] ]
-      true         || null                  | [ [ health: [ [ type: 'a', state : 'Down' ], [ type: 'b', state : 'Down' ] ] ] ]
-      false        || null                  | [ [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Down' ] ] ] ]
-      false        || ['a']                 | [ [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Down' ] ] ] ]
-      true         || ['b']                 | [ [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Down' ] ] ] ]
-      false        || ['a', 'b']            | [ [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Down' ] ] ] ]
-      false        || ['a']                 | [ [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Unknown' ] ] ] ]
-      false        || ['b']                 | [ [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Unknown' ] ] ] ]
-      false        || ['a', 'b']            | [ [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Unknown' ] ] ] ]
-      false        || ['a']                 | [ [ health: [ [ type: 'a', state : 'Unknown' ], [ type: 'b', state : 'Down' ] ] ] ]
-      true         || ['b']                 | [ [ health: [ [ type: 'a', state : 'Unknown' ], [ type: 'b', state : 'Down' ] ] ] ]
-      true         || ['a', 'b']            | [ [ health: [ [ type: 'a', state : 'Unknown' ], [ type: 'b', state : 'Down' ] ] ] ]
-      true         || ['a', 'b']            | [ [ health: [ [ type: 'a', state : 'Unknown' ], [ type: 'b', state : 'OutOfService' ] ] ] ]
-      true         || ['Amazon']            | [ [ health: [ [ type: 'a', state : 'Up' ], [ type: 'Amazon', healthClass: 'platform', state: 'Unknown' ] ] ] ]
-      true         || ['GCE']               | [ [ health: [ [ type: 'a', state : 'Up' ], [ type: 'GCE', healthClass: 'platform', state: 'Unknown' ] ] ] ]
-      true         || ['SomeOtherPlatform'] | [ [ health: [ [ type: 'a', state : 'Up' ], [ type: 'SomeOtherPlatform', healthClass: 'platform', state: 'Unknown' ] ] ] ]
+    // Multiple health providers.
+    false        || null | [[health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Up']]]]
+    true         || null | [[health: [[type: 'a', state: 'Down'], [type: 'b', state: 'Down']]]]
+    false        || null | [[health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Down']]]]
+    false        || ['a'] | [[health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Down']]]]
+    true         || ['b'] | [[health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Down']]]]
+    false        || ['a', 'b'] | [[health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Down']]]]
+    false        || ['a'] | [[health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Unknown']]]]
+    false        || ['b'] | [[health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Unknown']]]]
+    false        || ['a', 'b'] | [[health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Unknown']]]]
+    false        || ['a'] | [[health: [[type: 'a', state: 'Unknown'], [type: 'b', state: 'Down']]]]
+    true         || ['b'] | [[health: [[type: 'a', state: 'Unknown'], [type: 'b', state: 'Down']]]]
+    true         || ['a', 'b'] | [[health: [[type: 'a', state: 'Unknown'], [type: 'b', state: 'Down']]]]
+    true         || ['a', 'b'] | [[health: [[type: 'a', state: 'Unknown'], [type: 'b', state: 'OutOfService']]]]
+    true         || ['Amazon'] | [[health: [[type: 'a', state: 'Up'], [type: 'Amazon', healthClass: 'platform', state: 'Unknown']]]]
+    true         || ['GCE'] | [[health: [[type: 'a', state: 'Up'], [type: 'GCE', healthClass: 'platform', state: 'Unknown']]]]
+    true         || ['SomeOtherPlatform'] | [[health: [[type: 'a', state: 'Up'], [type: 'SomeOtherPlatform', healthClass: 'platform', state: 'Unknown']]]]
 
-      // Multiple instances.
-      false        || null                  | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'a', state : 'Up' ] ] ] ]
-      true         || null                  | [ [ health: [ [ type: 'a', state : 'Down' ] ] ], [ health: [ [ type: 'a', state : 'Down' ] ] ] ]
-      false        || null                  | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'a', state : 'Down' ] ] ] ]
-      false        || null                  | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'b', state : 'Up' ] ] ] ]
-      true         || null                  | [ [ health: [ [ type: 'a', state : 'Down' ] ] ], [ health: [ [ type: 'b', state : 'Down' ] ] ] ]
-      false        || null                  | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'b', state : 'Down' ] ] ] ]
-      false        || ['a']                 | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'a', state : 'Up' ] ] ] ]
-      true         || ['a']                 | [ [ health: [ [ type: 'a', state : 'Down' ] ] ], [ health: [ [ type: 'a', state : 'Down' ] ] ] ]
-      false        || ['a']                 | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'a', state : 'Down' ] ] ] ]
-      false        || ['a']                 | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'b', state : 'Up' ] ] ] ]
-      false        || ['a']                 | [ [ health: [ [ type: 'a', state : 'Down' ] ] ], [ health: [ [ type: 'b', state : 'Down' ] ] ] ]
-      false        || ['a']                 | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'b', state : 'Down' ] ] ] ]
-      false        || ['a', 'b']            | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'a', state : 'Up' ] ] ] ]
-      true         || ['a', 'b']            | [ [ health: [ [ type: 'a', state : 'Down' ] ] ], [ health: [ [ type: 'a', state : 'Down' ] ] ] ]
-      false        || ['a', 'b']            | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'a', state : 'Down' ] ] ] ]
-      false        || ['a', 'b']            | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'b', state : 'Up' ] ] ] ]
-      true         || ['a', 'b']            | [ [ health: [ [ type: 'a', state : 'Down' ] ] ], [ health: [ [ type: 'b', state : 'Down' ] ] ] ]
-      false        || ['a', 'b']            | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'b', state : 'Down' ] ] ] ]
-      true         || ['Amazon']            | [ [ health: [ [ type: 'Amazon', healthClass: 'platform', state: 'Unknown' ] ] ], [ health: [ [ type: 'Amazon', healthClass: 'platform', state: 'Unknown' ] ] ] ]
-      true         || ['GCE']               | [ [ health: [ [ type: 'GCE', healthClass: 'platform', state: 'Unknown' ] ] ], [ health: [ [ type: 'GCE', healthClass: 'platform', state: 'Unknown' ] ] ] ]
-      true         || ['SomeOtherPlatform'] | [ [ health: [ [ type: 'SomeOtherPlatform', healthClass: 'platform', state: 'Unknown' ] ] ], [ health: [ [ type: 'SomeOtherPlatform', healthClass: 'platform', state: 'Unknown' ] ] ] ]
+    // Multiple instances.
+    false        || null | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'a', state: 'Up']]]]
+    true         || null | [[health: [[type: 'a', state: 'Down']]], [health: [[type: 'a', state: 'Down']]]]
+    false        || null | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'a', state: 'Down']]]]
+    false        || null | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'b', state: 'Up']]]]
+    true         || null | [[health: [[type: 'a', state: 'Down']]], [health: [[type: 'b', state: 'Down']]]]
+    false        || null | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'b', state: 'Down']]]]
+    false        || ['a'] | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'a', state: 'Up']]]]
+    true         || ['a'] | [[health: [[type: 'a', state: 'Down']]], [health: [[type: 'a', state: 'Down']]]]
+    false        || ['a'] | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'a', state: 'Down']]]]
+    false        || ['a'] | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'b', state: 'Up']]]]
+    false        || ['a'] | [[health: [[type: 'a', state: 'Down']]], [health: [[type: 'b', state: 'Down']]]]
+    false        || ['a'] | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'b', state: 'Down']]]]
+    false        || ['a', 'b'] | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'a', state: 'Up']]]]
+    true         || ['a', 'b'] | [[health: [[type: 'a', state: 'Down']]], [health: [[type: 'a', state: 'Down']]]]
+    false        || ['a', 'b'] | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'a', state: 'Down']]]]
+    false        || ['a', 'b'] | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'b', state: 'Up']]]]
+    true         || ['a', 'b'] | [[health: [[type: 'a', state: 'Down']]], [health: [[type: 'b', state: 'Down']]]]
+    false        || ['a', 'b'] | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'b', state: 'Down']]]]
+    true         || ['Amazon'] | [[health: [[type: 'Amazon', healthClass: 'platform', state: 'Unknown']]], [health: [[type: 'Amazon', healthClass: 'platform', state: 'Unknown']]]]
+    true         || ['GCE'] | [[health: [[type: 'GCE', healthClass: 'platform', state: 'Unknown']]], [health: [[type: 'GCE', healthClass: 'platform', state: 'Unknown']]]]
+    true         || ['SomeOtherPlatform'] | [[health: [[type: 'SomeOtherPlatform', healthClass: 'platform', state: 'Unknown']]], [health: [[type: 'SomeOtherPlatform', healthClass: 'platform', state: 'Unknown']]]]
 
-      // Multiple instances with multiple health providers.
-      false        || null                  | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Up' ] ] ] ]
-      false        || null                  | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Down' ] ] ] ]
-      false        || null                  | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Unknown' ] ] ] ]
-      false        || null                  | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'a', state : 'Down' ], [ type: 'b', state : 'Down' ] ] ] ]
-      false        || null                  | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'a', state : 'Down' ], [ type: 'b', state : 'Unknown' ] ] ] ]
-      false        || null                  | [ [ health: [ [ type: 'a', state : 'Down' ] ] ], [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Up' ] ] ] ]
-      false        || null                  | [ [ health: [ [ type: 'a', state : 'Down' ] ] ], [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Down' ] ] ] ]
-      false        || null                  | [ [ health: [ [ type: 'a', state : 'Down' ] ] ], [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Unknown' ] ] ] ]
-      true         || null                  | [ [ health: [ [ type: 'a', state : 'Down' ] ] ], [ health: [ [ type: 'a', state : 'Down' ], [ type: 'b', state : 'Down' ] ] ] ]
-      true         || null                  | [ [ health: [ [ type: 'a', state : 'Down' ] ] ], [ health: [ [ type: 'a', state : 'Down' ], [ type: 'b', state : 'Unknown' ] ] ] ]
-      false        || ['a']                 | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Up' ] ] ] ]
-      false        || ['a']                 | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Down' ] ] ] ]
-      false        || ['a']                 | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Unknown' ] ] ] ]
-      false        || ['a']                 | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'a', state : 'Down' ], [ type: 'b', state : 'Down' ] ] ] ]
-      false        || ['a']                 | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'a', state : 'Down' ], [ type: 'b', state : 'Unknown' ] ] ] ]
-      false        || ['a']                 | [ [ health: [ [ type: 'a', state : 'Down' ] ] ], [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Up' ] ] ] ]
-      false        || ['a']                 | [ [ health: [ [ type: 'a', state : 'Down' ] ] ], [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Down' ] ] ] ]
-      false        || ['a']                 | [ [ health: [ [ type: 'a', state : 'Down' ] ] ], [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Unknown' ] ] ] ]
-      true         || ['a']                 | [ [ health: [ [ type: 'a', state : 'Down' ] ] ], [ health: [ [ type: 'a', state : 'Down' ], [ type: 'b', state : 'Down' ] ] ] ]
-      true         || ['a']                 | [ [ health: [ [ type: 'a', state : 'Down' ] ] ], [ health: [ [ type: 'a', state : 'Down' ], [ type: 'b', state : 'Unknown' ] ] ] ]
-      false        || ['a', 'b']            | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Up' ] ] ] ]
-      false        || ['a', 'b']            | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Down' ] ] ] ]
-      false        || ['a', 'b']            | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Unknown' ] ] ] ]
-      false        || ['a', 'b']            | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'a', state : 'Down' ], [ type: 'b', state : 'Down' ] ] ] ]
-      false        || ['a', 'b']            | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'a', state : 'Down' ], [ type: 'b', state : 'Unknown' ] ] ] ]
-      false        || ['a', 'b']            | [ [ health: [ [ type: 'a', state : 'Down' ] ] ], [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Up' ] ] ] ]
-      false        || ['a', 'b']            | [ [ health: [ [ type: 'a', state : 'Down' ] ] ], [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Down' ] ] ] ]
-      false        || ['a', 'b']            | [ [ health: [ [ type: 'a', state : 'Down' ] ] ], [ health: [ [ type: 'a', state : 'Up' ], [ type: 'b', state : 'Unknown' ] ] ] ]
-      true         || ['a', 'b']            | [ [ health: [ [ type: 'a', state : 'Down' ] ] ], [ health: [ [ type: 'a', state : 'Down' ], [ type: 'b', state : 'Down' ] ] ] ]
-      true         || ['a', 'b']            | [ [ health: [ [ type: 'a', state : 'Down' ] ] ], [ health: [ [ type: 'a', state : 'Down' ], [ type: 'b', state : 'Unknown' ] ] ] ]
-      true         || ['Amazon']            | [ [ health: [ [ type: 'Amazon', healthClass: 'platform', state: 'Unknown' ], [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'Amazon', healthClass: 'platform', state: 'Unknown' ], [ type: 'a', state : 'Up' ] ] ] ]
-      true         || ['GCE']               | [ [ health: [ [ type: 'GCE', healthClass: 'platform', state: 'Unknown' ], [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'GCE', healthClass: 'platform', state: 'Unknown' ], [ type: 'a', state : 'Up' ] ] ] ]
-      true         || ['SomeOtherPlatform'] | [ [ health: [ [ type: 'SomeOtherPlatform', healthClass: 'platform', state: 'Unknown' ], [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'SomeOtherPlatform', healthClass: 'platform', state: 'Unknown' ], [ type: 'a', state : 'Up' ] ] ] ]
+    // Multiple instances with multiple health providers.
+    false        || null | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Up']]]]
+    false        || null | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Down']]]]
+    false        || null | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Unknown']]]]
+    false        || null | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'a', state: 'Down'], [type: 'b', state: 'Down']]]]
+    false        || null | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'a', state: 'Down'], [type: 'b', state: 'Unknown']]]]
+    false        || null | [[health: [[type: 'a', state: 'Down']]], [health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Up']]]]
+    false        || null | [[health: [[type: 'a', state: 'Down']]], [health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Down']]]]
+    false        || null | [[health: [[type: 'a', state: 'Down']]], [health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Unknown']]]]
+    true         || null | [[health: [[type: 'a', state: 'Down']]], [health: [[type: 'a', state: 'Down'], [type: 'b', state: 'Down']]]]
+    true         || null | [[health: [[type: 'a', state: 'Down']]], [health: [[type: 'a', state: 'Down'], [type: 'b', state: 'Unknown']]]]
+    false        || ['a'] | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Up']]]]
+    false        || ['a'] | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Down']]]]
+    false        || ['a'] | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Unknown']]]]
+    false        || ['a'] | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'a', state: 'Down'], [type: 'b', state: 'Down']]]]
+    false        || ['a'] | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'a', state: 'Down'], [type: 'b', state: 'Unknown']]]]
+    false        || ['a'] | [[health: [[type: 'a', state: 'Down']]], [health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Up']]]]
+    false        || ['a'] | [[health: [[type: 'a', state: 'Down']]], [health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Down']]]]
+    false        || ['a'] | [[health: [[type: 'a', state: 'Down']]], [health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Unknown']]]]
+    true         || ['a'] | [[health: [[type: 'a', state: 'Down']]], [health: [[type: 'a', state: 'Down'], [type: 'b', state: 'Down']]]]
+    true         || ['a'] | [[health: [[type: 'a', state: 'Down']]], [health: [[type: 'a', state: 'Down'], [type: 'b', state: 'Unknown']]]]
+    false        || ['a', 'b'] | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Up']]]]
+    false        || ['a', 'b'] | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Down']]]]
+    false        || ['a', 'b'] | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Unknown']]]]
+    false        || ['a', 'b'] | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'a', state: 'Down'], [type: 'b', state: 'Down']]]]
+    false        || ['a', 'b'] | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'a', state: 'Down'], [type: 'b', state: 'Unknown']]]]
+    false        || ['a', 'b'] | [[health: [[type: 'a', state: 'Down']]], [health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Up']]]]
+    false        || ['a', 'b'] | [[health: [[type: 'a', state: 'Down']]], [health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Down']]]]
+    false        || ['a', 'b'] | [[health: [[type: 'a', state: 'Down']]], [health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Unknown']]]]
+    true         || ['a', 'b'] | [[health: [[type: 'a', state: 'Down']]], [health: [[type: 'a', state: 'Down'], [type: 'b', state: 'Down']]]]
+    true         || ['a', 'b'] | [[health: [[type: 'a', state: 'Down']]], [health: [[type: 'a', state: 'Down'], [type: 'b', state: 'Unknown']]]]
+    true         || ['Amazon'] | [[health: [[type: 'Amazon', healthClass: 'platform', state: 'Unknown'], [type: 'a', state: 'Up']]], [health: [[type: 'Amazon', healthClass: 'platform', state: 'Unknown'], [type: 'a', state: 'Up']]]]
+    true         || ['GCE'] | [[health: [[type: 'GCE', healthClass: 'platform', state: 'Unknown'], [type: 'a', state: 'Up']]], [health: [[type: 'GCE', healthClass: 'platform', state: 'Unknown'], [type: 'a', state: 'Up']]]]
+    true         || ['SomeOtherPlatform'] | [[health: [[type: 'SomeOtherPlatform', healthClass: 'platform', state: 'Unknown'], [type: 'a', state: 'Up']]], [health: [[type: 'SomeOtherPlatform', healthClass: 'platform', state: 'Unknown'], [type: 'a', state: 'Up']]]]
 
-      // Ignoring health.
-      true         || []                    | [ [ health: [ [ type: 'a', state : 'Up' ] ] ], [ health: [ [ type: 'a', state : 'Up'], [ type: 'b', state : 'Unknown' ] ] ] ]
+    // Ignoring health.
+    true         || [] | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'a', state: 'Up'], [type: 'b', state: 'Unknown']]]]
   }
 }

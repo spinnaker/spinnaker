@@ -132,15 +132,14 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
     ((AbstractStage) pipeline.stages[1]).parentStageId = "stage-1"
 
     and:
-    def targetServerGroup = new TargetServerGroup()
-    targetServerGroup.serverGroup = [
-      name    : "application-stack-v001",
+    def targetServerGroup = new TargetServerGroup(
+      name: "application-stack-v001",
       capacity: [
         min    : 5,
         desired: 5,
         max    : 10
       ]
-    ]
+    )
 
     when:
     def result = task.convert(pipeline.stages[-1])

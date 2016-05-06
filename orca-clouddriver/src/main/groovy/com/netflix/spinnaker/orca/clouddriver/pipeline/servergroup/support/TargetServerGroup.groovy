@@ -29,7 +29,11 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 @ToString(includeNames = true, includePackage = false)
 class TargetServerGroup {
   // Delegates all Map interface calls to this object.
-  @Delegate Map<String, Object> serverGroup = [:]
+  @Delegate private final Map<String, Object> serverGroup
+
+  TargetServerGroup(Map<String, Object> serverGroupData) {
+    serverGroup = new HashMap(serverGroupData).asImmutable()
+  }
 
   /**
    * All invocations of this method should use the full 'getLocation()' signature, instead of the shorthand dot way

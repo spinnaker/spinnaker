@@ -88,7 +88,7 @@ class DestroyServerGroupTaskSpec extends Specification {
         requestOperations('aws', _) >> rx.Observable.from(taskId)
       }
       GroovyMock(TargetServerGroupResolver, global: true)
-      TargetServerGroupResolver.fromPreviousStage(_) >> new TargetServerGroup(serverGroup: [region: "us-west-1", name: "foo-v001"])
+      TargetServerGroupResolver.fromPreviousStage(_) >> new TargetServerGroup(region: "us-west-1", name: "foo-v001")
       GroovyMock(TargetServerGroup, global: true)
       TargetServerGroup.isDynamicallyBound(_) >> true
 

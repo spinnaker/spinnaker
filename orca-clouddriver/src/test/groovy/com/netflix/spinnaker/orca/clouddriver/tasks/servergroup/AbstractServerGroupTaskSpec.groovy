@@ -102,7 +102,7 @@ class AbstractServerGroupTaskSpec extends Specification {
 
     then:
       1 * TargetServerGroupResolver.fromPreviousStage(stage) >> new TargetServerGroup(
-        serverGroup: [name: "foo-v001", region: "us-east-1"]
+        name: "foo-v001", region: "us-east-1"
       )
       result.stageOutputs.asgName == "foo-v001"
       result.stageOutputs.serverGroupName == "foo-v001"

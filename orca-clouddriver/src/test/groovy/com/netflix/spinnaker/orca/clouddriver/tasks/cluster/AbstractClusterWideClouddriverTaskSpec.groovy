@@ -147,6 +147,6 @@ class AbstractClusterWideClouddriverTaskSpec extends Specification {
   }
 
   static TargetServerGroup sg(String name, String region = "us-west-1", int createdTime = System.currentTimeMillis()) {
-    new TargetServerGroup(serverGroup: [name: name, region: region, createdTime: createdTime])
+    new TargetServerGroup(name: name, region: region, createdTime: createdTime)
   }
 }

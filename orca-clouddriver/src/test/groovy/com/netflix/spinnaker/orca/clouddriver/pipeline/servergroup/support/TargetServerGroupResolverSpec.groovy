@@ -91,8 +91,8 @@ class TargetServerGroupResolverSpec extends Specification {
 
   def "should resolve target refs from previous DTSG stage"() {
     setup:
-      TargetServerGroup want = new TargetServerGroup(serverGroup: [name: "testTSG", region: "north-pole"])
-      TargetServerGroup decoy = new TargetServerGroup(serverGroup: [name: "testTSG", region: "south-pole"])
+      TargetServerGroup want = new TargetServerGroup(name: "testTSG", region: "north-pole")
+      TargetServerGroup decoy = new TargetServerGroup(name: "testTSG", region: "south-pole")
 
       Stage commonParent = Mock(Stage) {
         getId() >> "1"

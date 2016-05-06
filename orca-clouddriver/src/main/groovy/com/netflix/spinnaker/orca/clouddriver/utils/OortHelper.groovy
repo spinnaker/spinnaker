@@ -66,7 +66,7 @@ class OortHelper {
         it.region == location || it.zones?.contains(location) || it.namespace == location
       }
     }).map({ Map serverGroup ->
-      new TargetServerGroup(serverGroup: serverGroup)
+      new TargetServerGroup(serverGroup)
     })
   }
 

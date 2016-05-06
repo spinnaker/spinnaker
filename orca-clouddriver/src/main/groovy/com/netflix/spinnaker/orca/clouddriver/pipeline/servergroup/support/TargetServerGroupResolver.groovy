@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 
+import groovy.util.logging.Slf4j
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
@@ -69,7 +69,7 @@ class TargetServerGroupResolver {
     if (!tsgMap) {
       throw new TargetServerGroup.NotFoundException("Unable to locate ${params.target.name()} in $params.credentials/$location.value/$params.cluster")
     }
-    return new TargetServerGroup(serverGroup: tsgMap)
+    return new TargetServerGroup(tsgMap)
   }
 
   private TargetServerGroup resolveByServerGroupName(TargetServerGroup.Params params, Location location) {
@@ -86,7 +86,7 @@ class TargetServerGroupResolver {
     if (!tsg) {
       throw new TargetServerGroup.NotFoundException("Unable to locate $params.serverGroupName in $params.credentials/$location.value/$params.cluster")
     }
-    return new TargetServerGroup(serverGroup: tsg)
+    return new TargetServerGroup(tsg)
   }
 
   /**
@@ -105,7 +105,7 @@ class TargetServerGroupResolver {
       throw new TargetServerGroup.NotFoundException("No TargetServerGroups found for stage ${stage}")
     }
     List<TargetServerGroup> tsgs = dtsgStage.context.targetReferences.collect {
-      return new TargetServerGroup(serverGroup: it)
+      return new TargetServerGroup(it)
     }
     if (!tsgs) {
       throw new TargetServerGroup.NotFoundException("No targetReferences found on DetermineTargetServerGroup stage " +

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
+import java.util.concurrent.atomic.AtomicInteger
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
@@ -25,8 +26,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Unroll
-
-import java.util.concurrent.atomic.AtomicInteger
 
 class ScaleExactResizeStrategySpec extends Specification {
 
@@ -63,7 +62,7 @@ class ScaleExactResizeStrategySpec extends Specification {
     [min: "0", max: "2", desired: "3"] | [min: 1, max: 3, desired: 3] || new Capacity(min: 0, max: 2, desired: 3)
     [:]                                | [min: 1, max: 3, desired: 3] || new Capacity(min: 1, max: 3, desired: 3)
     serverGroupName = asgName()
-    targetServerGroup = Optional.of(new TargetServerGroup(serverGroup: [name: serverGroupName, region: region, type: cloudProvider, capacity: current]))
+    targetServerGroup = Optional.of(new TargetServerGroup(name: serverGroupName, region: region, type: cloudProvider, capacity: current))
   }
 
   static final AtomicInteger asgSeq = new AtomicInteger(100)

@@ -47,10 +47,8 @@ class ModifyAwsScalingProcessStageSpec extends Specification {
 
     1 * oortHelper.getTargetServerGroup("test", "test-asg", "us-east-1", "aws") >> {
       new TargetServerGroup(
-        serverGroup: [
-          asg: [
-            suspendedProcesses: suspendedProcesses?.collect { [processName: it] }
-          ]
+        asg: [
+          suspendedProcesses: suspendedProcesses?.collect { [processName: it] }
         ]
       )
     }
@@ -69,10 +67,8 @@ class ModifyAwsScalingProcessStageSpec extends Specification {
   def "should return suspendedProcesses from the asg details"() {
     given:
     def targetServerGroup = new TargetServerGroup(
-      serverGroup: [
-        asg: [
-          suspendedProcesses: suspendedProcesses?.collect { [processName: it] }
-        ]
+      asg: [
+        suspendedProcesses: suspendedProcesses?.collect { [processName: it] }
       ]
     )
 
