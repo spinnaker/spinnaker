@@ -69,12 +69,31 @@ class BuildCache {
         convertedResult
     }
 
+    Long getTTL(String master, String job) {
+        Jedis resource = jedisPool.resource
+        Long ttl = resource.ttl(makeKey(master, job))
+        jedisPool.returnResource(resource)
+        return ttl
+    }
+
+    void setTTL(String master, String job, int ttl) {
+        Jedis resource = jedisPool.resource
+        resource.expire(makeKey(master, job), ttl)
+        jedisPool.returnResource(resource)
+    }
+
+
     void setLastBuild(String master, String job, int lastBuild, boolean building) {
         Jedis resource = jedisPool.resource
         String key = makeKey(master, job)
         resource.hset(key, 'lastBuildLabel', lastBuild as String)
         resource.hset(key, 'lastBuildBuilding', building as String)
         jedisPool.returnResource(resource)
+    }
+
+    void setLastBuild(String master, String job, int lastBuild, boolean building, int ttl) {
+        setLastBuild(master, job, lastBuild, building)
+        setTTL(master, job, ttl)
     }
 
     void remove(String master, String job) {

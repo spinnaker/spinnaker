@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.igor.travis
 
 import com.netflix.spinnaker.igor.build.BuildCache
-import com.netflix.spinnaker.igor.build.model.GenericGitRevision
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.service.BuildMasters
 import com.netflix.spinnaker.igor.travis.client.model.Commit
@@ -29,10 +28,13 @@ class TravisBuildMonitorSpec extends Specification {
     TravisService travisService = Mock(TravisService)
     TravisBuildMonitor travisBuildMonitor
 
-    final String MASTER = "MASTER"
+    final String MASTER    = "MASTER"
+    final int CACHED_JOB_TTL_SECONDS = 172800
+    final int CACHED_JOB_TTL_DAYS = 2
 
     void setup() {
         travisBuildMonitor = new TravisBuildMonitor(buildCache: buildCache, buildMasters: new BuildMasters(map: [MASTER : travisService]))
+        travisBuildMonitor.cachedJobTTLDays = CACHED_JOB_TTL_DAYS
     }
 
     void 'flag a new build not found in the cache'() {
@@ -52,7 +54,7 @@ class TravisBuildMonitorSpec extends Specification {
         1 * travisService.getReposForAccounts() >> repos
 
         1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo') >> [lastBuildLabel: 3]
-        1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo', 4, false)
+        1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo', 4, false, CACHED_JOB_TTL_SECONDS)
         builds.size() == 1
         builds[0].current.slug == 'test-org/test-repo'
         builds[0].current.lastBuildNumber == 4
@@ -82,8 +84,8 @@ class TravisBuildMonitorSpec extends Specification {
         1 * travisService.branchedRepoSlug('test-org/test-repo', 4, commit) >> "test-org/test-repo/my_branch"
 
         1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo') >> [lastBuildLabel: 3]
-        1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo', 4, false)
-        1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo/my_branch', 4, false)
+        1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo', 4, false, CACHED_JOB_TTL_SECONDS)
+        1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo/my_branch', 4, false, CACHED_JOB_TTL_SECONDS)
 
         1 * travisBuildMonitor.echoService.postEvent({
             it.content.project.name == "test-org/test-repo"

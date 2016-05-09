@@ -20,7 +20,6 @@ import com.netflix.appinfo.InstanceInfo
 import com.netflix.discovery.DiscoveryClient
 import com.netflix.spinnaker.igor.build.BuildCache
 import com.netflix.spinnaker.igor.build.model.GenericBuild
-import com.netflix.spinnaker.igor.build.model.GenericGitRevision
 import com.netflix.spinnaker.igor.build.model.GenericProject
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.history.model.GenericBuildContent
@@ -28,7 +27,6 @@ import com.netflix.spinnaker.igor.history.model.GenericBuildEvent
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.polling.PollingMonitor
 import com.netflix.spinnaker.igor.service.BuildMasters
-import com.netflix.spinnaker.igor.service.BuildService
 import com.netflix.spinnaker.igor.travis.client.model.Build
 import com.netflix.spinnaker.igor.travis.client.model.Commit
 import com.netflix.spinnaker.igor.travis.client.model.Repo
@@ -86,10 +84,14 @@ class TravisBuildMonitor implements PollingMonitor{
     @Value('${travis.repositorySyncEnabled:false}')
     Boolean repositorySyncEnabled
 
+    @SuppressWarnings('GStringExpressionWithinString')
+    @Value('${travis.cachedJobTTLDays:60}')
+    int cachedJobTTLDays
+
     @Override
     void onApplicationEvent(ContextRefreshedEvent event) {
         log.info('Started')
-
+        setBuildCacheTTL()
         worker.schedulePeriodically(
             {
                 if (isInService()) {
@@ -142,19 +144,7 @@ class TravisBuildMonitor implements PollingMonitor{
         def startTime = System.currentTimeMillis()
         List<Repo> repos = travisService.getReposForAccounts()
         log.info("Took ${System.currentTimeMillis() - startTime}ms to retrieve ${repos.size()} repositories (master: ${master})")
-        List<String> repoSlugs = repos*.slug
-        Observable.from(cachedRepoSlugs).filter { String name ->
-            !(name in repoSlugs)
-        }.subscribe(
-            { String repoSlug ->
-                if (!travisService.hasRepo(repoSlug)) {
-                    log.info "Removing ${master}:${repoSlug}"
-                    buildCache.remove(master, repoSlug)
-                }
-            }, {
-            log.error("Error: ${it.message}")
-        }, {} as Action0
-        )
+
         Observable.from(repos).subscribe(
             { Repo repo ->
                 boolean addToCache = false
@@ -175,7 +165,7 @@ class TravisBuildMonitor implements PollingMonitor{
                 }
                 if (addToCache) {
                     log.info("Build update [${repo.slug}:${repo.lastBuildNumber}] [status:${repo.lastBuildState}] [running:${repo.lastBuildState == BUILD_IN_PROGRESS}]")
-                    buildCache.setLastBuild(master, repo.slug, repo.lastBuildNumber, repo.lastBuildState == BUILD_IN_PROGRESS)
+                    buildCache.setLastBuild(master, repo.slug, repo.lastBuildNumber, repo.lastBuildState == BUILD_IN_PROGRESS, buildCacheJobTTLSeconds())
                     sendEventForBuild(repo, master, travisService)
 
 
@@ -211,7 +201,7 @@ class TravisBuildMonitor implements PollingMonitor{
             String branchedSlug = travisService.branchedRepoSlug(repo.slug, repo.lastBuildNumber, commit)
 
             if (branchedSlug != repo.slug) {
-                buildCache.setLastBuild(master, branchedSlug, repo.lastBuildNumber, repo.lastBuildState == BUILD_IN_PROGRESS)
+                buildCache.setLastBuild(master, branchedSlug, repo.lastBuildNumber, repo.lastBuildState == BUILD_IN_PROGRESS, buildCacheJobTTLSeconds())
                 if (echoService) {
                     log.info "pushing event for ${master}:${branchedSlug}:${repo.lastBuildNumber}"
 
@@ -244,5 +234,26 @@ class TravisBuildMonitor implements PollingMonitor{
                 }
             }
         }
+    }
+
+    private void setBuildCacheTTL() {
+        /*
+        This method is here to help migrate to ttl usage. It can be removed in igor after some time.
+         */
+        buildMasters.filteredMap(BuildServiceProvider.TRAVIS).keySet().each { master ->
+            log.info "Searching for cached builds without TTL."
+
+            buildCache.getJobNames(master).each { job ->
+                Long ttl = buildCache.getTTL(master, job)
+                if (ttl == -1L) {
+                    log.info "Found build without TTL: ${master}:${job}:${ttl} - Setting TTL to ${buildCacheJobTTLSeconds()}"
+                    buildCache.setTTL(master, job, buildCacheJobTTLSeconds())
+                }
+            }
+        }
+    }
+
+    private int buildCacheJobTTLSeconds() {
+        return TimeUnit.DAYS.toSeconds(cachedJobTTLDays)
     }
 }
