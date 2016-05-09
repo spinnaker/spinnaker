@@ -26,7 +26,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 /**
  * A TargetServerGroup is a ServerGroup that is dynamically resolved using a target like "current" or "oldest".
  */
-@ToString(includeNames = true, includePackage = false)
 class TargetServerGroup {
   // Delegates all Map interface calls to this object.
   @Delegate private final Map<String, Object> serverGroup
@@ -66,6 +65,11 @@ class TargetServerGroup {
       throw new IllegalStateException("unsupported location type $loc.type")
     }
     return op
+  }
+
+  @Override
+  public String toString() {
+    "TargetServerGroup$serverGroup"
   }
 
   public static class Support {
