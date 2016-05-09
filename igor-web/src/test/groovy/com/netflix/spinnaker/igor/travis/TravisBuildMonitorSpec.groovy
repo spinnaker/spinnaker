@@ -28,7 +28,7 @@ class TravisBuildMonitorSpec extends Specification {
     TravisService travisService = Mock(TravisService)
     TravisBuildMonitor travisBuildMonitor
 
-    final String MASTER    = "MASTER"
+    final String MASTER = "MASTER"
     final int CACHED_JOB_TTL_SECONDS = 172800
     final int CACHED_JOB_TTL_DAYS = 2
 
