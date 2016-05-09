@@ -59,6 +59,10 @@ class RegionScopedTitusClientSpec extends Specification {
       .withDisk(2000)
       .withEntryPoint("ls -la")
       .withIamProfile("TitusContainerRole")
+      .withSecurityGroups([
+        'sg-f0f19494',
+        'sg-6321d91b'
+      ])
       .withPorts([7001] as int[])
       .withEnv(env)
       .withAllocateIpAddress(true);

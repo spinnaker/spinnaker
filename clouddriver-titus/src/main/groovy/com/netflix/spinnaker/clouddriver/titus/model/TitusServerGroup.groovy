@@ -37,6 +37,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
   String type = TYPE
   String entryPoint
   String iamProfile
+  List<String> securityGroups
   Map env
   Long submittedAt
   String application
@@ -70,7 +71,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
     capacity = new ServerGroup.Capacity(min: job.instancesMin, max: job.instancesMax, desired: job.instancesDesired)
     //TODO(cfieber) - more of the 'disable is stop all the tasks' nonsense here:
     disabled = job.tasks.every { it.state == TaskState.STOPPED }
-
+    securityGroups = job.securityGroups
   }
 
   @Override
@@ -95,7 +96,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
 
   @Override
   Set<String> getSecurityGroups() {
-    [] as Set
+    securityGroups as Set
   }
 
   @Override

@@ -173,6 +173,7 @@ public class Job {
     private boolean allocateIpAddress;
     private Date submittedAt;
     private List<TaskSummary> tasks;
+    private List<String> securityGroups;
 
     public Job() {}
 
@@ -339,5 +340,9 @@ public class Job {
     public String getIamProfile() { return iamProfile; }
 
     public void setIamProfile(String iamProfile) { this.iamProfile = iamProfile; }
+
+    public List<String> getSecurityGroups() { return securityGroups; }
+
+    public void setSecurityGroups(List<String> securityGroups) { this.securityGroups = securityGroups; }
 
 }
