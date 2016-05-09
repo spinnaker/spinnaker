@@ -64,6 +64,8 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
         unknown: 0,
         starting: 0,
         outOfService: 0,
+        succeeded: 0,
+        failed: 0,
         total: 0,
       };
       var operand = cluster.serverGroups || cluster.jobs || [];
@@ -77,6 +79,8 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
         cluster.instanceCounts.unknown += serverGroup.instanceCounts.unknown || 0;
         cluster.instanceCounts.starting += serverGroup.instanceCounts.starting || 0;
         cluster.instanceCounts.outOfService += serverGroup.instanceCounts.outOfService || 0;
+        cluster.instanceCounts.succeeded += serverGroup.instanceCounts.succeeded || 0;
+        cluster.instanceCounts.failed += serverGroup.instanceCounts.failed || 0;
       });
     }
 

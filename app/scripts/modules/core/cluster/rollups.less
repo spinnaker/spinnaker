@@ -396,6 +396,25 @@ load-balancers-tag {
       .server-group-title {
         background-color: #ffffff;
       }
+      &.running {
+        background-color: @active_pod_blue;
+        .pulsing(1.0);
+        .server-group-title {
+          background-color: @active_pod_blue;
+        }
+      }
+      &.failed {
+        background-color: @failed_job;
+        .server-group-title {
+          background-color: @failed_job;
+        }
+      }
+      &.succeeded {
+        background-color: @succeeded_job;
+        .server-group-title {
+          background-color: @succeeded_job;
+        }
+      }
       &.active {
         background-color: @active_pod_blue;
         .server-group-title {

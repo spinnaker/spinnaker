@@ -3,7 +3,10 @@
      ng-click="loadDetails($event)"
      ng-class="{
         disabled: viewModel.job.isDisabled,
-        active: $state.includes('**.job', {region: viewModel.job.region, accountId: viewModel.job.account, job: viewModel.job.name, provider: viewModel.job.type})
+        active: $state.includes('**.job', {region: viewModel.job.region, accountId: viewModel.job.account, job: viewModel.job.name, provider: viewModel.job.type}),
+        failed: viewModel.failed,
+        succeeded: viewModel.succeeded,
+        running: viewModel.running
      }">
   <div class="cluster-container">
     <div class="server-group-title" sticky-header added-offset-height="69"

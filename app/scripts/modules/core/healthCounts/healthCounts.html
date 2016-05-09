@@ -14,6 +14,14 @@
     <span ng-if="container.up || container.down || container.unknown">/</span>
     {{ container.outOfService }} <span class="glyphicon glyphicon-OutOfService-triangle disabled small"></span>
   </span>
+  <span ng-if="container.succeeded">
+    <span ng-if="container.up || container.down || container.unknown || container.outOfService">/</span>
+    {{ container.succeeded }} <span class="glyphicon glyphicon-Succeeded-triangle disabled small"></span>
+  </span>
+  <span ng-if="container.failed">
+    <span ng-if="container.up || container.down || container.unknown || container.outOfService || container.succeeded">/</span>
+    {{ container.failed }} <span class="glyphicon glyphicon-Failed-triangle disabled small"></span>
+  </span>
   <span ng-if="container.unknown !== container.total">
   : <span class="{{healthStatus}}">
       {{healthPercent}}{{healthPercentLabel}}

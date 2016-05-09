@@ -28,9 +28,11 @@ module.exports = angular.module('spinnaker.core.healthCounts.directive', [
           var container = scope.container || {},
             up = container.up || 0,
             down = container.down || 0,
+            succeeded = container.succeeded || 0,
+            failed = container.failed || 0,
             unknown = container.unknown || 0,
-            total = up + down + unknown,
-            healthPercent = total ? parseInt(up * 100 / total) : 'n/a';
+            total = up + down + unknown + succeeded + failed,
+            healthPercent = total ? parseInt((up + succeeded) * 100 / total) : 'n/a';
 
           scope.healthPercent = healthPercent;
           scope.healthPercentLabel = total ? '%' : '';

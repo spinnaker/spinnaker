@@ -357,6 +357,24 @@ html {
   .pulsing(1.0);
 }
 
+.glyphicon-Failed-triangle {
+  &:before {
+    content: "\2717";
+    font-weight: 900;
+    color: @unhealthy_red;
+    font-size: 120%;
+  }
+}
+
+.glyphicon-Succeeded-triangle {
+  &:before {
+    content: "\2713";
+    font-weight: 900;
+    color: @healthy_green_border;
+    font-size: 120%;
+  }
+}
+
 dl {
   word-break: break-word;
 }

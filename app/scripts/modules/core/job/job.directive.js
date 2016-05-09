@@ -40,9 +40,14 @@ module.exports = angular.module('spinnaker.core.job.job.directive', [
             waypoint: [job.account, job.region, job.name].join(':'),
             job: job,
             jobSequence: $filter('serverGroupSequence')(job.name),
-            jenkins: null,
+            failed: job.jobState == 'Failed',
+            succeeded: job.jobState == 'Succeeded',
+            running: job.jobState == 'Running',
             hasBuildInfo: !!job.buildInfo,
-            instances: filteredInstances,
+            instances: filteredInstances.map((instance) => {
+              instance.id = instance.instanceId;
+              return instance;
+            }),
           };
 
           let modelStringVal = JSON.stringify(viewModel, jobTransformer.jsonReplacer);
