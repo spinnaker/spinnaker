@@ -67,6 +67,7 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
         env: serverGroup.env,
         entryPoint: serverGroup.entryPoint,
         iamProfile: serverGroup.iamProfile,
+        securityGroups: serverGroup.securityGroups,
         source: {
           account: serverGroup.account,
           region: serverGroup.region,
