@@ -62,7 +62,11 @@ class MonitorJenkinsJobTask implements RetryableTask {
         if (stage.context.propertyFile) {
           properties = buildService.getPropertyFile(buildNumber, stage.context.propertyFile, master, job)
         }
-        return new DefaultTaskResult(statusMap[result], [buildInfo: build] + properties, [buildInfo: build] + properties)
+        ExecutionStatus status = statusMap[result]
+        if (result == 'UNSTABLE' && stage.context.markUnstableAsSuccessful) {
+          status = ExecutionStatus.SUCCEEDED
+        }
+        return new DefaultTaskResult(status, [buildInfo: build] + properties, [buildInfo: build] + properties)
       } else {
         return new DefaultTaskResult(ExecutionStatus.RUNNING, [buildInfo: build])
       }
