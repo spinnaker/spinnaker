@@ -136,7 +136,7 @@ class MonitorJenkinsJobTaskSpec extends Specification {
     400        || null
   }
 
-  def "retrives values from a property file if specified"() {
+  def "retrieves values from a property file if specified"() {
 
     given:
     def stage = new PipelineStage(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4, propertyFile: "sample.properties"]).asImmutable()
@@ -154,6 +154,27 @@ class MonitorJenkinsJobTaskSpec extends Specification {
     result.outputs.val1 == 'one'
     result.outputs.val2 == 'two'
 
+  }
+
+  def "marks 'unstable' results as successful if explicitly configured to do so"() {
+    given:
+    def stage = new PipelineStage(pipeline, "jenkins",
+      [master: "builds", job: "orca", buildNumber: 4, markUnstableAsSuccessful: markUnstableAsSuccessful])
+      .asImmutable()
+
+    and:
+    task.buildService = Stub(BuildService) {
+      getBuild(stage.context.buildNumber, stage.context.master, stage.context.job) >> [result: 'UNSTABLE', building: false]
+    }
+
+    expect:
+    task.execute(stage).status == taskStatus
+
+    where:
+    markUnstableAsSuccessful | taskStatus
+    true                     | ExecutionStatus.SUCCEEDED
+    false                    | ExecutionStatus.TERMINAL
+    null                     | ExecutionStatus.TERMINAL
   }
 
 }
