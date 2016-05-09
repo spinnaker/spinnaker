@@ -44,6 +44,7 @@ public class JobDescription {
     private String user;
     private List<String> softConstraints;
     private List<String> hardConstraints;
+    private List<String> securityGroups;
     private Map<String, String> labels;
 
     private String entryPoint;
@@ -82,6 +83,7 @@ public class JobDescription {
         labels = request.getLabels() != null ? request.getLabels() : new HashMap<>();
         entryPoint = request.getEntryPoint();
         iamProfile = request.getIamProfile();
+        securityGroups = request.getSecurityGroups();
     }
 
     public String getName() {
@@ -257,5 +259,8 @@ public class JobDescription {
 
     public void setIamProfile(String iamProfile) { this.iamProfile = iamProfile; }
 
+    public List<String> getSecurityGroups() { return securityGroups; }
+
+    public void setSecurityGroups(List<String> securityGroups) { this.securityGroups = securityGroups; }
 
 }

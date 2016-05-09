@@ -24,6 +24,7 @@ class TitusDeployDescription extends AbstractTitusCredentialsDescription impleme
   String region
   String subnet
   List<String> zones
+  List<String> securityGroups
   String application
   String stack
   String freeFormDetails

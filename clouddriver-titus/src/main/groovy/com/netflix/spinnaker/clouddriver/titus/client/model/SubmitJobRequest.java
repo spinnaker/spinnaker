@@ -75,6 +75,7 @@ public class SubmitJobRequest {
     private boolean allocateIpAddress;
     private List<Constraint> constraints = new ArrayList<>();
     private Map<String, String> labels = new HashMap<String, String>();
+    private List<String> securityGroups = new ArrayList<>();
 
     public SubmitJobRequest withJobType(String jobType) {
         this.jobType = jobType;
@@ -171,6 +172,11 @@ public class SubmitJobRequest {
       return this;
     }
 
+    public SubmitJobRequest withSecurityGroups(List securityGroups) {
+      this.securityGroups = securityGroups;
+      return this;
+    }
+
     public SubmitJobRequest withConstraint(Constraint constraint) {
         this.constraints.add(constraint);
         return this;
@@ -255,6 +261,8 @@ public class SubmitJobRequest {
     public List<Constraint> getConstraints() {
         return constraints;
     }
+
+    public List<String> getSecurityGroups() { return securityGroups; }
 
     public String getEntryPoint() { return entryPoint; }
 
