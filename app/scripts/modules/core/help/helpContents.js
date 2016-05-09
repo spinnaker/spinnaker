@@ -185,11 +185,16 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
       'expression: ' +
       '<samp class="small">execution.stages[n].context.judgmentInput=="rollback"</samp></p>',
     'pipeline.config.jenkins.haltPipelineOnFailure': '' +
-    '<p><strong>Checked</strong> - Immediately halts execution of all running stages and fails the entire execution.</p>',
+    'Immediately halts execution of all running stages and fails the entire execution.',
     'pipeline.config.jenkins.haltBranchOnFailure': '' +
-    '<p><strong>Checked</strong> - Prevents any stages that depend on this stage from running, but allows other branches of the pipeline to run.</p>',
+    'Prevents any stages that depend on this stage from running, but allows other branches of the pipeline to run.',
     'pipeline.config.jenkins.ignoreFailure': '' +
-    '<p><strong>Checked</strong> - Continues execution of dowstream stages, marking this stages as failed/continuing.</p>',
+    'Continues execution of dowstream stages, marking this stages as failed/continuing.',
+    'pipeline.config.jenkins.markUnstableAsSuccessful.true': 'If Jenkins reports the build status as UNSTABLE, ' +
+      'Spinnaker will mark the stage as SUCCEEDED and continue execution of the pipeline.',
+    'pipeline.config.jenkins.markUnstableAsSuccessful.false': 'If Jenkins reports the build status as UNSTABLE, ' +
+      'Spinnaker will mark the stage as FAILED; subsequent execution will be determined based on the configuration of the ' +
+      '<b>If build fails</b> option for this stage.',
     'pipeline.config.failPipeline': '' +
     '<p><strong>Checked</strong> - the overall pipeline will fail whenever the stage fails.</p>' +
     '<p><strong>Unchecked</strong> - the overall pipeline will continue executing but this particular branch will stop.</p>',

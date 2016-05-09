@@ -60,52 +60,81 @@
 
   <div class="well well-sm clearfix ng-scope col-md-offset-1 col-md-10" ng-if="jobParams">
     <h4 class="text-left" >Job Parameters</h4>
-      <div class="form-group" ng-repeat="parameter in jobParams | orderBy:'name' ">
-        <div class="col-md-3 sm-label-right">
-          <b>{{parameter.name}}</b>
-          <help-field content="{{parameter.description}}" ng-if="parameter.description"></help-field>
-        </div>
-        <div class="col-md-5">
-          <input disabled ng-if="useDefaultParameters[parameter.name]" type="text" class="form-control input-sm" value="{{parameter.defaultValue}}"/>
-          <input ng-if="!useDefaultParameters[parameter.name]" type="text" class="form-control input-sm" ng-model="userSuppliedParameters[parameter.name]" ng-change="updateParam(parameter.name)"/>
-        </div>
-        <div class="checkbox col-md-4" ng-if="parameter.defaultValue!==null">
-          <label>
-            <input type="checkbox" ng-model="useDefaultParameters[parameter.name]" ng-change="jenkinsStageCtrl.updateParam(parameter.name)">Use default
-          </label>
-        </div>
-        </ng-if>
+    <div class="form-group" ng-repeat="parameter in jobParams | orderBy:'name' ">
+      <div class="col-md-3 sm-label-right">
+        <b>{{parameter.name}}</b>
+        <help-field content="{{parameter.description}}" ng-if="parameter.description"></help-field>
       </div>
-
+      <div class="col-md-5">
+        <input disabled ng-if="useDefaultParameters[parameter.name]" type="text" class="form-control input-sm" value="{{parameter.defaultValue}}"/>
+        <input ng-if="!useDefaultParameters[parameter.name]" type="text" class="form-control input-sm" ng-model="userSuppliedParameters[parameter.name]" ng-change="updateParam(parameter.name)"/>
+      </div>
+      <div class="checkbox col-md-4" ng-if="parameter.defaultValue!==null">
+        <label>
+          <input type="checkbox" ng-model="useDefaultParameters[parameter.name]" ng-change="jenkinsStageCtrl.updateParam(parameter.name)">Use default
+        </label>
+      </div>
+    </div>
   </div>
 
   <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-right">If job fails</label>
-    <div class="radio col-md-4">
-      <label>
-        <input type="radio"
-               name="failureOption"
-               ng-model="viewState.failureOption"
-               ng-change="jenkinsStageCtrl.failureOptionChanged()"
-               value="fail"/> halt the entire pipeline
-        <help-field key="pipeline.config.jenkins.haltPipelineOnFailure"/>
-      </label>
-      <label>
-        <input type="radio"
-               name="failureOption"
-               ng-model="viewState.failureOption"
-               ng-change="jenkinsStageCtrl.failureOptionChanged()"
-               value="stop"/> halt this branch of the pipeline
-        <help-field key="pipeline.config.jenkins.haltBranchOnFailure"/>
-      </label>
-      <label>
-        <input type="radio"
-               name="failureOption"
-               ng-model="viewState.failureOption"
-               ng-change="jenkinsStageCtrl.failureOptionChanged()"
-               value="ignore"/> ignore the failure
-        <help-field key="pipeline.config.jenkins.ignoreFailure"/>
-      </label>
+    <label class="col-md-2 col-md-offset-1 sm-label-right">If build fails</label>
+    <div class="col-md-9">
+      <div class="radio">
+        <label>
+          <input type="radio"
+                 name="failureOption"
+                 ng-model="viewState.failureOption"
+                 ng-change="jenkinsStageCtrl.failureOptionChanged()"
+                 value="fail"/> halt the entire pipeline
+          <help-field key="pipeline.config.jenkins.haltPipelineOnFailure"/>
+        </label>
+      </div>
+      <div class="radio">
+        <label>
+          <input type="radio"
+                 name="failureOption"
+                 ng-model="viewState.failureOption"
+                 ng-change="jenkinsStageCtrl.failureOptionChanged()"
+                 value="stop"/> halt this branch of the pipeline
+          <help-field key="pipeline.config.jenkins.haltBranchOnFailure"/>
+        </label>
+      </div>
+      <div class="radio">
+        <label>
+          <input type="radio"
+                 name="failureOption"
+                 ng-model="viewState.failureOption"
+                 ng-change="jenkinsStageCtrl.failureOptionChanged()"
+                 value="ignore"/> ignore the failure
+          <help-field key="pipeline.config.jenkins.ignoreFailure"/>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-right">If build is unstable</label>
+    <div class="col-md-9">
+      <div class="radio">
+        <label>
+          <input type="radio"
+                 ng-model="viewState.markUnstableAsSuccessful"
+                 ng-change="jenkinsStageCtrl.markUnstableChanged()"
+                 ng-value="false"/> fail the stage
+          <help-field key="pipeline.config.jenkins.markUnstableAsSuccessful.false"/>
+        </label>
+      </div>
+      <div class="radio">
+        <label>
+          <input type="radio"
+                 ng-model="viewState.markUnstableAsSuccessful"
+                 ng-change="jenkinsStageCtrl.markUnstableChanged()"
+                 ng-value="true"/> consider stage successful
+          <help-field key="pipeline.config.jenkins.markUnstableAsSuccessful.true"/>
+        </label>
+      </div>
+
     </div>
   </div>
 

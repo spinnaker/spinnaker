@@ -36,7 +36,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', [
       jobsLoaded: false,
       jobsRefreshing: false,
       failureOption: 'fail',
+      markUnstableAsSuccessful: !!stage.markUnstableAsSuccessful
     };
+
+    // Using viewState to avoid marking pipeline as dirty if field is not set
+    this.markUnstableChanged = () => stage.markUnstableAsSuccessful = $scope.viewState.markUnstableAsSuccessful;
 
     function initializeMasters() {
       igorService.listMasters().then(function (masters) {
