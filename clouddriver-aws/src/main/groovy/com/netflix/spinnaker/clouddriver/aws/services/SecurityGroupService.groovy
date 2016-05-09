@@ -18,7 +18,9 @@ package com.netflix.spinnaker.clouddriver.aws.services
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
 import com.amazonaws.services.ec2.model.CreateSecurityGroupResult
+import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
+import com.amazonaws.services.ec2.model.Filter
 import com.netflix.spinnaker.clouddriver.aws.model.SecurityGroupNotFoundException
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetAnalyzer
 
@@ -54,10 +56,13 @@ class SecurityGroupService {
    */
   Map<String, String> getSecurityGroupIds(Collection<String> securityGroupNames, String vpcId = null, boolean failIfNotAllResolved = true) {
     if (!securityGroupNames) { return [:] }
-    DescribeSecurityGroupsResult result = amazonEC2.describeSecurityGroups()
-    Map<String, String> securityGroups = result.securityGroups.findAll { securityGroupNames.contains(it.groupName) && it.vpcId == vpcId }.collectEntries {
-      [(it.groupName): it.groupId]
-    }
+    def request = new DescribeSecurityGroupsRequest()
+      .withFilters(new Filter("group-name", securityGroupNames.toList()))
+    DescribeSecurityGroupsResult result = amazonEC2.describeSecurityGroups(request)
+    Map<String, String> securityGroups = result
+      .securityGroups
+      .findAll { it.vpcId == vpcId }
+      .collectEntries { [(it.groupName): it.groupId] }
     if (failIfNotAllResolved && !securityGroups.keySet().containsAll(securityGroupNames)) {
       def missingGroups = securityGroupNames - securityGroups.keySet()
       def ex = new SecurityGroupNotFoundException("Missing security groups: ${missingGroups.join(',')}")
