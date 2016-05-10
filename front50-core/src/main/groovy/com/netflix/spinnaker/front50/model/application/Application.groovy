@@ -275,7 +275,7 @@ class Application implements Timestamped {
         log.error("Rollback failed (onRollback)", rollbackException)
       }
 
-      log.error("Failed to perform action (name: ${originalApplication.name ?: updatedApplication.name})")
+      log.error("Failed to perform action (name: ${originalApplication?.name ?: updatedApplication?.name})")
       throw e
     }
   }
