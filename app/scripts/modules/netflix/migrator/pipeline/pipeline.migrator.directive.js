@@ -39,7 +39,7 @@ module.exports = angular
 
     function testCluster(stage) {
       return function(cluster) {
-        if (!cluster.subnetType && cluster.provider === 'aws') {
+        if (!cluster.subnetType && (!cluster.provider || cluster.provider === 'aws')) {
           $scope.showAction = true;
           if (cluster.strategy !== '') {
             actionableDeployStages.push({strategy: cluster.strategy, name: stage.name});
