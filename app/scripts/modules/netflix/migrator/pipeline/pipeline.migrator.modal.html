@@ -20,7 +20,7 @@
         <div class="col-md-10 col-md-offset-1">
           <div ng-if="!vm.viewState.migrationComplete">
             <p>This will create new pipeline named
-              <strong>{{vm.preview.pipelines[0].mutationDetails.pipelineToCreate.name}}</strong>. All triggers will be disabled.</p>
+              <strong>{{vm.viewState.targetName}}</strong>. All triggers will be disabled.</p>
             <p ng-if="!vm.preview.securityGroups.length && !vm.preview.loadBalancers.length">
               All load balancers and security groups needed for server groups deployed in the pipeline have already
               been migrated to VPC0, so this will just create the new pipeline.
@@ -47,7 +47,7 @@
           </div>
           <div ng-if="vm.viewState.migrationComplete">
             <p>The new pipeline named
-              <strong>{{vm.preview.pipelines[0].mutationDetails.pipelineToCreate.name}}</strong> is available for review.</p>
+              <strong>{{vm.viewState.targetName}}</strong> is available for review.</p>
           </div>
           <div ng-if="vm.actionableDeployStages.length && vm.viewState.migrationComplete" class="alert alert-warning">
             <h4 style="margin-top:0;">Important</h4>
@@ -105,7 +105,12 @@
     </div>
 
     <div class="modal-footer" ng-if="!vm.viewState.error && !vm.viewState.executing">
-      <button class="btn btn-default" ng-click="vm.cancel()">{{vm.viewState.migrationComplete ? 'Close' : 'Cancel'}}</button>
+      <button class="btn btn-primary"
+              ng-if="vm.viewState.migrationComplete"
+              ng-click="vm.close()">Review {{vm.viewState.targetName}}</button>
+      <button class="btn btn-default"
+              ng-if="!vm.viewState.migrationComplete"
+              ng-click="vm.cancel()">Cancel</button>
       <button class="btn btn-primary"
               ng-if="!vm.viewState.executing && !vm.viewState.computing && !vm.viewState.migrationComplete"
               ng-click="vm.submit()">
