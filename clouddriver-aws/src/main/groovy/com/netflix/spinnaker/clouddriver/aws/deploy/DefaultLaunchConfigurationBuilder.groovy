@@ -22,6 +22,7 @@ import com.amazonaws.services.autoscaling.model.CreateLaunchConfigurationRequest
 import com.amazonaws.services.autoscaling.model.Ebs
 import com.amazonaws.services.autoscaling.model.InstanceMonitoring
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
+import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProperties
@@ -38,7 +39,6 @@ import org.joda.time.LocalDateTime
 import java.nio.charset.Charset
 import java.util.regex.Pattern
 
-@CompileStatic
 class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
   private static final Pattern SG_PATTERN = Pattern.compile(/^sg-[0-9a-f]+$/)
 
@@ -137,12 +137,22 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
 
     Set<String> securityGroupIds = resolveSecurityGroupIds(settings.securityGroups, subnetType).toSet()
     if (!securityGroupIds || deployDefaults.addAppGroupToServerGroup) {
-      String applicationSecurityGroup = securityGroupService.getSecurityGroupForApplication(application, subnetType)
-      if (!applicationSecurityGroup) {
-        applicationSecurityGroup = securityGroupService.createSecurityGroup(application, subnetType)
-      }
+      def names = securityGroupService.getSecurityGroupNamesFromIds(securityGroupIds)
 
-      securityGroupIds << applicationSecurityGroup
+      String existingAppGroup = names.keySet().find { it.contains(application) }
+      if (!existingAppGroup) {
+        if (securityGroupIds.size() < deployDefaults.maxSecurityGroups) {
+          String applicationSecurityGroup = securityGroupService.getSecurityGroupForApplication(application, subnetType)
+          if (!applicationSecurityGroup) {
+            applicationSecurityGroup = securityGroupService.createSecurityGroup(application, subnetType)
+          }
+
+          securityGroupIds << applicationSecurityGroup
+        } else {
+          throw new IllegalStateException("addAppGroupToServerGroup enabled, but there are currently the following groups ${names.keySet()} and no capacity to attach another group")
+        }
+
+      }
     }
     settings = settings.copyWith(securityGroups: securityGroupIds.toList())
 

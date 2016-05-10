@@ -100,4 +100,19 @@ class SecurityGroupService {
     result.groupId
   }
 
+  Map<String, String> getSecurityGroupNamesFromIds(Collection<String> securityGroupIds) {
+    if (!securityGroupIds) {
+      return [:]
+    }
+    def groupIds = new HashSet<>(securityGroupIds)
+    def groups = amazonEC2.describeSecurityGroups(new DescribeSecurityGroupsRequest().withGroupIds(groupIds)).securityGroups
+    if (groups.size() != groupIds.size()) {
+      def missing = groupIds.findAll { id -> !groups.find { it.groupId == id }}
+      throw new SecurityGroupNotFoundException("Failed to find groups ${missing}")
+    }
+    return groups.collectEntries {
+      [(it.groupName): it.groupId]
+    } ?: [:]
+  }
+
 }

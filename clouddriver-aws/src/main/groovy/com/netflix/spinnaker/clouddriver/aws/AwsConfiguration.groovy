@@ -143,6 +143,7 @@ class AwsConfiguration {
     boolean addAppGroupsToClassicLink = false
     int maxClassicLinkSecurityGroups = 5
     boolean addAppGroupToServerGroup = false
+    int maxSecurityGroups = 5
   }
 
   @Bean
