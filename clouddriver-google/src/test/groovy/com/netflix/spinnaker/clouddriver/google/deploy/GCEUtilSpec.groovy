@@ -249,40 +249,6 @@ class GCEUtilSpec extends Specification {
       roundtrippedMetadata == instanceMetadata
   }
 
-  void "can derive network load balancer names from target pool urls"() {
-    setup:
-      def targetPoolUrls = ["https://www.googleapis.com/compute/v1/projects/shared-spinnaker/regions/us-central1/targetPools/testlb1-tp-1417811497341",
-                            "https://www.googleapis.com/compute/v1/projects/shared-spinnaker/regions/us-central1/targetPools/testlb2-tp-1417811497567"]
-
-    when:
-      def networkLoadBalancerNames = GCEUtil.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(targetPoolUrls)
-
-    then:
-      networkLoadBalancerNames == ["testlb1", "testlb2"]
-  }
-
-  void "can derive network load balancer names from empty target pool urls"() {
-    setup:
-      def targetPoolUrls = []
-
-    when:
-      def networkLoadBalancerNames = GCEUtil.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(targetPoolUrls)
-
-    then:
-      networkLoadBalancerNames == []
-  }
-
-  void "can derive network load balancer names from null target pool urls"() {
-    setup:
-      def targetPoolUrls = null
-
-    when:
-      def networkLoadBalancerNames = GCEUtil.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(targetPoolUrls)
-
-    then:
-      networkLoadBalancerNames == []
-  }
-
   void "queryInstanceUrls should return matching instances from one zone"() {
     setup:
       def computeMock = Mock(Compute)

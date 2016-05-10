@@ -232,24 +232,11 @@ class GCEUtil {
     }
   }
 
-  static InstanceTemplate queryInstanceTemplate(String projectName, String instanceTemplateName, Compute compute) {
-    compute.instanceTemplates().get(projectName, instanceTemplateName).execute()
-  }
-
   static InstanceGroupManager queryManagedInstanceGroup(String projectName,
                                                         String zone,
                                                         String serverGroupName,
                                                         GoogleCredentials credentials) {
     credentials.compute.instanceGroupManagers().get(projectName, zone, serverGroupName).execute()
-  }
-
-  static InstanceGroupManager queryManagedInstanceGroupInRegion(String projectName,
-                                                                String region,
-                                                                String serverGroupName,
-                                                                GoogleCredentials credentials) {
-    def managedInstanceGroups = queryManagedInstanceGroups(projectName, region, credentials)
-
-    return managedInstanceGroups.find { it.name == serverGroupName }
   }
 
   static List<InstanceGroupManager> queryManagedInstanceGroups(String projectName,
@@ -403,8 +390,12 @@ class GCEUtil {
   }
 
   static BasicGoogleDeployDescription.AutoscalingPolicy buildAutoscalingPolicyDescriptionFromAutoscalingPolicy(
-    Autoscaler autoscaler) {
-    autoscaler.autoscalingPolicy.with {
+    AutoscalingPolicy autoscalingPolicy) {
+    if (!autoscalingPolicy) {
+      return null
+    }
+
+    autoscalingPolicy.with {
       def autoscalingPolicyDescription =
           new BasicGoogleDeployDescription.AutoscalingPolicy(
               coolDownPeriodSec: coolDownPeriodSec,
@@ -504,7 +495,7 @@ class GCEUtil {
   }
 
   static Map<String, String> buildMapFromMetadata(Metadata metadata) {
-    def map = metadata?.items?.collectEntries { Metadata.Items metadataItems ->
+    def map = metadata?.items?.collectEntries { def metadataItems ->
       [(metadataItems.key): metadataItems.value]
     }
 
@@ -585,19 +576,6 @@ class GCEUtil {
     }
 
     return scheduling
-  }
-
-  // TODO(duftler/odedmeri): We should determine if there is a better approach than this naming convention.
-  static List<String> deriveNetworkLoadBalancerNamesFromTargetPoolUrls(List<String> targetPoolUrls) {
-    if (targetPoolUrls) {
-      return targetPoolUrls.collect { targetPoolUrl ->
-        def targetPoolLocalName = getLocalName(targetPoolUrl)
-
-        targetPoolLocalName.split("-$TARGET_POOL_NAME_PREFIX-")[0]
-      }
-    } else {
-      return []
-    }
   }
 
   private static void updateStatusAndThrowNotFoundException(String errorMsg, Task task, String phase) {
