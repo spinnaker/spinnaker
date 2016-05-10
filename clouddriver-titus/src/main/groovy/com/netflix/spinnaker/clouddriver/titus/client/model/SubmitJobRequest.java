@@ -75,7 +75,7 @@ public class SubmitJobRequest {
     private boolean allocateIpAddress;
     private List<Constraint> constraints = new ArrayList<>();
     private Map<String, String> labels = new HashMap<String, String>();
-    private List<String> securityGroups = new ArrayList<>();
+    private List<String> securityGroups = null;
 
     public SubmitJobRequest withJobType(String jobType) {
         this.jobType = jobType;
