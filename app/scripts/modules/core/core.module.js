@@ -104,6 +104,7 @@ module.exports = angular
     require('./pipeline/config/stages/manualJudgment/manualJudgmentStage.module.js'),
     require('./pipeline/config/stages/pipeline/pipelineStage.module.js'),
     require('./pipeline/config/stages/resizeAsg/resizeAsgStage.module.js'),
+    require('./pipeline/config/stages/runJob/runJobStage.module.js'),
     require('./pipeline/config/stages/scaleDownCluster/scaleDownClusterStage.module.js'),
     require('./pipeline/config/stages/script/scriptStage.module.js'),
     require('./pipeline/config/stages/shrinkCluster/shrinkClusterStage.module.js'),
