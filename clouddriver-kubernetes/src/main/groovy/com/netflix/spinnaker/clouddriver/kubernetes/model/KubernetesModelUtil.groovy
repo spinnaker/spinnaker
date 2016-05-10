@@ -27,10 +27,12 @@ class KubernetesModelUtil {
 
   static HealthState getHealthState(health) {
     someUpRemainingUnknown(health) ? HealthState.Up :
-        anyStarting(health) ? HealthState.Starting :
-            anyDown(health) ? HealthState.Down :
-                anyOutOfService(health) ? HealthState.OutOfService :
-                    HealthState.Unknown
+        someSucceededRemainingUnknown(health) ? HealthState.Succeeded :
+            anyStarting(health) ? HealthState.Starting :
+                anyDown(health) ? HealthState.Down :
+                    anyFailed(health) ? HealthState.Failed :
+                        anyOutOfService(health) ? HealthState.OutOfService :
+                            HealthState.Unknown
   }
 
   private static boolean anyDown(List<Map<String, String>> healthsList) {
@@ -42,8 +44,17 @@ class KubernetesModelUtil {
     knownHealthList ? knownHealthList.every { it.state == HealthState.Up.name() } : false
   }
 
+  private static boolean someSucceededRemainingUnknown(List<Map<String, String>> healthsList) {
+    List<Map<String, String>> knownHealthList = healthsList.findAll { it.state != HealthState.Unknown.name() }
+    knownHealthList ? knownHealthList.every { it.state == HealthState.Succeeded.name() } : false
+  }
+
   private static boolean anyStarting(List<Map<String, String>> healthsList) {
     healthsList.any { it.state == HealthState.Starting.name() }
+  }
+
+  private static boolean anyFailed(List<Map<String, String>> healthsList) {
+    healthsList.any { it.state == HealthState.Failed.name() }
   }
 
   private static boolean anyOutOfService(List<Map<String, String>> healthsList) {

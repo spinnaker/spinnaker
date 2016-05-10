@@ -47,9 +47,26 @@ class KubernetesHealth implements Health {
   KubernetesHealth(String name, ContainerStatus containerStatus) {
     source = "Container $name"
     type = "KubernetesContainer"
-    state = containerStatus.state.running && containerStatus.ready ? HealthState.Up :
-      containerStatus.state.terminated ? HealthState.Down :
-        containerStatus.state.waiting || !containerStatus.ready ? HealthState.Starting :
-          HealthState.Unknown
+
+    state = HealthState.Unknown
+    if (containerStatus.state.running) {
+      if (containerStatus.ready) {
+        state = HealthState.Up
+      }
+    } else if (containerStatus.state.terminated) {
+      if (containerStatus.state.terminated.reason == "Completed") {
+        if (containerStatus.state.terminated.exitCode == 0) {
+          state = HealthState.Succeeded
+        } else {
+          state = HealthState.Failed
+        }
+      } else {
+        state = HealthState.Down
+      }
+    } else if (containerStatus.state.waiting) {
+      if (!containerStatus.ready) {
+        state = HealthState.Starting
+      }
+    }
   }
 }

@@ -18,14 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.model
 
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.model.HealthState
-import io.fabric8.kubernetes.api.model.ContainerState
-import io.fabric8.kubernetes.api.model.ContainerStateRunning
-import io.fabric8.kubernetes.api.model.ContainerStateTerminated
-import io.fabric8.kubernetes.api.model.ContainerStateWaiting
-import io.fabric8.kubernetes.api.model.ContainerStatus
-import io.fabric8.kubernetes.api.model.ObjectMeta
-import io.fabric8.kubernetes.api.model.Pod
-import io.fabric8.kubernetes.api.model.PodStatus
+import io.fabric8.kubernetes.api.model.*
 import spock.lang.Specification
 
 class KubernetesInstanceSpec extends Specification {
@@ -105,12 +98,6 @@ class KubernetesInstanceSpec extends Specification {
 
     then:
       state == HealthState.Starting
-
-    when:
-      state = (new KubernetesHealth('', containerStatusAsNoneMock)).state
-
-    then:
-      state == HealthState.Starting
   }
 
   void "Should report state as Up"() {
@@ -119,6 +106,14 @@ class KubernetesInstanceSpec extends Specification {
 
     then:
       state == HealthState.Up
+  }
+
+  void "Should report state as Unknown"() {
+    when:
+      def state = (new KubernetesHealth('', containerStatusAsNoneMock)).state
+
+    then:
+      state == HealthState.Unknown
   }
 
   void "Should report pod state as Up"() {
