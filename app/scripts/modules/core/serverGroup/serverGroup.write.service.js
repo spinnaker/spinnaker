@@ -15,7 +15,7 @@ module.exports = angular
       params.type = 'destroyServerGroup';
       params.region = serverGroup.region;
       params.credentials = serverGroup.account;
-      params.cloudProvider = serverGroup.type;
+      params.cloudProvider = serverGroup.type || serverGroup.provider;
 
       return taskExecutor.executeTask({
         job: [params],
@@ -30,7 +30,7 @@ module.exports = angular
       params.type = 'disableServerGroup';
       params.region = serverGroup.region;
       params.credentials = serverGroup.account;
-      params.cloudProvider = serverGroup.type;
+      params.cloudProvider = serverGroup.type || serverGroup.provider;
 
       return taskExecutor.executeTask({
         job: [params],
@@ -45,7 +45,7 @@ module.exports = angular
       params.type = 'enableServerGroup';
       params.region = serverGroup.region;
       params.credentials = serverGroup.account;
-      params.cloudProvider = serverGroup.type;
+      params.cloudProvider = serverGroup.type || serverGroup.provider;
 
       return taskExecutor.executeTask({
         job: [params],
@@ -58,7 +58,7 @@ module.exports = angular
       params.type = 'rollbackServerGroup';
       params.region = serverGroup.region;
       params.credentials = serverGroup.account;
-      params.cloudProvider = serverGroup.type;
+      params.cloudProvider = serverGroup.type || serverGroup.provider;
 
       return taskExecutor.executeTask({
         job: [params],
@@ -73,7 +73,8 @@ module.exports = angular
       params.type = 'resizeServerGroup';
       params.region = serverGroup.region;
       params.credentials = serverGroup.account;
-      params.cloudProvider = serverGroup.type;
+      params.cloudProvider = serverGroup.type || serverGroup.provider;
+
       return taskExecutor.executeTask({
         job: [params],
         application: application,
