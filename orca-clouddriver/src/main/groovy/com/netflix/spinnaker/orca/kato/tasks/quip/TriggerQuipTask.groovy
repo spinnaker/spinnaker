@@ -37,7 +37,7 @@ class TriggerQuipTask extends AbstractQuipTask implements RetryableTask  {
         def instanceService = createInstanceService("http://${hostName}:5050")
 
         try {
-          def instanceResponse = instanceService.patchInstance(packageName, version)
+          def instanceResponse = instanceService.patchInstance(packageName, version, "")
           def ref = objectMapper.readValue(instanceResponse.body.in().text, Map).ref
           taskIdMap.put(hostName, ref.substring(1+ref.lastIndexOf('/')))
         } catch(RetrofitError e) {

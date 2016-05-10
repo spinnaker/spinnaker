@@ -18,7 +18,10 @@
 package com.netflix.spinnaker.orca.clouddriver
 
 import retrofit.client.Response
-import retrofit.http.*
+import retrofit.http.Body
+import retrofit.http.GET
+import retrofit.http.PATCH
+import retrofit.http.Path
 
 interface InstanceService {
   // TODO: add concrete result objects vs Response objects
@@ -29,7 +32,7 @@ interface InstanceService {
   Response listTask(@Path("id") String id)
 
   @PATCH("/{app}/{version}")
-  Response patchInstance(@Path("app") String app, @Path("version") String version)
+  Response patchInstance(@Path("app") String app, @Path("version") String version, @Body String body)
 
   @GET("/{app}/current")
   Response getCurrentVersion(@Path("app") String app)
