@@ -43,7 +43,7 @@ class TriggerQuipTask extends AbstractQuipTask implements RetryableTask {
           def ref = objectMapper.readValue(instanceResponse.body.in().text, Map).ref
           taskIdMap.put(hostName, ref.substring(1 + ref.lastIndexOf('/')))
         } catch (RetrofitError e) {
-          log.warn("Error in Quip request", e)
+          log.warn("Error in Quip request: {}", e.message)
           executionStatus = ExecutionStatus.RUNNING
         }
       }
