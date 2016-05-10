@@ -5,8 +5,8 @@
        ng-class="{active: $state.includes('**.executions.**') || $state.includes('**.pipelineConfig')}">
       Pipelines
       <span class="badge"
-            ng-if="( application.executions.data | filter:{isActive:true}).length > 0">
-        {{ (application.executions.data | filter:{isActive:true}).length }}
+            ng-if="application.runningExecutions.data.length">
+        {{application.runningExecutions.data.length}}
       </span>
     </a>
     <a ng-if="application.executions.loadFailure">
@@ -46,8 +46,8 @@
        ng-class="{active: $state.includes('**.tasks.**')}">
       Tasks
       <span class="badge"
-            ng-if="( application.tasks.data | filter:{isActive:true}).length > 0">
-        {{ (application.tasks.data | filter:{isActive:true}).length }}
+            ng-if="application.runningTasks.data.length">
+        {{application.runningTasks.data.length}}
       </span>
     </a>
     <a ng-if="application.tasks.loadFailure">

@@ -53,8 +53,71 @@ describe('Service: applicationReader', function () {
         return $q.when(app);
       });
 
-      return applicationReader.getApplication('deck', options);
+      return applicationReader.getApplication('deck', options).then(app => {
+        if (options) {
+          Object.keys(options).forEach(option => {
+            app[option].activate();
+          });
+        }
+        return app;
+      });
     }
+
+    describe('lazy sections', function () {
+      describe('activate', function () {
+        it('refreshes section if not already active and not already loaded', function () {
+          spyOn(executionService, 'getRunningExecutions').and.returnValue($q.when([]));
+          spyOn(taskReader, 'getRunningTasks').and.returnValue($q.when([]));
+          var app = null;
+          loadApplication([], [], {}).then(result => app = result);
+          $scope.$digest();
+          $http.flush();
+          spyOn(app.executions, 'refresh').and.callFake(() => app.executions.loaded = true);
+          app.executions.activate();
+          expect(app.executions.refresh.calls.count()).toBe(1);
+          expect(app.executions.active).toBe(true);
+          expect(app.executions.loaded).toBe(true);
+
+          app.executions.deactivate();
+          expect(app.executions.active).toBe(false);
+          app.executions.activate();
+          // not refreshed since still loaded
+          expect(app.executions.active).toBe(true);
+          expect(app.executions.refresh.calls.count()).toBe(1);
+
+          app.executions.deactivate();
+          app.executions.loaded = false;
+          app.executions.activate();
+          expect(app.executions.refresh.calls.count()).toBe(2);
+        });
+      });
+      describe('refresh behavior', function () {
+        it('clears data on inactive lazy sections and sets loaded flag to false', function () {
+          spyOn(executionService, 'getRunningExecutions').and.returnValue($q.when([]));
+          spyOn(executionService, 'getExecutions').and.returnValue($q.when([{status: 'SUCCEEDED', stages: []}]));
+          spyOn(taskReader, 'getRunningTasks').and.returnValue($q.when([]));
+          var app = null;
+          loadApplication([], [], [], {}).then(result => app = result);
+          $scope.$digest();
+          $http.flush();
+
+          expect(app.executions.active).toBeFalsy();
+
+          app.executions.activate();
+          $scope.$digest();
+          expect(app.executions.active).toBe(true);
+          expect(app.executions.loaded).toBe(true);
+          expect(app.executions.data.length).toBe(1);
+
+          app.executions.deactivate();
+          app.refresh();
+          $scope.$digest();
+
+          expect(app.executions.data).toEqual([]);
+          expect(app.executions.loaded).toBe(false);
+        });
+      });
+    });
 
     describe('loading executions', function () {
       beforeEach(function () {
@@ -128,7 +191,7 @@ describe('Service: applicationReader', function () {
         var result = null,
             errorsHandled = 0,
             successesHandled = 0;
-        loadApplication([], [], []).then((app) => {
+        loadApplication([], [], [], {executions: true}).then((app) => {
           result = app;
         });
         $scope.$digest();
@@ -201,10 +264,10 @@ describe('Service: applicationReader', function () {
             nextCalls = 0;
         loadApplication([], [], [], {tasks: true}).then((app) => {
           result = app;
-          result.tasks.onRefresh($scope, () => nextCalls++);
         });
         $scope.$digest();
         $http.flush();
+        result.tasks.onRefresh($scope, () => nextCalls++);
         expect(result.tasks.loaded).toBe(true);
         expect(result.tasks.loading).toBe(false);
         expect(result.tasks.loadFailure).toBe(false);
@@ -225,12 +288,12 @@ describe('Service: applicationReader', function () {
         var result = null,
             errorsHandled = 0,
             successesHandled = 0;
-        loadApplication([], [], []).then((app) => {
+        loadApplication([], [], [], {tasks: true}).then((app) => {
           result = app;
-          result.tasks.onRefresh($scope, () => successesHandled++, () => errorsHandled++);
         });
         $scope.$digest();
         $http.flush();
+        result.tasks.onRefresh($scope, () => successesHandled++, () => errorsHandled++);
 
         result.tasks.refresh();
         $scope.$digest();
@@ -258,7 +321,7 @@ describe('Service: applicationReader', function () {
         spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([]));
         spyOn(pipelineConfigService, 'getStrategiesForApplication').and.returnValue($q.when([]));
         var result = null;
-        loadApplication([], [], []).then((app) => {
+        loadApplication([], [], [], {pipelineConfigs: true}).then((app) => {
           result = app;
         });
         $scope.$digest();
@@ -267,7 +330,6 @@ describe('Service: applicationReader', function () {
         result.pipelineConfigs.refresh();
         expect(result.pipelineConfigs.loading).toBe(true);
         $scope.$digest();
-
         expect(result.pipelineConfigs.loaded).toBe(true);
         expect(result.pipelineConfigs.loading).toBe(false);
         expect(result.pipelineConfigs.loadFailure).toBe(false);
@@ -279,13 +341,13 @@ describe('Service: applicationReader', function () {
         var result = null,
             errorsHandled = 0,
             successesHandled = 0;
-        loadApplication([], [], []).then((app) => {
+        loadApplication([], [], [], {pipelineConfigs: true}).then((app) => {
           result = app;
-          result.pipelineConfigs.onRefresh($scope, () => successesHandled++, () => errorsHandled++);
         });
         $scope.$digest();
         $http.flush();
 
+        result.pipelineConfigs.onRefresh($scope, () => successesHandled++, () => errorsHandled++);
         result.pipelineConfigs.refresh();
         $scope.$digest();
 

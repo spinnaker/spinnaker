@@ -123,11 +123,13 @@ module.exports = angular
         key: 'tasks',
         loader: loadTasks,
         onLoad: addTasks,
+        lazy: true,
       },
       {
         key: 'executions',
         loader: loadExecutions,
         onLoad: addExecutions,
+        lazy: true,
       },
       {
         key: 'loadBalancers',
@@ -138,6 +140,7 @@ module.exports = angular
         key: 'pipelineConfigs',
         loader: loadPipelineConfigs,
         onLoad: addPipelineConfigs,
+        lazy: true,
       },
       {
         key: 'securityGroups',
@@ -196,7 +199,25 @@ module.exports = angular
         return deferred.promise;
       };
 
+      section.activate = () => {
+        if (!section.active) {
+          section.active = true;
+          if (!section.loaded) {
+            section.refresh();
+          }
+        }
+      };
+
+      section.deactivate = () => {
+        section.active = false;
+      };
+
       section.refresh = (forceRefresh) => {
+        if (sectionConfig.lazy && !section.active) {
+          section.data.length = 0;
+          section.loaded = false;
+          return $q.when(null);
+        }
         if (section.loading && !forceRefresh) {
           $log.warn(`${key} still loading, skipping refresh`);
           return $q.when(null);

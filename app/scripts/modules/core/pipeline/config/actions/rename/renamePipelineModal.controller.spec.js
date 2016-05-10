@@ -43,6 +43,7 @@ describe('Controller: renamePipelineModal', function() {
       loader: () => this.$q.when(null),
       onLoad: () => this.$q.when(null),
     }, this.application);
+    this.application.pipelineConfigs.activate();
     this.application.pipelineConfigs.data = [this.pipelines[0], this.pipelines[1], this.pipelines[2]];
     this.initializeController(this.application, this.pipelines[1]);
 

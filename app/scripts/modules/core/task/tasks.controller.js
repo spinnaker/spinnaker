@@ -260,8 +260,12 @@ module.exports = angular.module('spinnaker.core.task.controller', [
       }
     });
 
+    application.tasks.activate();
     application.activeState = application.tasks;
-    $scope.$on('$destroy', () => application.activeState = application);
+    $scope.$on('$destroy', () => {
+      application.activeState = application;
+      application.tasks.deactivate();
+    });
 
     this.application.tasks.onRefresh($scope, this.sortTasks);
   }

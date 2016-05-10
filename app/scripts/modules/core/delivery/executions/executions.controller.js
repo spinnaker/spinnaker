@@ -30,7 +30,11 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
     }
 
     application.activeState = application.executions;
-    $scope.$on('$destroy', () => application.activeState = application);
+    $scope.$on('$destroy', () => {
+      application.activeState = application;
+      application.executions.deactivate();
+      application.pipelineConfigs.deactivate();
+    });
 
     this.InsightFilterStateModel = InsightFilterStateModel;
 
@@ -59,6 +63,9 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       loading: true,
       triggeringExecution: false,
     };
+
+    application.executions.activate();
+    application.pipelineConfigs.activate();
 
     $q.all([application.executions.ready(), application.pipelineConfigs.ready()]).then(() => {
       this.updateExecutionGroups();

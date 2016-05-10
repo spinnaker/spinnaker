@@ -1,8 +1,6 @@
 'use strict';
 
 describe('Controller: tasks', function () {
-  const angular = require('angular');
-
   var controller;
   var taskWriter;
   var scope;
@@ -23,6 +21,7 @@ describe('Controller: tasks', function () {
       this.initializeController = (tasks) => {
         let application = {};
         applicationReader.addSectionToApplication({key: 'tasks', lazy: true}, application);
+        application.tasks.activate = angular.noop;
         application.tasks.data = tasks || [];
         application.tasks.loaded = true;
         application.tasks.refreshStream.onNext();

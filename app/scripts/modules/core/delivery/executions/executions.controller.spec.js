@@ -2,8 +2,6 @@
 
 describe('Controller: pipelineExecutions', function () {
 
-  const angular = require('angular');
-
   var controller;
   var scope;
   var $state;
@@ -30,6 +28,8 @@ describe('Controller: pipelineExecutions', function () {
         scope.application = application;
         applicationReader.addSectionToApplication({key: 'executions', lazy: true}, application);
         applicationReader.addSectionToApplication({key: 'pipelineConfigs', lazy: true}, application);
+        application.executions.activate = angular.noop;
+        application.pipelineConfigs.activate = angular.noop;
         if (data && data.executions) {
           application.executions.data = data.executions;
           application.executions.loaded = true;
