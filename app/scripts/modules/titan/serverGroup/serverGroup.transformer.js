@@ -27,6 +27,9 @@ module.exports = angular
         var securityGroups = '' + command.securityGroups;
         command.securityGroups = securityGroups.split(/\s*,\s*/);
       }
+      if (command.securityGroups === '') {
+        delete command.securityGroups;
+      }
       if (command.resources.allocateIpAddress === true) {
         delete command.resources.ports;
       }
