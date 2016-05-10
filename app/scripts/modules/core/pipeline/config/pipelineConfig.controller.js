@@ -30,6 +30,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.controller', [
     };
 
     if (!application.notFound) {
+      application.pipelineConfigs.activate();
       application.pipelineConfigs.ready().then(this.initialize);
     }
 

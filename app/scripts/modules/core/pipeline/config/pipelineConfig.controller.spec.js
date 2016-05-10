@@ -39,7 +39,8 @@ describe('Controller: PipelineConfigCtrl', function () {
 
   it('should wait until pipeline configs are loaded before initializing', function () {
     scope.application = {};
-    applicationReader.addSectionToApplication({key: 'pipelineConfigs', lazy: true}, scope.application);
+    applicationReader.addSectionToApplication({key: 'pipelineConfigs', lazy: true, loader: angular.noop}, scope.application);
+    spyOn(scope.application.pipelineConfigs, 'activate').and.callFake(angular.noop);
     let vm = controller('PipelineConfigCtrl', {
       $scope: scope,
       $stateParams: {
@@ -52,6 +53,7 @@ describe('Controller: PipelineConfigCtrl', function () {
     scope.$digest();
 
     expect(vm.state.pipelinesLoaded).toBe(true);
+    expect(scope.application.pipelineConfigs.activate.calls.count()).toBe(1);
   });
 });
 
