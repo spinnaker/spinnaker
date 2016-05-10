@@ -188,7 +188,7 @@ module.exports = angular
 
       section.ready = () => {
         let deferred = $q.defer();
-        if (section.loaded) {
+        if (section.loaded || (sectionConfig.lazy && !section.active)) {
           deferred.resolve();
         } else if (section.loadFailure) {
           deferred.reject();

@@ -117,6 +117,23 @@ describe('Service: applicationReader', function () {
           expect(app.executions.loaded).toBe(false);
         });
       });
+
+      describe('application ready', function () {
+        it('ignores lazy sections when determining if application is ready', function () {
+          spyOn(executionService, 'getRunningExecutions').and.returnValue($q.when([]));
+          spyOn(taskReader, 'getRunningTasks').and.returnValue($q.when([]));
+
+          var app = null,
+              isReady = false;
+          loadApplication([], [], [], {}).then(result => app = result);
+          $scope.$digest();
+          $http.flush();
+
+          app.ready().then(() => isReady = true);
+          $scope.$digest();
+          expect(isReady).toBe(true);
+        });
+      });
     });
 
     describe('loading executions', function () {
