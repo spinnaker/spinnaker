@@ -73,6 +73,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings)
 
     then:
+    1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [:]
     1 * securityGroupService.getSecurityGroupForApplication(application, subnetType) >> application
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
       assert req.securityGroups.toList().sort() == expectedGroups.toList().sort()
@@ -98,6 +99,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings)
 
     then:
+    1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [:]
     1 * securityGroupService.getSecurityGroupForApplication(application, subnetType) >> application
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
       assert req.getUserData() == expectedUserData
@@ -125,6 +127,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings)
 
     then:
+    1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [:]
     1 * securityGroupService.getSecurityGroupForApplication(application, subnetType) >> application
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
       assert req.getUserData() == expectedUserData
@@ -151,6 +154,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings)
 
     then:
+    1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [:]
     1 * securityGroupService.getSecurityGroupForApplication(application, subnetType) >> null
     1 * securityGroupService.createSecurityGroup(application, subnetType) >> "sg-$application"
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
@@ -224,6 +228,62 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
       classicLinkVpcId: "vpc-123")
   }
 
+  void "if existing requested group contains app name don't lookup/create app group"() {
+    given:
+    deployDefaults.addAppGroupToServerGroup = true
+
+    when:
+    builder.buildLaunchConfiguration(application, subnetType, settings)
+
+    then:
+    1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [(appGroup): securityGroups[0]]
+    1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
+      assert req.securityGroups.toList().sort() == expectedGroups.toList().sort()
+    }
+    0 * _
+
+    where:
+    application = 'foo'
+    subnetType = null
+    account = 'prod'
+    securityGroups = ["sg-12345"]
+    appGroup = "sg-$application"
+    expectedGroups = securityGroups
+    settings = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
+      account: 'prod',
+      region: 'us-east-1',
+      baseName: 'fooapp-v001',
+      suffix: '20150515',
+      securityGroups: securityGroups)
+  }
+
+  void "if creating an app security group would exceed the maximum number of security groups fail the request"() {
+    given:
+    deployDefaults.addAppGroupToServerGroup = true
+
+    when:
+    builder.buildLaunchConfiguration(application, subnetType, settings)
+
+    then:
+    1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> sgResult
+    thrown(IllegalStateException)
+    0 * _
+
+    where:
+    application = 'foo'
+    subnetType = null
+    account = 'prod'
+    securityGroups = ["sg-12345", "sg-23456", "sg-34567", "sg-45678", "sg-56789"]
+    sgResult = securityGroups.collectEntries { [(it): it] }
+    appGroup = "sg-$application"
+    settings = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
+      account: 'prod',
+      region: 'us-east-1',
+      baseName: 'fooapp-v001',
+      suffix: '20150515',
+      securityGroups: securityGroups)
+  }
+
   void "should add existing app security group if configured to do so"() {
     given:
     deployDefaults.addAppGroupToServerGroup = true
@@ -232,6 +292,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings)
 
     then:
+    1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [notappgroup: securityGroups[0]]
     1 * securityGroupService.getSecurityGroupForApplication(application, subnetType) >> appGroup
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
       assert req.securityGroups.toList().sort() == expectedGroups.toList().sort()
@@ -261,6 +322,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings)
 
     then:
+    1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [:]
     1 * securityGroupService.getSecurityGroupForApplication(application, subnetType) >> null
     1 * securityGroupService.createSecurityGroup(application, subnetType) >> appGroup
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
@@ -316,6 +378,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings)
 
     then:
+    1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [:]
     1 * securityGroupService.getSecurityGroupForApplication(application, subnetType) >> "sg-$application"
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
       assert req.blockDeviceMappings.size() == 2
