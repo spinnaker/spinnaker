@@ -98,11 +98,14 @@ class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
 
     operation.securityGroups = operation.securityGroups ?: []
     def defaultSecurityGroupsForAccount
-    if (operation.subnetType && !operation.subnetType.contains('vpc0')) {
-      //TODO(cfieber)- remove the VPC special case asap
-      defaultSecurityGroupsForAccount = defaultVpcSecurityGroups
-    } else {
-      defaultSecurityGroupsForAccount = defaultSecurityGroups
+
+    if (context.cloudProvider != 'titan') {
+      if (operation.subnetType && !operation.subnetType.contains('vpc0')) {
+        //TODO(cfieber)- remove the VPC special case asap
+        defaultSecurityGroupsForAccount = defaultVpcSecurityGroups
+      } else {
+        defaultSecurityGroupsForAccount = defaultSecurityGroups
+      }
     }
 
     try {
