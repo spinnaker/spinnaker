@@ -72,14 +72,8 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
         def targetPool = compute.targetPools().get(project, region, targetPoolLocalName).execute()
         def instanceUrls = targetPool.getInstances()
-        def instanceReferencesToRemove = []
-
-        instanceUrls.each { instanceUrl ->
-          def instanceLocalName = GCEUtil.getLocalName(instanceUrl)
-
-          if (instanceLocalName.startsWith("$serverGroupName-")) {
-            instanceReferencesToRemove << new InstanceReference(instance: instanceUrl)
-          }
+        def instanceReferencesToRemove = instanceUrls.findResults { instanceUrl ->
+          GCEUtil.getLocalName(instanceUrl).startsWith("$serverGroupName-") ? new InstanceReference(instance: instanceUrl) : null
         }
 
         if (instanceReferencesToRemove) {
@@ -99,10 +93,8 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
                                                                   serverGroupName,
                                                                   new InstanceGroupsListInstancesRequest()).execute().items
 
-      def instanceReferencesToAdd = []
-
-      groupInstances.each { groupInstance ->
-        instanceReferencesToAdd << new InstanceReference(instance: groupInstance.instance)
+      def instanceReferencesToAdd = groupInstances.collect { groupInstance ->
+        new InstanceReference(instance: groupInstance.instance)
       }
 
       def instanceTemplateUrl = managedInstanceGroup.getInstanceTemplate()
