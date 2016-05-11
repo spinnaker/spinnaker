@@ -303,7 +303,7 @@ class CreateBakeTaskSpec extends Specification {
 
     then:
     IllegalStateException ise = thrown(IllegalStateException)
-    ise.message.startsWith("Unable to find deployable artifact starting with hodor_ and ending with .deb in")
+    ise.message.startsWith("Unable to find deployable artifact starting with [hodor_] and ending with .deb in")
 
     where:
     contextInfo         | triggerInfo
