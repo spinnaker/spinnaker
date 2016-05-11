@@ -56,8 +56,8 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
     String resourceGroupName = null
     String virtualNetworkName = null
     String subnetName = null
-    String loadBalancerName = null
     String serverGroupName = null
+    //String appGatewayPoolID = null
 
     try {
 
@@ -96,43 +96,46 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
       description.clusterName = description.getClusterName()
       description.appName = description.application
 
-      task.updateStatus(BASE_PHASE, "Deploying new load balancer from ${description.loadBalancerName ?: 'new'}")
-      AzureLoadBalancerDescription lbDescription = description.loadBalancerName ?
-        description.credentials.networkClient.getLoadBalancer(resourceGroupName, description.loadBalancerName) : new AzureLoadBalancerDescription()
-      lbDescription.loadBalancerName = description.name
-      lbDescription.region = description.region
-      lbDescription.accountName = description.accountName
-      lbDescription.credentials = description.credentials
-      lbDescription.appName = description.application
-      lbDescription.cluster = description.clusterName
-      lbDescription.serverGroup = description.name
-      lbDescription.stack = description.stack
-      lbDescription.detail = description.detail
-      lbDescription.securityGroup = description.securityGroup?.name
-      lbDescription.vnet = virtualNetworkName
-      lbDescription.subnet = subnetName
+      // get the app gateway. Verify that it can be used for this server group/cluster. add an app pool if it doesn't already exist
+      def appGateway = description.credentials.networkClient.getAppGateway(resourceGroupName, description.loadBalancerName)
+      if (appGateway) {
+        if (appGateway.tags?.cluster && appGateway.tags?.cluster != description.clusterName) {
+          throw new RuntimeException("Selected Load Balancer: $description.loadBalancerName is already in use by another cluster: $appGateway.tags.cluster")
+        }
+      }
+      else {
+        throw new RuntimeException("Selected Load Balancer $description.loadBalancerName does not exist")
+      }
 
-      task.updateStatus(BASE_PHASE, "Create new load balancer ${description.loadBalancerName} in ${description.region}...")
-      DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(description.credentials,
-        AzureLoadBalancerResourceTemplate.getTemplate(lbDescription),
-        resourceGroupName,
-        description.region,
-        description.loadBalancerName,
-        "loadBalancer")
-      errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name)
+      def appGatewayPoolID = description.credentials.networkClient.getAppGatewayBackendPool(resourceGroupName, appGateway.name, description.name)
+
+      // if this is not a custom image, then we need to go get the OsType from Azure
+      if (!description.image.isCustom) {
+
+        def virtualMachineImage = description.credentials.computeClient.getVMImage(description.region,
+          description.image.publisher, description.image.offer, description.image.sku, description.image.version)
+        description.image.imageName ?: virtualMachineImage.name
+        description.image.ostype = virtualMachineImage?.osDiskImage?.operatingSystem
+      }
+
+      // If Linux, set up connection on port 22 (ssh) otherwise use port 3389 (rdp)
+      def backendPort = description.image.ostype == "Linux" ? 22 : 3389
+      description.addInboundPortConfig(AzureUtilities.INBOUND_NATPOOL_PREFIX + description.name, 50000, 50099, "tcp", backendPort)
 
       if (errList.isEmpty()) {
-        description.loadBalancerName = lbDescription.loadBalancerName
         description.securityGroupName = description.securityGroup?.name
         description.subnetId = subnetId
         task.updateStatus(BASE_PHASE, "Deploying server group")
-        deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(description.credentials,
+        DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(description.credentials,
           AzureServerGroupResourceTemplate.getTemplate(description),
           resourceGroupName,
           description.region,
           description.name,
           "serverGroup",
-          [subnetId: subnetId])
+          [
+            subnetId: subnetId
+            ,appGatewayAddressPoolID: appGatewayPoolID
+          ])
 
         errList.addAll(AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name))
         serverGroupName = errList.isEmpty() ? description.name : null
@@ -150,16 +153,15 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
         task.updateStatus(BASE_PHASE, "Cleanup any resources created as part of server group upsert")
         try {
           if (serverGroupName) description.credentials.computeClient.destroyServerGroup(resourceGroupName, serverGroupName)
-          if (loadBalancerName) description.credentials.networkClient.deleteLoadBalancer(resourceGroupName, loadBalancerName)
           if (subnetName) description.credentials.networkClient.deleteSubnet(resourceGroupName, virtualNetworkName, subnetName)
         } catch (Exception e) {
-          def errMessage = "Unexpected exception: ${e.message}; please log in into the Azure Portal and manually remove the following resources: ${subnetName} ${loadBalancerName} ${AzureUtilities.PUBLICIP_NAME_PREFIX + loadBalancerName}"
+          def errMessage = "Unexpected exception: ${e.message}; please log in into the Azure Portal and manually remove the following resources: ${subnetName}"
           task.updateStatus(BASE_PHASE, errMessage)
           errList.add(errMessage)
         }
       } else {
         // can not automatically delete a server group
-        errList.add("Please log in into Azure Portal and manualy delete any resource associated with the ${description.name} server group such as storage accounts, load balancer (${loadBalancerName}), publicIp (${AzureUtilities.PUBLICIP_NAME_PREFIX + loadBalancerName}) and subnets (${subnetName})")
+        errList.add("Please log in into Azure Portal and manualy delete any resource associated with the ${description.name} server group such as storage accounts and subnets (${subnetName})")
       }
 
       throw new AtomicOperationException(

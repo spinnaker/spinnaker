@@ -17,6 +17,7 @@ package com.netflix.spinnaker.clouddriver.azure.templates
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription.AzureInboundPortConfig
 import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
@@ -24,6 +25,8 @@ import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.Azure
 @Slf4j
 class AzureServerGroupResourceTemplate {
   static final String STORAGE_ACCOUNT_SUFFIX = "sa"
+
+  static String LB_NAME = null
 
   protected static ObjectMapper mapper = new ObjectMapper()
     .configure(SerializationFeature.INDENT_OUTPUT, true)
@@ -38,6 +41,14 @@ class AzureServerGroupResourceTemplate {
   static String getTemplate(AzureServerGroupDescription description) {
     ServerGroupTemplate template = new ServerGroupTemplate(description)
     mapper.writeValueAsString(template)
+  }
+
+  /**
+   * Initialize variables that will be used in mulitple places
+   * @param description Azure Server Group description object
+     */
+  private static void initializeCommonVariables(AzureServerGroupDescription description) {
+    LB_NAME = AzureUtilities.LB_NAME_PREFIX + description.name
   }
 
   /**
@@ -56,15 +67,19 @@ class AzureServerGroupResourceTemplate {
      * @param description
      */
     ServerGroupTemplate(AzureServerGroupDescription description) {
+      initializeCommonVariables(description)
       parameters = new ServerGroupTemplateParameters()
 
+      //If it's custom,
       if (description.image.isCustom) {
-        variables = new EmptyTemplateVariables()
+        variables = new CoreServerGroupTemplateVariables(description)
       } else {
-        variables = new ServerGroupTemplateVariables(description)
+        variables = new ExtendedServerGroupTemplateVariables(description)
         resources.add(new StorageAccount(description))
       }
 
+      resources.add(new PublicIpResource())
+      resources.add(new LoadBalancer(description))
       resources.add(new VirtualMachineScaleSet(description))
     }
 
@@ -72,12 +87,38 @@ class AzureServerGroupResourceTemplate {
 
   interface TemplateVariables {}
 
-  static class EmptyTemplateVariables implements TemplateVariables {}
+  static class CoreServerGroupTemplateVariables implements TemplateVariables {
+    String publicIpAddressName
+    String publicIpAddressID
+    String publicIpAddressType
+    String dnsNameForLBIP
+    String loadBalancerBackend
+    String loadBalancerFrontEnd
+    String loadBalancerName
+    String loadBalancerID
+    String frontEndIPConfigID
+    String inboundNatPoolName
+
+    CoreServerGroupTemplateVariables() {}
+
+    CoreServerGroupTemplateVariables(AzureServerGroupDescription description) {
+      publicIpAddressName = AzureUtilities.PUBLICIP_NAME_PREFIX + description.name
+      publicIpAddressID = "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName'))]"
+      publicIpAddressType = "Dynamic"
+      dnsNameForLBIP = AzureUtilities.DNS_NAME_PREFIX + description.name.toLowerCase()
+      frontEndIPConfigID = "[resourceId('Microsoft.Network/loadBalancers/frontendIPConfigurations/', variables('loadBalancerName'), variables('loadBalancerFrontEnd'))]"
+      loadBalancerFrontEnd = AzureUtilities.LBFRONTEND_NAME_PREFIX + description.name
+      loadBalancerBackend = AzureUtilities.LBBACKEND_NAME_PREFIX + description.name
+      loadBalancerName = LB_NAME
+      loadBalancerID = "[resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName'))]"
+      inboundNatPoolName = AzureUtilities.INBOUND_NATPOOL_PREFIX + description.name
+    }
+  }
 
   /**
    *
    */
-  static class ServerGroupTemplateVariables implements TemplateVariables {
+  static class ExtendedServerGroupTemplateVariables extends CoreServerGroupTemplateVariables implements TemplateVariables {
     // The values of these variables need to match the name of the corresponding variables below
     // The reason is that in other sections of the RM template (i.e., Resources) their is a reference by name
     // to the variable defined in Variables section of the template.
@@ -95,8 +136,8 @@ class AzureServerGroupResourceTemplate {
      *
      * @param description
      */
-    ServerGroupTemplateVariables(AzureServerGroupDescription description) {
-
+    ExtendedServerGroupTemplateVariables(AzureServerGroupDescription description) {
+      super(description)
       vhdContainerName = description.name.toLowerCase()
       osType = new OsType(description)
       imageReference = "[variables('osType')]"
@@ -118,19 +159,27 @@ class AzureServerGroupResourceTemplate {
   static class ServerGroupTemplateParameters {
     LocationParameter location = new LocationParameter()
     SubnetParameter subnetId = new SubnetParameter()
+    AppGatewayAddressPoolParameter appGatewayAddressPoolId = new AppGatewayAddressPoolParameter()
   }
 
   static class SubnetParameter {
     String type = "string"
-    Map<String, String> metadata = ["description":"Subnet Resource ID"]
+    Map<String, String> metadata = ["description": "Subnet Resource ID"]
   }
+
   /**
    *
    */
   static class LocationParameter {
     String type = "string"
-    Map<String, String> metadata = ["description":"Location to deploy"]
+    Map<String, String> metadata = ["description": "Location to deploy"]
   }
+
+  static class AppGatewayAddressPoolParameter {
+    String type = "string"
+    Map<String, String> metadata = ["description": "App Gateway backend address pool resource ID"]
+  }
+
 
   /**
    *
@@ -145,8 +194,7 @@ class AzureServerGroupResourceTemplate {
      *
      * @param description
      */
-    OsType(AzureServerGroupDescription description)
-    {
+    OsType(AzureServerGroupDescription description) {
       publisher = description.image.publisher
       offer = description.image.offer
       sku = description.image.sku
@@ -167,7 +215,7 @@ class AzureServerGroupResourceTemplate {
      */
     StorageAccount(AzureServerGroupDescription description) {
       apiVersion = "2015-06-15"
-      name = String.format("[concat(variables('%s')[copyIndex()])]", ServerGroupTemplateVariables.uniqueStorageNamesArrayVar)
+      name = String.format("[concat(variables('%s')[copyIndex()])]", ExtendedServerGroupTemplateVariables.uniqueStorageNamesArrayVar)
       type = "Microsoft.Storage/storageAccounts"
       location = "[parameters('location')]"
       def currentTime = System.currentTimeMillis()
@@ -241,7 +289,7 @@ class AzureServerGroupResourceTemplate {
       tags.detail = description.detail
       tags.cluster = description.clusterName
       tags.createdTime = currentTime.toString()
-      if (description.loadBalancerName) tags.loadBalancerName = description.loadBalancerName
+      tags.loadBalancerName = LB_NAME
       if (description.securityGroupName) tags.securityGroupName = description.securityGroupName
       if (description.subnetId) tags.subnetId = description.subnetId
       tags.imageIsCustom = description.image.isCustom.toString()
@@ -252,13 +300,15 @@ class AzureServerGroupResourceTemplate {
         description.getStorageAccountCount().times { idx ->
           this.dependsOn.add(
             String.format("[concat('Microsoft.Storage/storageAccounts/', variables('%s')[%s])]",
-              ServerGroupTemplateVariables.uniqueStorageNamesArrayVar,
+              ExtendedServerGroupTemplateVariables.uniqueStorageNamesArrayVar,
               idx)
           )
           String uniqueName = getUniqueStorageName(description.name, idx)
           tags.storageAccountNames = tags.storageAccountNames ? "${tags.storageAccountNames},${uniqueName}" : uniqueName
         }
       }
+
+      this.dependsOn.add("[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]")
 
       properties = new VirtualMachineScaleSetProperty(description)
       sku = new ScaleSetSkuProperty(description)
@@ -298,7 +348,7 @@ class AzureServerGroupResourceTemplate {
   // ***OSProfile
   static class ScaleSetOsProfileProperty {
     String computerNamePrefix
-    String adminUserName
+    String adminUsername
     String adminPassword
 
     /**
@@ -309,7 +359,7 @@ class AzureServerGroupResourceTemplate {
       //Max length of 10 characters to allow for an aditional postfix within a max length of 15 characters
       computerNamePrefix = description.getIdentifier().substring(0, 10)
       log.info("computerNamePrefix will be truncated to 10 characters to maintain Azure restrictions")
-      adminUserName = description.osConfig.adminUserName
+      adminUsername = description.osConfig.adminUserName
       adminPassword = description.osConfig.adminPassword
     }
   }
@@ -351,7 +401,7 @@ class AzureServerGroupResourceTemplate {
    *
    */
   static class NetworkInterfaceConfigurationProperty {
-    String primary
+    boolean primary
     ArrayList<NetworkInterfaceIPConfiguration> ipConfigurations = []
 
     /**
@@ -359,7 +409,7 @@ class AzureServerGroupResourceTemplate {
      * @param description
      */
     NetworkInterfaceConfigurationProperty(AzureServerGroupDescription description) {
-      primary = "true"
+      primary = true
       ipConfigurations.add(new NetworkInterfaceIPConfiguration(description))
     }
   }
@@ -386,7 +436,9 @@ class AzureServerGroupResourceTemplate {
    */
   static class NetworkInterfaceIPConfigurationsProperty {
     NetworkInterfaceIPConfigurationSubnet subnet
+    ArrayList<AppGatewayBackendAddressPool> ApplicationGatewayBackendAddressPools = []
     ArrayList<LoadBalancerBackendAddressPool> loadBalancerBackendAddressPools = []
+    ArrayList<LoadBalancerInboundNatPoolId> loadBalancerInboundNatPools = []
 
     /**
      *
@@ -394,7 +446,9 @@ class AzureServerGroupResourceTemplate {
      */
     NetworkInterfaceIPConfigurationsProperty(AzureServerGroupDescription description) {
       subnet = new NetworkInterfaceIPConfigurationSubnet()
-      loadBalancerBackendAddressPools.add(new LoadBalancerBackendAddressPool(description))
+      loadBalancerBackendAddressPools.add(new LoadBalancerBackendAddressPool())
+      ApplicationGatewayBackendAddressPools.add(new AppGatewayBackendAddressPool())
+      loadBalancerInboundNatPools.add(new LoadBalancerInboundNatPoolId(description))
     }
   }
 
@@ -403,6 +457,7 @@ class AzureServerGroupResourceTemplate {
    */
   static class NetworkInterfaceIPConfigurationSubnet {
     String id
+
     NetworkInterfaceIPConfigurationSubnet() {
       id = "[parameters('subnetId')]"
     }
@@ -411,8 +466,23 @@ class AzureServerGroupResourceTemplate {
   static class LoadBalancerBackendAddressPool {
     String id
 
-    LoadBalancerBackendAddressPool(AzureServerGroupDescription description) {
-      id = "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', '$description.loadBalancerName', 'be-$description.loadBalancerName')]"
+    LoadBalancerBackendAddressPool() {
+      id = "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', variables('loadBalancerName'), variables('loadBalancerBackend'))]"
+    }
+  }
+
+  static class LoadBalancerInboundNatPoolId extends IdRef {
+
+    LoadBalancerInboundNatPoolId(AzureServerGroupDescription description) {
+      id = "[resourceId('Microsoft.Network/loadBalancers/inboundNatPools', variables('loadBalancerName'), variables('inboundNatPoolName'))]"
+    }
+  }
+
+  static class AppGatewayBackendAddressPool {
+    String id
+
+    AppGatewayBackendAddressPool() {
+      id = "[parameters('appGatewayAddressPoolId')]"
     }
   }
 
@@ -489,9 +559,9 @@ class AzureServerGroupResourceTemplate {
       createOption = "FromImage"
       description.getStorageAccountCount().times { idx ->
         vhdContainers.add(String.format("[concat('https://', variables('%s')[%s], '.blob.core.windows.net/', variables('%s'))]",
-          ServerGroupTemplateVariables.uniqueStorageNamesArrayVar,
+          ExtendedServerGroupTemplateVariables.uniqueStorageNamesArrayVar,
           idx,
-          ServerGroupTemplateVariables.vhdContainerNameVar))
+          ExtendedServerGroupTemplateVariables.vhdContainerNameVar))
       }
     }
   }
@@ -504,12 +574,135 @@ class AzureServerGroupResourceTemplate {
     String osType
     Map<String, String> image = [:]
 
-    VirtualMachineCustomImageOSDisk (AzureServerGroupDescription description) {
+    VirtualMachineCustomImageOSDisk(AzureServerGroupDescription description) {
       name = "osdisk-${description.name}"
       caching = "ReadOnly"
       createOption = "FromImage"
       osType = description.image.ostype
       image.uri = description.image.uri
     }
+  }
+
+  /**** Load Balancer Resource ****/
+  static class LoadBalancer extends DependingResource {
+    LoadBalancerProperties properties
+
+    LoadBalancer(AzureServerGroupDescription description) {
+      apiVersion = "2015-06-15"
+      name = "[variables('loadBalancerName')]"
+      type = "Microsoft.Network/loadBalancers"
+      location = "[parameters('location')]"
+      def currentTime = System.currentTimeMillis()
+      tags = [:]
+      tags.appName = description.application
+      tags.stack = description.stack
+      tags.detail = description.detail
+      tags.createdTime = currentTime.toString()
+      if (description.clusterName) tags.cluster = description.clusterName
+      if (description.name) tags.serverGroup = description.name
+      if (description.securityGroup) tags.securityGroup = description.securityGroup
+
+      this.dependsOn.add("[concat('Microsoft.Network/publicIPAddresses/', variables('publicIpAddressName'))]")
+
+      properties = new LoadBalancerProperties(description)
+    }
+  }
+
+  static class LoadBalancerProperties {
+    ArrayList<FrontEndIpConfiguration> frontendIPConfigurations = []
+    ArrayList<BackEndAddressPool> backendAddressPools = []
+    ArrayList<InboundNatPool> inboundNatPools = []
+
+    LoadBalancerProperties(AzureServerGroupDescription description) {
+      frontendIPConfigurations.add(new FrontEndIpConfiguration())
+      backendAddressPools.add(new BackEndAddressPool())
+      description.inboundPortConfigs?.each {
+        inboundNatPools.add(new InboundNatPool(it))
+      }
+    }
+  }
+
+  static class FrontEndIpConfiguration {
+    String name
+    FrontEndIpProperties properties
+
+    FrontEndIpConfiguration() {
+      name = "[variables('loadBalancerFrontEnd')]"
+      properties = new FrontEndIpProperties("[variables('publicIpAddressID')]")
+    }
+  }
+
+  static class FrontEndIpProperties {
+    IdRef publicIpAddress
+
+    FrontEndIpProperties(String id) {
+      publicIpAddress = new IdRef(id)
+    }
+  }
+
+  static class BackEndAddressPool {
+    String name
+
+    BackEndAddressPool() {
+      name = "[variables('loadBalancerBackEnd')]"
+    }
+  }
+
+
+  static class InboundNatPool {
+    String name
+    InboundNatPoolProperties properties
+
+    InboundNatPool(AzureInboundPortConfig inboundPortConfig) {
+      name = inboundPortConfig.name
+      properties = new InboundNatPoolProperties(inboundPortConfig)
+    }
+  }
+
+  static class InboundNatPoolProperties {
+    IdRef frontendIPConfiguration
+    String protocol
+    int frontendPortRangeStart
+    int frontendPortRangeEnd
+    int backendPort
+
+    InboundNatPoolProperties(AzureInboundPortConfig inboundPortConfig) {
+      frontendIPConfiguration = new IdRef("[variables('frontEndIPConfigID')]")
+      protocol = inboundPortConfig.protocol
+      frontendPortRangeStart = inboundPortConfig.frontEndPortRangeStart
+      frontendPortRangeEnd = inboundPortConfig.frontEndPortRangeEnd
+      backendPort = inboundPortConfig.backendPort
+    }
+  }
+
+  static class IdRef{
+    String id
+
+    IdRef() {}
+
+    public IdRef(String refID)
+    {
+      id = refID
+    }
+  }
+
+  static class PublicIpResource extends Resource {
+
+    PublicIpResource() {
+      apiVersion = '2015-06-15'
+      name = '''[variables('publicIpAddressName')]'''
+      type = '''Microsoft.Network/publicIPAddresses'''
+      location = '''[parameters('location')]'''
+    }
+    PublicIPProperties properties = new PublicIPProperties()
+  }
+
+  static class PublicIPProperties {
+    String publicIPAllocationMethod = '''[variables('publicIpAddressType')]'''
+    DnsSettings dnsSettings = new DnsSettings()
+  }
+
+  static class DnsSettings {
+    String domainNameLabel = '''[variables('dnsNameForLBIP')]'''
   }
 }

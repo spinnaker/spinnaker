@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model
 
+import com.microsoft.azure.management.network.models.LoadBalancer
+import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
 
 class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
@@ -70,6 +73,59 @@ class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
     AzureLoadBalancerInboundNATRulesServiceType serviceType
     AzureLoadBalancerInboundNATRulesProtocolType protocol
     Integer port
+  }
+
+  static AzureLoadBalancerDescription build(LoadBalancer azureLoadBalancer) {
+    AzureLoadBalancerDescription description = new AzureLoadBalancerDescription(loadBalancerName: azureLoadBalancer.name)
+    def parsedName = Names.parseName(azureLoadBalancer.name)
+    description.stack = azureLoadBalancer.tags?.stack ?: parsedName.stack
+    description.detail = azureLoadBalancer.tags?.detail ?: parsedName.detail
+    description.appName = azureLoadBalancer.tags?.appName ?: parsedName.app
+    description.cluster = azureLoadBalancer.tags?.cluster
+    description.serverGroup = azureLoadBalancer.tags?.serverGroup
+    description.vnet = azureLoadBalancer.tags?.vnet
+    description.createdTime = azureLoadBalancer.tags?.createdTime?.toLong()
+    description.tags = azureLoadBalancer.tags
+    description.region = azureLoadBalancer.location
+
+    for (def rule : azureLoadBalancer.loadBalancingRules) {
+      def r = new AzureLoadBalancerDescription.AzureLoadBalancingRule(ruleName: rule.name)
+      r.externalPort = rule.frontendPort
+      r.backendPort = rule.backendPort
+      r.probeName = AzureUtilities.getNameFromResourceId(rule.probe.id)
+      r.persistence = rule.loadDistribution;
+      r.idleTimeout = rule.idleTimeoutInMinutes;
+
+      if (rule.protocol.toLowerCase() == "udp") {
+        r.protocol = AzureLoadBalancerDescription.AzureLoadBalancingRule.AzureLoadBalancingRulesType.UDP
+      } else {
+        r.protocol = AzureLoadBalancerDescription.AzureLoadBalancingRule.AzureLoadBalancingRulesType.TCP
+      }
+      description.loadBalancingRules.add(r)
+    }
+
+    // Add the probes
+    for (def probe : azureLoadBalancer.probes) {
+      def p = new AzureLoadBalancerDescription.AzureLoadBalancerProbe()
+      p.probeName = probe.name
+      p.probeInterval = probe.intervalInSeconds
+      p.probePath = probe.requestPath
+      p.probePort = probe.port
+      p.unhealthyThreshold = probe.numberOfProbes
+      if (probe.protocol.toLowerCase() == "tcp") {
+        p.probeProtocol = AzureLoadBalancerDescription.AzureLoadBalancerProbe.AzureLoadBalancerProbesType.TCP
+      } else {
+        p.probeProtocol = AzureLoadBalancerDescription.AzureLoadBalancerProbe.AzureLoadBalancerProbesType.HTTP
+      }
+      description.probes.add(p)
+    }
+
+    for (def natRule : azureLoadBalancer.inboundNatRules) {
+      def n = new AzureLoadBalancerDescription.AzureLoadBalancerInboundNATRule(ruleName: natRule.name)
+      description.inboundNATRules.add(n)
+    }
+
+    description
   }
 
 }
