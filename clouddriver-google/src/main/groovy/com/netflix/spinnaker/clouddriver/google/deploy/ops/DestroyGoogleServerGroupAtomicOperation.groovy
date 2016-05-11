@@ -58,10 +58,9 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
     def serverGroupName = description.serverGroupName
     def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, description.accountName, region, serverGroupName)
     def zone = serverGroup.zone
-    def instanceGroupManager = compute.instanceGroupManagers().get(project, zone, serverGroupName).execute()
 
     // We create a new instance template for each managed instance group. We need to delete it here.
-    def instanceTemplateName = GCEUtil.getLocalName(instanceGroupManager.instanceTemplate)
+    def instanceTemplateName = GCEUtil.getLocalName(serverGroup.launchConfig.instanceTemplate.name)
 
     task.updateStatus BASE_PHASE, "Identified instance template."
 
@@ -83,7 +82,7 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
 
     task.updateStatus BASE_PHASE, "Checking for autoscaler..."
 
-    if (GCEUtil.queryZonalAutoscaler(project, zone, serverGroupName, description.credentials)) {
+    if (serverGroup.autoscalingPolicy) {
       compute.autoscalers().delete(project, zone, serverGroupName).execute()
 
       task.updateStatus BASE_PHASE, "Deleted autoscaler."

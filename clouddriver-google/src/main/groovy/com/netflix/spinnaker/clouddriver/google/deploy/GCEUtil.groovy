@@ -254,23 +254,6 @@ class GCEUtil {
     allMIGSInRegion
   }
 
-  static Autoscaler queryZonalAutoscaler(String projectName,
-                                         String zone,
-                                         String serverGroupName,
-                                         GoogleCredentials credentials) {
-    try {
-      return credentials.compute.autoscalers().get(projectName, zone, serverGroupName).execute()
-    } catch (GoogleJsonResponseException e) {
-      // 404 is thrown, and the details are populated, if the autoscaler does not exist in the given zone.
-      // Any other exception needs to be propagated.
-      if (e.getStatusCode() != 404 || !e.details) {
-        throw e
-      }
-
-      return null
-    }
-  }
-
   static Set<String> querySecurityGroupTags(Set<String> securityGroupNames,
                                             String accountName,
                                             GoogleSecurityGroupProvider googleSecurityGroupProvider,
