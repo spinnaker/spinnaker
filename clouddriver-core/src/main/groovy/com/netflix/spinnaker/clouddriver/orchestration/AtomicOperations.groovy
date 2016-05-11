@@ -41,6 +41,8 @@ final class AtomicOperations {
   public static final String ATTACH_CLASSIC_LINK_VPC = "attachClassicLinkVpc"
   public static final String REGISTER_INSTANCES_WITH_LOAD_BALANCER = "registerInstancesWithLoadBalancer"
   public static final String DEREGISTER_INSTANCES_FROM_LOAD_BALANCER = "deregisterInstancesFromLoadBalancer"
+  public static final String ENABLE_INSTANCES_IN_EUREKA = "enableInstancesInDiscovery"
+  public static final String DISABLE_INSTANCES_IN_EUREKA = "disableInstancesInDiscovery"
 
   // Load Balancer operations
   public static final String DELETE_LOAD_BALANCER = "deleteLoadBalancer"

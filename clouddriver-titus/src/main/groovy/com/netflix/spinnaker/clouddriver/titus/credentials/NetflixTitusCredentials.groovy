@@ -29,15 +29,25 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
   final String accountType
   final List<String> requiredGroupMembership = Collections.emptyList()
   final String bastionHost
+  final String discovery
+  final boolean discoveryEnabled
 
   private final List<TitusRegion> regions
 
-  NetflixTitusCredentials(String name, String environment, String accountType, List<TitusRegion> regions, String bastionHost) {
+  NetflixTitusCredentials(String name,
+                          String environment,
+                          String accountType,
+                          List<TitusRegion> regions,
+                          String bastionHost,
+                          boolean discoveryEnabled,
+                          String discovery) {
     this.name = name
     this.environment = environment
     this.accountType = accountType
     this.regions = regions?.asImmutable() ?: Collections.emptyList()
     this.bastionHost = bastionHost
+    this.discoveryEnabled = discoveryEnabled
+    this.discovery = discovery
   }
 
   @Override
@@ -53,5 +63,14 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
   List<TitusRegion> getRegions() {
     regions
   }
+
+  String getDiscovery() {
+    return discovery
+  }
+
+  boolean getDiscoveryEnabled() {
+    return discoveryEnabled
+  }
+
 
 }

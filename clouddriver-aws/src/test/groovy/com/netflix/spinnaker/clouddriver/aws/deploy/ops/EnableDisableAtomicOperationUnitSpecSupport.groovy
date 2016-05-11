@@ -20,8 +20,8 @@ import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableAsgDescription
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.DiscoverySupport
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.Eureka
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport
+import com.netflix.spinnaker.clouddriver.eureka.api.Eureka
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
@@ -77,7 +77,7 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
       }
     }
 
-    op.discoverySupport = new DiscoverySupport(
+    op.discoverySupport = new AwsEurekaSupport(
       regionScopedProviderFactory: regionScopedProviderFactory
     )
     op.discoverySupport.metaClass.verifyInstanceAndAsgExist = {

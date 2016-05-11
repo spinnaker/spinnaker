@@ -26,6 +26,8 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
+import com.netflix.spinnaker.clouddriver.eureka.api.Eureka
+import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
@@ -42,7 +44,7 @@ class DiscoverySupportUnitSpec extends Specification {
   def eureka = Mock(Eureka)
 
   @Subject
-  def discoverySupport = new DiscoverySupport() {
+  def discoverySupport = new AwsEurekaSupport() {
     {
       clusterProviders = []
     }
@@ -53,7 +55,7 @@ class DiscoverySupportUnitSpec extends Specification {
     }
 
     @Override
-    boolean verifyInstanceAndAsgExist(AmazonEC2 amazonEC2, AsgService asgService, String instanceId, String asgName) {
+    boolean verifyInstanceAndAsgExist(def credentials, String region, String instanceId, String asgName) {
       return true
     }
   }
@@ -80,7 +82,7 @@ class DiscoverySupportUnitSpec extends Specification {
     discoverySupport.updateDiscoveryStatusForInstances(description, null, null, null, null)
 
     then:
-    thrown(DiscoverySupport.DiscoveryNotConfiguredException)
+    thrown(AbstractEurekaSupport.DiscoveryNotConfiguredException)
   }
 
   void "should fail task if application name is not derivable from existing instance in discovery"() {
@@ -94,11 +96,11 @@ class DiscoverySupportUnitSpec extends Specification {
 
     when:
     discoverySupport.updateDiscoveryStatusForInstances(
-      description, task, "phase", DiscoverySupport.DiscoveryStatus.Disable, instances
+      description, task, "phase", AbstractEurekaSupport.DiscoveryStatus.Disable, instances
     )
 
     then:
-    thrown(DiscoverySupport.RetryableException)
+    thrown(AbstractEurekaSupport.RetryableException)
     discoverySupport.discoveryRetry * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
     0 * eureka.updateInstanceStatus(*_)
   }
@@ -133,7 +135,7 @@ class DiscoverySupportUnitSpec extends Specification {
     where:
     discoveryUrl = "http://us-west-1.discovery.netflix.net"
     region = "us-west-1"
-    discoveryStatus = DiscoverySupport.DiscoveryStatus.Enable
+    discoveryStatus = AbstractEurekaSupport.DiscoveryStatus.Enable
     appName = "kato"
     instanceIds = ["i-123", "i-456"]
   }
@@ -169,7 +171,7 @@ class DiscoverySupportUnitSpec extends Specification {
 
     discoveryUrl = "http://us-west-1.discovery.netflix.net"
     region = "us-west-1"
-    discoveryStatus = DiscoverySupport.DiscoveryStatus.Enable
+    discoveryStatus = AbstractEurekaSupport.DiscoveryStatus.Enable
     appName = "kato"
     instanceIds = ["i-123"]
 
@@ -197,7 +199,7 @@ class DiscoverySupportUnitSpec extends Specification {
     where:
     discoveryUrl = "http://us-west-1.discovery.netflix.net"
     region = "us-west-1"
-    discoveryStatus = DiscoverySupport.DiscoveryStatus.Enable
+    discoveryStatus = AbstractEurekaSupport.DiscoveryStatus.Enable
     appName = "kato"
     instanceIds = ["i-123"]
   }
@@ -227,14 +229,14 @@ class DiscoverySupportUnitSpec extends Specification {
     where:
     discoveryUrl = "http://us-west-1.discovery.netflix.net"
     region = "us-west-1"
-    discoveryStatus = DiscoverySupport.DiscoveryStatus.Enable
+    discoveryStatus = AbstractEurekaSupport.DiscoveryStatus.Enable
     appName = "kato"
     instanceIds = ["i-123"]
   }
 
   void "should NOT fail disable operation if instance is not found"() {
     given:
-    def status = DiscoverySupport.DiscoveryStatus.Disable
+    def status = AbstractEurekaSupport.DiscoveryStatus.Disable
     def task = Mock(Task)
     def description = new EnableDisableInstanceDiscoveryDescription(
       region: 'us-east-1',
@@ -291,7 +293,7 @@ class DiscoverySupportUnitSpec extends Specification {
     where:
     discoveryUrl = "http://us-west-1.discovery.netflix.net"
     region = "us-west-1"
-    discoveryStatus = DiscoverySupport.DiscoveryStatus.Enable
+    discoveryStatus = AbstractEurekaSupport.DiscoveryStatus.Enable
     appName = "kato"
     instanceIds = ["i-123", "i-345", "i-456"]
     result = [true, false, true]
@@ -300,7 +302,7 @@ class DiscoverySupportUnitSpec extends Specification {
   @Unroll
   void "should fail verification if asg does not exist"() {
     given:
-    def discoverySupport = new DiscoverySupport()
+    def discoverySupport = new AwsEurekaSupport()
     def amazonEC2 = Mock(AmazonEC2) {
       _ * describeInstances(_) >> {
         return new DescribeInstancesResult().withReservations(
@@ -314,8 +316,23 @@ class DiscoverySupportUnitSpec extends Specification {
       1 * getAutoScalingGroup(_) >> autoScalingGroup
     }
 
+    discoverySupport.regionScopedProviderFactory = Stub(RegionScopedProviderFactory) {
+      getAmazonClientProvider() >> {
+        return Stub(AmazonClientProvider)
+      }
+
+      forRegion(_, _) >> {
+        return Stub(RegionScopedProviderFactory.RegionScopedProvider) {
+          getEureka() >> eureka
+          getAmazonEC2() >> amazonEC2
+          getAsgService() >> asgService
+        }
+      }
+    }
+
+
     expect:
-    discoverySupport.verifyInstanceAndAsgExist(amazonEC2, asgService, "i-12345", "asgName") == isVerified
+    discoverySupport.verifyInstanceAndAsgExist(TestCredential.named('test'), 'us-west-1' , "i-12345", "asgName") == isVerified
 
     where:
     autoScalingGroup         | instanceIds || isVerified
@@ -332,7 +349,7 @@ class DiscoverySupportUnitSpec extends Specification {
   @Unroll
   void "should return Optional.empty() if target asg does not exist"() {
     expect:
-    !DiscoverySupport.doesCachedClusterContainDiscoveryStatus(
+    !AwsEurekaSupport.doesCachedClusterContainDiscoveryStatus(
       clusterProviders, account, region, asgName, "UP"
     ).present
 
@@ -347,7 +364,7 @@ class DiscoverySupportUnitSpec extends Specification {
   @Unroll
   void "should return true iff server group has at least one instance with desired discovery status"() {
     expect:
-    DiscoverySupport.doesCachedClusterContainDiscoveryStatus(
+    AwsEurekaSupport.doesCachedClusterContainDiscoveryStatus(
       clusterProviders, account, region, asgName, "UP"
     ).get() == isPresent
 

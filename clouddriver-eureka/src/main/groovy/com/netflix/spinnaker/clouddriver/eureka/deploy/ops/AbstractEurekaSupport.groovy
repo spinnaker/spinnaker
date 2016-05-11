@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery
+package com.netflix.spinnaker.clouddriver.eureka.deploy.ops
 
 import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DescribeInstancesRequest
-import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.eureka.api.Eureka
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
-import com.netflix.spinnaker.clouddriver.aws.services.AsgService
-import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import groovy.transform.InheritConstructors
-import groovy.transform.PackageScope
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -37,43 +30,39 @@ import retrofit.client.Response
 
 @Slf4j
 @Component
-class DiscoverySupport {
+abstract class AbstractEurekaSupport {
+
+  abstract Eureka getEureka(def credentials, String region)
+
+  abstract boolean verifyInstanceAndAsgExist(def credentials,
+                                             String region,
+                                             String instanceId,
+                                             String asgName)
+
   private static final long THROTTLE_MS = 150
 
   static final int ATTEMPT_SHORT_CIRCUIT_EVERY = 100
   static final int DISCOVERY_RETRY_MAX = 10
   private static final long DEFAULT_DISCOVERY_RETRY_MS = 3000
 
-  @Value('${discovery.retry.max:#{T(com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.DiscoverySupport).DISCOVERY_RETRY_MAX}}')
+  @Value('${discovery.retry.max:#{T(com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport).DISCOVERY_RETRY_MAX}}')
   int discoveryRetry = DISCOVERY_RETRY_MAX
 
-  @Value('${discovery.attemptShortCurcuitEvery:#{T(com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.DiscoverySupport).ATTEMPT_SHORT_CIRCUIT_EVERY}}')
+  @Value('${discovery.attemptShortCurcuitEvery:#{T(com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport).ATTEMPT_SHORT_CIRCUIT_EVERY}}')
   int attemptShortCircuitEveryNInstances = ATTEMPT_SHORT_CIRCUIT_EVERY
 
   @Autowired
   List<ClusterProvider> clusterProviders
 
-  @Autowired
-  RegionScopedProviderFactory regionScopedProviderFactory
-
-  void updateDiscoveryStatusForInstances(EnableDisableInstanceDiscoveryDescription description,
+  void updateDiscoveryStatusForInstances(def description,
                                          Task task,
                                          String phaseName,
                                          DiscoveryStatus discoveryStatus,
                                          List<String> instanceIds) {
-    if (!description.credentials.discoveryEnabled) {
-      throw new DiscoveryNotConfiguredException()
-    }
 
-    def regionScopedProvider = regionScopedProviderFactory.forRegion(description.credentials, description.region)
-    def amazonEC2 = regionScopedProvider.getAmazonEC2()
-    def asgService = regionScopedProvider.asgService
-
-    def eureka = regionScopedProvider.eureka
-
+    def eureka = getEureka(description.credentials, description.region)
     def random = new Random()
     def applicationName = null
-
     try {
       applicationName = retry(task, discoveryRetry) { retryCount ->
         def instanceId = instanceIds[random.nextInt(instanceIds.size())]
@@ -87,7 +76,7 @@ class DiscoverySupport {
         return appName
       }
     } catch (e) {
-      if (discoveryStatus == DiscoveryStatus.Enable || verifyInstanceAndAsgExist(amazonEC2, asgService, null, description.asgName)) {
+      if (discoveryStatus == DiscoveryStatus.Enable || verifyInstanceAndAsgExist(description.credentials, description.region, null, description.asgName)) {
         throw e
       }
     }
@@ -95,7 +84,7 @@ class DiscoverySupport {
     int index = 0
     for (String instanceId : instanceIds) {
       if (index > 0) {
-        sleep THROTTLE_MS
+        sleep AbstractEurekaSupport.THROTTLE_MS
       }
 
       if (discoveryStatus == DiscoveryStatus.Disable) {
@@ -113,7 +102,7 @@ class DiscoverySupport {
             def account = description.credentialAccount
             def region = description.region
             def asgName = description.asgName
-            log.error("Unable to verify cached discovery status (account: ${account}, region: ${region}, asgName: ${asgName}", e)
+            AbstractEurekaSupport.log.error("Unable to verify cached discovery status (account: ${account}, region: ${region}, asgName: ${asgName}", e)
           }
         }
       }
@@ -140,39 +129,11 @@ class DiscoverySupport {
       if (errors) {
         task.updateStatus phaseName, "Failed marking instances '${discoveryStatus.value}' in discovery for instances ${errors.keySet()}"
         task.fail()
-        log.info("Failed marking discovery $discoveryStatus.value for instances ${errors}")
+        AbstractEurekaSupport.log.info("Failed marking discovery $discoveryStatus.value for instances ${errors}")
       }
 
       index++
     }
-  }
-
-  /**
-   * Determine whether at least one cached instance in target ASG has a discovery status of <code>targetDiscoveryStatus</code>.
-   */
-  static Optional<Boolean> doesCachedClusterContainDiscoveryStatus(Collection<ClusterProvider> clusterProviders,
-                                                                   String account,
-                                                                   String region,
-                                                                   String asgName,
-                                                                   String targetDiscoveryStatus) {
-    def matches = (Set<ServerGroup>) clusterProviders.findResults {
-      it.getServerGroup(account, region, asgName)
-    }
-
-    if (!matches) {
-      return Optional.empty()
-    }
-
-    def serverGroup = matches.first()
-    def containsDiscoveryStatus = false
-
-    serverGroup*.instances*.health.flatten().each { Map<String, String> health ->
-      if (targetDiscoveryStatus.equalsIgnoreCase(health?.eurekaStatus)) {
-        containsDiscoveryStatus = true
-      }
-    }
-
-    return Optional.of(containsDiscoveryStatus)
   }
 
   def retry(Task task, int maxRetries, Closure c) {
@@ -216,9 +177,34 @@ class DiscoverySupport {
     }
   }
 
-  protected long getDiscoveryRetryMs() {
-    return DEFAULT_DISCOVERY_RETRY_MS
+/**
+ * Determine whether at least one cached instance in target ASG has a discovery status of <code>targetDiscoveryStatus</code>.
+ */
+  static Optional<Boolean> doesCachedClusterContainDiscoveryStatus(Collection<ClusterProvider> clusterProviders,
+                                                                   String account,
+                                                                   String region,
+                                                                   String asgName,
+                                                                   String targetDiscoveryStatus) {
+    def matches = (Set<ServerGroup>) clusterProviders.findResults {
+      it.getServerGroup(account, region, asgName)
+    }
+
+    if (!matches) {
+      return Optional.empty()
+    }
+
+    def serverGroup = matches.first()
+    def containsDiscoveryStatus = false
+
+    serverGroup*.instances*.health.flatten().each { Map<String, String> health ->
+      if (targetDiscoveryStatus.equalsIgnoreCase(health?.eurekaStatus)) {
+        containsDiscoveryStatus = true
+      }
+    }
+
+    return Optional.of(containsDiscoveryStatus)
   }
+
 
   enum DiscoveryStatus {
     Enable('UP'),
@@ -231,42 +217,8 @@ class DiscoverySupport {
     }
   }
 
-  @VisibleForTesting
-  @PackageScope
-  boolean verifyInstanceAndAsgExist(AmazonEC2 amazonEC2,
-                                    AsgService asgService,
-                                    String instanceId,
-                                    String asgName) {
-    if (asgName) {
-      def autoScalingGroup = asgService.getAutoScalingGroup(asgName)
-      if (!autoScalingGroup || autoScalingGroup.status) {
-        // ASG does not exist or is in the process of being deleted
-        return false
-      }
-      log.info("AutoScalingGroup (${asgName}) exists")
-
-      if (!autoScalingGroup.instances.find { it.instanceId == instanceId }) {
-        return false
-      }
-      log.info("AutoScalingGroup (${asgName}) contains instance (${instanceId})")
-
-      if (autoScalingGroup.desiredCapacity == 0) {
-        return false
-      }
-      log.info("AutoScalingGroup (${asgName}) has non-zero desired capacity (desiredCapacity: ${autoScalingGroup.desiredCapacity})")
-    }
-
-    if (instanceId) {
-      def instances = amazonEC2.describeInstances(
-        new DescribeInstancesRequest().withInstanceIds(instanceId)
-      ).reservations*.instances.flatten()
-      if (!instances.find { it.instanceId == instanceId }) {
-        return false
-      }
-      log.info("Instance (${instanceId}) exists")
-    }
-
-    return true
+  protected long getDiscoveryRetryMs() {
+    return AbstractEurekaSupport.DEFAULT_DISCOVERY_RETRY_MS
   }
 
   @InheritConstructors
@@ -274,4 +226,6 @@ class DiscoverySupport {
 
   @InheritConstructors
   static class RetryableException extends RuntimeException {}
+
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,32 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.aws.deploy.converters
+package com.netflix.spinnaker.clouddriver.titus.deploy.converters
 
-import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.DisableInstancesInDiscoveryAtomicOperation
+import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
+import com.netflix.spinnaker.clouddriver.titus.TitusOperation
+import com.netflix.spinnaker.clouddriver.titus.deploy.description.EnableDisableInstanceDiscoveryDescription
+import com.netflix.spinnaker.clouddriver.titus.deploy.ops.discovery.DisableTitusInstancesInDiscoveryAtomicOperation
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-@AmazonOperation(AtomicOperations.DISABLE_INSTANCES_IN_EUREKA)
-@Component("disableInstancesInDiscoveryDescription")
-class DisableInstancesInDiscoveryAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+@Component
+@TitusOperation(AtomicOperations.DISABLE_INSTANCES_IN_EUREKA)
+class DisableTitusInstancesInDiscoveryAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+
+  private final TitusClientProvider titusClientProvider
+
+  @Autowired
+  DisableTitusInstancesInDiscoveryAtomicOperationConverter(TitusClientProvider titusClientProvider) {
+    this.titusClientProvider = titusClientProvider
+  }
+
   @Override
   AtomicOperation convertOperation(Map input) {
-    new DisableInstancesInDiscoveryAtomicOperation(convertDescription(input))
+    new DisableTitusInstancesInDiscoveryAtomicOperation(titusClientProvider, convertDescription(input))
   }
 
   @Override

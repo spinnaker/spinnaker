@@ -20,7 +20,7 @@ import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.Instance
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.DiscoverySupport.DiscoveryStatus
+import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport.DiscoveryStatus
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory.RegionScopedProvider
@@ -53,7 +53,7 @@ class EnableDisableInstancesInDiscoveryAtomicOperationUnitSpec extends Specifica
     def asgService = Stub(AsgService) {
       getAutoScalingGroups([description.asgName]) >> [asg]
     }
-    operation.discoverySupport = Mock(DiscoverySupport)
+    operation.discoverySupport = Mock(AwsEurekaSupport)
     operation.regionScopedProviderFactory = Stub(RegionScopedProviderFactory) {
       forRegion(_, _) >> Stub(RegionScopedProvider) {
         getAsgService() >> asgService
@@ -88,7 +88,7 @@ class EnableDisableInstancesInDiscoveryAtomicOperationUnitSpec extends Specifica
       getAutoScalingGroups([description.asgName]) >> [asg]
     }
     def operation = new EnableInstancesInDiscoveryAtomicOperation(description)
-    operation.discoverySupport = Mock(DiscoverySupport)
+    operation.discoverySupport = Mock(AwsEurekaSupport)
     operation.regionScopedProviderFactory = Stub(RegionScopedProviderFactory) {
       forRegion(_, _) >> Stub(RegionScopedProvider) {
         getAsgService() >> asgService
