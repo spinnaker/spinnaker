@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.model
 
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.job.RunKubernetesJobDescription
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.Job
@@ -35,6 +37,7 @@ class KubernetesJob implements Job, Serializable {
   Long launchTime
   Set<String> loadBalancers
   Set<String> securityGroups
+  RunKubernetesJobDescription deployDescription
   String yaml
   io.fabric8.kubernetes.api.model.extensions.Job job
 
@@ -47,6 +50,7 @@ class KubernetesJob implements Job, Serializable {
     this.instances = instances ?: [] as Set
     this.launchTime = KubernetesModelUtil.translateTime(job.metadata.creationTimestamp)
     this.yaml = SerializationUtils.dumpWithoutRuntimeStateAsYaml(job)
+    this.deployDescription = KubernetesApiConverter.fromJob(job)
   }
 
   @Override

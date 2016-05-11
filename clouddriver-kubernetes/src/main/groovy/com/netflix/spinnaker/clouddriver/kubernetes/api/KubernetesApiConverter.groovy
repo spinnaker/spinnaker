@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.api
 
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.job.RunKubernetesJobDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesNamedServicePort
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.KubernetesHttpIngressPath
@@ -29,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securityg
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.*
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.extensions.Ingress
+import io.fabric8.kubernetes.api.model.extensions.Job
 
 class KubernetesApiConverter {
   static KubernetesSecurityGroupDescription fromIngress(Ingress ingress) {
@@ -374,6 +376,61 @@ class KubernetesApiConverter {
     return containerDescription
   }
 
+  static KubernetesVolumeSource fromVolume(Volume volume) {
+    def res = new KubernetesVolumeSource(name: volume.name)
+
+    if (volume.emptyDir) {
+      res.type = KubernetesVolumeSourceType.EMPTYDIR
+      def medium = volume.emptyDir.medium
+      def mediumType
+
+      if (medium == "Memory") {
+        mediumType = KubernetesStorageMediumType.MEMORY
+      } else {
+        mediumType = KubernetesStorageMediumType.DEFAULT
+      }
+
+      res.emptyDir = new KubernetesEmptyDir(medium: mediumType)
+    } else if (volume.hostPath) {
+      res.type = KubernetesVolumeSourceType.HOSTPATH
+      res.hostPath = new KubernetesHostPath(path: volume.hostPath.path)
+    } else if (volume.persistentVolumeClaim) {
+      res.type = KubernetesVolumeSourceType.PERSISTENTVOLUMECLAIM
+      res.persistentVolumeClaim = new KubernetesPersistentVolumeClaim(claimName: volume.persistentVolumeClaim.claimName,
+        readOnly: volume.persistentVolumeClaim.readOnly)
+    } else if (volume.secret) {
+      res.type = KubernetesVolumeSourceType.SECRET
+      res.secret = new KubernetesSecretVolumeSource(secretName: volume.secret.secretName)
+    } else {
+      res.type = KubernetesVolumeSourceType.UNSUPPORTED
+    }
+
+    return res
+  }
+
+  static RunKubernetesJobDescription fromJob(Job job) {
+    def deployDescription = new RunKubernetesJobDescription()
+    def parsedName = Names.parseName(job?.metadata?.name)
+
+    deployDescription.application = parsedName?.app
+    deployDescription.stack = parsedName?.stack
+    deployDescription.freeFormDetails = parsedName?.detail
+    deployDescription.loadBalancers = KubernetesUtil?.getJobLoadBalancers(job)
+    deployDescription.namespace = job?.metadata?.namespace
+    deployDescription.completions = job?.spec?.completions
+    deployDescription.parallelism = job?.spec?.parallelism
+
+    deployDescription.volumeSources = job?.spec?.template?.spec?.volumes?.collect {
+      fromVolume(it)
+    } ?: []
+
+    deployDescription.containers = job?.spec?.template?.spec?.containers?.collect {
+      fromContainer(it)
+    } ?: []
+
+    return deployDescription
+  }
+
   static DeployKubernetesAtomicOperationDescription fromReplicationController(ReplicationController replicationController) {
     def deployDescription = new DeployKubernetesAtomicOperationDescription()
     def parsedName = Names.parseName(replicationController?.metadata?.name)
@@ -386,41 +443,13 @@ class KubernetesApiConverter {
     deployDescription.targetSize = replicationController?.spec?.replicas
     deployDescription.securityGroups = []
 
-    deployDescription.volumeSources = replicationController?.spec?.template?.spec?.volumes?.collect { volume ->
-      def res = new KubernetesVolumeSource(name: volume.name)
-
-      if (volume.emptyDir) {
-        res.type = KubernetesVolumeSourceType.EMPTYDIR
-        def medium = volume.emptyDir.medium
-        def mediumType
-
-        if (medium == "Memory") {
-          mediumType = KubernetesStorageMediumType.MEMORY
-        } else {
-          mediumType = KubernetesStorageMediumType.DEFAULT
-        }
-
-        res.emptyDir = new KubernetesEmptyDir(medium: mediumType)
-      } else if (volume.hostPath) {
-        res.type = KubernetesVolumeSourceType.HOSTPATH
-        res.hostPath = new KubernetesHostPath(path: volume.hostPath.path)
-      } else if (volume.persistentVolumeClaim) {
-        res.type = KubernetesVolumeSourceType.PERSISTENTVOLUMECLAIM
-        res.persistentVolumeClaim = new KubernetesPersistentVolumeClaim(claimName: volume.persistentVolumeClaim.claimName,
-            readOnly: volume.persistentVolumeClaim.readOnly)
-      } else if (volume.secret) {
-        res.type = KubernetesVolumeSourceType.SECRET
-        res.secret = new KubernetesSecretVolumeSource(secretName: volume.secret.secretName)
-      } else {
-        res.type = KubernetesVolumeSourceType.UNSUPPORTED
-      }
-
-      return res
+    deployDescription.volumeSources = replicationController?.spec?.template?.spec?.volumes?.collect {
+      fromVolume(it)
     } ?: []
 
     deployDescription.containers = replicationController?.spec?.template?.spec?.containers?.collect {
       fromContainer(it)
-    }
+    } ?: []
 
     return deployDescription
   }
