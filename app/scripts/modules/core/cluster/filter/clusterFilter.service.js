@@ -277,7 +277,7 @@ module.exports = angular
 
         groups.push( {
           heading: accountKey,
-          subgroups: _.sortBy(clusterGroups, ['heading', 'category']),
+          subgroups: _.sortByAll(clusterGroups, ['heading', 'category']),
         } );
       });
 
@@ -424,7 +424,6 @@ module.exports = angular
     return {
       updateClusterGroups: updateClusterGroups,
       filterServerGroupsForDisplay: filterServerGroupsForDisplay,
-      sortGroupsByHeading: sortGroupsByHeading,
       clearFilters: clearFilters,
       shouldShowInstance: shouldShowInstance,
       overrideFiltersForUrl: overrideFiltersForUrl,
