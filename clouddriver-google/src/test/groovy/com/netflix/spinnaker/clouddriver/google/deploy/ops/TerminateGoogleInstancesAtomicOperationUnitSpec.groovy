@@ -17,11 +17,12 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.Compute
-import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.InstanceGroupManagersRecreateInstancesRequest
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.TerminateGoogleInstancesDescription
+import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
@@ -38,7 +39,7 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
   private static final PROJECT_NAME = "my_project"
   private static final ID_GOOD_PREFIX = "my-app7-dev-v000-good";
   private static final ID_BAD_PREFIX = "my-app7-dev-v000-bad";
-  private static final GOOD_INSTANCE_IDS = ["${ID_GOOD_PREFIX}1", "${ID_GOOD_PREFIX}2"]
+  private static final GOOD_INSTANCE_IDS = ["${ID_GOOD_PREFIX}1".toString(), "${ID_GOOD_PREFIX}2".toString()]
   private static final BAD_INSTANCE_IDS = ["${ID_BAD_PREFIX}1", "${ID_BAD_PREFIX}2"]
   private static final ALL_INSTANCE_IDS = ["${ID_GOOD_PREFIX}1", "${ID_BAD_PREFIX}1",
                                            "${ID_GOOD_PREFIX}2", "${ID_BAD_PREFIX}2"]
@@ -108,11 +109,16 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
   void "should recreate instances with managed instance group"() {
     setup:
       def googleClusterProviderMock = Mock(GoogleClusterProvider)
-      def serverGroup = new GoogleServerGroup(zone: ZONE).view
+      def serverGroup = new GoogleServerGroup(
+        zone: ZONE,
+        instances: GOOD_INSTANCE_URLS.collect {
+          new GoogleInstance(
+            name: GCEUtil.getLocalName(it),
+            selfLink: it)
+        }
+      ).view
       def computeMock = Mock(Compute)
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
-      def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
-      def instanceGroupManager = new InstanceGroupManager(selfLink: MANAGED_INSTANCE_GROUP_SELF_LINK)
       def request = new InstanceGroupManagersRecreateInstancesRequest().setInstances(GOOD_INSTANCE_URLS)
 
       def instanceGroupManagersRecreateMock = Mock(Compute.InstanceGroupManagers.RecreateInstances)
@@ -130,9 +136,6 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
 
     then:
       1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, MANAGED_INSTANCE_GROUP_NAME) >> serverGroup
-      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
-      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, MANAGED_INSTANCE_GROUP_NAME) >> instanceGroupManagersGetMock
-      1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.recreateInstances(PROJECT_NAME,
                                                       ZONE,

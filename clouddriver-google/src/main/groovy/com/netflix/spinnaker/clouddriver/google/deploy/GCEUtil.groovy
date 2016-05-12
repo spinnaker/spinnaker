@@ -48,10 +48,15 @@ class GCEUtil {
 
   public static final String TARGET_POOL_NAME_PREFIX = "tp"
 
-  static MachineType queryMachineType(String projectName, String zone, String machineTypeName, Compute compute, Task task, String phase) {
+  static MachineType queryMachineType(String projectName, String machineTypeName, Compute compute, Task task, String phase) {
     task.updateStatus phase, "Looking up machine type $machineTypeName..."
-    def machineType = compute.machineTypes().list(projectName, zone).execute().getItems().find {
-      it.getName() == machineTypeName
+
+    Map<String, MachineTypesScopedList> zoneToMachineTypesMap = compute.machineTypes().aggregatedList(projectName).execute().items
+
+    def machineType = zoneToMachineTypesMap.collect { _, machineTypesScopedList ->
+      machineTypesScopedList.machineTypes
+    }.flatten().find { machineType ->
+      machineType.name == machineTypeName
     }
 
     if (machineType) {
@@ -298,16 +303,12 @@ class GCEUtil {
     return serverGroup
   }
 
-  static List<String> deriveInstanceUrls(String project,
-                                         String zone,
-                                         String managedInstanceGroupName,
-                                         List<String> instanceIds,
-                                         GoogleCredentials credentials) {
-    def managedInstanceGroup = GCEUtil.queryManagedInstanceGroup(project, zone, managedInstanceGroupName, credentials)
-    def baseUrl = managedInstanceGroup.selfLink.substring(0,
-        managedInstanceGroup.getSelfLink().lastIndexOf("/instanceGroupManagers/${managedInstanceGroupName}"))
-
-    instanceIds.collect { instanceId -> "$baseUrl/instances/$instanceId".toString() }
+  static List<String> collectInstanceUrls(GoogleServerGroup.View serverGroup, List<String> instanceIds) {
+    return serverGroup.instances.findAll {
+      instanceIds.contains(it.instanceId)
+    }.collect {
+      it.selfLink
+    }
   }
 
   static List<String> mergeDescriptionAndSecurityGroupTags(List<String> tags, Set<String> securityGroupTags) {

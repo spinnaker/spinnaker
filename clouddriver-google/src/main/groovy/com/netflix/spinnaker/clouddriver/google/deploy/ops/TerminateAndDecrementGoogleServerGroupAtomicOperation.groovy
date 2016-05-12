@@ -74,7 +74,7 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpe
     def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, description.accountName, region, serverGroupName)
     def zone = serverGroup.zone
     def instanceIds = description.instanceIds
-    def instanceUrls = GCEUtil.deriveInstanceUrls(project, zone, serverGroupName, instanceIds, description.credentials)
+    def instanceUrls = GCEUtil.collectInstanceUrls(serverGroup, instanceIds)
     def deleteRequest = new InstanceGroupManagersDeleteInstancesRequest().setInstances(instanceUrls)
 
     compute.instanceGroupManagers().deleteInstances(project, zone, serverGroupName, deleteRequest).execute()

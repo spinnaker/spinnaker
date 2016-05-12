@@ -70,7 +70,7 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
     def zone = description.zone
     def region = GCEUtil.getRegionFromZone(project, zone, compute)
 
-    def machineType = GCEUtil.queryMachineType(project, zone, description.instanceType, compute, task, BASE_PHASE)
+    def machineType = GCEUtil.queryMachineType(project, description.instanceType, compute, task, BASE_PHASE)
 
     def sourceImage = GCEUtil.querySourceImage(project,
                                                description,

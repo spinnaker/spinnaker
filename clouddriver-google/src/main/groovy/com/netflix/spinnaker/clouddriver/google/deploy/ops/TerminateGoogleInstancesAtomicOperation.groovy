@@ -84,7 +84,7 @@ class TerminateGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
       def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, description.accountName, region, serverGroupName)
       def zone = description.zone ?: serverGroup.zone
       def instanceGroupManagers = compute.instanceGroupManagers()
-      def instanceUrls = GCEUtil.deriveInstanceUrls(project, zone, serverGroupName, instanceIds, description.credentials)
+      def instanceUrls = GCEUtil.collectInstanceUrls(serverGroup, instanceIds)
       def request = new InstanceGroupManagersRecreateInstancesRequest().setInstances(instanceUrls)
 
       instanceGroupManagers.recreateInstances(project, zone, serverGroupName, request).execute()

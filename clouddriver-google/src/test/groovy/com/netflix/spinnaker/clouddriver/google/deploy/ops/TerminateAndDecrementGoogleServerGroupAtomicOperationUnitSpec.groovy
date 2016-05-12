@@ -17,11 +17,12 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.Compute
-import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.InstanceGroupManagersDeleteInstancesRequest
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.TerminateAndDecrementGoogleServerGroupDescription
+import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
@@ -49,12 +50,17 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperationUnitSpec extends Spec
   void "should terminate instances"() {
     setup:
       def googleClusterProviderMock = Mock(GoogleClusterProvider)
-      def serverGroup = new GoogleServerGroup(zone: ZONE).view
+      def serverGroup = new GoogleServerGroup(
+        zone: ZONE,
+        instances: INSTANCE_URLS.collect {
+          new GoogleInstance(
+            name: GCEUtil.getLocalName(it),
+            selfLink: it)
+        }
+      ).view
       def computeMock = Mock(Compute)
       def request = new InstanceGroupManagersDeleteInstancesRequest().setInstances(INSTANCE_URLS)
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
-      def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
-      def instanceGroupManager = new InstanceGroupManager(selfLink: SERVER_GROUP_SELF_LINK)
       def instanceGroupManagersDeleteInstancesMock = Mock(Compute.InstanceGroupManagers.DeleteInstances)
 
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
@@ -72,9 +78,6 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperationUnitSpec extends Spec
 
     then:
       1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME) >> serverGroup
-      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
-      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
-      1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.deleteInstances(PROJECT_NAME,
                                                     ZONE,

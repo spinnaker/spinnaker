@@ -100,7 +100,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     task.updateStatus BASE_PHASE, "Produced server group name: $serverGroupName"
 
-    def machineType = GCEUtil.queryMachineType(project, zone, description.instanceType, compute, task, BASE_PHASE)
+    def machineType = GCEUtil.queryMachineType(project, description.instanceType, compute, task, BASE_PHASE)
 
     def sourceImage = GCEUtil.querySourceImage(project,
                                                description,

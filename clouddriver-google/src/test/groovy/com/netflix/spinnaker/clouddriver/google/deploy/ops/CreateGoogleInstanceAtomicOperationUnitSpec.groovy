@@ -25,7 +25,8 @@ import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.ImageList
 import com.google.api.services.compute.model.MachineType
-import com.google.api.services.compute.model.MachineTypeList
+import com.google.api.services.compute.model.MachineTypeAggregatedList
+import com.google.api.services.compute.model.MachineTypesScopedList
 import com.google.api.services.compute.model.Network
 import com.google.api.services.compute.model.NetworkList
 import com.google.api.services.compute.model.Zone
@@ -69,7 +70,10 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
       def zonesGetReal = new Zone(region: [REGION_URL])
 
       def machineTypesMock = Mock(Compute.MachineTypes)
-      def machineTypesListMock = Mock(Compute.MachineTypes.List)
+      def machineTypesAggregatedListMock = Mock(Compute.MachineTypes.AggregatedList)
+      def machineTypesScopedListReal = new MachineTypesScopedList(
+              machineTypes: [new MachineType(name: INSTANCE_TYPE, selfLink: MACHINE_TYPE_LINK)])
+      def machineTypeAggregatedListReal = new MachineTypeAggregatedList(items: [(ZONE): machineTypesScopedListReal])
       def networksMock = Mock(Compute.Networks)
       def networksListMock = Mock(Compute.Networks.List)
       def instancesMock = Mock(Compute.Instances)
@@ -131,9 +135,8 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
       1 * zonesGetMock.execute() >> zonesGetReal
 
     then:
-      1 * machineTypesMock.list(PROJECT_NAME, ZONE) >> machineTypesListMock
-      1 * machineTypesListMock.execute() >> new MachineTypeList(items: [new MachineType(name: INSTANCE_TYPE,
-                                                                                        selfLink: MACHINE_TYPE_LINK)])
+      1 * machineTypesMock.aggregatedList(PROJECT_NAME) >> machineTypesAggregatedListMock
+      1 * machineTypesAggregatedListMock.execute() >> machineTypeAggregatedListReal
       1 * networksMock.list(PROJECT_NAME) >> networksListMock
       1 * networksListMock.execute() >> new NetworkList(items: [new Network(name: NETWORK_NAME)])
       1 * instancesMock.insert(PROJECT_NAME, ZONE, _) >> instancesInsertMock
@@ -147,7 +150,9 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
       def zonesGetMock = Mock(Compute.Zones.Get)
       def zonesGetReal = new Zone(region: [REGION_URL])
       def machineTypesMock = Mock(Compute.MachineTypes)
-      def machineTypesListMock = Mock(Compute.MachineTypes.List)
+      def machineTypesAggregatedListMock = Mock(Compute.MachineTypes.AggregatedList)
+      def machineTypesScopedListReal = new MachineTypesScopedList(machineTypes: [])
+      def machineTypeAggregatedListReal = new MachineTypeAggregatedList(items: [(ZONE): machineTypesScopedListReal])
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new CreateGoogleInstanceDescription(instanceName: INSTANCE_NAME,
                                                             image: IMAGE,
@@ -167,8 +172,8 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
 
     then:
       1 * computeMock.machineTypes() >> machineTypesMock
-      1 * machineTypesMock.list(PROJECT_NAME, ZONE) >> machineTypesListMock
-      1 * machineTypesListMock.execute() >> new MachineTypeList(items: [])
+      1 * machineTypesMock.aggregatedList(PROJECT_NAME) >> machineTypesAggregatedListMock
+      1 * machineTypesAggregatedListMock.execute() >> machineTypeAggregatedListReal
       thrown GoogleResourceNotFoundException
   }
 
@@ -182,7 +187,10 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
       def zonesGetMock = Mock(Compute.Zones.Get)
       def zonesGetReal = new Zone(region: [REGION_URL])
       def machineTypesMock = Mock(Compute.MachineTypes)
-      def machineTypesListMock = Mock(Compute.MachineTypes.List)
+      def machineTypesAggregatedListMock = Mock(Compute.MachineTypes.AggregatedList)
+      def machineTypesScopedListReal = new MachineTypesScopedList(
+              machineTypes: [new MachineType(name: INSTANCE_TYPE, selfLink: MACHINE_TYPE_LINK)])
+      def machineTypeAggregatedListReal = new MachineTypeAggregatedList(items: [(ZONE): machineTypesScopedListReal])
 
       def httpTransport = GoogleNetHttpTransport.newTrustedTransport()
       def jsonFactory = JacksonFactory.defaultInstance
@@ -236,9 +244,8 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
       1 * zonesGetMock.execute() >> zonesGetReal
 
     then:
-      1 * machineTypesMock.list(PROJECT_NAME, ZONE) >> machineTypesListMock
-      1 * machineTypesListMock.execute() >> new MachineTypeList(items: [new MachineType(name: INSTANCE_TYPE,
-                                                                                        selfLink: MACHINE_TYPE_LINK)])
+      1 * machineTypesMock.aggregatedList(PROJECT_NAME) >> machineTypesAggregatedListMock
+      1 * machineTypesAggregatedListMock.execute() >> machineTypeAggregatedListReal
       thrown GoogleResourceNotFoundException
   }
 }

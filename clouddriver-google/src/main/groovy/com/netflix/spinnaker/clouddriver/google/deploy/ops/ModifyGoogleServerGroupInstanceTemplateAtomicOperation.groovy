@@ -155,7 +155,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
 
       // Override the instance template's machine type if instanceType was specified.
       if (overriddenProperties.instanceType) {
-        def machineType = GCEUtil.queryMachineType(project, zone, description.instanceType, compute, task, BASE_PHASE)
+        def machineType = GCEUtil.queryMachineType(project, description.instanceType, compute, task, BASE_PHASE)
 
         instanceTemplateProperties.setMachineType(machineType.name)
       }
