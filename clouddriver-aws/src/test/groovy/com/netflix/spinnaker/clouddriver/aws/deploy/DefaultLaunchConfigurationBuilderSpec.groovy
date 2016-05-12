@@ -257,7 +257,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
       securityGroups: securityGroups)
   }
 
-  void "if creating an app security group would exceed the maximum number of security groups fail the request"() {
+  void "if creating an app security group would exceed the maximum number of security groups, use the provided groups"() {
     given:
     deployDefaults.addAppGroupToServerGroup = true
 
@@ -265,8 +265,9 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings)
 
     then:
-    1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> sgResult
-    thrown(IllegalStateException)
+    1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
+      assert req.securityGroups.toList().sort() == expectedGroups.toList().sort()
+    }
     0 * _
 
     where:
@@ -275,6 +276,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     account = 'prod'
     securityGroups = ["sg-12345", "sg-23456", "sg-34567", "sg-45678", "sg-56789"]
     sgResult = securityGroups.collectEntries { [(it): it] }
+    expectedGroups = securityGroups
     appGroup = "sg-$application"
     settings = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
       account: 'prod',
