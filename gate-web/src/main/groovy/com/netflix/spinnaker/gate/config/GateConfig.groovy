@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.gate.config
 
+import org.springframework.session.data.redis.config.ConfigureRedisAction
+import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession
+
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import javax.servlet.*
@@ -38,11 +41,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.embedded.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory
-import org.springframework.session.data.redis.config.annotation.web.http.GateRedisHttpSessionConfiguration
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 import retrofit.Endpoint
@@ -54,7 +55,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 @CompileStatic
 @Configuration
 @Slf4j
-@Import(GateRedisHttpSessionConfiguration)
+@EnableRedisHttpSession
 class GateConfig {
   @Value('${retrofit.logLevel:BASIC}')
   String retrofitLogLevel
@@ -80,6 +81,12 @@ class GateConfig {
   @ConditionalOnMissingBean(RestTemplate)
   RestTemplate restTemplate() {
     new RestTemplate()
+  }
+
+  @Bean
+  @ConditionalOnProperty("redis.configuration.secure")
+  ConfigureRedisAction configureRedisAction() {
+    return ConfigureRedisAction.NO_OP
   }
 
   @Bean

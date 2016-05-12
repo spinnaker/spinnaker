@@ -47,7 +47,7 @@ class AnonymousSecurityConfig implements WebSecurityAugmentor {
                  AuthenticationManager authenticationManager) {
     def filter = new AnonymousAuthenticationFilter(
       // it seems like a smell that this is statically initialized with the allowedAccounts
-      key, new User(defaultEmail, null, null, ["anonymous"], anonymousAccountsService.getAllowedAccounts()), [new SimpleGrantedAuthority("anonymous")]
+      key, new User(email: defaultEmail, roles: ["anonymous"], allowedAccounts: anonymousAccountsService.getAllowedAccounts(), username: defaultEmail), [new SimpleGrantedAuthority("anonymous")]
     )
     http.addFilter(filter)
     http.csrf().disable()

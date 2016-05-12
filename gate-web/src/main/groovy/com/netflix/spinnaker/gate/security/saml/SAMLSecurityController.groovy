@@ -172,11 +172,12 @@ class SAMLSecurityController {
     }
 
     def user = new User(
-      assertion.getSubject().nameID.value,
-      attributes[userAttributeMapping.firstName]?.get(0),
-      attributes[userAttributeMapping.lastName]?.get(0),
-      roles,
-      allowedAccounts
+      email: assertion.getSubject().nameID.value,
+      firstName: attributes[userAttributeMapping.firstName]?.get(0),
+      lastName: attributes[userAttributeMapping.lastName]?.get(0),
+      roles: roles,
+      allowedAccounts: allowedAccounts,
+      username: assertion.getSubject().nameID.value
     )
 
     return user
