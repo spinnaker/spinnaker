@@ -129,7 +129,7 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
 
     Map<String, Set<KubernetesInstance>> instances = KubernetesProviderUtils.controllerToInstanceMap(objectMapper, allInstances)
 
-    def securityGroups = loadBalancerToSecurityGroupMap(cacheView, allLoadBalancers)
+    def securityGroups = loadBalancerToSecurityGroupMap(securityGroupProvider, cacheView, allLoadBalancers)
 
     Map<String, Set<KubernetesServerGroup>> serverGroups = [:].withDefault { _ -> [] as Set }
     serverGroupData.forEach {
@@ -163,7 +163,7 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
     clusters.groupBy { it.accountName }.collectEntries { k, v -> [k, new HashSet(v)] }
   }
 
-  static loadBalancerToSecurityGroupMap(Cache cacheView, Collection<CacheData> loadBalancers) {
+  static loadBalancerToSecurityGroupMap(KubernetesSecurityGroupProvider securityGroupProvider, Cache cacheView, Collection<CacheData> loadBalancers) {
     Collection<CacheData> allSecurityGroups = resolveRelationshipDataForCollection(cacheView, loadBalancers, Keys.Namespace.SECURITY_GROUPS.ns, RelationshipCacheFilter.none())
 
     Map<String, Set<String>> securityGroups = [:].withDefault { _ -> [] as Set }
@@ -188,7 +188,7 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
 
     Collection<CacheData> allLoadBalancers = resolveRelationshipDataForCollection(cacheView, [serverGroupData], Keys.Namespace.LOAD_BALANCERS.ns, RelationshipCacheFilter.include(Keys.Namespace.SECURITY_GROUPS.ns))
 
-    def securityGroups = loadBalancerToSecurityGroupMap(cacheView, allLoadBalancers)
+    def securityGroups = loadBalancerToSecurityGroupMap(securityGroupProvider, cacheView, allLoadBalancers)
 
     Set<CacheData> instances = KubernetesProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.INSTANCES.ns, Keys.getInstanceKey(account, namespace, name, "*"))
 

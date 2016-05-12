@@ -34,6 +34,9 @@ class KubernetesJobProvider implements JobProvider<KubernetesJob> {
   private final ObjectMapper objectMapper
 
   @Autowired
+  KubernetesSecurityGroupProvider securityGroupProvider
+
+  @Autowired
   KubernetesJobProvider(Cache cacheView, ObjectMapper objectMapper) {
     this.cacheView = cacheView
     this.objectMapper = objectMapper
@@ -51,7 +54,7 @@ class KubernetesJobProvider implements JobProvider<KubernetesJob> {
                                                                                                             Keys.Namespace.LOAD_BALANCERS.ns,
                                                                                                             RelationshipCacheFilter.include(Keys.Namespace.SECURITY_GROUPS.ns))
 
-    def securityGroups = KubernetesClusterProvider.loadBalancerToSecurityGroupMap(cacheView, allLoadBalancers)
+    def securityGroups = KubernetesClusterProvider.loadBalancerToSecurityGroupMap(securityGroupProvider, cacheView, allLoadBalancers)
 
     Set<CacheData> processes = KubernetesProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.PROCESSES.ns,
                                                                                 Keys.getProcessKey(account, location, (String)jobData.attributes.name, "*"))
