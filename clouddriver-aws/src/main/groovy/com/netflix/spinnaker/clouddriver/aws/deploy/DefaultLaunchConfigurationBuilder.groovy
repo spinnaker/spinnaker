@@ -136,22 +136,17 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
     }
 
     Set<String> securityGroupIds = resolveSecurityGroupIds(settings.securityGroups, subnetType).toSet()
-    if (!securityGroupIds || deployDefaults.addAppGroupToServerGroup) {
+    if (!securityGroupIds || (deployDefaults.addAppGroupToServerGroup && securityGroupIds.size() < deployDefaults.maxSecurityGroups)) {
       def names = securityGroupService.getSecurityGroupNamesFromIds(securityGroupIds)
 
       String existingAppGroup = names.keySet().find { it.contains(application) }
       if (!existingAppGroup) {
-        if (securityGroupIds.size() < deployDefaults.maxSecurityGroups) {
-          String applicationSecurityGroup = securityGroupService.getSecurityGroupForApplication(application, subnetType)
-          if (!applicationSecurityGroup) {
-            applicationSecurityGroup = securityGroupService.createSecurityGroup(application, subnetType)
-          }
-
-          securityGroupIds << applicationSecurityGroup
-        } else {
-          throw new IllegalStateException("addAppGroupToServerGroup enabled, but there are currently the following groups ${names.keySet()} and no capacity to attach another group")
+        String applicationSecurityGroup = securityGroupService.getSecurityGroupForApplication(application, subnetType)
+        if (!applicationSecurityGroup) {
+          applicationSecurityGroup = securityGroupService.createSecurityGroup(application, subnetType)
         }
 
+        securityGroupIds << applicationSecurityGroup
       }
     }
     settings = settings.copyWith(securityGroups: securityGroupIds.toList())
