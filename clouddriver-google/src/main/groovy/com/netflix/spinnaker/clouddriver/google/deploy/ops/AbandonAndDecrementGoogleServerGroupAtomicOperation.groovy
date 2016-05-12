@@ -60,11 +60,13 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpera
       "(${description.instanceIds.join(", ")}) from server group $description.serverGroupName in " +
       "$description.region..."
 
-    def project = description.credentials.project
-    def compute = description.credentials.compute
+    def accountName = description.accountName
+    def credentials = description.credentials
+    def compute = credentials.compute
+    def project = credentials.project
     def region = description.region
     def serverGroupName = description.serverGroupName
-    def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, description.accountName, region, serverGroupName)
+    def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, accountName, region, serverGroupName)
     def zone = serverGroup.zone
     def instanceIds = description.instanceIds
     def instanceUrls = GCEUtil.collectInstanceUrls(serverGroup, instanceIds)

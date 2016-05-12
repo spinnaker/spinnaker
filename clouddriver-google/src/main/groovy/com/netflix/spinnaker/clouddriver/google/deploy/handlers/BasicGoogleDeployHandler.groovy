@@ -82,11 +82,12 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
    */
   @Override
   DeploymentResult handle(BasicGoogleDeployDescription description, List priorOutputs) {
+    def accountName = description.accountName
     def credentials = description.credentials
     def compute = credentials.compute
     def project = credentials.project
     def zone = description.zone
-    def region = GCEUtil.getRegionFromZone(project, zone, compute)
+    def region = description.region ?: GCEUtil.getRegionFromZone(project, zone, compute)
 
     def serverGroupNameResolver = new GCEServerGroupNameResolver(project, region, credentials)
     def clusterName = serverGroupNameResolver.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
@@ -125,7 +126,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       networkLoadBalancers = forwardingRules.collect { it.target }
     }
 
-    def securityGroupTags = GCEUtil.querySecurityGroupTags(description.securityGroups, description.accountName,
+    def securityGroupTags = GCEUtil.querySecurityGroupTags(description.securityGroups, accountName,
         googleSecurityGroupProvider, task, BASE_PHASE)
 
     if (securityGroupTags) {
@@ -135,7 +136,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     task.updateStatus BASE_PHASE, "Composing server group $serverGroupName..."
 
     def attachedDisks = GCEUtil.buildAttachedDisks(project,
-                                                   zone,
+                                                   null,
                                                    sourceImage,
                                                    description.disks,
                                                    false,

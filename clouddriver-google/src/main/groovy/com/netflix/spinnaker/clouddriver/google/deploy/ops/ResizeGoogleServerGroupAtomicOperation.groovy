@@ -48,11 +48,13 @@ class ResizeGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus BASE_PHASE, "Initializing resize of server group $description.serverGroupName in " +
       "$description.region..."
 
-    def compute = description.credentials.compute
-    def project = description.credentials.project
+    def accountName = description.accountName
+    def credentials = description.credentials
+    def compute = credentials.compute
+    def project = credentials.project
     def region = description.region
     def serverGroupName = description.serverGroupName
-    def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, description.accountName, region, serverGroupName)
+    def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, accountName, region, serverGroupName)
     def zone = serverGroup.zone
     int targetSize = description.targetSize instanceof Number ? description.targetSize : description.capacity.desired
     def instanceGroupManagers = compute.instanceGroupManagers()

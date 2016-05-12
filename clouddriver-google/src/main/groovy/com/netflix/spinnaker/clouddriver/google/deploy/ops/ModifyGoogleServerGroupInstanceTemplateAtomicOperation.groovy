@@ -76,11 +76,13 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
     task.updateStatus BASE_PHASE, "Initializing modification of instance template for $description.serverGroupName " +
       "in $description.region..."
 
-    def compute = description.credentials.compute
-    def project = description.credentials.project
+    def accountName = description.accountName
+    def credentials = description.credentials
+    def compute = credentials.compute
+    def project = credentials.project
     def region = description.region
     def serverGroupName = description.serverGroupName
-    def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, description.accountName, region, serverGroupName)
+    def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, accountName, region, serverGroupName)
     def zone = serverGroup.zone
 
     def instanceGroupManagers = compute.instanceGroupManagers()
@@ -143,7 +145,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
                                                    googleApplicationName,
                                                    googleConfigurationProperties.baseImageProjects)
         def attachedDisks = GCEUtil.buildAttachedDisks(project,
-                                                       zone,
+                                                       null,
                                                        sourceImage,
                                                        overriddenProperties.disks,
                                                        false,

@@ -67,11 +67,13 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpe
     task.updateStatus BASE_PHASE, "Initializing terminate and decrement of instances " +
       "(${description.instanceIds.join(", ")}) from server group ${description.serverGroupName} in $description.region..."
 
-    def project = description.credentials.project
-    def compute = description.credentials.compute
+    def accountName = description.accountName
+    def credentials = description.credentials
+    def compute = credentials.compute
+    def project = credentials.project
     def region = description.region
     def serverGroupName = description.serverGroupName
-    def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, description.accountName, region, serverGroupName)
+    def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, accountName, region, serverGroupName)
     def zone = serverGroup.zone
     def instanceIds = description.instanceIds
     def instanceUrls = GCEUtil.collectInstanceUrls(serverGroup, instanceIds)
@@ -80,7 +82,7 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpe
     compute.instanceGroupManagers().deleteInstances(project, zone, serverGroupName, deleteRequest).execute()
 
     task.updateStatus BASE_PHASE, "Done terminating and decrementing instances " +
-      "(${description.instanceIds.join(", ")}) from server group ${serverGroupName} in $region."
+      "(${description.instanceIds.join(", ")}) from server group $serverGroupName in $region."
     null
   }
 }

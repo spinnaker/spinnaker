@@ -51,12 +51,13 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     task.updateStatus phaseName, "Initializing $verb server group operation for $description.serverGroupName in " +
       "$description.region..."
 
+    def accountName = description.accountName
     def credentials = description.credentials
     def compute = credentials.compute
     def project = credentials.project
     def region = description.region
     def serverGroupName = description.serverGroupName
-    def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, description.accountName, region, serverGroupName)
+    def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, accountName, region, serverGroupName)
     def zone = serverGroup.zone
     def managedInstanceGroup = GCEUtil.queryManagedInstanceGroup(project, zone, serverGroupName, credentials);
     def currentTargetPoolUrls = managedInstanceGroup.getTargetPools()

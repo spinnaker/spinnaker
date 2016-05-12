@@ -37,6 +37,10 @@ class Utils {
   }
 
   static String getLocalName(String fullUrl) {
+    if (!fullUrl) {
+      return fullUrl
+    }
+
     int lastIndex = fullUrl.lastIndexOf('/')
 
     return lastIndex != -1 ? fullUrl.substring(lastIndex + 1) : fullUrl
@@ -80,10 +84,6 @@ class Utils {
     } else {
       return null
     }
-  }
-
-  static String getNetworkNameFromInstance(Instance instance) {
-    return getLocalName(instance?.networkInterfaces?.getAt(0)?.network)
   }
 
   static String getNetworkNameFromInstanceTemplate(InstanceTemplate instanceTemplate) {

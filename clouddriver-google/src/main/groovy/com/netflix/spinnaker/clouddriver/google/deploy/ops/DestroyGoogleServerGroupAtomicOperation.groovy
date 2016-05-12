@@ -52,15 +52,17 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus BASE_PHASE, "Initializing destruction of server group $description.serverGroupName in " +
       "$description.region..."
 
-    def compute = description.credentials.compute
-    def project = description.credentials.project
+    def accountName = description.accountName
+    def credentials = description.credentials
+    def compute = credentials.compute
+    def project = credentials.project
     def region = description.region
     def serverGroupName = description.serverGroupName
-    def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, description.accountName, region, serverGroupName)
+    def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, accountName, region, serverGroupName)
     def zone = serverGroup.zone
 
     // We create a new instance template for each managed instance group. We need to delete it here.
-    def instanceTemplateName = GCEUtil.getLocalName(serverGroup.launchConfig.instanceTemplate.name)
+    def instanceTemplateName = serverGroup.launchConfig.instanceTemplate.name
 
     task.updateStatus BASE_PHASE, "Identified instance template."
 

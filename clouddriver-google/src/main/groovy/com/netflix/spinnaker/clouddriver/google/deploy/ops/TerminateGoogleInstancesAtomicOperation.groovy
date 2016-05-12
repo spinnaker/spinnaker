@@ -71,17 +71,19 @@ class TerminateGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus BASE_PHASE, "Initializing termination of instances (${description.instanceIds.join(", ")}) in " +
       "${description.region ?: description.zone}..."
 
-    def compute = description.credentials.compute
-    def project = description.credentials.project
+    def accountName = description.accountName
+    def credentials = description.credentials
+    def compute = credentials.compute
+    def project = credentials.project
     def region = description.region
     def serverGroupName = description.serverGroupName
     def instanceIds = description.instanceIds
 
     if (serverGroupName) {
       task.updateStatus BASE_PHASE, "Recreating instances (${instanceIds.join(", ")}) in server group " +
-          "$serverGroupName in $region..."
+        "$serverGroupName in $region..."
 
-      def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, description.accountName, region, serverGroupName)
+      def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, accountName, region, serverGroupName)
       def zone = description.zone ?: serverGroup.zone
       def instanceGroupManagers = compute.instanceGroupManagers()
       def instanceUrls = GCEUtil.collectInstanceUrls(serverGroup, instanceIds)

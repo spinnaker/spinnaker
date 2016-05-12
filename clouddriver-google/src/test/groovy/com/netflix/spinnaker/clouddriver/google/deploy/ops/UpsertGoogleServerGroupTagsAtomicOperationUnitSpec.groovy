@@ -100,12 +100,14 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
       def instancesSetTags1Mock = Mock(Compute.Instances.SetTags)
       def instancesSetTagsOperation1Real = new Operation(targetLink: INSTANCE_1_URL,
                                                          name: INSTANCES_SET_TAGS_1_OP_NAME,
+                                                         zone: ZONE,
                                                          status: DONE)
       def instancesGet2Mock = Mock(Compute.Instances.Get)
       def instance2Real = new Instance(tags: new Tags())
       def instancesSetTags2Mock = Mock(Compute.Instances.SetTags)
       def instancesSetTagsOperation2Real = new Operation(targetLink: INSTANCE_2_URL,
                                                          name: INSTANCES_SET_TAGS_2_OP_NAME,
+                                                         zone: ZONE,
                                                          status: DONE)
       def instancesSetTagsOperation1GetMock = Mock(Compute.ZoneOperations.Get)
       def instancesSetTagsOperation2GetMock = Mock(Compute.ZoneOperations.Get)
