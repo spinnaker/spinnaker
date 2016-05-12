@@ -17,7 +17,7 @@ allprojects {
   apply plugin: 'groovy'
 
   spinnaker {
-    dependenciesVersion = "0.23.0"
+    dependenciesVersion = "0.34.0"
   }
 
   configurations.all {
@@ -26,6 +26,11 @@ allprojects {
     resolutionStrategy {
       force 'org.codehaus.groovy:groovy-all:2.4.5'
       force 'org.spockframework:spock-core:1.0-groovy-2.4'
+      eachDependency {
+        if (it.requested.group == 'org.springframework') {
+          it.useVersion spinnaker.version('spring')
+        }
+      }
     }
   }
 

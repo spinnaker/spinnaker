@@ -113,7 +113,7 @@ class OAuth2SecurityConfig implements WebSecurityAugmentor {
     @Override
     Authentication extractAuthentication(Map<String, ?> map) {
       def allowedAccounts = (map.scope ?: []).collect { String scope -> scope.replace("spinnaker_", "")}
-      def user = new User(map.client_id as String, null, null, [], allowedAccounts)
+      def user = new User(email: map.client_id as String, roles: [], allowedAccounts: allowedAccounts, username: map.client_id)
       return new UsernamePasswordAuthenticationToken(user, "N/A", [])
     }
   }

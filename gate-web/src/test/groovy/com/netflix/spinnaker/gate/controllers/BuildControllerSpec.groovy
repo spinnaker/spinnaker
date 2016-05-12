@@ -47,7 +47,7 @@ class BuildControllerSpec extends Specification {
   void setup() {
     igorService = Mock(IgorService)
     buildService = new BuildService(igorService: igorService)
-    server.play()
+    server.start()
     mockMvc = MockMvcBuilders.standaloneSetup(new BuildController(buildService: buildService)).build()
   }
 

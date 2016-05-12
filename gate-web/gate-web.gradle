@@ -21,7 +21,7 @@ dependencies {
   compile spinnaker.dependency("korkWeb")
   compile spinnaker.dependency("frigga")
   compile spinnaker.dependency('cglib')
-  compile('org.springframework.session:spring-session-data-redis:1.0.1.RELEASE')
+  compile('org.springframework.session:spring-session-data-redis:1.1.1.RELEASE')
   compile('org.opensaml:opensaml:2.6.4')
 
   testCompile "com.squareup.okhttp:mockwebserver:${spinnaker.version('okHttp')}"

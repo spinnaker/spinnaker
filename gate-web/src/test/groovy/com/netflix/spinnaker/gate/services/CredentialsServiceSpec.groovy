@@ -45,10 +45,10 @@ class CredentialsServiceSpec extends Specification {
     expect:
     AuthenticatedRequest.propagate({
       new CredentialsService(clouddriverService: clouddriverService).getAccounts()
-    }, false, new User("email", null, null, [], userAccounts)).call() as List<ClouddriverService.Account> == allowedACcounts
+    }, false, new User(email: "email", roles: [], allowedAccounts: userAccounts, username: "email")).call() as List<ClouddriverService.Account> == allowedAccounts
 
     where:
-    userAccounts                         || allowedACcounts
+    userAccounts                         || allowedAccounts
     ["account1"]                         || [accounts[0]]
     ["account2"]                         || [accounts[1]]
     ["account1", "account2"]             || accounts
