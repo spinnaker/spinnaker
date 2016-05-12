@@ -29,6 +29,7 @@ class GoogleConfigurationProperties {
     String environment
     String accountType
     String project
+    boolean alphaListed
     String jsonPath
     List<String> imageProjects
     List<String> requiredGroupMembership

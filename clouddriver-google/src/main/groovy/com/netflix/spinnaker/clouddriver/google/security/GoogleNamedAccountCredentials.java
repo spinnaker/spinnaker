@@ -28,8 +28,6 @@ import com.google.api.services.compute.ComputeScopes;
 import com.google.api.services.compute.model.Region;
 import com.google.api.services.compute.model.RegionList;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 
@@ -40,12 +38,20 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredentials> {
-
-    public GoogleNamedAccountCredentials(String accountName, String environment, String accountType, String projectName, String jsonKey, List<String> imageProjects, List<String> requiredGroupMembership, String applicationName) {
+    public GoogleNamedAccountCredentials(String accountName,
+                                         String environment,
+                                         String accountType,
+                                         String projectName,
+                                         boolean alphaListed,
+                                         String jsonKey,
+                                         List<String> imageProjects,
+                                         List<String> requiredGroupMembership,
+                                         String applicationName) {
       this.accountName = accountName;
       this.environment = environment;
       this.accountType = accountType;
       this.projectName = projectName;
+      this.alphaListed = alphaListed;
       this.jsonKey = jsonKey;
       this.imageProjects = imageProjects;
       this.requiredGroupMembership = requiredGroupMembership == null ? Collections.emptyList() : Collections.unmodifiableList(requiredGroupMembership);
@@ -127,7 +133,12 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
           try (InputStream credentialStream = new ByteArrayInputStream(jsonKey.getBytes("UTF-8"))) {
             // JSON key was specified in matching config on key server.
             GoogleCredential credential = GoogleCredential.fromStream(credentialStream, httpTransport, jsonFactory).createScoped(Collections.singleton(ComputeScopes.COMPUTE));
-            Compute compute = new Compute.Builder(httpTransport, jsonFactory, null).setApplicationName(applicationName).setHttpRequestInitializer(setHttpTimeout(credential)).build();
+            Compute compute =
+              new Compute.Builder(httpTransport, jsonFactory, null)
+                  .setApplicationName(applicationName)
+                  .setHttpRequestInitializer(setHttpTimeout(credential))
+                  .setServicePath(alphaListed ? COMPUTE_ALPHA_SERVICE_PATH : COMPUTE_SERVICE_PATH)
+                  .build();
 
             return new GoogleCredentials(projectName, compute, imageProjects);
           }
@@ -186,6 +197,10 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
       return projectName;
     }
 
+    public boolean getAlphaListed() {
+      return alphaListed;
+    }
+
     public List<String> getImageProjects() {
       return imageProjects;
     }
@@ -203,9 +218,14 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
     private final String environment;
     private final String accountType;
     private final String projectName;
+    private final boolean alphaListed;
     private final String jsonKey;
     private final List<String> imageProjects;
     private final GoogleCredentials credentials;
     private final List<String> requiredGroupMembership;
     private final String applicationName;
+
+    // TODO(duftler): Break out v1|alpha into an enum?
+    private static final String COMPUTE_SERVICE_PATH = "compute/v1/projects/";
+    private static final String COMPUTE_ALPHA_SERVICE_PATH = "compute/alpha/projects/";
 }

@@ -345,7 +345,7 @@ class GCEUtil {
     if (instanceTemplateProperties.disks) {
       def bootDisk = instanceTemplateProperties.disks.find { it.getBoot() }
 
-      image = GCEUtil.getLocalName(bootDisk?.initializeParams?.sourceImage)
+      image = getLocalName(bootDisk?.initializeParams?.sourceImage)
       disks = instanceTemplateProperties.disks.collect { attachedDisk ->
         def initializeParams = attachedDisk.initializeParams
 

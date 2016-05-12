@@ -39,7 +39,7 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
   void "should add security groups on initial run"() {
     setup:
       def computeMock = Mock(Compute)
-      def credentials = new GoogleNamedAccountCredentials(ACCOUNT_NAME, null, null, null, null, null, null, "testApplicationName")
+      def credentials = new GoogleNamedAccountCredentials(ACCOUNT_NAME, null, null, null, false, null, null, null, "testApplicationName")
       credentials.metaClass.credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsListMock = Mock(Compute.Firewalls.List)
