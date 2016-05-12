@@ -113,6 +113,30 @@ public abstract class S3Support<T extends Timestamped> {
     }
   }
 
+  public Collection<T> allVersionsOf(String id, int maxResults) throws NotFoundException {
+    try {
+      VersionListing versionListing = amazonS3.listVersions(new ListVersionsRequest(bucket, buildS3Key(id), null, null, null, maxResults));
+      return versionListing.getVersionSummaries().stream().map(s3VersionSummary -> {
+        try {
+          S3Object s3Object = amazonS3.getObject(
+              new GetObjectRequest(bucket, buildS3Key(id), s3VersionSummary.getVersionId())
+          );
+          T item = deserialize(s3Object);
+          item.setLastModified(s3Object.getObjectMetadata().getLastModified().getTime());
+          return item;
+        } catch (IOException e) {
+          throw new IllegalStateException(e);
+        }
+      }).collect(Collectors.toList());
+    } catch (AmazonS3Exception e) {
+      if (e.getStatusCode() == 404) {
+        throw new NotFoundException(String.format("No item found with id of %s", id.toLowerCase()));
+      }
+
+      throw e;
+    }
+  }
+
   public void update(String id, T item) {
     try {
       byte[] bytes = objectMapper.writeValueAsBytes(item);

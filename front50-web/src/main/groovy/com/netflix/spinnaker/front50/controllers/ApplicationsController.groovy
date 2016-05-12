@@ -21,6 +21,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.front50.events.ApplicationEventListener
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
+import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.validator.ApplicationValidator
 import groovy.util.logging.Slf4j
 import io.swagger.annotations.Api
@@ -97,6 +98,12 @@ public class ApplicationsController {
   @RequestMapping(method = RequestMethod.GET, value = "/name/{application:.+}")
   Application getByName(@PathVariable final String application) {
     return getApplication().findByName(application)
+  }
+
+  @RequestMapping(value = '{application:.+}/history', method = RequestMethod.GET)
+  Collection<Application> getHistory(@PathVariable String application,
+                                     @RequestParam(value = "maxResults", defaultValue = "20") int maxResults) {
+    return applicationDAO.getApplicationHistory(application, maxResults)
   }
 
   @RequestMapping(method = RequestMethod.POST, value = "/batchUpdate")

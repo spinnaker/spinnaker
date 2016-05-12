@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
@@ -46,6 +47,12 @@ class PipelineController {
     @RequestMapping(value = '{application:.+}', method = RequestMethod.GET)
     List<Pipeline> listByApplication(@PathVariable(value = 'application') String application) {
         pipelineDAO.getPipelinesByApplication(application)
+    }
+
+    @RequestMapping(value = '{id:.+}/history', method = RequestMethod.GET)
+    Collection<Pipeline> getHistory(@PathVariable String id,
+                                    @RequestParam(value = "maxResults", defaultValue = "20") int maxResults) {
+        return pipelineDAO.getPipelineHistory(id, maxResults)
     }
 
     @RequestMapping(value = '', method = RequestMethod.POST)

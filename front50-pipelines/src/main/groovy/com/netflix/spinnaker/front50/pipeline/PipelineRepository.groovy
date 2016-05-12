@@ -157,6 +157,11 @@ class PipelineRepository implements PipelineDAO {
         resolvePipelines(result)
     }
 
+    @Override
+    Collection<Pipeline> getPipelineHistory(String id, int maxResults) {
+        return [findById(id)]
+    }
+
     String getPipelineId(String application, String name) {
         String id
         def result = runQuery(

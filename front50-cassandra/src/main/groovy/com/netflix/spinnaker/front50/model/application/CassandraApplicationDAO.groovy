@@ -153,6 +153,11 @@ class CassandraApplicationDAO implements ApplicationDAO {
   }
 
   @Override
+  Collection<Application> getApplicationHistory(String name, int maxResults) {
+    return [findByName(name)]
+  }
+
+  @Override
   void bulkImport(Collection<Application> applications) {
     throw new UnsupportedOperationException()
   }

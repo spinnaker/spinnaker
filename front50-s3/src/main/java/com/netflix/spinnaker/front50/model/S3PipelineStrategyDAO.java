@@ -68,6 +68,11 @@ public class S3PipelineStrategyDAO extends S3Support<Pipeline> implements Pipeli
   }
 
   @Override
+  public Collection<Pipeline> getPipelineHistory(String id, int maxResults) {
+    return allVersionsOf(id, maxResults);
+  }
+
+  @Override
   public Pipeline create(String id, Pipeline item) {
     if (id == null) {
       id = UUID.randomUUID().toString();
