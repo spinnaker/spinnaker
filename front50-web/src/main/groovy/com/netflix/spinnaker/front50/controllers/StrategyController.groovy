@@ -19,10 +19,13 @@ package com.netflix.spinnaker.front50.controllers
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 /**
@@ -53,6 +56,9 @@ class StrategyController {
             triggers.findAll { it.type == "cron" }.each { Map trigger ->
                 trigger.id = UUID.randomUUID().toString()
             }
+            if (pipelineStrategyDAO.getPipelineId(strategy.getApplication(), strategy.getName())) {
+                throw new DuplicateStrategyException()
+            }
         }
 
         pipelineStrategyDAO.create(strategy.getId(), strategy)
@@ -77,12 +83,23 @@ class StrategyController {
 
     @RequestMapping(value = 'move', method = RequestMethod.POST)
     void rename(@RequestBody RenameCommand command) {
+        if (pipelineStrategyDAO.getPipelineId(command.application, command.to)) {
+            throw new DuplicateStrategyException()
+        }
         def pipelineId = pipelineStrategyDAO.getPipelineId(command.application, command.from)
         def pipeline = pipelineStrategyDAO.findById(pipelineId)
         pipeline.setName(command.to)
 
         pipelineStrategyDAO.update(pipelineId, pipeline)
     }
+
+    @ExceptionHandler(DuplicateStrategyException)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    Map handleDuplicateStrategyNameException() {
+        return [error: "A strategy with that name already exists in that application", status: HttpStatus.BAD_REQUEST]
+    }
+
+    static class DuplicateStrategyException extends Exception {}
 
     static class RenameCommand {
         String application

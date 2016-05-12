@@ -19,10 +19,13 @@ package com.netflix.spinnaker.front50.controllers
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 /**
@@ -53,6 +56,9 @@ class PipelineController {
             triggers.findAll { it.type == "cron" }.each { Map trigger ->
                 trigger.id = UUID.randomUUID().toString()
             }
+            if (pipelineDAO.getPipelineId(pipeline.getApplication(), pipeline.getName())) {
+                throw new DuplicatePipelineNameException()
+            }
         }
 
         pipelineDAO.create(pipeline.id as String, pipeline)
@@ -77,6 +83,9 @@ class PipelineController {
 
     @RequestMapping(value = 'move', method = RequestMethod.POST)
     void rename(@RequestBody RenameCommand command) {
+        if (pipelineDAO.getPipelineId(command.application, command.to)) {
+            throw new DuplicatePipelineNameException()
+        }
         def pipelineId = pipelineDAO.getPipelineId(command.application, command.from)
         def pipeline = pipelineDAO.findById(pipelineId)
         pipeline.setName(command.to)
@@ -90,4 +99,11 @@ class PipelineController {
         String to
     }
 
+    @ExceptionHandler(DuplicatePipelineNameException)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    Map handleDuplicatePipelineNameException() {
+        return [error: "A pipeline with that name already exists in that application", status: HttpStatus.BAD_REQUEST]
+    }
+
+    static class DuplicatePipelineNameException extends Exception {}
 }

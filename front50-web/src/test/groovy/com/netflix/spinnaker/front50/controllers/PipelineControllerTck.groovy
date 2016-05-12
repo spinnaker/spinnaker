@@ -44,6 +44,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 abstract class PipelineControllerTck extends Specification {
 
   static final int OK = 200
+  static final int BAD_REQUEST = 400
 
   MockMvc mockMvc
 
@@ -136,6 +137,54 @@ abstract class PipelineControllerTck extends Specification {
     then:
     response.status == OK
     pipelineDAO.all()*.name == ["pipeline2"]
+  }
+
+  void 'should enforce unique names on save operations'() {
+    given:
+    pipelineDAO.create(null, new Pipeline([
+            name: "pipeline1", application: "test"
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+            name: "pipeline2", application: "test"
+    ]))
+
+    when:
+    def allPipelines = pipelineDAO.all()
+    def allPipelinesForApplication = pipelineDAO.getPipelinesByApplication("test")
+
+    then:
+    allPipelines*.id.sort() == allPipelinesForApplication*.id.sort()
+    allPipelines.size() == 2
+
+    when:
+    def response = mockMvc.perform(post('/pipelines')
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(new ObjectMapper().writeValueAsString([name: "pipeline1", application: "test"])))
+                  .andReturn().response
+
+    then:
+    response.status == BAD_REQUEST
+    response.contentAsString == '{"error":"A pipeline with that name already exists in that application","status":"BAD_REQUEST"}'
+  }
+
+  void 'should enforce unique names on rename operations'() {
+    given:
+    pipelineDAO.create(null, new Pipeline([
+            name: "pipeline1", application: "test"
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+            name: "pipeline2", application: "test"
+    ]))
+
+    when:
+    def response = mockMvc.perform(post('/pipelines/move')
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(new ObjectMapper().writeValueAsString([from: "pipeline2", to: "pipeline1", application: "test"])))
+            .andReturn().response
+
+    then:
+    response.status == BAD_REQUEST
+    response.contentAsString == '{"error":"A pipeline with that name already exists in that application","status":"BAD_REQUEST"}'
   }
 }
 
