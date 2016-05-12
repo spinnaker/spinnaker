@@ -51,13 +51,11 @@ class StrategyController {
     @RequestMapping(value = '', method = RequestMethod.POST)
     void save(@RequestBody Pipeline strategy) {
         if (!strategy.id) {
+            checkForDuplicatePipeline(strategy.getApplication(), strategy.getName())
             // ensure that cron triggers are assigned a unique identifier for new strategies
             def triggers = (strategy.triggers ?: []) as List<Map>
             triggers.findAll { it.type == "cron" }.each { Map trigger ->
                 trigger.id = UUID.randomUUID().toString()
-            }
-            if (pipelineStrategyDAO.getPipelineId(strategy.getApplication(), strategy.getName())) {
-                throw new DuplicateStrategyException()
             }
         }
 
@@ -83,14 +81,18 @@ class StrategyController {
 
     @RequestMapping(value = 'move', method = RequestMethod.POST)
     void rename(@RequestBody RenameCommand command) {
-        if (pipelineStrategyDAO.getPipelineId(command.application, command.to)) {
-            throw new DuplicateStrategyException()
-        }
+        checkForDuplicatePipeline(command.application, command.to)
         def pipelineId = pipelineStrategyDAO.getPipelineId(command.application, command.from)
         def pipeline = pipelineStrategyDAO.findById(pipelineId)
         pipeline.setName(command.to)
 
         pipelineStrategyDAO.update(pipelineId, pipeline)
+    }
+
+    private void checkForDuplicatePipeline(String application, String name) {
+        if (pipelineStrategyDAO.getPipelinesByApplication(application).any { it.getName() == name}) {
+            throw new DuplicateStrategyException()
+        }
     }
 
     @ExceptionHandler(DuplicateStrategyException)
