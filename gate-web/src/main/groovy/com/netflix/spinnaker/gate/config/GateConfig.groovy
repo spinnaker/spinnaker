@@ -23,7 +23,6 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.config.OkHttpClientConfiguration
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
@@ -96,14 +95,6 @@ class GateConfig {
 
   @Autowired
   ServiceConfiguration serviceConfiguration
-
-  @Autowired
-  OkHttpClientConfiguration okHttpClientConfig
-
-  @Bean
-  OkHttpClient okHttpClient() {
-    okHttpClientConfig.create()
-  }
 
   @Bean
   OrcaService orcaService(OkHttpClient okHttpClient) {

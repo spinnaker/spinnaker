@@ -22,6 +22,7 @@ import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.model.discovery.DiscoveryApplication
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.internal.EurekaService
+import com.squareup.okhttp.OkHttpClient
 import groovy.transform.Immutable
 import java.util.concurrent.*
 import javax.annotation.PostConstruct
@@ -41,6 +42,9 @@ class EurekaLookupService {
 
   @Autowired
   ServiceConfiguration serviceConfiguration
+
+  @Autowired
+  OkHttpClient okHttpClient
 
   @PostConstruct
   void init() {
@@ -83,13 +87,13 @@ class EurekaLookupService {
     app.applications
   }
 
-  private static EurekaService getEurekaService(String host) {
-    def endpoint = retrofit.Endpoints.newFixedEndpoint(host)
+  private EurekaService getEurekaService(String host) {
+    def endpoint = newFixedEndpoint(host)
     new RestAdapter.Builder()
         .setEndpoint(endpoint)
         .setConverter(new JacksonConverter(new ObjectMapper().configure(DeserializationFeature.UNWRAP_ROOT_VALUE, true)
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)))
-        .setClient(new OkClient())
+        .setClient(new OkClient(okHttpClient))
         .setLogLevel(RestAdapter.LogLevel.BASIC)
         .setLog(new Slf4jRetrofitLogger(EurekaService))
         .build()
