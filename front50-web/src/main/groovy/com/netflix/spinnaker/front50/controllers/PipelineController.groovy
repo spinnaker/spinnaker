@@ -51,13 +51,11 @@ class PipelineController {
     @RequestMapping(value = '', method = RequestMethod.POST)
     void save(@RequestBody Pipeline pipeline) {
         if (!pipeline.id) {
+            checkForDuplicatePipeline(pipeline.getApplication(), pipeline.getName())
             // ensure that cron triggers are assigned a unique identifier for new pipelines
             def triggers = (pipeline.triggers ?: []) as List<Map>
             triggers.findAll { it.type == "cron" }.each { Map trigger ->
                 trigger.id = UUID.randomUUID().toString()
-            }
-            if (pipelineDAO.getPipelineId(pipeline.getApplication(), pipeline.getName())) {
-                throw new DuplicatePipelineNameException()
             }
         }
 
@@ -83,9 +81,7 @@ class PipelineController {
 
     @RequestMapping(value = 'move', method = RequestMethod.POST)
     void rename(@RequestBody RenameCommand command) {
-        if (pipelineDAO.getPipelineId(command.application, command.to)) {
-            throw new DuplicatePipelineNameException()
-        }
+        checkForDuplicatePipeline(command.application, command.to)
         def pipelineId = pipelineDAO.getPipelineId(command.application, command.from)
         def pipeline = pipelineDAO.findById(pipelineId)
         pipeline.setName(command.to)
@@ -97,6 +93,12 @@ class PipelineController {
         String application
         String from
         String to
+    }
+
+    private void checkForDuplicatePipeline(String application, String name) {
+        if (pipelineDAO.getPipelinesByApplication(application).any { it.getName() == name}) {
+            throw new DuplicatePipelineNameException()
+        }
     }
 
     @ExceptionHandler(DuplicatePipelineNameException)
