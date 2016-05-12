@@ -48,6 +48,19 @@ class TravisResultConverter {
                 throw new IllegalArgumentException("state: ${state} is not known to TravisResultConverter.")
                 break
         }
+    }
 
+    static Boolean running(String state) {
+        switch (state) {
+            case "created":
+                return true
+                break
+            case "started":
+                return true
+                break
+            default:
+                return false
+                break
+        }
     }
 }

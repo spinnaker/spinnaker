@@ -74,8 +74,6 @@ class TravisBuildMonitor implements PollingMonitor{
 
     static final int NEW_BUILD_EVENT_THRESHOLD = 1
 
-    static final String BUILD_IN_PROGRESS = 'started'
-
     @SuppressWarnings('GStringExpressionWithinString')
     @Value('${spinnaker.build.pollInterval:60}')
     int pollInterval
@@ -152,7 +150,7 @@ class TravisBuildMonitor implements PollingMonitor{
 
                 if (cachedRepoSlugs.contains(repo.slug)) {
                     cachedBuild = buildCache.getLastBuild(master, repo.slug)
-                    if (((repo.lastBuildState == BUILD_IN_PROGRESS) != cachedBuild.lastBuildBuilding) ||
+                    if ((TravisResultConverter.running(repo.lastBuildState) != cachedBuild.lastBuildBuilding) ||
                         (repo.lastBuildNumber != Integer.valueOf(cachedBuild.lastBuildLabel))) {
                         addToCache = true
                         log.info "Build changed: ${master}: ${repo.slug} : ${repo.lastBuildNumber} : ${repo.lastBuildState}"
@@ -164,8 +162,8 @@ class TravisBuildMonitor implements PollingMonitor{
                     addToCache = true
                 }
                 if (addToCache) {
-                    log.info("Build update [${repo.slug}:${repo.lastBuildNumber}] [status:${repo.lastBuildState}] [running:${repo.lastBuildState == BUILD_IN_PROGRESS}]")
-                    buildCache.setLastBuild(master, repo.slug, repo.lastBuildNumber, repo.lastBuildState == BUILD_IN_PROGRESS, buildCacheJobTTLSeconds())
+                    log.info("Build update [${repo.slug}:${repo.lastBuildNumber}] [status:${repo.lastBuildState}] [running:${TravisResultConverter.running(repo.lastBuildState)}]")
+                    buildCache.setLastBuild(master, repo.slug, repo.lastBuildNumber, TravisResultConverter.running(repo.lastBuildState), buildCacheJobTTLSeconds())
                     sendEventForBuild(repo, master, travisService)
 
 
@@ -201,7 +199,7 @@ class TravisBuildMonitor implements PollingMonitor{
             String branchedSlug = travisService.branchedRepoSlug(repo.slug, repo.lastBuildNumber, commit)
 
             if (branchedSlug != repo.slug) {
-                buildCache.setLastBuild(master, branchedSlug, repo.lastBuildNumber, repo.lastBuildState == BUILD_IN_PROGRESS, buildCacheJobTTLSeconds())
+                buildCache.setLastBuild(master, branchedSlug, repo.lastBuildNumber, TravisResultConverter.running(repo.lastBuildState), buildCacheJobTTLSeconds())
                 if (echoService) {
                     log.info "pushing event for ${master}:${branchedSlug}:${repo.lastBuildNumber}"
 
@@ -228,7 +226,7 @@ class TravisBuildMonitor implements PollingMonitor{
                 if (build?.state) {
                     log.info "pushing event for ${master}:${repo.slug}:${build.number}"
                     String url = "${travisService.baseUrl}/${repo.slug}/builds/${build.id}"
-                    GenericProject project = new GenericProject(repo.slug, new GenericBuild((build.state == BUILD_IN_PROGRESS), build.number, build.duration, TravisResultConverter.getResultFromTravisState(build.state), repo.slug, url))
+                    GenericProject project = new GenericProject(repo.slug, new GenericBuild((TravisResultConverter.running(build.state)), build.number, build.duration, TravisResultConverter.getResultFromTravisState(build.state), repo.slug, url))
                     echoService.postEvent(
                         new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis')))
                 }
