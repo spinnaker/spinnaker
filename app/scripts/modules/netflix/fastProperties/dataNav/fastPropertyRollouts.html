@@ -52,7 +52,7 @@
       <tbody>
       <tr class="clickable" ng-repeat="promotion in rollout.filteredPromotions">
         <td>
-          <a ng-repeat="appId in promotion.scopes.from.appId.split(',')" ui-sref="home.applications.application.properties({ application: appId.toLowerCase() })">
+          <a ng-repeat="appId in promotion.scopes.from.appId.split(',')" ui-sref="home.applications.application.propInsights.properties({ application: appId.toLowerCase() })">
             {{ appId }} <span ng-if="!$last">, </span>
           </a>
         </td>

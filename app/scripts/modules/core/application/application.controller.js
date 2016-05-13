@@ -53,7 +53,7 @@ module.exports = angular.module('spinnaker.application.controller', [
       {
         combo: 'ctrl+alt+5',
         description: 'Properties',
-        callback: () => $state.go('home.applications.application.properties')
+        callback: () => $state.go('home.applications.application.propInsights.properties')
       },
       {
         combo: 'ctrl+alt+6',

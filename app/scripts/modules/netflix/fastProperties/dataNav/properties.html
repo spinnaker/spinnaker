@@ -29,9 +29,9 @@
       </tr>
       </thead>
       <tbody>
-      <tr class="clickable" ng-repeat="application in fp.filteredResultPage()" ui-sref="home.applications.application.properties({ application: application.name.toLowerCase() })">
+      <tr class="clickable" ng-repeat="application in fp.filteredResultPage()" ui-sref="home.applications.application.propInsights.properties({ application: application.name.toLowerCase() })">
         <td>
-          <a ui-sref="home.applications.application.properties({ application: application.name.toLowerCase() })" ng-click="$event.preventDefault()">
+          <a ui-sref="home.applications.application.propInsights.properties({ application: application.name.toLowerCase() })" ng-click="$event.preventDefault()">
             {{ application.name.toLowerCase() }}
           </a>
         </td>
