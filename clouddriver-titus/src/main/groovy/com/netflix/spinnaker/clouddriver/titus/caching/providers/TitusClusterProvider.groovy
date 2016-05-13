@@ -143,7 +143,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
     }
     String json = objectMapper.writeValueAsString(serverGroupData.attributes.job)
     Job job = objectMapper.readValue(json, Job)
-    TitusServerGroup serverGroup = new TitusServerGroup(job)
+    TitusServerGroup serverGroup = new TitusServerGroup(job, serverGroupData.attributes.account, serverGroupData.attributes.region)
     serverGroup.placement.account = account
     serverGroup.placement.region = region
     serverGroup.instances = translateInstances(resolveRelationshipData(serverGroupData, INSTANCES.ns)).values()
@@ -200,7 +200,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
     Map<String, TitusServerGroup> serverGroups = serverGroupData.collectEntries { serverGroupEntry ->
       String json = objectMapper.writeValueAsString(serverGroupEntry.attributes.job)
       Job job = objectMapper.readValue(json, Job)
-      TitusServerGroup serverGroup = new TitusServerGroup(job)
+      TitusServerGroup serverGroup = new TitusServerGroup(job, serverGroupEntry.attributes.account, serverGroupEntry.attributes.region)
       serverGroup.instances = serverGroupEntry.relationships[INSTANCES.ns]?.findResults { instances.get(it) } as Set
       [(serverGroupEntry.id): serverGroup]
     }

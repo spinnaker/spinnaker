@@ -50,7 +50,7 @@ class TitusServerGroupSpec extends Specification {
   void 'valid server group instance is created from a titus job'() {
 
     when:
-    TitusServerGroup titusServerGroup = new TitusServerGroup(job)
+    TitusServerGroup titusServerGroup = new TitusServerGroup(job, 'test', 'us-east-1')
 
     then:
 
@@ -76,12 +76,23 @@ class TitusServerGroupSpec extends Specification {
     titusServerGroup.capacity?.desired == job.instancesDesired
   }
 
-  void 'can handle empty ports'(){
+  void 'can handle empty ports'() {
     when:
     job.setPorts(null)
-    TitusServerGroup titusServerGroup = new TitusServerGroup(job)
+    TitusServerGroup titusServerGroup = new TitusServerGroup(job, 'test', 'us-east-1')
 
     then:
     titusServerGroup.resources.ports == []
+  }
+
+  void 'region and account can be set with no tasks'() {
+    when:
+    job.tasks = []
+    TitusServerGroup titusServerGroup = new TitusServerGroup(job, 'test', 'us-east-1')
+
+    then:
+    titusServerGroup.placement.account == 'test'
+    titusServerGroup.placement.region == 'us-east-1'
+    titusServerGroup.instances?.size() == 0
   }
 }
