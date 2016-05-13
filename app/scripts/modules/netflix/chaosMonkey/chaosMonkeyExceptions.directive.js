@@ -30,7 +30,7 @@ module.exports = angular
       this.config.exceptions.splice(index, 1);
     };
 
-    accountService.listAccounts('aws').then((accounts) => {
+    accountService.listAccounts().then((accounts) => {
       $q.all(accounts.map((account) => accountService.getAccountDetails(account.name)))
         .then((details) => {
           this.accounts = details;
