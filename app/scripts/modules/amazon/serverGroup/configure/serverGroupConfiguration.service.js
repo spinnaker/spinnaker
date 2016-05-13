@@ -331,25 +331,46 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         .flatten(true)
         .filter({vpcId: command.vpcId})
         .pluck('name')
-        .unique()
+        .valueOf()
+        .sort();
+    }
+
+    function getVpcLoadBalancerNames(command) {
+      return _(command.backingData.loadBalancers)
+        .pluck('accounts')
+        .flatten(true)
+        .filter({name: command.credentials})
+        .pluck('regions')
+        .flatten(true)
+        .filter({name: command.region})
+        .pluck('loadBalancers')
+        .flatten(true)
+        .filter('vpcId')
+        .pluck('name')
         .valueOf()
         .sort();
     }
 
     function configureLoadBalancerOptions(command) {
       var result = { dirty: {} };
-      var current = command.loadBalancers;
+      var current = (command.loadBalancers || []).concat(command.vpcLoadBalancers || []);
       var newLoadBalancers = getLoadBalancerNames(command);
+      var vpcLoadBalancers = getVpcLoadBalancerNames(command);
 
       if (current && command.loadBalancers) {
-        var matched = _.intersection(newLoadBalancers, command.loadBalancers);
+        var valid = command.vpcId ? newLoadBalancers : newLoadBalancers.concat(vpcLoadBalancers);
+        var matched = _.intersection(valid, current);
         var removed = _.xor(matched, current);
-        command.loadBalancers = matched;
+        command.loadBalancers = _.intersection(newLoadBalancers, matched);
+        if (!command.vpcId) {
+          command.vpcLoadBalancers = _.intersection(vpcLoadBalancers, matched);
+        }
         if (removed.length) {
           result.dirty.loadBalancers = removed;
         }
       }
       command.backingData.filtered.loadBalancers = newLoadBalancers;
+      command.backingData.filtered.vpcLoadBalancers = vpcLoadBalancers;
       return result;
     }
 

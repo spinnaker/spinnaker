@@ -78,6 +78,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.transformer', [
       command.cloudProvider = 'aws';
       command.availabilityZones = {};
       command.availabilityZones[command.region] = base.availabilityZones;
+      command.loadBalancers = (base.loadBalancers || []).concat(base.vpcLoadBalancers || []);
       command.account = command.credentials;
       if (!command.ramdiskId) {
         delete command.ramdiskId; // TODO: clean up in kato? - should ignore if empty string

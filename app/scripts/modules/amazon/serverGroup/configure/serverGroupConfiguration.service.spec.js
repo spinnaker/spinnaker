@@ -37,7 +37,6 @@ describe('Service: awsServerGroupConfiguration', function () {
               {
                 name: 'us-east-1',
                 loadBalancers: [
-                  { region: 'us-east-1', vpcId: null, name: 'elb-1' },
                   { region: 'us-east-1', vpcId: 'vpc-1', name: 'elb-1' },
                 ]
               }
@@ -54,7 +53,6 @@ describe('Service: awsServerGroupConfiguration', function () {
               {
                 name: 'us-east-1',
                 loadBalancers: [
-                  { region: 'us-east-1', vpcId: null, name: 'elb-2' },
                   { region: 'us-east-1', vpcId: 'vpc-2', name: 'elb-2' },
                 ]
               },
@@ -193,7 +191,8 @@ describe('Service: awsServerGroupConfiguration', function () {
     it('matches existing load balancers based on name - no VPC', function () {
       var result = service.configureLoadBalancerOptions(this.command);
 
-      expect(this.command.loadBalancers).toEqual(['elb-1']);
+      expect(this.command.loadBalancers).toEqual([]);
+      expect(this.command.vpcLoadBalancers).toEqual(['elb-1']);
       expect(result).toEqual({ dirty: { }});
     });
 
@@ -212,6 +211,22 @@ describe('Service: awsServerGroupConfiguration', function () {
 
       expect(this.command.loadBalancers).toEqual(['elb-2']);
       expect(result).toEqual({ dirty: { loadBalancers: ['elb-1']}});
+    });
+
+    it('moves load balancers to vpcLoadBalancers when vpc is de-selected', function () {
+      this.command.loadBalancers = ['elb-1'];
+      this.command.vpcId = 'vpc-1';
+      var result = service.configureLoadBalancerOptions(this.command);
+
+      expect(this.command.loadBalancers).toEqual(['elb-1']);
+      expect(result).toEqual({ dirty: {} });
+
+      this.command.vpcId = null;
+      result = service.configureLoadBalancerOptions(this.command);
+      expect(result).toEqual({ dirty: {} });
+      expect(this.command.vpcLoadBalancers).toEqual(['elb-1']);
+      expect(this.command.loadBalancers).toEqual([]);
+
     });
 
     it('sets dirty all unmatched load balancers - VPC', function () {
