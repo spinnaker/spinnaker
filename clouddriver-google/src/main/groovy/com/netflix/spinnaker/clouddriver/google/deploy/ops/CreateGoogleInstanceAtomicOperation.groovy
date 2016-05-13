@@ -55,7 +55,7 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "createGoogleInstanceDescription": { "instanceName": "myapp-dev-v000-abcd", "image": "ubuntu-1404-trusty-v20150909a", "instanceType": "f1-micro", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createGoogleInstanceDescription": { "instanceName": "myapp-dev-v000-abcd", "image": "ubuntu-1404-trusty-v20160509a", "instanceType": "f1-micro", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
    */
   @Override
   DeploymentResult operate(List priorOutputs) {
@@ -106,7 +106,7 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
     def scheduling = GCEUtil.buildScheduling(description)
 
     def instance = new Instance(name: description.instanceName,
-                                machineType: machineType.getSelfLink(),
+                                machineType: "zones/$zone/machineTypes/$machineType.name",
                                 disks: attachedDisks,
                                 networkInterfaces: [networkInterface],
                                 metadata: metadata,

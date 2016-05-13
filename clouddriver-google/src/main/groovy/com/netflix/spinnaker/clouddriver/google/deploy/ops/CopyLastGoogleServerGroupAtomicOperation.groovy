@@ -58,7 +58,7 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
 
   /**
    * curl -X POST -H "Content-Type: application/json" -d '[ { "cloneServerGroup": { "source": { "region": "us-central1", "serverGroupName": "myapp-dev-v000" }, "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "cloneServerGroup": { "source": { "region": "us-central1", "serverGroupName": "myapp-dev-v000" }, "application": "myapp", "stack": "dev", "image": "ubuntu-1410-utopic-v20150625", "targetSize": 4, "instanceType": "g1-small", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "cloneServerGroup": { "source": { "region": "us-central1", "serverGroupName": "myapp-dev-v000" }, "application": "myapp", "stack": "dev", "image": "ubuntu-1404-trusty-v20160509a", "targetSize": 4, "instanceType": "g1-small", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
    */
   @Override
   DeploymentResult operate(List priorOutputs) {

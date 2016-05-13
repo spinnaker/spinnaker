@@ -256,7 +256,7 @@ class GCEUtil {
       compute.instanceGroupManagers().list(projectName, localZoneName).execute().getItems()
     }.flatten()
 
-    allMIGSInRegion
+    return allMIGSInRegion
   }
 
   static Set<String> querySecurityGroupTags(Set<String> securityGroupNames,
