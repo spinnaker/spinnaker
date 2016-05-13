@@ -36,6 +36,7 @@ class CatsSearchProvider implements SearchProvider {
   private final List<String> defaultCaches
   private final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators
   private final Map<String, SearchableProvider.IdentifierExtractor> identifierExtractors
+  private final SearchableProvider.IdentifierExtractor defaultExtractor = new DefaultQueryIdentifierExtractor()
 
   private final Map<String, Template> urlMappings
 
@@ -60,8 +61,7 @@ class CatsSearchProvider implements SearchProvider {
       mappings.putAll(provider.urlMappingTemplates.collectEntries { [(it.key): tmpl.createTemplate(it.value)] })
       return mappings
     }
-    SearchableProvider.IdentifierExtractor defaultExtractor = new DefaultQueryIdentifierExtractor()
-    identifierExtractors = providers.inject([:].withDefault { defaultExtractor }) { Map acc, SearchableProvider prov ->
+    identifierExtractors = providers.inject([:]) { Map acc, SearchableProvider prov ->
       acc.putAll(prov.getIdentifierExtractors())
       return acc
     }
@@ -132,7 +132,11 @@ class CatsSearchProvider implements SearchProvider {
     String normalizedWord = q.toLowerCase()
     List<String> matches = new ArrayList<String>()
     toQuery.each { String cache ->
-      matches.addAll(identifierExtractors[cache].getIdentifiers(cacheView, cache, normalizedWord).findAll { String key ->
+      Collection<String> defaultIdentifiers = defaultExtractor.getIdentifiers(cacheView, cache, normalizedWord)
+      Collection<String> customIdentifiers = identifierExtractors[cache]?.getIdentifiers(cacheView, cache, normalizedWord)
+      Set<String> identifiers = (defaultIdentifiers + customIdentifiers - null) as Set
+
+      matches.addAll(identifiers.findAll { String key ->
         try {
           if (!filters) {
             return true
