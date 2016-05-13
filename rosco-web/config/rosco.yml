@@ -120,6 +120,16 @@ aws:
         instanceType: t2.micro
         sourceAmi: ami-3d50120d
         sshUserName: ubuntu
+      - region: eu-central-1
+        virtualizationType: hvm
+        instanceType: t2.micro
+        sourceAmi: ami-87564feb
+        sshUserName: ubuntu
+      - region: eu-west-1
+        virtualizationType: hvm
+        instanceType: t2.micro
+        sourceAmi: ami-f95ef58a
+        sshUserName: ubuntu
       - region: us-east-1
         virtualizationType: pv
         instanceType: m3.medium
