@@ -52,8 +52,6 @@ class AwsProvider extends AgentSchedulerAware implements SearchableProvider, Eur
     (INSTANCES.ns): new InstanceSearchResultHydrator()
   ]
 
-  final Map<String, SearchableProvider.IdentifierExtractor> identifierExtractors
-
   final Collection<Agent> agents
   private Collection<HealthProvidingCachingAgent> healthAgents
 
@@ -61,9 +59,6 @@ class AwsProvider extends AgentSchedulerAware implements SearchableProvider, Eur
     this.agents = agents
     this.accountCredentialsRepository = accountCredentialsRepository
     synchronizeHealthAgents()
-    identifierExtractors = [
-      (INSTANCES.ns): new InstanceIdentifierExtractor(accountCredentialsRepository)
-    ].asImmutable()
   }
 
   void synchronizeHealthAgents() {
@@ -102,35 +97,6 @@ class AwsProvider extends AgentSchedulerAware implements SearchableProvider, Eur
         cluster    : serverGroup.cluster as String,
         serverGroup: serverGroup.serverGroup as String
       ]
-    }
-  }
-
-  static class InstanceIdentifierExtractor implements SearchableProvider.IdentifierExtractor {
-    static Pattern INSTANCE_ID_PATTERN = Pattern.compile('(i-)?[0-9a-f]{8}([0-9a-f]{9})?')
-
-    final AccountCredentialsRepository accountCredentialsRepository
-
-    InstanceIdentifierExtractor(AccountCredentialsRepository accountCredentialsRepository) {
-      this.accountCredentialsRepository = accountCredentialsRepository
-    }
-
-    @Override
-    List<String> getIdentifiers(Cache cacheView, String type, String query) {
-      if (!query.matches(INSTANCE_ID_PATTERN)) {
-        return []
-      }
-      def normalizedQuery = query.startsWith('i-') ? query : 'i-' + query
-      Set<NetflixAmazonCredentials> amazonCredentials = accountCredentialsRepository.all.findAll {
-        it instanceof NetflixAmazonCredentials
-      } as Set<NetflixAmazonCredentials>
-
-      def possibleInstanceIdentifiers = []
-      amazonCredentials.each { NetflixAmazonCredentials credentials ->
-        credentials.regions.each { AmazonCredentials.AWSRegion region ->
-          possibleInstanceIdentifiers << Keys.getInstanceKey(normalizedQuery, credentials.name, region.name)
-        }
-      }
-      return cacheView.getAll(INSTANCES.ns, possibleInstanceIdentifiers)*.id
     }
   }
 

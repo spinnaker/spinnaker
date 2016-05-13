@@ -35,17 +35,8 @@ class CatsSearchProvider implements SearchProvider {
   private final List<SearchableProvider> providers
   private final List<String> defaultCaches
   private final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators
-  private final Map<String, SearchableProvider.IdentifierExtractor> identifierExtractors
-  private final SearchableProvider.IdentifierExtractor defaultExtractor = new DefaultQueryIdentifierExtractor()
 
   private final Map<String, Template> urlMappings
-
-  private static class DefaultQueryIdentifierExtractor implements SearchableProvider.IdentifierExtractor {
-    @Override
-    Collection<String> getIdentifiers(Cache cacheView, String type, String query) {
-      return cacheView.filterIdentifiers(type, "*:${type}:*${query}*")
-    }
-  }
 
   @Autowired
   public CatsSearchProvider(Cache cacheView, List<SearchableProvider> providers) {
@@ -60,10 +51,6 @@ class CatsSearchProvider implements SearchProvider {
     urlMappings = providers.inject([:]) { Map mappings, SearchableProvider provider ->
       mappings.putAll(provider.urlMappingTemplates.collectEntries { [(it.key): tmpl.createTemplate(it.value)] })
       return mappings
-    }
-    identifierExtractors = providers.inject([:]) { Map acc, SearchableProvider prov ->
-      acc.putAll(prov.getIdentifierExtractors())
-      return acc
     }
   }
 
@@ -132,11 +119,7 @@ class CatsSearchProvider implements SearchProvider {
     String normalizedWord = q.toLowerCase()
     List<String> matches = new ArrayList<String>()
     toQuery.each { String cache ->
-      Collection<String> defaultIdentifiers = defaultExtractor.getIdentifiers(cacheView, cache, normalizedWord)
-      Collection<String> customIdentifiers = identifierExtractors[cache]?.getIdentifiers(cacheView, cache, normalizedWord)
-      Set<String> identifiers = (defaultIdentifiers + customIdentifiers - null) as Set
-
-      matches.addAll(identifiers.findAll { String key ->
+      matches.addAll(cacheView.filterIdentifiers(cache, "*:${cache}:*${normalizedWord}*").findAll { String key ->
         try {
           if (!filters) {
             return true

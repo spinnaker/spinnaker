@@ -39,11 +39,6 @@ interface SearchableProvider extends Provider {
   Map<String, SearchResultHydrator> getSearchResultHydrators()
 
   /**
-   * IdentifierExtractors for cache types
-   */
-  Map<String, IdentifierExtractor> getIdentifierExtractors()
-
-  /**
    * The parts of the key, if this Provider supports keys of this type, otherwise null.
    */
   Map<String, String> parseKey(String key)
@@ -53,12 +48,5 @@ interface SearchableProvider extends Provider {
    */
   public static interface SearchResultHydrator {
     Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id)
-  }
-
-  /**
-   * An IdentifierExtractor provides a custom strategy for interpreting a query for a particular cache type.
-   */
-  public static interface IdentifierExtractor {
-    Collection<String> getIdentifiers(Cache cacheView, String type, String query)
   }
 }
