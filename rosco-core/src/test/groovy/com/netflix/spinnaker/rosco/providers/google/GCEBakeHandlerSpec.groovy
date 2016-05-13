@@ -26,6 +26,7 @@ import com.netflix.spinnaker.rosco.providers.google.config.RoscoGoogleConfigurat
 import spock.lang.Shared
 import spock.lang.Subject
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class GCEBakeHandlerSpec extends Specification {
 
@@ -524,6 +525,27 @@ class GCEBakeHandlerSpec extends Specification {
       bakeKey == "bake:gce:centos:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb"
   }
 
+  @Unroll
+  void 'produce a default GCE bakeKey without base image, even when no packages are specified'() {
+    setup:
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: packageName,
+                                        base_os: "centos",
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce)
+
+      @Subject
+      GCEBakeHandler gceBakeHandler = new GCEBakeHandler()
+
+    when:
+      String bakeKey = gceBakeHandler.produceBakeKey(REGION, bakeRequest)
+
+    then:
+      bakeKey == "bake:gce:centos:"
+
+    where:
+      packageName << [null, ""]
+  }
+
   void 'produce a default GCE bakeKey with base image'() {
     setup:
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
@@ -541,5 +563,4 @@ class GCEBakeHandlerSpec extends Specification {
     then:
       bakeKey == "bake:gce:centos:my-base-image:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb"
   }
-
 }

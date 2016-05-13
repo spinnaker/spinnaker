@@ -26,6 +26,7 @@ import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class AWSBakeHandlerSpec extends Specification {
 
@@ -750,6 +751,28 @@ class AWSBakeHandlerSpec extends Specification {
 
     then:
       bakeKey == "bake:aws:centos:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb:us-east-1:hvm:enhancedNWDisabled"
+  }
+
+  @Unroll
+  void 'produce a default AWS bakeKey without base ami, even when no packages are specified'() {
+    setup:
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: packageName,
+                                        base_os: "centos",
+                                        vm_type: BakeRequest.VmType.hvm,
+                                        cloud_provider_type: BakeRequest.CloudProviderType.aws)
+
+      @Subject
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults)
+
+    when:
+      String bakeKey = awsBakeHandler.produceBakeKey(REGION, bakeRequest)
+
+    then:
+      bakeKey == "bake:aws:centos::us-east-1:hvm:enhancedNWDisabled"
+
+    where:
+      packageName << [null, ""]
   }
 
   void 'produce a default AWS bakeKey with base ami'() {
