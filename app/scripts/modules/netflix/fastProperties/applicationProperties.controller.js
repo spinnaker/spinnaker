@@ -276,7 +276,7 @@ module.exports = angular
 
     function routeToApplication() {
       $state.go(
-        'home.applications.application.properties', {
+        'home.applications.application.propInsights.properties', {
           application: application.name
         }
       );
