@@ -98,11 +98,6 @@ class CacheConfig {
       }
 
       @Override
-      Map<String, SearchableProvider.IdentifierExtractor> getIdentifierExtractors() {
-        Collections.emptyMap()
-      }
-
-      @Override
       Map<String, String> parseKey(String key) {
         null
       }

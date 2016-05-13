@@ -55,8 +55,6 @@ class AzureInfrastructureProvider extends AgentSchedulerAware implements Searcha
 
   final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators = Collections.emptyMap()
 
-  final Map<String, SearchableProvider.IdentifierExtractor> identifierExtractors = Collections.emptyMap()
-
   @Override
   Map<String, String> parseKey(String key) {
     return Keys.parse(azureCloudProvider, key)

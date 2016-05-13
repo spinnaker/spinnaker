@@ -46,8 +46,6 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
       (SECURITY_GROUPS.ns): '/securityGroups/$account/$provider/$name?region=$region'
   ]
 
-  final Map<String, SearchableProvider.IdentifierExtractor> identifierExtractors = Collections.emptyMap()
-
   final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators = [
       (INSTANCES.ns): new InstanceSearchResultHydrator()
   ]
