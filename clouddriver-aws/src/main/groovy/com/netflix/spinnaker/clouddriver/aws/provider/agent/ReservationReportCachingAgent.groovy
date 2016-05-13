@@ -27,6 +27,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.module.SimpleModule
+import com.google.common.cache.CacheBuilder
+import com.google.common.cache.CacheLoader
+import com.google.common.cache.LoadingCache
+import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -35,6 +40,7 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonReservationReport.OverallReservationDetail
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -49,6 +55,7 @@ import rx.Scheduler
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.function.ToDoubleFunction
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.RESERVATION_REPORTS
@@ -67,14 +74,15 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
   private final ApplicationContext ctx
   private Cache cacheView
 
-
   final AmazonClientProvider amazonClientProvider
   final Collection<NetflixAmazonCredentials> accounts
   final ObjectMapper objectMapper
   final AccountReservationDetailSerializer accountReservationDetailSerializer
   final Set<String> vpcOnlyAccounts
+  final MetricsSupport metricsSupport
 
-  ReservationReportCachingAgent(AmazonClientProvider amazonClientProvider,
+  ReservationReportCachingAgent(Registry registry,
+                                AmazonClientProvider amazonClientProvider,
                                 Collection<NetflixAmazonCredentials> accounts,
                                 ObjectMapper objectMapper,
                                 Scheduler scheduler,
@@ -90,6 +98,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
     this.scheduler = scheduler
     this.ctx = ctx
     this.vpcOnlyAccounts = determineVpcOnlyAccounts()
+    this.metricsSupport = new MetricsSupport(objectMapper, registry, { getCacheView() })
   }
 
   private Set<String> determineVpcOnlyAccounts() {
@@ -163,7 +172,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
     long startTime = System.currentTimeMillis()
     log.info("Describing items in ${agentType}")
 
-    ConcurrentHashMap<String, AmazonReservationReport.OverallReservationDetail> reservations = new ConcurrentHashMap<>()
+    ConcurrentHashMap<String, OverallReservationDetail> reservations = new ConcurrentHashMap<>()
     Observable
       .from(accounts.sort { it.name })
       .flatMap({ credential ->
@@ -195,6 +204,8 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
     accountReservationDetailSerializer.mergeVpcReservations = false
     def v2 = objectMapper.convertValue(amazonReservationReport, Map)
 
+    metricsSupport.registerMetrics(objectMapper.convertValue(v2, AmazonReservationReport))
+
     return new DefaultCacheResult(
       (RESERVATION_REPORTS.ns): [
         new MutableCacheData("v1", ["report": v1], [:]),
@@ -203,11 +214,11 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
     )
   }
 
-  Observable extractReservations(ConcurrentHashMap<String, AmazonReservationReport.OverallReservationDetail> reservations,
+  Observable extractReservations(ConcurrentHashMap<String, OverallReservationDetail> reservations,
                                  NetflixAmazonCredentials credentials) {
     def getReservation = { String availabilityZone, String operatingSystemType, String instanceType ->
       def key = [availabilityZone, operatingSystemType, instanceType].join(":")
-      def newOverallReservationDetail = new AmazonReservationReport.OverallReservationDetail(
+      def newOverallReservationDetail = new OverallReservationDetail(
         availabilityZone: availabilityZone,
         os: AmazonReservationReport.OperatingSystemType.valueOf(operatingSystemType as String).name,
         instanceType: instanceType
@@ -344,5 +355,71 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
     String availabilityZone
     String instanceType
     int instanceCount
+  }
+
+  static class MetricsSupport {
+    private final LoadingCache<String, AmazonReservationReport> reservationReportCache = CacheBuilder.newBuilder()
+      .concurrencyLevel(1)
+      .weakKeys()
+      .maximumSize(1)
+      .expireAfterWrite(30, TimeUnit.SECONDS)
+      .build(
+      new CacheLoader<String, AmazonReservationReport>() {
+        public AmazonReservationReport load(String key) {
+          return objectMapper.convertValue(
+            cache.call().get(RESERVATION_REPORTS.ns, "v2").attributes["report"] as Map,
+            AmazonReservationReport
+          )
+        }
+      });
+
+    private final Map<String, Id> existingMetricIds = new ConcurrentHashMap<>()
+    private final ObjectMapper objectMapper
+    private final Registry registry
+    private final Closure<Cache> cache
+
+    MetricsSupport(ObjectMapper objectMapper, Registry registry, Closure<Cache> cache) {
+      this.registry = registry
+      this.objectMapper = objectMapper
+      this.cache = cache
+    }
+
+    private void registerMetric(String name, Map<String, String> tags, Closure metricValueClosure) {
+      def id = registry.createId(name).withTags(tags)
+      def existingId = existingMetricIds.putIfAbsent(name + ":" + tags.values().sort().join(":"), id)
+
+      if (!existingId) {
+        registry.gauge(id, reservationReportCache, { LoadingCache<String, AmazonReservationReport> reservationReportCache ->
+          def overallReservationDetail = reservationReportCache.get("v2").reservations.find {
+            it.availabilityZone == tags.availabilityZone && it.instanceType == tags.instanceType && it.os.name == tags.os
+          }
+          return metricValueClosure.call(overallReservationDetail)
+        } as ToDoubleFunction)
+      }
+    }
+
+    void registerMetrics(AmazonReservationReport reservationReport) {
+      reservationReport.reservations.each { OverallReservationDetail overallReservationDetail ->
+        def baseTags = [
+          availabilityZone: overallReservationDetail.availabilityZone,
+          instanceType    : overallReservationDetail.instanceType,
+          os              : overallReservationDetail.os.name
+        ] as Map<String, String>
+
+        registerMetric("reservedInstances.surplusOverall", baseTags, { OverallReservationDetail o ->
+          return (o?.totalSurplus() ?: 0) as Double
+        })
+
+        overallReservationDetail.accounts.each { String accountName, AmazonReservationReport.AccountReservationDetail reservationDetail ->
+          registerMetric("reservedInstances.surplusByAccountVpc", baseTags + ["account": accountName], { OverallReservationDetail o ->
+            return (o.accounts[accountName]?.surplusVpc() ?: 0) as Double
+          })
+
+          registerMetric("reservedInstances.surplusByAccountClassic", baseTags + ["account": accountName], { OverallReservationDetail o ->
+            return (o.accounts[accountName]?.surplus() ?: 0) as Double
+          })
+        }
+      }
+    }
   }
 }
