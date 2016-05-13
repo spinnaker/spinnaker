@@ -18,13 +18,16 @@ package com.netflix.spinnaker.clouddriver.core
 
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.config.OkHttpClientConfiguration
+import com.squareup.okhttp.ConnectionPool
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Scope
 import retrofit.RestAdapter
 import retrofit.client.OkClient
 import retrofit.converter.JacksonConverter
@@ -36,13 +39,26 @@ class RetrofitConfig {
   @Autowired
   OkHttpClientConfiguration okHttpClientConfig
 
+  @Value('${okHttpClient.connectionPool.maxIdleConnections:5}')
+  int maxIdleConnections
+
+  @Value('${okHttpClient.connectionPool.keepAliveDurationMs:300000}')
+  int keepAliveDurationMs
+
+  @Value('${okHttpClient.retryOnConnectionFailure:true}')
+  boolean retryOnConnectionFailure
+
   @Bean RestAdapter.LogLevel retrofitLogLevel(@Value('${retrofit.logLevel:BASIC}') String retrofitLogLevel) {
     return RestAdapter.LogLevel.valueOf(retrofitLogLevel)
   }
 
   @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   OkClient okClient() {
-    return new OkClient(okHttpClientConfig.create())
+    def client = okHttpClientConfig.create()
+    client.connectionPool = new ConnectionPool(maxIdleConnections, keepAliveDurationMs)
+    client.retryOnConnectionFailure = retryOnConnectionFailure
+    return new OkClient(client)
   }
 
   @Bean
