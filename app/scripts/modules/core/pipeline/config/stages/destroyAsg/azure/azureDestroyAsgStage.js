@@ -53,7 +53,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.azure.destroyAsgS
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'azure';
 
-    stage.interestingHealthProviderNames = ['azureService'];
+    stage.interestingHealthProviderNames = []; // bypass the check for now; will change this later to ['azureService']
 
     if (!stage.credentials && $scope.application.defaultCredentials.azure) {
       stage.credentials = $scope.application.defaultCredentials.azure;

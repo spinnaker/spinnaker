@@ -34,7 +34,7 @@ describe('Controller: azureCreateLoadBalancerCtrl', function () {
     expect(lb.probes.length).toEqual(1);
     expect(lb.loadBalancingRules.length).toEqual(1);
 
-    expect(lb.loadBalancingRules[0].protocol).toEqual('TCP');
+    expect(lb.loadBalancingRules[0].protocol).toEqual('HTTP');
 
     expect(this.$scope.existingLoadBalancerNames).toEqual(undefined);
     expect(lb.providerType).toEqual(undefined);

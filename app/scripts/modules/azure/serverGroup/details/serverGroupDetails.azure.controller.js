@@ -186,8 +186,10 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
         title: 'Enabling ' + serverGroup.name,
       };
 
-      var submitMethod = function () {
-        return serverGroupWriter.enableServerGroup(serverGroup, app);
+      var submitMethod = (params) => {
+        return serverGroupWriter.enableServerGroup(serverGroup, app, angular.extend(params, {
+          interestingHealthProviderNames: [] // bypass the check for now; will change this later to ['azureService']
+        }));
       };
 
       confirmationModalService.confirm({

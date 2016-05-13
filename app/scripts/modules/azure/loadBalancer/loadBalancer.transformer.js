@@ -77,17 +77,18 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
           {
             probeName: '',
             probeProtocol: 'HTTP',
-            probePort: 7001,
-            probePath: '/healthcheck',
-            probeInterval: 10,
-            unhealthyThreshold: 2
+            probePort: 'www.bing.com',
+            probePath: '/',
+            probeInterval: 30,
+            unhealthyThreshold: 8,
+			timeout: 120
           }
         ],
         securityGroups: [],
         loadBalancingRules: [
           {
             ruleName: '',
-            protocol: 'TCP',
+            protocol: 'HTTP',
             externalPort: 80,
             backendPort: 8080,
             probeName: '',

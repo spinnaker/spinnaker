@@ -14,7 +14,7 @@
         <tbody>
           <tr ng-repeat="rule in loadBalancer.loadBalancingRules">
             <td>
-              <select class="form-control input-sm" ng-model="rule.protocol" ng-options="protocol for protocol in ['UDP','TCP']"></select>
+              <select class="form-control input-sm" ng-model="rule.protocol" ng-options="protocol for protocol in ['HTTP']"></select>
             </td>
             <td>
               <input class="form-control input-sm" type="number" min="0" ng-model="rule.externalPort" required/>

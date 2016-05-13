@@ -47,7 +47,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.azure.disableAsgS
     stage.cloudProvider = 'azure';
 
     if (stage.isNew && $scope.application.attributes.platformHealthOnly) {
-      stage.interestingHealthProviderNames = ['azureService'];
+      stage.interestingHealthProviderNames = []; // bypass the check for now; will change this later to ['azureService']
     }
 
     if (!stage.credentials && $scope.application.defaultCredentials.azure) {
