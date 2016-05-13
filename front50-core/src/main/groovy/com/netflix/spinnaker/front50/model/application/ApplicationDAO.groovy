@@ -19,12 +19,13 @@
 package com.netflix.spinnaker.front50.model.application
 
 import com.netflix.spinnaker.front50.exception.NotFoundException
-import com.netflix.spinnaker.front50.model.ItemDAO
 
 public interface ApplicationDAO extends com.netflix.spinnaker.front50.model.ItemDAO<Application> {
   Application findByName(String name) throws NotFoundException
 
   Collection<Application> search(Map<String, String> attributes)
+
+  Collection<Application> getApplicationHistory(String name, int maxResults)
 
   static class Searcher {
     static Collection<Application> search(Collection<Application> searchableApplications, Map<String, String> attributes) {

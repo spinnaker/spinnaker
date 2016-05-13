@@ -22,9 +22,6 @@ import com.netflix.spinnaker.front50.model.Timestamped
 
 class Pipeline extends HashMap<String, Object> implements Timestamped {
   @JsonIgnore
-  Long lastModified
-
-  @JsonIgnore
   String getApplication() {
     return super.get("application")
   }
@@ -46,5 +43,17 @@ class Pipeline extends HashMap<String, Object> implements Timestamped {
 
   void setId(String id) {
     super.put("id", id)
+  }
+
+  @Override
+  @JsonIgnore
+  Long getLastModified() {
+    def updateTs = super.get("updateTs") as String
+    return updateTs ? Long.valueOf(updateTs) : null
+  }
+
+  @Override
+  void setLastModified(Long lastModified) {
+    super.put("updateTs", lastModified.toString())
   }
 }

@@ -63,6 +63,11 @@ public class S3ApplicationDAO extends S3Support<Application> implements Applicat
   }
 
   @Override
+  public Collection<Application> getApplicationHistory(String name, int maxResults) {
+    return allVersionsOf(name, maxResults);
+  }
+
+  @Override
   Class<Application> getSerializedClass() {
     return Application.class;
   }
