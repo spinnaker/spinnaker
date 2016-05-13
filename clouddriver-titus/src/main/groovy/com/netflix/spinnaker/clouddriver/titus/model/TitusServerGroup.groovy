@@ -50,7 +50,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
 
   TitusServerGroup() {}
 
-  TitusServerGroup(Job job) {
+  TitusServerGroup(Job job, String account, String region) {
     id = job.id
     name = job.name
     image << [dockerImageName: job.applicationName]
@@ -65,8 +65,8 @@ class TitusServerGroup implements ServerGroup, Serializable {
     env = job.environment
     submittedAt = job.submittedAt ? job.submittedAt.time : null
     application = Names.parseName(job.name).app
-    placement.account = job.environment.account
-    placement.region = job.tasks.findResult { it.region }
+    placement.account = account
+    placement.region = region
     instances = job.tasks.findAll { it != null }.collect { new TitusInstance(job, it) } as Set
     capacity = new ServerGroup.Capacity(min: job.instancesMin, max: job.instancesMax, desired: job.instancesDesired)
     //TODO(cfieber) - more of the 'disable is stop all the tasks' nonsense here:

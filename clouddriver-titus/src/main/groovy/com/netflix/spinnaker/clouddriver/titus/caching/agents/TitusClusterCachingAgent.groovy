@@ -252,6 +252,8 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
       attributes.job = objectMapper.convertValue(data.job, Job.class)
       attributes.name = data.job.name
       attributes.tasks = data.job.tasks
+      attributes.region = region
+      attributes.account = account.name
       relationships[APPLICATIONS.ns].add(data.appName)
       relationships[CLUSTERS.ns].add(data.cluster)
       relationships[INSTANCES.ns].addAll(data.instanceIds)
@@ -273,12 +275,16 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
     final String cluster
     final String serverGroup
     final Set<String> instanceIds
+    final String region
+    final String account
 
     public ServerGroupData(Job job, String account, String region) {
       this.job = job
       name = Names.parseName(job.name)
       appName = Keys.getApplicationKey(name.app)
       cluster = Keys.getClusterKey(name.cluster, name.app, account)
+      region = region
+      account = account
       serverGroup = Keys.getServerGroupKey(job.name, account, region)
       instanceIds = (job.tasks.id.collect { Keys.getInstanceKey(it) } as Set).asImmutable()
     }
