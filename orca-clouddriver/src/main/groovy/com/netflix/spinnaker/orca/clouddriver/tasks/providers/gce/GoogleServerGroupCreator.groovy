@@ -69,7 +69,7 @@ class GoogleServerGroupCreator implements ServerGroupCreator {
     }
 
     if (!operation.image) {
-      throw new IllegalStateException("No image could be found in ${stage.context.zone}.")
+      throw new IllegalStateException("No image could be found in ${stage.context.region}.")
     }
 
     return [[(ServerGroupCreator.OPERATION): operation]]

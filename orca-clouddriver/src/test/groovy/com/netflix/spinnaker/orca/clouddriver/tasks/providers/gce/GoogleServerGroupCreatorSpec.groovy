@@ -26,6 +26,7 @@ class GoogleServerGroupCreatorSpec extends Specification {
     given:
       def ctx = [
           account          : "abc",
+          region           : "north-pole",
           zone             : "north-pole-1",
           deploymentDetails: [[imageId: "testImageId", zone: "north-pole-1"]],
       ]
@@ -41,6 +42,7 @@ class GoogleServerGroupCreatorSpec extends Specification {
                   account          : "abc",
                   credentials      : "abc",
                   image            : "testImageId",
+                  region           : "north-pole",
                   zone             : "north-pole-1",
                   deploymentDetails: [[imageId: "testImageId", zone: "north-pole-1"]],
               ],
@@ -59,6 +61,7 @@ class GoogleServerGroupCreatorSpec extends Specification {
                   account          : "abc",
                   credentials      : "abc",
                   image            : "testImageId",
+                  region           : "north-pole",
                   zone             : "south-pole-1",
                   deploymentDetails: [[imageId: "testImageId", zone: "north-pole-1"]],
               ],
@@ -69,7 +72,7 @@ class GoogleServerGroupCreatorSpec extends Specification {
       ctx.deploymentDetails = [[imageId: "testImageId-1", zone: "east-pole-1"],
                                [imageId: "testImageId-2", zone: "west-pole-1"]]
       stage = new PipelineStage(new Pipeline(), "whatever", ctx)
-      ops = new GoogleServerGroupCreator().getOperations(stage)
+      new GoogleServerGroupCreator().getOperations(stage)
 
     then:
       IllegalStateException ise = thrown()
@@ -78,10 +81,10 @@ class GoogleServerGroupCreatorSpec extends Specification {
     when: "throw error if no image found"
       ctx.deploymentDetails = []
       stage = new PipelineStage(new Pipeline(), "whatever", ctx)
-      ops = new GoogleServerGroupCreator().getOperations(stage)
+      new GoogleServerGroupCreator().getOperations(stage)
 
     then:
       ise = thrown()
-      ise.message == "No image could be found in south-pole-1."
+      ise.message == "No image could be found in north-pole."
   }
 }
