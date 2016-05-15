@@ -57,7 +57,7 @@ class PipelineService {
   }
 
   Map trigger(String application, String pipelineName, Map trigger) {
-    def pipelineConfig = applicationService.getPipelineConfig(application, pipelineName)
+    def pipelineConfig = applicationService.getPipelineConfigForApplication(application, pipelineName)
     if (!pipelineConfig) {
       throw new PipelineConfigNotFoundException()
     }

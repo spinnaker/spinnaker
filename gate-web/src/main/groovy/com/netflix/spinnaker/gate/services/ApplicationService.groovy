@@ -62,7 +62,6 @@ class ApplicationService {
   ExecutorService executorService
 
   private AtomicReference<List<Map>> allApplicationsCache = new AtomicReference<>([])
-  private AtomicReference<List<String>> globalAccountsCache = new AtomicReference<>([])
 
   @PostConstruct
   void startMonitoring() {
@@ -100,7 +99,7 @@ class ApplicationService {
     } as List<Map>
   }
 
-  List<Map> getAll() {
+  List<Map> getAllApplications() {
     try {
       def applicationsByName = allApplicationsCache.get().groupBy { it.name }
       return tick(false).collect { Map application ->
@@ -115,7 +114,7 @@ class ApplicationService {
     return allApplicationsCache.get()
   }
 
-  Map get(String name) {
+  Map getApplication(String name) {
     def applicationRetrievers = buildApplicationRetrievers(name)
     def futures = executorService.invokeAll(applicationRetrievers)
     List<Map> applications = (List<Map>) futures.collect { it.get() }
@@ -124,31 +123,26 @@ class ApplicationService {
     return mergedApps ? mergedApps[0] : null
   }
 
-  List<Map> getPipelineConfigs(String app) {
-    if (!front50Service) {
-      return []
-    }
+  List<Map> getApplicationHistory(String name, int maxResults) {
+    return HystrixFactory.newListCommand(GROUP, "getApplicationHistory") {
+      front50Service.getApplicationHistory(name, maxResults)
+    }.execute()
+  }
 
+  List<Map> getPipelineConfigsForApplication(String app) {
     HystrixFactory.newListCommand(GROUP, "getPipelineConfigsForApplication") {
-      front50Service.getPipelineConfigs(app)
+      front50Service.getPipelineConfigsForApplication(app)
     } execute()
   }
 
-  Map getPipelineConfig(String app, String pipelineName) {
-    if (!front50Service) {
-      return null
-    }
-    HystrixFactory.newMapCommand(GROUP, "getPipelineConfigForApplicationAndPipeline") {
-      front50Service.getPipelineConfigs(app).find { it.name == pipelineName }
+  Map getPipelineConfigForApplication(String app, String pipelineName) {
+    HystrixFactory.newMapCommand(GROUP, "getPipelineConfig") {
+      front50Service.getPipelineConfigsForApplication(app).find { it.name == pipelineName }
     } execute()
   }
 
-  List<Map> getStrategyConfigs(String app) {
-    if (!front50Service) {
-      return []
-    }
-
-    HystrixFactory.newListCommand(GROUP, "getStrategyConfigForApplication") {
+  List<Map> getStrategyConfigsForApplication(String app) {
+    HystrixFactory.newListCommand(GROUP, "getStrategyConfigsForApplication") {
       front50Service.getStrategyConfigs(app)
     } execute()
   }
@@ -159,38 +153,16 @@ class ApplicationService {
       allApplicationsCache,
       expandClusterNames
     )
-    def globalAccounts = fetchGlobalAccounts()
 
-    if (globalAccounts) {
-      return globalAccounts.collectMany { String globalAccount ->
-        [new ApplicationListRetriever(globalAccount, front50Service, allApplicationsCache), clouddriverApplicationsRetriever]
-      } as Collection<Callable<List<Map>>>
-    }
-
-    return [clouddriverApplicationsRetriever]
+    return [new ApplicationListRetriever(front50Service, allApplicationsCache), clouddriverApplicationsRetriever]
   }
 
   private Collection<Callable<Map>> buildApplicationRetrievers(String applicationName) {
     def clouddriverApplicationRetriever = new ClouddriverApplicationRetriever(applicationName, clouddriverService)
-    def globalAccounts = fetchGlobalAccounts()
-
-    if (globalAccounts) {
-      return globalAccounts.collectMany { String globalAccount ->
-        [
-          new Front50ApplicationRetriever(globalAccount, applicationName, front50Service, allApplicationsCache),
-          clouddriverApplicationRetriever
-        ]
-      } as Collection<Callable<Map>>
-    }
-
-    return [clouddriverApplicationRetriever]
-  }
-
-  private Collection<String> fetchGlobalAccounts() {
-    HystrixFactory.newListCommand(GROUP, "fetchGlobalAccounts", {
-      globalAccountsCache.set(front50Service.credentials.findAll { it.global == true }.collect { it.name } as List<String>)
-      return globalAccountsCache.get()
-    }, { globalAccountsCache.get() }).execute()
+    return [
+      new Front50ApplicationRetriever(applicationName, front50Service, allApplicationsCache),
+      clouddriverApplicationRetriever
+    ]
   }
 
   @CompileDynamic
@@ -263,13 +235,11 @@ class ApplicationService {
   }
 
   static class ApplicationListRetriever implements Callable<List<Map>> {
-    private final String account
     private final Front50Service front50
     private final AtomicReference<List<Map>> allApplicationsCache
     private final Object principal
 
-    ApplicationListRetriever(String account, Front50Service front50, AtomicReference<List<Map>> allApplicationsCache) {
-      this.account = account
+    ApplicationListRetriever(Front50Service front50, AtomicReference<List<Map>> allApplicationsCache) {
       this.front50 = front50
       this.allApplicationsCache = allApplicationsCache
       this.principal = SecurityContextHolder.context?.authentication?.principal
@@ -280,13 +250,7 @@ class ApplicationService {
       HystrixFactory.newListCommand(GROUP, "getApplicationsFromFront50", {
         AuthenticatedRequest.propagate({
           try {
-            def apps = front50.getAll(account)
-            return apps.collect {
-              if (!it.accounts) {
-                it.accounts = account
-              }
-              it
-            }
+            return front50.getAllApplications()
           } catch (RetrofitError e) {
             if (e.response?.status == 404) {
               return []
@@ -302,17 +266,14 @@ class ApplicationService {
   }
 
   static class Front50ApplicationRetriever implements Callable<Map> {
-    private final String account
     private final String name
     private final Front50Service front50
     private final AtomicReference<List<Map>> allApplicationsCache
     private final Object principal
 
-    Front50ApplicationRetriever(String account,
-                                String name,
+    Front50ApplicationRetriever(String name,
                                 Front50Service front50,
                                 AtomicReference<List<Map>> allApplicationsCache) {
-      this.account = account
       this.name = name
       this.front50 = front50
       this.allApplicationsCache = allApplicationsCache
@@ -324,10 +285,7 @@ class ApplicationService {
       HystrixFactory.newMapCommand(GROUP, "getApplicationFromFront50", {
         AuthenticatedRequest.propagate({
           try {
-            def metadata = front50.getMetaData(account, name)
-            if (metadata && !metadata.accounts) {
-              metadata.accounts = account
-            }
+            def metadata = front50.getApplication(name)
             metadata ?: [:]
           } catch (ConversionException ignored) {
             return [:]
