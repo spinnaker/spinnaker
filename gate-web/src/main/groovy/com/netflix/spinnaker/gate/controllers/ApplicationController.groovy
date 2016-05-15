@@ -52,21 +52,27 @@ class ApplicationController {
   Environment environment
 
   @RequestMapping(method = RequestMethod.GET)
-  List<Map> all() {
-    applicationService.all
+  List<Map> getAllApplications() {
+    applicationService.getAllApplications()
   }
 
   @RequestMapping(value = "/{application:.+}", method = RequestMethod.GET)
-  Map show(@PathVariable("application") String application) {
-    def result = applicationService.get(application)
+  Map getApplication(@PathVariable("application") String application) {
+    def result = applicationService.getApplication(application)
     if (!result) {
       log.warn("Application ${application} not found")
       throw new ApplicationNotFoundException("Application ${application} not found")
     } else if (!result.name) {
-      // applicationService.get() doesn't set the name unless clusters are found. Deck requires the name.
+      // applicationService.getApplication() doesn't set the name unless clusters are found. Deck requires the name.
       result.name = application
     }
     result
+  }
+
+  @RequestMapping(value = "/{application}/history", method = RequestMethod.GET)
+  List<Map> getApplicationHistory(@PathVariable("application") String application,
+                                  @RequestParam(value = "limit", defaultValue = "20") int limit) {
+    return applicationService.getApplicationHistory(application, limit)
   }
 
   @RequestMapping(value = "/{application}/tasks", method = RequestMethod.GET)
@@ -86,7 +92,7 @@ class ApplicationController {
   }
 
   /**
-   * @deprecated  There is no reason to provide an app name, use PipelineController instead for pipeline operations.
+   * @deprecated There is no reason to provide an app name, use PipelineController instead for pipeline operations.
    */
   @Deprecated
   @RequestMapping(value = "/{application}/pipelines/{id}/cancel", method = RequestMethod.PUT)
@@ -95,33 +101,33 @@ class ApplicationController {
   }
 
   @RequestMapping(value = "/{application}/pipelineConfigs", method = RequestMethod.GET)
-  List getPipelineConfigs(@PathVariable("application") String application) {
-    applicationService.getPipelineConfigs(application)
+  List getPipelineConfigsForApplication(@PathVariable("application") String application) {
+    applicationService.getPipelineConfigsForApplication(application)
   }
 
   @RequestMapping(value = "/{application}/pipelineConfigs/{pipelineName:.+}", method = RequestMethod.GET)
   Map getPipelineConfig(
-      @PathVariable("application") String application, @PathVariable("pipelineName") String pipelineName) {
-    applicationService.getPipelineConfigs(application).find {
+    @PathVariable("application") String application, @PathVariable("pipelineName") String pipelineName) {
+    applicationService.getPipelineConfigsForApplication(application).find {
       it.name == pipelineName
     }
   }
 
   @RequestMapping(value = "/{application}/strategyConfigs", method = RequestMethod.GET)
-  List getStrategyConfigs(@PathVariable("application") String application) {
-    applicationService.getStrategyConfigs(application)
+  List getStrategyConfigsForApplication(@PathVariable("application") String application) {
+    applicationService.getStrategyConfigsForApplication(application)
   }
 
-  @RequestMapping(value = "/{application}/strategyConfigs/{strategyName:.+}", method = RequestMethod.GET)
-  Map getStrategyConfig(
-    @PathVariable("application") String application, @PathVariable("strategyName") String strategyName) {
-    applicationService.getStrategyConfigs(application).find {
+  @RequestMapping(value = "/{application}/strategyConfigs/{strategyName}", method = RequestMethod.GET)
+  Map getStrategyConfig(@PathVariable("application") String application,
+                        @PathVariable("strategyName") String strategyName) {
+    applicationService.getStrategyConfigsForApplication(application).find {
       it.name == strategyName
     }
   }
 
   /**
-   * @deprecated  Use PipelineController instead for pipeline operations.
+   * @deprecated Use PipelineController instead for pipeline operations.
    */
   @Deprecated
   @RequestMapping(value = "/{application}/pipelineConfigs/{pipelineName:.+}", method = RequestMethod.POST)
@@ -133,7 +139,7 @@ class ApplicationController {
   }
 
   /**
-   * @deprecated  There is no reason to provide an app name, use TaskController instead for task operations.
+   * @deprecated There is no reason to provide an app name, use TaskController instead for task operations.
    */
   @Deprecated
   @RequestMapping(value = "/{application}/tasks/{id}", method = RequestMethod.GET)
@@ -142,7 +148,7 @@ class ApplicationController {
   }
 
   /**
-   * @deprecated  There is no reason to provide an app name, use TaskController instead for task operations.
+   * @deprecated There is no reason to provide an app name, use TaskController instead for task operations.
    */
   @Deprecated
   @RequestMapping(value = "/{application}/tasks/{id}/cancel", method = RequestMethod.PUT)
@@ -151,7 +157,7 @@ class ApplicationController {
   }
 
   /**
-   * @deprecated  There is no reason to provide an app name, use TaskController instead for task operations.
+   * @deprecated There is no reason to provide an app name, use TaskController instead for task operations.
    */
   @Deprecated
   @RequestMapping(value = "/{application}/tasks/{id}/details/{taskDetailsId}", method = RequestMethod.GET)
@@ -160,7 +166,7 @@ class ApplicationController {
   }
 
   /**
-   * @deprecated  There is no reason to provide an app name, use TaskController instead for task operations.
+   * @deprecated There is no reason to provide an app name, use TaskController instead for task operations.
    */
   @Deprecated
   @RequestMapping(value = "/{application}/tasks", method = RequestMethod.POST)

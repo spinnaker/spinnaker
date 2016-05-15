@@ -25,23 +25,26 @@ interface Front50Service {
   @GET("/credentials")
   List<Map> getCredentials()
 
+  //
+  // Application-related
+  //
   @GET('/{account}/applications')
-  List<Map> getAll(@Path("account") String account)
+  List<Map> getAllApplications(@Path("account") String account)
 
   @GET('/{account}/applications/name/{name}')
-  Map getMetaData(@Path('account') String account, @Path('name') String name)
+  Map getApplication(@Path('account') String account, @Path('name') String name)
 
-  @DELETE('/{account}/applications/name/{name}')
-  Map delete(@Path('account') String account, @Path('name') String name)
+  @GET('/global/applications/{applicationName}/history')
+  List<Map> getApplicationHistory(@Path("applicationName") String applicationName, @Query("limit") int limit)
 
-  @POST('/{account}/applications/name/{name}')
-  Map create(@Path('account') String account, @Path('name') String name, @Body Map<String, String> app)
+  //
+  // Pipeline-related
+  //
+  @GET('/pipelines')
+  List<Map> getAllPipelineConfigs()
 
   @GET('/pipelines/{app}')
-  List<Map> getPipelineConfigs(@Path("app") String app)
-
-  @GET('/pipelines/{app}/{name}')
-  Map getPipelineConfig(@Path("app") String app, @Path("name") String name)
+  List<Map> getPipelineConfigsForApplication(@Path("app") String app)
 
   @DELETE('/pipelines/{app}/{name}')
   Response deletePipelineConfig(@Path("app") String app, @Path("name") String name)
@@ -52,14 +55,14 @@ interface Front50Service {
   @POST('/pipelines/move')
   Response movePipelineConfig(@Body Map moveCommand)
 
-  @GET('/notifications/{type}/{app}')
-  Map getNotificationConfigs(@Path('type') String type, @Path('app') String app)
+  @GET('/pipelines/{pipelineConfigId}/history')
+  List<Map> getPipelineConfigHistory(@Path("pipelineConfigId") pipelineConfigId, @Query("limit") int limit)
 
-  @DELETE('/notifications/{type}/{app}')
-  Response deleteNotificationConfig(@Path('type') String type, @Path('app') String app)
-
-  @POST('/notifications/{type}/{app}')
-  Response saveNotificationConfig(@Path('type') String type, @Path('app') String app, @Body Map notificationConfig)
+  //
+  // Pipeline Strategy-related
+  //
+  @GET('/strategies')
+  List<Map> getAllStrategyConfigs()
 
   @GET('/strategies/{app}')
   List<Map> getStrategyConfigs(@Path("app") String app)
@@ -73,6 +76,25 @@ interface Front50Service {
   @POST('/strategies/move')
   Response moveStrategyConfig(@Body Map moveCommand)
 
+  @GET('/strategies/{strategyConfigId}/history')
+  List<Map> getStrategyConfigHistory(@Path("strategyConfigId") strategyConfigId,
+                                     @Query("limit") int limit)
+
+  //
+  // Notification-related
+  //
+  @GET('/notifications/{type}/{app}')
+  Map getNotificationConfigs(@Path('type') String type, @Path('app') String app)
+
+  @DELETE('/notifications/{type}/{app}')
+  Response deleteNotificationConfig(@Path('type') String type, @Path('app') String app)
+
+  @POST('/notifications/{type}/{app}')
+  Response saveNotificationConfig(@Path('type') String type, @Path('app') String app, @Body Map notificationConfig)
+
+  //
+  // Project-related
+  //
   @GET('/v2/projects')
   HalList getAllProjects()
 

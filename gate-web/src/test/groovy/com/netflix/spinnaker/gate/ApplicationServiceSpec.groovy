@@ -48,12 +48,12 @@ class ApplicationServiceSpec extends Specification {
     def front50App = [name: name, email: email, owner: owner]
 
     when:
-    def app = service.get(name)
+    def app = service.getApplication(name)
 
     then:
     1 * front50.credentials >> [[name: account, global: true]]
     1 * clouddriver.getApplication(name) >> clouddriverApp
-    1 * front50.getMetaData(account, name) >> front50App
+    1 * front50.getApplication(account, name) >> front50App
 
     app == [name: name, attributes: (clouddriverApp.attributes + front50App), clusters: clouddriverApp.clusters]
 
@@ -85,12 +85,12 @@ class ApplicationServiceSpec extends Specification {
     def front50App = [name: name, email: email, owner: owner]
 
     when:
-    def app = service.get(name)
+    def app = service.getApplication(name)
 
     then:
     1 * front50.credentials >> [[name: front50Account, global: true]]
     1 * clouddriver.getApplication(name) >> clouddriverApp
-    1 * front50.getMetaData(front50Account, name) >> front50App
+    1 * front50.getApplication(front50Account, name) >> front50App
 
     app == [name: name, attributes: (clouddriverApp.attributes + front50App + [accounts: [clouddriverAccount, front50Account].toSet().sort().join(',')]), clusters: clouddriverApp.clusters]
 
@@ -120,12 +120,12 @@ class ApplicationServiceSpec extends Specification {
     service.executorService = Executors.newFixedThreadPool(1)
 
     when:
-    def app = service.get(name)
+    def app = service.getApplication(name)
 
     then:
     1 * front50.credentials >> [[name: account, global: true]]
     1 * clouddriver.getApplication(name) >> null
-    1 * front50.getMetaData(account, name) >> [name: name, foo: 'bar']
+    1 * front50.getApplication(account, name) >> [name: name, foo: 'bar']
 
     (app == null) == expectedNull
 
@@ -158,12 +158,12 @@ class ApplicationServiceSpec extends Specification {
     service.executorService = Executors.newFixedThreadPool(1)
 
     when:
-    def app = service.get(name)
+    def app = service.getApplication(name)
 
     then:
     1 * front50.credentials >> [[name: account, global: true]]
     1 * clouddriver.getApplication(name) >> null
-    1 * front50.getMetaData(account, name) >> null
+    1 * front50.getApplication(account, name) >> null
 
     app == null
 
@@ -227,11 +227,11 @@ class ApplicationServiceSpec extends Specification {
     def front50App = [name: name.toLowerCase(), email: email]
 
     when:
-    def apps = service.getAll()
+    def apps = service.getAllApplications()
 
     then:
     1 * clouddriver.getApplications(false) >> [clouddriverApp]
-    1 * front50.getAll(account) >> [front50App] >> { throw new SocketTimeoutException() }
+    1 * front50.getAllApplications(account) >> [front50App] >> { throw new SocketTimeoutException() }
     1 * front50.credentials >> [globalAccount]
 
     1 == apps.size()
@@ -241,12 +241,12 @@ class ApplicationServiceSpec extends Specification {
     apps[0].clusters == null
 
     when: "should return last known good values if an exception is thrown"
-    def allApps = service.getAll()
-    def singleApp = service.get(name)
+    def allApps = service.getAllApplications()
+    def singleApp = service.getApplication(name)
 
     then:
-    1 * front50.getMetaData(account, name) >> { throw new SocketTimeoutException() }
-    1 * front50.getAll(account) >> { throw new SocketTimeoutException() }
+    1 * front50.getApplication(account, name) >> { throw new SocketTimeoutException() }
+    1 * front50.getAllApplications(account) >> { throw new SocketTimeoutException() }
     2 * front50.credentials >> [globalAccount]
 
     1 == allApps.size()

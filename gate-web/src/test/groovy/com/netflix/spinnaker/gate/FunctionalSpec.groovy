@@ -100,7 +100,7 @@ class FunctionalSpec extends Specification {
       api.applications
 
     then:
-      1 * applicationService.getAll() >> []
+      1 * applicationService.getAllApplications() >> []
   }
 
   void "should call ApplicationService for a single application"() {
@@ -108,7 +108,7 @@ class FunctionalSpec extends Specification {
       api.getApplication(name)
 
     then:
-      1 * applicationService.get(name) >> [name: name]
+      1 * applicationService.getApplication(name) >> [name: name]
 
     where:
       name = "foo"
@@ -119,7 +119,7 @@ class FunctionalSpec extends Specification {
       api.getApplication(name)
 
     then:
-      1 * applicationService.get(name) >> null
+      1 * applicationService.getApplication(name) >> null
 
       RetrofitError exception = thrown()
       exception.response.status == 404

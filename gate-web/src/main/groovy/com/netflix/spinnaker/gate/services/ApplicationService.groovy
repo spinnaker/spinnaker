@@ -100,7 +100,7 @@ class ApplicationService {
     } as List<Map>
   }
 
-  List<Map> getAll() {
+  List<Map> getAllApplications() {
     try {
       def applicationsByName = allApplicationsCache.get().groupBy { it.name }
       return tick(false).collect { Map application ->
@@ -115,7 +115,7 @@ class ApplicationService {
     return allApplicationsCache.get()
   }
 
-  Map get(String name) {
+  Map getApplication(String name) {
     def applicationRetrievers = buildApplicationRetrievers(name)
     def futures = executorService.invokeAll(applicationRetrievers)
     List<Map> applications = (List<Map>) futures.collect { it.get() }
@@ -124,31 +124,26 @@ class ApplicationService {
     return mergedApps ? mergedApps[0] : null
   }
 
-  List<Map> getPipelineConfigs(String app) {
-    if (!front50Service) {
-      return []
-    }
+  List<Map> getApplicationHistory(String name, int maxResults) {
+    return HystrixFactory.newListCommand(GROUP, "getApplicationHistory") {
+      front50Service.getApplicationHistory(name, maxResults)
+    }.execute()
+  }
 
+  List<Map> getPipelineConfigsForApplication(String app) {
     HystrixFactory.newListCommand(GROUP, "getPipelineConfigsForApplication") {
-      front50Service.getPipelineConfigs(app)
+      front50Service.getPipelineConfigsForApplication(app)
     } execute()
   }
 
-  Map getPipelineConfig(String app, String pipelineName) {
-    if (!front50Service) {
-      return null
-    }
-    HystrixFactory.newMapCommand(GROUP, "getPipelineConfigForApplicationAndPipeline") {
-      front50Service.getPipelineConfigs(app).find { it.name == pipelineName }
+  Map getPipelineConfigForApplication(String app, String pipelineName) {
+    HystrixFactory.newMapCommand(GROUP, "getPipelineConfig") {
+      front50Service.getPipelineConfigsForApplication(app).find { it.name == pipelineName }
     } execute()
   }
 
-  List<Map> getStrategyConfigs(String app) {
-    if (!front50Service) {
-      return []
-    }
-
-    HystrixFactory.newListCommand(GROUP, "getStrategyConfigForApplication") {
+  List<Map> getStrategyConfigsForApplication(String app) {
+    HystrixFactory.newListCommand(GROUP, "getStrategyConfigsForApplication") {
       front50Service.getStrategyConfigs(app)
     } execute()
   }
@@ -280,7 +275,7 @@ class ApplicationService {
       HystrixFactory.newListCommand(GROUP, "getApplicationsFromFront50", {
         AuthenticatedRequest.propagate({
           try {
-            def apps = front50.getAll(account)
+            def apps = front50.getAllApplications(account)
             return apps.collect {
               if (!it.accounts) {
                 it.accounts = account
@@ -324,7 +319,7 @@ class ApplicationService {
       HystrixFactory.newMapCommand(GROUP, "getApplicationFromFront50", {
         AuthenticatedRequest.propagate({
           try {
-            def metadata = front50.getMetaData(account, name)
+            def metadata = front50.getApplication(account, name)
             if (metadata && !metadata.accounts) {
               metadata.accounts = account
             }
