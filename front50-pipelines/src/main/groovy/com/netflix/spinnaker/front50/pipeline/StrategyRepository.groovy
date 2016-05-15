@@ -156,7 +156,7 @@ class StrategyRepository implements PipelineStrategyDAO {
     }
 
     @Override
-    Collection<Pipeline> getPipelineHistory(String id, int maxResults) {
+    Collection<Pipeline> getPipelineHistory(String id, int limit) {
         return [findById(id)]
     }
 

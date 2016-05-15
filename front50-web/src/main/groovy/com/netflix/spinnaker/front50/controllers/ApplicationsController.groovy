@@ -102,8 +102,8 @@ public class ApplicationsController {
 
   @RequestMapping(value = '{application:.+}/history', method = RequestMethod.GET)
   Collection<Application> getHistory(@PathVariable String application,
-                                     @RequestParam(value = "maxResults", defaultValue = "20") int maxResults) {
-    return applicationDAO.getApplicationHistory(application, maxResults)
+                                     @RequestParam(value = "limit", defaultValue = "20") int limit) {
+    return applicationDAO.getApplicationHistory(application, limit)
   }
 
   @RequestMapping(method = RequestMethod.POST, value = "/batchUpdate")
