@@ -28,13 +28,13 @@ interface Front50Service {
   //
   // Application-related
   //
-  @GET('/{account}/applications')
-  List<Map> getAllApplications(@Path("account") String account)
+  @GET('/default/applications')
+  List<Map> getAllApplications()
 
-  @GET('/{account}/applications/name/{name}')
-  Map getApplication(@Path('account') String account, @Path('name') String name)
+  @GET('/default/applications/name/{name}')
+  Map getApplication(@Path('name') String name)
 
-  @GET('/global/applications/{applicationName}/history')
+  @GET('/default/applications/{applicationName}/history')
   List<Map> getApplicationHistory(@Path("applicationName") String applicationName, @Query("limit") int limit)
 
   //
