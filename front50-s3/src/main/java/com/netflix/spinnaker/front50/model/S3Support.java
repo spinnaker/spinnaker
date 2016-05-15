@@ -113,9 +113,9 @@ public abstract class S3Support<T extends Timestamped> {
     }
   }
 
-  public Collection<T> allVersionsOf(String id, int maxResults) throws NotFoundException {
+  public Collection<T> allVersionsOf(String id, int limit) throws NotFoundException {
     try {
-      VersionListing versionListing = amazonS3.listVersions(new ListVersionsRequest(bucket, buildS3Key(id), null, null, null, maxResults));
+      VersionListing versionListing = amazonS3.listVersions(new ListVersionsRequest(bucket, buildS3Key(id), null, null, null, limit));
       return versionListing.getVersionSummaries().stream().map(s3VersionSummary -> {
         try {
           S3Object s3Object = amazonS3.getObject(

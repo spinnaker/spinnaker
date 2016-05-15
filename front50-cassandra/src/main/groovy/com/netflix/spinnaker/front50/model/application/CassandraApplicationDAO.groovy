@@ -153,7 +153,7 @@ class CassandraApplicationDAO implements ApplicationDAO {
   }
 
   @Override
-  Collection<Application> getApplicationHistory(String name, int maxResults) {
+  Collection<Application> getApplicationHistory(String name, int limit) {
     return [findByName(name)]
   }
 

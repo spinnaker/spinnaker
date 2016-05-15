@@ -51,8 +51,8 @@ class PipelineController {
 
     @RequestMapping(value = '{id:.+}/history', method = RequestMethod.GET)
     Collection<Pipeline> getHistory(@PathVariable String id,
-                                    @RequestParam(value = "maxResults", defaultValue = "20") int maxResults) {
-        return pipelineDAO.getPipelineHistory(id, maxResults)
+                                    @RequestParam(value = "limit", defaultValue = "20") int limit) {
+        return pipelineDAO.getPipelineHistory(id, limit)
     }
 
     @RequestMapping(value = '', method = RequestMethod.POST)
