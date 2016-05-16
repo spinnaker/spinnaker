@@ -167,6 +167,7 @@ services:
     connection: redis://${services.redis.host}:${services.redis.port}
 
   cassandra:
+    enabled: true
     host: ${services.default.host}
     port: 9042
     embedded: false

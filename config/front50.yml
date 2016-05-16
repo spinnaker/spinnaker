@@ -3,6 +3,7 @@ server:
   address: ${services.front50.host:localhost}
 
 cassandra:
+  enabled: ${services.cassandra.enabled:true}
   embedded: ${services.cassandra.embedded:false}
   host: ${services.cassandra.host:localhost}
 
