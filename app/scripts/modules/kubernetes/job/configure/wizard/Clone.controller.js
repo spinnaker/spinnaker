@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.job.configure.kubernetes.clone', [
                                                        kubernetesServerGroupConfigurationService,
                                                        jobCommand, application, title) {
     $scope.pages = {
-      templateSelection: require('../../../serverGroup/configure/wizard/templateSelection.html'),
+      templateSelection: require('./templateSelection.html'),
       basicSettings: require('../../../serverGroup/configure/wizard/basicSettings.html'),
       loadBalancers: require('../../../serverGroup/configure/wizard/loadBalancers.html'),
       completion: require('./completion.html'),

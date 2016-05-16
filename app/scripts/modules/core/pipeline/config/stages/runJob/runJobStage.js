@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.runJobStage', [
       label: 'Run Job',
       description: 'Runs the previously baked or found image',
       strategyDescription: 'Runs the image specified',
-      key: 'runJob',
+      key: 'runJobs',
       templateUrl: require('./runJobStage.html'),
       executionDetailsUrl: require('./runJobExecutionDetails.html'),
       controller: 'RunJobStageCtrl',
@@ -89,6 +89,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.runJobStage', [
 
     this.editCluster = function(cluster, index) {
       cluster.provider = cluster.cloudProvider || cluster.providerType || 'kubernetes';
+      $scope.stage.cloudProvider = cluster.provider;
       let providerConfig = cloudProviderRegistry.getProvider(cluster.provider);
       return $uibModal.open({
         templateUrl: providerConfig.job.cloneJobTemplateUrl,

@@ -29,11 +29,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.runJob.details.co
         function addRunArtifacts(key) {
           var runArtifacts = _.find(resultObjects, key);
           if (runArtifacts) {
-            _.forEach(runArtifacts[key], function (jobName, region) {
+            _.forEach(runArtifacts[key], function (jobs, region) {
               var result = {
                 type: 'jobs',
-                application: context.application,
-                job: jobName,
+                application: context.cluster.application,
+                job: jobs[0],
                 account: context.account,
                 region: region,
                 provider: context.providerType || context.cloudProvider || 'kubernetes'
@@ -48,7 +48,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.runJob.details.co
           var resultObjects = context['kato.tasks'][0].resultObjects;
           if (resultObjects && resultObjects.length) {
             results = [];
-            addRunArtifacts('jobNameByRegion');
+            addRunArtifacts('deployedNamesByLocation');
           }
         }
         $scope.run = results;

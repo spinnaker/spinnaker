@@ -83,6 +83,7 @@ module.exports = angular.module('spinnaker.kubernetes', [
         configurationService: 'kubernetesServerGroupConfigurationService',
       },
       job: {
+        skipUpstreamStageCheck: true,
         cloneJobController: 'kubernetesCloneJobController',
         cloneJobTemplateUrl: require('./job/configure/wizard/wizard.html'),
         commandBuilder: 'kubernetesJobCommandBuilder',

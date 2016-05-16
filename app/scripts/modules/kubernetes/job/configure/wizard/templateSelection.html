@@ -1,4 +1,4 @@
-<div modal-page ng-controller="kubernetesServerGroupTemplateSelectionController as templateSelection">
+<div modal-page ng-controller="kubernetesJobTemplateSelectionController as templateSelection">
   <modal-close></modal-close>
   <div ng-if="state.loaded">
     <div class="modal-header">
@@ -18,16 +18,16 @@
               <ui-select-match placeholder="Select...">
               <span ng-if="!$select.selected.label">
                 <account-tag account="$select.selected.account"></account-tag>
-                <span ng-if="$select.selected.serverGroup">{{$select.selected.serverGroupName}}</span>
+                <span ng-if="$select.selected.job">{{$select.selected.jobName}}</span>
                 ({{$select.selected.region}})
               </span>
                 <span ng-if="$select.selected.label">{{$select.selected.label}}</span>
               </ui-select-match>
-              <ui-select-choices repeat="template in templates | anyFieldFilter: {label: $select.search, serverGroupName: $select.search}">
+              <ui-select-choices repeat="template in templates | anyFieldFilter: {label: $select.search, jobName: $select.search}">
                 <h5 ng-if="!template.label"><account-tag account="template.account"></account-tag> {{template.cluster}} ({{template.region}})</h5>
                 <h5 ng-if="template.label">{{template.label}}</h5>
-                <div ng-if="template.serverGroup">
-                  <b>Most recent server group: </b> {{template.serverGroupName}}
+                <div ng-if="template.job">
+                  <b>Most recent job: </b> {{template.jobName}}
                 </div>
               </ui-select-choices>
             </ui-select>
@@ -36,9 +36,9 @@
         <div class="form-group" ng-if="command.viewState.customTemplateMessage">
           <p class="col-md-10 col-md-offset-1" ng-bind-html="command.viewState.customTemplateMessage"></p>
         </div>
-        <div class="form-group" ng-if="command.viewState.template.serverGroup" style="margin-top: 20px">
+        <div class="form-group" ng-if="command.viewState.template.job" style="margin-top: 20px">
           <div class="col-md-10 col-md-offset-1 well">
-            These fields <strong>will be</strong> copied over from the most recent server group:
+            These fields <strong>will be</strong> copied over from the most recent job:
             <ul>
               <li>account, namespace, cluster name (stack, details)</li>
               <li>load balancers</li>
@@ -47,7 +47,7 @@
             </ul>
             These fields <strong>will NOT</strong> be copied over, and will be reset to defaults:
             <ul>
-              <li ng-if="!command.viewState.disableStrategySelection">the deployment strategy (if any) used to deploy the most recent server group</li>
+              <li ng-if="!command.viewState.disableStrategySelection">the deployment strategy (if any) used to deploy the most recent job</li>
             </ul>
           </div>
         </div>
@@ -56,8 +56,8 @@
     <div class="modal-footer">
       <button class="btn btn-primary"
               ng-click="templateSelection.useTemplate()">
-        <span ng-if="command.viewState.template.serverGroup">Use this template</span>
-        <span ng-if="!command.viewState.template.serverGroup">Continue without a template</span>
+        <span ng-if="command.viewState.template.job">Use this template</span>
+        <span ng-if="!command.viewState.template.job">Continue without a template</span>
         <span class="glyphicon glyphicon-chevron-right"></span>
       </button>
     </div>

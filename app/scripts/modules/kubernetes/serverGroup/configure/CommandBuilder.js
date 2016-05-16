@@ -18,104 +18,12 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
       return $q.when(command);
     }
 
-    function reconcileUpstreamImages(containers, upstreamImages) {
-      let result = [];
-      containers.forEach((container) => {
-        if (container.imageDescription.fromContext) {
-          let [matchingImage] = upstreamImages.filter((image) => container.imageDescription.stageId == image.stageId);
-          if (matchingImage) {
-            container.imageDescription.cluster = matchingImage.cluster;
-            container.imageDescription.pattern = matchingImage.pattern;
-            container.imageDescription.repository = matchingImage.repository;
-            result.push(container);
-          }
-        } else if (container.imageDescription.fromTrigger) {
-          let [matchingImage] = upstreamImages.filter((image) => {
-            return container.imageDescription.registry === image.registry
-              && container.imageDescription.repository === image.repository
-              && container.imageDescription.tag === image.tag;
-          });
-          if (matchingImage) {
-            result.push(container);
-          }
-        } else {
-          result.push(container);
-        }
-      });
-      return result;
-    }
-
-    function findUpstreamImages(current, all, visited = {}) {
-      // This actually indicates a loop in the stage dependencies.
-      if (visited[current.refId]) {
-        return [];
-      } else {
-        visited[current.refId] = true;
-      }
-      let result = [];
-      if (current.type === 'findImage') {
-        result.push({
-          fromContext: true,
-          cluster: current.cluster,
-          pattern: current.imageNamePattern,
-          repository: current.name,
-          stageId: current.refId
-        });
-      }
-      current.requisiteStageRefIds.forEach(function(id) {
-        let [next] = all.filter((stage) => stage.refId === id);
-        if (next) {
-          result = result.concat(findUpstreamImages(next, all, visited));
-        }
-      });
-
-      return result;
-    }
-
-    function findTriggerImages(triggers) {
-      return triggers.filter((trigger) => {
-        return trigger.type === 'docker';
-      }).map((trigger) => {
-        return {
-          fromTrigger: true,
-          repository: trigger.repository,
-          registry: trigger.registry,
-          tag: trigger.tag,
-        };
-      });
-    }
-
     function buildNewServerGroupCommandForPipeline(current, pipeline) {
-      let contextImages = findUpstreamImages(current, pipeline.stages) || [];
-      contextImages = contextImages.concat(findTriggerImages(pipeline.triggers));
-      return $q.when({
-        strategy: '',
-        viewState: {
-          contextImages: contextImages,
-          mode: 'editPipeline',
-          submitButtonLabel: 'Done',
-          requiresTemplateSelection: true,
-        }
-      });
+      return $q.when(kubernetesClusterCommandBuilder.buildNewClusterCommandForPipeline(current, pipeline));
     }
 
     function buildServerGroupCommandFromPipeline(app, command, current, pipeline) {
-      let contextImages = findUpstreamImages(current, pipeline.stages) || [];
-      contextImages = contextImages.concat(findTriggerImages(pipeline.triggers));
-      command.containers = reconcileUpstreamImages(command.containers, contextImages);
-      command.containers.map((container) => {
-        container.imageDescription.imageId = kubernetesClusterCommandBuilder.buildImageId(container.imageDescription);
-      });
-      command.groupByRegistry = kubernetesClusterCommandBuilder.groupByRegistry;
-      command.buildImageId = kubernetesClusterCommandBuilder.buildImageId;
-      command.strategy = command.strategy || '';
-      command.selectedProvider = 'kubernetes';
-      command.viewState = {
-        mode: 'editPipeline',
-        contextImages: contextImages,
-        submitButtonLabel: 'Done',
-      };
-      return $q.when(command);
+      return $q.when(kubernetesClusterCommandBuilder.buildClusterCommandFromPipeline(app, command, current, pipeline));
     }
 
     function buildServerGroupCommandFromExisting(application, serverGroup, mode) {

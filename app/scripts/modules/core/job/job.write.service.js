@@ -30,7 +30,7 @@ module.exports = angular
 
       return taskExecutor.executeTask({
         job: [
-          jobTransformer.convertJobCommandToDeployConfiguration(command)
+          jobTransformer.convertJobCommandToRunConfiguration(command)
         ],
         application: application,
         description: description

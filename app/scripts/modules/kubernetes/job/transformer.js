@@ -10,7 +10,7 @@ module.exports = angular
       return $q.when(job); // no-op
     }
 
-    function convertJobCommandToDeployConfiguration(base) {
+    function convertJobCommandToRunConfiguration(base) {
       // use _.defaults to avoid copying the backingData, which is huge and expensive to copy over
       var command = _.defaults({backingData: [], viewState: []}, base);
       if (base.viewState.mode !== 'clone') {
@@ -33,7 +33,7 @@ module.exports = angular
     }
 
     return {
-      convertJobCommandToDeployConfiguration: convertJobCommandToDeployConfiguration,
+      convertJobCommandToRunConfiguration: convertJobCommandToRunConfiguration,
       normalizeJob: normalizeJob,
     };
   });

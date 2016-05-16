@@ -107,9 +107,111 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
       }
     }
 
+    function reconcileUpstreamImages(containers, upstreamImages) {
+      let result = [];
+      containers.forEach((container) => {
+        if (container.imageDescription.fromContext) {
+          let [matchingImage] = upstreamImages.filter((image) => container.imageDescription.stageId === image.stageId);
+          if (matchingImage) {
+            container.imageDescription.cluster = matchingImage.cluster;
+            container.imageDescription.pattern = matchingImage.pattern;
+            container.imageDescription.repository = matchingImage.repository;
+            result.push(container);
+          }
+        } else if (container.imageDescription.fromTrigger) {
+          let [matchingImage] = upstreamImages.filter((image) => {
+            return container.imageDescription.registry === image.registry
+              && container.imageDescription.repository === image.repository
+              && container.imageDescription.tag === image.tag;
+          });
+          if (matchingImage) {
+            result.push(container);
+          }
+        } else {
+          result.push(container);
+        }
+      });
+      return result;
+    }
+
+    function findUpstreamImages(current, all, visited = {}) {
+      // This actually indicates a loop in the stage dependencies.
+      if (visited[current.refId]) {
+        return [];
+      } else {
+        visited[current.refId] = true;
+      }
+      let result = [];
+      if (current.type === 'findImage') {
+        result.push({
+          fromContext: true,
+          cluster: current.cluster,
+          pattern: current.imageNamePattern,
+          repository: current.name,
+          stageId: current.refId
+        });
+      }
+      current.requisiteStageRefIds.forEach(function(id) {
+        let [next] = all.filter((stage) => stage.refId === id);
+        if (next) {
+          result = result.concat(findUpstreamImages(next, all, visited));
+        }
+      });
+
+      return result;
+    }
+
+    function findTriggerImages(triggers) {
+      return triggers.filter((trigger) => {
+        return trigger.type === 'docker';
+      }).map((trigger) => {
+        return {
+          fromTrigger: true,
+          repository: trigger.repository,
+          registry: trigger.registry,
+          tag: trigger.tag,
+        };
+      });
+    }
+
+    function buildNewClusterCommandForPipeline(current, pipeline) {
+      let contextImages = findUpstreamImages(current, pipeline.stages) || [];
+      contextImages = contextImages.concat(findTriggerImages(pipeline.triggers));
+      return {
+        strategy: '',
+        viewState: {
+          contextImages: contextImages,
+          mode: 'editPipeline',
+          submitButtonLabel: 'Done',
+          requiresTemplateSelection: true,
+        }
+      };
+    }
+
+    function buildClusterCommandFromPipeline(app, command, current, pipeline) {
+      let contextImages = findUpstreamImages(current, pipeline.stages) || [];
+      contextImages = contextImages.concat(findTriggerImages(pipeline.triggers));
+      command.containers = reconcileUpstreamImages(command.containers, contextImages);
+      command.containers.map((container) => {
+        container.imageDescription.imageId = buildImageId(container.imageDescription);
+      });
+      command.groupByRegistry = groupByRegistry;
+      command.buildImageId = buildImageId;
+      command.strategy = command.strategy || '';
+      command.selectedProvider = 'kubernetes';
+      command.viewState = {
+        mode: 'editPipeline',
+        contextImages: contextImages,
+        submitButtonLabel: 'Done',
+      };
+      return command;
+    }
+
     return {
       buildNewClusterCommand: buildNewClusterCommand,
       buildClusterCommandFromExisting: buildClusterCommandFromExisting,
+      buildNewClusterCommandForPipeline: buildNewClusterCommandForPipeline,
+      buildClusterCommandFromPipeline: buildClusterCommandFromPipeline,
       groupByRegistry: groupByRegistry,
       buildImageId: buildImageId,
     };

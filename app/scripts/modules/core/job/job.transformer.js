@@ -14,9 +14,9 @@ module.exports = angular.module('spinnaker.core.job.transformer', [
         normalizeJob(job);
     }
 
-    function convertJobCommandToDeployConfiguration(base) {
+    function convertJobCommandToRunConfiguration(base) {
       var service = serviceDelegate.getDelegate(base.selectedProvider, 'job.transformer');
-      return service ? service.convertJobCommandToDeployConfiguration(base) : null;
+      return service ? service.convertJobCommandToRunConfiguration(base) : null;
     }
 
     // strips out Angular bits (see angular.js#toJsonReplacer), as well as executions and running tasks
@@ -36,7 +36,7 @@ module.exports = angular.module('spinnaker.core.job.transformer', [
 
     return {
       normalizeJob: normalizeJob,
-      convertJobCommandToDeployConfiguration: convertJobCommandToDeployConfiguration,
+      convertJobCommandToRunConfiguration: convertJobCommandToRunConfiguration,
       jsonReplacer: jsonReplacer,
     };
 

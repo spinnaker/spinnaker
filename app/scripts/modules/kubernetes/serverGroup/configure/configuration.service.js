@@ -165,9 +165,11 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
     function configureAccount(command) {
       var result = { dirty: {} };
       command.backingData.account = command.backingData.accountMap[command.account];
-      angular.extend(result.dirty, configureDockerRegistries(command).dirty);
-      angular.extend(result.dirty, configureNamespaces(command).dirty);
-      angular.extend(result.dirty, configureSecurityGroups(command).dirty);
+      if (command.backingData.account) {
+        angular.extend(result.dirty, configureDockerRegistries(command).dirty);
+        angular.extend(result.dirty, configureNamespaces(command).dirty);
+        angular.extend(result.dirty, configureSecurityGroups(command).dirty);
+      }
       return result;
     }
 

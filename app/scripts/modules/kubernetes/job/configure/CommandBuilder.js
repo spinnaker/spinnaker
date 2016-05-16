@@ -29,8 +29,18 @@ module.exports = angular.module('spinnaker.kubernetes.jobCommandBuilder.service'
       return $q.when(command);
     }
 
+    function buildNewJobCommandForPipeline(current, pipeline) {
+      return $q.when(kubernetesClusterCommandBuilder.buildNewClusterCommandForPipeline(current, pipeline));
+    }
+
+    function buildJobCommandFromPipeline(app, command, current, pipeline) {
+      return $q.when(kubernetesClusterCommandBuilder.buildClusterCommandFromPipeline(app, command, current, pipeline));
+    }
+
     return {
       buildNewJobCommand: buildNewJobCommand,
       buildJobCommandFromExisting: buildJobCommandFromExisting,
+      buildNewJobCommandForPipeline: buildNewJobCommandForPipeline,
+      buildJobCommandFromPipeline: buildJobCommandFromPipeline,
     };
   });

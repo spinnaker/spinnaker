@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.temp
   require('../../../../core/utils/lodash.js'),
   require('../CommandBuilder.js'),
 ])
-  .controller('kubernetesTemplateSelectionController', function($scope, kubernetesServerGroupCommandBuilder, serverGroupReader, _) {
+  .controller('kubernetesServerGroupTemplateSelectionController', function($scope, kubernetesServerGroupCommandBuilder, serverGroupReader, _) {
     var controller = this;
 
     var noTemplate = { label: 'None', serverGroup: null, cluster: null };
@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.temp
 
     $scope.templates = [ noTemplate ];
 
-    var allClusters = _.groupBy(_.filter($scope.application.serverGroups.data, { type: 'kubernetes' }), function(serverGroup) {
+    var allClusters = _.groupBy(_.filter($scope.application.serverGroups.data, { type: 'kubernetes', category: 'serverGroup' }), function(serverGroup) {
       return [serverGroup.cluster, serverGroup.account, serverGroup.region].join(':');
     });
 

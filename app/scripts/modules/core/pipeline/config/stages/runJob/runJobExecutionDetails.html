@@ -9,13 +9,13 @@
             <account-tag account="stage.context.account"></account-tag>
           </dd>
           <dt>Region</dt>
-          <div ng-if="stage.context.namespace">
-            <dd>{{stage.context.namespace}}</dd>
-          </div>
+          <dd>{{stage.context.cluster.region}}</dd>
           <dt>Cluster</dt>
-          <dd>{{stage.context | clusterName }}</dd>
+          <dd>{{stage.context.cluster | clusterName}}</dd>
         </dl>
       </div>
+    </div>
+
     <stage-failure-message is-failed="stage.isFailed" message="stage.failureMessage"></stage-failure-message>
 
     <div class="row" ng-if="run.length">
