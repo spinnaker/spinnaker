@@ -8,6 +8,8 @@ spinnaker:
     cluster: CASS_SPINNAKER
     keyspace: front50
     name: default
+  redis:
+    enabled: false
 
 swagger:
   enabled: true

@@ -20,8 +20,10 @@ import rx.schedulers.Schedulers;
 import java.util.concurrent.Executors;
 
 @Configuration
+@ConditionalOnExpression("${spinnaker.s3.enabled:false}")
 @Import(BastionConfig.class)
 public class S3Config {
+
   @Value("${spinnaker.s3.bucket}")
   private String bucket;
 
@@ -50,31 +52,26 @@ public class S3Config {
   }
 
   @Bean
-  @ConditionalOnExpression("${spinnaker.s3.enabled:false}")
   public S3ApplicationDAO s3ApplicationDAO(ObjectMapper objectMapper, AmazonS3 amazonS3) {
     return new S3ApplicationDAO(objectMapper, amazonS3, Schedulers.from(Executors.newFixedThreadPool(20)), 15000, bucket, rootFolder);
   }
 
   @Bean
-  @ConditionalOnExpression("${spinnaker.s3.enabled:false}")
   public S3ProjectDAO s3ProjectDAO(ObjectMapper objectMapper, AmazonS3 amazonS3) {
     return new S3ProjectDAO(objectMapper, amazonS3, Schedulers.from(Executors.newFixedThreadPool(10)), 30000, bucket, rootFolder);
   }
 
   @Bean
-  @ConditionalOnExpression("${spinnaker.s3.enabled:false}")
   public S3NotificationDAO s3NotificationDAO(ObjectMapper objectMapper, AmazonS3 amazonS3) {
     return new S3NotificationDAO(objectMapper, amazonS3, Schedulers.from(Executors.newFixedThreadPool(5)), 30000, bucket, rootFolder);
   }
 
   @Bean
-  @ConditionalOnExpression("${spinnaker.s3.enabled:false}")
   public S3PipelineStrategyDAO s3PipelineStrategyDAO(ObjectMapper objectMapper, AmazonS3 amazonS3) {
     return new S3PipelineStrategyDAO(objectMapper, amazonS3, Schedulers.from(Executors.newFixedThreadPool(5)), 20000, bucket, rootFolder);
   }
 
   @Bean
-  @ConditionalOnExpression("${spinnaker.s3.enabled:false}")
   public S3PipelineDAO s3PipelineDAO(ObjectMapper objectMapper, AmazonS3 amazonS3) {
     return new S3PipelineDAO(objectMapper, amazonS3, Schedulers.from(Executors.newFixedThreadPool(25)), 10000, bucket, rootFolder);
   }

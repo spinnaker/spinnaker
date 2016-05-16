@@ -38,7 +38,7 @@ import javax.annotation.PostConstruct
 
 @Slf4j
 @Component
-@ConditionalOnExpression('${cassandra.enabled:true}')
+@ConditionalOnExpression('${cassandra.enabled:false}')
 class CassandraProjectDAO implements ProjectDAO {
   private static final String CF_NAME = 'project'
   private static final String TEST_QUERY = '''select * from project;'''

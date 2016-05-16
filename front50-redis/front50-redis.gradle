@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-rootProject.name = "front50"
-
-include 'front50-web', 'front50-core', 'front50-cassandra', 'front50-pipelines', 'front50-redis', 'front50-s3', 'front50-test'
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
+configurations.all {
+  exclude group: 'org.slf4j', module: 'slf4j-log4j12'
 }
 
-rootProject.children.each {
-  setBuildFile(it)
+dependencies {
+  compile project(":front50-core")
+  compile 'org.springframework.data:spring-data-redis:1.7.1.RELEASE'
+  compile 'redis.clients:jedis:2.8.1'
+
+  testCompile project(":front50-test")
 }

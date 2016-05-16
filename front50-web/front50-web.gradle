@@ -47,6 +47,7 @@ jar {
 dependencies {
   compile project(":front50-core")
   compile project(":front50-cassandra")
+  compile project(":front50-redis")
   compile project(":front50-s3")
   compile project(":front50-pipelines")
 
