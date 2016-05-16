@@ -11,7 +11,6 @@ module.exports = angular.module('spinnaker.google.serverGroup.configure.wizard.b
   require('../../../../../core/image/image.reader.js'),
   require('../../../../../core/naming/naming.service.js'),
   require('../../../../gceRegionSelectField.directive.js'),
-  require('../../../../gceZoneSelectField.directive.js'),
   require('../../../../gceNetworkSelectField.directive.js'),
   require('../../../../subnet/subnetSelectField.directive.js'),
 ])

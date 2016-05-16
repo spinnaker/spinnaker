@@ -21,7 +21,6 @@ module.exports = angular.module('spinnaker.gce.serverGroup.transformer', [
       command.availabilityZones = {};
       command.availabilityZones[command.region] = [base.zone];
       command.account = command.credentials;
-      delete command.region;
       delete command.viewState;
       delete command.backingData;
       delete command.selectedProvider;

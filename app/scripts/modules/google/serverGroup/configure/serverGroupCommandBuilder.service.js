@@ -192,6 +192,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         credentials: defaultCredentials,
         region: defaultRegion,
         zone: defaultZone,
+        regional: false, // TODO(duftler): Externalize this default alongside defaultRegion and defaultZone.
         network: 'default',
         strategy: '',
         capacity: {
@@ -225,6 +226,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           listImplicitSecurityGroups: false,
           mode: defaults.mode || 'create',
           disableStrategySelection: true,
+          regionalEnabled: settings.providers.gce.regionalEnabled,
         }
       };
 
@@ -265,7 +267,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           max: serverGroup.asg.maxSize,
           desired: serverGroup.asg.desiredCapacity
         },
-        zone: serverGroup.zones[0],
+        regional: settings.providers.gce.regionalEnabled && serverGroup.regional,
         network: extractNetworkName(serverGroup),
         subnet: extractSubnetName(serverGroup),
         instanceMetadata: {},
@@ -276,7 +278,6 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         source: {
           account: serverGroup.account,
           region: serverGroup.region,
-          zone: serverGroup.zones[0],
           serverGroupName: serverGroup.name,
           asgName: serverGroup.name
         },
@@ -287,8 +288,14 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           usePreferredZones: false,
           listImplicitSecurityGroups: false,
           mode: mode,
+          regionalEnabled: settings.providers.gce.regionalEnabled,
         },
       };
+
+      if (!command.regional) {
+        command.zone = serverGroup.zones[0];
+        command.source.zone = serverGroup.zones[0];
+      }
 
       if (application && application.attributes && application.attributes.platformHealthOnly) {
         command.interestingHealthProviderNames = ['Google'];

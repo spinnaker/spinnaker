@@ -108,7 +108,7 @@
         <dd>{{ctrl.serverGroup.network}}</dd>
         <dt ng-if="ctrl.serverGroup.subnet">Subnet</dt>
         <dd ng-if="ctrl.serverGroup.subnet">{{ctrl.serverGroup.subnet}}</dd>
-        <dt>Zone</dt>
+        <dt>Zone{{ctrl.serverGroup.regional ? 's' : ''}}</dt>
         <dd>
           <ul>
             <li ng-repeat="zone in ctrl.serverGroup.zones">{{zone}}</li>

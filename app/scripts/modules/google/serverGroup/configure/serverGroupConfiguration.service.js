@@ -187,6 +187,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       let regions = command.backingData.credentialsKeyedByAccount[command.credentials].regions;
       if (_.isArray(regions)) {
         filteredData.zones = _.find(regions, {name: command.region}).zones;
+        filteredData.truncatedZones = _.take(filteredData.zones, 3);
       } else {
         // TODO(duftler): Remove this once we finish deprecating the old style regions/zones in clouddriver GCE credentials.
         filteredData.zones = regions[command.region];

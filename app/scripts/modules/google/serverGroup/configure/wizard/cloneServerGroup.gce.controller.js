@@ -17,6 +17,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       securityGroups: require('./securityGroups/securityGroups.html'),
       instanceType: require('./instanceType/instanceType.html'),
       capacity: require('./capacity/capacity.html'),
+      zones: require('./capacity/zones.html'),
       advancedSettings: require('./advancedSettings/advancedSettings.html'),
     };
 
@@ -143,7 +144,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
         ($scope.command.viewState.disableImageSelection || $scope.command.image) &&
         ($scope.command.application) &&
         ($scope.command.credentials) && ($scope.command.instanceType) &&
-        ($scope.command.region) && ($scope.command.zone) &&
+        ($scope.command.region) && ($scope.command.regional || $scope.command.zone) &&
         ($scope.command.capacity.desired !== null) &&
         $scope.form.$valid &&
         v2modalWizardService.isComplete();

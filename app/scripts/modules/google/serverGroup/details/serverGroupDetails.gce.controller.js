@@ -87,6 +87,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
             }).compact().value();
           }
 
+          this.serverGroup.zones.sort();
+
           this.serverGroup.network = getNetwork();
           retrieveSubnet();
 
