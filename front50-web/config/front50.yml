@@ -1,6 +1,9 @@
 server:
   port: 8080
 
+cassandra:
+  enabled: true
+
 spinnaker:
   cassandra:
     enabled: true
