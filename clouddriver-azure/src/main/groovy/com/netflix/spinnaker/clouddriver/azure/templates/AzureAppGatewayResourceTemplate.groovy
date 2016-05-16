@@ -58,7 +58,10 @@ class AzureAppGatewayResourceTemplate {
     AppGatewayTemplate(AzureAppGatewayDescription description) {
       parameters = new AppGatewayTemplateParameters()
       variables = new AppGatewayTemplateVariables(description)
-      resources.add(new PublicIpResource())
+      if (!description.publicIpId) {
+        // this is not an edit operation of an existing application gateway; we must create a PublicIp resource in this case
+        resources.add(new PublicIpResource())
+      }
       resources.add(new ApplicationGatewayResource(description))
     }
   }
@@ -71,6 +74,8 @@ class AzureAppGatewayResourceTemplate {
     String type = "string"
     Map<String, String> metadata = ["description":"Location to deploy"]
   }
+
+  static final String defaultAppGatewayBeAddrPoolName = "default_BAP0"
 
   static class AppGatewayTemplateVariables {
     final String apiVersion = "2015-06-15"
@@ -85,14 +90,23 @@ class AzureAppGatewayResourceTemplate {
     final String publicIPAddressID = "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
     final String appGwID = "[resourceId('Microsoft.Network/applicationGateways',variables('appGwName'))]"
     final String appGwSubnetID = "[concat(variables('virtualNetworkID'),'/subnets/',variables('appGwSubnetName'))]"
-    final String appGwBeAddrPoolName = "beaddrpool-default"
+    String appGwBeAddrPoolName = defaultAppGatewayBeAddrPoolName
 
     AppGatewayTemplateVariables(AzureAppGatewayDescription description) {
       appGwName = description.name
       virtualNetworkName = description.vnet.toLowerCase()
-      publicIPAddressName = AzureUtilities.PUBLICIP_NAME_PREFIX + description.name.toLowerCase()
+      if (description.publicIpId) {
+        // reuse the existing public IP (this is an edit operation)
+        publicIPAddressName = description.publicIpId
+      } else {
+        publicIPAddressName = AzureUtilities.PUBLICIP_NAME_PREFIX + description.name.toLowerCase()
+      }
       dnsNameForLBIP = DnsSettings.getUniqueDNSName(description.name)
       appGwSubnetName = description.subnet.toLowerCase()
+      if (description.trafficEnabledSG) {
+        // This is an edit operation; preserve the current backend address pool as the active rule
+        appGwBeAddrPoolName = description.trafficEnabledSG
+      }
     }
   }
 
@@ -138,13 +152,20 @@ class AzureAppGatewayResourceTemplate {
       sku = new AppGatewaySku(description)
       gatewayIPConfigurations = [ new AppGatewayIPConfiguration()]
       frontendIPConfigurations = [new AppGatewayFrontendIPConfiguration()]
-      description.rules?.each { rule ->
-        frontendPorts.add(new AppGatewayFrontendPort(rule.name, rule.externalPort))
-        backendHttpSettingsCollection.add(new AppGatewayBackendHttpSettingsCollection(rule.name, rule.protocol.toString(), rule.backendPort))
-        httpListeners.add(new AppGatewayHttpListener(rule.name, rule.protocol.toString(), rule.sslCertificate))
-        requestRoutingRules.add(new AppGatewayRequestRoutingRule(rule.name))
+      description.loadBalancingRules?.each { rule ->
+        frontendPorts.add(new AppGatewayFrontendPort(rule.ruleName, rule.externalPort))
+        backendHttpSettingsCollection.add(new AppGatewayBackendHttpSettingsCollection(rule.ruleName, rule.protocol.toString(), rule.backendPort))
+        httpListeners.add(new AppGatewayHttpListener(rule.ruleName, rule.protocol.toString(), rule.sslCertificate))
+        requestRoutingRules.add(new AppGatewayRequestRoutingRule(rule.ruleName))
       }
-      backendAddressPools = [new AppGatewayBackendAddressPool()]
+      backendAddressPools = [
+        new AppGatewayBackendAddressPool(name: defaultAppGatewayBeAddrPoolName) // name: "default_BAP0"
+      ]
+      // recreate the backend address pool items if this is an edit operation of an existing application gateway
+      description.serverGroups?.each { serverGroupName ->
+        backendAddressPools << new AppGatewayBackendAddressPool(name: serverGroupName)
+      }
+
       description.probes?.each { probe->
         probes.add(new AppGatewayProbe(probe))
       }
@@ -192,7 +213,7 @@ class AzureAppGatewayResourceTemplate {
   }
 
   static class AppGatewayBackendAddressPool {
-    final String name = "[variables('appGwBeAddrPoolName')]"
+    String name = defaultAppGatewayBeAddrPoolName
   }
 
   static class AppGatewayBackendHttpSettingsCollection {
@@ -259,12 +280,12 @@ class AzureAppGatewayResourceTemplate {
     AppGatewayProbeProperties properties
 
     AppGatewayProbe(AzureAppGatewayDescription.AzureAppGatewayHealthcheckProbe probe) {
-      name = probe.name
+      name = probe.probeName
       properties = new AppGatewayProbeProperties(
-        protocol: probe.protocol.toString(),
-        host: probe.host,
-        path: probe.path,
-        interval: probe.interval,
+        protocol: probe.probeProtocol.toString(),
+        host: probe.probePort,
+        path: probe.probePath,
+        interval: probe.probeInterval,
         timeout: probe.timeout,
         unhealthyThreshold: probe.unhealthyThreshold
       )

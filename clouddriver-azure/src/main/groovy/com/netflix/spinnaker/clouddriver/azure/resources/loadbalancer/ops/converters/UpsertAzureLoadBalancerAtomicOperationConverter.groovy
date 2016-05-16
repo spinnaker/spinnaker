@@ -27,7 +27,8 @@ import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
 @Slf4j
-@AzureOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
+@AzureOperation("upsertLoadBalancerL4")
+//@AzureOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
 @Component("upsertAzureLoadBalancerDescription")
 class UpsertAzureLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   UpsertAzureLoadBalancerAtomicOperationConverter() {

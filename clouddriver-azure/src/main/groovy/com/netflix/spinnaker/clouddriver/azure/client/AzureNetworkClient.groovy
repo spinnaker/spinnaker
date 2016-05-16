@@ -42,7 +42,11 @@ import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.Azur
 import com.netflix.spinnaker.clouddriver.azure.resources.network.model.AzureVirtualNetworkDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.model.AzureSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.subnet.model.AzureSubnetDescription
+import com.netflix.spinnaker.clouddriver.azure.templates.AzureAppGatewayResourceTemplate
 import groovy.util.logging.Slf4j
+import okhttp3.Interceptor
+import okhttp3.Request
+import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 
 @Slf4j
@@ -182,7 +186,7 @@ class AzureNetworkClient extends AzureBaseClient {
   }
 
   /**
-   * Retrieve an Azure Application Gateway for a given set of credentials, resource group and name
+   * It retrieves an Azure Application Gateway for a given set of credentials, resource group and name
    * @param resourceGroupName the name of the resource group to look into
    * @param appGatewayName the name of the application gateway
    * @return a description object which represents an application gateway in Azure or null if the application gateway resource could not be retrieved
@@ -201,14 +205,14 @@ class AzureNetworkClient extends AzureBaseClient {
         return agItem
       }
     } catch (Exception e) {
-      log.error("getAppGateway(${resourceGroupName},${appGatewayName}) -> Cloud Exception ", e)
+      log.warn("getAppGateway(${resourceGroupName},${appGatewayName}) -> Exception ", e)
     }
 
     null
   }
 
   /**
-   * Retrieve a collection of all application gateways for a given set of credentials and the location
+   * It retrieves a collection of all application gateways for a given set of credentials and the location
    * @param region the location where to look for and retrieve all the application gateway resources
    * @return a Collection of objects which represent an Application Gateway in Azure
    */
@@ -244,15 +248,24 @@ class AzureNetworkClient extends AzureBaseClient {
   }
 
   /**
-   * Delete an Application Gateway resource in Azure
+   * It deletes an Application Gateway resource in Azure
    * @param resourceGroupName name of the resource group where the Application Gateway resource was created (see application name and region/location)
    * @param appGatewayName name of the Application Gateway resource to delete
-   * @return a ServiceResponse object
+   * @return a ServiceResponse object or an Exception if we can't delete
    */
   ServiceResponse deleteAppGateway(String resourceGroupName, String appGatewayName) {
     ServiceResponse result
     def appGateway = executeOp({appGatewayOps.get(resourceGroupName, appGatewayName)})?.body
 
+    if (appGateway?.tags?.cluster) {
+      // The selected can not be deleted because there are active server groups associated with
+      def errMsg = "Failed to delete ${appGatewayName}; the application gateway is still associated with server groups in ${appGateway.tags.cluster} cluster"
+      log.error(errMsg)
+      throw new RuntimeException(errMsg)
+    }
+
+    // TODO: retrieve private IP address name when support for it is added
+    // First item in the application gateway frontend IP configurations is the public IP address we are loking for
     def publicIpAddressName = AzureUtilities.getResourceNameFromID(appGateway?.frontendIPConfigurations?.first()?.getPublicIPAddress()?.id)
 
     result = deleteAzureResource(
@@ -271,25 +284,153 @@ class AzureNetworkClient extends AzureBaseClient {
   }
 
   /**
-   * Retrieve the App Gateway backend address pool. Create a new one if it doesn't already exist
-   * @param resourceGroupName - Resource Group where desired resources exist
-   * @param appGatewayName - Name of the Application Gateway
-   * @param backendAddressPoolName - name of the backend address pool to locate/create
-   * @param azureAppGateway - Instance of a ApplicationGateway
-   * @return
+   * It creates the server group corresponding backend address pool entry in the selected application gateway
+   *  This will be later used as a parameter in the create server group deployment template
+   * @param resourceGroupName the name of the resource group to look into
+   * @param appGatewayName the of the application gateway
+   * @param serverGroupName the of the application gateway
+   * @return a resource id for the backend address pool that got created or null/Runtime Exception if something went wrong
    */
-  String getAppGatewayBackendPool(String resourceGroupName, String appGatewayName, String backendAddressPoolName) {
+  String createAppGatewayBAPforServerGroup(String resourceGroupName, String appGatewayName, String serverGroupName) {
     def appGateway = executeOp({appGatewayOps.get(resourceGroupName, appGatewayName)})?.body
 
-    //check to see if there is already an entry in the pool for the given BAP name
-    if (appGateway && !appGateway.backendAddressPools.find({ it.name == backendAddressPoolName })) {
-      appGateway.backendAddressPools.add(new ApplicationGatewayBackendAddressPool(name: backendAddressPoolName))
-      log.info("Adding backend address pool $backendAddressPoolName to Load Balancer ${appGateway.name}")
-      appGateway = executeOp({appGatewayOps.createOrUpdate(resourceGroupName, appGatewayName, appGateway)}).body
-      log.info("Backend address pool $backendAddressPoolName added to LoadBalancer ${appGateway.name}")
+    if (appGateway) {
+      def agDescription = AzureAppGatewayDescription.getDescriptionForAppGateway(appGateway)
+      def parsedName = Names.parseName(serverGroupName)
+
+      if (!agDescription || (agDescription.cluster && agDescription.cluster != parsedName.cluster)) {
+        // The selected server group must be in the same cluster and region (see resourceGroup) with the one already
+        //   assigned for the selected application gateway.
+        def errMsg = "Failed to associate ${serverGroupName} with ${appGatewayName}; expecting server group to be in ${parsedName.cluster} cluster"
+        log.error(errMsg)
+        throw new RuntimeException(errMsg)
+      }
+
+      // the application gateway must have an backend address pool list (even if it might be empty)
+      if (!appGateway.backendAddressPools.find {it.name == serverGroupName}) {
+        appGateway.backendAddressPools.add(new ApplicationGatewayBackendAddressPool(name: serverGroupName))
+        if (agDescription.serverGroups) {
+          agDescription.serverGroups << serverGroupName
+        } else {
+          agDescription.serverGroups = [serverGroupName]
+        }
+        appGateway.tags.cluster = parsedName.cluster
+        // TODO: debug only; remove this as part of the cleanup
+        appGateway.tags.serverGroups = agDescription.serverGroups.join(" ")
+        executeOp({appGatewayOps.createOrUpdate(resourceGroupName, appGatewayName, appGateway)})
+      }
+
+      return "${appGateway.id}/backendAddressPools/${serverGroupName}"
     }
 
-    appGateway?.backendAddressPools?.find({ it.name == backendAddressPoolName })?.id
+    null
+  }
+
+  /**
+   * It removes the server group corresponding backend address pool item from the selected application gateway (see disable/destroy server group op)
+   * @param resourceGroupName the name of the resource group to look into
+   * @param appGatewayName the of the application gateway
+   * @param serverGroupName the of the application gateway
+   * @return a resource id for the backend address pool that was removed or null/Runtime Exception if something went wrong
+   */
+  String removeAppGatewayBAPforServerGroup(String resourceGroupName, String appGatewayName, String serverGroupName) {
+    def appGateway = executeOp({appGatewayOps.get(resourceGroupName, appGatewayName)})?.body
+
+    if (appGateway) {
+      def agDescription = AzureAppGatewayDescription.getDescriptionForAppGateway(appGateway)
+
+      if (!agDescription) {
+        def errMsg = "Failed to disassociate ${serverGroupName} from ${appGatewayName}; could not find ${appGatewayName}"
+        log.error(errMsg)
+        throw new RuntimeException(errMsg)
+      }
+      def agBAP = appGateway.backendAddressPools?.find { it.name == serverGroupName}
+      if (agBAP) {
+        appGateway.backendAddressPools.remove(agBAP)
+        if (appGateway.backendAddressPools.size() == 1) {
+          // There are no server groups assigned to ths application gateway; we can make it available now
+          appGateway.tags.remove("cluster")
+        }
+
+        // TODO: debug only; remove this as part of the cleanup
+        agDescription.serverGroups?.remove(serverGroupName)
+        if (!agDescription.serverGroups || agDescription.serverGroups.isEmpty()) {
+          appGateway.tags.remove("serverGroups")
+        } else {
+          appGateway.tags.remove("serverGroups")
+          appGateway.tags.serverGroups = agDescription.serverGroups.join(" ")
+        }
+
+        executeOp({appGatewayOps.createOrUpdate(resourceGroupName, appGatewayName, appGateway)})
+      }
+
+      return "${appGateway.id}/backendAddressPools/${serverGroupName}"
+    }
+
+    null
+  }
+
+  /**
+   * It enables a server group that is attached to an Application Gateway resource in Azure
+   * @param resourceGroupName name of the resource group where the Application Gateway resource was created (see application name and region/location)
+   * @param appGatewayName the of the application gateway
+   * @param serverGroupName name of the server group to be enabled
+   * @return a ServiceResponse object
+   */
+  ServiceResponse enableServerGroup(String resourceGroupName, String appGatewayName, String serverGroupName) {
+    def appGateway = executeOp({appGatewayOps.get(resourceGroupName, appGatewayName)})?.body
+
+    if (appGateway) {
+      def agBAP = appGateway.backendAddressPools?.find { it.name == serverGroupName}
+      if (!agBAP) {
+        def errMsg = "Backend address pool ${serverGroupName} not found in ${appGatewayName}"
+        log.error(errMsg)
+        throw new RuntimeException(errMsg)
+      }
+
+      appGateway.requestRoutingRules.each {
+        it.backendAddressPool.id = agBAP.id
+      }
+
+      // Store active server group in the tags map to ease debugging the operation; we could probably remove this later on
+      appGateway.tags.trafficEnabledSG = serverGroupName
+
+      return executeOp({appGatewayOps.createOrUpdate(resourceGroupName, appGatewayName, appGateway)})
+    }
+
+    null
+  }
+
+  /**
+   * It disables a server group that is attached to an Application Gateway resource in Azure
+   * @param resourceGroupName name of the resource group where the Application Gateway resource was created (see application name and region/location)
+   * @param appGatewayName the of the application gateway
+   * @param serverGroupName name of the server group to be disabled
+   * @return a ServiceResponse object
+   */
+  ServiceResponse disableServerGroup(String resourceGroupName, String appGatewayName, String serverGroupName) {
+    String defaultBAP = AzureAppGatewayResourceTemplate.defaultAppGatewayBeAddrPoolName
+    def appGateway = executeOp({appGatewayOps.get(resourceGroupName, appGatewayName)})?.body
+
+    if (appGateway) {
+      def agBAP = appGateway.backendAddressPools?.find { it.name == defaultBAP}
+      if (!agBAP) {
+        def errMsg = "Backend address pool ${serverGroupName} not found in ${appGatewayName}"
+        log.error(errMsg)
+        throw new RuntimeException(errMsg)
+      }
+
+      appGateway.requestRoutingRules.each {
+        it.backendAddressPool.id = agBAP.id
+      }
+
+      // Clear active server group (if any) from the tags map to ease debugging the operation; we will clean this later
+      appGateway.tags.remove("trafficEnabledSG")
+
+      return executeOp({appGatewayOps.createOrUpdate(resourceGroupName, appGatewayName, appGateway)})
+    }
+
+    null
   }
 
   /**
@@ -642,6 +783,17 @@ class AzureNetworkClient extends AzureBaseClient {
     NetworkManagementClient networkManagementClient = new NetworkManagementClientImpl(tokenCredentials)
     networkManagementClient.setSubscriptionId(this.subscriptionId)
     networkManagementClient.setLogLevel(HttpLoggingInterceptor.Level.NONE)
+
+    // TODO: work around for SDK issue; not all the API's will accept same client-request-id
+    networkManagementClient.getClientInterceptors().add(new Interceptor() {
+      @Override
+      Response intercept(Interceptor.Chain chain) throws IOException {
+        Request.Builder builder = chain.request().newBuilder()
+        builder.header("x-ms-client-request-id", UUID.randomUUID().toString())
+        return chain.proceed(builder.build())
+      }
+    })
+
     networkManagementClient
   }
 

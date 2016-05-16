@@ -29,7 +29,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationException
 
 class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
   private static final String BASE_PHASE = "UPSERT_APP_GATEWAY"
-  // TODO: change this later to the real thing, UPSERT_LOAD_BALANCER
+  // TODO: we change this later to be the Spinnaker load balancer
   // private static final String BASE_PHASE = "UPSERT_LOAD_BALANCER"
 
   private static Task getTask() {
@@ -43,10 +43,7 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertAppGateway": { "cloudProvider" : "azure", "appName" : "tappgw1", "loadBalancerName" : "tappgw1-st1-d1", "stack" : "st1", "detail" : "d1", "credentials" : "azure-cred1", "region" : "westus", "probes" : [ { "name" : "healthcheck1", "protocol" : "HTTP", "path" : "/healthcheck", "interval" : 120, "unhealthyThreshold" : 8, "timeout" : 30 } ], "rules" : [ { "name" : "lbRule1", "protocol" : "HTTP", "externalPort" : "80", "backendPort" : "8080" }, { "name" : "lbRule2", "protocol" : "HTTP", "externalPort" : "8080", "backendPort" : "8080" } ], "name" : "tappgw1-st1-d1", "user" : "[anonymous]" }} ]' localhost:7002/azure/ops
-   *
-   * TODO: change ops task name to upserLoadBalancer:
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertLoadBalancer": { "cloudProvider" : "azure", "appName" : "tappgw1", "loadBalancerName" : "tappgw1-st1-d1", "stack" : "st1", "detail" : "d1", "credentials" : "azure-cred1", "region" : "westus", "probes" : [ { "name" : "healthcheck1", "protocol" : "HTTP", "path" : "/healthcheck", "interval" : 120, "unhealthyThreshold" : 8, "timeout" : 30 } ], "rules" : [ { "name" : "lbRule1", "protocol" : "HTTP", "externalPort" : "80", "backendPort" : "8080" }, { "name" : "lbRule2", "protocol" : "HTTP", "externalPort" : "8080", "backendPort" : "8080" } ], "name" : "tappgw1-st1-d1", "user" : "[anonymous]" }} ]' localhost:7002/azure/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertLoadBalancer": { "cloudProvider" : "azure", "appName" : "tappgw1", "loadBalancerName" : "tappgw1-st1-d1", "stack" : "st1", "detail" : "d1", "credentials" : "azure-cred1", "region" : "westus", "probes" : [ { "probeName" : "healthcheck1", "probeProtocol" : "HTTP", "probePort" : "www.bing.com", "probePath" : "/", "probeInterval" : 120, "unhealthyThreshold" : 8, "timeout" : 30 } ], "rules" : [ { "ruleName" : "lbRule1", "protocol" : "HTTP", "externalPort" : "80", "backendPort" : "8080" }, { "ruleName" : "lbRule2", "protocol" : "HTTP", "externalPort" : "8080", "backendPort" : "8080" } ], "name" : "tappgw1-st1-d1", "user" : "[anonymous]" }} ]' localhost:7002/azure/ops
    *
    * @param priorOutputs
    * @return
@@ -69,40 +66,20 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
       resourceGroupName = AzureUtilities.getResourceGroupName(description.appName, description.region)
       virtualNetworkName = AzureUtilities.getVirtualNetworkName(resourceGroupName)
 
-      description.credentials.resourceManagerClient.initializeResourceGroupAndVNet(description.credentials, resourceGroupName, virtualNetworkName, description.region)
+      // Check if we are executing an edit operation on an existing application gateway (it returns null if it does not exist)
+      // def appGatewayDescription = description.credentials.networkClient.editAppGateway(description)
+      def appGatewayDescription = description.credentials.networkClient.getAppGateway(resourceGroupName, description.name)
 
-      // TODO We just try to grab the next subnet, which fails if the largest possible subnet is already taken.
-      // TODO We also just assume that a vnet can only have one address range.
-      task.updateStatus(BASE_PHASE, "Creating subnet for application gateway")
-      def vnet = description.credentials.networkClient.getVirtualNetwork(resourceGroupName, virtualNetworkName)
-      if (vnet.addressSpace.addressPrefixes.size() != 1) {
-        throw new RuntimeException(
-          "Virtual Network found with ${vnet.addressSpace.addressPrefixes.size()} address spaces; expected: 1")
-      }
+      if (appGatewayDescription) {
+        // We are executing an edit operation on an existing application gateway; update application gateway using a template deployment
+        task.updateStatus(BASE_PHASE, "Update existing application gateway ${appGatewayDescription.loadBalancerName} in ${appGatewayDescription.region}...")
 
-      String vnetPrefix = vnet.addressSpace.addressPrefixes[0]
-      String subnetPrefix = null
-      if (vnet.subnets.size() > 0) {
-        subnetPrefix = vnet.subnets.max({ a, b -> AzureUtilities.compareIpv4AddrPrefixes(a.addressPrefix, b.addressPrefix) }).addressPrefix
-      }
+        // We need to retain some of the settings from the current application gateway
+        description.publicIpId = appGatewayDescription.publicIpId
+        description.subnet = appGatewayDescription.subnet
+        description.serverGroups = appGatewayDescription.serverGroups
+        description.trafficEnabledSG = appGatewayDescription.trafficEnabledSG
 
-      String nextSubnet = AzureUtilities.getNextSubnet(vnetPrefix, subnetPrefix)
-      subnetName = AzureUtilities.getSubnetName(virtualNetworkName, nextSubnet)
-
-      task.updateStatus(BASE_PHASE, "Creating new subnet ${subnetName} for ${description.loadBalancerName}")
-      String subnetId = description.credentials.networkClient.createSubnet(resourceGroupName,
-        virtualNetworkName,
-        subnetName,
-        nextSubnet,
-        description.securityGroup)
-
-      if(!subnetId) {
-        task.updateStatus(BASE_PHASE, "Failed to create subnet for Application Gateway ${description.name}")
-      } else {
-        description.vnet = virtualNetworkName
-        description.subnet = AzureUtilities.getNameFromResourceId(subnetId)
-
-        task.updateStatus(BASE_PHASE, "Create new application gateway ${description.loadBalancerName} in ${description.region}...")
         DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(description.credentials,
           AzureAppGatewayResourceTemplate.getTemplate(description),
           resourceGroupName,
@@ -111,7 +88,52 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
           "appGateway")
 
         errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name)
-        loadBalancerName = description.name
+      } else {
+        // We are attempting to create a new application gateway
+        description.credentials.resourceManagerClient.initializeResourceGroupAndVNet(description.credentials, resourceGroupName, virtualNetworkName, description.region)
+
+        // TODO We just try to grab the next subnet, which fails if the largest possible subnet is already taken.
+        // TODO We also just assume that a vnet can only have one address range.
+        task.updateStatus(BASE_PHASE, "Creating subnet for application gateway")
+        def vnet = description.credentials.networkClient.getVirtualNetwork(resourceGroupName, virtualNetworkName)
+        if (vnet.addressSpace.addressPrefixes.size() != 1) {
+          throw new RuntimeException(
+            "Virtual Network found with ${vnet.addressSpace.addressPrefixes.size()} address spaces; expected: 1")
+        }
+
+        String vnetPrefix = vnet.addressSpace.addressPrefixes[0]
+        String subnetPrefix = null
+        if (vnet.subnets.size() > 0) {
+          subnetPrefix = vnet.subnets.max({ a, b -> AzureUtilities.compareIpv4AddrPrefixes(a.addressPrefix, b.addressPrefix) }).addressPrefix
+        }
+
+        String nextSubnet = AzureUtilities.getNextSubnet(vnetPrefix, subnetPrefix)
+        subnetName = AzureUtilities.getSubnetName(virtualNetworkName, nextSubnet)
+
+        task.updateStatus(BASE_PHASE, "Creating new subnet ${subnetName} for ${description.loadBalancerName}")
+        def subnetId = description.credentials.networkClient.createSubnet(resourceGroupName,
+          virtualNetworkName,
+          subnetName,
+          nextSubnet,
+          description.securityGroup)
+
+        if (!subnetId) {
+          task.updateStatus(BASE_PHASE, "Failed to create subnet for Application Gateway ${description.name}")
+        } else {
+          description.vnet = virtualNetworkName
+          description.subnet = AzureUtilities.getNameFromResourceId(subnetId)
+
+          task.updateStatus(BASE_PHASE, "Create new application gateway ${description.loadBalancerName} in ${description.region}...")
+          DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(description.credentials,
+            AzureAppGatewayResourceTemplate.getTemplate(description),
+            resourceGroupName,
+            description.region,
+            description.loadBalancerName,
+            "appGateway")
+
+          errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name)
+          loadBalancerName = description.name
+        }
       }
     } catch (CloudException ce) {
       task.updateStatus(BASE_PHASE, "One or more deployment operations have failed. Please see Azure portal for more information. Resource Group: ${resourceGroupName} Application Gateway: ${description.loadBalancerName}")

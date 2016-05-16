@@ -19,8 +19,6 @@ package com.netflix.spinnaker.clouddriver.azure.resources.appgateway.view
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model.AzureAppGatewayDescription
-import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.view.AzureLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
@@ -29,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/azure/appGateways")
+@RequestMapping("/azure/loadBalancers")
 class AzureAppGatewayController {
 
   @Autowired
@@ -81,7 +79,7 @@ class AzureAppGatewayController {
       lbDetail.dnsName = description.dnsName ?: "dnsname-unassigned"
 
       lbDetail.probes = description.probes
-      lbDetail.loadBalancingRules = description.rules
+      lbDetail.loadBalancingRules = description.loadBalancingRules
       lbDetail.tags = description.tags
 
       lbDetail.sku = description.sku

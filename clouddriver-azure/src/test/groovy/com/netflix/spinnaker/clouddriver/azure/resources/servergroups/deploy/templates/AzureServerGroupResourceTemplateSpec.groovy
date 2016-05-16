@@ -51,7 +51,6 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
     description.clusterName = description.getClusterName()
     description.region = 'westus'
     description.user = '[anonymous]'
-    //description.loadBalancerName = 'lb-azureMASM-st1-d11'
 
     description.upgradePolicy = AzureServerGroupDescription.UpgradePolicy.Manual
 

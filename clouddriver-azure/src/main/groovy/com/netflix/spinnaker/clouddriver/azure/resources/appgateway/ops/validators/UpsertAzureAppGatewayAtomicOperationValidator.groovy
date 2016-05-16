@@ -42,13 +42,13 @@ class UpsertAzureAppGatewayAtomicOperationValidator extends
     helper.validateRegion(description.region)
     helper.validateName(description.loadBalancerName, "loadBalancerName")
     helper.validateName(description.appName, "appName")
-    description.rules?.each { rule ->
+    description.loadBalancingRules?.each { rule ->
       if(!SUPPORTED_IP_PROTOCOLS.contains(rule.protocol.toString().toUpperCase())) {
         errors.rejectValue "protocolType", "upsertAzureAppGatewayDescriptionValidator.rule.protocolType.not_supported"
       }
     }
     description.probes?.each { probe ->
-      if(!SUPPORTED_PROBE_PROTOCOLS.contains(probe.protocol.toString().toUpperCase())) {
+      if(!SUPPORTED_PROBE_PROTOCOLS.contains(probe.probeProtocol.toString().toUpperCase())) {
         errors.rejectValue "protocolType", "upsertAzureAppGatewayDescriptionValidator.probe.protocolType.not_supported"
       }
     }

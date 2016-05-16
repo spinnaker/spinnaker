@@ -39,7 +39,7 @@ class DisableAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "disableServerGroup": { "serverGroupName": "taz-web1-d1-v000", "name": "taz-web1-d1-v000", "account" : "azure-cred1", "cloudProvider" : "azure", "appName" : "taz", "regions": ["westus"], "credentials": "azure-cred1" }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "disableServerGroup": { "serverGroupName": "taz-web1-d1-v000", "name": "taz-web1-d1-v000", "account" : "azure-cred1", "cloudProvider" : "azure", "appName" : "taz", "regions": ["westus"], "credentials": "azure-cred1" }} ]' localhost:7002/azure/ops
    */
   @Override
   Void operate(List priorOutputs) {
@@ -67,10 +67,10 @@ class DisableAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
         try {
           description
             .credentials
-            .computeClient
-            .disableServerGroup(resourceGroupName, description.name)
+            .networkClient
+            .disableServerGroup(resourceGroupName,serverGroupDescription.appGatewayName, serverGroupDescription.name)
 
-          task.updateStatus BASE_PHASE, "Done disabling Azure server group ${description.name} in ${region}."
+          task.updateStatus BASE_PHASE, "Done disabling Azure server group ${serverGroupDescription.name} in ${region}."
         } catch (Exception e) {
           task.updateStatus(BASE_PHASE, "Disabling of server group ${description.name} failed: ${e.message}")
           errList.add("Failed to disable server group ${description.name}: ${e.message}")

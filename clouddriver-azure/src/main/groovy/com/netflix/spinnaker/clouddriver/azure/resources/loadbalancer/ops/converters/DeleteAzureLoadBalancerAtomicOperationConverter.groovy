@@ -27,7 +27,8 @@ import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
 @Slf4j
-@AzureOperation(AtomicOperations.DELETE_LOAD_BALANCER)
+@AzureOperation("deleteLoadBalancerL4")
+//@AzureOperation(AtomicOperations.DELETE_LOAD_BALANCER)
 @Component("deleteAzureLoadBalancerDescription")
 class DeleteAzureLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   public DeleteAzureLoadBalancerAtomicOperationConverter() {

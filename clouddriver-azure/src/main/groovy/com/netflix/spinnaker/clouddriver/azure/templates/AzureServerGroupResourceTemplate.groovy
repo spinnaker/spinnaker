@@ -290,6 +290,11 @@ class AzureServerGroupResourceTemplate {
       tags.cluster = description.clusterName
       tags.createdTime = currentTime.toString()
       tags.loadBalancerName = LB_NAME
+
+      // debug only; can be removed as part of the tags cleanup
+      if (description.appGatewayName) tags.appGatewayName = description.appGatewayName
+      if (description.appGatewayBapId) tags.appGatewayBapId = description.appGatewayBapId
+
       if (description.securityGroupName) tags.securityGroupName = description.securityGroupName
       if (description.subnetId) tags.subnetId = description.subnetId
       tags.imageIsCustom = description.image.isCustom.toString()

@@ -24,13 +24,17 @@ import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RestController
 
+@RestController
 @Component
-class AzureLoadBalancerProvider implements LoadBalancerProvider<AzureLoadBalancer> {
+class AzureLoadBalancerProvider /*implements LoadBalancerProvider<AzureLoadBalancer> */ {
 
   private final AzureCloudProvider azureCloudProvider
   private final Cache cacheView
@@ -52,8 +56,9 @@ class AzureLoadBalancerProvider implements LoadBalancerProvider<AzureLoadBalance
    *         for each server group: its name, region, and *only* the instances attached to the load balancers described above.
    *         The instances will have a minimal amount of data, as well: name, zone, and health related to any load balancers
    */
-  @Override
-  Set<AzureLoadBalancer> getApplicationLoadBalancers(String application) {
+//  @Override
+  @RequestMapping(value = "/applications/{application}/loadBalancersL4", method = RequestMethod.GET)
+  Set<AzureLoadBalancer> getApplicationLoadBalancers(@PathVariable String application) {
     getAllMatchingKeyPattern(Keys.getLoadBalancerKey(azureCloudProvider, '*', '*', application, '*', '*', '*'))
   }
 

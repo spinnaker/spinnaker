@@ -25,7 +25,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationException
 
 class DeleteAzureAppGatewayAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "DELETE_APP_GATEWAY"
-  // TODO: change this later to the real thing, DELETE_LOAD_BALANCER
+  // TODO: we change this later to be the Spinnaker load balancer
   // private static final String BASE_PHASE = "DELETE_LOAD_BALANCER"
 
   private static Task getTask() {
@@ -39,9 +39,6 @@ class DeleteAzureAppGatewayAtomicOperation implements AtomicOperation<Void> {
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteAppGateway": { "cloudProvider" : "azure", "appName" : "tappgw1", "loadBalancerName" : "tappgw1-st1-d1", "credentials" : "azure-cred1", "region" : "westus", "name" : "tappgw1-st1-d1", "user" : "[anonymous]" }} ]' localhost:7002/azure/ops
-   *
-   * TODO: change ops task name to deleteLoadBalancer:
    * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteLoadBalancer": { "cloudProvider" : "azure", "appName" : "tappgw1", "loadBalancerName" : "tappgw1-st1-d1", "credentials" : "azure-cred1", "region" : "westus", "name" : "tappgw1-st1-d1", "user" : "[anonymous]" }} ]' localhost:7002/azure/ops
    *
    * @param priorOutputs

@@ -21,14 +21,13 @@ import com.netflix.spinnaker.clouddriver.azure.common.AzureAtomicOperationConver
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model.AzureAppGatewayDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.ops.UpsertAzureAppGatewayAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
 @Slf4j
-@AzureOperation("upsertAppGateway")
-// TODO: change operation type to AtomicOperations.UPSERT_LOAD_BALANCER after we retire AzureLoadBalancer
-//@AzureOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
+@AzureOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
 @Component("upsertAzureAppGatewayDescription")
 class UpsertAzureAppGatewayAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   UpsertAzureAppGatewayAtomicOperationConverter() {

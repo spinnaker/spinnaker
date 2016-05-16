@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/azure/loadBalancers")
+@RequestMapping("/azure/loadBalancersL4")
 class AzureLoadBalancerController {
 
   @Autowired

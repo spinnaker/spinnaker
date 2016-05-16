@@ -122,7 +122,7 @@ class AzureClusterProvider implements ClusterProvider<AzureCluster> {
     Map<String, AzureServerGroupDescription> serverGroups
 
     if (includeDetails) {
-      Collection<CacheData> allLoadBalancers = resolveRelationshipDataForCollection(clusterData, AZURE_LOAD_BALANCERS.ns)
+      Collection<CacheData> allLoadBalancers = resolveRelationshipDataForCollection(clusterData, AZURE_APP_GATEWAYS.ns)
       Collection<CacheData> allServerGroups = resolveRelationshipDataForCollection(clusterData, AZURE_SERVER_GROUPS.ns, RelationshipCacheFilter.include(AZURE_INSTANCES.ns))
 
       loadBalancers = translateLoadBalancers(allLoadBalancers)
@@ -136,14 +136,14 @@ class AzureClusterProvider implements ClusterProvider<AzureCluster> {
       cluster.accountName = clusterKey.account
       cluster.name = clusterKey.name
       if (includeDetails) {
-        cluster.loadBalancers = clusterDataEntry.relationships[AZURE_LOAD_BALANCERS.ns]?.findResults {
+        cluster.loadBalancers = clusterDataEntry.relationships[AZURE_APP_GATEWAYS.ns]?.findResults {
           loadBalancers.get(it)
         }
         cluster.serverGroups = clusterDataEntry.relationships[AZURE_SERVER_GROUPS.ns]?.findResults {
           serverGroups.get(it)
         }
       } else {
-        cluster.loadBalancers = clusterDataEntry.relationships[AZURE_LOAD_BALANCERS.ns]?.collect { loadBalancerKey ->
+        cluster.loadBalancers = clusterDataEntry.relationships[AZURE_APP_GATEWAYS.ns]?.collect { loadBalancerKey ->
           Map parts = Keys.parse(azureCloudProvider, loadBalancerKey)
           new AzureLoadBalancer(name: parts.name, region: parts.region, account: parts.account)
         }

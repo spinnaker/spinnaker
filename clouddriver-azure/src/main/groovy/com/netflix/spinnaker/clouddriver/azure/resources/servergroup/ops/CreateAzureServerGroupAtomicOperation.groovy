@@ -19,9 +19,7 @@ package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.ops
 import com.microsoft.azure.management.resources.models.DeploymentExtended
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.model.AzureDeploymentOperation
-import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
-import com.netflix.spinnaker.clouddriver.azure.templates.AzureLoadBalancerResourceTemplate
 import com.netflix.spinnaker.clouddriver.azure.templates.AzureServerGroupResourceTemplate
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -57,7 +55,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
     String virtualNetworkName = null
     String subnetName = null
     String serverGroupName = null
-    //String appGatewayPoolID = null
+    String appGatewayPoolID = null
 
     try {
 
@@ -97,17 +95,20 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
       description.appName = description.application
 
       // get the app gateway. Verify that it can be used for this server group/cluster. add an app pool if it doesn't already exist
-      def appGateway = description.credentials.networkClient.getAppGateway(resourceGroupName, description.loadBalancerName)
-      if (appGateway) {
-        if (appGateway.tags?.cluster && appGateway.tags?.cluster != description.clusterName) {
-          throw new RuntimeException("Selected Load Balancer: $description.loadBalancerName is already in use by another cluster: $appGateway.tags.cluster")
-        }
+      // TODO: replace appGatewayName with loadBalancerName
+      if (!description.appGatewayName) {
+        description.appGatewayName = description.loadBalancerName
       }
-      else {
-        throw new RuntimeException("Selected Load Balancer $description.loadBalancerName does not exist")
+      appGatewayPoolID = description.credentials
+        .networkClient
+        .createAppGatewayBAPforServerGroup(resourceGroupName, description.appGatewayName, description.name)
+
+      if (!appGatewayPoolID) {
+        throw new RuntimeException("Selected Load Balancer $description.appGatewayName does not exist")
       }
 
-      def appGatewayPoolID = description.credentials.networkClient.getAppGatewayBackendPool(resourceGroupName, appGateway.name, description.name)
+      // TODO: Debug only; can be removed as part of tags cleanup
+      description.appGatewayBapId = appGatewayPoolID
 
       // if this is not a custom image, then we need to go get the OsType from Azure
       if (!description.image.isCustom) {
@@ -133,8 +134,8 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
           description.name,
           "serverGroup",
           [
-            subnetId: subnetId
-            ,appGatewayAddressPoolID: appGatewayPoolID
+            subnetId: subnetId,
+            appGatewayAddressPoolID: appGatewayPoolID
           ])
 
         errList.addAll(AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name))
@@ -152,8 +153,21 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
         // cleanup any resources that might have been created prior to server group failing to deploy
         task.updateStatus(BASE_PHASE, "Cleanup any resources created as part of server group upsert")
         try {
-          if (serverGroupName) description.credentials.computeClient.destroyServerGroup(resourceGroupName, serverGroupName)
-          if (subnetName) description.credentials.networkClient.deleteSubnet(resourceGroupName, virtualNetworkName, subnetName)
+          if (serverGroupName) {
+            description.credentials
+              .computeClient
+              .destroyServerGroup(resourceGroupName, serverGroupName)
+          }
+          if (appGatewayPoolID) {
+            description.credentials
+              .networkClient
+              .removeAppGatewayBAPforServerGroup(resourceGroupName, description.appGatewayName, description.name)
+          }
+          if (subnetName) {
+            description.credentials
+              .networkClient
+              .deleteSubnet(resourceGroupName, virtualNetworkName, subnetName)
+          }
         } catch (Exception e) {
           def errMessage = "Unexpected exception: ${e.message}; please log in into the Azure Portal and manually remove the following resources: ${subnetName}"
           task.updateStatus(BASE_PHASE, errMessage)

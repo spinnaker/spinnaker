@@ -215,7 +215,7 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
             attributes.name = serverGroup.appName
             relationships[AZURE_CLUSTERS.ns].add(clusterKey)
             relationships[AZURE_SERVER_GROUPS.ns].add(serverGroupKey)
-            relationships[AZURE_LOAD_BALANCERS.ns].add(loadBalancerKey)
+            relationships[AZURE_APP_GATEWAYS.ns].add(loadBalancerKey)
           }
 
           cachedClusters[clusterKey].with {
@@ -223,14 +223,14 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
             attributes.accountName = accountName
             relationships[AZURE_APPLICATIONS.ns].add(appKey)
             relationships[AZURE_SERVER_GROUPS.ns].add(serverGroupKey)
-            relationships[AZURE_LOAD_BALANCERS.ns].add(loadBalancerKey)
+            relationships[AZURE_APP_GATEWAYS.ns].add(loadBalancerKey)
           }
 
           cachedServerGroups[serverGroupKey].with {
             attributes.serverGroup = serverGroup
             relationships[AZURE_APPLICATIONS.ns].add(appKey)
             relationships[AZURE_CLUSTERS.ns].add(clusterKey)
-            relationships[AZURE_LOAD_BALANCERS.ns].add(loadBalancerKey)
+            relationships[AZURE_APP_GATEWAYS.ns].add(loadBalancerKey)
           }
 
           creds.computeClient.getServerGroupInstances(AzureUtilities.getResourceGroupName(serverGroup), serverGroup.name)?.each { instance ->

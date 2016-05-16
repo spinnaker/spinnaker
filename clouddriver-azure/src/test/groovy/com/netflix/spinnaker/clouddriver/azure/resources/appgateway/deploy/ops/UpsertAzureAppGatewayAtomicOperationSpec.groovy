@@ -44,7 +44,7 @@ class UpsertAzureAppGatewayAtomicOperationSpec extends Specification{
     setup:
     mapper.configure(SerializationFeature.INDENT_OUTPUT, true)
     mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-    def input = '''{ "cloudProvider" : "azure", "appName" : "testappgw", "loadBalancerName" : "testappgw-lb1-d1", "stack" : "lb1", "detail" : "d1", "credentials" : "myazure-account", "region" : "westus", "probes" : [ { "name" : "healthcheck1", "protocol" : "HTTP", "path" : "/healthcheck", "interval" : 120, "unhealthyThreshold" : 8, "timeout" : 30 } ], "rules" : [ { "name" : "lbRule1", "protocol" : "HTTP", "externalPort" : "80", "backendPort" : "8080" } ], "name" : "testappgw-lb1-d1", "user" : "[anonymous]" }'''
+    def input = '''{ "cloudProvider" : "azure", "appName" : "testappgw", "loadBalancerName" : "testappgw-lb1-d1", "stack" : "lb1", "detail" : "d1", "credentials" : "myazure-account", "region" : "westus", "probes" : [ { "probeName" : "healthcheck1", "probeProtocol" : "HTTP", "probePath" : "/healthcheck", "probeInterval" : 120, "unhealthyThreshold" : 8, "timeout" : 30 } ], "loadBalancingRules" : [ { "ruleName" : "lbRule1", "protocol" : "HTTP", "externalPort" : "80", "backendPort" : "8080" } ], "name" : "testappgw-lb1-d1", "user" : "[anonymous]" }'''
 
     when:
     UpsertAzureAppGatewayAtomicOperation operation = converter.convertOperation(mapper.readValue(input, Map))
@@ -75,17 +75,19 @@ class UpsertAzureAppGatewayAtomicOperationSpec extends Specification{
   "dnsName" : null,
   "cluster" : null,
   "serverGroups" : null,
+  "trafficEnabledSG" : null,
+  "publicIpId" : null,
   "probes" : [ {
-    "name" : "healthcheck1",
-    "protocol" : "HTTP",
-    "host" : "localhost",
-    "path" : "/healthcheck",
-    "interval" : 120,
+    "probeName" : "healthcheck1",
+    "probeProtocol" : "HTTP",
+    "probePort" : "localhost",
+    "probePath" : "/healthcheck",
+    "probeInterval" : 120,
     "timeout" : 30,
     "unhealthyThreshold" : 8
   } ],
-  "rules" : [ {
-    "name" : "lbRule1",
+  "loadBalancingRules" : [ {
+    "ruleName" : "lbRule1",
     "protocol" : "HTTP",
     "externalPort" : 80,
     "backendPort" : 8080,

@@ -82,12 +82,12 @@ class Keys {
         result << [application: names.app, name: parts[2], id: parts[3], cluster: parts[4], appname: parts[5], region: parts[6], account: parts[7]]
         break
       case Namespace.AZURE_APP_GATEWAYS.ns:
-        def names = Names.parseName(parts[2])
+        def names = Names.parseName(parts[3])
         result << [
           appname: names.app,
-          name:    parts[2],
-          region:  parts[3],
-          account: parts[4]
+          name:    parts[3],
+          region:  parts[4],
+          account: parts[5]
         ]
         break
       case Namespace.AZURE_APPLICATIONS.ns:

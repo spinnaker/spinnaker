@@ -21,14 +21,13 @@ import com.netflix.spinnaker.clouddriver.azure.common.AzureAtomicOperationConver
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model.AzureAppGatewayDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.ops.DeleteAzureAppGatewayAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
 @Slf4j
-@AzureOperation("deleteAppGateway")
-// TODO: change operation type to AtomicOperations.DELETE_LOAD_BALANCER after we retire AzureLoadBalancer
-//@AzureOperation(AtomicOperations.DELETE_LOAD_BALANCER)
+@AzureOperation(AtomicOperations.DELETE_LOAD_BALANCER)
 @Component("deleteAzureAppGatewayDescription")
 class DeleteAzureAppGatewayAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   DeleteAzureAppGatewayAtomicOperationConverter() {

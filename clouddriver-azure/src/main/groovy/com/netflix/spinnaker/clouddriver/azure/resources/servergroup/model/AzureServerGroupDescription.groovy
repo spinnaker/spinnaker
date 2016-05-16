@@ -45,6 +45,8 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
 
   UpgradePolicy upgradePolicy
   String loadBalancerName
+  String appGatewayName
+  String appGatewayBapId
   AzureSecurityGroup securityGroup
   AzureNamedImage image
   AzureScaleSetSku sku
@@ -137,6 +139,9 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     azureSG.clusterName = scaleSet.tags?.cluster ?: parsedName.cluster
     azureSG.securityGroupName = scaleSet.tags?.securityGroupName
     azureSG.loadBalancerName = scaleSet.tags?.loadBalancerName
+    azureSG.appGatewayName = scaleSet.tags?.appGatewayName
+    azureSG.appGatewayBapId = scaleSet.tags?.appGatewayBapId
+    // TODO: appGatewayBapId can be retrieved via scaleSet->networkProfile->networkInterfaceConfigurations->ipConfigurations->ApplicationGatewayBackendAddressPools
     azureSG.subnetId = scaleSet.tags?.subnetId
     azureSG.createdTime = scaleSet.tags?.createdTime?.toLong()
     azureSG.image = new AzureNamedImage( isCustom:  scaleSet.tags?.customImage, imageName: scaleSet.tags?.imageName)

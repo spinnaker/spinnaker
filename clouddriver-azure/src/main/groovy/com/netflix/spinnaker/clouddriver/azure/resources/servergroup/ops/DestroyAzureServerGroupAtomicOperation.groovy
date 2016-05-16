@@ -39,7 +39,7 @@ class DestroyAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "destroyServerGroup": { "serverGroupName": "taz-web1-d1-v000", "name": "taz-web1-d1-v000", "account" : "azure-cred1", "cloudProvider" : "azure", "appName" : "taz", "regions": ["westus"], "credentials": "azure-cred1" }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "destroyServerGroup": { "serverGroupName": "taz-web1-d1-v000", "name": "taz-web1-d1-v000", "account" : "azure-cred1", "cloudProvider" : "azure", "appName" : "taz", "regions": ["westus"], "credentials": "azure-cred1" }} ]' localhost:7002/azure/ops
    */
   @Override
   Void operate(List priorOutputs) {
@@ -78,6 +78,11 @@ class DestroyAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
 
         // Clean-up the storrage account, load balancer and the subnet that where attached to the server group
         if (errList.isEmpty()) {
+          // Remove association between server group and the assigned application gateway backend address pool
+          description
+            .credentials
+            .networkClient
+            .removeAppGatewayBAPforServerGroup(resourceGroupName, description.appGatewayName, description.name)
 
           // Delete storage accounts if any
           serverGroupDescription.storageAccountNames?.each { def storageAccountName ->

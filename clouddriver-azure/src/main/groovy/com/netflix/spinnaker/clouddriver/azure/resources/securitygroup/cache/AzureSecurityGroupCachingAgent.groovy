@@ -242,7 +242,7 @@ class AzureSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Acc
       }
     }
 
-    return new DefaultCacheResult([(Keys.Namespace.AZURE_LOAD_BALANCERS.ns): []])
+    return new DefaultCacheResult([(Keys.Namespace.AZURE_APP_GATEWAYS.ns): []])
   }
 
   // Update current cache only if the current entry is a new OnDemand request or if the current entry is more recent

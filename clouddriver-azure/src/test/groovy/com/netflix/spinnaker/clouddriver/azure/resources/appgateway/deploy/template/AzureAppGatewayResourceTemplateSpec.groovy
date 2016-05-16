@@ -75,7 +75,7 @@ class AzureAppGatewayResourceTemplateSpec extends Specification {
     description.name = 'testappgw-lb1-d1'
     description.vnet = 'vnet-testappgw-westus'
 
-    String template = AzureAppGatewayResourceTemplate.getTemplate(description)
+    AzureAppGatewayResourceTemplate.getTemplate(description)
 
     then:
     // The subnet is required; it must be created prior to calling the getTemplate() and should be set in the description object
@@ -100,23 +100,23 @@ class AzureAppGatewayResourceTemplateSpec extends Specification {
 
     description.probes.add(new AzureAppGatewayDescription.
       AzureAppGatewayHealthcheckProbe(
-        name: 'probe1',
-        path: '/healthcheck',
-        interval: 300,
+        probeName: 'probe1',
+        probePath: '/healthcheck',
+        probeInterval: 300,
         timeout: 60,
         unhealthyThreshold: 10
     ))
 
-    description.rules.add(new AzureAppGatewayDescription.
+    description.loadBalancingRules.add(new AzureAppGatewayDescription.
       AzureAppGatewayRule(
-        name: 'rule1',
+        ruleName: 'rule1',
         protocol: 'HTTP',
         externalPort: 80,
         backendPort: 8080
     ))
-    description.rules.add(new AzureAppGatewayDescription.
+    description.loadBalancingRules.add(new AzureAppGatewayDescription.
       AzureAppGatewayRule(
-      name: 'rule2',
+      ruleName: 'rule2',
       protocol: 'HTTP',
       externalPort: 8080,
       backendPort: 8080
@@ -148,7 +148,7 @@ class AzureAppGatewayResourceTemplateSpec extends Specification {
     "publicIPAddressID" : "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]",
     "appGwID" : "[resourceId('Microsoft.Network/applicationGateways',variables('appGwName'))]",
     "appGwSubnetID" : "[concat(variables('virtualNetworkID'),'/subnets/',variables('appGwSubnetName'))]",
-    "appGwBeAddrPoolName" : "beaddrpool-default"
+    "appGwBeAddrPoolName" : "default_BAP0"
   },
   "resources" : [ {
     "apiVersion" : "[variables('apiVersion')]",
@@ -211,7 +211,11 @@ class AzureAppGatewayResourceTemplateSpec extends Specification {
         }
       } ],
       "backendAddressPools" : [ {
-        "name" : "[variables('appGwBeAddrPoolName')]"
+        "name" : "default_BAP0"
+      }, {
+        "name" : "testappgw-sg1-d1-v000"
+      }, {
+        "name" : "testappgw-sg1-d1-v001"
       } ],
       "backendHttpSettingsCollection" : [ {
         "name" : "appGwBackendHttpSettings-rule1",
@@ -320,7 +324,7 @@ class AzureAppGatewayResourceTemplateSpec extends Specification {
     "publicIPAddressID" : "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]",
     "appGwID" : "[resourceId('Microsoft.Network/applicationGateways',variables('appGwName'))]",
     "appGwSubnetID" : "[concat(variables('virtualNetworkID'),'/subnets/',variables('appGwSubnetName'))]",
-    "appGwBeAddrPoolName" : "beaddrpool-default"
+    "appGwBeAddrPoolName" : "default_BAP0"
   },
   "resources" : [ {
     "apiVersion" : "[variables('apiVersion')]",
@@ -366,7 +370,7 @@ class AzureAppGatewayResourceTemplateSpec extends Specification {
       } ],
       "frontendPorts" : [ ],
       "backendAddressPools" : [ {
-        "name" : "[variables('appGwBeAddrPoolName')]"
+        "name" : "default_BAP0"
       } ],
       "backendHttpSettingsCollection" : [ ],
       "httpListeners" : [ ],

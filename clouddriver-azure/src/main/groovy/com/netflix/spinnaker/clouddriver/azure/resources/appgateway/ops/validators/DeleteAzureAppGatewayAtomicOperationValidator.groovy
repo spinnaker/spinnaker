@@ -39,13 +39,12 @@ class DeleteAzureAppGatewayAtomicOperationValidator extends
     helper.validateRegion(description.region)
     helper.validateName(description.loadBalancerName, "loadBalancerName")
     helper.validateName(description.appName, "appName")
-    if (!ValidateNoServerGroupsAttached(description.appName, description.loadBalancerName)) {
+    if (!ValidateNoServerGroupsAttached(description)) {
       errors.rejectValue "serverGroups", "deleteAzureAppGatewayDescriptionValidator.serverGroupsList.not_empty"
     }
   }
 
-  static Boolean ValidateNoServerGroupsAttached(String appName, String appGateway) {
-    // TODO: Implement real check
-    return true
+  static Boolean ValidateNoServerGroupsAttached(AzureAppGatewayDescription appGatewayDescription) {
+    !appGatewayDescription?.cluster && !appGatewayDescription?.serverGroups
   }
 }

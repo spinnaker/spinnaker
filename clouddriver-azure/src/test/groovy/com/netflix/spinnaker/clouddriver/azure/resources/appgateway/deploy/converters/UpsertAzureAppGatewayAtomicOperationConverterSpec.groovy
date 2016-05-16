@@ -55,23 +55,23 @@ class UpsertAzureAppGatewayAtomicOperationConverterSpec extends  Specification{
       detail: "d1",
       probes: [
         [
-          name: "healthcheck1",
-          protocol: "HTTP",
-          path: "/healthcheck",
-          interval: 120,
+          probeName: "healthcheck1",
+          probeProtocol: "HTTP",
+          probePath: "/healthcheck",
+          probeInterval: 120,
           timeout: 30,
           unhealthyThreshold: 8
         ]
       ],
-      rules: [
+      loadBalancingRules: [
         [
-          name: "lbRule1",
+          ruleName: "lbRule1",
           protocol: "HTTP",
           externalPort: 80,
           backendPort: 8080,
         ],
         [
-          name: "lbRule2",
+          ruleName: "lbRule2",
           protocol: "HTTP",
           externalPort: 8080,
           backendPort: 8080,
@@ -107,23 +107,25 @@ class UpsertAzureAppGatewayAtomicOperationConverterSpec extends  Specification{
   "dnsName" : null,
   "cluster" : null,
   "serverGroups" : null,
+  "trafficEnabledSG" : null,
+  "publicIpId" : null,
   "probes" : [ {
-    "name" : "healthcheck1",
-    "protocol" : "HTTP",
-    "host" : "localhost",
-    "path" : "/healthcheck",
-    "interval" : 120,
+    "probeName" : "healthcheck1",
+    "probeProtocol" : "HTTP",
+    "probePort" : "localhost",
+    "probePath" : "/healthcheck",
+    "probeInterval" : 120,
     "timeout" : 30,
     "unhealthyThreshold" : 8
   } ],
-  "rules" : [ {
-    "name" : "lbRule1",
+  "loadBalancingRules" : [ {
+    "ruleName" : "lbRule1",
     "protocol" : "HTTP",
     "externalPort" : 80,
     "backendPort" : 8080,
     "sslCertificate" : null
   }, {
-    "name" : "lbRule2",
+    "ruleName" : "lbRule2",
     "protocol" : "HTTP",
     "externalPort" : 8080,
     "backendPort" : 8080,
