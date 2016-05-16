@@ -37,18 +37,18 @@ import org.springframework.stereotype.Component
 @Slf4j
 @Component
 @CompileStatic
-class ParallelRunStage extends ParallelStage {
+class ParallelRunJobsStage extends ParallelStage {
 
-  public static final String PIPELINE_CONFIG_TYPE = "run"
+  public static final String PIPELINE_CONFIG_TYPE = "runJobs"
 
   @Autowired
   List<LinearStage> stageBuilders
 
-  ParallelRunStage() {
+  ParallelRunJobsStage() {
     this(PIPELINE_CONFIG_TYPE)
   }
 
-  protected ParallelRunStage(String name) {
+  protected ParallelRunJobsStage(String name) {
     super(name)
   }
 
@@ -69,7 +69,7 @@ class ParallelRunStage extends ParallelStage {
       }
 
       def flowBuilder = new FlowBuilder<Flow>(context.name as String).start(
-        buildStep(stage, "setupParallelRun", new Task() {
+        buildStep(stage, "setupParallelRunJobs", new Task() {
           @Override
           TaskResult execute(Stage ignored) {
             return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
@@ -87,7 +87,7 @@ class ParallelRunStage extends ParallelStage {
   protected Map<String, Object> clusterContext(Stage stage, Map defaultStageContext, Map cluster) {
     def type = RunJobStage.PIPELINE_CONFIG_TYPE
 
-    String name = "Run in ${cluster.region}"
+    String name = "Run Jobs in ${cluster.region}"
 
     return defaultStageContext + [
       cloudProvider: cluster.cloudProvider,
@@ -147,7 +147,7 @@ class ParallelRunStage extends ParallelStage {
   Task completeParallel() {
     return new Task() {
       TaskResult execute(Stage stage) {
-        log.info("Completed Parallel Run")
+        log.info("Completed Parallel Run Jobs")
         new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [:], [:])
       }
     }
