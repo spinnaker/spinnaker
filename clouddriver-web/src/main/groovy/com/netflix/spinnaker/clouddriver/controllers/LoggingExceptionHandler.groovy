@@ -30,5 +30,6 @@ class LoggingExceptionHandler {
   @ExceptionHandler(value = Exception.class)
   def defaultErrorHandler(HttpServletRequest request, Exception e) {
     log.error("Error occurred handling request for ${request.requestURL}: ${ExceptionUtils.getFullStackTrace(e)}")
+    throw e
   }
 }
