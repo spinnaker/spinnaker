@@ -40,7 +40,7 @@ abstract class AbstractDiscoveryTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def taskId = kato.requestOperations([["${action}Description": stage.context]])
+    def taskId = kato.requestOperations([["${action}": stage.context]])
       .toBlocking()
       .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
