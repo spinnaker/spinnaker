@@ -131,10 +131,31 @@ class TravisService implements BuildService {
 
     List<GenericBuild> getBuilds(String inputRepoSlug) {
         String repoSlug = cleanRepoSlug(inputRepoSlug)
+        String branch = branchFromRepoSlug(inputRepoSlug)
+        boolean tagsVirtualBranch = branchIsTagsVirtualBranch(inputRepoSlug)
         Builds builds = travisClient.builds(getAccessToken(), repoSlug)
         List<GenericBuild> list = new ArrayList<GenericBuild>()
         builds.builds.each { build ->
-            list.add getGenericBuild(build, repoSlug)
+            if (tagsVirtualBranch) {
+                Commit commit = builds.commits.find{
+                    it.id == build.commitId
+                }
+                if (commit?.isTag()) {
+                    list.add(getGenericBuild(build, repoSlug))
+                }
+            } else if (branch.length() == 0) {
+                list.add(getGenericBuild(build, repoSlug))
+            } else {
+                Commit commit = builds.commits.find{
+                    it.id == build.commitId
+                }
+                if (!commit) {
+                    log.info("${groupKey}:${repoSlug}:${build.number} - Could not find commit for build.")
+                    list.add(getGenericBuild(build, repoSlug))
+                } else if (commit.branch.equalsIgnoreCase(branch) && build.pullRequest == branchIsPullRequestVirtualBranch(inputRepoSlug)){
+                    list.add(getGenericBuild(build, repoSlug))
+                }
+            }
         }
         return list
     }
@@ -291,13 +312,25 @@ class TravisService implements BuildService {
         }
     }
 
-    protected String cleanRepoSlug(String inputRepoSlug) {
+    protected static String cleanRepoSlug(String inputRepoSlug) {
         def parts = inputRepoSlug.tokenize('/')
         return "${parts[0]}/${parts[1]}"
     }
 
-    protected String branchFromRepoSlug(String inputRepoSlug) {
-        return inputRepoSlug.tokenize('/').drop(2).join('/') - "pull_request_"
+    protected static String branchFromRepoSlug(String inputRepoSlug) {
+        String branch = extractBranchFromRepoSlug(inputRepoSlug) - ~/^pull_request_/
+        return branch.equalsIgnoreCase('tags') ? '' : branch
+    }
+
+    protected static boolean branchIsTagsVirtualBranch(String inputRepoSlug) {
+        return extractBranchFromRepoSlug(inputRepoSlug).equalsIgnoreCase("tags")
+    }
+    protected static boolean branchIsPullRequestVirtualBranch(String inputRepoSlug) {
+        return extractBranchFromRepoSlug(inputRepoSlug).startsWith("pull_request_")
+    }
+
+    private static String extractBranchFromRepoSlug(String inputRepoSlug) {
+        inputRepoSlug.tokenize('/').drop(2).join('/')
     }
 
     private void setAccessToken() {

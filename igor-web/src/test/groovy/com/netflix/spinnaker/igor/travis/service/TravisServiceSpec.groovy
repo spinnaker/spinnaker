@@ -25,6 +25,7 @@ import com.netflix.spinnaker.igor.travis.client.model.Builds
 import com.netflix.spinnaker.igor.travis.client.model.Commit
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 
 class TravisServiceSpec extends Specification{
@@ -59,34 +60,61 @@ class TravisServiceSpec extends Specification{
         1 * build.timestamp() >> 1458051084000
     }
 
+    @Unroll
     def "cleanRepoSlug(repoSlug)"() {
-        when:
-        String repoSlug = service.cleanRepoSlug(inputRepoSlug)
-
-        then:
-        repoSlug == expectedRepoSlug
+        expect:
+        service.cleanRepoSlug(inputRepoSlug) == expectedRepoSlug
 
         where:
-        inputRepoSlug                     | expectedRepoSlug
-        "my-org/repo"                     | "my-org/repo"
-        "my-org/repo/branch"              | "my-org/repo"
-        "my-org/repo/branch/with/slashes" | "my-org/repo"
+        inputRepoSlug                     || expectedRepoSlug
+        "my-org/repo"                     || "my-org/repo"
+        "my-org/repo/branch"              || "my-org/repo"
+        "my-org/repo/branch/with/slashes" || "my-org/repo"
 
     }
 
+    @Unroll
     def "branchFromRepoSlug(repoSlug)"() {
-        when:
-        String branch = service.branchFromRepoSlug(inputRepoSlug)
-
-        then:
-        branch == expectedBranch
+        expect:
+        service.branchFromRepoSlug(inputRepoSlug) == expectedBranch
 
         where:
-        inputRepoSlug                     | expectedBranch
-        "my-org/repo"                     | ""
-        "my-org/repo/branch"              | "branch"
-        "my-org/repo/branch/with/slashes" | "branch/with/slashes"
-        "my-org/repo/pull_request_master" | "master"
+        inputRepoSlug                     || expectedBranch
+        "my-org/repo"                     || ""
+        "my-org/repo/branch"              || "branch"
+        "my-org/repo/branch/with/slashes" || "branch/with/slashes"
+        "m/r/some_pull_request_in_name"   || "some_pull_request_in_name"
+        "my-org/repo/pull_request_master" || "master"
+        "my-org/repo/tags"                || ""
+    }
+
+    @Unroll
+    def "branchIsTagsVirtualBranch(repoSlug)"() {
+        expect:
+        service.branchIsTagsVirtualBranch(inputRepoSlug) == expectedBranch
+
+        where:
+        inputRepoSlug                     || expectedBranch
+        "my-org/repo"                     || false
+        "my-org/repo/branch"              || false
+        "my-org/repo/branch/with/slashes" || false
+        "my-org/repo/pull_request_master" || false
+        "my-org/repo/tags"                || true
+    }
+
+    @Unroll
+    def "branchIsPullRequestVirtualBranch(repoSlug)"() {
+        expect:
+        service.branchIsPullRequestVirtualBranch(inputRepoSlug) == expectedBranch
+
+        where:
+        inputRepoSlug                     || expectedBranch
+        "my-org/repo"                     || false
+        "my-org/repo/branch"              || false
+        "my-org/repo/branch/with/slashes" || false
+        "my-org/repo/pull_request_master" || true
+        "m/r/some_pull_request_in_name"   || false
+        "my-org/repo/tags"                || false
     }
 
     def "getCommit(repoSlug, buildNumber)"() {
@@ -102,7 +130,7 @@ class TravisServiceSpec extends Specification{
         Commit fetchedCommit = service.getCommit("org/repo", 38)
 
         then:
-        fetchedCommit.isTag() == true
+        fetchedCommit.isTag()
         1 * client.accessToken("someToken") >> accessToken
         1 * client.builds("token someToken", "org/repo", 38) >> builds
         2 * builds.commits >> [commit]

@@ -329,7 +329,7 @@ class TravisClientSpec extends Specification {
         Builds builds = client.builds("someToken", "org/repo", 39)
 
         then:
-        builds.commits.first().isTag() == true
+        builds.commits.first().isTag()
 
     }
 
