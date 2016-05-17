@@ -79,7 +79,7 @@ class ExecutionContextManager {
           augmentedContext.put('trigger', ((Pipeline) stage.execution).trigger)
           augmentedContext.put('execution', stage.execution)
         }
-        def processed = ContextParameterProcessor.process([(key): result], augmentedContext)
+        def processed = ContextParameterProcessor.process([(key): result], augmentedContext, true)
         return processed[key]
       }
 
@@ -93,7 +93,7 @@ class ExecutionContextManager {
         augmentedContext.put('trigger', ((Pipeline) stage.execution).trigger)
         augmentedContext.put('execution', stage.execution)
       }
-      def processed = ContextParameterProcessor.process(delegate, augmentedContext)
+      def processed = ContextParameterProcessor.process(delegate, augmentedContext, true)
       return processed?.entrySet() ?: [:].entrySet()
     }
   }

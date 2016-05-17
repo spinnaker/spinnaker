@@ -46,16 +46,17 @@ class ContextParameterProcessor {
     }
   ] as ParserContext
 
-  private static MapPropertyAccessor = new MapPropertyAccessor()
+  private static final MapPropertyAccessor allowUnknownKeysAccessor = new MapPropertyAccessor(true)
+  private static final MapPropertyAccessor requireKeysAccessor = new MapPropertyAccessor(false)
 
   private static ExpressionParser parser = new SpelExpressionParser()
 
-  static Map process(Map parameters, Map context) {
+  static Map process(Map parameters, Map context, boolean allowUnknownKeys) {
     if (!parameters) {
       return null
     }
 
-    transform(parameters, precomputeValues(context))
+    transform(parameters, precomputeValues(context), allowUnknownKeys)
   }
 
   static boolean containsExpression(String value) {
@@ -100,19 +101,19 @@ class ContextParameterProcessor {
     context
   }
 
-  static def transform(parameters, context) {
+  static <T> T transform(T parameters, Map context, boolean allowUnknownKeys) {
     if (parameters instanceof Map) {
       return parameters.collectEntries { k, v ->
-        [transform(k, context), transform(v, context)]
+        [transform(k, context, allowUnknownKeys), transform(v, context, allowUnknownKeys)]
       }
     } else if (parameters instanceof List) {
       return parameters.collect {
-        transform(it, context)
+        transform(it, context, allowUnknownKeys)
       }
     } else if (parameters instanceof String || parameters instanceof GString) {
-      Object convertedValue = parameters
+      Object convertedValue = parameters.toString()
       EvaluationContext evaluationContext = new StandardEvaluationContext(context)
-      evaluationContext.addPropertyAccessor(MapPropertyAccessor)
+      evaluationContext.addPropertyAccessor(allowUnknownKeys ? allowUnknownKeysAccessor : requireKeysAccessor)
       evaluationContext.registerFunction('alphanumerical', ContextStringUtilities.getDeclaredMethod("alphanumerical", String))
       evaluationContext.registerFunction('toJson', ContextStringUtilities.getDeclaredMethod("toJson", Object))
       evaluationContext.registerFunction('readJson', ContextStringUtilities.getDeclaredMethod("readJson", String))
@@ -122,7 +123,7 @@ class ContextParameterProcessor {
       evaluationContext.registerFunction('jsonFromUrl', ContextStringUtilities.getDeclaredMethod("jsonFromUrl", String))
 
       try {
-        Expression exp = parser.parseExpression(parameters, parserContext)
+        Expression exp = parser.parseExpression(convertedValue, parserContext)
         convertedValue = exp.getValue(evaluationContext)
       } catch (e) {
         convertedValue = parameters
@@ -172,9 +173,11 @@ abstract class ContextStringUtilities {
 }
 
 class MapPropertyAccessor extends ReflectivePropertyAccessor {
+  private final boolean allowUnknownKeys
 
-  public MapPropertyAccessor() {
+  public MapPropertyAccessor(boolean allowUnknownKeys) {
     super()
+    this.allowUnknownKeys = allowUnknownKeys
   }
 
   @Override
@@ -185,16 +188,23 @@ class MapPropertyAccessor extends ReflectivePropertyAccessor {
   @Override
   boolean canRead(final EvaluationContext context, final Object target, final String name)
     throws AccessException {
-    true
+    if (target instanceof Map) {
+      return allowUnknownKeys || target.containsKey(name)
+    }
+    return false
   }
 
   @Override
   public TypedValue read(final EvaluationContext context, final Object target, final String name)
     throws AccessException {
-    if (!(target instanceof Map)) {
-      throw new AccessException("Cannot read target of class " + target.getClass().getName())
+    if (target instanceof Map) {
+      if (target.containsKey(name)) {
+        return new TypedValue(target.get(name))
+      } else if (allowUnknownKeys) {
+        return TypedValue.NULL
+      }
+      throw new AccessException("No property in map with key $name")
     }
-    new TypedValue(((Map<String, ?>) target).get(name))
+    throw new AccessException("Cannot read target of class " + target.getClass().getName())
   }
-
 }
