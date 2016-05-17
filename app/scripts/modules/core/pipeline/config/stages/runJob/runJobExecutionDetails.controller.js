@@ -36,7 +36,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.runJob.details.co
                 job: jobs[0],
                 account: context.account,
                 region: region,
-                provider: context.providerType || context.cloudProvider || 'kubernetes'
+                provider: context.providerType || context.cloudProvider || 'kubernetes',
+                project: $stateParams.project,
               };
               result.href = urlBuilderService.buildFromMetadata(result);
               results.push(result);

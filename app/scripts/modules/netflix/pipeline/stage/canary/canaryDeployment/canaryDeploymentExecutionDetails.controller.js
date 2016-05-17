@@ -39,6 +39,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.canaryD
           application: $scope.stage.context.application,
           cluster: $scope.deployment.baselineCluster.name,
           account: $scope.deployment.baselineCluster.accountName,
+          project: $stateParams.project,
         };
         baselineMetadata.href = urlBuilderService.buildFromMetadata(baselineMetadata);
         $scope.baselineClusterUrl = baselineMetadata;
@@ -48,6 +49,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.canaryD
           application: $scope.stage.context.application,
           cluster: $scope.deployment.canaryCluster.name,
           account: $scope.deployment.canaryCluster.accountName,
+          project: $stateParams.project,
         };
         canaryMetadata.href = urlBuilderService.buildFromMetadata(canaryMetadata);
         $scope.canaryClusterUrl = canaryMetadata;

@@ -10,14 +10,16 @@ module.exports = angular.module('spinnaker.core.navigation.urlBuilder.service', 
     var lookup = {
       // url for a single serverGroup
       'serverGroups': function(input) {
+        let baseName = input.project ? 'project' : 'applications';
         var href = $state.href(
-          'home.applications.application.insight.clusters.serverGroup',
+          `home.${baseName}.application.insight.clusters.serverGroup`,
           {
             application: input.application,
             accountId: input.account,
             region: input.region,
             serverGroup: input.serverGroup,
             provider: input.provider,
+            project: input.project,
           },
           { inherit: false }
         );
