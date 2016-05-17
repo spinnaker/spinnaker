@@ -84,7 +84,8 @@ class CatsSearchProvider implements SearchProvider {
   }
 
   private SearchResultSet generateResultSet(String query, List<String> matches, Integer pageNumber, Integer pageSize) {
-    List<Map<String, String>> results = paginateResults(matches, pageSize, pageNumber).findResults { String key ->
+    List<String> resultPage = paginateResults(matches, pageSize, pageNumber)
+    List<Map<String, String>> results = resultPage.findResults { String key ->
       Map<String, String> result = providers.findResult { it.parseKey(key) }
       if (result) {
         return searchResultHydrators.containsKey(result.type) ? searchResultHydrators[result.type].hydrateResult(cacheView, result, key) : result
@@ -92,8 +93,10 @@ class CatsSearchProvider implements SearchProvider {
       return null
     }
 
+    int filteredItems = resultPage.size() - results.size()
+
     SearchResultSet resultSet = new SearchResultSet(
-      totalMatches: matches.size(),
+      totalMatches: matches.size() - filteredItems,
       platform: getPlatform(),
       query: query,
       pageNumber: pageNumber,
