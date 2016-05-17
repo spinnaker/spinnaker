@@ -208,4 +208,66 @@ describe('executionTransformerService', function() {
       expect(execution.stageSummaries[0].startTime).toBe(4);
     });
   });
+
+  describe('buildInfo', function () {
+    let deployStage, lastBuild, parentBuild, triggerBuild;
+
+    beforeEach(function () {
+      lastBuild = { number: 4 };
+      parentBuild = { number: 5 };
+      triggerBuild = { number: 6 };
+      deployStage = { type: 'deploy', context: {
+        deploymentDetails: [
+          { jenkins: { number: 3, host: 'http://jenkinshost/', name: 'jobName' } }
+        ]
+      }};
+    });
+
+    it('adds buildInfo from deployment details', function () {
+      let execution = { stages: [ deployStage ] };
+      this.transformer.transformExecution({}, execution);
+      expect(execution.buildInfo).toEqual({ number: 3, url: 'http://jenkinshost/job/jobName/3'});
+    });
+
+    it('adds buildInfo from lastBuild if present', function () {
+      let execution = { stages: [], trigger: { buildInfo: {lastBuild: lastBuild }}};
+      this.transformer.transformExecution({}, execution);
+      expect(execution.buildInfo.number).toBe(4);
+    });
+
+    it('adds buildInfo from trigger', function () {
+      let execution = { stages: [], trigger: { buildInfo: triggerBuild }};
+      this.transformer.transformExecution({}, execution);
+      expect(execution.buildInfo.number).toBe(6);
+    });
+
+    it('adds buildInfo from parent pipeline', function () {
+      let execution = { stages: [], trigger: { parentExecution: {trigger: {buildInfo: parentBuild }}}};
+      this.transformer.transformExecution({}, execution);
+      expect(execution.buildInfo.number).toBe(5);
+    });
+
+    it('prefers deployment buildInfo to all others', function () {
+      let execution = { stages: [ deployStage ], trigger: { buildInfo: triggerBuild } };
+      execution.trigger.buildInfo.lastBuild = lastBuild;
+      execution.trigger.parentExecution = { trigger: { buildInfo: parentBuild } };
+      this.transformer.transformExecution({}, execution);
+      expect(execution.buildInfo).toEqual({ number: 3, url: 'http://jenkinshost/job/jobName/3'});
+    });
+
+    it('prefers last build info to parent execution or trigger details', function () {
+      let execution = { stages: [ ], trigger: { buildInfo: triggerBuild } };
+      execution.trigger.buildInfo.lastBuild = lastBuild;
+      execution.trigger.parentExecution = { trigger: { buildInfo: parentBuild } };
+      this.transformer.transformExecution({}, execution);
+      expect(execution.buildInfo.number).toBe(4);
+    });
+
+    it('prefers trigger details to parent execution', function () {
+      let execution = { stages: [ ], trigger: { buildInfo: triggerBuild } };
+      execution.trigger.parentExecution = { trigger: { buildInfo: parentBuild } };
+      this.transformer.transformExecution({}, execution);
+      expect(execution.buildInfo.number).toBe(6);
+    });
+  });
 });

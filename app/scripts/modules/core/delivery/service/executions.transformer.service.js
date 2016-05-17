@@ -257,6 +257,15 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
     }
 
     function addBuildInfo(execution) {
+      if (_.get(execution, 'trigger.parentExecution.trigger.buildInfo.number')) {
+        execution.buildInfo = execution.trigger.parentExecution.trigger.buildInfo;
+      }
+      if (_.get(execution, 'trigger.buildInfo.number')) {
+        execution.buildInfo = execution.trigger.buildInfo;
+      }
+      if (_.get(execution, 'trigger.buildInfo.lastBuild.number')) {
+        execution.buildInfo = execution.trigger.buildInfo.lastBuild;
+      }
       var deploymentDetails = _(execution.stages)
         .chain()
         .find(function(stage) {
@@ -270,8 +279,12 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
       // var deploymentDetails = execution.context.deploymentDetails;
       deploymentDetails = deploymentDetails || execution.context.deploymentDetails;
 
-      if (deploymentDetails && deploymentDetails.length) {
-        execution.buildInfo = deploymentDetails[0].jenkins;
+      if (deploymentDetails && deploymentDetails.length && deploymentDetails[0].jenkins) {
+        let jenkins = deploymentDetails[0].jenkins;
+        execution.buildInfo = {
+          number: jenkins.number,
+          url: `${jenkins.host}job/${jenkins.name}/${jenkins.number}`
+        };
       }
     }
 
