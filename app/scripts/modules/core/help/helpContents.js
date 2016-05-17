@@ -334,10 +334,11 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
       'when <b>Type</b> is set to <b>LoadBalancer</b>.',
     'kubernetes.service.externalIps': 'IP addresses for which nodes in the cluster also accept traffic. This is not managed by Kubernetes and the ' +
       'responsibility of the user to configure.',
-    'kubernetes.pod.volume': 'A storage volume to be mounted and shared containers in this pod. The lifecycle depends on the volume type selected' +
+    'kubernetes.pod.volume': '<p>A storage volume to be mounted and shared by containers in this pod. The lifecycle depends on the volume type selected.</p>' +
       '<p><b>EMPTYDIR</b>: A transient volume tied to the lifecycle of this pod.</p>' +
       '<p><b>HOSTPATH</b>: A directory on the host node. Most pods do not need this.</p>' +
-      '<p><b>PERSISTENTVOLUMECLAIM</b>: An already created persistent volume claim to be bound by this pod.</p>',
+      '<p><b>PERSISTENTVOLUMECLAIM</b>: An already created persistent volume claim to be bound by this pod.</p>' +
+      '<p><b>SECRET</b>: An already created kubernetes secret to be mounted in this pod.</p>',
     'kubernetes.pod.emptydir.medium': 'The type of storage medium used by this volume type.' +
       '<p><b>DEFAULT</b>: Depends on the storage mechanism backing this pod\'s Kubernetes installation.</p>' +
       '<p><b>MEMORY</b>: A tmpfs (RAM-backed filesystem). Very fast, but usage counts against the memory resource limit, and contents are lost on reboot.</p>',
