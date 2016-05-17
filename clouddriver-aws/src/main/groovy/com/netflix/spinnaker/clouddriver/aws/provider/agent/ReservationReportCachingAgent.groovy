@@ -412,11 +412,11 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
 
         overallReservationDetail.accounts.each { String accountName, AmazonReservationReport.AccountReservationDetail reservationDetail ->
           registerMetric("reservedInstances.surplusByAccountVpc", baseTags + ["account": accountName], { OverallReservationDetail o ->
-            return (o.accounts[accountName]?.surplusVpc() ?: 0) as Double
+            return (o?.accounts[accountName]?.surplusVpc() ?: 0) as Double
           })
 
           registerMetric("reservedInstances.surplusByAccountClassic", baseTags + ["account": accountName], { OverallReservationDetail o ->
-            return (o.accounts[accountName]?.surplus() ?: 0) as Double
+            return (o?.accounts[accountName]?.surplus() ?: 0) as Double
           })
         }
       }
