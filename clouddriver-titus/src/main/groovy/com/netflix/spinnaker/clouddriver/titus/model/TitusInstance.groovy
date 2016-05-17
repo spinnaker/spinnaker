@@ -48,7 +48,7 @@ class TitusInstance implements Instance {
     image << [dockerImageVersion: job.version]
     state = task.state
 
-    placement.account = job.environment.account
+    placement.account = job.environment?.account
     placement.region = task.region
     placement.subnetId = null //TODO(cfieber) what to do here
     placement.zone = task.zone
