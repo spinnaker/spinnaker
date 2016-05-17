@@ -87,6 +87,9 @@ class AwsProvider extends AgentSchedulerAware implements SearchableProvider, Eur
     @Override
     Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id) {
       def item = cacheView.get(INSTANCES.ns, id)
+      if (!item) {
+        return null
+      }
       if (!item?.relationships["serverGroups"]) {
         return result
       }
