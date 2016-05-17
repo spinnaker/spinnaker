@@ -13,6 +13,7 @@ templates.keys().forEach(function(key) {
 module.exports = angular.module('spinnaker.kubernetes', [
   require('../core/pipeline/config/stages/findAmi/kubernetes/kubernetesFindAmiStage.js'),
   require('../core/pipeline/config/stages/destroyAsg/kubernetes/kubernetesDestroyAsgStage.js'),
+  require('../core/pipeline/config/stages/disableAsg/kubernetes/kubernetesDisableAsgStage.js'),
   require('../core/pipeline/config/stages/disableCluster/kubernetes/kubernetesDisableClusterStage.js'),
   require('../core/pipeline/config/stages/enableAsg/kubernetes/kubernetesEnableAsgStage.js'),
   require('../core/pipeline/config/stages/resizeAsg/kubernetes/resizeStage.js'),
