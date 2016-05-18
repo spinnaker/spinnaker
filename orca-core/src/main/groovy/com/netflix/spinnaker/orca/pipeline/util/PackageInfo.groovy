@@ -49,6 +49,7 @@ class PackageInfo {
     // copy the context since we may modify it in createAugmentedRequest
     requestMap.putAll(stage.execution.context)
     requestMap.putAll(stage.context)
+
     if (stage.execution instanceof Pipeline) {
       Map trigger = ((Pipeline) stage.execution).trigger
       Map buildInfo = null
@@ -73,12 +74,12 @@ class PackageInfo {
   @VisibleForTesting
   private Map createAugmentedRequest(Map trigger, Map buildInfo, Map request) {
 
-    if (isUrl(request.package) || !trigger) {
+    List<Map> triggerArtifacts = trigger?.buildInfo?.artifacts ?: trigger?.parentExecution?.trigger?.buildInfo?.artifacts
+    List<Map> buildArtifacts = buildInfo?.artifacts
+
+    if (isUrl(request.package)) {
       return request
     }
-
-    List<Map> triggerArtifacts = trigger.buildInfo?.artifacts ?: trigger.parentExecution?.trigger?.buildInfo?.artifacts
-    List<Map> buildArtifacts = buildInfo?.artifacts
 
     if (!buildInfo || (buildInfo && !buildArtifacts)) {
       if (!triggerArtifacts && (trigger.buildInfo != null || trigger.parentExecution?.trigger?.buildInfo != null)) {
@@ -93,7 +94,13 @@ class PackageInfo {
     List missingPrefixes = []
     String fileExtension = ".${packageType}"
 
-    List<String> requestPackages = request.package.split(" ")
+    // There might not be a request.package so we look for the package name from either the buildInfo or trigger
+    //
+    String reqPkg = request.package ?:
+                    buildArtifacts?.first()?.fileName?.split(versionDelimiter)?.first() ?:
+                      triggerArtifacts?.first()?.fileName?.split(versionDelimiter)?.first()
+
+    List<String> requestPackages = reqPkg.split(" ")
 
     requestPackages.eachWithIndex { requestPackage, index ->
 

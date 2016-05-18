@@ -16,6 +16,8 @@
 package com.netflix.spinnaker.orca.pipeline.util
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
@@ -55,11 +57,48 @@ class PackageInfoSpec extends Specification {
       [["fileName": "test-package_1.0.0.deb"]]    | "test-package"                                 | "test-package_1.0.0"
       [["fileName": "test-package_1.0.0.deb"]]    | "another-package"                              | "another-package"
       [["fileName": "test-package_1.0.0.deb"]]    | "another-package test-package"                 | "another-package test-package_1.0.0"
-
+      [["fileName": "test-package_1.0.0.deb"]]    | "ssh://git@stash.corp.netflix.com:7999/uiplatform/nodequark.git?v1.0.51"| "ssh://git@stash.corp.netflix.com:7999/uiplatform/nodequark.git?v1.0.51"
       [["fileName": "first-package_1.0.1.deb"],
        ["fileName": "second-package_2.3.42.deb"]] | "first-package another-package second-package" | "first-package_1.0.1 another-package second-package_2.3.42"
 
+  }
 
+  def "findTargetPackage: stage execution instance of Pipeline with no trigger"() {
+    given:
+    Stage quipStage = new PipelineStage()
+    Pipeline pipeline = new Pipeline()
+    pipeline.context << [buildInfo: [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]]
+    quipStage.execution = pipeline
+
+
+    PackageType packageType = PackageType.DEB
+    ObjectMapper objectMapper = new ObjectMapper()
+    PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper )
+
+    when:
+    Map targetPkg = packageInfo.findTargetPackage()
+
+    then:
+    targetPkg.packageVersion == "1.1.1-h01.sha123"
+  }
+
+  def "findTargetPackage: stage execution instance of Pipeline with trigger and no buildInfo"() {
+    given:
+    Stage quipStage = new PipelineStage()
+    Pipeline pipeline = new Pipeline()
+    pipeline.trigger << [buildInfo: [artifacts: [[fileName: "api_2.2.2-h02.sha321_all.deb"]]]]
+    quipStage.execution = pipeline
+
+
+    PackageType packageType = PackageType.DEB
+    ObjectMapper objectMapper = new ObjectMapper()
+    PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper )
+
+    when:
+    Map targetPkg = packageInfo.findTargetPackage()
+
+    then:
+    targetPkg.packageVersion == "2.2.2-h02.sha321"
   }
 
   def "Raise an exception if allowMissingPackageInstallation is false and there's no match"() {
