@@ -30,7 +30,6 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
@@ -100,7 +99,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
                                   Keys.getServerGroupKey(name, account, region),
                                   RelationshipCacheFilter.include(INSTANCES.ns, LOAD_BALANCERS.ns))
     if (cacheData) {
-      return serverGroupFromCacheData(cacheData)?.view
+      return serverGroupFromCacheData(cacheData, account)?.view
     }
   }
 
@@ -115,7 +114,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
       cacheView.getAll(SERVER_GROUPS.ns,
                        serverGroupKeys,
                        filter).each { CacheData serverGroupCacheData ->
-        GoogleServerGroup serverGroup = serverGroupFromCacheData(serverGroupCacheData)
+        GoogleServerGroup serverGroup = serverGroupFromCacheData(serverGroupCacheData, clusterView.accountName)
         clusterView.serverGroups << serverGroup.view
         clusterView.loadBalancers.addAll(serverGroup.loadBalancers*.view)
       }
@@ -124,7 +123,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
     clusterView
   }
 
-  GoogleServerGroup serverGroupFromCacheData(CacheData cacheData) {
+  GoogleServerGroup serverGroupFromCacheData(CacheData cacheData, String account) {
     GoogleServerGroup serverGroup = objectMapper.convertValue(cacheData.attributes, GoogleServerGroup)
 
     def loadBalancerKeys = cacheData.relationships[LOAD_BALANCERS.ns]
@@ -136,13 +135,14 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
 
     Set<GoogleSecurityGroup> securityGroups = securityGroupProvider.getAll(false)
     serverGroup.securityGroups = GoogleSecurityGroupProvider.getMatchingServerGroupNames(
+        account,
         securityGroups,
         serverGroup.instanceTemplateTags,
         serverGroup.networkName)
 
     def instanceKeys = cacheData.relationships[INSTANCES.ns]
     if (instanceKeys) {
-      serverGroup.instances = instanceProvider.getInstances(instanceKeys as List, securityGroups) as Set
+      serverGroup.instances = instanceProvider.getInstances(account, instanceKeys as List, securityGroups) as Set
       serverGroup.instances.each { GoogleInstance instance ->
         def foundHealths = getLoadBalancerHealths(instance.name, loadBalancers)
         if (foundHealths) {

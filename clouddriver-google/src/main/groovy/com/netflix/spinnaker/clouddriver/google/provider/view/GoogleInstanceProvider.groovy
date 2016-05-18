@@ -31,7 +31,6 @@ import com.netflix.spinnaker.clouddriver.model.InstanceProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
@@ -59,16 +58,16 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance.View> {
     Set<GoogleSecurityGroup> securityGroups = securityGroupProvider.getAll(false)
     def key = Keys.getInstanceKey(account, region, id)
     getInstanceCacheDatas([key])?.findResult { CacheData cacheData ->
-      instanceFromCacheData(cacheData, securityGroups)?.view
+      instanceFromCacheData(cacheData, account, securityGroups)?.view
     }
   }
 
   /**
    * Non-interface method for efficient building of GoogleInstance models during cluster or server group requests.
    */
-  List<GoogleInstance> getInstances(List<String> instanceKeys, Set<GoogleSecurityGroup> securityGroups) {
+  List<GoogleInstance> getInstances(String account, List<String> instanceKeys, Set<GoogleSecurityGroup> securityGroups) {
     getInstanceCacheDatas(instanceKeys)?.collect {
-      instanceFromCacheData(it, securityGroups)
+      instanceFromCacheData(it, account, securityGroups)
     }
   }
 
@@ -99,7 +98,7 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance.View> {
     return null
   }
 
-  GoogleInstance instanceFromCacheData(CacheData cacheData, Set<GoogleSecurityGroup> securityGroups) {
+  GoogleInstance instanceFromCacheData(CacheData cacheData, String account, Set<GoogleSecurityGroup> securityGroups) {
     GoogleInstance instance = objectMapper.convertValue(cacheData.attributes, GoogleInstance)
 
     def loadBalancerKeys = cacheData.relationships[LOAD_BALANCERS.ns]
@@ -128,6 +127,7 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance.View> {
     }
 
     instance.securityGroups = GoogleSecurityGroupProvider.getMatchingServerGroupNames(
+        account,
         securityGroups,
         instance.tags.items as Set<String>,
         instance.networkName)
