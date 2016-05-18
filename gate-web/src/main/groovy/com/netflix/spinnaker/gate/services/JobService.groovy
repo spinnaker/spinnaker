@@ -35,6 +35,9 @@ class JobService {
   @Autowired
   InsightConfiguration insightConfiguration
 
+  @Autowired
+  ProviderLookupService providerLookupService
+
   List getForApplication(String applicationName, String expand) {
     String commandKey = Boolean.valueOf(expand) ? "getExpandedJobsForApplication" : "getJobsForApplication"
     HystrixFactory.newListCommand(GROUP, commandKey) {
@@ -43,7 +46,7 @@ class JobService {
   }
 
   Map getForApplicationAndAccountAndRegion(String applicationName, String account, String region, String name) {
-    HystrixFactory.newMapCommand(GROUP, "getJobsForApplicationAccountAndRegion", {
+    HystrixFactory.newMapCommand(GROUP, "getJobsForApplicationAccountAndRegion-${providerLookupService.providerForAccount(account)}", {
       try {
         def context = getContext(applicationName, account, region, name)
         return clouddriverService.getJobDetails(applicationName, account, region, name) + [

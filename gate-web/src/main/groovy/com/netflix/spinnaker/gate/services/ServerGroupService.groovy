@@ -36,6 +36,9 @@ class ServerGroupService {
   @Autowired
   InsightConfiguration insightConfiguration
 
+  @Autowired
+  ProviderLookupService providerLookupService
+
   List getForApplication(String applicationName, String expand) {
     String commandKey = Boolean.valueOf(expand) ? "getExpandedServerGroupsForApplication" : "getServerGroupsForApplication"
     HystrixFactory.newListCommand(GROUP, commandKey) {
@@ -44,7 +47,7 @@ class ServerGroupService {
   }
 
   Map getForApplicationAndAccountAndRegion(String applicationName, String account, String region, String serverGroupName) {
-    HystrixFactory.newMapCommand(GROUP, "getServerGroupsForApplicationAccountAndRegion") {
+    HystrixFactory.newMapCommand(GROUP, "getServerGroupsForApplicationAccountAndRegion-${providerLookupService.providerForAccount(account)}") {
       try {
         def context = getContext(applicationName, account, region, serverGroupName)
         return clouddriverService.getServerGroupDetails(applicationName, account, region, serverGroupName) + [

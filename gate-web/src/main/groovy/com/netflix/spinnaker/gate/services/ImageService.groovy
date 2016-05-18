@@ -31,14 +31,17 @@ class ImageService {
   @Autowired
   ClouddriverService clouddriverService
 
+  @Autowired
+  ProviderLookupService providerLookupService
+
   List<Map> getForAccountAndRegion(String provider, String account, String region, String imageId) {
-    HystrixFactory.newListCommand(GROUP, "getImagesForAccountAndRegion") {
+    HystrixFactory.newListCommand(GROUP, "getImagesForAccountAndRegion-${providerLookupService.providerForAccount(account)}") {
       clouddriverService.getImageDetails(provider, account, region, imageId)
     } execute()
   }
 
   List<Map> search(String provider, String query, String region, String account) {
-    HystrixFactory.newListCommand(GROUP, "searchImages") {
+    HystrixFactory.newListCommand(GROUP, "searchImages-${providerLookupService.providerForAccount(account)}") {
       clouddriverService.findImages(provider, query, region, account)
     } execute()
   }

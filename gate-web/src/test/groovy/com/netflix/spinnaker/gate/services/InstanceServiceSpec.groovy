@@ -28,6 +28,9 @@ class InstanceServiceSpec extends Specification {
         clouddriverService: Mock(ClouddriverService) {
           1 * getInstanceDetails(_, _, _) >> { return [privateIpAddress: "10.0.0.1", map: [:]] }
         },
+        providerLookupService: Stub(ProviderLookupService) {
+          providerForAccount(_) >> "test"
+        },
         insightConfiguration: new InsightConfiguration(
             instance: [new InsightConfiguration.Link(url: '${account}-${region}-${instanceId}-{DNE}-${privateIpAddress}')]
         )
