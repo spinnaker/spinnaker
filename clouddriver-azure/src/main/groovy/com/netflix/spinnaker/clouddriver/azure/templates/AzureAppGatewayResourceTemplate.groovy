@@ -58,7 +58,7 @@ class AzureAppGatewayResourceTemplate {
     AppGatewayTemplate(AzureAppGatewayDescription description) {
       parameters = new AppGatewayTemplateParameters()
       variables = new AppGatewayTemplateVariables(description)
-      if (!description.publicIpId) {
+      if (!description.publicIpName) {
         // this is not an edit operation of an existing application gateway; we must create a PublicIp resource in this case
         resources.add(new PublicIpResource())
       }
@@ -95,9 +95,9 @@ class AzureAppGatewayResourceTemplate {
     AppGatewayTemplateVariables(AzureAppGatewayDescription description) {
       appGwName = description.name
       virtualNetworkName = description.vnet.toLowerCase()
-      if (description.publicIpId) {
+      if (description.publicIpName) {
         // reuse the existing public IP (this is an edit operation)
-        publicIPAddressName = description.publicIpId
+        publicIPAddressName = description.publicIpName
       } else {
         publicIPAddressName = AzureUtilities.PUBLICIP_NAME_PREFIX + description.name.toLowerCase()
       }
@@ -132,7 +132,9 @@ class AzureAppGatewayResourceTemplate {
       if (description.securityGroup) tags.securityGroup = description.securityGroup
       if (description.vnet) tags.vnet = description.vnet
       if (description.subnet) tags.subnet = description.subnet
-      this.dependsOn.add("[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]")
+      if (!description.publicIpName) {
+        this.dependsOn.add("[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]")
+      }
       properties = new ApplicationGatewayResourceProperties(description)
     }
   }

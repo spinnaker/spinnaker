@@ -75,7 +75,7 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
         task.updateStatus(BASE_PHASE, "Update existing application gateway ${appGatewayDescription.loadBalancerName} in ${appGatewayDescription.region}...")
 
         // We need to retain some of the settings from the current application gateway
-        description.publicIpId = appGatewayDescription.publicIpId
+        description.publicIpName = appGatewayDescription.publicIpName
         description.subnet = appGatewayDescription.subnet
         description.serverGroups = appGatewayDescription.serverGroups
         description.trafficEnabledSG = appGatewayDescription.trafficEnabledSG

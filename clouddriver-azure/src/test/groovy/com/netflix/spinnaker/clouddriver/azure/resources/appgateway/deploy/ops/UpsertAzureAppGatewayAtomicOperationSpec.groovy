@@ -76,7 +76,7 @@ class UpsertAzureAppGatewayAtomicOperationSpec extends Specification{
   "cluster" : null,
   "serverGroups" : null,
   "trafficEnabledSG" : null,
-  "publicIpId" : null,
+  "publicIpName" : null,
   "probes" : [ {
     "probeName" : "healthcheck1",
     "probeProtocol" : "HTTP",

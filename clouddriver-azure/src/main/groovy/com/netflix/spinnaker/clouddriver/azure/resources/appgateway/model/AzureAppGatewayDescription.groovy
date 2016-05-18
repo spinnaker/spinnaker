@@ -31,7 +31,7 @@ class AzureAppGatewayDescription extends AzureResourceOpsDescription {
   String cluster
   List<String> serverGroups
   String trafficEnabledSG
-  String publicIpId
+  String publicIpName
   List<AzureAppGatewayHealthcheckProbe> probes = []
   List<AzureAppGatewayRule> loadBalancingRules = []
   // TODO: remove hardcoded sku, tier and capacity
@@ -92,13 +92,11 @@ class AzureAppGatewayDescription extends AzureResourceOpsDescription {
       if (bap.name != AzureAppGatewayResourceTemplate.defaultAppGatewayBeAddrPoolName) description.serverGroups << bap.name
     }
 
-    description.publicIpId = appGateway.frontendIPConfigurations
-
     // We only support one subnet so we can just retrieve the first one
     def subnetId = appGateway?.gatewayIPConfigurations?.first()?.subnet?.id
     description.subnet = appGateway.tags?.subnet ?: AzureUtilities.getNameFromResourceId(subnetId)
 
-    description.publicIpId = appGateway?.frontendIPConfigurations?.first()?.getPublicIPAddress()?.id
+    description.publicIpName = AzureUtilities.getResourceNameFromID(appGateway?.frontendIPConfigurations?.first()?.getPublicIPAddress()?.id)
     description.vnet = appGateway.tags?.vnet
     description.createdTime = appGateway.tags?.createdTime?.toLong()
     description.tags = appGateway.tags ?: [:]

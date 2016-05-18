@@ -77,7 +77,7 @@ class DeleteAzureAppGatewayAtomicOperationSpec extends Specification{
   "cluster" : null,
   "serverGroups" : null,
   "trafficEnabledSG" : null,
-  "publicIpId" : null,
+  "publicIpName" : null,
   "probes" : [ ],
   "loadBalancingRules" : [ ],
   "sku" : "Standard_Small",
