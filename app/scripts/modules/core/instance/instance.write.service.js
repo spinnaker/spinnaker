@@ -27,7 +27,8 @@ module.exports = angular
         instanceIds: instanceGroup.instanceIds,
         credentials: instanceGroup.account,
         region: instanceGroup.region,
-        serverGroupName: instanceGroup.serverGroup
+        serverGroupName: instanceGroup.serverGroup,
+        asgName: instanceGroup.serverGroup
       };
       transform(instanceGroup, job);
 
@@ -185,7 +186,8 @@ module.exports = angular
             region: instance.region,
             credentials: instance.account,
             providerType: instance.providerType,
-            cloudProvider: instance.providerType,
+            cloudProvider: instance.provider,
+            asgName: instance.serverGroup
           }
         ],
         application: application,
@@ -206,7 +208,8 @@ module.exports = angular
             region: instance.region,
             credentials: instance.account,
             providerType: instance.providerType,
-            cloudProvider: instance.providerType,
+            cloudProvider: instance.provider,
+            asgName: instance.serverGroup
           }
         ],
         application: application,
