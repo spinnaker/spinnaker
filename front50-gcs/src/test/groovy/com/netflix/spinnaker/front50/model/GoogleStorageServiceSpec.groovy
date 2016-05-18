@@ -1,0 +1,225 @@
+/*
+ * Copyright 2016 Google, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.netflix.spinnaker.front50.model
+import com.netflix.spinnaker.front50.model.application.Application;
+
+import com.google.api.client.http.ByteArrayContent;
+import com.google.api.client.http.HttpHeaders
+import com.google.api.client.util.DateTime;
+import com.google.api.services.storage.Storage;
+import com.google.api.services.storage.model.Bucket;
+import com.google.api.services.storage.model.*;
+import com.google.api.client.http.HttpResponseException;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import spock.lang.Shared
+import spock.lang.Specification
+import java.io.ByteArrayOutputStream;
+
+
+class GoogleStorageServiceSpec extends Specification {
+
+  @Shared
+  String BUCKET_NAME = "TestBucket"
+
+  @Shared
+  String BASE_PATH = "/A/B/C"
+  
+  @Shared
+  String PROJECT_NAME = "TestProject"
+
+  Storage mockStorage = Mock(Storage)
+  Storage.Objects mockObjectApi = Mock(Storage.Objects)
+  GcsStorageService gcs
+
+  GcsStorageService makeGcs() {
+    return new GcsStorageService(BUCKET_NAME, BASE_PATH, PROJECT_NAME,
+                                 mockStorage)    
+  }
+
+  def "ensureBucketExists make bucket"() {
+    given:
+     Storage.Buckets mockBucketApi = Mock(Storage.Buckets)
+     Storage.Buckets.Get mockGetBucket = Mock(Storage.Buckets.Get)
+     Storage.Buckets.Insert mockInsertBucket = Mock(Storage.Buckets.Insert)
+     Bucket.Versioning ver = new Bucket.Versioning().setEnabled(true)
+     Bucket bucketSpec = new Bucket().setName(BUCKET_NAME).setVersioning(ver)
+
+    when:
+     gcs = makeGcs()
+    then:
+     1 * mockStorage.objects() >> mockObjectApi
+
+    when:
+      gcs.ensureBucketExists()
+
+    then:
+      1 * mockStorage.buckets() >> mockBucketApi
+      1 * mockBucketApi.get(BUCKET_NAME) >> mockGetBucket
+      1 * mockGetBucket.execute() >> {
+        throw new HttpResponseException.Builder(404, 'Oops', new HttpHeaders()).build()
+      }
+
+    then:
+      1 * mockStorage.buckets() >> mockBucketApi
+      1 * mockBucketApi.insert(PROJECT_NAME, bucketSpec) >> mockInsertBucket
+      1 * mockInsertBucket.execute()
+  }
+
+  def "ensureBucketExists exists"() {
+    given:
+     Storage.Buckets mockBucketApi = Mock(Storage.Buckets)
+     Storage.Buckets.Get mockGetBucket = Mock(Storage.Buckets.Get)
+
+    when:
+     gcs = makeGcs()
+    then:
+     1 * mockStorage.objects() >> mockObjectApi
+
+    when:
+      gcs.ensureBucketExists()
+
+    then:
+      1 * mockStorage.buckets() >> mockBucketApi
+      1 * mockBucketApi.get(BUCKET_NAME) >> mockGetBucket
+      1 * mockGetBucket.execute() >> new Bucket()
+  }
+
+  def "ensureBucketExists fails"() {
+    given:
+     Storage.Buckets mockBucketApi = Mock(Storage.Buckets)
+     Storage.Buckets.Get mockGetBucket = Mock(Storage.Buckets.Get)
+     Storage.Buckets.Insert mockInsertBucket = Mock(Storage.Buckets.Insert)
+     Bucket.Versioning ver = new Bucket.Versioning().setEnabled(true)
+     Bucket bucketSpec = new Bucket().setName(BUCKET_NAME).setVersioning(ver)
+     HttpResponseException exception = new HttpResponseException.Builder(
+         403, 'Oops', new HttpHeaders()).build()
+
+    when:
+     gcs = makeGcs()
+    then:
+     1 * mockStorage.objects() >> mockObjectApi
+
+    when:
+      gcs.ensureBucketExists()
+
+    then:
+      1 * mockStorage.buckets() >> mockBucketApi
+      1 * mockBucketApi.get(BUCKET_NAME) >> mockGetBucket
+      1 * mockGetBucket.execute() >> {
+        throw exception
+      }
+      thrown(IllegalStateException)
+  }
+
+  def "loadObject"() {
+    given:
+     String jsonPath = BASE_PATH + '/applications/testKey/specification.json'
+     Storage.Objects.Get mockGetFile = Mock(Storage.Objects.Get)
+
+     // Normally the object will be consistent with the name/bucket of its
+     // location. However the actual implementation doesnt enforce that.
+     // The name is normally the path to the object.
+     StorageObject storageObject = new StorageObject()
+                                           .setBucket("TheStorageBucket")
+                                           .setName("TheStorageObject")
+                                           .setUpdated(new DateTime(1234567))
+
+     byte[] json = """{
+          "name":"TESTAPPLICATION",
+          "description":"A Test Application",
+          "email":"user@email.com",
+          "accounts":"my-account",
+          "updateTs":"1464227414608",
+          "createTs":"1464227413146",
+          "platformHealthOnly":true,
+          "cloudProviders":"platformA, platformB"
+     }""".getBytes()
+
+    when:
+     gcs = makeGcs()
+    then:
+     1 * mockStorage.objects() >> mockObjectApi
+
+     when:
+      Application app = gcs.loadCurrentObject("testKey", "applications",
+                                               Application.class)
+     then:
+      1 * mockObjectApi.get(BUCKET_NAME, jsonPath) >> mockGetFile
+      1 * mockGetFile.execute() >> storageObject
+
+      then:
+      1 * mockObjectApi.get(storageObject.getBucket(),
+                            storageObject.getName()) >> mockGetFile
+      1 * mockGetFile.executeMediaAndDownloadTo(_) >> {
+          ByteArrayOutputStream output -> output.write(json, 0, json.size())
+      }
+
+      then:
+        app.getName() == "TESTAPPLICATION"
+        app.getLastModified() == storageObject.getUpdated().getValue()
+        
+  }
+
+  def "storeObject"() {
+    given:
+      Storage.Objects.Insert mockInsertObject = Mock(Storage.Objects.Insert)
+      StorageObject storageObject = new StorageObject()
+              .setBucket(BUCKET_NAME)
+              .setName(BASE_PATH + '/applications/testkey/specification.json')
+
+      StorageObject timestampObject = new StorageObject()
+        .setBucket(BUCKET_NAME)
+        .setName(BASE_PATH + '/applications/last-modified')
+      Application app = new Application()
+      byte[] appBytes = new ObjectMapper().writeValueAsBytes(app)
+      ByteArrayContent appContent = new ByteArrayContent(
+        "application/json", appBytes)
+      ByteArrayContent timestampContent = new ByteArrayContent(
+        "application/json", "{}".getBytes())
+      long startTime = System.currentTimeMillis()
+
+    when:
+     gcs = makeGcs()
+    then:
+     1 * mockStorage.objects() >> mockObjectApi
+
+    when:
+      gcs.storeObject("testkey", "applications", app)
+
+    then:
+      1 * mockObjectApi.insert(
+           BUCKET_NAME,
+           { StorageObject obj -> obj.getBucket() == storageObject.getBucket()
+                                  obj.getName() == storageObject.getName() },
+           _) >> mockInsertObject
+      1 * mockInsertObject.execute()
+
+    then:
+      1 * mockObjectApi.insert(
+              BUCKET_NAME,
+              { StorageObject obj -> obj.getBucket() == timestampObject.getBucket()
+                obj.getName() == timestampObject.getName()
+                obj.getUpdated().getValue() >= startTime
+                obj.getUpdated().getValue() <= System.currentTimeMillis()
+              },
+              _) >> mockInsertObject
+
+      1 * mockInsertObject.execute()
+  }
+}
