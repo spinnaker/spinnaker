@@ -70,9 +70,10 @@ module.exports = angular
     let errorMode = (error) => {
       this.viewState.computing = false;
       this.viewState.executing = false;
-      this.viewState.error = error || 'An unknown error occurred. Please try again later.';
-      if (!error && this.task) {
+      if (this.task && this.task.failureMessage) {
         this.viewState.error = this.task.failureMessage;
+      } else {
+        this.viewState.error = error || 'An unknown error occurred. Please try again later.';
       }
     };
 
