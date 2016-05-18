@@ -31,26 +31,26 @@ class LoadBalancerService {
   ClouddriverService clouddriverService
 
   List<Map> getAll(String provider = "aws") {
-    HystrixFactory.newListCommand(GROUP, "getAllLoadBalancersForProvider") {
+    HystrixFactory.newListCommand(GROUP, "getAllLoadBalancersForProvider-$provider") {
       clouddriverService.getLoadBalancers(provider)
     } execute()
   }
 
   Map get(String name, String provider = "aws") {
-    HystrixFactory.newMapCommand(GROUP, "getLoadBalancer") {
+    HystrixFactory.newMapCommand(GROUP, "getLoadBalancer-$provider") {
       clouddriverService.getLoadBalancer(provider, name)
     } execute()
   }
 
   List<Map> getDetailsForAccountAndRegion(String account, String region, String name, String provider = "aws") {
-    HystrixFactory.newListCommand(GROUP, "getLoadBalancerDetails") {
+    HystrixFactory.newListCommand(GROUP, "getLoadBalancerDetails-$provider") {
       clouddriverService.getLoadBalancerDetails(provider, account, region, name)
     } execute()
   }
 
   List getClusterLoadBalancers(String appName, String account, String provider, String clusterName) {
     HystrixFactory.newListCommand(GROUP,
-        "getClusterLoadBalancers") {
+        "getClusterLoadBalancers-$provider") {
       clouddriverService.getClusterLoadBalancers(appName, account, clusterName, provider)
     } execute()
   }

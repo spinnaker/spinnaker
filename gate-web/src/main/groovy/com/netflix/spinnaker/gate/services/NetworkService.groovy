@@ -43,7 +43,7 @@ class NetworkService {
   }
 
   List<Map> getNetworks(String cloudProvider) {
-    command("networks") {
+    command("networks-$cloudProvider") {
       clouddriverService.getNetworks(cloudProvider)
     } execute()
   }

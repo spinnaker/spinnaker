@@ -75,7 +75,7 @@ class SecurityGroupService {
    * @param region optional. nullable
    */
   Map getForAccountAndProviderAndRegion(String account, String provider, String region) {
-    HystrixFactory.newMapCommand(GROUP, "getSecurityGroupsForAccountAndProvider") {
+    HystrixFactory.newMapCommand(GROUP, "getSecurityGroupsForAccountAndProvider-$provider") {
       clouddriverService.getSecurityGroups(account, provider, region)
     } execute()
   }
@@ -87,7 +87,7 @@ class SecurityGroupService {
    * @param region optional. nullable
    */
   Map getSecurityGroup(String account, String provider, String name, String region, String vpcId = null) {
-    HystrixFactory.newMapCommand(GROUP, "getSecurityGroupByIdentifiers") {
+    HystrixFactory.newMapCommand(GROUP, "getSecurityGroupByIdentifiers-$provider") {
       clouddriverService.getSecurityGroup(account, provider, name, region, vpcId)
     } execute()
   }

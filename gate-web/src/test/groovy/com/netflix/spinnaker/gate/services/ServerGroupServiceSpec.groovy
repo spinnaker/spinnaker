@@ -28,6 +28,9 @@ class ServerGroupServiceSpec extends Specification {
         clouddriverService: Mock(ClouddriverService) {
           1 * getServerGroupDetails(_, _, _, _) >> { return [:] }
         },
+        providerLookupService: Stub(ProviderLookupService) {
+          providerForAccount(_) >> "test"
+        },
         insightConfiguration: new InsightConfiguration(
             serverGroup: [new InsightConfiguration.Link(url: '${application}-${account}-${region}-${serverGroup}-{DNE}')]
         )

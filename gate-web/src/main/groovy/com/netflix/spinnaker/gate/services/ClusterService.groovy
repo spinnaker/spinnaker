@@ -35,6 +35,9 @@ class ClusterService {
   @Autowired
   ClouddriverService clouddriverService
 
+  @Autowired
+  ProviderLookupService providerLookupService
+
   Map getClusters(String app) {
     HystrixFactory.newMapCommand(GROUP, "getClustersForApplication") {
       clouddriverService.getClusters(app)
@@ -42,13 +45,13 @@ class ClusterService {
   }
 
   List<Map> getClustersForAccount(String app, String account) {
-    HystrixFactory.newListCommand(GROUP, "getClustersForApplicationInAccount") {
+    HystrixFactory.newListCommand(GROUP, "getClustersForApplicationInAccount-${providerLookupService.providerForAccount(account)}") {
       clouddriverService.getClustersForAccount(app, account)
     } execute()
   }
 
   Map getCluster(String app, String account, String clusterName) {
-    HystrixFactory.newMapCommand(GROUP, "getCluster") {
+    HystrixFactory.newMapCommand(GROUP, "getCluster-${providerLookupService.providerForAccount(account)}") {
       try {
         clouddriverService.getCluster(app, account, clusterName)?.getAt(0) as Map
       } catch (RetrofitError e) {
@@ -66,13 +69,13 @@ class ClusterService {
   }
 
   List<Map> getScalingActivities(String app, String account, String clusterName, String serverGroupName, String provider, String region) {
-    HystrixFactory.newListCommand(GROUP, "getScalingActivitiesForCluster") {
+    HystrixFactory.newListCommand(GROUP, "getScalingActivitiesForCluster-${providerLookupService.providerForAccount(account)}") {
       clouddriverService.getScalingActivities(app, account, clusterName, provider, serverGroupName, region)
     } execute()
   }
 
   Map getTargetServerGroup(String app, String account, String clusterName, String cloudProviderType, String scope, String target, Boolean onlyEnabled, Boolean validateOldest) {
-    HystrixFactory.newMapCommand(GROUP, "getTargetServerGroup") {
+    HystrixFactory.newMapCommand(GROUP, "getTargetServerGroup-${providerLookupService.providerForAccount(account)}") {
       try {
         return clouddriverService.getTargetServerGroup(app, account, clusterName, cloudProviderType, scope, target, onlyEnabled, validateOldest)
       } catch (RetrofitError re) {
