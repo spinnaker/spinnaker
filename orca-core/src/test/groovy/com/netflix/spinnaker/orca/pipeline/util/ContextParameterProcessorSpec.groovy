@@ -14,27 +14,52 @@ class ContextParameterProcessorSpec extends Specification {
                    replaceTest: 'stack-with-hyphens']
 
     when:
-    def result = ContextParameterProcessor.process(source, context)
+    def result = ContextParameterProcessor.process(source, context, true)
 
     then:
     result.test == expectedValue
 
     where:
-    processAttributes                               | sourceValue                           | expectedValue
-    'leave strings alone'                           | 'just a string'                       | 'just a string'
-    'transform simple properties'                   | '${replaceMe}'                        | 'newValue'
-    'transform properties with dots'                | '${h1.h1}'                            | 'h1Val'
-    'transform embedded properties'                 | '${replaceMe} and ${replaceMe}'       | 'newValue and newValue'
-    'transform hierarchical values'                 | '${hierarchy.h2}'                     | 'hierarchyValue'
-    'transform nested hierarchical values'          | '${hierarchy.h3.h4}'                  | 'h4Val'
-    'leave unresolvable values'                     | '${notResolvable}'                    | '${notResolvable}'
-    'can get a value in an array'                   | '${testArray[0]}'                     | 'good'
-    'can get a value in an map within an array'     | '${testArray[1].arrayVal}'            | 'bad'
-    'can get a value in an array within an array'   | '${testArray[2][0].one}'              | 'two'
-    'can support SPEL expression'                   | '${ h1.h1 == "h1Val" }'               | true
-    'can support SPEL defaults'                     | '${ h1.h2  ?: 60 }'                   | 60
-    'can support SPEL string methods'               | '${ replaceTest.replaceAll("-","") }' | 'stackwithhyphens'
-    'can make any string alphanumerical for deploy' | '${ #alphanumerical(replaceTest) }'   | 'stackwithhyphens'
+    processAttributes                           | sourceValue                           | expectedValue
+    'leave strings alone'                       | 'just a string'                       | 'just a string'
+    'transform simple properties'               | '${replaceMe}'                        | 'newValue'
+    'transform properties with dots'            | '${h1.h1}'                            | 'h1Val'
+    'transform embedded properties'             | '${replaceMe} and ${replaceMe}'       | 'newValue and newValue'
+    'transform hierarchical values'             | '${hierarchy.h2}'                     | 'hierarchyValue'
+    'transform nested hierarchical values'      | '${hierarchy.h3.h4}'                  | 'h4Val'
+    'leave unresolvable values'                 | '${notResolvable}'                    | '${notResolvable}'
+    'get a value in an array'                   | '${testArray[0]}'                     | 'good'
+    'get a value in an map within an array'     | '${testArray[1].arrayVal}'            | 'bad'
+    'get a value in an array within an array'   | '${testArray[2][0].one}'              | 'two'
+    'support SPEL expression'                   | '${ h1.h1 == "h1Val" }'               | true
+    'support SPEL defaults'                     | '${ h1.h2  ?: 60 }'                   | 60
+    'support SPEL string methods'               | '${ replaceTest.replaceAll("-","") }' | 'stackwithhyphens'
+    'make any string alphanumerical for deploy' | '${ #alphanumerical(replaceTest) }'   | 'stackwithhyphens'
+  }
+
+  @Unroll
+  def "when allowUnknownKeys is #allowUnknownKeys it #desc"() {
+    given:
+    def source = [test: sourceValue]
+    def context = [exists: 'yay', isempty: '', isnull: null]
+
+    when:
+    def result = ContextParameterProcessor.process(source, context, allowUnknownKeys)
+
+    then:
+    result.test == expectedValue
+
+    where:
+    desc                                      | sourceValue              | expectedValue            | allowUnknownKeys
+    'should blank out null'                   | '${noexists}-foo'        | '-foo'                   | true
+    'should leave alone non existing'         | '${noexists}-foo'        | '${noexists}-foo'        | false
+    'should handle elvis'                     | '${noexists ?: "bacon"}' | 'bacon'                  | true
+    'should leave elvis expression untouched' | '${noexists ?: "bacon"}' | '${noexists ?: "bacon"}' | false
+    'should work with empty existing key'     | '${isempty ?: "bacon"}'  | 'bacon'                  | true
+    'should work with empty existing key'     | '${isempty ?: "bacon"}'  | 'bacon'                  | false
+    'should work with null existing key'      | '${isnull ?: "bacon"}'   | 'bacon'                  | true
+    'should work with null existing key'      | '${isnull ?: "bacon"}'   | 'bacon'                  | false
+
   }
 
   def "should replace the keys in a map"() {
@@ -42,7 +67,7 @@ class ContextParameterProcessorSpec extends Specification {
     def source = ['${replaceMe}': 'somevalue', '${replaceMe}again': ['cats': 'dogs']]
 
     when:
-    def result = ContextParameterProcessor.process(source, [replaceMe: 'newVal'])
+    def result = ContextParameterProcessor.process(source, [replaceMe: 'newVal'], true)
 
     then:
     result.newVal == 'somevalue'
@@ -54,7 +79,7 @@ class ContextParameterProcessorSpec extends Specification {
     def context = [var1: 17, map1: [map1key: 'map1val']]
 
     when:
-    def result = ContextParameterProcessor.process(source, context)
+    def result = ContextParameterProcessor.process(source, context, true)
 
     then:
     result.test.k1 instanceof Integer
@@ -71,7 +96,7 @@ class ContextParameterProcessorSpec extends Specification {
     def context = ['h1': 'h1val', 'h2': 'h2val']
 
     when:
-    def result = ContextParameterProcessor.process(source, context)
+    def result = ContextParameterProcessor.process(source, context, true)
 
     then:
     result.test == 'h1val'
@@ -87,7 +112,7 @@ class ContextParameterProcessorSpec extends Specification {
     def source = ['branch': '${scmInfo.branch}']
 
     when:
-    def result = ContextParameterProcessor.process(source, context)
+    def result = ContextParameterProcessor.process(source, context, true)
 
     then:
     result.branch == expectedBranch
@@ -108,7 +133,7 @@ class ContextParameterProcessorSpec extends Specification {
     def context = [execution: execution]
 
     when:
-    def result = ContextParameterProcessor.process(source, context)
+    def result = ContextParameterProcessor.process(source, context, true)
 
     then:
     result.deployed == '${deployedServerGroups}'
@@ -149,7 +174,7 @@ class ContextParameterProcessorSpec extends Specification {
     def context = [execution: execution]
 
     when:
-    def result = ContextParameterProcessor.process(source, context)
+    def result = ContextParameterProcessor.process(source, context, true)
 
     then:
     result.deployed.size == 2
@@ -287,7 +312,7 @@ class ContextParameterProcessorSpec extends Specification {
     def context = [map: [["v1": "k1"], ["v2": "k2"]]]
 
     when:
-    def result = ContextParameterProcessor.process(source, context)
+    def result = ContextParameterProcessor.process(source, context, true)
 
     then:
     result.json == '[{"v1":"k1"},{"v2":"k2"}]'
@@ -301,7 +326,7 @@ class ContextParameterProcessorSpec extends Specification {
     def context = [str: str]
 
     when:
-    def result = ContextParameterProcessor.process(source, context)
+    def result = ContextParameterProcessor.process(source, context, true)
 
     then:
     result.intParam instanceof Integer
@@ -320,7 +345,7 @@ class ContextParameterProcessorSpec extends Specification {
     def context = [str: str]
 
     when:
-    def result = ContextParameterProcessor.process(source, context)
+    def result = ContextParameterProcessor.process(source, context, true)
 
     then:
     result.floatParam instanceof Float
