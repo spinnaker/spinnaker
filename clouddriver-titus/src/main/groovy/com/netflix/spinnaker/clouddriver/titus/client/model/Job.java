@@ -22,6 +22,7 @@ public class Job {
 
     public static class TaskSummary {
         private String id;
+        private String instanceId;
         private TaskState state;
         private String host;
         private String region;
@@ -42,6 +43,14 @@ public class Job {
 
         public void setId(String id) {
             this.id = id;
+        }
+
+        public String getInstanceId() {
+          return instanceId;
+        }
+
+        public void setInstanceId(String instanceId) {
+          this.instanceId = instanceId;
         }
 
         public TaskState getState() {

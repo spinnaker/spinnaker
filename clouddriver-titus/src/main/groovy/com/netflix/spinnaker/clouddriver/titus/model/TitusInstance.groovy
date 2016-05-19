@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ class TitusInstance implements Instance {
 
   String application
   String id
+  String instanceId
   String jobId
   String jobName
   String stdoutLive
@@ -41,6 +42,7 @@ class TitusInstance implements Instance {
 
   TitusInstance(Job job, Job.TaskSummary task) {
     id = task.id
+    instanceId = task.instanceId
     jobId = job.id
     jobName = job.name
     application = Names.parseName(job.name).app

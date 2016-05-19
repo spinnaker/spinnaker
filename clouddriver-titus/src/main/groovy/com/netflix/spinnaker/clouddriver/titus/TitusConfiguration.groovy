@@ -68,7 +68,7 @@ class TitusConfiguration {
       if (!account.bastionHost && defaultBastionHostTemplate) {
         account.bastionHost = defaultBastionHostTemplate.replaceAll(Pattern.quote('{{environment}}'), account.environment)
       }
-      NetflixTitusCredentials credentials = new NetflixTitusCredentials(account.name, account.environment, account.accountType, regions, account.bastionHost)
+      NetflixTitusCredentials credentials = new NetflixTitusCredentials(account.name, account.environment, account.accountType, regions, account.bastionHost, account.discoveryEnabled, account.discovery)
       accounts.add(credentials)
       repository.save(account.name, credentials)
     }
@@ -96,6 +96,8 @@ class TitusConfiguration {
       String environment
       String accountType
       String bastionHost
+      Boolean discoveryEnabled
+      String discovery
       List<Region> regions
     }
 

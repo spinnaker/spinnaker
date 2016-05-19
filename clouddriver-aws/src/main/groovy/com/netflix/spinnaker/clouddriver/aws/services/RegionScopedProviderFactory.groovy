@@ -25,9 +25,10 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.AWSServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.aws.deploy.AsgReferenceCopier
 import com.netflix.spinnaker.clouddriver.aws.deploy.DefaultLaunchConfigurationBuilder
 import com.netflix.spinnaker.clouddriver.aws.deploy.LaunchConfigurationBuilder
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.Eureka
+import com.netflix.spinnaker.clouddriver.eureka.api.Eureka
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetAnalyzer
+import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.EurekaUtil
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import org.apache.http.impl.client.HttpClients
 import org.springframework.beans.factory.annotation.Autowired
@@ -110,22 +111,7 @@ class RegionScopedProviderFactory {
       if (!amazonCredentials.discoveryEnabled) {
         throw new IllegalStateException('discovery not enabled')
       }
-      String endpoint = amazonCredentials.discovery.replaceAll(Pattern.quote('{{region}}'), region)
-      new RestAdapter.Builder().setEndpoint(endpoint).setClient(getApacheClient()).build().create(Eureka)
+      EurekaUtil.getWritableEureka(amazonCredentials.discovery, region)
     }
   }
-
-  //Lazy-create apache client on request if there is a discoveryEnabled AmazonCredentials:
-  private final AtomicReference<ApacheClient> apacheClient = new AtomicReference<>(null)
-  private ApacheClient getApacheClient() {
-    if (apacheClient.get() == null) {
-      synchronized (apacheClient) {
-        if (apacheClient.get() == null) {
-          apacheClient.set(new ApacheClient(HttpClients.createDefault()))
-        }
-      }
-    }
-    return apacheClient.get()
-  }
-
 }

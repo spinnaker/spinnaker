@@ -45,7 +45,7 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     op.operate([])
 
     then:
-    1 * asgService.getAutoScalingGroup(_) >> asg
+    2 * asgService.getAutoScalingGroup(_) >> asg
     1 * asgService.suspendProcesses(_, AutoScalingProcessType.getDisableProcesses())
     1 * loadBalancing.deregisterInstancesFromLoadBalancer(_) >> { DeregisterInstancesFromLoadBalancerRequest req ->
       assert req.instances[0].instanceId == "i1"

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,32 +14,32 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery
+package com.netflix.spinnaker.clouddriver.titus.deploy.ops.discovery
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.elasticloadbalancing.model.Instance
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
-import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
+import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState
+import com.netflix.spinnaker.clouddriver.titus.deploy.description.EnableDisableInstanceDiscoveryDescription
+import com.netflix.spinnaker.clouddriver.titus.model.TitusServerGroup
 import org.springframework.beans.factory.annotation.Autowired
 
-abstract class AbstractEnableDisableInstanceDiscoveryAtomicOperation implements AtomicOperation<Void> {
+abstract class AbstractEnableDisableTitusInstanceDiscoveryAtomicOperation implements AtomicOperation<Void> {
   abstract boolean isEnable()
 
   abstract String getPhaseName()
 
-  @Autowired
-  RegionScopedProviderFactory regionScopedProviderFactory
+  private final TitusClientProvider titusClientProvider
 
   @Autowired
-  AwsEurekaSupport discoverySupport
+  TitusEurekaSupport discoverySupport
 
   EnableDisableInstanceDiscoveryDescription description
 
-  AbstractEnableDisableInstanceDiscoveryAtomicOperation(EnableDisableInstanceDiscoveryDescription description) {
+  AbstractEnableDisableTitusInstanceDiscoveryAtomicOperation(TitusClientProvider titusClientProvider, EnableDisableInstanceDiscoveryDescription description) {
+    this.titusClientProvider = titusClientProvider
     this.description = description
   }
 
@@ -54,26 +54,21 @@ abstract class AbstractEnableDisableInstanceDiscoveryAtomicOperation implements 
       task.fail()
       return null
     }
-
-    def asgService = regionScopedProviderFactory.forRegion(description.credentials, description.region).asgService
-    asgService.getAutoScalingGroups(description.asgName ? [description.asgName] : null).each { AutoScalingGroup asg ->
-      def asgInstanceIds = asg.instances.findAll {
-        it.lifecycleState == "InService" || it.lifecycleState.startsWith("Pending")
-      }*.instanceId as Set<String>
-      def instancesInAsg = description.instanceIds.findAll {
-        asgInstanceIds.contains(it)
-      }.collect { new Instance(it)}
-
-      if (!instancesInAsg) {
-        return
-      }
-
-      def status = isEnable() ? AbstractEurekaSupport.DiscoveryStatus.Enable : AbstractEurekaSupport.DiscoveryStatus.Disable
-      discoverySupport.updateDiscoveryStatusForInstances(
-          description, task, phaseName, status, instancesInAsg*.instanceId
-      )
+    def titusClient = titusClientProvider.getTitusClient(description.credentials, description.region)
+    def job =  titusClient.findJobByName(description.asgName)
+    if(!job){
+      return
     }
-
+    def asgInstanceIds = new TitusServerGroup(job, description.credentials.name, description.region).instances.findAll {
+      ( it.state == TaskState.RUNNING || it.state == TaskState.STARTING ) && description.instanceIds.contains(it.id)
+    }
+    if (!asgInstanceIds) {
+      return
+    }
+    def status = isEnable() ? AbstractEurekaSupport.DiscoveryStatus.Enable : AbstractEurekaSupport.DiscoveryStatus.Disable
+    discoverySupport.updateDiscoveryStatusForInstances(
+      description, task, phaseName, status, asgInstanceIds*.instanceId
+    )
     null
   }
 

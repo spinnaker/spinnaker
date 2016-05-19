@@ -19,13 +19,14 @@ import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFrom
 import com.amazonaws.services.elasticloadbalancing.model.Instance
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
 import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
+import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableAsgDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.DiscoverySupport
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport
 import com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import groovy.util.logging.Slf4j
@@ -43,7 +44,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
   RegionScopedProviderFactory regionScopedProviderFactory
 
   @Autowired
-  DiscoverySupport discoverySupport
+  AwsEurekaSupport discoverySupport
 
   @Autowired
   AmazonClientProvider amazonClientProvider
@@ -115,7 +116,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
       }
 
       if (credentials.discoveryEnabled && asg.instances) {
-        def status = disable ? DiscoverySupport.DiscoveryStatus.Disable : DiscoverySupport.DiscoveryStatus.Enable
+        def status = disable ? AbstractEurekaSupport.DiscoveryStatus.Disable : AbstractEurekaSupport.DiscoveryStatus.Enable
         task.updateStatus phaseName, "Marking ASG $serverGroupName as $status with Discovery"
 
         def enableDisableInstanceDiscoveryDescription = new EnableDisableInstanceDiscoveryDescription(
