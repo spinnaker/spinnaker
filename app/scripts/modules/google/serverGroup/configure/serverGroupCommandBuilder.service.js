@@ -149,12 +149,9 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
     }
 
     function populateAuthScopes(serviceAccounts, command) {
-      let defaultServiceAccount = _.find(serviceAccounts, serviceAccount => {
-        return serviceAccount.email === 'default';
-      });
-
-      if (defaultServiceAccount) {
-        command.authScopes = _.map(defaultServiceAccount.scopes, authScope => {
+      if (serviceAccounts && serviceAccounts.length) {
+        command.serviceAccountEmail = serviceAccounts[0].email;
+        command.authScopes = _.map(serviceAccounts[0].scopes, authScope => {
           return authScope.replace('https://www.googleapis.com/auth/', '');
         });
       } else {
@@ -208,6 +205,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         preemptible: false,
         automaticRestart: true,
         onHostMaintenance: 'MIGRATE',
+        serviceAccountEmail: 'default',
         authScopes: [
           'cloud.useraccounts.readonly',
           'devstorage.read_only',

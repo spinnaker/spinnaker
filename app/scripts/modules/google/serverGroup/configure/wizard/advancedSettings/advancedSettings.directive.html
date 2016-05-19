@@ -119,7 +119,18 @@
 </div>
 <div class="form-group">
   <div class="col-md-5 sm-label-right">
-    <b>Service Account Auth Scopes</b>
+    <b>Service Account</b>
+    <help-field key="gce.instance.serviceAccount"></help-field>
+  </div>
+  <div class="col-md-6">
+    <input type="text"
+           class="form-control input-sm"
+           ng-model="vm.command.serviceAccountEmail"/>
+  </div>
+</div>
+<div class="form-group">
+  <div class="col-md-5 sm-label-right">
+    <b>Auth Scopes</b>
     <help-field key="gce.instance.authScopes"></help-field>
   </div>
   <div class="col-md-6">

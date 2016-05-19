@@ -159,7 +159,9 @@
         <dd>{{ctrl.serverGroup.launchConfig.instanceType}}</dd>
         <dt ng-repeat-start="diskDescription in ctrl.serverGroup.diskDescriptions">Disk{{diskDescription.countSuffix}}</dt>
         <dd ng-repeat-end>{{diskDescription.finalLabel}}</dd>
-        <dt ng-if="ctrl.serverGroup.authScopes">Service Account Auth Scopes</dt>
+        <dt ng-if="ctrl.serverGroup.serviceAccountEmail">Service Account</dt>
+        <dd ng-if="ctrl.serverGroup.serviceAccountEmail">{{ctrl.serverGroup.serviceAccountEmail}}</dd>
+        <dt ng-if="ctrl.serverGroup.authScopes">Auth Scopes</dt>
         <dd ng-repeat="authScope in ctrl.serverGroup.authScopes">
           {{authScope}}
           <help-field key="gce.instance.authScopes.{{authScope}}"></help-field>
