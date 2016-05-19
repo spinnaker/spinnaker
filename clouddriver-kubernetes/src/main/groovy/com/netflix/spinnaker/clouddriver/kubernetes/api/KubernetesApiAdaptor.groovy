@@ -30,16 +30,18 @@ import java.util.concurrent.TimeUnit
 @Slf4j
 class KubernetesApiAdaptor {
   KubernetesClient client
+  String account
 
   static final int RETRY_COUNT = 20
   static final long RETRY_MAX_WAIT_MILLIS = TimeUnit.SECONDS.toMillis(10)
   static final long RETRY_INITIAL_WAIT_MILLIS = 100
 
-  KubernetesApiAdaptor(KubernetesClient client) {
+  KubernetesApiAdaptor(String account, KubernetesClient client) {
     if (!client) {
       throw new IllegalArgumentException("Client may not be null.")
     }
     this.client = client
+    this.account = account
   }
 
   /*
@@ -69,7 +71,7 @@ class KubernetesApiAdaptor {
     try {
       client.extensions().ingress().inNamespace(namespace).create(ingress)
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Create Ingress", e)
+      throw new KubernetesOperationException(account, "Create Ingress ${ingress?.metadata?.name} in $namespace", e)
     }
   }
 
@@ -77,7 +79,7 @@ class KubernetesApiAdaptor {
     try {
       client.extensions().ingress().inNamespace(namespace).withName(name).replace(ingress)
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Replace Ingress", e)
+      throw new KubernetesOperationException(account, "Replace Ingress $name in $namespace", e)
     }
   }
 
@@ -85,7 +87,7 @@ class KubernetesApiAdaptor {
     try {
       client.extensions().ingress().inNamespace(namespace).withName(name).get()
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Get Ingress", e)
+      throw new KubernetesOperationException(account, "Get Ingress $name in $namespace", e)
     }
   }
 
@@ -93,7 +95,7 @@ class KubernetesApiAdaptor {
     try {
       client.extensions().ingress().inNamespace(namespace).withName(name).delete()
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Delete Ingress", e)
+      throw new KubernetesOperationException(account, "Delete Ingress $name in $namespace", e)
     }
   }
 
@@ -101,7 +103,7 @@ class KubernetesApiAdaptor {
     try {
       client.extensions().ingress().inNamespace(namespace).list().items
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Get Ingresses", e)
+      throw new KubernetesOperationException(account, "Get Ingresses in $namespace", e)
     }
   }
 
@@ -109,7 +111,7 @@ class KubernetesApiAdaptor {
     try {
       client.replicationControllers().inNamespace(namespace).list().items
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Get Replication Controllers", e)
+      throw new KubernetesOperationException(account, "Get Replication Controllers in $namespace", e)
     }
   }
 
@@ -117,7 +119,7 @@ class KubernetesApiAdaptor {
     try {
       client.pods().inNamespace(namespace).withLabel(KubernetesUtil.REPLICATION_CONTROLLER_LABEL, replicationControllerName).list().items
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Get Replication Controller Pods", e)
+      throw new KubernetesOperationException(account, "Get Replication Controller Pods for $replicationControllerName in $namespace", e)
     }
   }
 
@@ -125,7 +127,7 @@ class KubernetesApiAdaptor {
     try {
       client.pods().inNamespace(namespace).withLabel(KubernetesUtil.JOB_LABEL, jobName).list().items
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Get Job Pods", e)
+      throw new KubernetesOperationException(account, "Get Job Pods for $jobName in $namespace", e)
     }
   }
 
@@ -133,7 +135,7 @@ class KubernetesApiAdaptor {
     try {
       client.pods().inNamespace(namespace).withName(name).get()
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Get Pod", e)
+      throw new KubernetesOperationException(account, "Get Pod $name in $namespace", e)
     }
   }
 
@@ -141,7 +143,7 @@ class KubernetesApiAdaptor {
     try {
       client.pods().inNamespace(namespace).withName(name).delete()
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Delete Pod", e)
+      throw new KubernetesOperationException(account, "Delete Pod $name in $namespace", e)
     }
   }
 
@@ -149,7 +151,7 @@ class KubernetesApiAdaptor {
     try {
       client.pods().inNamespace(namespace).list().items
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Get Pods", e)
+      throw new KubernetesOperationException(account, "Get Pods in $namespace", e)
     }
   }
 
@@ -157,7 +159,7 @@ class KubernetesApiAdaptor {
     try {
       client.replicationControllers().inNamespace(namespace).withName(serverGroupName).get()
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Get Replication Controller", e)
+      throw new KubernetesOperationException(account, "Get Replication Controller $serverGroupName in $namespace", e)
     }
   }
 
@@ -165,7 +167,7 @@ class KubernetesApiAdaptor {
     try {
       client.replicationControllers().inNamespace(namespace).create(replicationController)
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Create Replication Controller", e)
+      throw new KubernetesOperationException(account, "Create Replication Controller ${replicationController?.metadata?.name} in $namespace", e)
     }
   }
 
@@ -173,7 +175,7 @@ class KubernetesApiAdaptor {
     try {
       client.replicationControllers().inNamespace(namespace).withName(name).scale(size)
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Resize Replication Controller", e)
+      throw new KubernetesOperationException(account, "Resize Replication Controller $name to $size in $namespace", e)
     }
   }
 
@@ -181,7 +183,7 @@ class KubernetesApiAdaptor {
     try {
       client.replicationControllers().inNamespace(namespace).withName(name).delete()
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Hard Destroy Replication Controller", e)
+      throw new KubernetesOperationException(account, "Hard Destroy Replication Controller $name in $namespace", e)
     }
   }
 
@@ -196,7 +198,7 @@ class KubernetesApiAdaptor {
 
       edit.endMetadata().done()
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Toggle Pod Labels", e)
+      throw new KubernetesOperationException(account, "Toggle Pod Labels to $value for $name in $namespace", e)
     }
   }
 
@@ -211,7 +213,7 @@ class KubernetesApiAdaptor {
 
       edit.endMetadata().endTemplate().endSpec().done()
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Toggle Replication Controller Labels", e)
+      throw new KubernetesOperationException(account, "Toggle Replication Controller Labels to $value for $name in $namespace", e)
     }
   }
 
@@ -219,7 +221,7 @@ class KubernetesApiAdaptor {
     try {
       client.services().inNamespace(namespace).withName(service).get()
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Get Service", e)
+      throw new KubernetesOperationException(account, "Get Service $service in $namespace", e)
     }
   }
 
@@ -227,7 +229,7 @@ class KubernetesApiAdaptor {
     try {
       client.services().inNamespace(namespace).create(service)
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Create Service", e)
+      throw new KubernetesOperationException(account, "Create Service $service in $namespace", e)
     }
   }
 
@@ -235,7 +237,7 @@ class KubernetesApiAdaptor {
     try {
       client.services().inNamespace(namespace).withName(name).delete()
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Delete Service", e)
+      throw new KubernetesOperationException(account, "Delete Service $name in $namespace", e)
     }
   }
 
@@ -243,7 +245,7 @@ class KubernetesApiAdaptor {
     try {
       client.services().inNamespace(namespace).list().items
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Get Services", e)
+      throw new KubernetesOperationException(account, "Get Services in $namespace", e)
     }
   }
 
@@ -251,7 +253,7 @@ class KubernetesApiAdaptor {
     try {
       client.services().inNamespace(namespace).withName(name).replace(service)
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Replace Service", e)
+      throw new KubernetesOperationException(account, "Replace Service $name in $namespace", e)
     }
   }
 
@@ -259,7 +261,7 @@ class KubernetesApiAdaptor {
     try {
       client.secrets().inNamespace(namespace).withName(secret).get()
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Get Secret", e)
+      throw new KubernetesOperationException(account, "Get Secret $secret in $namespace", e)
     }
   }
 
@@ -267,7 +269,7 @@ class KubernetesApiAdaptor {
     try {
       client.secrets().inNamespace(namespace).withName(secret).delete()
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Delete Secret", e)
+      throw new KubernetesOperationException(account, "Delete Secret $secret in $namespace", e)
     }
   }
 
@@ -275,7 +277,7 @@ class KubernetesApiAdaptor {
     try {
       client.secrets().inNamespace(namespace).create(secret)
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Create Secret", e)
+      throw new KubernetesOperationException(account, "Create Secret $secret in $namespace", e)
     }
   }
 
@@ -283,7 +285,7 @@ class KubernetesApiAdaptor {
     try {
       client.namespaces().withName(namespace).get()
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Get Namespace", e)
+      throw new KubernetesOperationException(account, "Get Namespace $namespace", e)
     }
   }
 
@@ -291,7 +293,7 @@ class KubernetesApiAdaptor {
     try {
       client.namespaces().create(namespace)
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Create Namespace", e)
+      throw new KubernetesOperationException(account, "Create Namespace $namespace", e)
     }
   }
 
@@ -299,7 +301,7 @@ class KubernetesApiAdaptor {
     try {
       client.extensions().jobs().inNamespace(namespace).create(job)
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Create Job", e)
+      throw new KubernetesOperationException(account, "Create Job ${job?.metadata?.name} in $namespace", e)
     }
   }
 
@@ -307,7 +309,7 @@ class KubernetesApiAdaptor {
     try {
       client.extensions().jobs().inNamespace(namespace).list().items
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Get Jobs", e)
+      throw new KubernetesOperationException(account, "Get Jobs in $namespace", e)
     }
   }
 
@@ -315,7 +317,7 @@ class KubernetesApiAdaptor {
     try {
       client.extensions().jobs().inNamespace(namespace).withName(name).get()
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Get Job", e)
+      throw new KubernetesOperationException(account, "Get Job $name in $namespace", e)
     }
   }
 
@@ -323,7 +325,7 @@ class KubernetesApiAdaptor {
     try {
       client.extensions().jobs().inNamespace(namespace).withName(name).delete()
     } catch (KubernetesClientException e) {
-      throw new KubernetesOperationException("Hard Destroy Job", e)
+      throw new KubernetesOperationException(account, "Hard Destroy Job $name in $namespace", e)
     }
   }
 }

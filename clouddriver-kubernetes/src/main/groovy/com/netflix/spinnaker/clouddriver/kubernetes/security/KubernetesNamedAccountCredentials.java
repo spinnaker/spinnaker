@@ -130,7 +130,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
       throw new RuntimeException("Failed to create credentials.", e);
     }
 
-    return new KubernetesCredentials(new KubernetesApiAdaptor(client), namespaces, dockerRegistries, accountCredentialsRepository);
+    return new KubernetesCredentials(new KubernetesApiAdaptor(accountName, client), namespaces, dockerRegistries, accountCredentialsRepository);
   }
 
   private static String getLocalName(String fullUrl) {
