@@ -82,7 +82,7 @@ class DestroyAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
           description
             .credentials
             .networkClient
-            .removeAppGatewayBAPforServerGroup(resourceGroupName, description.appGatewayName, description.name)
+            .removeAppGatewayBAPforServerGroup(resourceGroupName, serverGroupDescription.appGatewayName, serverGroupDescription.name)
 
           // Delete storage accounts if any
           serverGroupDescription.storageAccountNames?.each { def storageAccountName ->

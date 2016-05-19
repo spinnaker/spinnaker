@@ -605,7 +605,7 @@ class AzureServerGroupResourceTemplate {
       tags.createdTime = currentTime.toString()
       if (description.clusterName) tags.cluster = description.clusterName
       if (description.name) tags.serverGroup = description.name
-      if (description.securityGroup) tags.securityGroup = description.securityGroup
+      if (description.securityGroupName) tags.securityGroupName = description.securityGroupName
 
       this.dependsOn.add("[concat('Microsoft.Network/publicIPAddresses/', variables('publicIpAddressName'))]")
 
