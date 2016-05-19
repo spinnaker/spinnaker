@@ -27,6 +27,7 @@ import com.google.api.services.compute.model.ImageList
 import com.google.api.services.compute.model.Instance
 import com.google.api.services.compute.model.InstanceAggregatedList
 import com.google.api.services.compute.model.InstancesScopedList
+import com.google.api.services.compute.model.ServiceAccount
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
@@ -373,30 +374,28 @@ class GCEUtilSpec extends Specification {
   }
 
   @Unroll
-  void "buildServiceAccount should return null when no authScopes are specified"() {
-    when:
-      def serviceAccount = GCEUtil.buildServiceAccount(authScopes)
-
-    then:
-      serviceAccount == null
+  void "buildServiceAccount should return an empty list when either email or authScopes are unspecified"() {
+    expect:
+      GCEUtil.buildServiceAccount(serviceAccountEmail, authScopes) == []
 
     where:
-      authScopes << [null, []]
+      serviceAccountEmail                      | authScopes
+      null                                     | ["some-scope"]
+      ""                                       | ["some-scope"]
+      "something@test.iam.gserviceaccount.com" | null
+      "something@test.iam.gserviceaccount.com" | []
   }
 
   @Unroll
   void "buildServiceAccount should prepend base url if necessary"() {
-    when:
-      def serviceAccount = GCEUtil.buildServiceAccount(authScopes)
-
-    then:
-      serviceAccount.scopes == expectedScopes
+    expect:
+      GCEUtil.buildServiceAccount("default", authScopes) == expectedServiceAccount
 
     where:
-      authScopes                                                   | expectedScopes
-      ["cloud-platform"]                                           | ["https://www.googleapis.com/auth/cloud-platform"]
-      ["devstorage.read_only"]                                     | ["https://www.googleapis.com/auth/devstorage.read_only"]
-      ["https://www.googleapis.com/auth/logging.write", "compute"] | ["https://www.googleapis.com/auth/logging.write", "https://www.googleapis.com/auth/compute"]
+      authScopes                                                   || expectedServiceAccount
+      ["cloud-platform"]                                           || [new ServiceAccount(email: "default", scopes: ["https://www.googleapis.com/auth/cloud-platform"])]
+      ["devstorage.read_only"]                                     || [new ServiceAccount(email: "default", scopes: ["https://www.googleapis.com/auth/devstorage.read_only"])]
+      ["https://www.googleapis.com/auth/logging.write", "compute"] || [new ServiceAccount(email: "default", scopes: ["https://www.googleapis.com/auth/logging.write", "https://www.googleapis.com/auth/compute"])]
   }
 
   @Unroll

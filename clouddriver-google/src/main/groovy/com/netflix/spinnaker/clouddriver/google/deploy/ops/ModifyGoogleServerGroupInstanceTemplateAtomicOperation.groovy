@@ -176,11 +176,12 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
         instanceTemplateProperties.setTags(tags)
       }
 
-      // Override the instance template's auth scopes if authScopes was specified.
-      if (overriddenProperties.authScopes != null) {
-        def serviceAccount = GCEUtil.buildServiceAccount(description.authScopes)
+      // Override the instance template's service account if serviceAccountEmail or authScopes was specified.
+      // Note that we want to explicitly allow for either the service account or auth scopes to be empty, but non-null.
+      if (overriddenProperties.serviceAccountEmail != null || overriddenProperties.authScopes != null) {
+        def serviceAccount = GCEUtil.buildServiceAccount(description.serviceAccountEmail, description.authScopes)
 
-        instanceTemplateProperties.setServiceAccounts([serviceAccount])
+        instanceTemplateProperties.setServiceAccounts(serviceAccount)
       }
 
       // Override the instance template's network if network was specified.

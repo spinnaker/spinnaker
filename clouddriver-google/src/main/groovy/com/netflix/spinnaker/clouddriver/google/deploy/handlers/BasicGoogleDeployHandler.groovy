@@ -149,7 +149,11 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def tags = GCEUtil.buildTagsFromList(description.tags)
 
-    def serviceAccount = GCEUtil.buildServiceAccount(description.authScopes)
+    if (description.authScopes && !description.serviceAccountEmail) {
+      description.serviceAccountEmail = "default"
+    }
+
+    def serviceAccount = GCEUtil.buildServiceAccount(description.serviceAccountEmail, description.authScopes)
 
     def scheduling = GCEUtil.buildScheduling(description)
 
@@ -159,7 +163,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                     metadata: metadata,
                                                     tags: tags,
                                                     scheduling: scheduling,
-                                                    serviceAccounts: [serviceAccount])
+                                                    serviceAccounts: serviceAccount)
 
     def instanceTemplate = new InstanceTemplate(name: "$serverGroupName-${System.currentTimeMillis()}",
                                                 properties: instanceProperties)

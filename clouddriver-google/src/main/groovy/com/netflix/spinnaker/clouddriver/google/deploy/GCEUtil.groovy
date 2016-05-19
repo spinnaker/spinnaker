@@ -359,6 +359,7 @@ class GCEUtil {
     }
 
     def networkInterface = instanceTemplateProperties.networkInterfaces[0]
+    def serviceAccountEmail = instanceTemplateProperties.serviceAccounts?.getAt(0)?.email
 
     return new BaseGoogleInstanceDescription(
       image: image,
@@ -369,7 +370,8 @@ class GCEUtil {
       },
       tags: instanceTemplateProperties.tags?.items,
       network: getLocalName(networkInterface.network),
-      authScopes: retrieveScopesFromDefaultServiceAccount(instanceTemplateProperties.serviceAccounts)
+      serviceAccountEmail: serviceAccountEmail,
+      authScopes: retrieveScopesFromServiceAccount(serviceAccountEmail, instanceTemplateProperties.serviceAccounts)
     )
   }
 
@@ -416,8 +418,8 @@ class GCEUtil {
     }
   }
 
-  static List<String> retrieveScopesFromDefaultServiceAccount(List<ServiceAccount> serviceAccounts) {
-    serviceAccounts?.find { it.email == "default" }?.scopes
+  static List<String> retrieveScopesFromServiceAccount(String serviceAccountEmail, List<ServiceAccount> serviceAccounts) {
+    return serviceAccountEmail ? serviceAccounts?.find { it.email == serviceAccountEmail }?.scopes : null
   }
 
   static String buildDiskTypeUrl(String projectName, String zone, GoogleDiskType diskType) {
@@ -540,8 +542,11 @@ class GCEUtil {
     }
   }
 
-  static ServiceAccount buildServiceAccount(List<String> authScopes) {
-    return authScopes ? new ServiceAccount(email: "default", scopes: resolveAuthScopes(authScopes)) : null
+  // We only support zero or one service account per instance/instance-template.
+  static List<ServiceAccount> buildServiceAccount(String serviceAccountEmail, List<String> authScopes) {
+    return serviceAccountEmail && authScopes
+           ? [new ServiceAccount(email: serviceAccountEmail, scopes: resolveAuthScopes(authScopes))]
+           : []
   }
 
   static ServiceAccount buildScheduling(BaseGoogleInstanceDescription description) {

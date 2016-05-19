@@ -101,7 +101,7 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
 
     def tags = GCEUtil.buildTagsFromList(description.tags)
 
-    def serviceAccount = GCEUtil.buildServiceAccount(description.authScopes)
+    def serviceAccount = GCEUtil.buildServiceAccount(description.serviceAccountEmail, description.authScopes)
 
     def scheduling = GCEUtil.buildScheduling(description)
 
@@ -112,7 +112,7 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
                                 metadata: metadata,
                                 tags: tags,
                                 scheduling: scheduling,
-                                serviceAccounts: [serviceAccount])
+                                serviceAccounts: serviceAccount)
 
     task.updateStatus BASE_PHASE, "Creating instance $description.instanceName..."
     compute.instances().insert(project, zone, instance).execute()

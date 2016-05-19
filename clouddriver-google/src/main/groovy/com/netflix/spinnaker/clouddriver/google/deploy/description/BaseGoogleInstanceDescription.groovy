@@ -33,6 +33,7 @@ class BaseGoogleInstanceDescription {
   List<String> tags
   String network
   String subnet
+  String serviceAccountEmail
   List<String> authScopes
   Boolean preemptible
   Boolean automaticRestart

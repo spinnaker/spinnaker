@@ -169,10 +169,16 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
             : scheduling.onHostMaintenance
       }
 
+      newDescription.serviceAccountEmail =
+          description.serviceAccountEmail != null
+          ? description.serviceAccountEmail
+          : ancestorInstanceProperties.serviceAccounts?.getAt(0)?.email
+
       newDescription.authScopes =
           description.authScopes != null
           ? description.authScopes
-          : GCEUtil.retrieveScopesFromDefaultServiceAccount(ancestorInstanceProperties.serviceAccounts)
+          : GCEUtil.retrieveScopesFromServiceAccount(newDescription.serviceAccountEmail,
+                                                     ancestorInstanceProperties.serviceAccounts)
 
       newDescription.network =
         GCEUtil.getLocalName(description.network ?: ancestorInstanceProperties.networkInterfaces?.getAt(0)?.network)

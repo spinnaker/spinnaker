@@ -58,6 +58,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final String HTTP_SERVER_TAG = "http-server"
   private static final String HTTPS_SERVER_TAG = "https-server"
   private static final List<String> TAGS = ["orig-tag-1", "orig-tag-2", HTTP_SERVER_TAG, HTTPS_SERVER_TAG]
+  private static final String SERVICE_ACCOUNT_EMAIL = "default"
   private static final List<String> AUTH_SCOPES = ["compute", "logging.write"]
   private static final List<String> LOAD_BALANCERS = ["testlb-east-1", "testlb-east-2"]
   private static final String SECURITY_GROUP_1 = "sg-1"
@@ -114,14 +115,14 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     scheduling = new Scheduling(preemptible: false,
                                 automaticRestart: true,
                                 onHostMaintenance: "MIGRATE")
-    serviceAccount = GCEUtil.buildServiceAccount(AUTH_SCOPES)
+    serviceAccount = GCEUtil.buildServiceAccount(SERVICE_ACCOUNT_EMAIL, AUTH_SCOPES)
     instanceProperties = new InstanceProperties(machineType: INSTANCE_TYPE,
                                                 disks: attachedDisks,
                                                 networkInterfaces: [networkInterface],
                                                 metadata: instanceMetadata,
                                                 tags: tags,
                                                 scheduling: scheduling,
-                                                serviceAccounts: [serviceAccount])
+                                                serviceAccounts: serviceAccount)
     instanceTemplate = new InstanceTemplate(name: INSTANCE_TEMPLATE_NAME,
                                             properties: instanceProperties)
 
@@ -150,6 +151,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          preemptible: true,
                                                          automaticRestart: false,
                                                          onHostMaintenance: BaseGoogleInstanceDescription.OnHostMaintenance.TERMINATE,
+                                                         serviceAccountEmail: "something@test.iam.gserviceaccount.com",
                                                          authScopes: ["some-scope", "some-other-scope"],
                                                          network: "other-network",
                                                          subnet: "other-subnet",
@@ -211,6 +213,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.preemptible = false
       newDescription.automaticRestart = true
       newDescription.onHostMaintenance = BaseGoogleInstanceDescription.OnHostMaintenance.MIGRATE
+      newDescription.serviceAccountEmail = SERVICE_ACCOUNT_EMAIL
       newDescription.authScopes = AUTH_SCOPES
       newDescription.network = DEFAULT_NETWORK_NAME
       newDescription.subnet = SUBNET_NAME
