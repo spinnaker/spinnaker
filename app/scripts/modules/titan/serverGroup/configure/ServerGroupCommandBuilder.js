@@ -85,7 +85,6 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
           max: serverGroup.capacity.max,
           desired: serverGroup.capacity.desired
         },
-        imageId: serverGroup.image.dockerImageName + ':' + serverGroup.image.dockerImageVersion,
         cloudProvider: 'titan',
         selectedProvider: 'titan',
         viewState: {
@@ -93,6 +92,10 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
           mode: mode,
         },
       };
+
+      if (mode !== 'editPipeline') {
+        command.imageId = serverGroup.image.dockerImageName + ':' + serverGroup.image.dockerImageVersion;
+      }
 
       return $q.when(command);
     }
