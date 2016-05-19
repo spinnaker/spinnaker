@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.igor.jenkins.client.model
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.simpleframework.xml.Element
 import org.simpleframework.xml.ElementList

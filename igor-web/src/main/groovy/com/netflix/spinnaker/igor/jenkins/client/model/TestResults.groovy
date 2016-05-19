@@ -24,7 +24,7 @@ import org.simpleframework.xml.Root
  * Represents a build artifact
  */
 @CompileStatic
-@Root(name = 'action')
+@Root(name = 'action', strict = false)
 class TestResults {
     @Element(required = false)
     int failCount

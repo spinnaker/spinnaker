@@ -26,7 +26,7 @@ import org.simpleframework.xml.Root
  * Represents a build artifact
  */
 @CompileStatic
-@Root(name = 'artifact')
+@Root(name = 'artifact', strict=false)
 class BuildArtifact {
     @Element(required = false)
     String fileName

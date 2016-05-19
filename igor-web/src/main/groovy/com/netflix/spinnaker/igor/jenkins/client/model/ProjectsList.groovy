@@ -23,7 +23,7 @@ import org.simpleframework.xml.Root
 /**
  * Represents a list of projects
  */
-@Root(name = 'hudson')
+@Root(name = 'hudson', strict = false)
 @CompileStatic
 class ProjectsList {
 

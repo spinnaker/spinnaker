@@ -43,16 +43,19 @@ class ScmDetails {
     }
 }
 
+@Root(strict=false)
 class Action{
     @Element(required = false)
     LastBuiltRevision lastBuiltRevision
 }
 
+@Root(strict=false)
 class LastBuiltRevision{
     @ElementList(inline = true, name = "branch")
     List<Branch> branch
 }
 
+@Root(strict=false)
 class Branch{
     @Element(required = false)
     String name
