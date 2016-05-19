@@ -29,9 +29,11 @@ class CompleteCanaryTask implements Task {
   TaskResult execute(Stage stage) {
     Map canary = stage.context.canary
     if (canary.status?.status == 'CANCELED') {
-      new DefaultTaskResult(ExecutionStatus.CANCELED)
+      return new DefaultTaskResult(ExecutionStatus.CANCELED)
     } else if (canary.canaryResult?.overallResult == 'SUCCESS') {
-      new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    } else if ( canary.canaryConfig?.continueOnUnhealthy && canary.health.health == "UNHEALTHY") {
+      return new DefaultTaskResult(ExecutionStatus.FAILED_CONTINUE)
     } else {
       throw new IllegalStateException("Canary failed")
     }
