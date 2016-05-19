@@ -5,6 +5,6 @@ import org.simpleframework.xml.Root
 /**
  * Represents a Jenkins job downstream project
  */
-@Root(name = 'downstreamProject')
+@Root(name = 'downstreamProject', strict=false)
 class DownstreamProject extends RelatedProject {
 }

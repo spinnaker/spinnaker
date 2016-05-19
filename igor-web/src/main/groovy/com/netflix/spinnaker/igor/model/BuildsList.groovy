@@ -23,7 +23,7 @@ import org.simpleframework.xml.Root
 /**
  * Represents a list of builds
  */
-@Root
+@Root(strict=false)
 @CompileStatic
 class BuildsList {
 

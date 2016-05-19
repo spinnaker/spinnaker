@@ -26,12 +26,12 @@ import org.simpleframework.xml.Root
  * Represents a Project returned by the Jenkins service in the project list
  */
 @CompileStatic
-@Root(name='job')
+@Root(name = 'job', strict = false)
 class Project {
-    @ElementList(inline = true, name = "job", required=false)
+    @ElementList(inline = true, name = "job", required = false)
     List<Project> list
-
-    @Element String name
+    @Element
+    String name
     @Element(required = false)
     Build lastBuild
 }
