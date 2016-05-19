@@ -25,6 +25,7 @@ class KubernetesConfigurationProperties {
     String name
     String environment
     String accountType
+    String context
     String cluster
     String user
     String kubeconfigFile

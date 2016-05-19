@@ -19,16 +19,24 @@ package com.netflix.spinnaker.clouddriver.kubernetes.security
 import io.fabric8.kubernetes.api.model.AuthInfo
 import io.fabric8.kubernetes.api.model.Cluster
 import io.fabric8.kubernetes.api.model.Context
+import io.fabric8.kubernetes.api.model.NamedContext
 import io.fabric8.kubernetes.client.Config
 import io.fabric8.kubernetes.client.internal.KubeConfigUtils
 
 class KubernetesConfigParser {
-  static Config parse(String kubeconfigFile, String cluster, String user, List<String> namespaces) {
+  static Config parse(String kubeconfigFile, String context, String cluster, String user, List<String> namespaces) {
 
     def kubeConfig = KubeConfigUtils.parseConfig(new File(kubeconfigFile))
     Config config = new Config()
 
-    Context currentContext = KubeConfigUtils.getCurrentContext(kubeConfig)
+    String resolvedContext = context ?: kubeConfig.currentContext
+    Context currentContext = kubeConfig.contexts.find { NamedContext it ->
+      it.name == resolvedContext
+    }?.getContext()
+
+    if (!context && !currentContext) {
+      throw new IllegalArgumentException("Context $context was not found in $kubeconfigFile".toString())
+    }
 
     currentContext.user = user ?: currentContext.user
     currentContext.cluster = cluster ?: currentContext.cluster

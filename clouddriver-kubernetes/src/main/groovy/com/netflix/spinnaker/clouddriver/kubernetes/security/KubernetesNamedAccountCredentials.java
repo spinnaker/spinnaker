@@ -33,12 +33,13 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
                                            String accountName,
                                            String environment,
                                            String accountType,
+                                           String context,
                                            String cluster,
                                            String user,
                                            String kubeconfigFile,
                                            List<String> namespaces,
                                            List<LinkedDockerRegistryConfiguration> dockerRegistries) {
-    this(accountCredentialsRepository, userAgent, accountName, environment, accountType, cluster, user, kubeconfigFile, namespaces, dockerRegistries, null);
+    this(accountCredentialsRepository, userAgent, accountName, environment, accountType, context, cluster, user, kubeconfigFile, namespaces, dockerRegistries, null);
   }
 
   public KubernetesNamedAccountCredentials(AccountCredentialsRepository accountCredentialsRepository,
@@ -46,6 +47,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
                                            String accountName,
                                            String environment,
                                            String accountType,
+                                           String context,
                                            String cluster,
                                            String user,
                                            String kubeconfigFile,
@@ -61,6 +63,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     this.accountName = accountName;
     this.environment = environment;
     this.accountType = accountType;
+    this.context = context;
     this.cluster = cluster;
     this.user = user;
     this.userAgent = userAgent;
@@ -108,7 +111,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
   }
 
   private KubernetesCredentials buildCredentials() {
-    Config config = KubernetesConfigParser.parse(kubeconfigFile, cluster, user, namespaces);
+    Config config = KubernetesConfigParser.parse(kubeconfigFile, context, cluster, user, namespaces);
     config.setUserAgent(userAgent);
     if (namespaces == null || namespaces.isEmpty()) {
       namespaces = Collections.singletonList(config.getNamespace());
@@ -146,6 +149,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
   private final String accountName;
   private final String environment;
   private final String accountType;
+  private final String context;
   private final String cluster;
   private final String user;
   private final String userAgent;
