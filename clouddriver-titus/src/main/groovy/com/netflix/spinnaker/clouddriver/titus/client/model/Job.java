@@ -164,6 +164,7 @@ public class Job {
     private String type;
     private List<String> tags;
     private String applicationName;
+    private String appName;
     private String user;
     private String version;
     private String entryPoint;
@@ -182,7 +183,11 @@ public class Job {
     private boolean allocateIpAddress;
     private Date submittedAt;
     private List<TaskSummary> tasks;
+    private Map<String, String> labels;
     private List<String> securityGroups;
+    private String jobGroupStack;
+    private String jobGroupDetail;
+    private String jobGroupSequence;
 
     public Job() {}
 
@@ -353,5 +358,25 @@ public class Job {
     public List<String> getSecurityGroups() { return securityGroups; }
 
     public void setSecurityGroups(List<String> securityGroups) { this.securityGroups = securityGroups; }
+
+    public Map<String, String> getLabels(){ return labels; }
+
+    public void setLabels(Map<String, String> labels) { this.labels = labels; }
+
+    public String getJobGroupStack() { return jobGroupStack; }
+
+    public void setJobGroupStack(String jobGroupStack) { this.jobGroupStack = jobGroupStack; }
+
+    public String getJobGroupDetail() { return jobGroupDetail; }
+
+    public void setJobGroupDetail(String jobGroupDetail) { this.jobGroupDetail = jobGroupDetail; }
+
+    public String getJobGroupSequence() { return jobGroupSequence; }
+
+    public void setJobGroupSequence(String jobGroupSequence) { this.jobGroupSequence = jobGroupSequence; }
+
+    public String getAppName() { return appName; }
+
+    public void setAppName(String appName) { this.appName = appName; }
 
 }
