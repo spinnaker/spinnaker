@@ -47,5 +47,4 @@ allprojects {
   }
 }
 
-
 defaultTasks ':rosco-web:bootRun'

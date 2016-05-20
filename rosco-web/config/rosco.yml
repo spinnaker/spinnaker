@@ -191,6 +191,34 @@ google:
         virtualizationSettings:
           sourceImage: ubuntu-1404-trusty-v20150909a
 
+openstack:
+  enabled: ${OS_ENABLED:false}
+  bakeryDefaults:
+    identityEndpoint: ${OS_AUTH_URL:}
+    domainName: Default
+    floatingIpPool: ext_vlan1472_net
+    securityGroups: default
+    tenantName: PRD-spinnakeropenstack
+    insecure: true
+    username: ${OS_USERNAME}
+    password: ${OS_PASSWORD}
+    templateFile: openstack.json
+    baseImages:
+    - baseImage:
+        id: vivid
+        shortDescription: 15.04
+        detailedDescription: Ubuntu Vivid Vervet v15.04
+        packageType: deb
+      virtualizationSettings:
+      - region: TTEOSCORE1
+        instanceType: smem-2vcpu
+        sourceImageName: ubuntu-latest
+        sshUserName: ubuntu
+      - region: TTCOSCORE1
+        instanceType: smem-2vcpu
+        sourceImageName: ubuntu-latest
+        sshUserName: ubuntu
+
 swagger:
   enabled: true
   title: Spinnaker Rosco API

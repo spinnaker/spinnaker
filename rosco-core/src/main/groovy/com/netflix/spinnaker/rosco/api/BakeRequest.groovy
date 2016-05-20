@@ -25,7 +25,7 @@ import io.swagger.annotations.ApiModelProperty
 /**
  * A request to bake a new machine image.
  *
- * @see BakeryController#createBake
+ * @see BakeryController#createBake(String, BakeRequest, String)
  */
 @Immutable(copyWith = true)
 @CompileStatic
@@ -56,6 +56,7 @@ class BakeRequest {
   String ami_name
   String ami_suffix
   Boolean upgrade
+  String instance_type
 
   @ApiModelProperty("The explicit packer template to use, instead of resolving one from rosco's configuration")
   String template_file_name
@@ -63,7 +64,7 @@ class BakeRequest {
   Map extended_attributes
 
   static enum CloudProviderType {
-    aws, docker, gce
+    aws, docker, gce, openstack
   }
 
   static enum Label {
