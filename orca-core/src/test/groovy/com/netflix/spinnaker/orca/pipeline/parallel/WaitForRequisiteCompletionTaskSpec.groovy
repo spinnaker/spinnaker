@@ -30,7 +30,7 @@ class WaitForRequisiteCompletionTaskSpec extends Specification {
   def task = new WaitForRequisiteCompletionTask()
 
   @Unroll
-  def "should SUCCEED iff all requisite stages completed successfully"() {
+  def "should SUCCEED iff all requisite stages completed successfully or marked 'failed continue'"() {
     given:
     def pipeline = new Pipeline()
     pipeline.stages << new PipelineStage(["refId": "1"])
@@ -53,21 +53,23 @@ class WaitForRequisiteCompletionTaskSpec extends Specification {
     result.status == expectedStatus
 
     where:
-    requisiteIds | tasks                                  | syntheticTasks                         | syntheticStatus || expectedStatus
-    []           | [new DefaultTask(status: SUCCEEDED)]   | []                                     | SUCCEEDED       || SUCCEEDED
-    ["1"]        | [new DefaultTask(status: SUCCEEDED)]   | []                                     | SUCCEEDED       || SUCCEEDED
-    ["1"]        | [new DefaultTask(status: SUCCEEDED)]   | []                                     | SUCCEEDED       || SUCCEEDED
-    ["1"]        | []                                     | []                                     | SUCCEEDED       || SUCCEEDED
-    ["1"]        | [new DefaultTask(status: SUCCEEDED)]   | []                                     | RUNNING         || RUNNING
-    ["1"]        | [new DefaultTask(status: SUCCEEDED)]   | [new DefaultTask(status: NOT_STARTED)] | SUCCEEDED       || RUNNING
-    ["1"]        | []                                     | []                                     | RUNNING         || RUNNING
-    ["1"]        | [new DefaultTask(status: NOT_STARTED)] | []                                     | SUCCEEDED       || RUNNING
-    ["1"]        | [new DefaultTask(status: RUNNING)]     | []                                     | SUCCEEDED       || RUNNING
-    ["1", "2"]   | [new DefaultTask(status: SUCCEEDED)]   | []                                     | SUCCEEDED       || RUNNING
-    ["2"]        | [new DefaultTask(status: SUCCEEDED)]   | []                                     | SUCCEEDED       || RUNNING
-    ["3"]        | [new DefaultTask(status: SUCCEEDED)]   | []                                     | SUCCEEDED       || RUNNING
-    ["1", "3"]   | [new DefaultTask(status: SUCCEEDED)]   | []                                     | SUCCEEDED       || RUNNING
+    requisiteIds | tasks                                      | syntheticTasks                         | syntheticStatus || expectedStatus
+    []           | [new DefaultTask(status: SUCCEEDED)]       | []                                     | SUCCEEDED       || SUCCEEDED
+    ["1"]        | [new DefaultTask(status: SUCCEEDED)]       | []                                     | SUCCEEDED       || SUCCEEDED
+    ["1"]        | [new DefaultTask(status: SUCCEEDED)]       | []                                     | SUCCEEDED       || SUCCEEDED
+    ["1"]        | []                                         | []                                     | SUCCEEDED       || SUCCEEDED
+    ["1"]        | [new DefaultTask(status: FAILED_CONTINUE)] | []                                     | SUCCEEDED       || SUCCEEDED
+    ["1"]        | [new DefaultTask(status: SUCCEEDED)]       | []                                     | RUNNING         || RUNNING
+    ["1"]        | [new DefaultTask(status: SUCCEEDED)]       | [new DefaultTask(status: NOT_STARTED)] | SUCCEEDED       || RUNNING
+    ["1"]        | []                                         | []                                     | RUNNING         || RUNNING
+    ["1"]        | [new DefaultTask(status: NOT_STARTED)]     | []                                     | SUCCEEDED       || RUNNING
+    ["1"]        | [new DefaultTask(status: RUNNING)]         | []                                     | SUCCEEDED       || RUNNING
+    ["1", "2"]   | [new DefaultTask(status: SUCCEEDED)]       | []                                     | SUCCEEDED       || RUNNING
+    ["2"]        | [new DefaultTask(status: SUCCEEDED)]       | []                                     | SUCCEEDED       || RUNNING
+    ["3"]        | [new DefaultTask(status: SUCCEEDED)]       | []                                     | SUCCEEDED       || RUNNING
+    ["1", "3"]   | [new DefaultTask(status: SUCCEEDED)]       | []                                     | SUCCEEDED       || RUNNING
   }
+
 
   @Unroll
   def "should fail with an exception if any requisite stages completed terminally"() {

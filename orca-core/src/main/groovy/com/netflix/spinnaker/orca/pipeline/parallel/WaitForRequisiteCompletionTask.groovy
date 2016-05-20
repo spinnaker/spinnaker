@@ -49,7 +49,7 @@ class WaitForRequisiteCompletionTask implements RetryableTask {
 
       def requisiteStages = [requisiteStage] + stage.execution.stages.findAll { it.parentStageId == requisiteStage.id }
       requisiteStages.each {
-        if (it.status != SUCCEEDED) {
+        if ( !(it.status in [SUCCEEDED, FAILED_CONTINUE]) ) {
           allRequisiteStagesAreComplete = false
         }
         if (it.status == TERMINAL) {
@@ -57,7 +57,7 @@ class WaitForRequisiteCompletionTask implements RetryableTask {
         }
 
         def tasks = (it.tasks ?: []) as List<Task>
-        if (tasks && tasks[-1].status != SUCCEEDED) {
+        if (tasks && !(tasks[-1].status in [SUCCEEDED, FAILED_CONTINUE]) ) {
           // ensure the last task has completed (heuristic for all tasks being complete)
           allRequisiteStagesAreComplete = false
         }
