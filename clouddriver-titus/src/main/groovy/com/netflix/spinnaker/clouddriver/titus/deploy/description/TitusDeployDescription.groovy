@@ -34,6 +34,7 @@ class TitusDeployDescription extends AbstractTitusCredentialsDescription impleme
   Map env
   String entryPoint
   String iamProfile
+  String user
 
   @Canonical
   static class Capacity {

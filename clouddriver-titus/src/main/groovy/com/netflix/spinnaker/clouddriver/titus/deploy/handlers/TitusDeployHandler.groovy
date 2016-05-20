@@ -89,6 +89,10 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         submitJobRequest.withSecurityGroups(description.securityGroups)
       }
 
+      if(description.user){
+        submitJobRequest.withUser(description.user)
+      }
+
       task.updateStatus BASE_PHASE, "Submitting job request to Titus..."
       String jobUri = titusClient.submitJob(submitJobRequest)
 
