@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 class GenericBuild {
     boolean building
     String fullDisplayName
+    String name
     int number
     Integer duration
     String timestamp
@@ -40,6 +41,7 @@ class GenericBuild {
     GenericBuild(boolean building, int number, int duration, Result result, String name, String url) {
         this(building, number)
         this.duration = duration
+        this.name = name
         this.result = result
         this.fullDisplayName = "${name} #${number}"
         this.url = url
