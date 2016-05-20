@@ -23,6 +23,8 @@ import com.netflix.spinnaker.igor.travis.client.model.Repo
 import com.netflix.spinnaker.igor.travis.service.TravisService
 import spock.lang.Specification
 
+import java.util.concurrent.TimeUnit
+
 class TravisBuildMonitorSpec extends Specification {
     BuildCache buildCache = Mock(BuildCache)
     TravisService travisService = Mock(TravisService)
@@ -42,6 +44,7 @@ class TravisBuildMonitorSpec extends Specification {
         repo.slug = "test-org/test-repo"
         repo.lastBuildNumber = 4
         repo.lastBuildState = "passed"
+        repo.lastBuildStartedAt = new Date()
         List<Repo> repos = [repo]
 
         given:
@@ -61,6 +64,35 @@ class TravisBuildMonitorSpec extends Specification {
         builds[0].previous.lastBuildLabel == 3
     }
 
+    void 'ignore old build not found in the cache'() {
+        Repo oldRepo = new Repo()
+        Date now = new Date()
+        oldRepo.lastBuildStartedAt = new Date(now.getTime() - TimeUnit.DAYS.toMillis(travisBuildMonitor.cachedJobTTLDays))
+        Repo noLastBuildStartedAtRepo = new Repo()
+        noLastBuildStartedAtRepo.lastBuildStartedAt = null
+        Repo repo = new Repo()
+        repo.slug = "test-org/test-repo"
+        repo.lastBuildNumber = 4
+        repo.lastBuildState = "passed"
+        repo.lastBuildStartedAt = new Date(now.getTime() - TimeUnit.DAYS.toMillis(travisBuildMonitor.cachedJobTTLDays-1))
+        List<Repo> repos = [oldRepo,repo, noLastBuildStartedAtRepo]
+
+        given:
+        1 * buildCache.getJobNames(MASTER) >> ['test-org/test-repo']
+
+        when:
+        List<Map> builds = travisBuildMonitor.changedBuilds(MASTER)
+
+        then:
+        1 * travisService.getReposForAccounts() >> repos
+
+        1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo') >> [lastBuildLabel: 3]
+        1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo', 4, false, CACHED_JOB_TTL_SECONDS)
+        builds.size() == 1
+        builds[0].current.slug == 'test-org/test-repo'
+        builds[0].current.lastBuildNumber == 4
+        builds[0].previous.lastBuildLabel == 3
+    }
 
     void 'send events for build both on branch and on repository'() {
         travisBuildMonitor.echoService = Mock(EchoService)
@@ -70,6 +102,7 @@ class TravisBuildMonitorSpec extends Specification {
         repo.slug = "test-org/test-repo"
         repo.lastBuildNumber = 4
         repo.lastBuildState = "passed"
+        repo.lastBuildStartedAt = new Date()
         List<Repo> repos = [repo]
 
         given:

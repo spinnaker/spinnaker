@@ -160,12 +160,6 @@ class TravisService implements BuildService {
         return list
     }
 
-    List<Repo> getRepos() {
-        Repos repos = travisClient.repos(getAccessToken())
-        log.debug "fetched " + repos.repos.size() + " repos"
-        return repos.repos
-    }
-
     Commit getCommit(String repoSlug, int buildNumber) {
         Builds builds = getBuilds(repoSlug, buildNumber)
         if (builds?.commits) {

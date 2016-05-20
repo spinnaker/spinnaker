@@ -19,7 +19,6 @@ package com.netflix.spinnaker.igor.config
 import com.netflix.spinnaker.igor.service.BuildMasters
 import com.netflix.spinnaker.igor.travis.TravisCache
 import com.netflix.spinnaker.igor.travis.client.TravisClient
-import com.netflix.spinnaker.igor.travis.client.model.Build
 import com.netflix.spinnaker.igor.travis.service.TravisService
 import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
