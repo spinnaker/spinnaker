@@ -49,12 +49,12 @@ apt-get -f -y install
 sed -i "s/HTTP_PORT=.*/HTTP_PORT=9090/" /etc/default/jenkins
 
 # as jenkins, configure aptly
-cd /var/lib/jenkins
+cd /home/jenkins
 wget https://dl.bintray.com/smira/aptly/0.9.5/debian-squeeze-x64/aptly
-chown jenkins /var/lib/jenkins/aptly
+chown jenkins /home/jenkins/aptly
 sudo -u jenkins -H sh -c "chmod +x aptly"
-sudo -u jenkins -H sh -c "/var/lib/jenkins/aptly repo create hello"
-sudo -u jenkins -H sh -c '/var/lib/jenkins/aptly publish repo -architectures="amd64,i386" -component=main -distribution=trusty -skip-signing=true hello'
+sudo -u jenkins -H sh -c "/home/jenkins/aptly repo create hello"
+sudo -u jenkins -H sh -c '/home/jenkins/aptly publish repo -architectures="amd64,i386" -component=main -distribution=trusty -skip-signing=true hello'
 
 # as jenkins, configure jenkins config directory
 # this storage bucket is public so we can pull the jenkins config from anywhere
@@ -74,7 +74,7 @@ cat > $nginx_default <<EOF
 server {
         listen 9999 default_server;
         listen [::]:9999 default_server ipv6only=on;
-        root /var/lib/jenkins/.aptly/public;
+        root /home/jenkins/.aptly/public;
         index index.html index.htm;
         server_name localhost;
         location / {
