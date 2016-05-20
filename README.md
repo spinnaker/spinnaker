@@ -6,4 +6,61 @@ A bakery for use by Spinnaker to produce machine images.
 
 It presently supports producing Google Compute Engine images and AWS amis. It relies on packer and can be easily extended to support additional platforms.
 
-It exposes a REST api which can be experimented with via the Swagger UI: http://localhost:8087/swagger/index.html
+It exposes a REST api which can be experimented with via the Swagger UI: http://localhost:8087/swagger-ui.html
+
+# Developing rosco
+
+Need to run rosco locally for development? Here's what you need to setup and run:
+
+## Environment Setup
+```
+git clone git@github.com:spinnaker/rosco.git
+git clone git@github.com:spinnaker/spinnaker.git
+```
+
+## Docker Setup (runs redis locally)
+```
+docker-machine create --virtualbox-disk-size 8192 --virtualbox-memory 8192 -d virtualbox spinnaker
+eval $(docker-machine env spinnaker)
+cd spinnaker/experimental/docker-compose
+docker-compose up -d redis rush
+```
+
+## Verify redis
+```
+docker run -it --link redis:redis --rm redis redis-cli -h redis -p 6379
+(printf "PING\r\n";) | nc -v localhost 6379
+```
+
+## IDE setup
+
+### Generate Intellij gradle project files
+```
+./gradlew idea
+```
+
+### Apply groovy code formatting scheme
+
+1) Preferences -> Editor -> Code Style -> Manage ... -> Import -> select codestyle.xml from the project directory.
+2) Apply the 'spinnaker' scheme.
+
+## Running App
+```
+./gradlew bootRun
+```
+
+## Verifying
+```
+curl -v localhost:8087/bakeOptions
+```
+
+## Swagger
+```
+http://localhost:8087/swagger-ui.html
+```
+
+## Docker teardown
+```
+docker-compose stop
+docker-machine rm spinnaker
+```
