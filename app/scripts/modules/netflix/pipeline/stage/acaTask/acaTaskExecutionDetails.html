@@ -151,11 +151,11 @@
         </div>
         <div class="row" ng-if="canary.canaryDeployments.length > 0">
           <div class="col-md-4 sm-label-right compact">Baseline</div>
-          <div class="col-md-6">{{canary.canaryDeployments[0].baseline}}</div>
+          <div class="col-md-8" style="word-wrap: break-word">{{canary.canaryDeployments[0].baseline}}</div>
         </div>
         <div class="row" ng-if="canary.canaryDeployments.length > 0">
           <div class="col-md-4 sm-label-right compact">Canary</div>
-          <div class="col-md-6">{{canary.canaryDeployments[0].canary}}</div>
+          <div class="col-md-8" style="word-wrap: break-word">{{canary.canaryDeployments[0].canary}}</div>
         </div>
       </div>
       <div class="col-md-12 canary-config-section">
@@ -163,8 +163,8 @@
         <div class="horizontal-rule"></div>
         <div class="row">
           <div class="col-md-4 sm-label-right compact">Config Name</div>
-          <div class="col-md-6">
-            <a href="http://canary.prod.netflix.net/ui/canaryTasks/{{baseline.account}}/{{canaryConfig.canaryAnalysisConfig.name}}" target="_blank">
+          <div class="col-md-8" style="word-wrap: break-word">
+            <a href="http://canary.prod.netflix.net/ui/queryLists/{{canaryConfig.canaryAnalysisConfig.name}}/edit" target="_blank">
               {{canaryConfig.canaryAnalysisConfig.name}}
             </a>
           </div>
