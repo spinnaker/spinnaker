@@ -58,6 +58,7 @@ sudo -u jenkins -H sh -c '/home/jenkins/aptly publish repo -architectures="amd64
 
 # as jenkins, configure jenkins config directory
 # this storage bucket is public so we can pull the jenkins config from anywhere
+cd /var/lib/jenkins
 sudo -u jenkins -H sh -c 'wget https://storage.googleapis.com/codelab-jenkins-configuration/jenkins_dir.tar.gz'
 sudo -u jenkins -H sh -c 'tar -zxvf jenkins_dir.tar.gz'
 sudo -u jenkins -H sh -c 'git clone https://github.com/kenzanlabs/hello-karyon-rxnetty.git'
@@ -83,9 +84,6 @@ server {
 }
 EOF
 service nginx restart
-
-# configure rosco
-sed -i "s/# debianRepository:.*/debianRepository: http:\/\/$(hostname):9999\/ trusty main/" /opt/rosco/config/rosco.yml
 
 # configure nested properties in igor -- harder than a `sed` one-liner
 curl -s -O https://raw.githubusercontent.com/spinnaker/spinnaker/master/pylib/spinnaker/codelab_config.py
