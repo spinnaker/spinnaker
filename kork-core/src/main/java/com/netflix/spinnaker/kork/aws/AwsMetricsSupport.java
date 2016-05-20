@@ -18,21 +18,25 @@ package com.netflix.spinnaker.kork.aws;
 
 import com.amazonaws.*;
 
+import java.util.Optional;
+
 public class AwsMetricsSupport {
+  private static final String DEFAULT_UNKNOWN = "UNKNOWN";
+
   static String[] buildExceptionTags(AmazonWebServiceRequest originalRequest, Exception exception) {
     final AmazonServiceException ase = amazonServiceException(exception);
 
     return new String[] {
       "requestType", originalRequest.getClass().getSimpleName(),
       "statusCode", Integer.toString(ase.getStatusCode()),
-      "errorCode", ase.getErrorCode(),
-      "serviceName", ase.getServiceName(),
-      "errorType", ase.getErrorType().name()
+      "errorCode", Optional.ofNullable(ase.getErrorCode()).orElse(DEFAULT_UNKNOWN),
+      "serviceName", Optional.ofNullable(ase.getServiceName()).orElse(DEFAULT_UNKNOWN),
+      "errorType", Optional.ofNullable(ase.getErrorType()).orElse(AmazonServiceException.ErrorType.Unknown).name()
     };
   }
 
   static AmazonServiceException amazonServiceException(Exception exception) {
-    return amazonServiceException(exception, "UNKNOWN", -1);
+    return amazonServiceException(exception, DEFAULT_UNKNOWN, -1);
   }
 
   static AmazonServiceException amazonServiceException(Exception exception, String serviceName, int statusCode) {
@@ -42,7 +46,7 @@ public class AwsMetricsSupport {
 
     final AmazonServiceException ase = new AmazonServiceException(exception.getMessage(), exception);
     ase.setStatusCode(statusCode);
-    ase.setErrorCode("UNKNOWN");
+    ase.setErrorCode(DEFAULT_UNKNOWN);
     ase.setServiceName(serviceName);
     ase.setErrorType(AmazonServiceException.ErrorType.Unknown);
     return ase;
