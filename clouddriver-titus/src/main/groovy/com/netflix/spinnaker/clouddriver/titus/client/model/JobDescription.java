@@ -41,6 +41,7 @@ public class JobDescription {
     private String appName;
     private String jobGroupStack;
     private String jobGroupDetail;
+    private String jobGroupSequence;
     private String user;
     private List<String> softConstraints;
     private List<String> hardConstraints;
@@ -196,6 +197,14 @@ public class JobDescription {
 
     public void setJobGroupDetail(String jobGroupDetail) {
         this.jobGroupDetail = jobGroupDetail;
+    }
+
+    public String getJobGroupSequence() {
+        return jobGroupSequence;
+    }
+
+    public void setJobGroupSequence(String jobGroupSequence) {
+        this.jobGroupSequence = jobGroupSequence;
     }
 
     public String getUser() {

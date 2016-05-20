@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.titus.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.titus.client.model.*;
 import okhttp3.*;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -135,6 +136,13 @@ public class RegionScopedTitusClient implements TitusClient {
         }
         if (jobDescription.getUser() == null) {
             jobDescription.setUser("spinnaker");
+        }
+        if (jobDescription.getJobGroupSequence() == null){
+            try{
+                jobDescription.setJobGroupSequence(Names.parseName(jobDescription.getName()).getSequence().toString());
+            } catch( Exception e){
+                // fail silently if we can't get a job group sequence
+            }
         }
         jobDescription.getLabels().put("name", jobDescription.getName());
         jobDescription.getLabels().put("source", "spinnaker");

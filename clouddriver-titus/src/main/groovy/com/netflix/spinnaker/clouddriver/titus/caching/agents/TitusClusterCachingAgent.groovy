@@ -19,8 +19,8 @@ package com.netflix.spinnaker.clouddriver.titus.caching.agents
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.common.collect.ImmutableSet
 import com.netflix.frigga.Names
+import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -250,7 +250,6 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
   private void cacheServerGroup(ServerGroupData data, Map<String, CacheData> serverGroups) {
     serverGroups[data.serverGroup].with {
       attributes.job = objectMapper.convertValue(data.job, Job.class)
-      attributes.name = data.job.name
       attributes.tasks = data.job.tasks
       attributes.region = region
       attributes.account = account.name
@@ -269,6 +268,8 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
   }
 
   private static class ServerGroupData {
+    private final AutoScalingGroupNameBuilder asgNameBuilder;
+
     final Job job
     final Names name
     final String appName
@@ -280,7 +281,24 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
 
     public ServerGroupData(Job job, String account, String region) {
       this.job = job
-      name = Names.parseName(job.name)
+
+      String asgName = job.name
+      if (job.labels && job.labels['name']) {
+        asgName = job.labels['name']
+      } else {
+        if (job.appName) {
+          if (!asgNameBuilder) {
+            asgNameBuilder = new AutoScalingGroupNameBuilder()
+          }
+          asgNameBuilder.setAppName(job.appName)
+          asgNameBuilder.setDetail(job.jobGroupDetail)
+          asgNameBuilder.setStack(job.jobGroupStack)
+          String version = job.jobGroupSequence ? String.format("-v%03d", job.jobGroupSequence.toInteger()) : ''
+          asgName = asgNameBuilder.buildGroupName() + version
+        }
+      }
+
+      name = Names.parseName(asgName)
       appName = Keys.getApplicationKey(name.app)
       cluster = Keys.getClusterKey(name.cluster, name.app, account)
       region = region
