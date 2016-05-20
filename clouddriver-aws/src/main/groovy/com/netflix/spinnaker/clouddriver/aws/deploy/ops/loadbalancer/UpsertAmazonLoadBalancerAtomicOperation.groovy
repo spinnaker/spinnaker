@@ -124,7 +124,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
         def subnetIds = []
         if (description.subnetType) {
           subnetIds = regionScopedProvider.subnetAnalyzer.getSubnetIdsForZones(availabilityZones,
-                  description.subnetType, SubnetTarget.ELB)
+                  description.subnetType, SubnetTarget.ELB, 1)
         }
         dnsName = createLoadBalancer(loadBalancing, loadBalancerName, isInternal, availabilityZones, subnetIds, listeners, securityGroups)
       } else {

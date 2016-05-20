@@ -61,20 +61,20 @@ class SubnetAnalyzer {
    * @return the subnet IDs returned in the same order as the zones sent in or an empty List
    * @throws IllegalArgumentException if there are multiple subnets with the same purpose and zone
    */
-  List<String> getSubnetIdsForZones(Collection<String> zones, String purpose, SubnetTarget target = null) {
+  List<String> getSubnetIdsForZones(Collection<String> zones, String purpose, SubnetTarget target = null, Integer maxSubnetsPerZone = null) {
     Preconditions.checkNotNull(purpose)
     if (!zones) {
       return Collections.emptyList()
     }
-    Function<SubnetData, String> purposeOfSubnet = { it.purpose } as Function
     Map<String, Collection<SubnetData>> zonesToSubnets = mapZonesToTargetSubnets(target).asMap()
-    zonesToSubnets.subMap(zones).values().collect { Collection<SubnetData> subnetsForZone ->
-      if (subnetsForZone == null) {
-        return null
+    zonesToSubnets.subMap(zones).findResults { z, c ->
+      List<String> filtered = c.findResults { it.purpose == purpose ? it.subnetId : null }
+      if (maxSubnetsPerZone != null) {
+        Collections.shuffle(filtered)
+        return filtered.take(maxSubnetsPerZone)
       }
-      SubnetData subnetForPurpose = Maps.uniqueIndex(subnetsForZone, purposeOfSubnet)[purpose]
-      subnetForPurpose?.subnetId
-    }.findAll { it != null }
+      return filtered
+    }.flatten()
   }
 
   private Multimap<String, SubnetData> mapZonesToTargetSubnets(SubnetTarget target) {

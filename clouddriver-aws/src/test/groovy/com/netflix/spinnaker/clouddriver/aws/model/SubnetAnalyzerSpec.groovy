@@ -136,18 +136,35 @@ class SubnetAnalyzerSpec extends Specification {
     expectedSubnets == subnets.getSubnetIdsForZones(subnetNames, 'internal', SubnetTarget.ELB)
   }
 
-  def 'should fail to return multiple subnets with same purpose and zone'() {
+  def 'should allow multiple subnets with same purpose and zone'() {
     subnets = new SubnetAnalyzer([
       subnet('subnet-c1e8b2c1', 'us-east-1c', 'internal', SubnetTarget.EC2),
       subnet('subnet-c1e8b2c3', 'us-east-1c', 'internal', SubnetTarget.EC2),
     ])
 
     when:
-    subnets.getSubnetIdsForZones(['us-east-1c'], 'internal', SubnetTarget.EC2)
+    def subnets = subnets.getSubnetIdsForZones(['us-east-1c'], 'internal', SubnetTarget.EC2)
 
     then:
-    IllegalArgumentException e = thrown(IllegalArgumentException)
-    e.message.startsWith 'Multiple entries with same key: '
+    subnets.toSet() == ['subnet-c1e8b2c1', 'subnet-c1e8b2c3'].toSet()
+  }
+
+  def 'should allow limiting number of selected subnets when multiple subnets are present with the same purpose and zone'() {
+    subnets = new SubnetAnalyzer(subnetIds.collect { subnet(it, zone, purpose, target)})
+
+    when:
+    def subnets = subnets.getSubnetIdsForZones([zone], purpose, target, subnetLimit)
+
+    then:
+    subnets.size() == Math.min(subnetIds.size(), subnetLimit)
+    !subnetLimit || subnetIds.containsAll(subnets)
+
+    where:
+    subnetIds = ['subnet-c1e8b2c1', 'subnet-c1e8b2c3'].toSet()
+    zone = 'us-east-1c'
+    purpose = 'internal'
+    target = SubnetTarget.EC2
+    subnetLimit << [0, 1, 2, 3]
   }
 
   def 'should not return subnets without purpose'() {
