@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Veritas Technologies LLC.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-rootProject.name="clouddriver"
+package com.netflix.spinnaker.clouddriver.openstack.config
 
-include 'clouddriver-core', 'clouddriver-security', 'clouddriver-web', 'clouddriver-aws', 'clouddriver-titus', 'clouddriver-google', 'clouddriver-cf', 'clouddriver-azure', 'clouddriver-kubernetes', 'clouddriver-docker', 'clouddriver-eureka', 'clouddriver-openstack', 'cats:cats-core', 'cats:cats-redis', 'cats:cats-test'
+import groovy.transform.ToString
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
+@ToString(includeNames = true)
+class OpenstackConfigurationProperties {
+  @ToString(includeNames = true, excludes = "password")
+  static class ManagedAccount {
+    String name
+    String environment
+    String accountType
+    String master
+    String username
+    String password
+    String tenantId
+    String endpoint
   }
-}
 
-rootProject.children.each {
-  setBuildFile(it)
+  List<ManagedAccount> accounts = []
 }
-

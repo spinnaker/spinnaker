@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.docker.registry.DockerRegistryConfigura
 import com.netflix.spinnaker.clouddriver.eureka.EurekaProviderConfiguration
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesConfiguration
+import com.netflix.spinnaker.clouddriver.openstack.OpenstackConfiguration
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
 import com.netflix.spinnaker.clouddriver.titus.TitusConfiguration
 import org.springframework.boot.actuate.autoconfigure.ManagementSecurityAutoConfiguration
@@ -53,6 +54,7 @@ import java.security.Security
   TitusConfiguration,
   GoogleConfiguration,
   KubernetesConfiguration,
+  OpenstackConfiguration,
   DockerRegistryConfiguration,
   CloudFoundryConfig,
   AzureConfiguration,

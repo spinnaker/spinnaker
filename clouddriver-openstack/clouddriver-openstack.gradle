@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Veritas Technologies LLC.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,9 @@
  * limitations under the License.
  */
 
-rootProject.name="clouddriver"
-
-include 'clouddriver-core', 'clouddriver-security', 'clouddriver-web', 'clouddriver-aws', 'clouddriver-titus', 'clouddriver-google', 'clouddriver-cf', 'clouddriver-azure', 'clouddriver-kubernetes', 'clouddriver-docker', 'clouddriver-eureka', 'clouddriver-openstack', 'cats:cats-core', 'cats:cats-redis', 'cats:cats-test'
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
+dependencies {
+  compile project(":clouddriver-core")
+  compile group: 'org.pacesys', name: 'openstack4j', version: '3.0.0'
+  compile spinnaker.dependency('bootActuator')
+  compile spinnaker.dependency('bootWeb')
 }
-
-rootProject.children.each {
-  setBuildFile(it)
-}
-

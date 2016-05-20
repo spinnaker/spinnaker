@@ -27,6 +27,7 @@ dependencies {
   compile project(':clouddriver-cf')
   compile project(':clouddriver-google')
   compile project(':clouddriver-kubernetes')
+  compile project(':clouddriver-openstack')
   compile project(':clouddriver-docker')
   compile project(':clouddriver-eureka')
 

@@ -33,6 +33,7 @@ swagger:
     - .*azure.*
     - .*gce.*
     - .*kubernetes.*
+    - .*openstack.*
     - .*instances.*
     - .*reports.*
     - .*docker.*
@@ -251,6 +252,9 @@ google:
       disks:
       - type: pd-standard
         sizeGb: 10
+
+openstack:
+  enabled: false
 
 kubernetes:
   enabled: false
