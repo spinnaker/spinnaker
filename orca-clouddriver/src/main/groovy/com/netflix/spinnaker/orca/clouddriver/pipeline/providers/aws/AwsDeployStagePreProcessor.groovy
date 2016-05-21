@@ -42,7 +42,7 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
   List<DeployStagePreProcessor.StageDefinition> afterStageDefinitions() {
     return [
         new DeployStagePreProcessor.StageDefinition(
-          name: "restoreMinCapcityFromSnapshot",
+          name: "restoreMinCapacityFromSnapshot",
           stageBuilder: applySourceServerGroupSnapshotStage,
           context: [:]
         )
