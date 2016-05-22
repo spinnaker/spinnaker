@@ -40,7 +40,8 @@ class DeepCopyPipelineTask implements Task {
 
     Map pipelineVpcMigrateDefinition = [
         sourceVpcName: source.vpcName,
-        targetVpcName: target.vpcName
+        targetVpcName: target.vpcName,
+        accountMapping: stage.context.accountMapping ?: [:]
     ]
     def taskId = tideService.deepCopyPipeline(source.pipelineId, settings.allowIngressFromClassic, settings.dryRun,
       target.subnetType,
