@@ -85,6 +85,9 @@ server {
 EOF
 service nginx restart
 
+wget https://storage.googleapis.com/codelab-startup-script/first_codelab_boot.sh -O /opt/spinnaker/install/first_codelab_boot.sh
+chmod +x /opt/spinnaker/install/first_codelab_boot.sh
+
 # configure nested properties in igor -- harder than a `sed` one-liner
 curl -s -O https://raw.githubusercontent.com/spinnaker/spinnaker/master/pylib/spinnaker/codelab_config.py
 PYTHONPATH=/opt/spinnaker/pylib python codelab_config.py
