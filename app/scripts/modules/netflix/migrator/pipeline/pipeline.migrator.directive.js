@@ -141,7 +141,7 @@ module.exports = angular
       this.accounts = _.uniq(data.vpcs.filter(vpc => vpc.name === 'vpc0').map(vpc => vpc.account));
       let filteredKeyPairs = data.keyPairs
         .filter(kp => migratableClusters
-          .some(c => c.cluster.account === kp.account && (c.cluster.availabilityZones || {})[kp.region]));
+          .some(c => (c.cluster.availabilityZones || {})[kp.region]));
       this.keyPairs = _.groupBy(filteredKeyPairs || [], 'account');
       this.state = 'configure';
     });
