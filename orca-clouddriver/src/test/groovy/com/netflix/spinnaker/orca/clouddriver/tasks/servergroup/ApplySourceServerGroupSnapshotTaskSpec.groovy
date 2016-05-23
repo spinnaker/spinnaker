@@ -68,6 +68,12 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
     childPipeline.stages << new PipelineStage(childPipeline, "", [
       type: "createServerGroup"
     ])
+    childPipeline.stages << new PipelineStage(childPipeline, "", [
+      type: "createServerGroup",
+      "deploy.server.groups": [
+          "us-west-1": ["asg-v001"]
+      ]
+    ])
 
     (parentPipeline.stages + childPipeline.stages).each {
       ((AbstractStage) it).setStageNavigator(stageNavigator)
@@ -81,7 +87,8 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
     then:
     1 * executionRepository.retrievePipeline("execution-id") >> childPipeline
 
-    ancestorDeployStage == childPipeline.stages[1]
+    // should match the first childPipeline of type 'createServerGroup' w/ 'deploy.server.groups'
+    ancestorDeployStage == childPipeline.stages[2]
   }
 
   @Unroll

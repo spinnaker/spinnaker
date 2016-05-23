@@ -90,7 +90,9 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
         it.type == "pipeline" && it.parentStageId == deployStage.id
       }
       def pipeline = executionRepository.retrievePipeline(pipelineStage.context.executionId as String)
-      deployStage = pipeline.stages.find { it.context.type == "createServerGroup" }
+      deployStage = pipeline.stages.find {
+        it.context.type == "createServerGroup" && it.context.containsKey("deploy.server.groups")
+      }
     }
 
     return deployStage
