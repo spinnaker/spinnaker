@@ -9,8 +9,11 @@ module.exports = angular
     require('angular-ui-bootstrap'),
     require('../../../amazon/vpc/vpc.read.service.js'),
     require('../../../core/config/settings.js'),
+    require('../../../core/utils/lodash'),
     require('../migrator.service.js'),
     require('../../../core/presentation/autoScroll/autoScroll.directive.js'),
+    require('../../../amazon/keyPairs/keyPairs.read.service'),
+    require('../../../amazon/vpc/vpc.read.service'),
   ])
   .directive('migrator', function () {
     return {
@@ -46,55 +49,24 @@ module.exports = angular
       });
     };
   })
-  .controller('MigratorCtrl', function ($scope, $timeout,
-                                        $uibModalInstance,
-                                        migratorService, taskReader,
+  .controller('MigratorCtrl', function ($scope, $timeout, $q,
+                                        $uibModalInstance, _,
+                                        migratorService, taskReader, keyPairsReader, vpcReader,
                                         serverGroup, application) {
 
     this.submittingTemplateUrl = require('../migrator.modal.submitting.html');
 
+    // states: initialize, migrate, configure, error, preview, dryRun, complete
+
+    this.state = 'initialize';
+
     this.viewState = {
-      computing: true,
-      executing: false,
       error: false,
-      migrationComplete: false,
     };
 
     // shared component used by "submitting" overlay to indicate what's being operated against
     this.component = {
       name: serverGroup.name
-    };
-
-    // Async handlers
-
-    let errorMode = (error) => {
-      this.viewState.computing = false;
-      this.viewState.executing = false;
-      if (this.task && this.task.failureMessage) {
-        this.viewState.error = this.task.failureMessage;
-      } else {
-        this.viewState.error = error || 'An unknown error occurred. Please try again later.';
-      }
-    };
-
-    let dryRunComplete = () => {
-      this.viewState.computing = false;
-      this.preview = this.task.getPreview();
-    };
-
-    let dryRunStarted = (task) => {
-      this.task = task;
-      taskReader.waitUntilTaskCompletes(application.name, task).then(dryRunComplete, errorMode);
-    };
-
-    let migrationComplete = () => {
-      this.viewState.executing = false;
-      this.viewState.migrationComplete = true;
-    };
-
-    let migrationStarted = (task) => {
-      this.task = task;
-      taskReader.waitUntilTaskCompletes(application.name, task).then(migrationComplete, errorMode);
     };
 
     this.migrationOptions = {
@@ -108,11 +80,63 @@ module.exports = angular
       asgName: serverGroup.name,
     };
 
-    // this will probably become configurable at some point
-    let target = {
+    this.target = {
       region: serverGroup.region,
       account: serverGroup.account,
-      vpcName: 'vpc0'
+      vpcName: 'vpc0',
+      keyName: serverGroup.launchConfig.keyName,
+    };
+
+    let keyPairLoader = keyPairsReader.listKeyPairs(),
+        vpcLoader = vpcReader.listVpcs();
+
+    $q.all({keyPairs: keyPairLoader, vpcs: vpcLoader}).then(data => {
+      this.accounts = _.uniq(data.vpcs.filter(vpc => vpc.name === 'vpc0').map(vpc => vpc.account));
+      this.keyPairs = (data.keyPairs || []).filter(kp => kp.region === serverGroup.region).map(kp => {
+        return {account: kp.account, region: kp.region, name: kp.keyName};
+      });
+      this.filterKeyPairs();
+      this.state = 'configure';
+    });
+
+    this.filterKeyPairs = () => {
+      this.filteredKeyPairs = (this.keyPairs || []).filter(kp => kp.account === this.target.account).map(kp => kp.name);
+      if (this.filteredKeyPairs.indexOf(this.target.keyName) < 0) {
+        this.target.keyName = null;
+      }
+    };
+
+    // Async handlers
+
+    let errorMode = (error) => {
+      this.state = 'error';
+      if (this.task && this.task.failureMessage) {
+        this.viewState.error = this.task.failureMessage;
+      } else {
+        this.viewState.error = error || 'An unknown error occurred. Please try again later.';
+      }
+    };
+
+    let dryRunComplete = () => {
+      this.state = 'preview';
+      this.preview = this.task.getPreview();
+    };
+
+    let dryRunStarted = (task) => {
+      this.task = task;
+      this.state = 'dryRun';
+      taskReader.waitUntilTaskCompletes(application.name, task).then(dryRunComplete, errorMode);
+    };
+
+    let migrationComplete = (task) => {
+      this.task = task;
+      this.preview = this.task.getPreview();
+      this.state = 'complete';
+    };
+
+    let migrationStarted = (task) => {
+      this.task = task;
+      taskReader.waitUntilTaskCompletes(application.name, task).then(migrationComplete, errorMode);
     };
 
     // Shared config for dry run and migration
@@ -121,19 +145,19 @@ module.exports = angular
       type: 'deepCopyServerGroup',
       name: serverGroup.name,
       source: this.source,
-      target: target,
+      target: this.target,
       allowIngressFromClassic: true,
       dryRun: true
     };
 
     // Generate preview
-    let executor = migratorService.executeMigration(migrationConfig);
-
-    executor.then(dryRunStarted, errorMode);
+    this.calculateDryRun = () => {
+      migratorService.executeMigration(migrationConfig).then(dryRunStarted, errorMode);
+    };
 
     // Button handlers
     this.submit = () => {
-      this.viewState.executing = true;
+      this.state = 'migrate';
       migrationConfig.dryRun = false;
       migrationConfig.allowIngressFromClassic = this.migrationOptions.allowIngressFromClassic;
       migrationConfig.target.subnetType = this.migrationOptions.subnetType;

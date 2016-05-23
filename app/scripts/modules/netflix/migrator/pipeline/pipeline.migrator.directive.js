@@ -9,12 +9,15 @@ module.exports = angular
     require('angular-ui-bootstrap'),
     require('../../../amazon/vpc/vpc.read.service.js'),
     require('../../../core/config/settings.js'),
+    require('../../../core/utils/lodash'),
     require('../migrator.service.js'),
     require('../../../core/presentation/autoScroll/autoScroll.directive.js'),
     require('../../../core/pipeline/config/services/pipelineConfigService.js'),
     require('../../../core/utils/scrollTo/scrollTo.service.js'),
     require('../../../core/cache/cacheInitializer.js'),
     require('../../../core/task/task.read.service.js'),
+    require('../../../amazon/keyPairs/keyPairs.read.service'),
+    require('../../../amazon/vpc/vpc.read.service'),
   ])
   .directive('pipelineMigrator', function () {
     return {
@@ -35,15 +38,13 @@ module.exports = angular
 
     $scope.submittingTemplateUrl = require('../migrator.modal.submitting.html');
 
-    var actionableDeployStages = [];
+    var migratableClusters = [];
 
     function testCluster(stage) {
       return function(cluster) {
         if (!cluster.subnetType && (!cluster.provider || cluster.provider === 'aws')) {
           $scope.showAction = true;
-          if (cluster.strategy !== '') {
-            actionableDeployStages.push({strategy: cluster.strategy, name: stage.name});
-          }
+          migratableClusters.push({stage: stage.name, cluster: cluster});
         }
       };
     }
@@ -84,27 +85,28 @@ module.exports = angular
           application: function () {
             return $scope.application;
           },
-          actionableDeployStages: function() {
-            return actionableDeployStages;
+          migratableClusters: function() {
+            return migratableClusters;
           },
         }
       });
     };
   })
-  .controller('PipelineMigratorCtrl', function ($scope, pipeline, application, actionableDeployStages,
+  .controller('PipelineMigratorCtrl', function ($scope, pipeline, application, migratableClusters,
                                                 $uibModalInstance, taskReader, $timeout, $state,
                                                 migratorService, pipelineConfigService, scrollToService,
-                                                cacheInitializer) {
+                                                cacheInitializer, _, $q, keyPairsReader, vpcReader) {
 
     this.submittingTemplateUrl = require('../migrator.modal.submitting.html');
 
-    this.actionableDeployStages = actionableDeployStages;
+    this.clustersWithStrategies = migratableClusters.filter(c => c.cluster.strategy !== '');
+
+    // states: initialize, migrate, configure, error, preview, dryRun, complete
+
+    this.state = 'initialize';
 
     this.viewState = {
-      computing: true,
-      executing: false,
       error: false,
-      migrationComplete: false,
       targetName: pipeline.name + ' - vpc0',
     };
 
@@ -113,11 +115,41 @@ module.exports = angular
       name: pipeline.name
     };
 
+    this.source = { pipelineId: pipeline.id };
+    this.target = {
+      vpcName: 'vpc0',
+      accountMapping: []
+    };
+    this.accountMapping = [];
+
+    migratableClusters.forEach(stage => {
+      let cluster = stage.cluster;
+      if (!this.accountMapping.some(a => a.source === cluster.account)) {
+        this.accountMapping.push({ source: cluster.account, target: cluster.account, keyName: cluster.keyPair });
+      }
+    });
+
+    this.migrationOptions = {
+      allowIngressFromClassic: true,
+      subnetType: 'internal',
+    };
+
+    let keyPairLoader = keyPairsReader.listKeyPairs(),
+        vpcLoader = vpcReader.listVpcs();
+
+    $q.all({keyPairs: keyPairLoader, vpcs: vpcLoader}).then(data => {
+      this.accounts = _.uniq(data.vpcs.filter(vpc => vpc.name === 'vpc0').map(vpc => vpc.account));
+      let filteredKeyPairs = data.keyPairs
+        .filter(kp => migratableClusters
+          .some(c => c.cluster.account === kp.account && (c.cluster.availabilityZones || {})[kp.region]));
+      this.keyPairs = _.groupBy(filteredKeyPairs || [], 'account');
+      this.state = 'configure';
+    });
+
     // Async handlers
 
     let errorMode = (error) => {
-      this.viewState.computing = false;
-      this.viewState.executing = false;
+      this.state = 'error';
       if (this.task && this.task.failureMessage) {
         this.viewState.error = this.task.failureMessage;
       } else {
@@ -126,16 +158,20 @@ module.exports = angular
     };
 
     let dryRunComplete = () => {
-      this.viewState.computing = false;
+      this.state = 'preview';
       this.preview = this.task.getPreview();
     };
 
     let dryRunStarted = (task) => {
       this.task = task;
+      this.state = 'dryRun';
       taskReader.waitUntilTaskCompletes(application.name, task).then(dryRunComplete, errorMode);
     };
 
-    let migrationComplete = () => {
+    let migrationComplete = (task) => {
+      this.task = task;
+      this.preview = this.task.getPreview();
+      this.state = 'complete';
       application.pipelineConfigs.refresh().then(() => {
         this.viewState.executing = false;
         this.viewState.migrationComplete = true;
@@ -154,28 +190,21 @@ module.exports = angular
       taskReader.waitUntilTaskCompletes(application.name, task).then(migrationComplete, errorMode);
     };
 
-    var source = { pipelineId: pipeline.id },
-        target = { vpcName: 'vpc0', };
-
-    this.migrationOptions = {
-      allowIngressFromClassic: true,
-      subnetType: 'internal',
-    };
-
-    var migrationConfig = {
+    let migrationConfig = {
       application: application,
       type: 'deepCopyPipeline',
       name: pipeline.name,
-      source: source,
-      target: target,
+      source: this.source,
+      target: this.target,
+      accountMapping: this.accountMapping,
       allowIngressFromClassic: true,
       dryRun: true
     };
 
     // Generate preview
-    let executor = migratorService.executeMigration(migrationConfig);
-
-    executor.then(dryRunStarted, errorMode);
+    this.calculateDryRun = () => {
+      migratorService.executeMigration(migrationConfig).then(dryRunStarted, errorMode);
+    };
 
     this.close = () => {
       var [newPipeline] = application.pipelineConfigs.data.filter(test => {
@@ -185,12 +214,14 @@ module.exports = angular
     };
 
     this.cancel = () => {
-      $timeout.cancel(this.task.poller);
+      if (this.task) {
+        $timeout.cancel(this.task.poller);
+      }
       $uibModalInstance.dismiss();
     };
 
     this.submit = () => {
-      this.viewState.executing = true;
+      this.state = 'migrate';
       migrationConfig.dryRun = false;
       migrationConfig.allowIngressFromClassic = this.migrationOptions.allowIngressFromClassic;
       migrationConfig.target.subnetType = this.migrationOptions.subnetType;

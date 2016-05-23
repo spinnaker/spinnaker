@@ -6,8 +6,60 @@
       <h3>Migrate {{vm.component.name}} to VPC0</h3>
     </div>
     <div class="modal-body">
+      <div ng-if="vm.state === 'initialize'" class="migration-options">
+        <h3 class="text-center">
+          <span class="small glyphicon glyphicon-asterisk glyphicon-spinning"></span>
+        </h3>
+      </div>
 
-      <div class="row" ng-if="vm.viewState.computing">
+      <div ng-if="vm.state === 'configure'" class="migration-options">
+        <div class="row">
+          <div class="col-md-10 col-md-offset-1">
+            <h4>Migration Options</h4>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-3 col-md-offset-1 sm-label-right">
+            Target Account
+          </div>
+          <div class="col-md-6">
+            <account-select-field accounts="vm.accounts" component="vm.target" field="account" provider="'aws'" on-change="vm.filterKeyPairs()"></account-select-field>
+          </div>
+        </div>
+
+        <div class="row" ng-if="vm.source.account !== vm.target.account">
+          <div class="col-md-3 col-md-offset-1 sm-label-right">
+            Target Key Name
+          </div>
+          <div class="col-md-6">
+            <select class="form-control input-sm"
+                    ng-model="vm.target.keyName"
+                    ng-options="key for key in vm.filteredKeyPairs"></select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-3 col-md-offset-1 sm-label-right" style="margin-top: 10px">
+            ClassicLink
+          </div>
+          <div class="col-md-6 checkbox">
+            <label><input type="checkbox" ng-model="vm.migrationOptions.allowIngressFromClassic"/> Allow Access From EC2 Classic </label>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-3 col-md-offset-1 sm-label-right">
+            ASG Subnet
+          </div>
+          <div class="col-md-6">
+            <select class="form-control input-sm"
+                    style="display: inline; width: auto"
+                    ng-model="vm.migrationOptions.subnetType"
+                    ng-options="type for type in ['internal', 'external']"></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="row" ng-if="vm.state === 'dryRun'">
         <div class="col-md-10 col-md-offset-1">
           <h3 class="text-center">
             <span class="small glyphicon glyphicon-asterisk glyphicon-spinning"></span>
@@ -16,17 +68,17 @@
         </div>
       </div>
 
-      <div class="row preview" ng-if="vm.preview && !vm.viewState.computing && !vm.viewState.executing && !vm.viewState.error">
+      <div class="row preview" ng-if="vm.state === 'preview' || vm.state === 'complete'">
         <div class="col-md-10 col-md-offset-1">
-          <div ng-if="!vm.viewState.migrationComplete">
+          <div ng-if="vm.state === 'preview'">
             <p>This will migrate
               <strong>{{vm.source.asgName}}</strong>
               in {{vm.source.region}} <account-tag account="vm.source.account"></account-tag>
-              to VPC0.
+              to <account-tag account="vm.target.account"></account-tag> VPC0.
             </p>
             <p>As part of this migration, the following items will be created:</p>
           </div>
-          <div ng-if="vm.viewState.migrationComplete">
+          <div ng-if="vm.state === 'complete'">
             <p>The following items have been created:</p>
           </div>
           <div ng-if="vm.preview.securityGroups.length">
@@ -49,15 +101,14 @@
             <div ng-repeat="serverGroup in vm.preview.serverGroups" class="preview-entry">
               {{serverGroup.mutationDetails.awsReference.identity.autoScalingGroupName}}
             </div>
-            <p ng-if="!vm.viewState.migrationComplete" class="note">Note: server groups will be started in a disabled state with zero instances.</p>
-            <p ng-if="vm.viewState.migrationComplete" class="note">Note: server group has been started in a disabled state with zero instances.</p>
+            <p ng-if="vm.state === 'preview'" class="note">Note: server groups will be started in a disabled state with zero instances.</p>
+            <p ng-if="vm.state === 'complete'" class="note">Note: server group has been started in a disabled state with zero instances.</p>
           </div>
-
         </div>
       </div>
     </div>
 
-    <div class="row" ng-if="vm.viewState.error">
+    <div class="row" ng-if="vm.state === 'error'">
       <div class="col-md-10 col-md-offset-1">
         <h4 ng-if="!vm.preview">We could not calculate an execution plan for {{vm.component.name}} at this time.</h4>
         <h4 ng-if="vm.preview">We could not perform the migration of {{vm.component.name}} at this time.</h4>
@@ -65,40 +116,22 @@
       </div>
     </div>
 
-    <div ng-if="!vm.viewState.migrationComplete && !vm.viewState.error" class="migration-options">
-      <div class="row">
-        <div class="col-md-10 col-md-offset-1">
-          <h4>Migration Options</h4>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-10 col-md-offset-1 checkbox">
-          <label><input type="checkbox" ng-model="vm.migrationOptions.allowIngressFromClassic"/> Allow Access From EC2 Classic </label>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-md-10 col-md-offset-1">
-          Place the new ASG in the
-          <select class="form-control input-sm"
-                  style="display: inline; width: auto"
-                  ng-model="vm.migrationOptions.subnetType"
-                  ng-options="type for type in ['internal', 'external']"></select>
-          subnet
-        </div>
-      </div>
-    </div>
-
-    <div class="modal-footer" ng-if="vm.viewState.error">
+    <div class="modal-footer" ng-if="vm.state === 'error'">
       <button class="btn btn-default" ng-click="vm.cancel()">Close</button>
     </div>
 
-    <div class="modal-footer" ng-if="!vm.viewState.error && !vm.viewState.executing">
-      <button class="btn btn-default" ng-click="vm.cancel()">{{vm.viewState.migrationComplete ? 'Close' : 'Cancel'}}</button>
+    <div class="modal-footer" ng-if="vm.state !== 'error' && vm.state !== 'migrate'">
+      <button class="btn btn-default" ng-click="vm.cancel()">{{vm.state === 'complete' ? 'Close' : 'Cancel'}}</button>
       <button class="btn btn-primary"
-              ng-if="!vm.viewState.executing && !vm.viewState.computing && !vm.viewState.migrationComplete"
+              ng-if="vm.state === 'preview'"
               ng-click="vm.submit()">
         Migrate {{vm.component.name}} to VPC0
+      </button>
+      <button class="btn btn-primary"
+              ng-if="vm.state === 'configure'"
+              ng-disabled="!vm.target.keyName"
+              ng-click="vm.calculateDryRun()">
+        Calculate Migration Plan
       </button>
     </div>
 

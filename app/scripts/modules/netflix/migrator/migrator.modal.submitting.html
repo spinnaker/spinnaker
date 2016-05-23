@@ -1,4 +1,4 @@
-<div class="overlay overlay-modal" ng-if="vm.task && vm.viewState.executing" modal-page modal-overlay>
+<div class="overlay overlay-modal" ng-if="vm.task && vm.state === 'migrate'" modal-page modal-overlay>
   <div class="modal-header">
     <h3>Migrating {{vm.component.name}} to VPC0</h3>
   </div>

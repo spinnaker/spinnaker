@@ -19,6 +19,7 @@ module.exports = angular
           source: config.source,
           target: config.target,
           dryRun: config.dryRun,
+          accountMapping: config.accountMapping || [],
         }]
       });
 
