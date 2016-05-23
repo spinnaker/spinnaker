@@ -4,6 +4,9 @@
     <div class="row">
       <div class="col-md-12">
         <dl class="dl-narrow dl-horizontal">
+          <dt>Server Group</dt>
+          <dd ng-if="stage.context.serverGroupName">{{stage.context.serverGroupName}}</dd>
+          <dd ng-if="!stage.context.serverGroupName">Unknown</dd>
           <dt>Min</dt>
           <dd>{{parentDeployStage.context.sourceServerGroupCapacitySnapshot.min}}</dd>
           <dt>Desired</dt>
