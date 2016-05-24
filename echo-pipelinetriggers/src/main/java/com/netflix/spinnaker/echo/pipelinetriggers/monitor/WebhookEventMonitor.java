@@ -37,6 +37,8 @@ import java.util.function.Predicate;
 @Component @Slf4j
 public class WebhookEventMonitor extends TriggerMonitor {
 
+  public static final String TRIGGER_TYPE = "webhook";
+
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   private final PipelineCache pipelineCache;
@@ -80,7 +82,7 @@ public class WebhookEventMonitor extends TriggerMonitor {
   protected boolean isValidTrigger(final Trigger trigger) {
     boolean valid =  trigger.isEnabled() &&
       (
-          trigger.getType() != null
+          TRIGGER_TYPE.equals(trigger.getType())
       );
 
     return valid;
