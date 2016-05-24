@@ -101,7 +101,7 @@ class KubernetesUtil {
   }
 
   static String getImageId(KubernetesImageDescription image) {
-    return image.imageId ?: getImageId(image.registry, image.repository, image.tag)
+    return getImageId(image.registry, image.repository, image.tag)
   }
 
   static String getImageId(String registry, String repository, String tag) {

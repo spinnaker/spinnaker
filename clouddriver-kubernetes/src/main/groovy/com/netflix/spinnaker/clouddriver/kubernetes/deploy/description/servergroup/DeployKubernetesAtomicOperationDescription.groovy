@@ -52,14 +52,12 @@ class KubernetesImageDescription {
   String repository
   String tag
   String registry
-  String imageId
 }
 
 @AutoClone
 @Canonical
 class KubernetesContainerDescription {
   String name
-
   KubernetesImageDescription imageDescription
 
   KubernetesResourceDescription requests
