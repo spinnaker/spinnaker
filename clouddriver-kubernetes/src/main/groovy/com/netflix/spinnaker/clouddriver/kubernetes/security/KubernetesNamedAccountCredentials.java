@@ -123,14 +123,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
       }
     }
 
-    KubernetesClient client;
-    try {
-      client = new DefaultKubernetesClient(config);
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to create credentials.", e);
-    }
-
-    return new KubernetesCredentials(new KubernetesApiAdaptor(accountName, client), namespaces, dockerRegistries, accountCredentialsRepository);
+    return new KubernetesCredentials(new KubernetesApiAdaptor(accountName, config), namespaces, dockerRegistries, accountCredentialsRepository);
   }
 
   private static String getLocalName(String fullUrl) {
