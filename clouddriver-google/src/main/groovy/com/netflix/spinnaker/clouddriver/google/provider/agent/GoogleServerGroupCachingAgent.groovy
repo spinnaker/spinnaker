@@ -29,6 +29,7 @@ import com.google.api.services.compute.model.InstanceGroupManagerList
 import com.google.api.services.compute.model.InstanceGroupsListInstancesRequest
 import com.google.api.services.compute.model.InstanceWithNamedPorts
 import com.netflix.frigga.Names
+import com.netflix.frigga.ami.AppVersion
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -89,7 +90,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
   CacheResult loadData(ProviderCache providerCache) {
     def cacheResultBuilder = new CacheResultBuilder(startTime: System.currentTimeMillis())
 
-    List<GoogleServerGroup> serverGroups = getServerGroups()
+    List<GoogleServerGroup> serverGroups = getServerGroups(providerCache)
     def serverGroupKeys = serverGroups.collect { Keys.getServerGroupKey(it.name, accountName, it.region) }
 
     providerCache.getAll(ON_DEMAND.ns, serverGroupKeys).each { CacheData cacheData ->
@@ -113,16 +114,16 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
     cacheResults
   }
 
-  private List<GoogleServerGroup> getServerGroups() {
-    constructServerGroups(null /*onDemandServerGroupName*/, region)
+  private List<GoogleServerGroup> getServerGroups(ProviderCache providerCache) {
+    constructServerGroups(providerCache, null /*onDemandServerGroupName*/, region)
   }
 
-  private GoogleServerGroup getServerGroup(String onDemandServerGroupName, String region) {
-    def serverGroups = constructServerGroups(onDemandServerGroupName, region)
+  private GoogleServerGroup getServerGroup(ProviderCache providerCache, String onDemandServerGroupName, String region) {
+    def serverGroups = constructServerGroups(providerCache, onDemandServerGroupName, region)
     serverGroups ? serverGroups.first() : null
   }
 
-  private List<GoogleServerGroup> constructServerGroups(String onDemandServerGroupName, String region) {
+  private List<GoogleServerGroup> constructServerGroups(ProviderCache providerCache, String onDemandServerGroupName, String region) {
     List<String> zones = credentials.getZonesFromRegion(region)
     List<GoogleServerGroup> serverGroups = []
 
@@ -132,6 +133,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
 
     zones?.each { String zone ->
       InstanceGroupManagerCallbacks instanceGroupManagerCallbacks = new InstanceGroupManagerCallbacks(
+          providerCache: providerCache,
           serverGroups: serverGroups,
           zone: zone,
           instanceGroupsRequest: instanceGroupsRequest,
@@ -166,7 +168,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
     }
 
     GoogleServerGroup serverGroup = metricsSupport.readData {
-      getServerGroup(data.serverGroupName as String, data.region as String)
+      getServerGroup(providerCache, data.serverGroupName as String, data.region as String)
     }
 
     def cacheResultBuilder = new CacheResultBuilder(startTime: Long.MAX_VALUE)
@@ -340,6 +342,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
 
   class InstanceGroupManagerCallbacks {
 
+    ProviderCache providerCache
     List<GoogleServerGroup> serverGroups
     String zone
     BatchRequest instanceGroupsRequest
@@ -370,7 +373,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
           GoogleServerGroup serverGroup = buildServerGroupFromInstanceGroupManager(instanceGroupManager)
           serverGroups << serverGroup
 
-          populateInstancesAndTemplate(instanceGroupManager, serverGroup)
+          populateInstancesAndTemplate(providerCache, instanceGroupManager, serverGroup)
 
           def autoscalerCallback = new AutoscalerSingletonCallback(serverGroup: serverGroup)
           compute.autoscalers().get(project, zone, serverGroup.name).queue(autoscalerRequest, autoscalerCallback)
@@ -387,7 +390,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
             GoogleServerGroup serverGroup = buildServerGroupFromInstanceGroupManager(instanceGroupManager)
             serverGroups << serverGroup
 
-            populateInstancesAndTemplate(instanceGroupManager, serverGroup)
+            populateInstancesAndTemplate(providerCache, instanceGroupManager, serverGroup)
           }
         }
 
@@ -409,7 +412,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
       )
     }
 
-    void populateInstancesAndTemplate(InstanceGroupManager instanceGroupManager, GoogleServerGroup serverGroup) {
+    void populateInstancesAndTemplate(ProviderCache providerCache, InstanceGroupManager instanceGroupManager, GoogleServerGroup serverGroup) {
       InstanceGroupsCallback instanceGroupsCallback = new InstanceGroupsCallback(serverGroup: serverGroup)
       compute.instanceGroups().listInstances(project,
                                              zone,
@@ -420,7 +423,8 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
       String instanceTemplateName = Utils.getLocalName(instanceGroupManager.instanceTemplate)
       List<String> loadBalancerNames =
         Utils.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(instanceGroupManager.getTargetPools())
-      InstanceTemplatesCallback instanceTemplatesCallback = new InstanceTemplatesCallback(serverGroup: serverGroup,
+      InstanceTemplatesCallback instanceTemplatesCallback = new InstanceTemplatesCallback(providerCache: providerCache,
+                                                                                          serverGroup: serverGroup,
                                                                                           loadBalancerNames: loadBalancerNames)
       compute.instanceTemplates().get(project, instanceTemplateName).queue(instanceGroupsRequest,
                                                                            instanceTemplatesCallback)
@@ -439,11 +443,11 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
     }
   }
 
-
   class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<InstanceTemplate> implements FailureLogger {
 
     private static final String LOAD_BALANCER_NAMES = "load-balancer-names"
 
+    ProviderCache providerCache
     GoogleServerGroup serverGroup
     List<String> loadBalancerNames
 
@@ -466,6 +470,11 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
       }?.initializeParams?.sourceImage
       if (sourceImageUrl) {
         serverGroup.launchConfig.imageId = Utils.getLocalName(sourceImageUrl)
+
+        def imageKey = Keys.getImageKey(accountName, serverGroup.launchConfig.imageId)
+        def image = providerCache.get(IMAGES.ns, imageKey)
+
+        extractBuildInfo(image?.attributes?.image?.description, serverGroup)
       }
 
       def instanceMetadata = instanceTemplate?.properties?.metadata
@@ -482,6 +491,44 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
         }
       }
     }
+  }
+
+  static void extractBuildInfo(String imageDescription, GoogleServerGroup googleServerGroup) {
+    if (imageDescription) {
+      def descriptionTokens = imageDescription?.tokenize(",")
+      def appVersionTag = findTagValue(descriptionTokens, "appversion")
+      Map buildInfo = null
+
+      if (appVersionTag) {
+        def appVersion = AppVersion.parseName(appVersionTag)
+
+        if (appVersion) {
+          buildInfo = [package_name: appVersion.packageName, version: appVersion.version, commit: appVersion.commit] as Map<Object, Object>
+
+          if (appVersion.buildJobName) {
+            buildInfo.jenkins = [name: appVersion.buildJobName, number: appVersion.buildNumber]
+          }
+
+          def buildHostTag = findTagValue(descriptionTokens, "build_host")
+
+          if (buildHostTag && buildInfo.containsKey("jenkins")) {
+            ((Map)buildInfo.jenkins).host = buildHostTag
+          }
+        }
+
+        if (buildInfo) {
+          googleServerGroup.buildInfo = buildInfo
+        }
+      }
+    }
+  }
+
+  static String findTagValue(List<String> descriptionTokens, String tagKey) {
+    def matchingKeyValuePair = descriptionTokens?.find { keyValuePair ->
+      keyValuePair.trim().startsWith("$tagKey: ")
+    }
+
+    matchingKeyValuePair ? matchingKeyValuePair.trim().substring(tagKey.length() + 2) : null
   }
 
   class AutoscalerSingletonCallback<Autoscaler> extends JsonBatchCallback<Autoscaler> {
