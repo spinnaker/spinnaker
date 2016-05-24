@@ -209,8 +209,25 @@ class PackageInfo {
 
   @CompileDynamic
   private Map filterArtifacts(List<Map> artifacts, String prefix, String fileExtension) {
-    artifacts.find {
-      it.fileName?.startsWith(prefix) && it.fileName?.endsWith(fileExtension)
+    if (packageType == 'rpm') {
+      filterRPMArtifacts(artifacts, prefix)
+    } else {
+      artifacts.find {
+        it.fileName?.startsWith(prefix) && it.fileName?.endsWith(fileExtension)
+      }
+    }
+  }
+
+  @CompileDynamic
+  private Map filterRPMArtifacts(List<Map> artifacts, String prefix) {
+    artifacts.find { artifact ->
+      List<String> parts = artifact.fileName?.tokenize(versionDelimiter)
+      if (parts.size >= 3) {
+        parts.pop()
+        parts.pop()
+        String appName = parts.join(versionDelimiter)
+        return "${appName}${versionDelimiter}" == prefix
+      }
     }
   }
 

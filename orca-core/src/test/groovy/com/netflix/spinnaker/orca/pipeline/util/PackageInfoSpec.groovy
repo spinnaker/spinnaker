@@ -63,6 +63,40 @@ class PackageInfoSpec extends Specification {
 
   }
 
+  @Unroll
+  def "Find the right package, don't be dependant on artifact order"() {
+    given:
+    Stage bakeStage = new PipelineStage()
+    PackageType packageType = PackageType.RPM
+    boolean extractBuildDetails = false
+    PackageInfo packageInfo = new PackageInfo(bakeStage,
+      packageType.packageType,
+      packageType.versionDelimiter,
+      extractBuildDetails,
+      false,
+      mapper)
+
+    Map trigger = ["buildInfo": ["artifacts": filename]]
+    Map buildInfo = ["artifacts": []]
+    Map request = ["package": requestPackage, "allowMissingPackageInstallation" : true]
+
+    when:
+    Map requestMap = packageInfo.createAugmentedRequest(trigger, buildInfo, request)
+
+    then:
+    requestMap.package == result
+
+    where:
+    filename                                                 || requestPackage   || result
+    [["fileName": "package-4.11.4h-1.x86_64.rpm"]]           || "package"        || "package-4.11.4h-1.x86_64"
+    [["fileName": "package-something-4.11.4h-1.x86_64.rpm"]] || "package"        || "package"
+    [["fileName": "package-4.11.4h-1.x86_64.rpm"],
+     ["fileName": "package-something-4.11.4h-1.x86_64.rpm"]] || "package"        || "package-4.11.4h-1.x86_64"
+    [["fileName": "package-something-4.11.4h-1.x86_64.rpm"],
+     ["fileName": "package-4.11.4h-1.x86_64.rpm"]]           || "package"        || "package-4.11.4h-1.x86_64"
+
+  }
+
   def "findTargetPackage: stage execution instance of Pipeline with no trigger"() {
     given:
     Stage quipStage = new PipelineStage()
