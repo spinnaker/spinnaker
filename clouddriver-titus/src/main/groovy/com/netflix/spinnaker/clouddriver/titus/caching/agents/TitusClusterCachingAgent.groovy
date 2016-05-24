@@ -293,8 +293,8 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
           asgNameBuilder.setAppName(job.appName)
           asgNameBuilder.setDetail(job.jobGroupDetail)
           asgNameBuilder.setStack(job.jobGroupStack)
-          String version = job.jobGroupSequence ? String.format("-v%03d", job.jobGroupSequence.toInteger()) : ''
-          asgName = asgNameBuilder.buildGroupName() + version
+          String version = job.jobGroupSequence
+          asgName = asgNameBuilder.buildGroupName() + ( version ? "-${version}" : '' )
         }
       }
 
