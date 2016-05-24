@@ -45,14 +45,9 @@ class KubernetesContainerFinder {
         if (stage.execution instanceof Pipeline) {
           Map trigger = ((Pipeline) stage.execution).trigger
 
-          def matchingTag = trigger?.buildInfo?.taggedImages?.findResult { info ->
-            if (container.imageDescription.registry == info.getAt("registry") &&
-                container.imageDescription.repository == info.getAt("repository")) {
-              return info.tag
-            }
+          if (trigger?.registry == container.imageDescription.registry && trigger?.repository == container.imageDescription.repository) {
+            container.imageDescription.tag = trigger.tag
           }
-
-          container.imageDescription.tag = matchingTag
         }
 
         if (!container.imageDescription.tag) {
