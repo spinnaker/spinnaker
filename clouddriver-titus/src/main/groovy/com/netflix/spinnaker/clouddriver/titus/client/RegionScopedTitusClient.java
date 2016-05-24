@@ -137,12 +137,13 @@ public class RegionScopedTitusClient implements TitusClient {
         if (jobDescription.getUser() == null) {
             jobDescription.setUser("spinnaker");
         }
-        if (jobDescription.getJobGroupSequence() == null){
-            try{
-                jobDescription.setJobGroupSequence(Names.parseName(jobDescription.getName()).getSequence().toString());
-            } catch( Exception e){
-                // fail silently if we can't get a job group sequence
-            }
+        if (jobDescription.getJobGroupSequence() == null) {
+           try {
+              int sequence = Names.parseName(jobDescription.getName()).getSequence();
+              jobDescription.setJobGroupSequence(String.format("v%03d", sequence));
+           } catch (Exception e) {
+             // fail silently if we can't get a job group sequence
+           }
         }
         jobDescription.getLabels().put("name", jobDescription.getName());
         jobDescription.getLabels().put("source", "spinnaker");
