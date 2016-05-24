@@ -40,8 +40,9 @@ class User implements Serializable, UserDetails {
     roles?.collect { new SimpleGrantedAuthority(it) }
   }
 
+  String username = email
+
   /** Not used **/
-  String username
   @JsonIgnore String password
 
   @Override
