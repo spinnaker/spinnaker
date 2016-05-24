@@ -42,9 +42,9 @@ describe('Basic Settings Mixin Controller:', function () {
       expect(test('-a')).toBe(false);
       expect(test('a-')).toBe(false);
       expect(test('-')).toBe(false);
-      expect(test('$')).toBe(false);
+      expect(test('$')).toBe(true);
       expect(test('9*')).toBe(false);
-      expect(test('${a}')).toBe(false);
+      expect(test('${a}')).toBe(true);
     });
 
     it('detail should accept underscores, letters, numbers, dashes, and nothing', function() {
@@ -63,11 +63,11 @@ describe('Basic Settings Mixin Controller:', function () {
 
     it('detail should fail on various special characters', function () {
       var test = controller.detailPattern.test;
-      expect(test('$')).toBe(false);
+      expect(test('$')).toBe(true);
       expect(test('9*')).toBe(false);
       expect(test('#9')).toBe(false);
       expect(test('1@9')).toBe(false);
-      expect(test('${a}')).toBe(false);
+      expect(test('${a}')).toBe(true);
     });
   });
 
