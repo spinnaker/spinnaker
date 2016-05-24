@@ -55,14 +55,18 @@ class TargetServerGroup {
     ]
 
     def loc = getLocation()
-    if (loc.type == Location.Type.REGION) {
-      op.region = loc.value
-    } else if (loc.type == Location.Type.ZONE) {
-      op.zone = loc.value
-    } else if (loc.type == Location.Type.NAMESPACE) {
-      op.namespace = loc.value
-    } else {
-      throw new IllegalStateException("unsupported location type $loc.type")
+    switch (loc.type) {
+      case (Location.Type.NAMESPACE):
+        op.namespace = loc.value
+        break
+      case (Location.Type.REGION):
+        op.region = loc.value
+        break
+      case (Location.Type.ZONE):
+        op.zone = loc.value
+        break
+      default:
+        throw new IllegalStateException("unsupported location type $loc.type")
     }
     return op
   }
@@ -73,7 +77,7 @@ class TargetServerGroup {
   }
 
   public static class Support {
-    static Location resolveLocation(String zone, String namespace, String region) {
+    static Location resolveLocation(String namespace, String region, String zone) {
       if (namespace) {
         return Location.namespace(namespace)
       } else if (region) {
@@ -81,22 +85,22 @@ class TargetServerGroup {
       } else if (zone) {
         return Location.zone(zone)
       } else {
-        throw new IllegalArgumentException("No known location type provided. Must be `region`, `zone` or `namespace`.")
+        throw new IllegalArgumentException("No known location type provided. Must be `namespace`, `region` or `zone`.")
       }
     }
 
     static Location locationFromServerGroup(Map<String, Object> serverGroup, Location.Type exactLocationType) {
       switch (exactLocationType) {
-        case (Location.Type.ZONE):
-          return Location.zone(serverGroup.zone)
         case (Location.Type.NAMESPACE):
           return Location.namespace(serverGroup.namespace)
         case (Location.Type.REGION):
           return Location.region(serverGroup.region)
+        case (Location.Type.ZONE):
+          return Location.zone(serverGroup.zone)
       }
 
       try {
-        return resolveLocation(serverGroup.zone, serverGroup.namespace, serverGroup.region)
+        return resolveLocation(serverGroup.namespace, serverGroup.region, serverGroup.zone)
       } catch (e) {
         throw new IllegalArgumentException("Incorrect location specified for ${serverGroup.serverGroupName ?: serverGroup.name}: ${e.message}")
       }
@@ -112,7 +116,7 @@ class TargetServerGroup {
     static Location locationFromStageData(StageData stageData) {
       try {
         List zones = stageData.availabilityZones?.values()?.flatten()?.toArray()
-        return resolveLocation(zones?.get(0), stageData.namespace, stageData.region)
+        return resolveLocation(stageData.namespace, stageData.region, zones?.get(0))
       } catch (e) {
         throw new IllegalArgumentException("Incorrect location specified for ${stageData}: ${e.message}")
       }
