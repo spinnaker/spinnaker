@@ -70,6 +70,7 @@ class GoogleServerGroup {
     Map<String, Object> asg = GoogleServerGroup.this.asg
     Map<String, Object> launchConfig = GoogleServerGroup.this.launchConfig
     Set<String> securityGroups = GoogleServerGroup.this.securityGroups
+    Map buildInfo = GoogleServerGroup.this.buildInfo
     Boolean disabled = GoogleServerGroup.this.disabled
     String networkName = GoogleServerGroup.this.networkName
     Set<String> instanceTemplateTags = GoogleServerGroup.this.instanceTemplateTags
