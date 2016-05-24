@@ -130,7 +130,12 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
     static CleanupConfig fromStage(Stage stage) {
       def stageData = stage.mapTo(StageData)
       def loc = TargetServerGroup.Support.locationFromStageData(stageData)
-      new CleanupConfig(stageData.account, stageData.cluster, stageData.cloudProvider, loc)
+      new CleanupConfig(
+          account: stageData.account,
+          cluster: stageData.cluster,
+          cloudProvider: stageData.cloudProvider,
+          location: loc
+      )
     }
   }
 }

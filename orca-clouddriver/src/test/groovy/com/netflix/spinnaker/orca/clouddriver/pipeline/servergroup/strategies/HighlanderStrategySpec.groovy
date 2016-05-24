@@ -67,7 +67,7 @@ class HighlanderStrategySpec extends Specification {
     where:
       cloudProvider | locationType | locationValue | interestingHealthProviderNames | propagatedInterestingHealthProviderNames
       "aws"         | "region"     | "north"       | null                           | null
-      "gce"         | "zone"       | "pole-1a"     | null                           | null
-      "gce"         | "zone"       | "pole-1a"     | ["Google"]                     | ["Google"]
+      "gce"         | "region"     | "north"       | null                           | null
+      "gce"         | "region"     | "north"       | ["Google"]                     | ["Google"]
   }
 }

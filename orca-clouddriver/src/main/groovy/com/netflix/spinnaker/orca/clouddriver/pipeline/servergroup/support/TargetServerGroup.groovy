@@ -73,13 +73,13 @@ class TargetServerGroup {
   }
 
   public static class Support {
-    static Location resolveLocation(String cloudProvider, String zone, String namespace, String region) {
-      if (cloudProvider == "gce" && zone) {
-        return Location.zone(zone)
-      } else if (namespace) {
+    static Location resolveLocation(String zone, String namespace, String region) {
+      if (namespace) {
         return Location.namespace(namespace)
       } else if (region) {
         return Location.region(region)
+      } else if (zone) {
+        return Location.zone(zone)
       } else {
         throw new IllegalArgumentException("No known location type provided. Must be `region`, `zone` or `namespace`.")
       }
@@ -96,7 +96,7 @@ class TargetServerGroup {
       }
 
       try {
-        return resolveLocation(serverGroup.type, serverGroup.zone, serverGroup.namespace, serverGroup.region)
+        return resolveLocation(serverGroup.zone, serverGroup.namespace, serverGroup.region)
       } catch (e) {
         throw new IllegalArgumentException("Incorrect location specified for ${serverGroup.serverGroupName ?: serverGroup.name}: ${e.message}")
       }
@@ -112,7 +112,7 @@ class TargetServerGroup {
     static Location locationFromStageData(StageData stageData) {
       try {
         List zones = stageData.availabilityZones?.values()?.flatten()?.toArray()
-        return resolveLocation(stageData.cloudProvider, zones?.get(0), stageData.namespace, stageData.region)
+        return resolveLocation(zones?.get(0), stageData.namespace, stageData.region)
       } catch (e) {
         throw new IllegalArgumentException("Incorrect location specified for ${stageData}: ${e.message}")
       }
