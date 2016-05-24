@@ -108,13 +108,17 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     }
 
     def locations =
-      stage.context.regions
-      ? stage.context.regions.collect { new Location(type: Location.Type.REGION, value: it) }
-      : stage.context.zones
-        ? stage.context.zones.collect { new Location(type: Location.Type.ZONE, value: it) }
-        : stage.context.region
-          ? [new Location(type: Location.Type.REGION, value: stage.context.region)]
-          : []
+      stage.context.namespaces
+      ? stage.context.namespaces.collect { new Location(type: Location.Type.NAMESPACE, value: it) }
+      : stage.context.regions
+        ? stage.context.regions.collect { new Location(type: Location.Type.REGION, value: it) }
+        : stage.context.zones
+          ? stage.context.zones.collect { new Location(type: Location.Type.ZONE, value: it) }
+          : stage.context.namespace
+            ? [new Location(type: Location.Type.NAMESPACE, value: stage.context.namespace)]
+            : stage.context.region
+              ? [new Location(type: Location.Type.REGION, value: stage.context.region)]
+              : []
 
     Location.Type exactLocationType = locations?.getAt(0)?.type
 
