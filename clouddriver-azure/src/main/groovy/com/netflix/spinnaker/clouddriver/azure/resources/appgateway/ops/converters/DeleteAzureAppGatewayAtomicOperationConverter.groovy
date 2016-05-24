@@ -39,7 +39,14 @@ class DeleteAzureAppGatewayAtomicOperationConverter extends AbstractAtomicOperat
   }
 
   AzureAppGatewayDescription convertDescription(Map input) {
-    AzureAtomicOperationConverterHelper.
+    def description = AzureAtomicOperationConverterHelper.
       convertDescription(input, this, AzureAppGatewayDescription) as AzureAppGatewayDescription
+    // work around the region being passed in an ArrayList
+    if (!description.region) {
+      List<String> regions = input["regions"] as List<String>
+      description.region = regions?.first()
+    }
+
+    description
   }
 }

@@ -42,7 +42,14 @@ class DeleteAzureLoadBalancerAtomicOperationConverter extends AbstractAtomicOper
 
   @Override
   DeleteAzureLoadBalancerDescription convertDescription(Map input) {
-    AzureAtomicOperationConverterHelper.
+    def description = AzureAtomicOperationConverterHelper.
       convertDescription(input, this, DeleteAzureLoadBalancerDescription) as DeleteAzureLoadBalancerDescription
+    // work around the region being passed in an ArrayList
+    if (!description.region) {
+      List<String> regions = input["regions"] as List<String>
+      description.region = regions?.first()
+    }
+
+    description
   }
 }

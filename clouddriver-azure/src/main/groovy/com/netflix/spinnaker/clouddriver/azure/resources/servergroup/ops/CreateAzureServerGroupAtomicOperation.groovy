@@ -120,7 +120,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
       }
 
       // If Linux, set up connection on port 22 (ssh) otherwise use port 3389 (rdp)
-      def backendPort = description.image.ostype == "Linux" ? 22 : 3389
+      def backendPort = description.image.ostype.toLowerCase() == "linux" ? 22 : 3389
       description.addInboundPortConfig(AzureUtilities.INBOUND_NATPOOL_PREFIX + description.name, 50000, 50099, "tcp", backendPort)
 
       if (errList.isEmpty()) {
