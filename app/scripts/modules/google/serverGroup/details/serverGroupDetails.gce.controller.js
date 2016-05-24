@@ -388,8 +388,9 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
     };
 
     this.showStartupScript = () => {
-      this.userDataModalTitle = 'Startup Script';
-      this.userData = this.serverGroup.startupScript;
+      $scope.userDataModalTitle = 'Startup Script';
+      $scope.serverGroup = { name: this.serverGroup.name };
+      $scope.userData = this.serverGroup.startupScript;
       $uibModal.open({
         templateUrl: require('../../../core/serverGroup/details/userData.html'),
         controller: 'CloseableModalCtrl',
