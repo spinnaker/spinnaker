@@ -2,12 +2,12 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.disableCluster.gce.executionDetails.controller', [
+module.exports = angular.module('spinnaker.core.pipeline.stage.disableCluster.kubernetes.executionDetails.controller', [
     require('angular-ui-router'),
     require('../../../../../delivery/details/executionDetailsSection.service.js'),
     require('../../../../../delivery/details/executionDetailsSectionNav.directive.js'),
 ])
-.controller('gceDisableClusterExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
+.controller('kubernetesDisableClusterExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 
     $scope.configSections = ['disableClusterConfig', 'taskStatus'];
 
