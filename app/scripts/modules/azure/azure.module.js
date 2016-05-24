@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.azure', [
   require('./serverGroup/serverGroup.transformer.js'),
   require('./serverGroup/configure/wizard/CloneServerGroup.azure.controller.js'),
   require('./serverGroup/configure/serverGroup.configure.azure.module.js'),
-  require('../core/pipeline/config/stages/bake/aws/awsBakeStage.js'),
+  require('../core/pipeline/config/stages/bake/azure/azureBakeStage.js'),
   require('./instance/azureInstanceType.service.js'),
   require('./loadBalancer/loadBalancer.transformer.js'),
   require('./loadBalancer/details/loadBalancerDetail.controller.js'),
