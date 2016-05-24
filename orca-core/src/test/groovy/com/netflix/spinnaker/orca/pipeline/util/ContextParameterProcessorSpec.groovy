@@ -357,16 +357,91 @@ class ContextParameterProcessorSpec extends Specification {
     '7.5' | 7.5f
   }
 
+
+  @Unroll
+  def 'helper method to convert Strings into Booleans'() {
+    given:
+    def source = [booleanParam: '${#toBoolean( str )}']
+    def context = [str: str]
+
+    when:
+    def result = ContextParameterProcessor.process(source, context, true)
+
+    then:
+    result.booleanParam instanceof Boolean
+    result.booleanParam == booleanParam
+
+    where:
+    str     | booleanParam
+    'true'  | true
+    'false' | false
+    null    | false
+  }
+
   @Unroll
   def 'json reader returns a list if the item passed starts with a ['() {
     expect:
-    expectedClass.isInstance(ContextStringUtilities.readJson(json))
+    expectedClass.isInstance(ContextUtilities.readJson(json))
 
     where:
     json               | expectedClass
     '[ "one", "two" ]' | List
     '{ "one":"two" }'  | Map
 
+  }
+
+  def "can find a stage"() {
+    given:
+    def source = ['stage': '''${#stage('my stage')}''']
+    def context = [execution: execution]
+
+    when:
+    def result = ContextParameterProcessor.process(source, context, true)
+
+    then:
+    result.stage.value == "two"
+
+    where:
+    execution = [
+      "stages": [
+        [
+          "name" : "my stage",
+          "value": "two"
+        ]
+      ]
+    ]
+  }
+
+  def "can find a judgment result"() {
+    given:
+    def source = ['judgment': '''${#judgment('my stage')}''']
+    def context = [execution: execution]
+
+    when:
+    def result = ContextParameterProcessor.process(source, context, true)
+
+    then:
+    result.judgment == "input"
+
+    where:
+    execution = [
+      "stages": [
+        [
+          "type"   : "bake",
+          "name"   : "my stage",
+          "context": [
+            "judgmentInput": "input2"
+          ]
+        ],
+        [
+          "type"   : "manualJudgment",
+          "name"   : "my stage",
+          "context": [
+            "judgmentInput": "input"
+          ]
+        ]
+      ]
+    ]
   }
 
 }
