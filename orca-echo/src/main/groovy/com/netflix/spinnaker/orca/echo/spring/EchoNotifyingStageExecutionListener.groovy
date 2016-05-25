@@ -20,6 +20,10 @@ import org.springframework.beans.factory.annotation.Autowired
 @CompileStatic
 @Slf4j
 class EchoNotifyingStageExecutionListener extends StageExecutionListener {
+  public static final Set<ExecutionStatus> SUPPRESSED_EXECUTION_STATUSES = [
+    ExecutionStatus.CANCELED,
+    ExecutionStatus.SKIPPED
+  ] as Set<ExecutionStatus>
 
   private final EchoService echoService
 
@@ -37,7 +41,7 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
   }
 
   void afterTask(Stage stage, StepExecution stepExecution) {
-    if (stepExecution.status.running) {
+    if (!shouldRecordEvent(stepExecution)) {
       return
     }
     recordEvent('task', (wasSuccessful(stepExecution) ? "complete" : "failed"), stage, stepExecution)
@@ -85,5 +89,17 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
   private static boolean wasSuccessful(StepExecution stepExecution) {
     ExecutionStatus orcaTaskStatus = (ExecutionStatus) stepExecution.executionContext.get("orcaTaskStatus")
     stepExecution.exitStatus.exitCode == ExitStatus.COMPLETED.exitCode || orcaTaskStatus?.isSuccessful()
+  }
+
+  /**
+   * Determines if an event should be recorded for this execution.
+   */
+  private static boolean shouldRecordEvent(StepExecution stepExecution) {
+    if (stepExecution.status.running) {
+      return false
+    }
+
+    ExecutionStatus orcaTaskStatus = (ExecutionStatus) stepExecution.executionContext.get("orcaTaskStatus")
+    return (!SUPPRESSED_EXECUTION_STATUSES.contains(orcaTaskStatus))
   }
 }

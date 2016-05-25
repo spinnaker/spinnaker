@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.orca.echo.spring
 
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
@@ -9,6 +10,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepExecution
+import org.springframework.batch.item.ExecutionContext
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -81,6 +83,26 @@ class EchoNotifyingStepExecutionListenerSpec extends Specification {
     batchStatus          | _
     BatchStatus.STARTED  | _
     BatchStatus.STARTING | _
+  }
+
+  @Unroll
+  def "does #action an event for #executionStatus"() {
+    given:
+    def stepExecution = Stub(StepExecution) {
+      getStatus() >> BatchStatus.COMPLETED
+      getExecutionContext() >> new ExecutionContext([orcaTaskStatus: executionStatus])
+    }
+
+    when:
+    echoListener.afterTask(new OrchestrationStage(new Orchestration(), ""), stepExecution)
+
+    then:
+    invocationCount * echoService._
+
+    where:
+    executionStatus << ExecutionStatus.values()
+    invocationCount = EchoNotifyingStageExecutionListener.SUPPRESSED_EXECUTION_STATUSES.contains(executionStatus) ? 0 : 1
+    action = invocationCount ? "trigger" : "not trigger"
   }
 
   @Unroll

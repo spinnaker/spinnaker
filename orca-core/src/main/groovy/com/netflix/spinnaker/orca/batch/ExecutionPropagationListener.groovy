@@ -87,7 +87,7 @@ class ExecutionPropagationListener extends JobExecutionListenerSupport implement
       jobExecution.exitStatus = ExitStatus.STOPPED
     }
 
-    if (orcaTaskStatus == STOPPED) {
+    if (orcaTaskStatus?.isSuccessful()) {
       orcaTaskStatus = SUCCEEDED
     }
 

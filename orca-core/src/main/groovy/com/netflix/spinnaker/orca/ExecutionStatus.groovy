@@ -75,7 +75,12 @@ enum ExecutionStatus {
   /**
    * The task was stopped. The pipeline will not progress any further.
    */
-    STOPPED(true, true, ExitStatus.STOPPED)
+    STOPPED(true, true, ExitStatus.STOPPED),
+
+  /**
+   * The task was skipped and the pipeline will proceed to the next task.
+   */
+    SKIPPED(true, false, ExitStatus.COMPLETED)
 
   /**
    * Indicates that the task/stage/pipeline has finished its work (successfully or not).
@@ -89,7 +94,7 @@ enum ExecutionStatus {
 
   final ExitStatus exitStatus
 
-  private static final Collection<ExecutionStatus> SUCCESSFUL = [SUCCEEDED, STOPPED]
+  private static final Collection<ExecutionStatus> SUCCESSFUL = [SUCCEEDED, STOPPED, SKIPPED]
 
   ExecutionStatus(boolean complete, boolean halt, ExitStatus exitStatus) {
     this.complete = complete

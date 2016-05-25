@@ -89,6 +89,10 @@ class ExecutionPropagationListenerSpec extends Specification {
       stepExecution("2", new Date(), BatchStatus.STOPPED, ExecutionStatus.STOPPED)
     ]              | BatchStatus.STOPPED        || ExecutionStatus.SUCCEEDED
     [
+      stepExecution("1", new Date() - 1, BatchStatus.COMPLETED, ExecutionStatus.SKIPPED),
+      stepExecution("2", new Date(), BatchStatus.STOPPED, ExecutionStatus.STOPPED)
+    ]              | BatchStatus.STOPPED        || ExecutionStatus.SUCCEEDED
+    [
       stepExecution("1", new Date() - 1, BatchStatus.COMPLETED, ExecutionStatus.SUCCEEDED),
       stepExecution("2", new Date(), BatchStatus.STOPPED, ExecutionStatus.TERMINAL),
       stepExecution("3", new Date() + 1, BatchStatus.STOPPED, ExecutionStatus.CANCELED)
@@ -114,7 +118,7 @@ class ExecutionPropagationListenerSpec extends Specification {
     1 * executionRepository.updateStatus(pipeline.id, expectedStatus)
 
     where:
-    stageStatus | expectedStatus
+    stageStatus              | expectedStatus
     ExecutionStatus.CANCELED | ExecutionStatus.CANCELED
     ExecutionStatus.TERMINAL | ExecutionStatus.TERMINAL
   }

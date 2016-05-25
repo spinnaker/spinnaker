@@ -18,6 +18,8 @@ package com.netflix.spinnaker.orca.pipeline.util
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.expression.AccessException
 import org.springframework.expression.EvaluationContext
 import org.springframework.expression.Expression
@@ -57,6 +59,16 @@ class ContextParameterProcessor {
     }
 
     transform(parameters, precomputeValues(context), allowUnknownKeys)
+  }
+
+  static Map<String, Object> buildExecutionContext(Stage stage, boolean includeStageContext) {
+    def augmentedContext = [:] + (includeStageContext ? stage.context : [:])
+    if (stage.execution instanceof Pipeline) {
+      augmentedContext.put('trigger', ((Pipeline) stage.execution).trigger)
+      augmentedContext.put('execution', stage.execution)
+    }
+
+    return augmentedContext
   }
 
   static boolean containsExpression(String value) {
