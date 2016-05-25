@@ -96,7 +96,8 @@ public class DockerEventMonitor extends TriggerMonitor {
     return trigger -> trigger.getType().equals(TRIGGER_TYPE) &&
       trigger.getRepository().equals(repository) &&
       trigger.getRegistry().equals(registry) &&
-      (trigger.getTag() == null || trigger.getTag().equals(tag));
+      ((trigger.getTag() == null && !tag.equals("latest"))
+        || trigger.getTag() != null && trigger.getTag().equals(tag));
   }
 
   protected void onMatchingPipeline(Pipeline pipeline) {
