@@ -182,6 +182,12 @@ public class SubmitJobRequest {
         return this;
     }
 
+
+    public SubmitJobRequest withLabels(Map labels) {
+      this.labels = labels;
+      return this;
+    }
+
     public SubmitJobRequest withLabel(String key, String value) {
         this.labels.put(key, value);
         return this;

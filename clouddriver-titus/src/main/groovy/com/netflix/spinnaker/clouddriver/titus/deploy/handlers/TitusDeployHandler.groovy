@@ -64,6 +64,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       task.updateStatus BASE_PHASE, "Resolved server group name to ${nextServerGroupName}"
 
       if (!description.env) description.env = [:]
+      if (!description.labels) description.labels = [:]
 
       SubmitJobRequest submitJobRequest = new SubmitJobRequest()
         .withJobName(nextServerGroupName)
@@ -84,6 +85,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         .withConstraint(SubmitJobRequest.Constraint.soft(SubmitJobRequest.Constraint.ZONE_BALANCE))
         .withEntryPoint(description.entryPoint)
         .withIamProfile(description.iamProfile)
+        .withLabels(description.labels)
 
       if(description.securityGroups && !description.securityGroups.empty) {
         submitJobRequest.withSecurityGroups(description.securityGroups)

@@ -42,6 +42,10 @@ class RegionScopedTitusClientSpec extends Specification {
     Map<String, String> env = new HashMap<>();
     env.put("debug", "true");
 
+    Map<String, String> labels = new HashMap<>();
+    labels.put("label1", "~3948");
+    labels.put("lable2", "jksdljsfdl");
+
     SubmitJobRequest submitJobRequest = new SubmitJobRequest()
       .withJobName("helix_hello_world_server-main-test-v001")
       .withDockerImageName("edge.helix-hello-world-server")
@@ -65,6 +69,7 @@ class RegionScopedTitusClientSpec extends Specification {
       ])
       .withPorts([7001] as int[])
       .withEnv(env)
+      .withLabels(labels)
       .withAllocateIpAddress(true);
 
     when:

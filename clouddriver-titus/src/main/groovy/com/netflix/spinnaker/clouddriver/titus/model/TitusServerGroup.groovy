@@ -42,6 +42,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
   Long submittedAt
   String application
   Map<String, Object> image = [:]
+  Map labels
   Set<Instance> instances = [] as Set
   ServerGroup.Capacity capacity
   TitusServerGroupResources resources = new TitusServerGroupResources()
@@ -63,6 +64,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
     resources.ports = job.ports ? job.ports.toList() : []
     resources.allocateIpAddress = job.allocateIpAddress
     env = job.environment
+    labels = job.labels
     submittedAt = job.submittedAt ? job.submittedAt.time : null
     application = Names.parseName(job.name).app
     placement.account = account
