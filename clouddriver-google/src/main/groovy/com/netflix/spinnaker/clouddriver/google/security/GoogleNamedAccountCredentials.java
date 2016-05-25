@@ -140,14 +140,14 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
                   .setServicePath(alphaListed ? COMPUTE_ALPHA_SERVICE_PATH : COMPUTE_SERVICE_PATH)
                   .build();
 
-            return new GoogleCredentials(projectName, compute, imageProjects);
+            return new GoogleCredentials(projectName, compute, imageProjects, requiredGroupMembership, accountName);
           }
         } else {
           // No JSON key was specified in matching config on key server, so use application default credentials.
           GoogleCredential credential = GoogleCredential.getApplicationDefault();
           Compute compute = new Compute.Builder(httpTransport, jsonFactory, credential).setApplicationName(applicationName).build();
 
-          return new GoogleCredentials(projectName, compute, imageProjects);
+          return new GoogleCredentials(projectName, compute, imageProjects, requiredGroupMembership, accountName);
         }
       } catch (IOException ioe) {
         throw new RuntimeException("failed to create credentials", ioe);

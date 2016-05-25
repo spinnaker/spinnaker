@@ -24,15 +24,19 @@ public class GoogleCredentials {
   private final String project;
   private final Compute compute;
   private final List<String> imageProjects;
+  private final List<String> requiredGroupMembership;
+  private final String accountName;
 
   public GoogleCredentials(String project, Compute compute) {
-    this(project, compute, null);
+    this(project, compute, null, null, null);
   }
 
-  public GoogleCredentials(String project, Compute compute, List<String> imageProjects) {
+  public GoogleCredentials(String project, Compute compute, List<String> imageProjects, List<String> requiredGroupMembership, String accountName) {
     this.project = project;
     this.compute = compute;
     this.imageProjects = imageProjects;
+    this.requiredGroupMembership = requiredGroupMembership;
+    this.accountName = accountName;
   }
 
   public String getProject() {
@@ -45,5 +49,15 @@ public class GoogleCredentials {
 
   public List<String> getImageProjects() {
     return imageProjects;
+  }
+
+  public List<String> getRequiredGroupMembership() {
+    return requiredGroupMembership;
+  }
+
+  // TODO(ttomsu): This is a temporary hack (famous last words) to get requiredGroupMembership validation to work.
+  // Make this cleaner by switching GCE objects to use GoogleNamedAccountCredentials instead of this class.
+  public String getName() {
+    return accountName;
   }
 }

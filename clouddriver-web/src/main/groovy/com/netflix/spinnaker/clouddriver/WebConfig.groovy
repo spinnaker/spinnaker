@@ -35,7 +35,8 @@ import javax.servlet.Filter
 @ComponentScan([
   'com.netflix.spinnaker.clouddriver.controllers',
   'com.netflix.spinnaker.clouddriver.filters',
-  'com.netflix.spinnaker.clouddriver.listeners'
+  'com.netflix.spinnaker.clouddriver.listeners',
+  'com.netflix.spinnaker.clouddriver.security',
 ])
 public class WebConfig extends WebMvcConfigurerAdapter {
   @Autowired
