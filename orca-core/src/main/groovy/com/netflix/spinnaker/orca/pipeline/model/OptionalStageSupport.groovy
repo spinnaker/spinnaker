@@ -18,14 +18,17 @@
 package com.netflix.spinnaker.orca.pipeline.model
 
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import groovy.transform.InheritConstructors
+import groovy.util.logging.Slf4j
 
+@Slf4j
 class OptionalStageSupport {
   public static Map<String, Class<? extends OptionalStageEvaluator>> OPTIONAL_STAGE_TYPES = [
     "expression": ExpressionOptionalStageEvaluator
   ]
 
   /**
-   * A Stage is optional if it has an {@link OptionalStageEvaluator} in it's context that evaluates {@code true}.
+   * A Stage is optional if it has an {@link OptionalStageEvaluator} in it's context that evaluates {@code false}.
    */
   static boolean isOptional(Stage stage) {
     def optionalType = (stage.context.stageEnabled?.type as String)?.toLowerCase()
@@ -33,14 +36,19 @@ class OptionalStageSupport {
       return false
     }
 
-    return stage.mapTo("/stageEnabled", OPTIONAL_STAGE_TYPES[optionalType]).isOptional(stage)
+    try {
+      return !stage.mapTo("/stageEnabled", OPTIONAL_STAGE_TYPES[optionalType]).evaluate(stage)
+    } catch (InvalidExpression e) {
+      log.warn("Unable to determine stage optionality, reason: ${e.message} (executionId: ${stage.execution.id}, stageId: ${stage.id})")
+      return false
+    }
   }
 
   /**
    * Determines whether a stage is optional and should be skipped
    */
   private static interface OptionalStageEvaluator {
-    boolean isOptional(Stage stage)
+    boolean evaluate(Stage stage)
   }
 
   /**
@@ -50,7 +58,7 @@ class OptionalStageSupport {
     String expression
 
     @Override
-    boolean isOptional(Stage stage) {
+    boolean evaluate(Stage stage) {
       String expression = ContextParameterProcessor.process([
         "expression": '${' + expression + '}'
       ], ContextParameterProcessor.buildExecutionContext(stage, true), true).expression
@@ -60,7 +68,17 @@ class OptionalStageSupport {
         expression = matcher.group(1)
       }
 
+      if (!["true", "false"].contains(expression.toLowerCase())) {
+        // expression failed to evaluate successfully
+        throw new InvalidExpression("Expression '${this.expression}' could not be evaluated")
+      }
+
       return Boolean.valueOf(expression)
     }
+  }
+
+  @InheritConstructors
+  static class InvalidExpression extends RuntimeException {
+    // do nothing
   }
 }
