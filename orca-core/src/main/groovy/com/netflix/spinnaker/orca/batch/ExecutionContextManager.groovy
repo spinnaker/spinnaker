@@ -74,11 +74,7 @@ class ExecutionContextManager {
       }
 
       if (result instanceof String && ContextParameterProcessor.containsExpression(result)) {
-        def augmentedContext = [:] + jobExecutionContext + delegate
-        if (stage.execution instanceof Pipeline) {
-          augmentedContext.put('trigger', ((Pipeline) stage.execution).trigger)
-          augmentedContext.put('execution', stage.execution)
-        }
+        def augmentedContext = [:] + jobExecutionContext + delegate + ContextParameterProcessor.buildExecutionContext(stage, false)
         def processed = ContextParameterProcessor.process([(key): result], augmentedContext, true)
         return processed[key]
       }

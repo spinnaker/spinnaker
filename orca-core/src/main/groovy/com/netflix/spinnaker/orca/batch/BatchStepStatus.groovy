@@ -48,6 +48,8 @@ class BatchStepStatus {
         return new BatchStepStatus(RepeatStatus.FINISHED, result.status.exitStatus, BatchStatus.COMPLETED)
       case ExecutionStatus.STOPPED:
         return new BatchStepStatus(RepeatStatus.FINISHED, result.status.exitStatus, BatchStatus.COMPLETED)
+      case ExecutionStatus.SKIPPED:
+        return new BatchStepStatus(RepeatStatus.FINISHED, result.status.exitStatus, BatchStatus.COMPLETED)
       case ExecutionStatus.FAILED_CONTINUE:
         return new BatchStepStatus(RepeatStatus.FINISHED, result.status.exitStatus, BatchStatus.COMPLETED)
     }

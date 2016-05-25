@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.batch.ExecutionContextManager
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.OptionalStageSupport
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task as TaskModel
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -167,6 +168,10 @@ class TaskTasklet implements Tasklet {
   }
 
   private TaskResult executeTask(Stage stage, ChunkContext chunkContext) {
+    if (OptionalStageSupport.isOptional(stage)) {
+      return new DefaultTaskResult(ExecutionStatus.SKIPPED)
+    }
+
     try {
       def currentUser = new User(
         stage.execution?.authentication?.user, null, null, [], stage.execution?.authentication?.allowedAccounts
