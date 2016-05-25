@@ -1,0 +1,17 @@
+<div>
+  <div class="form-group">
+    <div class="col-md-8 col-md-offset-1">
+      <div class="checkbox pull-left">
+        <label>
+          <input type="checkbox" ng-checked="optionalStageCtrl.isOptional()"
+                 ng-click="optionalStageCtrl.toggleOptional()"/>
+          <strong> Conditional on <a class="spelLink" href="http://www.spinnaker.io/docs/pipeline-expressions-guide" target="_blank">Expression</a> </strong>
+          <help-field key="pipeline.config.optionalStage"></help-field>
+        </label>
+      </div>
+      <div ng-if="optionalStageCtrl.isOptional()" class="col-md-8 pull-left">
+        <input type="text" class="form-control" ng-model="stage.stageEnabled.expression">
+      </div>
+    </div>
+  </div>
+</div>
