@@ -168,5 +168,13 @@
         <dd ng-repeat-end>{{val}}</dd>
       </dl>
     </collapsible-section>
+    <collapsible-section heading="Labels">
+      <div ng-if="!serverGroup.labels">No labels associated with this
+        server group</div>
+      <dl ng-if="serverGroup.labels">
+        <dt ng-repeat-start="(key, val) in serverGroup.labels">{{key}}</dt>
+        <dd ng-repeat-end>{{val}}</dd>
+      </dl>
+    </collapsible-section>
   </div>
 </div>

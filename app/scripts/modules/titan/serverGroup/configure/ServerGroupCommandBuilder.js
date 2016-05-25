@@ -30,6 +30,7 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
           desired: 1
         },
         env: {},
+        labels: {},
         cloudProvider: 'titan',
         selectedProvider: 'titan',
         viewState: {
@@ -65,6 +66,7 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
         credentials: serverGroup.account,
         region: serverGroup.region,
         env: serverGroup.env,
+        labels: serverGroup.labels,
         entryPoint: serverGroup.entryPoint,
         iamProfile: serverGroup.iamProfile,
         securityGroups: serverGroup.securityGroups,
