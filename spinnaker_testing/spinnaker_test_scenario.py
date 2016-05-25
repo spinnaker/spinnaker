@@ -36,6 +36,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
   Adds standard command line arguments for locating the deployed system, and
   setting up observers.
   """
+
   @classmethod
   def new_post_operation(cls, title, data, path, status_class=None):
     """Creates an operation that posts data to the given path when executed.
@@ -52,6 +53,23 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     """
     return http_agent.HttpPostOperation(title=title, data=data, path=path,
                                         status_class=status_class)
+
+  @classmethod
+  def new_put_operation(cls, title, data, path, status_class=None):
+    """Creates an operation that puts data to the given path when executed.
+
+    The base_url will come from the agent that the operation is eventually
+    executed on.
+
+    Args:
+      title: [string] The name of the operation for reporting purposes.
+      data: [string] The payload to send in the HTTP PUT.
+      path: [string] The path relative to the base url provided later.
+      status_class: [class AgentOperationStatus] If provided, a specialization
+         of the AgentOperationStatus to use for tracking the execution.
+    """
+    return http_agent.HttpPutOperation(title=title, data=data, path=path,
+                                       status_class=status_class)
 
   @classmethod
   def new_delete_operation(cls, title, data, path, status_class=None):
@@ -213,7 +231,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
             'TEST_AWS_AMI',
             'bitnami-tomcatstack-7.0.63-1-linux-ubuntu-14.04.1-x86_64-ebs'),
         help='Default Amazon AMI to use when creating test instances.'
-            ' The default image will listen on port 80.')
+             ' The default image will listen on port 80.')
 
     parser.add_argument(
         '--test_aws_vpc_id',
@@ -264,8 +282,12 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       self.__init_google_bindings()
       self.__init_aws_bindings()
       self.__init_kubernetes_bindings()
+      self._do_init_bindings()
     finally:
       JournalLogger.end_context()
+
+  def _do_init_bindings(self):
+    pass
 
   def __init_aws_bindings(self):
     bindings = self.bindings  # base class made a copy
