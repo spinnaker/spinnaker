@@ -50,6 +50,7 @@ subprojects { project ->
   configurations {
     all {
       exclude group: 'javax.servlet', module: 'servlet-api'
+      exclude group: 'javax.ws.rs', module: 'jsr311-api'
       resolutionStrategy {
         force 'org.antlr:antlr-runtime:3.5.2'
         eachDependency {

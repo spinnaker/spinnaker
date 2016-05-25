@@ -59,8 +59,7 @@ class OpenstackHealthIndicator implements HealthIndicator {
 
       for (OpenstackNamedAccountCredentials accountCredentials in openstackCredentialsSet) {
         OpenstackCredentials openstackCredentials = accountCredentials.credentials
-
-        openstackCredentials.getClient().getToken();
+        openstackCredentials.provider.tokenId
       }
 
       lastException.set(null)

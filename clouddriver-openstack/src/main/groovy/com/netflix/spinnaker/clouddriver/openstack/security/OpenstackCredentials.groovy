@@ -14,25 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.openstack.config
+package com.netflix.spinnaker.clouddriver.openstack.security
 
-import groovy.transform.ToString
+import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
+import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFactory
 
-@ToString(includeNames = true)
-class OpenstackConfigurationProperties {
-  @ToString(includeNames = true, excludes = "password")
-  static class ManagedAccount {
-    String name
-    String environment
-    String accountType
-    String master
-    String username
-    String password
-    String tenantName
-    String domainName
-    String endpoint
-    Boolean insecure
+public class OpenstackCredentials {
+
+  final OpenstackClientProvider provider
+
+  OpenstackCredentials(OpenstackNamedAccountCredentials accountCredentials) {
+    this.provider = OpenstackProviderFactory.createProvider(accountCredentials)
   }
 
-  List<ManagedAccount> accounts = []
 }

@@ -67,10 +67,13 @@ class OpenstackCredentialsInitializer implements CredentialsInitializerSynchroni
                                                                     managedAccount.environment ?: managedAccount.name,
                                                                     managedAccount.accountType ?: managedAccount.name,
                                                                     managedAccount.master,
-                                                                    managedAccount.endpoint,
-                                                                    managedAccount.tenantId,
                                                                     managedAccount.username,
-                                                                    managedAccount.password)
+                                                                    managedAccount.password,
+                                                                    managedAccount.tenantName,
+                                                                    managedAccount.domainName,
+                                                                    managedAccount.endpoint,
+                                                                    managedAccount.insecure
+                                                                    )
         accountCredentialsRepository.save(managedAccount.name, openstackAccount)
       } catch (e) {
         LOG.info "Could not load account ${managedAccount.name} for Openstack.", e

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Veritas Technologies LLC.
+ * Copyright 2016 Target, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,24 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.openstack.config
+package com.netflix.spinnaker.clouddriver.openstack.client
 
-import groovy.transform.ToString
+import org.openstack4j.api.OSClient
 
-@ToString(includeNames = true)
-class OpenstackConfigurationProperties {
-  @ToString(includeNames = true, excludes = "password")
-  static class ManagedAccount {
-    String name
-    String environment
-    String accountType
-    String master
-    String username
-    String password
-    String tenantName
-    String domainName
-    String endpoint
-    Boolean insecure
+/**
+ * Provides access to the Openstack V2 API.
+ */
+class OpenstackClientV2Provider extends OpenstackClientProvider {
+
+  OpenstackClientV2Provider(OSClient client) {
+    super(client)
   }
 
-  List<ManagedAccount> accounts = []
+  @Override
+  String getTokenId() {
+    ((OSClient.OSClientV2)client).access.token.id
+  }
+
+  //TODO v2 specific operations
+
 }
