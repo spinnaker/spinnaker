@@ -101,11 +101,11 @@ class DockerMonitor implements PollingMonitor {
                     def digest = cache.getLastDigest(image.account, image.registry, image.repository, image.tag)
 
                     if (digest != image.digest) {
-                        log.info "Updated tagged image: ${image.account}: ${imageId}"
+                        log.info "Updated tagged image: ${image.account}: ${imageId}. Digest changed from [$digest] -> [$image.digest]."
                         updateCache = true
                     }
                 } else {
-                    log.info "New tagged image: ${image.account}: ${imageId}"
+                    log.info "New tagged image: ${image.account}: ${imageId}. Digest is now [$image.digest]."
                     updateCache = true
                 }
 
