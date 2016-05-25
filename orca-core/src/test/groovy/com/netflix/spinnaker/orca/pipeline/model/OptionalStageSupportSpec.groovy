@@ -45,12 +45,15 @@ class OptionalStageSupportSpec extends Specification {
 
     where:
     optionalConfig                                                                                                   || expectedOptionality
+    [:]                                                                                                              || false
     [type: "expression"]                                                                                             || false
     [type: "expression", expression: ""]                                                                             || false
     [type: "expression", expression: null]                                                                           || false
-    [type: "expression", expression: "execution.stages.?[name == 'Test2'][0]['status'].name() == 'FAILED_CONTINUE'"] || false
-    [type: "expression", expression: "execution.stages.?[name == 'Test1'][0]['status'].name() == 'FAILED_CONTINUE'"] || true
-    [type: "expression", expression: "parameters.p1 == 'v1'"]                                                        || true
-    [type: "expression", expression: "true"]                                                                         || true
+    [type: "expression", expression: "parameters.p1 == 'v1'"]                                                        || false
+    [type: "expression", expression: "parameters.p1 == 'v2'"]                                                        || true
+    [type: "expression", expression: "execution.stages.?[name == 'Test2'][0]['status'].name() == 'FAILED_CONTINUE'"] || true
+    [type: "expression", expression: "execution.stages.?[name == 'Test1'][0]['status'].name() == 'FAILED_CONTINUE'"] || false
+    [type: "expression", expression: "true"]                                                                         || false
+    [type: "expression", expression: "false"]                                                                        || true
   }
 }
