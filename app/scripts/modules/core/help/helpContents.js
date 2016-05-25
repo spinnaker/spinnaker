@@ -133,6 +133,9 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
       '<li><b>Auto Subnet Network</b>: Server groups will be automatically assigned to the specified region\'s subnet.</li>' +
       '<li><b>Custom Subnet Network</b>: A subnet must be selected for the server group. If no subnets have been created for the specified region, you will not be able to provision the server group.</li>' +
       '</ul>',
+    'pipeline.config.optionalStage': '' +
+      '<p>When this option is enabled, stage will only execute when the supplied expression evaluates true.</p>' +
+      '<p>The expression <em>does not</em> need to be wrapped in ${ and }.</p>',
     'pipeline.config.checkPreconditions.failPipeline': '' +
       '<p><strong>Checked</strong> - the overall pipeline will fail whenever this precondition is false.</p>' +
       '<p><strong>Unchecked</strong> - the overall pipeline will continue executing but this particular branch will stop.</p>',
