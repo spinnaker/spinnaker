@@ -64,7 +64,7 @@ class BakeRequest {
   Map extended_attributes
 
   static enum CloudProviderType {
-    aws, docker, gce, openstack
+    aws, azure, docker, gce, openstack
   }
 
   static enum Label {

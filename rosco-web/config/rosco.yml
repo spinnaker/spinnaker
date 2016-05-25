@@ -146,6 +146,22 @@ aws:
         sourceAmi: ami-37501207
         sshUserName: ubuntu
 
+azure:
+  enabled: ${AZURE_ENABLED:false}
+  bakeryDefaults:
+    templateFile: azure-linux.json
+    baseImages:
+    - baseImage:
+        id: ubuntu
+        shortDescription: v14.04
+        detailedDescription: Ubuntu Server 14.04.4-LTS
+        packageType: deb
+    - baseImage:
+        id: centos
+        shortDescription: 7
+        detailedDescription: OpenLogic CentOS 7.1.20150731
+        packageType: rpm
+
 docker:
   enabled: ${DOCKER_ENABLED:false}
   bakeryDefaults:
