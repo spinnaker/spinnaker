@@ -124,17 +124,15 @@ class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
 
   def allowLaunchOperations(Map createServerGroupOp) {
     def ops = []
-    if (createServerGroupOp.credentials != defaultBakeAccount) {
-      if (createServerGroupOp.availabilityZones) {
-        ops.addAll(createServerGroupOp.availabilityZones.collect { String region, List<String> azs ->
-          [account    : createServerGroupOp.credentials,
-           credentials: defaultBakeAccount,
-           region     : region,
-           amiName    : createServerGroupOp.amiName]
-        })
+    if (createServerGroupOp.amiName && createServerGroupOp.availabilityZones && createServerGroupOp.credentials != defaultBakeAccount) {
+      ops.addAll(createServerGroupOp.availabilityZones.collect { String region, List<String> azs ->
+        [account    : createServerGroupOp.credentials,
+         credentials: defaultBakeAccount,
+         region     : region,
+         amiName    : createServerGroupOp.amiName]
+      })
 
-        log.info("Generated `allowLaunchDescriptions` (allowLaunchDescriptions: ${ops})")
-      }
+      log.info("Generated `allowLaunchDescriptions` (allowLaunchDescriptions: ${ops})")
     }
     return ops
   }
