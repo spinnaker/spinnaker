@@ -12,14 +12,13 @@
    describe('filtering', function() {
 
      // Initialize the controller and a mock scope
-     beforeEach(window.inject(function ($controller, $rootScope, $q, accountService, securityGroupReader, modalWizardService,
+     beforeEach(window.inject(function ($controller, $rootScope, $q, accountService, securityGroupReader, 
                                  taskMonitorService, azureSecurityGroupWriter) {
 
        this.$scope = $rootScope.$new();
        this.$q = $q;
        this.accountService = accountService;
        this.securityGroupReader = securityGroupReader;
-       this.modalWizardService = modalWizardService;
        this.taskMonitorService = taskMonitorService;
        this.securityGroupWriter = azureSecurityGroupWriter;
 
@@ -73,7 +72,6 @@
            $uibModalInstance: { result: this.$q.when(null) },
            accountService: this.accountService,
            securityGroupReader: this.securityGroupReader,
-           modalWizardService: this.modalWizardService,
            taskMonitorService: this.taskMonitorService,
            securityGroupWriter: this.securityGroupWriter,
            application: {},

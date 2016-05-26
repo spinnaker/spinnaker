@@ -9,7 +9,6 @@ module.exports = angular
     require('../securityGroup.write.service.js'),
     require('../../../core/region/regionSelectField.directive.js'),
     require('../../../core/account/account.service.js'),
-    require('../../../core/modal/wizard/modalWizard.service.js'),
     require('../../../core/utils/lodash.js'),
     require('../../../core/securityGroup/securityGroup.read.service.js'),
     require('../../../core/cache/infrastructureCaches.js'),
@@ -126,9 +125,9 @@ module.exports = angular
         sourceAddressPrefix: '*',
         sourcePortRange: '*',
         destinationAddressPrefix: '*',
-        destinationPortRange: '7001-7001',
-        startPort: 7001,
-        endPort: 7001
+        destinationPortRange: '80-80',
+        startPort: 80,
+        endPort: 80
       });
     };
 
