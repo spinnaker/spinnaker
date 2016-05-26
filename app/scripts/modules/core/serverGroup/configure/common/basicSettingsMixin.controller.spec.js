@@ -102,8 +102,7 @@ describe('Basic Settings Mixin Controller:', function () {
       expect(test('c${a}b${d}')).toBe(true);
       expect(test('c_${a}b${d}')).toBe(true);
 
-      // still fails on invalid characters
-      expect(test('c-${a}b${d}')).toBe(false);
+      expect(test('c-${a}b${d}')).toBe(true);
     });
 
     it('detail should accept underscores, letters, numbers, dashes, and nothing', function() {
