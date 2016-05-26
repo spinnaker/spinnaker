@@ -154,6 +154,9 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.transfo
           if (_.some(deployStages, { status: 'TERMINAL' })) {
             status = 'TERMINAL';
           }
+          if (_.some(deployStages, { status: 'SKIPPED' })) {
+            status = 'SKIPPED';
+          }
           var canaryStatus = stage.context.canary.status;
           if (canaryStatus && status !== 'CANCELED') {
             if (canaryStatus.status === 'LAUNCHED' || monitorStage.status === 'RUNNING') {

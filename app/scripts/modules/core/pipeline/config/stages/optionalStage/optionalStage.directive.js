@@ -24,8 +24,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.optionalStage.dir
         delete $scope.stage.stageEnabled;
       } else {
         $scope.stage.stageEnabled = {
-          type: "expression"
-        }
+          type: 'expression'
+        };
       }
     };
   });
