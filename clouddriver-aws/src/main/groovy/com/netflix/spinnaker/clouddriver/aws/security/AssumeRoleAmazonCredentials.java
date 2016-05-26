@@ -21,6 +21,7 @@ import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Provides an Amazon credential pack that uses Assume Role (http://docs.aws.amazon.com/IAM/latest/UserGuide/roles-assume-role.html) to provide API access to the account.
@@ -33,7 +34,7 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
 
     static AWSCredentialsProvider createSTSCredentialsProvider(AWSCredentialsProvider credentialsProvider, String accountId, String assumeRole, String sessionName) {
         return credentialsProvider == null ? null : new STSAssumeRoleSessionCredentialsProvider(credentialsProvider,
-                String.format("arn:aws:iam::%s:%s", notNull(accountId, "accountId"), notNull(assumeRole, "assumeRole")), notNull(sessionName, "sessionName"));
+                String.format("arn:aws:iam::%s:%s", Objects.requireNonNull(accountId, "accountId"), Objects.requireNonNull(assumeRole, "assumeRole")), Objects.requireNonNull(sessionName, "sessionName"));
     }
 
     /**

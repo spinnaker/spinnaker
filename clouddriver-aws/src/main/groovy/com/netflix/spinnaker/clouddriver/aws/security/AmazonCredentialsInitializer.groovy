@@ -64,8 +64,8 @@ class AmazonCredentialsInitializer implements CredentialsInitializerSynchronizab
 
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
-  CredentialsLoader<? extends NetflixAmazonCredentials> credentialsLoader(AWSCredentialsProvider awsCredentialsProvider, Class<? extends NetflixAmazonCredentials> credentialsType) {
-    new CredentialsLoader<? extends NetflixAmazonCredentials>(awsCredentialsProvider, credentialsType)
+  CredentialsLoader<? extends NetflixAmazonCredentials> credentialsLoader(AWSCredentialsProvider awsCredentialsProvider, AmazonClientProvider amazonClientProvider, Class<? extends NetflixAmazonCredentials> credentialsType) {
+    new CredentialsLoader<? extends NetflixAmazonCredentials>(awsCredentialsProvider, amazonClientProvider, credentialsType)
   }
 
   @Bean

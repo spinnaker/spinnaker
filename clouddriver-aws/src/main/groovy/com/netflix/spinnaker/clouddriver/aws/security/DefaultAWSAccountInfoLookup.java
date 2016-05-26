@@ -37,14 +37,16 @@ public class DefaultAWSAccountInfoLookup implements AWSAccountInfoLookup {
     private static final Pattern IAM_ARN_PATTERN = Pattern.compile(".*?arn:aws:(?:iam|sts)::(\\d+):.*");
 
     private final AWSCredentialsProvider credentialsProvider;
+    private final AmazonClientProvider amazonClientProvider;
 
-    public DefaultAWSAccountInfoLookup(AWSCredentialsProvider credentialsProvider) {
+    public DefaultAWSAccountInfoLookup(AWSCredentialsProvider credentialsProvider, AmazonClientProvider amazonClientProvider) {
         this.credentialsProvider = credentialsProvider;
+        this.amazonClientProvider = amazonClientProvider;
     }
 
     @Override
     public String findAccountId() {
-        AmazonEC2 ec2 = new AmazonEC2Client(credentialsProvider.getCredentials());
+        AmazonEC2 ec2 = amazonClientProvider.getAmazonEC2(credentialsProvider, AmazonClientProvider.DEFAULT_REGION);
         try {
             List<Vpc> vpcs = ec2.describeVpcs().getVpcs();
             boolean supportsByName = false;
@@ -101,7 +103,8 @@ public class DefaultAWSAccountInfoLookup implements AWSAccountInfoLookup {
     @Override
     public List<AWSRegion> listRegions(Collection<String> regionNames) {
         Set<String> nameSet = new HashSet<>(regionNames);
-        AmazonEC2 ec2 = new AmazonEC2Client(credentialsProvider.getCredentials());
+        AmazonEC2 ec2 = amazonClientProvider.getAmazonEC2(credentialsProvider, AmazonClientProvider.DEFAULT_REGION);
+
         DescribeRegionsRequest request = new DescribeRegionsRequest();
         if (!nameSet.isEmpty()) {
             request.withRegionNames(regionNames);
