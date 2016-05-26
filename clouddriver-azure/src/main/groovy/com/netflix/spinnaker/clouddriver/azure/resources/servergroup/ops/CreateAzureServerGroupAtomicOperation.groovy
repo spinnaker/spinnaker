@@ -99,6 +99,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
       if (!description.appGatewayName) {
         description.appGatewayName = description.loadBalancerName
       }
+      task.updateStatus(BASE_PHASE, "Create new backend address pool in $description.appGatewayName")
       appGatewayPoolID = description.credentials
         .networkClient
         .createAppGatewayBAPforServerGroup(resourceGroupName, description.appGatewayName, description.name)

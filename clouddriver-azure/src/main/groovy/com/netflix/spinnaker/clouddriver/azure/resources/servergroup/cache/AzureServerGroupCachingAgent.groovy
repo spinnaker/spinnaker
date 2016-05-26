@@ -60,6 +60,13 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
     def start = System.currentTimeMillis()
 
     List<AzureServerGroupDescription> serverGroups = creds.computeClient.getServerGroupsAll(region)
+    serverGroups?.each {
+      try {
+        it.isDisabled = creds.networkClient.isServerGroupDisabled(AzureUtilities.getResourceGroupName(it.appName, region), it.appGatewayName, it.name)
+      } catch (Exception e) {
+        log.warn("Exception ${e.message} while computing 'isDisable' state for server group ${it.name}")
+      }
+    }
 
     Collection<String> keys = serverGroups.collect {Keys.getServerGroupKey(AzureCloudProvider.AZURE, it.name, region, accountName ) }
     def onDemandCacheResults = providerCache.getAll(AZURE_ON_DEMAND.ns, keys, RelationshipCacheFilter.none())
