@@ -65,11 +65,15 @@ class EnableAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
         errList.add("could not find server group ${description.name} in ${region}")
       } else {
         try {
-          description
-            .credentials
-            .networkClient
-            .enableServerGroup(resourceGroupName,serverGroupDescription.appGatewayName, serverGroupDescription.name)
-          task.updateStatus BASE_PHASE, "Done enabling Azure server group ${serverGroupDescription.name} in ${region}."
+          if (description.credentials.networkClient.isServerGroupDisabled(resourceGroupName, serverGroupDescription.appGatewayName, serverGroupDescription.name)) {
+            description
+              .credentials
+              .networkClient
+              .enableServerGroup(resourceGroupName, serverGroupDescription.appGatewayName, serverGroupDescription.name)
+            task.updateStatus BASE_PHASE, "Done enabling Azure server group ${serverGroupDescription.name} in ${region}."
+          } else {
+            task.updateStatus BASE_PHASE, "Azure server group ${serverGroupDescription.name} in ${region} is already enabled."
+          }
         } catch (Exception e) {
           task.updateStatus(BASE_PHASE, "Enabling of server group ${description.name} failed: ${e.message}")
           errList.add("Failed to enable server group ${description.name}: ${e.message}")

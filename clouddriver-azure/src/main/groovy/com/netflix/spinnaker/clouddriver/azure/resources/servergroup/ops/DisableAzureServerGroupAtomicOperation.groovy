@@ -65,12 +65,16 @@ class DisableAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
         errList.add("could not find server group ${description.name} in ${region}")
       } else {
         try {
-          description
-            .credentials
-            .networkClient
-            .disableServerGroup(resourceGroupName,serverGroupDescription.appGatewayName, serverGroupDescription.name)
+          if (description.credentials.networkClient.isServerGroupDisabled(resourceGroupName, serverGroupDescription.appGatewayName, serverGroupDescription.name)) {
+            task.updateStatus BASE_PHASE, "Azure server group ${serverGroupDescription.name} in ${region} is already disabled."
+          } else {
+            description
+              .credentials
+              .networkClient
+              .disableServerGroup(resourceGroupName, serverGroupDescription.appGatewayName, serverGroupDescription.name)
 
-          task.updateStatus BASE_PHASE, "Done disabling Azure server group ${serverGroupDescription.name} in ${region}."
+            task.updateStatus BASE_PHASE, "Done disabling Azure server group ${serverGroupDescription.name} in ${region}."
+          }
         } catch (Exception e) {
           task.updateStatus(BASE_PHASE, "Disabling of server group ${description.name} failed: ${e.message}")
           errList.add("Failed to disable server group ${description.name}: ${e.message}")

@@ -406,31 +406,72 @@ class AzureNetworkClient extends AzureBaseClient {
    * @param resourceGroupName name of the resource group where the Application Gateway resource was created (see application name and region/location)
    * @param appGatewayName the of the application gateway
    * @param serverGroupName name of the server group to be disabled
-   * @return a ServiceResponse object
+   * @return a ServiceResponse object (null if no updates were performed)
    */
   ServiceResponse disableServerGroup(String resourceGroupName, String appGatewayName, String serverGroupName) {
-    String defaultBAP = AzureAppGatewayResourceTemplate.defaultAppGatewayBeAddrPoolName
     def appGateway = executeOp({appGatewayOps.get(resourceGroupName, appGatewayName)})?.body
 
     if (appGateway) {
-      def agBAP = appGateway.backendAddressPools?.find { it.name == defaultBAP}
+      def defaultBAP = appGateway.backendAddressPools?.find { it.name == AzureAppGatewayResourceTemplate.defaultAppGatewayBeAddrPoolName }
+      if (!defaultBAP) {
+        def errMsg = "Backend address pool ${AzureAppGatewayResourceTemplate.defaultAppGatewayBeAddrPoolName} not found in ${appGatewayName}"
+        log.error(errMsg)
+        throw new RuntimeException(errMsg)
+      }
+
+      def agBAP = appGateway.backendAddressPools?.find { it.name == serverGroupName}
       if (!agBAP) {
         def errMsg = "Backend address pool ${serverGroupName} not found in ${appGatewayName}"
         log.error(errMsg)
         throw new RuntimeException(errMsg)
       }
 
-      appGateway.requestRoutingRules.each {
-        it.backendAddressPool.id = agBAP.id
+      // Check if the current server group is the traffic enabled one and remove it (set default BAP as the active BAP)
+      //  otherwise return (no updates are needed)
+      def requestedRoutingRules = appGateway.requestRoutingRules?.findAll() {
+        it.backendAddressPool.id == agBAP.id
       }
 
-      // Clear active server group (if any) from the tags map to ease debugging the operation; we will clean this later
-      appGateway.tags.remove("trafficEnabledSG")
+      if (requestedRoutingRules) {
+        requestedRoutingRules.each {
+          it.backendAddressPool.id = defaultBAP.id
+        }
 
-      return executeOp({appGatewayOps.createOrUpdate(resourceGroupName, appGatewayName, appGateway)})
+        // Clear active server group (if any) from the tags map to ease debugging the operation; we will clean this later
+        appGateway.tags.remove("trafficEnabledSG")
+
+        return executeOp({ appGatewayOps.createOrUpdate(resourceGroupName, appGatewayName, appGateway) })
+      }
     }
 
     null
+  }
+
+  /**
+   * Checks if a server group that is attached to an Application Gateway resource in Azure is set to receive traffic
+   * @param resourceGroupName name of the resource group where the Application Gateway resource was created (see application name and region/location)
+   * @param appGatewayName the of the application gateway
+   * @param serverGroupName name of the server group to be disabled
+   * @return true or false
+   */
+  Boolean isServerGroupDisabled(String resourceGroupName, String appGatewayName, String serverGroupName) {
+    def appGateway = executeOp({appGatewayOps.get(resourceGroupName, appGatewayName)})?.body
+
+    if (appGateway) {
+      def agBAP = appGateway.backendAddressPools?.find { it.name == serverGroupName }
+      if (agBAP) {
+        // Check if the current server group is the traffic enabled one
+        def requestedRoutingRule = appGateway.requestRoutingRules?.find() {
+          it.backendAddressPool.id == agBAP.id
+        }
+
+        if (requestedRoutingRule) {
+          return false
+        }
+      }
+    }
+
+    true
   }
 
   /**

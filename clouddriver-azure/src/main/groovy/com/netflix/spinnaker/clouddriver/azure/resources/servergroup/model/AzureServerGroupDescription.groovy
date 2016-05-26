@@ -57,7 +57,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
   String securityGroupName
   String subnetId
   List<String> storageAccountNames
-  Boolean isDisabled // TODO add implementation to handle when a server group has been enabled/disabled
+  Boolean isDisabled = false
   List<AzureInboundPortConfig> inboundPortConfigs = []
 
   static class AzureScaleSetSku {
@@ -99,8 +99,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
 
   @Override
   Boolean isDisabled() {
-    false
-    // TODO: (scotm) should be based on existence of LB. To be added
+    this.isDisabled
   }
 
   @Override
