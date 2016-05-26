@@ -138,6 +138,12 @@ class GateConfig {
     createClient "igor", IgorService, okHttpClient
   }
 
+  @Bean
+  @ConditionalOnProperty('services.mine.enabled')
+  MineService mineService(OkHttpClient okHttpClient) {
+    createClient "mine", MineService, okHttpClient
+  }
+
   private <T> T createClient(String serviceName, Class<T> type, OkHttpClient okHttpClient) {
     Service service = serviceConfiguration.getService(serviceName)
     if (service == null) {
