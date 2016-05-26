@@ -53,60 +53,6 @@ class SubnetAnalyzer {
   }
 
   /**
-   * Gets the identifiers of all the subnets in this set.
-   *
-   * @return the subnet ID strings
-   */
-  List<String> getSubnetIds() {
-    allSubnets*.subnetId
-  }
-
-  /**
-   * Simply finds a subnet based on its ID.
-   *
-   * @param id of the subnet
-   * @return the unique subnet with that ID or null
-   */
-  SubnetData findSubnetById(String id) {
-    Preconditions.checkNotNull(id)
-    allSubnets.find { it.subnetId == id }
-  }
-
-  /**
-   * Finds all subnets in a given VPC.
-   *
-   * @param vpcId id of the VPC the subnet belongs to
-   * @return wrapped set of SubnetData representations of subnets associated with the specified VPC
-   */
-  SubnetAnalyzer findSubnetsByVpc(String vpcId) {
-    Preconditions.checkNotNull(vpcId)
-    new SubnetAnalyzer(allSubnets.findAll { it.vpcId == vpcId })
-  }
-
-  /**
-   * Finds the subnet associated with the first Subnet ID. This is useful in cases where the attribute you care about
-   * is guaranteed to be the same for all subnets.
-   *
-   * @param subnetIds Subnet IDs
-   * @return the Subnet or null
-   */
-  SubnetData coerceLoneOrNoneFromIds(Collection<String> subnetIds) {
-    subnetIds ? findSubnetById(subnetIds.iterator().next()?.trim()) : null
-  }
-
-  /**
-   * Finds the identifier of the VPC indicated by the specified VPC Zone Identifier string.
-   *
-   * @param vpcZoneIdentifier the comma-delimited list of subnet IDs used in an ASG field as a roundabout way of
-   *      indicating which VPC where the ASG launches instances
-   * @return the identifier of the VPC where the subnets exist if available, or the default VPC if available, or null
-   */
-  String getVpcIdForVpcZoneIdentifier(String vpcZoneIdentifier) {
-    List<String> subnetIds = subnetIdsFromVpcZoneIdentifier(vpcZoneIdentifier)
-    coerceLoneOrNoneFromIds(subnetIds)?.vpcId ?: defaultVpcId
-  }
-
-  /**
    * Finds the subnet IDs that map to specific zones
    *
    * @param zones the zones in AWS that you want Subnet IDs for
@@ -115,59 +61,20 @@ class SubnetAnalyzer {
    * @return the subnet IDs returned in the same order as the zones sent in or an empty List
    * @throws IllegalArgumentException if there are multiple subnets with the same purpose and zone
    */
-  List<String> getSubnetIdsForZones(Collection<String> zones, String purpose, SubnetTarget target = null) {
+  List<String> getSubnetIdsForZones(Collection<String> zones, String purpose, SubnetTarget target = null, Integer maxSubnetsPerZone = null) {
     Preconditions.checkNotNull(purpose)
     if (!zones) {
       return Collections.emptyList()
     }
-    Function<SubnetData, String> purposeOfSubnet = { it.purpose } as Function
     Map<String, Collection<SubnetData>> zonesToSubnets = mapZonesToTargetSubnets(target).asMap()
-    zonesToSubnets.subMap(zones).values().collect { Collection<SubnetData> subnetsForZone ->
-      if (subnetsForZone == null) {
-        return null
+    zonesToSubnets.subMap(zones).findResults { z, c ->
+      List<String> filtered = c.findResults { it.purpose == purpose ? it.subnetId : null }
+      if (maxSubnetsPerZone != null) {
+        Collections.shuffle(filtered)
+        return filtered.take(maxSubnetsPerZone)
       }
-      SubnetData subnetForPurpose = Maps.uniqueIndex(subnetsForZone, purposeOfSubnet)[purpose]
-      subnetForPurpose?.subnetId
-    }.findAll { it != null }
-  }
-
-  /**
-   * Groups zones by subnet purposes they contain.
-   *
-   * @param allAvailabilityZones complete list of zones to group
-   * @param target is the type of AWS object the subnet applies to (null means any object type)
-   * @return zone name to subnet purposes, a null key indicates zones allowed for use outside of VPC
-   */
-  Map<String, Collection<String>> groupZonesByPurpose(Collection<String> allAvailabilityZones,
-                                                      SubnetTarget target = null) {
-    Multimap<String, String> zonesGroupedByPurpose = Multimaps.newSetMultimap([:], { [] as SortedSet } as Supplier)
-    zonesGroupedByPurpose.putAll(null, allAvailabilityZones)
-    allSubnets.each {
-      if (it.availabilityZone in allAvailabilityZones && (!it.target || it.target == target)) {
-        zonesGroupedByPurpose.put(it.purpose, it.availabilityZone)
-      }
-    }
-    zonesGroupedByPurpose.keySet().inject([:]) { Map zoneListsByPurpose, String purpose ->
-      zoneListsByPurpose[purpose] = zonesGroupedByPurpose.get(purpose) as List
-      zoneListsByPurpose
-    } as Map
-  }
-
-  /**
-   * Finds all purposes across all specified zones for the specified target.
-   *
-   * @param zones the zones in AWS that you want purposes for
-   * @param target is the type of AWS object the subnet applies to (null means any object type)
-   * @return the set of distinct purposes or an empty Set
-   */
-  Set<String> getPurposesForZones(Collection<String> zones, SubnetTarget target = null) {
-    if (!zones) {
-      return Collections.emptySet()
-    }
-    Map<String, Collection<SubnetData>> zonesToSubnets = mapZonesToTargetSubnets(target).asMap()
-    zones.inject([]) { Collection<String> allPurposes, String zone ->
-      allPurposes + zonesToSubnets[zone].collect { it.purpose }
-    } as Set
+      return filtered
+    }.flatten()
   }
 
   private Multimap<String, SubnetData> mapZonesToTargetSubnets(SubnetTarget target) {
@@ -215,75 +122,5 @@ class SubnetAnalyzer {
       }
       purposeToVpcId
     } as Map
-  }
-
-  /**
-   * Constructs a new VPC Zone Identifier based on an existing VPC Zone Identifier and a list of zones.
-   * A VPC Zone Identifier is really just a comma delimited list of subnet IDs.
-   * I'm not happy that this method has to exist. It's just a wrapper around other methods that operate on a cleaner
-   * abstraction without knowledge of the unfortunate structure of VPC Zone Identifier.
-   *
-   * @param vpcZoneIdentifier is used to derive a subnet purpose from
-   * @param zones which the new VPC Zone Identifier will contain
-   * @return a new VPC Zone Identifier or null if no purpose was derived
-   */
-  String constructNewVpcZoneIdentifierForZones(String vpcZoneIdentifier, List<String> zones) {
-    if (!zones) {
-      // No zones were selected because there was no chance to change them. Keep the VPC Zone Identifier.
-      return vpcZoneIdentifier
-    }
-    String purpose = getPurposeFromVpcZoneIdentifier(vpcZoneIdentifier)
-    constructNewVpcZoneIdentifierForPurposeAndZones(purpose, zones)
-  }
-
-  /**
-   * Convert a VPC Zone Identifier into a list of subnet IDs.
-   * A VPC Zone Identifier is really just a comma delimited list of subnet IDs.
-   *
-   * @param vpcZoneIdentifier the VPC Zone Identifier
-   * @return list of subnet IDs
-   */
-  private List<String> subnetIdsFromVpcZoneIdentifier(String vpcZoneIdentifier) {
-    vpcZoneIdentifier?.tokenize(',') ?: []
-  }
-
-  /**
-   * Convert a list of subnet IDs into a VPC Zone Identifier.
-   * A VPC Zone Identifier is really just a comma delimited list of subnet IDs.
-   *
-   * @param subnetIds the list of subnet IDs
-   * @return the VPC Zone Identifier
-   */
-  private String vpcZoneIdentifierFromSubnetIds(List<String> subnetIds) {
-    subnetIds.join(',')
-  }
-
-  /**
-   * Figures out the subnet purpose given a VPC zone identifier.
-   *
-   * @param vpcZoneIdentifier is used to derive a subnet purpose from
-   * @return the subnet purpose indicated by the vpcZoneIdentifier
-   */
-  String getPurposeFromVpcZoneIdentifier(String vpcZoneIdentifier) {
-    List<String> oldSubnetIds = subnetIdsFromVpcZoneIdentifier(vpcZoneIdentifier)
-    // All subnets used in the vpcZoneIdentifier will have the same subnet purpose if set up in Asgard.
-    coerceLoneOrNoneFromIds(oldSubnetIds)?.purpose
-  }
-
-  /**
-   * Constructs a new VPC Zone Identifier based on a subnet purpose and a list of zones.
-   *
-   * @param purpose is used to derive a subnet purpose from
-   * @param zones which the new VPC Zone Identifier will contain
-   * @return a new VPC Zone Identifier or null if no purpose was specified
-   */
-  String constructNewVpcZoneIdentifierForPurposeAndZones(String purpose, Collection<String> zones) {
-    if (purpose) {
-      List<String> newSubnetIds = getSubnetIdsForZones(zones, purpose, SubnetTarget.EC2) // This is only for ASGs.
-      if (newSubnetIds) {
-        return vpcZoneIdentifierFromSubnetIds(newSubnetIds)
-      }
-    }
-    null
   }
 }

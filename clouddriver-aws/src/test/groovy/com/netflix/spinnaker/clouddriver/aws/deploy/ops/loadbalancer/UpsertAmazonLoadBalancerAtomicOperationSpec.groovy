@@ -260,7 +260,7 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
             tags: [],
             scheme: "internal"
     )) >> new CreateLoadBalancerResult(dNSName: "dnsName1")
-    1 * mockSubnetAnalyzer.getSubnetIdsForZones(["us-east-1a"], "internal", SubnetTarget.ELB) >> ["subnet1"]
+    1 * mockSubnetAnalyzer.getSubnetIdsForZones(["us-east-1a"], "internal", SubnetTarget.ELB, 1) >> ["subnet1"]
   }
 
   void "should handle VPC ELB creation"() {
@@ -281,7 +281,7 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
               tags: [],
               scheme: "internal"
       )) >> new CreateLoadBalancerResult(dNSName: "dnsName1")
-      1 * mockSubnetAnalyzer.getSubnetIdsForZones(["us-east-1a"], "internal", SubnetTarget.ELB) >> ["subnet1"]
+      1 * mockSubnetAnalyzer.getSubnetIdsForZones(["us-east-1a"], "internal", SubnetTarget.ELB, 1) >> ["subnet1"]
   }
 
   void "should use clusterName if name not provided"() {
