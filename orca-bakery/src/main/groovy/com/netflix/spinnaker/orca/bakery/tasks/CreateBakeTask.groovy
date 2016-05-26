@@ -55,6 +55,9 @@ class CreateBakeTask implements RetryableTask {
   @Value('${bakery.propagateCloudProviderType:false}')
   boolean propagateCloudProviderType
 
+  @Value('${bakery.allowMissingPackageInstallation:false}')
+  boolean allowMissingPackageInstallation
+
   @Override
   TaskResult execute(Stage stage) {
     String region = stage.context.region
@@ -132,15 +135,13 @@ class CreateBakeTask implements RetryableTask {
                                               extractBuildDetails,
                                               false /* extractVersion */,
                                               mapper)
-    Map requestMap = packageInfo.findTargetPackage()
+
+    Map requestMap = packageInfo.findTargetPackage(allowMissingPackageInstallation)
     BakeRequest bakeRequest = mapper.convertValue(requestMap, BakeRequest)
 
     if (!propagateCloudProviderType) {
       bakeRequest = bakeRequest.copyWith(cloudProviderType: null)
     }
-
-    // The allowMissingPackageInstallation only affect Orca behavior. We don't want to propagate it to any bakery.
-    bakeRequest = bakeRequest.copyWith(allowMissingPackageInstallation: null)
 
     if (!roscoApisEnabled) {
       bakeRequest = bakeRequest.copyWith(templateFileName: null, extendedAttributes: null)

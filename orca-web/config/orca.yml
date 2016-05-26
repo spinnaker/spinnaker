@@ -22,6 +22,7 @@ bakery:
   # Rosco exposes more endpoints than Netflix's internal bakery. This disables
   # the use of those endpoints.
   roscoApisEnabled: true
+  allowMissingPackageInstallation: false
 
 redis:
   connection: ${REDIS_URL:redis://localhost:6379}

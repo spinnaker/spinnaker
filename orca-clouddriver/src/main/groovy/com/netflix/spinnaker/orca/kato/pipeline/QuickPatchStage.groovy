@@ -60,6 +60,9 @@ class QuickPatchStage extends LinearStage {
   @Value('${bakery.roscoApisEnabled:false}')
   boolean roscoApisEnabled
 
+  @Value('${bakery.allowMissingPackageInstallation:false}')
+  boolean allowMissingPackageInstallation
+
   @Autowired
   ObjectMapper objectMapper
 
@@ -96,7 +99,7 @@ class QuickPatchStage extends LinearStage {
                                               true /* extractBuildDetails */,
                                               true /* extractVersion */,
                                               objectMapper)
-    String version = stage.context?.patchVersion ?:  packageInfo.findTargetPackage()?.packageVersion
+    String version = stage.context?.patchVersion ?:  packageInfo.findTargetPackage(allowMissingPackageInstallation)?.packageVersion
 
     stage.context.put("version", version) // so the ui can display the discovered package version and we can verify for skipUpToDate
     def instances = getInstancesForCluster(stage)

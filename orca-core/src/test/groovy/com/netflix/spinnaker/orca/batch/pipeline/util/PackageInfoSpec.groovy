@@ -64,13 +64,13 @@ class PackageInfoSpec extends Specification {
   void "should skip package validation if a url is provided as package"() {
     Map request = ['package': 'http://www.m.com']
     expect:
-    info.createAugmentedRequest(trigger, buildInfo, request).package == request.package
+    info.createAugmentedRequest(trigger, buildInfo, request, false).package == request.package
   }
 
   void "should resolve the correct package"() {
     Map request = ['package': 'dos']
     expect:
-    info.createAugmentedRequest(trigger, buildInfo, request).package == 'dos_1.0-h2'
+    info.createAugmentedRequest(trigger, buildInfo, request, false).package == 'dos_1.0-h2'
   }
 
   void "should parse the build info url into expected parts"() {
@@ -88,7 +88,7 @@ class PackageInfoSpec extends Specification {
   void "should throw an exception when a trigger has no artifacts"() {
     when:
     Map request = ['package': 'dos']
-    info.createAugmentedRequest(providedTrigger, null, request)
+    info.createAugmentedRequest(providedTrigger, null, request, false)
 
     then:
     def exception = thrown(IllegalStateException)

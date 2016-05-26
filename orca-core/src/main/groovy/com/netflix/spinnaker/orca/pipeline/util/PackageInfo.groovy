@@ -44,7 +44,7 @@ class PackageInfo {
     potentialUrl ==~ /\b(https?|ssh):\/\/.*/
   }
 
-  public Map findTargetPackage() {
+  public Map findTargetPackage(boolean allowMissingPackageInstallation) {
     Map requestMap = [:]
     // copy the context since we may modify it in createAugmentedRequest
     requestMap.putAll(stage.execution.context)
@@ -56,7 +56,7 @@ class PackageInfo {
       if (requestMap.buildInfo) { // package was built as part of the pipeline
         buildInfo = mapper.convertValue(requestMap.buildInfo, Map)
       }
-      return createAugmentedRequest(trigger, buildInfo, requestMap)
+      return createAugmentedRequest(trigger, buildInfo, requestMap, allowMissingPackageInstallation)
     }
     return requestMap
   }
@@ -72,7 +72,7 @@ class PackageInfo {
    */
   @CompileDynamic
   @VisibleForTesting
-  private Map createAugmentedRequest(Map trigger, Map buildInfo, Map request) {
+  private Map createAugmentedRequest(Map trigger, Map buildInfo, Map request, boolean allowMissingPackageInstallation) {
 
     List<Map> triggerArtifacts = trigger?.buildInfo?.artifacts ?: trigger?.parentExecution?.trigger?.buildInfo?.artifacts
     List<Map> buildArtifacts = buildInfo?.artifacts
@@ -166,7 +166,7 @@ class PackageInfo {
     }
 
     // If it hasn't been possible to match a package and allowMissingPackageInstallation is false raise an exception.
-    if (missingPrefixes && !request.allowMissingPackageInstallation) {
+    if (missingPrefixes && !allowMissingPackageInstallation) {
       throw new IllegalStateException("Unable to find deployable artifact starting with ${missingPrefixes} and ending with ${fileExtension} in ${buildArtifacts} and ${triggerArtifacts}. Make sure your deb package file name complies with the naming convention: name_version-release_arch.")
     }
 

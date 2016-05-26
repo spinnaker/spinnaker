@@ -41,13 +41,14 @@ class PackageInfoSpec extends Specification {
         extractBuildDetails,
         false,
         mapper)
+      def allowMissingPackageInstallation = true
 
       Map trigger = ["buildInfo": ["artifacts": filename]]
       Map buildInfo = ["artifacts": []]
-      Map request = ["package": requestPackage, "allowMissingPackageInstallation" : true]
+      Map request = ["package": requestPackage]
 
     when:
-      Map requestMap = packageInfo.createAugmentedRequest(trigger, buildInfo, request)
+      Map requestMap = packageInfo.createAugmentedRequest(trigger, buildInfo, request, allowMissingPackageInstallation)
 
     then:
       requestMap.package == result
@@ -75,13 +76,15 @@ class PackageInfoSpec extends Specification {
       extractBuildDetails,
       false,
       mapper)
+    def allowMissingPackageInstallation = true
 
-    Map trigger = ["buildInfo": ["artifacts": filename]]
+
+      Map trigger = ["buildInfo": ["artifacts": filename]]
     Map buildInfo = ["artifacts": []]
-    Map request = ["package": requestPackage, "allowMissingPackageInstallation" : true]
+    Map request = ["package": requestPackage]
 
     when:
-    Map requestMap = packageInfo.createAugmentedRequest(trigger, buildInfo, request)
+    Map requestMap = packageInfo.createAugmentedRequest(trigger, buildInfo, request, allowMissingPackageInstallation)
 
     then:
     requestMap.package == result
@@ -110,10 +113,67 @@ class PackageInfoSpec extends Specification {
     PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper )
 
     when:
-    Map targetPkg = packageInfo.findTargetPackage()
+    Map targetPkg = packageInfo.findTargetPackage(false)
 
     then:
     targetPkg.packageVersion == "1.1.1-h01.sha123"
+  }
+
+  @Unroll
+  def "findTargetPackage: matched packages are always allowed"() {
+    given:
+      Stage quipStage = new PipelineStage()
+      Pipeline pipeline = new Pipeline()
+      pipeline.context << [buildInfo: [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]]
+      quipStage.execution = pipeline
+
+      PackageType packageType = PackageType.DEB
+      ObjectMapper objectMapper = new ObjectMapper()
+      PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper )
+
+    when:
+      Map targetPkg = packageInfo.findTargetPackage(allowMissingPackageInstallation)
+
+    then:
+      targetPkg.packageVersion == packageVersion
+
+    where:
+      allowMissingPackageInstallation   ||  packageVersion
+      false                             ||  "1.1.1-h01.sha123"
+      true                              ||  "1.1.1-h01.sha123"
+  }
+
+  @Unroll
+  def "findTargetPackage: allowing unmatched packages is guarded by the allowMissingPackageInstallation flag"() {
+    given:
+      Stage quipStage = new PipelineStage()
+      Pipeline pipeline = new Pipeline()
+      pipeline.context << [buildInfo: [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]]
+      quipStage.execution = pipeline
+      quipStage.context = ['package': "another_package"]
+
+      PackageType packageType = PackageType.DEB
+      ObjectMapper objectMapper = new ObjectMapper()
+      PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
+
+    expect:
+      Map targetPkg
+      try {
+        targetPkg = packageInfo.findTargetPackage(allowMissingPackageInstallation)
+        assert !expectedException
+      } catch (IllegalStateException ex) {
+        assert expectedException
+        assert ex.message == expectedMessage
+        return
+      }
+
+      targetPkg.package == "another_package"
+      targetPkg.packageVersion == null
+
+    where:
+      allowMissingPackageInstallation || expectedException || expectedMessage
+      true                            || false             || null
+      false                           || true              || "Unable to find deployable artifact starting with [another_package_] and ending with .deb in [[fileName:api_1.1.1-h01.sha123_all.deb]] and null. Make sure your deb package file name complies with the naming convention: name_version-release_arch."
   }
 
   def "findTargetPackage: stage execution instance of Pipeline with trigger and no buildInfo"() {
@@ -129,7 +189,7 @@ class PackageInfoSpec extends Specification {
     PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper )
 
     when:
-    Map targetPkg = packageInfo.findTargetPackage()
+    Map targetPkg = packageInfo.findTargetPackage(false)
 
     then:
     targetPkg.packageVersion == "2.2.2-h02.sha321"
@@ -146,13 +206,15 @@ class PackageInfoSpec extends Specification {
         extractBuildDetails,
         false,
         mapper)
+      def allowMissingPackageInstallation = false
+
 
       Map trigger = ["buildInfo": ["artifacts": [["fileName": "test-package_1.0.0.deb"]]]]
       Map buildInfo = ["artifacts": []]
-      Map request = ["package": "foo bar", "allowMissingPackageInstallation" : false]
+      Map request = ["package": "foo bar"]
 
     when:
-      packageInfo.createAugmentedRequest(trigger, buildInfo, request)
+      packageInfo.createAugmentedRequest(trigger, buildInfo, request, allowMissingPackageInstallation)
 
     then:
       def exception = thrown(IllegalStateException)
