@@ -90,7 +90,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
             ruleName: '',
             protocol: 'HTTP',
             externalPort: 80,
-            backendPort: 8080,
+            backendPort: 80,
             probeName: '',
             persistence: 'None',
             idleTimeout: 4,

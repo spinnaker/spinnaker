@@ -52,7 +52,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.transformer', [
         type: 'createServerGroup',
         image: tempImage,
         sku: {
-          name: 'Standard_A1',
+          name: 'Standard_DS1_v2',
           tier: 'Standard',
           capacity: command.sku.capacity,
         },
