@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.model.InstanceGroupManagersRecreateInstancesRequest
+import com.google.api.services.compute.model.RegionInstanceGroupManagersRecreateRequest
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -84,12 +85,22 @@ class TerminateGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
         "$serverGroupName in $region..."
 
       def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, accountName, region, serverGroupName)
-      def zone = description.zone ?: serverGroup.zone
-      def instanceGroupManagers = compute.instanceGroupManagers()
+      def isRegional = serverGroup.regional
+      // Will return null if this is a regional server group.
+      def zone = serverGroup.zone
       def instanceUrls = GCEUtil.collectInstanceUrls(serverGroup, instanceIds)
-      def request = new InstanceGroupManagersRecreateInstancesRequest().setInstances(instanceUrls)
 
-      instanceGroupManagers.recreateInstances(project, zone, serverGroupName, request).execute()
+      if (isRegional) {
+        def instanceGroupManagers = compute.regionInstanceGroupManagers()
+        def recreateRequest = new RegionInstanceGroupManagersRecreateRequest().setInstances(instanceUrls)
+
+        instanceGroupManagers.recreateInstances(project, region, serverGroupName, recreateRequest).execute()
+      } else {
+        def instanceGroupManagers = compute.instanceGroupManagers()
+        def recreateRequest = new InstanceGroupManagersRecreateInstancesRequest().setInstances(instanceUrls)
+
+        instanceGroupManagers.recreateInstances(project, zone, serverGroupName, recreateRequest).execute()
+      }
 
       task.updateStatus BASE_PHASE, "Done recreating instances (${instanceIds.join(", ")}) in $region."
     } else {

@@ -27,13 +27,13 @@ class GoogleServerGroupCachingAgentSpec extends Specification {
       GoogleServerGroup googleServerGroup = new GoogleServerGroup()
 
     when:
-      GoogleServerGroupCachingAgent.extractBuildInfo(null, googleServerGroup)
+      GoogleZonalServerGroupCachingAgent.extractBuildInfo(null, googleServerGroup)
 
     then:
       !googleServerGroup.buildInfo
 
     when:
-      GoogleServerGroupCachingAgent.extractBuildInfo("", googleServerGroup)
+      GoogleZonalServerGroupCachingAgent.extractBuildInfo("", googleServerGroup)
 
     then:
       !googleServerGroup.buildInfo
@@ -44,13 +44,13 @@ class GoogleServerGroupCachingAgentSpec extends Specification {
       GoogleServerGroup googleServerGroup = new GoogleServerGroup()
 
     when:
-      GoogleServerGroupCachingAgent.extractBuildInfo("Some non-appversion image description...", googleServerGroup)
+      GoogleZonalServerGroupCachingAgent.extractBuildInfo("Some non-appversion image description...", googleServerGroup)
 
     then:
       !googleServerGroup.buildInfo
 
     when:
-      GoogleServerGroupCachingAgent.extractBuildInfo("SomeKey1: SomeValue1, SomeKey2: SomeValue2", googleServerGroup)
+      GoogleZonalServerGroupCachingAgent.extractBuildInfo("SomeKey1: SomeValue1, SomeKey2: SomeValue2", googleServerGroup)
 
     then:
       !googleServerGroup.buildInfo
@@ -61,7 +61,7 @@ class GoogleServerGroupCachingAgentSpec extends Specification {
       GoogleServerGroup googleServerGroup = new GoogleServerGroup()
 
     when:
-      GoogleServerGroupCachingAgent.extractBuildInfo(
+      GoogleZonalServerGroupCachingAgent.extractBuildInfo(
         "appversion: somepackage-1.0.0-586499.h150/WE-WAPP-somepackage/150, build_host: $BUILD_HOST",
         googleServerGroup)
 

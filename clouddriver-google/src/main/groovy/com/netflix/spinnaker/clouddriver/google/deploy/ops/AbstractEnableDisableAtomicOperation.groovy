@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 import com.google.api.services.compute.model.InstanceGroupManagersSetTargetPoolsRequest
 import com.google.api.services.compute.model.InstanceGroupsListInstancesRequest
 import com.google.api.services.compute.model.InstanceReference
+import com.google.api.services.compute.model.RegionInstanceGroupManagersSetTargetPoolsRequest
+import com.google.api.services.compute.model.RegionInstanceGroupsListInstancesRequest
 import com.google.api.services.compute.model.TargetPoolsAddInstanceRequest
 import com.google.api.services.compute.model.TargetPoolsRemoveInstanceRequest
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -58,8 +60,13 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     def region = description.region
     def serverGroupName = description.serverGroupName
     def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, accountName, region, serverGroupName)
+    def isRegional = serverGroup.regional
+    // Will return null if this is a regional server group.
     def zone = serverGroup.zone
-    def managedInstanceGroup = GCEUtil.queryManagedInstanceGroup(project, zone, serverGroupName, credentials);
+    def managedInstanceGroup =
+      isRegional
+      ? GCEUtil.queryRegionalManagedInstanceGroup(project, region, serverGroupName, credentials)
+      : GCEUtil.queryZonalManagedInstanceGroup(project, zone, serverGroupName, credentials)
     def currentTargetPoolUrls = managedInstanceGroup.getTargetPools()
     def newTargetPoolUrls = []
 
@@ -89,10 +96,16 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     } else {
       task.updateStatus phaseName, "Registering instances with load balancers..."
 
-      def groupInstances = compute.instanceGroups().listInstances(project,
-                                                                  zone,
-                                                                  serverGroupName,
-                                                                  new InstanceGroupsListInstancesRequest()).execute().items
+      def groupInstances =
+        isRegional
+        ? compute.regionInstanceGroups().listInstances(project,
+                                                       region,
+                                                       serverGroupName,
+                                                       new RegionInstanceGroupsListInstancesRequest()).execute().items
+        : compute.instanceGroups().listInstances(project,
+                                                 zone,
+                                                 serverGroupName,
+                                                 new InstanceGroupsListInstancesRequest()).execute().items
 
       def instanceReferencesToAdd = groupInstances.collect { groupInstance ->
         new InstanceReference(instance: groupInstance.instance)
@@ -134,15 +147,25 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
     task.updateStatus phaseName, "$presentParticipling server group $description.serverGroupName in $region..."
 
-    def instanceGroupManagersSetTargetPoolsRequest =
-            new InstanceGroupManagersSetTargetPoolsRequest(targetPools: newTargetPoolUrls)
+    if (isRegional) {
+      def instanceGroupManagersSetTargetPoolsRequest = new RegionInstanceGroupManagersSetTargetPoolsRequest(targetPools: newTargetPoolUrls)
 
-    instanceGroupManagersSetTargetPoolsRequest.setFingerprint(managedInstanceGroup.getFingerprint())
+      instanceGroupManagersSetTargetPoolsRequest.setFingerprint(managedInstanceGroup.getFingerprint())
 
-    compute.instanceGroupManagers().setTargetPools(project,
-                                                   zone,
-                                                   serverGroupName,
-                                                   instanceGroupManagersSetTargetPoolsRequest).execute()
+      compute.regionInstanceGroupManagers().setTargetPools(project,
+                                                           region,
+                                                           serverGroupName,
+                                                           instanceGroupManagersSetTargetPoolsRequest).execute()
+    } else {
+      def instanceGroupManagersSetTargetPoolsRequest = new InstanceGroupManagersSetTargetPoolsRequest(targetPools: newTargetPoolUrls)
+
+      instanceGroupManagersSetTargetPoolsRequest.setFingerprint(managedInstanceGroup.getFingerprint())
+
+      compute.instanceGroupManagers().setTargetPools(project,
+                                                     zone,
+                                                     serverGroupName,
+                                                     instanceGroupManagersSetTargetPoolsRequest).execute()
+    }
 
     task.updateStatus phaseName, "Done ${presentParticipling.toLowerCase()} server group $description.serverGroupName in $region."
     null

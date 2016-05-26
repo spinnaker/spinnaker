@@ -45,7 +45,13 @@ class BasicGoogleDeployDescriptionValidator extends DescriptionValidator<BasicGo
     helper.validateInstanceTypeDisks(googleDeployDefaults.determineInstanceTypeDisk(description.instanceType),
                                      description.disks)
     helper.validateAuthScopes(description.authScopes)
-    helper.validateZone(description.zone)
+
+    if (description.regional) {
+      helper.validateRegion(description.region)
+    } else {
+      helper.validateZone(description.zone)
+    }
+
     helper.validateName(description.application, "application")
     helper.validateNotEmpty(description.targetSize, "targetSize")
     helper.validateNonNegativeLong(description.targetSize ?: 0, "targetSize")

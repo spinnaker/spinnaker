@@ -59,6 +59,8 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
     def region = description.region
     def serverGroupName = description.serverGroupName
     def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, accountName, region, serverGroupName)
+    def isRegional = serverGroup.regional
+    // Will return null if this is a regional server group.
     def zone = serverGroup.zone
 
     // We create a new instance template for each managed instance group. We need to delete it here.
@@ -66,29 +68,52 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
 
     task.updateStatus BASE_PHASE, "Identified instance template."
 
+    task.updateStatus BASE_PHASE, "Checking for autoscaler..."
+
+    if (serverGroup.autoscalingPolicy) {
+      if (isRegional) {
+        def autoscalerDeleteOperation = compute.regionAutoscalers().delete(project, region, serverGroupName).execute()
+        def autoscalerDeleteOperationName = autoscalerDeleteOperation.getName()
+
+        task.updateStatus BASE_PHASE, "Waiting on delete operation for autoscaler..."
+
+        // We must make sure the autoscaler is deleted before deleting the managed instance group.
+        googleOperationPoller.waitForRegionalOperation(compute, project, region, autoscalerDeleteOperationName, null, task,
+            "regional autoscaler $serverGroupName", BASE_PHASE)
+      } else {
+        def autoscalerDeleteOperation = compute.autoscalers().delete(project, zone, serverGroupName).execute()
+        def autoscalerDeleteOperationName = autoscalerDeleteOperation.getName()
+
+        task.updateStatus BASE_PHASE, "Waiting on delete operation for autoscaler..."
+
+        // We must make sure the autoscaler is deleted before deleting the managed instance group.
+        googleOperationPoller.waitForZonalOperation(compute, project, zone, autoscalerDeleteOperationName, null, task,
+            "zonal autoscaler $serverGroupName", BASE_PHASE)
+      }
+    }
+
     def instanceGroupManagerDeleteOperation =
-        compute.instanceGroupManagers().delete(project, zone, serverGroupName).execute()
+        isRegional
+        ? compute.regionInstanceGroupManagers().delete(project, region, serverGroupName).execute()
+        : compute.instanceGroupManagers().delete(project, zone, serverGroupName).execute()
     def instanceGroupOperationName = instanceGroupManagerDeleteOperation.getName()
 
     task.updateStatus BASE_PHASE, "Waiting on delete operation for managed instance group..."
 
     // We must make sure the managed instance group is deleted before deleting the instance template.
-    googleOperationPoller.waitForZonalOperation(compute, project, zone, instanceGroupOperationName, null, task,
-        "instance group $serverGroupName", BASE_PHASE)
+    if (isRegional) {
+      googleOperationPoller.waitForRegionalOperation(compute, project, region, instanceGroupOperationName, null, task,
+          "regional instance group $serverGroupName", BASE_PHASE)
+    } else {
+      googleOperationPoller.waitForZonalOperation(compute, project, zone, instanceGroupOperationName, null, task,
+          "zonal instance group $serverGroupName", BASE_PHASE)
+    }
 
     task.updateStatus BASE_PHASE, "Deleted instance group."
 
     compute.instanceTemplates().delete(project, instanceTemplateName).execute()
 
     task.updateStatus BASE_PHASE, "Deleted instance template."
-
-    task.updateStatus BASE_PHASE, "Checking for autoscaler..."
-
-    if (serverGroup.autoscalingPolicy) {
-      compute.autoscalers().delete(project, zone, serverGroupName).execute()
-
-      task.updateStatus BASE_PHASE, "Deleted autoscaler."
-    }
 
     task.updateStatus BASE_PHASE, "Done destroying server group $serverGroupName in $region."
     null

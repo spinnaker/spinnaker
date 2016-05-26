@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.model.InstanceGroupManagersDeleteInstancesRequest
+import com.google.api.services.compute.model.RegionInstanceGroupManagersDeleteInstancesRequest
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -65,7 +66,7 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpe
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing terminate and decrement of instances " +
-      "(${description.instanceIds.join(", ")}) from server group ${description.serverGroupName} in $description.region..."
+      "(${description.instanceIds.join(", ")}) from server group $description.serverGroupName in $description.region..."
 
     def accountName = description.accountName
     def credentials = description.credentials
@@ -74,12 +75,23 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpe
     def region = description.region
     def serverGroupName = description.serverGroupName
     def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, accountName, region, serverGroupName)
+    def isRegional = serverGroup.regional
+    // Will return null if this is a regional server group.
     def zone = serverGroup.zone
     def instanceIds = description.instanceIds
     def instanceUrls = GCEUtil.collectInstanceUrls(serverGroup, instanceIds)
-    def deleteRequest = new InstanceGroupManagersDeleteInstancesRequest().setInstances(instanceUrls)
 
-    compute.instanceGroupManagers().deleteInstances(project, zone, serverGroupName, deleteRequest).execute()
+    if (isRegional) {
+      def instanceGroupManagers = compute.regionInstanceGroupManagers()
+      def deleteRequest = new RegionInstanceGroupManagersDeleteInstancesRequest().setInstances(instanceUrls)
+
+      instanceGroupManagers.deleteInstances(project, region, serverGroupName, deleteRequest).execute()
+    } else {
+      def instanceGroupManagers = compute.instanceGroupManagers()
+      def deleteRequest = new InstanceGroupManagersDeleteInstancesRequest().setInstances(instanceUrls)
+
+      instanceGroupManagers.deleteInstances(project, zone, serverGroupName, deleteRequest).execute()
+    }
 
     task.updateStatus BASE_PHASE, "Done terminating and decrementing instances " +
       "(${description.instanceIds.join(", ")}) from server group $serverGroupName in $region."

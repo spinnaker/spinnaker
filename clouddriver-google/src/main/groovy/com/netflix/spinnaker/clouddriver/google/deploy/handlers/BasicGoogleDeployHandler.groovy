@@ -86,14 +86,14 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     def credentials = description.credentials
     def compute = credentials.compute
     def project = credentials.project
+    def isRegional = description.regional
     def zone = description.zone
     def region = description.region ?: GCEUtil.getRegionFromZone(project, zone, compute)
 
     def serverGroupNameResolver = new GCEServerGroupNameResolver(project, region, credentials)
     def clusterName = serverGroupNameResolver.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
 
-    task.updateStatus BASE_PHASE, "Initializing creation of server group for cluster $clusterName in " +
-      "$description.zone..."
+    task.updateStatus BASE_PHASE, "Initializing creation of server group for cluster $clusterName in ${isRegional ? region : zone}..."
 
     task.updateStatus BASE_PHASE, "Looking up next sequence..."
 
@@ -178,28 +178,51 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       GCEUtil.calibrateTargetSizeWithAutoscaler(description)
     }
 
-    def migCreateOperation = compute.instanceGroupManagers().insert(project,
-                                                                    zone,
-                                                                    new InstanceGroupManager()
-                                                                        .setName(serverGroupName)
-                                                                        .setBaseInstanceName(serverGroupName)
-                                                                        .setInstanceTemplate(instanceTemplateUrl)
-                                                                        .setTargetSize(description.targetSize)
-                                                                        .setTargetPools(networkLoadBalancers)).execute()
+    if (isRegional) {
+      def migCreateOperation = compute.regionInstanceGroupManagers().insert(project,
+                                                                            region,
+                                                                            new InstanceGroupManager()
+                                                                                .setName(serverGroupName)
+                                                                                .setBaseInstanceName(serverGroupName)
+                                                                                .setInstanceTemplate(instanceTemplateUrl)
+                                                                                .setTargetSize(description.targetSize)
+                                                                                .setTargetPools(networkLoadBalancers)).execute()
 
-    if (autoscalerIsSpecified(description)) {
-      // Before creating the Autoscaler we must wait until the managed instance group is created.
-      googleOperationPoller.waitForZonalOperation(compute, project, zone, migCreateOperation.getName(),
-        null, task, "managed instance group $serverGroupName", BASE_PHASE)
+      if (autoscalerIsSpecified(description)) {
+        // Before creating the Autoscaler we must wait until the managed instance group is created.
+        googleOperationPoller.waitForRegionalOperation(compute, project, region, migCreateOperation.getName(),
+          null, task, "managed instance group $serverGroupName", BASE_PHASE)
 
-      task.updateStatus BASE_PHASE, "Creating autoscaler for $serverGroupName..."
+        task.updateStatus BASE_PHASE, "Creating regional autoscaler for $serverGroupName..."
 
-      Autoscaler autoscaler = GCEUtil.buildAutoscaler(serverGroupName, migCreateOperation, description)
+        Autoscaler autoscaler = GCEUtil.buildAutoscaler(serverGroupName, migCreateOperation, description)
 
-      compute.autoscalers().insert(project, zone, autoscaler).execute()
+        compute.regionAutoscalers().insert(project, region, autoscaler).execute()
+      }
+    } else {
+      def migCreateOperation = compute.instanceGroupManagers().insert(project,
+                                                                      zone,
+                                                                      new InstanceGroupManager()
+                                                                          .setName(serverGroupName)
+                                                                          .setBaseInstanceName(serverGroupName)
+                                                                          .setInstanceTemplate(instanceTemplateUrl)
+                                                                          .setTargetSize(description.targetSize)
+                                                                          .setTargetPools(networkLoadBalancers)).execute()
+
+      if (autoscalerIsSpecified(description)) {
+        // Before creating the Autoscaler we must wait until the managed instance group is created.
+        googleOperationPoller.waitForZonalOperation(compute, project, zone, migCreateOperation.getName(),
+          null, task, "managed instance group $serverGroupName", BASE_PHASE)
+
+        task.updateStatus BASE_PHASE, "Creating zonal autoscaler for $serverGroupName..."
+
+        Autoscaler autoscaler = GCEUtil.buildAutoscaler(serverGroupName, migCreateOperation, description)
+
+        compute.autoscalers().insert(project, zone, autoscaler).execute()
+      }
     }
 
-    task.updateStatus BASE_PHASE, "Done creating server group $serverGroupName in $zone."
+    task.updateStatus BASE_PHASE, "Done creating server group $serverGroupName in ${isRegional ? region : zone}."
 
     DeploymentResult deploymentResult = new DeploymentResult()
     deploymentResult.serverGroupNames = ["$region:$serverGroupName".toString()]

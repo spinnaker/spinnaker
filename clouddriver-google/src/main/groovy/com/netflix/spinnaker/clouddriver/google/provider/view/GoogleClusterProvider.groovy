@@ -98,6 +98,20 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
     def cacheData = cacheView.get(SERVER_GROUPS.ns,
                                   Keys.getServerGroupKey(name, account, region),
                                   RelationshipCacheFilter.include(INSTANCES.ns, LOAD_BALANCERS.ns))
+
+    if (!cacheData) {
+      // No regional server group was found, so attempt to query for all zonal server groups in the region.
+      def pattern = Keys.getServerGroupKey(name, account, region, "*")
+      def identifiers = cacheView.filterIdentifiers(SERVER_GROUPS.ns, pattern)
+      def cacheDataResults = cacheView.getAll(SERVER_GROUPS.ns,
+                                              identifiers,
+                                              RelationshipCacheFilter.include(INSTANCES.ns, LOAD_BALANCERS.ns))
+
+      if (cacheDataResults) {
+        cacheData = cacheDataResults.first()
+      }
+    }
+
     if (cacheData) {
       return serverGroupFromCacheData(cacheData, account)?.view
     }

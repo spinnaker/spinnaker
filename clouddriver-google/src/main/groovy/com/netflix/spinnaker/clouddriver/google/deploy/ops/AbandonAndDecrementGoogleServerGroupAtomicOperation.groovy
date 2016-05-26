@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.model.InstanceGroupManagersAbandonInstancesRequest
+import com.google.api.services.compute.model.RegionInstanceGroupManagersAbandonInstancesRequest
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -57,8 +58,7 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpera
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing abandon and decrement of instances " +
-      "(${description.instanceIds.join(", ")}) from server group $description.serverGroupName in " +
-      "$description.region..."
+      "(${description.instanceIds.join(", ")}) from server group $description.serverGroupName in $description.region..."
 
     def accountName = description.accountName
     def credentials = description.credentials
@@ -67,12 +67,23 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpera
     def region = description.region
     def serverGroupName = description.serverGroupName
     def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, accountName, region, serverGroupName)
+    def isRegional = serverGroup.regional
+    // Will return null if this is a regional server group.
     def zone = serverGroup.zone
     def instanceIds = description.instanceIds
     def instanceUrls = GCEUtil.collectInstanceUrls(serverGroup, instanceIds)
-    def abandonRequest = new InstanceGroupManagersAbandonInstancesRequest().setInstances(instanceUrls)
 
-    compute.instanceGroupManagers().abandonInstances(project, zone, serverGroupName, abandonRequest).execute()
+    if (isRegional) {
+      def instanceGroupManagers = compute.regionInstanceGroupManagers()
+      def abandonRequest = new RegionInstanceGroupManagersAbandonInstancesRequest().setInstances(instanceUrls)
+
+      instanceGroupManagers.abandonInstances(project, region, serverGroupName, abandonRequest).execute()
+    } else {
+      def instanceGroupManagers = compute.instanceGroupManagers()
+      def abandonRequest = new InstanceGroupManagersAbandonInstancesRequest().setInstances(instanceUrls)
+
+      instanceGroupManagers.abandonInstances(project, zone, serverGroupName, abandonRequest).execute()
+    }
 
     task.updateStatus BASE_PHASE, "Done abandoning and decrementing instances " +
       "(${description.instanceIds.join(", ")}) from server group $serverGroupName in $region."

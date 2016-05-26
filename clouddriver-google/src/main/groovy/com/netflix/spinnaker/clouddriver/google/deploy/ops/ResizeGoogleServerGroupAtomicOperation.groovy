@@ -55,14 +55,26 @@ class ResizeGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
     def region = description.region
     def serverGroupName = description.serverGroupName
     def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, accountName, region, serverGroupName)
+    def isRegional = serverGroup.regional
+    // Will return null if this is a regional server group.
     def zone = serverGroup.zone
     int targetSize = description.targetSize instanceof Number ? description.targetSize : description.capacity.desired
-    def instanceGroupManagers = compute.instanceGroupManagers()
 
-    instanceGroupManagers.resize(project,
-                                 zone,
-                                 serverGroupName,
-                                 targetSize).execute()
+    if (isRegional) {
+      def instanceGroupManagers = compute.regionInstanceGroupManagers()
+
+      instanceGroupManagers.resize(project,
+                                   region,
+                                   serverGroupName,
+                                   targetSize).execute()
+    } else {
+      def instanceGroupManagers = compute.instanceGroupManagers()
+
+      instanceGroupManagers.resize(project,
+                                   zone,
+                                   serverGroupName,
+                                   targetSize).execute()
+    }
 
     task.updateStatus BASE_PHASE, "Done resizing server group $serverGroupName in $region."
     null

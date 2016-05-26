@@ -237,16 +237,29 @@ class GCEUtil {
     }
   }
 
-  static InstanceGroupManager queryManagedInstanceGroup(String projectName,
-                                                        String zone,
-                                                        String serverGroupName,
-                                                        GoogleCredentials credentials) {
+  static InstanceGroupManager queryRegionalManagedInstanceGroup(String projectName,
+                                                                String region,
+                                                                String serverGroupName,
+                                                                GoogleCredentials credentials) {
+    credentials.compute.regionInstanceGroupManagers().get(projectName, region, serverGroupName).execute()
+  }
+
+  static InstanceGroupManager queryZonalManagedInstanceGroup(String projectName,
+                                                             String zone,
+                                                             String serverGroupName,
+                                                             GoogleCredentials credentials) {
     credentials.compute.instanceGroupManagers().get(projectName, zone, serverGroupName).execute()
   }
 
-  static List<InstanceGroupManager> queryManagedInstanceGroups(String projectName,
-                                                               String region,
-                                                               GoogleCredentials credentials) {
+  static List<InstanceGroupManager> queryRegionalManagedInstanceGroups(String projectName,
+                                                                       String region,
+                                                                       GoogleCredentials credentials) {
+    return credentials.compute.regionInstanceGroupManagers().list(projectName, region).execute().getItems()
+  }
+
+  static List<InstanceGroupManager> queryZonalManagedInstanceGroups(String projectName,
+                                                                    String region,
+                                                                    GoogleCredentials credentials) {
     def compute = credentials.compute
     def zones = getZonesFromRegion(projectName, region, compute)
 

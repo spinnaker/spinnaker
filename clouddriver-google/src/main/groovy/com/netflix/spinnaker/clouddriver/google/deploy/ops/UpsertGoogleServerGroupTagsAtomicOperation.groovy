@@ -18,6 +18,8 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.model.InstanceGroupManagersSetInstanceTemplateRequest
 import com.google.api.services.compute.model.InstanceGroupsListInstancesRequest
+import com.google.api.services.compute.model.RegionInstanceGroupManagersSetTemplateRequest
+import com.google.api.services.compute.model.RegionInstanceGroupsListInstancesRequest
 import com.google.api.services.compute.model.Tags
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -71,15 +73,20 @@ class UpsertGoogleServerGroupTagsAtomicOperation implements AtomicOperation<Void
     def region = description.region
     def serverGroupName = description.serverGroupName
     def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, accountName, region, serverGroupName)
+    def isRegional = serverGroup.regional
+    // Will return null if this is a regional server group.
     def zone = serverGroup.zone
     def tagsDescription = description.tags ? "tags $description.tags" : "empty set of tags"
 
-    def instanceGroupManagers = compute.instanceGroupManagers()
+    def instanceGroupManagers = isRegional ? compute.regionInstanceGroupManagers() : compute.instanceGroupManagers()
     def instanceTemplates = compute.instanceTemplates()
     def instances = compute.instances()
 
     // Retrieve the managed instance group.
-    def managedInstanceGroup = instanceGroupManagers.get(project, zone, serverGroupName).execute()
+    def managedInstanceGroup =
+      isRegional
+      ? instanceGroupManagers.get(project, region, serverGroupName).execute()
+      : instanceGroupManagers.get(project, zone, serverGroupName).execute()
     def origInstanceTemplateName = GCEUtil.getLocalName(managedInstanceGroup.instanceTemplate)
 
     if (!origInstanceTemplateName) {
@@ -109,23 +116,39 @@ class UpsertGoogleServerGroupTagsAtomicOperation implements AtomicOperation<Void
     // Set the new instance template on the managed instance group.
     task.updateStatus BASE_PHASE, "Setting instance template $instanceTemplate.name on server group $serverGroupName..."
 
-    def instanceGroupManagersSetInstanceTemplateRequest =
-        new InstanceGroupManagersSetInstanceTemplateRequest(instanceTemplate: instanceTemplateUrl)
-    def setInstanceTemplateOperation = instanceGroupManagers.setInstanceTemplate(
-        project, zone, serverGroupName, instanceGroupManagersSetInstanceTemplateRequest).execute()
+    def groupInstances
 
-    // Block on setting the instance template on the managed instance group.
-    googleOperationPoller.waitForZonalOperation(compute, project, zone,
+    if (isRegional) {
+      def regionInstanceGroupManagersSetTemplateRequest =
+        new RegionInstanceGroupManagersSetTemplateRequest(instanceTemplate: instanceTemplateUrl)
+      def setInstanceTemplateOperation = instanceGroupManagers.setInstanceTemplate(
+        project, region, serverGroupName, regionInstanceGroupManagersSetTemplateRequest).execute()
+
+      // Block on setting the instance template on the managed instance group.
+      googleOperationPoller.waitForRegionalOperation(compute, project, region,
         setInstanceTemplateOperation.getName(), null, task, "server group $serverGroupName", BASE_PHASE)
 
-    // Retrieve the name of the instance group being managed by the instance group manager.
-    def instanceGroupName = GCEUtil.getLocalName(managedInstanceGroup.instanceGroup)
+      // Retrieve the instances in the instance group.
+      groupInstances = compute.regionInstanceGroups().listInstances(project,
+                                                                    region,
+                                                                    serverGroupName,
+                                                                    new RegionInstanceGroupsListInstancesRequest()).execute().items
+    } else {
+      def instanceGroupManagersSetInstanceTemplateRequest =
+        new InstanceGroupManagersSetInstanceTemplateRequest(instanceTemplate: instanceTemplateUrl)
+      def setInstanceTemplateOperation = instanceGroupManagers.setInstanceTemplate(
+        project, zone, serverGroupName, instanceGroupManagersSetInstanceTemplateRequest).execute()
 
-    // Retrieve the instances in the instance group.
-    def groupInstances = compute.instanceGroups().listInstances(project,
-                                                                zone,
-                                                                instanceGroupName,
-                                                                new InstanceGroupsListInstancesRequest()).execute().items
+      // Block on setting the instance template on the managed instance group.
+      googleOperationPoller.waitForZonalOperation(compute, project, zone,
+        setInstanceTemplateOperation.getName(), null, task, "server group $serverGroupName", BASE_PHASE)
+
+      // Retrieve the instances in the instance group.
+      groupInstances = compute.instanceGroups().listInstances(project,
+                                                              zone,
+                                                              serverGroupName,
+                                                              new InstanceGroupsListInstancesRequest()).execute().items
+    }
 
     // Set the new tags on all instances in the group (in parallel).
     task.updateStatus BASE_PHASE, "Setting $tagsDescription on each instance in server group $serverGroupName..."
@@ -147,8 +170,14 @@ class UpsertGoogleServerGroupTagsAtomicOperation implements AtomicOperation<Void
     instanceUpdateOperations.each { instanceUpdateOperation ->
       def localInstanceName = GCEUtil.getLocalName(instanceUpdateOperation.targetLink)
 
-      googleOperationPoller.waitForZonalOperation(compute, project, zone, instanceUpdateOperation.getName(),
-          null, task, "instance $localInstanceName", BASE_PHASE)
+      googleOperationPoller.waitForZonalOperation(compute,
+                                                  project,
+                                                  GCEUtil.getLocalName(instanceUpdateOperation.getZone()),
+                                                  instanceUpdateOperation.getName(),
+                                                  null,
+                                                  task,
+                                                  "instance $localInstanceName",
+                                                  BASE_PHASE)
     }
 
     // Delete the original instance template.

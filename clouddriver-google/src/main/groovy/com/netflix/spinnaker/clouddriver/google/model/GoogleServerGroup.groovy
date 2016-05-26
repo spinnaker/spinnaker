@@ -32,7 +32,9 @@ class GoogleServerGroup {
 
   String name
   String region
+  Boolean regional = false
   String zone
+  Set<String> zones = new HashSet<>()
   Set<GoogleInstance> instances = []
   Set health = []
   Map<String, Object> launchConfig = [:]
@@ -64,8 +66,9 @@ class GoogleServerGroup {
 
     String name = GoogleServerGroup.this.name
     String region = GoogleServerGroup.this.region
+    Boolean regional = GoogleServerGroup.this.regional
     String zone = GoogleServerGroup.this.zone
-    Set<String> zones = [GoogleServerGroup.this.zone]
+    Set<String> zones = GoogleServerGroup.this.zones
     Set<GoogleInstance.View> instances = GoogleServerGroup.this.instances.collect { it?.view }
     Map<String, Object> asg = GoogleServerGroup.this.asg
     Map<String, Object> launchConfig = GoogleServerGroup.this.launchConfig

@@ -103,7 +103,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     network = new Network(selfLink: DEFAULT_NETWORK_NAME)
     subnet = new Subnetwork(selfLink: SUBNET_NAME)
     attachedDisks = GCEUtil.buildAttachedDisks(PROJECT_NAME,
-                                               ZONE,
+                                               null,
                                                sourceImage,
                                                [DISK_PD_STANDARD],
                                                false,

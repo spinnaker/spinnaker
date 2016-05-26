@@ -131,6 +131,9 @@ class Keys {
             detail     : names.detail,
             sequence   : names.sequence?.toString()
         ]
+        if (parts.length == 7) {
+          result.zone = parts[6]
+        }
         break
       case Namespace.SUBNETS.ns:
         result << [
@@ -190,8 +193,15 @@ class Keys {
   static String getServerGroupKey(String managedInstanceGroupName,
                                   String account,
                                   String region) {
+    getServerGroupKey(managedInstanceGroupName, account, region, null)
+  }
+
+  static String getServerGroupKey(String managedInstanceGroupName,
+                                  String account,
+                                  String region,
+                                  String zone) {
     Names names = Names.parseName(managedInstanceGroupName)
-    "$GoogleCloudProvider.GCE:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}"
+    "$GoogleCloudProvider.GCE:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}${zone ? ":$zone" : ""}"
   }
 
   static String getSubnetKey(String subnetName,

@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvi
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class TerminateAndDecrementGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final SERVER_GROUP_NAME = "my-server-group"
@@ -47,10 +48,12 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperationUnitSpec extends Spec
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
+  @Unroll
   void "should terminate instances"() {
     setup:
       def googleClusterProviderMock = Mock(GoogleClusterProvider)
       def serverGroup = new GoogleServerGroup(
+        regional: isRegional,
         zone: ZONE,
         instances: INSTANCE_URLS.collect {
           new GoogleInstance(
@@ -60,6 +63,8 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperationUnitSpec extends Spec
       ).view
       def computeMock = Mock(Compute)
       def request = new InstanceGroupManagersDeleteInstancesRequest().setInstances(INSTANCE_URLS)
+      def regionInstanceGroupManagersMock = Mock(Compute.RegionInstanceGroupManagers)
+      def regionInstanceGroupManagersDeleteInstancesMock = Mock(Compute.RegionInstanceGroupManagers.DeleteInstances)
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
       def instanceGroupManagersDeleteInstancesMock = Mock(Compute.InstanceGroupManagers.DeleteInstances)
 
@@ -78,11 +83,26 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperationUnitSpec extends Spec
 
     then:
       1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME) >> serverGroup
-      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
-      1 * instanceGroupManagersMock.deleteInstances(PROJECT_NAME,
-                                                    ZONE,
-                                                    SERVER_GROUP_NAME,
-                                                    request) >> instanceGroupManagersDeleteInstancesMock
-      1 * instanceGroupManagersDeleteInstancesMock.execute()
+
+      if (isRegional) {
+        1 * computeMock.regionInstanceGroupManagers() >> regionInstanceGroupManagersMock
+        1 * regionInstanceGroupManagersMock.deleteInstances(PROJECT_NAME,
+                                                            location,
+                                                            SERVER_GROUP_NAME,
+                                                            request) >> regionInstanceGroupManagersDeleteInstancesMock
+        1 * regionInstanceGroupManagersDeleteInstancesMock.execute()
+      } else {
+        1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
+        1 * instanceGroupManagersMock.deleteInstances(PROJECT_NAME,
+                                                      location,
+                                                      SERVER_GROUP_NAME,
+                                                      request) >> instanceGroupManagersDeleteInstancesMock
+        1 * instanceGroupManagersDeleteInstancesMock.execute()
+      }
+
+    where:
+      isRegional | location
+      false      | ZONE
+      true       | REGION
   }
 }

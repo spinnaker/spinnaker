@@ -30,6 +30,7 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
   String freeFormDetails
   Integer targetSize
   String region
+  Boolean regional
   String zone
   List<String> loadBalancers
   Set<String> securityGroups
