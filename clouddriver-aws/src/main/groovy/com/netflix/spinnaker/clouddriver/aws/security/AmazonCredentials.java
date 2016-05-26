@@ -26,6 +26,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Basic set of Amazon credentials that will a provided {@link com.amazonaws.auth.AWSCredentialsProvider} to resolve account credentials.
@@ -47,12 +50,12 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
     private final List<String> defaultSecurityGroups;
     private final AWSCredentialsProvider credentialsProvider;
 
-    public static AmazonCredentials fromAWSCredentials(String name, String environment, String accountType, AWSCredentialsProvider credentialsProvider) {
-        return fromAWSCredentials(name, environment, accountType, null, credentialsProvider);
+    public static AmazonCredentials fromAWSCredentials(String name, String environment, String accountType, AWSCredentialsProvider credentialsProvider, AmazonClientProvider amazonClientProvider) {
+        return fromAWSCredentials(name, environment, accountType, null, credentialsProvider, amazonClientProvider);
     }
 
-    public static AmazonCredentials fromAWSCredentials(String name, String environment, String accountType, String defaultKeyPair, AWSCredentialsProvider credentialsProvider) {
-        AWSAccountInfoLookup lookup = new DefaultAWSAccountInfoLookup(credentialsProvider);
+    public static AmazonCredentials fromAWSCredentials(String name, String environment, String accountType, String defaultKeyPair, AWSCredentialsProvider credentialsProvider, AmazonClientProvider amazonClientProvider) {
+        AWSAccountInfoLookup lookup = new DefaultAWSAccountInfoLookup(credentialsProvider, amazonClientProvider);
         final String accountId = lookup.findAccountId();
         final List<AWSRegion> regions = lookup.listRegions();
         return new AmazonCredentials(name, environment, accountType, accountId, defaultKeyPair, regions, null, null, credentialsProvider);
@@ -92,10 +95,10 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
                       List<String> defaultSecurityGroups,
                       List<String> requiredGroupMembership,
                       AWSCredentialsProvider credentialsProvider) {
-        this.name = notNull(name, "name");
-        this.environment = notNull(environment, "environment");
-        this.accountType = notNull(accountType, "accountType");
-        this.accountId = notNull(accountId, "accountId");
+        this.name = requireNonNull(name, "name");
+        this.environment = requireNonNull(environment, "environment");
+        this.accountType = requireNonNull(accountType, "accountType");
+        this.accountId = requireNonNull(accountId, "accountId");
         this.defaultKeyPair = defaultKeyPair;
         this.regions = regions == null ? Collections.<AWSRegion>emptyList() : Collections.unmodifiableList(regions);
         this.defaultSecurityGroups = defaultSecurityGroups == null ? null : Collections.unmodifiableList(defaultSecurityGroups);
@@ -145,11 +148,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
                          @JsonProperty("availabilityZones") List<String> availabilityZones,
                          @JsonProperty("preferredZones") List<String> preferredZones,
                          @JsonProperty("deprecated") Boolean deprecated) {
-            if (name == null) {
-                throw new NullPointerException("name");
-            }
-
-            this.name = name;
+            this.name = Objects.requireNonNull(name, "name");
             this.availabilityZones = availabilityZones == null ? Collections.<String>emptyList() : Collections.unmodifiableList(availabilityZones);
             List<String> preferred = (preferredZones == null || preferredZones.isEmpty()) ? new ArrayList<>(this.availabilityZones) : new ArrayList<>(preferredZones);
             preferred.retainAll(this.availabilityZones);
@@ -223,12 +222,5 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
     @Override
     public List<String> getRequiredGroupMembership() {
         return requiredGroupMembership;
-    }
-
-    protected static <T> T notNull(T value, String name) {
-        if (value == null) {
-            throw new NullPointerException(name);
-        }
-        return value;
     }
 }

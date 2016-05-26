@@ -20,6 +20,7 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookup;
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.DefaultAWSAccountInfoLookup;
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig.Account;
@@ -34,6 +35,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -47,12 +49,12 @@ public class CredentialsLoader<T extends AmazonCredentials> {
     private final CredentialTranslator<T> credentialTranslator;
     private final ObjectMapper objectMapper;
 
-    public CredentialsLoader(AWSCredentialsProvider credentialsProvider, Class<T> credentialsType) {
-        this(credentialsProvider, credentialsType, Collections.<String, String>emptyMap());
+    public CredentialsLoader(AWSCredentialsProvider credentialsProvider, AmazonClientProvider amazonClientProvider, Class<T> credentialsType) {
+        this(credentialsProvider, amazonClientProvider, credentialsType, Collections.<String, String>emptyMap());
     }
 
-    public CredentialsLoader(AWSCredentialsProvider credentialsProvider, Class<T> credentialsType, Map<String, String> templateValues) {
-        this(credentialsProvider, new DefaultAWSAccountInfoLookup(credentialsProvider), credentialsType, templateValues);
+    public CredentialsLoader(AWSCredentialsProvider credentialsProvider, AmazonClientProvider amazonClientProvider,Class<T> credentialsType, Map<String, String> templateValues) {
+        this(credentialsProvider, new DefaultAWSAccountInfoLookup(credentialsProvider, amazonClientProvider), credentialsType, templateValues);
     }
 
     public CredentialsLoader(AWSCredentialsProvider credentialsProvider, AWSAccountInfoLookup awsAccountInfoLookup, Class<T> credentialsType) {
@@ -60,10 +62,7 @@ public class CredentialsLoader<T extends AmazonCredentials> {
     }
 
     public CredentialsLoader(AWSCredentialsProvider credentialsProvider, AWSAccountInfoLookup awsAccountInfoLookup, Class<T> credentialsType, Map<String, String> templateValues) {
-        if (credentialsProvider == null) {
-            throw new NullPointerException("credentialsProvider");
-        }
-        this.credentialsProvider = credentialsProvider;
+        this.credentialsProvider = Objects.requireNonNull(credentialsProvider, "credentialsProvider");
         this.awsAccountInfoLookup = awsAccountInfoLookup;
         this.templateValues = templateValues;
         this.objectMapper = new ObjectMapper();

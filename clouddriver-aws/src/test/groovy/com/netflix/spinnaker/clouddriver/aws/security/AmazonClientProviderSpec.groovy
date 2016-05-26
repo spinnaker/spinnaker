@@ -38,8 +38,8 @@ class AmazonClientProviderSpec extends Specification {
       getCredentials() >> new BasicAWSCredentials('foo', 'bar')
   }
 
-  @Shared NetflixAmazonCredentials credentialsWithEdda = TestCredential.named('test', [edda: 'foo'])
-  @Shared NetflixAmazonCredentials credentialsNoEdda = TestCredential.named('test')
+  @Shared NetflixAmazonCredentials credentialsWithEdda = new NetflixAmazonCredentials(TestCredential.named('test', [edda: 'foo']), credentialsProvider)
+  @Shared NetflixAmazonCredentials credentialsNoEdda = new NetflixAmazonCredentials(TestCredential.named('test'), credentialsProvider)
 
   void "client proxies to edda when available"() {
     setup:
