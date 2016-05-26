@@ -56,4 +56,30 @@ class OptionalStageSupportSpec extends Specification {
     [type: "expression", expression: "true"]                                                                         || false
     [type: "expression", expression: "false"]                                                                        || true
   }
+
+  @Unroll
+  def "should check optionality of parent stages"() {
+    given:
+    def pipeline = new Pipeline()
+    pipeline.trigger.parameters = [
+      "p1": "v1"
+    ]
+    pipeline.stages << new PipelineStage(pipeline, "", "Test1", [
+      stageEnabled: optionalConfig
+    ])
+    pipeline.stages[0].status = ExecutionStatus.FAILED_CONTINUE
+
+    pipeline.stages << new PipelineStage(pipeline, "", "Test2", [:])
+    pipeline.stages[1].status = ExecutionStatus.SUCCEEDED
+    pipeline.stages[1].syntheticStageOwner = Stage.SyntheticStageOwner.STAGE_AFTER
+    pipeline.stages[1].parentStageId = pipeline.stages[0].id
+
+    expect:
+    OptionalStageSupport.isOptional(pipeline.stages[1]) == expectedOptionality
+
+    where:
+    optionalConfig                                            || expectedOptionality
+    [type: "expression", expression: "parameters.p1 == 'v1'"] || false
+    [type: "expression", expression: "parameters.p1 == 'v2'"] || true
+  }
 }

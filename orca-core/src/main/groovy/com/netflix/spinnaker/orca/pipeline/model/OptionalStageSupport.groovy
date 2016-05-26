@@ -33,6 +33,11 @@ class OptionalStageSupport {
   static boolean isOptional(Stage stage) {
     def optionalType = (stage.context.stageEnabled?.type as String)?.toLowerCase()
     if (!optionalType || !OPTIONAL_STAGE_TYPES[optionalType]) {
+      if (stage.syntheticStageOwner || stage.parentStageId) {
+        def parentStage = stage.execution.stages.find { it.id == stage.parentStageId }
+        return isOptional(parentStage)
+      }
+
       return false
     }
 
