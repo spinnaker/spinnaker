@@ -126,7 +126,7 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
     }
 
     log.info "Caching ${cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keepSize()} load balancers in ${agentType}"
-    log.info "Caching ${cacheResultBuilder.namespace(INSTANCES.ns).keepSize()} instance relationsihps in ${agentType}"
+    log.info "Caching ${cacheResultBuilder.namespace(INSTANCES.ns).keepSize()} instance relationships in ${agentType}"
 
     cacheResultBuilder.build()
   }

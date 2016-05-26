@@ -197,7 +197,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
     } else {
       metricsSupport.onDemandStore {
         def cacheData = new DefaultCacheData(
-            getServerGroupKey(serverGroup),
+            serverGroupKey,
             TimeUnit.MINUTES.toSeconds(10) as Integer, // ttl
             [
                 cacheTime     : System.currentTimeMillis(),
