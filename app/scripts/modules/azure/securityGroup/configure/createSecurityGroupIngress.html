@@ -1,69 +1,56 @@
-  <form role="form" class="container-fluid form-horizontal" name="form" novalidate>
-    <div class="modal-body">
-      <div class="row">
-        <div class="col-md-12">
-          <p class="info">
-          <span class="glyphicon glyphicon-info-sign"></span> Source/Destination address prefixes can only be edited through the Azure Portal. 
-          </p>
-        </div>
-      </div>
-      <div class="form-group">
-        <div class="form-group">
-          <div class="col-md-12">
-            <table class="table table-condensed packed">
-              <thead>
-                <tr>
-                  <th style="width: 21%">Protocol</th>
-                  <th style="width: 32%">Start Port<help-field key="azure.securityGroup.ingress.startPort"></help-field></th>
-                  <th style="width: 32%">End Port<help-field key="azure.securityGroup.ingress.endPort"></help-field></th> 
-                  <th style width=15%>Actions<help-field key="azure.securityGroup.ingress.actions"></help-field></th>                 
-                </tr>
-              </thead>
-              <tbody>
-                <tr ng-repeat="rule in securityGroup.securityRules">
-                  <td><select class="form-control input-sm" ng-model="rule.protocol">
-                    <option value="tcp">TCP</option>
-                    <option value="udp">UDP</option>
-                    <option value="*">ANY</option>
-                  </select></td>
-                  <td><input class="form-control input-sm" type="number" min="0" max="65535" ng-model="rule.startPort" ng-change="ctrl.portUpdated(securityGroup.securityRules, $index)" required/></td>
-                  <td><input class="form-control input-sm" type="number" min="0" max="65535" ng-model="rule.endPort" ng-change="ctrl.portUpdated(securityGroup.securityRules, $index)" required/></td>
-                  <td>
-                    <a class="btn-link sm-label"
-                      ng-click="ctrl.moveUp(securityGroup.securityRules, $index)"><span
-                      class="glyphicon glyphicon-arrow-up"></span>
-                    </a>
-                    <a class="btn-link sm-label"
-                      ng-click="ctrl.moveDown(securityGroup.securityRules, $index)"><span
-                      class="glyphicon glyphicon-arrow-down"></span>
-                    </a>            
-                    <a class="btn-link sm-label"
-                      ng-click="ctrl.removeRule(securityGroup.securityRules, $index)"><span
-                      class="glyphicon glyphicon-trash"></span>
-                    </a>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>    
-        </div>                      
-      <div class="form-group small" style="margin-top: 20px">
-        <div class="col-md-12">
-          <button class="add-new col-md-12" ng-click="ctrl.addRule(securityGroup.securityRules)"><span
-            class="glyphicon glyphicon-plus-sign"></span> Add new Security Group Rule
-          </button>
-        </div>
-      </div>
+<div class="modal-body">
+  <div class="row">
+    <div class="col-md-12">
+      <p class="info">
+      <span class="glyphicon glyphicon-info-sign"></span> Source/Destination address prefixes can only be edited through the Azure Portal. 
+      </p>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-default pull-left"
-              ng-click="ctrl.cancel()">Cancel
+  </div>
+  <div class="form-group">
+    <div class="form-group">
+      <div class="col-md-12">
+        <table class="table table-condensed packed">
+          <thead>
+            <tr>
+              <th style="width: 21%">Protocol</th>
+              <th style="width: 32%">Start Port<help-field key="azure.securityGroup.ingress.startPort"></help-field></th>
+              <th style="width: 32%">End Port<help-field key="azure.securityGroup.ingress.endPort"></help-field></th> 
+              <th style width=15%>Actions<help-field key="azure.securityGroup.ingress.actions"></help-field></th>                 
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="rule in securityGroup.securityRules">
+              <td><select class="form-control input-sm" ng-model="rule.protocol">
+                <option value="tcp">TCP</option>
+                <option value="udp">UDP</option>
+                <option value="*">ANY</option>
+              </select></td>
+              <td><input class="form-control input-sm" type="number" min="0" max="65535" ng-model="rule.startPort" ng-change="ctrl.portUpdated(securityGroup.securityRules, $index)" required/></td>
+              <td><input class="form-control input-sm" type="number" min="0" max="65535" ng-model="rule.endPort" ng-change="ctrl.portUpdated(securityGroup.securityRules, $index)" required/></td>
+              <td>
+                <a class="btn-link sm-label"
+                  ng-click="ctrl.moveUp(securityGroup.securityRules, $index)"><span
+                  class="glyphicon glyphicon-arrow-up"></span>
+                </a>
+                <a class="btn-link sm-label"
+                  ng-click="ctrl.moveDown(securityGroup.securityRules, $index)"><span
+                  class="glyphicon glyphicon-arrow-down"></span>
+                </a>            
+                <a class="btn-link sm-label"
+                  ng-click="ctrl.removeRule(securityGroup.securityRules, $index)"><span
+                  class="glyphicon glyphicon-trash"></span>
+                </a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>    
+    </div>                      
+  <div class="form-group small" style="margin-top: 20px">
+    <div class="col-md-12">
+      <button class="add-new col-md-12" ng-click="ctrl.addRule(securityGroup.securityRules)"><span
+        class="glyphicon glyphicon-plus-sign"></span> Add new Security Group Rule
       </button>
-      <button class="btn btn-default"
-              ng-click="wizard.previousPage()">
-        <span class="glyphicon glyphicon-chevron-left"></span> Back
-      </button>
-      <submit-button is-disabled="form.$invalid || !wizard.isComplete() || state.submitting"
-                     submitting="state.submitting" on-click="ctrl.upsert()" is-new="isNew"></submit-button>
     </div>
-  </form>
+  </div>
+</div>

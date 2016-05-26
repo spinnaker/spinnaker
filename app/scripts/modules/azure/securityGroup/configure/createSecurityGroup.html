@@ -1,9 +1,17 @@
-
-<modal-wizard heading="Create New Security Group" >
-  <wizard-page key="Location" label="Location">
-    <ng-include src="pages.location"></ng-include>
-  </wizard-page>
-  <wizard-page key="Ingress" label="Ingress" done="true">
-    <ng-include src="pages.ingress"></ng-include>
-  </wizard-page>
-</modal-wizard>
+<form name="form" class="form-horizontal" novalidate>
+  <v2-modal-wizard heading="Create New Security Group" >
+    <v2-wizard-page key="Location" label="Location">
+      <ng-include src="pages.location"></ng-include>
+    </v2-wizard-page>
+    <v2-wizard-page key="Ingress" label="Ingress" done="true">
+      <ng-include src="pages.ingress"></ng-include>
+    </v2-wizard-page>
+  </v2-modal-wizard>
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel
+    </button>
+    <submit-button is-disabled="form.$invalid || state.submitting"
+                    submitting="state.submitting" on-click="ctrl.upsert()" is-new="isNew">
+    </submit-button>
+  </div>
+</form>
