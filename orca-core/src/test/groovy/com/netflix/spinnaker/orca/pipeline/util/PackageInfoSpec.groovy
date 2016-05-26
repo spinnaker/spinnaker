@@ -78,8 +78,7 @@ class PackageInfoSpec extends Specification {
       mapper)
     def allowMissingPackageInstallation = true
 
-
-      Map trigger = ["buildInfo": ["artifacts": filename]]
+    Map trigger = ["buildInfo": ["artifacts": filename]]
     Map buildInfo = ["artifacts": []]
     Map request = ["package": requestPackage]
 
@@ -107,10 +106,9 @@ class PackageInfoSpec extends Specification {
     pipeline.context << [buildInfo: [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]]
     quipStage.execution = pipeline
 
-
     PackageType packageType = PackageType.DEB
     ObjectMapper objectMapper = new ObjectMapper()
-    PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper )
+    PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
     when:
     Map targetPkg = packageInfo.findTargetPackage(false)
@@ -129,7 +127,7 @@ class PackageInfoSpec extends Specification {
 
       PackageType packageType = PackageType.DEB
       ObjectMapper objectMapper = new ObjectMapper()
-      PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper )
+      PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
     when:
       Map targetPkg = packageInfo.findTargetPackage(allowMissingPackageInstallation)
@@ -183,10 +181,9 @@ class PackageInfoSpec extends Specification {
     pipeline.trigger << [buildInfo: [artifacts: [[fileName: "api_2.2.2-h02.sha321_all.deb"]]]]
     quipStage.execution = pipeline
 
-
     PackageType packageType = PackageType.DEB
     ObjectMapper objectMapper = new ObjectMapper()
-    PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper )
+    PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
     when:
     Map targetPkg = packageInfo.findTargetPackage(false)
@@ -207,7 +204,6 @@ class PackageInfoSpec extends Specification {
         false,
         mapper)
       def allowMissingPackageInstallation = false
-
 
       Map trigger = ["buildInfo": ["artifacts": [["fileName": "test-package_1.0.0.deb"]]]]
       Map buildInfo = ["artifacts": []]
