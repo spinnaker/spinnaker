@@ -62,7 +62,17 @@ stash:
   username: '<stash username>'
   password: '<stash password>'
 ```
+
 Currently git credentials are used in Spinnaker pipelines to retrieve commit changes across different build versions. 
+
+## Docker Registries
+
+Since [Clouddriver](https://github.com/spinnaker/clouddriver) already polls configured docker registries, Igor relies on Clouddriver to provide registry information. Therefore, first make sure you've [configured Clouddriver to poll your registries](http://www.spinnaker.io/v1.0/docs/target-deployment-configuration#section-docker-registry), and then add the following to your igor.yml or igor-local.yml file.
+
+```
+dockerRegistry:
+  enabled: true
+```
 
 ## Running Igor
 
