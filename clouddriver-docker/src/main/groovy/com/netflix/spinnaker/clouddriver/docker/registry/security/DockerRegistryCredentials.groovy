@@ -27,7 +27,7 @@ public class DockerRegistryCredentials {
     this.client = client;
     if (!repositories) {
       this.reloadRepositories = true
-      this.repositories = client.getCatalog()?.repositories;
+      // Don't load the repositories yet, as it delays application startup time.
     } else {
       this.reloadRepositories = false
       this.repositories = repositories

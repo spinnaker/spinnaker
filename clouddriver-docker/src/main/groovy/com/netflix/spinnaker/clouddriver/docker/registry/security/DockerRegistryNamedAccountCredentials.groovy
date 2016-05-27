@@ -78,7 +78,10 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
     this.email = email
     this.requiredGroupMembership = requiredGroupMembership == null ? Collections.emptyList() : Collections.unmodifiableList(requiredGroupMembership)
     this.credentials = buildCredentials(repositories)
-    this.repositories = this.credentials.repositories ?: []
+  }
+
+  public List<String> getRepositories() {
+    return credentials.repositories
   }
 
   @Override
@@ -130,7 +133,6 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
   final int cacheThreads
   final long clientTimeoutMillis
   final int paginateSize
-  final List<String> repositories
   final DockerRegistryCredentials credentials
   final List<String> requiredGroupMembership
 }

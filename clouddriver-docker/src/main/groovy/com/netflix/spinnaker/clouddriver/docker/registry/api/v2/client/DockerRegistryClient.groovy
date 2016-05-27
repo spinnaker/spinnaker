@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBeare
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBearerTokenService
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.exception.DockerRegistryOperationException
 import com.squareup.okhttp.OkHttpClient
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RestAdapter
 import retrofit.RetrofitError
@@ -31,6 +32,7 @@ import retrofit.http.*
 
 import java.util.concurrent.TimeUnit
 
+@Slf4j
 class DockerRegistryClient {
   private DockerBearerTokenService tokenService
 
@@ -167,13 +169,19 @@ class DockerRegistryClient {
    * don't want you to download their whole catalog (it's potentially a lot of data).
    */
   public DockerRegistryCatalog getCatalog(String path = null) {
-    def response = request({
-      path ? registryService.get(path, tokenService.basicAuthHeader, dockerApplicationName) :
+    def response
+    try {
+      response = request({
+        path ? registryService.get(path, tokenService.basicAuthHeader, dockerApplicationName) :
           registryService.getCatalog(paginateSize, tokenService.basicAuthHeader, dockerApplicationName)
-    }, { token ->
-      path ? registryService.get(path, token, dockerApplicationName) :
+      }, { token ->
+        path ? registryService.get(path, token, dockerApplicationName) :
           registryService.getCatalog(paginateSize, token, dockerApplicationName)
-    }, "_catalog")
+      }, "_catalog")
+    } catch (Exception e) {
+      log.warn("Error encountered during catalog of $path", e)
+      return new DockerRegistryCatalog(repositories: [])
+    }
 
     def nextPath = findNextLink(response?.headers)
     def catalog = (DockerRegistryCatalog) converter.fromBody(response.body, DockerRegistryCatalog)
