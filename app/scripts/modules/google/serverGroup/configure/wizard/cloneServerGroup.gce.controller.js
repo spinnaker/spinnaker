@@ -91,6 +91,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
 
     function initializeWatches() {
       $scope.$watch('command.credentials', createResultProcessor($scope.command.credentialsChanged));
+      $scope.$watch('command.regional', createResultProcessor($scope.command.regionalChanged));
       $scope.$watch('command.region', createResultProcessor($scope.command.regionChanged));
       $scope.$watch('command.network', createResultProcessor($scope.command.networkChanged));
       $scope.$watch('command.viewState.instanceTypeDetails', updateStorageSettingsFromInstanceType());
@@ -98,6 +99,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
 
     function initializeSelectOptions() {
       processCommandUpdateResult($scope.command.credentialsChanged());
+      processCommandUpdateResult($scope.command.regionalChanged());
       processCommandUpdateResult($scope.command.regionChanged());
       processCommandUpdateResult($scope.command.networkChanged());
       gceServerGroupConfigurationService.configureSubnets($scope.command);

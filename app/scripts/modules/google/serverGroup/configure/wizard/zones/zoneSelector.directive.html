@@ -3,12 +3,9 @@
   <div class="col-md-7" ng-if="!vm.command.region">(Select a region)</div>
   <div class="col-md-7">
     <select class="form-control input-sm"
-            ng-model="vm.command.zone"
-            ng-change="onChange()"
-            ng-required="!vm.command.regional">
-      <option ng-repeat="zone in vm.command.backingData.filtered.zones"
-              value="{{zone}}"
-              ng-selected="vm.command[field] === zone">{{zone}}</option>
+      ng-model="vm.command.zone"
+      ng-options="zone for zone in vm.command.backingData.filtered.zones"
+      ng-required="!vm.command.regional">
     </select>
   </div>
 </div>

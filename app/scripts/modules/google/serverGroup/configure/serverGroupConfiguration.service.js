@@ -14,7 +14,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
 ])
   .factory('gceServerGroupConfigurationService', function(gceImageReader, accountService, securityGroupReader,
                                                           gceInstanceTypeService, cacheInitializer,
-                                                          $q, loadBalancerReader, networkReader, subnetReader, _) {
+                                                          $q, loadBalancerReader, networkReader, subnetReader,
+                                                          settings, _) {
 
     var persistentDiskTypes = [
       'pd-standard',
@@ -353,6 +354,26 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
     }
 
     function attachEventHandlers(command) {
+      command.regionalChanged = function regionalChanged() {
+        var result = { dirty: {} };
+        var filteredData = command.backingData.filtered;
+        var defaults = settings.providers.gce.defaults;
+        if (command.regional) {
+          command.zone = null;
+        } else if (!command.zone) {
+          if (command.region === defaults.region) {
+            command.zone = defaults.zone;
+          } else {
+            command.zone = filteredData.zones[0];
+          }
+
+          angular.extend(result.dirty, configureZones(command).dirty);
+        }
+
+        command.viewState.dirty = command.viewState.dirty || {};
+        angular.extend(command.viewState.dirty, result.dirty);
+        return result;
+      };
 
       command.regionChanged = function regionChanged() {
         var result = { dirty: {} };
