@@ -160,6 +160,10 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
 
   @Override
   OnDemandAgent.OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data) {
+    if (!credentials.alphaListed) {
+      return null
+    }
+
     if (!data.containsKey("serverGroupName") || data.account != accountName || data.region != region) {
       return null
     }
@@ -168,7 +172,6 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
       getServerGroup(providerCache, data.serverGroupName as String)
     }
 
-    // TODO(duftler): This isn't right because it will return null if the serverGroup isn't found.
     if (serverGroup && !serverGroup.regional) {
       return null
     }
