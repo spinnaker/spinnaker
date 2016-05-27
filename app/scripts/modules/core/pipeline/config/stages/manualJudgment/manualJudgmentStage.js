@@ -14,6 +14,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentSta
       templateUrl: require('./manualJudgmentStage.html'),
       executionDetailsUrl: require('./manualJudgmentExecutionDetails.html'),
       strategy: true,
+      defaultTimeoutMs: 72 * 60 * 60 * 1000,
     });
   })
   .controller('ManualJudgmentStageCtrl', function($scope, $uibModal) {
