@@ -26,7 +26,7 @@ module.exports = angular
         $log.debug('New Deck version:', data.version, 'created', $filter('timestamp')(data.created));
         notifierService.publish(
           `A new version of Spinnaker is available
-            <a role="button" class="action" onclick="document.location.reload(true)">Refresh</button>`);
+            <a role="button" class="action" onclick="document.location.reload(true)">Refresh</a>`);
       }
     };
 
