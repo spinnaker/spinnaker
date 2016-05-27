@@ -58,6 +58,13 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
         getCloudProvider(ancestorDeployStage)
       ).get()
 
+      def minCapacity = Math.min(
+        ancestorDeployStageData.sourceServerGroupCapacitySnapshot.min as Long,
+        deployServerGroup.capacity.min as Long
+      )
+
+      log.info("Restoring capacity of ${ancestorDeployStageData.region}/${deployServerGroup.name} to ${minCapacity} (currentMin: ${deployServerGroup.capacity.min}, snapshotMin: ${ancestorDeployStageData.sourceServerGroupCapacitySnapshot.min})")
+
       return [
         credentials    : getCredentials(stage),
         regions        : [ancestorDeployStageData.region],
@@ -66,7 +73,7 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
         serverGroupName: deployServerGroup.name,
         capacity       : deployServerGroup.capacity + [
           // only update the min capacity, desired + max should be inherited from the current server group
-          min: ancestorDeployStageData.sourceServerGroupCapacitySnapshot.min
+          min: minCapacity
         ]
       ]
     } catch (Exception e) {

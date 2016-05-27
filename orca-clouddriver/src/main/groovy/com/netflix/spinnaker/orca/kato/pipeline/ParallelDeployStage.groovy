@@ -135,6 +135,10 @@ class ParallelDeployStage extends ParallelStage {
             }
           }
         }
+
+        // Avoid passing 'stageEnabled' configuration on to the deploy stage in a strategy pipeline
+        cluster.remove("stageEnabled")
+
         stage.context.clusters = [cluster as Map<String, Object>]
       }
     }

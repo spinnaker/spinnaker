@@ -69,9 +69,9 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
       type: "createServerGroup"
     ])
     childPipeline.stages << new PipelineStage(childPipeline, "", [
-      type: "createServerGroup",
+      type                  : "createServerGroup",
       "deploy.server.groups": [
-          "us-west-1": ["asg-v001"]
+        "us-west-1": ["asg-v001"]
       ]
     ])
 
@@ -113,6 +113,7 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
     null       || _
   }
 
+  @Unroll
   void "should construct resizeServerGroup context with source `min` + target `desired` and `max` capacity"() {
     given:
     def pipeline = new Pipeline()
@@ -125,7 +126,7 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
       account                          : "test",
       region                           : "us-east-1",
       sourceServerGroupCapacitySnapshot: [
-        min    : 0,
+        min    : originalMinCapacity,
         desired: 10,
         max    : 20
       ]
@@ -166,10 +167,15 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
       regions        : ["us-east-1"],
       region         : "us-east-1",
       capacity       : [
-        min    : 0,
+        min    : expectedMinCapacity,
         desired: 5,
         max    : 10
       ]
     ]
+
+    where:
+    originalMinCapacity || expectedMinCapacity
+    0                   || 0            // min(currentMin, snapshotMin) == 0
+    10                  || 5            // min(currentMin, snapshotMin) == 5
   }
 }
