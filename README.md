@@ -28,7 +28,7 @@ where:
 then:
 
     PYTHONPATH=.:spinnaker python \
-      spinnaker/spinnaker_system/kato_test.py \
+      spinnaker/spinnaker_system/google_kato_test.py \
       --gce_project=$PROJECT_ID \
       --gce_instance=$INSTANCE \
       --gce_zone=$ZONE \
@@ -37,12 +37,12 @@ then:
 If you were testing against some "native" host:
 
     PYTHONPATH=.:spinnaker python \
-      spinnaker/spinnaker_system/kato_test.py \
+      spinnaker/spinnaker_system/google_kato_test.py \
       --native_host=$HOSTNAME \
       --managed_gce_project=$PROJECT_ID \
       --test_gce_zone=$ZONE
 
-Note that `kato_test.py` is written to specifically test managing GCE
+Note that `google_kato_test.py` is written to specifically test managing GCE
 instances regardless of where Spinnaker is running from. So you can run
 it against an AWS deployment, but will still be observing changes on GCE.
 
