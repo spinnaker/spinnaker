@@ -21,6 +21,8 @@ import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientV3Provi
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import org.openstack4j.api.OSClient
 import org.openstack4j.api.client.IOSClientBuilder
+import org.openstack4j.model.identity.v2.Access
+import org.openstack4j.model.identity.v3.Token
 import spock.lang.Specification
 
 class OpenstackNamedAccountCredentialsSpec extends Specification {
@@ -29,27 +31,31 @@ class OpenstackNamedAccountCredentialsSpec extends Specification {
   def "Provider factory returns v2 provider"() {
     setup:
     // Mock out the authenticate call within Openstack4J
-    IOSClientBuilder.V2.metaClass.authenticate = { Mock(OSClient.OSClientV2) }
+    OSClient.OSClientV2 mockClient = Mock(OSClient.OSClientV2)
+    IOSClientBuilder.V2.metaClass.authenticate = { mockClient }
 
     when:
     def credentials = new OpenstackNamedAccountCredentials("name", "test", "v2", "test", "user", "pw", "tenant", "domain", "endpoint", false)
 
     then:
+    1 * mockClient.access >> Mock(Access)
     credentials.credentials.provider instanceof OpenstackClientV2Provider
-    credentials.credentials.provider.client instanceof OSClient.OSClientV2
+    credentials.credentials.provider.access instanceof Access
   }
 
   def "Provider factory returns v3 provider"() {
     setup:
     // Mock out the authenticate call within Openstack4J
-    IOSClientBuilder.V3.metaClass.authenticate = { Mock(OSClient.OSClientV3) }
+    OSClient.OSClientV3 mockClient = Mock(OSClient.OSClientV3)
+    IOSClientBuilder.V3.metaClass.authenticate = { mockClient }
 
     when:
     def credentials = new OpenstackNamedAccountCredentials("name", "test", "v3", "test", "user", "pw", "tenant", "domain", "endpoint", false)
 
     then:
+    1 * mockClient.token >> Mock(Token)
     credentials.credentials.provider instanceof OpenstackClientV3Provider
-    credentials.credentials.provider.client instanceof OSClient.OSClientV3
+    credentials.credentials.provider.token instanceof Token
   }
 
 

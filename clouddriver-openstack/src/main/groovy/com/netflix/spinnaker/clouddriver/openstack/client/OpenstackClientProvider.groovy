@@ -16,35 +16,56 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.client
 
+import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.openstack4j.api.OSClient
+import org.openstack4j.model.common.ActionResponse
 
 /**
  * Provides access to the Openstack API.
+ *
+ * TODO tokens will need to be regenerated if they are expired.
  */
 abstract class OpenstackClientProvider {
 
-  OSClient client
-
-  OpenstackClientProvider(OSClient client) {
-    this.client = client
-  }
-
-  //TODO test
   /**
    * Delete an instance.
    * @param instanceId
    * @return
    */
-  def deleteInstance(String instanceId) {
-    client.compute().servers().delete(instanceId)
+  void deleteInstance(String instanceId) {
+    handleRequest(AtomicOperations.TERMINATE_INSTANCES) {
+      client.compute().servers().delete(instanceId)
+    }
   }
+
+  /**
+   * Handler for an openstack4j request.
+   * @param closure
+   * @return
+   */
+  ActionResponse handleRequest(String operation, Closure closure) {
+    ActionResponse result
+    try {
+      result = closure()
+    } catch (Exception e) {
+      throw new OpenstackOperationException(operation, e)
+    }
+    if (!result.isSuccess()) {
+      throw new OpenstackOperationException(result, operation)
+    }
+    result
+  }
+
+  /**
+   * Thread-safe way to get client.
+   * @return
+   */
+  abstract OSClient getClient()
 
   /**
    * Get a new token id.
    * @return
    */
   abstract String getTokenId()
-
-  //TODO stuff common to v2 and v3
-
 }

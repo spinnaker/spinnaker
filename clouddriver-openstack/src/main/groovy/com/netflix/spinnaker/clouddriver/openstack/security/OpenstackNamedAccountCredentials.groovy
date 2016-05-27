@@ -79,7 +79,17 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
 
   @Override
   String getCloudProvider() {
-    return CLOUD_PROVIDER
+    CLOUD_PROVIDER
+  }
+
+  /**
+   * Note: this is needed because there is an interface method of this name that should be called
+   * in lieu of the synthetic getter for the credentials instance variable.
+   * @return
+   */
+  @Override
+  OpenstackCredentials getCredentials() {
+    credentials
   }
 
 }

@@ -14,33 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.openstack.client
+package com.netflix.spinnaker.clouddriver.openstack.deploy.description
 
-import org.openstack4j.api.OSClient
-import org.openstack4j.model.identity.v2.Access
-import org.openstack4j.openstack.OSFactory
+import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
+import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
+import groovy.transform.AutoClone
+import groovy.transform.Canonical
 
-/**
- * Provides access to the Openstack V2 API.
- */
-class OpenstackClientV2Provider extends OpenstackClientProvider {
-
-  Access access
-
-  OpenstackClientV2Provider(OSClient.OSClientV2 client) {
-    this.access = client.access
-  }
-
-  @Override
-  OSClient getClient() {
-    OSFactory.clientFromAccess(access)
-  }
-
-  @Override
-  String getTokenId() {
-    access.token.id
-  }
-
-  //TODO v2 specific operations
-
+// Pair of credentials name and associated openstack account
+@AutoClone
+@Canonical
+class OpenstackAtomicOperationDescription implements DeployDescription {
+  String account
+  OpenstackCredentials credentials
 }
