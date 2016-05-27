@@ -61,18 +61,18 @@ class RedBlackStrategy implements Strategy {
       LinearStage.injectAfter(stage, "shrinkCluster", shrinkClusterStage, shrinkContext)
     }
 
-    if (stageData.scaleDown) {
-      def scaleDown = baseContext + [
-          allowScaleDownActive         : true,
-          remainingFullSizeServerGroups: 1,
-          preferLargerOverNewer        : false
-      ]
-      LinearStage.injectAfter(stage, "scaleDown", scaleDownClusterStage, scaleDown)
-    }
-
     LinearStage.injectAfter(stage, "disableCluster", disableClusterStage, baseContext + [
         remainingEnabledServerGroups: 1,
         preferLargerOverNewer       : false
     ])
+
+    if (stageData.scaleDown) {
+      def scaleDown = baseContext + [
+        allowScaleDownActive         : false,
+        remainingFullSizeServerGroups: 1,
+        preferLargerOverNewer        : false
+      ]
+      LinearStage.injectAfter(stage, "scaleDown", scaleDownClusterStage, scaleDown)
+    }
   }
 }

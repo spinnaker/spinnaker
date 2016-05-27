@@ -126,19 +126,20 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
       injectAfter(stage, "shrinkCluster", shrinkClusterStage, shrinkContext)
     }
 
+    injectAfter(stage, "disableCluster", disableClusterStage, baseContext + [
+      remainingEnabledServerGroups: 1,
+      preferLargerOverNewer: false
+    ])
+
     if (stageData.scaleDown) {
       def scaleDown = baseContext + [
-        allowScaleDownActive: true,
+        allowScaleDownActive: false,
         remainingFullSizeServerGroups: 1,
         preferLargerOverNewer: false
       ]
       injectAfter(stage, "scaleDown", scaleDownClusterStage, scaleDown)
     }
 
-    injectAfter(stage, "disableCluster", disableClusterStage, baseContext + [
-      remainingEnabledServerGroups: 1,
-      preferLargerOverNewer: false
-    ])
   }
 
   protected void composeRollingPushFlow(Stage stage) {
