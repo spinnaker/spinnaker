@@ -20,7 +20,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.basicSett
         v2modalWizardService.markClean('basic-settings');
         v2modalWizardService.markComplete('basic-settings');
       } else {
-        v2modalWizardService.markDirty('basic-settings');
+        v2modalWizardService.markIncomplete('basic-settings');
       }
     });
 
