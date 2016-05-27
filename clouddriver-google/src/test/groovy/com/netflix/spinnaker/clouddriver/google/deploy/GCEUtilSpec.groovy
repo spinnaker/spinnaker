@@ -50,7 +50,7 @@ class GCEUtilSpec extends Specification {
   private static final INSTANCE_URL_2 = "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/us-central1-b/instances/$INSTANCE_LOCAL_NAME_2"
   private static final BASE_DESCRIPTION_1 = new BaseGoogleInstanceDescription(image: IMAGE_NAME)
   private static final IMAGE_PROJECT_NAME = "some-image-project"
-  private static final CREDENTIALS = new GoogleCredentials(null, null, [IMAGE_PROJECT_NAME], [], "")
+  private static final CREDENTIALS = new GoogleCredentials(null, null, false, [IMAGE_PROJECT_NAME], [], "")
   private static final BASE_DESCRIPTION_2 = new BaseGoogleInstanceDescription(image: IMAGE_NAME, credentials: CREDENTIALS)
   private static final GOOGLE_APPLICATION_NAME = "test"
   private static final BASE_IMAGE_PROJECTS = ["centos-cloud", "ubuntu-os-cloud"]

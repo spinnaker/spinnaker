@@ -48,7 +48,7 @@ class GCEServerGroupNameResolver extends AbstractServerGroupNameResolver {
 
   @Override
   List<AbstractServerGroupNameResolver.TakenSlot> getTakenSlots(String clusterName) {
-    def regionalManagedInstanceGroups = GCEUtil.queryRegionalManagedInstanceGroups(project, region, credentials)
+    def regionalManagedInstanceGroups = credentials.alphaListed ? GCEUtil.queryRegionalManagedInstanceGroups(project, region, credentials) : []
     def zonalManagedInstanceGroups = GCEUtil.queryZonalManagedInstanceGroups(project, region, credentials)
 
     def matchingRegionalManagedInstanceGroups = findMatchingManagedInstanceGroups(regionalManagedInstanceGroups, clusterName)
