@@ -123,7 +123,7 @@ class InfoControllerSpec extends Specification {
                 .setBody(body)
                 .setHeader('Content-Type', 'text/xml;charset=UTF-8')
         )
-        server.play()
+        server.start()
         service = new JenkinsConfig().jenkinsService("jenkins", new JenkinsConfig().jenkinsClient(server.getUrl('/').toString(), 'username', 'password'))
     }
 

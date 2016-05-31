@@ -122,11 +122,11 @@ class JenkinsService implements BuildService{
     }
 
     Response build(String jobName) {
-        return jenkinsClient.build(encode(jobName))
+        return jenkinsClient.build(encode(jobName), "")
     }
 
     Response buildWithParameters(String jobName, Map<String, String> queryParams) {
-        return jenkinsClient.buildWithParameters(encode(jobName), queryParams)
+        return jenkinsClient.buildWithParameters(encode(jobName), queryParams, "")
     }
 
     JobConfig getJobConfig(String jobName) {

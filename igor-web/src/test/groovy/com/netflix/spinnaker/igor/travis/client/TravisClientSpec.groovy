@@ -56,7 +56,7 @@ class TravisClientSpec extends Specification {
         setResponse '''{"access_token":"aCCeSSToKeN"}'''
 
         when:
-        AccessToken accessToken = client.accessToken("foo")
+        AccessToken accessToken = client.accessToken("foo", "")
 
         then:
         accessToken.accessToken == "aCCeSSToKeN"
@@ -381,7 +381,7 @@ class TravisClientSpec extends Specification {
                 .setBody(body)
                 .setHeader('Content-Type', 'application/json;charset=utf-8')
         )
-        server.play()
+        server.start()
         client = new TravisConfig().travisClient(server.getUrl('/').toString())
     }
 
@@ -391,7 +391,7 @@ class TravisClientSpec extends Specification {
                 .setBody(body)
                 .setHeader('Content-Type', 'text/plain;charset=utf-8')
         )
-        server.play()
+        server.start()
         client = new TravisConfig().travisClient(server.getUrl('/').toString())
 
     }

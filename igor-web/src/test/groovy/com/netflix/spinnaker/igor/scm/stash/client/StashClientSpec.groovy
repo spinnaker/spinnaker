@@ -48,7 +48,7 @@ class StashClientSpec extends Specification {
                 .setBody(body)
                 .setHeader('Content-Type', 'text/xml;charset=UTF-8')
         )
-        server.play()
+        server.start()
         client = new StashConfig().stashClient(server.getUrl('/').toString(), 'username', 'password')
     }
 

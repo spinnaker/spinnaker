@@ -47,7 +47,7 @@ class JenkinsServiceSpec extends Specification {
                 .setBody(getProjects())
                 .setHeader('Content-Type', 'text/xml;charset=UTF-8')
         )
-        server.play()
+        server.start()
         client = Mock(JenkinsClient)
         service = new JenkinsService('http://my.jenkins.net', client)
     }
@@ -79,9 +79,29 @@ class JenkinsServiceSpec extends Specification {
         'getBuild'            | [2]
         'getGitDetails'       | [2]
         'getLatestBuild'      | []
+        'getJobConfig'        | []
+    }
+
+    @Unroll
+    void 'the "#method" method with empty post encodes the job name'() {
+        when:
+        if (extra_args) {
+            service."${method}"(JOB_UNENCODED, *extra_args)
+        } else {
+            service."${method}"(JOB_UNENCODED)
+        }
+
+        then:
+        if (extra_args) {
+            1 * client."${method}"(JOB_ENCODED, *extra_args, '')
+        } else {
+            1 * client."${method}"(JOB_ENCODED, '')
+        }
+
+        where:
+        method                | extra_args
         'build'               | []
         'buildWithParameters' | [['key': 'value']]
-        'getJobConfig'        | []
     }
 
     void 'get a list of projects with the folders plugin'() {

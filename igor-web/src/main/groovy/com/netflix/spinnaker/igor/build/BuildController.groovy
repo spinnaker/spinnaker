@@ -119,14 +119,14 @@ class BuildController {
         // Jobs that haven't been started yet won't have a buildNumber
         // (They're still in the queue). We use 0 to denote that case
         if (buildNumber != 0) {
-            jenkinsService.stopRunningBuild(jobName, buildNumber)
+            jenkinsService.stopRunningBuild(jobName, buildNumber, "")
         }
 
         // The jenkins api for removing a job from the queue (http://<Jenkins_URL>/queue/cancelItem?id=<queuedBuild>)
         // always returns a 404. This try catch block insures that the exception is eaten instead
         // of being handled by the handleOtherException handler and returning a 500 to orca
         try {
-            jenkinsService.stopQueuedBuild(queuedBuild)
+            jenkinsService.stopQueuedBuild(queuedBuild, "")
         } catch (RetrofitError e) {
             if (e.response?.status != HttpStatus.NOT_FOUND.value()) {
                 throw e
@@ -151,12 +151,12 @@ class BuildController {
                 validateJobParameters(jobConfig, requestParams)
             }
             if (requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
-                response = jenkinsService.buildWithParameters(job, requestParams)
+                response = jenkinsService.buildWithParameters(job, requestParams, "")
             } else if (!requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
                 // account for when you just want to fire a job with the default parameter values by adding a dummy param
-                response = jenkinsService.buildWithParameters(job, ['startedBy': "igor"])
+                response = jenkinsService.buildWithParameters(job, ['startedBy': "igor"], "")
             } else if (!requestParams && (!jobConfig.parameterDefinitionList || jobConfig.parameterDefinitionList.size() == 0)) {
-                response = jenkinsService.build(job)
+                response = jenkinsService.build(job, "")
             } else { // Jenkins will reject the build, so don't even try
                 // we should throw a BuildJobError, but I get a bytecode error : java.lang.VerifyError: Bad <init> method call from inside of a branch
                 throw new RuntimeException("job : ${job}, passing params to a job which doesn't need them")

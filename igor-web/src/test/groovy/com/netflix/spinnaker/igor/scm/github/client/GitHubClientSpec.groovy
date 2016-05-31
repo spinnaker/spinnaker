@@ -48,7 +48,7 @@ class GitHubClientSpec extends Specification {
                 .setBody(body)
                 .setHeader('Content-Type', 'text/xml;charset=UTF-8')
         )
-        server.play()
+        server.start()
         client = new GitHubConfig().gitHubClient(server.getUrl('/').toString(), 'token')
     }
 

@@ -44,6 +44,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 
 import java.util.concurrent.Executors
 
@@ -162,7 +163,7 @@ class BuildControllerSpec extends Specification {
     void 'trigger a build without parameters'() {
         given:
         1 * client.getJobConfig(JOB_NAME) >> new JobConfig()
-        1 * client.build(JOB_NAME) >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${BUILD_NUMBER}")], null)
+        1 * client.build(JOB_NAME, "") >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${BUILD_NUMBER}")], null)
 
         when:
         MockHttpServletResponse response = mockMvc.perform(put("/masters/${MASTER}/jobs/${JOB_NAME}")
@@ -178,7 +179,7 @@ class BuildControllerSpec extends Specification {
     void 'trigger a build with parameters to a job with parameters'() {
         given:
         1 * client.getJobConfig(JOB_NAME) >> new JobConfig(parameterDefinitionList: [new ParameterDefinition(defaultName: "name", defaultValue: null, description: "description")])
-        1 * client.buildWithParameters(JOB_NAME,[name:"myName"]) >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${BUILD_NUMBER}")], null)
+        1 * client.buildWithParameters(JOB_NAME,[name:"myName"], "") >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${BUILD_NUMBER}")], null)
 
         when:
         MockHttpServletResponse response = mockMvc.perform(put("/masters/${MASTER}/jobs/${JOB_NAME}")
@@ -193,11 +194,11 @@ class BuildControllerSpec extends Specification {
     void 'trigger a build without parameters to a job with parameters with default values'() {
         given:
         1 * client.getJobConfig(JOB_NAME) >> new JobConfig(parameterDefinitionList: [new ParameterDefinition(defaultName: "name", defaultValue: "value", description: "description")])
-        1 * client.buildWithParameters(JOB_NAME, ['startedBy' : "igor"]) >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${BUILD_NUMBER}")], null)
+        1 * client.buildWithParameters(JOB_NAME, ['startedBy' : "igor"], "") >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${BUILD_NUMBER}")], null)
 
 
         when:
-        MockHttpServletResponse response = mockMvc.perform(put("/masters/${MASTER}/jobs/${JOB_NAME}")
+        MockHttpServletResponse response = mockMvc.perform(put("/masters/${MASTER}/jobs/${JOB_NAME}", "")
           .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
