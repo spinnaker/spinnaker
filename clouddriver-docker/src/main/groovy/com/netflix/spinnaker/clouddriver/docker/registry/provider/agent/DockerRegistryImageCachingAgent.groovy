@@ -16,17 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry.provider.agent
 
-import com.netflix.spinnaker.cats.agent.AccountAware
-import com.netflix.spinnaker.cats.agent.AgentDataType
-import com.netflix.spinnaker.cats.agent.CacheResult
-import com.netflix.spinnaker.cats.agent.CachingAgent
-import com.netflix.spinnaker.cats.agent.DefaultCacheResult
+import com.netflix.spinnaker.cats.agent.*
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.docker.registry.DockerRegistryCloudProvider
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryTags
 import com.netflix.spinnaker.clouddriver.docker.registry.cache.DefaultCacheDataBuilder
 import com.netflix.spinnaker.clouddriver.docker.registry.cache.Keys
-import com.netflix.spinnaker.clouddriver.docker.registry.exception.DockerRegistryConfigException
 import com.netflix.spinnaker.clouddriver.docker.registry.provider.DockerRegistryProvider
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryCredentials
 import groovy.util.logging.Slf4j
@@ -102,23 +97,29 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware {
       tags.forEach { tag ->
         def tagKey = Keys.getTaggedImageKey(accountName, repository, tag)
         def digest = null
-        try {
-          digest = credentials.client.getDigest(repository, tag)
-        } catch (Exception e) {
-          log.warn("Image $tagKey does not have a manifest; will not be placed in the cache: $e.message")
-          return
-        }
 
-        if (!digest) {
-          log.warn("Image $tagKey does not have a manifest; will not be placed in the cache")
-        } else {
-          cachedTags[tagKey].with {
-            attributes.name = "${repository}:${tag}".toString()
-            attributes.account = accountName
-            attributes.digest = digest
+        if (credentials.trackDigests) {
+          try {
+            digest = credentials.client.getDigest(repository, tag)
+          } catch (Exception e) {
+            if (e instanceof RetrofitError && ((RetrofitError) e).response?.status == 404) {
+              // Indicates inconsistency in registry, or deletion between call for all tags and manifest retrieval.
+              // In either case, we need to trust that this tag no longer exists.
+              log.warn("Image manifest for $tagKey no longer available; tag will not be cached: $e.message")
+              return
+            } else {
+              // Could be intermittent error, not caching the tag here will cause spurious tag creation/deletion events
+              // when the error is resolved.
+              log.warn("Error retrieving manifest for $tagKey; digest will not be cached: $e.message")
+            }
           }
         }
 
+        cachedTags[tagKey].with {
+          attributes.name = "${repository}:${tag}".toString()
+          attributes.account = accountName
+          attributes.digest = digest
+        }
       }
 
       null

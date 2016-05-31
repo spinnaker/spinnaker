@@ -29,14 +29,15 @@ import java.util.concurrent.TimeUnit
 public class DockerRegistryNamedAccountCredentials implements AccountCredentials<DockerRegistryCredentials> {
   public DockerRegistryNamedAccountCredentials(String accountName, String environment, String accountType,
                                                String address, String username, String password, String passwordFile, String email,
-                                               int cacheThreads, long clientTimeoutMillis, int paginateSize, List<String> repositories) {
-    this(accountName, environment, accountType, address, username, password, passwordFile, email, repositories, cacheThreads, clientTimeoutMillis, paginateSize, null)
+                                               int cacheThreads, long clientTimeoutMillis, int paginateSize, boolean trackDigests,
+                                               List<String> repositories) {
+    this(accountName, environment, accountType, address, username, password, passwordFile, email, repositories, cacheThreads, clientTimeoutMillis, paginateSize, trackDigests, null)
   }
 
   public DockerRegistryNamedAccountCredentials(String accountName, String environment, String accountType,
                                                String address, String username, String password, String passwordFile, String email,
                                                List<String> repositories, int cacheThreads, long clientTimeoutMillis,
-                                               int paginateSize, List<String> requiredGroupMembership) {
+                                               int paginateSize, boolean trackDigests, List<String> requiredGroupMembership) {
     if (!accountName) {
       throw new IllegalArgumentException("Docker Registry account must be provided with a name.")
     }
@@ -76,6 +77,7 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
     }
     this.password = password
     this.email = email
+    this.trackDigests = trackDigests
     this.requiredGroupMembership = requiredGroupMembership == null ? Collections.emptyList() : Collections.unmodifiableList(requiredGroupMembership)
     this.credentials = buildCredentials(repositories)
   }
@@ -111,7 +113,7 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
   private DockerRegistryCredentials buildCredentials(List<String> repositories) {
     try {
       DockerRegistryClient client = new DockerRegistryClient(address, email, username, password, clientTimeoutMillis, paginateSize)
-      return new DockerRegistryCredentials(client, repositories)
+      return new DockerRegistryCredentials(client, repositories, trackDigests)
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
         throw new DockerRegistryConfigException("No repositories specified for ${name}, and the provided endpoint ${address} does not support /_catalog.")
@@ -130,6 +132,7 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
   final String username
   final String password
   final String email
+  final boolean trackDigests
   final int cacheThreads
   final long clientTimeoutMillis
   final int paginateSize

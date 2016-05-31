@@ -39,8 +39,10 @@ class DockerRegistryConfigurationProperties {
     int cacheThreads
     // Timeout time in milliseconds for this repository. Default is 60,000 (1 minute).
     long clientTimeoutMillis
-    // Paginate size for the docker repository /_catalog endpoint. Default is 100
+    // Paginate size for the docker repository /_catalog endpoint. Default is 100.
     int paginateSize
+    // Track digest changes. This is _not_ recommended as it consumes a high QPM, and most registries are flaky.
+    boolean trackDigests
     // List of all repositories to index. Can be of the form <user>/<repo>,
     // or <library> for repositories like 'ubuntu'.
     List<String> repositories

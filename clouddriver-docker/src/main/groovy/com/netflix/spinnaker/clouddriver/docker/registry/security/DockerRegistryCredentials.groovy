@@ -19,12 +19,14 @@ package com.netflix.spinnaker.clouddriver.docker.registry.security
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryClient
 
 public class DockerRegistryCredentials {
-  private final DockerRegistryClient client;
-  private List<String> repositories;
-  private final boolean reloadRepositories;
+  private final DockerRegistryClient client
+  private List<String> repositories
+  private final boolean reloadRepositories
+  private final boolean trackDigests
 
-  public DockerRegistryCredentials(DockerRegistryClient client, List<String> repositories) {
+  public DockerRegistryCredentials(DockerRegistryClient client, List<String> repositories, boolean trackDigests) {
     this.client = client;
+    this.trackDigests = trackDigests
     if (!repositories) {
       this.reloadRepositories = true
       // Don't load the repositories yet, as it delays application startup time.
@@ -35,12 +37,16 @@ public class DockerRegistryCredentials {
   }
 
   public DockerRegistryClient getClient() {
-    return client;
+    return client
+  }
+
+  public boolean getTrackDigests() {
+    return trackDigests
   }
 
   public List<String> getRepositories() {
     if (reloadRepositories) {
-      repositories = client.getCatalog()?.repositories;
+      repositories = client.getCatalog()?.repositories
     }
     return repositories
   }
