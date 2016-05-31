@@ -145,7 +145,12 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
         } else {
           // No JSON key was specified in matching config on key server, so use application default credentials.
           GoogleCredential credential = GoogleCredential.getApplicationDefault();
-          Compute compute = new Compute.Builder(httpTransport, jsonFactory, credential).setApplicationName(applicationName).build();
+          Compute compute =
+            new Compute.Builder(httpTransport, jsonFactory, credential)
+                .setApplicationName(applicationName)
+                .setHttpRequestInitializer(setHttpTimeout(credential))
+                .setServicePath(alphaListed ? COMPUTE_ALPHA_SERVICE_PATH : COMPUTE_SERVICE_PATH)
+                .build();
 
           return new GoogleCredentials(projectName, compute, alphaListed, imageProjects, requiredGroupMembership, accountName);
         }
