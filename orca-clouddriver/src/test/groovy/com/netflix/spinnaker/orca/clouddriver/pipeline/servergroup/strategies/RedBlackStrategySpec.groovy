@@ -81,9 +81,9 @@ class RedBlackStrategySpec extends Specification {
     then:
       stage.afterStages.size() == 3
       stage.afterStages[0].stageBuilder == shrinkClusterStage
-      stage.afterStages[1].stageBuilder == scaleDownClusterStage
-      stage.afterStages[1].context.allowScaleDownActive == true
-      stage.afterStages[2].stageBuilder == disableClusterStage
+      stage.afterStages[1].stageBuilder == disableClusterStage
+      stage.afterStages[2].stageBuilder == scaleDownClusterStage
+      stage.afterStages[2].context.allowScaleDownActive == false
 
   }
 }
