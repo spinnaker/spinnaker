@@ -20,13 +20,14 @@ import com.netflix.spinnaker.igor.travis.client.model.AccessToken
 import com.netflix.spinnaker.igor.travis.client.model.Accounts
 import com.netflix.spinnaker.igor.travis.client.model.Build
 import com.netflix.spinnaker.igor.travis.client.model.Builds
+import com.netflix.spinnaker.igor.travis.client.model.EmptyObject
+import com.netflix.spinnaker.igor.travis.client.model.GithubAuth
 import com.netflix.spinnaker.igor.travis.client.model.Jobs
 import com.netflix.spinnaker.igor.travis.client.model.Repo
 import com.netflix.spinnaker.igor.travis.client.model.RepoRequest
 import com.netflix.spinnaker.igor.travis.client.model.RepoWrapper
 import com.netflix.spinnaker.igor.travis.client.model.Repos
 import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse
-import com.squareup.okhttp.RequestBody
 import retrofit.client.Response
 import retrofit.http.Body
 import retrofit.http.EncodedPath
@@ -41,7 +42,7 @@ import retrofit.http.Streaming
 interface TravisClient {
 
     @POST('/auth/github')
-    AccessToken accessToken(@Query('github_token') String githubToken, @Body String emptyBody)
+    AccessToken accessToken(@Body GithubAuth gitHubAuth)
 
     @GET('/accounts')
     Accounts accounts(@Header("Authorization") String accessToken)
@@ -81,7 +82,7 @@ interface TravisClient {
     TriggerResponse triggerBuild(@Header("Authorization") String accessToken, @Path('repoSlug') String repoSlug, @Body RepoRequest repoRequest)
 
     @POST('/users/sync')
-    Response usersSync(@Header("Authorization") String accessToken, @Body emptySting)
+    Response usersSync(@Header("Authorization") String accessToken, @Body EmptyObject emptyObject)
 
     @GET('/jobs/{job_id}')
     Jobs jobs(@Header("Authorization") String accessToken , @Path('job_id') int jobId)

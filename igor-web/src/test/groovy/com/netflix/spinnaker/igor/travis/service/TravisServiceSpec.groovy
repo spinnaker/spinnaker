@@ -38,6 +38,10 @@ class TravisServiceSpec extends Specification{
     void setup() {
         client = Mock(TravisClient)
         service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', client, null)
+
+        AccessToken accessToken = new AccessToken()
+        accessToken.accessToken = "someToken"
+        service.accessToken = accessToken
     }
 
     def "getGenericBuild(build, repoSlug)" () {
@@ -123,15 +127,12 @@ class TravisServiceSpec extends Specification{
         commit.branch = "1.0"
         commit.compareUrl = "https://github.domain/org/repo/compare/1.0"
         Builds builds = Mock(Builds)
-        AccessToken accessToken = new AccessToken()
-        accessToken.accessToken = "someToken"
 
         when:
         Commit fetchedCommit = service.getCommit("org/repo", 38)
 
         then:
         fetchedCommit.isTag()
-        1 * client.accessToken("someToken", "") >> accessToken
         1 * client.builds("token someToken", "org/repo", 38) >> builds
         2 * builds.commits >> [commit]
     }
@@ -139,15 +140,12 @@ class TravisServiceSpec extends Specification{
     def "getCommit(repoSlug, buildNumber) when no commit is found"() {
         given:
         Builds builds = Mock(Builds)
-        AccessToken accessToken = new AccessToken()
-        accessToken.accessToken = "someToken"
 
         when:
         service.getCommit("org/repo", 38)
 
         then:
         thrown NoSuchFieldException
-        1 * client.accessToken("someToken", "") >> accessToken
         1 * client.builds("token someToken", "org/repo", 38) >> builds
         1 * builds.commits >> []
     }
@@ -156,8 +154,6 @@ class TravisServiceSpec extends Specification{
         given:
         Builds builds = Mock(Builds)
         Build build = Mock(Build)
-        AccessToken accessToken = new AccessToken()
-        accessToken.accessToken = "someToken"
         Commit commit = Mock(Commit)
 
         when:
@@ -165,7 +161,6 @@ class TravisServiceSpec extends Specification{
 
         then:
         branchedRepoSlug == "my/slug/pull_request_master"
-        1 * client.accessToken("someToken", "") >> accessToken
         1 * client.builds("token someToken", "my/slug", 21) >> builds
         2 * builds.builds >> [build]
         1 * build.pullRequest >> true

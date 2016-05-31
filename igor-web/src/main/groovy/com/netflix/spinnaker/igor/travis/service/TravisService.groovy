@@ -31,6 +31,8 @@ import com.netflix.spinnaker.igor.travis.client.model.Accounts
 import com.netflix.spinnaker.igor.travis.client.model.Build
 import com.netflix.spinnaker.igor.travis.client.model.Builds
 import com.netflix.spinnaker.igor.travis.client.model.Commit
+import com.netflix.spinnaker.igor.travis.client.model.EmptyObject
+import com.netflix.spinnaker.igor.travis.client.model.GithubAuth
 import com.netflix.spinnaker.igor.travis.client.model.Job
 import com.netflix.spinnaker.igor.travis.client.model.Jobs
 import com.netflix.spinnaker.igor.travis.client.model.Repo
@@ -46,15 +48,15 @@ import retrofit.mime.TypedByteArray
 class TravisService implements BuildService {
     final String baseUrl
     final String groupKey
-    final String githubToken
+    final GithubAuth gitHubAuth
     final TravisClient travisClient
     final TravisCache travisCache
-    private AccessToken accessToken
+    protected AccessToken accessToken
     private Accounts accounts
 
     TravisService(String travisHostId, String baseUrl, String githubToken, TravisClient travisClient, TravisCache travisCache) {
         this.groupKey     = "${travisHostId}"
-        this.githubToken  = githubToken
+        this.gitHubAuth   = new GithubAuth(githubToken)
         this.travisClient = travisClient
         this.baseUrl      = baseUrl
         this.travisCache  = travisCache
@@ -300,7 +302,7 @@ class TravisService implements BuildService {
 
     void syncRepos() {
         try {
-            travisClient.usersSync(getAccessToken(), "")
+            travisClient.usersSync(getAccessToken(), new EmptyObject())
         } catch (RetrofitError e) {
             log.error "synchronizing travis repositories for ${groupKey} failed with error: ${e.message}"
         }
@@ -328,7 +330,7 @@ class TravisService implements BuildService {
     }
 
     private void setAccessToken() {
-        this.accessToken = travisClient.accessToken(githubToken, "")
+        this.accessToken = travisClient.accessToken(gitHubAuth)
     }
 
     private String getAccessToken() {

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.igor.travis.client.model.Account
 import com.netflix.spinnaker.igor.travis.client.model.Accounts
 import com.netflix.spinnaker.igor.travis.client.model.Build
 import com.netflix.spinnaker.igor.travis.client.model.Builds
+import com.netflix.spinnaker.igor.travis.client.model.GithubAuth
 import com.netflix.spinnaker.igor.travis.client.model.Job
 import com.netflix.spinnaker.igor.travis.client.model.Jobs
 import com.netflix.spinnaker.igor.travis.client.model.RepoRequest
@@ -56,7 +57,7 @@ class TravisClientSpec extends Specification {
         setResponse '''{"access_token":"aCCeSSToKeN"}'''
 
         when:
-        AccessToken accessToken = client.accessToken("foo", "")
+        AccessToken accessToken = client.accessToken(new GithubAuth("foo"))
 
         then:
         accessToken.accessToken == "aCCeSSToKeN"
