@@ -138,11 +138,11 @@ class JenkinsService implements BuildService{
     }
 
     Response stopRunningBuild (String jobName, Integer buildNumber){
-        return jenkinsClient.stopRunningBuild(encode(jobName), buildNumber)
+        return jenkinsClient.stopRunningBuild(encode(jobName), buildNumber, "")
     }
 
     Response stopQueuedBuild (String queuedBuild) {
-        return jenkinsClient.stopQueuedBuild(queuedBuild)
+        return jenkinsClient.stopQueuedBuild(queuedBuild, "")
     }
 
   /**

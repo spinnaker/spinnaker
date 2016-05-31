@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.igor.build
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.igor.build.BuildCache
-import com.netflix.spinnaker.igor.build.BuildController
 import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
@@ -44,7 +42,6 @@ import spock.lang.Shared
 import spock.lang.Specification
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 
 import java.util.concurrent.Executors
 
@@ -57,7 +54,7 @@ class BuildControllerSpec extends Specification {
     MockMvc mockMvc
     BuildMasters buildMasters
     BuildCache cache
-    JenkinsClient client
+    JenkinsService jenkinsService
     BuildService service
     TravisService travisService
 
@@ -77,7 +74,7 @@ class BuildControllerSpec extends Specification {
     }
 
     void setup() {
-        client = Mock(JenkinsClient)
+        jenkinsService = Mock(JenkinsService)
         service = Mock(BuildService)
         travisService = Mock(TravisService)
         cache = Mock(BuildCache)
@@ -102,35 +99,35 @@ class BuildControllerSpec extends Specification {
 
     void 'get an item from the queue'() {
         given:
-        1 * client.getQueuedItem(QUEUED_JOB_NUMBER) >> new QueuedJob(number: QUEUED_JOB_NUMBER)
+        1 * jenkinsService.getQueuedItem(QUEUED_JOB_NUMBER) >> new QueuedJob(number: QUEUED_JOB_NUMBER)
 
         when:
         MockHttpServletResponse response = mockMvc.perform(get("/builds/queue/${MASTER}/${QUEUED_JOB_NUMBER}")
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: client]
-        1 * buildMasters.map >> [MASTER: client]
+        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: jenkinsService]
+        1 * buildMasters.map >> [MASTER: jenkinsService]
         response.contentAsString == "{\"number\":${QUEUED_JOB_NUMBER}}"
     }
 
     void 'get a list of builds for a job'() {
         given:
-        1 * client.getBuilds(JOB_NAME) >> new BuildsList(list: [new Build(number: 111), new Build(number: 222)])
+        1 * jenkinsService.getBuilds(JOB_NAME) >> new BuildsList(list: [new Build(number: 111), new Build(number: 222)])
 
         when:
         MockHttpServletResponse response = mockMvc.perform(get("/builds/all/${MASTER}/${JOB_NAME}")
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: client]
-        1 * buildMasters.map >> [MASTER: client]
+        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: jenkinsService]
+        1 * buildMasters.map >> [MASTER: jenkinsService]
         response.contentAsString == "[{\"building\":false,\"number\":111},{\"building\":false,\"number\":222}]"
     }
 
     void 'get properties of a build with a bad filename'() {
         given:
-        1 * client.getBuild(JOB_NAME, BUILD_NUMBER) >> new Build(
+        1 * jenkinsService.getBuild(JOB_NAME, BUILD_NUMBER) >> new Build(
              number: BUILD_NUMBER, artifacts: [new BuildArtifact(fileName: FILE_NAME, relativePath: FILE_NAME)])
 
         when:
@@ -139,8 +136,8 @@ class BuildControllerSpec extends Specification {
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: client]
-        1 * buildMasters.map >> [MASTER: client]
+        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: jenkinsService]
+        1 * buildMasters.map >> [MASTER: jenkinsService]
         response.contentAsString == "{}"
     }
 
@@ -162,39 +159,39 @@ class BuildControllerSpec extends Specification {
 
     void 'trigger a build without parameters'() {
         given:
-        1 * client.getJobConfig(JOB_NAME) >> new JobConfig()
-        1 * client.build(JOB_NAME, "") >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${BUILD_NUMBER}")], null)
+        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig()
+        1 * jenkinsService.build(JOB_NAME) >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${BUILD_NUMBER}")], null)
 
         when:
         MockHttpServletResponse response = mockMvc.perform(put("/masters/${MASTER}/jobs/${JOB_NAME}")
           .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: client]
-        1 * buildMasters.map >> [MASTER: client]
+        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: jenkinsService]
+        1 * buildMasters.map >> [MASTER: jenkinsService]
         response.contentAsString == BUILD_NUMBER.toString()
 
     }
 
     void 'trigger a build with parameters to a job with parameters'() {
         given:
-        1 * client.getJobConfig(JOB_NAME) >> new JobConfig(parameterDefinitionList: [new ParameterDefinition(defaultName: "name", defaultValue: null, description: "description")])
-        1 * client.buildWithParameters(JOB_NAME,[name:"myName"], "") >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${BUILD_NUMBER}")], null)
+        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(parameterDefinitionList: [new ParameterDefinition(defaultName: "name", defaultValue: null, description: "description")])
+        1 * jenkinsService.buildWithParameters(JOB_NAME,[name:"myName"]) >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${BUILD_NUMBER}")], null)
 
         when:
         MockHttpServletResponse response = mockMvc.perform(put("/masters/${MASTER}/jobs/${JOB_NAME}")
           .contentType(MediaType.APPLICATION_JSON).param("name", "myName")).andReturn().response
 
         then:
-        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: client]
-        1 * buildMasters.map >> [MASTER: client]
+        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: jenkinsService]
+        1 * buildMasters.map >> [MASTER: jenkinsService]
         response.contentAsString == BUILD_NUMBER.toString()
     }
 
     void 'trigger a build without parameters to a job with parameters with default values'() {
         given:
-        1 * client.getJobConfig(JOB_NAME) >> new JobConfig(parameterDefinitionList: [new ParameterDefinition(defaultName: "name", defaultValue: "value", description: "description")])
-        1 * client.buildWithParameters(JOB_NAME, ['startedBy' : "igor"], "") >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${BUILD_NUMBER}")], null)
+        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(parameterDefinitionList: [new ParameterDefinition(defaultName: "name", defaultValue: "value", description: "description")])
+        1 * jenkinsService.buildWithParameters(JOB_NAME, ['startedBy': "igor"]) >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${BUILD_NUMBER}")], null)
 
 
         when:
@@ -202,22 +199,22 @@ class BuildControllerSpec extends Specification {
           .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: client]
-        1 * buildMasters.map >> [MASTER: client]
+        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: jenkinsService]
+        1 * buildMasters.map >> [MASTER: jenkinsService]
         response.contentAsString == BUILD_NUMBER.toString()
     }
 
     void 'trigger a build with parameters to a job without parameters'() {
         given:
-        1 * client.getJobConfig(JOB_NAME) >> new JobConfig()
+        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig()
 
         when:
         MockHttpServletResponse response = mockMvc.perform(put("/masters/${MASTER}/jobs/${JOB_NAME}")
           .contentType(MediaType.APPLICATION_JSON).param("foo", "bar")).andReturn().response
 
         then:
-        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: client]
-        1 * buildMasters.map >> [MASTER: client]
+        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: jenkinsService]
+        1 * buildMasters.map >> [MASTER: jenkinsService]
         response.status == HttpStatus.INTERNAL_SERVER_ERROR.value()
     }
 
@@ -227,15 +224,15 @@ class BuildControllerSpec extends Specification {
         config.parameterDefinitionList = [
             new ParameterDefinition(type: "ChoiceParameterDefinition", name: "foo", choices: ["bar", "baz"])
         ]
-        1 * client.getJobConfig(JOB_NAME) >> config
+        1 * jenkinsService.getJobConfig(JOB_NAME) >> config
 
         when:
         MockHttpServletResponse response = mockMvc.perform(put("/masters/${MASTER}/jobs/${JOB_NAME}")
             .contentType(MediaType.APPLICATION_JSON).param("foo", "bat")).andReturn().response
 
         then:
-        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: client]
-        1 * buildMasters.map >> [MASTER: client]
+        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: jenkinsService]
+        1 * buildMasters.map >> [MASTER: jenkinsService]
         response.status == HttpStatus.BAD_REQUEST.value()
         response.errorMessage == "`bat` is not a valid choice for `foo`. Valid choices are: bar, baz"
     }
