@@ -23,14 +23,20 @@ import groovy.util.logging.Slf4j
 @CompileStatic
 @Slf4j
 class ArtifactParser {
+
+    static def REGEXES = [ /Uploading artifact: https?:\/\/.+\/(.+\.(deb|rpm)).*/,
+                          /Successfully pushed (.+\.(deb|rpm)) to .*/ ]
+
     static List<GenericArtifact> getArtifactsFromLog(String buildLog) {
         List<GenericArtifact> artifacts = new ArrayList<GenericArtifact>()
         buildLog.split('\n').each { line ->
             def m
-            if ((m = line =~ /Uploading artifact: https?:\/\/.+\/(.+\.(deb|rpm)).*/)) {
-                def match = m.group(1)
-                log.debug "Found artifact: ${match}"
-                artifacts.add new GenericArtifact(match,match,match)
+            for (def regex : REGEXES) {
+                if ((m = line =~ regex)) {
+                    def match = m.group(1)
+                    log.debug "Found artifact: ${match}"
+                    artifacts.add new GenericArtifact(match,match,match)
+                }
             }
         }
         artifacts

@@ -18,29 +18,9 @@ package com.netflix.spinnaker.igor.travis.client.logparser
 
 import com.netflix.spinnaker.igor.build.model.GenericArtifact
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class ArtifactParserTest extends Specification {
-    def "get single artifactory deb from log"() {
-        String buildLog = "[Thread 0] Uploading artifact: https://foo.host/artifactory/debian-local/some/nice/path/some-package_0.0.7_amd64.deb;deb.distribution=trusty;deb.component=main;deb.architecture=amd64\n" +
-            "[Thread 0] Artifactory response: 201 Created"
-        when:
-        List<GenericArtifact> artifacts = ArtifactParser.getArtifactsFromLog(buildLog)
-
-        then:
-        artifacts.first().fileName == "some-package_0.0.7_amd64.deb"
-    }
-
-    def "get single artifactory rpm from log"() {
-        String buildLog = "[Thread 0] Uploading artifact: https://foo.host/artifactory/yum-local/some/nice/path/some-package-0.0.4.1-1.x86_64.rpm\n" +
-            "[Thread 0] Artifactory response: 201 Created\n" +
-            "Uploaded 1 artifacts to Artifactory."
-        when:
-        List<GenericArtifact> artifacts = ArtifactParser.getArtifactsFromLog(buildLog)
-
-        then:
-        artifacts.first().fileName == "some-package-0.0.4.1-1.x86_64.rpm"
-    }
-
     def "get multiple artifactory deb from log"() {
         String buildLog = "[Thread 0] Uploading artifact: https://foo.host/artifactory/debian-local/some/nice/path/some-package_0.0.7_amd64.deb;deb.distribution=trusty;deb.component=main;deb.architecture=amd64\n" +
             "[Thread 0] Artifactory response: 201 Created\n" +
@@ -52,5 +32,20 @@ class ArtifactParserTest extends Specification {
         then:
         artifacts.first().fileName == "some-package_0.0.7_amd64.deb"
         artifacts.last().fileName == "some-other-package_1.3.3.7_amd64.deb"
+    }
+
+    @Unroll
+    def "get single deb or rpm from log"() {
+        expect:
+        ArtifactParser.getArtifactsFromLog(buildLog).first().fileName == packageName
+
+        where:
+        buildLog                     || packageName
+        "Successfully pushed package-name.0.0-20160531141100_amd64.deb to org/repo" ||
+            "package-name.0.0-20160531141100_amd64.deb" // packagecloud
+        "[Thread 0] Uploading artifact: https://foo.host/artifactory/yum-local/some/nice/path/some-package-0.0.4.1-1.x86_64.rpm"   ||
+            "some-package-0.0.4.1-1.x86_64.rpm" // artifactory
+        "[Thread 0] Uploading artifact: https://foo.host/artifactory/debian-local/some/nice/path/some-package_0.0.7_amd64.deb;deb.distribution=trusty;deb.component=main;deb.architecture=amd64" ||
+            "some-package_0.0.7_amd64.deb" // artifactory
     }
 }
