@@ -124,6 +124,12 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
 
   private List<GoogleServerGroup> constructServerGroups(ProviderCache providerCache, String onDemandServerGroupName = null) {
     Set<String> zoneNames = credentials.getZonesFromRegion(region).collect { Utils.getLocalName(it) } as Set
+
+    // The RMIG will deploy to the last 3 zones (after sorting by zone name).
+    if (zoneNames.size() > 3) {
+      zoneNames = zoneNames.sort().drop(zoneNames.size() - 3)
+    }
+
     List<GoogleServerGroup> serverGroups = []
 
     BatchRequest igmRequest = buildBatchRequest()
