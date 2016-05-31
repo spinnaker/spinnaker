@@ -1,14 +1,22 @@
 ext {
   springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
+  springProfiles = System.getProperty('spring.profiles.active', "test,local")
   repackage = System.getProperty('springBoot.repackage', "false")
 }
 
 tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
   systemProperty('spring.config.location', project.springConfigLocation)
+  systemProperty('spring.profiles.active', project.springProfiles)
 }
 
 apply plugin: 'spring-boot'
 apply plugin: 'nebula.ospackage'
+
+repositories {
+  maven {
+    url 'https://repo.spring.io/libs-snapshot'
+  }
+}
 
 dependencies {
   compile project(":gate-manual")
@@ -21,8 +29,17 @@ dependencies {
   compile spinnaker.dependency("korkWeb")
   compile spinnaker.dependency("frigga")
   compile spinnaker.dependency('cglib')
+  compile('com.github.kstyrc:embedded-redis:0.6')
   compile('org.springframework.session:spring-session-data-redis:1.1.1.RELEASE')
+  compile("org.springframework.cloud:spring-cloud-security:1.0.3.RELEASE")
   compile('org.opensaml:opensaml:2.6.4')
+  compile("com.google.api-client:google-api-client:1.21.0")
+  compile("com.google.apis:google-api-services-admin-directory:directory_v1-rev65-1.21.0")
+  compile("org.springframework.security.extensions:spring-security-saml2-core:1.0.2.RELEASE")
+  compile("org.springframework.security.extensions:spring-security-saml-dsl:1.0.0.M3") {
+    exclude group: 'org.springframework.boot'
+    exclude group: 'org.springframework.security'
+  }
 
   testCompile "com.squareup.okhttp:mockwebserver:${spinnaker.version('okHttp')}"
 

@@ -75,3 +75,67 @@ hystrix:
     fetchGlobalAccounts:
       execution.isolation.thread.timeoutInMilliseconds: 2000
 
+spring:
+  jackson:
+    mapper:
+      SORT_PROPERTIES_ALPHABETICALLY: true
+    serialization:
+      ORDER_MAP_ENTRIES_BY_KEYS: true
+
+---
+
+spring:
+  profiles: googleOAuth
+  oauth2:
+    client:
+      # Set these values in your own config file (e.g. spinnaker-local.yml or gate-googleOAuth.yml).
+      # clientId:
+      # clientSecret:
+      accessTokenUri: https://www.googleapis.com/oauth2/v4/token
+      userAuthorizationUri: https://accounts.google.com/o/oauth2/v2/auth?access_type=offline
+      scope: "profile email"
+    resource:
+      userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
+    userInfoMapping:
+      email: email
+      firstName: given_name
+      lastName: family_name
+
+---
+
+spring:
+  profiles: azureOAuth
+  oauth2:
+    client:
+      # Set these values in your own config file (e.g. spinnaker-local.yml or gate-azureOAuth.yml).
+      # clientId:
+      # clientSecret:
+      accessTokenUri: https://login.microsoftonline.com/${azureTenantId}/oauth2/token
+      userAuthorizationUri: https://login.microsoftonline.com/${azureTenantId}/oauth2/authorize?resource=https://graph.windows.net
+      scope: "profile"
+      clientAuthenticationScheme: query
+    resource:
+      userInfoUri: https://graph.windows.net/me?api-version=1.6
+    userInfoMapping:
+      email: userPrincipalName
+      firstName: givenName
+      lastName: surname
+
+---
+
+spring:
+  profiles: githubOAuth
+  oauth2:
+    client:
+      # Set these values in your own config file (e.g. spinnaker-local.yml or gate-githubOAuth.yml).
+      # clientId:
+      # clientSecret:
+      userAuthorizationUri: https://github.com/login/oauth/authorize
+      accessTokenUri: https://github.com/login/oauth/access_token
+      scope: user:email
+    resource:
+      userInfoUri: https://api.github.com/user
+    userInfoMapping:
+      email: email
+      firstName:
+      lastName: name

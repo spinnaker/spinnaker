@@ -55,13 +55,13 @@ class BuildController {
 
   @RequestMapping(value = "/v2/builds/{buildMaster}/builds/**", method = RequestMethod.GET)
   List getBuilds(@PathVariable("buildMaster") String buildMaster, HttpServletRequest request) {
-    def job = request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE)toString().split('/').drop(5).join('/')
+    def job = request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).toString().split('/').drop(5).join('/')
     buildService.getBuilds(buildMaster, job)
   }
 
   @RequestMapping(value = "/v2/builds/{buildMaster}/build/{number}/**", method = RequestMethod.GET)
   Map getBuild(@PathVariable("buildMaster") String buildMaster, @PathVariable("number") String number, HttpServletRequest request) {
-    def job = request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE)toString().split('/').drop(6).join('/')
+    def job = request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).toString().split('/').drop(6).join('/')
     buildService.getBuild(buildMaster, job, number)
   }
 

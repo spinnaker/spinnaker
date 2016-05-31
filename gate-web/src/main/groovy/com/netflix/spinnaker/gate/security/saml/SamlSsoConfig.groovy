@@ -1,0 +1,189 @@
+/*
+ * Copyright 2014 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.netflix.spinnaker.gate.security.saml
+
+import com.netflix.spinnaker.gate.security.AuthConfig
+import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
+import com.netflix.spinnaker.gate.security.rolesprovider.UserRolesProvider
+import com.netflix.spinnaker.gate.services.AccountsService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.security.User
+import groovy.util.logging.Slf4j
+import org.opensaml.saml2.core.Assertion
+import org.opensaml.saml2.core.Attribute
+import org.opensaml.xml.schema.XSString
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
+import org.springframework.boot.autoconfigure.web.ServerProperties
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
+import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
+import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity
+import org.springframework.security.core.userdetails.UserDetailsService
+import org.springframework.security.core.userdetails.UsernameNotFoundException
+import org.springframework.security.saml.SAMLCredential
+import org.springframework.security.saml.userdetails.SAMLUserDetailsService
+import org.springframework.security.web.authentication.RememberMeServices
+import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices
+import org.springframework.stereotype.Component
+
+import static org.springframework.security.extensions.saml2.config.SAMLConfigurer.saml
+
+@ConditionalOnExpression('${saml.enabled:false}')
+@Configuration
+@SpinnakerAuthConfig
+@EnableWebMvcSecurity
+@Import(SecurityAutoConfiguration)
+@Slf4j
+class SamlSsoConfig extends WebSecurityConfigurerAdapter {
+
+  @Autowired
+  ServerProperties serverProperties
+
+  @Component
+  @ConfigurationProperties("saml")
+  static class SAMLSecurityConfigProperties {
+    String keyStore
+    String keyStorePassword
+    String keyStoreAliasName
+
+    // SAML DSL uses a metadata URL instead of hard coding a certificate/issuerId/redirectBase into the config.
+    String metadataUrl
+    // The hostname of this server passed to the SAML IdP.
+    String redirectHostname
+    // The application identifier given to the IdP for this app.
+    String issuerId
+
+    UserAttributeMapping userAttributeMapping = new UserAttributeMapping()
+  }
+
+  static class UserAttributeMapping {
+    String firstName = "User.FirstName"
+    String lastName = "User.LastName"
+    String roles = "memberOf"
+    String username
+  }
+
+  @Autowired
+  SAMLSecurityConfigProperties samlSecurityConfigProperties
+
+  @Autowired
+  SAMLUserDetailsService samlUserDetailsService
+
+  @Autowired(required = false)
+  List<SamlSsoConfigurer> configurers
+
+  @Override
+  void configure(HttpSecurity http) {
+    http.rememberMe().rememberMeServices(rememberMeServices(userDetailsService()))
+      .and()
+      .authorizeRequests().antMatchers("/saml/**").permitAll()
+
+    AuthConfig.configure(http)
+
+    configurers?.each {
+      it.configure(http)
+    }
+
+    http
+      .apply(saml())
+          .userDetailsService(samlUserDetailsService)
+          .identityProvider()
+            .metadataFilePath(samlSecurityConfigProperties.metadataUrl)
+            .discoveryEnabled(false)
+            .and()
+          .serviceProvider()
+            .entityId(samlSecurityConfigProperties.issuerId)
+            .protocol(serverProperties?.ssl?.enabled ? "https" : "http")
+            .hostname(samlSecurityConfigProperties.redirectHostname ?: serverProperties?.address?.hostName)
+            .basePath("/")
+            .keyStore()
+              .storeFilePath(samlSecurityConfigProperties.keyStore)
+              .password(samlSecurityConfigProperties.keyStorePassword)
+              .keyname(samlSecurityConfigProperties.keyStoreAliasName)
+              .keyPassword(samlSecurityConfigProperties.keyStorePassword)
+  }
+
+  @Bean
+  public RememberMeServices rememberMeServices(UserDetailsService userDetailsService) {
+    TokenBasedRememberMeServices rememberMeServices = new TokenBasedRememberMeServices("password", userDetailsService)
+    rememberMeServices.setCookieName("cookieName")
+    rememberMeServices.setParameter("rememberMe")
+    rememberMeServices
+  }
+
+  @Bean
+  SAMLUserDetailsService samlUserDetailsService() {
+    // TODO(ttomsu): This is a NFLX specific user extractor. Make a more generic one?
+    new SAMLUserDetailsService() {
+
+      @Autowired
+      AccountsService accountsService
+
+      @Autowired
+      ClouddriverService clouddriverService
+
+      @Autowired
+      UserRolesProvider userRolesProvider
+
+      @Override
+      User loadUserBySAML(SAMLCredential credential) throws UsernameNotFoundException {
+        def assertion = credential.authenticationAssertion
+        def attributes = extractAttributes(assertion)
+        def userAttributeMapping = samlSecurityConfigProperties.userAttributeMapping
+
+        def email = assertion.getSubject().nameID.value
+        def roles = extractRoles(email, attributes, userAttributeMapping)
+
+        new User(email: email,
+          firstName: attributes[userAttributeMapping.firstName]?.get(0),
+          lastName: attributes[userAttributeMapping.lastName]?.get(0),
+          roles: roles,
+          allowedAccounts: accountsService.getAllowedAccounts(roles),
+          username: attributes[userAttributeMapping.username] ?: email)
+      }
+
+      Set<String> extractRoles(String email,
+                               Map<String, List<String>> attributes,
+                               UserAttributeMapping userAttributeMapping) {
+        def assertionRoles = attributes[userAttributeMapping.roles].collect { String roles ->
+          def commonNames = roles.split(";")
+          commonNames.collect {
+            return it.indexOf("CN=") < 0 ? it : it.substring(it.indexOf("CN=") + 3, it.indexOf(","))
+          }
+        }.flatten()*.toLowerCase() as Set<String>
+
+        return assertionRoles + userRolesProvider.loadRoles(email)
+      }
+
+      static Map<String, List<String>> extractAttributes(Assertion assertion) {
+        def attributes = [:]
+        assertion.attributeStatements*.attributes.flatten().each { Attribute attribute ->
+          def name = attribute.name
+          def values = attribute.attributeValues.collect { (it as XSString)?.value }
+          attributes[name] = values
+        }
+
+        return attributes
+      }
+    }
+  }
+}

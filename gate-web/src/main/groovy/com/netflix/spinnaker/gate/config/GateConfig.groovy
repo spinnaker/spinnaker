@@ -19,11 +19,6 @@ package com.netflix.spinnaker.gate.config
 import org.springframework.session.data.redis.config.ConfigureRedisAction
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession
 
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import javax.servlet.*
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
@@ -35,6 +30,7 @@ import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -42,14 +38,21 @@ import org.springframework.boot.context.embedded.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
-import org.springframework.core.annotation.Order
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory
+import org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 import retrofit.Endpoint
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.converter.JacksonConverter
+
+import javax.servlet.*
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+
 import static retrofit.Endpoints.newFixedEndpoint
 
 @CompileStatic
@@ -182,7 +185,7 @@ class GateConfig {
           response.setHeader("Access-Control-Allow-Origin", origin);
           response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT, PATCH");
           response.setHeader("Access-Control-Max-Age", "3600");
-          response.setHeader("Access-Control-Allow-Headers", "x-requested-with, content-type");
+          response.setHeader("Access-Control-Allow-Headers", "x-requested-with, content-type, authorization");
           response.setHeader("Access-Control-Expose-Headers", [Headers.AUTHENTICATION_REDIRECT_HEADER_NAME].join(", "))
           chain.doFilter(req, res);
         }
@@ -196,10 +199,28 @@ class GateConfig {
     return frb
   }
 
+  /**
+   * This AuthenticatedRequestFilter pulls the email and accounts out of the Spring
+   * security context in order to enabling forwarding them to downstream components.
+   */
   @Bean
-  @Order(Ordered.LOWEST_PRECEDENCE)
-  Filter authenticatedRequestFilter() {
-    new AuthenticatedRequestFilter(false)
+  FilterRegistrationBean authenticatedRequestFilter() {
+    def frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(false))
+    frb.order = Ordered.LOWEST_PRECEDENCE
+    return frb
+  }
+
+  /**
+   * This pulls the `springSecurityFilterChain` in front of the {@link AuthenticatedRequestFilter},
+   * because the user must be authenticated through the security filter chain before his username/credentials
+   * can be pulled and forwarded in the AuthenticatedRequestFilter.
+   */
+  @Bean
+  public FilterRegistrationBean securityFilterChain(@Qualifier(AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME) Filter securityFilter) {
+    def frb = new FilterRegistrationBean(securityFilter)
+    frb.order = 0
+    frb.name = AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME
+    return frb;
   }
 
   @Component
