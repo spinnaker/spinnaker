@@ -4,9 +4,22 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.authentication.initializer.service', [
   require('../config/settings.js'),
+  require('../widgets/notifier/notifier.service.js'),
   require('./authentication.service.js'),
 ])
-  .factory('authenticationInitializer', function ($http, $rootScope, redirectService, authenticationService, settings, $location) {
+  .factory('authenticationInitializer', function ($http, $rootScope, notifierService, redirectService, authenticationService, settings, $location) {
+
+    function reauthenticateUser() {
+      $http.get(settings.authEndpoint)
+        .success(function (data) {
+          if (data.email) {
+            authenticationService.setAuthenticatedUser(data.email);
+          } else {
+            loginNotification();
+          }
+        })
+        .error(loginNotification);
+    }
 
     function authenticateUser() {
       $rootScope.authenticating = true;
@@ -14,22 +27,30 @@ module.exports = angular.module('spinnaker.authentication.initializer.service', 
         .success(function (data) {
           if (data.email) {
             authenticationService.setAuthenticatedUser(data.email);
-          }
-          $rootScope.authenticating = false;
-        })
-        .error(function (data, status, headers) {
-          var redirect = headers('X-AUTH-REDIRECT-URL');
-          if (status === 401 && redirect) {
-            var callback = encodeURIComponent($location.absUrl());
-            redirectService.redirect(settings.gateUrl + redirect + '?callback=' + callback);
-          } else {
             $rootScope.authenticating = false;
+          } else {
+            loginRedirect();
           }
-        });
+        })
+        .error(loginRedirect);
+    }
+
+    function loginNotification() {
+      notifierService.publish(`You have been logged out. <a role="button" class="action" onclick="document.location.reload()">Log in</button>`);
+    }
+
+    /**
+     * This function hits a protected resource endpoint specifically meant for Deck's
+     * login flow.
+     */
+    function loginRedirect() {
+      var callback = encodeURIComponent($location.absUrl());
+      redirectService.redirect(settings.gateUrl + '/auth/redirect?to=' + callback);
     }
 
     return {
-      authenticateUser: authenticateUser
+      authenticateUser: authenticateUser,
+      reauthenticateUser: reauthenticateUser
     };
   })
   .factory('redirectService', function($window) {
