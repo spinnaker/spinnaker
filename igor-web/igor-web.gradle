@@ -28,8 +28,8 @@ dependencies {
     compile spinnaker.dependency("okHttp")
 
     compile 'org.yaml:snakeyaml:1.15'
-    compile 'com.squareup.retrofit:converter-simplexml:1.5.1'
-    testCompile 'com.squareup.okhttp:mockwebserver:2.1.0'
+    compile 'com.squareup.retrofit:converter-simplexml:1.9.0'
+    testCompile 'com.squareup.okhttp:mockwebserver:2.7.0'
 }
 
 configurations.all {

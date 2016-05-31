@@ -191,7 +191,7 @@ class JenkinsClientSpec extends Specification {
         setResponse("")
 
         when:
-        def response = client.build("My-Build")
+        def response = client.build("My-Build", "")
 
         then:
         response
@@ -203,7 +203,7 @@ class JenkinsClientSpec extends Specification {
         setResponse("")
 
         when:
-        def response = client.buildWithParameters("My-Build", [foo:"bar", key:"value"])
+        def response = client.buildWithParameters("My-Build", [foo:"bar", key:"value"], "")
 
         then:
         response
@@ -215,7 +215,7 @@ class JenkinsClientSpec extends Specification {
                 .setBody(body)
                 .setHeader('Content-Type', 'text/xml;charset=UTF-8')
         )
-        server.play()
+        server.start()
         client = new JenkinsConfig().jenkinsClient(server.getUrl('/').toString(), 'username', 'password')
     }
 

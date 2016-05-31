@@ -131,7 +131,7 @@ class TravisServiceSpec extends Specification{
 
         then:
         fetchedCommit.isTag()
-        1 * client.accessToken("someToken") >> accessToken
+        1 * client.accessToken("someToken", "") >> accessToken
         1 * client.builds("token someToken", "org/repo", 38) >> builds
         2 * builds.commits >> [commit]
     }
@@ -147,7 +147,7 @@ class TravisServiceSpec extends Specification{
 
         then:
         thrown NoSuchFieldException
-        1 * client.accessToken("someToken") >> accessToken
+        1 * client.accessToken("someToken", "") >> accessToken
         1 * client.builds("token someToken", "org/repo", 38) >> builds
         1 * builds.commits >> []
     }
@@ -165,7 +165,7 @@ class TravisServiceSpec extends Specification{
 
         then:
         branchedRepoSlug == "my/slug/pull_request_master"
-        1 * client.accessToken("someToken") >> accessToken
+        1 * client.accessToken("someToken", "") >> accessToken
         1 * client.builds("token someToken", "my/slug", 21) >> builds
         2 * builds.builds >> [build]
         1 * build.pullRequest >> true

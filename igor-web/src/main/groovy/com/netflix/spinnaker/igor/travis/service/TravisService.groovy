@@ -300,7 +300,7 @@ class TravisService implements BuildService {
 
     void syncRepos() {
         try {
-            travisClient.usersSync(getAccessToken())
+            travisClient.usersSync(getAccessToken(), "")
         } catch (RetrofitError e) {
             log.error "synchronizing travis repositories for ${groupKey} failed with error: ${e.message}"
         }
@@ -328,7 +328,7 @@ class TravisService implements BuildService {
     }
 
     private void setAccessToken() {
-        this.accessToken = travisClient.accessToken(githubToken)
+        this.accessToken = travisClient.accessToken(githubToken, "")
     }
 
     private String getAccessToken() {

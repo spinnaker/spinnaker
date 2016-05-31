@@ -26,6 +26,7 @@ import com.netflix.spinnaker.igor.travis.client.model.RepoRequest
 import com.netflix.spinnaker.igor.travis.client.model.RepoWrapper
 import com.netflix.spinnaker.igor.travis.client.model.Repos
 import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse
+import com.squareup.okhttp.RequestBody
 import retrofit.client.Response
 import retrofit.http.Body
 import retrofit.http.EncodedPath
@@ -40,7 +41,7 @@ import retrofit.http.Streaming
 interface TravisClient {
 
     @POST('/auth/github')
-    AccessToken accessToken(@Query('github_token') String githubToken)
+    AccessToken accessToken(@Query('github_token') String githubToken, @Body String emptyBody)
 
     @GET('/accounts')
     Accounts accounts(@Header("Authorization") String accessToken)
@@ -80,7 +81,7 @@ interface TravisClient {
     TriggerResponse triggerBuild(@Header("Authorization") String accessToken, @Path('repoSlug') String repoSlug, @Body RepoRequest repoRequest)
 
     @POST('/users/sync')
-    Response usersSync(@Header("Authorization") String accessToken)
+    Response usersSync(@Header("Authorization") String accessToken, @Body emptySting)
 
     @GET('/jobs/{job_id}')
     Jobs jobs(@Header("Authorization") String accessToken , @Path('job_id') int jobId)

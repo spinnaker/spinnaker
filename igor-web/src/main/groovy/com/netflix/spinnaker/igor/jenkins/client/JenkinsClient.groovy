@@ -25,6 +25,7 @@ import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
 import com.netflix.spinnaker.igor.jenkins.client.model.ScmDetails
 import retrofit.client.Response
+import retrofit.http.Body
 import retrofit.http.EncodedPath
 import retrofit.http.GET
 import retrofit.http.POST
@@ -68,16 +69,16 @@ interface JenkinsClient {
     QueuedJob getQueuedItem(@Path('itemNumber') Integer item)
 
     @POST('/job/{jobName}/build')
-    Response build(@EncodedPath('jobName') String jobName)
+    Response build(@EncodedPath('jobName') String jobName, @Body String emptyRequest)
 
     @POST('/job/{jobName}/buildWithParameters')
-    Response buildWithParameters(@EncodedPath('jobName') String jobName, @QueryMap Map<String, String> queryParams)
+    Response buildWithParameters(@EncodedPath('jobName') String jobName, @QueryMap Map<String, String> queryParams, @Body String EmptyRequest)
 
     @POST('/job/{jobName}/{buildNumber}/stop')
-    Response stopRunningBuild(@EncodedPath('jobName') String jobName, @Path('buildNumber') Integer buildNumber)
+    Response stopRunningBuild(@EncodedPath('jobName') String jobName, @Path('buildNumber') Integer buildNumber,  @Body String EmptyRequest)
 
     @POST('/queue/cancelItem')
-    Response stopQueuedBuild(@Query('id') String queuedBuild)
+    Response stopQueuedBuild(@Query('id') String queuedBuild, @Body String emptyRequest)
 
     @GET('/job/{jobName}/api/xml?exclude=/*/action&exclude=/*/build&exclude=/*/property[not(parameterDefinition)]')
     JobConfig getJobConfig(@EncodedPath('jobName') String jobName)
