@@ -107,16 +107,16 @@ class OAuth2SsoConfig extends OAuth2SsoConfigurerAdapter {
         OAuth2Authentication oAuth2Authentication = userInfoTokenServices.loadAuthentication(accessToken)
 
         Map details = oAuth2Authentication.userAuthentication.details as Map
-        def email = details[userInfoMapping.email] as String
-        def roles = userRolesProvider.loadRoles(email)
+        def username = details[userInfoMapping.username] as String
+        def roles = userRolesProvider.loadRoles(username)
 
         User spinnakerUser = new User(
-            email: email,
+            email: details[userInfoMapping.email] as String,
             firstName: details[userInfoMapping.firstName] as String,
             lastName: details[userInfoMapping.lastName] as String,
             allowedAccounts: accountsService.getAllowedAccounts(roles),
             roles: roles,
-            username: details[userInfoMapping.username] as String)
+            username: username)
 
         PreAuthenticatedAuthenticationToken authentication = new PreAuthenticatedAuthenticationToken(
             spinnakerUser,
