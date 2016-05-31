@@ -98,11 +98,12 @@ class DockerMonitor implements PollingMonitor {
                 def updateCache = false
 
                 if (imageId in cachedImages) {
-                    def digest = cache.getLastDigest(image.account, image.registry, image.repository, image.tag)
+                    def lastDigest = cache.getLastDigest(image.account, image.registry, image.repository, image.tag)
 
-                    if (digest != image.digest) {
-                        log.info "Updated tagged image: ${image.account}: ${imageId}. Digest changed from [$digest] -> [$image.digest]."
-                        updateCache = true
+                    if (lastDigest != image.digest) {
+                        log.info "Updated tagged image: ${image.account}: ${imageId}. Digest changed from [$lastDigest] -> [$image.digest]."
+                        // If either is null, there was an error retrieving the manifest in this or the previous cache cycle.
+                        updateCache = image.digest != null && lastDigest != null
                     }
                 } else {
                     log.info "New tagged image: ${image.account}: ${imageId}. Digest is now [$image.digest]."

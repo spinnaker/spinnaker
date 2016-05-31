@@ -31,6 +31,9 @@ class DockerRegistryCache {
 
     String id = 'dockerRegistry'
 
+    // docker-digest must conform to hash:hashvalue. The string "~" explicitly avoids this to act as an "empty" placeholder.
+    String emptyDigest = '~'
+
     @SuppressWarnings('GStringExpressionWithinString')
     @Value('${spinnaker.jedis.prefix:igor}')
     String prefix
@@ -51,12 +54,18 @@ class DockerRegistryCache {
         def res = resource.hgetAll(key).digest
 
         jedisPool.returnResource(resource)
+
+        if (res == emptyDigest) {
+            res = null
+        }
+
         return res
     }
 
     void setLastDigest(String account, String registry, String repository, String tag, String digest) {
         Jedis resource = jedisPool.resource
         String key = makeKey(account, registry, repository, tag)
+        digest = digest ?: emptyDigest
         resource.hset(key, 'digest', digest)
         jedisPool.returnResource(resource)
     }
