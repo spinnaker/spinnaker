@@ -23,20 +23,22 @@ describe('Directives: vpcTag', function () {
     it('displays default message when no vpcId supplied', function () {
       var domNode = this.compile('<vpc-tag></vpc-tag>')(this.scope);
       this.scope.$digest();
-      expect(domNode.find('span').text()).toBe('None (EC2 Classic)');
+      // expect(domNode.find('span').text()).toBe('None (EC2 Classic)');
+      expect(domNode.find('span').hasClass('loader')).toBe(true);
+
     });
 
     it('displays default message when undefined vpcId supplied', function () {
       var domNode = this.compile('<vpc-tag vpc-id="notDefined"></vpc-tag>')(this.scope);
       this.scope.$digest();
-      expect(domNode.find('span').text()).toBe('None (EC2 Classic)');
+      expect(domNode.find('span').hasClass('loader')).toBe(true);
     });
 
     it('displays default message when null vpcId supplied', function () {
       this.scope.vpcId = null;
       var domNode = this.compile('<vpc-tag vpc-id="vpcId"></vpc-tag>')(this.scope);
       this.scope.$digest();
-      expect(domNode.find('span').text()).toBe('None (EC2 Classic)');
+      expect(domNode.find('span').hasClass('loader')).toBe(true);
     });
   });
 
