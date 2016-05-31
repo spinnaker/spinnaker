@@ -47,5 +47,7 @@ class AnonymousConfig extends WebSecurityConfigurerAdapter {
         .key(key)
         .authorities("anonymous")
         .principal(principal)
+        .and()
+        .csrf().disable()
   }
 }
