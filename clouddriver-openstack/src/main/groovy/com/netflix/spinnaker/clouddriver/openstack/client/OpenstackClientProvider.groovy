@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOpe
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.openstack4j.api.OSClient
 import org.openstack4j.model.common.ActionResponse
+import org.openstack4j.model.compute.RebootType
 
 /**
  * Provides access to the Openstack API.
@@ -36,6 +37,17 @@ abstract class OpenstackClientProvider {
   void deleteInstance(String instanceId) {
     handleRequest(AtomicOperations.TERMINATE_INSTANCES) {
       client.compute().servers().delete(instanceId)
+    }
+  }
+
+  /**
+   * Reboot an instance ... Default to SOFT reboot if not passed.
+   * @param instanceId
+   * @return
+   */
+  void rebootInstance(String instanceId, RebootType rebootType = RebootType.SOFT) {
+    handleRequest(AtomicOperations.REBOOT_INSTANCES) {
+      client.compute().servers().reboot(instanceId, rebootType)
     }
   }
 

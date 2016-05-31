@@ -20,4 +20,8 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.description.OpenstackA
 
 class OpenstackInstancesDescription extends OpenstackAtomicOperationDescription {
   List<String> instanceIds
+
+  String getInstances() {
+    instanceIds?.join(", ")
+  }
 }

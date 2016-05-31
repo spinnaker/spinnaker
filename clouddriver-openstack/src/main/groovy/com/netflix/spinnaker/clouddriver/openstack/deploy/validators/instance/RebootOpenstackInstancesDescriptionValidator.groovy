@@ -26,16 +26,16 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
-@OpenstackOperation(AtomicOperations.TERMINATE_INSTANCES)
+@OpenstackOperation(AtomicOperations.REBOOT_INSTANCES)
 @Component
-class TerminateOpenstackInstancesDescriptionValidator extends DescriptionValidator<OpenstackInstancesDescription> {
+class RebootOpenstackInstancesDescriptionValidator extends DescriptionValidator<OpenstackInstancesDescription> {
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
   void validate(List priorDescriptions, OpenstackInstancesDescription description, Errors errors) {
-    def validator = new OpenstackAttributeValidator("terminateOpenstackInstancesAtomicOperationDescription", errors)
+    def validator = new OpenstackAttributeValidator("rebootOpenstackInstancesAtomicOperationDescription", errors)
     validator.validateCredentials(description.account, accountCredentialsProvider)
     validator.validateNotEmpty(description.instanceIds, "instanceIds")
   }
