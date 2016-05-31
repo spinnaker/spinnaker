@@ -67,8 +67,9 @@ public class DockerEventMonitor extends TriggerMonitor {
   @Override
   protected boolean isSuccessfulTriggerEvent(final TriggerEvent event) {
     DockerEvent dockerEvent = (DockerEvent) event;
-    String digest = dockerEvent.getContent().getDigest();
-    return digest != null && !digest.isEmpty();
+    // The event should always report a tag
+    String tag = dockerEvent.getContent().getTag();
+    return tag != null && !tag.isEmpty();
   }
 
   @Override
