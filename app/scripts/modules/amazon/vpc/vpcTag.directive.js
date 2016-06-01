@@ -11,13 +11,12 @@ module.exports = angular.module('spinnaker.vpc.tag.directive', [
       scope: {
         vpcId: '=',
       },
-      template: `
-        <span ng-if="!vpcId" class="loader"></span>
-        <span ng-if="vpcId" class="vpc-tag">{{vpcLabel}}</span>
-        `,
+      template: '<span class="vpc-tag">{{vpcLabel}}</span>',
       link: function(scope) {
         function applyLabel() {
-          if (scope.vpcId) {
+          if (!scope.vpcId) {
+            scope.vpcLabel = 'None (EC2 Classic)';
+          } else {
             vpcReader.getVpcName(scope.vpcId).then(function (name) {
               scope.vpcLabel = '(' + scope.vpcId + ')';
 
