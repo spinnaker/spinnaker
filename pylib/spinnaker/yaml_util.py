@@ -16,6 +16,27 @@ import os
 import re
 import yaml
 
+def yml_or_yaml_path(basedir, basename):
+  """Return a path to the requested YAML file.
+
+  Args:
+    basedir [string]: The directory path containing the file.
+    basename [string]: The base filename for the file
+
+  Returns:
+    Path to the YAML file with either a .yml or .yaml extension,
+    depending on which if any exists.
+    If neither exists, return the .yml. If both, then raise an exception.
+  """
+  basepath = os.path.join(basedir, basename)
+  yml_path = basepath + ".yml"
+  yaml_path = basepath + ".yaml"
+  if os.path.exists(yaml_path):
+    if os.path.exists(yml_path):
+      raise ValueError('Both {0} and {1} exist.'.format(yml_path, yaml_path))
+    return yaml_path
+  return yml_path
+
 
 class YamlBindings(object):
   """Implements a map from yaml using variable references similar to spring."""
@@ -29,7 +50,7 @@ class YamlBindings(object):
 
   def __getitem__(self, field):
     return self.__get_field_value(field, [], original=field)
-    
+
   def get(self, field, default=None):
     try:
       return self.__get_field_value(field, [], original=field)
@@ -74,7 +95,7 @@ class YamlBindings(object):
 
   def __typed_value(self, value_text):
     """Convert the text of a value into the YAML value.
-    
+
     This is used for type conversion for default values.
     Not particularly efficient, but there doesnt seem to be a direct API.
     """
@@ -131,6 +152,42 @@ class YamlBindings(object):
   def replace(self, text):
     return self.__resolve_value(text, [], text)
 
+
+  def __get_flat_keys(self, container):
+    flat_keys = []
+    for key,value in container.items():
+      if isinstance(value, dict):
+        flat_keys.extend([key + '.' + subkey for subkey in self.__get_flat_keys(value)])
+      else:
+        flat_keys.append(key)
+    return flat_keys
+
+
+  @staticmethod
+  def update_yml_source(path, update_dict):
+    """Update the yaml source at the path according to the update dict.
+
+    All the previous bindings not in the update dict remain unchanged.
+    The yaml file at the path is re-written with the new bindings.
+
+    Args:
+      path [string]: Path to a yaml source file.
+      update_dict [dict]: Nested dictionary corresponding to
+          nested yaml properties, keyed by strings.
+    """
+    bindings = YamlBindings()
+    bindings.import_dict(update_dict)
+    updated_keys = bindings.__get_flat_keys(bindings.__map)
+    source = '' # declare so this is in scope for both 'with' blocks
+    with open(path, 'r') as source_file:
+      source = source_file.read()
+      for prop in updated_keys:
+        source = bindings.transform_yaml_source(source, prop)
+
+    with open(path, 'w') as source_file:
+      source_file.write(source)
+
+
   def transform_yaml_source(self, source, key):
     """Transform the given yaml source so its value of key matches the binding.
 
@@ -172,18 +229,19 @@ class YamlBindings(object):
 
 
 def load_bindings(installed_config_dir, user_config_dir, only_if_local=False):
-    user_local_yml_path = os.path.join(user_config_dir, 'spinnaker-local.yml')
-    install_local_yml_path = os.path.join(installed_config_dir,
-                                          'spinnaker-local.yml')
+    user_local_yml_path = yml_or_yaml_path(user_config_dir, 'spinnaker-local')
+    install_local_yml_path = yml_or_yaml_path(installed_config_dir,
+                                              'spinnaker-local')
 
     have_user_local = os.path.exists(user_local_yml_path)
     have_install_local = os.path.exists(install_local_yml_path)
+
     have_local = have_user_local or have_install_local
     if only_if_local and not have_local:
       return None
 
     bindings = YamlBindings()
-    bindings.import_path(os.path.join(installed_config_dir, 'spinnaker.yml'))
+    bindings.import_path(yml_or_yaml_path(installed_config_dir, 'spinnaker'))
     if have_install_local:
       bindings.import_path(install_local_yml_path)
     if have_user_local:

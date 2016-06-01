@@ -17,7 +17,7 @@ import tempfile
 import unittest
 
 from spinnaker.yaml_util import YamlBindings
-
+from spinnaker.yaml_util import yml_or_yaml_path
 
 class YamlUtilTest(unittest.TestCase):
   def test_load_dict(self):
@@ -78,6 +78,42 @@ e:
     bindings = YamlBindings()
     bindings.import_path(temp_path)
     self.assertEqual(expect, bindings.map)
+
+  def test_yml_or_yaml_path(self):
+    temp_dir = tempfile.gettempdir()
+
+    fd, temp_path = tempfile.mkstemp(suffix='.yml')
+    os.close(fd)
+    rootname = os.path.splitext(os.path.basename(temp_path))[0]
+    self.assertEqual(temp_path, yml_or_yaml_path(temp_dir, rootname))
+    os.remove(temp_path)
+
+    fd, temp_path = tempfile.mkstemp(suffix='.yaml')
+    os.close(fd)
+    rootname = os.path.splitext(os.path.basename(temp_path))[0]
+    self.assertEqual(temp_path, yml_or_yaml_path(temp_dir, rootname))
+    os.remove(temp_path)
+
+  def test_yml_or_yaml_neither(self):
+    the_dir = '/no/such/dir'
+    self.assertEqual(os.path.join(the_dir, 'bogus') + '.yml',
+                     yml_or_yaml_path(the_dir, 'bogus'))
+
+  def test_yml_or_yaml_both(self):
+    temp_dir = tempfile.gettempdir()
+    fd, yml_path = tempfile.mkstemp(suffix='.yml')
+    os.close(fd)
+    rootname = os.path.splitext(os.path.basename(yml_path))[0]
+
+    yaml_path = os.path.join(temp_dir, rootname) + '.yaml'
+    with open(yaml_path, 'w') as f:
+      pass
+
+    # Both cases raise exception
+    with self.assertRaises(ValueError):
+      yml_or_yaml_path(temp_dir, rootname)
+    os.remove(yml_path)
+    os.remove(yaml_path)
 
   def test_load_composite_value(self):
     bindings = YamlBindings()
@@ -249,7 +285,7 @@ unique:
 
      self.assertEqual(expect, bindings.transform_yaml_source(expect, 'bogus'))
      self.assertEqual(expect, got)
-                      
+
 
   def test_transform_fail(self):
      bindings = YamlBindings()
@@ -278,6 +314,49 @@ a:
      self.assertEqual([{'elem': True}, {'elem': True}, {'elem': False}, {'elem': False}],
                       bindings.get('root'))
      self.assertEqual(bindings.get('root'), bindings.get('copy'))
+
+  def test_update_yml_source(self):
+    yaml = """
+a: A
+b: 0
+c:
+  - A
+  - B
+d:
+  child:
+    grandchild: x
+e:
+"""
+    fd, temp_path = tempfile.mkstemp()
+    os.write(fd, yaml)
+    os.close(fd)
+
+    update_dict = {
+      'b': 'Z',
+      'd': {
+        'child': {
+          'grandchild': 'xy'
+        }
+      },
+      'e': 'AA'
+    }
+
+    expect = {'a': 'A',
+              'b': 'Z',
+              'c': ['A','B'],
+              'd': {
+                'child': {
+                  'grandchild': 'xy'
+                }
+              },
+              'e': 'AA'}
+
+    YamlBindings.update_yml_source(temp_path, update_dict)
+
+    comparison_bindings = YamlBindings()
+    comparison_bindings.import_path(temp_path)
+    self.assertEqual(expect, comparison_bindings.map)
+    os.remove(temp_path)
 
 if __name__ == '__main__':
   loader = unittest.TestLoader()

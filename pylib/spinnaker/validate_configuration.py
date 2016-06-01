@@ -19,6 +19,7 @@ import re
 import sys
 
 from configurator import Configurator
+from yaml_util import yml_or_yaml_path
 
 from fetch import fetch
 from fetch import is_google_instance
@@ -81,7 +82,7 @@ class ValidateConfig(object):
 
     found_local = False   
     for ymldir in [self.__user_config_dir, self.__installation_config_dir]:
-      yml_path = os.path.join(ymldir, 'spinnaker-local.yml')
+      yml_path = yml_or_yaml_path(ymldir, 'spinnaker-local')
       if not os.path.exists(yml_path):
         continue
       found_local = True
@@ -303,8 +304,8 @@ class ValidateConfig(object):
     ok = True
     for path in [
         self.__bindings.get('providers.google.primaryCredentials.jsonPath'),
-        os.path.join(self.__user_config_dir, 'spinnaker-local.yml'),
-        os.path.join(self.__installation_config_dir,'spinnaker-local.yml'),
+        yml_or_yaml_path(self.__user_config_dir, 'spinnaker-local'),
+        yml_or_yaml_path(self.__installation_config_dir,'spinnaker-local'),
         os.path.join(os.environ.get('HOME', '/root'),'.aws/credentials')]:
       ok = self.verify_user_access_only(path) and ok
     return ok
