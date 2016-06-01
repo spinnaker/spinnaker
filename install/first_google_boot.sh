@@ -24,6 +24,8 @@ set -u
 # We're running as root, but HOME might not be defined.
 AWS_DIR=/home/spinnaker/.aws
 KUBE_DIR=/home/spinnaker/.kube
+# Google Container Registry (GCR) password file directory.
+GCR_DIR=/home/spinnaker/.gcr
 SPINNAKER_INSTALL_DIR=/opt/spinnaker
 LOCAL_CONFIG_DIR=$SPINNAKER_INSTALL_DIR/config
 
@@ -147,6 +149,7 @@ function extract_spinnaker_credentials() {
     extract_spinnaker_google_credentials
     extract_spinnaker_aws_credentials
     extract_spinnaker_kube_credentials
+    extract_spinnaker_gcr_credentials
 }
 
 function extract_spinnaker_google_credentials() {
@@ -221,7 +224,7 @@ function extract_spinnaker_kube_credentials() {
     # got in the way.
     sed -i s/^None$//g $config_path
     if [[ -s $config_path ]]; then
-      chmod 600 $config_path
+      chmod 400 $config_path
       chown spinnaker:spinnaker $config_path
       echo "Extracted Kubernetes config to $config_path"
     else
@@ -230,6 +233,35 @@ function extract_spinnaker_kube_credentials() {
     write_default_value "SPINNAKER_KUBERNETES_ENABLED" "true"
   else
     clear_instance_metadata "kube_config"
+  fi
+}
+
+function extract_spinnaker_gcr_credentials() {
+  local config_path="$GCR_DIR/gcr.json"
+  mkdir -p $(dirname $config_path)
+  chown -R spinnaker:spinnaker $(dirname $config_path)
+
+  if clear_metadata_to_file "gcr_json" $config_path; then
+    # This is a workaround for difficulties using the Google Deployment Manager
+    # to express no value. We'll use the value "None". But we don't want
+    # to officially support this, so we'll just strip it out of this first
+    # time boot if we happen to see it, and assume the Google Deployment Manager
+    # got in the way.
+    sed -i s/^None$//g $config_path
+    if [[ -s $config_path ]]; then
+      chmod 400 $config_path
+      chown spinnaker:spinnaker $config_path
+      echo "Extracted GCR credentials to $config_path"
+    else
+       rm $config_path
+    fi
+    write_default_value "SPINNAKER_DOCKER_PASSWORD_FILE" $config_path
+    write_default_value "SPINNAKER_DOCKER_USERNAME" "_json_key"
+
+    local repository=$(get_instance_metadata_attribute "docker_repository")
+    write_default_value "SPINNAKER_DOCKER_REPOSITORY" $repository
+  else
+    clear_instance_metadata "gcr_json"
   fi
 }
 

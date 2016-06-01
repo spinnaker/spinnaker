@@ -96,12 +96,11 @@ providers:
       # These credentials use authentication information at ~/.kube/config
       # by default.
       name: my-kubernetes-account
-      namespace: default
       dockerRegistryAccount: ${providers.dockerRegistry.primaryCredentials.name}
 
   dockerRegistry:
-    # If you want to deploy containers to a container management solution,
-    # you must specifiy where these container images exist first.
+    # For more information on configuring Docker registries, see
+    # http://www.spinnaker.io/v1.0/docs/target-deployment-configuration#section-docker-registry
 
     # NOTE: Enabling dockerRegistry is independent of other providers.
     # However, for convienience, we tie docker and kubernetes together
@@ -110,9 +109,12 @@ providers:
     enabled: ${SPINNAKER_KUBERNETES_ENABLED:false}
 
     primaryCredentials:
-      name: my-docker-registry-account
-      address: https://index.docker.io/
-      repository: library/nginx
+      name: my-docker-registry
+      address: ${SPINNAKER_DOCKER_REGISTRY:https://index.docker.io/}
+      repository: ${SPINNAKER_DOCKER_REPOSITORY:library/nginx}
+      username: ${SPINNAKER_DOCKER_USERNAME}
+      # A path to a plain text file containing the user's password
+      passwordFile: ${SPINNAKER_DOCKER_PASSWORD_FILE} 
 
 services:
   default:
