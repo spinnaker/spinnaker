@@ -50,10 +50,8 @@ class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Initializin
 
   @Override
   void afterPropertiesSet() throws Exception {
-    Assert.state(config.serviceAccountEmail != null, "Supply a service account email")
     Assert.state(config.domain != null, "Supply a domain")
     Assert.state(config.adminUsername != null, "Supply an admin username")
-    Assert.state(config.credentialPath != null, "Supply an service account credentials path")
   }
 
   private class GroupBatchCallback extends JsonBatchCallback<Groups> {
@@ -103,19 +101,24 @@ class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Initializin
     return groups.getGroups().collect { Group g -> g.getName() }
   }
 
+  private GoogleCredential getGoogleCredential() {
+    if (config.credentialPath) {
+      return GoogleCredential.fromStream(new FileInputStream(config.credentialPath))
+    } else {
+      return GoogleCredential.applicationDefault
+    }
+  }
+
   Directory getDirectoryService() {
     HttpTransport httpTransport = new NetHttpTransport()
-    JacksonFactory jsonFactory = new JacksonFactory()
-    GoogleCredential credential = new GoogleCredential.Builder()
-        .setServiceAccountUser(config.adminUsername)
-        .setTransport(httpTransport)
-        .setJsonFactory(jsonFactory)
-        .setServiceAccountId(config.serviceAccountEmail)
-        .setServiceAccountPrivateKeyFromP12File(new File(config.credentialPath))
-        .setServiceAccountScopes(SERVICE_ACCOUNT_SCOPES)
-        .build()
+    JacksonFactory jacksonFactory = new JacksonFactory()
+    GoogleCredential credential = getGoogleCredential()
+    credential.with {
+      serviceAccountUser = config.adminUsername
+      serviceAccountScopes = SERVICE_ACCOUNT_SCOPES
+    }
 
-    return new Directory.Builder(httpTransport, jsonFactory, credential)
+    return new Directory.Builder(httpTransport, jacksonFactory, credential)
         .setApplicationName("Spinnaker-Gate")
         .build()
   }
@@ -124,15 +127,19 @@ class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Initializin
   @ConfigurationProperties("auth.groupMembership.google")
   static class Config {
 
-    String serviceAccountEmail
-
+    /**
+     * Path to json credential file for the groups service account.
+     */
     String credentialPath
 
     /**
-     * email of the Google Apps admin the service account is acting on behalf of.
+     * Email of the Google Apps admin the service account is acting on behalf of.
      */
     String adminUsername
 
+    /**
+     * Google Apps for Work domain, e.g. netflix.com
+     */
     String domain
   }
 }
