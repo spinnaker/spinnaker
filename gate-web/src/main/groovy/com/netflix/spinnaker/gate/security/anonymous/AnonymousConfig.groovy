@@ -16,10 +16,8 @@
 
 package com.netflix.spinnaker.gate.security.anonymous
 
-import com.netflix.spinnaker.gate.services.AccountsService
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
 import com.netflix.spinnaker.security.User
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -30,17 +28,14 @@ import org.springframework.security.config.annotation.web.servlet.configuration.
 @Configuration
 @EnableWebMvcSecurity
 class AnonymousConfig extends WebSecurityConfigurerAdapter {
-  String key = "spinnaker-anonymous"
-  String defaultEmail = "anonymous"
-
-  @Autowired
-  AccountsService accountsService
+  static String key = "spinnaker-anonymous"
+  static String defaultEmail = "anonymous"
 
   void configure(HttpSecurity http) {
     def principal = new User(
         email: defaultEmail,
         roles: ["anonymous"],
-        allowedAccounts: accountsService.getAllowedAccounts([] /* userRoles */)
+        allowedAccounts: []
     )
 
     http.anonymous()
