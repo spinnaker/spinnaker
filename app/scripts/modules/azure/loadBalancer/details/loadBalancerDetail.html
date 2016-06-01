@@ -33,8 +33,8 @@
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
             <li><a href ng-click="ctrl.editLoadBalancer()">Edit Load Balancer</a></li>
-            <li ng-if="!loadBalancer.instances.length"><a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a></li>
-            <li ng-if="loadBalancer.instances.length" class="disabled" tooltip="You must detach all instances before you can delete this load balancer.">
+            <li ng-if="!loadBalancer.serverGroups.length"><a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a></li>
+            <li ng-if="loadBalancer.serverGroups.length" class="disabled" tooltip="You must detach all server groups before you can delete this load balancer.">
               <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
             </li>
           </ul>
@@ -68,10 +68,10 @@
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
         <dt ng-if="loadBalancer.elb.dnsName">DNS Name:</dt>
         <dd>
-          <a target=_blank href="http://{{loadBalancer.elb.dnsname}}">{{loadBalancer.elb.dnsName}}</a>
+          <a target=_blank href="//{{loadBalancer.elb.dnsName}}">{{loadBalancer.elb.dnsName}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
-              text="http://{{loadBalancer.elb.dnsname}}"
+              text="{{loadBalancer.elb.dnsName}}"
               tool-tip="Copy DNS Name to clipboard">
           </copy-to-clipboard>
         </dd>
@@ -105,6 +105,8 @@
         <dd>{{loadBalancer.elb.probes[0].probeInterval}} seconds</dd>
         <dt>Unhealthy Threshold</dt>
         <dd>{{loadBalancer.elb.probes[0].unhealthyThreshold}}</dd>
+        <dt>Timeout</dt>
+        <dd>{{loadBalancer.elb.probes[0].timeout}} seconds</dd>
       </dl>
     </collapsible-section>
   </div>
