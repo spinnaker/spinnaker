@@ -45,22 +45,26 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
     this.application = app;
 
     let extractServerGroupSummary = () => {
-      var summary = _.find(app.serverGroups.data, (toCheck) => {
-        return toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region;
-      });
-      if (!summary) {
-        app.loadBalancers.data.some((loadBalancer) => {
-          if (loadBalancer.account === serverGroup.accountId && loadBalancer.region === serverGroup.region) {
-            return loadBalancer.serverGroups.some((possibleServerGroup) => {
-              if (possibleServerGroup.name === serverGroup.name) {
-                summary = possibleServerGroup;
-                return true;
+      return app
+        .ready()
+        .then(() => {
+          var summary = _.find(app.serverGroups.data, (toCheck) => {
+            return toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region;
+          });
+          if (!summary) {
+            app.loadBalancers.data.some((loadBalancer) => {
+              if (loadBalancer.account === serverGroup.accountId && loadBalancer.region === serverGroup.region) {
+                return loadBalancer.serverGroups.some((possibleServerGroup) => {
+                  if (possibleServerGroup.name === serverGroup.name) {
+                    summary = possibleServerGroup;
+                    return true;
+                  }
+                });
               }
             });
           }
+          return summary;
         });
-      }
-      return summary;
     };
 
     let autoClose = () => {
@@ -76,64 +80,67 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
     };
 
     let retrieveServerGroup = () => {
-      var summary = extractServerGroupSummary();
-      return serverGroupReader.getServerGroup(app.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then((details) => {
-        cancelLoader();
+      return extractServerGroupSummary()
+        .then((summary) => {
+          return serverGroupReader.getServerGroup(app.name, serverGroup.accountId, serverGroup.region, serverGroup.name)
+            .then((details) => {
+              cancelLoader();
 
-        var plainDetails = details.plain();
-        angular.extend(plainDetails, summary);
-        // it's possible the summary was not found because the clusters are still loading
-        plainDetails.account = serverGroup.accountId;
+              var plainDetails = details.plain();
+              angular.extend(plainDetails, summary);
+              // it's possible the summary was not found because the clusters are still loading
+              plainDetails.account = serverGroup.accountId;
 
-        this.serverGroup = plainDetails;
-        this.applyAccountDetails(this.serverGroup);
+              this.serverGroup = plainDetails;
+              this.applyAccountDetails(this.serverGroup);
 
-        this.runningExecutions = () => {
-          return runningExecutionsService.filterRunningExecutions(this.serverGroup.executions);
-        };
+              this.runningExecutions = () => {
+                return runningExecutionsService.filterRunningExecutions(this.serverGroup.executions);
+              };
 
-        if (!_.isEmpty(this.serverGroup)) {
+              if (!_.isEmpty(this.serverGroup)) {
 
-          this.image = details.image ? details.image : undefined;
+                this.image = details.image ? details.image : undefined;
 
-          var vpc = this.serverGroup.asg ? this.serverGroup.asg.vpczoneIdentifier : '';
+                var vpc = this.serverGroup.asg ? this.serverGroup.asg.vpczoneIdentifier : '';
 
-          if (vpc !== '') {
-            var subnetId = vpc.split(',')[0];
-            subnetReader.listSubnets().then((subnets) => {
-              var subnet = _(subnets).find({'id': subnetId});
-              this.serverGroup.subnetType = subnet.purpose;
-            });
-          }
+                if (vpc !== '') {
+                  var subnetId = vpc.split(',')[0];
+                  subnetReader.listSubnets().then((subnets) => {
+                    var subnet = _(subnets).find({'id': subnetId});
+                    this.serverGroup.subnetType = subnet.purpose;
+                  });
+                }
 
-          if (details.image && details.image.description) {
-            var tags = details.image.description.split(', ');
-            tags.forEach((tag) => {
-              var keyVal = tag.split('=');
-              if (keyVal.length === 2 && keyVal[0] === 'ancestor_name') {
-                details.image.baseImage = keyVal[1];
+                if (details.image && details.image.description) {
+                  var tags = details.image.description.split(', ');
+                  tags.forEach((tag) => {
+                    var keyVal = tag.split('=');
+                    if (keyVal.length === 2 && keyVal[0] === 'ancestor_name') {
+                      details.image.baseImage = keyVal[1];
+                    }
+                  });
+                }
+
+                if (details.launchConfig && details.launchConfig.securityGroups) {
+                  this.securityGroups = _(details.launchConfig.securityGroups).map((id) => {
+                    return _.find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
+                      _.find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'name': id });
+                  }).compact().value();
+                }
+
+                this.autoScalingProcesses = autoScalingProcessService.normalizeScalingProcesses(this.serverGroup);
+                this.disabledDate = autoScalingProcessService.getDisabledDate(this.serverGroup);
+                awsServerGroupTransformer.normalizeServerGroupDetails(this.serverGroup);
+                this.scalingPolicies = this.serverGroup.scalingPolicies;
+
+              } else {
+                autoClose();
               }
             });
-          }
 
-          if (details.launchConfig && details.launchConfig.securityGroups) {
-            this.securityGroups = _(details.launchConfig.securityGroups).map((id) => {
-              return _.find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
-                _.find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'name': id });
-            }).compact().value();
-          }
-
-          this.autoScalingProcesses = autoScalingProcessService.normalizeScalingProcesses(this.serverGroup);
-          this.disabledDate = autoScalingProcessService.getDisabledDate(this.serverGroup);
-          awsServerGroupTransformer.normalizeServerGroupDetails(this.serverGroup);
-          this.scalingPolicies = this.serverGroup.scalingPolicies;
-
-        } else {
-          autoClose();
-        }
-      },
-        autoClose
-      );
+        })
+        .catch(autoClose);
     };
 
     retrieveServerGroup().then(() => {
