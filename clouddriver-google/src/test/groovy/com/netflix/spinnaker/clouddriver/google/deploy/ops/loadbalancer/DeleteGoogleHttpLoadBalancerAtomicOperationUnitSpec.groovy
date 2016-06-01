@@ -30,7 +30,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleH
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationTimedOutException
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -103,7 +103,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def backendServicesOperationGet = Mock(Compute.GlobalOperations.Get)
       def healthChecksOperationGet = Mock(Compute.GlobalOperations.Get)
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DeleteGoogleHttpLoadBalancerDescription(
           loadBalancerName: HTTP_LOAD_BALANCER_NAME,
           accountName: ACCOUNT_NAME,
@@ -225,7 +225,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def healthChecksOperationGet = Mock(Compute.GlobalOperations.Get)
       def healthChecksOperationGet2 = Mock(Compute.GlobalOperations.Get)
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DeleteGoogleHttpLoadBalancerDescription(
           loadBalancerName: HTTP_LOAD_BALANCER_NAME,
           accountName: ACCOUNT_NAME,
@@ -300,7 +300,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def computeMock = Mock(Compute)
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
       def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DeleteGoogleHttpLoadBalancerDescription(
           loadBalancerName: HTTP_LOAD_BALANCER_NAME,
           accountName: ACCOUNT_NAME,
@@ -366,7 +366,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def backendServicesOperationGet = Mock(Compute.GlobalOperations.Get)
       def healthChecksOperationGet = Mock(Compute.GlobalOperations.Get)
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DeleteGoogleHttpLoadBalancerDescription(
           loadBalancerName: HTTP_LOAD_BALANCER_NAME,
           accountName: ACCOUNT_NAME,
@@ -442,7 +442,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalOperations = Mock(Compute.GlobalOperations)
       def globalForwardingRulesOperationGet = Mock(Compute.GlobalOperations.Get)
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DeleteGoogleHttpLoadBalancerDescription(
           deleteOperationTimeoutSeconds: 0,
           loadBalancerName: HTTP_LOAD_BALANCER_NAME,
@@ -525,7 +525,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def backendServicesOperationGet = Mock(Compute.GlobalOperations.Get)
       def healthChecksOperationGet = Mock(Compute.GlobalOperations.Get)
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DeleteGoogleHttpLoadBalancerDescription(
           loadBalancerName: HTTP_LOAD_BALANCER_NAME,
           accountName: ACCOUNT_NAME,

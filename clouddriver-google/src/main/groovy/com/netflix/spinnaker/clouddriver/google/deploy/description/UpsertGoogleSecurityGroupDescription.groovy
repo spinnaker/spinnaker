@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
-
-class UpsertGoogleSecurityGroupDescription {
+class UpsertGoogleSecurityGroupDescription extends AbstractGoogleCredentialsDescription {
   String securityGroupName
   String description
   String network = "default"
@@ -28,7 +26,6 @@ class UpsertGoogleSecurityGroupDescription {
   List<String> targetTags
 
   String accountName
-  GoogleCredentials credentials
 
   static class Allowed {
     String ipProtocol

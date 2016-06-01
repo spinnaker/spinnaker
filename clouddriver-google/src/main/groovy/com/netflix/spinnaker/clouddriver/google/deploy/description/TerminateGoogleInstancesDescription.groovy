@@ -16,13 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
-
-class TerminateGoogleInstancesDescription  {
+class TerminateGoogleInstancesDescription extends AbstractGoogleCredentialsDescription {
   String serverGroupName
   List<String> instanceIds
   String region
   String zone
   String accountName
-  GoogleCredentials credentials
 }

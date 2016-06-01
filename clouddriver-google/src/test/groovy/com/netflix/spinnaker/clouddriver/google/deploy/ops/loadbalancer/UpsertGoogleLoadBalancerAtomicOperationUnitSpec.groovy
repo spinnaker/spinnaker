@@ -36,7 +36,7 @@ import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProper
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -106,7 +106,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       def forwardingRules = Mock(Compute.ForwardingRules)
       def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
       def insertOp = new Operation(targetLink: "link")
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new UpsertGoogleLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
           healthCheck: [port: Constants.DEFAULT_PORT],
@@ -190,7 +190,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       def forwardingRules = Mock(Compute.ForwardingRules)
       def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
       def insertOp = new Operation(targetLink: "link")
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new UpsertGoogleLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
           healthCheck: [port: Constants.DEFAULT_PORT],
@@ -260,7 +260,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       def forwardingRules = Mock(Compute.ForwardingRules)
       def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
       def insertOp = new Operation(targetLink: "link")
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new UpsertGoogleLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
           region: REGION_US,
@@ -315,7 +315,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       def forwardingRules = Mock(Compute.ForwardingRules)
       def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
       def insertOp = new Operation(targetLink: "link")
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new UpsertGoogleLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
           region: REGION_US,
@@ -377,7 +377,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           name: TARGET_POOL_NAME
         )
       ])
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new UpsertGoogleLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
           region: REGION_US,
@@ -417,7 +417,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           target: TARGET_POOL_NAME,
           IPProtocol: Constants.DEFAULT_IP_PROTOCOL,
           portRange: Constants.DEFAULT_PORT_RANGE)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new UpsertGoogleLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
           region: REGION_US,
@@ -482,7 +482,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         ])
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksUpdate = Mock(Compute.HttpHealthChecks.Update)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new UpsertGoogleLoadBalancerDescription(
         loadBalancerName: LOAD_BALANCER_NAME,
         region: REGION_US,
@@ -564,7 +564,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           requestPath: Constants.DEFAULT_REQUEST_PATH
         )
       ])
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new UpsertGoogleLoadBalancerDescription(
         loadBalancerName: LOAD_BALANCER_NAME,
         region: REGION_US,
@@ -647,7 +647,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         name: DELETE_FORWARDING_RULE_OP_NAME,
         status: DONE)
       def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new UpsertGoogleLoadBalancerDescription(
         loadBalancerName: LOAD_BALANCER_NAME,
         region: REGION_US,
@@ -743,7 +743,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         targetLink: "add-health-check",
         name: ADD_HEALTH_CHECK_OP_NAME,
         status: DONE)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new UpsertGoogleLoadBalancerDescription(
         loadBalancerName: LOAD_BALANCER_NAME,
         region: REGION_US,
@@ -839,7 +839,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         status: DONE)
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksDelete = Mock(Compute.HttpHealthChecks.Delete)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new UpsertGoogleLoadBalancerDescription(
         loadBalancerName: LOAD_BALANCER_NAME,
         region: REGION_US,
@@ -936,7 +936,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       ])
       def targetPoolsAddInstance = Mock(Compute.TargetPools.AddInstance)
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new UpsertGoogleLoadBalancerDescription(
         loadBalancerName: LOAD_BALANCER_NAME,
         region: REGION_US,
@@ -1031,7 +1031,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       ])
       def targetPoolsRemoveInstance = Mock(Compute.TargetPools.RemoveInstance)
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new UpsertGoogleLoadBalancerDescription(
         loadBalancerName: LOAD_BALANCER_NAME,
         region: REGION_US,
@@ -1127,7 +1127,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       def targetPoolsAddInstance = Mock(Compute.TargetPools.AddInstance)
       def targetPoolsRemoveInstance = Mock(Compute.TargetPools.RemoveInstance)
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new UpsertGoogleLoadBalancerDescription(
         loadBalancerName: LOAD_BALANCER_NAME,
         region: REGION_US,
@@ -1225,7 +1225,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         )
       ])
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new UpsertGoogleLoadBalancerDescription(
         loadBalancerName: LOAD_BALANCER_NAME,
         region: REGION_US,

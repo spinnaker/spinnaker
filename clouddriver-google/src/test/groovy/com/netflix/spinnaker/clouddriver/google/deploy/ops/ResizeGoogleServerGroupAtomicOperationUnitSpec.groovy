@@ -22,7 +22,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.ResizeGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -45,7 +45,7 @@ class ResizeGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def computeMock = Mock(Compute)
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
       def instanceGroupManagersResizeMock = Mock(Compute.InstanceGroupManagers.Resize)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new ResizeGoogleServerGroupDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                targetSize: targetSize,
                                                                capacity: capacity,

@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
-
-class UpsertGoogleLoadBalancerDescription {
+class UpsertGoogleLoadBalancerDescription extends AbstractGoogleCredentialsDescription {
   String loadBalancerName
   HealthCheck healthCheck
   // The local names of the instances.
@@ -28,7 +26,6 @@ class UpsertGoogleLoadBalancerDescription {
   String portRange
   String region
   String accountName
-  GoogleCredentials credentials
 
   static class HealthCheck {
     Integer checkIntervalSec

@@ -25,7 +25,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.TerminateGoog
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -57,7 +57,7 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
       def computeMock = Mock(Compute)
       def instancesMock = Mock(Compute.Instances)
       def deleteMock = Mock(Compute.Instances.Delete)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new TerminateGoogleInstancesDescription(zone: ZONE,
                                                                 instanceIds: GOOD_INSTANCE_IDS,
                                                                 accountName: ACCOUNT_NAME,
@@ -81,7 +81,7 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
       def computeMock = Mock(Compute)
       def instancesMock = Mock(Compute.Instances)
       def deleteMock = Mock(Compute.Instances.Delete)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new TerminateGoogleInstancesDescription(zone: ZONE,
                                                                 instanceIds: ALL_INSTANCE_IDS,
                                                                 accountName: ACCOUNT_NAME,
@@ -125,7 +125,7 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
       def instanceGroupManagersRecreateInstancesMock = Mock(Compute.InstanceGroupManagers.RecreateInstances)
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new TerminateGoogleInstancesDescription(serverGroupName: MANAGED_INSTANCE_GROUP_NAME,
                                                                 instanceIds: GOOD_INSTANCE_IDS,
                                                                 region: REGION,

@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DestroyGoogleServerGroupDescription
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
@@ -37,9 +36,7 @@ class DestroyGoogleServerGroupDescriptionValidatorSpec extends Specification {
     validator = new DestroyGoogleServerGroupDescriptionValidator()
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
     def credentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
-    def credentials = Mock(GoogleNamedAccountCredentials)
-    credentials.getName() >> ACCOUNT_NAME
-    credentials.getCredentials() >> new GoogleCredentials(null, null)
+    def credentials = new GoogleNamedAccountCredentials.Builder().name(ACCOUNT_NAME).regionLookupEnabled(false).build()
     credentialsRepo.save(ACCOUNT_NAME, credentials)
     validator.accountCredentialsProvider = credentialsProvider
   }

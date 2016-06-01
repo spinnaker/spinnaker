@@ -97,7 +97,7 @@ class GoogleInfrastructureProviderConfig {
     objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
 
     allAccounts.each { GoogleNamedAccountCredentials credentials ->
-      if (!scheduledAccounts.contains(credentials.accountName)) {
+      if (!scheduledAccounts.contains(credentials.name)) {
         def newlyAddedAgents = []
         def regions = credentials.regions.collect { it.name }
 

@@ -32,7 +32,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleServerGroupTagsDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -112,7 +112,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
       def instancesSetTagsOperation1GetMock = Mock(Compute.ZoneOperations.Get)
       def instancesSetTagsOperation2GetMock = Mock(Compute.ZoneOperations.Get)
       def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new UpsertGoogleServerGroupTagsDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                    region: REGION,
                                                                    tags: TAGS,
@@ -220,7 +220,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
       def instanceGroupsListInstancesMock = Mock(Compute.InstanceGroups.ListInstances)
       def instanceGroupsListInstancesReal = new InstanceGroupsListInstances()
       def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new UpsertGoogleServerGroupTagsDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                    region: REGION,
                                                                    tags: TAGS,

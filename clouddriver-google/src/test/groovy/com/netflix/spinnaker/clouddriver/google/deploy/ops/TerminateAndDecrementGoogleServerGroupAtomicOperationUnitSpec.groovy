@@ -25,7 +25,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.TerminateAndD
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -68,7 +68,7 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperationUnitSpec extends Spec
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
       def instanceGroupManagersDeleteInstancesMock = Mock(Compute.InstanceGroupManagers.DeleteInstances)
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new TerminateAndDecrementGoogleServerGroupDescription(
           serverGroupName: SERVER_GROUP_NAME,
           region: REGION,

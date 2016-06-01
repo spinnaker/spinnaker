@@ -28,11 +28,7 @@ class GoogleAtomicOperationConverterHelper {
     }
 
     if (input.accountName) {
-      // The value returned by getCredentialsObject() is of type GoogleNamedAccountCredentials. The credentials property
-      // of BasicGoogleDeployDescription, one of which we are about to construct below, is of type GoogleCredentials.
-      // Since GoogleNamedAccountCredentials exposes a property named 'credentials', of the desired type
-      // GoogleCredentials, we just need to dereference it. If we don't, GroovyCastExceptions ensue.
-      input.credentials = credentialsSupport.getCredentialsObject(input.accountName as String)?.getCredentials()
+      input.credentials = credentialsSupport.getCredentialsObject(input.accountName as String)
     }
 
     // Save these to re-assign after ObjectMapper does its work.

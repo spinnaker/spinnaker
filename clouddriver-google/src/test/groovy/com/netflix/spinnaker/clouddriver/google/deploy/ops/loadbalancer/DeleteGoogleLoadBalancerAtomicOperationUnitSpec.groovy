@@ -32,7 +32,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleL
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationTimedOutException
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -83,7 +83,7 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       def healthChecksDeleteOp = new Operation(
           name: HEALTH_CHECK_DELETE_OP_NAME,
           status: "DONE")
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DeleteGoogleLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
           region: REGION,
@@ -140,7 +140,7 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           name: TARGET_POOL_DELETE_OP_NAME,
           status: "DONE")
       def targetPool = new TargetPool()
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DeleteGoogleLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
           region: REGION,
@@ -177,7 +177,7 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       def computeMock = Mock(Compute)
       def forwardingRules = Mock(Compute.ForwardingRules)
       def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DeleteGoogleLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
           region: REGION,
@@ -214,7 +214,7 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       def targetPools = Mock(Compute.TargetPools)
       def targetPoolsGet = Mock(Compute.TargetPools.Get)
       def targetPool = new TargetPool()
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DeleteGoogleLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
           region: REGION,
@@ -257,7 +257,7 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       def targetPools = Mock(Compute.TargetPools)
       def targetPoolsGet = Mock(Compute.TargetPools.Get)
       def targetPool = new TargetPool()
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DeleteGoogleLoadBalancerDescription(
           deleteOperationTimeoutSeconds: 0,
           loadBalancerName: LOAD_BALANCER_NAME,
@@ -309,7 +309,7 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           name: TARGET_POOL_DELETE_OP_NAME,
           status: "DONE")
       def targetPool = new TargetPool()
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DeleteGoogleLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
           region: REGION,
@@ -369,7 +369,7 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       def healthChecksDeleteOp = new Operation(
           name: HEALTH_CHECK_DELETE_OP_NAME,
           status: "DONE")
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DeleteGoogleLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
           region: REGION,
@@ -452,7 +452,7 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       def targetPoolsGet = Mock(Compute.TargetPools.Get)
       def targetPoolsDelete = Mock(Compute.TargetPools.Delete)
       def targetPool = new TargetPool(healthChecks: [HEALTH_CHECK_URL])
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DeleteGoogleLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
           region: REGION,

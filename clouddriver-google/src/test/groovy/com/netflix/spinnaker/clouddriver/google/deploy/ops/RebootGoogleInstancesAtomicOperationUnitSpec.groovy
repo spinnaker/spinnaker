@@ -20,7 +20,7 @@ import com.google.api.services.compute.Compute
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.RebootGoogleInstancesDescription
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -44,7 +44,7 @@ class RebootGoogleInstancesAtomicOperationUnitSpec extends Specification {
       def computeMock = Mock(Compute)
       def instancesMock = Mock(Compute.Instances)
       def resetMock = Mock(Compute.Instances.Reset)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new RebootGoogleInstancesDescription(zone: ZONE,
                                                             instanceIds: GOOD_INSTANCE_IDS,
                                                             accountName: ACCOUNT_NAME,
@@ -68,7 +68,7 @@ class RebootGoogleInstancesAtomicOperationUnitSpec extends Specification {
       def computeMock = Mock(Compute)
       def instancesMock = Mock(Compute.Instances)
       def resetMock = Mock(Compute.Instances.Reset)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new RebootGoogleInstancesDescription(zone: ZONE,
                                                             instanceIds: ALL_INSTANCE_IDS,
                                                             accountName: ACCOUNT_NAME,

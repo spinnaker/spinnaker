@@ -16,14 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
-
-class UpsertGoogleServerGroupTagsDescription {
+class UpsertGoogleServerGroupTagsDescription extends AbstractGoogleCredentialsDescription {
   String serverGroupName
   List<String> tags
   String region
   String accountName
-  GoogleCredentials credentials
 
   @Deprecated
   String zone

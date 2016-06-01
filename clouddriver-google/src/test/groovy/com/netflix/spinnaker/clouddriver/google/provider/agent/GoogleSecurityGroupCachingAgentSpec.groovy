@@ -23,9 +23,7 @@ import com.google.api.services.compute.model.FirewallList
 import com.netflix.spectator.api.Spectator
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
@@ -39,8 +37,7 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
   void "should add security groups on initial run"() {
     setup:
       def computeMock = Mock(Compute)
-      def credentials = new GoogleNamedAccountCredentials(ACCOUNT_NAME, null, null, null, false, null, null, null, "testApplicationName")
-      credentials.metaClass.credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).name(ACCOUNT_NAME).compute(computeMock).build()
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsListMock = Mock(Compute.Firewalls.List)
       def securityGroupA = new Firewall(name: 'name-a')

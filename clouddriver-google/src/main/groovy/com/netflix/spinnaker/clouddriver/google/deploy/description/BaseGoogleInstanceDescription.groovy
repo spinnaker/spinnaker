@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 import groovy.transform.ToString
@@ -25,7 +24,7 @@ import groovy.transform.ToString
 @AutoClone
 @Canonical
 @ToString(includeNames = true)
-class BaseGoogleInstanceDescription {
+class BaseGoogleInstanceDescription extends AbstractGoogleCredentialsDescription {
   String image
   String instanceType
   List<GoogleDisk> disks
@@ -40,7 +39,6 @@ class BaseGoogleInstanceDescription {
   OnHostMaintenance onHostMaintenance
 
   String accountName
-  GoogleCredentials credentials
 
   enum OnHostMaintenance {
     MIGRATE, TERMINATE

@@ -20,13 +20,12 @@ import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.InstanceGroupManagersSetTargetPoolsRequest
 import com.google.api.services.compute.model.TargetPool
-import com.google.api.services.compute.model.Zone
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.EnableDisableGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -72,7 +71,7 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     googleClusterProviderMock = Mock(GoogleClusterProvider)
     serverGroup = new GoogleServerGroup(zone: ZONE).view
     computeMock = Mock(Compute)
-    credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+    credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
 
     instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
     instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)

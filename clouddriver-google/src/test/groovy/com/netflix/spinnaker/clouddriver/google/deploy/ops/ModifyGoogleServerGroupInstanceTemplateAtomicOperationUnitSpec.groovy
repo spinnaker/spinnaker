@@ -26,7 +26,6 @@ import com.google.api.services.compute.model.Metadata
 import com.google.api.services.compute.model.NetworkInterface
 import com.google.api.services.compute.model.Operation
 import com.google.api.services.compute.model.Tags
-import com.google.api.services.compute.model.Zone
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
@@ -36,7 +35,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.ModifyGoogleS
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -102,7 +101,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
       def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
       def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: SERVER_GROUP_NAME)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new ModifyGoogleServerGroupInstanceTemplateDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                                region: REGION,
                                                                                accountName: ACCOUNT_NAME,
@@ -169,7 +168,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
                                                            status: DONE)
       def setInstanceTemplateOperationGetMock = Mock(Compute.ZoneOperations.Get)
       def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new ModifyGoogleServerGroupInstanceTemplateDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                                region: REGION,
                                                                                instanceMetadata: METADATA_2,
@@ -234,7 +233,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
       def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
       def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: SERVER_GROUP_NAME)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new ModifyGoogleServerGroupInstanceTemplateDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                                region: REGION,
                                                                                accountName: ACCOUNT_NAME,
@@ -291,7 +290,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
       def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
       def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: SERVER_GROUP_NAME)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new ModifyGoogleServerGroupInstanceTemplateDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                                region: REGION,
                                                                                accountName: ACCOUNT_NAME,
@@ -350,7 +349,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
       def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
       def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: SERVER_GROUP_NAME)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new ModifyGoogleServerGroupInstanceTemplateDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                                region: REGION,
                                                                                accountName: ACCOUNT_NAME,

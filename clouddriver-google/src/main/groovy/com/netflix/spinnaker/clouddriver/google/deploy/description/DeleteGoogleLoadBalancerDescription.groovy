@@ -16,12 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
-
-class DeleteGoogleLoadBalancerDescription {
+class DeleteGoogleLoadBalancerDescription extends AbstractGoogleCredentialsDescription {
   Long deleteOperationTimeoutSeconds
   String loadBalancerName
   String region
   String accountName
-  GoogleCredentials credentials
 }

@@ -33,6 +33,7 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
+import com.netflix.spinnaker.clouddriver.google.ComputeVersion
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
@@ -83,7 +84,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    if (!credentials.alphaListed) {
+    if (credentials.computeVersion != ComputeVersion.ALPHA) {
       return new DefaultCacheResult([:])
     }
 

@@ -16,12 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
-
-class DeregisterInstancesFromGoogleLoadBalancerDescription {
+class DeregisterInstancesFromGoogleLoadBalancerDescription extends AbstractGoogleCredentialsDescription {
   List<String> loadBalancerNames
   List<String> instanceIds
   String region
   String accountName
-  GoogleCredentials credentials
 }

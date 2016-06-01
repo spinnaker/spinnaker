@@ -16,13 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
-
-class DestroyGoogleServerGroupDescription {
+class DestroyGoogleServerGroupDescription extends AbstractGoogleCredentialsDescription {
   String serverGroupName
   String region
   String accountName
-  GoogleCredentials credentials
 
   @Deprecated
   String zone

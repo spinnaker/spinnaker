@@ -20,7 +20,7 @@ import com.google.api.services.compute.Compute
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleSecurityGroupDescription
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -38,7 +38,7 @@ class DeleteGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
       def computeMock = Mock(Compute)
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsDelete = Mock(Compute.Firewalls.Delete)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DeleteGoogleSecurityGroupDescription(securityGroupName: SECURITY_GROUP_NAME,
                                                                  accountName: ACCOUNT_NAME,
                                                                  credentials: credentials)

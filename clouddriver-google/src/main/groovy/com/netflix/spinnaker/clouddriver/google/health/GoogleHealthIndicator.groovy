@@ -62,10 +62,8 @@ class GoogleHealthIndicator implements HealthIndicator {
 
       for (GoogleNamedAccountCredentials accountCredentials in googleCredentialsSet) {
         try {
-          GoogleCredentials googleCredentials = accountCredentials.credentials
-
           // This verifies that the specified credentials are sufficient to access the referenced project.
-          googleCredentials.compute.projects().get(googleCredentials.project).execute()
+          accountCredentials.compute.projects().get(accountCredentials.project).execute()
         } catch (IOException e) {
           throw new GoogleIOException(e)
         }

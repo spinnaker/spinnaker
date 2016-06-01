@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.security
 
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
+import com.netflix.spinnaker.clouddriver.google.ComputeVersion
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable
@@ -70,15 +71,17 @@ class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizab
     accountsToAdd.each { GoogleConfigurationProperties.ManagedAccount managedAccount ->
       try {
         def jsonKey = GoogleCredentialsInitializer.getJsonKey(managedAccount)
-        def googleAccount = new GoogleNamedAccountCredentials(managedAccount.name,
-                                                              managedAccount.environment ?: managedAccount.name,
-                                                              managedAccount.accountType ?: managedAccount.name,
-                                                              managedAccount.project,
-                                                              managedAccount.alphaListed,
-                                                              jsonKey,
-                                                              managedAccount.imageProjects,
-                                                              managedAccount.requiredGroupMembership,
-                                                              googleApplicationName)
+        def googleAccount = new GoogleNamedAccountCredentials.Builder()
+            .name(managedAccount.name)
+            .environment(managedAccount.environment ?: managedAccount.name)
+            .accountType(managedAccount.accountType ?: managedAccount.name)
+            .project(managedAccount.project)
+            .computeVersion(managedAccount.alphaListed ? ComputeVersion.ALPHA : ComputeVersion.V1)
+            .jsonKey(jsonKey)
+            .imageProjects(managedAccount.imageProjects)
+            .requiredGroupMembership(managedAccount.requiredGroupMembership)
+            .applicationName(googleApplicationName)
+            .build()
 
         if (!managedAccount.project) {
           throw new IllegalArgumentException("No project was specified for Google account $managedAccount.name.");

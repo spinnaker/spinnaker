@@ -26,7 +26,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DestroyGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -61,7 +61,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def instanceGroupManagersDeleteOp = new Operation(name: INSTANCE_GROUP_OP_NAME, status: DONE)
       def instanceTemplatesMock = Mock(Compute.InstanceTemplates)
       def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DestroyGoogleServerGroupDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                 region: REGION,
                                                                 accountName: ACCOUNT_NAME,
@@ -119,7 +119,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def autoscalersMock = Mock(Compute.Autoscalers)
       def autoscalersDeleteMock = Mock(Compute.Autoscalers.Delete)
       def autoscalersDeleteOp = new Operation(name: AUTOSCALERS_OP_NAME, status: DONE)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DestroyGoogleServerGroupDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                 region: REGION,
                                                                 accountName: ACCOUNT_NAME,

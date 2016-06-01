@@ -36,7 +36,7 @@ import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.description.CreateGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.mock.interceptor.MockFor
 import spock.lang.Specification
 import spock.lang.Subject
@@ -108,6 +108,8 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
       computeMock.demand.networks { networksMock }
       computeMock.demand.instances { instancesMock }
 
+      computeMock.ignore('asBoolean')
+
     when:
       batchMock.use {
         computeMock.use {
@@ -115,7 +117,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
             def compute = new Compute.Builder(
                     httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build()
 
-            def credentials = new GoogleCredentials(PROJECT_NAME, compute)
+            def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(compute).build()
             def description = new CreateGoogleInstanceDescription(instanceName: INSTANCE_NAME,
                                                                   image: IMAGE,
                                                                   instanceType: INSTANCE_TYPE,
@@ -153,7 +155,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
       def machineTypesAggregatedListMock = Mock(Compute.MachineTypes.AggregatedList)
       def machineTypesScopedListReal = new MachineTypesScopedList(machineTypes: [])
       def machineTypeAggregatedListReal = new MachineTypeAggregatedList(items: [(ZONE): machineTypesScopedListReal])
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new CreateGoogleInstanceDescription(instanceName: INSTANCE_NAME,
                                                             image: IMAGE,
                                                             instanceType: INSTANCE_TYPE,
@@ -202,6 +204,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
       computeMock.demand.zones { zonesMock }
       computeMock.demand.machineTypes { machineTypesMock }
       computeMock.demand.batch { new BatchRequest(httpTransport, httpRequestInitializer) }
+      computeMock.ignore('asBoolean')
 
       JsonBatchCallback<ImageList> callback = null
 
@@ -225,7 +228,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
             def compute = new Compute.Builder(
                     httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build()
 
-            def credentials = new GoogleCredentials(PROJECT_NAME, compute)
+            def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(compute).build()
             def description = new CreateGoogleInstanceDescription(instanceName: INSTANCE_NAME,
                                                                   image: IMAGE,
                                                                   instanceType: INSTANCE_TYPE,

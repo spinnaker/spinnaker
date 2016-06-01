@@ -50,15 +50,15 @@ abstract class AbstractGoogleCachingAgent implements CachingAgent, AccountAware 
   }
 
   String getProject() {
-    credentials?.credentials?.project
+    credentials?.project
   }
 
   Compute getCompute() {
-    credentials?.credentials?.compute
+    credentials?.compute
   }
 
   String getAccountName() {
-    credentials?.accountName
+    credentials?.name
   }
 
   def executeIfRequestsAreQueued(BatchRequest batch) {

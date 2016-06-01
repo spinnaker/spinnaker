@@ -36,7 +36,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -97,7 +97,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
   def setup() {
     computeMock = Mock(Compute)
-    credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+    credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
 
     sourceImage = new Image(selfLink: IMAGE)
     network = new Network(selfLink: DEFAULT_NETWORK_NAME)

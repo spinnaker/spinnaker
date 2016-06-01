@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
-
-class CreateGoogleHttpLoadBalancerDescription {
+class CreateGoogleHttpLoadBalancerDescription extends AbstractGoogleCredentialsDescription {
   // Really, this is the ForwardingRule name (but be aware that the UrlMap name will be the name of the
   // load balancer in the Google Compute console).
   String loadBalancerName
@@ -39,7 +37,6 @@ class CreateGoogleHttpLoadBalancerDescription {
 
   // For authorization.
   String accountName
-  GoogleCredentials credentials
 
   // Note that in the classes below, wrapper types are used for all the fields instead of
   // primitives. This is because many of these fields are optional and wrapper fields can

@@ -40,7 +40,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 
 class GCEUtil {
   private static final String DISK_TYPE_PERSISTENT = "PERSISTENT"
@@ -240,26 +240,26 @@ class GCEUtil {
   static InstanceGroupManager queryRegionalManagedInstanceGroup(String projectName,
                                                                 String region,
                                                                 String serverGroupName,
-                                                                GoogleCredentials credentials) {
+                                                                GoogleNamedAccountCredentials credentials) {
     credentials.compute.regionInstanceGroupManagers().get(projectName, region, serverGroupName).execute()
   }
 
   static InstanceGroupManager queryZonalManagedInstanceGroup(String projectName,
                                                              String zone,
                                                              String serverGroupName,
-                                                             GoogleCredentials credentials) {
+                                                             GoogleNamedAccountCredentials credentials) {
     credentials.compute.instanceGroupManagers().get(projectName, zone, serverGroupName).execute()
   }
 
   static List<InstanceGroupManager> queryRegionalManagedInstanceGroups(String projectName,
                                                                        String region,
-                                                                       GoogleCredentials credentials) {
+                                                                       GoogleNamedAccountCredentials credentials) {
     return credentials.compute.regionInstanceGroupManagers().list(projectName, region).execute().getItems()
   }
 
   static List<InstanceGroupManager> queryZonalManagedInstanceGroups(String projectName,
                                                                     String region,
-                                                                    GoogleCredentials credentials) {
+                                                                    GoogleNamedAccountCredentials credentials) {
     def compute = credentials.compute
     def zones = getZonesFromRegion(projectName, region, compute)
 
