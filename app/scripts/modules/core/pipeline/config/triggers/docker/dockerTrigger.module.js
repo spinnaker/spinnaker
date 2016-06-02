@@ -31,11 +31,24 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
         });
     }
 
-    function updateRepositoryList() {
-      if (!$scope.registryMap) {
+    function updateOrganizationsList() {
+      if (!$scope.accountMap) {
         return;
       }
-      $scope.repositories = $scope.registryMap[trigger.registry] || [];
+      $scope.organizations = $scope.accountMap[trigger.account] || [];
+      if ($scope.organizations.indexOf(trigger.organization) < 0) {
+        trigger.organization = null;
+      }
+      updateRepositoryList();
+    }
+
+
+    function updateRepositoryList() {
+      if (!$scope.organizationMap) {
+        return;
+      }
+      let key = `${trigger.account}/${trigger.organization}`;
+      $scope.repositories = $scope.organizationMap[key] || [];
       if ($scope.repositories.indexOf(trigger.repository) < 0) {
         trigger.repository = null;
       }
@@ -46,7 +59,7 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
       if (!$scope.repositoryMap) {
         return;
       }
-      let key = `${trigger.registry}/${trigger.repository}`;
+      let key = `${trigger.account}/${trigger.repository}`;
       $scope.tags = $scope.repositoryMap[key] || [];
     }
 
@@ -65,28 +78,41 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
     function initializeImages() {
       loadImages().then(function (images) {
         $scope.images = images;
-        $scope.registryMap = images.reduce((map, image) => {
-          let key = image.registry;
+        $scope.accountMap = images.reduce((map, image) => {
+          let key = image.account;
           if (!key) {
             return map;
           }
+          let all = map[key] || [];
+          let parts = image.repository.split('/');
+          let repository = parts.pop();
+          let org = parts.join('/');
+          if (all.indexOf(org) < 0) {
+            map[key] = all.concat(org);
+          }
+          return map;
+        }, {});
+        $scope.accounts = Object.keys($scope.accountMap);
+        $scope.organizationMap = images.reduce((map, image) => {
+          let parts = image.repository.split('/');
+          let repository = parts.pop();
+          let key = `${image.account}/${parts.join('/')}`;
           let all = map[key] || [];
           if (all.indexOf(image.repository) < 0) {
             map[key] = all.concat(image.repository);
           }
           return map;
         }, {});
-        $scope.registries = Object.keys($scope.registryMap);
-        updateRepositoryList();
+        $scope.organizations = Object.keys($scope.organizationMap);
         $scope.repositoryMap = images.reduce((map, image) => {
-          let key = `${image.registry}/${image.repository}`;
+          let key = `${image.account}/${image.repository}`;
           let all = map[key] || [];
           if (all.indexOf(image.tag) < 0) {
             map[key] = all.concat(image.tag);
           }
           return map;
         }, {});
-        updateTagList();
+        updateOrganizationsList();
 
         $scope.viewState.imagesLoaded = true;
         $scope.viewState.imagesRefreshing = false;
@@ -98,15 +124,10 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
       initializeImages();
     };
 
-    this.updateTrigger = function(image) {
-      trigger.registry = image.registry;
-      trigger.repository = image.repository;
-      trigger.tag = image.tag;
-    };
-
     initializeImages();
 
-    $scope.$watch('trigger.registry', updateRepositoryList);
+    $scope.$watch('trigger.account', updateOrganizationsList);
+    $scope.$watch('trigger.organization', updateRepositoryList);
     $scope.$watch('trigger.repository', updateTagList);
 
   });

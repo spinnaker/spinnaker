@@ -1,13 +1,13 @@
 <ng-form name="dockerForm">
   <div class="form-group">
     <div class="col-md-3 sm-label-right">
-      Registry
+      Registry Name
     </div>
     <div class="col-md-6">
-      <ui-select ng-model="trigger.registry" class="form-control input-sm">
-        <ui-select-match>{{trigger.registry}}</ui-select-match>
-        <ui-select-choices repeat="registry in registries | filter: $select.search | orderBy">
-          <span ng-bind-html="registry | highlight: $select.search"></span>
+      <ui-select ng-model="trigger.account" class="form-control input-sm">
+        <ui-select-match>{{trigger.account}}</ui-select-match>
+        <ui-select-choices repeat="account in accounts | filter: $select.search | orderBy">
+          <span ng-bind-html="account | highlight: $select.search"></span>
         </ui-select-choices>
       </ui-select>
     </div>
@@ -19,6 +19,19 @@
               <span ng-class="{'glyphicon-spinning':viewState.imagesRefreshing}"
                     class="glyphicon glyphicon-refresh"></span>
       </a>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right">
+      Organization
+    </div>
+    <div class="col-md-6">
+      <ui-select ng-model="trigger.organization" class="form-control input-sm">
+        <ui-select-match>{{trigger.organization}}</ui-select-match>
+        <ui-select-choices repeat="organization in organizations | filter: $select.search | orderBy">
+          <span ng-bind-html="organization | highlight: $select.search"></span>
+        </ui-select-choices>
+      </ui-select>
     </div>
   </div>
   <div class="form-group">
