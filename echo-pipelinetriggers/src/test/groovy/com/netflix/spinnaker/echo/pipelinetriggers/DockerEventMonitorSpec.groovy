@@ -71,7 +71,7 @@ class DockerEventMonitorSpec extends Specification implements RetrofitStubs {
     then:
     1 * subscriber.call({
       it.trigger.type == enabledDockerTrigger.type
-      it.trigger.registry == enabledDockerTrigger.registry
+      it.trigger.account == enabledDockerTrigger.account
       it.trigger.repository == enabledDockerTrigger.repository
       it.trigger.tag == enabledDockerTrigger.tag
     })
@@ -137,7 +137,7 @@ class DockerEventMonitorSpec extends Specification implements RetrofitStubs {
     where:
     trigger                                               | description
     disabledDockerTrigger                                 | "disabled docker trigger"
-    enabledDockerTrigger.withRegistry("notRegistry")      | "different registry"
+    enabledDockerTrigger.withAccount("notRegistry")       | "different registry"
     enabledDockerTrigger.withRepository("notRepository")  | "different repository"
 
     pipeline = createPipelineWith(trigger)
@@ -158,8 +158,8 @@ class DockerEventMonitorSpec extends Specification implements RetrofitStubs {
 
     where:
     trigger                                    | field
-    enabledDockerTrigger.withRegistry(null)    | "registry"
-    enabledDockerTrigger.withRepository(null) | "repository"
+    enabledDockerTrigger.withAccount(null)     | "account"
+    enabledDockerTrigger.withRepository(null)  | "repository"
     enabledDockerTrigger.withTag(null)         | "tag"
 
     event = createDockerEvent()
