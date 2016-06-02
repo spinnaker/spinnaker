@@ -53,7 +53,7 @@ class CredentialsServiceSpec extends Specification {
     ["account2"]                         || [accounts[1]]
     ["account1", "account2"]             || accounts
     ["account1", "account2", "account3"] || accounts
-    []                                   || []
-    null                                 || []
+    []                                   || accounts
+    null                                 || accounts
   }
 }
