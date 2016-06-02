@@ -12,9 +12,11 @@ describe('Controller: AWS ServerGroupDetailsCtrl', function () {
   );
 
   beforeEach(
-    window.inject( function($controller, $rootScope, applicationReader) {
+    window.inject( function($controller, $q, $rootScope, applicationReader) {
       $scope = $rootScope.$new();
-      let application = {};
+      let application = {
+        ready: () => $q.when(1)
+      };
       applicationReader.addSectionToApplication({key: 'serverGroups', lazy: true}, application);
       applicationReader.addSectionToApplication({key: 'loadBalancers', lazy: true}, application);
       controller = $controller('awsServerGroupDetailsCtrl', {
