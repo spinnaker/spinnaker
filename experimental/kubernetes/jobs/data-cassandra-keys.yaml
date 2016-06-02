@@ -16,4 +16,4 @@ spec:
       containers:
       - name: cassandra-keys
         image: gcr.io/kubernetes-spinnaker/cassandra-keys:v2
-      restartPolicy: Never
+      restartPolicy: OnFailure
