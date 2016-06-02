@@ -33,7 +33,8 @@ class CredentialsService {
     HystrixFactory.newListCommand(GROUP, "getAccounts") {
       def allAccounts = clouddriverService.accounts
 
-      if (!AuthenticatedRequest.getSpinnakerUser().present) {
+      if (!AuthenticatedRequest.getSpinnakerUser().present ||
+          !AuthenticatedRequest.getSpinnakerAccounts().present) {
         // if the request is unauthenticated, return only anonymously accessible accounts (no group membership required)
         return allAccounts.findAll { !it.requiredGroupMembership }
       }

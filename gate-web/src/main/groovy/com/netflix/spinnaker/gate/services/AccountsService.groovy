@@ -23,12 +23,8 @@ import org.springframework.stereotype.Component
 @Component
 class AccountsService {
 
-  private final ClouddriverService clouddriverService
-
   @Autowired
-  AccountsService(ClouddriverService clouddriverService) {
-    this.clouddriverService = clouddriverService
-  }
+  ClouddriverService clouddriverService
 
   /**
    * Returns all account names that a user with the specified list of userRoles has access to.
