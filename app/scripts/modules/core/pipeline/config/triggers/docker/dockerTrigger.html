@@ -3,10 +3,10 @@
     <div class="col-md-3 sm-label-right">
       Registry
     </div>
-    <div class="col-md-5">
+    <div class="col-md-6">
       <ui-select ng-model="trigger.registry" class="form-control input-sm">
         <ui-select-match>{{trigger.registry}}</ui-select-match>
-        <ui-select-choices repeat="registry in registries | filter: $select.search">
+        <ui-select-choices repeat="registry in registries | filter: $select.search | orderBy">
           <span ng-bind-html="registry | highlight: $select.search"></span>
         </ui-select-choices>
       </ui-select>
@@ -23,12 +23,12 @@
   </div>
   <div class="form-group">
     <div class="col-md-3 sm-label-right">
-      Repository
+      Image
     </div>
-    <div class="col-md-5">
+    <div class="col-md-6">
       <ui-select ng-model="trigger.repository" class="form-control input-sm">
         <ui-select-match>{{trigger.repository}}</ui-select-match>
-        <ui-select-choices repeat="repository in repositories | filter: $select.search">
+        <ui-select-choices repeat="repository in repositories | filter: $select.search | orderBy">
           <span ng-bind-html="repository | highlight: $select.search"></span>
         </ui-select-choices>
       </ui-select>
@@ -39,10 +39,10 @@
       Tag
       <help-field key="pipeline.config.docker.trigger.tag"></help-field>
     </div>
-    <div class="col-md-5">
+    <div class="col-md-6">
       <ui-select ng-model="trigger.tag" class="form-control input-sm">
         <ui-select-match>{{trigger.tag}}</ui-select-match>
-        <ui-select-choices repeat="tag in tags | filter: $select.search">
+        <ui-select-choices repeat="tag in tags | filter: $select.search | orderBy">
           <span ng-bind-html="tag | highlight: $select.search"></span>
         </ui-select-choices>
       </ui-select>
