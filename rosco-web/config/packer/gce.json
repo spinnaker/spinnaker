@@ -21,6 +21,7 @@
     "account_file": "{{user `gce_account_file`}}",
     "zone": "{{user `gce_zone`}}",
     "network": "{{user `gce_network`}}",
+    "state_timeout": "15m",
     "ssh_username": "packerio",
     "ssh_pty": true,
     "source_image": "{{user `gce_source_image`}}",
