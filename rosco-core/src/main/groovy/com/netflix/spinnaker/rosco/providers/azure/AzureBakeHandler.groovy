@@ -33,6 +33,9 @@ public class AzureBakeHandler extends CloudProviderBakeHandler{
   @Autowired
   RoscoAzureConfiguration.AzureBakeryDefaults azureBakeryDefaults
 
+  @Autowired
+  RoscoAzureConfiguration.AzureConfigurationProperties azureConfigurationProperties
+
   @Override
   def getBakeryDefaults() {
     return azureBakeryDefaults
@@ -73,7 +76,29 @@ public class AzureBakeHandler extends CloudProviderBakeHandler{
 
   @Override
   Map buildParameterMap(String region, Object virtualizationSettings, String imageName, BakeRequest bakeRequest) {
-    return null
+
+    def selectedImage = azureBakeryDefaults?.baseImages?.find {it.baseImage.id == bakeRequest.base_os}
+
+    // TODO(larrygug): Presently rosco is only supporitng a single account. Need to update to support a named account
+    def selectedAccount = azureConfigurationProperties?.accounts?.get(0)
+
+    def parameterMap = [
+      azure_client_id: selectedAccount?.clientId,
+      azure_client_secret: selectedAccount?.appKey,
+      azure_resource_group: selectedAccount?.packerResourceGroup,
+      azure_storage_account: selectedAccount?.storageAccount,
+      azure_subscription_id: selectedAccount?.subscriptionId,
+      azure_tenant_id: selectedAccount?.tenantId,
+
+      azure_location       : region,
+
+      azure_image_publisher: selectedImage?.baseImage?.publisher,
+      azure_image_offer: selectedImage?.baseImage?.offer,
+      azure_image_sku: selectedImage?.baseImage?.sku,
+      azure_image_name: "$bakeRequest.build_number-$bakeRequest.base_name"
+    ]
+
+    return parameterMap
   }
 
   @Override

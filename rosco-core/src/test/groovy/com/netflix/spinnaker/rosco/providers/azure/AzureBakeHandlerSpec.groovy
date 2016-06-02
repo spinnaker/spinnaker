@@ -21,17 +21,38 @@ import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.azure.config.RoscoAzureConfiguration
+import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
+import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
 class AzureBakeHandlerSpec extends Specification{
 
+  private static final String PACKAGES_NAME = "kato nflx-djangobase-enhanced_0.1-h12.170cdbd_all mongodb"
+  private static final String REGION = "westus"
+  private static final String DEBIAN_REPOSITORY = "http://some-debian-repository"
+  private static final String CLIENT_ID = "123ABC-456DEF"
+  private static final String IMAGE_PUBLISHER = "Canonical"
+  private static final String CLIENT_SECRET = "blahblah"
+  private static final String RESOURCE_GROUP =  "resGroup"
+  private static final String STORAGE_ACCOUNT = "packerStorage"
+  private static final String SUBSCRIPTION_ID =  "123ABC"
+  private static final String TENANT_ID = "DEF456"
+  private static final String IMAGE_OFFER = "UbuntuServer"
+  private static final String IMAGE_SKU = "14.04.3-LTS"
+  private static final String BUILD_NUMBER = "42"
+  private static final String BUILD_NAME = "production"
+  private static final String IMAGE_NAME = "$BUILD_NUMBER-$BUILD_NAME"
+
   @Shared
   String configDir = "/some/path"
 
   @Shared
   RoscoAzureConfiguration.AzureBakeryDefaults azureBakeryDefaults
+
+  @Shared
+  RoscoAzureConfiguration.AzureConfigurationProperties azureConfigurationProperties
 
   void setupSpec() {
     def azureBakeryDefaultsJson = [
@@ -40,21 +61,46 @@ class AzureBakeHandlerSpec extends Specification{
         [
           baseImage: [
             id: "ubuntu",
+            shortDescription: "v14.04",
             detailedDescription: "Ubuntu Server 14.04.4-LTS",
+            publisher: IMAGE_PUBLISHER,
+            offer: IMAGE_OFFER,
+            sku: IMAGE_SKU,
+            version: "14.04.201602171",
             packageType: "DEB",
           ]
         ],
         [
           baseImage: [
             id: "centos",
+            shortDescription: "7",
             detailedDescription: "OpenLogic CentOS 7.1.20150731",
+            publisher: "OpenLogic",
+            offer: "CentOS",
+            sku: "7.1",
+            version: "7.1.20150731",
             packageType: "RPM",
           ]
         ]
       ]
     ]
 
+    def azureConfigurationPropertiesJson = [
+      accounts: [
+        [
+          name: "azure-1",
+          clientId: CLIENT_ID,
+          appKey: CLIENT_SECRET,
+          tenantId: TENANT_ID,
+          subscriptionId: SUBSCRIPTION_ID,
+          packerResourceGroup: RESOURCE_GROUP,
+          storageAccount: STORAGE_ACCOUNT
+        ]
+      ]
+    ]
+
     azureBakeryDefaults = new ObjectMapper().convertValue(azureBakeryDefaultsJson, RoscoAzureConfiguration.AzureBakeryDefaults)
+    azureConfigurationProperties = new ObjectMapper().convertValue(azureConfigurationPropertiesJson, RoscoAzureConfiguration.AzureConfigurationProperties)
   }
 
   void 'can scrape packer logs for image name'() {
@@ -118,5 +164,51 @@ class AzureBakeHandlerSpec extends Specification{
       baseImages.size() == 2
       cloudProvider == BakeRequest.CloudProviderType.azure.toString()
     }
+  }
+
+  void 'produces packer command with all required parameters for ubuntu'() {
+    setup:
+    def imageNameFactoryMock = Mock(ImageNameFactory)
+    def packerCommandFactoryMock = Mock(PackerCommandFactory)
+    def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+      package_name: PACKAGES_NAME,
+      base_os: "ubuntu",
+      cloud_provider_type: BakeRequest.CloudProviderType.azure,
+      template_file_name: "azure-linux.json",
+      build_number: BUILD_NUMBER,
+      base_name: BUILD_NAME)
+    def targetImageName = "myapp"
+    def parameterMap = [
+      azure_client_id: CLIENT_ID,
+      azure_client_secret: CLIENT_SECRET,
+      azure_resource_group: RESOURCE_GROUP,
+      azure_storage_account: STORAGE_ACCOUNT,
+      azure_subscription_id: SUBSCRIPTION_ID,
+      azure_tenant_id: TENANT_ID,
+      azure_location: REGION,
+      azure_image_publisher: IMAGE_PUBLISHER,
+      azure_image_offer: IMAGE_OFFER,
+      azure_image_sku: IMAGE_SKU,
+      azure_image_name: IMAGE_NAME,
+      repository: DEBIAN_REPOSITORY,
+      package_type: BakeRequest.PackageType.DEB.packageType,
+      packages: PACKAGES_NAME,
+      configDir: configDir
+    ]
+
+    @Subject
+    AzureBakeHandler azureBakeHandler = new AzureBakeHandler(configDir: configDir,
+      azureBakeryDefaults: azureBakeryDefaults,
+      imageNameFactory: imageNameFactoryMock,
+      packerCommandFactory: packerCommandFactoryMock,
+      debianRepository: DEBIAN_REPOSITORY,
+      azureConfigurationProperties: azureConfigurationProperties)
+
+    when:
+    azureBakeHandler.producePackerCommand(REGION, bakeRequest)
+
+    then:
+    1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
+    1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/azure-linux.json")
   }
 }

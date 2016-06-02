@@ -54,20 +54,38 @@ class RoscoAzureConfiguration {
   }
 
   static class AzureBakeryDefaults {
-    String azureClientId
-    String azureClientSecret
-    String azureResourceGroup
     String templateFile
-    List<AzureOperatingSystemVirtualizationSettings> baseImages = []
+    List<AzureBaseImage> baseImages = []
   }
 
-  static class AzureOperatingSystemVirtualizationSettings {
-    BakeOptions.BaseImage baseImage
-    List<AzureVirtualizationSettings> vitualizationSettings = []
+  static class AzureOperatingSystemSettings extends BakeOptions.BaseImage {
+    String publisher
+    String offer
+    String sku
+    String version
   }
 
-  @AutoClone(style = AutoCloneStyle.SIMPLE)
-  static class AzureVirtualizationSettings {
-    String region
+  static class AzureBaseImage {
+    AzureOperatingSystemSettings baseImage
+  }
+
+  @Bean
+  @ConfigurationProperties('azure')
+  AzureConfigurationProperties azureConfigurationProperties() {
+    new AzureConfigurationProperties()
+  }
+
+  static class AzureConfigurationProperties {
+    List<ManagedAzureAccount> accounts = []
+  }
+
+  static class ManagedAzureAccount{
+    String name
+    String clientId
+    String appKey
+    String tenantId
+    String subscriptionId
+    String packerResourceGroup
+    String storageAccount
   }
 }

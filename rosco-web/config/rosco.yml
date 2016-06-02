@@ -155,11 +155,19 @@ azure:
         id: ubuntu
         shortDescription: v14.04
         detailedDescription: Ubuntu Server 14.04.4-LTS
+        publisher: Canonical
+        offer: UbuntuServer
+        sku: 14.04.3-LTS
+        version: 14.04.201602171
         packageType: deb
     - baseImage:
         id: centos
         shortDescription: 7
         detailedDescription: OpenLogic CentOS 7.1.20150731
+        publisher: OpenLogic
+        offer: CentOS
+        sku: 7.1
+        version: 7.1.20150731
         packageType: rpm
 
 docker:

@@ -10,7 +10,6 @@
     "azure_image_offer": "",
     "azure_image_sku": "",
     "azure_location": "",
-    "azure_vm_size": "",
     "azure_image_name": "",
 
     "appversion": "",
@@ -24,15 +23,15 @@
   "builders": [{
     "type": "azure-arm",
 
-    "client_id": "{{user `client_id`}}",
-    "client_secret": "{{user `client_secret`}}",
-    "resource_group_name": "{{user `resource_group`}}",
-    "storage_account": "{{user `storage_account`}}",
-    "subscription_id": "{{user `subscription_id`}}",
-    "tenant_id": "{{user `tenant_id`}}",
+    "client_id": "{{user `azure_client_id`}}",
+    "client_secret": "{{user `azure_client_secret`}}",
+    "resource_group_name": "{{user `azure_resource_group`}}",
+    "storage_account": "{{user `azure_storage_account`}}",
+    "subscription_id": "{{user `azure_subscription_id`}}",
+    "tenant_id": "{{user `azure_tenant_id`}}",
 
     "capture_container_name": "images",
-    "capture_name_prefix": "{{user `appversion`}}",
+    "capture_name_prefix": "{{user `azure_image_name`}}",
 
     "os_type": "Linux",
     "image_publisher": "{{user `azure_image_publisher`}}",
@@ -40,7 +39,7 @@
     "image_sku": "{{user `azure_image_sku`}}",
 
     "location": "{{user `azure_location`}}",
-    "vm_size": "{{user `azure_vm_size`}}"
+    "vm_size": "Standard_A2"
   }],
   "provisioners": [{
     "type": "shell",
