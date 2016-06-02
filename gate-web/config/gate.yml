@@ -2,6 +2,8 @@ server:
   port: 8084
 
 services:
+  deck:
+    baseUrl: http://localhost:9000
   orca:
     baseUrl: http://localhost:8083
   front50:
