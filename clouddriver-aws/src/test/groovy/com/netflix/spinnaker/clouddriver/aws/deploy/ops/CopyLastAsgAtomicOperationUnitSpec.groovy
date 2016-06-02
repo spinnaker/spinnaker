@@ -26,6 +26,7 @@ import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.autoscaling.model.TagDescription
 import com.amazonaws.services.ec2.AmazonEC2
 import com.netflix.spinnaker.clouddriver.aws.deploy.AWSServerGroupNameResolver
+import com.netflix.spinnaker.clouddriver.aws.deploy.validators.BasicAmazonDeployDescriptionValidator
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -71,6 +72,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
         getAWSServerGroupNameResolver() >> serverGroupNameResolver
       }
     }
+    op.basicAmazonDeployDescriptionValidator = Stub(BasicAmazonDeployDescriptionValidator)
     def expectedDeployDescription = { region ->
       new BasicAmazonDeployDescription(application: 'asgard', stack: 'stack', keyPair: 'key-pair-name',
         securityGroups: ['someGroupName', 'sg-12345a'], availabilityZones: [(region): null],
