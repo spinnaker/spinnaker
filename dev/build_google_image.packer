@@ -44,7 +44,7 @@
     "type": "shell",
     "inline": [
         "dpkg --list | grep linux-image | awk '{ print $2 }' | sort -V | sed -n '/'`uname -r`'/q;p' | xargs sudo apt-get -y purge",
-        "if [ '{{user `update_os`}}' = 'true' ]; then apt-get update -y; apt-get -y dist-upgrade; sed -i 's/start_rpc: false/start_rpc: true/' /etc/cassandra/cassandra.yaml; fi",
+        "if [ '{{user `update_os`}}' = 'true' ]; then apt-get update -y; DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade; sed -i 's/start_rpc: false/start_rpc: true/' /etc/cassandra/cassandra.yaml; fi",
         "apt-get autoremove -y"
      ]
   }

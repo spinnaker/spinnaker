@@ -320,7 +320,7 @@ fi
 
 apt-mark hold $SPINNAKER_SUBSYSTEMS
 apt-get -y update
-apt-get -y dist-upgrade
+DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade
 apt-mark unhold $SPINNAKER_SUBSYSTEMS
 sed -i "s/start_rpc: false/start_rpc: true/" /etc/cassandra/cassandra.yaml
 while ! $(nodetool enablethrift >& /dev/null); do
