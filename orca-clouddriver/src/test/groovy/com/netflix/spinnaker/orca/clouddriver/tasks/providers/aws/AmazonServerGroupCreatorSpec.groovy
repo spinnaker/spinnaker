@@ -102,18 +102,6 @@ class AmazonServerGroupCreatorSpec extends Specification {
       operations.findAll { it.containsKey("allowLaunchDescription") }.empty
   }
 
-  def "don't create allowLaunch tasks when no amiName present"() {
-    given:
-    deployConfig.amiName = null
-
-    when:
-    def operations = creator.getOperations(stage)
-
-    then:
-    operations.findAll { it.containsKey("allowLaunchDescription") }.empty
-  }
-
-
   def "can include optional parameters"() {
     given:
       stage.context.stack = stackValue

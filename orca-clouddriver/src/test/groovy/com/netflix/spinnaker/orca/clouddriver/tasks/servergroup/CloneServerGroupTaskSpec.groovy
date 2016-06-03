@@ -37,7 +37,8 @@ class CloneServerGroupTaskSpec extends Specification {
     application      : "hodor",
     availabilityZones: ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]],
     credentials      : "fzlem",
-    cloudProvider: "aws"
+    amiName          : "hodor-image",
+    cloudProvider    : "aws"
   ]
 
   def setup() {
@@ -64,7 +65,7 @@ class CloneServerGroupTaskSpec extends Specification {
 
     then:
     operations.size() == 3
-    operations[2].cloneServerGroup.amiName == null
+    operations[2].cloneServerGroup.amiName == "hodor-image"
     operations[2].cloneServerGroup.application == "hodor"
     operations[2].cloneServerGroup.availabilityZones == ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]]
     operations[2].cloneServerGroup.credentials == "fzlem"
@@ -89,7 +90,7 @@ class CloneServerGroupTaskSpec extends Specification {
     then:
     operations.size() == 3
     with(operations[2].cloneServerGroup) {
-      amiName == null
+      amiName == "hodor-image"
       application == "hodor"
       availabilityZones == ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]]
       credentials == "fzlem"
@@ -100,8 +101,8 @@ class CloneServerGroupTaskSpec extends Specification {
 
   def "amiName prefers value from context over bake input"() {
     given:
-    stage.context.amiName = "ami-696969"
-    stage.context.ami = "ami-soixante-neuf"
+    stage.context.amiName = contextAmi
+    stage.context.ami = stageAmi
 
 
     def operations
@@ -118,18 +119,26 @@ class CloneServerGroupTaskSpec extends Specification {
     then:
     operations.size() == 3
     with(operations[2].cloneServerGroup) {
-      amiName == "ami-696969"
+      amiName == contextAmi
       application == "hodor"
       availabilityZones == ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]]
       credentials == "fzlem"
     }
+
+    where:
+    contextAmi = 'ami-ctx'
+    stageAmi = 'ami-stage'
   }
 
   def "amiName uses value from bake"() {
     given:
-    def bakeStage = new PipelineStage(stage.execution, "bake", [ami: amiName])
+    def bakeEast = new PipelineStage(stage.execution, "bake", [ami: bakeAmi, region: 'us-east-1'])
+    bakeEast.refId = "1"
+    stage.refId = "3"
+    stage.requisiteStageRefIds = [ "1" ]
+    cloneServerGroupConfig.amiName = null
     stage.execution.stages.removeAll()
-    stage.execution.stages.addAll([bakeStage, stage])
+    stage.execution.stages.addAll([bakeEast, stage])
 
 
     def operations
@@ -146,19 +155,19 @@ class CloneServerGroupTaskSpec extends Specification {
     then:
     operations.size() == 3
     with(operations[2].cloneServerGroup) {
-      amiName == amiName
+      amiName == bakeAmi
       application == "hodor"
       availabilityZones == ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]]
       credentials == "fzlem"
     }
 
     where:
-    amiName = "ami-soixante-neuf"
+    bakeAmi = "ami-bake"
   }
 
   def "calls allowlaunch prior to copyLast"() {
     given:
-    stage.context.amiName = amiName
+    stage.context.amiName = contextAmi
 
 
     def operations
@@ -174,13 +183,13 @@ class CloneServerGroupTaskSpec extends Specification {
 
     then:
     operations.size() == 3
-    operations[0].allowLaunchDescription.amiName == amiName
+    operations[0].allowLaunchDescription.amiName == contextAmi
     operations[0].allowLaunchDescription.region == "us-east-1"
-    operations[1].allowLaunchDescription.amiName == amiName
+    operations[1].allowLaunchDescription.amiName == contextAmi
     operations[1].allowLaunchDescription.region == "us-west-1"
-    operations[2].cloneServerGroup.amiName == amiName
+    operations[2].cloneServerGroup.amiName == contextAmi
 
     where:
-    amiName = "ami-soixante-neuf"
+    contextAmi = "ami-ctx"
   }
 }

@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
+import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,7 +33,7 @@ import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
-class CloneServerGroupTask extends AbstractCloudProviderAwareTask implements Task {
+class CloneServerGroupTask extends AbstractCloudProviderAwareTask implements Task, DeploymentDetailsAware {
 
   @Autowired
   KatoService kato
@@ -47,8 +48,17 @@ class CloneServerGroupTask extends AbstractCloudProviderAwareTask implements Tas
   TaskResult execute(Stage stage) {
     def operation = [:]
     operation.putAll(stage.context)
-    operation.amiName = operation.amiName ?: stage.preceding("bake")?.context?.amiName as String
-    operation.imageId = operation.imageId ?: stage.preceding("bake")?.context?.imageId as String
+    String targetRegion = operation.region ?: operation.availabilityZones?.keySet()?.getAt(0) ?: operation.source?.region
+    withImageFromPrecedingStage(stage, targetRegion) {
+      operation.amiName = operation.amiName ?: it.amiName
+      operation.imageId = operation.imageId ?: it.imageId
+    }
+
+    withImageFromDeploymentDetails(stage, targetRegion) {
+      operation.amiName = operation.amiName ?: it.amiName
+      operation.imageId = operation.imageId ?: it.imageId
+    }
+
     String cloudProvider = getCloudProvider(stage)
     String credentials = getCredentials(stage)
     def taskId = kato.requestOperations(cloudProvider, getDescriptions(operation)).toBlocking().first()
@@ -77,7 +87,8 @@ class CloneServerGroupTask extends AbstractCloudProviderAwareTask implements Tas
     // NFLX bakes images in their test account. This rigmarole is to allow the prod account access to that image.
     if (getCloudProvider(operation) == "aws" && // the operation is a clone of stage.context.
         operation.credentials != defaultBakeAccount &&
-        operation.availabilityZones) {
+        operation.availabilityZones &&
+        operation.amiName) {
       def allowLaunchDescriptions = operation.availabilityZones.collect { String region, List<String> azs ->
         [
           allowLaunchDescription: [
