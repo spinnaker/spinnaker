@@ -75,8 +75,7 @@ class AuthController {
       return false
     }
 
-    return toURL.protocol == deckBaseUrl.protocol &&
-        toURL.host == deckBaseUrl.host &&
+    return toURL.host == deckBaseUrl.host &&
         toURL.port == deckBaseUrl.port
   }
 }
