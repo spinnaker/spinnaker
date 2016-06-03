@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.controllers
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidationErrors
+import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidationException
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter
@@ -101,9 +102,9 @@ class OperationsController {
    * ----------------------------------------------------------------------------------------------------------------------------
    */
 
-  @ExceptionHandler(ValidationException)
+  @ExceptionHandler(DescriptionValidationException)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  Map handleValidationException(HttpServletRequest req, ValidationException ex) {
+  Map handleValidationException(HttpServletRequest req, DescriptionValidationException ex) {
     Locale locale = LocaleContextHolder.locale
     def errorStrings = []
     ex.errors.each { Errors errors ->
@@ -134,7 +135,7 @@ class OperationsController {
     def atomicOperations = []
     for (bindingResult in results) {
       if (bindingResult.errors.hasErrors()) {
-        throw new ValidationException(bindingResult.errors)
+        throw new DescriptionValidationException(bindingResult.errors)
       } else {
         atomicOperations.addAll(bindingResult.atomicOperations)
       }
@@ -199,11 +200,6 @@ class OperationsController {
   @Canonical
   static class AtomicOperationBindingResult {
     AtomicOperation atomicOperations
-    Errors errors
-  }
-
-  @Canonical
-  static class ValidationException extends RuntimeException {
     Errors errors
   }
 }
