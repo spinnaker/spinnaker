@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.authentication', [
   .run(function (schedulerFactory, authenticationInitializer, settings) {
     if (settings.authEnabled) {
       // schedule deck to re-authenticate every 10 min.
-      schedulerFactory.createScheduler(600000).subscribe(authenticationInitializer.reauthenticateUser);
+      schedulerFactory.createScheduler(settings.authTtl || 600000).subscribe(authenticationInitializer.reauthenticateUser);
       authenticationInitializer.authenticateUser();
     }
   })

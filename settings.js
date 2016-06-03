@@ -75,6 +75,7 @@ window.spinnakerSettings = {
     }
   },
   authEnabled: process.env.AUTH === 'enabled',
+  authTtl: 600000,
   gitSources: ['stash', 'github'],
   triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins'],
   feature: {
