@@ -24,7 +24,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAcco
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
-import io.fabric8.kubernetes.api.model.Secret
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
@@ -47,8 +46,6 @@ class StandardKubernetesAttributeValidatorSpec extends Specification {
   void setupSpec() {
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
     accountCredentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
-    def namedAccountCredentialsMock = Mock(KubernetesNamedAccountCredentials)
-    namedAccountCredentialsMock.getName() >> ACCOUNT_NAME
     def apiMock = Mock(KubernetesApiAdaptor)
     def accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
 
@@ -62,9 +59,15 @@ class StandardKubernetesAttributeValidatorSpec extends Specification {
       })
     })
 
+    def dockerRegistry = Mock(LinkedDockerRegistryConfiguration)
+    def dockerRegistries = [dockerRegistry]
     credentials = new KubernetesCredentials(apiMock, NAMESPACES, DOCKER_REGISTRY_ACCOUNTS, accountCredentialsRepositoryMock)
-    namedAccountCredentialsMock.getCredentials() >> credentials
-    credentialsRepo.save(ACCOUNT_NAME, namedAccountCredentialsMock)
+    def namedAccountCredentials = new KubernetesNamedAccountCredentials.Builder()
+        .name(ACCOUNT_NAME)
+        .dockerRegistries(dockerRegistries)
+        .credentials(credentials)
+        .build()
+    credentialsRepo.save(ACCOUNT_NAME, namedAccountCredentials)
   }
 
   void "notEmpty accept"() {

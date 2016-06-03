@@ -74,17 +74,20 @@ class KubernetesCredentialsInitializer implements CredentialsInitializerSynchron
     // TODO(lwander): Modify accounts when their dockerRegistries attribute is updated as well -- need to ask @duftler.
     accountsToAdd.each { KubernetesConfigurationProperties.ManagedAccount managedAccount ->
       try {
-        def kubernetesAccount = new KubernetesNamedAccountCredentials(accountCredentialsRepository,
-                                                                      configuration.kubernetesApplicationName(),
-                                                                      managedAccount.name,
-                                                                      managedAccount.environment ?: managedAccount.name,
-                                                                      managedAccount.accountType ?: managedAccount.name,
-                                                                      managedAccount.context,
-                                                                      managedAccount.cluster,
-                                                                      managedAccount.user,
-                                                                      managedAccount.kubeconfigFile,
-                                                                      managedAccount.namespaces,
-                                                                      managedAccount.dockerRegistries)
+        def kubernetesAccount = new KubernetesNamedAccountCredentials.Builder()
+          .accountCredentialsRepository(accountCredentialsRepository)
+          .userAgent(configuration.kubernetesApplicationName())
+          .name(managedAccount.name)
+          .environment(managedAccount.environment ?: managedAccount.name)
+          .accountType(managedAccount.accountType ?: managedAccount.name)
+          .context(managedAccount.context)
+          .cluster(managedAccount.cluster)
+          .user(managedAccount.user)
+          .kubeconfigFile(managedAccount.kubeconfigFile)
+          .namespaces(managedAccount.namespaces)
+          .dockerRegistries(managedAccount.dockerRegistries)
+          .requiredGroupMembership(managedAccount.requiredGroupMembership)
+          .build()
 
         accountCredentialsRepository.save(managedAccount.name, kubernetesAccount)
       } catch (e) {

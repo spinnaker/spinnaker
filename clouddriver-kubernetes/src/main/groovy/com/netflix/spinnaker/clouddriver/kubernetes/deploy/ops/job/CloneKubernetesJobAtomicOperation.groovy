@@ -65,7 +65,7 @@ class CloneKubernetesJobAtomicOperation implements AtomicOperation<DeploymentRes
 
     task.updateStatus BASE_PHASE, "Reading ancestor job ${description.source.jobName}..."
 
-    def credentials = newDescription.credentials
+    def credentials = newDescription.credentials.credentials
 
     newDescription.source.namespace = description.source.namespace ?: "default"
     Job ancestorJob = credentials.apiAdaptor.getJob(newDescription.source.namespace, newDescription.source.jobName)

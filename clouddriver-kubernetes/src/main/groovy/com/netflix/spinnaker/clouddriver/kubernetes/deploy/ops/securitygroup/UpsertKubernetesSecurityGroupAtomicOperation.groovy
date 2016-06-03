@@ -48,7 +48,7 @@ class UpsertKubernetesSecurityGroupAtomicOperation implements AtomicOperation<Vo
     task.updateStatus BASE_PHASE, "Initializing upsert of ingress."
     task.updateStatus BASE_PHASE, "Looking up provided namespace..."
 
-    def credentials = description.credentials
+    def credentials = description.credentials.credentials
     def namespace = KubernetesUtil.validateNamespace(credentials, description.namespace)
 
     task.updateStatus BASE_PHASE, "Looking up old ingress..."

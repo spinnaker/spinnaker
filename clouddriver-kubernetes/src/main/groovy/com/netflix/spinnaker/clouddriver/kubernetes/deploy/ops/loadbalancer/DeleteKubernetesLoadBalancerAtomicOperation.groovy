@@ -44,7 +44,7 @@ class DeleteKubernetesLoadBalancerAtomicOperation implements AtomicOperation<Voi
     task.updateStatus BASE_PHASE, "Initializing delete of load balancer $description.loadBalancerName..."
     task.updateStatus BASE_PHASE, "Looking up provided namespace..."
 
-    def credentials = description.credentials
+    def credentials = description.credentials.credentials
     def namespace = KubernetesUtil.validateNamespace(credentials, description.namespace)
 
     if (!credentials.apiAdaptor.deleteService(namespace, description.loadBalancerName)) {

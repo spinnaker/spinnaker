@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.description
 
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
@@ -26,5 +26,5 @@ import groovy.transform.Canonical
 @Canonical
 class KubernetesAtomicOperationDescription implements DeployDescription {
   String account
-  KubernetesCredentials credentials
+  KubernetesNamedAccountCredentials credentials
 }

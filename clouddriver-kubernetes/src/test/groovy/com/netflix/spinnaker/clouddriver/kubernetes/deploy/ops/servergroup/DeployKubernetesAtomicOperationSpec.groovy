@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergro
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesResourceDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesTcpSocketAction
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.client.dsl.internal.ReplicationControllerOperationsImpl
@@ -60,6 +61,9 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
 
   def apiMock
   def credentials
+  def namedAccountCredentials
+  def dockerRegistry
+  def dockerRegistries
   def containers
   def description
   def replicationControllerOperationsMock
@@ -120,7 +124,14 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
       apiMock.createSecret(NAMESPACE, _) >> null
     })
 
+    dockerRegistry = Mock(LinkedDockerRegistryConfiguration)
+    dockerRegistries = [dockerRegistry]
     credentials = new KubernetesCredentials(apiMock, [NAMESPACE], DOCKER_REGISTRY_ACCOUNTS, accountCredentialsRepositoryMock)
+    namedAccountCredentials = new KubernetesNamedAccountCredentials.Builder()
+        .name("name")
+        .dockerRegistries(dockerRegistries)
+        .credentials(credentials)
+        .build()
     clusterName = KubernetesUtil.combineAppStackDetail(APPLICATION, STACK, DETAILS)
     replicationControllerName = String.format("%s-v%s", clusterName, SEQUENCE)
 
@@ -147,7 +158,7 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
         loadBalancers: LOAD_BALANCER_NAMES,
         securityGroups: SECURITY_GROUP_NAMES,
         containers: containers,
-        credentials: credentials
+        credentials: namedAccountCredentials
       )
 
       @Subject def operation = new DeployKubernetesAtomicOperation(description)

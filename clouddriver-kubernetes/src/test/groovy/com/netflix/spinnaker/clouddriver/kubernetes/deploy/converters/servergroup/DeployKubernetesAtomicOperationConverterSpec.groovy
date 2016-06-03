@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.servergroup
 
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.servergroup.DeployKubernetesAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.servergroup.DeployKubernetesAtomicOperation
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials

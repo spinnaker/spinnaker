@@ -75,7 +75,6 @@ class CloneKubernetesAtomicOperationValidatorSpec extends Specification {
     validator = new CloneKubernetesAtomicOperationValidator()
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
     def credentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
-    def namedCredentialsMock = Mock(KubernetesNamedAccountCredentials)
 
     def apiMock = Mock(KubernetesApiAdaptor)
     def accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
@@ -90,10 +89,15 @@ class CloneKubernetesAtomicOperationValidatorSpec extends Specification {
       })
     })
 
+    def dockerRegistry = Mock(LinkedDockerRegistryConfiguration)
+    def dockerRegistries = [dockerRegistry]
     def credentials = new KubernetesCredentials(apiMock, NAMESPACES, DOCKER_REGISTRY_ACCOUNTS, accountCredentialsRepositoryMock)
-    namedCredentialsMock.getName() >> VALID_ACCOUNT
-    namedCredentialsMock.getCredentials() >> credentials
-    credentialsRepo.save(VALID_ACCOUNT, namedCredentialsMock)
+    def namedAccountCredentials = new KubernetesNamedAccountCredentials.Builder()
+        .name(VALID_ACCOUNT)
+        .dockerRegistries(dockerRegistries)
+        .credentials(credentials)
+        .build()
+    credentialsRepo.save(VALID_ACCOUNT, namedAccountCredentials)
     validator.accountCredentialsProvider = credentialsProvider
   }
 
