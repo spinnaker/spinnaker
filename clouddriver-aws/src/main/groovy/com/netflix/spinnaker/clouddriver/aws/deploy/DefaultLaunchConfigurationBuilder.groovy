@@ -68,6 +68,7 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
    * @param launchConfigurationName the name of the launch configuration
    * @return LaunchConfigurationSettings for the launch configuration
    */
+  @Override
   LaunchConfigurationSettings buildSettingsFromLaunchConfiguration(AccountCredentials<?> account, String region, String launchConfigurationName) {
     LaunchConfiguration lc = asgService.getLaunchConfiguration(launchConfigurationName)
 
@@ -128,9 +129,11 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
    * @param application the name of the application - used to construct a default security group if none are present
    * @param subnetType the subnet type for security groups in the launch configuration
    * @param settings the settings for the launch configuration
+   * @param whether to explicitly use or not use legacyUdf mode - can be null which will fall through to application default
    * @return the name of the new launch configuration
    */
-  String buildLaunchConfiguration(String application, String subnetType, LaunchConfigurationSettings settings) {
+  @Override
+  String buildLaunchConfiguration(String application, String subnetType, LaunchConfigurationSettings settings, Boolean legacyUdf) {
     if (settings.suffix == null) {
       settings = settings.copyWith(suffix: createDefaultSuffix())
     }
@@ -167,7 +170,8 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
       settings.account,
       settings.environment,
       settings.accountType,
-      settings.base64UserData ?: "")
+      settings.base64UserData ?: "",
+      legacyUdf)
     createLaunchConfiguration(name, userData, settings)
   }
 
@@ -214,9 +218,9 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
     }
   }
 
-  private String getUserData(String asgName, String launchConfigName, String region, String account, String environment, String accountType, String base64UserData) {
+  private String getUserData(String asgName, String launchConfigName, String region, String account, String environment, String accountType, String base64UserData, Boolean legacyUdf) {
     String data = userDataProviders?.collect { udp ->
-      udp.getUserData(asgName, launchConfigName, region, account, environment, accountType)
+      udp.getUserData(asgName, launchConfigName, region, account, environment, accountType, legacyUdf)
     }?.join("\n")
     String userDataDecoded = new String(base64UserData.decodeBase64(), Charset.forName("UTF-8"))
     data = [data, userDataDecoded].findResults { it }.join("\n")

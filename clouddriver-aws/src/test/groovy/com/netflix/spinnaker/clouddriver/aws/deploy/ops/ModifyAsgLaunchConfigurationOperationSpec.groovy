@@ -151,12 +151,13 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
       existing
     }
 
-    1 * lcBuilder.buildLaunchConfiguration(_, _, _) >> { appName, subnetType, settings ->
+    1 * lcBuilder.buildLaunchConfiguration(_, _, _, _) >> { appName, subnetType, settings, legacyUdf ->
       assert appName == app
       assert subnetType == null
       assert settings.ami == newAmi
       assert settings.iamRole == existing.iamRole
       assert settings.suffix == null
+      assert legacyUdf == null
 
       return newLc
     }
@@ -213,11 +214,12 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
 
       existing
     }
-    1 * lcBuilder.buildLaunchConfiguration(_, _, _) >> { appName, subnetType, settings ->
+    1 * lcBuilder.buildLaunchConfiguration(_, _, _, _) >> { appName, subnetType, settings, legacyUdf ->
       assert appName == app
       assert subnetType == null
       assert settings.suffix == null
       assert settings.instanceMonitoring == false
+      assert legacyUdf == null
 
       return newLc
     }
@@ -270,11 +272,12 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
 
       existing
     }
-    1 * lcBuilder.buildLaunchConfiguration(_, _, _) >> { appName, subnetType, settings ->
+    1 * lcBuilder.buildLaunchConfiguration(_, _, _, _) >> { appName, subnetType, settings, legacyUdf ->
       assert appName == app
       assert subnetType == null
       assert settings.suffix == null
       assert settings.classicLinkVpcId == "vpc-456"
+      assert legacyUdf == null
 
       return newLc
     }

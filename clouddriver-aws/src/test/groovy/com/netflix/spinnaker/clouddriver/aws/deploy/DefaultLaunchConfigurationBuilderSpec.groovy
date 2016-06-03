@@ -31,7 +31,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
   def asgService = Mock(AsgService)
   def securityGroupService = Mock(SecurityGroupService)
   def userDataProvider = Stub(UserDataProvider) {
-    getUserData(_, _, _, _, _, _) >> 'userdata'
+    getUserData(_, _, _, _, _, _, _) >> 'userdata'
   }
   def deployDefaults = new AwsConfiguration.DeployDefaults()
 
@@ -41,7 +41,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
 
   void "should lookup security groups when provided by name"() {
     when:
-    builder.buildLaunchConfiguration(application, subnetType, settings)
+    builder.buildLaunchConfiguration(application, subnetType, settings, null)
 
     then:
     1 * securityGroupService.getSecurityGroupIdsWithSubnetPurpose(_, _) >> { groups, subnet ->
@@ -70,7 +70,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
 
   void "should attach an existing application security group if no security groups provided"() {
     when:
-    builder.buildLaunchConfiguration(application, subnetType, settings)
+    builder.buildLaunchConfiguration(application, subnetType, settings, null)
 
     then:
     1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [:]
@@ -96,7 +96,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
 
   void "should add user data to launchconfig with combination from user data provider and description"() {
     when:
-    builder.buildLaunchConfiguration(application, subnetType, settings)
+    builder.buildLaunchConfiguration(application, subnetType, settings, null)
 
     then:
     1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [:]
@@ -124,7 +124,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
 
   void "should add user data to launchconfig with user data provider if description userdata ommitted"() {
     when:
-    builder.buildLaunchConfiguration(application, subnetType, settings)
+    builder.buildLaunchConfiguration(application, subnetType, settings, null)
 
     then:
     1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [:]
@@ -151,7 +151,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
 
   void "should create an application security group if none exists and no security groups provided"() {
     when:
-    builder.buildLaunchConfiguration(application, subnetType, settings)
+    builder.buildLaunchConfiguration(application, subnetType, settings, null)
 
     then:
     1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [:]
@@ -179,7 +179,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
 
   void "should attach classic link security group if vpc is linked"() {
     when:
-    builder.buildLaunchConfiguration(application, subnetType, settings)
+    builder.buildLaunchConfiguration(application, subnetType, settings, null)
 
     then:
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
@@ -205,7 +205,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
 
   void "should try to look up classic link security group if vpc is linked"() {
     when:
-    builder.buildLaunchConfiguration(application, subnetType, settings)
+    builder.buildLaunchConfiguration(application, subnetType, settings, null)
 
     then:
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
@@ -233,7 +233,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     deployDefaults.addAppGroupToServerGroup = true
 
     when:
-    builder.buildLaunchConfiguration(application, subnetType, settings)
+    builder.buildLaunchConfiguration(application, subnetType, settings, null)
 
     then:
     1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [(appGroup): securityGroups[0]]
@@ -262,7 +262,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     deployDefaults.addAppGroupToServerGroup = true
 
     when:
-    builder.buildLaunchConfiguration(application, subnetType, settings)
+    builder.buildLaunchConfiguration(application, subnetType, settings, null)
 
     then:
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
@@ -291,7 +291,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     deployDefaults.addAppGroupToServerGroup = true
 
     when:
-    builder.buildLaunchConfiguration(application, subnetType, settings)
+    builder.buildLaunchConfiguration(application, subnetType, settings, null)
 
     then:
     1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [notappgroup: securityGroups[0]]
@@ -321,7 +321,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     deployDefaults.addAppGroupToServerGroup = true
 
     when:
-    builder.buildLaunchConfiguration(application, subnetType, settings)
+    builder.buildLaunchConfiguration(application, subnetType, settings, null)
 
     then:
     1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [:]
@@ -350,7 +350,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
 
   void "should look up and attach classic link security group if vpc is linked"() {
     when:
-    builder.buildLaunchConfiguration(application, subnetType, settings)
+    builder.buildLaunchConfiguration(application, subnetType, settings, null)
 
     then:
     1 * securityGroupService.getSecurityGroupIds(["nf-classiclink"], "vpc-123") >> ["nf-classiclink": "sg-123"]
@@ -377,7 +377,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
 
   void "handles block device mappings"() {
     when:
-    builder.buildLaunchConfiguration(application, subnetType, settings)
+    builder.buildLaunchConfiguration(application, subnetType, settings, null)
 
     then:
     1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [:]

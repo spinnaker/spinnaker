@@ -86,12 +86,12 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
 
     def newSettings = settings.copyWith(props)
 
-    if (newSettings == settings) {
+    if (newSettings == settings && description.legacyUdf == null) {
       task.updateStatus BASE_PHASE, "No changes required for launch configuration on $description.asgName in $description.region"
     } else {
       newSettings = newSettings.copyWith(suffix: null)
       def name = Names.parseName(description.asgName)
-      def newLc = lcBuilder.buildLaunchConfiguration(name.app, description.subnetType, newSettings)
+      def newLc = lcBuilder.buildLaunchConfiguration(name.app, description.subnetType, newSettings, description.legacyUdf)
 
       def autoScaling = regionScopedProvider.autoScaling
 

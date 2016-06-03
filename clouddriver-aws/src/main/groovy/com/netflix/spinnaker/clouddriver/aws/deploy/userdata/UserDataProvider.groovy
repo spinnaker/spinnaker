@@ -32,5 +32,5 @@ public interface UserDataProvider {
    *
    * @return user data string
    */
-  String getUserData(String asgName, String launchConfigName, String region, String account, String environment, String accountType)
+  String getUserData(String asgName, String launchConfigName, String region, String account, String environment, String accountType, Boolean legacyUdf)
 }

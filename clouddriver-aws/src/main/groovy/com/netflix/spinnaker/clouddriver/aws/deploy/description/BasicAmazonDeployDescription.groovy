@@ -44,6 +44,7 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   Boolean instanceMonitoring
   Boolean ebsOptimized
   String base64UserData
+  Boolean legacyUdf
 
   String classicLinkVpcId
   List<String> classicLinkVpcSecurityGroups

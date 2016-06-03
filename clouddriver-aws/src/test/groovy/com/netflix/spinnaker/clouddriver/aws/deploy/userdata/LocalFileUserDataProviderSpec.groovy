@@ -46,7 +46,7 @@ class LocalFileUserDataProviderSpec extends Specification {
     localFileUserDataProvider.assembleUserData(legacyUdf, _, _, _) >> getRawUserData()
 
     when:
-    def userData = localFileUserDataProvider.getUserData(ASG_NAME, LAUNCH_CONFIG_NAME, REGION, ACCOUNT, ENVIRONMENT, ACCOUNT_TYPE)
+    def userData = localFileUserDataProvider.getUserData(ASG_NAME, LAUNCH_CONFIG_NAME, REGION, ACCOUNT, ENVIRONMENT, ACCOUNT_TYPE, null)
 
     then:
     userData == getFormattedUserData(expectedEnvironment)
