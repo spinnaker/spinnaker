@@ -257,6 +257,7 @@ function extract_spinnaker_gcr_credentials() {
     fi
     write_default_value "SPINNAKER_DOCKER_PASSWORD_FILE" $config_path
     write_default_value "SPINNAKER_DOCKER_USERNAME" "_json_key"
+    write_default_value "SPINNAKER_DOCKER_REGISTRY" "https://gcr.io"
 
     local repository=$(get_instance_metadata_attribute "docker_repository")
     write_default_value "SPINNAKER_DOCKER_REPOSITORY" $repository
