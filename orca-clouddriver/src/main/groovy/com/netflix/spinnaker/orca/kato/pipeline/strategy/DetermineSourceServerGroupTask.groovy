@@ -49,8 +49,8 @@ class DetermineSourceServerGroupTask implements RetryableTask {
   @Override
   TaskResult execute(Stage stage) {
     def stageData = stage.mapTo(StageData)
-    if (!stageData.region && !stageData.availabilityZones) {
-      throw new IllegalStateException("No 'region' or 'availabilityZones' in stage context")
+    if (!stageData.source && !stageData.region && !stageData.availabilityZones) {
+      throw new IllegalStateException("No 'source' or 'region' or 'availabilityZones' in stage context")
     }
     Exception lastException = null
     try {
