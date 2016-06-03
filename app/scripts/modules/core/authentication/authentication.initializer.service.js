@@ -9,7 +9,12 @@ module.exports = angular.module('spinnaker.authentication.initializer.service', 
 ])
   .factory('authenticationInitializer', function ($http, $rootScope, notifierService, redirectService, authenticationService, settings, $location) {
 
+    let userLoggedOut = false;
+
     function reauthenticateUser() {
+      if (userLoggedOut) {
+        return;
+      }
       $http.get(settings.authEndpoint)
         .success(function (data) {
           if (data.email) {
@@ -36,7 +41,8 @@ module.exports = angular.module('spinnaker.authentication.initializer.service', 
     }
 
     function loginNotification() {
-      notifierService.publish(`You have been logged out. <a role="button" class="action" onclick="document.location.reload()">Log in</button>`);
+      userLoggedOut = true;
+      notifierService.publish(`You have been logged out. <a role="button" class="action" onclick="document.location.reload()">Log in</a>`);
     }
 
     /**
