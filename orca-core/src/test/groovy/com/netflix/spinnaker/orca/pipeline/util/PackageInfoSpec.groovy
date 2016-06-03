@@ -29,7 +29,7 @@ class PackageInfoSpec extends Specification {
   @Autowired
   ObjectMapper mapper
 
-  @Unroll
+  @Unroll("#filename -> #result")
   def "All the matching packages get replaced with the build ones, while others just pass-through"() {
     given:
       Stage bakeStage = new PipelineStage()
@@ -54,13 +54,15 @@ class PackageInfoSpec extends Specification {
       requestMap.package == result
 
     where:
-      filename                                    | requestPackage                                 | result
-      [["fileName": "test-package_1.0.0.deb"]]    | "test-package"                                 | "test-package_1.0.0"
-      [["fileName": "test-package_1.0.0.deb"]]    | "another-package"                              | "another-package"
-      [["fileName": "test-package_1.0.0.deb"]]    | "another-package test-package"                 | "another-package test-package_1.0.0"
-      [["fileName": "test-package_1.0.0.deb"]]    | "ssh://git@stash.corp.netflix.com:7999/uiplatform/nodequark.git?v1.0.51"| "ssh://git@stash.corp.netflix.com:7999/uiplatform/nodequark.git?v1.0.51"
-      [["fileName": "first-package_1.0.1.deb"],
-       ["fileName": "second-package_2.3.42.deb"]] | "first-package another-package second-package" | "first-package_1.0.1 another-package second-package_2.3.42"
+    filename                                    | requestPackage                                                           | result
+    [["fileName": "testEmpty.txt"]]             | ""                                                                       | ""
+    [["fileName": "testEmpty2.txt"]]            | "  "                                                                     | ""
+    [["fileName": "test-package_1.0.0.deb"]]    | "test-package"                                                           | "test-package_1.0.0"
+    [["fileName": "test-package_1.0.0.deb"]]    | "another-package"                                                        | "another-package"
+    [["fileName": "test-package_1.0.0.deb"]]    | "another-package test-package"                                           | "another-package test-package_1.0.0"
+    [["fileName": "test-package_1.0.0.deb"]]    | "ssh://git@stash.corp.netflix.com:7999/uiplatform/nodequark.git?v1.0.51" | "ssh://git@stash.corp.netflix.com:7999/uiplatform/nodequark.git?v1.0.51"
+    [["fileName": "first-package_1.0.1.deb"],
+     ["fileName": "second-package_2.3.42.deb"]] | "first-package another-package second-package"                           | "first-package_1.0.1 another-package second-package_2.3.42"
 
   }
 
@@ -99,12 +101,53 @@ class PackageInfoSpec extends Specification {
 
   }
 
+  def "findTargetPackage: bake execution with only a package set and jenkins stage artifacts"() {
+    given:
+    Stage bakeStage = new PipelineStage()
+    Pipeline pipeline = new Pipeline()
+    pipeline.context << [buildInfo: [artifacts: [[fileName: "api_1.1.1-h02.sha123_all.deb"]]]]
+    bakeStage.execution = pipeline
+    bakeStage.context = [package: 'api']
+
+
+    PackageType packageType = PackageType.DEB
+    ObjectMapper objectMapper = new ObjectMapper()
+    PackageInfo packageInfo = new PackageInfo(bakeStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper )
+
+    when:
+    Map targetPkg = packageInfo.findTargetPackage(false)
+
+    then:
+    targetPkg.packageVersion == "1.1.1-h02.sha123"
+  }
+
+  def "findTargetPackage: bake execution with empty package set and jenkins stage artifacts sho"() {
+    given:
+    Stage bakeStage = new PipelineStage()
+    Pipeline pipeline = new Pipeline()
+    pipeline.context << [buildInfo: [artifacts: [[fileName: "api_1.1.1-h03.sha123_all.deb"]]]]
+    bakeStage.execution = pipeline
+    bakeStage.context = [package: '']
+
+
+    PackageType packageType = PackageType.DEB
+    ObjectMapper objectMapper = new ObjectMapper()
+    PackageInfo packageInfo = new PackageInfo(bakeStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper )
+
+    when:
+    Map targetPkg = packageInfo.findTargetPackage(false)
+
+    then:
+    targetPkg.packageVersion == null
+  }
+
   def "findTargetPackage: stage execution instance of Pipeline with no trigger"() {
     given:
     Stage quipStage = new PipelineStage()
     Pipeline pipeline = new Pipeline()
     pipeline.context << [buildInfo: [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]]
     quipStage.execution = pipeline
+    quipStage.context = [package: 'api']
 
     PackageType packageType = PackageType.DEB
     ObjectMapper objectMapper = new ObjectMapper()
@@ -180,6 +223,7 @@ class PackageInfoSpec extends Specification {
     Pipeline pipeline = new Pipeline()
     pipeline.trigger << [buildInfo: [artifacts: [[fileName: "api_2.2.2-h02.sha321_all.deb"]]]]
     quipStage.execution = pipeline
+    quipStage.context = [package: 'api']
 
     PackageType packageType = PackageType.DEB
     ObjectMapper objectMapper = new ObjectMapper()

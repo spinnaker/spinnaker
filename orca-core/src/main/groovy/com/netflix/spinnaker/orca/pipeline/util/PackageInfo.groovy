@@ -21,7 +21,9 @@ import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
+import groovy.util.logging.Slf4j
 
+@Slf4j
 class PackageInfo {
   ObjectMapper mapper
   Stage stage
@@ -77,7 +79,7 @@ class PackageInfo {
     List<Map> triggerArtifacts = trigger?.buildInfo?.artifacts ?: trigger?.parentExecution?.trigger?.buildInfo?.artifacts
     List<Map> buildArtifacts = buildInfo?.artifacts
 
-    if (isUrl(request.package)) {
+    if (isUrl(request.package) || request.package?.isEmpty()) {
       return request
     }
 
