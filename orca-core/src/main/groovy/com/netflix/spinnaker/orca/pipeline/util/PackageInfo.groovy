@@ -79,7 +79,7 @@ class PackageInfo {
     List<Map> triggerArtifacts = trigger?.buildInfo?.artifacts ?: trigger?.parentExecution?.trigger?.buildInfo?.artifacts
     List<Map> buildArtifacts = buildInfo?.artifacts
 
-    if (isUrl(request.package) || request.package?.isEmpty()) {
+    if (isUrl(request.package) || request.package?.isEmpty() || !request.package) {
       return request
     }
 

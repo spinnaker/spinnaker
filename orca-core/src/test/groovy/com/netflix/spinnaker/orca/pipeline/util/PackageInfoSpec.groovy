@@ -55,6 +55,7 @@ class PackageInfoSpec extends Specification {
 
     where:
     filename                                    | requestPackage                                                           | result
+    [["fileName": "testEmpty.txt"]]             | null                                                                     | null
     [["fileName": "testEmpty.txt"]]             | ""                                                                       | ""
     [["fileName": "testEmpty2.txt"]]            | "  "                                                                     | ""
     [["fileName": "test-package_1.0.0.deb"]]    | "test-package"                                                           | "test-package_1.0.0"
@@ -167,6 +168,7 @@ class PackageInfoSpec extends Specification {
       Pipeline pipeline = new Pipeline()
       pipeline.context << [buildInfo: [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]]
       quipStage.execution = pipeline
+      quipStage.context = ['package': "api"]
 
       PackageType packageType = PackageType.DEB
       ObjectMapper objectMapper = new ObjectMapper()
