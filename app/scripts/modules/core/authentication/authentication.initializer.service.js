@@ -41,6 +41,7 @@ module.exports = angular.module('spinnaker.authentication.initializer.service', 
     }
 
     function loginNotification() {
+      authenticationService.authenticationExpired();
       userLoggedOut = true;
       notifierService.publish(`You have been logged out. <a role="button" class="action" onclick="document.location.reload()">Log in</a>`);
     }
