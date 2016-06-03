@@ -15,12 +15,12 @@ module.exports = angular.module('spinnaker.authentication.interceptor.service', 
         if (config.url === settings.authEndpoint || config.url.indexOf('http') !== 0) {
           deferred.resolve(config);
         } else {
-          if (authenticationService.getAuthenticatedUser().authenticated) {
+          let user = authenticationService.getAuthenticatedUser();
+          // only send the request if the user has authenticated within the refresh window for auth calls
+          if (user.authenticated && user.lastAuthenticated + (settings.authTtl || 600000) > new Date().getTime()) {
             deferred.resolve(config);
           } else {
-            authenticationService.onAuthentication(function () {
-              deferred.resolve(config);
-            });
+            authenticationService.onAuthentication(() => deferred.resolve(config));
           }
         }
         return deferred.promise;

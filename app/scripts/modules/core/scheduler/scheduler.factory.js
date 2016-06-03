@@ -13,16 +13,18 @@ module.exports = angular.module('spinnaker.core.scheduler', [
 
       let lastRunTimestamp = new Date().getTime();
       let pendingRun = null;
+      let suspended = false;
 
       // When creating the timer, use last run as the dueTime (first arg); zero can lead to concurrency issues
       // where the scheduler will fire shortly after being subscribed to, resulting in surprising immediate refreshes
       let source = rx.Observable
-        .timer(pollSchedule, pollSchedule)
-        .pausable(scheduler);
+        .timer(pollSchedule, pollSchedule);
 
       let run = () => {
+        if (suspended) {
+          return;
+        }
         $timeout.cancel(pendingRun);
-        source.resume();
         lastRunTimestamp = new Date().getTime();
         scheduler.onNext(true);
         pendingRun = null;
@@ -32,15 +34,17 @@ module.exports = angular.module('spinnaker.core.scheduler', [
 
       let suspendScheduler = () => {
         $log.debug('auto refresh suspended');
-        source.pause();
+        suspended = true;
       };
 
       let scheduleNextRun = (delay) => {
         // do not schedule another run if a run is pending
+        suspended = false;
         pendingRun = pendingRun || $timeout(run, delay);
       };
 
       let resumeScheduler = () => {
+        suspended = false;
         let now = new Date().getTime();
         $log.debug('auto refresh resumed');
         if (now - lastRunTimestamp > pollSchedule) {
@@ -61,7 +65,7 @@ module.exports = angular.module('spinnaker.core.scheduler', [
 
       let scheduleImmediate = () => {
         run();
-        source.pause();
+        suspended = true;
         scheduleNextRun(pollSchedule);
       };
 

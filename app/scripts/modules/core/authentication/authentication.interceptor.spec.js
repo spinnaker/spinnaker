@@ -68,7 +68,7 @@ describe('authenticationInterceptor', function() {
       var resolved = null;
       var request = { url: 'http://some-server.spinnaker.org' };
 
-      spyOn(authenticationService, 'getAuthenticatedUser').and.returnValue({ authenticated: true });
+      spyOn(authenticationService, 'getAuthenticatedUser').and.returnValue({ authenticated: true, lastAuthenticated: new Date().getTime() });
 
       interceptor.request(request).then(function(result) { resolved = result; });
       $rootScope.$digest();
