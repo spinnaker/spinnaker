@@ -17,32 +17,58 @@
 package com.netflix.spinnaker.gate.security.anonymous
 
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
+import com.netflix.spinnaker.gate.services.AccountsService
 import com.netflix.spinnaker.security.User
+import groovy.util.logging.Slf4j
+import org.apache.commons.lang.exception.ExceptionUtils
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Configuration
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity
 
+import java.util.concurrent.CopyOnWriteArrayList
+
 @ConditionalOnMissingBean(annotation = SpinnakerAuthConfig.class)
 @Configuration
+@Slf4j
 @EnableWebMvcSecurity
 class AnonymousConfig extends WebSecurityConfigurerAdapter {
   static String key = "spinnaker-anonymous"
   static String defaultEmail = "anonymous"
 
-  void configure(HttpSecurity http) {
-    def principal = new User(
-        email: defaultEmail,
-        roles: ["anonymous"],
-        allowedAccounts: []
-    )
+  @Autowired
+  AccountsService accountsService
 
-    http.anonymous()
+  List<String> anonymousAllowedAccounts = new CopyOnWriteArrayList<>()
+
+  void configure(HttpSecurity http) {
+    // Not using the ImmutableUser version in order to update allowedAccounts.
+    def principal = new User(email: defaultEmail, allowedAccounts: anonymousAllowedAccounts)
+
+    http
+      .anonymous()
         .key(key)
-        .authorities("anonymous")
         .principal(principal)
         .and()
-        .csrf().disable()
+      .csrf()
+        .disable()
+  }
+
+  @Scheduled(fixedDelay = 60000L)
+  void updateAnonymousAccounts() {
+    try {
+      def newAnonAccounts = accountsService.getAllowedAccounts([]) ?: []
+
+      def toAdd = newAnonAccounts - anonymousAllowedAccounts
+      def toRemove = anonymousAllowedAccounts - newAnonAccounts
+
+      anonymousAllowedAccounts.removeAll(toRemove)
+      anonymousAllowedAccounts.addAll(toAdd)
+    } catch (Exception e) {
+      log.warn(ExceptionUtils.getStackTrace(e))
+    }
   }
 }
