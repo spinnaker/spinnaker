@@ -37,9 +37,10 @@ public class GoogleCredentials {
     HttpTransport httpTransport = buildHttpTransport()
 
     def credential = getCredential(httpTransport, jsonFactory)
+    def reqInit = setHttpTimeout(credential)
     return new Compute.Builder(httpTransport, jsonFactory, credential)
         .setApplicationName(applicationName)
-        .setHttpRequestInitializer(setHttpTimeout(credential))
+        .setHttpRequestInitializer(reqInit)
         .setServicePath(computeVersion.servicePath)
         .build()
   }
@@ -49,7 +50,7 @@ public class GoogleCredentials {
     GoogleCredential.getApplicationDefault()
   }
 
-  static HttpTransport buildHttpTransport() {
+  protected HttpTransport buildHttpTransport() {
     try {
       return GoogleNetHttpTransport.newTrustedTransport()
     } catch (Exception e) {

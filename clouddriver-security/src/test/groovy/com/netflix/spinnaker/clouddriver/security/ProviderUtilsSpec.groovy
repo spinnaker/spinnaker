@@ -26,6 +26,7 @@ import com.netflix.spinnaker.cats.test.TestAgentSchedulerAwareProvider
 import com.netflix.spinnaker.cats.test.TestProvider
 import com.netflix.spinnaker.cats.test.TestScheduler
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Shared
 import spock.lang.Specification
@@ -194,6 +195,6 @@ class ProviderUtilsSpec extends Specification {
   }
 
   private static GoogleNamedAccountCredentials buildGoogleNamedAccountCredentials(String accountName) {
-    new GoogleNamedAccountCredentials.Builder().name(accountName).regionLookupEnabled(false).build()
+    new GoogleNamedAccountCredentials.Builder().name(accountName).credentials(new FakeGoogleCredentials()).build()
   }
 }

@@ -5,3 +5,15 @@ dependencies {
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
 }
+
+// export tests for use in clouddriver-security
+configurations {
+    testArtifacts.extendsFrom testRuntime
+}
+task testJar(type: Jar) {
+    classifier "test"
+    from sourceSets.test.output
+}
+artifacts {
+    testArtifacts testJar
+}

@@ -7,5 +7,6 @@ dependencies {
 
   testCompile project(':clouddriver-aws')
   testCompile project(':clouddriver-google')
+  testCompile project(path: ':clouddriver-google', configuration: 'testArtifacts')
   testCompile project(':cats:cats-test')
 }
