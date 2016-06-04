@@ -73,6 +73,10 @@ class GoogleLoadBalancerController {
       view.account == account && view.region == region
     }
 
+    if (!view) {
+      return []
+    }
+
     [new GoogleLoadBalancerDetails(loadBalancerName: view.name,
                                    createdTime: view.createdTime,
                                    dnsname: view.ipAddress,

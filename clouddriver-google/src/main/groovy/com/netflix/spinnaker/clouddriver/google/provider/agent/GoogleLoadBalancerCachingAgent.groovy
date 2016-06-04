@@ -234,7 +234,7 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
   class HttpHealthCheckCallback<HttpHealthCheck> extends JsonBatchCallback<HttpHealthCheck> implements FailureLogger {
 
     GoogleLoadBalancer googleLoadBalancer
-    TargetPool targetPool
+    def targetPool
 
     BatchRequest instanceHealthRequest
 
@@ -253,14 +253,13 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
       new TargetPoolInstanceHealthCallInvoker(googleLoadBalancer: googleLoadBalancer,
                                               targetPool: targetPool,
                                               instanceHealthRequest: instanceHealthRequest).doCall()
-
     }
   }
 
   class TargetPoolInstanceHealthCallInvoker {
 
     GoogleLoadBalancer googleLoadBalancer
-    TargetPool targetPool
+    def targetPool
 
     BatchRequest instanceHealthRequest
 
