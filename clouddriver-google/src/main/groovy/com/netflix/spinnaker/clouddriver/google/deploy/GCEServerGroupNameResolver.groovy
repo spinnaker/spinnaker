@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
 import com.google.api.services.compute.model.InstanceGroupManager
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.helpers.AbstractServerGroupNameResolver
 
 class GCEServerGroupNameResolver extends AbstractServerGroupNameResolver {
@@ -28,9 +28,9 @@ class GCEServerGroupNameResolver extends AbstractServerGroupNameResolver {
 
   private final String project
   private final String region
-  private final GoogleCredentials credentials
+  private final GoogleNamedAccountCredentials credentials
 
-  GCEServerGroupNameResolver(String project, String region, GoogleCredentials credentials) {
+  GCEServerGroupNameResolver(String project, String region, GoogleNamedAccountCredentials credentials) {
     this.project = project
     this.region = region
     this.credentials = credentials
