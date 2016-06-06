@@ -57,16 +57,18 @@ public class AzureBakeHandler extends CloudProviderBakeHandler{
   @Override
   Bake scrapeCompletedBakeResults(String region, String bakeId, String logsContent) {
     String imageName
+    String ami
 
     // TODO(duftler): Presently scraping the logs for the image name. Would be better to not be reliant on the log
     // format not changing. Resolve this by storing bake details in redis.
     logsContent.eachLine { String line ->
       if (line =~ IMAGE_NAME_TOKEN) {
         imageName = line.split("/").last()
+        ami = "https:" + line.split(":").last()
       }
     }
 
-    return new Bake(id: bakeId, image_name: imageName)
+    return new Bake(id: bakeId, image_name: imageName, ami: ami)
   }
 
   @Override
@@ -77,9 +79,9 @@ public class AzureBakeHandler extends CloudProviderBakeHandler{
   @Override
   Map buildParameterMap(String region, Object virtualizationSettings, String imageName, BakeRequest bakeRequest) {
 
-    def selectedImage = azureBakeryDefaults?.baseImages?.find {it.baseImage.id == bakeRequest.base_os}
+    def selectedImage = azureBakeryDefaults?.baseImages?.find { it.baseImage.id == bakeRequest.base_os }
 
-    // TODO(larrygug): Presently rosco is only supporitng a single account. Need to update to support a named account
+    // TODO(larrygug): Presently rosco is only supporting a single account. Need to update to support a named account
     def selectedAccount = azureConfigurationProperties?.accounts?.get(0)
 
     def parameterMap = [
@@ -89,9 +91,7 @@ public class AzureBakeHandler extends CloudProviderBakeHandler{
       azure_storage_account: selectedAccount?.storageAccount,
       azure_subscription_id: selectedAccount?.subscriptionId,
       azure_tenant_id: selectedAccount?.tenantId,
-
-      azure_location       : region,
-
+      azure_location: region,
       azure_image_publisher: selectedImage?.baseImage?.publisher,
       azure_image_offer: selectedImage?.baseImage?.offer,
       azure_image_sku: selectedImage?.baseImage?.sku,

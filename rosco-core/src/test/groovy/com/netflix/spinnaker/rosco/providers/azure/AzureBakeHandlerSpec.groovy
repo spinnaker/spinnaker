@@ -134,7 +134,7 @@ class AzureBakeHandlerSpec extends Specification{
     then:
     with (bake) {
       id == "123"
-      !ami
+      ami == "https://lgpackervms.blob.core.windows.net/system/Microsoft.Compute/Images/images/packer-osDisk.0425d8dd-45a0-4f2e-aabb-b5f9a03b08c9.vhd"
       image_name == "packer-osDisk.0425d8dd-45a0-4f2e-aabb-b5f9a03b08c9.vhd"
     }
   }

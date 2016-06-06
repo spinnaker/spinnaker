@@ -159,6 +159,7 @@ azure:
         offer: UbuntuServer
         sku: 14.04.3-LTS
         version: 14.04.201602171
+        osType: Linux
         packageType: deb
     - baseImage:
         id: centos
@@ -168,6 +169,7 @@ azure:
         offer: CentOS
         sku: 7.1
         version: 7.1.20150731
+        osType: Linux
         packageType: rpm
 
 docker:

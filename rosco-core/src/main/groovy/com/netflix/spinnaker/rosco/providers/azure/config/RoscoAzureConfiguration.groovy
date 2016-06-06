@@ -63,6 +63,7 @@ class RoscoAzureConfiguration {
     String offer
     String sku
     String version
+    String osType
   }
 
   static class AzureBaseImage {
