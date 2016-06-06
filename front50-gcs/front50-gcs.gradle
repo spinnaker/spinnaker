@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-rootProject.name = "front50"
+dependencies {
+  compile project(":front50-core")
+  compile 'io.reactivex:rxjava:1.0.10'
 
-include 'front50-web', 'front50-core', 'front50-cassandra', 'front50-gcs', 'front50-pipelines', 'front50-redis', 'front50-s3', 'front50-test'
+  spinnaker.group('google')
+  /* spinnaker.group('googleStorage') */
+  compile 'com.google.apis:google-api-services-storage:v1-rev72-1.22.0'
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
 
-rootProject.children.each {
-  setBuildFile(it)
+  testCompile project(":front50-test")
 }
