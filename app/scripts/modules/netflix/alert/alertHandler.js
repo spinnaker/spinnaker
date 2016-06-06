@@ -9,6 +9,8 @@ module.exports = angular
   ])
   .config(function ($provide) {
     $provide.decorator('$exceptionHandler', function($delegate, settings, authenticationService, $, $log) {
+      let currentVersion = require('../../../../../version.json');
+
       return function(exception, cause) {
         $delegate(exception, cause);
         if (!settings.alert) {
@@ -27,6 +29,7 @@ module.exports = angular
           details: {
             url: location.href,
             user: authenticationService.getAuthenticatedUser().name,
+            version: currentVersion.version,
           },
           exception: {
             classes: [exception.name || '[no name on exception]'],
