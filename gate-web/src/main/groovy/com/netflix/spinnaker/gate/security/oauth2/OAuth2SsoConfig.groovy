@@ -19,7 +19,7 @@ package com.netflix.spinnaker.gate.security.oauth2
 import com.netflix.spinnaker.gate.security.AuthConfig
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
 import com.netflix.spinnaker.gate.security.rolesprovider.UserRolesProvider
-import com.netflix.spinnaker.gate.services.AccountsService
+import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.security.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
@@ -94,7 +94,7 @@ class OAuth2SsoConfig extends OAuth2SsoConfigurerAdapter {
       UserInfoTokenServices userInfoTokenServices
 
       @Autowired
-      AccountsService accountsService
+      CredentialsService credentialsService
 
       @Autowired
       UserRolesProvider userRolesProvider
@@ -114,7 +114,7 @@ class OAuth2SsoConfig extends OAuth2SsoConfigurerAdapter {
             email: details[userInfoMapping.email] as String,
             firstName: details[userInfoMapping.firstName] as String,
             lastName: details[userInfoMapping.lastName] as String,
-            allowedAccounts: accountsService.getAllowedAccounts(roles),
+            allowedAccounts: credentialsService.getAccountNames(roles),
             roles: roles,
             username: username).asImmutable()
 

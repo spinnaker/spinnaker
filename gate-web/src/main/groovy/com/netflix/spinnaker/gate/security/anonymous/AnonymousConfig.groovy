@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.security.anonymous
 
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
-import com.netflix.spinnaker.gate.services.AccountsService
+import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang.exception.ExceptionUtils
@@ -40,7 +40,7 @@ class AnonymousConfig extends WebSecurityConfigurerAdapter {
   static String defaultEmail = "anonymous"
 
   @Autowired
-  AccountsService accountsService
+  CredentialsService credentialsService
 
   List<String> anonymousAllowedAccounts = new CopyOnWriteArrayList<>()
 
@@ -60,7 +60,7 @@ class AnonymousConfig extends WebSecurityConfigurerAdapter {
   @Scheduled(fixedDelay = 60000L)
   void updateAnonymousAccounts() {
     try {
-      def newAnonAccounts = accountsService.getAllowedAccounts([]) ?: []
+      def newAnonAccounts = credentialsService.getAccountNames([]) ?: []
 
       def toAdd = newAnonAccounts - anonymousAllowedAccounts
       def toRemove = anonymousAllowedAccounts - newAnonAccounts

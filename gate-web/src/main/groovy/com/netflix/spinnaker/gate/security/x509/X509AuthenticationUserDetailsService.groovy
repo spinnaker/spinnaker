@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.security.x509
 
 import com.netflix.spinnaker.gate.security.rolesprovider.UserRolesProvider
-import com.netflix.spinnaker.gate.services.AccountsService
+import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.security.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.userdetails.AuthenticationUserDetailsService
@@ -39,7 +39,7 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
   private static final String RFC822_NAME_ID = "1"
 
   @Autowired
-  AccountsService accountsService
+  CredentialsService credentialsService
 
   @Autowired
   UserRolesProvider userRolesProvider
@@ -56,7 +56,7 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
 
     return new User(
         email: email,
-        allowedAccounts: accountsService.getAllowedAccounts(roles),
+        allowedAccounts: credentialsService.getAccountNames(roles),
         roles: roles
     ).asImmutable()
   }

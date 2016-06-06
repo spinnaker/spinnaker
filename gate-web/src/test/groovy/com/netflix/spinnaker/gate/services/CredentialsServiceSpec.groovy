@@ -17,43 +17,40 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
-import com.netflix.spinnaker.security.AuthenticatedRequest
-import com.netflix.spinnaker.security.User
-import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Subject
 import spock.lang.Unroll
 
 class CredentialsServiceSpec extends Specification {
-  @Shared
-  List<ClouddriverService.Account> accounts = [
-    new ClouddriverService.Account(name: "account1", type: "aws"),
-    new ClouddriverService.Account(name: "account2", type: "aws")
-  ]
-
-  ClouddriverService clouddriverService = Mock(ClouddriverService) {
-    1 * getAccounts() >> { accounts }
-    0 * _
-  }
-
-  void "should return all accounts if no authenticated user"() {
-    expect:
-    new CredentialsService(clouddriverService: clouddriverService).getAccounts() == accounts
-  }
 
   @Unroll
-  void "should filter accounts based on authenticated user"() {
-    expect:
-    AuthenticatedRequest.propagate({
-      new CredentialsService(clouddriverService: clouddriverService).getAccounts()
-    }, false, new User(email: "email", roles: [], allowedAccounts: userAccounts, username: "email")).call() as List<ClouddriverService.Account> == allowedAccounts
+  def "should return allowed account names"() {
+    setup:
+      ClouddriverService clouddriverService = Mock(ClouddriverService) {
+        getAccounts() >> accounts
+      }
+      @Subject CredentialsService credentialsService = new CredentialsService(clouddriverService: clouddriverService)
+
+    when:
+      def allowedAccounts = credentialsService.getAccountNames(roles)
+
+    then:
+      allowedAccounts == expectedAccounts
 
     where:
-    userAccounts                         || allowedAccounts
-    ["account1"]                         || [accounts[0]]
-    ["account2"]                         || [accounts[1]]
-    ["account1", "account2"]             || accounts
-    ["account1", "account2", "account3"] || accounts
-    []                                   || accounts
-    null                                 || accounts
+      roles              | accounts                       || expectedAccounts
+      null               | []                             || []
+      []                 | []                             || []
+      [null]             | []                             || []
+      ["roleA"]          | [acnt("acntA")]                || ["acntA"]
+      ["roleA"]          | [acnt("acntB")]                || ["acntB"]
+      ["roleA", "roleB"] | [acnt("acntA"), acnt("acntB")] || ["acntA", "acntB"]
+      ["roleA"]          | [acnt("acntA", "roleA")]       || ["acntA"]
+      ["ROLEA"]          | [acnt("acntA", "rolea")]       || ["acntA"]
+      ["roleA"]          | [acnt("acntA", "roleB")]       || []
+  }
+
+  static ClouddriverService.Account acnt(String name, String... reqGroupMembership) {
+    new ClouddriverService.Account(name: name, requiredGroupMembership: reqGroupMembership)
   }
 }

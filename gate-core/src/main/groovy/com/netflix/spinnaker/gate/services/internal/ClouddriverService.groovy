@@ -38,7 +38,7 @@ interface ClouddriverService {
   static class Account {
     String name
     String type
-    Collection<String> requiredGroupMembership
+    Collection<String> requiredGroupMembership = []
   }
 
 

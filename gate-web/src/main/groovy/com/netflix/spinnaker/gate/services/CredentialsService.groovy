@@ -18,7 +18,6 @@ package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
-import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -29,21 +28,33 @@ class CredentialsService {
   @Autowired
   ClouddriverService clouddriverService
 
-  List<ClouddriverService.Account> getAccounts() {
+  Collection<String> getAccountNames() {
+    getAccountNames([])
+  }
+
+  Collection<String> getAccountNames(Collection<String> userRoles) {
+    getAccounts(userRoles)*.name
+  }
+
+  Collection<ClouddriverService.Account> getAccounts() {
+    getAccounts([])
+  }
+
+  /**
+   * Returns all account names that a user with the specified list of userRoles has access to.
+   */
+  List<ClouddriverService.Account> getAccounts(Collection<String> userRoles) {
     HystrixFactory.newListCommand(GROUP, "getAccounts") {
-      def allAccounts = clouddriverService.accounts
+      return clouddriverService.accounts.findAll { ClouddriverService.Account account ->
+        if (!account.requiredGroupMembership) {
+          return true // anonymous account.
+        }
 
-      if (!AuthenticatedRequest.getSpinnakerUser().present ||
-          !AuthenticatedRequest.getSpinnakerAccounts().present) {
-        // if the request is unauthenticated, return only anonymously accessible accounts (no group membership required)
-        return allAccounts.findAll { !it.requiredGroupMembership }
-      }
+        def userRolesLower = userRoles*.toLowerCase()
+        def reqGroupMembershipLower = account.requiredGroupMembership*.toLowerCase()
 
-      def allowedAccountsOptional = AuthenticatedRequest.getSpinnakerAccounts()
-      def allowedAccounts = allowedAccountsOptional.orElse("").split(",").collect { it.toLowerCase() }
-      return allAccounts.findAll {
-        allowedAccounts.contains(it.name.toLowerCase())
-      }
+        return userRolesLower.intersect(reqGroupMembershipLower) as Boolean
+      } ?: []
     } execute()
   }
 

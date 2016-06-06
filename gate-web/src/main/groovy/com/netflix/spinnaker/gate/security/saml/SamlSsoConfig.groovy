@@ -19,7 +19,7 @@ package com.netflix.spinnaker.gate.security.saml
 import com.netflix.spinnaker.gate.security.AuthConfig
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
 import com.netflix.spinnaker.gate.security.rolesprovider.UserRolesProvider
-import com.netflix.spinnaker.gate.services.AccountsService
+import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
@@ -136,7 +136,7 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
     new SAMLUserDetailsService() {
 
       @Autowired
-      AccountsService accountsService
+      CredentialsService credentialsService
 
       @Autowired
       ClouddriverService clouddriverService
@@ -157,7 +157,7 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
           firstName: attributes[userAttributeMapping.firstName]?.get(0),
           lastName: attributes[userAttributeMapping.lastName]?.get(0),
           roles: roles,
-          allowedAccounts: accountsService.getAllowedAccounts(roles),
+          allowedAccounts: credentialsService.getAccountNames(roles),
           username: attributes[userAttributeMapping.username] ?: email).asImmutable()
       }
 

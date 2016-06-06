@@ -16,10 +16,15 @@
 
 package com.netflix.spinnaker.gate.controllers
 
+import com.netflix.spinnaker.gate.security.SpinnakerUser
 import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.security.User
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/credentials")
@@ -29,8 +34,8 @@ class CredentialsController {
   CredentialsService credentialsService
 
   @RequestMapping(method = RequestMethod.GET)
-  List<ClouddriverService.Account> getAccounts() {
-    credentialsService.accounts
+  List<ClouddriverService.Account> getAccounts(@SpinnakerUser User user) {
+    credentialsService.getAccounts(user.roles)
   }
 
   @RequestMapping(value = '/{account}', method = RequestMethod.GET)

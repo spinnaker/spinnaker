@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.security.anonymous
 
-import com.netflix.spinnaker.gate.services.AccountsService
+import com.netflix.spinnaker.gate.services.CredentialsService
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -28,15 +28,14 @@ class AnonymousConfigSpec extends Specification {
   @Unroll
   def "should update accounts correctly"() {
     setup:
-      AccountsService accountsService = Mock(AccountsService) {
-        getAllowedAccounts(*_) >> newAccounts
+      CredentialsService credentialsService = Mock(CredentialsService) {
+        getAccountNames(*_) >> newAccounts
       }
       @Subject
       AnonymousConfig config = new AnonymousConfig(
           anonymousAllowedAccounts: new CopyOnWriteArrayList<String>(oldAccounts),
-          accountsService: accountsService
+          credentialsService: credentialsService
       )
-
 
     when:
       config.updateAnonymousAccounts()
