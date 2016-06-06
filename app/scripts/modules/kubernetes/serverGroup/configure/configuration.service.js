@@ -11,11 +11,11 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
 ])
   .factory('kubernetesServerGroupConfigurationService', function($q, accountService, kubernetesImageReader, _,
                                                                  loadBalancerReader, cacheInitializer) {
-    function configureCommand(application, command) {
+    function configureCommand(application, command, query = '') {
       return $q.all({
         accounts: accountService.listAccounts('kubernetes'),
         loadBalancers: loadBalancerReader.listLoadBalancers('kubernetes'),
-        allImages: kubernetesImageReader.findImages({ provider: 'dockerRegistry' }),
+        allImages: kubernetesImageReader.findImages({ provider: 'dockerRegistry', count: 50, q: formatQuery(query) }),
       }).then(function(backingData) {
         backingData.filtered = {};
         backingData.securityGroups = [];
@@ -36,6 +36,10 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
           attachEventHandlers(command);
         });
       });
+    }
+
+    function formatQuery(query) {
+      return `*${query}*`;
     }
 
     function mapImageToContainer(command) {

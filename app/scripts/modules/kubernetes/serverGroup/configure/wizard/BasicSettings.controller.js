@@ -12,7 +12,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.basi
   require('../../../../core/naming/naming.service.js'),
 ])
   .controller('kubernetesServerGroupBasicSettingsController', function($scope, $controller, $uibModalStack, $state,
-                                                                       v2modalWizardService, rx, imageReader, namingService) {
+                                                                       v2modalWizardService, rx, kubernetesImageReader, namingService, 
+                                                                       kubernetesServerGroupConfigurationService) {
 
     function searchImages(q) {
       $scope.command.backingData.filtered.images = [
@@ -21,10 +22,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.basi
         }
       ];
       return rx.Observable.fromPromise(
-        imageReader.findImages({
-          provider: $scope.command.selectedProvider,
-          q: q,
-        })
+        kubernetesServerGroupConfigurationService
+          .configureCommand($scope.application, $scope.command, q)
       );
     }
 
@@ -33,18 +32,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.basi
     imageSearchResultsStream
       .throttle(250)
       .flatMapLatest(searchImages)
-      .subscribe(function(data) {
-        $scope.command.backingData.filtered.images = data.map(function(image) {
-          if (image.message && !image.imageName) {
-            return image;
-          }
-          return {
-            account: image.account,
-            imageName: image.imageName,
-          };
-        });
-        $scope.command.backingData.packageImages = $scope.command.backingData.filtered.images;
-     });
+      .subscribe();
 
     this.searchImages = function(q) {
       imageSearchResultsStream.onNext(q);
@@ -52,7 +40,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.basi
 
     angular.extend(this, $controller('BasicSettingsMixin', {
       $scope: $scope,
-      imageReader: imageReader,
+      imageReader: kubernetesImageReader,
       namingService: namingService,
       $uibModalStack: $uibModalStack,
       $state: $state,
