@@ -116,7 +116,7 @@ class OAuth2SsoConfig extends OAuth2SsoConfigurerAdapter {
             lastName: details[userInfoMapping.lastName] as String,
             allowedAccounts: accountsService.getAllowedAccounts(roles),
             roles: roles,
-            username: username)
+            username: username).asImmutable()
 
         PreAuthenticatedAuthenticationToken authentication = new PreAuthenticatedAuthenticationToken(
             spinnakerUser,

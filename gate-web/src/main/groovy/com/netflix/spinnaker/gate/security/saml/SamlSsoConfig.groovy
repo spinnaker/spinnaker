@@ -158,7 +158,7 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
           lastName: attributes[userAttributeMapping.lastName]?.get(0),
           roles: roles,
           allowedAccounts: accountsService.getAllowedAccounts(roles),
-          username: attributes[userAttributeMapping.username] ?: email)
+          username: attributes[userAttributeMapping.username] ?: email).asImmutable()
       }
 
       Set<String> extractRoles(String email,

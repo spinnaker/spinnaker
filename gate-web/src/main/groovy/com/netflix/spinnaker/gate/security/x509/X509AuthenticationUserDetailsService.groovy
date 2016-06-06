@@ -58,7 +58,7 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
         email: email,
         allowedAccounts: accountsService.getAllowedAccounts(roles),
         roles: roles
-    )
+    ).asImmutable()
   }
 
   /**
