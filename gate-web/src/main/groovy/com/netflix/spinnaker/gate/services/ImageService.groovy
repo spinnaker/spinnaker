@@ -40,9 +40,9 @@ class ImageService {
     } execute()
   }
 
-  List<Map> search(String provider, String query, String region, String account) {
+  List<Map> search(String provider, String query, String region, String account, Integer count) {
     HystrixFactory.newListCommand(GROUP, "searchImages-${providerLookupService.providerForAccount(account)}") {
-      clouddriverService.findImages(provider, query, region, account)
+      clouddriverService.findImages(provider, query, region, account, count)
     } execute()
   }
 }
