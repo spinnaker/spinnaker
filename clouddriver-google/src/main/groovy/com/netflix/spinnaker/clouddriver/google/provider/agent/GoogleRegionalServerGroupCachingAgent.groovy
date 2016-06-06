@@ -167,7 +167,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
 
   @Override
   OnDemandAgent.OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data) {
-    if (!credentials.alphaListed) {
+    if (credentials.computeVersion != ComputeVersion.ALPHA) {
       return null
     }
 

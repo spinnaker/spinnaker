@@ -37,7 +37,6 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
   final GoogleCredentials credentials
 
   final String project
-  final boolean alphaListed
   final String applicationName
   final List<String> imageProjects
   final ComputeVersion computeVersion
@@ -50,7 +49,6 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
     String accountType
     List<String> requiredGroupMembership = []
     String project
-    boolean alphaListed
     String applicationName
     List<String> imageProjects = []
     ComputeVersion computeVersion = ComputeVersion.V1
@@ -86,11 +84,6 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
 
     Builder project(String project) {
       this.project = project
-      return this
-    }
-
-    Builder alphaListed(boolean alphaListed) {
-      this.alphaListed = alphaListed
       return this
     }
 
@@ -162,7 +155,6 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
                                         requiredGroupMembership,
                                         credentials,
                                         project,
-                                        alphaListed,
                                         applicationName,
                                         imageProjects,
                                         computeVersion,
