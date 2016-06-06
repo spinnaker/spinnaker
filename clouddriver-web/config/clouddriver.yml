@@ -262,7 +262,7 @@ openstack:
       master: test
       username: ${OS_USERNAME:'username'}
       password: ${OS_PASSWORD:'password'}
-      tenantName: PRD-spinnakeropenstack
+      tenantName: ${OS_TENANT_NAME:''}
       domainName: Default
       endpoint: ${OS_AUTH_URL:''}
       insecure: false

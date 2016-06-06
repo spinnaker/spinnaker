@@ -25,6 +25,8 @@ import org.springframework.validation.Errors
  * since other drivers are doing the same thing.
  */
 class OpenstackAttributeValidator {
+  static final namePattern = /^[a-z0-9]+([-a-z0-9]*[a-z0-9])?$/
+  static final prefixPattern = /^[a-z0-9]+$/
 
   String context
   Errors errors
@@ -100,6 +102,46 @@ class OpenstackAttributeValidator {
       result = false
     }
     result
+  }
+
+  boolean validateHeatTemplate(String value, String attribute, AccountCredentialsProvider accountCredentialsProvider, String account) {
+    def result
+    def credentials = accountCredentialsProvider.getCredentials(account)
+    def client = ((OpenstackCredentials)credentials.getCredentials()).getProvider().getClient()
+    if (client && client.heat().templates().validateTemplate(value).isValid()) {
+      result = true
+    } else {
+      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.notValidHeatTemplate")
+      result = false
+    }
+    result
+  }
+
+  def validateApplication(String value, String attribute) {
+    if (validateNotEmpty(value, attribute)) {
+      return validateByRegex(value, attribute, prefixPattern)
+    } else {
+      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid (Must match ${prefixPattern})")
+      return false
+    }
+  }
+
+  def validateStack(String value, String attribute) {
+    // Stack is optional
+    if (!value) {
+      return true
+    } else {
+      return validateByRegex(value, attribute, prefixPattern)
+    }
+  }
+
+  def validateDetails(String value, String attribute) {
+    // Details are optional.
+    if (!value) {
+      return true
+    } else {
+      return validateByRegex(value, attribute, namePattern)
+    }
   }
 
   /**

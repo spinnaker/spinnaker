@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.openstack4j.api.OSClient
 import org.openstack4j.model.common.ActionResponse
 import org.openstack4j.model.compute.RebootType
+import org.openstack4j.model.heat.Stack
 
 /**
  * Provides access to the Openstack API.
@@ -50,6 +51,39 @@ abstract class OpenstackClientProvider {
       client.compute().servers().reboot(instanceId, rebootType)
     }
   }
+
+  /**
+   * Create a Spinnaker Server Group (Openstack Heat Stack).
+   * @param stackName
+   * @param heatTemplate
+   * @param parameters
+   * @param disableRollback
+   * @param timeoutMins
+   * @return
+   */
+  void deploy(String stackName, String heatTemplate, Map<String, String> parameters, boolean disableRollback, Long timeoutMins) {
+    try {
+      client.heat().stacks().create(stackName, heatTemplate, parameters, disableRollback, timeoutMins)
+    } catch (Exception e) {
+      throw new OpenstackOperationException(AtomicOperations.CREATE_SERVER_GROUP, e)
+    }
+    //TODO: Handle heat autoscaling migration to senlin in versions > Mitaka
+  }
+
+  /**
+   * List existing heat stacks (server groups)
+   * @return List<? extends Stack> stacks
+   */
+  List<? extends Stack> listStacks() {
+    def stacks
+    try {
+      stacks = client.heat().stacks().list()
+    } catch (Exception e) {
+      throw new OpenstackOperationException(e)
+    }
+    stacks
+  }
+
 
   /**
    * Handler for an openstack4j request.

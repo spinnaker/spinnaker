@@ -18,16 +18,33 @@ package com.netflix.spinnaker.clouddriver.openstack.client
 
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import org.openstack4j.api.OSClient
+import org.openstack4j.api.heat.HeatService
+import org.openstack4j.api.heat.StackService
 import org.openstack4j.model.common.ActionResponse
 import spock.lang.Specification
 
 class OpenstackClientProviderSpec extends Specification {
 
   private static final String OPERATION = "TestOperation"
-  private provider
+  private OpenstackClientProvider provider
+  private OSClient mockClient
 
   def setup() {
-    provider = new OpenstackClientV2Provider(Mock(OSClient.OSClientV2))
+    mockClient = Mock(OSClient)
+
+    // Subclass the provider so we get the method defined in the abstract class without dealing with a real client.
+    provider = new OpenstackClientProvider() {
+      @Override
+      OSClient getClient() {
+        mockClient
+      }
+
+      @Override
+      String getTokenId() {
+        null
+      }
+    }
+
   }
 
   def "handle request succeeds"() {
@@ -69,4 +86,21 @@ class OpenstackClientProviderSpec extends Specification {
     ex.message.contains("foo")
     ex.message.contains(OPERATION)
   }
+
+  def "deploy heat stack succeeds"() {
+
+    setup:
+    HeatService heat = Mock()
+    StackService stackApi = Mock()
+    mockClient.heat() >> heat
+    heat.stacks() >> stackApi
+
+    when:
+    provider.deploy("mystack", "{}", [:], false, 1)
+
+    then:
+    1 * stackApi.create("mystack", "{}", [:], false, 1)
+    noExceptionThrown()
+  }
+
 }
