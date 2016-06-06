@@ -34,7 +34,7 @@ class OpenstackAtomicOperationConverterHelper {
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
       .convertValue(input, targetDescriptionType)
 
-    converted.credentials = (OpenstackCredentials) credentialsSupport.getCredentialsObject(account)?.getCredentials()
+    converted.credentials = (OpenstackCredentials) credentialsSupport.getCredentialsObject(account)?.credentials
 
     converted
   }

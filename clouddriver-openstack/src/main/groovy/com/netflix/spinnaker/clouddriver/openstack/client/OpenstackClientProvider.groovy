@@ -16,11 +16,17 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.client
 
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.OpenstackSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
+import org.apache.commons.lang.StringUtils
+import org.openstack4j.api.Builders
 import org.openstack4j.api.OSClient
+import org.openstack4j.api.compute.ComputeSecurityGroupService
 import org.openstack4j.model.common.ActionResponse
+import org.openstack4j.model.compute.IPProtocol
 import org.openstack4j.model.compute.RebootType
+import org.openstack4j.model.compute.SecGroupExtension
 import org.openstack4j.model.heat.Stack
 
 /**
@@ -49,6 +55,51 @@ abstract class OpenstackClientProvider {
   void rebootInstance(String instanceId, RebootType rebootType = RebootType.SOFT) {
     handleRequest(AtomicOperations.REBOOT_INSTANCES) {
       client.compute().servers().reboot(instanceId, rebootType)
+    }
+  }
+
+  /**
+   * Create or update a security group, applying a list of rules. If the securityGroupId is provided, updates an existing
+   * security group, else creates a new security group.
+   *
+   * Note: 2 default egress rules are created when creating a new security group
+   * automatically with remote IP prefixes 0.0.0.0/0 and ::/0.
+   *
+   * @param securityGroupId id of an existing security group to update
+   * @param securityGroupName name security group
+   * @param description description of the security group
+   * @param rules list of rules for the security group
+   */
+  void upsertSecurityGroup(String securityGroupId, String securityGroupName, String description, List<OpenstackSecurityGroupDescription.Rule> rules) {
+
+     handleRequest(AtomicOperations.UPSERT_SECURITY_GROUP) {
+
+       // The call to getClient reauthentictes via a token, so grab once for this method to avoid unnecessary reauthentications
+       def securityGroupsApi = client.compute().securityGroups()
+
+      // Try getting existing security group, update if needed
+      SecGroupExtension securityGroup
+      if (StringUtils.isNotEmpty(securityGroupId)) {
+        securityGroup = securityGroupsApi.get(securityGroupId)
+      }
+      if (securityGroup  == null) {
+        securityGroup = securityGroupsApi.create(securityGroupName, description)
+      } else {
+        securityGroup  = securityGroupsApi.update(securityGroup.id, securityGroupName, description)
+      }
+
+      // TODO: Find the different between existing rules and only apply that instead of deleting and re-creating all the rules
+      securityGroup.rules.each { rule ->
+        securityGroupsApi.deleteRule(rule.id)
+      }
+
+      rules.each { rule ->
+        securityGroupsApi.createRule(Builders.secGroupRule()
+          .parentGroupId(securityGroup.id)
+          .protocol(IPProtocol.valueOf(rule.ruleType))
+          .cidr(rule.cidr)
+          .range(rule.fromPort, rule.toPort).build())
+      }
     }
   }
 
@@ -86,18 +137,19 @@ abstract class OpenstackClientProvider {
 
 
   /**
-   * Handler for an openstack4j request.
-   * @param closure
-   * @return
+   * Handler for an Openstack4J request with error common handling.
+   * @param operation to add context to error messages
+   * @param closure makes the needed Openstack4J request
+   * @return returns the result from the closure
    */
-  ActionResponse handleRequest(String operation, Closure closure) {
-    ActionResponse result
+  def handleRequest(String operation, Closure closure) {
+    def result
     try {
       result = closure()
     } catch (Exception e) {
       throw new OpenstackOperationException(operation, e)
     }
-    if (!result.isSuccess()) {
+    if (result instanceof ActionResponse && !result.isSuccess()) {
       throw new OpenstackOperationException(result, operation)
     }
     result

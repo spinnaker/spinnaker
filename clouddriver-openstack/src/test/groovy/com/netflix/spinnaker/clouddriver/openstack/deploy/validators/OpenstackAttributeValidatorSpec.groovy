@@ -30,7 +30,7 @@ import spock.lang.Unroll
 @Unroll
 class OpenstackAttributeValidatorSpec extends Specification {
 
-  def validator
+  OpenstackAttributeValidator validator
   def errors
   def accountProvider
 
@@ -47,7 +47,7 @@ class OpenstackAttributeValidatorSpec extends Specification {
     then:
     actual == result
     if (!result) {
-      1 * errors.rejectValue('context.test','context.test.invalid (Must match [A-Z]+)')
+      1 * errors.rejectValue('context.test', 'context.test.invalid (Must match [A-Z]+)')
     }
 
     where:
@@ -64,7 +64,7 @@ class OpenstackAttributeValidatorSpec extends Specification {
     then:
     actual == result
     if (!result) {
-      1 * errors.rejectValue('context.test','context.test.invalid (Must be one of [1234])')
+      1 * errors.rejectValue('context.test', 'context.test.invalid (Must be one of [1234])')
     }
 
     where:
@@ -76,7 +76,7 @@ class OpenstackAttributeValidatorSpec extends Specification {
 
   def "Reject"() {
     when:
-    validator.reject('foo','reason')
+    validator.reject('foo', 'reason')
 
     then:
     1 * errors.rejectValue('context.foo', 'context.foo.invalid (reason)')
@@ -105,7 +105,7 @@ class OpenstackAttributeValidatorSpec extends Specification {
     then:
     actual == result
     if (!result) {
-      1 * errors.rejectValue('context.test','context.test.empty')
+      1 * errors.rejectValue('context.test', 'context.test.empty')
     }
 
     where:
@@ -122,7 +122,7 @@ class OpenstackAttributeValidatorSpec extends Specification {
     then:
     actual == result
     if (!result) {
-      1 * errors.rejectValue('context.test','context.test.negative')
+      1 * errors.rejectValue('context.test', 'context.test.negative')
     }
 
     where:
@@ -139,7 +139,7 @@ class OpenstackAttributeValidatorSpec extends Specification {
     then:
     actual == result
     if (!result) {
-      1 * errors.rejectValue('context.test','context.test.notPositive')
+      1 * errors.rejectValue('context.test', 'context.test.notPositive')
     }
 
     where:
@@ -196,4 +196,62 @@ class OpenstackAttributeValidatorSpec extends Specification {
     1 * errors.rejectValue('context.account', 'context.account.notFound')
   }
 
+  def "ValidateUUID"() {
+    when:
+    boolean actual = validator.validateUUID(value, 'test')
+
+    then:
+    actual == result
+    if (!result) {
+      1 * errors.rejectValue('context.test', 'context.test.notUUID')
+    }
+
+    where:
+    value                                  | result
+    '62e3b610-281a-11e6-bdf4-0800200c9a66' | true
+    '123'                                  | false
+    ''                                     | false
+  }
+
+  def "ValidateCIDR"() {
+    when:
+    boolean actual = validator.validateCIDR(value, 'test')
+
+    then:
+    actual == result
+    if (!result) {
+      1 * errors.rejectValue('context.test', 'context.test.invalidCIDR')
+    }
+
+    where:
+    value       | result
+    '0.0.0.0/0' | true
+    '0.0.:0'    | false
+  }
+
+  def "ValidateCIDR - Empty"() {
+    when:
+    boolean actual = validator.validateCIDR('', 'test')
+
+    then:
+    !actual
+    1 * errors.rejectValue('context.test', 'context.test.empty')
+  }
+
+  def "ValidateRuleType"() {
+    when:
+    boolean actual = validator.validateRuleType(value, 'test')
+
+    then:
+    actual == result
+    if (!result) {
+      1 * errors.rejectValue('context.test', _)
+    }
+
+    where:
+    value | result
+    ''    | false
+    'UDP' | false
+    'TCP' | true
+  }
 }

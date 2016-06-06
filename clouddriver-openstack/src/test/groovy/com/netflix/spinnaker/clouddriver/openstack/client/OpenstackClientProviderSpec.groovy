@@ -16,11 +16,18 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.client
 
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.OpenstackSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.openstack4j.api.OSClient
+import org.openstack4j.api.compute.ComputeSecurityGroupService
+import org.openstack4j.api.compute.ComputeService
 import org.openstack4j.api.heat.HeatService
 import org.openstack4j.api.heat.StackService
 import org.openstack4j.model.common.ActionResponse
+import org.openstack4j.model.compute.IPProtocol
+import org.openstack4j.model.compute.SecGroupExtension
+import org.openstack4j.openstack.compute.domain.NovaSecGroupExtension
 import spock.lang.Specification
 
 class OpenstackClientProviderSpec extends Specification {
@@ -44,7 +51,114 @@ class OpenstackClientProviderSpec extends Specification {
         null
       }
     }
+  }
 
+  def "create security group without rules"() {
+    setup:
+    def name = "sec-group-1"
+    def description = "A description"
+    ComputeService compute = Mock()
+    ComputeSecurityGroupService securityGroupApi = Mock()
+    SecGroupExtension securityGroup = Mock()
+
+    when:
+    provider.upsertSecurityGroup(null, name, description, [])
+
+    then:
+    1 * mockClient.compute() >> compute
+    1 * compute.securityGroups() >> securityGroupApi
+    1 * securityGroupApi.create(name, description) >> securityGroup
+    0 * securityGroupApi.createRule(_)
+    0 * securityGroupApi.deleteRule(_)
+    noExceptionThrown()
+  }
+
+  def "create security group with rules"() {
+    setup:
+    ComputeService compute = Mock()
+    ComputeSecurityGroupService securityGroupService = Mock()
+    mockClient.compute() >> compute
+    compute.securityGroups() >> securityGroupService
+
+    def name = "sec-group-1"
+    def description = "A description"
+    SecGroupExtension securityGroup = new NovaSecGroupExtension()
+    def rules = [
+      new OpenstackSecurityGroupDescription.Rule(fromPort: 80, toPort: 80, cidr: "0.0.0.0/0"),
+      new OpenstackSecurityGroupDescription.Rule(fromPort: 443, toPort: 443, cidr: "0.0.0.0/0")
+    ]
+
+    when:
+    provider.upsertSecurityGroup(null, name, description, rules)
+
+    then:
+    1 * securityGroupService.create(name, description) >> securityGroup
+    0 * securityGroupService.deleteRule(_)
+    rules.each { rule ->
+      1 * securityGroupService.createRule({ SecGroupExtension.Rule r ->
+        r.toPort == rule.toPort &&  r.fromPort == rule.fromPort && r.IPProtocol == IPProtocol.TCP
+      })
+    }
+    noExceptionThrown()
+  }
+
+  def "update security group"() {
+    setup:
+    ComputeService compute = Mock()
+    ComputeSecurityGroupService securityGroupService = Mock()
+    mockClient.compute() >> compute
+    compute.securityGroups() >> securityGroupService
+
+    def id = UUID.randomUUID().toString()
+    def name = "sec-group-2"
+    def description = "A description 2"
+
+    def existingRules = [
+      new NovaSecGroupExtension.SecurityGroupRule(id: '1', fromPort: 80, toPort: 8080, cidr: "192.1.68.1/24"),
+      new NovaSecGroupExtension.SecurityGroupRule(id: '2', fromPort: 443, toPort: 443, cidr: "0.0.0.0/0")
+    ]
+    def existingSecurityGroup = new NovaSecGroupExtension(id: id, name: "name", description: "desc", rules: existingRules)
+
+    def newRules = [
+      new OpenstackSecurityGroupDescription.Rule(fromPort: 80, toPort: 80, cidr: "0.0.0.0/0"),
+      new OpenstackSecurityGroupDescription.Rule(fromPort: 443, toPort: 443, cidr: "0.0.0.0/0")
+    ]
+
+    when:
+    provider.upsertSecurityGroup(id, name, description, newRules)
+
+    then:
+    1 * securityGroupService.get(id) >> existingSecurityGroup
+    1 * securityGroupService.update(id, name, description) >> existingSecurityGroup
+    existingRules.each { rule ->
+      1 * securityGroupService.deleteRule(rule.id)
+    }
+    newRules.each { rule ->
+      1 * securityGroupService.createRule({ SecGroupExtension.Rule r ->
+        r.toPort == rule.toPort &&  r.fromPort == rule.fromPort && r.IPProtocol == IPProtocol.TCP
+      })
+    }
+    noExceptionThrown()
+  }
+
+  def "upsert security group handles exceptions"() {
+    setup:
+    ComputeService compute = Mock()
+    ComputeSecurityGroupService securityGroupService = Mock()
+    mockClient.compute() >> compute
+    compute.securityGroups() >> securityGroupService
+
+    def name = "name"
+    def description = "desc"
+
+    when:
+    provider.upsertSecurityGroup(null, name, description, [])
+
+    then:
+    1 * securityGroupService.create(name, description) >> { throw new RuntimeException("foo") }
+    OpenstackOperationException ex = thrown(OpenstackOperationException)
+    ex.message.contains("foo")
+    ex.message.contains(AtomicOperations.UPSERT_SECURITY_GROUP)
   }
 
   def "handle request succeeds"() {
@@ -87,6 +201,27 @@ class OpenstackClientProviderSpec extends Specification {
     ex.message.contains(OPERATION)
   }
 
+  def "handle request non-action response"() {
+    setup:
+    def object = new Object()
+
+    when:
+    def response = provider.handleRequest(OPERATION) { object }
+
+    then:
+    object == response
+    noExceptionThrown()
+  }
+
+  def "handle request null response"() {
+    when:
+    def response = provider.handleRequest(OPERATION) { null }
+
+    then:
+    response == null
+    noExceptionThrown()
+  }
+
   def "deploy heat stack succeeds"() {
 
     setup:
@@ -102,5 +237,4 @@ class OpenstackClientProviderSpec extends Specification {
     1 * stackApi.create("mystack", "{}", [:], false, 1)
     noExceptionThrown()
   }
-
 }

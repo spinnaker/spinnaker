@@ -265,7 +265,7 @@ openstack:
       tenantName: ${OS_TENANT_NAME:''}
       domainName: Default
       endpoint: ${OS_AUTH_URL:''}
-      insecure: false
+      insecure: ${OS_INSECURE:false}
 
 kubernetes:
   enabled: false

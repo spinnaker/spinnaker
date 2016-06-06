@@ -16,7 +16,8 @@
 
 dependencies {
   compile project(":clouddriver-core")
-  compile group: 'org.pacesys', name: 'openstack4j', version: '3.0.0'
+  compile 'org.pacesys:openstack4j:3.0.0'
+  compile 'commons-net:commons-net:3.5'
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
 }
