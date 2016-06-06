@@ -186,7 +186,8 @@ interface ClouddriverService {
   List<Map> findImages(@Path("provider") String provider,
                        @Query("q") String query,
                        @Query("region") String region,
-                       @Query("account") String account)
+                       @Query("account") String account,
+                       @Query("count") Integer count)
 
   @Headers("Accept: application/json")
   @GET("/search")

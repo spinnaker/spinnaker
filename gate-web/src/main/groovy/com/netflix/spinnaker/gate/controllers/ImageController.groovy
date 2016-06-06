@@ -45,7 +45,8 @@ class ImageController {
   List<Map> findImages(@RequestParam(value = "provider", defaultValue = "aws", required = false) String provider,
                        @RequestParam(value = "q", required = false) String query,
                        @RequestParam(value = "region", required = false) String region,
-                       @RequestParam(value = "account", required = false) String account) {
-    imageService.search(provider, query, region, account)
+                       @RequestParam(value = "account", required = false) String account,
+                       @RequestParam(value = "count", required = false) Integer count) {
+    imageService.search(provider, query, region, account, count)
   }
 }
