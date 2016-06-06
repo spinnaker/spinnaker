@@ -6,6 +6,9 @@ cassandra:
   embedded: ${services.cassandra.embedded:false}
   host: ${services.cassandra.host:localhost}
 
+spinnaker:
+  baseUrl: ${services.deck.baseUrl}
+
 front50:
   baseUrl: ${services.front50.baseUrl:http://localhost:8080}
 
