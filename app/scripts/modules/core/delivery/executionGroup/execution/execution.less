@@ -88,14 +88,38 @@ execution-status {
   width: calc(~"100% - 235px");
   vertical-align: top;
   padding-top: 20px;
+  .stages {
+    .duration {
+      font-weight: 600;
+      padding-top: 1px;
+      display: inline-block;
+      visibility: hidden;
+    }
+    &.show-durations {
+      .stage {
+        .duration {
+          visibility: visible;
+        }
+        border-left-color: #222222;
+      }
+    }
+  }
   .stage {
     margin-top: 0;
     display: inline-block;
     height: 20px;
     opacity: 0.65;
     transition: 0.2s all;
+    text-align: center;
+    padding: 0 10px;
+    color: #000000;
+    font-size: 90%;
+    border-left: 1px solid transparent;
     &:hover, &.active {
       opacity: 1;
+    }
+    &:first-child {
+      border-left-width: 0;
     }
     &.active {
       border: 1px solid @dark_grey;

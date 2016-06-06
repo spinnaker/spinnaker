@@ -42,6 +42,12 @@
           </select>
           executions per pipeline
         </div>
+        <div class="form-group checkbox">
+          <label>
+            <input type="checkbox" ng-model="vm.filter.showStageDuration">
+            stage durations
+          </label>
+        </div>
         <div class="form-group pull-right">
           <a href class="btn btn-sm btn-primary"
              ng-click="vm.triggerPipeline()"

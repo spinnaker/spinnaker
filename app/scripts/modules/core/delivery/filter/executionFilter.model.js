@@ -21,12 +21,13 @@ module.exports = angular
 
     function getCachedViewState() {
       let cached = configViewStateCache.get('#global') || {},
-          defaults = { count: 2, groupBy: 'name' };
+          defaults = { count: 2, groupBy: 'name', showDurations: false };
       return angular.extend(defaults, cached);
     }
 
     var groupCount = getCachedViewState().count;
     var groupBy = getCachedViewState().groupBy;
+    var showDurations = getCachedViewState().showDurations;
 
     this.mostRecentApplication = null;
 
@@ -39,7 +40,7 @@ module.exports = angular
     filterModelService.configureFilterModel(this, filterModelConfig);
 
     function cacheConfigViewState() {
-      configViewStateCache.put('#global', { count: groupCount, groupBy: groupBy });
+      configViewStateCache.put('#global', { count: groupCount, groupBy: groupBy, showDurations: showDurations });
     }
 
     // A nice way to avoid watches is to define a property on an object
@@ -59,6 +60,16 @@ module.exports = angular
       },
       set: function(grouping) {
         groupBy = grouping;
+        cacheConfigViewState();
+      }
+    });
+
+    Object.defineProperty(this.sortFilter, 'showDurations', {
+      get: function() {
+        return groupCount;
+      },
+      set: function(count) {
+        groupCount = count;
         cacheConfigViewState();
       }
     });

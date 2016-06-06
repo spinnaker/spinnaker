@@ -75,7 +75,10 @@ module.exports = angular
       canTriggerPipelineManually: this.pipelineConfig,
       canConfigure: this.pipelineConfig,
       showPipelineName: ExecutionFilterModel.sortFilter.groupBy !== 'name',
+      showStageDuration: ExecutionFilterModel.sortFilter.showStageDuration,
     };
+
+    this.sortFilter = ExecutionFilterModel.sortFilter;
 
     this.deleteExecution = () => {
       confirmationModalService.confirm({

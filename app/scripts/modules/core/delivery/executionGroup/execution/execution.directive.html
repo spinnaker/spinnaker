@@ -5,16 +5,18 @@
                     standalone="vm.standalone">
   </execution-status>
   <div class="execution-bar">
-    <div class="stages">
+    <div class="stages" ng-class="{'show-durations': vm.sortFilter.showStageDuration}">
       <div ng-repeat="stage in vm.execution.stageSummaries"
-           class="clickable stage stage-type-{{stage.type.toLowerCase()}}
-                  execution-marker execution-marker-{{stage.status.toLowerCase()}}
-                  {{vm.isActive($index) ? 'active' : ''}} {{stage.isRunning ? 'glowing' : ''}}"
+           class="clickable stage stage-type-{{::stage.type.toLowerCase()}}
+                  execution-marker execution-marker-{{::stage.status.toLowerCase()}}
+                  {{stage.isRunning ? 'glowing' : ''}}"
            ng-style="{width: 100/vm.execution.stageSummaries.length + '%', 'background-color': stage.color}"
            uib-tooltip-template="stage.labelTemplateUrl"
            tooltip-title="(Click for details)"
            tooltip-placement="bottom"
-           ng-click="vm.toggleDetails({executionId: vm.execution.id, index: $index})"></div>
+           ng-click="vm.toggleDetails({executionId: vm.execution.id, index: $index})">
+        <span class="duration">{{::stage.runningTimeInMs | duration}}</span>
+      </div>
       <div ng-if="!vm.execution.stageSummaries.length" class="text-center">
         No stages found.
         <a target="_blank" ng-href="{{vm.pipelinesUrl + vm.execution.id}}">Source</a>
