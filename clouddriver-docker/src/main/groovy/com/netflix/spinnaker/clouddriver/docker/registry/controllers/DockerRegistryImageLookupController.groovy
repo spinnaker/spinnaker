@@ -50,7 +50,7 @@ class DockerRegistryImageLookupController {
       def lastColon = lookupOptions.q.lastIndexOf(':')
       if (lastColon != -1) {
         image = lookupOptions.q.substring(0, lastColon)
-        tag = lookupOptions.q.(lastColon + 1)
+        tag = lookupOptions.q.substring(lastColon + 1)
       } else {
         image = lookupOptions.q
       }
