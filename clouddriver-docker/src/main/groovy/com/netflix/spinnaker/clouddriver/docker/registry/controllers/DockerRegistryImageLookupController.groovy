@@ -64,6 +64,10 @@ class DockerRegistryImageLookupController {
 
     Set<CacheData> images = DockerRegistryProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.TAGGED_IMAGE.ns, key)
 
+    if (lookupOptions.count) {
+      images = images.take(lookupOptions.count)
+    }
+
     return images.collect({
       def credentials = (DockerRegistryNamedAccountCredentials) accountCredentialsProvider.getCredentials((String) it.attributes.account)
       if (!credentials) {
@@ -85,5 +89,6 @@ class DockerRegistryImageLookupController {
     String q
     String account
     String region
+    Integer count
   }
 }
