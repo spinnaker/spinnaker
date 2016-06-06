@@ -18,32 +18,41 @@ package com.netflix.spinnaker.security
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import groovy.transform.Immutable
+import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 
 /**
  * User implements UserDetails in order to properly hook into the Spring Security framework.
  */
-@Immutable
-class User implements Serializable, UserDetails {
+class User implements UserDetails {
   static final long serialVersionUID = 7392392099262597885L
 
   String email
+  String username
   String firstName
   String lastName
 
-  Collection<String> roles
+  Collection<String> roles = []
   Collection<String> allowedAccounts = []
 
   @Override
   List getAuthorities() {
-    roles?.collect { new SimpleGrantedAuthority(it) }
+    roles.collect { new SimpleGrantedAuthority(it) }
   }
 
-  String username = email
+  @Override
+  String getUsername() {
+    return this.username ?: this.email
+  }
+
+  ImmutableUser asImmutable() {
+    new ImmutableUser()
+  }
 
   /** Not used **/
-  @JsonIgnore String password
+  @JsonIgnore
+  final String password = ""
 
   @Override
   boolean isAccountNonExpired() { return true }
@@ -56,4 +65,17 @@ class User implements Serializable, UserDetails {
 
   @Override
   boolean isEnabled() { return true }
+
+  @Immutable
+  class ImmutableUser extends User {
+    String email = User.this.email
+    String username = User.this.username
+    String firstName = User.this.firstName
+    String lastName = User.this.lastName
+
+    // Use .collect() to snapshot these collections.
+    Collection<String> roles = User.this.roles.collect()
+    Collection<String> allowedAccounts = User.this.allowedAccounts.collect()
+    List<GrantedAuthority> authorities = User.this.authorities.collect()
+  }
 }
