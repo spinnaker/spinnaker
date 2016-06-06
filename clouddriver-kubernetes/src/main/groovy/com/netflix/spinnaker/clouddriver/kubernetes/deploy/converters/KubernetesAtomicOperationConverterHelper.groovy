@@ -18,8 +18,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.KubernetesAtomicOperationDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesIllegalArgumentException
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 
@@ -32,7 +30,7 @@ class KubernetesAtomicOperationConverterHelper {
     account = account ?: removedAccount
 
     // Save these to re-assign after ObjectMapper does its work.
-    def credentials = (KubernetesCredentials) credentialsSupport.getCredentialsObject(account as String)?.getCredentials()
+    def credentials = (KubernetesNamedAccountCredentials) credentialsSupport.getCredentialsObject(account as String)
 
     def converted = (KubernetesAtomicOperationDescription) credentialsSupport.objectMapper
       .copy()

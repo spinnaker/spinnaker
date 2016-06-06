@@ -34,6 +34,8 @@ public class KubernetesCredentials {
   private final HashMap<String, List<String>> imagePullSecrets;
   private final Logger LOG;
 
+  // TODO(lwander): refactor apiAdaptor into KubernetesNamedAccountCredentials, and any other metadata that isn't
+  // strictly a credential.
   public KubernetesCredentials(KubernetesApiAdaptor apiAdaptor,
                                List<String> namespaces,
                                List<LinkedDockerRegistryConfiguration> dockerRegistries,

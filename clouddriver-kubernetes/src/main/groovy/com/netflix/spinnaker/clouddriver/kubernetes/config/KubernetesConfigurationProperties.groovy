@@ -31,6 +31,7 @@ class KubernetesConfigurationProperties {
     String kubeconfigFile
     List<String> namespaces
     List<LinkedDockerRegistryConfiguration> dockerRegistries
+    List<String> requiredGroupMembership
   }
 
   List<ManagedAccount> accounts = []

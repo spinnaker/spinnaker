@@ -21,13 +21,8 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.provider.KubernetesProvider
-import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesInstanceCachingAgent
-import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesJobCachingAgent
-import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesLoadBalancerCachingAgent
-import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesSecurityGroupCachingAgent
-import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesServerGroupCachingAgent
+import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.*
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
@@ -79,15 +74,15 @@ class KubernetesProviderConfig {
     def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, KubernetesNamedAccountCredentials)
 
     allAccounts.each { KubernetesNamedAccountCredentials credentials ->
-      if (!scheduledAccounts.contains(credentials.accountName)) {
+      if (!scheduledAccounts.contains(credentials.name)) {
         def newlyAddedAgents = []
 
         credentials.credentials.namespaces.forEach({ namespace ->
-          newlyAddedAgents << new KubernetesServerGroupCachingAgent(kubernetesCloudProvider, credentials.accountName, credentials.credentials, namespace, objectMapper, registry)
-          newlyAddedAgents << new KubernetesLoadBalancerCachingAgent(kubernetesCloudProvider, credentials.accountName, credentials.credentials, namespace, objectMapper, registry)
-          newlyAddedAgents << new KubernetesInstanceCachingAgent(kubernetesCloudProvider, credentials.accountName, credentials.credentials, namespace, objectMapper, registry)
-          newlyAddedAgents << new KubernetesSecurityGroupCachingAgent(kubernetesCloudProvider, credentials.accountName, credentials.credentials, namespace, objectMapper, registry)
-          newlyAddedAgents << new KubernetesJobCachingAgent(kubernetesCloudProvider, credentials.accountName, credentials.credentials, namespace, objectMapper, registry)
+          newlyAddedAgents << new KubernetesServerGroupCachingAgent(kubernetesCloudProvider, credentials.name, credentials.credentials, namespace, objectMapper, registry)
+          newlyAddedAgents << new KubernetesLoadBalancerCachingAgent(kubernetesCloudProvider, credentials.name, credentials.credentials, namespace, objectMapper, registry)
+          newlyAddedAgents << new KubernetesInstanceCachingAgent(kubernetesCloudProvider, credentials.name, credentials.credentials, namespace, objectMapper, registry)
+          newlyAddedAgents << new KubernetesSecurityGroupCachingAgent(kubernetesCloudProvider, credentials.name, credentials.credentials, namespace, objectMapper, registry)
+          newlyAddedAgents << new KubernetesJobCachingAgent(kubernetesCloudProvider, credentials.name, credentials.credentials, namespace, objectMapper, registry)
         })
 
         // If there is an agent scheduler, then this provider has been through the AgentController in the past.

@@ -44,7 +44,7 @@ class DestroyKubernetesAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus BASE_PHASE, "Initializing destroy of replication controller."
     task.updateStatus BASE_PHASE, "Looking up provided namespace..."
 
-    def credentials = description.credentials
+    def credentials = description.credentials.credentials
     def namespace = KubernetesUtil.validateNamespace(credentials, description.namespace)
 
     task.updateStatus BASE_PHASE, "Destroying replication controller..."

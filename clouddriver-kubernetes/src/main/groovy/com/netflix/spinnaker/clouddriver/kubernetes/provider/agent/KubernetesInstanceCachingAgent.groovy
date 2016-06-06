@@ -61,7 +61,7 @@ class KubernetesInstanceCachingAgent implements  CachingAgent, AccountAware {
 
   @Override
   String getAccountName() {
-    return null
+    return accountName
   }
 
   @Override

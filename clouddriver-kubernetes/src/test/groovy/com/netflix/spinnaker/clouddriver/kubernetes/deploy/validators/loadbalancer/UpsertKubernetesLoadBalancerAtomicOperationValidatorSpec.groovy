@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.loadbalancer
 
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
+import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesNamedServicePort
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
@@ -44,7 +45,10 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidatorSpec extends Specifica
 
   UpsertKubernetesLoadBalancerAtomicOperationValidator validator
 
+  def dockerRegistry
+  def dockerRegistries
   def credentials
+  def namedAccountCredentials
   def validPort
   def invalidPortPort
   def invalidNamePort
@@ -54,15 +58,19 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidatorSpec extends Specifica
     validator = new UpsertKubernetesLoadBalancerAtomicOperationValidator()
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
     def credentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
-    def namedCredentialsMock = Mock(KubernetesNamedAccountCredentials)
 
     def apiMock = Mock(KubernetesApiAdaptor)
     def accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
 
-    def credentials = new KubernetesCredentials(apiMock, NAMESPACES, [], accountCredentialsRepositoryMock)
-    namedCredentialsMock.getName() >> VALID_ACCOUNT
-    namedCredentialsMock.getCredentials() >> credentials
-    credentialsRepo.save(VALID_ACCOUNT, namedCredentialsMock)
+    dockerRegistry = Mock(LinkedDockerRegistryConfiguration)
+    dockerRegistries = [dockerRegistry]
+    credentials = new KubernetesCredentials(apiMock, NAMESPACES, [], accountCredentialsRepositoryMock)
+    namedAccountCredentials = new KubernetesNamedAccountCredentials.Builder()
+        .name(VALID_ACCOUNT)
+        .dockerRegistries(dockerRegistries)
+        .credentials(credentials)
+        .build()
+    credentialsRepo.save(VALID_ACCOUNT, namedAccountCredentials)
     validator.accountCredentialsProvider = credentialsProvider
 
     validPort = new KubernetesNamedServicePort(name: VALID_NAME, port: VALID_PORT, protocol: VALID_PROTOCOL)

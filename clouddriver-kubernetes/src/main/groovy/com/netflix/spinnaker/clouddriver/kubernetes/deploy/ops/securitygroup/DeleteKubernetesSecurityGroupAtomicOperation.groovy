@@ -44,7 +44,7 @@ class DeleteKubernetesSecurityGroupAtomicOperation implements AtomicOperation<Vo
     task.updateStatus BASE_PHASE, "Initializing delete of ingress."
     task.updateStatus BASE_PHASE, "Looking up provided namespace..."
 
-    def credentials = description.credentials
+    def credentials = description.credentials.credentials
     def namespace = KubernetesUtil.validateNamespace(credentials, description.namespace)
 
     if (!credentials.apiAdaptor.deleteIngress(namespace, description.securityGroupName)) {

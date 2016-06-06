@@ -46,7 +46,7 @@ class UpsertKubernetesLoadBalancerAtomicOperation implements AtomicOperation<Map
     task.updateStatus BASE_PHASE, "Initializing upsert of load balancer $description.name..."
     task.updateStatus BASE_PHASE, "Looking up provided namespace..."
 
-    def credentials = description.credentials
+    def credentials = description.credentials.credentials
     def namespace = KubernetesUtil.validateNamespace(credentials, description.namespace)
     def name = description.name
 

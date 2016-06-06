@@ -43,7 +43,7 @@ class ResizeKubernetesAtomicOperation implements AtomicOperation<Void> {
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing resize of server group $description.serverGroupName..."
 
-    def credentials = description.credentials
+    def credentials = description.credentials.credentials
 
     task.updateStatus BASE_PHASE, "Looking up provided namespace..."
     def namespace = KubernetesUtil.validateNamespace(credentials, description.namespace)

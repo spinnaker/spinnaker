@@ -19,11 +19,13 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.servergroup
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
+import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.CloneKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesResourceDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import io.fabric8.kubernetes.api.model.*
 import spock.lang.Specification
@@ -60,7 +62,10 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
   def podSpec
   def replicationControllerContainers
   def apiMock
+  def dockerRegistry
+  def dockerRegistries
   def credentials
+  def namedAccountCredentials
   def accountCredentialsRepositoryMock
 
   def setupSpec() {
@@ -103,7 +108,14 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
     objectMetadata = new ObjectMeta()
     podSpec = new PodSpec()
     accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
+    dockerRegistry = Mock(LinkedDockerRegistryConfiguration)
+    dockerRegistries = [dockerRegistry]
     credentials = new KubernetesCredentials(apiMock, [], [], accountCredentialsRepositoryMock)
+    namedAccountCredentials = new KubernetesNamedAccountCredentials.Builder()
+        .name("name")
+        .dockerRegistries(dockerRegistries)
+        .credentials(credentials)
+        .build()
 
     objectMetadata.setLabels(LABELS)
     podTemplateSpec.setMetadata(objectMetadata)
@@ -139,7 +151,7 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
     setup:
       def inputDescription = new CloneKubernetesAtomicOperationDescription(
         source: [serverGroupName: ANCESTOR_SERVER_GROUP_NAME, namespace: NAMESPACE1],
-        credentials: credentials
+        credentials: namedAccountCredentials
       )
 
       @Subject def operation = new CloneKubernetesAtomicOperation(inputDescription)
@@ -180,7 +192,7 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
         loadBalancers: LOAD_BALANCER_NAMES,
         securityGroups: SECURITY_GROUP_NAMES,
         containers: containers,
-        credentials: credentials,
+        credentials: namedAccountCredentials,
         source: [serverGroupName: ANCESTOR_SERVER_GROUP_NAME, namespace: NAMESPACE2]
       )
 

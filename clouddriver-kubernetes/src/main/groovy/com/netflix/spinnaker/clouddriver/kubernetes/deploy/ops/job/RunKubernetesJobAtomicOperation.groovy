@@ -57,7 +57,7 @@ class RunKubernetesJobAtomicOperation implements AtomicOperation<DeploymentResul
     task.updateStatus BASE_PHASE, "Initializing creation of job..."
     task.updateStatus BASE_PHASE, "Looking up provided namespace..."
 
-    def credentials = description.credentials
+    def credentials = description.credentials.credentials
     def namespace = KubernetesUtil.validateNamespace(credentials, description.namespace)
 
     def jobNameResolver = new KubernetesJobNameResolver(namespace, credentials)

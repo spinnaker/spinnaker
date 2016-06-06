@@ -20,14 +20,9 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
-import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.CloneKubernetesAtomicOperationDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerPort
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesProbe
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesResourceDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.ReplicationController
@@ -74,7 +69,7 @@ class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult
 
     task.updateStatus BASE_PHASE, "Reading ancestor server group ${description.source.serverGroupName}..."
 
-    def credentials = description.credentials
+    def credentials = description.credentials.credentials
 
     description.source.namespace = description.source.namespace ?: "default"
     ReplicationController ancestorServerGroup = credentials.apiAdaptor.getReplicationController(description.source.namespace, description.source.serverGroupName)

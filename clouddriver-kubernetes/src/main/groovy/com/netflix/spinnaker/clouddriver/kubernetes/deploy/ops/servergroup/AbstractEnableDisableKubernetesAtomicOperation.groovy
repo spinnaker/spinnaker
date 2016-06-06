@@ -43,7 +43,7 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
     task.updateStatus basePhase, "Initializing ${basePhase.toLowerCase()} operation..."
     task.updateStatus basePhase, "Looking up provided namespace..."
 
-    def credentials = description.credentials
+    def credentials = description.credentials.credentials
     def namespace = KubernetesUtil.validateNamespace(credentials, description.namespace)
 
     task.updateStatus basePhase, "Finding requisite replication controller..."
