@@ -77,7 +77,7 @@ class GoogleImageCachingAgent extends AbstractGoogleCachingAgent {
       compute.images().list(it).queue(imageRequest, new AllImagesCallback(imageList: imageList))
     }
     baseImageProjects.each {
-      compute.images().list(it).queue(imageRequest, new LatestImagesCallback<ImageList>(imageList: imageList))
+      compute.images().list(it).queue(imageRequest, new AllImagesCallback<ImageList>(imageList: imageList))
     }
     executeIfRequestsAreQueued(imageRequest)
 
@@ -117,36 +117,6 @@ class GoogleImageCachingAgent extends AbstractGoogleCachingAgent {
       def nonDeprecatedImages = filterDeprecatedImages(imageListResult)
       if (nonDeprecatedImages) {
         imageList.addAll(nonDeprecatedImages)
-      }
-    }
-  }
-
-  class LatestImagesCallback<ImageList> extends JsonBatchCallback<ImageList> implements FailureLogger {
-
-    List<Image> imageList
-
-    @Override
-    void onSuccess(ImageList imageListResult, HttpHeaders responseHeaders) throws IOException {
-      def nonDeprecatedImages = filterDeprecatedImages(imageListResult)
-      if (!nonDeprecatedImages) {
-        return
-      }
-
-      def nameWithoutDate = { Image image ->
-        String fullImageName = image.name
-        // Public coreos images break the naming convention of the others.
-        int delimiter = fullImageName.startsWith("coreos-") ?
-            fullImageName.indexOf('-', 7) :
-            fullImageName.lastIndexOf('-')
-        delimiter != -1 ? fullImageName.substring(0, delimiter) : fullImageName
-      }
-
-      List latestImages = nonDeprecatedImages.groupBy(nameWithoutDate).findResults { String _, List<Image> images ->
-        images.sort { it.name }.last()
-      }
-
-      if (latestImages) {
-        imageList.addAll(latestImages)
       }
     }
   }

@@ -24,45 +24,10 @@ import spock.lang.Specification
 
 class GoogleImageCachingAgentSpec extends Specification {
 
-  void "public image lists are filtered such that the latest non-deprecated image in each image group is retained"() {
-    setup:
-      def imageList = new ArrayList<Image>()
-      def imagesCallback1 = new GoogleImageCachingAgent.LatestImagesCallback(new GoogleImageCachingAgent())
-      imagesCallback1.imageList = imageList
-      def imageListResult1 = new ImageList()
-      imageListResult1.setItems([buildImage("backports-debian-7-wheezy-v20141017", false),
-                                 buildImage("backports-debian-7-wheezy-v20141021", false),
-                                 buildImage("backports-debian-7-wheezy-v20141108", false),
-                                 buildImage("debian-7-wheezy-v20141017", false),
-                                 buildImage("debian-7-wheezy-v20141021", false),
-                                 buildImage("debian-7-wheezy-v20141108", false),
-                                 buildImage("someos-8-something-v20141021", false),
-                                 buildImage("someos-8-something-v20141108", true),
-                                 buildImage("otheros-9-something-v20141021", true),
-                                 buildImage("otheros-9-something-v20141108", true)])
-
-      def imagesCallback2 = new GoogleImageCachingAgent.LatestImagesCallback(new GoogleImageCachingAgent())
-      imagesCallback2.imageList = imageList
-      def imageListResult2 = new ImageList()
-      imageListResult2.setItems([buildImage("ubuntu-1404-trusty-v20141028", false),
-                                 buildImage("ubuntu-1404-trusty-v20141029", true),
-                                 buildImage("ubuntu-1404-trusty-v20141031a", false)])
-
-    when:
-      imagesCallback1.onSuccess(imageListResult1, null)
-      imagesCallback2.onSuccess(imageListResult2, null)
-
-    then:
-      imageList == [buildImage("backports-debian-7-wheezy-v20141108", false),
-                    buildImage("debian-7-wheezy-v20141108", false),
-                    buildImage("someos-8-something-v20141021", false),
-                    buildImage("ubuntu-1404-trusty-v20141031a", false)]
-  }
-
   void "public images with no deprecated struct are not filtered out"() {
     setup:
       def imageList = new ArrayList<String>()
-      def imagesCallback1 = new GoogleImageCachingAgent.LatestImagesCallback(new GoogleImageCachingAgent())
+      def imagesCallback1 = new GoogleImageCachingAgent.AllImagesCallback(new GoogleImageCachingAgent())
       imagesCallback1.imageList = imageList
       def imageListResult1 = new ImageList()
       imageListResult1.setItems([new Image(name: "backports-debian-7-wheezy-v20141108"),
@@ -70,7 +35,7 @@ class GoogleImageCachingAgentSpec extends Specification {
                                  new Image(name: "someos-8-something-v20141108"),
                                  new Image(name: "otheros-9-something-v20141108")])
 
-      def imagesCallback2 = new GoogleImageCachingAgent.LatestImagesCallback(new GoogleImageCachingAgent())
+      def imagesCallback2 = new GoogleImageCachingAgent.AllImagesCallback(new GoogleImageCachingAgent())
       imagesCallback2.imageList = imageList
       def imageListResult2 = new ImageList()
       imageListResult2.setItems([new Image(name: "ubuntu-1404-trusty-v20141028"),
@@ -86,10 +51,11 @@ class GoogleImageCachingAgentSpec extends Specification {
                     new Image(name: "debian-7-wheezy-v20141108"),
                     new Image(name: "someos-8-something-v20141108"),
                     new Image(name: "otheros-9-something-v20141108"),
+                    new Image(name: "ubuntu-1404-trusty-v20141028"),
                     new Image(name: "ubuntu-1404-trusty-v20141031a")]
   }
 
-  void "project image lists are not filtered for latest, but are filtered for non-deprecated images"() {
+  void "project image lists are filtered for non-deprecated images"() {
     setup:
       def imageList = new ArrayList<String>()
       def imagesCallback = new GoogleImageCachingAgent.AllImagesCallback(new GoogleImageCachingAgent())
