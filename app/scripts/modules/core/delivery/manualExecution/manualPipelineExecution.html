@@ -24,11 +24,13 @@
           </ui-select>
         </div>
       </div>
+
       <div class="form-group" ng-if="vm.command.pipeline">
         <div class="col-md-10">
           <p>This will start a new run of <strong>{{vm.command.pipeline.name}}</strong>.</p>
         </div>
       </div>
+
       <div class="alert alert-warning"
            ng-if="vm.currentlyRunningExecutions.length">
         <p><strong>
@@ -62,6 +64,7 @@
         </div>
         <div ng-include="vm.triggerTemplate"></div>
       </div>
+
       <div class="form-group" ng-if="vm.showRebakeOption">
         <label ng-if="vm.triggers.length" class="col-md-4 sm-label-right">Rebake</label>
         <div class="checkbox" ng-class="vm.triggers.length ? 'col-md-6' : 'col-md-10 col-md-offset-1'">
@@ -97,7 +100,32 @@
           </div>
         </div>
       </div>
+
+      <div ng-if="vm.hasStageOf('createProperty')">
+
+        <p class="manual-execution-parameters-description">This pipeline contains <b>Persisted Property Stages</b>. Please enter the properties and values for each stage below.</p>
+
+        <div ng-repeat="stage in vm.getStagesOf('createProperty')">
+          <h4>Stage: {{stage.name}}</h4>
+          <p><b>Scope:</b> {{stage.scope | inlinePropertyScope}}</p>
+
+          <label>
+            Enable Rollback <help-field key="pipeline.config.fastProperty.rollback"></help-field>
+            <input
+              type="checkbox"
+              style="margin-top: 10px; margin-left: 10px;"
+              ng-model="stage.rollbackProperties" >
+          </label>
+
+          <persisted-property-create-list
+            stage="stage"
+            property-list="stage.persistedProperties">
+          </persisted-property-create-list>
+        </div>
+      </div>
+
     </div>
+
     <div class="modal-footer">
       <button type="button" class="btn btn-default" ng-click="vm.cancel()">Cancel</button>
       <button type="submit"
