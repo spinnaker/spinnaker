@@ -59,8 +59,8 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
   This scenario defines the different test operations.
   We're going to:
     Create a Spinnaker Application
-    Create a Load Balancer
-    Create a Server Group
+    Create a Spinnaker Load Balancer
+    Create a Spinnaker Server Group
     Delete each of the above (in reverse order)
   """
 
@@ -155,7 +155,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
         application=self.TEST_APP)
 
     builder = kube.KubeContractBuilder(self.kube_observer)
-    (builder.new_clause_builder('Load Balancer Added', retryable_for_secs=15)
+    (builder.new_clause_builder('Service Added', retryable_for_secs=15)
      .get_resources('svc')
      .contains_path_value('items/metadata/name', self.__lb_name))
 
@@ -188,7 +188,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
         application=self.TEST_APP)
 
     builder = kube.KubeContractBuilder(self.kube_observer)
-    (builder.new_clause_builder('Load Balancer Removed', retryable_for_secs=15)
+    (builder.new_clause_builder('Service Removed', retryable_for_secs=15)
      .get_resources('svc', no_resource_ok=True))
 
     return st.OperationContract(
@@ -230,7 +230,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
             }],
             'stack': bindings['TEST_STACK'],
             # TODO(ewiseblatt): 20160316
-            # We cannot create a load balancer yet, so test without one.
+            # We cannot create a service yet, so test without one.
             # 'loadBalancers': [self.__lb_name],
             'type': 'createServerGroup',
             'region': 'default',
@@ -240,7 +240,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
         application=self.TEST_APP)
 
     builder = kube.KubeContractBuilder(self.kube_observer)
-    (builder.new_clause_builder('Managed Instance Group Added',
+    (builder.new_clause_builder('Replication Controller Added',
                                 retryable_for_secs=15)
      .get_resources('rc', extra_args=[group_name])
      .contains_path_eq('spec/replicas', 2))
@@ -274,10 +274,10 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
             'zones': ['default']
         }],
         application=self.TEST_APP,
-        description='DestroyServerGroup: ' + group_name)
+        description='Destroy Server Group: ' + group_name)
 
     builder = kube.KubeContractBuilder(self.kube_observer)
-    (builder.new_clause_builder('Managed Instance Group Removed')
+    (builder.new_clause_builder('Replication Controller Removed')
      .get_resources('rc', extra_args=[group_name],
                     no_resource_ok=True)
      .contains_path_eq('targetSize', 0))
