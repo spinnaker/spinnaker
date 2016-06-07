@@ -28,6 +28,7 @@ aws:
   defaultRegions:
     - name: ${providers.aws.defaultRegion:us-east-1}
   defaultFront50Template: ${services.front50.baseUrl}
+  defaultKeyPairTemplate: ${providers.aws.defaultKeyPairTemplate}
 
 azure:
   enabled: ${providers.azure.enabled:false}
