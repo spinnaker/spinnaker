@@ -17,13 +17,14 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.azure
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
+import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
-class AzureServerGroupCreator implements ServerGroupCreator {
+class AzureServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAware {
 
   boolean katoResultExpected = false
   String cloudProvider = "azure"
@@ -36,6 +37,14 @@ class AzureServerGroupCreator implements ServerGroupCreator {
 
     if (operation.account && !operation.credentials) {
       operation.credentials = operation.account
+    }
+
+    def bakeStage = getPreviousStageWithImage(stage, operation.region)
+
+    if (bakeStage) {
+      operation.image.isCustom = true
+      operation.image.uri = bakeStage.context?.imageId
+      operation.image.ostype = bakeStage.context?.osType
     }
 
     return [[(ServerGroupCreator.OPERATION): operation]]
