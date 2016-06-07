@@ -35,6 +35,9 @@ providers:
       # Store actual credentials in $HOME/.aws/credentials. See spinnaker.yml
       # for more information, including alternatives.
 
+    # {{name}} will be interpolated with the aws account name (e.g. "my-aws-account-keypair").
+    defaultKeyPairTemplate: "{{name}}-keypair"
+
   azure:
     # For more information on configuring Microsoft Azure (azure), see
     # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-azure-cloud-platform-setup

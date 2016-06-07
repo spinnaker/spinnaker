@@ -192,6 +192,9 @@ providers:
       # /home/spinnaker). The primaryCredentials.name will identify which profile
       # to use (for .aws/credentials).
 
+    # {{name}} will be interpolated with the aws account name (e.g. "my-aws-account-keypair").
+    defaultKeyPairTemplate: "{{name}}-keypair"
+
   google:
     # For more information on configuring Google Cloud Platform (google), see
     # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-google-cloud-platform-setup
