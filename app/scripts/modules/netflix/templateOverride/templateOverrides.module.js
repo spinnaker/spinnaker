@@ -19,6 +19,7 @@ module.exports = angular
         { key: 'spinnakerHeader', value: require('./spinnakerHeader.html') },
         { key: 'aws.serverGroup.securityGroups', value: require('../serverGroup/wizard/securityGroups/awsServerGroupSecurityGroups.html') },
         { key: 'aws.serverGroup.capacity', value: require('../serverGroup/wizard/capacity/awsServerGroupCapacity.html') },
+        { key: 'aws.serverGroup.advancedSettings', value: require('../serverGroup/wizard/advancedSettings/advancedSettings.html') },
         { key: 'aws.resize.modal', value: require('../serverGroup/resize/awsResizeServerGroup.html') },
       ];
       templates.forEach((template) => overrideRegistry.overrideTemplate(template.key, template.value));

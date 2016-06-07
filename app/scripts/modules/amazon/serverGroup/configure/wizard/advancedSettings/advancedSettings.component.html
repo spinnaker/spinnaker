@@ -1,0 +1,157 @@
+<!--
+  ~ Copyright 2016 Netflix, Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<div class="container-fluid form-horizontal">
+  <div class="form-group">
+    <div class="col-md-5 sm-label-right"><b>Cooldown</b></div>
+    <div class="col-md-2"><input type="text" required
+                                 class="form-control input-sm"
+                                 ng-model="$ctrl.command.cooldown"/></div>&nbsp;seconds
+  </div>
+  <div class="form-group">
+    <div class="col-md-5 sm-label-right"><b>Health Check Type</b></div>
+    <div class="col-md-6">
+
+      <ui-select ng-model="$ctrl.command.healthCheckType" class="form-control input-sm">
+        <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
+        <ui-select-choices repeat="healthCheckType in $ctrl.command.backingData.healthCheckTypes | filter: $select.search">
+          <span ng-bind-html="healthCheckType | highlight: $select.search"></span>
+        </ui-select-choices>
+      </ui-select>
+
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-5 sm-label-right"><b>Health Check Grace Period</b></div>
+    <div class="col-md-2"><input type="text" required
+                                 class="form-control input-sm"
+                                 ng-model="$ctrl.command.healthCheckGracePeriod"/></div>&nbsp;seconds
+  </div>
+  <div class="form-group">
+    <div class="col-md-5 sm-label-right"><b>Termination Policies</b></div>
+    <div class="col-md-6">
+
+      <ui-select multiple ng-model="$ctrl.command.terminationPolicies" class="form-control input-sm">
+        <ui-select-match>{{$item}}</ui-select-match>
+        <ui-select-choices repeat="terminationPolicy in $ctrl.command.backingData.terminationPolicies | filter: $select.search | orderBy: 'toString()'">
+          <span ng-bind-html="terminationPolicy | highlight: $select.search"></span>
+        </ui-select-choices>
+      </ui-select>
+
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-5 sm-label-right"><b>Key Name</b></div>
+    <div class="col-md-6">
+      <ui-select ng-model="$ctrl.command.keyPair" class="form-control input-sm">
+        <ui-select-match>{{$select.selected}}</ui-select-match>
+        <ui-select-choices repeat="regionalKeyPair in $ctrl.command.backingData.filtered.keyPairs | filter: $select.search">
+          <span ng-bind-html="regionalKeyPair"></span>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-5 sm-label-right"><b>Ramdisk Id (optional)</b></div>
+    <div class="col-md-6"><input type="text"
+                                 class="form-control input-sm"
+                                 ng-model="$ctrl.command.ramdiskId"/></div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-5 sm-label-right"><b>IAM Instance Profile (optional)</b></div>
+    <div class="col-md-6"><input type="text"
+                                 class="form-control input-sm"
+                                 ng-model="$ctrl.command.iamRole"/></div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-5 sm-label-right">
+      <b>UserData (optional)</b>
+      <help-field key="aws.serverGroup.base64UserData"></help-field>
+    </div>
+    <div class="col-md-6"><input type="text"
+                                 class="form-control input-sm"
+                                 ng-model="$ctrl.command.base64UserData"/></div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-5 sm-label-right"><b>Instance Monitoring</b></div>
+    <div class="col-md-6 checkbox">
+      <label><input type="checkbox" ng-model="$ctrl.command.instanceMonitoring"/> Enable Instance Monitoring </label>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-5 sm-label-right"><b>EBS Optimized</b></div>
+    <div class="col-md-6 checkbox">
+      <label><input type="checkbox" ng-model="$ctrl.command.ebsOptimized"/> Optimize Instances for EBS</label>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-5 sm-label-right"><b>AMI Block Device Mappings</b></div>
+    <div class="col-md-6 checkbox">
+      <label><input type="checkbox" ng-model="$ctrl.command.useAmiBlockDeviceMappings"/> Prefer AMI Block Device Mappings</label>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-5 sm-label-right"><b>Associate Public IP Address</b></div>
+    <div class="col-md-2 radio">
+      <label>
+        <input type="radio" ng-model="$ctrl.command.associatePublicIpAddress" ng-value="true" id="associatePublicIpAddressTrue"/>
+        Yes
+      </label>
+    </div>
+    <div class="col-md-2 radio">
+      <label>
+        <input type="radio" ng-model="$ctrl.command.associatePublicIpAddress" ng-value="false" id="associatePublicIpAddressFalse"/>
+        No
+      </label>
+    </div>
+    <div class="col-md-2 radio">
+      <label>
+        <input type="radio" ng-model="$ctrl.command.associatePublicIpAddress" ng-value="null" id="associatePublicIpAddressDefault"/>
+        Default
+      </label>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-5 sm-label-right"><b>Scaling Processes</b></div>
+    <div class="col-md-6 checkbox">
+      <div ng-repeat="process in $ctrl.command.backingData.scalingProcesses">
+        <label>
+          <input type="checkbox"
+                 ng-click="$ctrl.command.toggleSuspendedProcess(process.name)"
+                 ng-checked="!$ctrl.command.processIsSuspended(process.name)"/>
+          {{process.name}}
+          <help-field content="{{process.description}}"></help-field>
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="form-group" ng-if="application.attributes.platformHealthOnlyShowOverride">
+    <div class="col-md-5 sm-label-right"><b>Task Completion</b></div>
+    <div class="col-md-6">
+      <platform-health-override command="$ctrl.command"
+                                platform-health-type="'Amazon'">
+      </platform-health-override>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="sm-label-left">
+      <b>Tags (optional)</b>
+      <help-field key="aws.serverGroup.tags"></help-field>
+    </div>
+    <map-editor model="$ctrl.command.tags" allow-empty="true"></map-editor>
+  </div>
+</div>

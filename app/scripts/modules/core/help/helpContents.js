@@ -36,6 +36,12 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'aws.serverGroup.stack': '(Optional) <b>Stack</b> is one of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',
     'aws.serverGroup.detail': '(Optional) <b>Detail</b> is a string of free-form alphanumeric characters and hyphens to describe any other variables.',
     'aws.serverGroup.imageName': '(Required) <b>Image</b> is the deployable Amazon Machine Image. Images are restricted to the account and region selected.',
+    'aws.serverGroup.legacyUdf': '<p>(Optional) <b>User Data Format</b> allows overriding of the format used when generating user data during deployment. The default format used is configured ' +
+                                 'in the application\'s attributes, editable via the \'Config\' tab.</p>' +
+                                 '<p><b>Default</b> will use the value from the application\'s configuration.</p>' +
+                                 '<p><b>Modern</b> will use the modern template.</p>' +
+                                 '<p><b>Legacy</b> will use the legacy (<b>deprecated</b>) template.</p>' +
+                                 '<p>This option is intended to allow testing migration from legacy to modern before configuring it for the entire application. If unsure, pick <b>Default</b>.</p>',
     'aws.serverGroup.base64UserData': '(Optional) <b>UserData</b> is a base64 encoded string.',
     'aws.serverGroup.tags': '(Optional) <b>Tags</b> are propagated to the instances in this cluster.',
     'aws.serverGroup.allImages': 'Search for an image that does not match the name of your application.',
