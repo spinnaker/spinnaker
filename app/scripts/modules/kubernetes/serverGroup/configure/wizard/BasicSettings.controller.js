@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.basi
   require('../../../../core/naming/naming.service.js'),
 ])
   .controller('kubernetesServerGroupBasicSettingsController', function($scope, $controller, $uibModalStack, $state,
-                                                                       v2modalWizardService, rx, kubernetesImageReader, namingService, 
+                                                                       v2modalWizardService, rx, kubernetesImageReader, namingService,
                                                                        kubernetesServerGroupConfigurationService) {
 
     function searchImages(q) {

@@ -6,10 +6,14 @@ require('./manualPipelineExecution.less');
 
 module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution.controller', [
   require('angular-ui-bootstrap'),
+  require('./inlinePropertyScope.filter'),
   require('../../utils/lodash.js'),
   require('../../pipeline/config/pipelineConfigProvider.js'),
+  require('../../pipeline/config/services/pipelineConfigService')
 ])
-  .controller('ManualPipelineExecutionCtrl', function (_, $uibModalInstance, pipeline, application, pipelineConfig) {
+  .controller('ManualPipelineExecutionCtrl', function (_, $uibModalInstance, pipeline, application, pipelineConfig, pipelineConfigService) {
+
+    this.origPipeline = {};
 
     this.command = {
       pipeline: pipeline,
@@ -57,6 +61,9 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
     this.pipelineSelected = () => {
       let pipeline = this.command.pipeline,
           executions = application.executions.data || [];
+
+      this.origPipeline = _.cloneDeep(pipeline); // make a copy to diff changes
+
       this.currentlyRunningExecutions = executions
         .filter((execution) => execution.pipelineConfigId === pipeline.id && execution.isActive);
       addTriggers();
@@ -73,6 +80,10 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
 
     };
 
+    this.pipelineIsDirty = () => {
+      return !angular.equals(this.command.pipeline, this.origPipeline);
+    };
+
     this.execute = () => {
       let selectedTrigger = this.command.trigger || {},
           command = { trigger: selectedTrigger },
@@ -87,11 +98,25 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
       if (pipeline.parameterConfig && pipeline.parameterConfig.length) {
         selectedTrigger.parameters = this.parameters;
       }
-      $uibModalInstance.close(command);
+
+      if (this.pipelineIsDirty()) {
+        pipelineConfigService.savePipeline(pipeline)
+          .then(() => $uibModalInstance.close(command) );
+      } else {
+        $uibModalInstance.close(command);
+      }
+
     };
 
     this.cancel = $uibModalInstance.dismiss;
 
+    this.hasStageOf = (stageType) => {
+      return this.getStagesOf(stageType).length > 0;
+    };
+
+    this.getStagesOf = (stageType) => {
+      return this.command.pipeline.stages.filter( stage => stage.type === stageType);
+    };
 
     /**
      * Initialization

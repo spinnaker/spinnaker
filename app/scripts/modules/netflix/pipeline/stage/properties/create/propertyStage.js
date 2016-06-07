@@ -109,7 +109,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage'
     };
 
     let getPreviousPropertyStages = () => {
-      return $scope.pipeline.stages.filter((stage) => stage.type === 'persistedProperty' && stage.refId !== vm.stage.refId);
+      return $scope.pipeline.stages.filter((stage) => stage.type === 'createProperty' && stage.refId !== vm.stage.refId);
     };
 
     vm.hasPreviousPropertyStages = () => {
