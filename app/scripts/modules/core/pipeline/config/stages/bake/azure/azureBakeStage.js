@@ -62,11 +62,16 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.azure.bakeStage',
           $scope.stage.regions.push($scope.application.defaultRegions.azure);
         }
         $scope.baseOsOptions = results.baseOsOptions.baseImages;
+        if ($scope.baseOsOptions.length) {
+          $scope.stage.osType = results.baseOsOptions.baseImages[0].osType;
+        }
+
         $scope.baseLabelOptions = results.baseLabelOptions;
 
         if (!$scope.stage.baseOs && $scope.baseOsOptions && $scope.baseOsOptions.length) {
           $scope.stage.baseOs = $scope.baseOsOptions[0].id;
         }
+
         if (!$scope.stage.baseLabel && $scope.baseLabelOptions && $scope.baseLabelOptions.length) {
           $scope.stage.baseLabel = $scope.baseLabelOptions[0];
         }
@@ -74,6 +79,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.azure.bakeStage',
         $scope.viewState.loading = false;
       });
     }
+
+    this.baseOsChanged = () => {
+      var selectedOption = _.find($scope.baseOsOptions, {'id': $scope.stage.baseOs});
+      $scope.stage.osType = selectedOption.osType;
+    };
 
     function deleteEmptyProperties() {
       _.forOwn($scope.stage, function(val, key) {
