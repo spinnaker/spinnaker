@@ -28,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
@@ -40,10 +39,6 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
   Cache cacheView
   @Autowired
   ObjectMapper objectMapper
-  @Autowired
-  GoogleSecurityGroupProvider googleSecurityGroupProvider
-  @Autowired
-  GoogleInstanceProvider googleInstanceProvider
 
   @Override
   Set<GoogleLoadBalancer.View> getApplicationLoadBalancers(String application) {

@@ -23,7 +23,6 @@ import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.HealthStatus
 import com.google.api.services.compute.model.InstanceReference
-import com.google.api.services.compute.model.TargetPool
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
