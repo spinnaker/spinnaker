@@ -36,9 +36,13 @@
   <div class="modal-footer">
     <button class="btn btn-default" ng-click="renamePipelineModalCtrl.cancel()">Cancel</button>
     <button class="btn btn-primary"
-            ng-disabled="form.$invalid || pipeline.name === command.newName"
+            ng-disabled="form.$invalid || pipeline.name === command.newName || viewState.saving"
             ng-click="renamePipelineModalCtrl.renamePipeline()">
-      <span class="glyphicon glyphicon-ok-circle"></span> Rename {{pipeline.strategy === true ? 'Strategy' : 'Pipeline'}}
+      <span ng-if="!viewState.saving" class="glyphicon glyphicon-ok-circle"></span>
+      <span ng-if="viewState.saving" class="pulsing">
+        <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
+      </span>
+      Rename {{pipeline.strategy === true ? 'Strategy' : 'Pipeline'}}
     </button>
   </div>
 </div>

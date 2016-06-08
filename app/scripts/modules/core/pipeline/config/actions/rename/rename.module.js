@@ -24,6 +24,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.rename',
 
     this.renamePipeline = function() {
       pipeline.name = $scope.newName;
+      $scope.viewState.saving = true;
       return pipelineConfigService.renamePipeline(application.name, pipeline, currentName, $scope.command.newName).then(
         function() {
           $scope.pipeline.name = $scope.command.newName;
@@ -36,6 +37,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.rename',
         },
         function(response) {
           $log.warn(response);
+          $scope.viewState.saving = false;
           $scope.viewState.saveError = true;
           $scope.viewState.errorMessage = response.message || 'No message provided';
         }
