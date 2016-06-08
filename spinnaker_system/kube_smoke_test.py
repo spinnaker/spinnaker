@@ -271,7 +271,8 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
             'asgName': group_name,
             'regions': ['default'],
             'region': 'default',
-            'zones': ['default']
+            'zones': ['default'],
+            'interestingHealthProviderNames': ['KubernetesService']
         }],
         application=self.TEST_APP,
         description='Destroy Server Group: ' + group_name)
