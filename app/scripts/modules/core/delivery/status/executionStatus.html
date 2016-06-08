@@ -1,9 +1,9 @@
 <div class="execution-status-section">
-  <h4 class="execution-name" ng-if="vm.filter.groupBy !== 'name'">{{vm.execution.name}}</h4>
+  <h4 class="execution-name" ng-if="::vm.filter.groupBy !== 'name'">{{::vm.execution.name}}</h4>
   <span class="trigger-type" ng-switch="vm.execution.trigger.type"
-        ng-class="{subheading: vm.filter.groupBy !== 'name'}">
+        ng-class="::{subheading: vm.filter.groupBy !== 'name'}">
     <h5 class="build-number">
-      <execution-build-number execution="vm.execution"></execution-build-number>
+      <execution-build-number execution="::vm.execution"></execution-build-number>
     </h5>
      <h5 ng-switch-when="jenkins" class="execution-type">
        Triggered Build
@@ -15,35 +15,35 @@
       Pipeline
     </h5>
     <h5 ng-switch-when="cron" class="execution-type">
-      Cron<br/>{{ vm.execution.trigger.cronExpression }}
+      Cron<br/>{{ ::vm.execution.trigger.cronExpression }}
     </h5>
     <h5 ng-switch-default class="execution-type">
-      {{ vm.execution.trigger.type }}
+      {{ ::vm.execution.trigger.type }}
     </h5>
   </span>
   <ul class="trigger-details">
-    <li ng-if="vm.execution.trigger.buildInfo.url">
-      {{ vm.execution.trigger.buildInfo | buildDisplayName }}
+    <li ng-if="::vm.execution.trigger.buildInfo.url">
+      {{ ::vm.execution.trigger.buildInfo | buildDisplayName }}
     </li>
-    <span ng-switch="vm.execution.trigger.type">
+    <span ng-switch="::vm.execution.trigger.type">
       <li ng-switch-when="jenkins">
-        {{ vm.execution.trigger.job}}
+        {{ ::vm.execution.trigger.job}}
       </li>
       <li ng-switch-when="manual">
-        {{ vm.execution | executionUser }}
+        {{ ::vm.execution | executionUser }}
       </li>
       <li ng-switch-when="pipeline">
-        {{ vm.execution | executionUser }}
+        {{ ::vm.execution | executionUser }}
       </li>
       <li>
-        {{ vm.execution.startTime | timestamp }}
+        {{ ::vm.execution.startTime | timestamp }}
       </li>
     </span>
-    <li ng-repeat="parameter in vm.parameters">
-      {{parameter.key}}: {{parameter.value}}
+    <li ng-repeat="parameter in ::vm.parameters">
+      {{::parameter.key}}: {{::parameter.value}}
     </li>
   </ul>
-  <a href ng-if="!vm.standalone" ng-click="vm.toggleDetails({executionId: vm.execution.id})">
+  <a href ng-if="::!vm.standalone" ng-click="vm.toggleDetails({executionId: vm.execution.id})">
     <span class="small glyphicon"
           ng-class="vm.showingDetails() ? 'glyphicon-chevron-down' : 'glyphicon-chevron-up'">
     </span>
