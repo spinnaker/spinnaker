@@ -182,6 +182,8 @@ module.exports = angular.module('spinnaker.core.orchestratedItem.transformer', [
           return 'TERMINATED';
         case 'PAUSED':
           return 'PAUSED';
+        case 'FAILED_CONTINUE':
+          return 'FAILED_CONTINUE';
         default:
           if (item.originalStatus) {
             $log.warn('Unrecognized status:', item.originalStatus);

@@ -101,20 +101,30 @@ execution-status {
           visibility: visible;
         }
         border-left-color: #222222;
+        &.active {
+          border-right-width: 0;
+          &:first-child {
+            border-left-width: 1px;
+          }
+          &:last-child {
+            border-right-width: 1px;
+          }
+        }
       }
     }
   }
   .stage {
+    min-width: 50px;
     margin-top: 0;
     display: inline-block;
     height: 20px;
     opacity: 0.65;
     transition: 0.2s all;
     text-align: center;
-    padding: 0 10px;
+    padding: 0;
     color: #000000;
     font-size: 90%;
-    border-left: 1px solid transparent;
+    border: 1px solid transparent;
     &:hover, &.active {
       opacity: 1;
     }
@@ -122,7 +132,13 @@ execution-status {
       border-left-width: 0;
     }
     &.active {
-      border: 1px solid @dark_grey;
+      border-color: #222222;
+      &:first-child {
+        border-left-width: 1px;
+      }
+      &:last-child {
+        border-right-width: 1px;
+      }
     }
     &.glowing {
       .glowing(2.5);
