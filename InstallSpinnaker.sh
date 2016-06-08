@@ -1,4 +1,9 @@
 #!/bin/bash
+
+# This script installs Spinnaker and its dependencies.
+# See http://www.spinnaker.io/docs/creating-a-spinnaker-instance
+
+
 set -e
 set -o pipefail
 
@@ -21,10 +26,6 @@ QUIET=false
 # Install dependencies but not spinnaker itself.
 DEPENDENCIES_ONLY=false
 
-
-## This script install pre-requisites for Spinnaker
-# To you put this file in the root of a web server
-# curl -L https://foo.com/InstallSpinnaker.sh| sudo bash
 
 # We can only currently support limited releases
 # First guess what sort of operating system
@@ -675,6 +676,7 @@ if [[ $AWS_ENABLED || $AZURE_ENABLED || $GOOGLE_ENABLED ]] ; then
   fi
   if [[ $GOOGLE_ENABLED == true ]] ; then
         write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
+        write_default_value "SPINNAKER_GOOGLE_PROJECT_ID" $GOOGLE_PROJECT_ID
         write_default_value "SPINNAKER_GOOGLE_DEFAULT_REGION" $GOOGLE_REGION
         write_default_value "SPINNAKER_GOOGLE_DEFAULT_ZONE" $GOOGLE_ZONE
   fi
