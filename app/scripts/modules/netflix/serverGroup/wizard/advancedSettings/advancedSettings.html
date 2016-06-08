@@ -1,0 +1,42 @@
+<div class="clearfix">
+  <div class="row">
+    <div class="col-md-12">
+      <aws-server-group-advanced-settings command="command"></aws-server-group-advanced-settings>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="container-fluid form-horizontal">
+        <div class="form-group">
+          <div class="col-md-5 sm-label-right">
+            <b>User Data Format</b>
+            <help-field key="aws.serverGroup.legacyUdf"></help-field><br/>
+          </div>
+          <div class="col-md-2 radio">
+            <label>
+              <input type="radio" ng-model="command.legacyUdf" ng-value="null" id="legacyUdfDefault"/>
+              Default
+            </label>
+          </div>
+          <div class="col-md-2 radio">
+            <label>
+              <input type="radio" ng-model="command.legacyUdf" ng-value="false" id="legacyUdfFalse"/>
+              Modern
+            </label>
+          </div>
+          <div class="col-md-2 radio">
+            <label>
+              <input type="radio" ng-model="command.legacyUdf" ng-value="true" id="legacyUdfTrue"/>
+              Legacy
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-md-offset-5 col-md-6">
+          See <a href="http://go/userdata" target="_blank">user data</a> documentation.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -18,4 +18,5 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws', [
   require('./wizard/capacity/targetHealthyPercentageSelector.directive.js'),
   require('./wizard/zones/azRebalanceSelector.directive.js'),
   require('./wizard/zones/availabilityZoneSelector.directive.js'),
+  require('./wizard/advancedSettings/advancedSettings.component.js'),
 ]);
