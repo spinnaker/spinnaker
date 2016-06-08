@@ -53,6 +53,7 @@ class AutoScalingWorker {
   private String iamRole
   private String keyPair
   private String base64UserData
+  private Boolean legacyUdf
   private Integer sequence
   private Boolean ignoreSequence
   private Boolean startDisabled
@@ -137,7 +138,7 @@ class AutoScalingWorker {
       blockDevices: blockDevices,
       securityGroups: securityGroups)
 
-    String launchConfigName = regionScopedProvider.getLaunchConfigurationBuilder().buildLaunchConfiguration(application, subnetType, settings)
+    String launchConfigName = regionScopedProvider.getLaunchConfigurationBuilder().buildLaunchConfiguration(application, subnetType, settings, legacyUdf)
 
     task.updateStatus AWS_PHASE, "Deploying ASG."
 

@@ -37,6 +37,7 @@ class ModifyAsgLaunchConfigurationDescription extends AbstractAmazonCredentialsD
   Boolean ebsOptimized
   String classicLinkVpcId
   List<String> classicLinkVpcSecurityGroups
+  Boolean legacyUdf
 
   List<AmazonBlockDevice> blockDevices
   List<String> securityGroups

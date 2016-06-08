@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.userdata
 
 class NullOpUserDataProvider implements UserDataProvider {
   @Override
-  String getUserData(String asgName, String launchConfigName, String region, String account, String environment, String accountType) {
+  String getUserData(String asgName, String launchConfigName, String region, String account, String environment, String accountType, Boolean legacyUdf) {
     ""
   }
 }

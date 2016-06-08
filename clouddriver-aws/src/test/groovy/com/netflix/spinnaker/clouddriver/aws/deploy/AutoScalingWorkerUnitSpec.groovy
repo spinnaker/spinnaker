@@ -67,7 +67,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     mockAutoScalingWorker.deploy()
 
     then:
-    1 * lcBuilder.buildLaunchConfiguration('myasg', null, _) >> launchConfigName
+    1 * lcBuilder.buildLaunchConfiguration('myasg', null, _, null) >> launchConfigName
     1 * mockAutoScalingWorker.createAutoScalingGroup(expectedAsgName, launchConfigName) >> {}
     (sequence == null ? 1 : 0) * clusterProvider.getCluster('myasg', 'test', 'myasg-stack-details') >> { null }
     0 * clusterProvider._
@@ -94,7 +94,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     String asgName = autoScalingWorker.deploy()
 
     then:
-    1 * lcBuilder.buildLaunchConfiguration('myasg', null, _) >> 'lcName'
+    1 * lcBuilder.buildLaunchConfiguration('myasg', null, _, null) >> 'lcName'
     1 * clusterProvider.getCluster('myasg', 'test', 'myasg') >> {
       new Cluster.SimpleCluster(type: 'aws', serverGroups: [
         sG('myasg-v011', 0, 'us-east-1'), sG('myasg-v099', 1, 'us-west-1')

@@ -68,11 +68,11 @@ class LocalFileUserDataProvider implements UserDataProvider {
   }
 
   @Override
-  String getUserData(String asgName, String launchConfigName, String region, String account, String environment, String accountType) {
+  String getUserData(String asgName, String launchConfigName, String region, String account, String environment, String accountType, Boolean legacyUdf) {
     def names = Names.parseName(asgName)
-    boolean legacyUdf = isLegacyUdf(account, names.app)
-    def rawUserData = assembleUserData(legacyUdf, names, region, account)
-    replaceUserDataTokens legacyUdf, names, launchConfigName, region, account, environment, accountType, rawUserData
+    boolean useLegacyUdf = legacyUdf != null ? legacyUdf : isLegacyUdf(account, names.app)
+    def rawUserData = assembleUserData(useLegacyUdf, names, region, account)
+    replaceUserDataTokens useLegacyUdf, names, launchConfigName, region, account, environment, accountType, rawUserData
   }
 
   String assembleUserData(boolean legacyUdf, Names names, String region, String account) {

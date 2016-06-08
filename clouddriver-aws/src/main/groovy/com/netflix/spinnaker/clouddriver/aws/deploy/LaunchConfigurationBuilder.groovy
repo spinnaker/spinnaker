@@ -62,7 +62,8 @@ interface LaunchConfigurationBuilder {
    * @param application the name of the application - used to construct a default security group if none are present
    * @param subnetType the subnet type for security groups in the launch configuration
    * @param settings the settings for the launch configuration
+   * @param whether to explicitly use or not use legacyUdf mode - can be null which will fall through to application default
    * @return the name of the new launch configuration
    */
-  String buildLaunchConfiguration(String application, String subnetType, LaunchConfigurationSettings settings)
+  String buildLaunchConfiguration(String application, String subnetType, LaunchConfigurationSettings settings, Boolean legacyUdf)
 }
