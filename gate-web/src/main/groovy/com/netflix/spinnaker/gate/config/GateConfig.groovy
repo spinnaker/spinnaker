@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.gate.config
 
 import org.springframework.session.data.redis.config.ConfigureRedisAction
-import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession
 
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spectator.api.Registry
@@ -40,6 +39,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory
 import org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer
+import org.springframework.session.data.redis.config.annotation.web.http.RedisHttpSessionConfiguration
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 import retrofit.Endpoint
@@ -58,8 +58,11 @@ import static retrofit.Endpoints.newFixedEndpoint
 @CompileStatic
 @Configuration
 @Slf4j
-@EnableRedisHttpSession
-class GateConfig {
+class GateConfig extends RedisHttpSessionConfiguration {
+
+  @Value('${server.session.timeoutInSeconds:3600}')
+  int maxInactiveIntervalInSeconds
+
   @Value('${retrofit.logLevel:BASIC}')
   String retrofitLogLevel
 
