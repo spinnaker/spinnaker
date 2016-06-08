@@ -40,6 +40,6 @@ module.exports = angular
       };
     }
 
-    this.application.legacyUdf = true;
+    this.application.legacyUdf = false;
 
   });
