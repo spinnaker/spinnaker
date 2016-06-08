@@ -229,9 +229,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
                           'protocol':'TCP', 'hostPort':None, 'hostIp':None}]
             }],
             'stack': bindings['TEST_STACK'],
-            # TODO(ewiseblatt): 20160316
-            # We cannot create a service yet, so test without one.
-            # 'loadBalancers': [self.__lb_name],
+            'loadBalancers': [self.__lb_name],
             'type': 'createServerGroup',
             'region': 'default',
             'user': '[anonymous]'
