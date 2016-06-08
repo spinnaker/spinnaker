@@ -67,8 +67,10 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
 
     // SAML DSL uses a metadata URL instead of hard coding a certificate/issuerId/redirectBase into the config.
     String metadataUrl
-    // The hostname of this server passed to the SAML IdP.
+    // The parts of this endpoint passed to/used by the SAML IdP.
+    String redirectProtocol = "https"
     String redirectHostname
+    String redirectBasePath = "/"
     // The application identifier given to the IdP for this app.
     String issuerId
 
@@ -112,9 +114,9 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
             .and()
           .serviceProvider()
             .entityId(samlSecurityConfigProperties.issuerId)
-            .protocol(serverProperties?.ssl?.enabled ? "https" : "http")
+            .protocol(samlSecurityConfigProperties.redirectProtocol)
             .hostname(samlSecurityConfigProperties.redirectHostname ?: serverProperties?.address?.hostName)
-            .basePath("/")
+            .basePath(samlSecurityConfigProperties.redirectBasePath)
             .keyStore()
               .storeFilePath(samlSecurityConfigProperties.keyStore)
               .password(samlSecurityConfigProperties.keyStorePassword)
