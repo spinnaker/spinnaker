@@ -21,10 +21,11 @@ import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
-// Pair of credentials name and associated openstack account
+//  Region, credentials name and associated openstack account
 @AutoClone
 @Canonical
 class OpenstackAtomicOperationDescription implements DeployDescription {
+  String region
   String account
   OpenstackCredentials credentials
 }

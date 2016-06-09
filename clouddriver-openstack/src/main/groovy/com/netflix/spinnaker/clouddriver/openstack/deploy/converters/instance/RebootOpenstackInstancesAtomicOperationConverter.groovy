@@ -26,7 +26,7 @@ import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCreden
 import org.springframework.stereotype.Component
 
 @OpenstackOperation(AtomicOperations.REBOOT_INSTANCES)
-@Component("rebootInstancesDescription")
+@Component("rebootOpenstackInstancesDescription")
 class RebootOpenstackInstancesAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Override
   AtomicOperation convertOperation(Map input) {
