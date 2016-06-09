@@ -32,4 +32,6 @@ class RepoRequest {
     RepoRequest(String branch) {
         this.branch = branch
     }
+
+    Config config
 }

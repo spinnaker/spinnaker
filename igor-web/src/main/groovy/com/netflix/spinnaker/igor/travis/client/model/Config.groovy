@@ -17,34 +17,27 @@
 package com.netflix.spinnaker.igor.travis.client.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.google.gson.annotations.SerializedName
+import com.netflix.spinnaker.igor.build.model.GenericParameterDefinition
 import groovy.transform.CompileStatic
 import org.simpleframework.xml.Default
-import org.simpleframework.xml.Root
 
 @Default
 @CompileStatic
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Root(name = 'builds')
-class Build {
-    @SerializedName("commit_id")
-    int commitId
-    int duration
-    int id
-    @SerializedName("repository_id")
-    int repositoryId
-    int number
-    String state
-    @SerializedName("finished_at")
-    Date finishedAt
-    @SerializedName("pull_request")
-    Boolean pullRequest
-    @JsonProperty(value = "job_ids")
-    List <Integer> job_ids
-    Config config
+class Config {
 
-    long timestamp() {
-        return finishedAt.getTime()
+    List<String> env
+
+    Config(Map<String, String> environmentMap) {
+        env = environmentMap.collect { key, value ->
+            "${key}=${value}".toString()
+        }
+    }
+
+    public List<GenericParameterDefinition> getParameterDefinitionList() {
+        env? env.collect {
+            def parts = it.tokenize('=')
+            new GenericParameterDefinition(parts[0], parts.drop(1).join('='))
+        } : []
     }
 }

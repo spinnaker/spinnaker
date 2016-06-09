@@ -283,6 +283,57 @@ class TravisClientSpec extends Specification {
         build.finishedAt.getTime() == 1458051084000
     }
 
+    def "extract config from getBuild(accessToken, repoSlug)"() {
+        given:
+        setResponse '''{
+            "builds": [{
+                "id": 134545105,
+                "repository_id": 8906939,
+                "commit_id": 38108155,
+                "number": "3",
+                "event_type": "push",
+                "pull_request": false,
+                "pull_request_title": null,
+                "pull_request_number": null,
+                "config": {
+                    "language": "python",
+                    "env": ["TARGET_ENV=test.environment"],
+                    "script": "./travis.sh",
+                    ".result": "configured",
+                    "group": "stable",
+                    "dist": "precise"
+                },
+                "state": "passed",
+                "started_at": "2016-06-01T18:58:08Z",
+                "finished_at": "2016-06-01T18:58:29Z",
+                "duration": 21,
+                "job_ids": [134545109]
+            }],
+            "commits": [{
+                "id": 38108155,
+                "sha": "f290f2af03826999c6004404378a5bc750e834b0",
+                "branch": "master",
+                "message": "Update README.md",
+                "committed_at": "2016-06-01T18:57:48Z",
+                "author_name": "Gard Rimestad",
+                "author_email": "gardalize@gurters.com",
+                "committer_name": "Gard Rimestad",
+                "committer_email": "gardalize@gurters.com",
+                "compare_url": "https://github.com/gardalize/travis-trigger-test/compare/bd005f51cb1e...f290f2af0382",
+                "pull_request_number": null
+            }]
+            }'''
+
+        when:
+        Builds builds = client.builds("someToken", "some/build", 31)
+
+        then:
+        Build build = builds.builds.first()
+        build.number == 3
+        build.config.env.size() == 1
+        build.config.env.first() == "TARGET_ENV=test.environment"
+    }
+
     def "getBuilds(accessToken, repoSlug, buildNumber) with no build found"() {
         given:
         setResponse '''{"builds":[],"commits":[]}'''

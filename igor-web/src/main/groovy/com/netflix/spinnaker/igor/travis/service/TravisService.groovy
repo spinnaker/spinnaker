@@ -31,6 +31,7 @@ import com.netflix.spinnaker.igor.travis.client.model.Accounts
 import com.netflix.spinnaker.igor.travis.client.model.Build
 import com.netflix.spinnaker.igor.travis.client.model.Builds
 import com.netflix.spinnaker.igor.travis.client.model.Commit
+import com.netflix.spinnaker.igor.travis.client.model.Config
 import com.netflix.spinnaker.igor.travis.client.model.EmptyObject
 import com.netflix.spinnaker.igor.travis.client.model.GithubAuth
 import com.netflix.spinnaker.igor.travis.client.model.Job
@@ -89,6 +90,21 @@ class TravisService implements BuildService {
                 return getGenericBuild(build, repoSlug)
             }
         ).execute()
+    }
+
+    @Override
+    int triggerBuildWithParameters(String inputRepoSlug, Map<String, String> queryParameters) {
+        String repoSlug = cleanRepoSlug(inputRepoSlug)
+        Repo repo = getRepo(repoSlug)
+        String branch = branchFromRepoSlug(inputRepoSlug)
+        RepoRequest repoRequest = new RepoRequest(branch.empty? "master" : branch)
+        repoRequest.config = new Config(queryParameters)
+
+        TriggerResponse triggerResponse = travisClient.triggerBuild(getAccessToken(), repoSlug, repoRequest)
+        if (triggerResponse.remainingRequests) {
+            log.info "${groupKey}: remaining requests: ${triggerResponse.remainingRequests}"
+        }
+        return travisCache.setQueuedJob(groupKey, repoSlug, repo.lastBuildNumber+1)
     }
 
     List<Build> getBuilds() {
@@ -228,10 +244,10 @@ class TravisService implements BuildService {
         return genericBuild
     }
 
-    GenericJobConfiguration getJobConfig(String repoSlug) {
+    GenericJobConfiguration getJobConfig(String inputRepoSlug) {
+        String repoSlug = cleanRepoSlug(inputRepoSlug)
         Builds builds = travisClient.builds(getAccessToken(), repoSlug)
-        Job job = getJob(builds.builds.first().job_ids.first())
-        return new GenericJobConfiguration(job.repositorySlug.split('/').last(),job.repositorySlug.split('/').last(), job.repositorySlug ,false, getUrl(job.repositorySlug),false)
+        return new GenericJobConfiguration(extractRepoFromRepoSlug(repoSlug), extractRepoFromRepoSlug(repoSlug), repoSlug ,true, getUrl(repoSlug),false, builds.builds.first().config?.parameterDefinitionList)
     }
 
     String getUrl(String repoSlug) {
@@ -327,6 +343,10 @@ class TravisService implements BuildService {
 
     private static String extractBranchFromRepoSlug(String inputRepoSlug) {
         inputRepoSlug.tokenize('/').drop(2).join('/')
+    }
+
+    private static String extractRepoFromRepoSlug(String repoSlug) {
+        return repoSlug.tokenize('/').get(1)
     }
 
     private void setAccessToken() {

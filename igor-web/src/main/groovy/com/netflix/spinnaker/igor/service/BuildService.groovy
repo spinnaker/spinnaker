@@ -27,4 +27,6 @@ interface BuildService {
 
     GenericBuild getGenericBuild(String job, int buildNumber)
 
+    int triggerBuildWithParameters(String job, Map<String, String> queryParameters)
+
 }

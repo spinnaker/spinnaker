@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.igor.jenkins.service
 
 import com.netflix.spinnaker.hystrix.SimpleHystrixCommand
+import com.netflix.spinnaker.igor.build.BuildController
 import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
@@ -101,6 +102,23 @@ class JenkinsService implements BuildService{
     @Override
     GenericBuild getGenericBuild(String jobName, int buildNumber) {
         return getBuild(jobName, buildNumber).genericBuild(jobName)
+    }
+
+    @Override
+    int triggerBuildWithParameters(String job, Map<String, String> queryParameters) {
+        Response response = buildWithParameters(job, queryParameters)
+        if (response.status != 201) {
+            throw new BuildController.BuildJobError("Received a non-201 status when submitting job '${job}' to master '${master}'")
+        }
+
+        log.info("Submitted build job `${job}`")
+        def locationHeader = response.headers.find { it.name == "Location" }
+        if (!locationHeader) {
+            throw new BuildController.QueuedJobDeterminationError("Could not find Location header for job '${job}'")
+        }
+        def queuedLocation = locationHeader.value
+
+        return queuedLocation.split('/')[-1].toInteger()
     }
 
     ScmDetails getGitDetails(String jobName, Integer buildNumber) {
