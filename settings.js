@@ -7,7 +7,7 @@ var authEndpoint = process.env.AUTH_ENDPOINT || 'https://spinnaker-api-prestagin
 
 window.spinnakerSettings = {
   checkForUpdates: true,
-  defaultProviders: ['aws', 'gce', 'azure', 'cf', 'kubernetes', 'titan'],
+  defaultProviders: ['aws', 'gce', 'azure', 'cf', 'kubernetes', 'titan', 'openstack'],
   feedbackUrl: feedbackUrl,
   gateUrl: gateHost,
   bakeryDetailUrl: bakeryDetailUrl,
@@ -45,6 +45,12 @@ window.spinnakerSettings = {
       defaults: {
         account: 'titustestvpc',
         region: 'us-east-1'
+      },
+    },
+    openstack: {
+      defaults: {
+        account: 'test',
+        region: 'us-west-1'
       },
     },
     kubernetes: {
