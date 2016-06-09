@@ -27,7 +27,12 @@ import com.netflix.spinnaker.clouddriver.azure.resources.network.model.AzureVirt
 import com.netflix.spinnaker.clouddriver.model.NetworkProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RestController
 
+@RestController
 @Component
 class AzureNetworkProvider implements NetworkProvider<AzureNetwork> {
 
@@ -50,6 +55,16 @@ class AzureNetworkProvider implements NetworkProvider<AzureNetwork> {
   @Override
   Set<AzureNetwork> getAll() {
     cacheView.getAll(Keys.Namespace.AZURE_NETWORKS.ns, RelationshipCacheFilter.none()).collect(this.&fromCacheData)
+  }
+
+  AzureVirtualNetworkDescription get(String account, String region, String name) {
+    AzureVirtualNetworkDescription vnet = null
+    def cacheData = cacheView.get(Keys.Namespace.AZURE_NETWORKS.ns, Keys.getNetworkKey(azureCloudProvider, name, region, account))
+    if (cacheData) {
+      vnet = objectMapper.convertValue(cacheData.attributes['network'], AzureVirtualNetworkDescription)
+    }
+
+    vnet
   }
 
   AzureNetwork fromCacheData(CacheData cacheData) {

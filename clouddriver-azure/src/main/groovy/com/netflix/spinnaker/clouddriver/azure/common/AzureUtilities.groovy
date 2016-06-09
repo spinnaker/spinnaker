@@ -36,6 +36,8 @@ class AzureUtilities {
   static final Pattern IPV4_PREFIX_REGEX = ~/^(?<addr3>\d+)\.(?<addr2>\d+)\.(?<addr1>\d+)\.(?<addr0>\d+)\/(?<length>\d+)$/
   static final String LB_NAME_PREFIX = "lb-"
   static final String INBOUND_NATPOOL_PREFIX = "np-"
+  static final String VNET_DEFAULT_ADDRESS_PREFIX = "10.0.0.0/8"
+  static final int SUBNET_DEFAULT_ADDRESS_PREFIX_LENGTH = 24
 
   static String getResourceNameFromID(String resourceId) {
     if (resourceId == null) {
@@ -102,14 +104,6 @@ class AzureUtilities {
     azureResourceName.split(NAME_SEPARATOR).first()
   }
 
-  static String getAppNameFromResourceId(String resourceId) {
-    if (resourceId == null) {
-      return null
-    }
-
-    getResourceGroupNameFromResourceId(resourceId).split(NAME_SEPARATOR).first()
-  }
-
   static String getNameFromResourceId(String resourceId) {
     if (resourceId == null) {
       return null
@@ -133,7 +127,58 @@ class AzureUtilities {
     return true
   }
 
-  private static int convertIpv4PrefixToInt(Matcher matchResult, int length) {
+  static int convertIpv4PrefixToInt(String addrPrefix) {
+    if (!addrPrefix) {
+      return -1
+    }
+
+    def matchResult = IPV4_PREFIX_REGEX.matcher(addrPrefix)
+
+    // do some validation on the input and return -1 if not a valid address prefix
+    if (!validateIpv4PrefixMatch(matchResult)) {
+      return -1
+    }
+
+    convertIpv4PrefixToInt(matchResult, matchResult.group('length') as int)
+  }
+
+  static int getSubnetRangeMax(String vnetAddressPrefix, int subnetAddressPrefixLength = SUBNET_DEFAULT_ADDRESS_PREFIX_LENGTH) {
+    if (!vnetAddressPrefix) {
+      return 0
+    }
+
+    def matchResult = IPV4_PREFIX_REGEX.matcher(vnetAddressPrefix)
+
+    // do some validation on the input and return 0 if not a valid address prefix
+    if (!validateIpv4PrefixMatch(matchResult)) {
+      return 0
+    }
+
+    int vnetAddrPrefixLength = (matchResult.group('length') as int)
+
+    if (vnetAddrPrefixLength >= subnetAddressPrefixLength) {
+      return 0
+    }
+
+    1 << (subnetAddressPrefixLength - vnetAddrPrefixLength )
+  }
+
+  static int getAddressPrefixLength(String addrPrefix) {
+    if (!addrPrefix) {
+      return 0
+    }
+
+    def matchResult = IPV4_PREFIX_REGEX.matcher(addrPrefix)
+
+    // do some validation on the input and return 0 if not a valid address prefix
+    if (!validateIpv4PrefixMatch(matchResult)) {
+      return 0
+    }
+
+    matchResult.group('length') as int
+  }
+
+  static int convertIpv4PrefixToInt(Matcher matchResult, int length) {
     int lengthMask = -1 << (32 - length)
     int val = 0
     for (int i = 0; i < 4; i++) {
@@ -143,7 +188,7 @@ class AzureUtilities {
     return val
   }
 
-  private static String convertIntToIpv4Prefix(int prefix, int length) {
+  static String convertIntToIpv4Prefix(int prefix, int length) {
     int lowMask = 255
     int[] addr = new int[4]
     for (int i = 0; i < addr.length; i++) {
@@ -185,7 +230,8 @@ class AzureUtilities {
     if (!subnetAddrPrefix) {
       def vnetMatchResult = IPV4_PREFIX_REGEX.matcher(vnetAddrPrefix)
       if (vnetMatchResult.matches()) {
-        int adjustedLength = (vnetMatchResult.group('length') as int) + 8
+        // default subnet address prefix length to /24 unless vnet requires a larger length
+        int adjustedLength = Math.max((vnetMatchResult.group('length') as int) + 8, SUBNET_DEFAULT_ADDRESS_PREFIX_LENGTH)
         subnetAddrPrefix = vnetAddrPrefix.replaceAll('/\\d+$', "/$adjustedLength")
       }
     }

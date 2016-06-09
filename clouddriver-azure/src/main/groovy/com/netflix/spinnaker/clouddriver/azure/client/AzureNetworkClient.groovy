@@ -498,7 +498,7 @@ class AzureNetworkClient extends AzureBaseClient {
    * @param virtualNetworkName name of the virtual network to create
    * @param region region to create the resource in
    */
-  void createVirtualNetwork(String resourceGroupName, String virtualNetworkName, String region, String addressPrefix = "10.0.0.0/16") {
+  void createVirtualNetwork(String resourceGroupName, String virtualNetworkName, String region, String addressPrefix = AzureUtilities.VNET_DEFAULT_ADDRESS_PREFIX) {
     try {
       List<Subnet> subnets = []
 
@@ -675,35 +675,6 @@ class AzureNetworkClient extends AzureBaseClient {
   }
 
   /**
-   * Retrieve a collection of subnet description objects for a given Azure VirtualNetwork object
-   * @param vnet the Azure VirtualNetwork
-   * @return a Collection of AzureSubnetDescription objects which represent a Subnet in Azure
-   */
-  static Collection<AzureSubnetDescription> getSubnetForVirtualNetwork(VirtualNetwork vnet) {
-    def result = new ArrayList<AzureSubnetDescription>()
-
-    def currentTime = System.currentTimeMillis()
-    vnet.subnets?.each { itemSubnet ->
-      def subnetItem = new AzureSubnetDescription()
-      subnetItem.name = itemSubnet.name
-      subnetItem.region = vnet.location
-      subnetItem.cloudProvider = "azure"
-      subnetItem.vnet = vnet.name
-      subnetItem.etag = itemSubnet.etag
-      subnetItem.resourceId = itemSubnet.id
-      subnetItem.id = itemSubnet.name
-      subnetItem.addressPrefix = itemSubnet.addressPrefix
-      itemSubnet.ipConfigurations?.each {resourceId -> subnetItem.ipConfigurations += resourceId.id}
-      subnetItem.networkSecurityGroup = itemSubnet.networkSecurityGroup?.id
-      subnetItem.routeTable = itemSubnet.routeTable?.id
-      subnetItem.lastReadTime = currentTime
-      result += subnetItem
-    }
-
-    result
-  }
-
-  /**
    * Retrieve a collection of all subnets for a give set of credentials and the location
    * @param region the location of the virtual network
    * @return a Collection of objects which represent a Subnet in Azure
@@ -717,13 +688,12 @@ class AzureNetworkClient extends AzureBaseClient {
       vnets?.each { item->
         if (item.location == region) {
           try {
-            getSubnetForVirtualNetwork(item).each { AzureSubnetDescription subnet ->
+            AzureSubnetDescription.getSubnetsForVirtualNetwork(item).each { AzureSubnetDescription subnet ->
               subnet.lastReadTime = currentTime
               result += subnet
             }
           } catch (RuntimeException re) {
-            // if we get a runtime exception here, log it but keep processing the rest of the
-            // subnets
+            // if we get a runtime exception here, log it but keep processing the rest of the subnets
             log.error("Unable to process subnets for virtual network ${item.name}", re)
           }
         }
@@ -759,7 +729,12 @@ class AzureNetworkClient extends AzureBaseClient {
       vnetList?.each { item ->
         if (item.location == region) {
           try {
-            def vnet = getAzureVirtualNetworkDescription(item)
+            if (item?.addressSpace?.addressPrefixes?.size() != 1) {
+              log.warn("Virtual Network found with ${item?.addressSpace?.addressPrefixes?.size()} address spaces; expected: 1")
+            }
+
+            def vnet = AzureVirtualNetworkDescription.getDescriptionForVirtualNetwork(item)
+            vnet.subnets = AzureSubnetDescription.getSubnetsForVirtualNetwork(item, currentTime)
             vnet.lastReadTime = currentTime
             result += vnet
           } catch (RuntimeException re) {
@@ -774,27 +749,6 @@ class AzureNetworkClient extends AzureBaseClient {
     }
 
     result
-  }
-
-  private static AzureVirtualNetworkDescription getAzureVirtualNetworkDescription(VirtualNetwork vnet) {
-    def azureVirtualNetworkDescription = new AzureVirtualNetworkDescription()
-    def subnets = getSubnetForVirtualNetwork(vnet)
-
-    azureVirtualNetworkDescription.name = vnet.name
-    azureVirtualNetworkDescription.location = vnet.location
-    azureVirtualNetworkDescription.region = vnet.location
-    azureVirtualNetworkDescription.addressSpace = vnet.addressSpace?.addressPrefixes
-    azureVirtualNetworkDescription.dhcpOptions = vnet.dhcpOptions?.dnsServers
-    azureVirtualNetworkDescription.provisioningState = vnet.provisioningState
-    azureVirtualNetworkDescription.resourceGuid = vnet.resourceGuid
-    azureVirtualNetworkDescription.subnets = subnets?.toList()
-    azureVirtualNetworkDescription.etag = vnet.etag
-    azureVirtualNetworkDescription.resourceId = vnet.id
-    azureVirtualNetworkDescription.id = vnet.name
-    azureVirtualNetworkDescription.tags = vnet.tags
-    azureVirtualNetworkDescription.type = vnet.type
-
-    azureVirtualNetworkDescription
   }
 
   /**
