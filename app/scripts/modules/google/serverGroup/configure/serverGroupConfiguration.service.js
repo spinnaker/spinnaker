@@ -194,8 +194,10 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         filteredData.zones = regions[command.region];
       }
       if (!_(filteredData.zones).contains(command.zone)) {
-        command.zone = '';
-        result.dirty.zone = true;
+        delete command.zone;
+        if (!command.regional) {
+          result.dirty.zone = true;
+        }
       }
       return result;
     }
@@ -447,6 +449,16 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         command.viewState.dirty = command.viewState.dirty || {};
         angular.extend(command.viewState.dirty, result.dirty);
 
+        return result;
+      };
+
+      command.zoneChanged = function zoneChanged() {
+        var result = { dirty: { } };
+        if (command.zone === undefined && !command.regional) {
+          result.dirty.zone = true;
+        }
+        command.viewState.dirty = command.viewState.dirty || {};
+        angular.extend(command.viewState.dirty, result.dirty);
         return result;
       };
     }
