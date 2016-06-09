@@ -61,7 +61,9 @@ import static retrofit.Endpoints.newFixedEndpoint
 class GateConfig extends RedisHttpSessionConfiguration {
 
   @Value('${server.session.timeoutInSeconds:3600}')
-  int maxInactiveIntervalInSeconds
+  void setSessionTimeout(int maxInactiveIntervalInSeconds) {
+    super.setMaxInactiveIntervalInSeconds(maxInactiveIntervalInSeconds)
+  }
 
   @Value('${retrofit.logLevel:BASIC}')
   String retrofitLogLevel
