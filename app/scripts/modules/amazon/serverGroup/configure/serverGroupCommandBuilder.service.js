@@ -33,6 +33,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
 
           var credentials = asyncData.credentialsKeyedByAccount[defaultCredentials];
           var keyPair = credentials ? credentials.defaultKeyPair : null;
+          var applicationAwsSettings = _.get(application, 'attributes.providerSettings.aws', {});
 
           var command = {
             application: application.name,
@@ -59,6 +60,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
             suspendedProcesses: [],
             securityGroups: [],
             tags: {},
+            useAmiBlockDeviceMappings: applicationAwsSettings.useAmiBlockDeviceMappings || false,
             viewState: {
               instanceProfile: 'custom',
               useAllImageSelection: false,
@@ -168,6 +170,8 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
         // These processes should never be copied over, as the affect launching instances and enabling traffic
         let enabledProcesses = ['Launch', 'Terminate', 'AddToLoadBalancer'];
 
+        var applicationAwsSettings = _.get(application, 'attributes.providerSettings.aws', {});
+
         var command = {
           application: application.name,
           strategy: '',
@@ -198,6 +202,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
             .map((process) => process.processName)
             .filter((name) => enabledProcesses.indexOf(name) < 0),
           tags: serverGroup.tags || {},
+          useAmiBlockDeviceMappings: applicationAwsSettings.useAmiBlockDeviceMappings || false,
           viewState: {
             instanceProfile: asyncData.instanceProfile,
             useAllImageSelection: false,

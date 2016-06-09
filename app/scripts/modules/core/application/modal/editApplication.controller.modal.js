@@ -8,6 +8,7 @@ module.exports = angular
     require('../../utils/lodash.js'),
     require('../../account/account.service.js'),
     require('../../task/task.read.service.js'),
+    require('./applicationProviderFields.component.js'),
   ])
   .controller('EditApplicationController', function ($window, $state, $uibModalInstance, application, applicationWriter,
                                                      _, accountService, taskReader) {

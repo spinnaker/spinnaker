@@ -92,6 +92,9 @@ module.exports = angular.module('spinnaker.aws', [
       },
       search: {
         resultFormatter: 'awsSearchResultFormatter',
-      }
+      },
+      applicationProviderFields:{
+        templateUrl: require('./applicationProviderFields/awsFields.html'),
+      },
     });
   });

@@ -12,6 +12,7 @@ module.exports = angular
     require('../../task/task.read.service.js'),
     require('./validation/applicationNameValidationMessages.directive.js'),
     require('./validation/validateApplicationName.directive.js'),
+    require('./applicationProviderFields.component.js'),
   ])
   .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $uibModalInstance, accountService,
                                                      applicationWriter, applicationReader, _, taskReader, $timeout) {
