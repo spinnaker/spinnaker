@@ -91,7 +91,7 @@ module.exports = angular
       let threshold = command.alarm.threshold;
       command.step = {
         estimatedInstanceWarmup: policy.estimatedInstanceWarmup || command.cooldown || 600,
-        metricAggregationType: command.alarm.statistic,
+        metricAggregationType: 'Average',
       };
       command.step.stepAdjustments = policy.stepAdjustments.map((adjustment) => {
         let step = {
