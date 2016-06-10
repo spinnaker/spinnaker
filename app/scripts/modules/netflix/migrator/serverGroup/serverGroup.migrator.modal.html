@@ -104,6 +104,29 @@
             <p ng-if="vm.state === 'preview'" class="note">Note: server groups will be started in a disabled state with zero instances.</p>
             <p ng-if="vm.state === 'complete'" class="note">Note: server group has been started in a disabled state with zero instances.</p>
           </div>
+          <div ng-if="vm.preview.skipped.length" class="skipped">
+            <h4><span class="small glyphicon glyphicon-ban-circle"></span> Skipped Security Groups</h4>
+            <p>The following ingress rule<span ng-if="vm.preview.skipped.length > 1">s</span> cannot be created because
+              Spinnaker does not manage the account owning the security group.</p>
+            <div ng-repeat="skipped in vm.preview.skipped">
+              <dl class="dl-horizontal">
+                <dt>Source Security Group</dt>
+                <dd>{{skipped.mutationDetails.referencedBy.group}}</dd>
+                <dt>Account ID</dt>
+                <dd>{{skipped.mutationDetails.awsReference.account.id}}</dd>
+                <dt>Ingress Security Group</dt>
+                <dd>{{skipped.mutationDetails.awsReference.groupName}} ({{skipped.mutationDetails.awsReference.groupId}})</dd>
+              </dl>
+            </div>
+            <p ng-if="vm.state === 'preview'">After the migration completes, you will need to make sure
+              the ingress security group<span ng-if="vm.preview.skipped.length > 1">s</span>
+              exist<span ng-if="vm.preview.skipped.length === 1">s</span> in VPC0, then create an ingress rule via
+              the AWS console.</p>
+            <p ng-if="vm.state === 'complete'">Please make sure
+              the ingress security group<span ng-if="vm.preview.skipped.length > 1">s</span>
+              exist<span ng-if="vm.preview.skipped.length === 1">s</span> in VPC0, then create an ingress rule via
+              the AWS console.</p>
+          </div>
         </div>
       </div>
     </div>

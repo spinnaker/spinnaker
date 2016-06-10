@@ -51,6 +51,7 @@ module.exports = angular
         securityGroups: tideTask.mutations.filter((mutation) => mutationIs(mutation, 'groupName')),
         loadBalancers: tideTask.mutations.filter((mutation) => mutationIs(mutation, 'loadBalancerName')),
         serverGroups: tideTask.mutations.filter((mutation) => mutationIs(mutation, 'autoScalingGroupName')),
+        skipped: tideTask.mutations.filter((mutation) => mutation.mutationType && mutation.mutationType.name === 'skip'),
         pipelines: tideTask.mutations.filter((mutation) => mutation.pipelineToCreate),
       };
     }
