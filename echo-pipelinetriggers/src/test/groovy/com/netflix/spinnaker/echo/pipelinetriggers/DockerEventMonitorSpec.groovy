@@ -166,4 +166,42 @@ class DockerEventMonitorSpec extends Specification implements RetrofitStubs {
     goodPipeline = createPipelineWith(enabledDockerTrigger)
     badPipeline = createPipelineWith(trigger)
   }
+
+  @Unroll
+  def "triggers a pipeline that has an enabled docker trigger with regex"() {
+    given:
+    def pipeline = createPipelineWith(trigger)
+    pipelineCache.getPipelines() >> [pipeline]
+
+    when:
+    monitor.processEvent(objectMapper.convertValue(event, Event))
+
+    then:
+    1 * subscriber.call({ it.id == pipeline.id })
+
+    where:
+    trigger                               | field
+    enabledDockerTrigger.withTag("\\d+")  | "regex tag"
+
+    event = createDockerEvent("2")
+  }
+
+  @Unroll
+  def "does not trigger a pipeline that has an enabled docker trigger with regex"() {
+    given:
+    def pipeline = createPipelineWith(trigger)
+    pipelineCache.getPipelines() >> [pipeline]
+
+    when:
+    monitor.processEvent(objectMapper.convertValue(event, Event))
+
+    then:
+    0 * subscriber._
+
+    where:
+    trigger                               | field
+    enabledDockerTrigger.withTag("\\d+")  | "regex tag"
+
+    event = createDockerEvent()
+  }
 }
