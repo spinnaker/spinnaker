@@ -25,6 +25,9 @@
     <li ng-if="::vm.execution.trigger.buildInfo.url">
       {{ ::vm.execution.trigger.buildInfo | buildDisplayName }}
     </li>
+    <li ng-if="::vm.execution.trigger.tag">
+      {{ ::vm.execution.trigger.repository }}:{{ ::vm.execution.trigger.tag}}
+    </li>
     <span ng-switch="::vm.execution.trigger.type">
       <li ng-switch-when="jenkins">
         {{ ::vm.execution.trigger.job}}
