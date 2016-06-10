@@ -78,10 +78,15 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware {
     credentials.repositories.findAll { it ->
       threadCount == 1 || (it.hashCode() % threadCount).abs() == index
     }.collectEntries {
-        DockerRegistryTags tags = credentials.client.getTags(it)
-        tags ? [(tags.name): tags.tags ?: []] : [:]
+      DockerRegistryTags tags
+      try {
+        tags = credentials.client.getTags(it)
+      } catch (e) {
+        log.error("Could not load tags for ${it}")
       }
+      tags ? [(tags.name): tags.tags ?: []] : [:]
     }
+  }
 
   @Override
   String getAccountName() {
