@@ -20,8 +20,6 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
-import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
-import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonKeyPair
 import spock.lang.Specification
@@ -29,11 +27,10 @@ import spock.lang.Subject
 
 class AmazonKeyPairProviderSpec extends Specification {
 
-  AmazonCloudProvider amazonCloudProvider = new AmazonCloudProvider()
   Cache cache = Mock(Cache)
 
   @Subject
-  AmazonKeyPairProvider provider = new AmazonKeyPairProvider(amazonCloudProvider, cache)
+  AmazonKeyPairProvider provider = new AmazonKeyPairProvider(cache)
 
   void "should retrieve all key Pairs"() {
     when:
@@ -70,6 +67,6 @@ class AmazonKeyPairProviderSpec extends Specification {
       keyName       : key,
       keyFingerprint: fingerprint
     ]
-    new DefaultCacheData(Keys.getKeyPairKey(amazonCloudProvider, key, region, account), attributes, [:])
+    new DefaultCacheData(Keys.getKeyPairKey(key, region, account), attributes, [:])
   }
 }

@@ -21,7 +21,6 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
-import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonInstanceType
 import spock.lang.Specification
@@ -29,7 +28,6 @@ import spock.lang.Subject
 
 class AmazonInstanceTypeProviderSpec extends Specification {
 
-  AmazonCloudProvider amazonCloudProvider = new AmazonCloudProvider()
   Cache cache = Mock(Cache)
   @Subject
   AmazonInstanceTypeProvider provider = new AmazonInstanceTypeProvider(cache, new ObjectMapper())
@@ -73,6 +71,6 @@ class AmazonInstanceTypeProviderSpec extends Specification {
     ]
 
     def attributes = defaults + params
-    new DefaultCacheData(Keys.getInstanceTypeKey(amazonCloudProvider, instanceType, attributes.region, attributes.account), attributes, [:])
+    new DefaultCacheData(Keys.getInstanceTypeKey(instanceType, attributes.region, attributes.account), attributes, [:])
   }
 }

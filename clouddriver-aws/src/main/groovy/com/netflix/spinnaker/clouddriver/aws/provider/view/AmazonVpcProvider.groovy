@@ -36,20 +36,18 @@ class AmazonVpcProvider implements NetworkProvider<AmazonVpc> {
   private static final String NAME_TAG_KEY = 'Name'
   private static final String DEPRECATED_TAG_KEY = 'is_deprecated'
 
-  private final AmazonCloudProvider amazonCloudProvider
   private final Cache cacheView
   private final AmazonObjectMapper objectMapper
 
   @Autowired
-  AmazonVpcProvider(AmazonCloudProvider amazonCloudProvider, Cache cacheView, AmazonObjectMapper amazonObjectMapper) {
-    this.amazonCloudProvider = amazonCloudProvider
+  AmazonVpcProvider(Cache cacheView, AmazonObjectMapper amazonObjectMapper) {
     this.cacheView = cacheView
     this.objectMapper = amazonObjectMapper
   }
 
   @Override
   String getCloudProvider() {
-    return amazonCloudProvider.id
+    return AmazonCloudProvider.AWS
   }
 
   @Override
@@ -58,13 +56,13 @@ class AmazonVpcProvider implements NetworkProvider<AmazonVpc> {
   }
 
   AmazonVpc fromCacheData(CacheData cacheData) {
-    def parts = Keys.parse(amazonCloudProvider, cacheData.id)
+    def parts = Keys.parse(cacheData.id)
     def vpc = objectMapper.convertValue(cacheData.attributes, Vpc)
     def tag = vpc.tags.find { it.key == NAME_TAG_KEY }
     def isDeprecated = vpc.tags.find { it.key == DEPRECATED_TAG_KEY }?.value
     String name = tag?.value
     new AmazonVpc(
-      cloudProvider: amazonCloudProvider.id,
+      cloudProvider: AmazonCloudProvider.AWS,
       id: vpc.vpcId,
       name: name,
       account: parts.account,

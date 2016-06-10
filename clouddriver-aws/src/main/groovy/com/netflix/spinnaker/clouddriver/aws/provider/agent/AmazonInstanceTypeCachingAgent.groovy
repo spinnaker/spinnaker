@@ -26,7 +26,6 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
@@ -46,7 +45,6 @@ class AmazonInstanceTypeCachingAgent implements CachingAgent, CustomScheduledAge
   public static final long DEFAULT_POLL_INTERVAL_MILLIS = TimeUnit.HOURS.toMillis(2)
   public static final long DEFAULT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(15)
 
-  final AmazonCloudProvider amazonCloudProvider
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region
@@ -65,20 +63,17 @@ class AmazonInstanceTypeCachingAgent implements CachingAgent, CustomScheduledAge
     return defaultIfNonEdda
   }
 
-  AmazonInstanceTypeCachingAgent(AmazonCloudProvider amazonCloudProvider,
-                                 AmazonClientProvider amazonClientProvider,
+  AmazonInstanceTypeCachingAgent(AmazonClientProvider amazonClientProvider,
                                  NetflixAmazonCredentials account,
                                  String region) {
-    this(amazonCloudProvider, amazonClientProvider, account, region, getDefaultIfNonEdda(account, DEFAULT_POLL_INTERVAL_MILLIS), getDefaultIfNonEdda(account, DEFAULT_TIMEOUT_MILLIS))
+    this(amazonClientProvider, account, region, getDefaultIfNonEdda(account, DEFAULT_POLL_INTERVAL_MILLIS), getDefaultIfNonEdda(account, DEFAULT_TIMEOUT_MILLIS))
   }
 
-  AmazonInstanceTypeCachingAgent(AmazonCloudProvider amazonCloudProvider,
-                                 AmazonClientProvider amazonClientProvider,
+  AmazonInstanceTypeCachingAgent(AmazonClientProvider amazonClientProvider,
                                  NetflixAmazonCredentials account,
                                  String region,
                                  long pollIntervalMillis,
                                  long timeoutMillis) {
-    this.amazonCloudProvider = amazonCloudProvider
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
@@ -116,9 +111,9 @@ class AmazonInstanceTypeCachingAgent implements CachingAgent, CustomScheduledAge
       def offerings = ec2.describeReservedInstancesOfferings(request)
       Set<String> allIdentifiers = []
       data.addAll(offerings.reservedInstancesOfferings.findResults { ReservedInstancesOffering offering ->
-        String key = Keys.getInstanceTypeKey(amazonCloudProvider, offering.instanceType, region, account.name)
+        String key = Keys.getInstanceTypeKey(offering.instanceType, region, account.name)
         if (allIdentifiers.add(key)) {
-          new DefaultCacheData(Keys.getInstanceTypeKey(amazonCloudProvider, offering.instanceType, region, account.name), [
+          new DefaultCacheData(Keys.getInstanceTypeKey(offering.instanceType, region, account.name), [
             account           : account.name,
             region            : region,
             name              : offering.instanceType,

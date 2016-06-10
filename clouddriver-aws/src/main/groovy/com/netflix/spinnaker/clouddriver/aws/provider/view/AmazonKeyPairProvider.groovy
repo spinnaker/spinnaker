@@ -31,19 +31,17 @@ import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.KEY_PAI
 @Component
 class AmazonKeyPairProvider implements KeyPairProvider<AmazonKeyPair> {
 
-  private final AmazonCloudProvider amazonCloudProvider
   private final Cache cacheView
 
   @Autowired
-  AmazonKeyPairProvider(AmazonCloudProvider amazonCloudProvider, Cache cacheView) {
-    this.amazonCloudProvider = amazonCloudProvider
+  AmazonKeyPairProvider(Cache cacheView) {
     this.cacheView = cacheView
   }
 
   @Override
   Set<AmazonKeyPair> getAll() {
     cacheView.getAll(KEY_PAIRS.ns, RelationshipCacheFilter.none()).collect { CacheData cacheData ->
-      Map<String, String> parts = Keys.parse(amazonCloudProvider, cacheData.id)
+      Map<String, String> parts = Keys.parse(cacheData.id)
       new AmazonKeyPair(
         parts.account,
         parts.region,

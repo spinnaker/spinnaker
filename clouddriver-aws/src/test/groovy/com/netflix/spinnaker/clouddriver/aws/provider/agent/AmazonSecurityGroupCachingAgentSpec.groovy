@@ -37,18 +37,17 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
 
   AmazonEC2 ec2 = Mock(AmazonEC2)
   NetflixAmazonCredentials creds = Stub(NetflixAmazonCredentials) { getName() >> account }
-  AmazonCloudProvider amazonCloudProvider = new AmazonCloudProvider()
   AmazonClientProvider amazonClientProvider = Stub(AmazonClientProvider) { getAmazonEC2(creds, region) >> ec2 }
   ProviderCache providerCache = Mock(ProviderCache)
   AmazonObjectMapper mapper = new AmazonObjectMapper()
 
-  @Subject AmazonSecurityGroupCachingAgent agent = new AmazonSecurityGroupCachingAgent(amazonCloudProvider,
+  @Subject AmazonSecurityGroupCachingAgent agent = new AmazonSecurityGroupCachingAgent(
     amazonClientProvider, creds, region, mapper, Spectator.registry())
 
   SecurityGroup securityGroupA = new SecurityGroup(groupId: 'id-a', groupName: 'name-a', description: 'a')
   SecurityGroup securityGroupB = new SecurityGroup(groupId: 'id-b', groupName: 'name-b', description: 'b')
-  String keyGroupA = Keys.getSecurityGroupKey(amazonCloudProvider, securityGroupA.groupName, securityGroupA.groupId, region, account, null)
-  String keyGroupB = Keys.getSecurityGroupKey(amazonCloudProvider, securityGroupB.groupName, securityGroupB.groupId, region, account, null)
+  String keyGroupA = Keys.getSecurityGroupKey(securityGroupA.groupName, securityGroupA.groupId, region, account, null)
+  String keyGroupB = Keys.getSecurityGroupKey(securityGroupB.groupName, securityGroupB.groupId, region, account, null)
 
   void "should add security groups on initial run"() {
     given:

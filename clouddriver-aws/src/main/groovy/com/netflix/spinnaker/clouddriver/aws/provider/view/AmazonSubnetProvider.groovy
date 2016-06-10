@@ -37,13 +37,11 @@ class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
   private static final String NAME_TAG_KEY = 'name'
   private static final String DEPRECATED_TAG_KEY = 'is_deprecated'
 
-  private final AmazonCloudProvider amazonCloudProvider
   private final Cache cacheView
   private final AmazonObjectMapper objectMapper
 
   @Autowired
-  AmazonSubnetProvider(AmazonCloudProvider amazonCloudProvider, Cache cacheView, AmazonObjectMapper objectMapper) {
-    this.amazonCloudProvider = amazonCloudProvider
+  AmazonSubnetProvider(Cache cacheView, AmazonObjectMapper objectMapper) {
     this.cacheView = cacheView
     this.objectMapper = objectMapper
   }
@@ -55,7 +53,7 @@ class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
 
   @Override
   Set<AmazonSubnet> getAll() {
-    getAllMatchingKeyPattern(Keys.getSubnetKey(amazonCloudProvider, '*', '*', '*'))
+    getAllMatchingKeyPattern(Keys.getSubnetKey('*', '*', '*'))
   }
 
   Set<AmazonSubnet> getAllMatchingKeyPattern(String pattern) {
@@ -70,7 +68,7 @@ class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
   }
 
   AmazonSubnet fromCacheData(CacheData cacheData) {
-    def parts = Keys.parse(amazonCloudProvider, cacheData.id)
+    def parts = Keys.parse(cacheData.id)
     def subnet = objectMapper.convertValue(cacheData.attributes, Subnet)
     def tag = subnet.tags.find { it.key == METADATA_TAG_KEY }
     def isDeprecated = subnet.tags.find { it.key == DEPRECATED_TAG_KEY }?.value
@@ -94,7 +92,7 @@ class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
     }
 
     new AmazonSubnet(
-      type: amazonCloudProvider.id,
+      type: AmazonCloudProvider.AWS,
       id: subnet.subnetId,
       state: subnet.state,
       vpcId: subnet.vpcId,

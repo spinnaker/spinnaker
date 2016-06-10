@@ -43,18 +43,15 @@ import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.SECURIT
 @Component
 class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurityGroup> {
 
-  final AmazonCloudProvider amazonCloudProvider
   final AccountCredentialsProvider accountCredentialsProvider
   final Cache cacheView
   final ObjectMapper objectMapper
   final Set<AmazonCredentials> accounts
 
   @Autowired
-  AmazonSecurityGroupProvider(AmazonCloudProvider amazonCloudProvider,
-                              AccountCredentialsProvider accountCredentialsProvider,
+  AmazonSecurityGroupProvider(AccountCredentialsProvider accountCredentialsProvider,
                               Cache cacheView,
                               ObjectMapper objectMapper) {
-    this.amazonCloudProvider = amazonCloudProvider
     this.accountCredentialsProvider = accountCredentialsProvider
     this.cacheView = cacheView
     this.objectMapper = objectMapper
@@ -67,37 +64,37 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
 
   @Override
   String getType() {
-    return amazonCloudProvider.id
+    return AmazonCloudProvider.AWS
   }
 
   @Override
   Set<AmazonSecurityGroup> getAll(boolean includeRules) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(amazonCloudProvider, '*', '*', '*', '*', '*'), includeRules)
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', '*', '*', '*'), includeRules)
   }
 
   @Override
   Set<AmazonSecurityGroup> getAllByRegion(boolean includeRules, String region) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(amazonCloudProvider, '*', '*', region, '*', '*'), includeRules)
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', region, '*', '*'), includeRules)
   }
 
   @Override
   Set<AmazonSecurityGroup> getAllByAccount(boolean includeRules, String account) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(amazonCloudProvider, '*', '*', '*', account, '*'), includeRules)
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', '*', account, '*'), includeRules)
   }
 
   @Override
   Set<AmazonSecurityGroup> getAllByAccountAndName(boolean includeRules, String account, String name) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(amazonCloudProvider, name, '*', '*', account, '*'), includeRules)
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(name, '*', '*', account, '*'), includeRules)
   }
 
   @Override
   Set<AmazonSecurityGroup> getAllByAccountAndRegion(boolean includeRules, String account, String region) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(amazonCloudProvider, '*', '*', region, account, '*'), includeRules)
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', region, account, '*'), includeRules)
   }
 
   @Override
   AmazonSecurityGroup get(String account, String region, String name, String vpcId) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(amazonCloudProvider, name, '*', region, account, vpcId), true)[0]
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(name, '*', region, account, vpcId), true)[0]
   }
 
   Set<AmazonSecurityGroup> getAllMatchingKeyPattern(String pattern, boolean includeRules) {
@@ -113,7 +110,7 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
   }
 
   AmazonSecurityGroup fromCacheData(boolean includeRules, CacheData cacheData) {
-    Map<String, String> parts = Keys.parse(amazonCloudProvider, cacheData.id)
+    Map<String, String> parts = Keys.parse(cacheData.id)
     return convertToAmazonSecurityGroup(includeRules, cacheData.attributes, parts.account, parts.region)
   }
 
@@ -133,7 +130,7 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
     }
 
     new AmazonSecurityGroup(
-      type: amazonCloudProvider.id,
+      type: AmazonCloudProvider.AWS,
       id: securityGroup.groupId,
       name: securityGroup.groupName,
       vpcId: securityGroup.vpcId,
@@ -177,10 +174,10 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
       if (baseAccount != ingressAccount) {
         vpcPattern = '*'
       }
-      def keyPattern = Keys.getSecurityGroupKey(amazonCloudProvider, '*', sg.groupId, region, ingressAccount ?: '*', vpcPattern)
+      def keyPattern = Keys.getSecurityGroupKey('*', sg.groupId, region, ingressAccount ?: '*', vpcPattern)
       def matches = cacheView.filterIdentifiers(SECURITY_GROUPS.ns, keyPattern)
       if (matches) {
-        def parts = Keys.parse(amazonCloudProvider, matches[0])
+        def parts = Keys.parse(matches[0])
         ingressGroupName = parts.name
         ingressGroupVpcId = parts.vpcId
       }
@@ -198,7 +195,7 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
           protocol     : permission.ipProtocol,
           securityGroup:
             new AmazonSecurityGroup(
-              type: amazonCloudProvider.id,
+              type: AmazonCloudProvider.AWS,
               id: sg.groupId,
               name: ingressGroupSummary.name,
               accountId: sg.userId,
