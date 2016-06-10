@@ -42,7 +42,7 @@
     <div class="col-md-6">
       <ui-select ng-model="trigger.tag" class="form-control input-sm">
         <ui-select-match>{{trigger.tag}}</ui-select-match>
-        <ui-select-choices repeat="tag in tags | filter: $select.search | orderBy">
+        <ui-select-choices repeat="tag in getTags($select.search) | filter: $select.search | orderBy">
           <span ng-bind-html="tag | highlight: $select.search"></span>
         </ui-select-choices>
       </ui-select>

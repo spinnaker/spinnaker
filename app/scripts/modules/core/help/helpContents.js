@@ -258,7 +258,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.script.cluster': '<p>(Optional) cluster passed down to script execution as CLUSTER_PARAM</p>',
     'pipeline.config.script.cmc': '<p>(Optional) cmc passed down to script execution as CMC</p>',
     'pipeline.config.script.propertyFile': '<p>(Optional) The name to the properties file produced by the script execution to be used by later stages of the Spinnaker pipeline. </p>',
-    'pipeline.config.docker.trigger.tag': '<p>(Optional) If specified, only changes to this tag will trigger the pipeline. </p>',
+    'pipeline.config.docker.trigger.tag': '<p>(Optional) If specified, only changes to this tag will trigger the pipeline. Regex can be utilized in this field.</p>',
     'serverGroupCapacity.useSourceCapacityTrue':  '<p>Spinnaker will use the current capacity of the existing server group when deploying a new server group.</p>' +
       '<p>This setting is intended to support a server group with auto-scaling enabled, where the bounds and desired capacity are controlled by an external process.</p>' +
       '<p>In the event that there is no existing server group, the deploy will fail.</p>',

@@ -48,13 +48,18 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
       }
       let key = `${trigger.registry}/${trigger.repository}`;
       $scope.tags = $scope.repositoryMap[key] || [];
-      if ($scope.tags.indexOf(trigger.tag) < 0) {
-        trigger.tag = null;
-      }
     }
 
     this.clearTag = function() {
       trigger.tag = null;
+    };
+
+    $scope.getTags = function(search) {
+      var newOne = $scope.tags.slice();
+      if (search && newOne.indexOf(search) === -1) {
+        newOne.unshift(search);
+      }
+      return newOne;
     };
 
     function initializeImages() {
