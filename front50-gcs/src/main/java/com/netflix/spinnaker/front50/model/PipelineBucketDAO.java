@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
+import org.springframework.util.Assert;
 import rx.Scheduler;
 
 import java.util.Collection;
@@ -68,6 +69,9 @@ public class PipelineBucketDAO extends BucketDAO<Pipeline> implements PipelineDA
       id = UUID.randomUUID().toString();
     }
     item.setId(id);
+
+    Assert.notNull(item.getApplication(), "application field must NOT be null!");
+    Assert.notNull(item.getName(), "name field must NOT be null!");
 
     update(id, item);
     return findById(id);

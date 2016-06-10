@@ -15,8 +15,10 @@
  */
 
 package com.netflix.spinnaker.front50.redis
+
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
+import com.netflix.spinnaker.front50.pipeline.PipelineDAOSpec
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
@@ -24,12 +26,11 @@ import org.springframework.data.redis.connection.RedisConnectionFactory
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.web.WebAppConfiguration
 import spock.lang.IgnoreIf
-import spock.lang.Specification
 
 @IgnoreIf({ RedisTestHelper.redisUnavailable() })
 @WebAppConfiguration
 @ContextConfiguration(classes = [RedisSetup])
-class RedisPipelineDAOSpec extends Specification {
+class RedisPipelineDAOSpec extends PipelineDAOSpec<RedisPipelineDAO> {
 
   @Configuration
   @Import(RedisConfig)
@@ -37,6 +38,11 @@ class RedisPipelineDAOSpec extends Specification {
 
   @Autowired
   RedisPipelineDAO redisPipelineDAO
+
+  @Override
+  RedisPipelineDAO getInstance() {
+    return redisPipelineDAO
+  }
 
   void setupSpec() {
     System.setProperty('spinnaker.redis.enabled', 'true')
@@ -49,8 +55,8 @@ class RedisPipelineDAOSpec extends Specification {
   def "should support standard create/refresh/findAll/delete behaviors"() {
     given:
     def pipeline = new Pipeline([
-        application       : "app1",
-        name: "pipeline1"
+      application: "app1",
+      name       : "pipeline1"
     ])
     def newPipeline = redisPipelineDAO.create("app1", pipeline)
 
@@ -103,23 +109,25 @@ class RedisPipelineDAOSpec extends Specification {
 
     when:
     redisPipelineDAO.bulkImport([
-        new Pipeline([
-            name       : "app1",
-            email: "greg@example.com",
-            application: 'testapp'
-        ]),
-        new Pipeline([
-            name       : "app2",
-            email: "mark@example.com",
-            application: 'testapp'
-        ])
+      new Pipeline([
+        name       : "app1",
+        email      : "greg@example.com",
+        application: 'testapp'
+      ]),
+      new Pipeline([
+        name       : "app2",
+        email      : "mark@example.com",
+        application: 'testapp'
+      ])
     ])
 
     then:
     def appPipelines = redisPipelineDAO.all()
     appPipelines.size() == 2
-    appPipelines.collect {it.name}.containsAll(['app1', 'app2'])
-    appPipelines.collect {it.email}.containsAll(['greg@example.com', 'mark@example.com'])
+    appPipelines.collect { it.name }.containsAll(['app1', 'app2'])
+    appPipelines.collect {
+      it.email
+    }.containsAll(['greg@example.com', 'mark@example.com'])
 
     expect:
     redisPipelineDAO.healthy == true
@@ -135,7 +143,9 @@ class RedisPipelineDAOSpec extends Specification {
     then:
     healthy == false
 
-    1 * redisPipelineDAO.redisTemplate.connectionFactory.getConnection() >> { throw new RuntimeException('Failed') }
+    1 * redisPipelineDAO.redisTemplate.connectionFactory.getConnection() >> {
+      throw new RuntimeException('Failed')
+    }
     0 * redisPipelineDAO.redisTemplate.connectionFactory._
   }
 

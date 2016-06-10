@@ -16,16 +16,16 @@
 
 package com.netflix.spinnaker.front50.model;
 
+import java.util.Collection;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import com.amazonaws.services.s3.AmazonS3;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
+import org.springframework.util.Assert;
 import rx.Scheduler;
-
-import java.util.Collection;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class S3PipelineDAO extends S3Support<Pipeline> implements PipelineDAO {
   public S3PipelineDAO(ObjectMapper objectMapper,
@@ -69,6 +69,9 @@ public class S3PipelineDAO extends S3Support<Pipeline> implements PipelineDAO {
       id = UUID.randomUUID().toString();
     }
     item.setId(id);
+
+    Assert.notNull(item.getApplication(), "application field must NOT be null!");
+    Assert.notNull(item.getName(), "name field must NOT be null!");
 
     update(id, item);
     return findById(id);

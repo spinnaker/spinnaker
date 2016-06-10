@@ -16,35 +16,29 @@
 
 package com.netflix.spinnaker.front50.controllers
 
+import java.util.concurrent.Executors
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.services.s3.AmazonS3Client
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.front50.model.S3PipelineDAO
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import com.netflix.spinnaker.front50.pipeline.PipelineRepository
 import com.netflix.spinnaker.front50.utils.CassandraTestHelper
 import com.netflix.spinnaker.front50.utils.S3TestHelper
-import rx.schedulers.Schedulers
-import spock.lang.IgnoreIf
-import spock.lang.Shared
-import spock.lang.Specification
-import spock.lang.Subject
-import spock.lang.Unroll
-
-import java.util.concurrent.Executors
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import rx.schedulers.Schedulers
+import spock.lang.*
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 
 abstract class PipelineControllerTck extends Specification {
 
   static final int OK = 200
   static final int BAD_REQUEST = 400
+  static final int UNPROCESSABLE_ENTITY = 422
 
   MockMvc mockMvc
 
@@ -58,6 +52,26 @@ abstract class PipelineControllerTck extends Specification {
   }
 
   abstract PipelineDAO createPipelineDAO()
+
+  def "should fail to save if application is missing"() {
+    given:
+    def command = [
+      name: "some pipeline with no application"
+    ]
+
+    when:
+    def response = mockMvc
+      .perform(
+      post("/pipelines")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(new ObjectMapper().writeValueAsString(command))
+    )
+      .andReturn()
+      .response
+
+    then:
+    response.status == UNPROCESSABLE_ENTITY
+  }
 
   void 'return 200 for successful rename'() {
     given:
