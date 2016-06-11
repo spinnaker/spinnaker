@@ -221,7 +221,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     parser.add_argument(
         '--test_gce_image_name',
         default=defaults.get('TEST_GCE_IMAGE_NAME',
-                             'ubuntu-1404-trusty-v20150909a'),
+                             'ubuntu-1404-trusty-v20160610'),
         help='Default Google Compute Engine image name to use when'
              ' creating test instances.')
 
