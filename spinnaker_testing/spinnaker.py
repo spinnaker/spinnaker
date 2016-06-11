@@ -145,6 +145,10 @@ class SpinnakerStatus(service_testing.HttpOperationStatus):
   def detail_path(self):
     return self.__detail_path
 
+  @property
+  def detail_doc(self):
+    return self.__json_doc
+
   def _bind_detail_path(self, path):
     """Bind the detail path."""
     self.__detail_path = path
