@@ -108,7 +108,8 @@ class ImageCachingAgent implements CachingAgent, AccountAware, DriftMetric {
         imageCacheData.add(new DefaultCacheData(imageId, attributes, [(NAMED_IMAGES.ns): [namedImageId]]))
         namedImageCacheData.add(new DefaultCacheData(namedImageId, [
           name              : image.name,
-          virtualizationType: image.virtualizationType
+          virtualizationType: image.virtualizationType,
+          creationDate      : image.creationDate
         ], [(IMAGES.ns): [imageId]]))
       }
     }
