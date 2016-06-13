@@ -27,8 +27,11 @@ import org.openstack4j.api.compute.ServerService
 import org.openstack4j.api.heat.HeatService
 import org.openstack4j.api.heat.StackService
 import org.openstack4j.api.networking.NetworkingService
+import org.openstack4j.api.networking.ext.HealthMonitorService
 import org.openstack4j.api.networking.ext.LbPoolService
 import org.openstack4j.api.networking.ext.LoadBalancerService
+import org.openstack4j.api.networking.ext.MemberService
+import org.openstack4j.api.networking.ext.VipService
 import org.openstack4j.api.networking.ext.MemberService
 import org.openstack4j.model.common.ActionResponse
 import org.openstack4j.model.compute.Address
@@ -39,6 +42,7 @@ import org.openstack4j.model.compute.Server
 import org.openstack4j.model.network.ext.LbPool
 import org.openstack4j.model.network.ext.Member
 import org.openstack4j.openstack.compute.domain.NovaSecGroupExtension
+import org.springframework.http.HttpStatus
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -63,6 +67,10 @@ class OpenstackClientProviderSpec extends Specification {
       @Override
       String getTokenId() {
         null
+      }
+
+      OSClient getRegionClient(String region) {
+        mockClient
       }
     }
     mockClient.useRegion(region) >> mockClient
@@ -111,7 +119,7 @@ class OpenstackClientProviderSpec extends Specification {
     0 * securityGroupService.deleteRule(_)
     rules.each { rule ->
       1 * securityGroupService.createRule({ SecGroupExtension.Rule r ->
-        r.toPort == rule.toPort &&  r.fromPort == rule.fromPort && r.IPProtocol == IPProtocol.TCP
+        r.toPort == rule.toPort && r.fromPort == rule.fromPort && r.IPProtocol == IPProtocol.TCP
       })
     }
     noExceptionThrown()
@@ -150,7 +158,7 @@ class OpenstackClientProviderSpec extends Specification {
     }
     newRules.each { rule ->
       1 * securityGroupService.createRule({ SecGroupExtension.Rule r ->
-        r.toPort == rule.toPort &&  r.fromPort == rule.fromPort && r.IPProtocol == IPProtocol.TCP
+        r.toPort == rule.toPort && r.fromPort == rule.fromPort && r.IPProtocol == IPProtocol.TCP
       })
     }
     noExceptionThrown()
@@ -563,5 +571,203 @@ class OpenstackClientProviderSpec extends Specification {
     1 * memberService.list() >> { throw new Exception('foobar') }
     Exception e = thrown(OpenstackProviderException)
     e.message == "Failed to list load balancer members".toString()
+  }
+
+  def "delete vip success"() {
+    setup:
+    String region = 'region1'
+    String vipId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    VipService vipService = Mock()
+    ActionResponse response = ActionResponse.actionSuccess()
+
+    when:
+    provider.deleteVip(region, vipId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.vip() >> vipService
+    1 * vipService.delete(vipId) >> response
+    noExceptionThrown()
+  }
+
+  def "delete vip - action failed"() {
+    setup:
+    String region = 'region1'
+    String vipId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    VipService vipService = Mock()
+    ActionResponse response = ActionResponse.actionFailed('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.deleteVip(region, vipId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.vip() >> vipService
+    1 * vipService.delete(vipId) >> response
+    OpenstackProviderException ex = thrown(OpenstackProviderException)
+    ex.message.contains("foo")
+  }
+
+  def "delete vip - exception"() {
+    setup:
+    String region = 'region1'
+    String vipId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    VipService vipService = Mock()
+    Throwable throwable = new Exception('foo')
+
+    when:
+    provider.deleteVip(region, vipId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.vip() >> vipService
+    1 * vipService.delete(vipId) >> { throw throwable }
+    OpenstackProviderException ex = thrown(OpenstackProviderException)
+    ex.cause == throwable
+  }
+
+  def "delete load balancer pool success"() {
+    setup:
+    String region = 'region1'
+    String loadBalancerId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    LbPoolService lbPoolService = Mock()
+    ActionResponse response = ActionResponse.actionSuccess()
+
+    when:
+    provider.deleteLoadBalancerPool(region, loadBalancerId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.lbPool() >> lbPoolService
+    1 * lbPoolService.delete(loadBalancerId) >> response
+    noExceptionThrown()
+  }
+
+  def "delete load balancer pool - action failed"() {
+    setup:
+    String region = 'region1'
+    String loadBalancerId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    LbPoolService lbPoolService = Mock()
+    ActionResponse response = ActionResponse.actionFailed('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.deleteLoadBalancerPool(region, loadBalancerId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.lbPool() >> lbPoolService
+    1 * lbPoolService.delete(loadBalancerId) >> response
+    OpenstackProviderException ex = thrown(OpenstackProviderException)
+    ex.message.contains("foo")
+  }
+
+  def "delete load balancer pool - exception"() {
+    setup:
+    String region = 'region1'
+    String loadBalancerId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    LbPoolService lbPoolService = Mock()
+    Throwable throwable = new Exception('foo')
+
+    when:
+    provider.deleteLoadBalancerPool(region, loadBalancerId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.lbPool() >> lbPoolService
+    1 * lbPoolService.delete(loadBalancerId) >> { throw throwable }
+    OpenstackProviderException ex = thrown(OpenstackProviderException)
+    ex.cause == throwable
+  }
+
+  def "disassociate and remove health monitor success"() {
+    setup:
+    String region = 'region1'
+    String loadBalancerId = UUID.randomUUID().toString()
+    String healthMonitorId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    LbPoolService lbPoolService = Mock()
+    HealthMonitorService healthMonitorService = Mock()
+    ActionResponse response = ActionResponse.actionSuccess()
+
+    when:
+    provider.disassociateAndRemoveHealthMonitor(region, loadBalancerId, healthMonitorId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.lbPool() >> lbPoolService
+    1 * loadBalancerService.healthMonitor() >> healthMonitorService
+    1 * lbPoolService.disAssociateHealthMonitor(loadBalancerId, healthMonitorId) >> response
+    1 * healthMonitorService.delete(healthMonitorId) >> response
+    noExceptionThrown()
+  }
+
+  def "disassociate and remove health monitor - failed action"() {
+    setup:
+    String region = 'region1'
+    String loadBalancerId = UUID.randomUUID().toString()
+    String healthMonitorId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    LbPoolService lbPoolService = Mock()
+    HealthMonitorService healthMonitorService = Mock()
+    ActionResponse response = ActionResponse.actionFailed('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.disassociateAndRemoveHealthMonitor(region, loadBalancerId, healthMonitorId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.lbPool() >> lbPoolService
+    1 * loadBalancerService.healthMonitor() >> healthMonitorService
+    1 * lbPoolService.disAssociateHealthMonitor(loadBalancerId, healthMonitorId) >> response
+    1 * healthMonitorService.delete(healthMonitorId) >> response
+    OpenstackProviderException ex = thrown(OpenstackProviderException)
+    ex.message.contains("foo")
+  }
+
+  def "disassociate and remove health monitor - exception"() {
+    setup:
+    String region = 'region1'
+    String loadBalancerId = UUID.randomUUID().toString()
+    String healthMonitorId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    LbPoolService lbPoolService = Mock()
+    HealthMonitorService healthMonitorService = Mock()
+    Throwable throwable = new Exception('foo')
+
+    when:
+    provider.disassociateAndRemoveHealthMonitor(region, loadBalancerId, healthMonitorId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.lbPool() >> lbPoolService
+    1 * loadBalancerService.healthMonitor() >> healthMonitorService
+    1 * lbPoolService.disAssociateHealthMonitor(loadBalancerId, healthMonitorId) >> ActionResponse.actionSuccess()
+    1 * healthMonitorService.delete(healthMonitorId) >> { throw throwable }
+    OpenstackProviderException ex = thrown(OpenstackProviderException)
+    ex.cause == throwable
   }
 }

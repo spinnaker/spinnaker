@@ -17,10 +17,11 @@
 package com.netflix.spinnaker.clouddriver.openstack.deploy.exception
 
 import groovy.transform.InheritConstructors
+import org.openstack4j.model.common.ActionResponse
 
-/**
- *
- */
 @InheritConstructors
 class OpenstackProviderException extends RuntimeException {
+  OpenstackProviderException(ActionResponse actionResponse) {
+    super("Operation failed: fault $actionResponse.fault with code $actionResponse.code")
+  }
 }

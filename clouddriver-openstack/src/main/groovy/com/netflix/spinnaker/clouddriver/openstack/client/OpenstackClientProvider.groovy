@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.apache.commons.lang.StringUtils
 import org.openstack4j.api.Builders
 import org.openstack4j.api.OSClient
+import org.openstack4j.api.networking.ext.LoadBalancerService
 import org.openstack4j.model.common.ActionResponse
 import org.openstack4j.model.compute.IPProtocol
 import org.openstack4j.model.compute.RebootType
@@ -32,6 +33,7 @@ import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.network.ext.LbPool
 import org.openstack4j.model.network.ext.Member
 
+import java.lang.reflect.UndeclaredThrowableException
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
@@ -282,6 +284,42 @@ abstract class OpenstackClientProvider {
   }
 
   /**
+   * Remove load balancer pool.
+   * @param region
+   * @param poolId
+   */
+  void deleteVip(String region, String vipId) {
+    handleRequest {
+      getRegionClient(region).networking().loadbalancers().vip().delete(vipId)
+    }
+  }
+
+  /**
+   * Remove load balancer pool.
+   * @param region
+   * @param poolId
+   */
+  void deleteLoadBalancerPool(String region, String poolId) {
+    handleRequest {
+      getRegionClient(region).networking().loadbalancers().lbPool().delete(poolId)
+    }
+  }
+
+  /**
+   * Disassociates and removes health monitor from load balancer.
+   * @param region
+   * @param lbPoolId
+   * @param healthMonitorId
+   */
+  void disassociateAndRemoveHealthMonitor(String region, String lbPoolId, String healthMonitorId) {
+    handleRequest {
+      LoadBalancerService loadBalancerService = getRegionClient(region).networking().loadbalancers()
+      loadBalancerService.lbPool().disAssociateHealthMonitor(lbPoolId, healthMonitorId)
+      loadBalancerService.healthMonitor().delete(healthMonitorId)
+    }
+  }
+
+  /**
    * Handler for an Openstack4J request with error common handling.
    * @param operation to add context to error messages
    * @param closure makes the needed Openstack4J request
@@ -301,6 +339,26 @@ abstract class OpenstackClientProvider {
   }
 
   /**
+   * Handler for an Openstack4J request with error common handling.
+   * @param closure makes the needed Openstack4J request
+   * @return returns the result from the closure
+   */
+  def handleRequest(Closure closure) {
+    def result
+    try {
+      result = closure()
+    } catch (UndeclaredThrowableException ute) {
+      throw new OpenstackProviderException('Unable to process request', ute.cause)
+    } catch (Exception e) {
+      throw new OpenstackProviderException('Unable to process request', e)
+    }
+    if (result instanceof ActionResponse && !result.isSuccess()) {
+      throw new OpenstackProviderException(result)
+    }
+    result
+  }
+
+  /**
    * Thread-safe way to get client.
    * @return
    */
@@ -311,4 +369,8 @@ abstract class OpenstackClientProvider {
    * @return
    */
   abstract String getTokenId()
+
+  OSClient getRegionClient(String region) {
+    client.useRegion(region)
+  }
 }
