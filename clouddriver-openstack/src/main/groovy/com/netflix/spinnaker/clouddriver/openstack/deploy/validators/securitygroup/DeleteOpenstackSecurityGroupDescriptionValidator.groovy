@@ -19,40 +19,31 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.validators.securitygr
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackOperation
-import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.UpsertOpenstackSecurityGroupDescription
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.DeleteOpenstackSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.OpenstackAttributeValidator
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import org.apache.commons.lang.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
 /**
- * Validates the upsert security group operation description.
+ * Validates the delete security group operation description.
  */
-@OpenstackOperation(AtomicOperations.UPSERT_SECURITY_GROUP)
+@OpenstackOperation(AtomicOperations.DELETE_SECURITY_GROUP)
 @Component
-class UpsertOpenstackSecurityGroupDescriptionValidator extends DescriptionValidator<UpsertOpenstackSecurityGroupDescription> {
+class DeleteOpenstackSecurityGroupDescriptionValidator extends DescriptionValidator<DeleteOpenstackSecurityGroupDescription> {
+
+  static final String CONTEXT = "deleteOpenstackSecurityGroupAtomicOperationDescription"
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, UpsertOpenstackSecurityGroupDescription description, Errors errors) {
-    def validator = new OpenstackAttributeValidator("upsertOpenstackSecurityGroupAtomicOperationDescription", errors)
+  void validate(List priorDescriptions, DeleteOpenstackSecurityGroupDescription description, Errors errors) {
+    def validator = new OpenstackAttributeValidator(CONTEXT, errors)
     validator.validateCredentials(description.account, accountCredentialsProvider)
-    if (StringUtils.isNotEmpty(description.id)) {
-      validator.validateUUID(description.id, "id")
-    }
-    if (!description.rules.isEmpty()) {
-      description.rules.each { r ->
-        validator.validateCIDR(r.cidr, "cidr")
-        validator.validatePort(r.fromPort, "fromPort")
-        validator.validatePort(r.toPort, "toPort")
-        validator.validateRuleType(r.ruleType, "ruleType")
-      }
-    }
+    validator.validateNotEmpty(description.region, "region")
+    validator.validateUUID(description.id, "id")
   }
-
 }

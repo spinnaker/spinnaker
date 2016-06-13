@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.securitygroup
 
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.OpenstackSecurityGroupDescription
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.UpsertOpenstackSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import groovy.util.logging.Slf4j
 
@@ -29,9 +29,9 @@ import groovy.util.logging.Slf4j
 class UpsertOpenstackSecurityGroupAtomicOperation implements AtomicOperation<Void> {
 
   private final String BASE_PHASE = "UPSERT_SECURITY_GROUP"
-  OpenstackSecurityGroupDescription description
+  UpsertOpenstackSecurityGroupDescription description
 
-  UpsertOpenstackSecurityGroupAtomicOperation(OpenstackSecurityGroupDescription description) {
+  UpsertOpenstackSecurityGroupAtomicOperation(UpsertOpenstackSecurityGroupDescription description) {
     this.description = description
   }
 

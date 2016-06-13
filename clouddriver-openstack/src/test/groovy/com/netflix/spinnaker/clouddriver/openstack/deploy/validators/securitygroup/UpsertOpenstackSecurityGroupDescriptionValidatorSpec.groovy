@@ -17,8 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.validators.securitygroup
 
-import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.OpenstackSecurityGroupDescription
-import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.securitygroup.UpsertOpenstackSecurityGroupDescriptionValidator
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.UpsertOpenstackSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -50,7 +49,7 @@ class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
     def id = UUID.randomUUID().toString()
     def name = "name"
     def desc = "description"
-    def description = new OpenstackSecurityGroupDescription(account: 'foo', id: id, name: name, description: desc, rules: [])
+    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', id: id, name: name, description: desc, rules: [])
 
     when:
     validator.validate([], description, errors)
@@ -65,10 +64,10 @@ class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
     def name = "name"
     def desc = "description"
     def rules = [
-      new OpenstackSecurityGroupDescription.Rule(fromPort: 80, toPort: 80, cidr: "0.0.0.0/0"),
-      new OpenstackSecurityGroupDescription.Rule(fromPort: 443, toPort: 443, cidr: "0.0.0.0/0")
+      new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: 80, toPort: 80, cidr: "0.0.0.0/0"),
+      new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: 443, toPort: 443, cidr: "0.0.0.0/0")
     ]
-    def description = new OpenstackSecurityGroupDescription(account: 'foo', id: id, name: name, description: desc, rules: rules)
+    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', id: id, name: name, description: desc, rules: rules)
 
     when:
     validator.validate([], description, errors)
@@ -82,7 +81,7 @@ class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
     def id = "not a uuid"
     def name = "name"
     def desc = "description"
-    def description = new OpenstackSecurityGroupDescription(account: 'foo', id: id, name: name, description: desc, rules: [])
+    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', id: id, name: name, description: desc, rules: [])
 
     when:
     validator.validate([], description, errors)
@@ -95,7 +94,7 @@ class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
     setup:
     def name = "name"
     def desc = "description"
-    def description = new OpenstackSecurityGroupDescription(account: 'foo', id: null, name: name, description: desc, rules: [])
+    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', id: null, name: name, description: desc, rules: [])
 
     when:
     validator.validate([], description, errors)
@@ -110,9 +109,9 @@ class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
     def name = "name"
     def desc = "description"
     def rules = [
-      new OpenstackSecurityGroupDescription.Rule(fromPort: fromPort, toPort: toPort, cidr: cidr)
+      new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: fromPort, toPort: toPort, cidr: cidr)
     ]
-    def description = new OpenstackSecurityGroupDescription(account: 'foo', id: id, name: name, description: desc, rules: rules)
+    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', id: id, name: name, description: desc, rules: rules)
 
     when:
     validator.validate([], description, errors)

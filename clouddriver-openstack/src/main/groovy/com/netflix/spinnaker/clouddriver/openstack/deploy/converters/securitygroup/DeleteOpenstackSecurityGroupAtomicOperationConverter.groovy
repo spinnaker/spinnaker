@@ -10,31 +10,34 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.converters.securitygroup
 
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackOperation
 import com.netflix.spinnaker.clouddriver.openstack.deploy.converters.OpenstackAtomicOperationConverterHelper
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.DeleteOpenstackSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.UpsertOpenstackSecurityGroupDescription
-import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.securitygroup.UpsertOpenstackSecurityGroupAtomicOperation
+import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.securitygroup.DeleteOpenstackSecurityGroupAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
-@OpenstackOperation(AtomicOperations.UPSERT_SECURITY_GROUP)
+
+@OpenstackOperation(AtomicOperations.DELETE_SECURITY_GROUP)
 @Component
-class UpsertOpenstackSecurityGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+class DeleteOpenstackSecurityGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Override
   AtomicOperation convertOperation(Map input) {
-    new UpsertOpenstackSecurityGroupAtomicOperation(convertDescription(input))
+    new DeleteOpenstackSecurityGroupAtomicOperation(convertDescription(input))
   }
 
   @Override
-  UpsertOpenstackSecurityGroupDescription convertDescription(Map input) {
-    OpenstackAtomicOperationConverterHelper.convertDescription(input, this, UpsertOpenstackSecurityGroupDescription)
+  Object convertDescription(Map input) {
+    OpenstackAtomicOperationConverterHelper.convertDescription(input, this, DeleteOpenstackSecurityGroupDescription)
   }
 }

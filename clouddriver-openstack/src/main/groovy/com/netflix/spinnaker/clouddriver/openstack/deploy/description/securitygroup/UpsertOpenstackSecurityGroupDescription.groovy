@@ -25,7 +25,7 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.description.OpenstackA
  *
  * Only CIDR remote types are supported.
  */
-class OpenstackSecurityGroupDescription extends OpenstackAtomicOperationDescription {
+class UpsertOpenstackSecurityGroupDescription extends OpenstackAtomicOperationDescription {
 
   String id
   String name

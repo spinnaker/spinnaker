@@ -21,14 +21,15 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFactory
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.DeleteOpenstackSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.UpsertOpenstackSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import spock.lang.Specification
 
-class UpsertOpenstackSecurityGroupAtomicOperationSpec extends Specification {
-
+class DeleteOpenstackSecurityGroupAtomicOperationSpec extends Specification {
   private static final String ACCOUNT_NAME = 'account'
+  private static final String REGION = 'west'
   def credentials
   def provider
 
@@ -44,20 +45,17 @@ class UpsertOpenstackSecurityGroupAtomicOperationSpec extends Specification {
     credentials = new OpenstackCredentials(namedAccountCredentials)
   }
 
-  def "upsert a security group"() {
+  def "delete a security group"() {
     setup:
     def id = UUID.randomUUID().toString()
-    def name = "name"
-    def desc = "description"
-    def description = new UpsertOpenstackSecurityGroupDescription(account: ACCOUNT_NAME, credentials: credentials, id: id, name: name, description: desc, rules: [])
-    def operation = new UpsertOpenstackSecurityGroupAtomicOperation(description)
+    def description = new DeleteOpenstackSecurityGroupDescription(account: ACCOUNT_NAME, region: REGION, credentials: credentials, id: id)
+    def operation = new DeleteOpenstackSecurityGroupAtomicOperation(description)
 
     when:
     operation.operate([])
 
     then:
-    1 * provider.upsertSecurityGroup(id, name, desc, [])
+    1 * provider.deleteSecurityGroup(REGION, id)
+    noExceptionThrown()
   }
-
-
 }

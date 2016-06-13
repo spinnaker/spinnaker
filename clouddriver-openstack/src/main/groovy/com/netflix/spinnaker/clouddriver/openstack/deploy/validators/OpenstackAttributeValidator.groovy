@@ -16,12 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.UpsertOpenstackSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.apache.commons.net.util.SubnetUtils
 import org.springframework.validation.Errors
 
-import static com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.OpenstackSecurityGroupDescription.Rule
+import static UpsertOpenstackSecurityGroupDescription.Rule
+
 /**
  * TODO most of the validate methods can be moved into base class,
  * since other drivers are doing the same thing.
@@ -183,12 +185,15 @@ class OpenstackAttributeValidator {
    * @return
    */
   def validateUUID(String value, String attribute) {
-    boolean result = false
-    try {
-      UUID.fromString(value)
-      result = true
-    } catch (IllegalArgumentException e) {
-      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.notUUID")
+    boolean result = validateNotEmpty(value, attribute)
+    if (result) {
+      try {
+        UUID.fromString(value)
+        result = true
+      } catch (IllegalArgumentException e) {
+        errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.notUUID")
+        result = false
+      }
     }
     result
   }

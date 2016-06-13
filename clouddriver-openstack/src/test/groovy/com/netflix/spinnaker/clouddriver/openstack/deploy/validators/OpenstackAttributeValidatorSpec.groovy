@@ -203,14 +203,15 @@ class OpenstackAttributeValidatorSpec extends Specification {
     then:
     actual == result
     if (!result) {
-      1 * errors.rejectValue('context.test', 'context.test.notUUID')
+      1 * errors.rejectValue('context.test', msg)
     }
 
     where:
-    value                                  | result
-    '62e3b610-281a-11e6-bdf4-0800200c9a66' | true
-    '123'                                  | false
-    ''                                     | false
+    value                                  | result | msg
+    '62e3b610-281a-11e6-bdf4-0800200c9a66' | true   | 'context.test.notUUID'
+    '123'                                  | false  | 'context.test.notUUID'
+    ''                                     | false  | 'context.test.empty'
+    null                                   | false  | 'context.test.empty'
   }
 
   def "ValidateCIDR"() {
