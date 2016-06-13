@@ -20,6 +20,11 @@ from run import check_run_quick
 
 
 class Processor(object):
+  def __collect_environ(self, content):
+    return {match.group(1): match.group(2).strip()
+            for match in re.finditer('^([^\s#]+)=([^\n#]*)',
+                                     content, re.MULTILINE)}
+    
   def __init__(self, config, environ_path, yml_path, aws_path):
       with open(environ_path, 'r') as f:
           self.__environ_content = f.read()
@@ -30,6 +35,7 @@ class Processor(object):
           self.__output = f.read()
 
       self.__bindings = yaml_util.YamlBindings()
+      self.__bindings.import_dict(self.__collect_environ(self.__environ_content))
       self.__bindings.import_string(config)
       self.__write_yml_path = yml_path
       self.__write_aws_path = aws_path

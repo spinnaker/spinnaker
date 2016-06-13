@@ -221,6 +221,11 @@ class YamlBindings(object):
     offset -= match.start(0)
     value_start = match.start(1) + offset
     value_end = match.end(0) + offset
+
+    if isinstance(value, basestring) and re.search('{[^}]*{', value):
+      # Quote strings with nested {} yaml flows
+      value = '"{0}"'.format(value)
+
     return ''.join([
         source[0:value_start],
         ' {value}'.format(value=value),

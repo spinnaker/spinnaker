@@ -151,8 +151,7 @@ class Configurator(object):
 
   @staticmethod
   def export_environment_variables(content):
-    for match in re.finditer('^([^\s]+?)=([^\n]*)(?:\#.+)?', content,
-                             re.MULTILINE):
+    for match in re.finditer('^([^\s#]+?)=([^\n#]*)', content, re.MULTILINE):
       os.environ[match.group(1)] = match.group(2)
 
   def load_environment_variables(self, path=None):
