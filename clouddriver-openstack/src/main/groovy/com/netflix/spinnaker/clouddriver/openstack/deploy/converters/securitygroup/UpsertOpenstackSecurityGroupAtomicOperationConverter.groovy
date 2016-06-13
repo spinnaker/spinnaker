@@ -26,7 +26,7 @@ import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCreden
 import org.springframework.stereotype.Component
 
 @OpenstackOperation(AtomicOperations.UPSERT_SECURITY_GROUP)
-@Component("upsertSecurityGroupDescription")
+@Component
 class UpsertOpenstackSecurityGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Override
   AtomicOperation convertOperation(Map input) {

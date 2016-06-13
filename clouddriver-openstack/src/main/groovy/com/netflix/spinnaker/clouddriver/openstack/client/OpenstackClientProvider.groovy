@@ -142,6 +142,36 @@ abstract class OpenstackClientProvider {
     //TODO: Handle heat autoscaling migration to senlin in versions > Mitaka
   }
 
+  /***
+   * Get a Spinnaker Server Group (Openstack Heat Stack).
+   * @param region
+   * @param stackName
+   */
+  Stack getServerGroup(String region, String stackName) {
+    try {
+      def stack = client.useRegion(region).heat().stacks().getStackByName(stackName)
+      return stack
+    } catch (Exception e) {
+      throw new OpenstackOperationException(e)
+    }
+  }
+
+  /***
+   * Get a heat template from an existing Openstack Heat Stack
+   * @param region
+   * @param stackName
+   * @param stackId
+   * @return
+   */
+  String getHeatTemplate(String region, String stackName, String stackId) {
+    try {
+      def template = client.useRegion(region).heat().templates().getTemplateAsString(stackName, stackId)
+      return template
+    } catch (Exception e) {
+      throw new OpenstackOperationException(e)
+    }
+  }
+
   /**
    * List existing heat stacks (server groups)
    * @return List < ? extends Stack >  stacks

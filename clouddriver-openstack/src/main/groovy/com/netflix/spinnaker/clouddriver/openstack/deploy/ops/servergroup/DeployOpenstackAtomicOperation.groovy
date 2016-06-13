@@ -37,7 +37,7 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<Void> {
   }
 
   /*
-  * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "stack": "test-stack", "application": "myapp", "region": "RegionOne", "heatTemplate": "{\"heat_template_version\":\"2013-05-23\",\"description\":\"Simple template to test heat commands\",\"parameters\":{\"flavor\":{\"default\":\"m1.nano\",\"type\":\"string\"}},\"resources\":{\"hello_world\":{\"type\":\"OS::Nova::Server\",\"properties\":{\"flavor\":{\"get_param\":\"flavor\"},\"image\":\"cirros-0.3.4-x86_64-uec\",\"user_data\":\"\"}}}}", "timeoutMins": "5", "account": "test" }} ]' localhost:7002/openstack/ops
+  * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "stack": "teststack", "application": "myapp", "region": "RegionOne", "heatTemplate": "{\"heat_template_version\":\"2013-05-23\",\"description\":\"Simple template to test heat commands\",\"parameters\":{\"flavor\":{\"default\":\"m1.nano\",\"type\":\"string\"}},\"resources\":{\"hello_world\":{\"type\":\"OS::Nova::Server\",\"properties\":{\"flavor\":{\"get_param\":\"flavor\"},\"image\":\"cirros-0.3.4-x86_64-uec\",\"user_data\":\"\"}}}}", "timeoutMins": "5", "account": "test" }} ]' localhost:7002/openstack/ops
   * curl -X GET -H "Accept: application/json" localhost:7002/task/1
   */
   @Override

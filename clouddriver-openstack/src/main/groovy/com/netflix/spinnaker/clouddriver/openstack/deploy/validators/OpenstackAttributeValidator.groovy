@@ -16,14 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.validators
 
-import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.OpenstackSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.apache.commons.net.util.SubnetUtils
 import org.springframework.validation.Errors
 
 import static com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.OpenstackSecurityGroupDescription.Rule
-
 /**
  * TODO most of the validate methods can be moved into base class,
  * since other drivers are doing the same thing.
@@ -218,4 +216,14 @@ class OpenstackAttributeValidator {
     validateNotEmpty(value, attribute) &&
       validateByContainment(value, attribute, [Rule.RULE_TYPE_TCP])
   }
+
+  def validateServerGroupCloneSource(Object value, String attribute) {
+    if (!value) {
+      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.empty")
+      return false
+    } else {
+      return validateNotEmpty(value.stackName, attribute) && validateNotEmpty(value.region, attribute)
+    }
+  }
 }
+

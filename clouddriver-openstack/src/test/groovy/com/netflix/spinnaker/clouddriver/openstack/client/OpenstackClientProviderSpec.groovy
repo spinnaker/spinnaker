@@ -26,19 +26,11 @@ import org.openstack4j.api.compute.ComputeService
 import org.openstack4j.api.compute.ServerService
 import org.openstack4j.api.heat.HeatService
 import org.openstack4j.api.heat.StackService
+import org.openstack4j.api.heat.TemplateService
 import org.openstack4j.api.networking.NetworkingService
-import org.openstack4j.api.networking.ext.HealthMonitorService
-import org.openstack4j.api.networking.ext.LbPoolService
-import org.openstack4j.api.networking.ext.LoadBalancerService
-import org.openstack4j.api.networking.ext.MemberService
-import org.openstack4j.api.networking.ext.VipService
-import org.openstack4j.api.networking.ext.MemberService
+import org.openstack4j.api.networking.ext.*
 import org.openstack4j.model.common.ActionResponse
-import org.openstack4j.model.compute.Address
-import org.openstack4j.model.compute.Addresses
-import org.openstack4j.model.compute.IPProtocol
-import org.openstack4j.model.compute.SecGroupExtension
-import org.openstack4j.model.compute.Server
+import org.openstack4j.model.compute.*
 import org.openstack4j.model.network.ext.LbPool
 import org.openstack4j.model.network.ext.Member
 import org.openstack4j.openstack.compute.domain.NovaSecGroupExtension
@@ -769,5 +761,39 @@ class OpenstackClientProviderSpec extends Specification {
     1 * healthMonitorService.delete(healthMonitorId) >> { throw throwable }
     OpenstackProviderException ex = thrown(OpenstackProviderException)
     ex.cause == throwable
+  }
+
+  def "get heat stack succeeds"() {
+    setup:
+    HeatService heat = Mock()
+    StackService stackApi = Mock()
+    mockClient.useRegion(_ as String).heat() >> heat
+    heat.stacks() >> stackApi
+
+    when:
+    provider.getServerGroup("myregion", "mystack")
+
+    then:
+    1 * mockClient.useRegion("myregion") >> mockClient
+    1 * mockClient.heat() >> heat
+    1 * stackApi.getStackByName("mystack")
+    noExceptionThrown()
+  }
+
+  def "get heat template succeeds"() {
+    setup:
+    HeatService heat = Mock()
+    TemplateService templateApi = Mock()
+    mockClient.useRegion(_ as String).heat() >> heat
+    heat.templates() >> templateApi
+
+    when:
+    provider.getHeatTemplate("myregion", "mystack", "mystackid")
+
+    then:
+    1 * mockClient.useRegion("myregion") >> mockClient
+    1 * mockClient.heat() >> heat
+    1 * templateApi.getTemplateAsString("mystack", "mystackid")
+    noExceptionThrown()
   }
 }
