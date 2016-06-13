@@ -13,12 +13,13 @@
 # limitations under the License.
 
 """
-Smoke test to see if Spinnaker can interoperate with Kubernetes.
+Integration test to see if the image promotion process is working for the
+Spinnaker Kubernetes integration.
 
 See testable_service/integration_test.py and spinnaker_testing/spinnaker.py
 for more details.
 
-The smoke test will use ssh to peek at the spinnaker configuration
+The test will use ssh to peek at the spinnaker configuration
 to determine the managed project it should verify, and to determine
 the spinnaker account name to use when sending it commands.
 
@@ -51,6 +52,7 @@ import citest.service_testing as st
 # Spinnaker modules.
 import spinnaker_testing as sk
 import spinnaker_testing.gate as gate
+import spinnaker_testing.frigga as frigga
 
 
 class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
@@ -61,6 +63,9 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
     Create a Spinnaker Application
     Create a Spinnaker Load Balancer
     Create a Spinnaker Server Group
+    Create a Pipeline with the following stages
+      - Find Image
+      - Deploy
     Delete each of the above (in reverse order)
   """
 
@@ -70,16 +75,6 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
     agent = gate.new_agent(bindings)
     agent.default_max_wait_secs = 70
     return agent
-
-  @classmethod
-  def initArgumentParser(cls, parser, defaults=None):
-    """Initialize command line argument parser.
-
-    Args:
-      parser: argparse.ArgumentParser
-    """
-    super(KubeSmokeTestScenario, cls).initArgumentParser(
-        parser, defaults=defaults)
 
   def __init__(self, bindings, agent=None):
     """Constructor.
@@ -91,20 +86,38 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
     super(KubeSmokeTestScenario, self).__init__(bindings, agent)
     bindings = self.bindings
 
-    optional_stack = ('-{0}'.format(bindings['TEST_STACK'])
-                      if bindings['TEST_STACK']
-                      else '')
-
     # No detail because name length is restricted too much to afford one!
     self.__lb_detail = ''
-    self.__lb_name = '{app}{optional_stack}'.format(
+    self.__lb_name = frigga.Naming.cluster(
         app=bindings['TEST_APP'],
-        optional_stack=optional_stack)
+        stack=bindings['TEST_STACK'])
 
     # We'll call out the app name because it is widely used
     # because it scopes the context of our activities.
     # pylint: disable=invalid-name
     self.TEST_APP = bindings['TEST_APP']
+
+    self.pipeline_id = None
+
+    # We will deploy two images. One with a tag that we want to find,
+    # and another that we don't want to find.
+    self.__image_registry = 'gcr.io'
+    self.__image_repository = 'kubernetes-spinnaker/test-image'
+    self.__desired_image_tag = 'validated'
+    self.__undesired_image_tag = 'broken'
+    self.__desired_image_pattern = '.*{0}'.format(self.__desired_image_tag)
+
+    image_id_format_string = '{0}/{1}:{2}'
+
+    self.__desired_image_id = image_id_format_string.format(
+        self.__image_registry,
+        self.__image_repository,
+        self.__desired_image_tag)
+
+    self.__undesired_image_id = image_id_format_string.format(
+        self.__image_registry,
+        self.__image_repository,
+        self.__undesired_image_tag)
 
   def create_app(self):
     """Creates OperationContract that creates a new Spinnaker Application."""
@@ -205,8 +218,10 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
 
     # Spinnaker determines the group name created,
     # which will be the following:
-    group_name = '{app}-{stack}-v000'.format(
-        app=self.TEST_APP, stack=bindings['TEST_STACK'])
+    group_name = frigga.Naming.server_group(
+        app=self.TEST_APP, 
+        stack=bindings['TEST_STACK'],
+        version='v000')
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=[{
@@ -214,20 +229,34 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
             'application': self.TEST_APP,
             'account': bindings['KUBE_CREDENTIALS'],
             'strategy':'',
-            'targetSize': 2,
+            'targetSize': 1,
             'containers': [{
-                'name': 'librarynginx',
+                'name': 'validated',
                 'imageDescription': {
-                    'repository': 'library/nginx',
-                    'tag': 'stable',
-                    'imageId': 'index.docker.io/library/nginx:stable',
-                    'registry': 'index.docker.io'
+                    'repository': self.__image_repository,
+                    'tag': self.__desired_image_tag,
+                    'imageId': self.__desired_image_id,
+                    'registry': self.__image_registry
                 },
                 'requests': {'memory':None, 'cpu':None},
                 'limits': {'memory':None, 'cpu':None},
                 'ports':[{'name':'http', 'containerPort':80,
                           'protocol':'TCP', 'hostPort':None, 'hostIp':None}]
-            }],
+            }, 
+            {
+                'name': 'broken',
+                'imageDescription': {
+                    'repository': self.__image_repository,
+                    'tag': self.__undesired_image_tag,
+                    'imageId': self.__undesired_image_id,
+                    'registry': self.__image_registry
+                },
+                'requests': {'memory':None, 'cpu':None},
+                'limits': {'memory':None, 'cpu':None},
+                'ports':[{'name':'http', 'containerPort':80,
+                          'protocol':'TCP', 'hostPort':None, 'hostIp':None}]
+            }
+            ],
             'stack': bindings['TEST_STACK'],
             'loadBalancers': [self.__lb_name],
             'type': 'createServerGroup',
@@ -241,22 +270,130 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Replication Controller Added',
                                 retryable_for_secs=15)
      .get_resources('rc', extra_args=[group_name])
-     .contains_path_eq('spec/replicas', 2))
+     .contains_path_eq('spec/replicas', 1))
 
     return st.OperationContract(
         self.new_post_operation(
             title='create_server_group', data=payload, path='tasks'),
         contract=builder.build())
 
-  def delete_server_group(self):
+  def make_smoke_stage(self, requisiteStages=[], **kwargs):
+    result = {
+      'requisiteStageRefIds': requisiteStages,
+      'refId': 'FINDIMAGE',
+      'type': 'findImage',
+      'name': 'Find Valid Image',
+      'cloudProviderType': 'kubernetes', 
+      'namespaces': ['default'], 
+      'cloudProvider': 'kubernetes',
+      'selectionStrategy': 'NEWEST',
+      'onlyEnabled': True,
+      'credentials': self.bindings['KUBE_CREDENTIALS'],
+      'cluster': frigga.Naming.cluster(
+          app=self.TEST_APP, stack=self.bindings['TEST_STACK']),
+      'imageNamePattern': self.__desired_image_pattern
+    } 
+
+    result.update(kwargs)
+    return result
+
+  def make_deploy_stage(self, imageSource=None, requisiteStages=[], **kwargs):
+    bindings = self.bindings
+    cluster = frigga.Naming.cluster(
+        app=self.TEST_APP, 
+        stack=self.bindings['TEST_STACK'])
+    result = {
+      'requisiteStageRefIds': requisiteStages,
+      'refId': 'DEPLOY',
+      'type': 'deploy',
+      'name': 'Deploy Validated Image',
+      'clusters': [
+        {
+          'account': 'my-kubernetes-account',
+          'application': self.TEST_APP,
+          'stack': bindings['TEST_STACK'],
+          'loadBalancers': [self.__lb_name],
+          'strategy': '',
+          'targetSize': 1,
+          'cloudProvider': 'kubernetes',
+          'namespace': 'default',
+          'containers': [
+            {
+              'name': 'validated',
+              'imageDescription': {
+                'repository': 'Find Image',
+                'imageId':'{0} {1}'.format(
+                    cluster, 
+                    self.__desired_image_pattern),
+                'fromContext': True,
+                'cluster': cluster,
+                'pattern': self.__desired_image_pattern,
+                'stageId': imageSource
+               },
+              'requests': {'memory':None,'cpu':None},
+              'limits': {'memory':None,'cpu':None},
+              'ports': [{'name':'http','containerPort':80,
+                'protocol':'TCP','hostPort':None,'hostIp':None}],
+              'livenessProbe': None,
+              'readinessProbe': None, 'envVars': [],
+              'command': [],
+              'args': [],
+              'volumeMounts': []
+            }
+          ],
+          'volumeSources': [],
+          'provider': 'kubernetes',
+          'region': 'default'
+        }
+      ]
+    }
+
+    result.update(kwargs)
+    return result
+
+  def create_find_image_pipeline(self):
+    name = 'findImagePipeline'
+    self.pipeline_id = name
+    smoke_stage = self.make_smoke_stage()
+    deploy_stage = self.make_deploy_stage(
+        imageSource='FINDIMAGE', 
+        requisiteStages=['FINDIMAGE'])
+
+    pipeline_spec = dict(
+      name=name,
+      stages=[smoke_stage,  deploy_stage],
+      triggers=[],
+      application=self.TEST_APP,
+      stageCounter=2,
+      parallel=True,
+      limitConcurrent=True,
+      appConfig={},
+      index=0
+    )
+
+    payload = self.agent.make_json_payload_from_kwargs(**pipeline_spec)
+
+    builder = st.HttpContractBuilder(self.agent)
+    (builder.new_clause_builder('Has Pipeline')
+        .get_url_path(
+          'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
+        .contains_path_value(None, pipeline_spec))
+
+    return st.OperationContract(
+        self.new_post_operation(
+            title='create_find_image_pipeline', data=payload, path='pipelines',
+            status_class=st.SynchronousHttpOperationStatus),
+        contract=builder.build())
+
+  def delete_server_group(self, version='v000'):
     """Creates OperationContract for deleteServerGroup.
 
     To verify the operation, we just check that the Kubernetes container
     is no longer visible (or is in the process of terminating).
     """
     bindings = self.bindings
-    group_name = '{app}-{stack}-v000'.format(
-        app=self.TEST_APP, stack=bindings['TEST_STACK'])
+    group_name = frigga.Naming.server_group(
+        app=self.TEST_APP, stack=bindings['TEST_STACK'], version=version)
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=[{
@@ -286,6 +423,31 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
             title='delete_server_group', data=payload, path='tasks'),
         contract=builder.build())
 
+  def run_find_image_pipeline(self):
+    path = 'pipelines/{0}/{1}'.format(self.TEST_APP, self.pipeline_id)
+    bindings = self.bindings
+    group_name = frigga.Naming.server_group(
+        app=self.TEST_APP, 
+        stack=bindings['TEST_STACK'],
+        version='v001')
+
+    payload = self.agent.make_json_payload_from_kwargs(
+        type='manual',
+        user='[anonymous]')
+
+    builder = kube.KubeContractBuilder(self.kube_observer)
+    (builder.new_clause_builder('Replication Controller Added',
+                                retryable_for_secs=15)
+     .get_resources('rc', extra_args=[group_name])
+     .contains_path_eq(
+         'spec/template/spec/containers/image', 
+         self.__desired_image_id))
+
+    return st.OperationContract(
+        self.new_post_operation(
+            title='run_find_image_pipeline', data=payload, path=path),
+            builder.build())
+
 
 class KubeSmokeTest(st.AgentTestCase):
   """The test fixture for the KubeSmokeTest.
@@ -298,9 +460,6 @@ class KubeSmokeTest(st.AgentTestCase):
   def test_a_create_app(self):
     self.run_test_case(self.scenario.create_app())
 
-  # TODO(ewiseblatt): 20160316
-  # There is a server side bug preventing this from working, so
-  # leaving it disabled for now.
   def test_b_upsert_load_balancer(self):
     self.run_test_case(self.scenario.upsert_load_balancer())
 
@@ -309,8 +468,17 @@ class KubeSmokeTest(st.AgentTestCase):
                        max_retries=1,
                        timeout_ok=True)
 
-  def test_x_delete_server_group(self):
-    self.run_test_case(self.scenario.delete_server_group(), max_retries=2)
+  def test_d_create_find_image_pipeline(self):
+    self.run_test_case(self.scenario.create_find_image_pipeline())
+
+  def test_e_run_find_image_pipeline(self):
+    self.run_test_case(self.scenario.run_find_image_pipeline())
+
+  def test_x1_delete_server_group(self):
+    self.run_test_case(self.scenario.delete_server_group('v000'), max_retries=2)
+
+  def test_x2_delete_server_group(self):
+    self.run_test_case(self.scenario.delete_server_group('v001'), max_retries=2)
 
   def test_y_delete_load_balancer(self):
     self.run_test_case(self.scenario.delete_load_balancer(),
