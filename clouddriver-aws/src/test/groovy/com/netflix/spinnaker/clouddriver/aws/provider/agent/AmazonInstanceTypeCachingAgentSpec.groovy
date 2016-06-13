@@ -22,7 +22,6 @@ import com.amazonaws.services.ec2.model.DescribeReservedInstancesOfferingsResult
 import com.amazonaws.services.ec2.model.ReservedInstancesOffering
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
@@ -35,7 +34,6 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
   static final String region = 'us-east-1'
 
   AmazonEC2 ec2 = Mock(AmazonEC2)
-  AmazonCloudProvider amazonCloudProvider = new AmazonCloudProvider()
   AmazonClientProvider provider = Stub(AmazonClientProvider) {
     getAmazonEC2(_, _) >> ec2
   }
@@ -47,13 +45,12 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
   ProviderCache providerCache = Mock(ProviderCache)
 
   @Subject
-  AmazonInstanceTypeCachingAgent agent = new AmazonInstanceTypeCachingAgent(
-    amazonCloudProvider, provider, creds, region)
+  AmazonInstanceTypeCachingAgent agent = new AmazonInstanceTypeCachingAgent(provider, creds, region)
 
   void "should add to cache"() {
     when:
     def result = agent.loadData(providerCache)
-    def expected = Keys.getInstanceTypeKey(amazonCloudProvider, 'm1', region, account)
+    def expected = Keys.getInstanceTypeKey('m1', region, account)
 
     then:
     1 * ec2.describeReservedInstancesOfferings(new DescribeReservedInstancesOfferingsRequest()) >> new DescribeReservedInstancesOfferingsResult(
@@ -71,7 +68,7 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
   void "should dedupe instance types"() {
     when:
     def result = agent.loadData(providerCache)
-    def expected = Keys.getInstanceTypeKey(amazonCloudProvider, 'm1', region, account)
+    def expected = Keys.getInstanceTypeKey('m1', region, account)
 
     then:
     1 * ec2.describeReservedInstancesOfferings(new DescribeReservedInstancesOfferingsRequest()) >> new DescribeReservedInstancesOfferingsResult(
@@ -107,9 +104,9 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
 
     with (result.cacheResults.get(Keys.Namespace.INSTANCE_TYPES.ns)) { List<CacheData> cd ->
       cd.size() == 3
-      cd.find { it.id == Keys.getInstanceTypeKey(amazonCloudProvider, 'm1', region, account) }
-      cd.find { it.id == Keys.getInstanceTypeKey(amazonCloudProvider, 'm2', region, account) }
-      cd.find { it.id == Keys.getInstanceTypeKey(amazonCloudProvider, 'm3', region, account) }
+      cd.find { it.id == Keys.getInstanceTypeKey('m1', region, account) }
+      cd.find { it.id == Keys.getInstanceTypeKey('m2', region, account) }
+      cd.find { it.id == Keys.getInstanceTypeKey('m3', region, account) }
     }
     0 * _
   }

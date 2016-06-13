@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
 import com.netflix.spinnaker.cats.agent.AccountAware
-import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 
@@ -40,7 +39,6 @@ import groovy.util.logging.Slf4j
 @Slf4j
 class AmazonSubnetCachingAgent implements CachingAgent, AccountAware {
 
-  final AmazonCloudProvider amazonCloudProvider
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region
@@ -50,12 +48,10 @@ class AmazonSubnetCachingAgent implements CachingAgent, AccountAware {
     AUTHORITATIVE.forType(SUBNETS.ns)
   ] as Set)
 
-  AmazonSubnetCachingAgent(AmazonCloudProvider amazonCloudProvider,
-                           AmazonClientProvider amazonClientProvider,
+  AmazonSubnetCachingAgent(AmazonClientProvider amazonClientProvider,
                            NetflixAmazonCredentials account,
                            String region,
                            AmazonObjectMapper objectMapper) {
-    this.amazonCloudProvider = amazonCloudProvider
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
@@ -90,7 +86,7 @@ class AmazonSubnetCachingAgent implements CachingAgent, AccountAware {
 
     List<CacheData> data = subnets.collect { Subnet subnet ->
       Map<String, Object> attributes = objectMapper.convertValue(subnet, AwsInfrastructureProvider.ATTRIBUTES)
-      new DefaultCacheData(Keys.getSubnetKey(amazonCloudProvider, subnet.subnetId, region, account.name),
+      new DefaultCacheData(Keys.getSubnetKey(subnet.subnetId, region, account.name),
         attributes,
         [:])
     }

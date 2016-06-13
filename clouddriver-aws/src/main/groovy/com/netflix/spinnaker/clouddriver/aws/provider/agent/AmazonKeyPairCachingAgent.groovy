@@ -25,7 +25,6 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
@@ -39,7 +38,6 @@ import groovy.util.logging.Slf4j
 @Slf4j
 class AmazonKeyPairCachingAgent implements CachingAgent, AccountAware {
 
-  final AmazonCloudProvider amazonCloudProvider
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region
@@ -48,11 +46,9 @@ class AmazonKeyPairCachingAgent implements CachingAgent, AccountAware {
     AUTHORITATIVE.forType(KEY_PAIRS.ns)
   ] as Set)
 
-  AmazonKeyPairCachingAgent(AmazonCloudProvider amazonCloudProvider,
-                            AmazonClientProvider amazonClientProvider,
+  AmazonKeyPairCachingAgent(AmazonClientProvider amazonClientProvider,
                             NetflixAmazonCredentials account,
                             String region) {
-    this.amazonCloudProvider = amazonCloudProvider
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
@@ -85,7 +81,7 @@ class AmazonKeyPairCachingAgent implements CachingAgent, AccountAware {
     def keyPairs = ec2.describeKeyPairs().keyPairs
 
     List<CacheData> data = keyPairs.collect { KeyPairInfo keyPair ->
-      new DefaultCacheData(Keys.getKeyPairKey(amazonCloudProvider, keyPair.keyName, region, account.name), [
+      new DefaultCacheData(Keys.getKeyPairKey(keyPair.keyName, region, account.name), [
         keyName       : keyPair.keyName,
         keyFingerprint: keyPair.keyFingerprint
       ], [:])

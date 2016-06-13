@@ -26,7 +26,6 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
@@ -40,7 +39,6 @@ import groovy.util.logging.Slf4j
 @Slf4j
 class AmazonVpcCachingAgent implements CachingAgent, AccountAware {
 
-  final AmazonCloudProvider amazonCloudProvider
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region
@@ -50,12 +48,10 @@ class AmazonVpcCachingAgent implements CachingAgent, AccountAware {
     AUTHORITATIVE.forType(VPCS.ns)
   ] as Set)
 
-  AmazonVpcCachingAgent(AmazonCloudProvider amazonCloudProvider,
-                        AmazonClientProvider amazonClientProvider,
+  AmazonVpcCachingAgent(AmazonClientProvider amazonClientProvider,
                         NetflixAmazonCredentials account,
                         String region,
                         ObjectMapper objectMapper) {
-    this.amazonCloudProvider = amazonCloudProvider
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
@@ -90,7 +86,7 @@ class AmazonVpcCachingAgent implements CachingAgent, AccountAware {
 
     List<CacheData> data = vpcs.collect { Vpc vpc ->
       Map<String, Object> attributes = objectMapper.convertValue(vpc, AwsInfrastructureProvider.ATTRIBUTES)
-      new DefaultCacheData(Keys.getVpcKey(amazonCloudProvider, vpc.vpcId, region, account.name),
+      new DefaultCacheData(Keys.getVpcKey(vpc.vpcId, region, account.name),
         attributes,
         [:])
     }

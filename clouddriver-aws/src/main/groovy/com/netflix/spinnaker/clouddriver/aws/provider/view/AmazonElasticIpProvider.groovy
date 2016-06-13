@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
-import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.model.ElasticIpProvider
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonElasticIp
@@ -32,25 +31,23 @@ import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.ELASTIC
 @Component
 class AmazonElasticIpProvider implements ElasticIpProvider<AmazonElasticIp> {
 
-  private final AmazonCloudProvider amazonCloudProvider
   private final Cache cacheView
   private final ObjectMapper objectMapper
 
   @Autowired
-  AmazonElasticIpProvider(AmazonCloudProvider amazonCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
-    this.amazonCloudProvider = amazonCloudProvider
+  AmazonElasticIpProvider(Cache cacheView, ObjectMapper objectMapper) {
     this.cacheView = cacheView
     this.objectMapper = objectMapper
   }
 
   @Override
   Set<AmazonElasticIp> getAllByAccount(String account) {
-    loadResults(cacheView.filterIdentifiers(ELASTIC_IPS.ns, Keys.getElasticIpKey(amazonCloudProvider, '*', '*', account)))
+    loadResults(cacheView.filterIdentifiers(ELASTIC_IPS.ns, Keys.getElasticIpKey('*', '*', account)))
   }
 
   @Override
   Set<AmazonElasticIp> getAllByAccountAndRegion(String account, String region) {
-    loadResults(cacheView.filterIdentifiers(ELASTIC_IPS.ns, Keys.getElasticIpKey(amazonCloudProvider, '*', region, account)))
+    loadResults(cacheView.filterIdentifiers(ELASTIC_IPS.ns, Keys.getElasticIpKey('*', region, account)))
   }
 
   Set<AmazonElasticIp> loadResults(Collection<String> identifiers) {

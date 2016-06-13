@@ -43,7 +43,6 @@ import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.SECURIT
 @Slf4j
 class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
 
-  final AmazonCloudProvider amazonCloudProvider
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region
@@ -56,19 +55,17 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
     AUTHORITATIVE.forType(SECURITY_GROUPS.ns)
   ] as Set)
 
-  AmazonSecurityGroupCachingAgent(AmazonCloudProvider amazonCloudProvider,
-                                  AmazonClientProvider amazonClientProvider,
+  AmazonSecurityGroupCachingAgent(AmazonClientProvider amazonClientProvider,
                                   NetflixAmazonCredentials account,
                                   String region,
                                   ObjectMapper objectMapper,
                                   Registry registry) {
-    this.amazonCloudProvider = amazonCloudProvider
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper
     this.registry = registry
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${amazonCloudProvider.id}:${OnDemandAgent.OnDemandType.SecurityGroup}")
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${AmazonCloudProvider.AWS}:${OnDemandAgent.OnDemandType.SecurityGroup}")
   }
 
   @Override
@@ -118,7 +115,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
 
   @Override
   boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    type == OnDemandAgent.OnDemandType.SecurityGroup && cloudProvider == amazonCloudProvider.id
+    type == OnDemandAgent.OnDemandType.SecurityGroup && cloudProvider == AmazonCloudProvider.AWS
   }
 
   @Override
@@ -140,7 +137,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
   private CacheResult buildCacheResult(ProviderCache providerCache, List<SecurityGroup> securityGroups) {
     List<CacheData> data = securityGroups.collect { SecurityGroup securityGroup ->
       Map<String, Object> attributes = objectMapper.convertValue(securityGroup, AwsInfrastructureProvider.ATTRIBUTES)
-      new DefaultCacheData(Keys.getSecurityGroupKey(amazonCloudProvider, securityGroup.groupName, securityGroup.groupId, region, account.name, securityGroup.vpcId),
+      new DefaultCacheData(Keys.getSecurityGroupKey(securityGroup.groupName, securityGroup.groupId, region, account.name, securityGroup.vpcId),
         attributes,
         [:])
     }

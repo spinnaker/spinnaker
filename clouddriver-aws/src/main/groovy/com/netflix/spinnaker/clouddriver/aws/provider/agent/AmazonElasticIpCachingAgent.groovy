@@ -25,7 +25,6 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
@@ -39,7 +38,6 @@ import groovy.util.logging.Slf4j
 @Slf4j
 class AmazonElasticIpCachingAgent implements CachingAgent, AccountAware {
 
-  final AmazonCloudProvider amazonCloudProvider
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region
@@ -48,11 +46,9 @@ class AmazonElasticIpCachingAgent implements CachingAgent, AccountAware {
     AUTHORITATIVE.forType(ELASTIC_IPS.ns)
   ] as Set)
 
-  AmazonElasticIpCachingAgent(AmazonCloudProvider amazonCloudProvider,
-                              AmazonClientProvider amazonClientProvider,
+  AmazonElasticIpCachingAgent(AmazonClientProvider amazonClientProvider,
                               NetflixAmazonCredentials account,
                               String region) {
-    this.amazonCloudProvider = amazonCloudProvider
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
@@ -85,7 +81,7 @@ class AmazonElasticIpCachingAgent implements CachingAgent, AccountAware {
     def eips = ec2.describeAddresses().addresses
 
     List<CacheData> data = eips.collect { Address address ->
-      new DefaultCacheData(Keys.getElasticIpKey(amazonCloudProvider, address.publicIp, region, account.name), [
+      new DefaultCacheData(Keys.getElasticIpKey(address.publicIp, region, account.name), [
         address     : address.publicIp,
         domain      : address.domain,
         attachedToId: address.instanceId,

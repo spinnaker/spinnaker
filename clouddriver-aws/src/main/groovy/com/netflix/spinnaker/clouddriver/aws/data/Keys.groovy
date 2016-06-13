@@ -19,11 +19,10 @@ package com.netflix.spinnaker.clouddriver.aws.data
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace
 import groovy.transform.CompileStatic
+import static com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider.AWS
 
 @CompileStatic
 class Keys {
-
-  public static final PROVIDER = "aws"
 
   static Map<String, String> parse(String key) {
     def parts = key.split(':')
@@ -34,7 +33,7 @@ class Keys {
 
     def result = [provider: parts[0], type: parts[1]]
 
-    if (result.provider != PROVIDER) {
+    if (result.provider != AWS) {
       return null
     }
 
@@ -79,43 +78,43 @@ class Keys {
   }
 
   static String getImageKey(String imageId, String account, String region) {
-    "${PROVIDER}:${Namespace.IMAGES}:${account}:${region}:${imageId}"
+    "${AWS}:${Namespace.IMAGES}:${account}:${region}:${imageId}"
   }
 
   static String getNamedImageKey(String account, String imageName) {
-    "${PROVIDER}:${Namespace.NAMED_IMAGES}:${account}:${imageName}"
+    "${AWS}:${Namespace.NAMED_IMAGES}:${account}:${imageName}"
   }
 
   static String getServerGroupKey(String autoScalingGroupName, String account, String region) {
     Names names = Names.parseName(autoScalingGroupName)
-    "${PROVIDER}:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}"
+    "${AWS}:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}"
   }
 
   static String getInstanceKey(String instanceId, String account, String region) {
-    "${PROVIDER}:${Namespace.INSTANCES}:${account}:${region}:${instanceId}"
+    "${AWS}:${Namespace.INSTANCES}:${account}:${region}:${instanceId}"
   }
 
   static String getLaunchConfigKey(String launchConfigName, String account, String region) {
-    "${PROVIDER}:${Namespace.LAUNCH_CONFIGS}:${account}:${region}:${launchConfigName}"
+    "${AWS}:${Namespace.LAUNCH_CONFIGS}:${account}:${region}:${launchConfigName}"
   }
 
   static String getLoadBalancerKey(String loadBalancerName, String account, String region, String vpcId) {
-    "${PROVIDER}:${Namespace.LOAD_BALANCERS}:${account}:${region}:${loadBalancerName}${vpcId ? ':' + vpcId : ''}"
+    "${AWS}:${Namespace.LOAD_BALANCERS}:${account}:${region}:${loadBalancerName}${vpcId ? ':' + vpcId : ''}"
   }
 
   static String getClusterKey(String clusterName, String application, String account) {
-    "${PROVIDER}:${Namespace.CLUSTERS}:${application.toLowerCase()}:${account}:${clusterName}"
+    "${AWS}:${Namespace.CLUSTERS}:${application.toLowerCase()}:${account}:${clusterName}"
   }
 
   static String getApplicationKey(String application) {
-    "${PROVIDER}:${Namespace.APPLICATIONS}:${application.toLowerCase()}"
+    "${AWS}:${Namespace.APPLICATIONS}:${application.toLowerCase()}"
   }
 
   static String getInstanceHealthKey(String instanceId, String account, String region, String provider) {
-    "${PROVIDER}:${Namespace.HEALTH}:${instanceId}:${account}:${region}:${provider}"
+    "${AWS}:${Namespace.HEALTH}:${instanceId}:${account}:${region}:${provider}"
   }
 
   static String getReservedInstancesKey(String reservedInstancesId, String account, String region) {
-    "${PROVIDER}:${Namespace.RESERVED_INSTANCES}:${account}:${region}:${reservedInstancesId}"
+    "${AWS}:${Namespace.RESERVED_INSTANCES}:${account}:${region}:${reservedInstancesId}"
   }
 }

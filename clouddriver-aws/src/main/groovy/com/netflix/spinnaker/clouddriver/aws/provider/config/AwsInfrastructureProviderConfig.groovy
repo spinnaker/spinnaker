@@ -20,7 +20,6 @@ import com.netflix.awsobjectmapper.AmazonObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
-import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -45,16 +44,14 @@ import java.util.concurrent.ConcurrentHashMap
 class AwsInfrastructureProviderConfig {
   @Bean
   @DependsOn('netflixAmazonCredentials')
-  AwsInfrastructureProvider awsInfrastructureProvider(AmazonCloudProvider amazonCloudProvider,
-                                                      AmazonClientProvider amazonClientProvider,
+  AwsInfrastructureProvider awsInfrastructureProvider(AmazonClientProvider amazonClientProvider,
                                                       AccountCredentialsRepository accountCredentialsRepository,
                                                       AmazonObjectMapper amazonObjectMapper,
                                                       Registry registry) {
     def awsInfrastructureProvider =
-      new AwsInfrastructureProvider(amazonCloudProvider, Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
+      new AwsInfrastructureProvider(Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
 
     synchronizeAwsInfrastructureProvider(awsInfrastructureProvider,
-                                         amazonCloudProvider,
                                          amazonClientProvider,
                                          accountCredentialsRepository,
                                          amazonObjectMapper,
@@ -80,7 +77,6 @@ class AwsInfrastructureProviderConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
   AwsInfrastructureProviderSynchronizer synchronizeAwsInfrastructureProvider(AwsInfrastructureProvider awsInfrastructureProvider,
-                                                                             AmazonCloudProvider amazonCloudProvider,
                                                                              AmazonClientProvider amazonClientProvider,
                                                                              AccountCredentialsRepository accountCredentialsRepository,
                                                                              AmazonObjectMapper amazonObjectMapper,
@@ -93,12 +89,12 @@ class AwsInfrastructureProviderConfig {
         if (!scheduledAccounts.contains(credentials.name)) {
           def newlyAddedAgents = []
 
-          newlyAddedAgents << new AmazonElasticIpCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name)
-          newlyAddedAgents << new AmazonInstanceTypeCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name)
-          newlyAddedAgents << new AmazonKeyPairCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name)
-          newlyAddedAgents << new AmazonSecurityGroupCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, amazonObjectMapper, registry)
-          newlyAddedAgents << new AmazonSubnetCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, amazonObjectMapper)
-          newlyAddedAgents << new AmazonVpcCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, amazonObjectMapper)
+          newlyAddedAgents << new AmazonElasticIpCachingAgent(amazonClientProvider, credentials, region.name)
+          newlyAddedAgents << new AmazonInstanceTypeCachingAgent(amazonClientProvider, credentials, region.name)
+          newlyAddedAgents << new AmazonKeyPairCachingAgent(amazonClientProvider, credentials, region.name)
+          newlyAddedAgents << new AmazonSecurityGroupCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper, registry)
+          newlyAddedAgents << new AmazonSubnetCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper)
+          newlyAddedAgents << new AmazonVpcCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper)
 
           // If there is an agent scheduler, then this provider has been through the AgentController in the past.
           // In that case, we need to do the scheduling here (because accounts have been added to a running system).
