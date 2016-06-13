@@ -4,7 +4,9 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.application.modal.applicationProviderFields.directive', [
-    require('../../cloudProvider/cloudProvider.registry'),
+    require('../../cloudProvider/cloudProvider.registry.js'),
+    require('../../config/settings.js'),
+    require('../../utils/lodash.js'),
   ])
   .component('applicationProviderFields', {
       templateUrl: require('./applicationProviderFields.component.html'),
@@ -14,8 +16,17 @@ module.exports = angular
       },
       controller: 'ApplicationProviderFieldsCtrl',
   })
-  .controller('ApplicationProviderFieldsCtrl', function(cloudProviderRegistry) {
+  .controller('ApplicationProviderFieldsCtrl', function(cloudProviderRegistry, settings, _) {
     const templateUrlPath = 'applicationProviderFields.templateUrl';
+    let defaultProviderFields = settings.providers;
+
+    this.initializeApplicationField = (fieldPath) => {
+      let applicationFieldPath = 'providerSettings.' + fieldPath;
+
+      if (_.has(defaultProviderFields, fieldPath) && !_.has(this.application, applicationFieldPath)) {
+        _.set(this.application, applicationFieldPath, _.get(defaultProviderFields, fieldPath));
+      }
+    };
 
     this.getRelevantProviderFieldsTemplates = () => {
       let candidateProvidersToShow;

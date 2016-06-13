@@ -33,6 +33,7 @@ window.spinnakerSettings = {
         // tag that starts with "internal"
         inferInternalFlagFromSubnet: false,
       },
+      useAmiBlockDeviceMappings: false,
     },
     gce: {
       defaults: {
