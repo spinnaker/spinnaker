@@ -64,7 +64,8 @@ window.spinnakerSettings = {
       defaults: {
         account: awsPrimaryAccount,
         region: awsDefaultRegion
-      }
+      },
+      useAmiBlockDeviceMappings: false,
     },
     cf: {
       defaults: {
