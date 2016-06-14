@@ -133,9 +133,9 @@ abstract class OpenstackClientProvider {
    * @param timeoutMins
    * @return
    */
-  void deploy(String stackName, String heatTemplate, Map<String, String> parameters, boolean disableRollback, Long timeoutMins) {
+  void deploy(String region, String stackName, String heatTemplate, Map<String, String> parameters, boolean disableRollback, Long timeoutMins) {
     try {
-      client.heat().stacks().create(stackName, heatTemplate, parameters, disableRollback, timeoutMins)
+      client.useRegion(region).heat().stacks().create(stackName, heatTemplate, parameters, disableRollback, timeoutMins)
     } catch (Exception e) {
       throw new OpenstackOperationException(AtomicOperations.CREATE_SERVER_GROUP, e)
     }
@@ -176,10 +176,10 @@ abstract class OpenstackClientProvider {
    * List existing heat stacks (server groups)
    * @return List < ? extends Stack >  stacks
    */
-  List<? extends Stack> listStacks() {
+  List<? extends Stack> listStacks(String region) {
     def stacks
     try {
-      stacks = client.heat().stacks().list()
+      stacks = client.useRegion(region).heat().stacks().list()
     } catch (Exception e) {
       throw new OpenstackOperationException(e)
     }

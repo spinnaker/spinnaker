@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
-package com.netflix.spinnaker.clouddriver.openstack.deploy.description
+package com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup
 
 import groovy.transform.Canonical
 

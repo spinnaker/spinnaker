@@ -275,7 +275,6 @@ class OpenstackClientProviderSpec extends Specification {
   }
 
   def "deploy heat stack succeeds"() {
-
     setup:
     HeatService heat = Mock()
     StackService stackApi = Mock()
@@ -283,7 +282,7 @@ class OpenstackClientProviderSpec extends Specification {
     heat.stacks() >> stackApi
 
     when:
-    provider.deploy("mystack", "{}", [:], false, 1)
+    provider.deploy(region, "mystack", "{}", [:], false, 1)
 
     then:
     1 * stackApi.create("mystack", "{}", [:], false, 1)

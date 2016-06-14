@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.openstack.deploy.OpenstackServerGroupNameResolver
-import com.netflix.spinnaker.clouddriver.openstack.deploy.description.DeployOpenstackAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.DeployOpenstackAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import groovy.util.logging.Slf4j
 
@@ -53,7 +53,7 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<Void> {
 
 
     task.updateStatus BASE_PHASE, "Creating Heat stack"
-    description.credentials.provider.deploy(stackName, description.heatTemplate, description.parameters ?: [:], false, description.timeoutMins)
+    description.credentials.provider.deploy(description.region ,stackName, description.heatTemplate, description.parameters ?: [:], false, description.timeoutMins)
 
     task.updateStatus BASE_PHASE, "Successfully created server group."
   }

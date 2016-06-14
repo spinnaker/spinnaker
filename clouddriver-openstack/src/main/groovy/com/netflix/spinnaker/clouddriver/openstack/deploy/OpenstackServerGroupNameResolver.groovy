@@ -46,7 +46,7 @@ class OpenstackServerGroupNameResolver extends AbstractServerGroupNameResolver {
 
   @Override
   List<AbstractServerGroupNameResolver.TakenSlot> getTakenSlots(String clusterName) {
-    def stacks = credentials.provider.listStacks()
+    def stacks = credentials.provider.listStacks(region)
 
     return stacks.findResults { Stack stack ->
       def names = Names.parseName(stack.name)

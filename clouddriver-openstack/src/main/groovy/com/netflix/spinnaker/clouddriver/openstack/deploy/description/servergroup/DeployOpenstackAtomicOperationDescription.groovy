@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.openstack.deploy.description
+package com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup
 
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.OpenstackAtomicOperationDescription
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
@@ -26,7 +27,6 @@ class DeployOpenstackAtomicOperationDescription extends OpenstackAtomicOperation
   String application
   String stack
   String freeFormDetails
-  String region
   String heatTemplate
   Map <String, String> parameters
   Boolean disableRollback
