@@ -84,6 +84,20 @@ services:
     port: 8080
     baseUrl: ${services.default.protocol}://${services.front50.host}:${services.front50.port}
 
+    # If using storage bucket persistence (gcs or s3), specify the bucket here
+    # disable cassandra and enable the storage service below.
+    storage_bucket:
+    bucket_root: front50
+
+    cassandra:
+      enabled: true
+    redis:
+      enabled: false
+    gcs:
+      enabled: false
+    s3:
+      enabled: false
+
   gate:
     host: ${services.default.host}
     port: 8084
