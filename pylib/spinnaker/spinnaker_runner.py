@@ -506,7 +506,7 @@ class Runner(object):
        sys.stderr.write("""
 To fix this run the following:
    sudo {script_dir}/stop_spinnaker.sh
-   sudo {script_dir}/reconfigure_spinnaker_instance.sh
+   sudo {script_dir}/reconfigure_spinnaker.sh
    sudo {script_dir}/start_spinnaker.sh
 
 Proceeding anyway.
