@@ -285,7 +285,8 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
         'baseOs': 'trusty',
         'baseLabel': 'release',
         'cloudProviderType': providerType,
-        'package': package
+        'package': package,
+        'rebake': True
     }
     result.update(kwargs)
     return result
