@@ -136,6 +136,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
 
   def __init__(self, bindings, agent=None):
     super(BakeAndDeployTestScenario, self).__init__(bindings, agent)
+    self.logger = logging.getLogger(__name__)
 
     bindings = self.bindings
 
@@ -158,8 +159,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
 
     if not (self.test_google or self.test_aws):
       self.run_tests = False
-      logger = logging.getLogger(__name__)
-      logger.warning(
+      self.logger.warning(
           'Neither --test_google nor --test_aws were set. '
           'No tests will be run.')
 
@@ -498,10 +498,28 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
             token=self.bindings['JENKINS_TOKEN'],
             status_class=gate.GatePipelineStatus,
             status_path=path),
-          contract=jc.Contract())
+        contract=jc.Contract(),
+        cleanup=self.delete_baked_image)
 
   def new_jenkins_build_operation(self):
     return None
+
+  def delete_baked_image(self, status, unused_verify_results):
+    status = status.trigger_status
+    detail = status.detail_doc
+    if isinstance(detail, list):
+      self.logger.info('Using first status.')
+      detail = detail[0]
+
+    context = detail.get('context')
+    details = context.get('deploymentDetails') if context else None
+    name = details[0].get('imageId') if details else None
+    self.logger.info('Deleting the baked image="{0}"'.format(name))
+    if name:
+      gcloud = self.gce_observer
+      args = ['compute', 'images', '--project', gcloud.project,
+              'delete', name, '--quiet']
+      gcloud.run(args)
 
 
 class BakeAndDeployTest(st.AgentTestCase):

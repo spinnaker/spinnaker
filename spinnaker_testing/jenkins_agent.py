@@ -49,7 +49,7 @@ class JenkinsOperationStatus(base_agent.AgentOperationStatus):
     return self.__trigger_status.error
 
   @property
-  def status_agent(self):
+  def trigger_status(self):
     """
     The endpoint where the status of the Jenkins operation can be found.
     """
@@ -69,7 +69,7 @@ class JenkinsOperationStatus(base_agent.AgentOperationStatus):
       operation [BaseJenkinsOperation]: The Jenkins operation that this is for.
       status_class [AgentOperationClass]: The status class used to monitor the
           action that the jenkins trigger kicked off.
-      path [string]: The path the status_agent should poll on.
+      path [string]: The path the trigger_status should poll on.
       http_response [HttpResponseType]: Response given by Jenkins to the
         trigger.
     """
@@ -82,11 +82,11 @@ class JenkinsOperationStatus(base_agent.AgentOperationStatus):
     return self.__trigger_status.__cmp__(response.__trigger_status)
 
   def __str__(self):
-    return 'jenkins_status_agent={0}'.format(self.__trigger_status)
+    return 'jenkins_trigger_status={0}'.format(self.__trigger_status)
 
   def export_to_json_snapshot(self, snapshot, entity):
     snapshot.edge_builder.make_output(
-        entity, 'Jenkins Status', self.__trigger_status)
+        entity, 'Trigger Status', self.__trigger_status)
     super(JenkinsOperationStatus, self).export_to_json_snapshot(
         snapshot, entity)
 
