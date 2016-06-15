@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerMethod
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
@@ -113,6 +114,22 @@ class OpenstackAttributeValidatorSpec extends Specification {
     'foo' | true
     ''    | false
     null  | false
+  }
+
+  def "ValidateNotNull"() {
+    when:
+    boolean actual = validator.validateNotNull(value, 'test')
+
+    then:
+    actual == result
+    if (!result) {
+      1 * errors.rejectValue('context.test', _)
+    }
+
+    where:
+    value                                || result
+    LoadBalancerMethod.LEAST_CONNECTIONS || true
+    null                                 || false
   }
 
   def "ValidateNonNegative"() {
@@ -254,5 +271,56 @@ class OpenstackAttributeValidatorSpec extends Specification {
     ''    | false
     'UDP' | false
     'TCP' | true
+  }
+
+  def "ValidateHttpMethod"() {
+    when:
+    boolean actual = validator.validateHttpMethod(value, 'test')
+
+    then:
+    actual == result
+    if (!result) {
+      validator.errors.getFieldError('context.test')?.rejectedValue == expectedRejectedValue
+    }
+
+    where:
+    value    | result | expectedRejectedValue
+    'GET'    | true   | ''
+    'GETTER' | false  | 'context.test.invalidHttpMethod'
+    ''       | false  | 'context.test.empty'
+  }
+
+  def "ValidateHttpStatus"() {
+    when:
+    boolean actual = validator.validateHttpStatusCode(value, 'test')
+
+    then:
+    actual == result
+    if (!result) {
+      validator.errors.getFieldError('context.test')?.rejectedValue == expectedRejectedValue
+    }
+
+    where:
+    value | result | expectedRejectedValue
+    200   | true   | ''
+    199   | false  | 'context.test.invalidHttpStatusCode'
+    null  | false  | 'context.test.invalidHttpStatusCode'
+  }
+
+  def "ValidateURL"() {
+    when:
+    boolean actual = validator.validateURI(value, 'test')
+
+    then:
+    actual == result
+    if (!result) {
+      validator.errors.getFieldError('context.test')?.rejectedValue == expectedRejectedValue
+    }
+
+    where:
+    value                   | result | expectedRejectedValue
+    'http://www.goggle.com' | true   | ''
+    '/test'                 | true   | ''
+    ''                      | false  | 'context.test.empty'
   }
 }

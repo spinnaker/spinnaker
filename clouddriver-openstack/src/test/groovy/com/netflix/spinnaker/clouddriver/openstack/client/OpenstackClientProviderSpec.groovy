@@ -19,18 +19,40 @@ package com.netflix.spinnaker.clouddriver.openstack.client
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.UpsertOpenstackSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
+import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerPool
+import com.netflix.spinnaker.clouddriver.openstack.domain.PoolHealthMonitor
+import com.netflix.spinnaker.clouddriver.openstack.domain.VirtualIP
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.openstack4j.api.OSClient
 import org.openstack4j.api.compute.ComputeSecurityGroupService
-import org.openstack4j.api.compute.ComputeService
 import org.openstack4j.api.compute.ServerService
 import org.openstack4j.api.heat.HeatService
 import org.openstack4j.api.heat.StackService
 import org.openstack4j.api.heat.TemplateService
+import org.openstack4j.api.networking.ext.MemberService
+import org.openstack4j.api.compute.ComputeFloatingIPService
+import org.openstack4j.api.compute.ComputeService
+import org.openstack4j.api.exceptions.ServerResponseException
+import org.openstack4j.api.networking.NetFloatingIPService
 import org.openstack4j.api.networking.NetworkingService
-import org.openstack4j.api.networking.ext.*
+import org.openstack4j.api.networking.PortService
+import org.openstack4j.api.networking.SubnetService
+import org.openstack4j.api.networking.ext.HealthMonitorService
+import org.openstack4j.api.networking.ext.LbPoolService
+import org.openstack4j.api.networking.ext.LoadBalancerService
+import org.openstack4j.api.networking.ext.VipService
 import org.openstack4j.model.common.ActionResponse
-import org.openstack4j.model.compute.*
+import org.openstack4j.model.compute.FloatingIP
+import org.openstack4j.model.network.NetFloatingIP
+import org.openstack4j.model.network.Port
+import org.openstack4j.model.network.Subnet
+import org.openstack4j.model.network.ext.HealthMonitor
+import org.openstack4j.model.network.ext.Vip
+import org.openstack4j.model.compute.Address
+import org.openstack4j.model.compute.Addresses
+import org.openstack4j.model.compute.IPProtocol
+import org.openstack4j.model.compute.SecGroupExtension
+import org.openstack4j.model.compute.Server
 import org.openstack4j.model.network.ext.LbPool
 import org.openstack4j.model.network.ext.Member
 import org.openstack4j.openstack.compute.domain.NovaSecGroupExtension
@@ -213,6 +235,997 @@ class OpenstackClientProviderSpec extends Specification {
 
   }
 
+  def "get vip success"() {
+    setup:
+    String region = 'region1'
+    String vipId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    VipService vipService = Mock()
+    Vip vip = Mock()
+
+    when:
+    Vip result = provider.getVip(region, vipId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.vip() >> vipService
+    1 * vipService.get(vipId) >> vip
+    result == vip
+    noExceptionThrown()
+  }
+
+  def "get vip not found"() {
+    setup:
+    String region = 'region1'
+    String vipId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    VipService vipService = Mock()
+
+    when:
+    provider.getVip(region, vipId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.vip() >> vipService
+    1 * vipService.get(vipId) >> null
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    [region, vipId].every { openstackProviderException.message.contains(it) }
+  }
+
+  def "get vip exception"() {
+    setup:
+    String region = 'region1'
+    String vipId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    VipService vipService = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.getVip(region, vipId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.vip() >> vipService
+    1 * vipService.get(vipId) >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "validate subnet - #testCase"() {
+    setup:
+    String region = 'region1'
+    String subnetId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    SubnetService subnetService = Mock()
+
+    when:
+    boolean result = provider.validateSubnetId(region, subnetId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.subnet() >> subnetService
+    1 * subnetService.get(subnetId) >> subnetResult
+    result == expected
+    noExceptionThrown()
+
+    where:
+    testCase           | subnetResult || expected
+    'Subnet found'     | Mock(Subnet) || true
+    'Subnet not found' | null         || false
+  }
+
+  def "validate subnet - exception"() {
+    setup:
+    String region = 'region1'
+    String subnetId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    SubnetService subnetService = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.validateSubnetId(region, subnetId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.subnet() >> subnetService
+    1 * subnetService.get(subnetId) >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "create load balancer success"() {
+    setup:
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    LbPoolService lbPoolService = Mock()
+    LoadBalancerPool loadBalancerPool = Mock()
+    LbPool lbPool = Mock()
+
+    when:
+    LbPool result = provider.createLoadBalancerPool(region, loadBalancerPool)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.lbPool() >> lbPoolService
+    1 * lbPoolService.create(_) >> lbPool
+    result == lbPool
+    noExceptionThrown()
+  }
+
+  def "create load balancer exception"() {
+    setup:
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    LbPoolService lbPoolService = Mock()
+    LoadBalancerPool loadBalancerPool = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.createLoadBalancerPool(region, loadBalancerPool)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.lbPool() >> lbPoolService
+    1 * lbPoolService.create(_) >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "update load balancer success"() {
+    setup:
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    LbPoolService lbPoolService = Mock()
+    LoadBalancerPool loadBalancerPool = Mock()
+    LbPool lbPool = Mock()
+
+    when:
+    LbPool result = provider.updateLoadBalancerPool(region, loadBalancerPool)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.lbPool() >> lbPoolService
+    1 * lbPoolService.update(loadBalancerPool.id, _) >> lbPool
+    result == lbPool
+    noExceptionThrown()
+  }
+
+  def "update load balancer exception"() {
+    setup:
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    LbPoolService lbPoolService = Mock()
+    LoadBalancerPool loadBalancerPool = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.updateLoadBalancerPool(region, loadBalancerPool)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.lbPool() >> lbPoolService
+    1 * lbPoolService.update(loadBalancerPool.id, _) >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "create vip success"() {
+    setup:
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    VipService vipService = Mock()
+    VirtualIP virtualIP = Mock()
+    Vip vip = Mock()
+
+    when:
+    Vip result = provider.createVip(region, virtualIP)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.vip() >> vipService
+    1 * vipService.create(_) >> vip
+    result == vip
+    noExceptionThrown()
+  }
+
+
+  def "create vip exception"() {
+    setup:
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    VipService vipService = Mock()
+    VirtualIP virtualIP = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.createVip(region, virtualIP)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.vip() >> vipService
+    1 * vipService.create(_) >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "update vip success"() {
+    setup:
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    VipService vipService = Mock()
+    VirtualIP virtualIP = Mock()
+    Vip vip = Mock()
+
+    when:
+    Vip result = provider.updateVip(region, virtualIP)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.vip() >> vipService
+    1 * vipService.update(virtualIP.id, _) >> vip
+    result == vip
+    noExceptionThrown()
+  }
+
+  def "update vip exception"() {
+    setup:
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    VipService vipService = Mock()
+    VirtualIP virtualIP = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.updateVip(region, virtualIP)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.vip() >> vipService
+    1 * vipService.update(virtualIP.id, _) >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "get health monitor success"() {
+    setup:
+    String healthMonitorId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    HealthMonitorService healthMonitorService = Mock()
+    HealthMonitor healthMonitor = Mock()
+
+    when:
+    HealthMonitor result = provider.getHealthMonitor(region, healthMonitorId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.healthMonitor() >> healthMonitorService
+    1 * healthMonitorService.get(healthMonitorId) >> healthMonitor
+    result == healthMonitor
+    noExceptionThrown()
+  }
+  def "get health monitor not found"() {
+    setup:
+    String healthMonitorId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    HealthMonitorService healthMonitorService = Mock()
+
+    when:
+    provider.getHealthMonitor(region, healthMonitorId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.healthMonitor() >> healthMonitorService
+    1 * healthMonitorService.get(healthMonitorId) >> null
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    [healthMonitorId, region].every { openstackProviderException.message.contains(it) }
+  }
+
+
+  def "get health monitor exception"() {
+    setup:
+    String healthMonitorId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    HealthMonitorService healthMonitorService = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.getHealthMonitor(region, healthMonitorId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.healthMonitor() >> healthMonitorService
+    1 * healthMonitorService.get(healthMonitorId) >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "create health monitor success"() {
+    setup:
+    String region = 'region1'
+    String lbPoolId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    LbPoolService lbPoolService = Mock()
+    HealthMonitorService healthMonitorService = Mock()
+    PoolHealthMonitor poolHealthMonitor = Mock()
+    HealthMonitor createdHealthMonitor = Mock()
+    HealthMonitor updatedHealthMonitor = Mock()
+
+    when:
+    HealthMonitor result = provider.createHealthCheckForPool(region, lbPoolId, poolHealthMonitor)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.healthMonitor() >> healthMonitorService
+    1 * healthMonitorService.create(_) >> createdHealthMonitor
+    1 * loadBalancerService.lbPool() >> lbPoolService
+    1 * lbPoolService.associateHealthMonitor(lbPoolId, createdHealthMonitor.id) >> updatedHealthMonitor
+    result == updatedHealthMonitor
+    result != createdHealthMonitor
+    noExceptionThrown()
+  }
+
+  def "create health monitor - null result"() {
+    setup:
+    String region = 'region1'
+    String lbPoolId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    LbPoolService lbPoolService = Mock()
+    HealthMonitorService healthMonitorService = Mock()
+    PoolHealthMonitor poolHealthMonitor = Mock()
+    HealthMonitor createdHealthMonitor = null
+
+    when:
+    provider.createHealthCheckForPool(region, lbPoolId, poolHealthMonitor)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.healthMonitor() >> healthMonitorService
+    1 * healthMonitorService.create(_) >> createdHealthMonitor
+    0 * loadBalancerService.lbPool() >> lbPoolService
+    0 * lbPoolService.associateHealthMonitor(lbPoolId, _)
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.message.contains(lbPoolId)
+  }
+
+  def "create health monitor - exception creating"() {
+    setup:
+    String region = 'region1'
+    String lbPoolId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    LbPoolService lbPoolService = Mock()
+    HealthMonitorService healthMonitorService = Mock()
+    PoolHealthMonitor poolHealthMonitor = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.createHealthCheckForPool(region, lbPoolId, poolHealthMonitor)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.healthMonitor() >> healthMonitorService
+    1 * healthMonitorService.create(_) >> { throw throwable }
+    0 * loadBalancerService.lbPool() >> lbPoolService
+    0 * lbPoolService.associateHealthMonitor(lbPoolId, _)
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "create health monitor - exception associating"() {
+    setup:
+    String region = 'region1'
+    String lbPoolId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    LbPoolService lbPoolService = Mock()
+    HealthMonitorService healthMonitorService = Mock()
+    PoolHealthMonitor poolHealthMonitor = Mock()
+    HealthMonitor createdHealthMonitor = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.createHealthCheckForPool(region, lbPoolId, poolHealthMonitor)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.healthMonitor() >> healthMonitorService
+    1 * healthMonitorService.create(_) >> createdHealthMonitor
+    1 * loadBalancerService.lbPool() >> lbPoolService
+    1 * lbPoolService.associateHealthMonitor(lbPoolId, createdHealthMonitor.id) >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "update health monitor success"() {
+    setup:
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    HealthMonitorService healthMonitorService = Mock()
+    HealthMonitor healthMonitor = Mock()
+    PoolHealthMonitor poolHealthMonitor = Mock()
+
+    when:
+    HealthMonitor result = provider.updateHealthMonitor(region, poolHealthMonitor)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.healthMonitor() >> healthMonitorService
+    1 * healthMonitorService.update(poolHealthMonitor.id, _) >> healthMonitor
+    result == healthMonitor
+    noExceptionThrown()
+  }
+
+  def "update health monitor exception"() {
+    setup:
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    HealthMonitorService healthMonitorService = Mock()
+    PoolHealthMonitor poolHealthMonitor = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.updateHealthMonitor(region, poolHealthMonitor)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.healthMonitor() >> healthMonitorService
+    1 * healthMonitorService.update(poolHealthMonitor.id, _) >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "disassociate and remove health monitor success"() {
+    setup:
+    String region = 'region1'
+    String lbPoolId = UUID.randomUUID().toString()
+    String healthMonitorId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    LbPoolService lbPoolService = Mock()
+    HealthMonitorService healthMonitorService = Mock()
+
+    when:
+    provider.disassociateAndRemoveHealthMonitor(region, lbPoolId, healthMonitorId)
+
+    then:
+    2 * mockClient.networking() >> networkingService
+    2 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.lbPool() >> lbPoolService
+    1 * lbPoolService.disAssociateHealthMonitor(lbPoolId, healthMonitorId)
+    1 * loadBalancerService.healthMonitor() >> healthMonitorService
+    1 * healthMonitorService.delete(healthMonitorId)
+    noExceptionThrown()
+  }
+
+  def "disassociate exception and no removal"() {
+    setup:
+    String region = 'region1'
+    String lbPoolId = UUID.randomUUID().toString()
+    String healthMonitorId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    LbPoolService lbPoolService = Mock()
+    HealthMonitorService healthMonitorService = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.disassociateAndRemoveHealthMonitor(region, lbPoolId, healthMonitorId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.lbPool() >> lbPoolService
+    1 * lbPoolService.disAssociateHealthMonitor(lbPoolId, healthMonitorId) >> { throw throwable }
+    0 * loadBalancerService.healthMonitor() >> healthMonitorService
+    0 * healthMonitorService.delete(healthMonitorId)
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "disassociate and removal exception"() {
+    setup:
+    String region = 'region1'
+    String lbPoolId = UUID.randomUUID().toString()
+    String healthMonitorId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    LbPoolService lbPoolService = Mock()
+    HealthMonitorService healthMonitorService = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.disassociateAndRemoveHealthMonitor(region, lbPoolId, healthMonitorId)
+
+    then:
+    2 * mockClient.networking() >> networkingService
+    2 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.lbPool() >> lbPoolService
+    1 * lbPoolService.disAssociateHealthMonitor(lbPoolId, healthMonitorId)
+    1 * loadBalancerService.healthMonitor() >> healthMonitorService
+    1 * healthMonitorService.delete(healthMonitorId) >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "delete health monitor success"() {
+    setup:
+    String healthMonitorId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    HealthMonitorService healthMonitorService = Mock()
+    ActionResponse actionResponse = ActionResponse.actionSuccess()
+
+    when:
+    ActionResponse result = provider.deleteHealthMonitor(region, healthMonitorId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.healthMonitor() >> healthMonitorService
+    1 * healthMonitorService.delete(healthMonitorId) >> actionResponse
+    result == actionResponse
+    noExceptionThrown()
+  }
+
+  def "delete health monitor failed response"() {
+    setup:
+    String healthMonitorId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    HealthMonitorService healthMonitorService = Mock()
+    ActionResponse actionResponse = ActionResponse.actionFailed('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.deleteHealthMonitor(region, healthMonitorId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.healthMonitor() >> healthMonitorService
+    1 * healthMonitorService.delete(healthMonitorId) >> actionResponse
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.message.contains(actionResponse.fault)
+    openstackProviderException.message.contains(String.valueOf(actionResponse.code))
+  }
+
+  def "delete health monitor exception"() {
+    setup:
+    String healthMonitorId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    HealthMonitorService healthMonitorService = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.deleteHealthMonitor(region, healthMonitorId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.healthMonitor() >> healthMonitorService
+    1 * healthMonitorService.delete(healthMonitorId) >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "disassociate health monitor success"() {
+    setup:
+    String lbPoolId = UUID.randomUUID().toString()
+    String healthMonitorId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    LbPoolService lbPoolService = Mock()
+    ActionResponse actionResponse = ActionResponse.actionSuccess()
+
+    when:
+    ActionResponse result = provider.disassociateHealthMonitor(region, lbPoolId, healthMonitorId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.lbPool() >> lbPoolService
+    1 * lbPoolService.disAssociateHealthMonitor(lbPoolId, healthMonitorId) >> actionResponse
+    result == actionResponse
+    noExceptionThrown()
+  }
+
+  def "disassociate health monitor failed response"() {
+    setup:
+    String lbPoolId = UUID.randomUUID().toString()
+    String healthMonitorId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    LbPoolService lbPoolService = Mock()
+    ActionResponse actionResponse = ActionResponse.actionFailed('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.disassociateHealthMonitor(region, lbPoolId, healthMonitorId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.lbPool() >> lbPoolService
+    1 * lbPoolService.disAssociateHealthMonitor(lbPoolId, healthMonitorId) >> actionResponse
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.message.contains(actionResponse.fault)
+    openstackProviderException.message.contains(String.valueOf(actionResponse.code))
+  }
+
+  def "disassociate health monitor exception"() {
+    setup:
+    String lbPoolId = UUID.randomUUID().toString()
+    String healthMonitorId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    LbPoolService lbPoolService = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.disassociateHealthMonitor(region, lbPoolId, healthMonitorId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.lbPool() >> lbPoolService
+    1 * lbPoolService.disAssociateHealthMonitor(lbPoolId, healthMonitorId) >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "associate floating ip to vip success"() {
+    setup:
+    String floatingIp = UUID.randomUUID().toString()
+    String vipId = UUID.randomUUID().toString()
+    String portId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    PortService portService = Mock()
+    Port port = Mock()
+    NetFloatingIPService floatingIPService = Mock()
+    NetFloatingIP netFloatingIP = Mock()
+
+    when:
+    NetFloatingIP result = provider.associateFloatingIpToVip(region, floatingIp, vipId)
+
+    then:
+    2 * mockClient.networking() >> networkingService
+    1 * networkingService.port() >> portService
+    1 * portService.list() >> [port]
+    1 * port.name >> "vip-${vipId}"
+    1 * port.id >> portId
+    1 * networkingService.floatingip() >> floatingIPService
+    1 * floatingIPService.associateToPort(floatingIp, portId) >> netFloatingIP
+    result == netFloatingIP
+    noExceptionThrown()
+  }
+
+  def "associate floating ip to vip - not found"() {
+    setup:
+    String floatingIp = UUID.randomUUID().toString()
+    String vipId = UUID.randomUUID().toString()
+    String portId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    PortService portService = Mock()
+    Port port = Mock()
+    NetFloatingIPService floatingIPService = Mock()
+    NetFloatingIP netFloatingIP = Mock()
+
+    when:
+    provider.associateFloatingIpToVip(region, floatingIp, vipId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.port() >> portService
+    1 * portService.list() >> [port]
+    1 * port.name >> "vip"
+    0 * port.id >> portId
+    0 * networkingService.floatingip() >> floatingIPService
+    0 * floatingIPService.associateToPort(floatingIp, portId) >> netFloatingIP
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.message.contains(vipId)
+  }
+
+  def "associate floating ip to vip - exception"() {
+    setup:
+    String floatingIp = UUID.randomUUID().toString()
+    String vipId = UUID.randomUUID().toString()
+    String portId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    PortService portService = Mock()
+    Port port = Mock()
+    NetFloatingIPService floatingIPService = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.associateFloatingIpToVip(region, floatingIp, vipId)
+
+    then:
+    2 * mockClient.networking() >> networkingService
+    1 * networkingService.port() >> portService
+    1 * portService.list() >> [port]
+    1 * port.name >> "vip-${vipId}"
+    1 * port.id >> portId
+    1 * networkingService.floatingip() >> floatingIPService
+    1 * floatingIPService.associateToPort(floatingIp, portId) >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "disassociate floating ip success"() {
+    setup:
+    String floatingIp = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    NetFloatingIPService floatingIPService = Mock()
+    NetFloatingIP netFloatingIP = Mock()
+
+    when:
+    NetFloatingIP result = provider.disassociateFloatingIp(region, floatingIp)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.floatingip() >> floatingIPService
+    1 * floatingIPService.disassociateFromPort(floatingIp) >> netFloatingIP
+    result == netFloatingIP
+    noExceptionThrown()
+  }
+
+  def "disassociate floating ip exception"() {
+    setup:
+    String floatingIp = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    NetFloatingIPService floatingIPService = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.disassociateFloatingIp(region, floatingIp)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.floatingip() >> floatingIPService
+    1 * floatingIPService.disassociateFromPort(floatingIp) >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "get associated floating ip success"() {
+    setup:
+    String vipId = UUID.randomUUID().toString()
+    String deviceId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    PortService portService = Mock()
+    Port port = Mock()
+    ComputeService computeService = Mock()
+    ComputeFloatingIPService floatingIPService = Mock()
+    FloatingIP floatingIP = Stub() {
+      getInstanceId() >> deviceId
+    }
+
+    when:
+    FloatingIP result = provider.getAssociatedFloatingIp(region, vipId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.port() >> portService
+    1 * portService.list() >> [port]
+    1 * port.name >> "vip-${vipId}"
+    1 * mockClient.compute() >> computeService
+    1 * computeService.floatingIps() >> floatingIPService
+    1 * floatingIPService.list() >> [floatingIP]
+    1 * port.deviceId >> deviceId
+    result == floatingIP
+    noExceptionThrown()
+  }
+
+  def "get associated floating ip - port not found"() {
+    setup:
+    String vipId = UUID.randomUUID().toString()
+    String deviceId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    PortService portService = Mock()
+    Port port = Mock()
+    ComputeService computeService = Mock()
+    ComputeFloatingIPService floatingIPService = Mock()
+    FloatingIP floatingIP = Stub() {
+      getInstanceId() >> deviceId
+    }
+
+    when:
+    provider.getAssociatedFloatingIp(region, vipId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.port() >> portService
+    1 * portService.list() >> []
+    0 * mockClient.compute() >> computeService
+    0 * computeService.floatingIps() >> floatingIPService
+    0 * floatingIPService.list() >> [floatingIP]
+    0 * port.deviceId >> deviceId
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.message.contains(vipId)
+  }
+
+  def "get associated floating ip - exception"() {
+    setup:
+    String vipId = UUID.randomUUID().toString()
+    String deviceId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    PortService portService = Mock()
+    Port port = Mock()
+    ComputeService computeService = Mock()
+    ComputeFloatingIPService floatingIPService = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.getAssociatedFloatingIp(region, vipId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.port() >> portService
+    1 * portService.list() >> [port]
+    1 * port.name >> "vip-${vipId}"
+    1 * mockClient.compute() >> computeService
+    1 * computeService.floatingIps() >> floatingIPService
+    1 * floatingIPService.list() >> { throw throwable }
+    0 * port.deviceId >> deviceId
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "get port for vip found"() {
+    setup:
+    String vipId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    PortService portService = Mock()
+    Port port = Stub(Port) {
+      getName() >> "vip-$vipId"
+    }
+
+    when:
+    Port result = provider.getPortForVip(region, vipId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.port() >> portService
+    1 * portService.list() >> [port]
+    result == port
+    noExceptionThrown()
+  }
+
+  def "get port for vip not found"() {
+    setup:
+    String vipId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    PortService portService = Mock()
+    Port port = Stub(Port) {
+      getName() >> "vip-${UUID.randomUUID().toString()}"
+    }
+
+    when:
+    Port result = provider.getPortForVip(region, vipId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.port() >> portService
+    1 * portService.list() >> [port]
+    result == null
+    noExceptionThrown()
+  }
+
+  def "get port for vip not found empty list"() {
+    setup:
+    String vipId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    PortService portService = Mock()
+    Port port = Stub(Port) {
+      getName() >> "vip-${UUID.randomUUID().toString()}"
+    }
+
+    when:
+    Port result = provider.getPortForVip(region, vipId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.port() >> portService
+    1 * portService.list() >> []
+    result == null
+    noExceptionThrown()
+  }
+
+  def "get port for vip exception"() {
+    setup:
+    String vipId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    PortService portService = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.getPortForVip(region, vipId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.port() >> portService
+    1 * portService.list() >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
   def "handle request succeeds"() {
     setup:
     def success = ActionResponse.actionSuccess()
@@ -388,14 +1401,34 @@ class OpenstackClientProviderSpec extends Specification {
     networkingService.loadbalancers() >> lbService
     LbPoolService poolService = Mock(LbPoolService)
     lbService.lbPool() >> poolService
+    Throwable throwable = new Exception("foobar")
 
     when:
     provider.getLoadBalancerPool(region, lbid)
 
     then:
-    1 * poolService.get(lbid) >> { throw new Exception("foobar") }
+    1 * poolService.get(lbid) >> { throw throwable }
     Exception e = thrown(OpenstackProviderException)
-    e.message == "Unable to find load balancer ${lbid}".toString()
+    e.cause == throwable
+  }
+
+  def "test get load balancer not found"() {
+    setup:
+    String lbid = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock(NetworkingService)
+    mockClient.networking() >> networkingService
+    LoadBalancerService lbService = Mock(LoadBalancerService)
+    networkingService.loadbalancers() >> lbService
+    LbPoolService poolService = Mock(LbPoolService)
+    lbService.lbPool() >> poolService
+
+    when:
+    provider.getLoadBalancerPool(region, lbid)
+
+    then:
+    1 * poolService.get(lbid) >> null
+    Exception e = thrown(OpenstackProviderException)
+    e.message == "Unable to find load balancer ${lbid} in ${region}"
   }
 
   def "test add member to load balancer pool succeeds"() {
@@ -721,80 +1754,6 @@ class OpenstackClientProviderSpec extends Specification {
     1 * networkingService.loadbalancers() >> loadBalancerService
     1 * loadBalancerService.lbPool() >> lbPoolService
     1 * lbPoolService.delete(loadBalancerId) >> { throw throwable }
-    OpenstackProviderException ex = thrown(OpenstackProviderException)
-    ex.cause == throwable
-  }
-
-  def "disassociate and remove health monitor success"() {
-    setup:
-    String region = 'region1'
-    String loadBalancerId = UUID.randomUUID().toString()
-    String healthMonitorId = UUID.randomUUID().toString()
-    NetworkingService networkingService = Mock()
-    LoadBalancerService loadBalancerService = Mock()
-    LbPoolService lbPoolService = Mock()
-    HealthMonitorService healthMonitorService = Mock()
-    ActionResponse response = ActionResponse.actionSuccess()
-
-    when:
-    provider.disassociateAndRemoveHealthMonitor(region, loadBalancerId, healthMonitorId)
-
-    then:
-    1 * mockClient.networking() >> networkingService
-    1 * networkingService.loadbalancers() >> loadBalancerService
-    1 * loadBalancerService.lbPool() >> lbPoolService
-    1 * loadBalancerService.healthMonitor() >> healthMonitorService
-    1 * lbPoolService.disAssociateHealthMonitor(loadBalancerId, healthMonitorId) >> response
-    1 * healthMonitorService.delete(healthMonitorId) >> response
-    noExceptionThrown()
-  }
-
-  def "disassociate and remove health monitor - failed action"() {
-    setup:
-    String region = 'region1'
-    String loadBalancerId = UUID.randomUUID().toString()
-    String healthMonitorId = UUID.randomUUID().toString()
-    NetworkingService networkingService = Mock()
-    LoadBalancerService loadBalancerService = Mock()
-    LbPoolService lbPoolService = Mock()
-    HealthMonitorService healthMonitorService = Mock()
-    ActionResponse response = ActionResponse.actionFailed('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
-
-    when:
-    provider.disassociateAndRemoveHealthMonitor(region, loadBalancerId, healthMonitorId)
-
-    then:
-    1 * mockClient.networking() >> networkingService
-    1 * networkingService.loadbalancers() >> loadBalancerService
-    1 * loadBalancerService.lbPool() >> lbPoolService
-    1 * loadBalancerService.healthMonitor() >> healthMonitorService
-    1 * lbPoolService.disAssociateHealthMonitor(loadBalancerId, healthMonitorId) >> response
-    1 * healthMonitorService.delete(healthMonitorId) >> response
-    OpenstackProviderException ex = thrown(OpenstackProviderException)
-    ex.message.contains("foo")
-  }
-
-  def "disassociate and remove health monitor - exception"() {
-    setup:
-    String region = 'region1'
-    String loadBalancerId = UUID.randomUUID().toString()
-    String healthMonitorId = UUID.randomUUID().toString()
-    NetworkingService networkingService = Mock()
-    LoadBalancerService loadBalancerService = Mock()
-    LbPoolService lbPoolService = Mock()
-    HealthMonitorService healthMonitorService = Mock()
-    Throwable throwable = new Exception('foo')
-
-    when:
-    provider.disassociateAndRemoveHealthMonitor(region, loadBalancerId, healthMonitorId)
-
-    then:
-    1 * mockClient.networking() >> networkingService
-    1 * networkingService.loadbalancers() >> loadBalancerService
-    1 * loadBalancerService.lbPool() >> lbPoolService
-    1 * loadBalancerService.healthMonitor() >> healthMonitorService
-    1 * lbPoolService.disAssociateHealthMonitor(loadBalancerId, healthMonitorId) >> ActionResponse.actionSuccess()
-    1 * healthMonitorService.delete(healthMonitorId) >> { throw throwable }
     OpenstackProviderException ex = thrown(OpenstackProviderException)
     ex.cause == throwable
   }

@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.validators
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.UpsertOpenstackSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import org.springframework.http.HttpMethod
+import org.springframework.http.HttpStatus
 import org.apache.commons.net.util.SubnetUtils
 import org.springframework.validation.Errors
 
@@ -72,6 +74,15 @@ class OpenstackAttributeValidator {
     def result = (port >= 1 && port <= maxPort)
     if (!result) {
       errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid (Must be in range [1, $maxPort])")
+    }
+    result
+  }
+
+  boolean validateNotNull(Object obj, String attribute) {
+    boolean  result = true
+    if (!obj) {
+      result = false
+      reject(attribute, 'null')
     }
     result
   }
@@ -230,5 +241,60 @@ class OpenstackAttributeValidator {
       return validateNotEmpty(value.stackName, attribute) && validateNotEmpty(value.region, attribute)
     }
   }
-}
 
+  /**
+   * Validate integer is an HTTP status code
+   * @param value
+   * @param attribute
+   * @return
+   */
+  def validateHttpStatusCode(Integer value, String attribute) {
+    boolean result = validateNotEmpty(value, attribute)
+    if (result) {
+      try {
+        HttpStatus.valueOf(value)
+      } catch (IllegalArgumentException e) {
+        reject(attribute, 'invalid Http Status Code')
+        result = false
+      }
+    }
+    result
+  }
+
+  /**
+   * Validate string is an HTTP method
+   * @param value
+   * @param attribute
+   * @return
+   */
+  def validateHttpMethod(String value, String attribute) {
+    boolean result = validateNotEmpty(value, attribute)
+    if (result) {
+      try {
+        HttpMethod.valueOf(value)
+      } catch (IllegalArgumentException e) {
+        reject(attribute, 'invalid Http Method')
+        result = false
+      }
+    }
+    result
+  }
+
+  /**
+   * Validate string is a URI
+   * @param value
+   * @param attribute
+   * @return
+   */
+  def validateURI(String value, String attribute) {
+    boolean result = validateNotEmpty(value, attribute)
+
+    try {
+      URI.create(value)
+    } catch (MalformedURLException | URISyntaxException | IllegalArgumentException e) {
+      result = false
+      reject(attribute, 'invalid URL')
+    }
+    result
+  }
+}

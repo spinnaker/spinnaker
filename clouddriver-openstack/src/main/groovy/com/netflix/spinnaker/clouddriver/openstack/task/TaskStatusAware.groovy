@@ -10,18 +10,21 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.clouddriver.openstack.task
 
-package com.netflix.spinnaker.clouddriver.openstack.deploy.exception
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 
-import groovy.transform.InheritConstructors
-import org.openstack4j.model.common.ActionResponse
+/**
+ * TODO - Refeactor operations to use trait and remove boilerplate logic.
+ */
+trait TaskStatusAware {
+  static final String UPSERT_LOADBALANCER_PHASE = "UPSERT_LOAD_BALANCER"
 
-@InheritConstructors
-class OpenstackProviderException extends RuntimeException {
-  OpenstackProviderException(ActionResponse actionResponse) {
-    super("Action request failed with fault $actionResponse.fault and code $actionResponse.code")
+  Task getTask() {
+    TaskRepository.threadLocalTask.get()
   }
 }

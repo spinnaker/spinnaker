@@ -21,12 +21,12 @@ import org.openstack4j.model.common.ActionResponse
 
 @InheritConstructors
 class OpenstackOperationException extends RuntimeException {
-  OpenstackOperationException(String operation, Exception e) {
-    super("$operation failed: ${e.message}", e)
+  OpenstackOperationException(String operation, String message) {
+    super("$operation failed: ${message}")
   }
 
-  OpenstackOperationException(String operation, String msg) {
-    super("$operation failed: $msg")
+  OpenstackOperationException(String operation, Exception e) {
+    super("$operation failed: ${e.message}", e)
   }
 
   OpenstackOperationException(ActionResponse actionResponse, String operation) {
