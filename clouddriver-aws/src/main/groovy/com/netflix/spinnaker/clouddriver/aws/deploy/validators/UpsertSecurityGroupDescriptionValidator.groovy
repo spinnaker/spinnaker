@@ -36,7 +36,7 @@ class UpsertSecurityGroupDescriptionValidator extends AmazonDescriptionValidatio
     if (!description.name) {
       errors.rejectValue("name", "upsertSecurityGroupDescription.name.not.nullable")
     }
-    if (!description.description) {
+    if (!description.description && !description.ingressAppendOnly) {
       errors.rejectValue("description", "upsertSecurityGroupDescription.description.not.nullable")
     }
 
