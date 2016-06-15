@@ -147,7 +147,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "count" : 1
     },
     "properties" : {
-      "accountType" : "Standard_LRS"
+      "accountType" : "Premium_LRS"
     }
   }, {
     "apiVersion" : "2015-06-15",

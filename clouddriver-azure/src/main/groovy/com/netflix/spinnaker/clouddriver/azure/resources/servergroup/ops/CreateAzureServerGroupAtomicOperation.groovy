@@ -19,12 +19,15 @@ package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.ops
 import com.microsoft.azure.management.resources.models.DeploymentExtended
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.model.AzureDeploymentOperation
+import com.netflix.spinnaker.clouddriver.azure.resources.network.model.AzureVirtualNetworkDescription
+import com.netflix.spinnaker.clouddriver.azure.resources.network.view.AzureNetworkProvider
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.templates.AzureServerGroupResourceTemplate
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationException
+import org.springframework.beans.factory.annotation.Autowired
 
 class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
   private static final String BASE_PHASE = "CREATE_SERVER_GROUP"
@@ -34,6 +37,9 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
   }
 
   private final AzureServerGroupDescription description
+
+  @Autowired
+  AzureNetworkProvider networkProvider
 
   CreateAzureServerGroupAtomicOperation(AzureServerGroupDescription description) {
     this.description = description
@@ -66,27 +72,29 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
 
       description.credentials.resourceManagerClient.initializeResourceGroupAndVNet(description.credentials, resourceGroupName, virtualNetworkName, description.region)
 
-      // TODO We just try to grab the next subnet, which fails if the largest possible subnet is already taken.
-      // TODO We also just assume that a vnet can only have one address range.
       task.updateStatus(BASE_PHASE, "Creating subnet for server group")
+
+      // Compute the next subnet address prefix using the cached vnet and a random generated seed
+      def vnetDescription = networkProvider.get(description.accountName, description.region, virtualNetworkName)
+      Random rand = new Random()
+      def nextSubnetAddressPrefix = AzureVirtualNetworkDescription.getNextSubnetAddressPrefix(vnetDescription, rand.nextInt(vnetDescription?.maxSubnets ?: 1))
+      subnetName = AzureUtilities.getSubnetName(virtualNetworkName, nextSubnetAddressPrefix)
+
+      // we'll do a final check to make sure that the subnet can be created before we pass it in the deployment template
       def vnet = description.credentials.networkClient.getVirtualNetwork(resourceGroupName, virtualNetworkName)
-      if (vnet.addressSpace.addressPrefixes.size() != 1) {
-        throw new RuntimeException(
-          "Virtual Network found with ${vnet.addressSpace.addressPrefixes.size()} address spaces; expected: 1")
+
+      if (!subnetName || vnet?.subnets?.find {it.name == subnetName}) {
+        // virtualNetworkName is not yet in the cache or the subnet we try to create already exists; we'll use the current vnet
+        //   we just got to re-compute the next subnet
+        vnetDescription = AzureVirtualNetworkDescription.getDescriptionForVirtualNetwork(vnet)
+        nextSubnetAddressPrefix = AzureVirtualNetworkDescription.getNextSubnetAddressPrefix(vnetDescription, rand.nextInt(vnetDescription?.maxSubnets ?: 1))
+        subnetName = AzureUtilities.getSubnetName(virtualNetworkName, nextSubnetAddressPrefix)
       }
 
-      String vnetPrefix = vnet.addressSpace.addressPrefixes[0]
-      String subnetPrefix = null
-      if (vnet.subnets.size() > 0) {
-        subnetPrefix = vnet.subnets.max({ a, b -> AzureUtilities.compareIpv4AddrPrefixes(a.addressPrefix, b.addressPrefix) }).addressPrefix
-      }
-
-      String nextSubnet = AzureUtilities.getNextSubnet(vnetPrefix, subnetPrefix)
-      subnetName = AzureUtilities.getSubnetName(virtualNetworkName, nextSubnet)
       String subnetId = description.credentials.networkClient.createSubnet(resourceGroupName,
         virtualNetworkName,
         subnetName,
-        nextSubnet,
+        nextSubnetAddressPrefix,
         description.securityGroup?.name)
 
       AzureServerGroupNameResolver nameResolver = new AzureServerGroupNameResolver(description.accountName, description.region, description.credentials)

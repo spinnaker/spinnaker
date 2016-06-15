@@ -118,4 +118,52 @@ class AzureUtilitiesSpec extends Specification {
     '254.255.255.0/24'    | '254.255.255.0/24'
   }
 
+  def "getSubnetRangeMax"() {
+    expect:
+    AzureUtilities.getSubnetRangeMax(vnet, 24) == rangeMax
+
+    where:
+    vnet                  | rangeMax
+    null                  | 0
+    ''                    | 0
+    '10.0.0.0/25'         | 0
+    '10.0.0.0/8'          | 0x10000
+    '10.0.0.0/16'         | 0x100
+    '10.0.0.0/23'         | 2
+    '255.0.0.0/8'         | 0x10000
+    '254.255.255.0/24'    | 0
+  }
+
+  def "convertIpv4PrefixToInt"() {
+    expect:
+    AzureUtilities.convertIpv4PrefixToInt(addrPrefix) == val
+
+    where:
+    addrPrefix            | val
+    null                  | -1
+    ''                    | -1
+    '10.0.0.0/24'         | 0x0A000000
+    '10.0.10.0/24'        | 0x0A000A00
+    '10.0.0.0/8'          | 0x0A000000
+    '10.0.0.0/16'         | 0x0A000000
+    '255.0.0.0/8'         | -16777216
+    '255.255.0.0/16'      | -65536
+  }
+
+  def "getAddressPrefixLength"() {
+    expect:
+    AzureUtilities.getAddressPrefixLength(addrPrefix) == val
+
+    where:
+    addrPrefix            | val
+    null                  | 0
+    ''                    | 0
+    '10.0.0.0/24'         | 24
+    '10.0.10.0/24'        | 24
+    '10.0.0.0/8'          | 8
+    '10.0.0.0/16'         | 16
+    '255.0.0.0/8'         | 8
+    '255.255.0.0/16'      | 16
+  }
+
 }

@@ -244,7 +244,9 @@ class AzureServerGroupResourceTemplate {
      * @param description
      */
     StorageAccountProperties() {
-      accountType = "Standard_LRS" // TODO get this from the description
+      // Hardcoded value to use premium storage for better perf per Azure recommendation;
+      // TODO: we will revisit this later given that premium storage is a bit more expensive than standard
+      accountType = "Premium_LRS"
     }
   }
 
