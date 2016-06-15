@@ -73,6 +73,9 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
       def baseline = canaryDeployment.baseline
       baseline.strategy = "highlander"
       def baselineAmi = baselineAmis.find { it.region == baseline.availabilityZones.keySet()[0] }
+      if (!baselineAmi) {
+        throw new IllegalStateException("Could not find an image for the baseline cluster")
+      }
       baseline.amiName = baselineAmi?.imageId
       baseline.buildUrl = createBuildUrl(baselineAmi)
 
