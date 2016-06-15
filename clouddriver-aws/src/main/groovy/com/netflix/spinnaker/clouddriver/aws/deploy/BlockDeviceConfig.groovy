@@ -20,10 +20,10 @@ class BlockDeviceConfig {
   }
 
   static final def blockDevicesByInstanceType = [
-    "t2.micro" : defaultBlockDevicesForEbsOnly(),
-    "t2.small" : defaultBlockDevicesForEbsOnly(),
-    "t2.medium" : defaultBlockDevicesForEbsOnly(),
-    "t2.large" : defaultBlockDevicesForEbsOnly(),
+    "t2.micro" : [],
+    "t2.small" : [],
+    "t2.medium" : [],
+    "t2.large" : [],
     "m4.large" : defaultBlockDevicesForEbsOnly(),
     "m4.xlarge" : defaultBlockDevicesForEbsOnly(),
     "m4.2xlarge" : defaultBlockDevicesForEbsOnly(),

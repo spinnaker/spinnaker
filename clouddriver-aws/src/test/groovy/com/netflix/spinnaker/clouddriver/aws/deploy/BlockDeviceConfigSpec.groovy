@@ -48,12 +48,12 @@ class BlockDeviceConfigSpec extends Specification {
 
     where:
     instanceType || blockDevices
-    "wat" | null
-    "t2.small" | expectedBlockDevicesForEbsOnly
-    "m4.xlarge" | expectedBlockDevicesForEbsOnly
-    "c4.8xlarge" | expectedBlockDevicesForEbsOnly
-    "m3.medium" | [ new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0") ]
-    "i2.2xlarge" | [ new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0"), new AmazonBlockDevice(deviceName: "/dev/sdc", virtualName: "ephemeral1")]
-    "d2.8xlarge" | expectedD28xlargeBlockDevices
+    "wat"         | null
+    "t2.small"    | []
+    "m4.xlarge"   | expectedBlockDevicesForEbsOnly
+    "c4.8xlarge"  | expectedBlockDevicesForEbsOnly
+    "m3.medium"   | [new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0")]
+    "i2.2xlarge"  | [new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0"), new AmazonBlockDevice(deviceName: "/dev/sdc", virtualName: "ephemeral1")]
+    "d2.8xlarge"  | expectedD28xlargeBlockDevices
   }
 }
