@@ -17,19 +17,16 @@
 package com.netflix.spinnaker.clouddriver.openstack.client
 
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.UpsertOpenstackSecurityGroupDescription
-import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerPool
 import com.netflix.spinnaker.clouddriver.openstack.domain.PoolHealthMonitor
 import com.netflix.spinnaker.clouddriver.openstack.domain.VirtualIP
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.openstack4j.api.OSClient
 import org.openstack4j.api.compute.ComputeSecurityGroupService
 import org.openstack4j.api.compute.ServerService
 import org.openstack4j.api.heat.HeatService
 import org.openstack4j.api.heat.StackService
 import org.openstack4j.api.heat.TemplateService
-import org.openstack4j.api.networking.ext.MemberService
 import org.openstack4j.api.compute.ComputeFloatingIPService
 import org.openstack4j.api.compute.ComputeService
 import org.openstack4j.api.exceptions.ServerResponseException
@@ -40,6 +37,7 @@ import org.openstack4j.api.networking.SubnetService
 import org.openstack4j.api.networking.ext.HealthMonitorService
 import org.openstack4j.api.networking.ext.LbPoolService
 import org.openstack4j.api.networking.ext.LoadBalancerService
+import org.openstack4j.api.networking.ext.MemberService
 import org.openstack4j.api.networking.ext.VipService
 import org.openstack4j.model.common.ActionResponse
 import org.openstack4j.model.compute.FloatingIP
@@ -53,6 +51,7 @@ import org.openstack4j.model.compute.Addresses
 import org.openstack4j.model.compute.IPProtocol
 import org.openstack4j.model.compute.SecGroupExtension
 import org.openstack4j.model.compute.Server
+import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.network.ext.LbPool
 import org.openstack4j.model.network.ext.Member
 import org.openstack4j.openstack.compute.domain.NovaSecGroupExtension
@@ -63,7 +62,6 @@ import spock.lang.Unroll
 @Unroll
 class OpenstackClientProviderSpec extends Specification {
 
-  private static final String OPERATION = "TestOperation"
   private OpenstackClientProvider provider
   private OSClient mockClient
   private String region = 'region1'
@@ -193,9 +191,8 @@ class OpenstackClientProviderSpec extends Specification {
 
     then:
     1 * securityGroupService.create(name, description) >> { throw new RuntimeException("foo") }
-    OpenstackOperationException ex = thrown(OpenstackOperationException)
-    ex.message.contains("foo")
-    ex.message.contains(AtomicOperations.UPSERT_SECURITY_GROUP)
+    Exception ex = thrown(OpenstackProviderException)
+    ex.cause.message.contains("foo")
   }
 
   def "delete security group"() {
@@ -228,11 +225,9 @@ class OpenstackClientProviderSpec extends Specification {
 
     then:
     1 * securityGroupService.delete(id) >> failure
-    OpenstackOperationException ex = thrown(OpenstackOperationException)
+    Exception ex = thrown(OpenstackProviderException)
     ex.message.contains("foo")
     ex.message.contains("500")
-    ex.message.contains(AtomicOperations.DELETE_SECURITY_GROUP)
-
   }
 
   def "get vip success"() {
@@ -1231,7 +1226,7 @@ class OpenstackClientProviderSpec extends Specification {
     def success = ActionResponse.actionSuccess()
 
     when:
-    def response = provider.handleRequest(OPERATION) { success }
+    def response = provider.handleRequest { success }
 
     then:
     success == response
@@ -1243,13 +1238,12 @@ class OpenstackClientProviderSpec extends Specification {
     def failed = ActionResponse.actionFailed("foo", 500)
 
     when:
-    provider.handleRequest(OPERATION) { failed }
+    provider.handleRequest { failed }
 
     then:
-    OpenstackOperationException ex = thrown(OpenstackOperationException)
+    Exception ex = thrown(OpenstackProviderException)
     ex.message.contains("foo")
     ex.message.contains("500")
-    ex.message.contains(OPERATION)
   }
 
   def "handle request fails with closure throwing exception"() {
@@ -1257,13 +1251,12 @@ class OpenstackClientProviderSpec extends Specification {
     def exception = new Exception("foo")
 
     when:
-    provider.handleRequest(OPERATION) { throw exception }
+    provider.handleRequest { throw exception }
 
     then:
-    OpenstackOperationException ex = thrown(OpenstackOperationException)
+    Exception ex = thrown(OpenstackProviderException)
     ex.cause == exception
-    ex.message.contains("foo")
-    ex.message.contains(OPERATION)
+    ex.cause.message.contains("foo")
   }
 
   def "handle request non-action response"() {
@@ -1271,7 +1264,7 @@ class OpenstackClientProviderSpec extends Specification {
     def object = new Object()
 
     when:
-    def response = provider.handleRequest(OPERATION) { object }
+    def response = provider.handleRequest { object }
 
     then:
     object == response
@@ -1280,7 +1273,7 @@ class OpenstackClientProviderSpec extends Specification {
 
   def "handle request null response"() {
     when:
-    def response = provider.handleRequest(OPERATION) { null }
+    def response = provider.handleRequest { null }
 
     then:
     response == null
@@ -1472,7 +1465,7 @@ class OpenstackClientProviderSpec extends Specification {
     then:
     1 * memberService.create(_ as Member) >> { throw new Exception("foobar") }
     Exception e = thrown(OpenstackProviderException)
-    e.message == "Unable to add ip $ip to load balancer ${lbid}".toString()
+    e.message == "Unable to process request"
   }
 
   def "test remove member from load balancer pool succeeds"() {
@@ -1509,14 +1502,13 @@ class OpenstackClientProviderSpec extends Specification {
     lbService.member() >> memberService
 
     when:
-    ActionResponse response = provider.removeMemberFromLoadBalancerPool(region, memberId)
+    provider.removeMemberFromLoadBalancerPool(region, memberId)
 
     then:
     1 * memberService.delete(memberId) >> failure
-    response != null
-    response.fault == 'failed'
-    response.code == 404
-    response == failure
+    Exception e = thrown(OpenstackProviderException)
+    e.message.contains('failed')
+    e.message.contains('404')
   }
 
   def "test remove member from load balancer pool throws exception"() {
@@ -1535,7 +1527,7 @@ class OpenstackClientProviderSpec extends Specification {
     then:
     1 * memberService.delete(memberId) >> { throw new Exception('foobar') }
     Exception e = thrown(OpenstackProviderException)
-    e.message == "Unable to remove load balancer member $memberId".toString()
+    e.message == "Unable to process request"
   }
 
   def "test get member id for instance succeeds"() {
@@ -1631,7 +1623,7 @@ class OpenstackClientProviderSpec extends Specification {
     then:
     1 * memberService.list() >> { throw new Exception('foobar') }
     Exception e = thrown(OpenstackProviderException)
-    e.message == "Failed to list load balancer members".toString()
+    e.message == "Unable to process request"
   }
 
   def "delete vip success"() {
@@ -1758,23 +1750,6 @@ class OpenstackClientProviderSpec extends Specification {
     ex.cause == throwable
   }
 
-  def "get heat stack succeeds"() {
-    setup:
-    HeatService heat = Mock()
-    StackService stackApi = Mock()
-    mockClient.useRegion(_ as String).heat() >> heat
-    heat.stacks() >> stackApi
-
-    when:
-    provider.getServerGroup("myregion", "mystack")
-
-    then:
-    1 * mockClient.useRegion("myregion") >> mockClient
-    1 * mockClient.heat() >> heat
-    1 * stackApi.getStackByName("mystack")
-    noExceptionThrown()
-  }
-
   def "get heat template succeeds"() {
     setup:
     HeatService heat = Mock()
@@ -1791,4 +1766,102 @@ class OpenstackClientProviderSpec extends Specification {
     1 * templateApi.getTemplateAsString("mystack", "mystackid")
     noExceptionThrown()
   }
+
+  def "get stack succeeds"() {
+    setup:
+    String stackName = 'stackofpancakesyumyum'
+    HeatService heatService = Mock(HeatService)
+    StackService stackService = Mock(StackService)
+    mockClient.heat() >> heatService
+    heatService.stacks() >> stackService
+    Stack mockStack = Mock(Stack)
+
+    when:
+    Stack actual = provider.getStack('region1', stackName)
+
+    then:
+    1 * stackService.getStackByName(stackName) >> mockStack
+    actual == mockStack
+  }
+
+  def "get stack fails - exception"() {
+    setup:
+    String stackName = 'stackofpancakesyumyum'
+    HeatService heatService = Mock(HeatService)
+    StackService stackService = Mock(StackService)
+    mockClient.heat() >> heatService
+    heatService.stacks() >> stackService
+
+    when:
+    provider.getStack('region1', stackName)
+
+    then:
+    1 * stackService.getStackByName(stackName) >> { throw new Exception('foo') }
+    Exception e = thrown(OpenstackProviderException)
+    e.cause.message == 'foo'
+  }
+
+  def "delete stack succeeds"() {
+    setup:
+    def success = ActionResponse.actionSuccess()
+    String stackName = 'stackofpancakesyumyum'
+    String stackId = UUID.randomUUID().toString()
+    HeatService heatService = Mock(HeatService)
+    StackService stackService = Mock(StackService)
+    mockClient.heat() >> heatService
+    heatService.stacks() >> stackService
+    Stack mockStack = Mock(Stack)
+    mockStack.name >> stackName
+    mockStack.id >> stackId
+
+    when:
+    provider.destroy('region1', mockStack)
+
+    then:
+    1 * stackService.delete(stackName, stackId) >> success
+  }
+
+  def "delete stack fails - exception"() {
+    setup:
+    String stackName = 'stackofpancakesyumyum'
+    String stackId = UUID.randomUUID().toString()
+    HeatService heatService = Mock(HeatService)
+    StackService stackService = Mock(StackService)
+    mockClient.heat() >> heatService
+    heatService.stacks() >> stackService
+    Stack mockStack = Mock(Stack)
+    mockStack.name >> stackName
+    mockStack.id >> stackId
+
+    when:
+    provider.destroy('region1', mockStack)
+
+    then:
+    1 * stackService.delete(stackName, stackId) >> { throw new Exception('foo') }
+    Exception e = thrown(OpenstackProviderException)
+    e.cause.message == 'foo'
+  }
+
+  def "delete stack fails - failed status"() {
+    setup:
+    ActionResponse failed = ActionResponse.actionFailed('foo', 400)
+    String stackName = 'stackofpancakesyumyum'
+    String stackId = UUID.randomUUID().toString()
+    HeatService heatService = Mock(HeatService)
+    StackService stackService = Mock(StackService)
+    mockClient.heat() >> heatService
+    heatService.stacks() >> stackService
+    Stack mockStack = Mock(Stack)
+    mockStack.name >> stackName
+    mockStack.id >> stackId
+
+    when:
+    provider.destroy('region1', mockStack)
+
+    then:
+    1 * stackService.delete(stackName, stackId) >> failed
+    Exception e = thrown(OpenstackProviderException)
+    e.message == "Action request failed with fault foo and code 400"
+  }
+
 }

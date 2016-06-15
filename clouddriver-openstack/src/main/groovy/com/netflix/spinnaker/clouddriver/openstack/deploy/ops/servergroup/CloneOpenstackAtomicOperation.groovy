@@ -25,7 +25,7 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackRes
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import groovy.util.logging.Slf4j
-import org.openstack4j.openstack.heat.domain.HeatStack
+import org.openstack4j.model.heat.Stack
 
 @Slf4j
 class CloneOpenstackAtomicOperation implements AtomicOperation<DeploymentResult>{
@@ -63,7 +63,7 @@ class CloneOpenstackAtomicOperation implements AtomicOperation<DeploymentResult>
 
     task.updateStatus BASE_PHASE, "Reading ancestor stack name ${description.source.stackName}..."
 
-    HeatStack ancestorStack = description.credentials.provider.getServerGroup(description.source.region, description.source.stackName)
+    Stack ancestorStack = description.credentials.provider.getStack(description.source.region, description.source.stackName)
     if (!ancestorStack) {
       throw new OpenstackResourceNotFoundException(AtomicOperations.CLONE_SERVER_GROUP, "Source stack ${description.source.stackName} does not exist.")
     }

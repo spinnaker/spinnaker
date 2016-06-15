@@ -22,7 +22,6 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackPro
 import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerPool
 import com.netflix.spinnaker.clouddriver.openstack.domain.PoolHealthMonitor
 import com.netflix.spinnaker.clouddriver.openstack.domain.VirtualIP
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.apache.commons.lang.StringUtils
 import org.openstack4j.api.Builders
 import org.openstack4j.api.OSClient
@@ -54,9 +53,6 @@ import java.util.regex.Pattern
  * TODO use OpenstackProviderException here instead of OpenstackOperationException.
  * Use of OpenstackOperationException belongs in Operation classes.
  *
- * TODO handleRequest should be refactored to remove the operation parameter, as client calls
- * made here do not necessarily pertain to operations.
- *
  * TODO region support will need to be added to all client calls not already using regions
  *
  * TODO tokens will need to be regenerated if they are expired.
@@ -74,7 +70,7 @@ abstract class OpenstackClientProvider {
    * @return
    */
   void deleteInstance(String instanceId) {
-    handleRequest(AtomicOperations.TERMINATE_INSTANCES) {
+    handleRequest {
       client.compute().servers().delete(instanceId)
     }
   }
@@ -85,7 +81,7 @@ abstract class OpenstackClientProvider {
    * @return
    */
   void rebootInstance(String instanceId, RebootType rebootType = RebootType.SOFT) {
-    handleRequest(AtomicOperations.REBOOT_INSTANCES) {
+    handleRequest {
       client.compute().servers().reboot(instanceId, rebootType)
     }
   }
@@ -385,9 +381,9 @@ abstract class OpenstackClientProvider {
    */
   void upsertSecurityGroup(String securityGroupId, String securityGroupName, String description, List<UpsertOpenstackSecurityGroupDescription.Rule> rules) {
 
-    handleRequest(AtomicOperations.UPSERT_SECURITY_GROUP) {
+    handleRequest {
 
-      // The call to getClient reauthentictes via a token, so grab once for this method to avoid unnecessary reauthentications
+      // The call to getClient reauthenticates via a token, so grab once for this method to avoid unnecessary reauthentications
       def securityGroupsApi = client.compute().securityGroups()
 
       // Try getting existing security group, update if needed
@@ -395,7 +391,7 @@ abstract class OpenstackClientProvider {
       if (StringUtils.isNotEmpty(securityGroupId)) {
         securityGroup = securityGroupsApi.get(securityGroupId)
       }
-      if (securityGroup == null) {
+      if (!securityGroup) {
         securityGroup = securityGroupsApi.create(securityGroupName, description)
       } else {
         securityGroup = securityGroupsApi.update(securityGroup.id, securityGroupName, description)
@@ -426,26 +422,10 @@ abstract class OpenstackClientProvider {
    * @return
    */
   void deploy(String region, String stackName, String heatTemplate, Map<String, String> parameters, boolean disableRollback, Long timeoutMins) {
-    try {
-      client.useRegion(region).heat().stacks().create(stackName, heatTemplate, parameters, disableRollback, timeoutMins)
-    } catch (Exception e) {
-      throw new OpenstackOperationException(AtomicOperations.CREATE_SERVER_GROUP, e)
+    handleRequest {
+      getRegionClient(region).heat().stacks().create(stackName, heatTemplate, parameters, disableRollback, timeoutMins)
     }
     //TODO: Handle heat autoscaling migration to senlin in versions > Mitaka
-  }
-
-  /***
-   * Get a Spinnaker Server Group (Openstack Heat Stack).
-   * @param region
-   * @param stackName
-   */
-  Stack getServerGroup(String region, String stackName) {
-    try {
-      def stack = client.useRegion(region).heat().stacks().getStackByName(stackName)
-      return stack
-    } catch (Exception e) {
-      throw new OpenstackOperationException(e)
-    }
   }
 
   /***
@@ -469,13 +449,34 @@ abstract class OpenstackClientProvider {
    * @return List < ? extends Stack >  stacks
    */
   List<? extends Stack> listStacks(String region) {
-    def stacks
-    try {
-      stacks = client.useRegion(region).heat().stacks().list()
-    } catch (Exception e) {
-      throw new OpenstackOperationException(e)
+    handleRequest {
+      getRegionClient(region).heat().stacks().list()
     }
-    stacks
+  }
+
+  /**
+   * Get a stack in a specific region.
+   * @param stackName
+   * @return
+   */
+  Stack getStack(String region, String stackName) {
+    Stack stack = handleRequest {
+      client.useRegion(region).heat().stacks().getStackByName(stackName)
+    }
+    if (!stack) {
+      throw new OpenstackProviderException("Unable to find stack $stackName in region $region")
+    }
+    stack
+  }
+
+  /**
+   * Delete a stack in a specific region.
+   * @param stack
+   */
+  void destroy(String region, Stack stack) {
+    handleRequest {
+      client.useRegion(region).heat().stacks().delete(stack.name, stack.id)
+    }
   }
 
   /**
@@ -526,14 +527,15 @@ abstract class OpenstackClientProvider {
    * @param weight
    */
   Member addMemberToLoadBalancerPool(String region, String ip, String lbPoolId, int internalPort, int weight) {
-    //TODO use handleRequest once that is refactored
-    try {
+    Member member = handleRequest {
       client.useRegion(region).networking().loadbalancers().member().create(
         Builders.member().address(ip).poolId(lbPoolId).protocolPort(internalPort).weight(weight).build()
       )
-    } catch (Exception e) {
-      throw new OpenstackProviderException("Unable to add ip $ip to load balancer ${lbPoolId}", e)
     }
+    if (!member) {
+      throw new OpenstackProviderException("Unable to add ip $ip to load balancer ${lbPoolId}")
+    }
+    member
   }
 
   /**
@@ -542,11 +544,8 @@ abstract class OpenstackClientProvider {
    * @return
    */
   ActionResponse removeMemberFromLoadBalancerPool(String region, String memberId) {
-    //TODO use handleRequest once that is refactored
-    try {
+    handleRequest {
       client.useRegion(region).networking().loadbalancers().member().delete(memberId)
-    } catch (Exception e) {
-      throw new OpenstackProviderException("Unable to remove load balancer member $memberId", e)
     }
   }
 
@@ -557,12 +556,8 @@ abstract class OpenstackClientProvider {
    * @param lbPool
    */
   String getMemberIdForInstance(String region, String ip, LbPool lbPool) {
-    //TODO use handleRequest once that is refactored
-    String memberId = ""
-    try {
-      memberId = client.useRegion(region).networking().loadbalancers().member().list()?.find { m -> m.address == ip }?.id
-    } catch (Exception e) {
-      throw new OpenstackProviderException("Failed to list load balancer members", e)
+    String memberId = handleRequest {
+      client.useRegion(region).networking().loadbalancers().member().list()?.find { m -> m.address == ip }?.id
     }
     if (StringUtils.isEmpty(memberId)) {
       throw new OpenstackProviderException("Instance with ip ${ip} is not associated with any load balancer memberships")
@@ -572,17 +567,17 @@ abstract class OpenstackClientProvider {
     }
     memberId
   }
-
   /**
    * Get a compute server based on id.
    * @param instanceId
    * @return
    */
   Server getServerInstance(String region, String instanceId) {
-    //TODO use handleRequest once that is refactored
-    Server server = client.useRegion(region).compute().servers().get(instanceId)
-    if (server == null) {
-      throw new OpenstackOperationException("Could not find server with id ${instanceId}")
+    Server server = handleRequest {
+      client.useRegion(region).compute().servers().get(instanceId)
+    }
+    if (!server) {
+      throw new OpenstackProviderException("Could not find server with id ${instanceId}")
     }
     server
   }
@@ -616,28 +611,9 @@ abstract class OpenstackClientProvider {
    * @param securityGroupId id of the security group
    */
   void deleteSecurityGroup(String region, String securityGroupId) {
-    handleRequest(AtomicOperations.DELETE_SECURITY_GROUP) {
+    handleRequest {
       client.useRegion(region).compute().securityGroups().delete(securityGroupId)
     }
-  }
-
-  /**
-   * Handler for an Openstack4J request with error common handling.
-   * @param operation to add context to error messages
-   * @param closure makes the needed Openstack4J request
-   * @return returns the result from the closure
-   */
-  def handleRequest(String operation, Closure closure) {
-    def result
-    try {
-      result = closure()
-    } catch (Exception e) {
-      throw new OpenstackOperationException(operation, e)
-    }
-    if (result instanceof ActionResponse && !result.isSuccess()) {
-      throw new OpenstackOperationException(result, operation)
-    }
-    result
   }
 
   /**
@@ -649,8 +625,8 @@ abstract class OpenstackClientProvider {
     def result
     try {
       result = closure()
-    } catch (UndeclaredThrowableException ute) {
-      throw new OpenstackProviderException('Unable to process request', ute.cause)
+    } catch (UndeclaredThrowableException e) {
+      throw new OpenstackProviderException('Unable to process request', e.cause)
     } catch (Exception e) {
       throw new OpenstackProviderException('Unable to process request', e)
     }

@@ -144,7 +144,7 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
     def resultDescription = operation.cloneAndOverrideDescription()
 
     then:
-    1 * inputDescription.credentials.provider.getServerGroup(REGION, ANCESTOR_STACK_NAME) >> createHeatStack()
+    1 * inputDescription.credentials.provider.getStack(REGION, ANCESTOR_STACK_NAME) >> createHeatStack()
     1 * inputDescription.credentials.provider.getHeatTemplate(REGION, ANCESTOR_STACK_NAME, ANCESTOR_STACK_ID) >> HEAT_TEMPLATE
 
     resultDescription.application == ancestorDeployAtomicOperationDescription.application
@@ -180,7 +180,7 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
     def resultDescription = operation.cloneAndOverrideDescription()
 
     then:
-    1 * inputDescription.credentials.provider.getServerGroup(REGION, ANCESTOR_STACK_NAME) >> createHeatStack()
+    1 * inputDescription.credentials.provider.getStack(REGION, ANCESTOR_STACK_NAME) >> createHeatStack()
 
     resultDescription.application == newDeployAtomicOperationDescription.application
     resultDescription.stack == newDeployAtomicOperationDescription.stack
