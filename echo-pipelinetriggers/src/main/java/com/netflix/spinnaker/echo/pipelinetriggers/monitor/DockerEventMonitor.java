@@ -84,7 +84,7 @@ public class DockerEventMonitor extends TriggerMonitor {
     return trigger.isEnabled() &&
       (
         (TRIGGER_TYPE.equals(trigger.getType()) &&
-          trigger.getRegistry() != null &&
+          trigger.getAccount() != null &&
           trigger.getRepository() != null)
       );
   }
@@ -101,12 +101,12 @@ public class DockerEventMonitor extends TriggerMonitor {
   @Override
   protected Predicate<Trigger> matchTriggerFor(final TriggerEvent event) {
     DockerEvent dockerEvent = (DockerEvent) event;
-    String registry = dockerEvent.getContent().getRegistry();
+    String account = dockerEvent.getContent().getAccount();
     String repository = dockerEvent.getContent().getRepository();
     String tag = dockerEvent.getContent().getTag();
     return trigger -> trigger.getType().equals(TRIGGER_TYPE) &&
       trigger.getRepository().equals(repository) &&
-      trigger.getRegistry().equals(registry) &&
+      trigger.getAccount().equals(account) &&
       ((trigger.getTag() == null && !tag.equals("latest"))
         || trigger.getTag() != null && matchTags(trigger.getTag(), tag));
   }
@@ -116,7 +116,7 @@ public class DockerEventMonitor extends TriggerMonitor {
     val id = registry.createId("pipelines.triggered")
       .withTag("application", pipeline.getApplication())
       .withTag("name", pipeline.getName());
-    id.withTag("imageId", pipeline.getTrigger().getRegistry() + "/" +
+    id.withTag("imageId", pipeline.getTrigger().getAccount() + "/" +
       pipeline.getTrigger().getRepository() + ":" +
       pipeline.getTrigger().getTag());
     registry.counter(id).increment();
