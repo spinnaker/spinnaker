@@ -168,6 +168,8 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
         return {
           fromTrigger: true,
           repository: trigger.repository,
+          account: trigger.account,
+          organization: trigger.organization,
           registry: trigger.registry,
           tag: trigger.tag,
         };
