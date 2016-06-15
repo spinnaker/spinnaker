@@ -3,6 +3,7 @@ dependencies {
   spinnaker.group('retrofitDefault')
   compile spinnaker.dependency('rxJava')
   spinnaker.group('jackson')
+  compile spinnaker.dependency("commonsExec")
   compile spinnaker.dependency("frigga")
   compile spinnaker.dependency('jacksonGuava')
   compile spinnaker.dependency('jedis')

@@ -19,7 +19,7 @@ package com.netflix.spinnaker.rosco.providers.util
 interface PackerCommandFactory {
 
   /**
-   * Serialize passed parameters into a tokenized command string suitable for launching packer via rush.
+   * Serialize passed parameters into a tokenized command string suitable for launching packer.
    */
   List<String> buildPackerCommand(String baseCommand, Map<String, String> parameterMap, String absoluteTemplateFilePath)
 

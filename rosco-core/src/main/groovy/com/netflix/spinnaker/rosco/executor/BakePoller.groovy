@@ -18,20 +18,15 @@ package com.netflix.spinnaker.rosco.executor
 
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeStatus
-import com.netflix.spinnaker.rosco.config.RoscoConfiguration
+import com.netflix.spinnaker.rosco.jobs.JobExecutor
 import com.netflix.spinnaker.rosco.persistence.BakeStore
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
-import com.netflix.spinnaker.rosco.rush.api.RushService
-import com.netflix.spinnaker.rosco.rush.api.ScriptExecution
-import com.netflix.spinnaker.rosco.rush.api.ScriptRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
-import retrofit.mime.TypedByteArray
 import rx.functions.Action0
 import rx.schedulers.Schedulers
 
@@ -39,78 +34,127 @@ import java.util.concurrent.TimeUnit
 
 /**
  * BakePoller periodically queries the bake store for incomplete bakes. For each incomplete bake, it queries
- * the scripting engine for an up-to-date status and logs. The status and logs are then persisted via the bake
+ * the job executor for an up-to-date status and logs. The status and logs are then persisted via the bake
  * store. When a bake completes, it is the BakePoller that persists the completed bake details via the bake store.
- * The polling interval defaults to 15 seconds and can be overridden by specifying the pollingIntervalSeconds
- * property.
+ * The polling interval defaults to 15 seconds and can be overridden by specifying the
+ * rosco.polling.pollingIntervalSeconds property.
  */
 @Slf4j
 @Component
 class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
 
-  @Value('${pollingIntervalSeconds:15}')
+  @Autowired
+  String roscoInstanceId
+
+  @Value('${rosco.polling.pollingIntervalSeconds:15}')
   int pollingIntervalSeconds
+
+  @Value('${rosco.polling.orphanedJobPollingIntervalSeconds:30}')
+  int orphanedJobPollingIntervalSeconds
+
+  @Value('${rosco.polling.orphanedJobTimeoutMinutes:30}')
+  long orphanedJobTimeoutMinutes
 
   @Autowired
   BakeStore bakeStore
 
   @Autowired
-  ScriptRequest baseScriptRequest
-
-  @Autowired
-  RushService rushService
+  JobExecutor executor
 
   @Autowired
   CloudProviderBakeHandlerRegistry cloudProviderBakeHandlerRegistry
 
-  @Autowired
-  RoscoConfiguration.ExecutionStatusToBakeStateMap executionStatusToBakeStateMap
-
-  @Autowired
-  RoscoConfiguration.ExecutionStatusToBakeResultMap executionStatusToBakeResultMap
-
   @Override
   void onApplicationEvent(ContextRefreshedEvent event) {
+    log.info("Starting polling agent for rosco instance $roscoInstanceId...")
+
+    // Update this rosco instance's incomplete bakes.
     Schedulers.io().createWorker().schedulePeriodically(
       {
-        try {
-          rx.Observable.from(bakeStore.incompleteBakeIds)
-            .subscribe(
-            { String statusId ->
-              updateBakeStatusAndLogs(statusId)
+        rx.Observable.from(bakeStore.thisInstanceIncompleteBakeIds)
+          .subscribe(
+            { String incompleteBakeId ->
+              try {
+                updateBakeStatusAndLogs(incompleteBakeId)
+              } catch (Exception e) {
+                log.error("Polling Error:", e)
+              }
             },
             {
               log.error("Error: ${it.message}")
             },
             {} as Action0
-          )
-        } catch (Exception e) {
-          log.error("Polling Error:", e)
-        }
+        )
       } as Action0, 0, pollingIntervalSeconds, TimeUnit.SECONDS
+    )
+
+    // Check _all_ rosco instances' incomplete bakes for staleness.
+    Schedulers.io().createWorker().schedulePeriodically(
+      {
+        rx.Observable.from(bakeStore.allIncompleteBakeIds.entrySet())
+          .subscribe(
+            { Map.Entry<String, Set<String>> entry ->
+              String roscoInstanceId = entry.key
+              Set<String> incompleteBakeIds = entry.value
+
+              if (roscoInstanceId != this.roscoInstanceId) {
+                try {
+                  rx.Observable.from(incompleteBakeIds)
+                    .subscribe(
+                      { String statusId ->
+                        BakeStatus bakeStatus = bakeStore.retrieveBakeStatusById(statusId)
+
+                        // The updatedTimestamp key will not be present if the in-flight bake is managed by an
+                        // older-style (i.e. rosco/rush) rosco instance.
+                        if (bakeStatus?.updatedTimestamp) {
+                          long currentTimeSeconds = TimeUnit.MILLISECONDS.toSeconds(bakeStore.timeInMilliseconds)
+                          long lastUpdatedTimeSeconds = TimeUnit.MILLISECONDS.toSeconds(bakeStatus.updatedTimestamp)
+                          long eTimeMinutes = TimeUnit.SECONDS.toMinutes(currentTimeSeconds - lastUpdatedTimeSeconds)
+
+                          if (eTimeMinutes >= orphanedJobTimeoutMinutes) {
+                            log.info("The staleness of bake $statusId ($eTimeMinutes minutes) has met or exceeded the " +
+                                     "value of orphanedJobTimeoutMinutes ($orphanedJobTimeoutMinutes minutes).")
+
+                            boolean cancellationSucceeded = bakeStore.cancelBakeById(statusId)
+
+                            if (!cancellationSucceeded) {
+                              bakeStore.removeFromIncompletes(roscoInstanceId, statusId)
+                            }
+                          }
+                        }
+                      },
+                      {
+                        log.error("Error: ${it.message}")
+                      },
+                      {} as Action0
+                  )
+                } catch (Exception e) {
+                  log.error("Polling Error:", e)
+                }
+              }
+            },
+            {
+              log.error("Error: ${it.message}")
+            },
+            {} as Action0
+        )
+      } as Action0, 0, orphanedJobPollingIntervalSeconds, TimeUnit.SECONDS
     )
   }
 
-  // TODO(duftler): Support retries here, or at least some number of regular-interval communication failures before
-  // considering the bake a failure.
   void updateBakeStatusAndLogs(String statusId) {
-    try {
-      ScriptExecution scriptExecution = rushService.scriptDetails(statusId).toBlocking().single()
-      Map logsContentMap = rushService.getLogs(statusId, baseScriptRequest).toBlocking().single()
-      BakeStatus.State state = executionStatusToBakeStateMap.convertExecutionStatusToBakeState(scriptExecution.status)
+    BakeStatus bakeStatus = executor.updateJob(statusId)
 
-      if (state == BakeStatus.State.COMPLETED) {
-        completeBake(statusId, logsContentMap?.logsContent)
+    if (bakeStatus) {
+      if (bakeStatus.state == BakeStatus.State.COMPLETED) {
+        completeBake(statusId, bakeStatus.logsContent)
       }
 
-      bakeStore.updateBakeStatus(new BakeStatus(id: scriptExecution.id,
-                                                resource_id: scriptExecution.id,
-                                                state: state,
-                                                result: executionStatusToBakeResultMap.convertExecutionStatusToBakeResult(scriptExecution.status)),
-                                 logsContentMap)
-    } catch (RetrofitError e) {
-      handleRetrofitError(e, "Unable to retrieve status for '$statusId'.", statusId)
-
+      bakeStore.updateBakeStatus(bakeStatus)
+    } else {
+      String errorMessage = "Unable to retrieve status for '$statusId'."
+      log.error(errorMessage)
+      bakeStore.storeBakeError(statusId, errorMessage)
       bakeStore.cancelBakeById(statusId)
     }
   }
@@ -138,14 +182,5 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
     }
 
     log.error("Unable to retrieve bake details for '$bakeId'.")
-  }
-
-  private handleRetrofitError(RetrofitError e, String errMessage, String id) {
-    log.error(errMessage, e)
-
-    def errorBytes = ((TypedByteArray)e?.response?.body)?.bytes
-    def errorMessage = errorBytes ? new String(errorBytes) : "{}"
-
-    bakeStore.storeBakeError(id, errorMessage)
   }
 }

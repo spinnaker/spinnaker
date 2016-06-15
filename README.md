@@ -23,7 +23,7 @@ git clone git@github.com:spinnaker/spinnaker.git
 docker-machine create --virtualbox-disk-size 8192 --virtualbox-memory 8192 -d virtualbox spinnaker
 eval $(docker-machine env spinnaker)
 cd spinnaker/experimental/docker-compose
-docker-compose up -d redis rush
+docker-compose up -d redis
 ```
 
 ## Verify redis

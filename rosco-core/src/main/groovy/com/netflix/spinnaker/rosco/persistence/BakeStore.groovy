@@ -34,7 +34,7 @@ interface BakeStore {
    * Store the region, bakeRequest and bakeStatus in association with both the bakeKey and bakeId. If bake key
    * has already been set, return a bakeStatus with that bake's id instead. None of the arguments may be null.
    */
-  public BakeStatus storeNewBakeStatus(String bakeKey, String region, BakeRequest bakeRequest, String bakeId)
+  public BakeStatus storeNewBakeStatus(String bakeKey, String region, BakeRequest bakeRequest, BakeStatus bakeStatus, String command)
 
   /**
    * Update the completed bake details associated with both the bakeKey and bakeDetails.id. bakeDetails may not be null.
@@ -46,12 +46,6 @@ interface BakeStore {
    * pending nor running, remove bakeStatus.id from the set of incomplete bakes. bakeStatus may not be null.
    */
   public void updateBakeStatus(BakeStatus bakeStatus)
-
-  /**
-   * Update the bakeStatus and bakeLogs associated with both the bakeKey and bakeStatus.id. If bakeStatus.state is
-   * neither pending nor running, remove bakeStatus.id from the set of incomplete bakes. bakeStatus may not be null.
-   */
-  public void updateBakeStatus(BakeStatus bakeStatus, Map<String, String> logsContent)
 
   /**
    * Store the error in association with both the bakeId and the bakeKey. Neither argument may be null.
@@ -90,14 +84,28 @@ interface BakeStore {
   public boolean deleteBakeByKey(String bakeKey)
 
   /**
-   * Cancel the incomplete bake associated with the bake id. Delete the bake status, completed bake details and logs
-   * associated with the bake id. If the bake is still incomplete, remove the bake id from the set of incomplete bakes.
+   * Cancel the incomplete bake associated with the bake id and delete the completed bake details associated with the
+   * bake id. If the bake is still incomplete, remove the bake id from the set of incomplete bakes.
    */
   public boolean cancelBakeById(String bakeId)
 
   /**
-   * Retrieve the set of incomplete bake ids.
+   * Remove the incomplete bake from the rosco instance's set of incomplete bakes.
    */
-  public Set<String> getIncompleteBakeIds()
+  public void removeFromIncompletes(String roscoInstanceId, String bakeId)
 
+  /**
+   * Retrieve the set of incomplete bake ids for this rosco instance.
+   */
+  public Set<String> getThisInstanceIncompleteBakeIds()
+
+  /**
+   * Retrieve a map of rosco instance ids -> sets of incomplete bake ids.
+   */
+  public Map<String, Set<String>> getAllIncompleteBakeIds()
+
+  /**
+   * Get the current redis server time in milliseconds.
+   */
+  public long getTimeInMilliseconds()
 }
