@@ -68,7 +68,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.volu
           source.persistentVolumeClaim = this.defaultPersistentVolumeClaim();
         }
 
-        if (!source.persistentVolumeClaim) {
+        if (!source.secret) {
           source.secret = this.defaultSecret();
         }
 
