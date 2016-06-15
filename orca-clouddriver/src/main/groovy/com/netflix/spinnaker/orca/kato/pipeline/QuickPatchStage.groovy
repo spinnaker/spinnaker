@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import java.util.concurrent.ConcurrentHashMap
+import groovy.util.logging.Slf4j
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
@@ -27,16 +29,14 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 import com.netflix.spinnaker.orca.pipeline.util.PackageInfo
 import com.netflix.spinnaker.orca.pipeline.util.PackageType
-import groovy.util.logging.Slf4j
+import com.squareup.okhttp.OkHttpClient
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import retrofit.RestAdapter
 import retrofit.RetrofitError
-import retrofit.client.Client
-
-import java.util.concurrent.ConcurrentHashMap
+import retrofit.client.OkClient
 
 /**
  * Wrapper stage over BuilkQuickPatchStage.  We do this so we can reuse the same steps whether or not we are doing
@@ -68,9 +68,6 @@ class QuickPatchStage extends LinearStage {
 
   @Autowired
   OortHelper oortHelper
-
-  @Autowired
-  Client retrofitClient
 
   public static final String PIPELINE_CONFIG_TYPE = "quickPatch"
 
@@ -177,7 +174,7 @@ class QuickPatchStage extends LinearStage {
   InstanceService createInstanceService(String address) {
     RestAdapter restAdapter = new RestAdapter.Builder()
       .setEndpoint(address)
-      .setClient(retrofitClient)
+      .setClient(new OkClient(new OkHttpClient(retryOnConnectionFailure: false)))
       .build()
     return restAdapter.create(InstanceService.class)
   }

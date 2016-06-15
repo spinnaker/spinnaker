@@ -15,30 +15,31 @@
  */
 
 package com.netflix.spinnaker.orca.kato.tasks
+
+import java.util.concurrent.TimeUnit
+import java.util.regex.Matcher
+import groovy.util.logging.Slf4j
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.InstanceService
+import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.libdiffs.ComparableLooseVersion
 import com.netflix.spinnaker.orca.libdiffs.Library
 import com.netflix.spinnaker.orca.libdiffs.LibraryDiffTool
 import com.netflix.spinnaker.orca.libdiffs.LibraryDiffs
-import com.netflix.spinnaker.orca.clouddriver.InstanceService
-import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
-import groovy.util.logging.Slf4j
+import com.squareup.okhttp.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Component
 import retrofit.RestAdapter
-import retrofit.client.Client
-
-import java.util.concurrent.TimeUnit
-import java.util.regex.Matcher
+import retrofit.client.OkClient
 
 @Slf4j
 @Component
@@ -54,9 +55,6 @@ class JarDiffsTask implements DiffTask {
 
   @Autowired
   ComparableLooseVersion comparableLooseVersion
-
-  @Autowired
-  Client retrofitClient
 
   @Autowired
   ObjectMapper objectMapper
@@ -118,7 +116,7 @@ class JarDiffsTask implements DiffTask {
   InstanceService createInstanceService(String address) {
     RestAdapter restAdapter = new RestAdapter.Builder()
       .setEndpoint(address)
-      .setClient(retrofitClient)
+      .setClient(new OkClient(new OkHttpClient(retryOnConnectionFailure: false)))
       .build()
     return restAdapter.create(InstanceService.class)
   }
