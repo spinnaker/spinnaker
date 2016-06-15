@@ -1,6 +1,6 @@
 'use strict';
 
-var feedbackUrl = process.env.FEEDBACK_URL || 'http://hootch.test.netflix.net/submit';
+var feedbackUrl = process.env.FEEDBACK_URL || 'https://hootch.test.netflix.net/submit';
 var gateHost = process.env.API_HOST || 'https://spinnaker-api-prestaging.prod.netflix.net';
 var bakeryDetailUrl = process.env.BAKERY_DETAIL_URL || 'http://bakery.test.netflix.net/#/?region={{context.region}}&package={{context.package}}&detail=bake:{{context.status.resourceId}}';
 var authEndpoint = process.env.AUTH_ENDPOINT || 'https://spinnaker-api-prestaging.prod.netflix.net/auth/info';
