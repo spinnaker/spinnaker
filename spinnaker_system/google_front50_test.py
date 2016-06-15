@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import logging
-import os
 import sys
 
 import citest.gcp_testing as gcp
@@ -39,6 +39,10 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     Args:
       parser: argparse.ArgumentParser
     """
+    parser.add_argument(
+      '--google_json_path', default='',
+      help='The path to the google service credentials JSON file.')
+    
     super(GoogleFront50TestScenario, cls).initArgumentParser(
         parser, defaults=defaults)
 
@@ -49,19 +53,19 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     if not enabled:
       raise ValueError('spinnaker.gcs.enabled is not True')
 
-    bucket = config['spinnaker.gcs.bucket']
-    root = config['spinnaker.gcs.rootFolder']
-    self.BUCKET_ROOT = os.path.join(bucket, root)
+    self.BUCKET = config['spinnaker.gcs.bucket']
+    self.BASE_PATH = config['spinnaker.gcs.rootFolder']
     self.TEST_APP = self.bindings['TEST_APP']
-    self.gcs_observer = gcp.GsutilAgent();
+    self.gcs_observer = gcp.GoogleCloudStorageAgent(
+      self.bindings['GOOGLE_JSON_PATH'],
+      gcp.google_cloud_storage_agent.FULL_SCOPE)
 
-    result = self.gcs_observer.run(['versioning', 'get', 'gs://' + bucket])
-    if result.exit_code:
-      raise RuntimeError('Could not inspect bucket: ' + str(result))
-    self.versioning_enabled = result.output.endswith('Enabled')
+    metadata = self.gcs_observer.inspect(self.BUCKET)
+    self.versioning_enabled = (metadata.get('versioning', {})
+                               .get('enabled', False))
     if not self.versioning_enabled:
       self.logger.info('bucket=%s versioning enabled=%s',
-                       bucket, self.versioning_enabled);
+                       self.BUCKET, self.versioning_enabled);
 
   def __init__(self, bindings, agent=None):
     """Constructor.
@@ -97,12 +101,13 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     # file.
     gcs_builder = gcp.GoogleCloudStorageContractBuilder(self.gcs_observer)
     (gcs_builder.new_clause_builder('Created Google Cloud Storage File')
-     .list(self.BUCKET_ROOT, 'applications')
+     .list(self.BUCKET, '/'.join([self.BASE_PATH, 'applications']))
      .contains_path_value('name', self.TEST_APP))
     (gcs_builder.new_clause_builder('Wrote File Content')
-     .retrieve(self.BUCKET_ROOT,
-               os.path.join('applications', self.TEST_APP,
-                            'specification.json'))
+     .retrieve(self.BUCKET,
+               '/'.join([self.BASE_PATH, 'applications', self.TEST_APP,
+                         'specification.json']),
+               transform=json.JSONDecoder().decode)
      .contains_path_eq('', expect))
     for clause in gcs_builder.build().clauses:
       contract.add_clause(clause)
@@ -119,13 +124,12 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     # We already verified the data was stored on GCS, but while we
     # are here we will verify that it is also being returned when queried.
     (f50_builder.new_clause_builder('Added Application')
-     .get_url_path(os.path.join('/default/applications/name',
-                                self.TEST_APP))
+     .get_url_path('/'.join(['/default/applications/name', self.TEST_APP]))
      .contains_path_value('', expect))
     for clause in f50_builder.build().clauses:
       contract.add_clause(clause)
 
-    path = os.path.join('/default/applications/name/', self.TEST_APP)
+    path = '/'.join(['/default/applications/name', self.TEST_APP])
     return st.OperationContract(
         self.new_post_operation(
             title='create_app', data=payload, path=path),
@@ -158,20 +162,22 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     num_versions = 2 if self.versioning_enabled else 1
     builder = gcp.GoogleCloudStorageContractBuilder(self.gcs_observer)
     (builder.new_clause_builder('Google Cloud Storage Contains File')
-     .list(self.BUCKET_ROOT, os.path.join('applications', self.TEST_APP),
+     .list(self.BUCKET,
+           '/'.join([self.BASE_PATH, 'applications', self.TEST_APP]),
            with_versions=True)
      .contains_path_value('name', self.TEST_APP,
                           min=num_versions, max=num_versions))
     (builder.new_clause_builder('Updated File Content')
-     .retrieve(self.BUCKET_ROOT,
-               os.path.join('applications', self.TEST_APP,
-                            'specification.json'))
+     .retrieve(self.BUCKET,
+               '/'.join([self.BASE_PATH, 'applications', self.TEST_APP,
+                         'specification.json']),
+               transform=json.JSONDecoder().decode)
      .contains_path_value('', expect))
 
     # TODO(ewiseblatt): 20160524
     # Add a mechanism here to check the previous version
     # so that we can verify version recovery as well.
-    path = os.path.join('/default/applications')
+    path = '/default/applications'
     return st.OperationContract(
         self.new_put_operation(
             title='update_app', data=payload, path=path),
@@ -180,7 +186,7 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
   def destroy_app(self):
     contract = jc.Contract()
 
-    app_path = os.path.join('/default/applications/name', self.TEST_APP)
+    app_path = '/'.join(['/default/applications/name', self.TEST_APP])
     obs_builder = jc.ObservationVerifierBuilder('Removed Application')
     obs_builder.append_verifier(
       st.HttpObservationFailureVerifier('Not Found', 404));
@@ -192,12 +198,12 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
 
     gcs_builder = gcp.GoogleCloudStorageContractBuilder(self.gcs_observer)
     (gcs_builder.new_clause_builder('Deleted File')
-     .list(self.BUCKET_ROOT, 'applications')
+     .list(self.BUCKET, '/'.join([self.BASE_PATH, 'applications']))
      .excludes_path_value('name',  self.TEST_APP))
     for clause in gcs_builder.build().clauses:
       contract.add_clause(clause)
 
-    path = os.path.join('/default/applications/name/', self.TEST_APP)
+    path = '/'.join(['/default/applications/name/', self.TEST_APP])
     return st.OperationContract(
         self.new_delete_operation(
             title='delete_app', data=None, path=path),
@@ -230,6 +236,3 @@ def main():
 
 if __name__ == '__main__':
   sys.exit(main())
-
-
-  
