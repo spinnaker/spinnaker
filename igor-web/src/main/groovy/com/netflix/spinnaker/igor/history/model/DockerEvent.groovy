@@ -24,6 +24,7 @@ class DockerEvent extends Event {
     ]
 
     static class Content {
+        String account
         String registry
         String repository
         String tag
