@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry.security
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryClient
 import com.netflix.spinnaker.clouddriver.docker.registry.exception.DockerRegistryConfigException
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
@@ -82,6 +83,7 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
     this.credentials = buildCredentials(repositories)
   }
 
+  @JsonIgnore
   public List<String> getRepositories() {
     return credentials.repositories
   }
@@ -136,6 +138,7 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
   final int cacheThreads
   final long clientTimeoutMillis
   final int paginateSize
+  @JsonIgnore
   final DockerRegistryCredentials credentials
   final List<String> requiredGroupMembership
 }
