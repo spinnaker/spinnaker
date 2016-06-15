@@ -48,7 +48,7 @@ class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
 
   @Override
   String getType() {
-    return amazonCloudProvider.id
+    return AmazonCloudProvider.AWS
   }
 
   @Override
