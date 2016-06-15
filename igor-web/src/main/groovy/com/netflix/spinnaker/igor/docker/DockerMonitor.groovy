@@ -118,6 +118,7 @@ class DockerMonitor implements PollingMonitor {
                                 repository: image.repository,
                                 tag: image.tag,
                                 digest: image.digest,
+                                account: image.account,
                         )))
                     }
 
