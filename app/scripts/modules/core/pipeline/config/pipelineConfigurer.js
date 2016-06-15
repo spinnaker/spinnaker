@@ -89,6 +89,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       var newStage = { isNew: true };
       $scope.pipeline.stages = $scope.pipeline.stages || [];
       if ($scope.pipeline.parallel) {
+        if (!$scope.pipeline.stageCounter) {
+          $scope.pipeline.stageCounter = Math.max(...$scope.pipeline.stages.map(s => Number(s.refId) || 0)) + 1;
+        }
         $scope.pipeline.stageCounter++;
         newStage.requisiteStageRefIds = [];
         newStage.refId = $scope.pipeline.stageCounter + ''; // needs to be a string
