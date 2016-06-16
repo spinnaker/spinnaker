@@ -119,8 +119,8 @@ class PackageNameConverter {
           }
 
           if (bakeRequest.job) {
-            // Travis job name and Jenkins job name with folder may contain slashes into the job name
-            // that makes the AppVersion.parseName fails, so, replace all slashes in the job name for hyphens
+            // Travis job name and Jenkins job name with folder may contain slashes in the job name
+            // that make AppVersion.parseName fail. Replace all slashes in the job name with hyphens.
             def job = bakeRequest.job.replaceAll("/", "-")
             appVersion += "/$job/$bakeRequest.build_number"
           }
