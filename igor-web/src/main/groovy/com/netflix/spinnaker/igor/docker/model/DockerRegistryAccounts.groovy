@@ -26,7 +26,7 @@ class DockerRegistryAccounts {
     @Autowired
     ClouddriverService service
 
-    List<String> accounts
+    List<Map> accounts
 
     DockerRegistryAccounts() {
         this.accounts = []
@@ -34,7 +34,9 @@ class DockerRegistryAccounts {
 
     void updateAccounts() {
         try {
-            this.accounts = service.allAccounts?.collect { it.cloudProvider == "dockerRegistry" ? it.name : null }?.minus(null) ?: this.accounts
+            this.accounts = service.allAccounts.findAll{ it.cloudProvider == 'dockerRegistry' }*.name.collect{
+                service.getAccountDetails(it)
+            }
         } catch (RetrofitError e) {
             log.error "Failed to get list of docker accounts", e
         }

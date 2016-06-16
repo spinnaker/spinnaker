@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.docker.service
 
 import com.netflix.spinnaker.igor.docker.model.ClouddriverAccount
 import retrofit.http.GET
+import retrofit.http.Path
 import retrofit.http.Query
 
 /*
@@ -30,4 +31,7 @@ interface ClouddriverService {
 
     @GET('/credentials')
     List<ClouddriverAccount> getAllAccounts()
+
+    @GET('/credentials/{account}')
+    Map getAccountDetails(@Path('account') String account)
 }
