@@ -40,17 +40,17 @@ public class PollingMonitorHealth implements HealthIndicator {
         pollers.forEach { poller ->
             if (poller.isInService()) {
                 if (poller.lastPoll == null) {
-                    healths << Health.unknown().withDetail('${poller.name}.status', 'not polling yet').build()
+                    healths << Health.unknown().withDetail("${poller.name}.status", 'not polling yet').build()
                 } else {
                     // Check if twice the polling interval has elapsed.
                     if (System.currentTimeMillis() - poller.lastPoll > (poller.pollInterval * 2 * DateTimeConstants.MILLIS_PER_SECOND)) {
-                        healths << Health.down().withDetail('${poller.name}.status', 'stopped').withDetail('${poller.name}.lastPoll', poller.lastPoll.toString()).build()
+                        healths << Health.down().withDetail("${poller.name}.status", 'stopped').withDetail("${poller.name}.lastPoll", poller.lastPoll.toString()).build()
                     } else {
-                        healths << Health.up().withDetail('${poller.name}.status', 'running').withDetail('${poller.name}.lastPoll', poller.lastPoll.toString()).build()
+                        healths << Health.up().withDetail("${poller.name}.status", 'running').withDetail("${poller.name}.lastPoll", poller.lastPoll.toString()).build()
                     }
                 }
             } else {
-                healths << Health.unknown().withDetail('${poller.name}.status', 'not in service').build()
+                healths << Health.unknown().withDetail("${poller.name}.status", 'not in service').build()
             }
 
         }
