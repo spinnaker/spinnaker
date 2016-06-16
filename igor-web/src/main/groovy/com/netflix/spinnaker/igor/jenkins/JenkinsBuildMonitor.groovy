@@ -33,6 +33,7 @@ import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
 import rx.Observable
+import rx.Scheduler
 import rx.Scheduler.Worker
 import rx.functions.Action0
 import rx.schedulers.Schedulers
@@ -52,7 +53,8 @@ class JenkinsBuildMonitor implements PollingMonitor {
     @Autowired
     Environment environment
 
-    Worker worker = Schedulers.io().createWorker()
+    Scheduler scheduler = Schedulers.newThread()
+    Worker worker = scheduler.createWorker()
 
     @Autowired
     JenkinsCache cache
@@ -107,9 +109,12 @@ class JenkinsBuildMonitor implements PollingMonitor {
         worker.schedulePeriodically(
             {
                 if (isInService()) {
-                    buildMasters.filteredMap(BuildServiceProvider.JENKINS).keySet().each { master ->
-                        changedBuilds(master)
-                    }
+                    Observable.from( buildMasters.filteredMap(BuildServiceProvider.JENKINS).keySet() )
+                            .subscribe(
+                                { master ->
+                                    changedBuilds(master)
+                                }, { log.error("Error: ${it.message}") }
+                            )
                 } else {
                     log.info("not in service (lastPoll: ${lastPoll ?: 'n/a'})")
                     lastPoll = null
@@ -154,7 +159,9 @@ class JenkinsBuildMonitor implements PollingMonitor {
                 { log.error("Error: ${it.message}") }
             )
 
-            Observable.from(builds).subscribe(
+            Observable.from(builds)
+                    .subscribeOn(scheduler)
+                    .subscribe(
                 { Project project ->
                     boolean addToCache = false
                     Map cachedBuild = null

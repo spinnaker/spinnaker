@@ -23,6 +23,9 @@ import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.service.BuildMasters
+import rx.Scheduler
+import rx.schedulers.Schedulers
+import rx.schedulers.TestScheduler
 import spock.lang.Specification
 
 /**
@@ -39,6 +42,7 @@ class JenkinsBuildMonitorSpec extends Specification {
 
     void setup() {
         monitor = new JenkinsBuildMonitor(cache: cache, buildMasters: new BuildMasters(map: [MASTER: jenkinsService]))
+        monitor.scheduler = Schedulers.immediate()
     }
 
     void 'flag a new build not found in the cache'() {
