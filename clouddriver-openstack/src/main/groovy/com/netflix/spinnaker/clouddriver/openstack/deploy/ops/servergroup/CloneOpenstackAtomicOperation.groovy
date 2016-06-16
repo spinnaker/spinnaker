@@ -21,7 +21,8 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.CloneOpenstackAtomicOperationDescription
-import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackResourceNotFoundException
+import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
+import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import groovy.util.logging.Slf4j
@@ -63,22 +64,22 @@ class CloneOpenstackAtomicOperation implements AtomicOperation<DeploymentResult>
 
     task.updateStatus BASE_PHASE, "Reading ancestor stack name ${description.source.stackName}..."
 
-    Stack ancestorStack = description.credentials.provider.getStack(description.source.region, description.source.stackName)
-    if (!ancestorStack) {
-      throw new OpenstackResourceNotFoundException(AtomicOperations.CLONE_SERVER_GROUP, "Source stack ${description.source.stackName} does not exist.")
+    try {
+      Stack ancestorStack = description.credentials.provider.getStack(description.source.region, description.source.stackName)
+      def ancestorNames = Names.parseName(description.source.stackName)
+
+      // Build description of object from ancestor, override any values that were specified on the clone call
+      newDescription.application = description.application ?: ancestorNames.app
+      newDescription.stack = description.stack ?: ancestorNames.stack
+      newDescription.freeFormDetails = description.freeFormDetails ?: ancestorNames.detail
+      newDescription.region = description.region ?: description.source.region
+      newDescription.heatTemplate = description.heatTemplate ?: description.credentials.provider.getHeatTemplate(description.source.region, ancestorStack.name, ancestorStack.id)
+      newDescription.parameters = description.parameters ?: ancestorStack.parameters
+      newDescription.disableRollback = description.disableRollback ?: false
+      newDescription.timeoutMins = description.timeoutMins ?: ancestorStack.timeoutMins
+    } catch (OpenstackProviderException e) {
+      throw new OpenstackOperationException(AtomicOperations.CLONE_SERVER_GROUP, e)
     }
-
-    def ancestorNames = Names.parseName(description.source.stackName)
-
-    // Build description of object from ancestor, override any values that were specified on the clone call
-    newDescription.application = description.application ?: ancestorNames.app
-    newDescription.stack = description.stack ?: ancestorNames.stack
-    newDescription.freeFormDetails = description.freeFormDetails ?: ancestorNames.detail
-    newDescription.region = description.region ?: description.source.region
-    newDescription.heatTemplate = description.heatTemplate ?: description.credentials.provider.getHeatTemplate(description.source.region, ancestorStack.name, ancestorStack.id)
-    newDescription.parameters = description.parameters ?: [:]
-    newDescription.disableRollback = description.disableRollback ?: false
-    newDescription.timeoutMins = description.timeoutMins ?: ancestorStack.timeoutMins
 
     return newDescription
   }

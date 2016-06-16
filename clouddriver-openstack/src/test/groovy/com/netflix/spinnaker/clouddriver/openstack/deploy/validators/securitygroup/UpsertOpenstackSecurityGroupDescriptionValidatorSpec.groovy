@@ -47,9 +47,9 @@ class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
   def "validate no rules"() {
     setup:
     def id = UUID.randomUUID().toString()
-    def name = "name"
-    def desc = "description"
-    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', id: id, name: name, description: desc, rules: [])
+    def name = 'name'
+    def desc = 'description'
+    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', 'region': 'west', id: id, name: name, description: desc, rules: [])
 
     when:
     validator.validate([], description, errors)
@@ -61,13 +61,13 @@ class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
   def "validate with rules"() {
     setup:
     def id = UUID.randomUUID().toString()
-    def name = "name"
-    def desc = "description"
+    def name = 'name'
+    def desc = 'description'
     def rules = [
-      new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: 80, toPort: 80, cidr: "0.0.0.0/0"),
-      new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: 443, toPort: 443, cidr: "0.0.0.0/0")
+      new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: 80, toPort: 80, cidr: '0.0.0.0/0'),
+      new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: 443, toPort: 443, cidr: '0.0.0.0/0')
     ]
-    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', id: id, name: name, description: desc, rules: rules)
+    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', 'region': 'west', id: id, name: name, description: desc, rules: rules)
 
     when:
     validator.validate([], description, errors)
@@ -78,10 +78,10 @@ class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
 
   def "validate with invalid id"() {
     setup:
-    def id = "not a uuid"
-    def name = "name"
-    def desc = "description"
-    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', id: id, name: name, description: desc, rules: [])
+    def id = 'not a uuid'
+    def name = 'name'
+    def desc = 'description'
+    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', 'region': 'west', id: id, name: name, description: desc, rules: [])
 
     when:
     validator.validate([], description, errors)
@@ -90,11 +90,11 @@ class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
     1 * errors.rejectValue('upsertOpenstackSecurityGroupAtomicOperationDescription.id', 'upsertOpenstackSecurityGroupAtomicOperationDescription.id.notUUID')
   }
 
-  def "validate with without id is valid"() {
+  def "validate without id is valid"() {
     setup:
-    def name = "name"
-    def desc = "description"
-    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', id: null, name: name, description: desc, rules: [])
+    def name = 'name'
+    def desc = 'description'
+    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', 'region': 'west', id: null, name: name, description: desc, rules: [])
 
     when:
     validator.validate([], description, errors)
@@ -103,15 +103,28 @@ class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
     0 * errors.rejectValue(_, _)
   }
 
+  def "missing region is invalid"() {
+    setup:
+    def name = 'name'
+    def desc = 'description'
+    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', id: null, name: name, description: desc, rules: [])
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue(_, 'upsertOpenstackSecurityGroupAtomicOperationDescription.region.empty')
+  }
+
   def "validate with invalid rule"() {
     setup:
     def id = UUID.randomUUID().toString()
-    def name = "name"
-    def desc = "description"
+    def name = 'name'
+    def desc = 'description'
     def rules = [
       new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: fromPort, toPort: toPort, cidr: cidr)
     ]
-    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', id: id, name: name, description: desc, rules: rules)
+    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', 'region': 'west', id: id, name: name, description: desc, rules: rules)
 
     when:
     validator.validate([], description, errors)
@@ -120,9 +133,9 @@ class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
     1 * errors.rejectValue(_, rejectValue)
 
     where:
-    fromPort | toPort | cidr      | rejectValue
-    80       | 80     | '0.0.0.0' | 'upsertOpenstackSecurityGroupAtomicOperationDescription.cidr.invalidCIDR'
-    80       | 80     | null      | 'upsertOpenstackSecurityGroupAtomicOperationDescription.cidr.empty'
+    fromPort | toPort | cidr        | rejectValue
+    80       | 80     | '0.0.0.0'   | 'upsertOpenstackSecurityGroupAtomicOperationDescription.cidr.invalidCIDR'
+    80       | 80     | null        | 'upsertOpenstackSecurityGroupAtomicOperationDescription.cidr.empty'
     0        | 80     | '0.0.0.0/0' | 'upsertOpenstackSecurityGroupAtomicOperationDescription.fromPort.invalid (Must be in range [1, 65535])'
     80       | 0      | '0.0.0.0/0' | 'upsertOpenstackSecurityGroupAtomicOperationDescription.toPort.invalid (Must be in range [1, 65535])'
   }

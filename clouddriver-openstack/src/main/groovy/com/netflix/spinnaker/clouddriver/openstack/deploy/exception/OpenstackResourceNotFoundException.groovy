@@ -19,4 +19,4 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.exception
 import groovy.transform.InheritConstructors
 
 @InheritConstructors
-class OpenstackResourceNotFoundException extends OpenstackOperationException {}
+class OpenstackResourceNotFoundException extends OpenstackProviderException {}

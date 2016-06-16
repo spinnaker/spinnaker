@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.client
 
-import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.UpsertOpenstackSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerPool
 import com.netflix.spinnaker.clouddriver.openstack.domain.PoolHealthMonitor
 import com.netflix.spinnaker.clouddriver.openstack.domain.VirtualIP
+import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackResourceNotFoundException
 import org.apache.commons.lang.StringUtils
 import org.openstack4j.api.Builders
 import org.openstack4j.api.OSClient
@@ -155,7 +155,7 @@ abstract class OpenstackClientProvider {
    * @param region
    * @param loadBalancerPool
    * @return
-     */
+   */
   LbPool updateLoadBalancerPool(final String region, final LoadBalancerPool loadBalancerPool) {
     handleRequest {
       getRegionClient(region).networking().loadbalancers().lbPool().update(loadBalancerPool.id,
@@ -368,48 +368,74 @@ abstract class OpenstackClientProvider {
   }
 
   /**
-   * Create or update a security group, applying a list of rules. If the securityGroupId is provided, updates an existing
-   * security group, else creates a new security group.
-   *
-   * Note: 2 default egress rules are created when creating a new security group
-   * automatically with remote IP prefixes 0.0.0.0/0 and ::/0.
-   *
-   * @param securityGroupId id of an existing security group to update
-   * @param securityGroupName name security group
-   * @param description description of the security group
-   * @param rules list of rules for the security group
+   * Deletes a security group rule
+   * @param region the region to delete the rule from
+   * @param id id of the rule to delete
    */
-  void upsertSecurityGroup(String securityGroupId, String securityGroupName, String description, List<UpsertOpenstackSecurityGroupDescription.Rule> rules) {
-
+  void deleteSecurityGroupRule(String region, String id) {
     handleRequest {
-
-      // The call to getClient reauthenticates via a token, so grab once for this method to avoid unnecessary reauthentications
-      def securityGroupsApi = client.compute().securityGroups()
-
-      // Try getting existing security group, update if needed
-      SecGroupExtension securityGroup
-      if (StringUtils.isNotEmpty(securityGroupId)) {
-        securityGroup = securityGroupsApi.get(securityGroupId)
-      }
-      if (!securityGroup) {
-        securityGroup = securityGroupsApi.create(securityGroupName, description)
-      } else {
-        securityGroup = securityGroupsApi.update(securityGroup.id, securityGroupName, description)
-      }
-
-      // TODO: Find the different between existing rules and only apply that instead of deleting and re-creating all the rules
-      securityGroup.rules.each { rule ->
-        securityGroupsApi.deleteRule(rule.id)
-      }
-
-      rules.each { rule ->
-        securityGroupsApi.createRule(Builders.secGroupRule()
-          .parentGroupId(securityGroup.id)
-          .protocol(IPProtocol.valueOf(rule.ruleType))
-          .cidr(rule.cidr)
-          .range(rule.fromPort, rule.toPort).build())
-      }
+      client.useRegion(region).compute().securityGroups().deleteRule(id)
     }
+  }
+
+  /**
+   * Creates a security group rule.
+   * @param region the region to create the rule in
+   * @param securityGroupId id of the security group which this rule belongs to
+   * @param protocol the protocol of the rule
+   * @param cidr the cidr for the rule
+   * @param fromPort the fromPort for the rule
+   * @param toPort the toPort for the rule
+   * @return the created rule
+   */
+  SecGroupExtension.Rule createSecurityGroupRule(String region, String securityGroupId, IPProtocol protocol, String cidr, int fromPort, int toPort) {
+    handleRequest {
+      client.useRegion(region).compute().securityGroups().createRule(Builders.secGroupRule()
+        .parentGroupId(securityGroupId)
+        .protocol(protocol)
+        .cidr(cidr)
+        .range(fromPort, toPort)
+        .build())
+    }
+  }
+
+  /**
+   * Updates a security group with the new name and description
+   * @param region the region the security group is in
+   * @param id the id of the security group to update
+   * @param name the new name for the security group
+   * @param description the new description for the security group
+   * @return the updated security group
+   */
+  SecGroupExtension updateSecurityGroup(String region, String id, String name, String description) {
+    handleRequest {
+      client.useRegion(region).compute().securityGroups().update(id, name, description)
+    }
+  }
+
+  /**
+   * Creates a security group with the given name and description
+   * @return the created security group
+   */
+  SecGroupExtension createSecurityGroup(String region, String name, String description) {
+    handleRequest {
+      client.useRegion(region).compute().securityGroups().create(name, description)
+    }
+  }
+
+  /**
+   * Returns the security group for the given id.
+   * @param region the region to look up the security group in
+   * @param id id of the security group.
+   */
+  SecGroupExtension getSecurityGroup(String region, String id) {
+    SecGroupExtension securityGroup = handleRequest {
+      client.useRegion(region).compute().securityGroups().get(id)
+    }
+    if (!securityGroup) {
+      throw new OpenstackResourceNotFoundException("Unable to find security group ${id}")
+    }
+    securityGroup
   }
 
   /**
@@ -428,7 +454,7 @@ abstract class OpenstackClientProvider {
     //TODO: Handle heat autoscaling migration to senlin in versions > Mitaka
   }
 
-  /***
+  /**
    * Get a heat template from an existing Openstack Heat Stack
    * @param region
    * @param stackName
@@ -464,7 +490,7 @@ abstract class OpenstackClientProvider {
       client.useRegion(region).heat().stacks().getStackByName(stackName)
     }
     if (!stack) {
-      throw new OpenstackProviderException("Unable to find stack $stackName in region $region")
+      throw new OpenstackResourceNotFoundException("Unable to find stack $stackName in region $region")
     }
     stack
   }

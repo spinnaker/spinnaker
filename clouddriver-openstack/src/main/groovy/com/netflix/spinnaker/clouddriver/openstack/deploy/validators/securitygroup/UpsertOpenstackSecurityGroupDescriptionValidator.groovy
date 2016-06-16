@@ -40,17 +40,18 @@ class UpsertOpenstackSecurityGroupDescriptionValidator extends DescriptionValida
 
   @Override
   void validate(List priorDescriptions, UpsertOpenstackSecurityGroupDescription description, Errors errors) {
-    def validator = new OpenstackAttributeValidator("upsertOpenstackSecurityGroupAtomicOperationDescription", errors)
+    def validator = new OpenstackAttributeValidator('upsertOpenstackSecurityGroupAtomicOperationDescription', errors)
     validator.validateCredentials(description.account, accountCredentialsProvider)
+    validator.validateNotEmpty(description.region, "region")
     if (StringUtils.isNotEmpty(description.id)) {
-      validator.validateUUID(description.id, "id")
+      validator.validateUUID(description.id, 'id')
     }
     if (!description.rules.isEmpty()) {
       description.rules.each { r ->
-        validator.validateCIDR(r.cidr, "cidr")
-        validator.validatePort(r.fromPort, "fromPort")
-        validator.validatePort(r.toPort, "toPort")
-        validator.validateRuleType(r.ruleType, "ruleType")
+        validator.validateCIDR(r.cidr, 'cidr')
+        validator.validatePort(r.fromPort, 'fromPort')
+        validator.validatePort(r.toPort, 'toPort')
+        validator.validateRuleType(r.ruleType, 'ruleType')
       }
     }
   }
