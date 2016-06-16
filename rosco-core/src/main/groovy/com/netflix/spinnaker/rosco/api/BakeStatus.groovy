@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.rosco.api
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
+import io.swagger.annotations.ApiModelProperty
 
 /**
  * The state of a bake as returned by the Bakery API when a bake is created. Once complete it provides a link to the
@@ -32,6 +34,7 @@ class BakeStatus implements Serializable {
   /**
    * The bake status id.
    */
+  @ApiModelProperty(value="The id of the bake request.")
   String id
 
   State state
@@ -43,10 +46,20 @@ class BakeStatus implements Serializable {
    *
    * @see BakeryController#lookupBake
    */
+  @ApiModelProperty(value="The id of the bake job. Can be passed to lookupBake() to retrieve the details of the newly-baked image.")
   String resource_id
 
+  @JsonIgnore
+  String logsContent
+
+  @JsonIgnore
+  long createdTimestamp
+
+  @JsonIgnore
+  long updatedTimestamp
+
   static enum State {
-    PENDING, RUNNING, COMPLETED, SUSPENDED, CANCELED
+    RUNNING, COMPLETED, CANCELED
   }
 
   static enum Result {

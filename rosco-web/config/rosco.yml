@@ -1,32 +1,8 @@
 server:
   port: 8087
 
-rush:
-  baseUrl: http://localhost:8085
-  # TODO(duftler): Figure out the right way to set this dynamically.
+rosco:
   configDir: /some/path/to/config/packer
-
-executionStatusToBakeStates:
-  associations:
-    - executionStatus: PREPARING
-      bakeState: PENDING
-    - executionStatus: FETCHING_IMAGE
-      bakeState: PENDING
-    - executionStatus: RUNNING
-      bakeState: RUNNING
-    - executionStatus: CANCELED
-      bakeState: CANCELED
-    - executionStatus: SUCCESSFUL
-      bakeState: COMPLETED
-    - executionStatus: FAILED
-      bakeState: CANCELED
-
-executionStatusToBakeResults:
-  associations:
-    - executionStatus: SUCCESSFUL
-      bakeResult: SUCCESS
-    - executionStatus: FAILED
-      bakeResult: FAILURE
 
 # If a repository is set here, it will be added by packer as repository when baking images for GCE and AWS.
 # It is safe to leave this out (or blank) if you do not need to configure your own repository.
@@ -251,5 +227,5 @@ swagger:
   description:
   contact:
   patterns:
-    - .*api/v1.*
+    - /api/v1.*
     - /bakeOptions.*

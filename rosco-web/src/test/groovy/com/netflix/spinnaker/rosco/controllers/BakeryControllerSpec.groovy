@@ -24,81 +24,75 @@ import com.netflix.spinnaker.rosco.persistence.RedisBackedBakeStore
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
 import com.netflix.spinnaker.rosco.providers.registry.DefaultCloudProviderBakeHandlerRegistry
-import com.netflix.spinnaker.rosco.rush.api.RushService
-import com.netflix.spinnaker.rosco.rush.api.ScriptExecution
-import com.netflix.spinnaker.rosco.rush.api.ScriptId
-import com.netflix.spinnaker.rosco.rush.api.ScriptRequest
-import rx.Observable
+import com.netflix.spinnaker.rosco.jobs.JobExecutor
+import com.netflix.spinnaker.rosco.jobs.JobRequest
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 class BakeryControllerSpec extends Specification {
 
   private static final String PACKAGE_NAME = "kato"
   private static final String REGION = "some-region"
-  private static final String SCRIPT_ID = "123"
-  private static final String EXISTING_SCRIPT_ID = "456"
-  private static final String CREDENTIALS = "some-credentials"
+  private static final String JOB_ID = "123"
+  private static final String EXISTING_JOB_ID = "456"
   private static final String AMI_ID = "ami-3cf4a854"
   private static final String IMAGE_NAME = "some-image"
   private static final String BAKE_KEY = "bake:gce:ubuntu:$PACKAGE_NAME"
+  private static final String PACKER_COMMAND = "packer build ..."
   private static final String LOGS_CONTENT = "Some logs content..."
 
-  void 'create bake issues script command and returns new status'() {
+  void 'create bake launches job and returns new status'() {
     setup:
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
       def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
       def bakeStoreMock = Mock(RedisBackedBakeStore)
-      def rushServiceMock = Mock(RushService)
-      def runScriptObservable = Observable.from(new ScriptId(id: SCRIPT_ID))
-      def scriptDetailsObservable = Observable.from(new ScriptExecution(status: "RUNNING"))
+      def jobExecutorMock = Mock(JobExecutor)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: "ubuntu",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
+      def runningBakeStatus = new BakeStatus(id: JOB_ID, resource_id: JOB_ID, state: BakeStatus.State.RUNNING)
 
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
-                                                  baseScriptRequest: new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME),
                                                   bakeStore: bakeStoreMock,
-                                                  rushService: rushServiceMock)
+                                                  jobExecutor: jobExecutorMock)
 
     when:
-      def bakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
+      def returnedBakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
 
     then:
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
-      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> ["packer build ..."]
+      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> [PACKER_COMMAND]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
-      1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, tokenizedCommand: ["packer build ..."])) >> runScriptObservable
-      1 * rushServiceMock.scriptDetails(SCRIPT_ID) >> scriptDetailsObservable
-      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, SCRIPT_ID) >> new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
-      bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
+      1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND])) >> JOB_ID
+      1 * jobExecutorMock.updateJob(JOB_ID) >> runningBakeStatus
+      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, runningBakeStatus, PACKER_COMMAND) >> runningBakeStatus
+      returnedBakeStatus == runningBakeStatus
   }
 
-  void 'create bake fails fast if script engine returns FAILED'() {
+  void 'create bake fails fast if job executor returns CANCELED'() {
     setup:
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
       def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
       def bakeStoreMock = Mock(RedisBackedBakeStore)
-      def rushServiceMock = Mock(RushService)
-      def scriptRequest = new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, tokenizedCommand: ["packer build ..."])
-      def runScriptObservable = Observable.from(new ScriptId(id: SCRIPT_ID))
-      def scriptDetailsObservable = Observable.from(new ScriptExecution(status: "FAILED"))
-      def getLogsObservable = Observable.from([logsContent: "Some kind of failure..."])
+      def jobExecutorMock = Mock(JobExecutor)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: "ubuntu",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
+      def failedBakeStatus = new BakeStatus(id: JOB_ID,
+                                            resource_id: JOB_ID,
+                                            state: BakeStatus.State.CANCELED,
+                                            result: BakeStatus.Result.FAILURE,
+                                            logsContent: "Some kind of failure...")
 
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
-                                                  baseScriptRequest: new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME),
                                                   bakeStore: bakeStoreMock,
-                                                  rushService: rushServiceMock)
+                                                  jobExecutor: jobExecutorMock)
 
     when:
       bakeryController.createBake(REGION, bakeRequest, null)
@@ -107,11 +101,10 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
-      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> ["packer build ..."]
+      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> [PACKER_COMMAND]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
-      1 * rushServiceMock.runScript(scriptRequest) >> runScriptObservable
-      1 * rushServiceMock.scriptDetails(SCRIPT_ID) >> scriptDetailsObservable
-      1 * rushServiceMock.getLogs(SCRIPT_ID, scriptRequest) >> getLogsObservable
+      1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND])) >> JOB_ID
+      1 * jobExecutorMock.updateJob(JOB_ID) >> failedBakeStatus
       IllegalArgumentException e = thrown()
       e.message == "Some kind of failure..."
   }
@@ -121,30 +114,28 @@ class BakeryControllerSpec extends Specification {
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
       def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
       def bakeStoreMock = Mock(RedisBackedBakeStore)
-      def rushServiceMock = Mock(RushService)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: "ubuntu",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
+      def runningBakeStatus = new BakeStatus(id: JOB_ID, resource_id: JOB_ID, state: BakeStatus.State.RUNNING)
 
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
-                                                  baseScriptRequest: new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME),
-                                                  bakeStore: bakeStoreMock,
-                                                  rushService: rushServiceMock)
+                                                  bakeStore: bakeStoreMock)
 
     when:
-      def bakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
+      def returnedBakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
 
     then:
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
-      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> ["packer build ..."]
+      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> [PACKER_COMMAND]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> false
       4 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
-      1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
-      bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
+      1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> runningBakeStatus
+      returnedBakeStatus == runningBakeStatus
   }
 
   void 'create bake polls for status when lock cannot be acquired, but tries for lock again if status cannot be obtained'() {
@@ -152,35 +143,33 @@ class BakeryControllerSpec extends Specification {
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
       def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
       def bakeStoreMock = Mock(RedisBackedBakeStore)
-      def rushServiceMock = Mock(RushService)
-      def runScriptObservable = Observable.from(new ScriptId(id: SCRIPT_ID))
-      def scriptDetailsObservable = Observable.from(new ScriptExecution(status: "RUNNING"))
+      def jobExecutorMock = Mock(JobExecutor)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: "ubuntu",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
+      def runningBakeStatus = new BakeStatus(id: JOB_ID, resource_id: JOB_ID, state: BakeStatus.State.RUNNING)
 
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
-                                                  baseScriptRequest: new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME),
                                                   bakeStore: bakeStoreMock,
-                                                  rushService: rushServiceMock)
+                                                  jobExecutor: jobExecutorMock)
 
     when:
-      def bakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
+      def returnedBakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
 
     then:
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
-      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> ["packer build ..."]
+      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> [PACKER_COMMAND]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> false
       (10.._) * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
-      1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, tokenizedCommand: ["packer build ..."])) >> runScriptObservable
-      1 * rushServiceMock.scriptDetails(SCRIPT_ID) >> scriptDetailsObservable
-      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, SCRIPT_ID) >> new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
-      bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
+      1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND])) >> JOB_ID
+      1 * jobExecutorMock.updateJob(JOB_ID) >> runningBakeStatus
+      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, runningBakeStatus, PACKER_COMMAND) >> runningBakeStatus
+      returnedBakeStatus == new BakeStatus(id: JOB_ID, resource_id: JOB_ID, state: BakeStatus.State.RUNNING)
   }
 
   void 'create bake polls for status when lock cannot be acquired, tries for lock again if status cannot be obtained, and throws exception if that fails'() {
@@ -188,7 +177,6 @@ class BakeryControllerSpec extends Specification {
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
       def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
       def bakeStoreMock = Mock(RedisBackedBakeStore)
-      def rushServiceMock = Mock(RushService)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: "ubuntu",
@@ -196,9 +184,7 @@ class BakeryControllerSpec extends Specification {
 
     @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
-                                                  baseScriptRequest: new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME),
-                                                  bakeStore: bakeStoreMock,
-                                                  rushService: rushServiceMock)
+                                                  bakeStore: bakeStoreMock)
 
     when:
       bakeryController.createBake(REGION, bakeRequest, null)
@@ -207,7 +193,7 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
-      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> ["packer build ..."]
+      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> [PACKER_COMMAND]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> false
       (10.._) * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> false
@@ -235,8 +221,7 @@ class BakeryControllerSpec extends Specification {
       e.message == "Unknown provider type 'gce'."
   }
 
-  @Unroll
-  void 'create bake returns existing status when prior bake is pending or running'() {
+  void 'create bake returns existing status when prior bake is running'() {
     setup:
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
       def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
@@ -245,22 +230,22 @@ class BakeryControllerSpec extends Specification {
                                         package_name: PACKAGE_NAME,
                                         base_os: "ubuntu",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
+      def runningBakeStatus = new BakeStatus(id: EXISTING_JOB_ID,
+                                             resource_id: EXISTING_JOB_ID,
+                                             state: BakeStatus.State.RUNNING)
 
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
                                                   bakeStore: bakeStoreMock)
 
     when:
-      def bakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
+      def returnedBakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
 
     then:
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
-      1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> new BakeStatus(id: EXISTING_SCRIPT_ID, resource_id: EXISTING_SCRIPT_ID, state: bakeState)
-      bakeStatus == new BakeStatus(id: EXISTING_SCRIPT_ID, resource_id: EXISTING_SCRIPT_ID, state: bakeState)
-
-    where:
-      bakeState << [BakeStatus.State.PENDING, BakeStatus.State.RUNNING]
+      1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> runningBakeStatus
+      returnedBakeStatus == runningBakeStatus
   }
 
   void 'create bake returns existing status when prior bake is completed and successful'() {
@@ -272,145 +257,150 @@ class BakeryControllerSpec extends Specification {
                                         package_name: PACKAGE_NAME,
                                         base_os: "ubuntu",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
+      def completedBakeStatus = new BakeStatus(id: EXISTING_JOB_ID,
+                                               resource_id: EXISTING_JOB_ID,
+                                               state: BakeStatus.State.COMPLETED,
+                                               result: BakeStatus.Result.SUCCESS)
 
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
                                                   bakeStore: bakeStoreMock)
 
     when:
-      def bakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
+      def returnedBakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
 
     then:
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
-      1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> new BakeStatus(id: EXISTING_SCRIPT_ID, resource_id: EXISTING_SCRIPT_ID, state: BakeStatus.State.COMPLETED, result: BakeStatus.Result.SUCCESS)
-      bakeStatus == new BakeStatus(id: EXISTING_SCRIPT_ID, resource_id: EXISTING_SCRIPT_ID, state: BakeStatus.State.COMPLETED, result: BakeStatus.Result.SUCCESS)
+      1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> completedBakeStatus
+      returnedBakeStatus == completedBakeStatus
   }
 
-  void 'create bake issues script command and returns new status when prior bake is completed and failure'() {
+  void 'create bake launches job and returns new status when prior bake is completed and failure'() {
     setup:
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
       def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
       def bakeStoreMock = Mock(RedisBackedBakeStore)
-      def rushServiceMock = Mock(RushService)
-      def runScriptObservable = Observable.from(new ScriptId(id: SCRIPT_ID))
-      def scriptDetailsObservable = Observable.from(new ScriptExecution(status: "RUNNING"))
+      def jobExecutorMock = Mock(JobExecutor)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: "ubuntu",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
+      def failedBakeStatus = new BakeStatus(id: EXISTING_JOB_ID,
+                                            resource_id: EXISTING_JOB_ID,
+                                            state: BakeStatus.State.CANCELED,
+                                            result: BakeStatus.Result.FAILURE)
+      def newBakeStatus = new BakeStatus(id: JOB_ID, resource_id: JOB_ID, state: BakeStatus.State.RUNNING)
 
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
-                                                  baseScriptRequest: new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME),
                                                   bakeStore: bakeStoreMock,
-                                                  rushService: rushServiceMock)
+                                                  jobExecutor: jobExecutorMock)
 
     when:
-      def bakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
+      def returnedBakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
 
     then:
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
-      1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> new BakeStatus(id: EXISTING_SCRIPT_ID, resource_id: EXISTING_SCRIPT_ID, state: BakeStatus.State.COMPLETED, result: BakeStatus.Result.FAILURE)
-      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> ["packer build ..."]
+      1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> failedBakeStatus
+      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> [PACKER_COMMAND]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
-      1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, tokenizedCommand: ["packer build ..."])) >> runScriptObservable
-      1 * rushServiceMock.scriptDetails(SCRIPT_ID) >> scriptDetailsObservable
-      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, SCRIPT_ID) >> new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
-      bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
+      1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND])) >> JOB_ID
+      1 * jobExecutorMock.updateJob(JOB_ID) >> newBakeStatus
+      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, newBakeStatus, PACKER_COMMAND) >> newBakeStatus
+      returnedBakeStatus == newBakeStatus
   }
 
-  @Unroll
-  void 'create bake issues script command and returns new status when prior bake is suspended or canceled'() {
+  void 'create bake launches job and returns new status when prior bake is canceled'() {
     setup:
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
       def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
       def bakeStoreMock = Mock(RedisBackedBakeStore)
-      def rushServiceMock = Mock(RushService)
-      def runScriptObservable = Observable.from(new ScriptId(id: SCRIPT_ID))
-      def scriptDetailsObservable = Observable.from(new ScriptExecution(status: "RUNNING"))
+      def jobExecutorMock = Mock(JobExecutor)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: "ubuntu",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
+      def canceledBakeStatus = new BakeStatus(id: EXISTING_JOB_ID,
+                                              resource_id: EXISTING_JOB_ID,
+                                              state: BakeStatus.State.CANCELED)
+      def newBakeStatus = new BakeStatus(id: JOB_ID, resource_id: JOB_ID, state: BakeStatus.State.RUNNING)
 
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
-                                                  baseScriptRequest: new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME),
                                                   bakeStore: bakeStoreMock,
-                                                  rushService: rushServiceMock)
+                                                  jobExecutor: jobExecutorMock)
 
     when:
-      def bakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
+      def returnedBakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
 
     then:
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
-      1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> new BakeStatus(id: EXISTING_SCRIPT_ID, resource_id: EXISTING_SCRIPT_ID, state: bakeState)
-      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> ["packer build ..."]
+      1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> canceledBakeStatus
+      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> [PACKER_COMMAND]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
-      1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, tokenizedCommand: ["packer build ..."])) >> runScriptObservable
-      1 * rushServiceMock.scriptDetails(SCRIPT_ID) >> scriptDetailsObservable
-      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, SCRIPT_ID) >> new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
-      bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
-
-    where:
-      bakeState << [BakeStatus.State.SUSPENDED, BakeStatus.State.CANCELED]
+      1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND])) >> JOB_ID
+      1 * jobExecutorMock.updateJob(JOB_ID) >> newBakeStatus
+      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, newBakeStatus, PACKER_COMMAND) >> newBakeStatus
+      returnedBakeStatus == newBakeStatus
   }
 
-  void 'create bake with rebake deletes existing status, issues script command and returns new status no matter the pre-existing status'() {
+  void 'create bake with rebake deletes existing status, launches job and returns new status no matter the pre-existing status'() {
     setup:
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
       def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
       def bakeStoreMock = Mock(RedisBackedBakeStore)
-      def rushServiceMock = Mock(RushService)
-      def runScriptObservable = Observable.from(new ScriptId(id: SCRIPT_ID))
-      def scriptDetailsObservable = Observable.from(new ScriptExecution(status: "RUNNING"))
+      def jobExecutorMock = Mock(JobExecutor)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: "ubuntu",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
+      def newBakeStatus = new BakeStatus(id: JOB_ID, resource_id: JOB_ID, state: BakeStatus.State.RUNNING)
 
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
-                                                  baseScriptRequest: new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME),
                                                   bakeStore: bakeStoreMock,
-                                                  rushService: rushServiceMock)
+                                                  jobExecutor: jobExecutorMock)
 
     when:
-      def bakeStatus = bakeryController.createBake(REGION, bakeRequest, "1")
+      def returnedBakeStatus = bakeryController.createBake(REGION, bakeRequest, "1")
 
     then:
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
       1 * bakeStoreMock.deleteBakeByKey(BAKE_KEY)
-      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> ["packer build ..."]
+      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> [PACKER_COMMAND]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
-      1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, tokenizedCommand: ["packer build ..."])) >> runScriptObservable
-      1 * rushServiceMock.scriptDetails(SCRIPT_ID) >> scriptDetailsObservable
-      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, SCRIPT_ID) >> new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
-      bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
+      1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND])) >> JOB_ID
+      1 * jobExecutorMock.updateJob(JOB_ID) >> newBakeStatus
+      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, newBakeStatus, PACKER_COMMAND) >> newBakeStatus
+      returnedBakeStatus == newBakeStatus
   }
 
   void 'lookup status queries bake store and returns bake status'() {
     setup:
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
       def bakeStoreMock = Mock(RedisBackedBakeStore)
+      def runningBakeStatus = new BakeStatus(id: JOB_ID,
+                                             resource_id: JOB_ID,
+                                             state: BakeStatus.State.RUNNING,
+                                             result: null)
 
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
                                                   bakeStore: bakeStoreMock)
 
     when:
-      def bakeStatus = bakeryController.lookupStatus(REGION, SCRIPT_ID)
+      def returnedBakeStatus = bakeryController.lookupStatus(REGION, JOB_ID)
 
     then:
-      1 * bakeStoreMock.retrieveBakeStatusById(SCRIPT_ID) >> new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING, result: null)
-      bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING, result: null)
+      1 * bakeStoreMock.retrieveBakeStatusById(JOB_ID) >> runningBakeStatus
+      returnedBakeStatus == runningBakeStatus
   }
 
-  void 'lookup status throws exception when script execution cannot be found'() {
+  void 'lookup status throws exception when job cannot be found'() {
     setup:
       def bakeStoreMock = Mock(RedisBackedBakeStore)
 
@@ -418,10 +408,10 @@ class BakeryControllerSpec extends Specification {
       def bakeryController = new BakeryController(bakeStore: bakeStoreMock)
 
     when:
-      bakeryController.lookupStatus(REGION, SCRIPT_ID)
+      bakeryController.lookupStatus(REGION, JOB_ID)
 
     then:
-      1 * bakeStoreMock.retrieveBakeStatusById(SCRIPT_ID) >> null
+      1 * bakeStoreMock.retrieveBakeStatusById(JOB_ID) >> null
       IllegalArgumentException e = thrown()
       e.message == "Unable to retrieve status for '123'."
   }
@@ -431,30 +421,28 @@ class BakeryControllerSpec extends Specification {
       def bakeStoreMock = Mock(RedisBackedBakeStore)
 
       @Subject
-      def bakeryController = new BakeryController(baseScriptRequest: new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME),
-                                                  bakeStore: bakeStoreMock)
+      def bakeryController = new BakeryController(bakeStore: bakeStoreMock)
 
     when:
-      def bakeDetails = bakeryController.lookupBake(REGION, SCRIPT_ID)
+      def bakeDetails = bakeryController.lookupBake(REGION, JOB_ID)
 
     then:
-      1 * bakeStoreMock.retrieveBakeDetailsById(SCRIPT_ID) >> new Bake(id: SCRIPT_ID, ami: AMI_ID, image_name: IMAGE_NAME)
-      bakeDetails == new Bake(id: SCRIPT_ID, ami: AMI_ID, image_name: IMAGE_NAME)
+      1 * bakeStoreMock.retrieveBakeDetailsById(JOB_ID) >> new Bake(id: JOB_ID, ami: AMI_ID, image_name: IMAGE_NAME)
+      bakeDetails == new Bake(id: JOB_ID, ami: AMI_ID, image_name: IMAGE_NAME)
   }
 
-  void 'lookup bake throws exception when script execution cannot be found'() {
+  void 'lookup bake throws exception when job cannot be found'() {
     setup:
       def bakeStoreMock = Mock(RedisBackedBakeStore)
 
     @Subject
-      def bakeryController = new BakeryController(baseScriptRequest: new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME),
-                                                  bakeStore: bakeStoreMock)
+      def bakeryController = new BakeryController(bakeStore: bakeStoreMock)
 
     when:
-      bakeryController.lookupBake(REGION, SCRIPT_ID)
+      bakeryController.lookupBake(REGION, JOB_ID)
 
     then:
-      1 * bakeStoreMock.retrieveBakeDetailsById(SCRIPT_ID) >> null
+      1 * bakeStoreMock.retrieveBakeDetailsById(JOB_ID) >> null
       IllegalArgumentException e = thrown()
       e.message == "Unable to retrieve bake details for '123'."
   }
@@ -467,14 +455,14 @@ class BakeryControllerSpec extends Specification {
       def bakeryController = new BakeryController(bakeStore: bakeStoreMock)
 
     when:
-      def response = bakeryController.lookupLogs(REGION, SCRIPT_ID, false)
+      def response = bakeryController.lookupLogs(REGION, JOB_ID, false)
 
     then:
-      1 * bakeStoreMock.retrieveBakeLogsById(SCRIPT_ID) >> [logsContent: LOGS_CONTENT]
+      1 * bakeStoreMock.retrieveBakeLogsById(JOB_ID) >> [logsContent: LOGS_CONTENT]
       response == LOGS_CONTENT
   }
 
-  void 'lookup logs throws exception when script execution logs are empty or malformed'() {
+  void 'lookup logs throws exception when job logs are empty or malformed'() {
     setup:
       def bakeStoreMock = Mock(RedisBackedBakeStore)
 
@@ -482,34 +470,34 @@ class BakeryControllerSpec extends Specification {
       def bakeryController = new BakeryController(bakeStore: bakeStoreMock)
 
     when:
-      bakeryController.lookupLogs(REGION, SCRIPT_ID, false)
+      bakeryController.lookupLogs(REGION, JOB_ID, false)
 
     then:
-      1 * bakeStoreMock.retrieveBakeLogsById(SCRIPT_ID) >> null
+      1 * bakeStoreMock.retrieveBakeLogsById(JOB_ID) >> null
       IllegalArgumentException e = thrown()
       e.message == "Unable to retrieve logs for '123'."
 
     when:
-      bakeryController.lookupLogs(REGION, SCRIPT_ID, false)
+      bakeryController.lookupLogs(REGION, JOB_ID, false)
 
     then:
-      1 * bakeStoreMock.retrieveBakeLogsById(SCRIPT_ID) >> [:]
+      1 * bakeStoreMock.retrieveBakeLogsById(JOB_ID) >> [:]
       e = thrown()
       e.message == "Unable to retrieve logs for '123'."
 
     when:
-      bakeryController.lookupLogs(REGION, SCRIPT_ID, false)
+      bakeryController.lookupLogs(REGION, JOB_ID, false)
 
     then:
-      1 * bakeStoreMock.retrieveBakeLogsById(SCRIPT_ID) >> [logsContent: null]
+      1 * bakeStoreMock.retrieveBakeLogsById(JOB_ID) >> [logsContent: null]
       e = thrown()
       e.message == "Unable to retrieve logs for '123'."
 
     when:
-      bakeryController.lookupLogs(REGION, SCRIPT_ID, false)
+      bakeryController.lookupLogs(REGION, JOB_ID, false)
 
     then:
-      1 * bakeStoreMock.retrieveBakeLogsById(SCRIPT_ID) >> [logsContent: '']
+      1 * bakeStoreMock.retrieveBakeLogsById(JOB_ID) >> [logsContent: '']
       e = thrown()
       e.message == "Unable to retrieve logs for '123'."
   }
@@ -526,7 +514,6 @@ class BakeryControllerSpec extends Specification {
 
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
-                                                  baseScriptRequest: new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME),
                                                   bakeStore: bakeStoreMock)
 
     when:
@@ -551,7 +538,6 @@ class BakeryControllerSpec extends Specification {
 
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
-                                                  baseScriptRequest: new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME),
                                                   bakeStore: bakeStoreMock)
 
     when:
@@ -565,19 +551,22 @@ class BakeryControllerSpec extends Specification {
       e.message == "Unable to locate bake with key '$BAKE_KEY'."
   }
 
-  void 'cancel bake updates bake store and returns status'() {
+  void 'cancel bake updates bake store, kills the job and returns status'() {
     setup:
       def bakeStoreMock = Mock(RedisBackedBakeStore)
+      def jobExecutorMock = Mock(JobExecutor)
 
-      @Subject
-      def bakeryController = new BakeryController(bakeStore: bakeStoreMock)
+    @Subject
+      def bakeryController = new BakeryController(bakeStore: bakeStoreMock,
+                                                  jobExecutor: jobExecutorMock)
 
     when:
-      def response = bakeryController.cancelBake(REGION, SCRIPT_ID)
+      def response = bakeryController.cancelBake(REGION, JOB_ID)
 
     then:
-      1 * bakeStoreMock.cancelBakeById(SCRIPT_ID) >> true
-      response == "Canceled bake '$SCRIPT_ID'."
+      1 * bakeStoreMock.cancelBakeById(JOB_ID) >> true
+      1 * jobExecutorMock.cancelJob(JOB_ID)
+      response == "Canceled bake '$JOB_ID'."
   }
 
   void 'cancel bake throws exception when bake id cannot be found'() {
@@ -588,12 +577,12 @@ class BakeryControllerSpec extends Specification {
       def bakeryController = new BakeryController(bakeStore: bakeStoreMock)
 
     when:
-      bakeryController.cancelBake(REGION, SCRIPT_ID)
+      bakeryController.cancelBake(REGION, JOB_ID)
 
     then:
-      1 * bakeStoreMock.cancelBakeById(SCRIPT_ID) >> false
+      1 * bakeStoreMock.cancelBakeById(JOB_ID) >> false
       IllegalArgumentException e = thrown()
-      e.message == "Unable to locate incomplete bake with id '$SCRIPT_ID'."
+      e.message == "Unable to locate incomplete bake with id '$JOB_ID'."
   }
 
   def "should list bake options by cloud provider"() {

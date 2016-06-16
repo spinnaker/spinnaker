@@ -14,26 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.rosco.rush.api
+package com.netflix.spinnaker.rosco.jobs
 
-import retrofit.http.Body
-import retrofit.http.GET
-import retrofit.http.POST
-import retrofit.http.Path
-import rx.Observable
+import groovy.transform.CompileStatic
+import groovy.transform.Immutable
 
-interface RushService {
-
-  @POST("/ops")
-  Observable<ScriptId> runScript(@Body ScriptRequest scriptRequest)
-
-  @GET("/tasks")
-  Observable<List<ScriptExecution>> listScriptDetails()
-
-  @GET("/tasks/{scriptId}")
-  Observable<ScriptExecution> scriptDetails(@Path("scriptId") String scriptId)
-
-  @POST("/tasks/{scriptId}/logs")
-  Observable<Map> getLogs(@Path("scriptId") String scriptId, @Body ScriptRequest scriptRequest)
-
+/**
+ * A request to bake a new machine image.
+ */
+@Immutable(copyWith = true)
+@CompileStatic
+class JobRequest {
+  List<String> tokenizedCommand
 }
+

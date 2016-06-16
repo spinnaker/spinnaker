@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Make rush fail the build on errors.
+# Make the build fail on errors.
 set -e
 
 # Strip the first part to avoid credentials leaks.

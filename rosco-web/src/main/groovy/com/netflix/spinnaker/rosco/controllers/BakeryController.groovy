@@ -23,9 +23,8 @@ import com.netflix.spinnaker.rosco.api.BakeStatus
 import com.netflix.spinnaker.rosco.persistence.BakeStore
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
-import com.netflix.spinnaker.rosco.rush.api.RushService
-import com.netflix.spinnaker.rosco.rush.api.ScriptExecution
-import com.netflix.spinnaker.rosco.rush.api.ScriptRequest
+import com.netflix.spinnaker.rosco.jobs.JobExecutor
+import com.netflix.spinnaker.rosco.jobs.JobRequest
 import groovy.util.logging.Slf4j
 import io.swagger.annotations.ApiOperation
 import io.swagger.annotations.ApiParam
@@ -49,10 +48,7 @@ class BakeryController {
   BakeStore bakeStore
 
   @Autowired
-  ScriptRequest baseScriptRequest
-
-  @Autowired
-  RushService rushService
+  JobExecutor jobExecutor
 
   @Autowired
   CloudProviderBakeHandlerRegistry cloudProviderBakeHandlerRegistry
@@ -91,6 +87,38 @@ class BakeryController {
     [error: "bake.options.not.found", status: HttpStatus.NOT_FOUND, messages: ["Bake options not found. " + e.message]]
   }
 
+  private BakeStatus runBake(String bakeKey, String region, BakeRequest bakeRequest, JobRequest jobRequest) {
+    String jobId = jobExecutor.startJob(jobRequest)
+
+    // Give the job jobExecutor some time to kick off the job.
+    // The goal here is to fail fast. If it takes too much time, no point in waiting here.
+    sleep(1000)
+
+    // Update the status right away so we can fail fast if necessary.
+    BakeStatus newBakeStatus = jobExecutor.updateJob(jobId)
+
+    if (newBakeStatus.result == BakeStatus.Result.FAILURE && newBakeStatus.logsContent) {
+      throw new IllegalArgumentException(newBakeStatus.logsContent)
+
+      // If we don't have logs content to return here, just let the poller try again on the next iteration.
+    }
+
+    // Ok, it didn't fail right away; the bake is underway.
+    BakeStatus returnedBakeStatus = bakeStore.storeNewBakeStatus(bakeKey,
+                                                                 region,
+                                                                 bakeRequest,
+                                                                 newBakeStatus,
+                                                                 jobRequest.tokenizedCommand.join(" "))
+
+    // Check if the script returned a bake status set by the winner of a race.
+    if (returnedBakeStatus.id != newBakeStatus.id) {
+      // Kill the new sub-process.
+      jobExecutor.cancelJob(newBakeStatus.id)
+    }
+
+    return returnedBakeStatus
+  }
+
   @RequestMapping(value = '/api/v1/{region}/bake', method = RequestMethod.POST)
   BakeStatus createBake(@PathVariable("region") String region,
                         @RequestBody BakeRequest bakeRequest,
@@ -116,10 +144,10 @@ class BakeryController {
       }
 
       def packerCommand = cloudProviderBakeHandler.producePackerCommand(region, bakeRequest)
-      def scriptRequest = baseScriptRequest.copyWith(tokenizedCommand: packerCommand)
+      def jobRequest = new JobRequest(tokenizedCommand: packerCommand)
 
       if (bakeStore.acquireBakeLock(bakeKey)) {
-        return runBake(bakeKey, region, bakeRequest, scriptRequest)
+        return runBake(bakeKey, region, bakeRequest, jobRequest)
       } else {
         def startTime = System.currentTimeMillis()
 
@@ -136,7 +164,7 @@ class BakeryController {
 
         // Maybe the TTL expired but the bake status wasn't set for some other reason? Let's try again before giving up.
         if (bakeStore.acquireBakeLock(bakeKey)) {
-          return runBake(bakeKey, region, bakeRequest, scriptRequest)
+          return runBake(bakeKey, region, bakeRequest, jobRequest)
         }
 
         throw new IllegalArgumentException("Unable to acquire lock and unable to determine id of lock holder for bake " +
@@ -147,31 +175,10 @@ class BakeryController {
     }
   }
 
-  private BakeStatus runBake(String bakeKey, String region, BakeRequest bakeRequest, ScriptRequest scriptRequest) {
-    def scriptId = rushService.runScript(scriptRequest).toBlocking().single()
-
-    // Give the script engine some time to kick off the execution.
-    // The goal here is to fail fast. If it takes too much time, no point in waiting here.
-    sleep(1000)
-
-    ScriptExecution scriptExecution = rushService.scriptDetails(scriptId.id).toBlocking().single()
-
-    if (scriptExecution.status == "FAILED") {
-      def logs = rushService.getLogs(scriptId.id, scriptRequest).toBlocking().single()
-
-      if (logs?.logsContent) {
-        throw new IllegalArgumentException(logs.logsContent)
-      }
-
-      // If we don't have logs content to return here, just let the poller try again on the next iteration.
-    }
-
-    // Ok, it didn't fail right away. The bake is underway.
-    return bakeStore.storeNewBakeStatus(bakeKey, region, bakeRequest, scriptId.id)
-  }
-
+  @ApiOperation(value = "Look up bake request status")
   @RequestMapping(value = "/api/v1/{region}/status/{statusId}", method = RequestMethod.GET)
-  BakeStatus lookupStatus(@PathVariable("region") String region, @PathVariable("statusId") String statusId) {
+  BakeStatus lookupStatus(@ApiParam(value = "The region of the bake request to lookup", required = true) @PathVariable("region") String region,
+                          @ApiParam(value = "The id of the bake request to lookup", required = true) @PathVariable("statusId") String statusId) {
     def bakeStatus = bakeStore.retrieveBakeStatusById(statusId)
 
     if (bakeStatus) {
@@ -181,7 +188,7 @@ class BakeryController {
     throw new IllegalArgumentException("Unable to retrieve status for '$statusId'.")
   }
 
-  @ApiOperation(value = "Look up a bake", notes = "Some longer description of looking up a bake.")
+  @ApiOperation(value = "Look up bake details")
   @RequestMapping(value = "/api/v1/{region}/bake/{bakeId}", method = RequestMethod.GET)
   Bake lookupBake(@ApiParam(value = "The region of the bake to lookup", required = true) @PathVariable("region") String region,
                   @ApiParam(value = "The id of the bake to lookup", required = true) @PathVariable("bakeId") String bakeId) {
@@ -202,7 +209,6 @@ class BakeryController {
     Map logsContentMap = bakeStore.retrieveBakeLogsById(statusId)
 
     if (logsContentMap?.logsContent) {
-
       return html ? "<pre>$logsContentMap.logsContent</pre>" : logsContentMap.logsContent
     }
 
@@ -211,7 +217,8 @@ class BakeryController {
 
   // TODO(duftler): Synchronize this with existing bakery api.
   @RequestMapping(value = '/api/v1/{region}/bake', method = RequestMethod.DELETE)
-  String deleteBake(@PathVariable("region") String region, @RequestBody BakeRequest bakeRequest) {
+  String deleteBake(@PathVariable("region") String region,
+                    @RequestBody BakeRequest bakeRequest) {
     if (!bakeRequest.cloud_provider_type) {
       bakeRequest = bakeRequest.copyWith(cloud_provider_type: defaultCloudProviderType)
     }
@@ -232,13 +239,15 @@ class BakeryController {
   }
 
   // TODO(duftler): Synchronize this with existing bakery api.
+  @ApiOperation(value = "Cancel bake request")
   @RequestMapping(value = "/api/v1/{region}/cancel/{statusId}", method = RequestMethod.GET)
-  String cancelBake(@PathVariable("region") String region, @PathVariable("statusId") String statusId) {
+  String cancelBake(@ApiParam(value = "The region of the bake request to cancel", required = true) @PathVariable("region") String region,
+                    @ApiParam(value = "The id of the bake request to cancel", required = true) @PathVariable("statusId") String statusId) {
     if (bakeStore.cancelBakeById(statusId)) {
+      jobExecutor.cancelJob(statusId)
+
       return "Canceled bake '$statusId'."
     }
-
-    // TODO(duftler): Instruct the scripting engine to kill the execution.
 
     throw new IllegalArgumentException("Unable to locate incomplete bake with id '$statusId'.")
   }
@@ -248,7 +257,7 @@ class BakeryController {
 
     if (!bakeStatus) {
       return null
-    } else if (bakeStatus.state == BakeStatus.State.PENDING || bakeStatus.state == BakeStatus.State.RUNNING) {
+    } else if (bakeStatus.state == BakeStatus.State.RUNNING) {
       return bakeStatus
     } else if (bakeStatus.state == BakeStatus.State.COMPLETED && bakeStatus.result == BakeStatus.Result.SUCCESS) {
       return bakeStatus

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.rosco.api
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
+import io.swagger.annotations.ApiModelProperty
 
 /**
  * The details of a completed bake.
@@ -29,6 +30,7 @@ import groovy.transform.ToString
 @EqualsAndHashCode(includes = "id")
 @ToString(includeNames = true)
 class Bake {
+  @ApiModelProperty(value="The id of the bake job.")
   String id
   String ami
   String image_name

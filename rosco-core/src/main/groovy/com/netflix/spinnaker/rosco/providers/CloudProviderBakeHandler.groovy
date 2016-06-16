@@ -27,7 +27,7 @@ import org.springframework.beans.factory.annotation.Value
 
 abstract class CloudProviderBakeHandler {
 
-  @Value('${rush.configDir}')
+  @Value('${rosco.configDir}')
   String configDir
 
   @Autowired
@@ -134,7 +134,7 @@ abstract class CloudProviderBakeHandler {
   abstract String getTemplateFileName()
 
   /**
-   * Build provider-specific script command for packer.
+   * Build provider-specific command for packer.
    */
   List<String> producePackerCommand(String region, BakeRequest bakeRequest) {
     def virtualizationSettings = findVirtualizationSettings(region, bakeRequest)
@@ -151,8 +151,6 @@ abstract class CloudProviderBakeHandler {
     }
 
     parameterMap.package_type = selectedOptions.baseImage.packageType.packageType
-
-    // TODO(duftler): Build out proper support for installation of packages.
     parameterMap.packages = packagesParameter
 
     if (appVersionStr) {
