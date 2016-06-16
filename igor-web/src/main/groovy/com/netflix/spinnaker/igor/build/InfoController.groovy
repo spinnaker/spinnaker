@@ -56,7 +56,6 @@ class InfoController {
 
     @RequestMapping(value = '/masters', method = RequestMethod.GET)
     List<Object> listMasters(@RequestParam(value = "showUrl", defaultValue = "false") String showUrl) {
-        log.info('Getting list of masters')
         if (showUrl == 'true') {
             List<Object> masterList = jenkinsProperties?.masters.collect {
                 [
@@ -80,8 +79,6 @@ class InfoController {
 
     @RequestMapping(value = '/jobs/{master}', method = RequestMethod.GET)
     List<String> getJobs(@PathVariable String master) {
-        log.info('Getting list of jobs for master: {}', master)
-
         def jenkinsService = buildMasters.filteredMap(BuildServiceProvider.JENKINS)[master]
         if (jenkinsService) {
             def jobList = []
@@ -113,8 +110,6 @@ class InfoController {
     Object getJobConfig(@PathVariable String master, HttpServletRequest request) {
         def job = (String) request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(3).join('/')
-
-        log.info('Getting the job config for {} at {}', job, master)
         def service = buildMasters.map[master]
         if (!service) {
             throw new MasterNotFoundException("Master '${master}' does not exist")
