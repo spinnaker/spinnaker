@@ -122,6 +122,21 @@ class PackageNameConverterSpec extends Specification {
       appVersionStrFromDebPackageName == appVersionStr
   }
 
+  void "if job name contains slashes, they are replaced by hyphen"() {
+    setup:
+      def debPackageName = "nflx-djangobase-enhanced_0.1-h123.170cdbd_all"
+      def appVersionStr = "nflx-djangobase-enhanced-0.1-h123.170cdbd/compose-job-name/123"
+      def packageType = BakeRequest.PackageType.DEB
+      def bakeRequest = new BakeRequest(base_os: "ubuntu", job: "compose/job/name", build_number: "123", commit_hash: "170cdbd")
+
+    when:
+      def parsedDebPackageName = PackageNameConverter.buildOsPackageName(packageType, debPackageName)
+      def appVersionStrFromDebPackageName = PackageNameConverter.buildAppVersionStr(bakeRequest, parsedDebPackageName)
+
+    then:
+      appVersionStrFromDebPackageName == appVersionStr
+  }
+
   void "if job is missing, app version string leaves off both job and build_number"() {
     setup:
       def debPackageName = "nflx-djangobase-enhanced_0.1-h12.170cdbd_all"

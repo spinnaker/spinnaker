@@ -604,18 +604,20 @@ class AWSBakeHandlerSpec extends Specification {
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
-  void 'produces packer command with all required parameters including appversion and build_host for trusty'() {
+  void 'produces packer command with all required parameters including appversion, build_host and build_info_url for trusty'() {
     setup:
       def imageNameFactoryMock = Mock(ImageNameFactory)
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
       def fullyQualifiedPackageName = "nflx-djangobase-enhanced_0.1-h12.170cdbd_all"
       def appVersionStr = "nflx-djangobase-enhanced-0.1-170cdbd.h12"
       def buildHost = "http://some-build-server:8080"
+      def buildInfoUrl = "http://some-build-server:8080/repogroup/repo/builds/320282"
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: fullyQualifiedPackageName,
                                         base_os: "trusty",
                                         vm_type: BakeRequest.VmType.hvm,
                                         build_host: buildHost,
+                                        build_info_url: buildInfoUrl,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
       def targetImageName = "kato-x8664-timestamp-trusty"
       def parameterMap = [
@@ -629,7 +631,8 @@ class AWSBakeHandlerSpec extends Specification {
         packages: fullyQualifiedPackageName,
         configDir: configDir,
         appversion: appVersionStr,
-        build_host: buildHost
+        build_host: buildHost,
+        build_info_url: buildInfoUrl
       ]
 
       @Subject

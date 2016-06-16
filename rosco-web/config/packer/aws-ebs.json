@@ -33,7 +33,11 @@
     "ami_name": "{{user `aws_target_ami`}}",
     "associate_public_ip_address": "{{user `aws_associate_public_ip_address`}}",
     "enhanced_networking": "{{user `aws_enhanced_networking`}}",
-    "tags": {"appversion": "{{user `appversion`}}", "build_host": "{{user `build_host`}}"},
+    "tags": {
+      "appversion": "{{user `appversion`}}",
+      "build_host": "{{user `build_host`}}",
+      "build_info_url": "{{user `build_info_url`}}"
+    },
     "run_tags": {"Packages": "{{user `packages`}}"}
   }],
   "provisioners": [{

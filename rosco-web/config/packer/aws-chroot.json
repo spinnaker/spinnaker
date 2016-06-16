@@ -26,7 +26,11 @@
     "secret_key": "{{user `aws_secret_key`}}",
     "source_ami": "{{user `aws_source_ami`}}",
     "ami_name": "{{user `aws_target_ami`}}",
-    "tags": {"appversion": "{{user `appversion`}}", "build_host": "{{user `build_host`}}"}
+    "tags": {
+      "appversion": "{{user `appversion`}}",
+      "build_host": "{{user `build_host`}}",
+      "build_info_url": "{{user `build_info_url`}}"
+    }
   }],
   "provisioners": [{
     "type": "shell",

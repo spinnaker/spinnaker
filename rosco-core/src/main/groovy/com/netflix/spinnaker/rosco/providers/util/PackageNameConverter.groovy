@@ -18,6 +18,7 @@ package com.netflix.spinnaker.rosco.providers.util
 
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import groovy.transform.EqualsAndHashCode
+import org.springframework.util.StringUtils
 
 class PackageNameConverter {
 
@@ -118,7 +119,10 @@ class PackageNameConverter {
           }
 
           if (bakeRequest.job) {
-            appVersion += "/$bakeRequest.job/$bakeRequest.build_number"
+            // Travis job name and Jenkins job name with folder may contain slashes into the job name
+            // that makes the AppVersion.parseName fails, so, replace all slashes in the job name for hyphens
+            def job = bakeRequest.job.replaceAll("/", "-")
+            appVersion += "/$job/$bakeRequest.build_number"
           }
         }
       }

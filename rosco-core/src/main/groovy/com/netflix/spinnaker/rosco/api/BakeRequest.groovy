@@ -42,6 +42,8 @@ class BakeRequest {
   String build_number
   @ApiModelProperty("The commit hash of the CI build")
   String commit_hash
+  @ApiModelProperty("The CI Build Url")
+  String build_info_url
   @ApiModelProperty("The target platform")
   CloudProviderType cloud_provider_type
   Label base_label
