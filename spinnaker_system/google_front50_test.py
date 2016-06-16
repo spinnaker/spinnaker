@@ -119,11 +119,14 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     del(expect['updateTs'])
     f50_builder = st.http_observer.HttpContractBuilder(self.agent)
 
-    # This clause is querying the Front50 http server directly
+    # These clauses are querying the Front50 http server directly
     # to verify that it returns the application we added.
     # We already verified the data was stored on GCS, but while we
     # are here we will verify that it is also being returned when queried.
-    (f50_builder.new_clause_builder('Added Application')
+    (f50_builder.new_clause_builder('Lists Application')
+     .get_url_path('/default/applications')
+     .contains_path_value('name', self.TEST_APP.upper()))
+    (f50_builder.new_clause_builder('Returns Application')
      .get_url_path('/'.join(['/default/applications/name', self.TEST_APP]))
      .contains_path_value('', expect))
     for clause in f50_builder.build().clauses:
@@ -187,19 +190,28 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     contract = jc.Contract()
 
     app_path = '/'.join(['/default/applications/name', self.TEST_APP])
-    obs_builder = jc.ObservationVerifierBuilder('Removed Application')
-    obs_builder.append_verifier(
+    delete_obs_builder = jc.ObservationVerifierBuilder('Removed Application')
+    delete_obs_builder.append_verifier(
       st.HttpObservationFailureVerifier('Not Found', 404));
-    f50_observer = st.HttpObjectObserver(self.agent, app_path)
-    f50_clause = jc.ContractClause(title='Deleted Application',
-                                   observer=f50_observer,
-                                   verifier=obs_builder.build())
-    contract.add_clause(f50_clause)
+    f50_app_observer = st.HttpObjectObserver(self.agent, app_path)
+    f50_delete_clause = jc.ContractClause(title='Deleted Application',
+                                          observer=f50_app_observer,
+                                          verifier=delete_obs_builder.build())
+    contract.add_clause(f50_delete_clause)
+
+    unlist_obs_builder = jc.ValueObservationVerifierBuilder('Unlist Application')
+
+    f50_list_observer = st.HttpObjectObserver(self.agent, '/default/applications')
+    unlist_obs_builder.excludes_path_value('name', self.TEST_APP)
+    f50_unlist_clause = jc.ContractClause(title='Unlists Application',
+                                          observer=f50_list_observer,
+                                          verifier=unlist_obs_builder.build())
+    contract.add_clause(f50_unlist_clause)
 
     gcs_builder = gcp.GoogleCloudStorageContractBuilder(self.gcs_observer)
     (gcs_builder.new_clause_builder('Deleted File')
      .list(self.BUCKET, '/'.join([self.BASE_PATH, 'applications']))
-     .excludes_path_value('name',  self.TEST_APP))
+     .excludes_path_value('name',  self.TEST_APP.upper()))
     for clause in gcs_builder.build().clauses:
       contract.add_clause(clause)
 
