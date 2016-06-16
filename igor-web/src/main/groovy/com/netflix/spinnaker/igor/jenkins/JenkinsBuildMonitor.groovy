@@ -150,9 +150,8 @@ class JenkinsBuildMonitor implements PollingMonitor {
                 { String jobName ->
                     log.info "Removing ${master}:${jobName}"
                     cache.remove(master, jobName)
-                }, {
-                log.error("Error: ${it.message}")
-            }, {} as Action0
+                },
+                { log.error("Error: ${it.message}") }
             )
 
             Observable.from(builds).subscribe(
@@ -216,9 +215,8 @@ class JenkinsBuildMonitor implements PollingMonitor {
                         results << [previous: cachedBuild, current: project]
                     }
                 }, {
-                log.error("Error: ${it.message} (${master})")
-            }, {
-            } as Action0
+                    log.error("Error: ${it.message} (${master})")
+                }
             )
         } catch (e) {
             log.error("failed to update master $master", e)

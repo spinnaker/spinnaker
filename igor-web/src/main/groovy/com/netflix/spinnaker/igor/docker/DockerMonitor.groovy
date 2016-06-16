@@ -90,7 +90,7 @@ class DockerMonitor implements PollingMonitor {
                 cache.remove(imageId)
             }, {
                 log.error("Error: ${it.message}")
-            }, {} as Action0
+            }
             )
 
             Observable.from(images).subscribe( { TaggedImage image ->
@@ -126,9 +126,7 @@ class DockerMonitor implements PollingMonitor {
                 }
             }, {
                 log.error("Error: ${it.message} (${account})")
-            }, {
-            } as Action0
-
+            }
             )
         } catch (Exception e) {
             log.error "Failed to update account $account", e
