@@ -23,6 +23,8 @@ import com.netflix.awsobjectmapper.AmazonObjectMapper
 import com.netflix.spectator.aws.SpectatorMetricCollector
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
+
+import com.netflix.spinnaker.clouddriver.aws.agent.CleanupAlarmsAgent
 import com.netflix.spinnaker.clouddriver.aws.agent.CleanupDetachedInstancesAgent
 import com.netflix.spinnaker.clouddriver.aws.bastion.BastionConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.BasicAmazonDeployHandler
@@ -35,10 +37,8 @@ import com.netflix.spinnaker.clouddriver.aws.security.AWSProxy
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentialsInitializer
-import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
-import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import com.netflix.spinnaker.kork.aws.AwsComponents
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -78,6 +78,12 @@ class AwsConfiguration {
 
   @Value('${aws.client.maxConnectionsPerRoute:20}')
   int maxConnectionsPerRoute
+
+  @Value('${aws.cleanup.alarms.enabled:false}')
+  boolean alarmCleanupEnabled
+
+  @Value('${aws.cleanup.alarms.daysToKeep:90}')
+  int daysToKeepAlarms
 
   @Autowired
   SpectatorMetricCollector spectatorMetricCollector
@@ -191,46 +197,13 @@ class AwsConfiguration {
   AwsCleanupProviderSynchronizer synchronizeAwsCleanupProvider(AwsCleanupProvider awsCleanupProvider,
                                                                AmazonClientProvider amazonClientProvider,
                                                                AccountCredentialsRepository accountCredentialsRepository) {
-    def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials)
 
-    if (awsCleanupProvider.agentScheduler) {
-      // If there is an agent scheduler, then this provider has been through the AgentController in the past.
-      synchronizeCleanupDetachedInstancesAgentAccounts(awsCleanupProvider, allAccounts)
-    } else {
-      awsCleanupProvider.agents.add(new CleanupDetachedInstancesAgent(amazonClientProvider, allAccounts))
+    awsCleanupProvider.agents.add(new CleanupDetachedInstancesAgent(amazonClientProvider, accountCredentialsRepository))
+    if (alarmCleanupEnabled) {
+      awsCleanupProvider.agents.add(new CleanupAlarmsAgent(amazonClientProvider, accountCredentialsRepository, daysToKeepAlarms))
     }
 
     new AwsCleanupProviderSynchronizer()
   }
 
-  private void synchronizeCleanupDetachedInstancesAgentAccounts(AwsCleanupProvider awsCleanupProvider,
-                                                                Collection<NetflixAmazonCredentials> allAccounts) {
-    CleanupDetachedInstancesAgent cleanupDetachedInstancesAgent = awsCleanupProvider.agents.find { agent ->
-      agent instanceof CleanupDetachedInstancesAgent
-    }
-
-    if (cleanupDetachedInstancesAgent) {
-      def cleanupDetachedInstancesAccounts = cleanupDetachedInstancesAgent.accounts
-      def oldAccountNames = cleanupDetachedInstancesAccounts.collect { it.name }
-      def newAccountNames = allAccounts.collect { it.name }
-      def accountNamesToDelete = oldAccountNames - newAccountNames
-      def accountNamesToAdd = newAccountNames - oldAccountNames
-
-      accountNamesToDelete.each { accountNameToDelete ->
-        def accountToDelete = cleanupDetachedInstancesAccounts.find { it.name == accountNameToDelete }
-
-        if (accountToDelete) {
-          cleanupDetachedInstancesAccounts.remove(accountToDelete)
-        }
-      }
-
-      accountNamesToAdd.each { accountNameToAdd ->
-        def accountToAdd = allAccounts.find { it.name == accountNameToAdd }
-
-        if (accountToAdd) {
-          cleanupDetachedInstancesAccounts.add(accountToAdd)
-        }
-      }
-    }
-  }
 }

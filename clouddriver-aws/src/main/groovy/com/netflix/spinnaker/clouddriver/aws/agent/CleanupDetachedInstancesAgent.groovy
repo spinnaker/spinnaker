@@ -27,6 +27,8 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.DetachInstancesAtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import groovy.util.logging.Slf4j
 
 import java.util.concurrent.TimeUnit
@@ -37,21 +39,21 @@ class CleanupDetachedInstancesAgent implements RunnableAgent, CustomScheduledAge
   public static final long DEFAULT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(20)
 
   final AmazonClientProvider amazonClientProvider
-  final Collection<NetflixAmazonCredentials> accounts
+  final AccountCredentialsRepository accountCredentialsRepository
   final long pollIntervalMillis
   final long timeoutMillis
 
   CleanupDetachedInstancesAgent(AmazonClientProvider amazonClientProvider,
-                                Collection<NetflixAmazonCredentials> accounts) {
-    this(amazonClientProvider, accounts, DEFAULT_POLL_INTERVAL_MILLIS, DEFAULT_TIMEOUT_MILLIS)
+                                AccountCredentialsRepository accountCredentialsRepository) {
+    this(amazonClientProvider, accountCredentialsRepository, DEFAULT_POLL_INTERVAL_MILLIS, DEFAULT_TIMEOUT_MILLIS)
   }
 
   CleanupDetachedInstancesAgent(AmazonClientProvider amazonClientProvider,
-                                Collection<NetflixAmazonCredentials> accounts,
+                                AccountCredentialsRepository accountCredentialsRepository,
                                 long pollIntervalMillis,
                                 long timeoutMills) {
     this.amazonClientProvider = amazonClientProvider
-    this.accounts = accounts
+    this.accountCredentialsRepository = accountCredentialsRepository
     this.pollIntervalMillis = pollIntervalMillis
     this.timeoutMillis = timeoutMills
   }
@@ -68,7 +70,7 @@ class CleanupDetachedInstancesAgent implements RunnableAgent, CustomScheduledAge
 
   @Override
   void run() {
-    accounts.sort { it.name }.each { NetflixAmazonCredentials credentials ->
+    getAccounts().each { NetflixAmazonCredentials credentials ->
       credentials.regions.each { AmazonCredentials.AWSRegion region ->
         log.info("Looking for instances pending termination in ${credentials.name}:${region.name}")
 
@@ -102,6 +104,10 @@ class CleanupDetachedInstancesAgent implements RunnableAgent, CustomScheduledAge
         }
       }
     }
+  }
+
+  private Set<NetflixAmazonCredentials> getAccounts() {
+    ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials)
   }
 
   /**
