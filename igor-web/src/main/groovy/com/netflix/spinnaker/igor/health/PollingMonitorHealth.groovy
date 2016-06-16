@@ -43,7 +43,7 @@ public class PollingMonitorHealth implements HealthIndicator {
                     healths << Health.unknown().withDetail("${poller.name}.status", 'not polling yet').build()
                 } else {
                     // Check if twice the polling interval has elapsed.
-                    if (System.currentTimeMillis() - poller.lastPoll > (poller.pollInterval * 2 * DateTimeConstants.MILLIS_PER_SECOND)) {
+                    if (System.currentTimeMillis() - poller.lastPoll > (poller.pollInterval * 5 * DateTimeConstants.MILLIS_PER_SECOND)) {
                         healths << Health.down().withDetail("${poller.name}.status", 'stopped').withDetail("${poller.name}.lastPoll", poller.lastPoll.toString()).build()
                     } else {
                         healths << Health.up().withDetail("${poller.name}.status", 'running').withDetail("${poller.name}.lastPoll", poller.lastPoll.toString()).build()

@@ -173,8 +173,7 @@ class TravisBuildMonitor implements PollingMonitor{
                 }
             }, {
             log.error("Error: ${it.message} (${master})")
-        }, {
-        } as Action0
+        }
         )
         log.info("Last poll took ${System.currentTimeMillis() - lastPoll}ms (master: ${master})")
         if (repositorySyncEnabled) {
