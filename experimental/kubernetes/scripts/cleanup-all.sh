@@ -1,5 +1,8 @@
-kubectl delete rc --all --namespace=spinnaker
-kubectl delete svc --all --namespace=spinnaker
-kubectl delete jobs --all --namespace=spinnaker
-kubectl delete secret spinnaker-config --namespace=spinnaker
-kubectl delete secret kube-config --namespace=spinnaker
+kubectl delete -f namespaces/namespace.yaml
+
+kubectl get -f namespaces/namespace.yaml &> /dev/null
+
+while [ $? -eq 0 ]; do
+    sleep 1
+    kubectl get -f namespaces/namespace.yaml
+done

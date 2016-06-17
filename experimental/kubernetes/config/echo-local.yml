@@ -3,8 +3,13 @@ server:
   address: 0.0.0.0
 
 cassandra:
-  embedded: ${services.cassandra.embedded:false}
-  host: ${services.cassandra.host:localhost}
+  enabled: false
+
+spinnaker:
+  inMemory:
+    enabled: true
+  cassandra:
+    enabled: false
 
 front50:
   baseUrl: ${services.front50.baseUrl:http://localhost:8080}
