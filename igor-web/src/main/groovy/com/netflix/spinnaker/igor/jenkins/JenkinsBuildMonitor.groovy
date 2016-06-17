@@ -163,63 +163,68 @@ class JenkinsBuildMonitor implements PollingMonitor {
                     .subscribeOn(scheduler)
                     .subscribe(
                 { Project project ->
-                    boolean addToCache = false
-                    Map cachedBuild = null
-                    log.debug "processing build : ${project?.name} : building? ${project?.lastBuild?.building}"
-                    if (!project?.lastBuild) {
-                        log.debug "no builds found for ${project.name}, skipping"
-                    } else if (cachedBuilds.contains(project.name)) {
-                        cachedBuild = cache.getLastBuild(master, project.name)
-                        if ((project.lastBuild.building != cachedBuild.lastBuildBuilding) ||
-                            (project.lastBuild.number != Integer.valueOf(cachedBuild.lastBuildLabel))) {
+                    try {
+                        boolean addToCache = false
 
-                            addToCache = true
+                        Map cachedBuild = null
+                        log.debug "processing build : ${project?.name} : building? ${project?.lastBuild?.building}"
+                        if (!project?.lastBuild) {
+                            log.debug "no builds found for ${project.name}, skipping"
+                        } else if (cachedBuilds.contains(project.name)) {
+                            cachedBuild = cache.getLastBuild(master, project.name)
+                            if ((project.lastBuild.building != cachedBuild.lastBuildBuilding) ||
+                                    (project.lastBuild.number != Integer.valueOf(cachedBuild.lastBuildLabel))) {
 
-                            log.info "Build changed: ${master}: ${project.name} : ${project.lastBuild.number} : ${project.lastBuild.building}"
+                                addToCache = true
 
-                            if (echoService) {
-                                int currentBuild = project.lastBuild.number
-                                int lastBuild = Integer.valueOf(cachedBuild.lastBuildLabel)
+                                log.info "Build changed: ${master}: ${project.name} : ${project.lastBuild.number} : ${project.lastBuild.building}"
 
-                                log.info "sending build events for builds between ${lastBuild} and ${currentBuild}"
+                                if (echoService) {
+                                    int currentBuild = project.lastBuild.number
+                                    int lastBuild = Integer.valueOf(cachedBuild.lastBuildLabel)
 
-                                try {
-                                    buildMasters.map[master].getBuilds(project.name).list.sort {
-                                        it.number
-                                    }.each { build ->
-                                        if (build.number >= lastBuild && build.number < currentBuild){
-                                            try {
-                                                Project oldProject = new Project(name: project.name, lastBuild: build)
-                                                if( build.number != lastBuild
-                                                    || ( build.number == lastBuild && cachedBuild.lastBuildBuilding != build.building )) {
-                                                   echoService.postEvent(
-                                                        new BuildEvent(content: new BuildContent(project: oldProject, master: master)))
+                                    log.info "sending build events for builds between ${lastBuild} and ${currentBuild}"
+
+                                    try {
+                                        buildMasters.map[master].getBuilds(project.name).list.sort {
+                                            it.number
+                                        }.each { build ->
+                                            if (build.number >= lastBuild && build.number < currentBuild) {
+                                                try {
+                                                    Project oldProject = new Project(name: project.name, lastBuild: build)
+                                                    if (build.number != lastBuild
+                                                            || (build.number == lastBuild && cachedBuild.lastBuildBuilding != build.building)) {
+                                                        echoService.postEvent(
+                                                                new BuildEvent(content: new BuildContent(project: oldProject, master: master)))
+                                                    }
+                                                } catch (e) {
+                                                    log.error("An error occurred fetching ${master}:${project.name}:${build.number}", e)
                                                 }
-                                            } catch (e) {
-                                                log.error("An error occurred fetching ${master}:${project.name}:${build.number}", e)
                                             }
                                         }
+                                    } catch (e) {
+                                        log.error("failed getting builds for ${master}", e)
                                     }
-                                } catch (e) {
-                                    log.error("failed getting builds for ${master}", e)
                                 }
                             }
+                        } else {
+                            log.info "New Build: ${master}: ${project.name} : ${project.lastBuild.number} : " +
+                                    "${project.lastBuild.result}"
+                            addToCache = true
                         }
-                    } else {
-                        log.info "New Build: ${master}: ${project.name} : ${project.lastBuild.number} : " +
-                            "${project.lastBuild.result}"
-                        addToCache = true
-                    }
-                    if (addToCache) {
-                        project.lastBuild.result = project?.lastBuild?.result ?: project.lastBuild.building ? BUILD_IN_PROGRESS : ""
-                        log.debug "setting result to ${project.lastBuild.result}"
-                        cache.setLastBuild(master, project.name, project.lastBuild.number, project.lastBuild.building)
-                        if (echoService) {
-                            echoService.postEvent(
-                                new BuildEvent(content: new BuildContent(project: project, master: master))
-                            )
+                        if (addToCache) {
+                            project.lastBuild.result = project?.lastBuild?.result ?: project.lastBuild.building ? BUILD_IN_PROGRESS : ""
+                            log.debug "setting result to ${project.lastBuild.result}"
+                            cache.setLastBuild(master, project.name, project.lastBuild.number, project.lastBuild.building)
+                            if (echoService) {
+                                echoService.postEvent(
+                                        new BuildEvent(content: new BuildContent(project: project, master: master))
+                                )
+                            }
+                            results << [previous: cachedBuild, current: project]
                         }
-                        results << [previous: cachedBuild, current: project]
+                    } catch( e ){
+                        log.error("fail processing build : ${project?.name}", e)
                     }
                 }, {
                     log.error("Error: ${it.message} (${master})")
