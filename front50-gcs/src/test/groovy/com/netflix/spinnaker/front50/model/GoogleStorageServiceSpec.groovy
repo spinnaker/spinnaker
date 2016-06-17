@@ -179,6 +179,8 @@ class GoogleStorageServiceSpec extends Specification {
   def "storeObject"() {
     given:
       Storage.Objects.Insert mockInsertObject = Mock(Storage.Objects.Insert)
+      Storage.Objects.List mockListObjects = Mock(Storage.Objects.List)
+      com.google.api.services.storage.model.Objects objects = new com.google.api.services.storage.model.Objects()
       StorageObject storageObject = new StorageObject()
               .setBucket(BUCKET_NAME)
               .setName(BASE_PATH + '/applications/testkey/specification.json')
@@ -221,5 +223,12 @@ class GoogleStorageServiceSpec extends Specification {
               _) >> mockInsertObject
 
       1 * mockInsertObject.execute()
+
+     then:
+     1 * mockObjectApi.list(BUCKET_NAME) >> mockListObjects
+     1 * mockListObjects.setPrefix(timestampObject.getName()) >> mockListObjects
+     1 * mockListObjects.setVersions(true) >> mockListObjects
+     1 * mockListObjects.execute() >> objects
+     1 * mockListObjects.setPageToken(_)
   }
 }
