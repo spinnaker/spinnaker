@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.validators.servergroup
 
-import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.DestroyOpenstackAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.OpenstackServerGroupAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -43,7 +43,7 @@ class DestroyOpenstackAtomicOperationValidatorSpec extends Specification {
     }
     errors = Mock(Errors)
     validator = new DestroyOpenstackAtomicOperationValidator(accountCredentialsProvider: provider)
-    DestroyOpenstackAtomicOperationDescription description = new DestroyOpenstackAtomicOperationDescription(account: 'foo', serverGroupName: 'foo', region: 'region')
+    OpenstackServerGroupAtomicOperationDescription description = new OpenstackServerGroupAtomicOperationDescription(account: 'foo', serverGroupName: 'foo', region: 'region')
 
     when:
     validator.validate([], description, errors)
@@ -63,7 +63,7 @@ class DestroyOpenstackAtomicOperationValidatorSpec extends Specification {
     }
     errors = Mock(Errors)
     validator = new DestroyOpenstackAtomicOperationValidator(accountCredentialsProvider: provider)
-    DestroyOpenstackAtomicOperationDescription description = new DestroyOpenstackAtomicOperationDescription(account: '', serverGroupName: 'foo', region: 'region')
+    OpenstackServerGroupAtomicOperationDescription description = new OpenstackServerGroupAtomicOperationDescription(account: '', serverGroupName: 'foo', region: 'region')
 
     when:
     validator.validate([], description, errors)
@@ -83,7 +83,7 @@ class DestroyOpenstackAtomicOperationValidatorSpec extends Specification {
     }
     errors = Mock(Errors)
     validator = new DestroyOpenstackAtomicOperationValidator(accountCredentialsProvider: provider)
-    DestroyOpenstackAtomicOperationDescription description = new DestroyOpenstackAtomicOperationDescription(account: 'foo', serverGroupName: '', region: 'region')
+    OpenstackServerGroupAtomicOperationDescription description = new OpenstackServerGroupAtomicOperationDescription(account: 'foo', serverGroupName: '', region: 'region')
 
     when:
     validator.validate([], description, errors)
@@ -103,7 +103,7 @@ class DestroyOpenstackAtomicOperationValidatorSpec extends Specification {
     }
     errors = Mock(Errors)
     validator = new DestroyOpenstackAtomicOperationValidator(accountCredentialsProvider: provider)
-    DestroyOpenstackAtomicOperationDescription description = new DestroyOpenstackAtomicOperationDescription(account: 'foo', serverGroupName: 'foo', region: '')
+    OpenstackServerGroupAtomicOperationDescription description = new OpenstackServerGroupAtomicOperationDescription(account: 'foo', serverGroupName: 'foo', region: '')
 
     when:
     validator.validate([], description, errors)

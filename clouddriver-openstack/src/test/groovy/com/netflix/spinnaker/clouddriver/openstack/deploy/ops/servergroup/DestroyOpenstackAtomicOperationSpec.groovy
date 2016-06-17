@@ -20,7 +20,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFactory
-import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.DestroyOpenstackAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.OpenstackServerGroupAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
@@ -49,7 +49,7 @@ class DestroyOpenstackAtomicOperationSpec extends Specification {
     OpenstackNamedAccountCredentials creds = Mock(OpenstackNamedAccountCredentials)
     OpenstackProviderFactory.createProvider(creds) >> { provider }
     credentials = new OpenstackCredentials(creds)
-    description = new DestroyOpenstackAtomicOperationDescription(serverGroupName: STACK, region: REGION, credentials: credentials)
+    description = new OpenstackServerGroupAtomicOperationDescription(serverGroupName: STACK, region: REGION, credentials: credentials)
   }
 
   def "destroy stack succeeds"() {

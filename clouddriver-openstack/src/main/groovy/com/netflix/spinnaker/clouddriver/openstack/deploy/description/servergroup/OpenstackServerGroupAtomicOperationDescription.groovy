@@ -23,7 +23,7 @@ import groovy.transform.Canonical
 
 @AutoClone
 @Canonical
-class DestroyOpenstackAtomicOperationDescription extends OpenstackAtomicOperationDescription implements DeployDescription {
+class OpenstackServerGroupAtomicOperationDescription extends OpenstackAtomicOperationDescription implements DeployDescription {
   String serverGroupName
 }
 

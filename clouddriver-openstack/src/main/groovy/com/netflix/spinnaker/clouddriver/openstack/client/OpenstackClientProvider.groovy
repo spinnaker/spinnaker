@@ -30,6 +30,7 @@ import org.openstack4j.model.common.ActionResponse
 import org.openstack4j.model.compute.IPProtocol
 import org.openstack4j.model.compute.FloatingIP
 import org.openstack4j.model.compute.RebootType
+import org.openstack4j.model.heat.Resource
 import org.openstack4j.model.network.NetFloatingIP
 import org.openstack4j.model.network.Port
 import org.openstack4j.model.network.ext.HealthMonitor
@@ -84,6 +85,18 @@ abstract class OpenstackClientProvider {
     handleRequest {
       client.compute().servers().reboot(instanceId, rebootType)
     }
+  }
+
+  /**
+   * Get all Load Balancer Pools for region
+   * @param region
+   * @return List < ? extends LbPool >
+   */
+  List<? extends LbPool> getAllLoadBalancerPools(final String region) {
+    List<? extends LbPool> pools = handleRequest {
+      getRegionClient(region).networking().loadbalancers().lbPool().list()
+    }
+    pools
   }
 
   /**
@@ -503,6 +516,21 @@ abstract class OpenstackClientProvider {
     handleRequest {
       client.useRegion(region).heat().stacks().delete(stack.name, stack.id)
     }
+  }
+
+  /**
+   * Get all instance ids of server resources associated with a stack.
+   * @param region
+   * @param stackName
+   */
+  List<String> getInstanceIdsForStack(String region, String stackName) {
+    List<? extends Resource> resources = handleRequest {
+      getRegionClient(region).heat().resources().list(stackName)
+    }
+    List<String> ids = resources.findResults {
+      it.type == "OS::Nova::Server" ? it.physicalResourceId : null
+    }
+    ids
   }
 
   /**

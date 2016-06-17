@@ -28,6 +28,7 @@ import org.openstack4j.api.compute.ComputeService
 import org.openstack4j.api.compute.ServerService
 import org.openstack4j.api.exceptions.ServerResponseException
 import org.openstack4j.api.heat.HeatService
+import org.openstack4j.api.heat.ResourcesService
 import org.openstack4j.api.heat.StackService
 import org.openstack4j.api.heat.TemplateService
 import org.openstack4j.api.networking.NetFloatingIPService
@@ -37,6 +38,7 @@ import org.openstack4j.api.networking.SubnetService
 import org.openstack4j.api.networking.ext.*
 import org.openstack4j.model.common.ActionResponse
 import org.openstack4j.model.compute.*
+import org.openstack4j.model.heat.Resource
 import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.network.NetFloatingIP
 import org.openstack4j.model.network.Port
@@ -417,6 +419,46 @@ class OpenstackClientProviderSpec extends Specification {
     1 * mockClient.networking() >> networkingService
     1 * networkingService.subnet() >> subnetService
     1 * subnetService.get(subnetId) >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "list all load balancer pools success"() {
+    setup:
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    LbPoolService lbPoolService = Mock()
+    List<? extends LbPool> lbPools = Mock()
+
+    when:
+    List<? extends LbPool> result = provider.getAllLoadBalancerPools(region)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.lbPool() >> lbPoolService
+    1 * lbPoolService.list() >> lbPools
+    result == lbPools
+    noExceptionThrown()
+  }
+
+  def "list all load balancer pools exception"() {
+    setup:
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    LbPoolService lbPoolService = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.getAllLoadBalancerPools(region)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.lbPool() >> lbPoolService
+    1 * lbPoolService.list() >> { throw throwable }
 
     and:
     OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
@@ -1376,6 +1418,52 @@ class OpenstackClientProviderSpec extends Specification {
     then:
     1 * stackApi.create("mystack", "{}", [:], false, 1)
     noExceptionThrown()
+  }
+
+  def "get instance ids for stack succeeds" () {
+    setup:
+    HeatService heat = Mock()
+    ResourcesService resourcesService = Mock()
+    String id1 = UUID.randomUUID().toString()
+    String id2 = UUID.randomUUID().toString()
+    Resource r1 = Stub() {
+      getPhysicalResourceId() >> id1
+      getType() >> "OS::Nova::Server"
+    }
+    Resource r2 = Stub() {
+      getPhysicalResourceId() >> id2
+      getType() >> "not:a:server"
+    }
+    List<? extends Resource> resources = [r1, r2]
+
+    when:
+    List<String> result = provider.getInstanceIdsForStack(region, "mystack")
+
+    then:
+    1 * mockClient.heat() >> heat
+    1 * heat.resources() >> resourcesService
+    1 * resourcesService.list("mystack") >> resources
+    result == [id1]
+    noExceptionThrown()
+  }
+
+  def "get instance ids for stack throws exception" () {
+    setup:
+    HeatService heat = Mock()
+    ResourcesService resourcesService = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.getInstanceIdsForStack(region, "mystack")
+
+    then:
+    1 * mockClient.heat() >> heat
+    1 * heat.resources() >> resourcesService
+    1 * resourcesService.list("mystack")>> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
   }
 
   def "test get internal load balancer port succeeds"() {

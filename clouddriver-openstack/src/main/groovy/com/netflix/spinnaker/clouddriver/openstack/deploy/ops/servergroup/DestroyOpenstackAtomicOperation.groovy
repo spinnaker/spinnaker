@@ -19,9 +19,7 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
-import com.netflix.spinnaker.clouddriver.openstack.deploy.OpenstackServerGroupNameResolver
-import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.DeployOpenstackAtomicOperationDescription
-import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.DestroyOpenstackAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.OpenstackServerGroupAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
@@ -31,9 +29,9 @@ import org.openstack4j.model.heat.Stack
 @Slf4j
 class DestroyOpenstackAtomicOperation implements AtomicOperation<Void> {
   private final String BASE_PHASE = "DESTROY"
-  DestroyOpenstackAtomicOperationDescription description;
+  OpenstackServerGroupAtomicOperationDescription description;
 
-  DestroyOpenstackAtomicOperation(DestroyOpenstackAtomicOperationDescription description) {
+  DestroyOpenstackAtomicOperation(OpenstackServerGroupAtomicOperationDescription description) {
     this.description = description
   }
 
