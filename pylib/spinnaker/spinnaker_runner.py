@@ -70,7 +70,7 @@ class Runner(object):
   # These are all the standard spinnaker subsystems that can be started
   # independent of one another.
   INDEPENDENT_SUBSYSTEM_LIST=['clouddriver', 'front50', 'orca', 'rosco',
-                              'echo', 'rush']
+                              'echo']
 
   # Denotes a process running on an external host
   EXTERNAL_PID = -123

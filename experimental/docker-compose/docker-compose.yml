@@ -96,19 +96,8 @@ redis:
 rosco: 
   container_name: rosco
   env_file: ./compose.env
-  environment: 
-    - SERVICES_RUSH_HOST=rush
   image: quay.io/spinnaker/rosco
   links: 
     - redis
-    - rush
   ports: 
     - "8087:8087"
-rush: 
-  container_name: rush
-  env_file: ./compose.env
-  environment: 
-    - "JAVA_OPTS=-javaagent:/opt/rush/lib/jamm-0.2.5.jar"
-  image: quay.io/spinnaker/rush
-  ports: 
-    - "8085:8085"

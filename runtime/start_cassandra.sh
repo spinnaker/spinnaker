@@ -62,6 +62,4 @@ done
 
 cqlsh -f "$CASSANDRA_DIR/create_front50_keyspace.cql"
 
-cqlsh -f "$CASSANDRA_DIR/create_rush_keyspace.cql"
-
 echo "Cassandra is ready."

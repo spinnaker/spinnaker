@@ -94,7 +94,6 @@ class Refresher(object):
       SourceRepository('clouddriver', 'spinnaker'),
       SourceRepository('orca', 'spinnaker'),
       SourceRepository('front50', 'spinnaker'),
-      SourceRepository('rush', 'spinnaker'),
       SourceRepository('echo', 'spinnaker'),
       SourceRepository('rosco', 'spinnaker'),
       SourceRepository('gate', 'spinnaker'),
