@@ -27,18 +27,18 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
-public class DockerRegistryNamedAccountCredentials implements AccountCredentials<DockerRegistryCredentials> {
-  public DockerRegistryNamedAccountCredentials(String accountName, String environment, String accountType,
+class DockerRegistryNamedAccountCredentials implements AccountCredentials<DockerRegistryCredentials> {
+  DockerRegistryNamedAccountCredentials(String accountName, String environment, String accountType,
                                                String address, String username, String password, String passwordFile, String email,
                                                int cacheThreads, long clientTimeoutMillis, int paginateSize, boolean trackDigests,
-                                               List<String> repositories) {
-    this(accountName, environment, accountType, address, username, password, passwordFile, email, repositories, cacheThreads, clientTimeoutMillis, paginateSize, trackDigests, null)
+                                               List<String> repositories, List<String> skip) {
+    this(accountName, environment, accountType, address, username, password, passwordFile, email, repositories, cacheThreads, clientTimeoutMillis, paginateSize, trackDigests, null, skip)
   }
 
-  public DockerRegistryNamedAccountCredentials(String accountName, String environment, String accountType,
+  DockerRegistryNamedAccountCredentials(String accountName, String environment, String accountType,
                                                String address, String username, String password, String passwordFile, String email,
                                                List<String> repositories, int cacheThreads, long clientTimeoutMillis,
-                                               int paginateSize, boolean trackDigests, List<String> requiredGroupMembership) {
+                                               int paginateSize, boolean trackDigests, List<String> requiredGroupMembership, List<String> skip) {
     if (!accountName) {
       throw new IllegalArgumentException("Docker Registry account must be provided with a name.")
     }
@@ -79,21 +79,22 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
     this.password = password
     this.email = email
     this.trackDigests = trackDigests
+    this.skip = skip ?: []
     this.requiredGroupMembership = requiredGroupMembership == null ? Collections.emptyList() : Collections.unmodifiableList(requiredGroupMembership)
     this.credentials = buildCredentials(repositories)
   }
 
   @JsonIgnore
-  public List<String> getRepositories() {
+  List<String> getRepositories() {
     return credentials.repositories
   }
 
   @Override
-  public String getName() {
+  String getName() {
     return accountName
   }
 
-  public String getBasicAuth() {
+  String getBasicAuth() {
     return this.credentials ?
       this.credentials.client ?
         this.credentials.client.basicAuth ?
@@ -103,19 +104,19 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
       ""
   }
 
-  public String getV2Endpoint() {
+  String getV2Endpoint() {
     return "$address/v2"
   }
 
   @Override
-  public String getCloudProvider() {
+  String getCloudProvider() {
     return CLOUD_PROVIDER
   }
 
   private DockerRegistryCredentials buildCredentials(List<String> repositories) {
     try {
       DockerRegistryClient client = new DockerRegistryClient(address, email, username, password, clientTimeoutMillis, paginateSize)
-      return new DockerRegistryCredentials(client, repositories, trackDigests)
+      return new DockerRegistryCredentials(client, repositories, trackDigests, skip)
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
         throw new DockerRegistryConfigException("No repositories specified for ${name}, and the provided endpoint ${address} does not support /_catalog.")
@@ -141,4 +142,5 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
   @JsonIgnore
   final DockerRegistryCredentials credentials
   final List<String> requiredGroupMembership
+  final List<String> skip
 }
