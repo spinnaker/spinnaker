@@ -23,6 +23,5 @@ google:
     bakeryDefaults:
       zone: ${providers.google.defaultZone}
 
-rush:
-  baseUrl: ${services.rush.baseUrl:localhost:8085}
-  configDir: ${services.rush.configDir}
+rosco:
+  configDir: ${services.rosco.configDir}

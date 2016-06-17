@@ -10,8 +10,6 @@ mort:
     baseUrl: ${services.mort.baseUrl:localhost:7002}
 kato:
     baseUrl: ${services.kato.baseUrl:localhost:7002}
-rush:
-    baseUrl: ${services.rush.baseUrl:localhost:8085}
 bakery:
     baseUrl: ${services.bakery.baseUrl:localhost:8087}
     extractBuildDetails: ${services.bakery.extractBuildDetails:true}

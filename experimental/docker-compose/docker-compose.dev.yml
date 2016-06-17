@@ -12,8 +12,6 @@ orca:
   build: ../../../build/orca
 rosco: 
   build: ../../../build/rosco
-rush: 
-  build: ../../../build/rush 
 # comment out services that you don't want rebuilt like this
 # deck: 
 # build: ../../../build/deck

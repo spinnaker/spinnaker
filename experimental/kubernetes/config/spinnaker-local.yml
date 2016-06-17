@@ -111,12 +111,6 @@ services:
     host: spkr-rosco.spinnaker.svc.cluster.local
     port: 8087
     baseUrl: ${services.default.protocol}://${services.rosco.host}:${services.rosco.port}
-
-  rush:
-    # Spinnaker's "rush" subsystem is used by the "rosco" bakery.
-    host: spkr-rush.spinnaker.svc.cluster.local
-    port: 8085
-    baseUrl: ${services.default.protocol}://${services.rush.host}:${services.rush.port}
     # You need to provide the fully-qualified path to the directory containing the packer templates.
     # They typically live in rosco's config/packer directory.
     configDir: /opt/rosco/config/packer

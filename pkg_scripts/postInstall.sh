@@ -30,11 +30,10 @@ service apache2 restart
 # Install cassandra keyspaces
 cqlsh -f "/opt/spinnaker/cassandra/create_echo_keyspace.cql"
 cqlsh -f "/opt/spinnaker/cassandra/create_front50_keyspace.cql"
-cqlsh -f "/opt/spinnaker/cassandra/create_rush_keyspace.cql"
 
 # Disable auto upstart of the services.
 # We'll have spinnaker auto start, and start them as it does.
-for s in clouddriver orca front50 rush rosco echo gate igor; do
+for s in clouddriver orca front50 rosco echo gate igor; do
     echo manual | sudo tee /etc/init/$s.override
 done
 

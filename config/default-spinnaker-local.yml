@@ -207,8 +207,7 @@ services:
     auth:
       enabled: false
 
-  rush:
-    # Spinnaker's "rush" subsystem is used by the "rosco" bakery.
+  rosco:
     # You need to provide the fully-qualified path to the directory containing
     # the packer templates.
     # They typically live in rosco's config/packer directory.

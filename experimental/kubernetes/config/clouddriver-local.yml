@@ -90,7 +90,6 @@ dockerRegistry:
         - spinnaker/igor
         - spinnaker/orca
         - spinnaker/rosco
-        - spinnaker/rush
 
 credentials:
   primaryAccountTypes: ${providers.aws.primaryCredentials.name}, ${providers.google.primaryCredentials.name}, ${providers.cf.primaryCredentials.name}
