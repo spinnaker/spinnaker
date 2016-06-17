@@ -49,12 +49,12 @@ module.exports = angular
             }
           ],
         };
-        if (navigator.sendBeacon) {
-          navigator.sendBeacon(settings.alert.url, JSON.stringify(payload));
-        } else {
-          $log.warn('no beacon support :(');
-          $.post(settings.alert.url, JSON.stringify(payload));
-        }
+
+        $.ajax(settings.alert.url, {
+          method: 'POST',
+          data: JSON.stringify(payload),
+          contentType: 'application/json'
+        });
       };
     });
   });
