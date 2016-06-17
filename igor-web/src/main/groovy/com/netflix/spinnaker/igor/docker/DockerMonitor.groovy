@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.igor.docker
 
+import com.netflix.appinfo.InstanceInfo
+import com.netflix.discovery.DiscoveryClient
 import com.netflix.spinnaker.igor.docker.model.DockerRegistryAccounts
 import com.netflix.spinnaker.igor.docker.service.TaggedImage
 import com.netflix.spinnaker.igor.history.EchoService
@@ -40,7 +42,8 @@ import java.util.concurrent.TimeUnit
 @ConditionalOnProperty('dockerRegistry.enabled')
 class DockerMonitor implements PollingMonitor {
 
-    Scheduler.Worker worker = Schedulers.io().createWorker()
+    Scheduler scheduler = Schedulers.newThread()
+    Scheduler.Worker worker = scheduler.createWorker()
 
     @Autowired
     DockerRegistryCache cache
@@ -55,23 +58,25 @@ class DockerMonitor implements PollingMonitor {
     void onApplicationEvent(ContextRefreshedEvent event) {
         log.info('Started')
         worker.schedulePeriodically(
-            {
-                if (isInService()) {
-                    dockerRegistryAccounts.updateAccounts()
-                    dockerRegistryAccounts.accounts.forEach { account ->
-                        changedTags(account)
+                {
+                    if (isInService()) {
+                        dockerRegistryAccounts.updateAccounts()
+                        Observable.from(dockerRegistryAccounts.accounts).subscribeOn(scheduler).subscribe({ account ->
+                            changedTags(account)
+                        })
+                    } else {
+                        log.info("not in service (lastPoll: ${lastPoll ?: 'n/a'})")
+                        lastPoll = null
                     }
-                } else {
-                    log.info("not in service (lastPoll: ${lastPoll ?: 'n/a'})")
-                    lastPoll = null
-                }
-            } as Action0, 0, pollInterval, TimeUnit.SECONDS
+                } as Action0, 0, pollInterval, TimeUnit.SECONDS
         )
     }
 
-    private void changedTags(String account) {
-        log.info 'Checking for new digests for ' + account
+    private void changedTags(Map accountDetails) {
+        String account = accountDetails.name
+        Boolean trackDigests = accountDetails.trackDigests ?: false
 
+        log.info 'Checking for new tags for ' + account
         try {
             lastPoll = System.currentTimeMillis()
             List<String> cachedImages = cache.getImages(account)
@@ -85,7 +90,7 @@ class DockerMonitor implements PollingMonitor {
             }
             Observable.from(cachedImages).filter { String id ->
                 !(id in imageIds)
-            }.subscribe( { String imageId ->
+            }.subscribe({ String imageId ->
                 log.info "Removing $imageId."
                 cache.remove(imageId)
             }, {
@@ -93,17 +98,21 @@ class DockerMonitor implements PollingMonitor {
             }
             )
 
-            Observable.from(images).subscribe( { TaggedImage image ->
+            Observable.from(images)
+                    .subscribeOn(scheduler)
+                    .subscribe({ TaggedImage image ->
                 def imageId = cache.makeKey(account, image.registry, image.repository, image.tag)
                 def updateCache = false
 
                 if (imageId in cachedImages) {
-                    def lastDigest = cache.getLastDigest(image.account, image.registry, image.repository, image.tag)
+                    if (trackDigests) {
+                        def lastDigest = cache.getLastDigest(image.account, image.registry, image.repository, image.tag)
 
-                    if (lastDigest != image.digest) {
-                        log.info "Updated tagged image: ${image.account}: ${imageId}. Digest changed from [$lastDigest] -> [$image.digest]."
-                        // If either is null, there was an error retrieving the manifest in this or the previous cache cycle.
-                        updateCache = image.digest != null && lastDigest != null
+                        if (lastDigest != image.digest) {
+                            log.info "Updated tagged image: ${image.account}: ${imageId}. Digest changed from [$lastDigest] -> [$image.digest]."
+                            // If either is null, there was an error retrieving the manifest in this or the previous cache cycle.
+                            updateCache = image.digest != null && lastDigest != null
+                        }
                     }
                 } else {
                     log.info "New tagged image: ${image.account}: ${imageId}. Digest is now [$image.digest]."
@@ -121,7 +130,6 @@ class DockerMonitor implements PollingMonitor {
                                 account: image.account,
                         )))
                     }
-
                     cache.setLastDigest(image.account, image.registry, image.repository, image.tag, image.digest)
                 }
             }, {
@@ -138,9 +146,19 @@ class DockerMonitor implements PollingMonitor {
         "dockerTagMonitor"
     }
 
+    @Autowired(required = false)
+    DiscoveryClient discoveryClient
+
     @Override
     boolean isInService() {
-        dockerRegistryAccounts.service != null
+        if (discoveryClient == null) {
+            log.info("no DiscoveryClient, assuming InService")
+            true
+        } else {
+            def remoteStatus = discoveryClient.instanceRemoteStatus
+            log.info("current remote status ${remoteStatus}")
+            remoteStatus == InstanceInfo.InstanceStatus.UP
+        }
     }
 
     Long lastPoll
