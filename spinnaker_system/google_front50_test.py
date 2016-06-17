@@ -12,18 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# pylint: disable=missing-docstring
+# pylint: disable=invalid-name
+
 import json
 import logging
 import sys
 
 import citest.gcp_testing as gcp
 import citest.json_contract as jc
-import citest.json_predicate as jp
 import citest.service_testing as st
 
 # Spinnaker modules.
 import spinnaker_testing as sk
 import spinnaker_testing.front50 as front50
+
 
 
 class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
@@ -40,9 +43,9 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
       parser: argparse.ArgumentParser
     """
     parser.add_argument(
-      '--google_json_path', default='',
-      help='The path to the google service credentials JSON file.')
-    
+        '--google_json_path', default='',
+        help='The path to the google service credentials JSON file.')
+
     super(GoogleFront50TestScenario, cls).initArgumentParser(
         parser, defaults=defaults)
 
@@ -57,15 +60,15 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     self.BASE_PATH = config['spinnaker.gcs.rootFolder']
     self.TEST_APP = self.bindings['TEST_APP']
     self.gcs_observer = gcp.GoogleCloudStorageAgent(
-      self.bindings['GOOGLE_JSON_PATH'],
-      gcp.google_cloud_storage_agent.FULL_SCOPE)
+        self.bindings['GOOGLE_JSON_PATH'],
+        gcp.google_cloud_storage_agent.FULL_SCOPE)
 
     metadata = self.gcs_observer.inspect(self.BUCKET)
     self.versioning_enabled = (metadata.get('versioning', {})
                                .get('enabled', False))
     if not self.versioning_enabled:
       self.logger.info('bucket=%s versioning enabled=%s',
-                       self.BUCKET, self.versioning_enabled);
+                       self.BUCKET, self.versioning_enabled)
 
   def __init__(self, bindings, agent=None):
     """Constructor.
@@ -79,14 +82,14 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     super(GoogleFront50TestScenario, self).__init__(bindings, agent)
 
     self.initial_app_spec = {
-      "name" : self.TEST_APP,
-      "description" : "My Application Description.",
-      "email" : "test@google.com",
-      "accounts" : "my-aws-account,my-google-account",
-      "updateTs" : "1463667655844",
-      "createTs" : "1463666817476",
-      "platformHealthOnly" : False,
-      "cloudProviders" : "gce,aws"        
+        "name" : self.TEST_APP,
+        "description" : "My Application Description.",
+        "email" : "test@google.com",
+        "accounts" : "my-aws-account,my-google-account",
+        "updateTs" : "1463667655844",
+        "createTs" : "1463666817476",
+        "platformHealthOnly" : False,
+        "cloudProviders" : "gce,aws"
     }
 
 
@@ -111,12 +114,12 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
      .contains_path_eq('', expect))
     for clause in gcs_builder.build().clauses:
       contract.add_clause(clause)
-                                  
+
     # The update timestamp is determined by the server,
     # and we dont know what that is, so lets ignore it
     # and assume the unit tests verify it is properly updated.
     expect = dict(expect)
-    del(expect['updateTs'])
+    del expect['updateTs']
     f50_builder = st.http_observer.HttpContractBuilder(self.agent)
 
     # These clauses are querying the Front50 http server directly
@@ -189,38 +192,29 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
   def destroy_app(self):
     contract = jc.Contract()
 
-    app_path = '/'.join(['/default/applications/name', self.TEST_APP])
-    delete_obs_builder = jc.ObservationVerifierBuilder('Removed Application')
-    delete_obs_builder.append_verifier(
-      st.HttpObservationFailureVerifier('Not Found', 404));
-    f50_app_observer = st.HttpObjectObserver(self.agent, app_path)
-    f50_delete_clause = jc.ContractClause(title='Deleted Application',
-                                          observer=f50_app_observer,
-                                          verifier=delete_obs_builder.build())
-    contract.add_clause(f50_delete_clause)
+    app_url_path = '/'.join(['/default/applications/name', self.TEST_APP])
 
-    unlist_obs_builder = jc.ValueObservationVerifierBuilder('Unlist Application')
-
-    f50_list_observer = st.HttpObjectObserver(self.agent, '/default/applications')
-    unlist_obs_builder.excludes_path_value('name', self.TEST_APP)
-    f50_unlist_clause = jc.ContractClause(title='Unlists Application',
-                                          observer=f50_list_observer,
-                                          verifier=unlist_obs_builder.build())
-    contract.add_clause(f50_unlist_clause)
+    f50_builder = st.http_observer.HttpContractBuilder(self.agent)
+    (f50_builder.new_clause_builder('Unlists Application')
+     .get_url_path('/default/applications')
+     .excludes_path_value('name', self.TEST_APP.upper()))
+    (f50_builder.new_clause_builder('Deletes Application')
+     .get_url_path(app_url_path, allow_http_error_status=404))
+    for clause in f50_builder.build().clauses:
+      contract.add_clause(clause)
 
     gcs_builder = gcp.GoogleCloudStorageContractBuilder(self.gcs_observer)
     (gcs_builder.new_clause_builder('Deleted File')
      .list(self.BUCKET, '/'.join([self.BASE_PATH, 'applications']))
-     .excludes_path_value('name',  self.TEST_APP.upper()))
+     .excludes_path_value('name', self.TEST_APP.upper()))
     for clause in gcs_builder.build().clauses:
       contract.add_clause(clause)
 
-    path = '/'.join(['/default/applications/name/', self.TEST_APP])
     return st.OperationContract(
         self.new_delete_operation(
-            title='delete_app', data=None, path=path),
+            title='delete_app', data=None, path=app_url_path),
         contract=contract)
-    
+
 
 class GoogleFront50Test(st.AgentTestCase):
   def test_a_create_app(self):
