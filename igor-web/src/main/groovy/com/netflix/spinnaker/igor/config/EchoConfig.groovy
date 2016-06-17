@@ -46,7 +46,7 @@ class EchoConfig {
         new RestAdapter.Builder()
             .setEndpoint(Endpoints.newFixedEndpoint(address))
             .setClient(new OkClient(okHttpClientConfig.create()))
-            .setLogLevel(RestAdapter.LogLevel.BASIC)
+            .setLogLevel(RestAdapter.LogLevel.NONE)
             .build()
             .create(EchoService)
 

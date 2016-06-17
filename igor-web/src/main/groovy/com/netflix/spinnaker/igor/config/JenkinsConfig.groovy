@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.config
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.service.BuildMasters
+import com.squareup.okhttp.ConnectionPool
 import com.squareup.okhttp.Credentials
 import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
@@ -71,6 +72,7 @@ class JenkinsConfig {
     static JenkinsClient jenkinsClient(String address, String username, String password, int timeout = 30000) {
         OkHttpClient client = new OkHttpClient()
         client.setReadTimeout(timeout, TimeUnit.MILLISECONDS)
+        client.setConnectionPool(new ConnectionPool(0, 5 * 60 * 1000));
 
         new RestAdapter.Builder()
             .setEndpoint(Endpoints.newFixedEndpoint(address))

@@ -140,12 +140,16 @@ class JenkinsBuildMonitor implements PollingMonitor {
         log.info('Checking for new builds for ' + master)
         List<Map> results = []
 
+        lastPoll = System.currentTimeMillis()
+        long thisPoll = lastPoll
         try {
-            lastPoll = System.currentTimeMillis()
             List<String> cachedBuilds = cache.getJobNames(master)
 
             def startTime = System.currentTimeMillis()
             List<Project> builds = buildMasters.map[master].projects?.list
+
+            log.info( "finding new builds in ${master} : ${ builds.size() } items" )
+
             log.info("Took ${System.currentTimeMillis() - startTime}ms to retrieve projects (master: ${master})")
 
             List<String> buildNames = builds*.name
@@ -234,7 +238,7 @@ class JenkinsBuildMonitor implements PollingMonitor {
             log.error("failed to update master $master", e)
         }
 
-        log.info("Last poll took ${System.currentTimeMillis() - lastPoll}ms (master: ${master})")
+        log.info("Last poll took ${System.currentTimeMillis() - thisPoll}ms (master: ${master})")
         results
     }
 
