@@ -161,7 +161,7 @@ class JenkinsBuildMonitor implements PollingMonitor {
                     { log.error("Error: ${it.message}") }
             )
 
-            builds.parallelStream().forEach(
+            builds.each(
                     { Project project ->
                         try {
                             boolean addToCache = false
