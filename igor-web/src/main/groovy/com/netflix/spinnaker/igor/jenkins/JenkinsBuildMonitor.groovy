@@ -110,9 +110,14 @@ class JenkinsBuildMonitor implements PollingMonitor {
                 {
                     if (isInService()) {
                         log.info "- Polling cycle started -"
-                        buildMasters.filteredMap(BuildServiceProvider.JENKINS).keySet().parallelStream().forEach(
-                                { master -> changedBuilds(master) }
+
+                        Observable.from( buildMasters.filteredMap(BuildServiceProvider.JENKINS).keySet() )
+                                .subscribe(
+                                { master ->
+                                    changedBuilds(master)
+                                }, { log.error("Error: ${it.message}") }
                         )
+
                         log.info "- Polling cycle done -"
                     } else {
                         log.info("not in service (lastPoll: ${lastPoll ?: 'n/a'})")

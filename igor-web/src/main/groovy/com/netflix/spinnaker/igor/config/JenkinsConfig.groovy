@@ -72,7 +72,6 @@ class JenkinsConfig {
     static JenkinsClient jenkinsClient(String address, String username, String password, int timeout = 30000) {
         OkHttpClient client = new OkHttpClient()
         client.setReadTimeout(timeout, TimeUnit.MILLISECONDS)
-        client.setConnectionPool(new ConnectionPool(0, 5 * 60 * 1000));
 
         new RestAdapter.Builder()
             .setEndpoint(Endpoints.newFixedEndpoint(address))
