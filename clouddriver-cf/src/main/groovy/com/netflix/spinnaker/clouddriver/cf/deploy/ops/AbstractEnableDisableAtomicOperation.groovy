@@ -93,6 +93,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     def loadBalancerHosts = loadBalancers.collect { loadBalancer ->
       description.nativeLoadBalancers?.find { it?.name == loadBalancer }?.nativeRoute?.name
     }
+    loadBalancerHosts += description.serverGroupName + "." + client.defaultDomain.name
 
     if (disable) {
       task.updateStatus phaseName, "Deregistering instances from load balancers..."

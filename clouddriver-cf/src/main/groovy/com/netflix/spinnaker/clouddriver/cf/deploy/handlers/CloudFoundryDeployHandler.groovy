@@ -15,7 +15,6 @@
  */
 
 package com.netflix.spinnaker.clouddriver.cf.deploy.handlers
-
 import com.netflix.frigga.NameBuilder
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConstants
@@ -45,7 +44,6 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.*
 import org.springframework.util.StreamUtils
 import org.springframework.web.client.HttpServerErrorException
-
 /**
  * A deployment handler for Cloud Foundry.
  */
@@ -152,8 +150,10 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
     try {
       Staging staging = (description?.buildpackUrl) ? new Staging(null, description.buildpackUrl) : new Staging()
       if (application == null) {
-        def domain = client.defaultDomain
-        def loadBalancers = description.loadBalancers?.split(',').collect { (domain != null) ? it + "." + domain.name : it }
+        def defaultDomain = client.defaultDomain
+        def domain = (defaultDomain != null) ? '.' + defaultDomain.name : ''
+        def loadBalancers = description.loadBalancers?.split(',').collect { it + domain }
+        loadBalancers += description.serverGroupName + domain
 
         task.updateStatus BASE_PHASE, "Memory set to ${description.memory}"
         if (description?.buildpackUrl) {

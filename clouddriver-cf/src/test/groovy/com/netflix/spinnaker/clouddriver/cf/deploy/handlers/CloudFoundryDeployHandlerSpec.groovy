@@ -120,7 +120,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.getApplications() >> { [] }
     1 * client.getApplication(serverGroupName) >> { null }
     1 * client.getDefaultDomain() >> { new CloudDomain(null, 'example.com', null) }
-    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com"], null)
+    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com", "${description.application}-v000.example.com"], null)
     1 * client.uploadApplication(serverGroupName, _, _)
     1 * client.updateApplicationEnv(serverGroupName,
         [
@@ -185,7 +185,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.getApplications() >> { [] }
     1 * client.getApplication(serverGroupName) >> { null }
     1 * client.getDefaultDomain() >> { new CloudDomain(null, 'example.com', null) }
-    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com"], null)
+    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com", "${description.application}-v000.example.com"], null)
     1 * client.uploadApplication(serverGroupName, _, _)
     1 * client.updateApplicationEnv(serverGroupName,
         [
@@ -228,7 +228,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.getApplications() >> { [] }
     1 * client.getApplication(serverGroupName) >> { null }
     1 * client.getDefaultDomain() >> { new CloudDomain(null, 'example.com', null) }
-    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com"], null)
+    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com", "${description.application}-v000.example.com"], null)
     1 * client.uploadApplication(serverGroupName, _, _)
     1 * client.updateApplicationEnv(serverGroupName,
         [
@@ -287,7 +287,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.getApplications() >> { [] }
     1 * client.getApplication(serverGroupName) >> { null }
     1 * client.getDefaultDomain() >> { new CloudDomain(null, 'example.com', null) }
-    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com"], null)
+    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com", "${description.application}-v000.example.com"], null)
     1 * client.uploadApplication(serverGroupName, _, _)
     1 * client.updateApplicationEnv(serverGroupName,
         [
@@ -324,7 +324,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.getApplications() >> { [] }
     1 * client.getApplication(serverGroupName) >> { null }
     1 * client.getDefaultDomain() >> { new CloudDomain(null, 'example.com', null) }
-    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com"], null)
+    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com", "${description.application}-v000.example.com"], null)
     1 * client.deleteApplication(serverGroupName)
     0 * client._
 
@@ -366,7 +366,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     }
     1 * client.getApplication(serverGroupName) >> { null }
     1 * client.getDefaultDomain() >> { new CloudDomain(null, 'example.com', null) }
-    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com"], null)
+    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com", "${description.application}-v003.example.com"], null)
     1 * client.uploadApplication(serverGroupName, _, _)
     1 * client.updateApplicationEnv(serverGroupName,
         [
@@ -412,7 +412,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.getApplications() >> { [new CloudApplication(null, description.application + '-v999')] }
     1 * client.getApplication(serverGroupName) >> { null }
     1 * client.getDefaultDomain() >> { new CloudDomain(null, 'example.com', null) }
-    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com"], null)
+    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com", "${description.application}-v000.example.com"], null)
     1 * client.uploadApplication(serverGroupName, _, _)
     1 * client.updateApplicationEnv(serverGroupName,
         [
@@ -508,7 +508,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.getApplications() >> { [] }
     1 * client.getApplication(serverGroupName) >> { null }
     1 * client.getDefaultDomain() >> { new CloudDomain(null, 'example.com', null) }
-    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com"], null)
+    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com", "${description.application}-v000.example.com"], null)
     1 * client.deleteApplication(serverGroupName)
     0 * client._
 
@@ -558,7 +558,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.getApplications() >> { null }
     1 * client.getApplication(serverGroupName) >> { null }
     1 * client.getDefaultDomain() >> { new CloudDomain(null, "example.com", null) }
-    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com"], null)
+    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com", "${description.application}-v000.example.com"], null)
     1 * client.uploadApplication(serverGroupName, _, _)
     1 * client.updateApplicationEnv(serverGroupName,
         [
@@ -606,7 +606,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.getApplications() >> { [] }
     1 * client.getApplication(serverGroupName) >> { null }
     1 * client.getDefaultDomain() >> { new CloudDomain(null, 'example.com', null) }
-    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com"], null)
+    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com", "${description.application}-v000.example.com"], null)
     1 * client.uploadApplication(serverGroupName, _, _) >> { throw new IOException("Simulated CF failure") }
     1 * client.deleteApplication(serverGroupName)
     0 * client._
@@ -673,7 +673,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.getApplications() >> { [] }
     1 * client.getApplication(serverGroupName) >> { throw new CloudFoundryException(HttpStatus.NOT_FOUND, "Not Found", "Application not found") }
     1 * client.getDefaultDomain() >> { new CloudDomain(null, 'example.com', null) }
-    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com"], null)
+    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com", "${description.application}-v000.example.com"], null)
     1 * client.uploadApplication(serverGroupName, _, _)
     1 * client.updateApplicationEnv(serverGroupName,
         [
@@ -748,7 +748,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.getApplications() >> { [] }
     1 * client.getApplication(serverGroupName) >> { throw new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE) }
     1 * client.getDefaultDomain() >> { null }
-    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}"], null)
+    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}", "${description.application}-v000"], null)
     1 * client.uploadApplication(serverGroupName, _, _)
     1 * client.updateApplicationEnv(serverGroupName,
         [
@@ -791,7 +791,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.getApplications() >> { [] }
     1 * client.getApplication(serverGroupName) >> { throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR) }
     1 * client.getDefaultDomain() >> { null }
-    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}"], null)
+    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}", "${description.application}-v000"], null)
     1 * client.uploadApplication(serverGroupName, _, _)
     1 * client.updateApplicationEnv(serverGroupName,
         [
@@ -834,7 +834,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.getApplications() >> { [] }
     1 * client.getApplication(serverGroupName) >> { null }
     1 * client.getDefaultDomain() >> { null }
-    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}"], null)
+    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}", "${description.application}-v000"], null)
     1 * client.uploadApplication(serverGroupName, _, _)
     1 * client.updateApplicationEnv(serverGroupName,
         [
@@ -876,7 +876,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.getApplications() >> { [] }
     1 * client.getApplication(serverGroupName) >> { null }
     1 * client.getDefaultDomain() >> { new CloudDomain(null, 'example.com', null) }
-    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com"], null) >> {
+    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com", "${description.application}-v000.example.com"], null) >> {
       throw new CloudFoundryException(HttpStatus.INTERNAL_SERVER_ERROR, 'Simulated failure', 'Unable to create application')
     }
     1 * client.deleteApplication(serverGroupName)
@@ -916,7 +916,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.getApplications() >> { [] }
     1 * client.getApplication(serverGroupName) >> { null }
     1 * client.getDefaultDomain() >> { new CloudDomain(null, 'example.com', null) }
-    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com"], null)
+    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com", "${description.application}-v000.example.com"], null)
     1 * client.uploadApplication(serverGroupName, _, _)
     1 * client.updateApplicationEnv(serverGroupName,
         [
@@ -963,7 +963,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.getApplications() >> { [] }
     1 * client.getApplication(serverGroupName) >> { null }
     1 * client.getDefaultDomain() >> { new CloudDomain(null, 'example.com', null) }
-    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com"], null)
+    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}.example.com", "${description.application}-v000.example.com"], null)
     1 * client.uploadApplication(serverGroupName, _, _)
     1 * client.updateApplicationEnv(serverGroupName,
         [
@@ -1015,7 +1015,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.getApplications() >> { [] }
     1 * client.getApplication(serverGroupName) >> { null }
     1 * client.getDefaultDomain() >> { null }
-    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}"], null)
+    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}", "${description.application}-v000"], null)
     1 * client.uploadApplication(serverGroupName, _, _)
     1 * client.updateApplicationEnv(serverGroupName,
         [
@@ -1064,7 +1064,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.getApplications() >> { [] }
     1 * client.getApplication(serverGroupName) >> { null }
     1 * client.getDefaultDomain() >> { null }
-    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}"], null)
+    1 * client.createApplication(serverGroupName, _, 1024, ["${description.loadBalancers}", "${description.application}-v000"], null)
     1 * client.uploadApplication(serverGroupName, _, _)
     1 * client.updateApplicationEnv(serverGroupName,
         [

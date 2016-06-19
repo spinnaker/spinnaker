@@ -183,7 +183,8 @@ class EnableCloudFoundryServerGroupAtomicOperationSpec extends Specification {
       app.uris = ['other.cfapps.io']
       app
     }
-    1 * client.updateApplicationUris(serverGroupName, ['other.cfapps.io', 'production.cfapps.io', 'staging.cfapps.io'])
+    1 * client.getDefaultDomain() >> { new CloudDomain(null, 'cfapps.io', null) }
+    1 * client.updateApplicationUris(serverGroupName, ['other.cfapps.io', 'production.cfapps.io', 'staging.cfapps.io', "${serverGroupName}.cfapps.io"])
     1 * client.startApplication(serverGroupName)
     2 * client.getApplicationInstances(_) >> { instancesInfo }
 

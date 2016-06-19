@@ -189,6 +189,7 @@ class DisableCloudFoundryServerGroupAtomicOperationSpec extends Specification {
       app.state = CloudApplication.AppState.STOPPED
       app
     }
+    1 * client.getDefaultDomain() >> { new CloudDomain(null, 'cfapps.io', null) }
     1 * client.updateApplicationUris(serverGroupName, ['other.cfapps.io'])
     1 * client.stopApplication(serverGroupName)
     1 * client.getApplicationInstances(_) >> { new InstancesInfo([]) }
