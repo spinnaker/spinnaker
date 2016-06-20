@@ -162,9 +162,11 @@ public class GcsStorageService implements StorageService {
       StorageObject storageObject = obj_api.get(bucketName, path).execute();
       T item = deserialize(storageObject, clas, true);
       item.setLastModified(storageObject.getUpdated().getValue());
+      log.debug("Loaded bucket={} path={}", bucketName, path);
       return item;
     } catch (HttpResponseException e) {
-      log.error("Failed to load {} {}:\n{}", daoTypeName, objectKey, e);
+      log.error("Failed to load {} {}: {} {}",
+                daoTypeName, objectKey, e.getStatusCode(), e.getStatusMessage());
       if (e.getStatusCode() == 404) {
           throw new NotFoundException(String.format("No file at path=%s", path));
       }
@@ -213,6 +215,7 @@ public class GcsStorageService implements StorageService {
     int skipFromEnd = DATA_FILENAME.length() + 1;  // + Leading slash
 
     Map<String, Long> result = new HashMap<String, Long>();
+    log.debug("Listing {}", daoTypeName);
     try {
       Storage.Objects.List listObjects = obj_api.list(bucketName);
       listObjects.setPrefix(rootFolder);
@@ -298,9 +301,10 @@ public class GcsStorageService implements StorageService {
       // We'll just touch the file since the StorageObject manages a timestamp.
       byte[] bytes = "{}".getBytes();
       ByteArrayContent content = new ByteArrayContent("application/json", bytes);
+      String timestamp_path = daoRoot(daoTypeName) + '/' + LAST_MODIFIED_FILENAME;
       StorageObject object = new StorageObject()
           .setBucket(bucketName)
-          .setName(daoRoot(daoTypeName) + '/' + LAST_MODIFIED_FILENAME)
+          .setName(timestamp_path)
           .setUpdated(new DateTime(System.currentTimeMillis()));
       try {
           obj_api.insert(bucketName, object, content).execute();
@@ -315,6 +319,48 @@ public class GcsStorageService implements StorageService {
       } catch (IOException e) {
           log.error("writeLastModified failed: {}", e);
           throw new IllegalStateException(e);
+      }
+      try {
+          // If the bucket is versioned, purge the old timestamp versions
+          // because they serve no value and just consume storage and extra time
+          // if we eventually destroy this bucket.
+          purgeOldVersions(timestamp_path);
+      } catch (IOException e) {
+          log.error("Failed to purge old versions of {}. Ignoring error.",
+                    timestamp_path);
+      }
+  }
+
+  // Remove the old versions of a path.
+  // Versioning is per-bucket but it doesnt make sense to version the
+  // timestamp objects so we'll aggressively delete those.
+  private void purgeOldVersions(String path) throws IOException {
+      Storage.Objects.List listObjects = obj_api.list(bucketName)
+          .setPrefix(path)
+          .setVersions(true);
+
+      com.google.api.services.storage.model.Objects objects;
+
+      // Keep the 0th object on the first page (which is current).
+      List<Long> generations = new ArrayList(32);
+      do {
+          objects = listObjects.execute();
+          List<StorageObject> items = objects.getItems();
+          if (items != null) {
+              int n = items.size();
+              while (--n >= 0) {
+                  generations.add(items.get(n).getGeneration());
+              }
+          }
+          listObjects.setPageToken(objects.getNextPageToken());
+      } while (objects.getNextPageToken() != null);
+
+      for (long generation : generations) {
+          if (generation == generations.get(0)) {
+              continue;
+          }
+          log.debug("Remove {} generation {}", path, generation);
+          obj_api.delete(bucketName, path).setGeneration(generation).execute();
       }
   }
 

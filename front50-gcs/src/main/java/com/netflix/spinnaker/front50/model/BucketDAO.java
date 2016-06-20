@@ -67,7 +67,7 @@ public abstract class BucketDAO<T extends Timestamped> {
         .timer(0, TimeUnit.MILLISECONDS, scheduler)
         .subscribe(interval -> {
           try {
-            log.debug("Warming Cache");
+            log.info("Warming Cache");
             refresh();
           } catch (Exception e) {
             log.error("Unable to refresh: {}", e);
@@ -87,9 +87,11 @@ public abstract class BucketDAO<T extends Timestamped> {
   }
 
   public Collection<T> all() {
-    if (readLastModified() > lastRefreshedTime || allItemsCache.get() == null) {
-      // only refresh if there was a modification since our last refresh cycle
-      refresh();
+    long lastModified = readLastModified();
+    if (lastModified > lastRefreshedTime || allItemsCache.get() == null) {
+        // only refresh if there was a modification since our last refresh cycle
+        log.debug("all() forcing refresh");
+        refresh();
     }
 
     return allItemsCache.get().stream().collect(Collectors.toList());
@@ -158,6 +160,7 @@ public abstract class BucketDAO<T extends Timestamped> {
     if (existingItems == null) {
       existingItems = new HashSet<>();
     }
+    int existing_size = existingItems.size();
 
     Map<String, String> keyToId = new HashMap<String, String>();
     for (T item : existingItems) {
@@ -212,8 +215,15 @@ public abstract class BucketDAO<T extends Timestamped> {
           resultMap.put(item.getId().toLowerCase(), item);
         });
 
-    Set<T>  result = resultMap.values().stream().collect(Collectors.toSet());
+    Set<T> result = resultMap.values().stream().collect(Collectors.toSet());
     this.lastRefreshedTime = refreshTime;
+
+    int result_size = result.size();
+    if (existing_size != result_size) {
+      log.info("#{}={} delta={}",
+               daoTypeName, result_size, result_size - existing_size);
+    }
+
     return result;
   }
 
