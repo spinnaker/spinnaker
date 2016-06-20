@@ -14,14 +14,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.editJson
       delete obj.application;
       delete obj.index;
       delete obj.id;
-      delete obj.stageCounter;
-    }
-
-    function updateStageCounter() {
-      if (pipeline.parallel) {
-        let stageIds = pipeline.stages.map((stage) => Number(stage.refId));
-        stageIds.forEach((stageId) => pipeline.stageCounter = Math.max(pipeline.stageCounter, stageId));
-      }
     }
 
     this.initialize = function() {
@@ -47,8 +39,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.editJson
 
         removeImmutableFields(parsed);
         angular.extend(pipeline, parsed);
-        updateStageCounter();
-
         $uibModalInstance.close();
       } catch (e) {
         $scope.command.invalid = true;

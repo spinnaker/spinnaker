@@ -120,22 +120,18 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
     }
 
     function enableParallelExecution(pipeline) {
-      pipeline.stageCounter = 0;
-      pipeline.stages.forEach(function(stage) {
-        pipeline.stageCounter++;
-        stage.refId = pipeline.stageCounter + '';
-        if (pipeline.stageCounter > 1) {
-          stage.requisiteStageRefIds = [(pipeline.stageCounter - 1) + ''];
+      pipeline.stages.forEach((stage, index) => {
+        stage.refId = index + '';
+        if (index > 0) {
+          stage.requisiteStageRefIds = [(index - 1) + ''];
         } else {
           stage.requisiteStageRefIds = [];
         }
       });
       pipeline.parallel = true;
-      pipeline.stageCounter = pipeline.stages.length;
     }
 
     function disableParallelExecution(pipeline) {
-      delete pipeline.stageCounter;
       pipeline.stages.forEach(function(stage) {
         delete stage.refId;
         delete stage.requisiteStageRefIds;

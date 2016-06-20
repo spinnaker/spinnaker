@@ -109,22 +109,4 @@ describe('Controller: renamePipelineModal', function() {
     expect(this.$scope.command.errorMessage).not.toBe(null);
   });
 
-  it ('updateApplicationFromJson sets the stage counter based on max value of refIds', function () {
-    var pipeline = {
-      application: 'myApp',
-      name: 'foo',
-      stageCounter: 4,
-      parallel: true,
-      stages: [
-        {refId: '3'},
-        {refId: '13'}
-      ]
-    };
-    this.initializeController(pipeline);
-    this.$scope.command = {pipelineJSON: JSON.stringify(pipeline)};
-    this.controller.updatePipeline();
-
-    expect(pipeline.stageCounter).toBe(13);
-  });
-
 });

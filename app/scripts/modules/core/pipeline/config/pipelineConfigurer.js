@@ -89,12 +89,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       var newStage = { isNew: true };
       $scope.pipeline.stages = $scope.pipeline.stages || [];
       if ($scope.pipeline.parallel) {
-        if (!$scope.pipeline.stageCounter) {
-          $scope.pipeline.stageCounter = Math.max(...$scope.pipeline.stages.map(s => Number(s.refId) || 0)) + 1;
-        }
-        $scope.pipeline.stageCounter++;
+        newStage.refId = Math.max(0, ...$scope.pipeline.stages.map(s => Number(s.refId) || 0)) + 1 + '';
         newStage.requisiteStageRefIds = [];
-        newStage.refId = $scope.pipeline.stageCounter + ''; // needs to be a string
         if ($scope.pipeline.stages.length && $scope.viewState.section === 'stage') {
           newStage.requisiteStageRefIds.push($scope.pipeline.stages[$scope.viewState.stageIndex].refId);
         }
@@ -239,10 +235,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       var original = angular.fromJson($scope.viewState.original);
       if (original.parallel) {
         $scope.pipeline.parallel = true;
-        $scope.pipeline.stageCounter = original.stageCounter;
       } else {
         delete $scope.pipeline.parallel;
-        delete $scope.pipeline.stageCounter;
       }
       $scope.pipeline.stages = original.stages;
       $scope.pipeline.triggers = original.triggers;
@@ -280,7 +274,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
         appConfig: copy.appConfig || {},
         limitConcurrent: copy.limitConcurrent,
         keepWaitingPipelines: copy.keepWaitingPipelines,
-        stageCounter: copy.stageCounter,
         parameterConfig: copy.parameterConfig,
         notifications: copy.notifications,
         persistedProperties: copy.persistedProperties,
