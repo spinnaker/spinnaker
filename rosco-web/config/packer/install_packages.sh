@@ -27,7 +27,10 @@ function provision_deb() {
   fi
 
   if [[ "$repository" != "" ]]; then
-    echo "deb $repository" | sudo tee /etc/apt/sources.list.d/spinnaker.list > /dev/null
+    IFS=';' read -ra repo <<< "$repository"
+    for i in "${repo[@]}"; do
+      echo "deb $i" | sudo tee -a /etc/apt/sources.list.d/spinnaker.list > /dev/null
+    done
   fi
 
   sudo apt-get update
