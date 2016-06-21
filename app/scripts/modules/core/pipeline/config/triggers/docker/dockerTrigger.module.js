@@ -47,7 +47,7 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
       if (!$scope.organizationMap) {
         return;
       }
-      let key = `${trigger.account}/${trigger.organization}`;
+      let key = `${trigger.account}/${trigger.organization || '' }`;
       $scope.repositories = $scope.organizationMap[key] || [];
       if ($scope.repositories.indexOf(trigger.repository) < 0) {
         trigger.repository = null;
@@ -68,9 +68,12 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
     };
 
     $scope.getTags = function(search) {
-      var newOne = $scope.tags.slice();
-      if (search && newOne.indexOf(search) === -1) {
-        newOne.unshift(search);
+      var newOne;
+      if($scope.tags) {
+        newOne = $scope.tags.slice();
+        if (search && newOne.indexOf(search) === -1) {
+          newOne.unshift(search);
+        }
       }
       return newOne;
     };
@@ -85,7 +88,7 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
           }
           let all = map[key] || [];
           let parts = image.repository.split('/');
-          let repository = parts.pop();
+          parts.pop();
           let org = parts.join('/');
           if (all.indexOf(org) < 0) {
             map[key] = all.concat(org);
@@ -95,7 +98,7 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
         $scope.accounts = Object.keys($scope.accountMap);
         $scope.organizationMap = images.reduce((map, image) => {
           let parts = image.repository.split('/');
-          let repository = parts.pop();
+          parts.pop();
           let key = `${image.account}/${parts.join('/')}`;
           let all = map[key] || [];
           if (all.indexOf(image.repository) < 0) {
