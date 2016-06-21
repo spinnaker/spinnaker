@@ -53,9 +53,7 @@ abstract class AbstractWaitForInstanceHealthChangeTask implements RetryableTask 
 
     def stillRunning = instanceIds.find {
       def instance = getInstance(account, region, it)
-      def healths = HealthHelper.filterHealths(instance, healthProviderTypesToCheck)
-
-      return !hasSucceeded(healths)
+      return !hasSucceeded(instance, healthProviderTypesToCheck)
     }
 
     return new DefaultTaskResult(stillRunning ? ExecutionStatus.RUNNING : ExecutionStatus.SUCCEEDED)
@@ -70,5 +68,5 @@ abstract class AbstractWaitForInstanceHealthChangeTask implements RetryableTask 
     return objectMapper.readValue(response.body.in().text, Map)
   }
 
-  abstract boolean hasSucceeded(List<Map> healthProviders);
+  abstract boolean hasSucceeded(Map instance, Collection<String> interestedHealthProviderNames);
 }

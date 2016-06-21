@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
+import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import groovy.transform.CompileStatic
 import org.springframework.stereotype.Component
 
@@ -23,13 +24,7 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class WaitForDownInstanceHealthTask extends AbstractWaitForInstanceHealthChangeTask {
   @Override
-  boolean hasSucceeded(List<Map> healthProviders) {
-    if (!healthProviders) {
-      return true
-    }
-
-    boolean someAreDown = healthProviders.any { it.state == 'Down' || it.state == 'OutOfService' }
-    boolean noneAreUp = !healthProviders.any { it.state == 'Up' }
-    someAreDown && noneAreUp
+  boolean hasSucceeded(Map instance, Collection<String> interestedHealthProviderNames) {
+    return HealthHelper.someAreDownAndNoneAreUp(instance, interestedHealthProviderNames)
   }
 }
