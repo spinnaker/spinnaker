@@ -126,20 +126,25 @@ class ContextParameterProcessor {
       Object convertedValue = parameters.toString()
       EvaluationContext evaluationContext = new StandardEvaluationContext(context)
       evaluationContext.addPropertyAccessor(allowUnknownKeys ? allowUnknownKeysAccessor : requireKeysAccessor)
+
       evaluationContext.registerFunction('alphanumerical', ContextUtilities.getDeclaredMethod("alphanumerical", String))
       evaluationContext.registerFunction('toJson', ContextUtilities.getDeclaredMethod("toJson", Object))
       evaluationContext.registerFunction('readJson', ContextUtilities.getDeclaredMethod("readJson", String))
       evaluationContext.registerFunction('toInt', ContextUtilities.getDeclaredMethod("toInt", String))
       evaluationContext.registerFunction('toFloat', ContextUtilities.getDeclaredMethod("toFloat", String))
       evaluationContext.registerFunction('toBoolean', ContextUtilities.getDeclaredMethod("toBoolean", String))
-      evaluationContext.registerFunction('fromUrl', ContextUtilities.getDeclaredMethod("fromUrl", String))
-      evaluationContext.registerFunction('jsonFromUrl', ContextUtilities.getDeclaredMethod("jsonFromUrl", String))
-      evaluationContext.registerFunction('stage', ContextUtilities.getDeclaredMethod("stage", Object, String))
-      evaluationContext.registerFunction('judgment', ContextUtilities.getDeclaredMethod("judgment", Object, String))
 
-      ["judgment", "stage"].each { contextAwareStageFunction ->
-        if (convertedValue.contains("#${contextAwareStageFunction}(")) {
-          convertedValue = convertedValue.replaceAll("#${contextAwareStageFunction}\\(", "#${contextAwareStageFunction}( #root.execution, ")
+      // only add methods that are context sensitive at stage evaluation time
+      if(allowUnknownKeys) {
+        evaluationContext.registerFunction('fromUrl', ContextUtilities.getDeclaredMethod("fromUrl", String))
+        evaluationContext.registerFunction('jsonFromUrl', ContextUtilities.getDeclaredMethod("jsonFromUrl", String))
+        evaluationContext.registerFunction('stage', ContextUtilities.getDeclaredMethod("stage", Object, String))
+        evaluationContext.registerFunction('judgment', ContextUtilities.getDeclaredMethod("judgment", Object, String))
+
+        ["judgment", "stage"].each { contextAwareStageFunction ->
+          if (convertedValue.contains("#${contextAwareStageFunction}(")) {
+            convertedValue = convertedValue.replaceAll("#${contextAwareStageFunction}\\(", "#${contextAwareStageFunction}( #root.execution, ")
+          }
         }
       }
 
