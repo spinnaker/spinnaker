@@ -43,7 +43,7 @@ import java.util.concurrent.TimeUnit
 @ConditionalOnProperty('dockerRegistry.enabled')
 class DockerMonitor implements PollingMonitor {
 
-    Scheduler scheduler = Schedulers.io()
+    Scheduler scheduler = Schedulers.newThread()
     Scheduler.Worker worker = scheduler.createWorker()
 
     @Autowired
@@ -62,7 +62,7 @@ class DockerMonitor implements PollingMonitor {
                 {
                     if (isInService()) {
                         dockerRegistryAccounts.updateAccounts()
-                        Observable.from(dockerRegistryAccounts.accounts).subscribeOn(scheduler).subscribe({ account ->
+                        dockerRegistryAccounts.accounts.parallelStream().forEach({ account ->
                             changedTags(account)
                         })
                     } else {
@@ -99,9 +99,7 @@ class DockerMonitor implements PollingMonitor {
             }
             )
 
-            Observable.from(images)
-                    .subscribeOn(scheduler)
-                    .subscribe({ TaggedImage image ->
+            images.parallelStream().forEach({ TaggedImage image ->
                 def imageId = cache.makeKey(account, image.registry, image.repository, image.tag)
                 def updateCache = false
 
@@ -133,10 +131,7 @@ class DockerMonitor implements PollingMonitor {
                     }
                     cache.setLastDigest(image.account, image.registry, image.repository, image.tag, image.digest)
                 }
-            }, {
-                log.error("Error: ${it.message} (${account})")
-            }
-            )
+            })
         } catch (Exception e) {
             log.error "Failed to update account $account", e
         }
@@ -150,6 +145,8 @@ class DockerMonitor implements PollingMonitor {
     @Autowired(required = false)
     Provider<DiscoveryClient> discoveryClient
 
+    String lastStatus
+
     @Override
     boolean isInService() {
         if (discoveryClient.get() == null) {
@@ -157,7 +154,10 @@ class DockerMonitor implements PollingMonitor {
             true
         } else {
             def remoteStatus = discoveryClient.get().instanceRemoteStatus
-            log.info("current remote status ${remoteStatus}")
+            if (remoteStatus != lastStatus) {
+                log.info("current remote status ${remoteStatus}")
+            }
+            lastStatus=remoteStatus
             remoteStatus == InstanceInfo.InstanceStatus.UP
         }
     }
