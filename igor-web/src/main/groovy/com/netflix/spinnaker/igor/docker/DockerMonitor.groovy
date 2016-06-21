@@ -34,6 +34,7 @@ import rx.Scheduler
 import rx.functions.Action0
 import rx.schedulers.Schedulers
 
+import javax.inject.Provider
 import java.util.concurrent.TimeUnit
 
 @Slf4j
@@ -42,7 +43,7 @@ import java.util.concurrent.TimeUnit
 @ConditionalOnProperty('dockerRegistry.enabled')
 class DockerMonitor implements PollingMonitor {
 
-    Scheduler scheduler = Schedulers.newThread()
+    Scheduler scheduler = Schedulers.io()
     Scheduler.Worker worker = scheduler.createWorker()
 
     @Autowired
@@ -147,15 +148,15 @@ class DockerMonitor implements PollingMonitor {
     }
 
     @Autowired(required = false)
-    DiscoveryClient discoveryClient
+    Provider<DiscoveryClient> discoveryClient
 
     @Override
     boolean isInService() {
-        if (discoveryClient == null) {
-            log.info("no DiscoveryClient, assuming InService")
+        if (discoveryClient.get() == null) {
+            log.info("no discoveryClient, assuming InService")
             true
         } else {
-            def remoteStatus = discoveryClient.instanceRemoteStatus
+            def remoteStatus = discoveryClient.get().instanceRemoteStatus
             log.info("current remote status ${remoteStatus}")
             remoteStatus == InstanceInfo.InstanceStatus.UP
         }
