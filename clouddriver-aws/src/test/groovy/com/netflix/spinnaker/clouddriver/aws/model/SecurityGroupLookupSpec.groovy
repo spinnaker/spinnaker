@@ -72,7 +72,7 @@ class SecurityGroupLookupSpec extends Specification {
     final result = securityGroupLookup.getSecurityGroupByName("test", "wideOpen", "vpc-1")
 
     then:
-    1 * amazonEC2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
+    1 * amazonEC2.describeSecurityGroups(_) >> new DescribeSecurityGroupsResult(
       securityGroups: [
              new SecurityGroup(ownerId: "id-test", groupId: "sg-123", groupName: "wideOpen", vpcId: "vpc-1")
       ]
@@ -88,7 +88,7 @@ class SecurityGroupLookupSpec extends Specification {
     final result = securityGroupLookup.getSecurityGroupByName("test", "wideOpen", "vpc-1")
 
     then:
-    1 * amazonEC2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
+    1 * amazonEC2.describeSecurityGroups(_) >> new DescribeSecurityGroupsResult(
       securityGroups: [
         new SecurityGroup(ownerId: "id-test", groupId: "sg-123", groupName: "wideOpen", vpcId: "vpc-1")
       ]
@@ -103,37 +103,12 @@ class SecurityGroupLookupSpec extends Specification {
     0 * _
   }
 
-  void "should look up security group and call AWS every time when skipping cache"() {
-    when:
-    final result = securityGroupLookup.getSecurityGroupByName("test", "wideOpen", "vpc-1")
-
-    then:
-    1 * amazonEC2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
-      securityGroups: [
-        new SecurityGroup(ownerId: "id-test", groupId: "sg-123", groupName: "wideOpen", vpcId: "vpc-1")
-      ]
-    )
-    result.securityGroup == new SecurityGroup(ownerId: "id-test", groupId: "sg-123", groupName: "wideOpen", vpcId: "vpc-1")
-
-    when:
-    result = securityGroupLookup.getSecurityGroupByName("test", "wideOpen", "vpc-1", true)
-
-    then:
-    1 * amazonEC2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
-      securityGroups: [
-        new SecurityGroup(ownerId: "id-test", groupId: "sg-456", groupName: "wideOpen", vpcId: "vpc-1")
-      ]
-    )
-    result.securityGroup == new SecurityGroup(ownerId: "id-test", groupId: "sg-456", groupName: "wideOpen", vpcId: "vpc-1")
-    0 * _
-  }
-
   void "should return null on look up when security group does not exist"() {
     when:
     final result = securityGroupLookup.getSecurityGroupByName("test", "wideOpen", "vpc-1")
 
     then:
-    1 * amazonEC2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
+    1 * amazonEC2.describeSecurityGroups(_) >> new DescribeSecurityGroupsResult(
       securityGroups: [
         new SecurityGroup(groupId: "sg-456", groupName: "NotTheGroupYouWereLokkingFor", vpcId: "vpc-1")
       ]

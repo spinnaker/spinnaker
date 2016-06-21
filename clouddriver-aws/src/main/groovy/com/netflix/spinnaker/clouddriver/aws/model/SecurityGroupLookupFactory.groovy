@@ -3,6 +3,8 @@ package com.netflix.spinnaker.clouddriver.aws.model
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
+import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
+import com.amazonaws.services.ec2.model.Filter
 import com.amazonaws.services.ec2.model.IpPermission
 import com.amazonaws.services.ec2.model.RevokeSecurityGroupIngressRequest
 import com.amazonaws.services.ec2.model.SecurityGroup
@@ -40,7 +42,7 @@ class SecurityGroupLookupFactory {
     private final String region
     private final ImmutableSet<NetflixAmazonCredentials> accounts
 
-    private final Map<String, List<SecurityGroup>> securityGroupsByAccount = [:]
+    private final Map<String, SecurityGroup> securityGroupByName = [:]
 
     SecurityGroupLookup(AmazonClientProvider amazonClientProvider, String region,
                         ImmutableSet<NetflixAmazonCredentials> accounts) {
@@ -70,28 +72,31 @@ class SecurityGroupLookupFactory {
       new SecurityGroupUpdater(newSecurityGroup, amazonEC2)
     }
 
-    SecurityGroupUpdater getSecurityGroupByName(String accountName, String name, String vpcId, boolean skipCache = false) {
+    SecurityGroupUpdater getSecurityGroupByName(String accountName, String name, String vpcId) {
       final credentials = getCredentialsForName(accountName)
       if (!credentials) { return null }
-      final amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region, skipCache)
-      final securityGroup = getSecurityGroups(accountName, amazonEC2, skipCache).find {
+
+      def amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region, true)
+      def cachedSecurityGroupKey = name.toLowerCase() + "." + vpcId
+      def cachedSecurityGroup = securityGroupByName.get(cachedSecurityGroupKey)
+      if (cachedSecurityGroup) {
+        return new SecurityGroupUpdater(cachedSecurityGroup, amazonEC2)
+      }
+
+      def describeSecurityGroupsRequest = new DescribeSecurityGroupsRequest().withFilters(
+        new Filter("group-name", [name])
+      )
+
+      def securityGroups = amazonEC2.describeSecurityGroups(describeSecurityGroupsRequest).securityGroups
+      def securityGroup = securityGroups.find {
         it.groupName == name && it.vpcId == vpcId
       }
       if (securityGroup) {
+        securityGroupByName[cachedSecurityGroupKey] = securityGroup
         return new SecurityGroupUpdater(securityGroup, amazonEC2)
       }
       null
     }
-
-    private List<SecurityGroup> getSecurityGroups(String accountName, AmazonEC2 amazonEC2, boolean skipCache) {
-      List<SecurityGroup> securityGroupsForAccount = securityGroupsByAccount[accountName]
-      if (securityGroupsForAccount == null || skipCache) {
-        securityGroupsForAccount = amazonEC2.describeSecurityGroups().securityGroups
-        securityGroupsByAccount[accountName] = securityGroupsForAccount
-      }
-      securityGroupsForAccount
-    }
-
   }
 
   static class SecurityGroupUpdater {
