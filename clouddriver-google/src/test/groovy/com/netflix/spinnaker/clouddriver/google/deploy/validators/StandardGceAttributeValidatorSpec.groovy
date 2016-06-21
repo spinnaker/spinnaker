@@ -28,6 +28,8 @@ import spock.lang.Unroll
 class StandardGceAttributeValidatorSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
   private static final DECORATOR = "decorator"
+  private static final ZONE = "us-central1-f"
+  private static final REGION = "asia-east1"
   private static final ALL_REGIONS = [
     "us-central1", "europe-west1", "asia-east1",
   ]
@@ -406,12 +408,12 @@ class StandardGceAttributeValidatorSpec extends Specification {
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
-      validator.validateInstanceType("Unchecked")
+      validator.validateInstanceType("Unchecked", ZONE)
     then:
       0 * errors._
 
     when:
-      validator.validateInstanceType(" ")
+      validator.validateInstanceType(" ", ZONE)
     then:
       0 * errors._
   }
@@ -422,10 +424,80 @@ class StandardGceAttributeValidatorSpec extends Specification {
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
-      validator.validateInstanceType("")
+      validator.validateInstanceType("", ZONE)
     then:
       1 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.empty")
       0 * errors._
+  }
+
+  void "valid custom instance type"() {
+    setup:
+      def errors = Mock(Errors)
+      def validator = new StandardGceAttributeValidator(DECORATOR, errors)
+
+    when:
+      validator.validateInstanceType("custom-2-2048", ZONE)
+    then:
+      0 * errors._
+
+    when:
+      validator.validateInstanceType("custom-24-29696", ZONE)
+    then:
+      0 * errors._
+
+    when:
+      validator.validateInstanceType("custom-24-29696", REGION)
+    then:
+      0 * errors._
+  }
+
+  void "invalid custom instance type"() {
+    setup:
+      def errors = Mock(Errors)
+      def validator = new StandardGceAttributeValidator(DECORATOR, errors)
+
+    when:
+      validator.validateInstanceType("custom1-6912", ZONE)
+      validator.validateInstanceType("customs-12-3456", ZONE)
+      validator.validateInstanceType("custom--1234", ZONE)
+      validator.validateInstanceType("custom-1-2345678", ZONE)
+    then:
+      4 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.invalid", "Custom instance string must match pattern /custom-\\d{1,2}-\\d{4,6}/.")
+
+    when:
+      validator.validateInstanceType("custom-1-6912", ZONE)
+    then:
+      1 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.invalid", "Memory per vCPU must be less than 6.5GB.")
+
+    when:
+      validator.validateInstanceType("custom-2-1024", ZONE)
+    then:
+      1 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.invalid", "Memory per vCPU must be greater than 0.9GB.")
+
+    when:
+      validator.validateInstanceType("custom-1-1000", ZONE)
+    then:
+      1 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.invalid", "Total memory must be a multiple of 256MB.")
+
+    when:
+      validator.validateInstanceType("custom-1-1024", "atlantis")
+    then:
+      1 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.invalid", "atlantis not found.")
+
+    when:
+      validator.validateInstanceType("custom-24-24576", "us-central1-a")
+    then:
+      1 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.invalid", "us-central1-a does not support more than 16 vCPUs.")
+
+    when:
+      validator.validateInstanceType("custom-0-1024", ZONE)
+    then:
+      1 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.invalid", "vCPU count must be greater than or equal to 1.")
+
+    when:
+      validator.validateInstanceType("custom-3-3072", ZONE)
+    then:
+      1 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.invalid", "Above 1, vCPU count must be even.")
   }
 
   void "valid name list"() {

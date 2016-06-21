@@ -240,8 +240,83 @@ class StandardGceAttributeValidator {
   }
 
   // TODO(duftler): Also validate against set of supported GCE types.
-  def validateInstanceType(String instanceType) {
+  def validateInstanceType(String instanceType, String location) {
     validateNotEmpty(instanceType, "instanceType")
+    if (instanceType?.startsWith('custom')) {
+      validateCustomInstanceType(instanceType, location)
+    }
+  }
+
+  /**
+   * This list should be kept in sync with the corresponding list in deck:
+   * @link { https://github.com/spinnaker/deck/tree/master/app/scripts/modules/google/serverGroup/configure/wizard/customInstance/customInstanceBuilder.gce.service.js }
+   */
+  def vCpuMaxByLocation = [
+    'us-east1-b': 32,
+    'us-east1-c': 32,
+    'us-east1-d': 32,
+    'us-central1-a': 16,
+    'us-central1-b': 32,
+    'us-central1-c': 32,
+    'us-central1-f': 32,
+    'europe-west1-b': 16,
+    'europe-west1-c': 32,
+    'europe-west1-d': 32,
+    'asia-east1-a': 32,
+    'asia-east1-b': 32,
+    'asia-east1-c': 32,
+    'us-east1': 32,
+    'us-central1': 32,
+    'europe-west1': 32,
+    'asia-east1': 32
+  ]
+
+  def customInstanceRegExp = /custom-\d{1,2}-\d{4,6}/
+
+  def validateCustomInstanceType(String instanceType, String location) {
+
+    if (!(instanceType ==~ customInstanceRegExp)) {
+      errors.rejectValue("instanceType", "${context}.instanceType.invalid", "Custom instance string must match pattern /custom-\\d{1,2}-\\d{4,6}/.")
+      return false
+    }
+
+    def ( vCpuCount, memory ) = instanceType.split('-').tail().collect { it.toDouble() }
+    def memoryInGbs = memory / 1024
+
+    // Memory per vCPU must be between .9 GB and 6.5 GB
+    def maxMemory = vCpuCount * 6.5
+    def minMemory = Math.ceil((0.9 * vCpuCount) * 4) / 4
+
+    if (vCpuCount < 1) {
+      errors.rejectValue("instanceType", "${context}.instanceType.invalid", "vCPU count must be greater than or equal to 1.")
+      return false
+    }
+
+    if (vCpuCount != 1 && vCpuCount % 2 == 1) {
+      errors.rejectValue("instanceType", "${context}.instanceType.invalid", "Above 1, vCPU count must be even.")
+    }
+
+    if (memoryInGbs > maxMemory) {
+      errors.rejectValue("instanceType", "${context}.instanceType.invalid", "Memory per vCPU must be less than 6.5GB.")
+    }
+
+    if (memoryInGbs < minMemory) {
+      errors.rejectValue("instanceType", "${context}.instanceType.invalid", "Memory per vCPU must be greater than 0.9GB.")
+    }
+
+    if (memory % 256 != 0) {
+      errors.rejectValue("instanceType", "${context}.instanceType.invalid", "Total memory must be a multiple of 256MB.")
+    }
+
+    if (location) {
+      if (!(location in vCpuMaxByLocation)) {
+        errors.rejectValue("instanceType", "${context}.instanceType.invalid", "${location} not found.")
+      }
+
+      if (vCpuCount > vCpuMaxByLocation[location]) {
+        errors.rejectValue("instanceType", "${context}.instanceType.invalid", "${location} does not support more than ${vCpuMaxByLocation[location]} vCPUs.")
+      }
+    }
   }
 
   def validateInstanceTypeDisks(GoogleInstanceTypeDisk instanceTypeDisk, List<GoogleDisk> specifiedDisks) {

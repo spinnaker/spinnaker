@@ -47,5 +47,10 @@ class CopyLastGoogleServerGroupDescriptionValidator extends DescriptionValidator
     helper.validateInstanceTypeDisks(googleDeployDefaults.determineInstanceTypeDisk(description.instanceType),
                                      description.disks)
     helper.validateAuthScopes(description.authScopes)
+
+    if (description.instanceType) {
+      helper.validateInstanceType(description.instanceType,
+                                  description.regional ? description.region : description.zone)
+    }
   }
 }

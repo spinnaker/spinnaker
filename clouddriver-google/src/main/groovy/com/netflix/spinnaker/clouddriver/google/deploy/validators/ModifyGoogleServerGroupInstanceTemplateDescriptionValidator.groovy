@@ -45,5 +45,8 @@ class ModifyGoogleServerGroupInstanceTemplateDescriptionValidator extends Descri
     helper.validateAuthScopes(description.authScopes)
     helper.validateRegion(description.region)
     helper.validateServerGroupName(description.serverGroupName)
+    if (description.instanceType) {
+      helper.validateInstanceType(description.instanceType, description.region)
+    }
   }
 }

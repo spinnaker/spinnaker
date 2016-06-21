@@ -101,7 +101,13 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     task.updateStatus BASE_PHASE, "Produced server group name: $serverGroupName"
 
-    def machineType = GCEUtil.queryMachineType(project, description.instanceType, compute, task, BASE_PHASE)
+    def machineTypeName
+    if (description.instanceType.startsWith('custom')) {
+      machineTypeName = description.instanceType
+    } else {
+      machineTypeName = GCEUtil.queryMachineType(project, description.instanceType, compute, task, BASE_PHASE).name
+    }
+
 
     def sourceImage = GCEUtil.querySourceImage(project,
                                                description,
@@ -157,7 +163,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def scheduling = GCEUtil.buildScheduling(description)
 
-    def instanceProperties = new InstanceProperties(machineType: machineType.name,
+    def instanceProperties = new InstanceProperties(machineType: machineTypeName,
                                                     disks: attachedDisks,
                                                     networkInterfaces: [networkInterface],
                                                     metadata: metadata,

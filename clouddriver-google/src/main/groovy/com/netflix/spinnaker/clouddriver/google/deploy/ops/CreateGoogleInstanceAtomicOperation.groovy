@@ -70,7 +70,12 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
     def zone = description.zone
     def region = GCEUtil.getRegionFromZone(project, zone, compute)
 
-    def machineType = GCEUtil.queryMachineType(project, description.instanceType, compute, task, BASE_PHASE)
+    def machineTypeName
+    if (description.instanceType.startsWith('custom')) {
+      machineTypeName = description.instanceType
+    } else {
+      machineTypeName = GCEUtil.queryMachineType(project, description.instanceType, compute, task, BASE_PHASE).name
+    }
 
     def sourceImage = GCEUtil.querySourceImage(project,
                                                description,
@@ -106,7 +111,7 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
     def scheduling = GCEUtil.buildScheduling(description)
 
     def instance = new Instance(name: description.instanceName,
-                                machineType: "zones/$zone/machineTypes/$machineType.name",
+                                machineType: "zones/$zone/machineTypes/$machineTypeName",
                                 disks: attachedDisks,
                                 networkInterfaces: [networkInterface],
                                 metadata: metadata,
