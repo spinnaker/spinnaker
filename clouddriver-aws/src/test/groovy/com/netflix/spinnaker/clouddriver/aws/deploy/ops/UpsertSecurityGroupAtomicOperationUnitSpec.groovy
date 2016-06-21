@@ -141,7 +141,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
         it
       }
     }
-    1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123", true) >> existingSecurityGroup
+    1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >> existingSecurityGroup
     1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(ipPermissions: [
             new IpPermission(fromPort: 211, toPort: 212, ipProtocol: "tcp", userIdGroupPairs: [
                     new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")

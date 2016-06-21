@@ -58,8 +58,11 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
       throw new IllegalStateException(securityGroupsDoNotExistErrorMessage)
     }
 
-    def securityGroupUpdater = securityGroupLookup.getSecurityGroupByName(description.credentialAccount,
-      description.name, description.vpcId)
+    def securityGroupUpdater = securityGroupLookup.getSecurityGroupByName(
+      description.credentialAccount,
+      description.name,
+      description.vpcId
+    )
 
     List<IpPermission> existingIpPermissions
     if (securityGroupUpdater) {
@@ -72,13 +75,15 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
         existingIpPermissions = []
       } catch (AmazonServiceException e) {
         if (e.errorCode == "InvalidGroup.Duplicate") {
-          final skipCache = true
-          securityGroupUpdater = securityGroupLookup.getSecurityGroupByName(description.credentialAccount,
-            description.name, description.vpcId, skipCache)
+          securityGroupUpdater = securityGroupLookup.getSecurityGroupByName(
+            description.credentialAccount,
+            description.name,
+            description.vpcId
+          )
           existingIpPermissions = SecurityGroupIngressConverter.
             flattenPermissions(securityGroupUpdater.securityGroup.ipPermissions)
         } else {
-          task.updateStatus BASE_PHASE, "Failed to create security group '${description.name} in ${description.credentialAccount}: ${e.errorMessage}"
+          task.updateStatus BASE_PHASE, "Failed to create security group '${description.name}' in ${description.credentialAccount}: ${e.errorMessage}"
           throw e
         }
       }
