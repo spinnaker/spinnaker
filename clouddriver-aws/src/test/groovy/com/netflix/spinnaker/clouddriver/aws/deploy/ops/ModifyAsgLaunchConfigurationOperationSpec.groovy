@@ -303,4 +303,52 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
     )
   }
 
+  void 'should append security groups if flag is set'() {
+    setup:
+    def credential = TestCredential.named(account)
+    description.credentials = credential
+    description.region = region
+    description.asgName = asgName
+    description.securityGroups = ['sg-3']
+    description.securityGroupsAppendOnly = true
+
+    when:
+    op.operate([])
+
+    then:
+    1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
+    1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region, name ->
+      assert act == credential
+      assert region == region
+      assert name == existingLc
+
+      existing
+    }
+    1 * lcBuilder.buildLaunchConfiguration(_, _, _, _) >> { appName, subnetType, settings, legacyUdf ->
+      assert settings.securityGroups == ['sg-1', 'sg-2', 'sg-3']
+      return newLc
+    }
+
+    where:
+    account = 'test'
+    app = 'foo'
+    region = 'us-east-1'
+    asgName = "$app-v001".toString()
+    suffix = '20150515'
+    existingLc = "$asgName-$suffix".toString()
+    newLc = "$asgName-20150516".toString()
+    existingAmi = 'ami-f000fee'
+    iamRole = 'BaseIAMRole'
+    existing = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
+      account: account,
+      environment: 'test',
+      accountType: 'test',
+      region: region,
+      baseName: asgName,
+      suffix: suffix,
+      instanceMonitoring: true,
+      securityGroups: ['sg-1', 'sg-2']
+    )
+  }
+
 }

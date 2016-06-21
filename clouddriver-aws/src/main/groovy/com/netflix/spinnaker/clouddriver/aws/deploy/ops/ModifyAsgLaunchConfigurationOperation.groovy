@@ -84,6 +84,10 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
       props.ami = ami.amiId
     }
 
+    if (description.securityGroupsAppendOnly) {
+      props.securityGroups = settings.securityGroups + description.securityGroups
+    }
+
     def newSettings = settings.copyWith(props)
 
     if (newSettings == settings && description.legacyUdf == null) {

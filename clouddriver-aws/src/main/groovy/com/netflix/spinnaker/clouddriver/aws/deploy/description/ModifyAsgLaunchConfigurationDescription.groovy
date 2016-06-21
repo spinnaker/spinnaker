@@ -41,4 +41,5 @@ class ModifyAsgLaunchConfigurationDescription extends AbstractAmazonCredentialsD
 
   List<AmazonBlockDevice> blockDevices
   List<String> securityGroups
+  Boolean securityGroupsAppendOnly
 }
