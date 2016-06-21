@@ -356,6 +356,17 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
       ]
     };
 
+    var customMachine = {
+      instanceTypes : [
+        {
+          name: 'buildCustom',
+          storage: {
+            localSSDSupported: true
+          }
+        }
+      ]
+    };
+
     var categories = [
       {
         type: 'general',
@@ -386,7 +397,13 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
         label: 'Custom Type',
         families: [],
         icon: 'asterisk'
-      }
+      },
+      {
+        type: 'buildCustom',
+        label: 'Build Custom',
+        families: [ customMachine ],
+        icon: 'wrench',
+      },
     ];
 
     function getCategories() {
@@ -407,6 +424,7 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
           .pluck('instanceTypes')
           .flatten()
           .pluck('name')
+          .filter(name => name !== 'buildCustom')
           .valueOf()
       );
 
@@ -422,6 +440,7 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
           .pluck('instanceTypes')
           .flatten()
           .pluck('name')
+          .filter(name => name !== 'buildCustom')
           .valueOf();
 
         return availableTypes.sort();

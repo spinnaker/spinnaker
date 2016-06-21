@@ -5,11 +5,14 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServerGroup', [
   require('angular-ui-router'),
   require('../../../../core/application/modal/platformHealthOverride.directive.js'),
+  require('./customInstance/customInstanceBuilder.gce.service.js'),
+  require('../../../../core/instance/instanceTypeService.js'),
 ])
   .controller('gceCloneServerGroupCtrl', function($scope, $uibModalInstance, _, $q, $state,
                                                   serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                   gceServerGroupConfigurationService,
-                                                  serverGroupCommand, application, title) {
+                                                  serverGroupCommand, application, title,
+                                                  gceCustomInstanceBuilderService, instanceTypeService) {
     $scope.pages = {
       templateSelection: require('./templateSelection/templateSelection.html'),
       basicSettings: require('./location/basicSettings.html'),
@@ -96,6 +99,10 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       $scope.$watch('command.network', createResultProcessor($scope.command.networkChanged));
       $scope.$watch('command.zone', createResultProcessor($scope.command.zoneChanged));
       $scope.$watch('command.viewState.instanceTypeDetails', updateStorageSettingsFromInstanceType());
+      $scope.$watch('command.viewState.customInstance', () => {
+        $scope.command.customInstanceChanged();
+        setInstanceTypeFromCustomChoices();
+      }, true);
     }
 
     function initializeSelectOptions() {
@@ -104,6 +111,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       processCommandUpdateResult($scope.command.regionChanged());
       processCommandUpdateResult($scope.command.networkChanged());
       processCommandUpdateResult($scope.command.zoneChanged());
+      processCommandUpdateResult($scope.command.customInstanceChanged());
       gceServerGroupConfigurationService.configureSubnets($scope.command);
     }
 
@@ -123,10 +131,32 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       if (result.dirty.availabilityZones) {
         v2modalWizardService.markDirty('capacity');
       }
-      if (result.dirty.zone) {
-        v2modalWizardService.markIncomplete('zones');
-      } else {
-        v2modalWizardService.markComplete('zones');
+      if (result.dirty.instanceType) {
+        v2modalWizardService.markDirty('instance-type');
+      }
+    }
+
+    function setInstanceTypeFromCustomChoices() {
+      let location = $scope.command.regional
+        ? $scope.command.region
+        : $scope.command.zone;
+
+      let customInstanceChoices = [
+          _.get($scope.command, 'viewState.customInstance.vCpuCount'),
+          _.get($scope.command, 'viewState.customInstance.memory'),
+          location
+        ];
+
+      if (_.every([ ...customInstanceChoices,
+          gceCustomInstanceBuilderService.customInstanceChoicesAreValid(...customInstanceChoices)])) {
+        $scope.command.instanceType = gceCustomInstanceBuilderService
+          .generateInstanceTypeString(...customInstanceChoices);
+
+        instanceTypeService
+          .getInstanceTypeDetails($scope.command.selectedProvider, 'buildCustom')
+          .then((instanceTypeDetails) => {
+            $scope.command.viewState.instanceTypeDetails = instanceTypeDetails;
+          });
       }
     }
 
@@ -220,6 +250,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
     this.cancel = function () {
       $uibModalInstance.dismiss();
     };
+
+    this.specialInstanceProfiles = new Set(['custom', 'buildCustom']);
 
     if (!$scope.state.requiresTemplateSelection) {
       configureCommand();

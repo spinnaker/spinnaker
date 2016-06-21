@@ -34,3 +34,7 @@
     </div>
   </div>
 </div>
+<ng-include
+  src="instanceArchetypeCtrl.getInstanceBuilderTemplate()"
+  ng-if="command.viewState.instanceProfile === 'buildCustom'">
+</ng-include>

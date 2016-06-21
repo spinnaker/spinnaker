@@ -9,9 +9,11 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
   require('../../../core/instance/instanceTypeService.js'),
   require('../../../core/naming/naming.service.js'),
   require('../../../core/utils/lodash.js'),
+  require('./wizard/customInstance/customInstanceBuilder.gce.service.js'),
 ])
   .factory('gceServerGroupCommandBuilder', function (settings, Restangular, $q,
-                                                     accountService, instanceTypeService, namingService, _) {
+                                                     accountService, instanceTypeService, namingService, _,
+                                                     gceCustomInstanceBuilderService) {
 
     // Two assumptions here:
     //   1) All GCE machine types are represented in the tree of choices.
@@ -55,7 +57,9 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         command.persistentDiskType = persistentDisk.initializeParams.diskType;
         command.persistentDiskSizeGb = persistentDisk.initializeParams.diskSizeGb;
 
-        return instanceTypeService.getInstanceTypeDetails(command.selectedProvider, command.instanceType).then(function(instanceTypeDetails) {
+        return instanceTypeService
+          .getInstanceTypeDetails(command.selectedProvider, _.startsWith(command.instanceType, 'custom') ? 'buildCustom' : command.instanceType)
+          .then(function(instanceTypeDetails) {
           command.viewState.instanceTypeDetails = instanceTypeDetails;
 
           calculateOverriddenStorageDescription(instanceTypeDetails, command);
@@ -83,7 +87,9 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         command.persistentDiskType = persistentDisk.type;
         command.persistentDiskSizeGb = persistentDisk.sizeGb;
 
-        return instanceTypeService.getInstanceTypeDetails(command.selectedProvider, command.instanceType).then(function(instanceTypeDetails) {
+        return instanceTypeService
+          .getInstanceTypeDetails(command.selectedProvider, _.startsWith(command.instanceType, 'custom') ? 'buildCustom' : command.instanceType)
+          .then(function(instanceTypeDetails) {
           command.viewState.instanceTypeDetails = instanceTypeDetails;
 
           calculateOverriddenStorageDescription(instanceTypeDetails, command);
@@ -248,7 +254,6 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
     function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
       mode = mode || 'clone';
-
       var serverGroupName = namingService.parseServerGroupName(serverGroup.name);
 
       var command = {
@@ -300,9 +305,16 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       }
 
       if (serverGroup.launchConfig) {
+        let instanceType = serverGroup.launchConfig.instanceType;
         angular.extend(command, {
-          instanceType: serverGroup.launchConfig.instanceType,
+          instanceType: instanceType,
         });
+
+        if (_.startsWith(instanceType, 'custom')) {
+          command.viewState.customInstance = gceCustomInstanceBuilderService.parseInstanceTypeString(instanceType);
+          command.viewState.instanceProfile = 'buildCustom';
+        }
+
         command.viewState.imageId = serverGroup.launchConfig.imageId;
         return determineInstanceCategoryFromInstanceType(command).then(function() {
           populateAvailabilityPolicies(serverGroup.launchConfig.instanceTemplate.properties.scheduling, command);

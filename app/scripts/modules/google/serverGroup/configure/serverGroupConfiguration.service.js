@@ -11,11 +11,12 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
   require('../../../core/subnet/subnet.read.service.js'),
   require('../../image/image.reader.js'),
   require('../../instance/gceInstanceType.service.js'),
+  require('./wizard/customInstance/customInstanceBuilder.gce.service.js'),
 ])
   .factory('gceServerGroupConfigurationService', function(gceImageReader, accountService, securityGroupReader,
                                                           gceInstanceTypeService, cacheInitializer,
                                                           $q, loadBalancerReader, networkReader, subnetReader,
-                                                          settings, _) {
+                                                          settings, _, gceCustomInstanceBuilderService) {
 
     var persistentDiskTypes = [
       'pd-standard',
@@ -128,18 +129,70 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
     }
 
     function configureInstanceTypes(command) {
-      var result = { dirty: {} };
+      let result = { dirty : {} };
       if (command.region) {
-        var filtered = gceInstanceTypeService.getAvailableTypesForRegions(command.backingData.instanceTypes, [command.region]);
-        filtered = sortInstanceTypes(filtered);
-        if (command.instanceType && filtered.indexOf(command.instanceType) === -1) {
-          command.instanceType = null;
-          result.dirty.instanceType = true;
-        }
-        command.backingData.filtered.instanceTypes = filtered;
+        let results = [ result.dirty ];
+
+        results.push(configureCustomInstanceTypes(command).dirty);
+        results.push(configureStandardInstanceTypes(command).dirty);
+
+        angular.extend(...results);
       } else {
         command.backingData.filtered.instanceTypes = [];
       }
+      return result;
+    }
+
+    function configureStandardInstanceTypes(command) {
+      let result = { dirty: {} };
+      let filtered = gceInstanceTypeService.getAvailableTypesForRegions(command.backingData.instanceTypes, [command.region]);
+      filtered = sortInstanceTypes(filtered);
+      let instanceType = command.instanceType;
+      if (_.every([ instanceType, !_.startsWith(instanceType, 'custom'), !_.contains(filtered, instanceType) ])) {
+        command.instanceType = null;
+        result.dirty.instanceType = true;
+      }
+      command.backingData.filtered.instanceTypes = filtered;
+      return result;
+    }
+
+    function configureCustomInstanceTypes(command) {
+      let result = { dirty: {} },
+        vCpuCount = _.get(command, 'viewState.customInstance.vCpuCount'),
+        memory =  _.get(command, 'viewState.customInstance.memory');
+      let { zone, regional, region } = command;
+      let location = regional ? region : zone;
+
+      if (zone || regional) {
+        _.set(command,
+          'backingData.customInstanceTypes.vCpuList',
+          gceCustomInstanceBuilderService.generateValidVCpuListForLocation(location)
+        );
+      }
+
+      // initializes vCpuCount so that memory selector will be populated.
+      if (_.some([ !vCpuCount, !gceCustomInstanceBuilderService.vCpuCountForLocationIsValid(vCpuCount, location)] )) {
+        vCpuCount = _.get(command, 'backingData.customInstanceTypes.vCpuList[0]');
+        _.set(command, 'viewState.customInstance.vCpuCount', vCpuCount);
+        command.instanceType = null;
+      }
+
+      _.set(
+        command,
+        'backingData.customInstanceTypes.memoryList',
+        gceCustomInstanceBuilderService.generateValidMemoryListForVCpuCount(vCpuCount)
+      );
+
+      if (_.every([ memory, vCpuCount, !gceCustomInstanceBuilderService.memoryIsValid(memory, vCpuCount) ])) {
+        _.set(
+          command,
+          'viewState.customInstance.memory',
+          undefined
+        );
+        result.dirty.instanceType = true;
+        command.instanceType = null;
+      }
+
       return result;
     }
 
@@ -459,6 +512,16 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         }
         command.viewState.dirty = command.viewState.dirty || {};
         angular.extend(command.viewState.dirty, result.dirty);
+        angular.extend(command.viewState.dirty, configureCustomInstanceTypes(command).dirty);
+        return result;
+      };
+
+      command.customInstanceChanged = function customInstanceChanged() {
+        var result = { dirty : { } };
+
+        command.viewState.dirty = command.viewState.dirty || {};
+        angular.extend(result, command.viewState.dirty, configureCustomInstanceTypes(command).dirty);
+
         return result;
       };
     }

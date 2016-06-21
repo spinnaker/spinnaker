@@ -70,6 +70,7 @@ module.exports = angular.module('spinnaker.gce', [
         detailsTemplateUrl: require('./instance/details/instanceDetails.html'),
         detailsController: 'gceInstanceDetailsCtrl',
         multiInstanceTaskTransformer: 'gceMultiInstanceTaskTransformer',
+        customInstanceBuilderTemplateUrl: require('./serverGroup/configure/wizard/customInstance/customInstanceBuilder.html'),
       },
       loadBalancer: {
         transformer: 'gceLoadBalancerTransformer',
