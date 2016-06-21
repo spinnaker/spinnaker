@@ -91,6 +91,8 @@ class JenkinsBuildMonitor implements PollingMonitor {
         "jenkinsBuildMonitor"
     }
 
+    String lastStatus
+
     @Override
     boolean isInService() {
         if (discoveryClient == null) {
@@ -98,7 +100,10 @@ class JenkinsBuildMonitor implements PollingMonitor {
             true
         } else {
             def remoteStatus = discoveryClient.instanceRemoteStatus
-            log.info("current remote status ${remoteStatus}")
+            if (remoteStatus != lastStatus) {
+                log.info("current remote status ${remoteStatus}")
+            }
+            lastStatus=remoteStatus
             remoteStatus == InstanceInfo.InstanceStatus.UP
         }
     }
@@ -110,14 +115,9 @@ class JenkinsBuildMonitor implements PollingMonitor {
                 {
                     if (isInService()) {
                         log.info "- Polling cycle started -"
-
-                        Observable.from( buildMasters.filteredMap(BuildServiceProvider.JENKINS).keySet() )
-                                .subscribe(
-                                { master ->
-                                    changedBuilds(master)
-                                }, { log.error("Error: ${it.message}") }
+                        buildMasters.filteredMap(BuildServiceProvider.JENKINS).keySet().parallelStream().forEach(
+                                { master -> changedBuilds(master) }
                         )
-
                         log.info "- Polling cycle done -"
                     } else {
                         log.info("not in service (lastPoll: ${lastPoll ?: 'n/a'})")
@@ -166,7 +166,7 @@ class JenkinsBuildMonitor implements PollingMonitor {
                     { log.error("Error: ${it.message}") }
             )
 
-            builds.each(
+            builds.parallelStream().forEach(
                     { Project project ->
                         try {
                             boolean addToCache = false
