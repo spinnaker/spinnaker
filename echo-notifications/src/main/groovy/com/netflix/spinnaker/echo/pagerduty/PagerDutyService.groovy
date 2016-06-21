@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,34 +14,21 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.echo.api
 
-class Notification {
-  Type notificationType
-  Collection<String> to
-  String templateGroup
-  Severity severity
+package com.netflix.spinnaker.echo.pagerduty
 
-  Source source
-  Map<String, Object> additionalContext = [:]
+import retrofit.http.Body
+import retrofit.http.Header
+import retrofit.http.POST
 
-  static class Source {
-    String executionType
-    String executionId
-    String application
-    String user
-  }
+interface PagerDutyService {
+  @POST('/generic/2010-04-15/create_event.json')
+  Map createEvent(@Header("Authorization") String authorization, @Body PagerDutyCreateEvent pagerDutyCreateEvent)
 
-  static enum Type {
-    HIPCHAT,
-    EMAIL,
-    SMS,
-    SLACK,
-    PAGER_DUTY
-  }
-
-  static enum Severity {
-    NORMAL,
-    HIGH
+  static class PagerDutyCreateEvent {
+    String event_type = "trigger"
+    String client
+    String service_key
+    String description
   }
 }
