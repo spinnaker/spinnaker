@@ -60,7 +60,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.runJobStage', [
     };
 
     this.addCluster = function() {
-      providerSelectionService.selectProvider($scope.application).then(function(selectedProvider) {
+      providerSelectionService.selectProvider($scope.application, 'job').then(function(selectedProvider) {
         let config = cloudProviderRegistry.getValue(selectedProvider, 'job');
         $uibModal.open({
           templateUrl: config.cloneJobTemplateUrl,
