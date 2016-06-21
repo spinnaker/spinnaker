@@ -72,10 +72,8 @@ class AmazonCredentialsInitializer implements CredentialsInitializerSynchronizab
   List<? extends NetflixAmazonCredentials> netflixAmazonCredentials(CredentialsLoader<? extends NetflixAmazonCredentials> credentialsLoader,
                                                                     CredentialsConfig credentialsConfig,
                                                                     AccountCredentialsRepository accountCredentialsRepository,
-                                                                    @Value('${default.account.env:default}') String defaultAccountName,
-                                                                    @Value('${default.account.environment:#{default.account.env}}') String defaultEnvironment,
-                                                                    @Value('${default.account.accountType:#{default.account.env}}') String defaultAccountType) {
-    synchronizeAmazonAccounts(credentialsLoader, credentialsConfig, accountCredentialsRepository, defaultAccountName, defaultEnvironment, defaultAccountType, null)
+                                                                    @Value('${default.account.env:default}') String defaultAccountName) {
+    synchronizeAmazonAccounts(credentialsLoader, credentialsConfig, accountCredentialsRepository, defaultAccountName, null)
   }
 
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -84,11 +82,9 @@ class AmazonCredentialsInitializer implements CredentialsInitializerSynchronizab
                                     CredentialsConfig credentialsConfig,
                                     AccountCredentialsRepository accountCredentialsRepository,
                                     @Value('${default.account.env:default}') String defaultAccountName,
-                                    @Value('${default.account.environment:#{default.account.env}}') String defaultEnvironment,
-                                    @Value('${default.account.accountType:#{default.account.env}}') String defaultAccountType,
                                     CatsModule catsModule) {
     if (!credentialsConfig.accounts && !credentialsConfig.defaultAssumeRole) {
-      credentialsConfig.accounts = [new CredentialsConfig.Account(name: defaultAccountName, environment: defaultEnvironment, accountType: defaultAccountType)]
+      credentialsConfig.accounts = [new CredentialsConfig.Account(name: defaultAccountName)]
       if (!credentialsConfig.defaultRegions) {
         credentialsConfig.defaultRegions = [US_EAST_1, US_WEST_1, US_WEST_2, EU_WEST_1].collect { new CredentialsConfig.Region(name: it.name) }
       }
