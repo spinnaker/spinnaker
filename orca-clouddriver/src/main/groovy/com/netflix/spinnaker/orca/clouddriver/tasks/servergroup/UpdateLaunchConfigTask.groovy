@@ -68,6 +68,7 @@ class UpdateLaunchConfigTask implements Task, DeploymentDetailsAware, CloudProvi
   private getAwsOps(Stage stage) {
     def operation = new HashMap(stage.context)
     operation.amiName = getImage(stage)
+    operation.asgName = operation.asgName ?: operation.serverGroupName
 
     def ops = []
     if (stage.context.credentials != defaultBakeAccount) {
