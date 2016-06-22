@@ -217,6 +217,7 @@
           </a>
         </li>
       </ul>
+      <a href ng-click="ctrl.updateSecurityGroups()" ng-if="ctrl.serverGroup.vpcId">Edit Security Groups</a>
     </collapsible-section>
     <collapsible-section heading="Networking">
       <nflx-server-group-networking server-group="ctrl.serverGroup" application="ctrl.application"></nflx-server-group-networking>
