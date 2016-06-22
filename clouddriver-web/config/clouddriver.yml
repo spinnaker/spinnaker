@@ -286,7 +286,9 @@ cf:
       space: ${providers.cf.defaultSpace}
       username: ${cf.account.name}
       password: ${cf.account.password}
-
+      artifactUsername: ${cf.repo.username}
+      artifactPassword: ${cf.repo.password}
+ 
 spring:
   jackson:
     mapper:
