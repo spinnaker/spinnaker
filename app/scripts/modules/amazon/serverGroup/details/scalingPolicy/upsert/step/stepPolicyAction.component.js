@@ -16,6 +16,7 @@ module.exports = angular
     templateUrl: require('./stepPolicyAction.component.html'),
     controller: function () {
       this.operatorChanged = () => {
+        this.command.adjustmentType = this.viewState.operator === 'Set to' ? 'ExactCapacity' : 'ChangeInCapacity';
         this.adjustmentTypeOptions = this.viewState.operator === 'Set to' ?
           ['instances'] :
           ['instances', 'percent of group'];
