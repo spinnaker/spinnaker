@@ -21,19 +21,18 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
-import java.security.Security;
 import java.util.Collections;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @ComponentScan({
-  "com.netflix.spinnaker.config",
+    "com.netflix.spinnaker.fiat",
+    "com.netflix.spinnaker.config",
 })
 @EnableAutoConfiguration
-class Main extends SpringBootServletInitializer {
+public class Main extends SpringBootServletInitializer {
 
   private static final Map<String, Object> DEFAULT_PROPS = buildDefaults();
 

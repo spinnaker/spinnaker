@@ -21,5 +21,6 @@ dependencies {
   compile project(':fiat-core')
 }
 
+applicationName = 'fiat'
 tasks.bootRepackage.enabled = project.repackage
 

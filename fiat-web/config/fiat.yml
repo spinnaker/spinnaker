@@ -1,1 +1,2 @@
-
+server:
+  port: 7003
