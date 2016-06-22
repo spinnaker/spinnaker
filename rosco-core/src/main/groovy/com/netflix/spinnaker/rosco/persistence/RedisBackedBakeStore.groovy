@@ -203,7 +203,9 @@ class RedisBackedBakeStore implements BakeStore {
           end
 
           -- Update the bake status set on the bake id hash.
-          redis.call('HSET', KEYS[1], 'bakeStatus', ARGV[1])
+          redis.call('HMSET', KEYS[1],
+                     'bakeStatus', ARGV[1],
+                     'updatedTimestamp', ARGV[2])
 
           if bake_key then
             -- Remove the bake key from the set of bakes.
@@ -367,6 +369,7 @@ class RedisBackedBakeStore implements BakeStore {
                                     result: BakeStatus.Result.FAILURE)
     def jedis = jedisPool.getResource()
     def bakeStatusJson = mapper.writeValueAsString(bakeStatus)
+    def updatedTimestampMilliseconds = timeInMilliseconds
     def keyList = [bakeId, "allBakes"]
 
     jedis.withCloseable {
@@ -375,7 +378,7 @@ class RedisBackedBakeStore implements BakeStore {
       keyList += incompleteBakesKeys
     }
 
-    def argList = [bakeStatusJson]
+    def argList = [bakeStatusJson, updatedTimestampMilliseconds + ""]
 
     return evalSHA("cancelBakeByIdSHA", keyList, argList) == 1
   }

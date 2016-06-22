@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.rosco.controllers
 
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
@@ -236,7 +237,8 @@ class BakeryControllerSpec extends Specification {
 
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
-                                                  bakeStore: bakeStoreMock)
+                                                  bakeStore: bakeStoreMock,
+                                                  registry: new DefaultRegistry())
 
     when:
       def returnedBakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
@@ -264,7 +266,8 @@ class BakeryControllerSpec extends Specification {
 
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
-                                                  bakeStore: bakeStoreMock)
+                                                  bakeStore: bakeStoreMock,
+                                                  registry: new DefaultRegistry())
 
     when:
       def returnedBakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
@@ -362,7 +365,8 @@ class BakeryControllerSpec extends Specification {
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
                                                   bakeStore: bakeStoreMock,
-                                                  jobExecutor: jobExecutorMock)
+                                                  jobExecutor: jobExecutorMock,
+                                                  registry: new DefaultRegistry())
 
     when:
       def returnedBakeStatus = bakeryController.createBake(REGION, bakeRequest, "1")
@@ -558,7 +562,8 @@ class BakeryControllerSpec extends Specification {
 
     @Subject
       def bakeryController = new BakeryController(bakeStore: bakeStoreMock,
-                                                  jobExecutor: jobExecutorMock)
+                                                  jobExecutor: jobExecutorMock,
+                                                  registry: new DefaultRegistry())
 
     when:
       def response = bakeryController.cancelBake(REGION, JOB_ID)
@@ -566,6 +571,7 @@ class BakeryControllerSpec extends Specification {
     then:
       1 * bakeStoreMock.cancelBakeById(JOB_ID) >> true
       1 * jobExecutorMock.cancelJob(JOB_ID)
+      1 * bakeStoreMock.retrieveBakeStatusById(JOB_ID) >> new BakeStatus()
       response == "Canceled bake '$JOB_ID'."
   }
 

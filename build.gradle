@@ -20,7 +20,7 @@ allprojects {
   group = "com.netflix.spinnaker.rosco"
 
   spinnaker {
-    dependenciesVersion = "0.40.0"
+    dependenciesVersion = "0.41.0"
   }
 
   configurations.all {
@@ -39,6 +39,7 @@ allprojects {
     compile spinnaker.dependency("groovy")
     compile spinnaker.dependency("korkSwagger")
     compile spinnaker.dependency("korkWeb")
+    compile spinnaker.dependency("spectatorReg")
   }
   test {
     testLogging {

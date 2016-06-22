@@ -16,23 +16,31 @@
 
 package com.netflix.spinnaker.rosco.jobs.local
 
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.rosco.api.BakeStatus
 import com.netflix.spinnaker.rosco.jobs.JobExecutor
 import com.netflix.spinnaker.rosco.jobs.JobRequest
 import groovy.util.logging.Slf4j
 import org.apache.commons.exec.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import rx.Scheduler
 import rx.functions.Action0
 import rx.schedulers.Schedulers
 
 import java.util.concurrent.ConcurrentHashMap
+import java.util.function.ToDoubleFunction
+
+import javax.annotation.PostConstruct
 
 @Slf4j
 class JobExecutorLocal implements JobExecutor {
 
   @Value('${rosco.jobs.local.timeoutMinutes:10}')
   long timeoutMinutes
+
+  @Autowired
+  Registry registry
 
   Scheduler scheduler = Schedulers.computation()
   Map<String, Map> jobIdToHandlerMap = new ConcurrentHashMap<String, Map>()
@@ -161,14 +169,23 @@ class JobExecutorLocal implements JobExecutor {
   void cancelJob(String jobId) {
     log.info("Canceling job $jobId...")
 
-    // Terminate the process.
-    if (jobIdToHandlerMap[jobId]) {
-      jobIdToHandlerMap[jobId].watchdog.destroyProcess()
-    }
-
     // Remove the job from this rosco instance's handler map.
-    jobIdToHandlerMap.remove(jobId)
+    def canceledJob = jobIdToHandlerMap.remove(jobId)
+
+    // Terminate the process.
+    canceledJob?.watchdog?.destroyProcess()
 
     // The next polling interval will be unable to retrieve the job status and will mark the bake as canceled.
+  }
+
+  @PostConstruct
+  void initializeMetrics() {
+    registry.gauge(registry.createId("bakes.local").withTag("active", "true"), jobIdToHandlerMap, new ToDoubleFunction<Map>() {
+
+      @Override
+      double applyAsDouble(Map value) {
+        return jobIdToHandlerMap.size()
+      }
+    })
   }
 }

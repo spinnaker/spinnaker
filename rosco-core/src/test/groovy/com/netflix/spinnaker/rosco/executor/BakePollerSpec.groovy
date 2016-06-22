@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.rosco.executor
 
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeStatus
 import com.netflix.spinnaker.rosco.persistence.RedisBackedBakeStore
@@ -49,7 +50,8 @@ class BakePollerSpec extends Specification {
       @Subject
       def bakePoller = new BakePoller(bakeStore: bakeStoreMock,
                                       executor: jobExecutorMock,
-                                      cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock)
+                                      cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
+                                      registry: new DefaultRegistry())
 
     when:
       bakePoller.updateBakeStatusAndLogs(JOB_ID)
@@ -57,11 +59,12 @@ class BakePollerSpec extends Specification {
     then:
       1 * jobExecutorMock.updateJob(JOB_ID) >> incompleteBakeStatus
       1 * bakeStoreMock.updateBakeStatus(incompleteBakeStatus)
+      numStatusLookups * bakeStoreMock.retrieveBakeStatusById(JOB_ID) >> incompleteBakeStatus
 
     where:
-      bakeState                 | bakeResult
-      BakeStatus.State.RUNNING  | null
-      BakeStatus.State.CANCELED | BakeStatus.Result.FAILURE
+      bakeState                 | bakeResult                | numStatusLookups
+      BakeStatus.State.RUNNING  | null                      | 0
+      BakeStatus.State.CANCELED | BakeStatus.Result.FAILURE | 1
   }
 
   void 'scheduled update queries job executor and stores status, details and logs when complete'() {
@@ -80,7 +83,8 @@ class BakePollerSpec extends Specification {
       @Subject
       def bakePoller = new BakePoller(bakeStore: bakeStoreMock,
                                       executor: jobExecutorMock,
-                                      cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock)
+                                      cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
+                                      registry: new DefaultRegistry())
 
     when:
       bakePoller.updateBakeStatusAndLogs(JOB_ID)
@@ -92,6 +96,7 @@ class BakePollerSpec extends Specification {
       1 * cloudProviderBakeHandlerMock.scrapeCompletedBakeResults(REGION, JOB_ID, "$LOGS_CONTENT\n$LOGS_CONTENT") >> bakeDetails
       1 * bakeStoreMock.updateBakeDetails(bakeDetails)
       1 * bakeStoreMock.updateBakeStatus(completeBakeStatus)
+      1 * bakeStoreMock.retrieveBakeStatusById(JOB_ID) >> completeBakeStatus
 
     where:
       bakeState                  | bakeResult
@@ -107,7 +112,8 @@ class BakePollerSpec extends Specification {
       @Subject
       def bakePoller = new BakePoller(bakeStore: bakeStoreMock,
                                       executor: jobExecutorMock,
-                                      cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock)
+                                      cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
+                                      registry: new DefaultRegistry())
 
     when:
       bakePoller.updateBakeStatusAndLogs(JOB_ID)
@@ -116,6 +122,7 @@ class BakePollerSpec extends Specification {
       1 * jobExecutorMock.updateJob(JOB_ID) >> null
       1 * bakeStoreMock.storeBakeError(JOB_ID, "Unable to retrieve status for '$JOB_ID'.")
       1 * bakeStoreMock.cancelBakeById(JOB_ID)
+      1 * bakeStoreMock.retrieveBakeStatusById(JOB_ID) >> new BakeStatus()
   }
 
 }

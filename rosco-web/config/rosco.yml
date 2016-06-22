@@ -2,7 +2,12 @@ server:
   port: 8087
 
 rosco:
-  configDir: /some/path/to/config/packer
+  configDir: /Users/duftler/spinnaker/rosco/rosco-web/config/packer
+
+metrics:
+  reporter:
+    jmx:
+      enabled: true
 
 # If a repository is set here, it will be added by packer as repository when baking images for GCE and AWS.
 # It is safe to leave this out (or blank) if you do not need to configure your own repository.
@@ -11,7 +16,6 @@ rosco:
 # The following commented-out line is an example of what a valid entry looks like.
 # debianRepository: http://dl.bintray.com/spinnaker/ospackages ./
 # yumRepository: https://https://jfrog.bintray.com/...
-
 
 defaultCloudProviderType: aws
 

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.rosco.executor
 
+import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeStatus
 import com.netflix.spinnaker.rosco.jobs.JobExecutor
@@ -63,6 +65,9 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
 
   @Autowired
   CloudProviderBakeHandlerRegistry cloudProviderBakeHandlerRegistry
+
+  @Autowired
+  Registry registry
 
   @Override
   void onApplicationEvent(ContextRefreshedEvent event) {
@@ -120,6 +125,11 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
                             if (!cancellationSucceeded) {
                               bakeStore.removeFromIncompletes(roscoInstanceId, statusId)
                             }
+
+                            // This will have the most up-to-date timestamp.
+                            bakeStatus = bakeStore.retrieveBakeStatusById(statusId)
+                            Id failedBakesId = registry.createId('bakes').withTag("success", "false").withTag("cause", "orphanTimedOut")
+                            registry.timer(failedBakesId).record(bakeStatus.updatedTimestamp - bakeStatus.createdTimestamp, TimeUnit.MILLISECONDS)
                           }
                         }
                       },
@@ -144,10 +154,14 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
 
   void updateBakeStatusAndLogs(String statusId) {
     BakeStatus bakeStatus = executor.updateJob(statusId)
+    Id bakesId
 
     if (bakeStatus) {
       if (bakeStatus.state == BakeStatus.State.COMPLETED) {
         completeBake(statusId, bakeStatus.logsContent)
+        bakesId = registry.createId('bakes').withTag("success", "true")
+      } else if (bakeStatus.state == BakeStatus.State.CANCELED) {
+        bakesId = registry.createId('bakes').withTag("success", "false").withTag("cause", "jobFailed")
       }
 
       bakeStore.updateBakeStatus(bakeStatus)
@@ -156,6 +170,17 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
       log.error(errorMessage)
       bakeStore.storeBakeError(statusId, errorMessage)
       bakeStore.cancelBakeById(statusId)
+
+      bakesId = registry.createId('bakes').withTag("success", "false").withTag("cause", "failedToUpdateJob")
+    }
+
+    if (bakesId) {
+      // This will have the most up-to-date timestamp.
+      bakeStatus = bakeStore.retrieveBakeStatusById(statusId)
+
+      if (bakeStatus) {
+        registry.timer(bakesId).record(bakeStatus.updatedTimestamp - bakeStatus.createdTimestamp, TimeUnit.MILLISECONDS)
+      }
     }
   }
 

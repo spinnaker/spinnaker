@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.rosco.controllers
 
+import com.netflix.spectator.api.Id
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
@@ -39,6 +40,9 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import com.netflix.spectator.api.Registry
+
+import java.util.concurrent.TimeUnit
 
 @RestController
 @Slf4j
@@ -52,6 +56,9 @@ class BakeryController {
 
   @Autowired
   CloudProviderBakeHandlerRegistry cloudProviderBakeHandlerRegistry
+
+  @Autowired
+  Registry registry
 
   @Value('${defaultCloudProviderType:aws}')
   BakeRequest.CloudProviderType defaultCloudProviderType
@@ -133,12 +140,18 @@ class BakeryController {
       def bakeKey = cloudProviderBakeHandler.produceBakeKey(region, bakeRequest)
 
       if (rebake == "1") {
+        Id bakesId = registry.createId('bakes').withTag("rebake", "true")
+        registry.counter(bakesId).increment()
+
         // TODO(duftler): Does it make sense to cancel here as well?
         bakeStore.deleteBakeByKey(bakeKey)
       } else {
         def existingBakeStatus = queryExistingBakes(bakeKey)
 
         if (existingBakeStatus) {
+          Id bakesId = registry.createId('bakes').withTag("duplicate", "true")
+          registry.counter(bakesId).increment()
+
           return existingBakeStatus
         }
       }
@@ -245,6 +258,11 @@ class BakeryController {
                     @ApiParam(value = "The id of the bake request to cancel", required = true) @PathVariable("statusId") String statusId) {
     if (bakeStore.cancelBakeById(statusId)) {
       jobExecutor.cancelJob(statusId)
+
+      // This will have the most up-to-date timestamp.
+      BakeStatus bakeStatus = bakeStore.retrieveBakeStatusById(statusId)
+      Id failedBakesId = registry.createId('bakes').withTag("success", "false").withTag("cause", "explicitlyCanceled")
+      registry.timer(failedBakesId).record(bakeStatus.updatedTimestamp - bakeStatus.createdTimestamp, TimeUnit.MILLISECONDS)
 
       return "Canceled bake '$statusId'."
     }

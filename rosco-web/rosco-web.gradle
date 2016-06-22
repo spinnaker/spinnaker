@@ -16,6 +16,7 @@ configurations.all {
 
 dependencies {
   compile project(":rosco-core")
+  compile project(":rosco-metrics")
   spinnaker.group("bootWeb")
 }
 
