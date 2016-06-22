@@ -48,13 +48,15 @@ interface EchoService {
       String executionType
       String executionId
       String application
+      String user
     }
 
     static enum Type {
       SLACK,
       HIPCHAT,
       EMAIL,
-      SMS
+      SMS,
+      PAGER_DUTY
     }
 
     static enum Severity {
