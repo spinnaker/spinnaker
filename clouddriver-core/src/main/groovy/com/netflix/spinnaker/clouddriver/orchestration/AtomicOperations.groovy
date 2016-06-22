@@ -43,6 +43,7 @@ final class AtomicOperations {
   public static final String DEREGISTER_INSTANCES_FROM_LOAD_BALANCER = "deregisterInstancesFromLoadBalancer"
   public static final String ENABLE_INSTANCES_IN_EUREKA = "enableInstancesInDiscovery"
   public static final String DISABLE_INSTANCES_IN_EUREKA = "disableInstancesInDiscovery"
+  public static final String UPDATE_INSTANCES = "updateInstances"
 
   // Load Balancer operations
   public static final String DELETE_LOAD_BALANCER = "deleteLoadBalancer"
