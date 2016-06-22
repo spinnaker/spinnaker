@@ -1,0 +1,30 @@
+<div modal-page>
+  <task-monitor monitor="ctrl.taskMonitor"></task-monitor>
+  <modal-close></modal-close>
+  <div class="modal-header">
+    <h3 data-purpose="modal-header">Page {{ctrl.application.name}} Owner</h3>
+  </div>
+
+  <form role="form" class="container-fluid" novalidate name="pageApplicationOwnerForm">
+    <div class="modal-body">
+
+      <div class="row" style="margin-top:10px; margin-bottom:10px">
+        <div class="col-md-3 sm-label-right">Reason</div>
+        <div class="col-md-7">
+       <textarea class="form-control required" ng-model="ctrl.command.reason" rows="3"
+                 placeholder="Brief description of incident, severity and expected action."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <a href class="btn btn-default" ng-click="$dismiss()">Cancel</a>
+      <button type="submit"
+              class="btn btn-primary"
+              ng-click="ctrl.submit()"
+              ng-disabled="!ctrl.command.reason">
+        Page Now
+      </button>
+    </div>
+  </form>
+</div>

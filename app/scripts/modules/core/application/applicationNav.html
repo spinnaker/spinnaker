@@ -55,4 +55,11 @@
       Config
     </a>
   </li>
+  <li style="padding:10px 0 0 10px" ng-if="application.attributes.pdApiKey">
+    <button class="btn btn-xs btn-danger"
+            ng-click="ctrl.pageApplicationOwner()"
+            uib-tooltip="Page application owner">
+      <span class="glyphicon glyphicon-phone-alt"></span>
+    </button>
+  </li>
 </ul>

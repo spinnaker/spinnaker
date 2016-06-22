@@ -62,10 +62,25 @@ module.exports = angular
       .catch((task) => task);
     }
 
+    function pageApplicationOwner(app, reason) {
+      return taskExecutor.executeTask({
+        job: [
+          {
+            type: 'pageApplicationOwner',
+            application: app.name,
+            message: reason
+          }
+        ],
+        application: app,
+        description: 'Paged Application Owner'
+      });
+    }
+
     return {
       createApplication: createApplication,
       updateApplication: updateApplication,
-      deleteApplication: deleteApplication
+      deleteApplication: deleteApplication,
+      pageApplicationOwner: pageApplicationOwner,
     };
 
   });
