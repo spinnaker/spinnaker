@@ -21,6 +21,8 @@ import groovy.transform.Canonical
 
 @Canonical
 class GoogleHealthCheck {
+
+  String name
   String requestPath
   int port
 
@@ -37,6 +39,7 @@ class GoogleHealthCheck {
 
   @Canonical
   class View implements Serializable {
+    String name = GoogleHealthCheck.this.name
     int interval = GoogleHealthCheck.this.checkIntervalSec
     int timeout = GoogleHealthCheck.this.timeoutSec
     int unhealthyThreshold = GoogleHealthCheck.this.unhealthyThreshold

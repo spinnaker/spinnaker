@@ -241,6 +241,7 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
     void onSuccess(HttpHealthCheck httpHealthCheck, HttpHeaders responseHeaders) throws IOException {
       if (httpHealthCheck) {
         googleLoadBalancer.healthCheck = new GoogleHealthCheck(
+            name: httpHealthCheck.name,
             port: httpHealthCheck.port,
             requestPath: httpHealthCheck.requestPath,
             checkIntervalSec: httpHealthCheck.checkIntervalSec,
