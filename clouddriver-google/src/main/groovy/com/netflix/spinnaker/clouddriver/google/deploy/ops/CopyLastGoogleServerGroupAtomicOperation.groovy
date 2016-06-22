@@ -100,6 +100,10 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
 
     // Override any ancestor values that were specified directly on the cloneServerGroup call.
     newDescription.region = description.region ?: Utils.getLocalName(ancestorServerGroup.region)
+    newDescription.regional =
+        description.regional != null
+        ? description.regional
+        : ancestorServerGroup.regional
     newDescription.zone = description.zone ?: Utils.getLocalName(ancestorServerGroup.zone)
     newDescription.loadBalancers =
         description.loadBalancers != null

@@ -145,6 +145,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          image: "backports-$IMAGE",
                                                          instanceType: "n1-standard-8",
                                                          disks: [new GoogleDisk(type: "pd-ssd", sizeGb: 250)],
+                                                         regional: false,
                                                          zone: ZONE,
                                                          instanceMetadata: ["differentKey": "differentValue"],
                                                          tags: ["new-tag-1", "new-tag-2"],
@@ -207,6 +208,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.image = IMAGE
       newDescription.instanceType = INSTANCE_TYPE
       newDescription.disks = [DISK_PD_STANDARD]
+      newDescription.regional = false
       newDescription.zone = ZONE
       newDescription.instanceMetadata = INSTANCE_METADATA
       newDescription.tags = TAGS
