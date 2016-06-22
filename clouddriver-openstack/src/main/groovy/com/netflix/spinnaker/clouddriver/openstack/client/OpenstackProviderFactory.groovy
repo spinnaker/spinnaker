@@ -38,7 +38,7 @@ class OpenstackProviderFactory {
         .credentials(credentials.username, credentials.password)
         .tenantName(credentials.tenantName)
         .authenticate()
-      provider = new OpenstackClientV2Provider(osClient)
+      provider = new OpenstackClientV2Provider(osClient, credentials.regions)
     } else if (AccountType.V3.value() == credentials.accountType) {
       osClient = OSFactory.builderV3()
         .withConfig(config)

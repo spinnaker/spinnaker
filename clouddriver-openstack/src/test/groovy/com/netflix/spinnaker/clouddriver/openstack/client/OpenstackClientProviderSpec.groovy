@@ -77,6 +77,10 @@ class OpenstackClientProviderSpec extends Specification {
       OSClient getRegionClient(String region) {
         mockClient
       }
+
+      List<String> getAllRegions() {
+        [region]
+      }
     }
     mockClient.useRegion(region) >> mockClient
   }
@@ -315,6 +319,80 @@ class OpenstackClientProviderSpec extends Specification {
     thrown(OpenstackProviderException)
   }
 
+  def "get instances success"() {
+    setup:
+    ComputeService computeService = Mock()
+    ServerService serversService = Mock()
+    List<? extends Server> servers = Mock()
+
+    when:
+    List<? extends Server> result = provider.getInstances(region)
+
+    then:
+    1 * mockClient.compute() >> computeService
+    1 * computeService.servers() >> serversService
+    1 * serversService.list() >> servers
+    result == servers
+    noExceptionThrown()
+  }
+
+  def "get instances exception"() {
+    setup:
+    ComputeService computeService = Mock()
+    ServerService serversService = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.getInstances(region)
+
+    then:
+    1 * mockClient.compute() >> computeService
+    1 * computeService.servers() >> serversService
+    1 * serversService.list() >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "get console output success"() {
+    setup:
+    String serverId = UUID.randomUUID().toString()
+    ComputeService computeService = Mock()
+    ServerService serversService = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.getConsoleOutput(region, serverId)
+
+    then:
+    1 * mockClient.compute() >> computeService
+    1 * computeService.servers() >> serversService
+    1 * serversService.getConsoleOutput(serverId, -1) >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "get console output exception"() {
+    setup:
+    String serverId = UUID.randomUUID().toString()
+    ComputeService computeService = Mock()
+    ServerService serversService = Mock()
+    String output = 'output'
+
+    when:
+    String result = provider.getConsoleOutput(region, serverId)
+
+    then:
+    1 * mockClient.compute() >> computeService
+    1 * computeService.servers() >> serversService
+    1 * serversService.getConsoleOutput(serverId, -1) >> output
+    result == output
+    noExceptionThrown()
+  }
+
   def "get vip success"() {
     setup:
     String region = 'region1'
@@ -399,9 +477,9 @@ class OpenstackClientProviderSpec extends Specification {
     noExceptionThrown()
 
     where:
-    testCase           | subnetResult || expected
-    'Subnet found'     | Mock(Subnet) || true
-    'Subnet not found' | null         || false
+    testCase           | subnetResult | expected
+    'Subnet found'     | Mock(Subnet) | true
+    'Subnet not found' | null         | false
   }
 
   def "validate subnet - exception"() {
@@ -653,6 +731,7 @@ class OpenstackClientProviderSpec extends Specification {
     result == healthMonitor
     noExceptionThrown()
   }
+
   def "get health monitor not found"() {
     setup:
     String healthMonitorId = UUID.randomUUID().toString()
@@ -1491,7 +1570,7 @@ class OpenstackClientProviderSpec extends Specification {
     e.message == "Internal pool port $port is outside of the valid range.".toString()
 
     where:
-    port << [0,65536]
+    port << [0, 65536]
   }
 
   def "test get ip address for instance succeeds"() {

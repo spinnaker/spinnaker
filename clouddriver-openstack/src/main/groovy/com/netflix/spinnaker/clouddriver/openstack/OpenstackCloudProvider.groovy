@@ -24,7 +24,12 @@ import java.lang.annotation.Annotation
 
 @Component
 class OpenstackCloudProvider implements CloudProvider {
-  final String id = "openstack"
+  static final String ID = "openstack"
   final String displayName = "Openstack"
   final Class<Annotation> operationAnnotationType = OpenstackOperation.class
+
+  @Override
+  String getId() {
+    ID
+  }
 }

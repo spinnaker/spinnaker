@@ -42,5 +42,15 @@ class OpenstackClientV3Provider extends OpenstackClientProvider {
   }
 
   //TODO v3 specific operations
-
+  /**
+   * Returns configuration based regions if provided, otherwise will use the
+   * API to look up regions and return a list.
+   * @return
+   */
+  @Override
+  List<String> getAllRegions() {
+    handleRequest {
+      client.identity().regions().list()?.collect { it.id }
+    }
+  }
 }

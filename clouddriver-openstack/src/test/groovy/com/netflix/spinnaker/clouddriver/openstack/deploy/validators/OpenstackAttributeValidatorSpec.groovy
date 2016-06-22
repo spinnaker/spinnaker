@@ -127,9 +127,9 @@ class OpenstackAttributeValidatorSpec extends Specification {
     }
 
     where:
-    value                                || result
-    LoadBalancerMethod.LEAST_CONNECTIONS || true
-    null                                 || false
+    value                                | result
+    LoadBalancerMethod.LEAST_CONNECTIONS | true
+    null                                 | false
   }
 
   def "ValidateNonNegative"() {

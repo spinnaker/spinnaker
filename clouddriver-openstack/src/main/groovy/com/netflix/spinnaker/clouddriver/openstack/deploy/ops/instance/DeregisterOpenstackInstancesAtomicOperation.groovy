@@ -31,7 +31,7 @@ class DeregisterOpenstackInstancesAtomicOperation extends AbstractRegistrationOp
   String preposition = 'from'
 
   /*
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "deregisterInstancesFromLoadBalancer": { "loadBalancerIds": ["2112e340-4714-492c-b9db-e45e1b1102c5"], "instanceIds": ["155e68a7-a7dd-433a-b2c1-c8d6d38fb89a"], "account": "test", "region": "TTCOSCORE1" }} ]' localhost:7002/openstack/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "deregisterInstancesFromLoadBalancer": { "loadBalancerIds": ["2112e340-4714-492c-b9db-e45e1b1102c5"], "instanceIds": ["155e68a7-a7dd-433a-b2c1-c8d6d38fb89a"], "account": "test", "region": "region" }} ]' localhost:7002/openstack/ops
    * curl -X GET -H "Accept: application/json" localhost:7002/task/1
    */
   DeregisterOpenstackInstancesAtomicOperation(OpenstackInstancesRegistrationDescription description) {

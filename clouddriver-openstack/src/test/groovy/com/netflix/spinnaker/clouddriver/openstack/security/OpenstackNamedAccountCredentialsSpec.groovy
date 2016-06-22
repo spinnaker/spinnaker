@@ -27,6 +27,11 @@ import spock.lang.Specification
 
 class OpenstackNamedAccountCredentialsSpec extends Specification {
 
+  List<String> regions
+
+  def "setup"() {
+    regions = ['east']
+  }
 
   def "Provider factory returns v2 provider"() {
     setup:
@@ -35,7 +40,7 @@ class OpenstackNamedAccountCredentialsSpec extends Specification {
     IOSClientBuilder.V2.metaClass.authenticate = { mockClient }
 
     when:
-    def credentials = new OpenstackNamedAccountCredentials("name", "test", "v2", "test", "user", "pw", "tenant", "domain", "endpoint", false)
+    def credentials = new OpenstackNamedAccountCredentials("name", "test", "v2", "test", "user", "pw", "tenant", "domain", "endpoint", regions, false)
 
     then:
     1 * mockClient.access >> Mock(Access)
@@ -50,7 +55,7 @@ class OpenstackNamedAccountCredentialsSpec extends Specification {
     IOSClientBuilder.V3.metaClass.authenticate = { mockClient }
 
     when:
-    def credentials = new OpenstackNamedAccountCredentials("name", "test", "v3", "test", "user", "pw", "tenant", "domain", "endpoint", false)
+    def credentials = new OpenstackNamedAccountCredentials("name", "test", "v3", "test", "user", "pw", "tenant", "domain", "endpoint", regions, false)
 
     then:
     1 * mockClient.token >> Mock(Token)
@@ -61,7 +66,7 @@ class OpenstackNamedAccountCredentialsSpec extends Specification {
 
   def "Provider factory throws exception for unknown account type"() {
     when:
-    def credentials = new OpenstackNamedAccountCredentials("name", "test", "v1", "test", "user", "pw", "tenant", "domain", "endpoint", false)
+    new OpenstackNamedAccountCredentials("name", "test", "v1", "test", "user", "pw", "tenant", "domain", "endpoint", regions, false)
 
     then:
     thrown IllegalArgumentException

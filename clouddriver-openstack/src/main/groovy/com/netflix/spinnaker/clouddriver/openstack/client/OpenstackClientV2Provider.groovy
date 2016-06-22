@@ -26,9 +26,17 @@ import org.openstack4j.openstack.OSFactory
 class OpenstackClientV2Provider extends OpenstackClientProvider {
 
   Access access
+  List<String> regions
 
-  OpenstackClientV2Provider(OSClient.OSClientV2 client) {
+  /**
+   * Default constructor .. Requires regions are configured externally
+   * as v2 openstack API doesn't support looking up regions.
+   * @param client
+   * @param regions - List of region ids
+     */
+  OpenstackClientV2Provider(OSClient.OSClientV2 client, List<String> regions) {
     this.access = client.access
+    this.regions = regions
   }
 
   @Override
@@ -43,4 +51,8 @@ class OpenstackClientV2Provider extends OpenstackClientProvider {
 
   //TODO v2 specific operations
 
+  @Override
+  List<String> getAllRegions() {
+    regions
+  }
 }

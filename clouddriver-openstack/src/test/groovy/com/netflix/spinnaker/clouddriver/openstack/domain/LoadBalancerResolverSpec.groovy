@@ -32,10 +32,10 @@ class LoadBalancerResolverSpec extends Specification {
     result == expected
 
     where:
-    testCase       | baseName        || expected
-    'not matching' | 'test'          || null
-    'matching'     | 'buy-sell-move' || 'buy'
-    'null'         | null            || null
+    testCase       | baseName           | expected
+    'not matching' | 'test'             | null
+    'matching'     | 'north-south-east' | 'north'
+    'null'         | null               | null
   }
 
   def "get internal port - #testCase"() {
@@ -46,9 +46,9 @@ class LoadBalancerResolverSpec extends Specification {
     result == expected
 
     where:
-    testCase    | description        || expected
-    'not found' | 'test'             || -1
-    'found'     | 'internal_port=20' || 20
-    'null'      | null               || -1
+    testCase    | description        | expected
+    'not found' | 'test'             | -1
+    'found'     | 'internal_port=20' | 20
+    'null'      | null               | -1
   }
 }

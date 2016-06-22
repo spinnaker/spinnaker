@@ -66,6 +66,29 @@ abstract class OpenstackClientProvider {
   final Pattern lbDescriptionPattern = Pattern.compile(lbDescriptionRegex)
 
   /**
+   * Returns a list of instances in a given region.
+   * @param region
+   * @return
+     */
+  List<? extends Server> getInstances(String region) {
+    handleRequest {
+      getRegionClient(region).compute().servers().list()
+    }
+  }
+
+  /**
+   * Returns all of the console output for a given server and region.
+   * @param region
+   * @param serverId
+   * @return
+     */
+  String getConsoleOutput(String region, String serverId) {
+    handleRequest {
+      getRegionClient(region).compute().servers().getConsoleOutput(serverId, -1)
+    }
+  }
+
+  /**
    * Delete an instance.
    * @param instanceId
    * @return
@@ -675,8 +698,8 @@ abstract class OpenstackClientProvider {
    * @param closure makes the needed Openstack4J request
    * @return returns the result from the closure
    */
-  def handleRequest(Closure closure) {
-    def result
+  static <T> T handleRequest(Closure<T> closure) {
+    T result
     try {
       result = closure()
     } catch (UndeclaredThrowableException e) {
@@ -689,6 +712,12 @@ abstract class OpenstackClientProvider {
     }
     result
   }
+
+  /**
+   * Returns a list of regions.
+   * @return
+   */
+  abstract List<String> getAllRegions()
 
   /**
    * Thread-safe way to get client.

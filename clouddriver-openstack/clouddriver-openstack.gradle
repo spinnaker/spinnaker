@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
+ext {
+  openstack4jVersion = '3.0.0'
+  commonsNetVersion = '3.5'
+}
+
 dependencies {
   compile project(":clouddriver-core")
-  compile 'org.pacesys:openstack4j:3.0.0'
-  compile 'commons-net:commons-net:3.5'
+
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
+
+  compile "org.pacesys:openstack4j:$openstack4jVersion"
+  compile "commons-net:commons-net:$commonsNetVersion"
 }

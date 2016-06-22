@@ -41,7 +41,7 @@ class UpsertOpenstackLoadBalancerAtomicOperation implements AtomicOperation<Map>
 
   /*
    * Create:
-   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "upsertLoadBalancer": { "region": "region", "account": "test", "name": "test",  "protocol": "HTTP", "method" : "ROUND_ROBIN", "subnetId": "9e0d71a9-0086-494a-91d8-abad0912ba83", "externalPort": 80, "internalPort": 8100, "networkId": "9e0d71a9-0086-494a-91d8-abad0912ba83", "healthMonitor": { "type": "PING", "delay": 10, "timeout": 10, "maxRetries": 10 } } } ]' localhost:7002/openstack/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "upsertLoadBalancer": { "region": "region", "account": "test", "name": "test",  "protocol": "HTTP", "method" : "ROUND_ROBIN", "subnetId": "9e0d71a9-0086-494a-91d8-abad0912ba83", "externalPort": 80, "internalPort": 8100, "floatingIpId": "9e0d71a9-0086-494a-91d8-abad0912ba83", "healthMonitor": { "type": "PING", "delay": 10, "timeout": 10, "maxRetries": 10 } } } ]' localhost:7002/openstack/ops
    *
    * Update:
    * curl -X POST -H "Content-Type: application/json" -d  '[ {  "upsertLoadBalancer": { "region": "region", "id": "7d1b3734-5c29-4305-b124-c973516b83eb",  "account": "test", "method": "ROUND_ROBIN", "name": "test", "internalPort": 8181, "floatingIpId": "7d1b3734-5c29-4305-b124-c973516b83eb", "healthMonitor": { "type": "PING", "delay": 1, "timeout": 1, "maxRetries": 1 } } } ]' localhost:7002/openstack/ops
