@@ -117,7 +117,7 @@ class UserRolesSyncerSpec extends Specification {
     userRolesSyncer.userRolesProvider = rolesProvider
 
     when: "we sync the groups"
-    userRolesSyncer.syncUserGroups()
+    userRolesSyncer.sync()
 
     then: "no sessions should be present"
     repository.getSession(sessionId) == null
@@ -141,7 +141,7 @@ class UserRolesSyncerSpec extends Specification {
     userRolesSyncer.userRolesProvider = rolesProvider
 
     when: "we sync the groups"
-    userRolesSyncer.syncUserGroups()
+    userRolesSyncer.sync()
 
     then: "our session should be present"
     repository.getSession(sessionId) != null
@@ -169,7 +169,7 @@ class UserRolesSyncerSpec extends Specification {
     userRolesSyncer.userRolesProvider = rolesProvider
 
     when: "we sync the groups"
-    userRolesSyncer.syncUserGroups()
+    userRolesSyncer.sync()
 
     then: "our session should be present"
     repository.getSession(goodSessionId) != null

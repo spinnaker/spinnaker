@@ -40,11 +40,11 @@ class UserRolesSyncer {
   UserRolesProvider userRolesProvider
 
   /**
-   * Check all sessions to see whether the session user's groups have changed. If so, delete the session.
+   * Check all sessions to see whether the session user's roles have changed. If so, delete the session.
    * Repeat every 10 minutes, after an initial delay.
    */
   @Scheduled(initialDelay = 10000L, fixedRate = 600000L)
-  public void syncUserGroups() {
+  public void sync() {
     Map<String, String> emailSessionIdMap = [:]
     Map<String, Collection<String>> emailCurrentGroupsMap = [:]
     Set<String> sessionKeys = sessionRedisTemplate.keys('*session:sessions*')

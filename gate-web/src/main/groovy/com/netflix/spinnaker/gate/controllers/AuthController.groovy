@@ -17,11 +17,14 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.security.SpinnakerUser
+import com.netflix.spinnaker.gate.security.rolesprovider.UserRolesSyncer
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang.exception.ExceptionUtils
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
@@ -44,6 +47,9 @@ class AuthController {
       "Hodor.",
   ]
 
+  @Autowired
+  UserRolesSyncer userRolesSyncer
+
   @Value('${services.deck.baseUrl}')
   URL deckBaseUrl
 
@@ -57,6 +63,15 @@ class AuthController {
   @RequestMapping("/loggedOut")
   String loggedOut() {
     return LOGOUT_MESSAGES[r.nextInt(LOGOUT_MESSAGES.size()+1)]
+  }
+
+  /**
+   * On-demand endpoint to sync the user roles, in case
+   * waiting for the periodic refresh won't work.
+   */
+  @RequestMapping(value = "/roles/sync", method = RequestMethod.POST)
+  void sync() {
+    userRolesSyncer.sync()
   }
 
   @RequestMapping("/redirect")
