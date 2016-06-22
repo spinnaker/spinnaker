@@ -185,4 +185,136 @@ class CloudFoundryClusterProviderSpec extends Specification {
 
 	}
 
+	def "should serve up first 'since' time as createdTime when instances are in proper order"() {
+		when:
+		cachingAgent.getAgentExecution(registry).executeAgent(cachingAgent)
+
+		def serverGroup = clusterProvider.getServerGroup('test', 'spinnaker', 'testapp-production-v001')
+
+		then:
+		serverGroup.name == 'testapp-production-v001'
+		serverGroup.createdTime == 1000L
+		serverGroup.instanceCounts.up == 2
+
+		1 * client.spaces >> {
+			[
+					new CloudSpace(
+							mapToMeta([guid: uuid1, created: 1L]),
+							"test",
+							new CloudOrganization(
+									mapToMeta([guid: uuid2, created: 2L]),
+									"spinnaker"))
+			]
+		}
+		1 * client.services >> { [new CloudService(mapToMeta([guid: uuid3, created: 3L]), 'spinnaker-redis')] }
+		1 * client.domainsForOrg >> { [new CloudDomain(null, 'cfapps.io', null)] }
+		1 * client.getRoutes('cfapps.io') >> {
+			[new CloudRoute(null, 'my-cool-test-app', new CloudDomain(null, 'cfapps.io', null), 1)]
+		}
+		1 * client.applications >> {
+			[
+					buildNativeApplication([
+							name     : 'testapp-production-v001',
+							state    : CloudApplication.AppState.STARTED.toString(),
+							instances: 1,
+							services : ['spinnaker-redis'],
+							memory   : 1024,
+							env      : ["${CloudFoundryConstants.LOAD_BALANCERS}=my-cool-test-app".toString()],
+							meta     : [
+									guid   : uuid2,
+									created: 5L
+							],
+							space    : [
+									meta        : [
+											guid   : uuid3,
+											created: 6L
+									],
+									name        : 'test',
+									organization: [
+											meta: [
+													guid   : uuid1,
+													created: 7L
+											],
+											name: 'spinnaker'
+									]
+							]
+					])
+			]
+		}
+		1 * client.getApplicationInstances(_) >> {
+			new InstancesInfo([
+					[since: 1L, index: 0, state: InstanceState.RUNNING.toString()],
+					[since: 2L, index: 1, state: InstanceState.RUNNING.toString()]
+			])
+		}
+
+		0 * client._
+	}
+
+	def "should serve up oldest 'since' time as createdTime when instances are out of order order"() {
+		when:
+		cachingAgent.getAgentExecution(registry).executeAgent(cachingAgent)
+
+		def serverGroup = clusterProvider.getServerGroup('test', 'spinnaker', 'testapp-production-v001')
+
+		then:
+		serverGroup.name == 'testapp-production-v001'
+		serverGroup.createdTime == 1000000000L
+		serverGroup.instanceCounts.up == 2
+
+		1 * client.spaces >> {
+			[
+					new CloudSpace(
+							mapToMeta([guid: uuid1, created: 1L]),
+							"test",
+							new CloudOrganization(
+									mapToMeta([guid: uuid2, created: 2L]),
+									"spinnaker"))
+			]
+		}
+		1 * client.services >> { [new CloudService(mapToMeta([guid: uuid3, created: 3L]), 'spinnaker-redis')] }
+		1 * client.domainsForOrg >> { [new CloudDomain(null, 'cfapps.io', null)] }
+		1 * client.getRoutes('cfapps.io') >> {
+			[new CloudRoute(null, 'my-cool-test-app', new CloudDomain(null, 'cfapps.io', null), 1)]
+		}
+		1 * client.applications >> {
+			[
+					buildNativeApplication([
+							name     : 'testapp-production-v001',
+							state    : CloudApplication.AppState.STARTED.toString(),
+							instances: 2,
+							services : ['spinnaker-redis'],
+							memory   : 1024,
+							env      : ["${CloudFoundryConstants.LOAD_BALANCERS}=my-cool-test-app".toString()],
+							meta     : [
+									guid   : uuid2,
+									created: 5L
+							],
+							space    : [
+									meta        : [
+											guid   : uuid3,
+											created: 6L
+									],
+									name        : 'test',
+									organization: [
+											meta: [
+													guid   : uuid1,
+													created: 7L
+											],
+											name: 'spinnaker'
+									]
+							]
+					])
+			]
+		}
+		1 * client.getApplicationInstances(_) >> {
+			new InstancesInfo([
+					[since: 2000000L, index: 1, state: InstanceState.RUNNING.toString()],
+					[since: 1000000L, index: 0, state: InstanceState.RUNNING.toString()]
+			])
+		}
+
+		0 * client._
+	}
+
 }

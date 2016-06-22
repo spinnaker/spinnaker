@@ -50,13 +50,13 @@ class CloudFoundryServerGroup implements ServerGroup, Serializable {
   }
 
   /**
-   * Return an instance's "since" attribute if it exists. Otherwise, fallback to "updated"
+   * Return an instance's "since" attribute if it exists, fetching the oldest one available. Otherwise, fallback to "updated"
    * @return
    */
   @Override
   Long getCreatedTime() {
     if (this.instances.size() > 0) {
-      this.instances.first().launchTime
+      this.instances.collect { it.launchTime }.min()
     } else {
       nativeApplication?.meta?.updated?.time
     }
