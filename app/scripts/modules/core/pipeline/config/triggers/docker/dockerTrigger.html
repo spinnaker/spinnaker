@@ -27,9 +27,9 @@
     </div>
     <div class="col-md-6">
       <ui-select ng-model="trigger.organization" class="form-control input-sm">
-        <ui-select-match>{{trigger.organization}}</ui-select-match>
+        <ui-select-match placeholder="No organization">{{trigger.organization}}</ui-select-match>
         <ui-select-choices repeat="organization in organizations | filter: $select.search | orderBy">
-          <span ng-bind-html="organization | highlight: $select.search"></span>
+          <span ng-bind-html="organization || 'No organization' | highlight: $select.search"></span>
         </ui-select-choices>
       </ui-select>
     </div>
@@ -53,15 +53,7 @@
       <help-field key="pipeline.config.docker.trigger.tag"></help-field>
     </div>
     <div class="col-md-6">
-      <ui-select ng-model="trigger.tag" class="form-control input-sm">
-        <ui-select-match>{{trigger.tag}}</ui-select-match>
-        <ui-select-choices repeat="tag in getTags($select.search) | filter: $select.search | orderBy">
-          <span ng-bind-html="tag | highlight: $select.search"></span>
-        </ui-select-choices>
-      </ui-select>
-    </div>
-    <div class="col-md-3">
-      <a href ng-click="ctrl.clearTag()">Clear tag</a>
+      <input type="text" class="form-control input-sm" ng-model="trigger.tag"/>
     </div>
   </div>
 </ng-form>
