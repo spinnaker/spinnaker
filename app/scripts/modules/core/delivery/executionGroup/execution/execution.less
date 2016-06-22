@@ -101,14 +101,18 @@ execution-status {
           visibility: visible;
         }
         min-width: 50px;
-        border-left-color: #222222;
+        border-left-color: #FFFFFF;
         &.active {
-          border-right-width: 0;
+          border-color: #222222;
+
           &:first-child {
             border-left-width: 1px;
           }
           &:last-child {
             border-right-width: 1px;
+          }
+          & + .stage {
+            border-left-color: transparent;
           }
         }
       }
