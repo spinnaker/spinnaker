@@ -111,6 +111,21 @@ module.exports = angular
       });
     }
 
+    function updateSecurityGroups(serverGroup, securityGroups, application) {
+      let job = {
+        securityGroups: securityGroups.map(group => group.id),
+        serverGroupName: serverGroup.name,
+        credentials: serverGroup.account,
+        region: serverGroup.region,
+        type: 'updateSecurityGroupsForServerGroup'
+      };
+      return taskExecutor.executeTask({
+        job: [job],
+        application: application,
+        description: 'Update security groups for ' + serverGroup.name
+      });
+    }
+
 
     return {
       destroyServerGroup: destroyServerGroup,
@@ -118,6 +133,7 @@ module.exports = angular
       enableServerGroup: enableServerGroup,
       rollbackServerGroup: rollbackServerGroup,
       resizeServerGroup: resizeServerGroup,
-      cloneServerGroup: cloneServerGroup
+      cloneServerGroup: cloneServerGroup,
+      updateSecurityGroups: updateSecurityGroups,
     };
   });

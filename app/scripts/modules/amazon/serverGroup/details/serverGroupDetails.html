@@ -217,6 +217,7 @@
           </a>
         </li>
       </ul>
+      <a href ng-click="ctrl.updateSecurityGroups()" ng-if="ctrl.serverGroup.vpcId">Edit Security Groups</a>
     </collapsible-section>
     <collapsible-section heading="Scaling Policies">
       <scaling-policy-summary ng-repeat="policy in ctrl.scalingPolicies track by policy.policyARN"

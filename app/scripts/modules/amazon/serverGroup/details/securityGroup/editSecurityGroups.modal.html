@@ -1,0 +1,27 @@
+<div modal-page>
+  <task-monitor monitor="$ctrl.taskMonitor"></task-monitor>
+  <form role="form" name="form">
+    <modal-close></modal-close>
+    <div class="modal-header">
+      <h3>Edit Security Groups for {{$ctrl.serverGroup.name}}</h3>
+    </div>
+    <div class="modal-body container-fluid form-horizontal">
+      <div class="form-group">
+        <div class="col-md-10 col-md-offset-1">
+          <ui-select multiple ng-model="$ctrl.command.securityGroups" class="form-control input-sm">
+            <ui-select-match>{{$item.name}} ({{$item.id}})</ui-select-match>
+            <ui-select-choices repeat="securityGroup as securityGroup in $ctrl.availableSecurityGroups | anyFieldFilter: {name: $select.search, id: $select.search}">
+              <span ng-bind-html="securityGroup.name | highlight: $select.search"></span>
+              (<span ng-bind-html="securityGroup.id  | highlight: $select.search"></span>)
+            </ui-select-choices>
+          </ui-select>
+        </div>
+      </div>
+    </div>
+    <aws-footer action="$ctrl.submit()"
+                cancel="$ctrl.cancel()"
+                is-valid="$ctrl.isValid()"
+                account="$ctrl.serverGroup.account"
+                verification="$ctrl.state.verification"></aws-footer>
+  </form>
+</div>

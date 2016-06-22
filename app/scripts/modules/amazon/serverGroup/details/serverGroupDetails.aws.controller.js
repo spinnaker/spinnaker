@@ -29,6 +29,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('../../../core/utils/selectOnDblClick.directive.js'),
   require('../serverGroup.transformer.js'),
   require('./scalingPolicy/addScalingPolicyButton.component.js'),
+  require('./securityGroup/editSecurityGroups.modal.controller'),
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, app, serverGroup, InsightFilterStateModel,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $uibModal,
@@ -329,6 +330,18 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
           account: () => this.serverGroup.account,
           clusterName: () => this.serverGroup.cluster,
           serverGroup: () => this.serverGroup
+        }
+      });
+    };
+
+    this.updateSecurityGroups = () => {
+      $uibModal.open({
+        templateUrl: require('./securityGroup/editSecurityGroups.modal.html'),
+        controller: 'EditSecurityGroupsCtrl as $ctrl',
+        resolve: {
+          application: () => app,
+          serverGroup: () => this.serverGroup,
+          securityGroups: () => this.securityGroups
         }
       });
     };
