@@ -45,7 +45,7 @@ class KubernetesContainerFinder {
         if (stage.execution instanceof Pipeline) {
           Map trigger = ((Pipeline) stage.execution).trigger
 
-          if (trigger?.registry == container.imageDescription.registry && trigger?.repository == container.imageDescription.repository) {
+          if (trigger?.account == container.imageDescription.account && trigger?.repository == container.imageDescription.repository) {
             container.imageDescription.tag = trigger.tag
           }
         }
