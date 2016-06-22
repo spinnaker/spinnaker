@@ -43,7 +43,6 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
       updateRepositoryList();
     }
 
-
     function updateRepositoryList() {
       if (!$scope.organizationMap) {
         return;
@@ -53,31 +52,14 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
       if ($scope.repositories.indexOf(trigger.repository) < 0) {
         trigger.repository = null;
       }
-      updateTagList();
+      updateTag();
     }
 
-    function updateTagList() {
-      if (!$scope.repositoryMap) {
-        return;
+    function updateTag() {
+      if (trigger.tag !== null && trigger.tag.trim() === '') {
+        trigger.tag = null;
       }
-      let key = `${trigger.account}/${trigger.repository}`;
-      $scope.tags = $scope.repositoryMap[key] || [];
     }
-
-    this.clearTag = function() {
-      trigger.tag = null;
-    };
-
-    $scope.getTags = function(search) {
-      var newOne;
-      if($scope.tags) {
-        newOne = $scope.tags.slice();
-        if (search && newOne.indexOf(search) === -1) {
-          newOne.unshift(search);
-        }
-      }
-      return newOne;
-    };
 
     function initializeImages() {
       loadImages().then(function (images) {
@@ -112,14 +94,6 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
           return map;
         }, {});
         $scope.organizations = Object.keys($scope.organizationMap);
-        $scope.repositoryMap = images.reduce((map, image) => {
-          let key = `${image.account}/${image.repository}`;
-          let all = map[key] || [];
-          if (all.indexOf(image.tag) < 0) {
-            map[key] = all.concat(image.tag);
-          }
-          return map;
-        }, {});
         updateOrganizationsList();
 
         $scope.viewState.imagesLoaded = true;
@@ -136,6 +110,6 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
 
     $scope.$watch('trigger.account', updateOrganizationsList);
     $scope.$watch('trigger.organization', updateRepositoryList);
-    $scope.$watch('trigger.repository', updateTagList);
+    $scope.$watch('trigger.tag', updateTag);
 
   });
