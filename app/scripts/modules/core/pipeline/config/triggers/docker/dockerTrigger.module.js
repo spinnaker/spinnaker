@@ -35,7 +35,6 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
       if (!$scope.accountMap) {
         return;
       }
-      trigger.registry = $scope.registryMap[trigger.account];
       $scope.organizations = $scope.accountMap[trigger.account] || [];
       if ($scope.organizations.indexOf(trigger.organization) < 0) {
         trigger.organization = null;
@@ -64,10 +63,6 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
     function initializeImages() {
       loadImages().then(function (images) {
         $scope.images = images;
-        $scope.registryMap = images.reduce((map, image) => {
-          map[image.account] = image.registry;
-          return map;
-        }, {});
         $scope.accountMap = images.reduce((map, image) => {
           let key = image.account;
           if (!key) {
