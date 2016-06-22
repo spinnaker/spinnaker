@@ -323,4 +323,21 @@ class OpenstackAttributeValidatorSpec extends Specification {
     '/test'                 | true   | ''
     ''                      | false  | 'context.test.empty'
   }
+
+  def "ValidateGreaterThan"() {
+    when:
+    boolean actual = validator.validateGreaterThan(subject, other, "test")
+
+    then:
+    actual == result
+    if (!result) {
+      validator.errors.getFieldError('context.test')?.rejectedValue == expectedRejectedValue
+    }
+
+    where:
+    subject | other | result | expectedRejectedValue
+    1       | 0     | true   | ''
+    2       | 2     | false  | ''
+    3       | 4     | false  | 'context.test.empty'
+  }
 }

@@ -18,31 +18,33 @@ package com.netflix.spinnaker.clouddriver.openstack.client
 
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
+import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerPool
 import com.netflix.spinnaker.clouddriver.openstack.domain.PoolHealthMonitor
+import com.netflix.spinnaker.clouddriver.openstack.domain.ServerGroupParameters
 import com.netflix.spinnaker.clouddriver.openstack.domain.VirtualIP
-import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackResourceNotFoundException
 import org.apache.commons.lang.StringUtils
 import org.openstack4j.api.Builders
 import org.openstack4j.api.OSClient
 import org.openstack4j.api.networking.ext.LoadBalancerService
 import org.openstack4j.model.common.ActionResponse
-import org.openstack4j.model.compute.IPProtocol
 import org.openstack4j.model.compute.FloatingIP
+import org.openstack4j.model.compute.IPProtocol
 import org.openstack4j.model.compute.RebootType
+import org.openstack4j.model.compute.SecGroupExtension
+import org.openstack4j.model.compute.Server
 import org.openstack4j.model.heat.Resource
+import org.openstack4j.model.heat.Stack
+import org.openstack4j.model.heat.StackCreate
 import org.openstack4j.model.network.NetFloatingIP
 import org.openstack4j.model.network.Port
 import org.openstack4j.model.network.ext.HealthMonitor
 import org.openstack4j.model.network.ext.HealthMonitorType
 import org.openstack4j.model.network.ext.LbMethod
 import org.openstack4j.model.network.ext.LbPool
+import org.openstack4j.model.network.ext.Member
 import org.openstack4j.model.network.ext.Protocol
 import org.openstack4j.model.network.ext.Vip
-import org.openstack4j.model.compute.SecGroupExtension
-import org.openstack4j.model.compute.Server
-import org.openstack4j.model.heat.Stack
-import org.openstack4j.model.network.ext.Member
 
 import java.lang.reflect.UndeclaredThrowableException
 import java.util.regex.Matcher
@@ -483,11 +485,27 @@ abstract class OpenstackClientProvider {
    * @param timeoutMins
    * @return
    */
-  void deploy(String region, String stackName, String heatTemplate, Map<String, String> parameters, boolean disableRollback, Long timeoutMins) {
+  void deploy(String region, String stackName, String template, Map<String, String> subtemplate, ServerGroupParameters parameters, boolean disableRollback, Long timeoutMins) {
+
     handleRequest {
-      getRegionClient(region).heat().stacks().create(stackName, heatTemplate, parameters, disableRollback, timeoutMins)
+
+      Map<String, String> params = parameters.toParamsMap()
+
+      StackCreate create = Builders.stack()
+        .name(stackName)
+        .template(template)
+        .parameters(params)
+        .files(subtemplate)
+        .disableRollback(disableRollback)
+        .timeoutMins(timeoutMins)
+        .build()
+
+      getRegionClient(region).heat().stacks().create(create)
+
     }
+
     //TODO: Handle heat autoscaling migration to senlin in versions > Mitaka
+
   }
 
   /**
@@ -526,7 +544,7 @@ abstract class OpenstackClientProvider {
       client.useRegion(region).heat().stacks().getStackByName(stackName)
     }
     if (!stack) {
-      throw new OpenstackResourceNotFoundException("Unable to find stack $stackName in region $region")
+      throw new OpenstackProviderException("Unable to find stack $stackName in region $region")
     }
     stack
   }

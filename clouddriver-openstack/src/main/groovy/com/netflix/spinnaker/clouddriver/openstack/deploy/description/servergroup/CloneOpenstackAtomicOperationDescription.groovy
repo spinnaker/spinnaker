@@ -20,10 +20,12 @@ import groovy.transform.Canonical
 
 class CloneOpenstackAtomicOperationDescription extends DeployOpenstackAtomicOperationDescription {
   OpenstackCloneSource source
+
+  @Canonical
+  static class OpenstackCloneSource {
+    String serverGroup
+    String region
+  }
+
 }
 
-@Canonical
-class OpenstackCloneSource {
-  String stackName
-  String region
-}

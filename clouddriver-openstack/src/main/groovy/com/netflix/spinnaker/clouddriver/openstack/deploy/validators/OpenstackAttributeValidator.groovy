@@ -109,9 +109,9 @@ class OpenstackAttributeValidator {
     result
   }
 
-  boolean validateNonNegative(int value, String attribute) {
+  boolean validateNonNegative(Integer value, String attribute) {
     def result
-    if (value >= 0) {
+    if (value != null && value >= 0) {
       result = true
     } else {
       errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.negative")
@@ -120,9 +120,9 @@ class OpenstackAttributeValidator {
     result
   }
 
-  boolean validatePositive(int value, String attribute) {
+  boolean validatePositive(Integer value, String attribute) {
     def result
-    if (value > 0) {
+    if (value != null && value > 0) {
       result = true
     } else {
       errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.notPositive")
@@ -131,14 +131,13 @@ class OpenstackAttributeValidator {
     result
   }
 
-  boolean validateHeatTemplate(String value, String attribute, AccountCredentialsProvider accountCredentialsProvider, String account) {
+  boolean validateGreaterThan(Integer subject, Integer other, String attribute) {
     def result
-    def credentials = accountCredentialsProvider.getCredentials(account)
-    def client = ((OpenstackCredentials)credentials.getCredentials()).getProvider().getClient()
-    if (client && client.heat().templates().validateTemplate(value).isValid()) {
+    if (subject != null && other != null && other < subject) {
       result = true
-    } else {
-      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.notValidHeatTemplate")
+    }
+    else {
+      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.notGreaterThan")
       result = false
     }
     result
@@ -231,15 +230,6 @@ class OpenstackAttributeValidator {
   def validateRuleType(String value, String attribute) {
     validateNotEmpty(value, attribute) &&
       validateByContainment(value, attribute, [Rule.RULE_TYPE_TCP])
-  }
-
-  def validateServerGroupCloneSource(Object value, String attribute) {
-    if (!value) {
-      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.empty")
-      return false
-    } else {
-      return validateNotEmpty(value.stackName, attribute) && validateNotEmpty(value.region, attribute)
-    }
   }
 
   /**

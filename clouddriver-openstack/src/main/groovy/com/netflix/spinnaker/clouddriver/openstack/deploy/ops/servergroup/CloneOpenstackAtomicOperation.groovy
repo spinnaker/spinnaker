@@ -21,14 +21,13 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.CloneOpenstackAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.DeployOpenstackAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
-import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
+import com.netflix.spinnaker.clouddriver.openstack.domain.ServerGroupParameters
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import groovy.util.logging.Slf4j
 import org.openstack4j.model.heat.Stack
 
-@Slf4j
 class CloneOpenstackAtomicOperation implements AtomicOperation<DeploymentResult>{
   private static final String BASE_PHASE = "CLONE_SERVER_GROUP"
 
@@ -43,44 +42,62 @@ class CloneOpenstackAtomicOperation implements AtomicOperation<DeploymentResult>
   }
 
   /*
-  * curl -X POST -H "Content-Type: application/json" -d '[{"cloneServerGroup": {"source": {"stackName": "myapp-teststack-v000", "region": "RegionOne"},"account": "test"}}]' localhost:7002/openstack/ops
+  * curl -X POST -H "Content-Type: application/json" -d '[{"cloneServerGroup": {"source": {"serverGroup": "myapp-teststack-v000", "region": "RegionOne"}, "region": "RegionTwo", "account": "test"}}]' localhost:7002/openstack/ops
+  * curl -X GET -H "Accept: application/json" localhost:7002/task/1
   */
   @Override
   DeploymentResult operate (List priorOutputs) {
-    CloneOpenstackAtomicOperationDescription newDescription = cloneAndOverrideDescription()
-
-    task.updateStatus BASE_PHASE, "Initializing cloning of Heat stack ${description.source.stackName}..."
-
-    DeployOpenstackAtomicOperation deployer = new DeployOpenstackAtomicOperation(newDescription)
-    DeploymentResult deploymentResult = deployer.operate(priorOutputs) // right now this is null from deployOpenstackAtomicOperation
-
-    task.updateStatus BASE_PHASE, "Finished copying job for ${description.source.stackName}."
-
-    return deploymentResult
-  }
-
-  CloneOpenstackAtomicOperationDescription cloneAndOverrideDescription() {
-    CloneOpenstackAtomicOperationDescription newDescription = description.clone()
-
-    task.updateStatus BASE_PHASE, "Reading ancestor stack name ${description.source.stackName}..."
-
+    DeploymentResult deploymentResult
     try {
-      Stack ancestorStack = description.credentials.provider.getStack(description.source.region, description.source.stackName)
-      def ancestorNames = Names.parseName(description.source.stackName)
+      DeployOpenstackAtomicOperationDescription newDescription = cloneAndOverrideDescription()
 
-      // Build description of object from ancestor, override any values that were specified on the clone call
-      newDescription.application = description.application ?: ancestorNames.app
-      newDescription.stack = description.stack ?: ancestorNames.stack
-      newDescription.freeFormDetails = description.freeFormDetails ?: ancestorNames.detail
-      newDescription.region = description.region ?: description.source.region
-      newDescription.heatTemplate = description.heatTemplate ?: description.credentials.provider.getHeatTemplate(description.source.region, ancestorStack.name, ancestorStack.id)
-      newDescription.parameters = description.parameters ?: ancestorStack.parameters
-      newDescription.disableRollback = description.disableRollback ?: false
-      newDescription.timeoutMins = description.timeoutMins ?: ancestorStack.timeoutMins
-    } catch (OpenstackProviderException e) {
+      task.updateStatus BASE_PHASE, "Initializing cloning of server group ${description.source.serverGroup}"
+
+      DeployOpenstackAtomicOperation deployer = new DeployOpenstackAtomicOperation(newDescription)
+      deploymentResult = deployer.operate(priorOutputs) // right now this is null from deployOpenstackAtomicOperation
+
+      task.updateStatus BASE_PHASE, "Finished cloning server group ${description.source.serverGroup}"
+    } catch (Exception e) {
       throw new OpenstackOperationException(AtomicOperations.CLONE_SERVER_GROUP, e)
     }
+    deploymentResult
+  }
 
-    return newDescription
+  DeployOpenstackAtomicOperationDescription cloneAndOverrideDescription() {
+    DeployOpenstackAtomicOperationDescription deployDescription = description.clone()
+
+    task.updateStatus BASE_PHASE, "Reading ancestor stack name ${description.source.serverGroup}"
+
+    Stack ancestorStack = description.credentials.provider.getStack(description.source.region, description.source.serverGroup)
+    if (!ancestorStack) {
+      throw new OpenstackOperationException(AtomicOperations.CLONE_SERVER_GROUP, "Source stack ${description.source.serverGroup} does not exist")
+    }
+    ServerGroupParameters ancestorParams = ServerGroupParameters.fromParamsMap(ancestorStack.parameters)
+    Names ancestorNames = Names.parseName(description.source.serverGroup)
+
+    task.updateStatus BASE_PHASE, "Done reading ancestor stack name ${description.source.serverGroup}"
+
+    task.updateStatus BASE_PHASE, "Creating new server group description"
+
+    deployDescription.application = description.application ?: ancestorNames.app
+    deployDescription.stack = description.stack ?: ancestorNames.stack
+    deployDescription.freeFormDetails = description.freeFormDetails ?: ancestorNames.detail
+    deployDescription.serverGroupParameters = description.serverGroupParameters ?: new ServerGroupParameters()
+    deployDescription.serverGroupParameters.with {
+      image = description.serverGroupParameters?.image ?: ancestorParams.image
+      instanceType = description.serverGroupParameters?.instanceType ?: ancestorParams.instanceType
+      maxSize = description.serverGroupParameters?.maxSize ?: ancestorParams.maxSize
+      minSize = description.serverGroupParameters?.minSize ?: ancestorParams.minSize
+      networkId = description.serverGroupParameters?.networkId ?: ancestorParams.networkId
+      poolId = description.serverGroupParameters?.poolId ?: ancestorParams.poolId
+      securityGroups = description.serverGroupParameters?.securityGroups ?: ancestorParams.securityGroups
+    }
+    deployDescription.disableRollback = description.disableRollback ?: false
+    deployDescription.timeoutMins = description.timeoutMins ?: ancestorStack.timeoutMins
+    deployDescription.region = description.region
+
+    task.updateStatus BASE_PHASE, "Finished reating new server group description"
+
+    deployDescription
   }
 }

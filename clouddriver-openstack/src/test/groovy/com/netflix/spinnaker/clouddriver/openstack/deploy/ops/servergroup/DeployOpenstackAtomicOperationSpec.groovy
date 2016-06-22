@@ -22,30 +22,37 @@ import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvide
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFactory
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.DeployOpenstackAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
-import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.openstack.domain.ServerGroupParameters
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
+import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
+import org.openstack4j.model.heat.Stack
+import org.openstack4j.model.network.ext.LbPool
 import spock.lang.Specification
 import spock.lang.Subject
 
 class DeployOpenstackAtomicOperationSpec extends Specification {
-  private static final String ACCOUNT_NAME = 'myaccount'
-  private static final APPLICATION = "app"
-  private static final STACK = "stack"
-  private static final DETAILS = "details"
-  private static final REGION = "region"
-  private static final String HEAT_TEMPLATE = "{\"heat_template_version\":\"2013-05-23\"," +
-                                              "\"description\":\"Simple template to test heat commands\"," +
-                                              "\"parameters\":{\"flavor\":{\"default\":\"m1.nano\",\"type\":\"string\"}}," +
-                                              "\"resources\":{\"hello_world\":{\"type\":\"OS::Nova::Server\"," +
-                                              "\"properties\":{\"flavor\":{\"get_param\":\"flavor\"}," +
-                                              "\"image\":\"cirros-0.3.4-x86_64-uec\",\"user_data\":\"\"}}}}"
-  private static final Integer TIMEOUT_MINS = 5
-  private static final Map<String,String> PARAMS_MAP = Collections.emptyMap()
-  private static final Boolean DISABLE_ROLLBACK = false
+  String accountName = 'myaccount'
+  String application = "app"
+  String stack = "stack"
+  String details = "details"
+  String region = "region"
+  Integer timeoutMins = 5
+  Map<String,String> params = [:]
+  Boolean disableRollback = false
+  String instanceType = 'm1.small'
+  int internalPort = 8100
+  String image = 'ubuntu-latest'
+  int maxSize = 5
+  int minSize = 3
+  String networkId = '1234'
+  String poolId = '5678'
+  List<String> securityGroups = ['sg1']
 
   def credentials
+  def serverGroupParams
   def description
   def provider
+  def mockPool
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -57,33 +64,49 @@ class DeployOpenstackAtomicOperationSpec extends Specification {
     OpenstackNamedAccountCredentials creds = Mock(OpenstackNamedAccountCredentials)
     OpenstackProviderFactory.createProvider(creds) >> { provider }
     credentials = new OpenstackCredentials(creds)
-    description = new DeployOpenstackAtomicOperationDescription(stack: STACK, application: APPLICATION, freeFormDetails: DETAILS, region: REGION, heatTemplate: HEAT_TEMPLATE, timeoutMins: TIMEOUT_MINS, parameters: PARAMS_MAP, disableRollback: DISABLE_ROLLBACK, account: ACCOUNT_NAME, credentials: credentials)
+    serverGroupParams = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
+    description = new DeployOpenstackAtomicOperationDescription(stack: stack, application: application, freeFormDetails: details, region: region, serverGroupParameters: serverGroupParams, timeoutMins: timeoutMins, disableRollback: disableRollback, account: accountName, credentials: credentials)
+    mockPool = Mock(LbPool)
+    mockPool.name >> { 'mockpool' }
   }
 
   def "should deploy a heat stack"() {
     given:
     @Subject def operation = new DeployOpenstackAtomicOperation(description)
+    String createdStackName = 'app-stack-details-v000'
 
     when:
     operation.operate([])
 
     then:
-    1 * provider.listStacks(_) >> []
-    1 * provider.deploy(_ as String, _ as String, _ as String, _ as Map<String,String>, _ as Boolean, _ as Long)
+    1 * provider.listStacks(region) >> []
+    1 * provider.getLoadBalancerPool(region, poolId) >> mockPool
+    1 * provider.getInternalLoadBalancerPort(mockPool) >> internalPort
+    1 * provider.deploy(region, createdStackName, _ as String, _ as Map<String,String>, serverGroupParams, _ as Boolean, _ as Long)
     noExceptionThrown()
   }
 
-  def "should throw an exception"() {
+  def "should deploy a heat stack even when stack exists"() {
     given:
     @Subject def operation = new DeployOpenstackAtomicOperation(description)
+    Stack stack = Mock(Stack)
+    String createdStackName = 'app-stack-details-v000'
+    stack.name >> { createdStackName }
+    stack.creationTime >> { '2014-06-03T20:59:46Z' }
+    String newStackName = 'app-stack-details-v001'
 
     when:
     operation.operate([])
 
     then:
-    1 * provider.listStacks(_) >> []
-    1 * provider.deploy(_ as String, _ as String, _ as String, _ as Map<String,String>, _ as Boolean, _ as Long) >> { throw new OpenstackOperationException("foobar") }
-    OpenstackOperationException ex = thrown(OpenstackOperationException)
-    ex.message == "foobar"
+    1 * provider.listStacks(_) >> [stack]
+    1 * provider.getLoadBalancerPool(region, poolId) >> mockPool
+    1 * provider.getInternalLoadBalancerPort(mockPool) >> internalPort
+    1 * provider.deploy(region, newStackName, _ as String, _ as Map<String,String>, serverGroupParams, _ as Boolean, _ as Long)
+    noExceptionThrown()
+  }
+
+  def "should not deploy a stack when exception thrown"() {
+    //TODO
   }
 }

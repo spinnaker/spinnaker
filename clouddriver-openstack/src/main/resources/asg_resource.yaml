@@ -1,0 +1,52 @@
+heat_template_version: 2015-04-30
+description: A load balanced server for Spinnaker
+parameters:
+  flavor:
+    type: string
+    description: flavor used by the servers
+  image:
+    type: string
+    description: Image used for servers
+  internal_port:
+    type: string
+    description: internal port on which each server will listen
+  metadata:
+    type: json
+    description: server instance metadata
+  network_id:
+    type: string
+    description: Network used by each server
+  pool_id:
+    type: string
+    description: Pool to contact
+  security_groups:
+    type: comma_delimited_list
+    description: security groups associate to each server
+resources:
+  port:
+    type: OS::Neutron::Port
+    properties:
+      admin_state_up: true
+      network_id: { get_param: network_id }
+      security_groups: {get_param: security_groups}
+  server:
+    type: OS::Nova::Server
+    properties:
+      flavor: {get_param: flavor}
+      image: {get_param: image}
+      metadata: {get_param: metadata}
+      networks:
+        - port: {get_resource: port}
+  member:
+    type: OS::Neutron::PoolMember
+    properties:
+      pool_id: {get_param: pool_id}
+      address: {get_attr: [server, first_address]}
+      protocol_port: {get_param: internal_port}
+outputs:
+  server_ip:
+    description: IP Address of the load-balanced server
+    value: { get_attr: [server, first_address] }
+  lb_member:
+    description: LB member details
+    value: { get_attr: [member, show] }

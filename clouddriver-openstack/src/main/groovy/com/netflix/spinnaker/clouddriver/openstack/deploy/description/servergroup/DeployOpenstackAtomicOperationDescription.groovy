@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergro
 
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.OpenstackAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.openstack.domain.ServerGroupParameters
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
@@ -27,10 +28,9 @@ class DeployOpenstackAtomicOperationDescription extends OpenstackAtomicOperation
   String application
   String stack
   String freeFormDetails
-  String heatTemplate
-  Map <String, String> parameters
-  Boolean disableRollback
-  Integer timeoutMins
+  ServerGroupParameters serverGroupParameters
+  Boolean disableRollback = false
+  Integer timeoutMins = 5
 }
 
 

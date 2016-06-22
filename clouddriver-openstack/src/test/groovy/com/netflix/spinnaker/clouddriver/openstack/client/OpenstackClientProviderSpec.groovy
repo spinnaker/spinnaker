@@ -20,7 +20,9 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackPro
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerPool
 import com.netflix.spinnaker.clouddriver.openstack.domain.PoolHealthMonitor
+import com.netflix.spinnaker.clouddriver.openstack.domain.ServerGroupParameters
 import com.netflix.spinnaker.clouddriver.openstack.domain.VirtualIP
+import org.openstack4j.api.Builders
 import org.openstack4j.api.OSClient
 import org.openstack4j.api.compute.ComputeFloatingIPService
 import org.openstack4j.api.compute.ComputeSecurityGroupService
@@ -35,11 +37,21 @@ import org.openstack4j.api.networking.NetFloatingIPService
 import org.openstack4j.api.networking.NetworkingService
 import org.openstack4j.api.networking.PortService
 import org.openstack4j.api.networking.SubnetService
-import org.openstack4j.api.networking.ext.*
+import org.openstack4j.api.networking.ext.HealthMonitorService
+import org.openstack4j.api.networking.ext.LbPoolService
+import org.openstack4j.api.networking.ext.LoadBalancerService
+import org.openstack4j.api.networking.ext.MemberService
+import org.openstack4j.api.networking.ext.VipService
 import org.openstack4j.model.common.ActionResponse
-import org.openstack4j.model.compute.*
+import org.openstack4j.model.compute.Address
+import org.openstack4j.model.compute.Addresses
+import org.openstack4j.model.compute.FloatingIP
+import org.openstack4j.model.compute.IPProtocol
+import org.openstack4j.model.compute.SecGroupExtension
+import org.openstack4j.model.compute.Server
 import org.openstack4j.model.heat.Resource
 import org.openstack4j.model.heat.Stack
+import org.openstack4j.model.heat.StackCreate
 import org.openstack4j.model.network.NetFloatingIP
 import org.openstack4j.model.network.Port
 import org.openstack4j.model.network.Subnet
@@ -1486,17 +1498,80 @@ class OpenstackClientProviderSpec extends Specification {
 
   def "deploy heat stack succeeds"() {
     setup:
-    HeatService heat = Mock()
-    StackService stackApi = Mock()
+    Stack stack = Mock(Stack)
+    HeatService heat = Mock(HeatService)
+    StackService stackApi = Mock(StackService)
     mockClient.heat() >> heat
     heat.stacks() >> stackApi
+    String stackName = "mystack"
+    String tmpl = "foo: bar"
+    Map<String, String> subtmpl = [sub:"foo: bar"]
+    String region = 'region'
+    boolean disableRollback = false
+    int timeoutMins = 5
+    String instanceType = 'm1.small'
+    String image = 'ubuntu-latest'
+    int maxSize = 5
+    int minSize = 3
+    String networkId = '1234'
+    String poolId = '5678'
+    List<String> securityGroups = ['sg1']
+    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
+    Map<String, String> params = [
+      'flavor':parameters.instanceType,
+      'image':parameters.image,
+      'internal_port':"$parameters.internalPort".toString(),
+      'max_size':"$parameters.maxSize".toString(),
+      'min_size':"$parameters.minSize".toString(),
+      'network_id':parameters.networkId,
+      'pool_id':parameters.poolId,
+      'security_groups':parameters.securityGroups.join(',')
+    ]
+    StackCreate stackCreate = Builders.stack().disableRollback(disableRollback).files(subtmpl).name(stackName).parameters(params).template(tmpl).timeoutMins(timeoutMins).build()
 
     when:
-    provider.deploy(region, "mystack", "{}", [:], false, 1)
+    provider.deploy(region, stackName, tmpl, subtmpl, parameters, disableRollback, timeoutMins)
 
     then:
-    1 * stackApi.create("mystack", "{}", [:], false, 1)
+    1 * stackApi.create(_ as StackCreate) >> { StackCreate sc ->
+      sc.disableRollback == stackCreate.disableRollback
+      sc.name == stackCreate.name
+      sc.parameters == stackCreate.parameters
+      sc.template == stackCreate.parameters
+      stack
+    }
     noExceptionThrown()
+  }
+
+  def "deploy heat stack fails - exception"() {
+    setup:
+    HeatService heat = Mock(HeatService)
+    StackService stackApi = Mock(StackService)
+    mockClient.heat() >> heat
+    heat.stacks() >> stackApi
+    String stackName = "mystack"
+    String tmpl = "foo: bar"
+    Map<String, String> subtmpl = [sub:"foo: bar"]
+    String region = 'region'
+    boolean disableRollback = false
+    int timeoutMins = 5
+    String instanceType = 'm1.small'
+    String image = 'ubuntu-latest'
+    int maxSize = 5
+    int minSize = 3
+    String networkId = '1234'
+    String poolId = '5678'
+    List<String> securityGroups = ['sg1']
+    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
+
+    when:
+    provider.deploy(region, stackName, tmpl, subtmpl, parameters, disableRollback, timeoutMins)
+
+    then:
+    1 * stackApi.create(_ as StackCreate) >> { throw new OpenstackProviderException('foobar') }
+    Exception e = thrown(OpenstackProviderException)
+    e.message == 'Unable to process request'
+    e.cause.message == 'foobar'
   }
 
   def "get instance ids for stack succeeds" () {
@@ -2047,7 +2122,7 @@ class OpenstackClientProviderSpec extends Specification {
 
     then:
     1 * stackApi.getStackByName(name) >> null
-    def ex = thrown(OpenstackResourceNotFoundException)
+    def ex = thrown(OpenstackProviderException)
     ex.message.contains(name)
   }
 
