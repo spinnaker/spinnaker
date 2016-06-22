@@ -159,7 +159,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
     function configureCustomInstanceTypes(command) {
       let result = { dirty: {} },
         vCpuCount = _.get(command, 'viewState.customInstance.vCpuCount'),
-        memory =  _.get(command, 'viewState.customInstance.memory');
+        memory = _.get(command, 'viewState.customInstance.memory');
       let { zone, regional, region } = command;
       let location = regional ? region : zone;
 

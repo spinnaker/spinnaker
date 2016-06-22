@@ -8,7 +8,7 @@ module.exports = angular
     require('../../core/authentication/authentication.service.js'),
   ])
   .config(function ($provide) {
-    $provide.decorator('$exceptionHandler', function($delegate, settings, authenticationService, $, $log) {
+    $provide.decorator('$exceptionHandler', function($delegate, settings, authenticationService, $) {
       let currentVersion = require('../../../../../version.json');
 
       return function(exception, cause) {

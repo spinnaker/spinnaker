@@ -90,7 +90,7 @@ module.exports = angular.module('spinnaker.serverGroup.customInstanceBuilder.gce
         .map(value => Number(value))
         .value();
 
-      let memory = memoryInMbs/1024;
+      let memory = memoryInMbs / 1024;
 
       return { vCpuCount, memory };
     }
