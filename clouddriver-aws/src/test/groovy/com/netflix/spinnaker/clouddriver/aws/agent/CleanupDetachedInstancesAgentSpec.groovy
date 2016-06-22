@@ -27,6 +27,7 @@ import com.amazonaws.services.ec2.model.TerminateInstancesRequest
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.DetachInstancesAtomicOperation
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -45,8 +46,12 @@ class CleanupDetachedInstancesAgentSpec extends Specification {
       1 * getAmazonEC2(test, "us-east-1", true) >> { amazonEC2USE }
       0 * _
     }
-    def accounts = [test]
-    def agent = new CleanupDetachedInstancesAgent(amazonClientProvider, accounts)
+
+    def accountCredentialsRepository = Mock(AccountCredentialsRepository) {
+      1 * getAll() >> [test]
+      0 * _
+    }
+    def agent = new CleanupDetachedInstancesAgent(amazonClientProvider, accountCredentialsRepository)
 
     when:
     agent.run()
