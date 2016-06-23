@@ -126,11 +126,11 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
           $scope.instance.region = region;
           $scope.instance.vpcId = vpcId;
           $scope.instance.loadBalancers = loadBalancers;
-          $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
 
           $scope.instance.internalDnsName = $scope.instance.instanceId;
           $scope.instance.internalIpAddress = $scope.instance.networkInterfaces[0].networkIP;
           $scope.instance.externalIpAddress = $scope.instance.networkInterfaces[0].accessConfigs[0].natIP;
+          $scope.baseIpAddress = $scope.instance.externalIpAddress || $scope.instance.internalIpAddress;
           $scope.instance.network = getNetwork();
           $scope.instance.subnet = getSubnet();
 
