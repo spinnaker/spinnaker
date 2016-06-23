@@ -213,6 +213,21 @@ services:
     # They typically live in rosco's config/packer directory.
     configDir: /opt/rosco/config/packer
 
+  front50:
+    cassandra:
+      enabled: true
+    redis:
+      enabled: false
+
+    # To use a cloud storage bucket on Amazon S3 or Google Cloud Storage instead
+    # of cassandra, set the storage_bucket, disable cassandra, and enable one of
+    # the service providers.
+    storage_bucket:
+    gcs:
+      enabled: false
+    s3:
+      enabled: false
+
   echo:
     cron:
       # Allow pipeline triggers to run periodically via cron expressions.
