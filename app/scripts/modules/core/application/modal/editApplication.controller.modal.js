@@ -9,9 +9,10 @@ module.exports = angular
     require('../../account/account.service.js'),
     require('../../task/task.read.service.js'),
     require('./applicationProviderFields.component.js'),
+    require('../../config/settings'),
   ])
   .controller('EditApplicationController', function ($window, $state, $uibModalInstance, application, applicationWriter,
-                                                     _, accountService, taskReader) {
+                                                     _, accountService, taskReader, settings) {
     var vm = this;
     this.data = {};
     this.state = {
@@ -20,6 +21,7 @@ module.exports = angular
     vm.errorMsgs = [];
     vm.application = application;
     vm.applicationAttributes = _.cloneDeep(application.attributes);
+    vm.applicationAttributes.instancePort = vm.applicationAttributes.instancePort || settings.defaultInstancePort || null;
     vm.applicationAttributes.cloudProviders = application.attributes.cloudProviders ?
       application.attributes.cloudProviders.split(',') :
       [];

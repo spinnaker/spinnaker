@@ -27,6 +27,7 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
     $scope.state = {
       loading: true,
       standalone: app.isStandalone,
+      instancePort: _.get(app, 'attributes.instancePort') || settings.defaultInstancePort || 80,
     };
 
     $scope.InsightFilterStateModel = InsightFilterStateModel;

@@ -123,7 +123,7 @@
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal'">
         <dt ng-if="instance.privateDnsName">Private DNS Name</dt>
         <dd ng-if="instance.privateDnsName">
-          <a href="http://{{instance.privateDnsName}}:7001" target="_blank">{{instance.privateDnsName}}</a>
+          <a href="http://{{instance.privateDnsName}}:{{state.instancePort}}" target="_blank">{{instance.privateDnsName}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
               text="{{instance.privateDnsName}}"
@@ -132,7 +132,7 @@
         </dd>
         <dt ng-if="instance.publicDnsName">Public DNS Name</dt>
         <dd ng-if="instance.publicDnsName">
-          <a href="http://{{instance.publicDnsName}}:7001" target="_blank">{{instance.publicDnsName}}</a>
+          <a href="http://{{instance.publicDnsName}}:{{state.instancePort}}" target="_blank">{{instance.publicDnsName}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
               text="{{instance.publicDnsName}}"
@@ -141,7 +141,7 @@
         </dd>
         <dt ng-if="instance.privateIpAddress">Private IP Address</dt>
         <dd ng-if="instance.privateIpAddress">
-          <a href="http://{{instance.privateIpAddress}}:7001" target="_blank">{{instance.privateIpAddress}}</a>
+          <a href="http://{{instance.privateIpAddress}}:{{state.instancePort}}" target="_blank">{{instance.privateIpAddress}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
               text="{{instance.privateIpAddress}}"
@@ -150,7 +150,7 @@
         </dd>
         <dt ng-if="instance.publicIpAddress">Public IP Address</dt>
         <dd ng-if="instance.publicIpAddress">
-          <a href="http://{{instance.publicIpAddress}}:7001" target="_blank">{{instance.publicIpAddress}}</a>
+          <a href="http://{{instance.publicIpAddress}}:{{state.instancePort}}" target="_blank">{{instance.publicIpAddress}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
               text="{{instance.publicIpAddress}}"
@@ -189,22 +189,22 @@
     <collapsible-section heading="Logs" ng-if="baseIpAddress">
       <ul>
         <li>
-          <a href="http://{{baseIpAddress}}:7001/AdminLogs/list?view=tomcat/catalina.out" target="_blank">catalina.out</a>
+          <a href="http://{{baseIpAddress}}:{{state.instancePort}}/AdminLogs/list?view=tomcat/catalina.out" target="_blank">catalina.out</a>
         </li>
         <li>
-          <a href="http://{{baseIpAddress}}:7001/AdminLogs/list" target="_blank">Log File Archive</a>
+          <a href="http://{{baseIpAddress}}:{{state.instancePort}}/AdminLogs/list" target="_blank">Log File Archive</a>
         </li>
         <li>
-          <a href="http://{{baseIpAddress}}:7001/AdminLogs/threaddumps" target="_blank">Thread Dumps</a>
+          <a href="http://{{baseIpAddress}}:{{state.instancePort}}/AdminLogs/threaddumps" target="_blank">Thread Dumps</a>
         </li>
         <li>
-          <a href="http://{{baseIpAddress}}:7001/AdminProxyInfo" target="_blank">Admin Proxy Info</a>
+          <a href="http://{{baseIpAddress}}:{{state.instancePort}}/AdminProxyInfo" target="_blank">Admin Proxy Info</a>
         </li>
         <li>
-          <a href="http://{{baseIpAddress}}:7001/AdminProxyStatus" target="_blank">Admin Proxy Status</a>
+          <a href="http://{{baseIpAddress}}:{{state.instancePort}}/AdminProxyStatus" target="_blank">Admin Proxy Status</a>
         </li>
         <li>
-          <a href="http://{{baseIpAddress}}:7001/AdminGCViz/index" target="_blank">GC Visualization</a>
+          <a href="http://{{baseIpAddress}}:{{state.instancePort}}/AdminGCViz/index" target="_blank">GC Visualization</a>
         </li>
         <li>
           <console-output-link instance="instance"></console-output-link>

@@ -116,7 +116,7 @@
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal'">
         <dt ng-if="instance.privateDnsName">Private DNS Name</dt>
         <dd ng-if="instance.privateDnsName">
-          <a href="http://{{instance.privateDnsName}}:7001" target="_blank">{{instance.privateDnsName}}</a>
+          <a href="http://{{instance.privateDnsName}}:{{state.instancePort}}" target="_blank">{{instance.privateDnsName}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
               text="{{instance.privateDnsName}}"
@@ -125,7 +125,7 @@
         </dd>
         <dt ng-if="instance.publicDnsName">Public DNS Name</dt>
         <dd ng-if="instance.publicDnsName">
-          <a href="http://{{instance.publicDnsName}}:7001" target="_blank">{{instance.publicDnsName}}</a>
+          <a href="http://{{instance.publicDnsName}}:{{state.instancePort}}" target="_blank">{{instance.publicDnsName}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
               text="{{instance.publicDnsName}}"
@@ -134,7 +134,7 @@
         </dd>
         <dt ng-if="instance.privateIpAddress">Private IP Address</dt>
         <dd ng-if="instance.privateIpAddress">
-          <a href="http://{{instance.privateIpAddress}}:7001" target="_blank">{{instance.privateIpAddress}}</a>
+          <a href="http://{{instance.privateIpAddress}}:{{state.instancePort}}" target="_blank">{{instance.privateIpAddress}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
               text="{{instance.privateIpAddress}}"
@@ -143,7 +143,7 @@
         </dd>
         <dt ng-if="instance.publicIpAddress">Public IP Address</dt>
         <dd ng-if="instance.publicIpAddress">
-          <a href="http://{{instance.publicIpAddress}}:7001" target="_blank">{{instance.publicIpAddress}}</a>
+          <a href="http://{{instance.publicIpAddress}}:{{state.instancePort}}" target="_blank">{{instance.publicIpAddress}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
               text="{{instance.publicIpAddress}}"
@@ -168,7 +168,7 @@
         <dd ng-repeat-end>{{tag.value}}</dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Logs" ng-if="baseIpAddress">
+    <collapsible-section heading="Console Output" ng-if="baseIpAddress">
       <ul>
         <li>
           <console-output-link instance="instance"></console-output-link>

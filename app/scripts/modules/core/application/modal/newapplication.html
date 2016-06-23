@@ -64,7 +64,7 @@
           </select>
         </div>
       </div>
-      <div class="form-group row">
+      <div class="form-group row" ng-if="newAppModal.application.repoType">
         <div class="col-sm-3 sm-label-right">Repo Project</div>
         <div class="col-sm-9">
           <input type="text"
@@ -73,7 +73,7 @@
                  placeholder="Enter your source repository project name"/>
         </div>
       </div>
-      <div class="form-group row">
+      <div class="form-group row" ng-if="newAppModal.application.repoType">
         <div class="col-sm-3 sm-label-right">Repo Name</div>
         <div class="col-sm-9">
           <input type="text"
@@ -151,6 +151,19 @@
           </label>
         </div>
       </div>
+
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-right">Instance Port</div>
+        <div class="col-sm-2">
+          <input type="number"
+                 min="0"
+                 max="65536"
+                 class="form-control input-sm"
+                 ng-model="newAppModal.application.instancePort"
+                 name="instancePort"/>
+        </div>
+      </div>
+
       <div class="form-group row slide-in animated" ng-if="newAppModal.state.errorMessages.length">
         <div class="col-md-12">
           <div class="alert alert-danger">

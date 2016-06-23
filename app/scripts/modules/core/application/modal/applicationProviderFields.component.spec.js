@@ -11,7 +11,7 @@ describe('Controller: ApplicationProviderFieldsCtrl', function () {
 
   beforeEach(
     window.module(
-      require('./applicationProviderFields.component.js'),
+      require('./applicationProviderFields.component.js')
     )
   );
 

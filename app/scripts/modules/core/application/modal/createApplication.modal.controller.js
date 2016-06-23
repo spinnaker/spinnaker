@@ -10,12 +10,14 @@ module.exports = angular
     require('../../utils/lodash.js'),
     require('../../account/account.service.js'),
     require('../../task/task.read.service.js'),
+    require('../../config/settings'),
     require('./validation/applicationNameValidationMessages.directive.js'),
     require('./validation/validateApplicationName.directive.js'),
     require('./applicationProviderFields.component.js'),
   ])
   .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $uibModalInstance, accountService,
-                                                     applicationWriter, applicationReader, _, taskReader, $timeout) {
+                                                     applicationWriter, applicationReader, _, taskReader, $timeout,
+                                                     settings) {
 
     let applicationLoader = applicationReader.listApplications();
     applicationLoader.then((applications) => this.data.appNameList = _.pluck(applications, 'name'));
@@ -38,6 +40,7 @@ module.exports = angular
     };
     this.application = {
       cloudProviders: [],
+      instancePort: settings.defaultInstancePort || null,
     };
 
     let submitting = () => {
@@ -81,7 +84,6 @@ module.exports = angular
       return applicationWriter.createApplication(this.application)
         .then(waitUntilApplicationIsCreated, createApplicationFailure);
     };
-
 
     this.submit = () => {
       submitting();
