@@ -52,6 +52,8 @@ class KubernetesHealth implements Health {
     if (containerStatus.state.running) {
       if (containerStatus.ready) {
         state = HealthState.Up
+      } else {
+        state = HealthState.Down
       }
     } else if (containerStatus.state.terminated) {
       if (containerStatus.state.terminated.reason == "Completed") {
