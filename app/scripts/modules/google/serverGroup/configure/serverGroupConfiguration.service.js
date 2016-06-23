@@ -174,7 +174,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       if (_.some([ !vCpuCount, !gceCustomInstanceBuilderService.vCpuCountForLocationIsValid(vCpuCount, location)] )) {
         vCpuCount = _.get(command, 'backingData.customInstanceTypes.vCpuList[0]');
         _.set(command, 'viewState.customInstance.vCpuCount', vCpuCount);
-        command.instanceType = null;
       }
 
       _.set(
