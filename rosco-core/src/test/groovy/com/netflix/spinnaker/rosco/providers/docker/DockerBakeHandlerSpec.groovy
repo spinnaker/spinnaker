@@ -174,9 +174,7 @@ class DockerBakeHandlerSpec extends Specification {
 
     then:
       1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
-      1 * packerCommandFactoryMock.buildPackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND,
-                                                      parameterMap,
-                                                      "$configDir/$dockerBakeryDefaults.templateFile")
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$dockerBakeryDefaults.templateFile")
   }
 
   void 'produces packer command with all required parameters for trusty'() {
@@ -210,9 +208,7 @@ class DockerBakeHandlerSpec extends Specification {
 
     then:
       1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
-      1 * packerCommandFactoryMock.buildPackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND,
-                                                      parameterMap,
-                                                      "$configDir/$dockerBakeryDefaults.templateFile")
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$dockerBakeryDefaults.templateFile")
   }
 
   void 'produces packer command with all required parameters for centos'() {
@@ -246,9 +242,7 @@ class DockerBakeHandlerSpec extends Specification {
 
     then:
       1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
-      1 * packerCommandFactoryMock.buildPackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND,
-                                                      parameterMap,
-                                                      "$configDir/$dockerBakeryDefaults.templateFile")
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$dockerBakeryDefaults.templateFile")
   }
 
   void 'produces packer command with all required parameters including appversion and build_host for trusty'() {
@@ -289,9 +283,7 @@ class DockerBakeHandlerSpec extends Specification {
     then:
       1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >>
         [targetImageName, appVersionStr, fullyQualifiedPackageName]
-      1 * packerCommandFactoryMock.buildPackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND,
-                                                      parameterMap,
-                                                      "$configDir/$dockerBakeryDefaults.templateFile")
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$dockerBakeryDefaults.templateFile")
   }
 
   void 'throws exception when virtualization settings are not found for specified operating system'() {
@@ -310,7 +302,7 @@ class DockerBakeHandlerSpec extends Specification {
                                                                   debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      dockerBakeHandler.producePackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND, bakeRequest)
+      dockerBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
       IllegalArgumentException e = thrown()

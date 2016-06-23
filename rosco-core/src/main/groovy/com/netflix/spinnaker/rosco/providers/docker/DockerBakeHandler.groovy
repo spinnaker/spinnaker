@@ -30,8 +30,6 @@ public class DockerBakeHandler extends CloudProviderBakeHandler {
   private static final String BUILDER_TYPE = "docker"
   private static final String IMAGE_NAME_TOKEN = "Repository:"
 
-  static final String START_DOCKER_SERVICE_BASE_COMMAND = "sudo service docker start ; "
-
   @Autowired
   RoscoDockerConfiguration.DockerBakeryDefaults dockerBakeryDefaults
 
@@ -72,11 +70,6 @@ public class DockerBakeHandler extends CloudProviderBakeHandler {
       docker_target_image     : imageName,
       docker_target_repository: dockerBakeryDefaults.targetRepository
     ]
-  }
-
-  @Override
-  String getBaseCommand() {
-    return START_DOCKER_SERVICE_BASE_COMMAND
   }
 
   @Override
