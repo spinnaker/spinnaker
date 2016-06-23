@@ -70,9 +70,9 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
 
   @Canonical
   static class Capacity {
-    int min
-    int max
-    int desired
+    Integer min
+    Integer max
+    Integer desired
   }
 
   @Canonical

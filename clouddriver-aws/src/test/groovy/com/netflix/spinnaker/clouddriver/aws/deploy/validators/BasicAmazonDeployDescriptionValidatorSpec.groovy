@@ -98,13 +98,14 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
     def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-east-1": []])
     description.capacity.min = 5
     description.capacity.max = 3
+    description.capacity.desired = 4
     def errors = Mock(Errors)
 
     when:
     validator.validate([], description, errors)
 
     then:
-    1 * errors.rejectValue('capacity', _, ['5', '3', '0'], _)
+    1 * errors.rejectValue('capacity', _, ['5', '3', '4'], _)
 
     when:
     description.capacity.min = 3
