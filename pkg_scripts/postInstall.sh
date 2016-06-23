@@ -17,14 +17,9 @@ fi
 # deck settings
 /opt/spinnaker/bin/reconfigure_spinnaker.sh
 
-# vhosts
-rm -rf /etc/apache2/sites-enabled/*.conf
-
+# enable deck and reverse proxy in apache
 /usr/sbin/a2ensite spinnaker
 /usr/sbin/a2enmod proxy_http
-
-sed -i "s/Listen\ 80/Listen 127.0.0.1:9000/" /etc/apache2/ports.conf
-
 service apache2 restart
 
 # Install cassandra keyspaces
@@ -36,5 +31,3 @@ cqlsh -f "/opt/spinnaker/cassandra/create_front50_keyspace.cql"
 for s in clouddriver orca front50 rosco echo gate igor; do
     echo manual | sudo tee /etc/init/$s.override
 done
-
-
