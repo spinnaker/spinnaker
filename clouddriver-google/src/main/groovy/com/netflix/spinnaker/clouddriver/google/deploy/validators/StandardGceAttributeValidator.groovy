@@ -249,7 +249,7 @@ class StandardGceAttributeValidator {
 
   /**
    * This list should be kept in sync with the corresponding list in deck:
-   * @link { https://github.com/spinnaker/deck/tree/master/app/scripts/modules/google/serverGroup/configure/wizard/customInstance/customInstanceBuilder.gce.service.js }
+   * @link { https://github.com/spinnaker/deck/tree/master/app/scripts/modules/google/instance/gceVCpuMaxByLocation.value.js }
    */
   def vCpuMaxByLocation = [
     'us-east1-b': 32,
@@ -267,7 +267,7 @@ class StandardGceAttributeValidator {
     'asia-east1-c': 32,
     'us-east1': 32,
     'us-central1': 32,
-    'europe-west1': 32,
+    'europe-west1': 16,
     'asia-east1': 32
   ]
 
