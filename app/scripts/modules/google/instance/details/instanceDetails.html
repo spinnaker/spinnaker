@@ -71,7 +71,7 @@
           {{instance.placement.availabilityZone || '(Unknown)'}}
         </dd>
         <dt>Type</dt>
-        <dd>{{instance.instanceType || '(Unknown)'}}</dd>
+        <dd>{{instance.instanceType || '(Unknown)' | customInstanceFilter}}</dd>
         <dt ng-if="instance.serverGroup">Server Group</dt>
         <dd ng-if="instance.serverGroup">
           <a ui-sref="^.serverGroup({region: instance.region,

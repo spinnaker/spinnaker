@@ -3,8 +3,8 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.customInstanceBuilder.gce.service', [
-  require('../../../../../core/utils/lodash.js'),
-  require('../../../../instance/gceVCpuMaxByLocation.value.js'),
+  require('../../../core/utils/lodash.js'),
+  require('../gceVCpuMaxByLocation.value.js'),
 ])
   .factory('gceCustomInstanceBuilderService', function(gceVCpuMaxByLocation, _) {
 

@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
   require('../../../core/instance/instanceTypeService.js'),
   require('../../../core/naming/naming.service.js'),
   require('../../../core/utils/lodash.js'),
-  require('./wizard/customInstance/customInstanceBuilder.gce.service.js'),
+  require('./../../instance/custom/customInstanceBuilder.gce.service.js'),
 ])
   .factory('gceServerGroupCommandBuilder', function (settings, Restangular, $q,
                                                      accountService, instanceTypeService, namingService, _,

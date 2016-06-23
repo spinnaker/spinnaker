@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
   require('../../../core/subnet/subnet.read.service.js'),
   require('../../image/image.reader.js'),
   require('../../instance/gceInstanceType.service.js'),
-  require('./wizard/customInstance/customInstanceBuilder.gce.service.js'),
+  require('./../../instance/custom/customInstanceBuilder.gce.service.js'),
 ])
   .factory('gceServerGroupConfigurationService', function(gceImageReader, accountService, securityGroupReader,
                                                           gceInstanceTypeService, cacheInitializer,

@@ -30,6 +30,7 @@ module.exports = angular.module('spinnaker.gce', [
   require('../core/pipeline/config/stages/shrinkCluster/gce/gceShrinkClusterStage.js'),
   require('./instance/gceInstanceType.service.js'),
   require('./instance/gceMultiInstanceTask.transformer.js'),
+  require('./instance/custom/customInstance.filter.js'),
   require('./loadBalancer/loadBalancer.transformer.js'),
   require('./loadBalancer/details/loadBalancerDetail.controller.js'),
   require('./loadBalancer/configure/createLoadBalancer.controller.js'),

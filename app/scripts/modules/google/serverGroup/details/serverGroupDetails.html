@@ -156,7 +156,7 @@
         <dt>Image</dt>
         <dd>{{ctrl.serverGroup.launchConfig.imageId}}</dd>
         <dt>Instance Type</dt>
-        <dd>{{ctrl.serverGroup.launchConfig.instanceType}}</dd>
+        <dd>{{ctrl.serverGroup.launchConfig.instanceType | customInstanceFilter }}</dd>
         <dt ng-repeat-start="diskDescription in ctrl.serverGroup.diskDescriptions">Disk{{diskDescription.countSuffix}}</dt>
         <dd ng-repeat-end>{{diskDescription.finalLabel}}</dd>
         <dt ng-if="ctrl.serverGroup.serviceAccountEmail">Service Account</dt>
