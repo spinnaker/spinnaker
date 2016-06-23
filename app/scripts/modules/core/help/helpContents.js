@@ -113,7 +113,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'gce.instance.serviceAccount': '<p>Service accounts authenticate applications running on your virtual machine instances to other Google Cloud Platform services. Valid values are either "default" or the full email address of a custom service account.</p>',
     'gce.instance.authScopes': '<p>Service account scopes specify which Google Cloud Platform APIs your instances can authenticate with, and define the level of access that your instances have with those services.</p>',
     'gce.instance.authScopes.cloud-platform': '<p>The instances in this server group have full API access to all Google Cloud services.</p>',
-    'gce.instanceType.32core': '<p>32-core machine types are in Beta and are available only in Ivy Bridge and Haswell zones. Attempting to provision a 32-core machine in an unsupported zone will result in a <b>machine type not found</b> error message.</p>',
+    'gce.instanceType.32core': '<p>32-core machine types are in Beta and are available only in Ivy Bridge and Haswell zones.</p><p>They are not available in these locations:<ul><li>us-central1-a</li><li>europe-west1-b</li><li>europe-west1 (when deploying regionally)</li></p>',
     'gce.loadBalancer.detail': '<p>(Optional) <b>Detail</b> is a string of free-form alphanumeric characters and hyphens to describe any other variables.</p>',
     'gce.loadBalancer.advancedSettings.healthInterval': '<p>Configures the interval, in seconds, between load balancer health checks.</p><p>Default: <b>10</b></p>',
     'gce.loadBalancer.advancedSettings.healthyThreshold': '<p>Configures the number of healthy observations before reinstituting an instance into the load balancer’s traffic rotation.</p><p>Default: <b>10</b></p>',
