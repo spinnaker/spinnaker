@@ -13,5 +13,5 @@ module.exports = angular.module('spinnaker.gce.customInstance.filter', [
         return `${vCpuCount} vCPU / ${memory} GB RAM`;
       }
       return instanceTypeString;
-    }
+    };
   });

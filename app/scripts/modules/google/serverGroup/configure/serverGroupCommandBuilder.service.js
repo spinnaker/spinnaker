@@ -348,6 +348,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           disableImageSelection: true,
           useSimpleCapacity: true,
           mode: 'editPipeline',
+          regionalEnabled: settings.providers.gce.regionalEnabled,
           submitButtonLabel: 'Done',
         };
 

@@ -12,6 +12,8 @@ module.exports = angular.module('spinnaker.gce.serverGroup.transformer', [
     }
 
     function convertServerGroupCommandToDeployConfiguration(base) {
+      var truncatedZones = base.backingData.filtered.truncatedZones;
+
       // use _.defaults to avoid copying the backingData, which is huge and expensive to copy over
       var command = _.defaults({backingData: [], viewState: []}, base);
       if (base.viewState.mode !== 'clone') {
@@ -19,7 +21,7 @@ module.exports = angular.module('spinnaker.gce.serverGroup.transformer', [
       }
       command.cloudProvider = 'gce';
       command.availabilityZones = {};
-      command.availabilityZones[command.region] = [base.zone];
+      command.availabilityZones[command.region] = base.zone ? [base.zone] : truncatedZones;
       command.account = command.credentials;
       delete command.viewState;
       delete command.backingData;
