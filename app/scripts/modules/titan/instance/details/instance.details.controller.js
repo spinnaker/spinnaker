@@ -13,6 +13,7 @@ module.exports = angular.module('spinnaker.instance.detail.titan.controller', [
   require('../../../core/history/recentHistory.service.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
   require('../../../core/cloudProvider/cloudProvider.registry.js'),
+  require('../../../core/instance/details/instanceLinks.component'),
 ])
   .controller('titanInstanceDetailsCtrl', function ($scope, $q, $state, $uibModal, InsightFilterStateModel,
                                                     instanceWriter, confirmationModalService, recentHistoryService,
@@ -27,6 +28,7 @@ module.exports = angular.module('spinnaker.instance.detail.titan.controller', [
     };
 
     $scope.InsightFilterStateModel = InsightFilterStateModel;
+    $scope.application = app;
 
     function extractHealthMetrics(instance, latest) {
       // do not backfill on standalone instances

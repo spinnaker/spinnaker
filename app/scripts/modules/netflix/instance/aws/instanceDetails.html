@@ -186,46 +186,13 @@
         </li>
       </ul>
     </collapsible-section>
-    <collapsible-section heading="Logs" ng-if="baseIpAddress">
+    <collapsible-section heading="Console Output" ng-if="baseIpAddress">
       <ul>
-        <li>
-          <a href="http://{{baseIpAddress}}:{{state.instancePort}}/AdminLogs/list?view=tomcat/catalina.out" target="_blank">catalina.out</a>
-        </li>
-        <li>
-          <a href="http://{{baseIpAddress}}:{{state.instancePort}}/AdminLogs/list" target="_blank">Log File Archive</a>
-        </li>
-        <li>
-          <a href="http://{{baseIpAddress}}:{{state.instancePort}}/AdminLogs/threaddumps" target="_blank">Thread Dumps</a>
-        </li>
-        <li>
-          <a href="http://{{baseIpAddress}}:{{state.instancePort}}/AdminProxyInfo" target="_blank">Admin Proxy Info</a>
-        </li>
-        <li>
-          <a href="http://{{baseIpAddress}}:{{state.instancePort}}/AdminProxyStatus" target="_blank">Admin Proxy Status</a>
-        </li>
-        <li>
-          <a href="http://{{baseIpAddress}}:{{state.instancePort}}/AdminGCViz/index" target="_blank">GC Visualization</a>
-        </li>
         <li>
           <console-output-link instance="instance"></console-output-link>
         </li>
       </ul>
     </collapsible-section>
-    <collapsible-section heading="Netflix Configuration" ng-if="baseIpAddress">
-      <ul>
-        <li>
-          <a href="http://{{baseIpAddress}}:8077/baseserver#view=props" target="_blank">Properties Console</a>
-        </li>
-        <li>
-          <a href="http://{{baseIpAddress}}:8077/baseserver#view=jars" target="_blank">Libraries Console</a>
-        </li>
-        <li>
-          <a href="http://{{baseIpAddress}}:8077/AdminNetflixConfiguration/machineReadableProps" target="_blank">Machine Readable Properties</a>
-        </li>
-        <li>
-          <a href="http://{{baseIpAddress}}:8077/AdminNetflixConfiguration/webapp/META-INF/MANIFEST.MF" target="_blank">Manifest</a>
-        </li>
-      </ul>
-    </collapsible-section>
+    <instance-links address="baseIpAddress" application="application" instance="instance"></instance-links>
   </div>
 </div>

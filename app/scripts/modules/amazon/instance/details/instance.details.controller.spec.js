@@ -54,7 +54,7 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
           }
         })
       );
-      var application = {};
+      var application = { attributes: {} };
 
       applicationReader.addSectionToApplication({key: 'loadBalancers', lazy: true}, application);
       application.loadBalancers.data = [];
@@ -102,7 +102,7 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
         })
       );
 
-      var application = {};
+      var application = { attributes: {} };
 
       applicationReader.addSectionToApplication({key: 'loadBalancers', lazy: true}, application);
       application.loadBalancers.data = [];

@@ -13,6 +13,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
   require('../../../core/history/recentHistory.service.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
   require('../../../core/cloudProvider/cloudProvider.registry.js'),
+  require('../../../core/instance/details/instanceLinks.component'),
 ])
   .controller('gceInstanceDetailsCtrl', function ($scope, $state, $uibModal, InsightFilterStateModel,
                                                   instanceWriter, confirmationModalService, recentHistoryService,
@@ -27,6 +28,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
     };
 
     $scope.InsightFilterStateModel = InsightFilterStateModel;
+    $scope.application = app;
 
     function extractHealthMetrics(instance, latest) {
       // do not backfill on standalone instances

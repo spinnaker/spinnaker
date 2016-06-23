@@ -1,0 +1,7 @@
+<collapsible-section ng-repeat="section in $ctrl.sections" heading="{{section.title}}" ng-if="section.links.length">
+  <ul>
+    <li ng-repeat="link in section.links">
+      <a href="{{link.url}}" target="_blank">{{link.title}}</a>
+    </li>
+  </ul>
+</collapsible-section>

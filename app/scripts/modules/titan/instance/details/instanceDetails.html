@@ -31,20 +31,9 @@
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
             <li><a href ng-click="ctrl.enableInstanceInDiscovery()" ng-if="ctrl.canRegisterWithDiscovery()">Enable in Discovery</a></li>
             <li><a href ng-click="ctrl.disableInstanceInDiscovery()" ng-if="ctrl.hasHealthState('Discovery', 'Up')">Disable in Discovery</a></li>
-            <!--<li><a href ng-click="ctrl.registerInstanceWithLoadBalancer()" ng-if="ctrl.canRegisterWithLoadBalancer()">Register with Load Balancer</a></li>-->
-            <!--<li><a href ng-click="ctrl.deregisterInstanceFromLoadBalancer()" ng-if="ctrl.canDeregisterFromLoadBalancer()">Deregister from Load Balancer</a></li>-->
-            <!--<li role="presentation" class="divider" ng-if="instance.health.length > 0"></li>-->
             <li><a href ng-click="ctrl.terminateInstance()">Terminate</a></li>
           </ul>
         </div>
-        <!--<div class="dropdown" ng-if="instance.insightActions.length > 0" uib-dropdown>-->
-          <!--<button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>-->
-            <!--Insight <span class="caret"></span>-->
-          <!--</button>-->
-          <!--<ul class="dropdown-menu" uib-dropdown-menu role="menu">-->
-            <!--<li ng-repeat="action in instance.insightActions"><a target=_blank href="{{action.url}}">{{action.label}}</a></li>-->
-          <!--</ul>-->
-        <!--</div>-->
         <div class="clearfix"></div>
       </div>
     </div>
@@ -114,22 +103,11 @@
         <p>Could not find the instance. No other details provided.</p>
       </div>
     </div>
-    <!--<collapsible-section heading="SSH" ng-if="!instance.notFound">-->
-      <!--<dl>-->
-        <!--<dt ng-if="instance.sshLink">SSH into this docker container</dt>-->
-        <!--<dd ng-if="instance.sshLink"><a href="{{instance.sshLink}}" target="_blank">SSH</a></dd>-->
-      <!--</dl>-->
-    <!--</collapsible-section>-->
     <collapsible-section heading="Logs">
       <ul>
         <li><a href="{{instance.stdoutLive}}" target="_blank">Console Output</a></li>
       </ul>
     </collapsible-section>
-    <!--<collapsible-section heading="Netflix Configuration" ng-if="baseIpAddress">-->
-      <!--<ul>-->
-        <!--<li>Properties Console (TBD)</li>-->
-        <!--<li>Machine Readable Properties (TBD)</li>-->
-      <!--</ul>-->
-    <!--</collapsible-section>-->
+    <instance-links address="baseIpAddress" application="application" instance="instance"></instance-links>
   </div>
 </div>

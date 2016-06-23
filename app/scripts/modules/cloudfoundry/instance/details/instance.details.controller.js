@@ -13,6 +13,7 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
   require('../../../core/history/recentHistory.service.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
   require('../../../core/cloudProvider/cloudProvider.registry.js'),
+  require('../../../core/instance/details/instanceLinks.component'),
 ])
   .controller('cfInstanceDetailsCtrl', function ($scope, $q, $state, $uibModal, InsightFilterStateModel,
                                                  instanceWriter, confirmationModalService, recentHistoryService,
@@ -26,6 +27,7 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
       standalone: app.isStandalone,
     };
 
+    $scope.application = app;
     $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractHealthMetrics(instance, latest) {
