@@ -33,9 +33,9 @@ module.exports = angular
     accountService.listAccounts().then((accounts) => {
       $q.all(accounts.map((account) => accountService.getAccountDetails(account.name)))
         .then((details) => {
-          this.accounts = details;
+          this.accounts = details.filter( account => account.regions );
           this.regionsByAccount = {};
-          details.forEach((account) => {
+          this.accounts.forEach((account) => {
             this.regionsByAccount[account.name] = ['*'].concat(account.regions.map((region) => region.name));
           });
         });
