@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.cf.security
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import org.cloudfoundry.client.lib.CloudCredentials
 
@@ -33,8 +34,13 @@ class CloudFoundryAccountCredentials implements AccountCredentials<CloudCredenti
   String username
   String environment
   String accountType
+
+  @JsonIgnore
   String password
+
   String artifactUsername
+
+  @JsonIgnore
   String artifactPassword
 
   @Override
