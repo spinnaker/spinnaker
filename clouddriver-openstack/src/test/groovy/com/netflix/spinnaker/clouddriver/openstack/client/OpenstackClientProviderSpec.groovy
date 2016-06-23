@@ -307,7 +307,7 @@ class OpenstackClientProviderSpec extends Specification {
     def id = UUID.randomUUID().toString()
 
     when:
-    def actual = provider.getSecurityGroup(region, id)
+    provider.getSecurityGroup(region, id)
 
     then:
     1 * securityGroupService.get(id)
@@ -329,6 +329,39 @@ class OpenstackClientProviderSpec extends Specification {
     then:
     1 * securityGroupService.get(id) >> { throw new RuntimeException('foo')}
     thrown(OpenstackProviderException)
+  }
+
+  def "get all security groups by region"() {
+    setup:
+    ComputeService compute = Mock()
+    ComputeSecurityGroupService securityGroupService = Mock()
+    mockClient.compute() >> compute
+    compute.securityGroups() >> securityGroupService
+    def expected = [new NovaSecGroupExtension()]
+
+    when:
+    def actual = provider.getSecurityGroups(region)
+
+    then:
+    1 * securityGroupService.list() >> expected
+    expected == actual
+  }
+
+  def "get all security groups by region throws exception"() {
+    setup:
+    ComputeService compute = Mock()
+    ComputeSecurityGroupService securityGroupService = Mock()
+    mockClient.compute() >> compute
+    compute.securityGroups() >> securityGroupService
+    def exception = new RuntimeException('foo')
+
+    when:
+    provider.getSecurityGroups(region)
+
+    then:
+    1 * securityGroupService.list() >> { throw exception }
+    def e = thrown(OpenstackProviderException)
+    e.cause == exception
   }
 
   def "get instances success"() {

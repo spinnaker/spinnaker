@@ -477,6 +477,15 @@ abstract class OpenstackClientProvider {
   }
 
   /**
+   * Returns the list of all security groups for the given region
+   */
+  List<SecGroupExtension> getSecurityGroups(String region) {
+    handleRequest {
+      getRegionClient(region).compute().securityGroups().list()
+    }
+  }
+
+  /**
    * Create a Spinnaker Server Group (Openstack Heat Stack).
    * @param stackName
    * @param heatTemplate
