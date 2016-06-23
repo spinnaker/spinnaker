@@ -25,8 +25,9 @@
           <select class="form-control input-sm"
                   ng-model="exception.region"
                   ng-if="exception.account"
-                  ng-options="region for region in vm.regionsByAccount[exception.account]"
-              ></select>
+              >
+            <option ng-repeat="region in vm.regionsByAccount[exception.account]" value="{{region}}">{{region}}</option>
+          </select>
         </td>
         <td>
           <input type="text" class="form-control input-sm"
