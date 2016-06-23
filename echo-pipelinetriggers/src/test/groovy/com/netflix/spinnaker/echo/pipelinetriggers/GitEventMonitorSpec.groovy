@@ -57,8 +57,8 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
     })
 
     where:
-    event              | trigger             | triggerType
-    createGitEvent()   | enabledStashTrigger | 'stash'
+    event            | trigger
+    createGitEvent() | enabledStashTrigger
   }
 
   def "attaches stash trigger to the pipeline"() {
@@ -115,9 +115,9 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
     0 * subscriber._
 
     where:
-    trigger                                 | description
-    disabledStashTrigger                    | "disabled stash trigger"
-    nonJenkinsTrigger                       | "non-Jenkins"
+    trigger              | description
+    disabledStashTrigger | "disabled stash trigger"
+    nonJenkinsTrigger    | "non-Jenkins"
 
     pipeline = createPipelineWith(trigger)
     event = createGitEvent()
@@ -140,6 +140,7 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
     enabledStashTrigger.withSlug("notSlug")       | "different slug"
     enabledStashTrigger.withSource("github")      | "different source"
     enabledStashTrigger.withProject("notProject") | "different project"
+    enabledStashTrigger.withBranch("notMaster")   | "different branch"
 
     pipeline = createPipelineWith(trigger)
     event = createGitEvent()
@@ -149,7 +150,6 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
   def "does not trigger a pipeline that has an enabled stash trigger with missing #field"() {
     given:
     pipelineCache.getPipelines() >> [badPipeline, goodPipeline]
-    println objectMapper.writeValueAsString(createGitEvent())
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -166,5 +166,52 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
     event = createGitEvent()
     goodPipeline = createPipelineWith(enabledStashTrigger)
     badPipeline = createPipelineWith(trigger)
+  }
+
+  @Unroll
+  def "triggers events on branch when #description"() {
+    given:
+    def gitEvent = createGitEvent()
+    gitEvent.content.branch = eventBranch
+    def trigger = enabledStashTrigger.atBranch(triggerBranch)
+    def pipeline = createPipelineWith(trigger)
+    pipelineCache.getPipelines() >> [pipeline]
+
+    when:
+    monitor.processEvent(objectMapper.convertValue(gitEvent, Event))
+
+    then:
+    1 * subscriber.call({
+      it.application == pipeline.application && it.name == pipeline.name
+    })
+
+    where:
+    eventBranch         | triggerBranch       | description
+    'whatever'          | null                | 'no branch set in trigger'
+    'whatever'          | ""                  | 'empty string in trigger'
+    'master'            | 'master'            | 'branches are identical'
+    'ref/origin/master' | 'ref/origin/master' | 'branches have slashes'
+    'regex12345'        | 'regex.*'           | 'branches match pattern'
+  }
+
+  @Unroll
+  def "does not triggers events on branch on mistmatch branch"() {
+    given:
+    def gitEvent = createGitEvent()
+    gitEvent.content.branch = eventBranch
+    def trigger = enabledStashTrigger.atBranch(triggerBranch)
+    def pipeline = createPipelineWith(trigger)
+    pipelineCache.getPipelines() >> [pipeline]
+
+    when:
+    monitor.processEvent(objectMapper.convertValue(gitEvent, Event))
+
+    then:
+    0 * subscriber._
+
+    where:
+    eventBranch  | triggerBranch
+    'master'     | 'featureBranch'
+    'regex12345' | 'not regex.*'
   }
 }

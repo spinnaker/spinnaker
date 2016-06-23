@@ -40,5 +40,10 @@ class GitEvent extends TriggerEvent {
   String getHash() {
     return content.hash
   }
+
+  @JsonIgnore
+  String getBranch() {
+    return content.branch
+  }
 }
 
