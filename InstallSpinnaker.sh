@@ -17,9 +17,9 @@ GOOGLE_ENABLED=false  # set by --cloud_providers
 
 # Set by --local-install, means download packages
 # rather than adding additional external repositories.
-DOWNLOAD=false        
+DOWNLOAD=false
 
-# Set by --quiet, wont prompt or echo status output.                      
+# Set by --quiet, wont prompt or echo status output.
 QUIET=false
 
 # Set by --dependencies only,
@@ -56,9 +56,9 @@ fi
 
 if [[ "$DISTRO" == "Ubuntu" ]]; then
   if [[ "${DISTRIB_RELEASE%%.*}" -lt 14 ]]; then
-  echo "Not a supported version of Ubuntu"
-  echo "Version is $DISTRIB_RELEASE we require 14.04 or higher"
-  exit 1
+    echo "Not a supported version of Ubuntu"
+    echo "Version is $DISTRIB_RELEASE we require 14.04 or higher"
+    exit 1
   fi
 else
   echo "Not a supported operating system"
@@ -88,7 +88,7 @@ usage: $0 [--cloud_provider <aws|google|azure|none>]
     --google_region <arg>       Default region for google.
     --google_zone <arg>         Default zone for google.
 
-    --azure_region <arg>	Default region for Azure.
+    --azure_region <arg>        Default region for Azure.
 
     --quiet                     Sets cloud provider to "none". You will need to
                                 edit /etc/default/spinnaker manually
@@ -126,7 +126,7 @@ EOF
 
 function echo_status() {
   if ! $QUIET; then
-      echo "$@"
+    echo "$@"
   fi
 }
 
@@ -135,43 +135,43 @@ function process_provider_list() {
 
   for provider in "${arr[@]}" ; do
     case $provider in
-        aws)
-          echo "enabling aws provider"
-          AWS_ENABLED=true
-          ;;
-        amazon)
-          echo "enabling aws provider"
-          AWS_ENABLED=true
-          ;;
+      aws)
+        echo "enabling aws provider"
+        AWS_ENABLED=true
+        ;;
+      amazon)
+        echo "enabling aws provider"
+        AWS_ENABLED=true
+        ;;
 
-        azure)
-          echo "enabling azure provider"
-          AZURE_ENABLED=true
-          ;;
+      azure)
+        echo "enabling azure provider"
+        AZURE_ENABLED=true
+        ;;
 
-        google)
-          echo "enabling google provider"
-          GOOGLE_ENABLED=true
-          ;;
-        gce)
-          echo "enabling google provider"
-          GOOGLE_ENABLED=true
-          ;;
+      google)
+        echo "enabling google provider"
+        GOOGLE_ENABLED=true
+        ;;
+      gce)
+        echo "enabling google provider"
+        GOOGLE_ENABLED=true
+        ;;
 
-        both)
-          echo "WARNING: 'both' is deprecated. Use 'aws google' instead"
-          echo "enabling both aws and google provider"
-          GOOGLE_ENABLED=true
-          AWS_ENABLED=true
-          ;;
+      both)
+        echo "WARNING: 'both' is deprecated. Use 'aws google' instead"
+        echo "enabling both aws and google provider"
+        GOOGLE_ENABLED=true
+        AWS_ENABLED=true
+        ;;
 
-        none)
-          ;;
+      none)
+        ;;
 
-        *)
-          echo "Error invalid cloud provider: $PROVIDER"
-          echo "cannot continue installation; exiting."
-          exit 13
+      *)
+        echo "Error invalid cloud provider: $PROVIDER"
+        echo "cannot continue installation; exiting."
+        exit 13
     esac
   done
 }
@@ -183,66 +183,66 @@ function process_args() {
     shift
     case $key in
       --cloud_provider)
-          CLOUD_PROVIDER="$1"
-	  process_provider_list
-          shift
-          ;;
+        CLOUD_PROVIDER="$1"
+        process_provider_list
+        shift
+        ;;
       --aws_region)
-          AWS_REGION="$1"
-          shift
-          ;;
+        AWS_REGION="$1"
+        shift
+        ;;
       --google_region)
-          GOOGLE_REGION="$1"
-          shift
-          ;;
+        GOOGLE_REGION="$1"
+        shift
+        ;;
       --azure_region)
-	  AZURE_REGION="$1"
-	  shift
-	  ;;
+        AZURE_REGION="$1"
+        shift
+        ;;
       --google_zone)
-          GOOGLE_ZONE="$1"
-          shift
-          ;;
+        GOOGLE_ZONE="$1"
+        shift
+        ;;
       --repository)
-          REPOSITORY_URL="$1"
-          shift
-          ;;
+        REPOSITORY_URL="$1"
+        shift
+        ;;
       --google_cloud_logging)
-          GOOGLE_CLOUD_LOGGING="true"
-          ;;
+        GOOGLE_CLOUD_LOGGING="true"
+        ;;
       --google_cloud_monitoring)
-          GOOGLE_CLOUD_MONITORING="true"
-          ;;
+        GOOGLE_CLOUD_MONITORING="true"
+        ;;
       --dependencies_only)
-          CLOUD_PROVIDER="none"
-          DEPENDENCIES_ONLY=true
-          ;;
+        CLOUD_PROVIDER="none"
+        DEPENDENCIES_ONLY=true
+        ;;
       --local-install)
-          DOWNLOAD=true
-          ;;
+        DOWNLOAD=true
+        ;;
       --quiet|-q)
-          QUIET=true
-          CLOUD_PROVIDER="none"
-          AWS_REGION="none"
-          AZURE_REGION="none"
-          GOOGLE_REGION="none"
-          GOOGLE_ZONE="none"
-          ;;
+        QUIET=true
+        CLOUD_PROVIDER="none"
+        AWS_REGION="none"
+        AZURE_REGION="none"
+        GOOGLE_REGION="none"
+        GOOGLE_ZONE="none"
+        ;;
       --home_dir)
-          homebase="$1"
-          if [[ "$(basename $homebase)" == "spinnaker" ]]; then
-              echo "stripping trailing 'spinnaker' from --home_dir=$homebase"
-              homebase=$(dirname $homebase)
-          fi
-          shift
-          ;;
+        homebase="$1"
+        if [[ "$(basename $homebase)" == "spinnaker" ]]; then
+          echo "stripping trailing 'spinnaker' from --home_dir=$homebase"
+          homebase=$(dirname $homebase)
+        fi
+        shift
+        ;;
       --help|-help|-h)
-          print_usage
-          exit 13
-          ;;
+        print_usage
+        exit 13
+        ;;
       *)
-          echo "ERROR: Unknown argument '$key'"
-          exit -1
+        echo "ERROR: Unknown argument '$key'"
+        exit -1
     esac
   done
 }
@@ -295,7 +295,7 @@ GOOGLE_METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
 function get_google_metadata_value() {
   local path="$1"
   local value=$(curl -s -f -H "Metadata-Flavor: Google" \
-      $GOOGLE_METADATA_URL/$path)
+                     $GOOGLE_METADATA_URL/$path)
 
   if [[ $? -eq 0 ]]; then
     echo "$value"
@@ -321,9 +321,9 @@ function write_default_value() {
   local value="$2"
 
   if egrep "^$name=" /etc/default/spinnaker > /dev/null; then
-      sed -i.bak "s/^$name=.*/$name=$value/" /etc/default/spinnaker
+    sed -i.bak "s/^$name=.*/$name=$value/" /etc/default/spinnaker
   else
-      bash -c "echo $name=$value >> /etc/default/spinnaker"
+    bash -c "echo $name=$value >> /etc/default/spinnaker"
   fi
 }
 
@@ -357,21 +357,21 @@ function set_defaults_from_environ() {
   local google_project_id=$(get_google_metadata_value "project/project-id")
 
   if [[ -n "$google_project_id" ]]; then
-      on_platform="google"
-      set_google_defaults_from_environ
+    on_platform="google"
+    set_google_defaults_from_environ
   fi
 
   local aws_az=$(get_aws_metadata_value "/placement/availability-zone")
 
   if [[ -n "$aws_az" ]]; then
-      on_platform="aws"
-      set_aws_defaults_from_environ
+    on_platform="aws"
+    set_aws_defaults_from_environ
   fi
 
   if [[ "$on_platform" != "" ]]; then
-      echo "Determined that you are running on $on_platform infrastructure."
+    echo "Determined that you are running on $on_platform infrastructure."
   else
-      echo "No providers are enabled by default."
+    echo "No providers are enabled by default."
   fi
 }
 
@@ -393,7 +393,7 @@ function add_apt_repositories() {
     gpg=""
     gpg=$(curl -s -f "https://bintray.com/user/downloadSubjectPublicKey?username=$REPOSITORY_ORG") || true
     if [[ ! -z "$gpg" ]]; then
-        echo "$gpg" | apt-key add -
+      echo "$gpg" | apt-key add -
     fi
   fi
   echo "deb $REPOSITORY_URL $DISTRIB_CODENAME spinnaker" | tee /etc/apt/sources.list.d/spinnaker-dev.list > /dev/null
@@ -406,7 +406,7 @@ function add_apt_repositories() {
 function install_java() {
   if ! $DOWNLOAD; then
     apt-get install -y --force-yes openjdk-8-jdk
-    
+
     # https://bugs.launchpad.net/ubuntu/+source/ca-certificates-java/+bug/983302
     # It seems a circular dependency was introduced on 2016-04-22 with an openjdk-8 release, where
     # the JRE relies on the ca-certificates-java package, which itself relies on the JRE. D'oh!
@@ -424,15 +424,15 @@ function install_platform_dependencies() {
   local google_scopes=$(get_google_metadata_value "instance/service-accounts/default/scopes")
 
   if [[ -z "$google_scopes" ]]; then
-     # Not on GCP
-     if [[ "$GOOGLE_CLOUD_LOGGING" == "true" ]] \
-        || [[ "$GOOGLE_CLOUD_MONITORING" == "true" ]]; then
-          if [[ ! -f /etc/google/auth/application_default_credentials.json ]];
-          then
-            echo "You may need to add Google Project Credentials."
-            echo "See https://developers.google.com/identity/protocols/application-default-credentials"
-          fi
-     fi
+    # Not on GCP
+    if [[ "$GOOGLE_CLOUD_LOGGING" == "true" ]] \
+         || [[ "$GOOGLE_CLOUD_MONITORING" == "true" ]]; then
+      if [[ ! -f /etc/google/auth/application_default_credentials.json ]];
+      then
+        echo "You may need to add Google Project Credentials."
+        echo "See https://developers.google.com/identity/protocols/application-default-credentials"
+      fi
+    fi
   fi
 
   if [[ "$GOOGLE_CLOUD_LOGGING" == "true" ]]; then
@@ -495,28 +495,44 @@ function install_redis_server() {
 }
 
 function install_apache2() {
-  echo "updating apt cache..." && apt-get -q update > /dev/null 2>&1
-  local apt_status=`apt-get -s -y --force-yes install apache2 > /dev/null 2>&1 ; echo $?`
-  if [[ $apt_status -eq 0 ]]; then
-    echo "apt sources contain apache2; installing using apt-get"
-    apt-get -q -y --force-yes install apache2
-  elif $DOWNLOAD && [[ $apt_status -eq 100 ]]; then
-    echo "no valid apache2 package found in apt sources; attempting to download debs and install locally..."
-    mkdir /tmp/apache2 && pushd /tmp/apache2
-    curl -L -O http://security.ubuntu.com/ubuntu/pool/main/a/apache2/apache2_2.4.7-1ubuntu4.5_amd64.deb
-    curl -L -O http://security.ubuntu.com/ubuntu/pool/main/a/apache2/apache2-bin_2.4.7-1ubuntu4.5_amd64.deb
-    curl -L -O http://security.ubuntu.com/ubuntu/pool/main/a/apache2/apache2-data_2.4.7-1ubuntu4.5_all.deb
-    curl -L -O http://mirrors.kernel.org/ubuntu/pool/main/a/apr/libapr1_1.5.0-1_amd64.deb
-    curl -L -O http://mirrors.kernel.org/ubuntu/pool/main/a/apr-util/libaprutil1_1.5.3-1_amd64.deb
-    curl -L -O http://mirrors.kernel.org/ubuntu/pool/main/a/apr-util/libaprutil1-dbd-sqlite3_1.5.3-1_amd64.deb
-    curl -L -O http://mirrors.kernel.org/ubuntu/pool/main/a/apr-util/libaprutil1-ldap_1.5.3-1_amd64.deb
-    curl -L -O http://mirrors.kernel.org/ubuntu/pool/main/s/ssl-cert/ssl-cert_1.0.33_all.deb
-    dpkg -i *.deb
-    popd && rm -rf /tmp/apache2
+  # If apache2 is installed, we want to do as little modification
+  # as possible to the existing installation.
+  if ! dpkg -s apache2
+  then
+    echo "updating apt cache..." && apt-get -q update > /dev/null 2>&1
+    local apt_status=`apt-get -s -y --force-yes install apache2 > /dev/null 2>&1 ; echo $?`
+    if [[ $apt_status -eq 0 ]]; then
+      echo "apt sources contain apache2; installing using apt-get"
+      apt-get -q -y --force-yes install apache2
+    elif $DOWNLOAD && [[ $apt_status -eq 100 ]]; then
+      echo "no valid apache2 package found in apt sources; attempting to download debs and install locally..."
+      mkdir /tmp/apache2 && pushd /tmp/apache2
+      curl -L -O http://security.ubuntu.com/ubuntu/pool/main/a/apache2/apache2_2.4.7-1ubuntu4.5_amd64.deb
+      curl -L -O http://security.ubuntu.com/ubuntu/pool/main/a/apache2/apache2-bin_2.4.7-1ubuntu4.5_amd64.deb
+      curl -L -O http://security.ubuntu.com/ubuntu/pool/main/a/apache2/apache2-data_2.4.7-1ubuntu4.5_all.deb
+      curl -L -O http://mirrors.kernel.org/ubuntu/pool/main/a/apr/libapr1_1.5.0-1_amd64.deb
+      curl -L -O http://mirrors.kernel.org/ubuntu/pool/main/a/apr-util/libaprutil1_1.5.3-1_amd64.deb
+      curl -L -O http://mirrors.kernel.org/ubuntu/pool/main/a/apr-util/libaprutil1-dbd-sqlite3_1.5.3-1_amd64.deb
+      curl -L -O http://mirrors.kernel.org/ubuntu/pool/main/a/apr-util/libaprutil1-ldap_1.5.3-1_amd64.deb
+      curl -L -O http://mirrors.kernel.org/ubuntu/pool/main/s/ssl-cert/ssl-cert_1.0.33_all.deb
+      dpkg -i *.deb
+      popd && rm -rf /tmp/apache2
+    else
+      echo "unknown error ($apt_status) occurred attempting to install apache2"
+      echo "cannot continue installation; exiting"
+      exit 13
+    fi
+    # vhosts
+    if ! grep -Fxq "Listen 127.0.0.1:9000" /etc/apache2/ports.conf
+    then
+      sed -i "s/Listen\ 80/Listen 127.0.0.1:9000/" /etc/apache2/ports.conf
+    fi
   else
-    echo "unknown error ($apt_status) occurred attempting to install apache2"
-    echo "cannot continue installation; exiting"
-    exit 13
+    # vhosts
+    if ! grep -Fxq "Listen 127.0.0.1:9000" /etc/apache2/ports.conf
+    then
+      echo "Listen 127.0.0.1:9000" >> /etc/apache2/ports.conf
+    fi
   fi
 }
 
@@ -602,9 +618,9 @@ function install_spinnaker() {
         dpkg -i /tmp/$debfile && rm -f /tmp/$debfile
       done
     else
-        echo "Error installing spinnaker."
-        echo "cannot continue installation; exiting."
-        exit 13
+      echo "Error installing spinnaker."
+      echo "cannot continue installation; exiting."
+      exit 13
     fi
   fi
 
@@ -656,7 +672,7 @@ popd
 rm -rf /tmp/packer
 
 if $DEPENDENCIES_ONLY; then
-    exit 0
+  exit 0
 fi
 
 ## Spinnaker
@@ -665,20 +681,20 @@ install_spinnaker
 #write values to /etc/default/spinnaker
 if [[ $AWS_ENABLED || $AZURE_ENABLED || $GOOGLE_ENABLED ]] ; then
   if [[ $AWS_ENABLED == true ]] ; then
-        write_default_value "SPINNAKER_AWS_ENABLED" "true"
-        write_default_value "SPINNAKER_AWS_DEFAULT_REGION" $AWS_REGION
-        write_default_value "AWS_VPC_ID" $AWS_VPC_ID
-        write_default_value "AWS_SUBNET_ID" $AWS_SUBNET_ID
+    write_default_value "SPINNAKER_AWS_ENABLED" "true"
+    write_default_value "SPINNAKER_AWS_DEFAULT_REGION" $AWS_REGION
+    write_default_value "AWS_VPC_ID" $AWS_VPC_ID
+    write_default_value "AWS_SUBNET_ID" $AWS_SUBNET_ID
   fi
   if [[ $AZURE_ENABLED == true ]] ; then
-	write_default_value "SPINNAKER_AZURE_ENABLED" "true"
-	write_default_value "SPINNAKER_AZURE_DEFAULT_REGION" $AZURE_REGION
+    write_default_value "SPINNAKER_AZURE_ENABLED" "true"
+    write_default_value "SPINNAKER_AZURE_DEFAULT_REGION" $AZURE_REGION
   fi
   if [[ $GOOGLE_ENABLED == true ]] ; then
-        write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
-        write_default_value "SPINNAKER_GOOGLE_PROJECT_ID" $GOOGLE_PROJECT_ID
-        write_default_value "SPINNAKER_GOOGLE_DEFAULT_REGION" $GOOGLE_REGION
-        write_default_value "SPINNAKER_GOOGLE_DEFAULT_ZONE" $GOOGLE_ZONE
+    write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
+    write_default_value "SPINNAKER_GOOGLE_PROJECT_ID" $GOOGLE_PROJECT_ID
+    write_default_value "SPINNAKER_GOOGLE_DEFAULT_REGION" $GOOGLE_REGION
+    write_default_value "SPINNAKER_GOOGLE_DEFAULT_ZONE" $GOOGLE_ZONE
   fi
 else
   echo "Not enabling a cloud provider"
