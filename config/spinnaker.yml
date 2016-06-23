@@ -40,6 +40,13 @@ services:
     host: ${services.default.host}
     port: 8089
     baseUrl: ${services.default.protocol}://${services.echo.host}:${services.echo.port}
+
+    # Persistence mechanism to use
+    cassandra:
+      enabled: true
+    inMemory:
+      enabled: false
+
     cron:
       # Allow pipeline triggers to run periodically via cron expressions.
       enabled: true
@@ -176,7 +183,10 @@ services:
     connection: redis://${services.redis.host}:${services.redis.port}
 
   cassandra:
-    enabled: true
+    # cassandra.enabled is no longer used
+    # cassandra is enabled or disabled on a per-service basis
+    # where the alternative persistence mechanism for that service
+    # can be enabled.
     host: ${services.default.host}
     port: 9042
     embedded: false

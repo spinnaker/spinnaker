@@ -222,13 +222,19 @@ services:
     # To use a cloud storage bucket on Amazon S3 or Google Cloud Storage instead
     # of cassandra, set the storage_bucket, disable cassandra, and enable one of
     # the service providers.
-    storage_bucket:
+    storage_bucket: ${SPINNAKER_DEFAULT_STORAGE_BUCKET:}
     gcs:
       enabled: false
     s3:
       enabled: false
 
   echo:
+    # Persistence mechanism to use
+    cassandra:
+      enabled: true
+    inMemory:
+      enabled: false
+
     cron:
       # Allow pipeline triggers to run periodically via cron expressions.
       enabled: true
