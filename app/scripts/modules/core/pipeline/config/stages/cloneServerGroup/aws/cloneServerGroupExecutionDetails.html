@@ -1,0 +1,39 @@
+<div ng-controller="awsCloneServerGroupExecutionDetailsCtrl">
+  <execution-details-section-nav sections="configSections"></execution-details-section-nav>
+  <div class="step-section-details" ng-if="detailsSection === 'cloneServerGroupConfig'">
+    <div class="row">
+      <div class="col-md-9">
+        <dl class="dl-narrow dl-horizontal">
+          <dt>Account</dt>
+          <dd><account-tag account="stage.context.credentials"></account-tag></dd>
+          <dt>Region</dt>
+          <dd>{{stage.context.region}}</dd>
+          <dt>Cluster</dt>
+          <dd>{{stage.context.targetCluster}}</dd>
+          <dt>Server Group</dt>
+          <dd>{{stage.context.source.serverGroupName}}</dd>
+        </dl>
+      </div>
+    </div>
+    <stage-failure-message is-failed="stage.isFailed" message="stage.failureMessage"></stage-failure-message>
+
+    <div class="row" ng-if="deployed.length">
+      <div class="col-md-12">
+        <div class="well alert alert-info">
+          <strong>Deployed:</strong>
+          <a ng-repeat="serverGroup in deployed"
+             ng-click="$event.stopPropagation(); deployDetailsCtrl.overrideFiltersForUrl(serverGroup);"
+             ng-href="{{serverGroup.href}}">
+            {{serverGroup.serverGroup}}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
+    <div class="row">
+      <execution-step-details item="stage"></execution-step-details>
+    </div>
+  </div>
+</div>

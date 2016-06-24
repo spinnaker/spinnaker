@@ -20,6 +20,7 @@ module.exports = angular.module('spinnaker.gce', [
   require('../core/network/network.module.js'),
   require('../core/pipeline/config/stages/bake/docker/dockerBakeStage.js'),
   require('../core/pipeline/config/stages/bake/gce/gceBakeStage.js'),
+  require('../core/pipeline/config/stages/cloneServerGroup/gce/gceCloneServerGroupStage.js'),
   require('../core/pipeline/config/stages/destroyAsg/gce/gceDestroyAsgStage.js'),
   require('../core/pipeline/config/stages/disableAsg/gce/gceDisableAsgStage.js'),
   require('../core/pipeline/config/stages/disableCluster/gce/gceDisableClusterStage.js'),

@@ -91,6 +91,7 @@ module.exports = angular
     require('./pipeline/pipelines.module.js'),
     require('./pipeline/config/stages/bake/bakeStage.module.js'),
     require('./pipeline/config/stages/checkPreconditions/checkPreconditionsStage.module.js'),
+    require('./pipeline/config/stages/cloneServerGroup/cloneServerGroupStage.module.js'),
     require('./pipeline/config/stages/core/stage.core.module.js'),
     require('./pipeline/config/stages/deploy/deployStage.module.js'),
     require('./pipeline/config/stages/destroyAsg/destroyAsgStage.module.js'),

@@ -1,0 +1,25 @@
+<div ng-controller="gceCloneServerGroupStageCtrl as cloneServerGroupStageCtrl">
+  <div ng-if="!pipeline.strategy">
+    <div ng-if="viewState.loading">
+      <h4 class="text-center">
+        <span us-spinner="{radius:20, width:6, length: 12}"></span>
+      </h4>
+    </div>
+    <div ng-if="!viewState.loading">
+      <account-region-cluster-selector
+        application="application"
+        component="stage"
+        accounts="accounts"
+        single-region="true"
+        cluster-field="targetCluster">
+      </account-region-cluster-selector>
+    </div>
+  </div>
+  <stage-config-field label="Target">
+    <target-select model="stage" options="cloneServerGroupStageCtrl.cloneTargets"></target-select>
+  </stage-config-field>
+  <stage-platform-health-override application="application"
+                                  stage="stage"
+                                  platform-health-type="'Google'">
+  </stage-platform-health-override>
+</div>
