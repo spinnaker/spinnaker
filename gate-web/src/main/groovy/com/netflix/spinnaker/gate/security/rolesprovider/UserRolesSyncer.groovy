@@ -20,7 +20,12 @@ import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
+import org.springframework.dao.DataAccessException
+import org.springframework.data.redis.connection.RedisConnection
+import org.springframework.data.redis.core.Cursor
+import org.springframework.data.redis.core.RedisCallback
 import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.data.redis.core.ScanOptions
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.core.context.SecurityContext
 import org.springframework.session.ExpiringSession
@@ -47,7 +52,20 @@ class UserRolesSyncer {
   public void sync() {
     Map<String, String> emailSessionIdMap = [:]
     Map<String, Collection<String>> emailCurrentGroupsMap = [:]
-    Set<String> sessionKeys = sessionRedisTemplate.keys('*session:sessions*')
+    Set<String> sessionKeys = sessionRedisTemplate.execute(new RedisCallback<Set<String>>() {
+      @Override
+      public Set<String> doInRedis(RedisConnection connection) throws DataAccessException {
+        def results = new HashSet<String>()
+        def options = ScanOptions.scanOptions().match('*session:sessions*').count(1000).build()
+        connection.scan(options).withCloseable { Cursor<byte[]> sessions ->
+          for (byte[] sessionRaw : sessions) {
+            String session = sessionRedisTemplate.getStringSerializer().deserialize(sessionRaw)
+            results.add(session)
+          }
+        }
+        return results
+      }
+    })
 
     Set<String> sessionIds = sessionKeys.collect { String key ->
       def toks = key.split(":")
