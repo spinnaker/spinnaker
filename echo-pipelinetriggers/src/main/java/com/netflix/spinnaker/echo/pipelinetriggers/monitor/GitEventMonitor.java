@@ -89,13 +89,18 @@ public class GitEventMonitor extends TriggerMonitor {
     String source = gitEvent.getDetails().getSource();
     String project = gitEvent.getContent().getRepoProject();
     String slug = gitEvent.getContent().getSlug();
-    return trigger -> trigger.getType().equals(GIT_TRIGGER_TYPE) && trigger.getSource().equals(source) && trigger.getProject().equals(project) && trigger.getSlug().equals(slug);
+    String branch = gitEvent.getContent().getBranch();
+    return trigger -> trigger.getType().equals(GIT_TRIGGER_TYPE)
+      && trigger.getSource().equals(source)
+      && trigger.getProject().equals(project)
+      && trigger.getSlug().equals(slug)
+      && (trigger.getBranch() == null || trigger.getBranch().equals("") || matchesPattern(branch, trigger.getBranch()));
   }
 
   @Override
   protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, TriggerEvent event) {
     GitEvent gitEvent = (GitEvent) event;
-    return trigger -> pipeline.withTrigger(trigger.atHash(gitEvent.getHash()));
+    return trigger -> pipeline.withTrigger(trigger.atHash(gitEvent.getHash()).atBranch(gitEvent.getBranch()));
   }
 
   @Override

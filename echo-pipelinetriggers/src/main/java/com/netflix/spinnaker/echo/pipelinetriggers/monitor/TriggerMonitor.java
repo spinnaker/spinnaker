@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Triggers pipelines on _Orca_ when a trigger-enabled build completes successfully.
@@ -57,6 +59,12 @@ abstract class TriggerMonitor implements EchoEventListener {
                         @NonNull Registry registry) {
     this.subscriber = subscriber;
     this.registry = registry;
+  }
+
+  protected boolean matchesPattern(String s, String pattern) {
+    Pattern p = Pattern.compile(pattern);
+    Matcher m = p.matcher(s);
+    return m.matches();
   }
 
   protected void onEchoResponse(final TriggerEvent event) {
