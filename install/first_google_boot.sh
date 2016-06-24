@@ -309,7 +309,7 @@ write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
 write_default_value "SPINNAKER_GOOGLE_PROJECT_ID" "$MY_PROJECT"
 write_default_value "SPINNAKER_GOOGLE_DEFAULT_ZONE" "$MY_ZONE"
 write_default_value "SPINNAKER_GOOGLE_DEFAULT_REGION" "${MY_ZONE%-*}"
-
+write_default_value "SPINNAKER_DEFAULT_STORAGE_BUCKET" "spinnaker-${MY_PROJECT}"
 echo "$STATUS_PREFIX  Extracting Configuration Info"
 extract_spinnaker_local_yaml
 
