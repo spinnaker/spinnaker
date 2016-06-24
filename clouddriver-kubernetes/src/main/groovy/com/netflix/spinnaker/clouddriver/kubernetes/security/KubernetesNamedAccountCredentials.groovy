@@ -66,6 +66,9 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     this.credentials = credentials
   }
 
+  public List<String> getNamespaces() {
+    return credentials.getNamespaces()
+  }
 
   static class Builder {
     String name
@@ -150,9 +153,6 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     private KubernetesCredentials buildCredentials() {
       Config config = KubernetesConfigParser.parse(kubeconfigFile, context, cluster, user, namespaces)
       config.setUserAgent(userAgent)
-      if (namespaces == null || namespaces.isEmpty()) {
-        namespaces = Collections.singletonList(config.getNamespace())
-      }
 
       for (LinkedDockerRegistryConfiguration registry : dockerRegistries) {
         if (registry.getNamespaces() == null || registry.getNamespaces().isEmpty()) {

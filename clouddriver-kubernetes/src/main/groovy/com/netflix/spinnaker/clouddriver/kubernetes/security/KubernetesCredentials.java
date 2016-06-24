@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.security;
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration;
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import io.fabric8.kubernetes.api.model.*;
 import org.slf4j.Logger;
@@ -33,6 +34,9 @@ public class KubernetesCredentials {
   private final List<LinkedDockerRegistryConfiguration> dockerRegistries;
   private final HashMap<String, List<String>> imagePullSecrets;
   private final Logger LOG;
+  private final AccountCredentialsRepository repository;
+  private final HashSet<String> dynamicRegistries;
+  private List<String> oldNamespaces;
 
   // TODO(lwander): refactor apiAdaptor into KubernetesNamedAccountCredentials, and any other metadata that isn't
   // strictly a credential.
@@ -42,43 +46,85 @@ public class KubernetesCredentials {
                                AccountCredentialsRepository accountCredentialsRepository) {
     this.apiAdaptor = apiAdaptor;
     this.namespaces = namespaces != null ? namespaces : new ArrayList<>();
+    this.oldNamespaces = this.namespaces;
+    this.dynamicRegistries = new HashSet<>();
     this.dockerRegistries = dockerRegistries != null ? dockerRegistries : new ArrayList<>();
+    for (LinkedDockerRegistryConfiguration config : this.dockerRegistries) {
+      if (config.getNamespaces() == null || config.getNamespaces().isEmpty()) {
+        dynamicRegistries.add(config.getAccountName());
+      }
+    }
     this.imagePullSecrets = new HashMap<>();
+    this.repository = accountCredentialsRepository;
     this.LOG = LoggerFactory.getLogger(KubernetesCredentials.class);
 
-    for (int i = 0; i < this.dockerRegistries.size(); i++) {
-      LinkedDockerRegistryConfiguration registry = this.dockerRegistries.get(i);
-      this.LOG.info("Adding secrets for docker registry " + registry.getAccountName() + ".");
-      List<String> registryNamespaces = registry.getNamespaces();
-      List<String> affectedNamespaces = registryNamespaces != null && registryNamespaces.size() > 0 ? registryNamespaces : this.namespaces;
+    List<String> knownNamespaces = !this.namespaces.isEmpty() ? this.namespaces : apiAdaptor.getNamespacesByName();
+    reconfigureRegistries(knownNamespaces, knownNamespaces);
+  }
 
-      DockerRegistryNamedAccountCredentials account = (DockerRegistryNamedAccountCredentials) accountCredentialsRepository.getOne(registry.getAccountName());
+  public List<String> getNamespaces() {
+    if (namespaces != null && !namespaces.isEmpty()) {
+      // If namespaces are provided, used them
+      return namespaces;
+    } else {
+      List<String> addedNamespaces = apiAdaptor.getNamespacesByName();
+      List<String> resultNamespaces = new ArrayList<>(addedNamespaces);
+
+      // otherwise, find the namespaces that were added, and add docker secrets to them. No need to track deleted
+      // namespaces since they delete their secrets automatically.
+      addedNamespaces.removeAll(oldNamespaces);
+      reconfigureRegistries(addedNamespaces, resultNamespaces);
+      oldNamespaces = resultNamespaces;
+
+      return resultNamespaces;
+    }
+  }
+
+  private void reconfigureRegistries(List<String> affectedNamespaces, List<String> allNamespaces) {
+    for (int i = 0; i < dockerRegistries.size(); i++) {
+      LinkedDockerRegistryConfiguration registry = dockerRegistries.get(i);
+      List<String> registryNamespaces = registry.getNamespaces();
+      // If a registry was not initially configured with any namespace, it can deploy to any namespace, otherwise
+      // restrict the deploy to the registryNamespaces
+      if (!dynamicRegistries.contains(registry.getAccountName())) {
+        affectedNamespaces = registryNamespaces;
+      } else {
+        registry.setNamespaces(allNamespaces);
+      }
+
+      LOG.info("Adding secrets for docker registry " + registry.getAccountName() + " in " + affectedNamespaces);
+
+      DockerRegistryNamedAccountCredentials account = (DockerRegistryNamedAccountCredentials) repository.getOne(registry.getAccountName());
 
       if (account == null) {
         throw new IllegalArgumentException("The account " + registry.getAccountName() + " was not configured inside Clouddriver.");
       }
 
-      for (String inNamespace : affectedNamespaces) {
-        Namespace res = apiAdaptor.getNamespace(inNamespace);
+      for (String namespace : affectedNamespaces) {
+        Namespace res = apiAdaptor.getNamespace(namespace);
         if (res == null) {
           NamespaceBuilder namespaceBuilder = new NamespaceBuilder();
-          EditableNamespace newNamespace = namespaceBuilder.withNewMetadata().withName(inNamespace).endMetadata().build();
+          EditableNamespace newNamespace = namespaceBuilder.withNewMetadata().withName(namespace).endMetadata().build();
           apiAdaptor.createNamespace(newNamespace);
         }
 
         SecretBuilder secretBuilder = new SecretBuilder();
         String secretName = registry.getAccountName();
 
-        Secret exists = this.apiAdaptor.getSecret(inNamespace, secretName);
+        Secret exists = apiAdaptor.getSecret(namespace, secretName);
         if (exists != null) {
-          this.LOG.info("Secret for docker registry " + registry.getAccountName() + " in namespace " + inNamespace + " is being repopulated.");
-          this.apiAdaptor.deleteSecret(inNamespace, secretName);
+          LOG.info("Secret for docker registry " + registry.getAccountName() + " in namespace " + namespace + " is being repopulated.");
+          apiAdaptor.deleteSecret(namespace, secretName);
         }
 
-        secretBuilder = secretBuilder.withNewMetadata().withName(secretName).endMetadata();
+        secretBuilder = secretBuilder.withNewMetadata().withName(secretName).withNamespace(namespace).endMetadata();
 
         HashMap<String, String> secretData = new HashMap<>(1);
-        String dockerCfg = String.format("{ \"%s\": { \"auth\": \"%s\", \"email\": \"%s\" } }", account.getAddress(), account.getBasicAuth(), account.getEmail());
+        String dockerCfg = String.format("{ \"%s\": { \"auth\": \"%s\", \"email\": \"%s\" } }",
+                                         account.getAddress(),
+                                         account.getBasicAuth(),
+                                         account.getEmail());
+
         try {
           dockerCfg = new String(Base64.getEncoder().encode(dockerCfg.getBytes("UTF-8")), "UTF-8");
         } catch (UnsupportedEncodingException uee) {
@@ -87,22 +133,18 @@ public class KubernetesCredentials {
         secretData.put(".dockercfg", dockerCfg);
 
         secretBuilder = secretBuilder.withData(secretData).withType("kubernetes.io/dockercfg");
-        this.apiAdaptor.createSecret(inNamespace, secretBuilder.build());
+        apiAdaptor.createSecret(namespace, secretBuilder.build());
 
-        List<String> existingSecrets = imagePullSecrets.get(inNamespace);
+        List<String> existingSecrets = imagePullSecrets.get(namespace);
         existingSecrets = existingSecrets != null ? existingSecrets : new ArrayList<>();
         existingSecrets.add(secretName);
-        imagePullSecrets.put(inNamespace, existingSecrets);
+        imagePullSecrets.put(namespace, existingSecrets);
       }
     }
   }
 
   public KubernetesApiAdaptor getApiAdaptor() {
     return apiAdaptor;
-  }
-
-  public List<String> getNamespaces() {
-    return namespaces;
   }
 
   public List<LinkedDockerRegistryConfiguration> getDockerRegistries() {
@@ -114,7 +156,7 @@ public class KubernetesCredentials {
   }
 
   public Boolean isRegisteredNamespace(String namespace) {
-    return namespaces.contains(namespace);
+    return getNamespaces().contains(namespace);
   }
 
   public Boolean isRegisteredImagePullSecret(String secret, String namespace) {

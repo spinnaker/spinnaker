@@ -288,6 +288,20 @@ class KubernetesApiAdaptor {
     }
   }
 
+  List<Namespace> getNamespaces() {
+    atomicWrapper("Get Namespaces", null) { KubernetesClient client ->
+      client.namespaces().list().items
+    }
+  }
+
+  List<String> getNamespacesByName() {
+    atomicWrapper("Get Namespaces", null) { KubernetesClient client ->
+      client.namespaces().list().items.collect {
+        it.metadata.name
+      }
+    }
+  }
+
   Namespace createNamespace(Namespace namespace) {
     atomicWrapper("Create Namespace $namespace", null) { KubernetesClient client ->
       client.namespaces().create(namespace)

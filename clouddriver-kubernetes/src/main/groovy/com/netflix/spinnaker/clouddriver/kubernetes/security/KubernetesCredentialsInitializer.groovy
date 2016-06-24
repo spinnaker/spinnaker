@@ -44,7 +44,6 @@ class KubernetesCredentialsInitializer implements CredentialsInitializerSynchron
   @Autowired
   ApplicationContext appContext;
 
-
   @Autowired
   KubernetesConfiguration configuration
 

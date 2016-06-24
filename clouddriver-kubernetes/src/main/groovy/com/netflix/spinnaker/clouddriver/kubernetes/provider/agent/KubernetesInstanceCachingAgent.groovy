@@ -89,6 +89,11 @@ class KubernetesInstanceCachingAgent implements  CachingAgent, AccountAware {
         continue
       }
 
+      // Not owned by spinnaker
+      if (!pod.metadata.labels) {
+        continue
+      }
+
       def rc = pod.metadata.labels[KubernetesUtil.REPLICATION_CONTROLLER_LABEL] ?: ''
       def job = pod.metadata.labels[KubernetesUtil.JOB_LABEL] ?: ''
 
