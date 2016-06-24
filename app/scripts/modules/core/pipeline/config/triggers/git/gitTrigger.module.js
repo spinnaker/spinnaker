@@ -29,4 +29,12 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.git', [
       trigger.source = $scope.gitTriggerTypes[0];
     }
 
+    function updateBranch() {
+      if (trigger.branch !== null && trigger.branch.trim() === '') {
+        trigger.branch = null;
+      }
+    }
+
+    $scope.$watch('trigger.branch', updateBranch);
+
   });
