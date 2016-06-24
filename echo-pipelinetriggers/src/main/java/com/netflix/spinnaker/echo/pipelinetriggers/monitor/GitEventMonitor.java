@@ -91,9 +91,9 @@ public class GitEventMonitor extends TriggerMonitor {
     String slug = gitEvent.getContent().getSlug();
     String branch = gitEvent.getContent().getBranch();
     return trigger -> trigger.getType().equals(GIT_TRIGGER_TYPE)
-      && trigger.getSource().equals(source)
-      && trigger.getProject().equals(project)
-      && trigger.getSlug().equals(slug)
+      && trigger.getSource().equalsIgnoreCase(source)
+      && trigger.getProject().equalsIgnoreCase(project)
+      && trigger.getSlug().equalsIgnoreCase(slug)
       && (trigger.getBranch() == null || trigger.getBranch().equals("") || matchesPattern(branch, trigger.getBranch()));
   }
 
