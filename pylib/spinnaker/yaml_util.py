@@ -58,8 +58,9 @@ class YamlBindings(object):
       return default
 
   def import_dict(self, d):
-    for name,value in d.items():
-      self.__update_field(name, value, self.__map)
+    if dict is not None:
+      for name,value in d.items():
+        self.__update_field(name, value, self.__map)
 
   def import_string(self, s):
     self.import_dict(yaml.load(s, Loader=yaml.Loader))

@@ -165,10 +165,14 @@ class CassandraChanger(object):
         print 'Updating {path}'.format(path=path)
         with open(path, 'r') as f:
           yml = f.read()
+
+        stat = os.stat(path)
         yml = self._do_change_yml(yml, path, _ECHO_KEYS)
         yml = self._do_change_yml(yml, path, _FRONT50_KEYS)
-        with open(path, 'w') as f:
-          f.write(yml)
+        f = os.open(path, os.O_WRONLY | os.O_TRUNC, 0600)
+        os.write(f, yml)
+        os.close(f)
+        os.chown(path, stat.st_uid, stat.st_gid)
 
     if self.__options.echo != 'cassandra' and self.__options.front50 != 'cassandra':
         self.disable_cassandra()
