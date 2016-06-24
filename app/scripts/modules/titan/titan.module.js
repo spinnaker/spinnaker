@@ -19,6 +19,7 @@ module.exports = angular.module('spinnaker.titan', [
   require('./serverGroup/serverGroup.transformer.js'),
   require('./instance/details/instance.details.controller.js'),
   require('./validation/applicationName.validator.js'),
+  require('../core/pipeline/config/stages/findAmi/titan/titanFindAmiStage.js'),
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('titan', {
