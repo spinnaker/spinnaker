@@ -5,7 +5,7 @@
   <div ng-if="!state.loaded" style="height: 200px">
     <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
   </div>
-  <v2-modal-wizard ng-show="state.loaded && !state.requiresTemplateSelection" heading="{{title}}">
+  <v2-modal-wizard ng-if="state.loaded && !state.requiresTemplateSelection" heading="{{title}}">
     <v2-wizard-page key="location" label="Basic Settings" mark-complete-on-view="false">
       <ng-include src="pages.basicSettings"></ng-include>
     </v2-wizard-page>
