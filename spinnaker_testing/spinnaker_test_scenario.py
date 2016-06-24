@@ -283,6 +283,10 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       self.__init_aws_bindings()
       self.__init_kubernetes_bindings()
       self._do_init_bindings()
+    except:
+      logger = logging.getLogger(__name__)
+      logger.exception('Failed to initialize spinnaker agent.')
+      raise
     finally:
       JournalLogger.end_context()
 

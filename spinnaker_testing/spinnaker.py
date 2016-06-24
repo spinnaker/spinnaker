@@ -205,7 +205,7 @@ class SpinnakerStatus(service_testing.HttpOperationStatus):
       # Normally we dont want to do this because we want to scrub the output.
       sys.stderr.write('Bad response from agent={0}\n'
                        'CAUGHT {1}\nRESPONSE: {2}\n'
-                       .format(self.agent,bex, http_response))
+                       .format(self.agent, bex, http_response))
       raise
 
   def set_http_response(self, http_response):
@@ -322,29 +322,32 @@ class SpinnakerAgent(service_testing.HttpAgent):
     JournalLogger.begin_context('Locating {0}...'.format(name))
     context_relation = 'ERROR'
     try:
-        gcloud = gcp.GCloudAgent(
-            project=project, zone=zone, service_account=service_account,
-            ssh_passphrase_file=ssh_passphrase_file)
-        netloc = gce_util.establish_network_connectivity(
-            gcloud=gcloud, instance=instance, target_port=port)
-        if not netloc:
-          error = 'Could not locate {0}.'.format(name)
-          logger.error(error)
-          context_relation = 'INVALID'
-          raise RuntimeError(error)
+      gcloud = gcp.GCloudAgent(
+          project=project, zone=zone, service_account=service_account,
+          ssh_passphrase_file=ssh_passphrase_file)
+      netloc = gce_util.establish_network_connectivity(
+          gcloud=gcloud, instance=instance, target_port=port)
+      if not netloc:
+        error = 'Could not locate {0}.'.format(name)
+        logger.error(error)
+        context_relation = 'INVALID'
+        raise RuntimeError(error)
 
-        approx_config = cls.__get_deployed_local_yaml_bindings(gcloud,
-                                                               instance)
-        protocol = approx_config.get('services.default.protocol', 'http')
-        base_url = '{protocol}://{netloc}'.format(protocol=protocol,
-                                                  netloc=netloc)
-        logger.info('%s is available at %s', name, base_url)
-        deployed_config = scrape_spring_config(os.path.join(base_url, 'env'))
-        spinnaker_agent = cls(base_url, status_factory)
-        spinnaker_agent.__deployed_config = deployed_config
-        context_relation = 'VALID'
+      approx_config = cls.__get_deployed_local_yaml_bindings(gcloud,
+                                                             instance)
+      protocol = approx_config.get('services.default.protocol', 'http')
+      base_url = '{protocol}://{netloc}'.format(protocol=protocol,
+                                                netloc=netloc)
+      logger.info('%s is available at %s', name, base_url)
+      deployed_config = scrape_spring_config(os.path.join(base_url, 'env'))
+      spinnaker_agent = cls(base_url, status_factory)
+      spinnaker_agent.__deployed_config = deployed_config
+      context_relation = 'VALID'
+    except:
+      logger.exception('Failed to create spinnaker agent.')
+      raise
     finally:
-        JournalLogger.end_context(relation=context_relation)
+      JournalLogger.end_context(relation=context_relation)
 
     return spinnaker_agent
 
