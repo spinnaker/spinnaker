@@ -3,11 +3,16 @@ server:
   address: ${services.echo.host:localhost}
 
 cassandra:
+  enabled: ${services.echo.cassandra.enabled:true}
   embedded: ${services.cassandra.embedded:false}
   host: ${services.cassandra.host:localhost}
 
 spinnaker:
   baseUrl: ${services.deck.baseUrl}
+  cassandra:
+     enabled: ${services.echo.cassandra.enabled:true}
+  inMemory:
+     enabled: ${services.echo.inMemory.enabled:false}
 
 front50:
   baseUrl: ${services.front50.baseUrl:http://localhost:8080}
