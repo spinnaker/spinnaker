@@ -140,7 +140,7 @@ module.exports = angular
       let key = this.makeServerGroupKey(serverGroup),
           [selected] = this.serverGroups.filter((sg) => sg.key === key);
       if (selected) {
-        this.serverGroups.splice(this.instanceGroups.indexOf(selected), 1);
+        this.serverGroups.splice(this.serverGroups.indexOf(selected), 1);
       } else {
         this.serverGroups.push({
           key: key,
@@ -180,6 +180,9 @@ module.exports = angular
       let group = this.getOrCreateInstanceGroup(serverGroup);
       group.selectAll = !group.selectAll;
       group.instanceIds = group.selectAll ? allInstanceIds : [];
+      if (group.selectAll) {
+        this.clearAllServerGroups();
+      }
       this.instancesStream.onNext();
       this.syncNavigation();
     };

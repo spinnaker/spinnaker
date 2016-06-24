@@ -152,6 +152,25 @@ describe('Multiselect Model', function () {
         expect(MultiselectModel.serverGroups.length).toBe(0);
         expect(onNextCalls).toBe(2);
       });
+
+      it('handles multiple server groups', function () {
+        let otherServerGroup = {
+          name: 'asg-v002',
+          account: 'prod',
+          region: 'us-east-1',
+          type: 'aws',
+          category: 'serverGroup'
+        };
+
+        expect(MultiselectModel.serverGroups.length).toBe(0);
+        MultiselectModel.toggleServerGroup(this.serverGroup);
+        MultiselectModel.toggleServerGroup(otherServerGroup);
+        expect(MultiselectModel.serverGroups.length).toBe(2);
+
+        MultiselectModel.toggleServerGroup(this.serverGroup);
+        expect(MultiselectModel.serverGroups.length).toBe(1);
+        expect(MultiselectModel.serverGroups[0].name).toBe('asg-v002');
+      });
     });
 
     describe('getOrCreateInstanceGroup', function () {
@@ -256,6 +275,12 @@ describe('Multiselect Model', function () {
         this.instanceGroup = MultiselectModel.getOrCreateInstanceGroup(this.serverGroup);
 
         spyOn(MultiselectModel, 'syncNavigation');
+      });
+
+      it('clears server groups', function () {
+        MultiselectModel.toggleServerGroup(this.serverGroup);
+        MultiselectModel.toggleSelectAll(this.serverGroup);
+        expect(MultiselectModel.serverGroups.length).toBe(0);
       });
 
       it('sets selectAll flag to true and adds supplied instanceIds when selectAll is false', function () {
