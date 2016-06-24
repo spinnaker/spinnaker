@@ -260,7 +260,7 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
       //     is no point in subscribing to the refresh
       //  2. If this is a standalone instance, there is no application that will refresh
       if (!$scope.$$destroyed && !app.isStandalone) {
-        app.serverGroups.onRefresh(retrieveInstance);
+        app.serverGroups.onRefresh($scope, retrieveInstance);
       }
     });
 
