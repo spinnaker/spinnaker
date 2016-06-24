@@ -22,7 +22,7 @@ import retrofit.http.Headers
 
 interface EurekaApi {
 
-  @GET('/v2/apps')
+  @GET('/apps')
   @Headers(['Accept: application/json'])
   EurekaApplications loadEurekaApplications()
 }
