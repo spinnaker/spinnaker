@@ -25,10 +25,10 @@ import retrofit.http.Query
 
 interface Eureka {
   @Headers('Accept: application/json')
-  @GET('/v2/instances/{instanceId}')
+  @GET('/instances/{instanceId}')
   Map getInstanceInfo(@Path('instanceId') String instanceId)
 
   @Headers('Accept: application/json')
-  @PUT('/v2/apps/{application}/{instanceId}/status')
+  @PUT('/apps/{application}/{instanceId}/status')
   Response updateInstanceStatus(@Path('application') String application, @Path('instanceId') String instanceId, @Query('value') String status)
 }
