@@ -30,12 +30,22 @@
   }
 }
 
-.info-band {
-  background-color: @mid_grey;
-  color: #ffffff;
+.band {
   margin: 5px 0;
   padding: 5px;
   text-align: center;
+  color: #ffffff;
+  &.band-info {
+    background-color: @mid_grey;
+  }
+  &.band-warning {
+    background-color: @unhealthy_red;
+  }
+}
+.collapsible-section {
+  .band {
+    margin: 5px -20px;
+  }
 }
 
 .details-panel {

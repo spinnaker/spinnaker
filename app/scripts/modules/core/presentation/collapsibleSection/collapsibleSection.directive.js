@@ -9,19 +9,27 @@ module.exports = angular.module('spinnaker.core.presentation.collapsibleSection.
     return {
       restrict: 'E',
       replace: true,
-      transclude: true,
+      transclude: {
+        heading: '?sectionHeading',
+        body: '?sectionBody'
+      },
       scope: {
         heading: '@',
         expanded: '@?',
         bodyClass: '@?',
+        cacheKey: '@?',
         helpKey: '@',
         subsection: '=',
       },
       templateUrl: require('./collapsibleSection.directive.html'),
       link: function(scope) {
-        var expanded = collapsibleSectionStateCache.isSet(scope.heading) ?
-          collapsibleSectionStateCache.isExpanded(scope.heading) :
+        let cacheKey = scope.cacheKey || scope.heading;
+        let expanded = true;
+        if (cacheKey) {
+          expanded = collapsibleSectionStateCache.isSet(cacheKey) ?
+            collapsibleSectionStateCache.isExpanded(cacheKey) :
           scope.expanded === 'true';
+        }
         scope.state = {expanded: expanded};
         scope.getIcon = function() {
           return scope.state.expanded ? 'down' : 'up';
@@ -33,7 +41,9 @@ module.exports = angular.module('spinnaker.core.presentation.collapsibleSection.
 
         scope.toggle = function() {
           scope.state.expanded = !scope.state.expanded;
-          collapsibleSectionStateCache.setExpanded(scope.heading, scope.state.expanded);
+          if (cacheKey) {
+            collapsibleSectionStateCache.setExpanded(cacheKey, scope.state.expanded);
+          }
         };
       }
     };

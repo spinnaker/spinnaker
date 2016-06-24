@@ -38,7 +38,14 @@
             <li role="presentation" class="divider" ng-if="!ctrl.serverGroup.isDisabled"></li>
             <li><a href ng-click="ctrl.resizeServerGroup()">Resize</a></li>
             <li><a href ng-if="!ctrl.serverGroup.isDisabled" ng-click="ctrl.disableServerGroup()">Disable</a></li>
-            <li><a href ng-if="ctrl.serverGroup.isDisabled" ng-click="ctrl.enableServerGroup()">Enable</a></li>
+            <li><a href ng-if="ctrl.serverGroup.isDisabled && !ctrl.isEnableLocked()" ng-click="ctrl.enableServerGroup()">Enable</a></li>
+            <li class="disabled" ng-if="ctrl.isEnableLocked()">
+              <a uib-tooltip="Cannot enable this server group until resize operation completes"
+                 tooltip-placement="left">
+                <span class="small glyphicon glyphicon-lock"></span>
+                Enable
+              </a>
+            </li>
             <li><a href ng-click="ctrl.destroyServerGroup()">Destroy</a></li>
             <li><a href ng-click="ctrl.cloneServerGroup(ctrl.serverGroup)">Clone</a></li>
             <li><migrator application="ctrl.application" server-group="ctrl.serverGroup"></migrator></li>
@@ -56,7 +63,7 @@
       </div>
     </div>
   </div>
-  <div class="info-band" ng-if="ctrl.serverGroup.isDisabled">
+  <div class="band band-info" ng-if="ctrl.serverGroup.isDisabled">
     Disabled {{ctrl.disabledDate | timestamp}}
   </div>
   <div class="content" ng-if="!ctrl.state.loading">
@@ -118,7 +125,6 @@
             <li ng-repeat="zone in ctrl.serverGroup.asg.availabilityZones">{{zone}}</li>
           </ul>
         </dd>
-
       </dl>
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">
@@ -196,19 +202,6 @@
         <dd ng-if="!ctrl.serverGroup.launchConfig.userData">[none]</dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Scaling Processes">
-      <ul class="scaling-processes">
-        <li ng-repeat="process in ctrl.autoScalingProcesses">
-          <span is-visible="process.enabled" class="glyphicon glyphicon-ok small"></span>
-          <span ng-class="{'text-disabled': !process.enabled}">{{process.name}}</span>
-          <help-field content="{{process.description}}" placement="bottom"></help-field>
-          <div ng-if="process.suspensionDate" class="text-disabled small" style="margin-left: 35px">
-            Suspended {{process.suspensionDate | timestamp}}
-          </div>
-        </li>
-      </ul>
-      <a href ng-click="ctrl.toggleScalingProcesses()">Edit Scaling Processes</a>
-    </collapsible-section>
     <collapsible-section heading="Security Groups">
       <ul>
         <li ng-repeat="securityGroup in ctrl.securityGroups | orderBy:'name'">
@@ -222,19 +215,58 @@
     <collapsible-section heading="Networking">
       <nflx-server-group-networking server-group="ctrl.serverGroup" application="ctrl.application"></nflx-server-group-networking>
     </collapsible-section>
-    <collapsible-section heading="Scaling Policies">
-      <scaling-policy-summary ng-repeat="policy in ctrl.scalingPolicies track by policy.policyARN"
-                      policy="policy"
-                      server-group="ctrl.serverGroup"
-                      application="ctrl.application"></scaling-policy-summary>
-      <add-scaling-policy-button server-group="ctrl.serverGroup"
-                                 application="ctrl.application"></add-scaling-policy-button>
+    <collapsible-section cache-key="Scaling Processes">
+      <section-heading>
+        <span ng-if="ctrl.scalingPoliciesDisabled" class="glyphicon glyphicon-exclamation-sign warning-text"
+              uib-tooltip="Some scaling processes are disabled that may prevent scaling policies from working"></span>
+        <span ng-if="ctrl.scheduledActionsDisabled" class="glyphicon glyphicon-exclamation-sign warning-text"
+              uib-tooltip="Some scaling processes are disabled that may prevent scheduled actions from working"></span>
+        Scaling Processes
+      </section-heading>
+      <section-body>
+        <ul class="scaling-processes">
+          <li ng-repeat="process in ctrl.autoScalingProcesses">
+            <span is-visible="process.enabled" class="glyphicon glyphicon-ok small"></span>
+            <span ng-class="{'text-disabled': !process.enabled}">{{process.name}}</span>
+            <help-field content="{{process.description}}" placement="bottom"></help-field>
+            <div ng-if="process.suspensionDate" class="text-disabled small" style="margin-left: 35px">
+              Suspended {{process.suspensionDate | timestamp}}
+            </div>
+          </li>
+        </ul>
+        <a href ng-click="ctrl.toggleScalingProcesses()">Edit Scaling Processes</a>
+      </section-body>
     </collapsible-section>
-    <collapsible-section heading="Scheduled Actions">
-      <scheduled-action ng-repeat="action in ctrl.serverGroup.scheduledActions" action="action"></scheduled-action>
-      <p ng-if="ctrl.serverGroup.scheduledActions.length"><strong>Note:</strong> Schedules are evaluated in UTC.</p>
-      <p ng-if="!ctrl.serverGroup.scheduledActions.length">No Scheduled Actions are configured for this server group.</p>
-      <a href ng-click="ctrl.editScheduledActions()">Edit Scheduled Actions</a>
+    <collapsible-section cache-key="Scaling Policies">
+      <section-heading>
+        <span ng-if="ctrl.scalingPoliciesDisabled" class="glyphicon glyphicon-exclamation-sign warning-text"
+              uib-tooltip="Some scaling processes are disabled that may prevent scaling policies from working"></span>
+        Scaling Policies
+      </section-heading>
+      <section-body>
+        <div class="band band-warning" ng-if="ctrl.scalingPoliciesDisabled">
+          Some scaling processes are disabled that may prevent scaling policies from working.
+        </div>
+        <scaling-policy-summary ng-repeat="policy in ctrl.scalingPolicies track by policy.policyARN"
+                                policy="policy"
+                                server-group="ctrl.serverGroup"
+                                application="ctrl.application"></scaling-policy-summary>
+        <add-scaling-policy-button server-group="ctrl.serverGroup"
+                                   application="ctrl.application"></add-scaling-policy-button>
+      </section-body>
+    </collapsible-section>
+    <collapsible-section cache-key="Scheduled Actions">
+      <section-heading>
+        <span ng-if="ctrl.scheduledActionsDisabled" class="glyphicon glyphicon-exclamation-sign warning-text"
+              uib-tooltip="Some scaling processes are disabled that may prevent scheduled actions from working"></span>
+        Scheduled Actions
+      </section-heading>
+      <section-body>
+        <scheduled-action ng-repeat="action in ctrl.serverGroup.scheduledActions" action="action"></scheduled-action>
+        <p ng-if="ctrl.serverGroup.scheduledActions.length"><strong>Note:</strong> Schedules are evaluated in UTC.</p>
+        <p ng-if="!ctrl.serverGroup.scheduledActions.length">No Scheduled Actions are configured for this server group.</p>
+        <a href ng-click="ctrl.editScheduledActions()">Edit Scheduled Actions</a>
+      </section-body>
     </collapsible-section>
     <collapsible-section heading="Tags">
       <div ng-if="!ctrl.serverGroup.asg.tags.length">No tags associated with this server group</div>

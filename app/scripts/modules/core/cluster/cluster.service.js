@@ -85,7 +85,7 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
     }
 
     function baseTaskMatcher(task, serverGroup) {
-      var taskRegion = task.getValueFor('regions') ? task.getValueFor('regions')[0] : null;
+      var taskRegion = task.getValueFor('regions') ? task.getValueFor('regions')[0] : task.getValueFor('region') || null;
       return serverGroup.account === task.getValueFor('credentials') &&
         serverGroup.region === taskRegion &&
         serverGroup.name === task.getValueFor('asgName');
@@ -148,6 +148,7 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
       'enableservergroup': baseTaskMatcher,
       'enablegoogleservergroup': baseTaskMatcher,
       'disablegoogleservergroup': baseTaskMatcher,
+      'resumeasgprocessesdescription': baseTaskMatcher, // fun fact, this is how an AWS resize starts
       'rollbackServerGroup': function(task, serverGroup) {
         var account = task.getValueFor('credentials'),
             region = task.getValueFor('regions') ? task.getValueFor('regions')[0] : null;
@@ -176,7 +177,10 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
         return; // still run if there are no running tasks, since they may have all finished and we need to clear them.
       }
       application.serverGroups.data.forEach(function(serverGroup) {
-        serverGroup.runningTasks = [];
+        if (!serverGroup.runningTasks) {
+          serverGroup.runningTasks = [];
+        }
+        serverGroup.runningTasks.length = 0;
         runningTasks.forEach(function(task) {
           if (taskMatches(task, serverGroup)) {
             serverGroup.runningTasks.push(task);
