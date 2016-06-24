@@ -52,11 +52,13 @@ class CloneServerGroupTask extends AbstractCloudProviderAwareTask implements Tas
     withImageFromPrecedingStage(stage, targetRegion) {
       operation.amiName = operation.amiName ?: it.amiName
       operation.imageId = operation.imageId ?: it.imageId
+      operation.image = operation.image ?: it.imageId
     }
 
     withImageFromDeploymentDetails(stage, targetRegion) {
       operation.amiName = operation.amiName ?: it.amiName
       operation.imageId = operation.imageId ?: it.imageId
+      operation.image = operation.image ?: it.imageId
     }
 
     String cloudProvider = getCloudProvider(stage)

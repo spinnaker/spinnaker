@@ -20,6 +20,8 @@ import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -35,12 +37,30 @@ class SourceResolver {
   @Autowired OortService oortService
   @Autowired ObjectMapper mapper
 
+  @Autowired
+  TargetServerGroupResolver resolver
 
   StageData.Source getSource(Stage stage) throws RetrofitError, JsonParseException, JsonMappingException {
     def stageData = stage.mapTo(StageData)
     if (stageData.source) {
       // has an existing source, return it
       return stageData.source
+    } else if (stage.context.target) {
+      // If no source was specified, but targeting coordinates were, attempt to resolve the target server group.
+      TargetServerGroup.Params params = TargetServerGroup.Params.fromStage(stage)
+
+      if (!params.cluster && stage.context.targetCluster) {
+        params.cluster = stage.context.targetCluster
+      }
+
+      def targetServerGroups = resolver.resolveByParams(params)
+
+      if (targetServerGroups) {
+        return new StageData.Source(account: params.credentials as String,
+                                    region: targetServerGroups[0].region as String,
+                                    serverGroupName: targetServerGroups[0].name as String,
+                                    asgName: targetServerGroups[0].name as String)
+      }
     }
 
     def existingAsgs = getExistingAsgs(

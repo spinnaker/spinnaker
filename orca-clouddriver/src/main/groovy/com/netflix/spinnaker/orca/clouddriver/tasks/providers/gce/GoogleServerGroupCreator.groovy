@@ -50,18 +50,18 @@ class GoogleServerGroupCreator implements ServerGroupCreator {
       // Bakery ops are keyed off cloudProviderType
       operation.image = deploymentDetails.find { it.cloudProviderType == 'gce' }?.ami
 
-      // Alternatively, FindImage ops distinguish between server groups deployed to different zones.
+      // Alternatively, FindImage ops distinguish between server groups deployed to different regions.
       // This is partially because AWS images are only available regionally.
-      if (!operation.image && stage.context.zone) {
-        operation.image = deploymentDetails.find { it.zone == stage.context.zone }?.imageId
+      if (!operation.image && stage.context.region) {
+        operation.image = deploymentDetails.find { it.region == stage.context.region }?.imageId
       }
 
       // Lastly, fall back to any image within deploymentDetails, so long as it's unambiguous.
       if (!operation.image) {
         if (deploymentDetails.size() != 1) {
           throw new IllegalStateException("Ambiguous choice of deployment images found for deployment to " +
-                                              "'${stage.context.zone}'. Images found from cluster in " +
-                                              "${deploymentDetails.collect{it.zone}.join(",") } - " +
+                                              "'${stage.context.region}'. Images found from cluster in " +
+                                              "${deploymentDetails.collect{it.region}.join(",") } - " +
                                               "only 1 should be available.")
         }
         operation.image = deploymentDetails[0].imageId

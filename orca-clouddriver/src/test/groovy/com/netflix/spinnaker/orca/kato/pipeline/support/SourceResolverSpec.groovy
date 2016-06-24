@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.client.Response
@@ -87,6 +88,76 @@ class SourceResolverSpec extends Specification {
     "empty"                | "mixedRegions"   || "test-v001"     || "test"          || "us-west-1"
     "useSourceCapacity"    | "singleRegion"   || "test-v000"     || "test"          || "us-west-1"
     "useSourceCapacity"    | "allDisabled"    || "test-v001"     || "test"          || "us-west-1"
+  }
+
+  void "should populate deploy stage 'source' with targeted server group if source is absent and target is explicitly specified"() {
+    given:
+    OortService oort = Mock(OortService)
+    ObjectMapper mapper = new ObjectMapper()
+    SourceResolver resolver = new SourceResolver(
+      oortService: oort,
+      mapper: mapper,
+      resolver: new TargetServerGroupResolver(oortService: oort, mapper: mapper)
+    )
+
+    when:
+    def stage = new PipelineStage(
+      new Pipeline(),
+      "test",
+      [
+        application: "app",
+        credentials: "test",
+        region: "us-west-1",
+        target: "current_asg_dynamic",
+        targetCluster: "app-test"
+      ]
+    )
+    def source = resolver.getSource(stage)
+
+    then:
+    1 * oort.getTargetServerGroup(
+      'app',
+      'test',
+      'app-test',
+      'aws',
+      'us-west-1',
+      'current_asg_dynamic') >> new Response('http://oort.com', 200, 'Okay', [], new TypedString('''\
+    {
+      "name": "app-test-v009",
+      "region": "us-west-1",
+      "createdTime": 1
+    }'''.stripIndent()))
+
+    source?.account == 'test'
+    source?.region == 'us-west-1'
+    source?.serverGroupName == 'app-test-v009'
+    source?.asgName == 'app-test-v009'
+  }
+
+  void "should ignore target if source is explicitly specified"() {
+    given:
+    SourceResolver resolver = new SourceResolver(mapper: new ObjectMapper())
+
+    when:
+    def stage = new PipelineStage(
+      new Pipeline(),
+      "test",
+      [
+        application: "app",
+        credentials: "test",
+        region: "us-west-1",
+        source: [serverGroupName: "app-test-v000", asgName: "app-test-v000", account: "test", region: "us-west-1"],
+        target: "current_asg_dynamic",
+        targetCluster: "app-test"
+      ]
+    )
+    def source = resolver.getSource(stage)
+
+    then:
+    source?.account == 'test'
+    source?.region == 'us-west-1'
+    source?.serverGroupName == 'app-test-v000'
+    source?.asgName == 'app-test-v000'
   }
 
   void 'should sort oort server groups by createdTime'() {
