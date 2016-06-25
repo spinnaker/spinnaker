@@ -106,11 +106,12 @@
       </div>
       <div class="col-md-10">
         <uib-pagination class="pull-right"
-                    ng-if="fp.filteredProps"
-                    total-items="fp.filteredProps.length"
-                    max-size="fp.pagination.maxSize"
-                    ng-model="fp.pagination.currentPage"
-                    ng-change="fp.setFilteredProperties()">
+                        ng-if="fp.filteredProps"
+                        items-per-page="fp.itemsPerPage"
+                        total-items="fp.filteredProps.length"
+                        max-size="fp.pagination.maxSize"
+                        ng-model="fp.pagination.currentPage"
+                        ng-change="fp.setFilteredProperties()">
 
         </uib-pagination>
       </div>

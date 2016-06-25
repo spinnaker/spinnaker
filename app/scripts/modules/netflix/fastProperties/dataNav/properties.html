@@ -47,9 +47,10 @@
 
 
     <uib-pagination ng-if="fp.applications"
-                total-items="fp.filteredCount()"
-                max-size="fp.pagination.maxSize"
-                ng-model="fp.pagination.currentPage">
+                    items-per-page="fp.pagination.itemsPerPage"
+                    total-items="fp.filteredCount()"
+                    max-size="fp.pagination.maxSize"
+                    ng-model="fp.pagination.currentPage">
     </uib-pagination>
   </div>
 
