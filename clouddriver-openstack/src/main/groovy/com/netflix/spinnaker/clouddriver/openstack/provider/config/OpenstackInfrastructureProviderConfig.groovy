@@ -21,6 +21,7 @@ import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfastructureProvider
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackInstanceCachingAgent
+import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackServerGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
@@ -67,6 +68,7 @@ class OpenstackInfrastructureProviderConfig {
       if (!scheduledAccounts.contains(credentials.name)) {
         credentials.regions.each { String region ->
           newlyAddedAgents << new OpenstackInstanceCachingAgent(credentials, region)
+          newlyAddedAgents << new OpenstackServerGroupCachingAgent(credentials, region)
         }
       }
     }

@@ -28,7 +28,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.openstack4j.model.common.ActionResponse
 import spock.lang.Specification
 
-import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
 
 class OpenstackInstanceProviderSpec extends Specification {
 
