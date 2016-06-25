@@ -34,8 +34,9 @@ describe('Service: taskMonitorService', function () {
       let monitor = taskMonitorService.buildTaskMonitor({
         onTaskComplete: () => completeCalled = true,
         modalInstance: { result: $q.defer().promise },
-        application: { name: 'deck' },
+        application: { name: 'deck', runningOrchestrations: { refresh: angular.noop } },
       });
+      spyOn(monitor.application.runningOrchestrations, 'refresh');
 
       monitor.submit(operation);
 
@@ -48,6 +49,7 @@ describe('Service: taskMonitorService', function () {
       $timeout.flush();
       $http.flush();
       expect(monitor.task.isCompleted).toBe(false);
+      expect(monitor.application.runningOrchestrations.refresh.calls.count()).toBe(1);
 
       $http.expectGET(['/applications', 'deck', 'tasks', 'a'].join('/')).respond(200, { status: 'SUCCEEDED' });
       $timeout.flush(); // complete second time
@@ -87,7 +89,7 @@ describe('Service: taskMonitorService', function () {
       let monitor = taskMonitorService.buildTaskMonitor({
         onTaskComplete: () => completeCalled = true,
         modalInstance: { result: $q.defer().promise },
-        application: { name: 'deck' },
+        application: { name: 'deck', runningOrchestrations: { refresh: angular.noop } }
       });
 
       monitor.submit(operation);
