@@ -71,7 +71,6 @@ module.exports = angular
     function terminateInstance(instance, application, params = {}) {
       params.type = 'terminateInstances';
       params.instanceIds = [instance.instanceId];
-      params.serverGroupName = instance.serverGroup;
       params.region = instance.region;
       params.zone = instance.placement.availabilityZone;
       params.credentials = instance.account;

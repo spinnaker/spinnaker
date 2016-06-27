@@ -83,7 +83,7 @@ module.exports = angular.module('spinnaker.job.details.kubernetes.controller', [
       // If the user navigates away from the view before the initial retrieveJob call completes,
       // do not bother subscribing to the refresh
       if (!$scope.$$destroyed) {
-        app.jobs.onRefresh($scope, retrieveJob);
+        app.serverGroups.onRefresh($scope, retrieveJob);
       }
     });
   });
