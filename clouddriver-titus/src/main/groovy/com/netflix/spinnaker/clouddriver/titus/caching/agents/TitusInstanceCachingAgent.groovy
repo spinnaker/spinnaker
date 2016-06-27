@@ -155,9 +155,7 @@ class TitusInstanceCachingAgent implements CachingAgent {
   private Map<String, String> getTitusHealth(Job.TaskSummary task) {
     TaskState taskState = task.state
     HealthState healthState = HealthState.Unknown
-    if (taskState in [TaskState.RUNNING]) {
-      healthState = HealthState.Up
-    } else if (taskState in [TaskState.STOPPED, TaskState.FAILED, TaskState.CRASHED, TaskState.FINISHED, TaskState.DEAD, TaskState.TERMINATING]) {
+    if (taskState in [TaskState.STOPPED, TaskState.FAILED, TaskState.CRASHED, TaskState.FINISHED, TaskState.DEAD, TaskState.TERMINATING]) {
       healthState = HealthState.Down
     } else if (taskState in [TaskState.STARTING, TaskState.DISPATCHED, TaskState.PENDING, TaskState.QUEUED]) {
       healthState = HealthState.Starting

@@ -68,6 +68,11 @@ public interface TitusClient {
      */
     public void resizeJob(ResizeJobRequest resizeJobRequest);
 
+    /**
+     *
+     * @param activateJobRequest
+     */
+    public void activateJob(ActivateJobRequest activateJobRequest);
 
     /**
      *

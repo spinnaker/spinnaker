@@ -23,7 +23,6 @@ import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.client.model.ResizeJobRequest
-import com.netflix.spinnaker.clouddriver.titus.deploy.description.DisableTitusServerGroupDescription
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.ResizeTitusServerGroupDescription
 
 class ResizeTitusServerGroupAtomicOperation implements AtomicOperation<Void> {
