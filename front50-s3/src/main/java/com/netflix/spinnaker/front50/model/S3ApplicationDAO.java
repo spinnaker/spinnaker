@@ -59,7 +59,7 @@ public class S3ApplicationDAO extends S3Support<Application> implements Applicat
 
   @Override
   public Collection<Application> search(Map<String, String> attributes) {
-    return Searcher.search(all(), attributes);
+    return Searcher.search(all(false), attributes);
   }
 
   @Override
