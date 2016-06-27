@@ -81,7 +81,11 @@ public abstract class S3Support<T extends Timestamped> {
   }
 
   public Collection<T> all() {
-    if (readLastModified() > lastRefreshedTime || allItemsCache.get() == null) {
+    return all(true);
+  }
+
+  public Collection<T> all(boolean refreshCache) {
+    if (allItemsCache.get() == null || (refreshCache && readLastModified() > lastRefreshedTime)) {
       // only refresh if there was a modification since our last refresh cycle
       refresh();
     }
