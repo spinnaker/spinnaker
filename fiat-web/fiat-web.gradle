@@ -18,6 +18,7 @@ configurations.all {
 dependencies {
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
+  compile spinnaker.dependency('korkWeb')
   compile project(':fiat-core')
 }
 

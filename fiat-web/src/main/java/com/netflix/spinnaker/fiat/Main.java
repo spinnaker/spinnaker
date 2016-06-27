@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.fiat;
 
+import com.netflix.spinnaker.config.ErrorConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,6 +33,7 @@ import java.util.Map;
     "com.netflix.spinnaker.fiat",
     "com.netflix.spinnaker.config",
 })
+@Import(ErrorConfiguration.class)
 @EnableAutoConfiguration
 public class Main extends SpringBootServletInitializer {
 
