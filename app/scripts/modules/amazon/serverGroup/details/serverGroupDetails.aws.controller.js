@@ -376,7 +376,9 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
     };
 
     this.buildJenkinsLink = () => {
-      if (this.serverGroup && this.serverGroup.buildInfo && this.serverGroup.buildInfo.jenkins) {
+      if (this.serverGroup && this.serverGroup.buildInfo && this.serverGroup.buildInfo.buildInfoUrl) {
+        return this.serverGroup.buildInfo.buildInfoUrl;
+      } else if (this.serverGroup && this.serverGroup.buildInfo && this.serverGroup.buildInfo.jenkins) {
         var jenkins = this.serverGroup.buildInfo.jenkins;
         return jenkins.host + 'job/' + jenkins.name + '/' + jenkins.number;
       }
