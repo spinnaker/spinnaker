@@ -39,7 +39,7 @@ interface Job {
 
   Set<Instance> getInstances()
 
-  Long getLaunchTime()
+  Long getCreatedTime()
 
   Long getFinishTime()
 

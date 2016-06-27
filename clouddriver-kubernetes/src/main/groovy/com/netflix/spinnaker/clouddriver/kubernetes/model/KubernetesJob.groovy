@@ -34,7 +34,7 @@ class KubernetesJob implements Job, Serializable {
   String location
   String provider = "kubernetes"
   Set<Instance> instances
-  Long launchTime
+  Long createdTime
   Set<String> loadBalancers
   Set<String> securityGroups
   RunKubernetesJobDescription deployDescription
@@ -48,7 +48,7 @@ class KubernetesJob implements Job, Serializable {
     this.job = job
     this.account = account
     this.instances = instances ?: [] as Set
-    this.launchTime = KubernetesModelUtil.translateTime(job.metadata.creationTimestamp)
+    this.createdTime = KubernetesModelUtil.translateTime(job.metadata.creationTimestamp)
     this.yaml = SerializationUtils.dumpWithoutRuntimeStateAsYaml(job)
     this.deployDescription = KubernetesApiConverter.fromJob(job)
   }
