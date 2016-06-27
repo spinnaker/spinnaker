@@ -174,8 +174,8 @@ class TaskTasklet implements Tasklet {
 
     try {
       def currentUser = new User(
-        stage.execution?.authentication?.user, null, null, [], stage.execution?.authentication?.allowedAccounts
-      )
+        email: stage.execution?.authentication?.user,
+        allowedAccounts: stage.execution?.authentication?.allowedAccounts).asImmutable()
       return AuthenticatedRequest.propagate({
                                               doExecuteTask(stage.asImmutable(), chunkContext)
                                             }, false, currentUser).call() as TaskResult
