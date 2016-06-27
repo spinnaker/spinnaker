@@ -219,6 +219,11 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
           if (buildHost && buildInfo.containsKey("jenkins")) {
             ((Map) buildInfo.jenkins).host = buildHost
           }
+          def buildInfoUrl = image.attributes.tags?.find { it.key == "build_info_url" }?.value ?: null
+          if (buildInfoUrl) {
+            buildInfo.buildInfoUrl = buildInfoUrl
+          }
+
         }
       }
 
