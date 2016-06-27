@@ -1,7 +1,7 @@
 /*
  * Copyright 2014 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -88,7 +88,7 @@ class CreateBakeTaskSpec extends Specification {
   ]
 
   @Shared
-  def bakeConfigWithTemplateFileNameAndExtendedAttributes = [
+  def bakeConfigWithTemplateFileNameExtendedAttributesAndBuildInfoUrl = [
     region             : "us-west-1",
     package            : "hodor",
     user               : "bran",
@@ -99,7 +99,8 @@ class CreateBakeTaskSpec extends Specification {
     extendedAttributes : [
       playbook_file : "subdir1/site.yml",
       someOtherAttr : "someValue"
-    ]
+    ],
+    buildInfoUrl : "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/",
   ]
 
   @Shared
@@ -634,9 +635,9 @@ class CreateBakeTaskSpec extends Specification {
   }
 
   @Unroll
-  def "propagation of templateFileName and extendedAttributes is feature-flagged"() {
+  def "propagation of templateFileName, extendedAttributes and buildInfoUrl is feature-flagged"() {
     given:
-    Stage stage = new PipelineStage(new Pipeline(), "bake", bakeConfigWithTemplateFileNameAndExtendedAttributes).asImmutable()
+    Stage stage = new PipelineStage(new Pipeline(), "bake", bakeConfigWithTemplateFileNameExtendedAttributesAndBuildInfoUrl).asImmutable()
     def bake
     task.bakery = Mock(BakeryService) {
       if (roscoApisEnabled) {
@@ -660,11 +661,12 @@ class CreateBakeTaskSpec extends Specification {
     bake.baseLabel.name()   == bakeConfigWithCloudProviderType.baseLabel
     bake.templateFileName   == templateFileName
     bake.extendedAttributes == extendedAttributes
+    bake.buildInfoUrl       == buildInfoUrl
 
     where:
-    roscoApisEnabled | templateFileName          | extendedAttributes
-    false            | null                      | null
-    true             | "somePackerTemplate.json" | [playbook_file: "subdir1/site.yml", someOtherAttr: "someValue"]
+    roscoApisEnabled | templateFileName          | extendedAttributes                                               | buildInfoUrl
+    false            | null                      | null                                                             | null
+    true             | "somePackerTemplate.json" | [playbook_file: "subdir1/site.yml", someOtherAttr: "someValue"]  | bakeConfigWithTemplateFileNameExtendedAttributesAndBuildInfoUrl.buildInfoUrl
   }
 
   @Unroll

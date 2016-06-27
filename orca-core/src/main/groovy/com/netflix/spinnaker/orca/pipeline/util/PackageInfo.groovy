@@ -31,6 +31,7 @@ class PackageInfo {
   String packageType
   boolean extractBuildDetails
   boolean extractVersion
+  BuildDetailExtractor buildDetailExtractor
 
   PackageInfo(Stage stage, String packageType, String versionDelimiter, boolean extractBuildDetails, boolean extractVersion, ObjectMapper mapper) {
     this.stage = stage
@@ -39,6 +40,7 @@ class PackageInfo {
     this.extractBuildDetails = extractBuildDetails
     this.extractVersion = extractVersion
     this.mapper = mapper
+    this.buildDetailExtractor = new BuildDetailExtractor()
   }
 
   @VisibleForTesting
@@ -149,20 +151,8 @@ class PackageInfo {
       if (packageName) {
 
         if (extractBuildDetails) {
-          def buildInfoUrl = buildArtifact ? buildInfo?.url : trigger?.buildInfo?.url
-          def buildInfoUrlParts = parseBuildInfoUrl(buildInfoUrl)
-
-          if (buildInfoUrlParts?.size == 3) {
-            request.put('buildHost', buildInfoUrlParts[0].toString())
-            request.put('job', buildInfoUrlParts[1].toString())
-            request.put('buildNumber', buildInfoUrlParts[2].toString())
-          }
-
-          def commitHash = buildArtifact ? extractCommitHash(buildInfo) : extractCommitHash(trigger?.buildInfo)
-
-          if (commitHash) {
-            request.put('commitHash', commitHash)
-          }
+          def buildInfoForDetails = buildArtifact ? buildInfo : trigger?.buildInfo
+          buildDetailExtractor.tryToExtractBuildDetails(buildInfoForDetails, request)
         }
       }
     }
@@ -176,24 +166,6 @@ class PackageInfo {
     return request
   }
 
-  @CompileDynamic
-  private String extractCommitHash(Map buildInfo) {
-    // buildInfo.scm contains a list of maps. Each map contains these keys: name, sha1, branch.
-    // If the list contains more than one entry, prefer the first one that is not master and is not develop.
-    def commitHash
-
-    if (buildInfo?.scm?.size() >= 2) {
-      commitHash = buildInfo.scm.find {
-        it.branch != "master" && it.branch != "develop"
-      }?.sha1
-    }
-
-    if (!commitHash) {
-      commitHash = buildInfo?.scm?.first()?.sha1
-    }
-
-    return commitHash
-  }
 
   @CompileDynamic
   private String extractPackageName(Map artifact, String fileExtension) {
@@ -233,21 +205,4 @@ class PackageInfo {
     }
   }
 
-  @CompileDynamic
-  // Naming-convention for buildInfo.url is $protocol://$buildHost/job/$job/$buildNumber/.
-  // For example: http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/
-  // Note that job names can contain slashes if using the Folders plugin.
-  // For example: http://spinnaker.builds.test.netflix.net/job/folder1/job/job1/69/
-  def parseBuildInfoUrl(String url) {
-    List<String> urlParts = url?.tokenize("/")
-
-    if (urlParts?.size >= 5) {
-      def buildNumber = urlParts.pop()
-      def job = urlParts[3..-1].join('/')
-
-      def buildHost = "${urlParts[0]}//${urlParts[1]}/"
-
-      return [buildHost, job, buildNumber]
-    }
-  }
 }

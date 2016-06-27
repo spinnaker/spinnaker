@@ -75,6 +75,10 @@ class CreateBakeTask implements RetryableTask {
         previouslyBaked : bakeStatus.state == BakeStatus.State.COMPLETED
       ] as Map<String, ? extends Object>
 
+      if (bake.buildInfoUrl) {
+        stageOutputs.buildInfoUrl = bake.buildInfoUrl
+      }
+
       if (bake.buildHost) {
         stageOutputs << [
           buildHost  : bake.buildHost,
@@ -144,7 +148,7 @@ class CreateBakeTask implements RetryableTask {
     }
 
     if (!roscoApisEnabled) {
-      bakeRequest = bakeRequest.copyWith(templateFileName: null, extendedAttributes: null)
+      bakeRequest = bakeRequest.copyWith(templateFileName: null, extendedAttributes: null, buildInfoUrl: null)
     }
 
     return bakeRequest

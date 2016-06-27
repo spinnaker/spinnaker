@@ -73,16 +73,7 @@ class PackageInfoSpec extends Specification {
     info.createAugmentedRequest(trigger, buildInfo, request, false).package == 'dos_1.0-h2'
   }
 
-  void "should parse the build info url into expected parts"() {
-    expect:
-    info.parseBuildInfoUrl(pattern) == expectedResult
 
-    where:
-    pattern                                          || expectedResult
-    "http://jenkins.com/job/jobName/123"             || ["http://jenkins.com/", "jobName", "123"]
-    "http://jenkins.com/job/folder/job/jobName/123"  || ["http://jenkins.com/", "folder/job/jobName", "123"]
-    "http://jenkins.com/job/folder/job/job name/123" || ["http://jenkins.com/", "folder/job/job name", "123"]
-  }
 
   @Unroll
   void "should throw an exception when a trigger has no artifacts"() {
