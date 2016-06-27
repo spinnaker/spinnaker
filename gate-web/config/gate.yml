@@ -94,7 +94,7 @@ spring:
       # clientId:
       # clientSecret:
       accessTokenUri: https://www.googleapis.com/oauth2/v4/token
-      userAuthorizationUri: https://accounts.google.com/o/oauth2/v2/auth?access_type=offline
+      userAuthorizationUri: https://accounts.google.com/o/oauth2/v2/auth
       scope: "profile email"
     resource:
       userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
