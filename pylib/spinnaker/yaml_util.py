@@ -227,6 +227,10 @@ class YamlBindings(object):
       # Quote strings with nested {} yaml flows
       value = '"{0}"'.format(value)
 
+    # yaml doesn't understand capital letter boolean values.
+    if isinstance(value, bool):
+      value = str(value).lower()
+
     return ''.join([
         source[0:value_start],
         ' {value}'.format(value=value),

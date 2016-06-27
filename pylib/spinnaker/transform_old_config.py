@@ -24,7 +24,7 @@ class Processor(object):
     return {match.group(1): match.group(2).strip()
             for match in re.finditer('^([^\s#]+)=([^\n#]*)',
                                      content, re.MULTILINE)}
-    
+
   def __init__(self, config, environ_path, yml_path, aws_path):
       with open(environ_path, 'r') as f:
           self.__environ_content = f.read()
@@ -46,6 +46,10 @@ class Processor(object):
       value = self.lookup(key)
       if value is None:
           return
+
+      # yaml doesn't understand capital letter boolean values.
+      if isinstance(value, bool):
+        value = str(value).lower()
 
       self.__environ_keys.add(key)
       assignment = '{name}={value}'.format(name=name, value=value)
