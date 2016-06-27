@@ -1,6 +1,6 @@
 buildscript {
   ext {
-    springBootVersion = "1.2.5.RELEASE"
+    springBootVersion = "1.2.8.RELEASE"
   }
   repositories {
     jcenter()
@@ -17,7 +17,7 @@ allprojects {
   apply plugin: 'groovy'
 
   spinnaker {
-    dependenciesVersion = "0.39.0"
+    dependenciesVersion = "0.42.0"
   }
 
   configurations.all {
@@ -28,7 +28,10 @@ allprojects {
       force 'org.spockframework:spock-core:1.0-groovy-2.4'
       eachDependency {
         if (it.requested.group == 'org.springframework') {
-          it.useVersion spinnaker.version('spring')
+          it.useVersion '1.2.8.RELEASE'
+        }
+        if (it.requested.group == 'org.springframework') {
+          it.useVersion '4.1.9.RELEASE'
         }
       }
     }
