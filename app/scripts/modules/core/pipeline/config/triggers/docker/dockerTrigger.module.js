@@ -4,6 +4,8 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
     require('../../../../../core/config/settings.js'),
+    require('../../../../../docker/image/image.reader.js'),
+    require('./dockerTriggerOptions.directive.js'),
   ])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerTrigger({
@@ -14,22 +16,22 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
       controllerAs: 'vm',
       templateUrl: require('./dockerTrigger.html'),
       popoverLabelUrl: require('./dockerPopoverLabel.html'),
+      manualExecutionHandler: 'dockerTriggerExecutionHandler',
     });
   })
-  .controller('DockerTriggerCtrl', function (trigger, $scope, Restangular) {
+  .factory('dockerTriggerExecutionHandler', function ($q) {
+    return {
+      formatLabel: (trigger) => {
+        return $q.when(`(Docker) ${trigger.account}: ${trigger.repository}`);
+      },
+      selectorTemplate: require('./selectorTemplate.html'),
+    };
+  })
+  .controller('DockerTriggerCtrl', function (trigger, $scope, dockerImageReader) {
     $scope.viewState = {
       imagesLoaded: false,
       imagesRefreshing: false,
     };
-
-    function loadImages() {
-      return Restangular.all('images/find').getList({ provider: 'dockerRegistry' }, {}).then(function(results) {
-          return results;
-        },
-        function() {
-          return [];
-        });
-    }
 
     function updateOrganizationsList() {
       if (!$scope.accountMap) {
@@ -62,7 +64,7 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
     }
 
     function initializeImages() {
-      loadImages().then(function (images) {
+      dockerImageReader.findImages({ provider: 'dockerRegistry' }).then(function (images) {
         $scope.images = images;
         $scope.registryMap = images.reduce((map, image) => {
           map[image.account] = image.registry;
