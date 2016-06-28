@@ -35,7 +35,7 @@ allprojects {
     group = "com.netflix.spinnaker.echo"
 
     spinnaker {
-        dependenciesVersion = "0.27.0"
+        dependenciesVersion = "0.42.0"
     }
     test {
       testLogging {
