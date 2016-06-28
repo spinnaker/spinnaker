@@ -14,23 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.fiat.model;
+package com.netflix.spinnaker.fiat.roles;
 
-import java.util.HashMap;
-import java.util.Map;
+// TODO(ttomsu)
+public class RedisPermissionsRepository {
 
-public class DefaultPermissionsRepository implements PermissionsRepository {
-
-  private final Map<String, UserPermission> permissions = new HashMap<>();
-
-  @Override
-  public DefaultPermissionsRepository put(String id, UserPermission permission) {
-    this.permissions.put(id, permission);
-    return this;
-  }
-
-  @Override
-  public UserPermission get(String id) {
-    return this.permissions.get(id);
-  }
 }

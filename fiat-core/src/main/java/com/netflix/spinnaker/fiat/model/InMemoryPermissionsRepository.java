@@ -16,13 +16,28 @@
 
 package com.netflix.spinnaker.fiat.model;
 
+import com.google.common.collect.ImmutableMap;
+
+import java.util.HashMap;
 import java.util.Map;
 
-public interface PermissionsRepository {
+public class InMemoryPermissionsRepository implements PermissionsRepository {
 
-  PermissionsRepository put(String id, UserPermission permission);
+  private final Map<String, UserPermission> permissions = new HashMap<>();
 
-  UserPermission get(String id);
+  @Override
+  public InMemoryPermissionsRepository put(String id, UserPermission permission) {
+    this.permissions.put(id, permission);
+    return this;
+  }
 
-  Map<String, UserPermission> getAllById();
+  @Override
+  public UserPermission get(String id) {
+    return this.permissions.get(id);
+  }
+
+  @Override
+  public Map<String, UserPermission> getAllById() {
+    return ImmutableMap.copyOf(permissions);
+  }
 }

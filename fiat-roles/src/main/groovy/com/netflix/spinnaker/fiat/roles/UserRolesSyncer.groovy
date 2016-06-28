@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.fiat.model;
+package com.netflix.spinnaker.fiat.roles
 
-import java.util.Map;
+import com.netflix.spinnaker.fiat.model.PermissionsRepository
+import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Configuration
+import org.springframework.scheduling.annotation.Scheduled
 
-public interface PermissionsRepository {
+@Slf4j
+@Configuration
+class UserRolesSyncer {
 
-  PermissionsRepository put(String id, UserPermission permission);
+  @Autowired
+  PermissionsRepository permissionsRepository
 
-  UserPermission get(String id);
-
-  Map<String, UserPermission> getAllById();
+  @Scheduled(initialDelay = 10000L, fixedRate = 600000L)
+  void sync() {
+    // TODO(ttomsu)
+  }
 }

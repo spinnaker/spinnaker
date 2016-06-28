@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.fiat.model;
+dependencies {
+  compile project(':fiat-core')
 
-import java.util.Map;
+  spinnaker.group("retrofitDefault")
 
-public interface PermissionsRepository {
+  compile spinnaker.dependency('bootWeb')
+  compile spinnaker.dependency('groovy')
 
-  PermissionsRepository put(String id, UserPermission permission);
-
-  UserPermission get(String id);
-
-  Map<String, UserPermission> getAllById();
+  compile("com.google.api-client:google-api-client:1.21.0")
+  compile("com.google.apis:google-api-services-admin-directory:directory_v1-rev65-1.21.0")
+  compile 'com.squareup.retrofit:converter-simplexml:1.9.0'
 }
