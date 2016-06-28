@@ -4,7 +4,7 @@ When Spinnaker is configured to manage multiple AWS accounts it uses AWS STS
 assumeRole functionality to connect to and operate on each managed account.
 
 The single set of AWS credentials used by Spinnaker connects to the managing
-account. In the managing account, the AWS credentials need to have an IAM policy 
+account. In the managing account, the AWS credentials need to have an IAM policy
 that grants the ability to STS assumeRole to the target accounts.
 
 In each managed account there needs to exist an IAM role that provides access to
@@ -29,14 +29,14 @@ account and managed account. Any additional accounts we configure will get added
 
 ````json
 {
-  "Version": "2012-10-17", 
+  "Version": "2012-10-17",
   "Statement": [
     {
       "Action": "sts:AssumeRole",
       "Resource": [
         "arn:aws:iam::123456789012:role/spinnakerManaged",
         "arn:aws:iam::987654321098:role/spinnakerManaged"
-      ], 
+      ],
       "Effect": "Allow"
     }
   ]
@@ -50,7 +50,7 @@ add the `SpinnakerAssumeRolePolicy` to that user.
 
 If we are authenticating via an EC2 instance role, we would create a role in the managing
 account, and attach the `SpinnakerAssumeRolePolicy` to it. For example if we had a role
-named `SpinnakerInstanceProfile` in the managing account 
+named `SpinnakerInstanceProfile` in the managing account
 (ARN `arn:aws:iam::123456789012:role/SpinnakerInstanceProfile`), add the
 `SpinnakerAssumeRolePolicy` to that role.
 
@@ -107,6 +107,8 @@ aws:
         - name: us-east-1
 ````
 
+In the AWS provider section of your spinnaker config update `providers.aws.primaryCredentials.name` to match the name of the managing account.
+
 Once the credentials are configured, they will show up at the `/credentials` endpoint.
 After adding the accounts you will want to look at the UI settings.js and add appropriate
 account configuration there.
@@ -115,5 +117,5 @@ Additionally, in orca we identify one account as our `default.bake.account`. The
 is that AWS AMI images are registered in that account (using Rosco or some other) and from
 there we share those AMIs into the deployment account on deploy. The default value for
 `default.bake.account` is `default`, so if you don't have an account named `default` any
-more you will want to update the `orca.yml` with whichever account is the source of 
-custom AWS AMIs.
+more you will want to update the `orca.yml` with whichever account is the source of
+custom AWS AMIs. If the default account is missing, the value further falls back to `providers.aws.primaryCredentials.name`.
