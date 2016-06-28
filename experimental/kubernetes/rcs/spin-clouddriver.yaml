@@ -1,21 +1,21 @@
 apiVersion: v1
 kind: ReplicationController
 metadata:
-  name: spkr-clouddriver-v000
+  name: spin-clouddriver-v000
   namespace: spinnaker
   labels:
-    app: spkr
+    app: spin
     stack: clouddriver
     version: v000
 spec:
   replicas: 1
   selector:
-    replication-controller: spkr-clouddriver-v000
+    replication-controller: spin-clouddriver-v000
   template:
     metadata:
       labels:
-        replication-controller: spkr-clouddriver-v000
-        load-balancer-spkr-clouddriver: "true"
+        replication-controller: spin-clouddriver-v000
+        load-balancer-spin-clouddriver: "true"
     spec:
       containers:
         - image: quay.io/spinnaker/clouddriver:latest
@@ -27,7 +27,7 @@ spec:
             - mountPath: /opt/spinnaker/config
               name: spinnaker-config
             - mountPath: /root/.kube
-              name: kube-config
+              name: creds-config
           readinessProbe:
             httpGet:
               path: /credentials
@@ -38,6 +38,6 @@ spec:
         - name: spinnaker-config
           secret:
             secretName: spinnaker-config
-        - name: kube-config
+        - name: creds-config
           secret:
-            secretName: kube-config
+            secretName: creds-config

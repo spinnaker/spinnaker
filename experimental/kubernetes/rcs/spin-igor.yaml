@@ -1,35 +1,35 @@
 apiVersion: v1
 kind: ReplicationController
 metadata:
-  name: spkr-orca-v000
+  name: spin-igor-v000
   namespace: spinnaker
   labels:
-    app: spkr
-    stack: orca
+    app: spin
+    stack: igor
     version: v000
 spec:
   replicas: 1
   selector:
-    replication-controller: spkr-orca-v000
+    replication-controller: spin-igor-v000
   template:
     metadata:
       labels:
-        replication-controller: spkr-orca-v000
-        load-balancer-spkr-orca: "true"
+        replication-controller: spin-igor-v000
+        load-balancer-spin-igor: "true"
     spec:
       containers:
-        - image: quay.io/spinnaker/orca:latest
-          name: orca
+        - image: quay.io/spinnaker/igor:latest
+          name: igor
           ports:
-            - containerPort: 8083
-              name: orca
+            - containerPort: 8088
+              name: igor
           volumeMounts:
             - mountPath: /opt/spinnaker/config
               name: spinnaker-config
           readinessProbe:
             httpGet:
               path: /env
-              port: 8083
+              port: 8088
             initialDelaySeconds: 20
             timeoutSeconds: 1
       volumes:

@@ -1,21 +1,21 @@
 apiVersion: v1
 kind: ReplicationController
 metadata:
-  name: spkr-deck-v000
+  name: spin-deck-v000
   namespace: spinnaker
   labels:
-    app: spkr
+    app: spin
     stack: deck
     version: v000
 spec:
   replicas: 1
   selector:
-    replication-controller: spkr-deck-v000
+    replication-controller: spin-deck-v000
   template:
     metadata:
       labels:
-        replication-controller: spkr-deck-v000
-        load-balancer-spkr-deck: "true"
+        replication-controller: spin-deck-v000
+        load-balancer-spin-deck: "true"
     spec:
       containers:
         - image: quay.io/spinnaker/deck:latest

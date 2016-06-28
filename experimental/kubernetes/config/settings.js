@@ -72,6 +72,7 @@ window.spinnakerSettings = {
   },
   feature: {
     pipelines: true,
+    jobs: true,
     notifications: false,
     fastProperty: false,
     vpcMigrator: false,

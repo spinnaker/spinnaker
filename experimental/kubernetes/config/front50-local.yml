@@ -2,19 +2,22 @@ server:
   port: ${services.front50.port:8080}
   address: 0.0.0.0
 
-cassandra:
-  embedded: ${services.cassandra.embedded:false}
-  host: ${services.cassandra.host:localhost}
-
 aws:
   simpleDBEnabled: ${providers.aws.simpleDBEnabled:false}
   defaultSimpleDBDomain: ${providers.aws.defaultSimpleDBDomain}
 
+cassandra:
+  enabled: false
+
 spinnaker:
   cassandra:
+    enabled: false
+  redis:
+    enabled: false
+  gcs:
     enabled: true
-    host: ${services.cassandra.host:localhost}
-    port: ${services.cassandra.port:9042}
-    cluster: ${services.cassandra.cluster:CASS_SPINNAKER}
-    keyspace: front50
-    name: global
+    project: # Name of your GCP project
+    jsonPath: /root/.kube/account.json # Don't change this
+    rootFolder: # Folder to store artifacts in (will be created if necessary)
+    bucket: # Bucket to store artifacts in (will be created if necessary)
+

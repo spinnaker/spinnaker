@@ -19,6 +19,11 @@ kubectl create secret generic spinnaker-config \
     --from-file=./config/spinnaker-local.yml \
     --namespace=spinnaker
 
-kubectl create secret generic kube-config \
-    --from-file=$HOME/.kube/config \
-    --namespace=spinnaker
+CREDS="--from-file=$HOME/.kube/config"
+
+if [ -f $HOME/.gcp/account.json ]; then
+    CREDS="$CREDS --from-file=$HOME/.gcp/account.json"
+fi
+
+kubectl create secret generic creds-config \
+    $CREDS --namespace=spinnaker
