@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
   .controller('kubernetesCloneServerGroupController', function($scope, $uibModalInstance, _, $q, $state,
                                                                serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                                kubernetesServerGroupConfigurationService,
-                                                               serverGroupCommand, application, title) {
+                                                               serverGroupCommand, application, title, $timeout) {
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
       basicSettings: require('./basicSettings.html'),
@@ -47,8 +47,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
       serverGroupCommand.viewState.contextImages = $scope.contextImages;
       $scope.contextImages = null;
       kubernetesServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function () {
-        $scope.state.loaded = true;
-        initializeWizardState();
+        $scope.state.loaded = true; // allows wizard directive to run (after digest).
+        $timeout(initializeWizardState); // wait for digest.
         initializeWatches();
       });
     }

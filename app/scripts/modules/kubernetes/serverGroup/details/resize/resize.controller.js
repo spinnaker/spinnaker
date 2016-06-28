@@ -15,6 +15,8 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.resize
 
     $scope.command = { capacity: { desired: $scope.currentSize.desired } };
 
+    $scope.verification = {};
+
     if (application && application.attributes) {
       if (application.attributes.platformHealthOnly) {
         $scope.command.interestingHealthProviderNames = ['Kubernetes'];
@@ -25,7 +27,9 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.resize
 
     this.isValid = function () {
       var command = $scope.command;
-      return command.capacity !== null && command.capacity.desired !== null;
+      return $scope.verification.verified
+        && command.capacity !== null
+        && command.capacity.desired !== null;
     };
 
     this.resize = function () {
