@@ -63,7 +63,7 @@ class AutoScalingWorker {
   private Integer healthCheckGracePeriod
   private String healthCheckType
   private String spotPrice
-  private Collection<String> suspendedProcesses
+  private Set<String> suspendedProcesses
   private Collection<String> terminationPolicies
   private String kernelId
   private String ramdiskId
