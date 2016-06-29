@@ -51,7 +51,7 @@
 #                  platform the bakery is on. The above works on Ubuntu 14.04
 #               d) Add post build action to archive the artifacts
 #                  files to archive: somedir/vim_2:7.4.052-1ubuntu3_amd64.deb
-#            
+#
 #
 #   PYTHONPATH=$CITEST_ROOT:$CITEST_ROOT/spinnaker \
 #     python $CITEST_ROOT/spinnaker/spinnaker_system/bake_and_deploy_test.py \
@@ -442,6 +442,8 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
         providerType='aws',
         regions=[self.bindings['TEST_AWS_REGION']],
         vmType='hvm', storeType='ebs')
+    # FIXME(jacobkiefer): this is creating a gce deploy stage in an aws
+    # pipeline. Not good.
     deploy_stage = self.make_deploy_google_stage(requisiteStages=['BAKE'])
     disable_stage = self.make_disable_group_stage(
       cloudProvider='aws', regions=[self.bindings['TEST_AWS_REGION']],
@@ -527,46 +529,54 @@ class BakeAndDeployTest(st.AgentTestCase):
   def test_a_create_app(self):
     if not self.scenario.run_tests:
       self.skipTest("No --test_{google, aws} flags were set")
-    self.run_test_case(self.scenario.create_app())
+    else:
+      self.run_test_case(self.scenario.create_app())
 
   def test_b_create_load_balancer(self):
     if not self.scenario.run_tests:
       self.skipTest("No --test_{google, aws} flags were set")
-    self.run_test_case(self.scenario.create_load_balancer())
+    else:
+      self.run_test_case(self.scenario.create_load_balancer())
 
   def test_c1_create_bake_and_deploy_google_pipeline(self):
     if not self.scenario.test_google:
       self.skipTest("--test_google flag not set")
-    self.run_test_case(self.scenario.create_bake_and_deploy_google_pipeline(),
+    else:
+      self.run_test_case(self.scenario.create_bake_and_deploy_google_pipeline(),
                        full_trace=True)
 
   def test_c2_create_bake_and_deploy_aws_pipeline(self):
     if not self.scenario.test_aws:
       self.skipTest("--test_aws flag not set")
-    self.run_test_case(self.scenario.create_bake_and_deploy_aws_pipeline())
+    else:
+      self.run_test_case(self.scenario.create_bake_and_deploy_aws_pipeline())
 
   def test_d1_run_bake_and_deploy_google_pipeline(self):
     if not self.scenario.test_google:
       self.skipTest("--test_google flag not set")
-    self.run_test_case(self.scenario.run_bake_and_deploy_google_pipeline(
+    else:
+      self.run_test_case(self.scenario.run_bake_and_deploy_google_pipeline(
         self.scenario.google_pipeline_id))
 
   def test_x1_delete_google_pipeline(self):
     if not self.scenario.test_google:
       self.skipTest("--test_google flag not set")
-    self.run_test_case(
+    else:
+      self.run_test_case(
         self.scenario.delete_pipeline(self.scenario.google_pipeline_id))
 
   def test_x2_delete_aws_pipeline(self):
     if not self.scenario.test_aws:
       self.skipTest("--test_aws flag not set")
-    self.run_test_case(
+    else:
+      self.run_test_case(
         self.scenario.delete_pipeline(self.scenario.aws_pipeline_id))
 
   def test_y_delete_load_balancer(self):
     if not self.scenario.run_tests:
       self.skipTest("No --test_{google, aws} flags were set")
-    self.run_test_case(self.scenario.delete_load_balancer(),
+    else:
+      self.run_test_case(self.scenario.delete_load_balancer(),
                        max_retries=5)
 
   def test_z_delete_app(self):
@@ -574,7 +584,8 @@ class BakeAndDeployTest(st.AgentTestCase):
       self.skipTest("No --test_{google, aws} flags were set")
     # Give a total of a minute because it might also need
     # an internal cache update
-    self.run_test_case(self.scenario.delete_app(),
+    else:
+      self.run_test_case(self.scenario.delete_app(),
                        retry_interval_secs=8, max_retries=8)
 
 
