@@ -20,7 +20,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentia
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import groovy.transform.InheritConstructors
-import io.fabric8.kubernetes.api.model.EditableNamespace
 import io.fabric8.kubernetes.api.model.Namespace
 import io.fabric8.kubernetes.api.model.NamespaceBuilder
 import org.slf4j.Logger
@@ -72,7 +71,7 @@ class KubernetesHealthIndicator implements HealthIndicator {
           Namespace res = kubernetesCredentials.apiAdaptor.getNamespace(namespace)
           if (res == null) {
             NamespaceBuilder namespaceBuilder = new NamespaceBuilder();
-            EditableNamespace newNamespace = namespaceBuilder.withNewMetadata().withName(namespace).endMetadata().build()
+            Namespace newNamespace = namespaceBuilder.withNewMetadata().withName(namespace).endMetadata().build()
             kubernetesCredentials.apiAdaptor.createNamespace(newNamespace)
             LOG.info "Created missing namespace $namespace"
           }

@@ -6,5 +6,5 @@ dependencies {
   compile spinnaker.dependency('bootWeb')
 
   // TODO (move to https://github.com/spinnaker/spinnaker-dependencies/blob/master/src/spinnaker-dependencies.yml)
-  compile 'io.fabric8:kubernetes-api:2.2.102'
+  compile 'io.fabric8:kubernetes-api:2.2.136'
 }

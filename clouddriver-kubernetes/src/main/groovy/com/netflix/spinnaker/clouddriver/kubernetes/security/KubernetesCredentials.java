@@ -19,9 +19,11 @@ package com.netflix.spinnaker.clouddriver.kubernetes.security;
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
-import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.api.model.Namespace;
+import io.fabric8.kubernetes.api.model.NamespaceBuilder;
+import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,7 +106,7 @@ public class KubernetesCredentials {
         Namespace res = apiAdaptor.getNamespace(namespace);
         if (res == null) {
           NamespaceBuilder namespaceBuilder = new NamespaceBuilder();
-          EditableNamespace newNamespace = namespaceBuilder.withNewMetadata().withName(namespace).endMetadata().build();
+          Namespace newNamespace = namespaceBuilder.withNewMetadata().withName(namespace).endMetadata().build();
           apiAdaptor.createNamespace(newNamespace);
         }
 
