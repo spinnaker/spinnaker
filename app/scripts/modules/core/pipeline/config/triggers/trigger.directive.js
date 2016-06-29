@@ -33,11 +33,11 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.triggerD
       $scope.pipeline.triggers.splice(triggerIndex, 1);
     };
 
-    this.loadTrigger = function loadTrigger() {
+    this.loadTrigger = () => {
       var type = $scope.trigger.type,
           triggerScope = $scope.$new();
       if (type) {
-        if (disableAutoTriggering.indexOf(type) > -1) {
+        if (this.disableAutoTriggering.indexOf(type) > -1) {
           $scope.trigger.enabled = false;
         }
         var triggerConfig = triggerTypes.filter(function(config) {
