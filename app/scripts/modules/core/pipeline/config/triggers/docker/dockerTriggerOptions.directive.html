@@ -10,7 +10,7 @@
     <div ng-if="!vm.tags.length"><p class="form-control-static">No tags found</p></div>
     <ui-select class="form-control input-sm"
                ng-model="vm.viewState.selectedTag"
-               on-select="vm.updateSelectedtag($item)"
+               on-select="vm.updateSelectedTag($item)"
                ng-if="vm.tags.length">
       <ui-select-match placeholder="Select...">
         <span>
