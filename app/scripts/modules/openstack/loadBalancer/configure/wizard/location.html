@@ -1,0 +1,72 @@
+<ng-form class="container-fluid form-horizontal" name="locationForm" novalidate>
+  <div ng-if="!state.accountsLoaded" style="height: 200px">
+    <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
+  </div>
+  <div class="modal-body" ng-if="state.accountsLoaded">
+    <div class="form-group">
+      <div class="col-md-12 well" ng-class="{'alert-danger': locationForm.loadBalancerName.$error.validateUnique, 'alert-info': !locationForm.loadBalancerName.$error.validateUnique}">
+        <strong>Your load balancer will be named:</strong>
+        <span>{{loadBalancer.name}}</span>
+          <!-- Angular does not seem to run length validation on hidden inputs, hence the text + display:none -->
+        <input type="text"
+               style="display: none"
+               ng-maxlength="24"
+               class="form-control input-sm"
+               ng-model="loadBalancer.name"
+               validate-unique="existingLoadBalancerNames"
+               validate-ignore-case="true"
+               name="loadBalancerName"/>
+        <validation-error ng-if="locationForm.loadBalancerName.$error.validateUnique" message="There is already a load balancer in {{loadBalancer.account}} with that name."></validation-error>
+      </div>
+    </div>
+    <div>
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">Account</div>
+        <div class="col-md-7">
+          <account-select-field component="loadBalancer" field="account" accounts="accounts" provider="'openstack'" on-change="ctrl.accountUpdated()"></account-select-field>
+        </div>
+      </div>
+
+      <select-field label="Region" options="regions" model="loadBalancer.region" on-change="ctrl.regionUpdated()"></select-field>
+
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">Stack <help-field key="openstack.loadBalancer.stack"></help-field></div>
+        <div class="col-md-7">
+          <input type="text"
+                 class="form-control input-sm"
+                 ng-model="loadBalancer.stack"
+                 name="stackName"
+                 ng-change="ctrl.updateName()"
+                 ng-pattern="/^[a-zA-Z0-9]*$/"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">Detail <help-field key="openstack.loadBalancer.detail"></help-field></div>
+        <div class="col-md-7">
+          <input type="text"
+                 class="form-control input-sm"
+                 ng-model="loadBalancer.detail"
+                 name="detailName"
+                 ng-change="ctrl.updateName()"
+                 ng-pattern="/^[a-zA-Z0-9-]*$/"/>
+        </div>
+      </div>
+
+      <os-subnet-select-field model="loadBalancer.subnetId" filter="subnetFilter" onChange="ctrl.onSubnetChanged()"></os-subnet-select-field>
+
+      <div class="form-group">
+        <div class="col-md-7 col-md-offset-3" ng-if="locationForm.stackName.$error.pattern">
+          <validation-error message="Stack can only contain letters and numbers."></validation-error>
+        </div>
+        <div class="col-md-7 col-md-offset-3" ng-if="locationForm.detailName.$error.pattern">
+          <validation-error message="Detail can only contain letters, numbers, and dashes(-)."></validation-error>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-9 col-md-offset-3" ng-if="locationForm.loadBalancerName.$error.maxlength">
+          <validation-error message="Load Balancer name can only be 24 characters."></validation-error>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-form>

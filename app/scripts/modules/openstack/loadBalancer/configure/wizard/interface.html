@@ -1,0 +1,27 @@
+<ng-form class="container-fluid form-horizontal" name="interfaceForm">
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right">
+      Protocol
+      <help-field key="openstack.service.ports.protocol"></help-field>
+    </div>
+    <div class="col-md-2">
+      <select class="form-control input-sm"
+              ng-model="loadBalancer.protocol">
+        <option ng-repeat="protocol in protocols"
+                value="{{protocol}}"
+                ng-selected="loadBalancer.protocol === protocol">{{protocol}}</option>
+      </select>
+    </div>
+  </div>
+  <floating-ip-select-field model="loadBalancer.floatingIpId"></floating-ip-select-field>
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right">
+      Port
+      <help-field key="openstack.loadBalancer.port"></help-field>
+    </div>
+    <div class="col-md-2">
+      <input type="number" class="form-control input-sm" name="details" ng-model="loadBalancer.externalPort"
+             min="1" max="{{maxPort}}" />
+    </div>
+  </div>
+</ng-form>

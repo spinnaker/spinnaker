@@ -1,0 +1,14 @@
+<div class="form-group">
+  <div class="col-md-{{labelColumnSize || 3}} sm-label-right">
+    {{label}}
+    <help-field ng-if="helpKey" key="{{helpKey}}"></help-field>
+  </div>
+  <div class="col-md-7" ng-if="!(options && options.length)">{{noOptionsMessage}}</div>
+  <div class="col-md-7" ng-if="options && options.length">
+    <select class="form-control input-sm" ng-model="model" ng-change="onChange()" ng-if="!readOnly">
+      <option ng-selected="model === undefined" ng-if="allowNoSelection">None</option>
+      <option ng-repeat="option in options | orderBy: 'label'" value="{{option.value}}" ng-selected="model === option.value">{{option.label}}</option>
+    </select>
+    <p ng-if="readOnly" class="form-control-static">{{selectedOption ? selectedOption.label : noSelectionMessage}}</p>
+  </div>
+</div>

@@ -1,0 +1,20 @@
+<form name="form" class="form-horizontal" novalidate>
+  <v2-modal-wizard heading="Edit Load Balancer">
+    <v2-wizard-page key="interface" label="Interface" done="true">
+      <ng-include src="pages.interface"></ng-include>
+    </v2-wizard-page>
+    <v2-wizard-page key="destinations" label="Traffic Destinations" done="true">
+      <ng-include src="pages.destinations"></ng-include>
+    </v2-wizard-page>
+    <v2-wizard-page key="health-check" label="Health Check" done="true">
+      <ng-include src="pages.healthCheck"></ng-include>
+    </v2-wizard-page>
+  </v2-modal-wizard>
+  <div class="modal-footer">
+    <button ng-disabled="taskMonitor.submitting" class="btn btn-default"
+            ng-click="ctrl.cancel()">Cancel
+    </button>
+    <submit-button is-disabled="form.$invalid || taskMonitor.submitting"
+                   submitting="taskMonitor.submitting" on-click="ctrl.submit()" is-new="isNew"></submit-button>
+  </div>
+</form>

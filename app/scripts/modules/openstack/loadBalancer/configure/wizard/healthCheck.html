@@ -1,0 +1,95 @@
+<ng-form class="container-fluid form-horizontal health-check" name="healthCheckForm">
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right">
+      Protocol
+      <help-field key="openstack.loadBalancer.healthCheck.protocol"></help-field>
+    </div>
+    <div class="col-md-2">
+      <select class="form-control input-sm"
+              ng-model="loadBalancer.healthMonitor.type"
+              ng-options="protocol for protocol in ['HTTP', 'HTTPS', 'PING', 'TCP']"></select>
+      </select>
+    </div>
+    <div class="col-md-3 sm-label-right">
+      Delay
+      <help-field key="openstack.loadBalancer.healthCheck.delay"></help-field>
+    </div>
+    <div class="col-md-3">
+      <div class="input-group">
+        <input type="number" class="form-control input-sm" name="delay" ng-model="loadBalancer.healthMonitor.delay"
+               min="1"/>
+        <span class="input-group-addon">s</span>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right">
+      Timeout
+      <help-field key="openstack.loadBalancer.healthCheck.timeout"></help-field>
+    </div>
+    <div class="col-md-3">
+      <div class="input-group">
+        <input type="number" class="form-control input-sm" name="timeout" ng-model="loadBalancer.healthMonitor.timeout"
+               min="1"/>
+        <span class="input-group-addon">ms</span>
+      </div>
+    </div>
+    <div class="col-md-2 sm-label-right">
+      Retries
+      <help-field key="openstack.loadBalancer.healthCheck.maxRetries"></help-field>
+    </div>
+    <div class="col-md-2">
+      <input type="number" class="form-control input-sm" name="maxRetries" ng-model="loadBalancer.healthMonitor.maxRetries"
+             min="0"/>
+    </div>
+  </div>
+  <div class="form-group" ng-if="loadBalancer.healthMonitor.type === 'HTTP' || loadBalancer.healthMonitor.type === 'HTTPS'">
+    <div class="col-md-3 sm-label-right">
+      Method
+      <help-field key="openstack.loadBalancer.healthCheck.method"></help-field>
+    </div>
+    <div class="col-md-2">
+      <select class="form-control input-sm"
+              ng-model="loadBalancer.healthMonitor.method"
+              ng-options="method for method in ['GET', 'POST', 'HEAD']"></select>
+      </select>
+    </div>
+  </div>
+  <div class="form-group" ng-if="loadBalancer.healthMonitor.type === 'HTTP' || loadBalancer.healthMonitor.type === 'HTTPS'">
+    <div class="col-md-3 sm-label-right">
+      URL
+      <help-field key="openstack.loadBalancer.healthCheck.url"></help-field>
+    </div>
+    <div class="col-md-8">
+      <input class="form-control input-sm" name="url" ng-model="loadBalancer.healthMonitor.url"
+             ng-change="loadBalancer.healthMonitor.url = ctrl.prependForwardSlash(loadBalancer.healthMonitor.url)"
+        />
+    </div>
+  </div>
+  <div class="form-group" ng-if="loadBalancer.healthMonitor.type === 'HTTP' || loadBalancer.healthMonitor.type === 'HTTPS'">
+    <div class="col-md-3 sm-label-right">
+      Status Codes
+      <help-field key="openstack.loadBalancer.healthCheck.statusCodes"></help-field>
+    </div>
+    <div class="col-md-8">
+      <div ng-repeat="statusCode in loadBalancer.healthMonitor.expectedStatusCodes" class="status-code pull-left">
+        {{statusCode}}
+        <span class="glyphicon glyphicon-remove-circle" aria-hidden="true" ng-click="ctrl.removeStatusCode(statusCode);"></span>
+      </div>
+
+      <ng-form name="statusCodeForm" isolate-form>
+        <div class="col-md-3 input-group">
+          <input type="number" class="form-control input-sm" name="statusCode" ng-model="ctrl.newStatusCode"
+                 min="100" max="699" required/>
+          <span class="input-group-btn">
+            <button type="button" class="btn btn-default btn-sm" aria-label="Add Status Code"
+                    ng-click="ctrl.addStatusCode()"
+                    ng-disabled="!statusCodeForm.$valid">
+              <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+            </button>
+          </span>
+        </div>
+      </ng-form>
+    </div>
+  </div>
+</ng-form>

@@ -379,4 +379,8 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'azure.serverGroup.imageName': '(Required) <b>Image</b> is the deployable Azure Machine Image.',
     'azure.serverGroup.stack': '(Required) <b>Stack</b> is one of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',
     'azure.serverGroup.detail': '(Required) <b>Detail</b> is a naming component to help distinguish specifics of the server group.',
+    'openstack.loadBalancer.detail': '(Optional) A string of free-form alphanumeric characters; by convention, we recommend using "frontend".',
+    'openstack.loadBalancer.stack': '(Optional) One of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.' ,
+    'openstack.loadBalancer.port': 'The externally exposed port for this load balancer.',
+    'openstack.loadBalancer.targetPort': 'The port on instances associated with this load balancer to which traffic is forwarded.',
   });
