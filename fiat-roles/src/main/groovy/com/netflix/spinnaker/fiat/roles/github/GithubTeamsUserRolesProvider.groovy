@@ -39,7 +39,7 @@ class GithubTeamsUserRolesProvider implements UserRolesProvider, InitializingBea
   GitHubProperties gitHubProperties
 
   @Override
-  Collection<String> loadRoles(String userName) {
+  List<String> loadRoles(String userName) {
     if (!userName || !gitHubProperties.organization) {
       return []
     }

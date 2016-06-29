@@ -92,7 +92,7 @@ class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Initializin
   }
 
   @Override
-  Collection<String> loadRoles(String userEmail) {
+  List<String> loadRoles(String userEmail) {
     if (!userEmail) {
       return []
     }

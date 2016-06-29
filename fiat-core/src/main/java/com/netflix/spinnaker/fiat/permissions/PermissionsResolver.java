@@ -14,9 +14,22 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.fiat.roles;
+package com.netflix.spinnaker.fiat.permissions;
 
-// TODO(ttomsu)
-public class RedisPermissionsRepository {
+import com.netflix.spinnaker.fiat.model.UserPermission;
 
+import java.util.Collection;
+import java.util.Map;
+
+public interface PermissionsResolver {
+
+  /**
+   * Resolves a single user's permissions.
+   */
+  UserPermission resolve(String userId);
+
+  /**
+   * Resolves multiple user's permissions. Returned map is keyed by userId.
+   */
+  Map<String, UserPermission> resolve(Collection<String> userIds);
 }

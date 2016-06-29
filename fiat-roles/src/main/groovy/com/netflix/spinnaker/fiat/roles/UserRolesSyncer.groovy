@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.fiat.roles
 
-import com.netflix.spinnaker.fiat.model.PermissionsRepository
+import com.netflix.spinnaker.fiat.permissions.PermissionsRepository
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration

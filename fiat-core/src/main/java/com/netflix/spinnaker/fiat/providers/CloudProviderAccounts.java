@@ -14,30 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.fiat;
+package com.netflix.spinnaker.fiat.providers;
 
-import com.netflix.spinnaker.fiat.model.CloudAccountProvider;
 import com.netflix.spinnaker.fiat.model.resources.Account;
-import lombok.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import lombok.Data;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Component
-public class AccountProvider {
-
-  @Autowired
-  @Setter
-  private List<CloudAccountProvider> accountProviders;
-
-  public List<Account> getAccounts() {
-    return accountProviders
-        .stream()
-        .map(CloudAccountProvider::getAccounts)
-        .flatMap(Collection::stream)
-        .collect(Collectors.toList());
-  }
+@Data
+public class CloudProviderAccounts {
+  private final String cloudProvider;
+  private List<Account> accounts = new ArrayList<>();
 }

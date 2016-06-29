@@ -14,16 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.fiat.model;
+package com.netflix.spinnaker.fiat.permissions;
 
-import com.netflix.spinnaker.fiat.model.resources.Account;
-import lombok.Data;
+// TODO(ttomsu)
+public class RedisPermissionsRepository {
 
-import java.util.ArrayList;
-import java.util.List;
-
-@Data
-public class CloudAccountProvider {
-  private final String cloudProvider;
-  private List<Account> accounts = new ArrayList<>();
 }

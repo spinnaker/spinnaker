@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.fiat.model;
+package com.netflix.spinnaker.fiat.permissions;
 
 import com.google.common.collect.ImmutableMap;
+import com.netflix.spinnaker.fiat.model.UserPermission;
 
 import java.util.HashMap;
 import java.util.Map;

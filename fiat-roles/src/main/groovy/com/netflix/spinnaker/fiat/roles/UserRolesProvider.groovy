@@ -24,7 +24,7 @@ public interface UserRolesProvider {
    * @param userId identify a user. Can be email or username.
    * @return Roles assigned to the {@link com.netflix.spinnaker.security.User User} with the given userEmail.
    */
-  public Collection<String> loadRoles(String userId)
+  public List<String> loadRoles(String userId)
 
   /**
    * Load the roles assigned to each {@link com.netflix.spinnaker.security.User User's} email in userEmails.

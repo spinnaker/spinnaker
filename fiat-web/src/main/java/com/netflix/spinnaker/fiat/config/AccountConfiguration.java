@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.fiat.config;
 
-import com.netflix.spinnaker.fiat.model.CloudAccountProvider;
+import com.netflix.spinnaker.fiat.providers.CloudProviderAccounts;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -28,35 +28,35 @@ public class AccountConfiguration {
   @Bean
   @ConfigurationProperties("aws")
   @ConditionalOnProperty("providers.aws.enabled")
-  public CloudAccountProvider awsAccounts() {
-    return new CloudAccountProvider("aws");
+  public CloudProviderAccounts awsAccounts() {
+    return new CloudProviderAccounts("aws");
   }
 
   @Bean
   @ConfigurationProperties("azure")
   @ConditionalOnProperty("providers.azure.enabled")
-  public CloudAccountProvider azureAccounts() {
-    return new CloudAccountProvider("azure");
+  public CloudProviderAccounts azureAccounts() {
+    return new CloudProviderAccounts("azure");
   }
 
   @Bean
   @ConfigurationProperties("cf")
   @ConditionalOnProperty("providers.cf.enabled")
-  public CloudAccountProvider cfAccounts() {
-    return new CloudAccountProvider("cf");
+  public CloudProviderAccounts cfAccounts() {
+    return new CloudProviderAccounts("cf");
   }
 
   @Bean
   @ConfigurationProperties("google")
   @ConditionalOnProperty("providers.google.enabled")
-  public CloudAccountProvider googleAccounts() {
-    return new CloudAccountProvider("google");
+  public CloudProviderAccounts googleAccounts() {
+    return new CloudProviderAccounts("google");
   }
 
   @Bean
   @ConfigurationProperties("kubernetes")
   @ConditionalOnProperty("providers.kubernetes.enabled")
-  public CloudAccountProvider kubernetesAccounts() {
-    return new CloudAccountProvider("kubernetes");
+  public CloudProviderAccounts kubernetesAccounts() {
+    return new CloudProviderAccounts("kubernetes");
   }
 }

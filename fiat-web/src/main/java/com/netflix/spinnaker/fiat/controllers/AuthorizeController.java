@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.fiat.controllers;
 
-import com.netflix.spinnaker.fiat.model.PermissionsRepository;
+import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import lombok.NonNull;
