@@ -15,9 +15,12 @@ spinnaker:
   redis:
     enabled: false
   gcs:
-    enabled: true
-    project: # Name of your GCP project
+    enabled: ${services.front50.gcs.enabled}
+    project: ${services.front50.gcs.project}
     jsonPath: /root/.kube/account.json # Don't change this
-    rootFolder: # Folder to store artifacts in (will be created if necessary)
-    bucket: # Bucket to store artifacts in (will be created if necessary)
-
+    rootFolder: ${services.front50.bucket_root}
+    bucket: ${services.front50.storage_bucket}
+  s3:
+    enabled: ${services.front50.s3.enabled}
+    rootFolder: ${services.front50.bucket_root}
+    bucket: ${services.front50.storage_bucket}

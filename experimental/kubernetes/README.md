@@ -116,29 +116,38 @@ mentioned above.
 
 ## Configuring Pipeline Storage
 
-Open `./config/front50-local.yml`, where you'll find the below section which is
-mostly filled out for GCS:
+Open `./config/spinnaker-local.yml`, where you'll find the below section which 
+is mostly filled out:
 
 ```yaml
-spinnaker:
-  cassandra:
-    enabled: false
-  redis:
-    enabled: false
-  gcs:
-    enabled: true
-    project: # Name of your GCP project
-    jsonPath: /root/.kube/account.json # Don't change this
-    rootFolder: # Folder to store artifacts in (will be created if necessary)
-    bucket: # Bucket to store artifacts in (will be created if necessary)
+  front50:
+    host: spin-front50.spinnaker.svc.cluster.local
+    port: 8080
+    baseUrl: ${services.default.protocol}://${services.front50.host}:${services.front50.port}
+
+    # If using storage bucket persistence (gcs or s3), specify the bucket here
+    # disable cassandra and enable the storage service below.
+    storage_bucket: # Needs to be a globally unique name. Pick something clever.
+    bucket_root: front50
+
+    cassandra:
+      enabled: false
+    redis:
+      enabled: false
+    gcs:
+      enabled: false # Enable me
+      project: # Set me
+    s3:
+      enabled: false # Or me
 ```
 
-If you're using GCS, make sure you've followed the related steps for setting up
-GCR with a service account above (in order to have a keyfile sitting in
-`~/.gcp/account.json`).
-
-If you'd rather use S3, follow the guidelines
-[here](http://www.spinnaker.io/docs/front50-cassandra-to-s3).
+Add values for `front50.storage_bucket` 
+(a unique bucket name that will created by spinnaker if it doesn't exist)
+and set `true` for either `front50.gcs.enabled` or `front50.s3.enabled`
+depending on which storage solution you want to use. If you
+are using GCS, you need a json account file at `~/.gcp/account.json`, and 
+specify the project in `front50.gcs.project`.
+Otherwise, you need your AWS credentials to be located at `~/.aws/credentials`.
 
 ## Initial Startup
 

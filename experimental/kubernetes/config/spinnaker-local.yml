@@ -73,6 +73,21 @@ services:
     port: 8080
     baseUrl: ${services.default.protocol}://${services.front50.host}:${services.front50.port}
 
+    # If using storage bucket persistence (gcs or s3), specify the bucket here
+    # disable cassandra and enable the storage service below.
+    storage_bucket: # Needs to be a globally unique name. Pick something clever.
+    bucket_root: front50
+
+    cassandra:
+      enabled: false
+    redis:
+      enabled: false
+    gcs:
+      enabled: false # Enable me
+      project: # Set me
+    s3:
+      enabled: false # Or me
+
   gate:
     host: spin-gate.spinnaker.svc.cluster.local
     port: 8084
@@ -223,6 +238,6 @@ providers:
     # enable this provider to cache images.
     enabled: false
     primaryCredentials:
-      name: my-docker-registry-account
+      name: my-docker-registry
       address: https://index.docker.io/
       repository: library/nginx
