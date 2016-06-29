@@ -8,8 +8,14 @@
   .application-name {
     display: inline-block;
   }
+  .page-button {
+    margin-top: 30px;
+    @media (min-width: 708px) and (max-width: 1200px) {
+      margin-top: 16px;
+    }
+  }
   h2 {
-    @media (min-width: 708px) and (max-width: 992px) {
+    @media (min-width: 708px) and (max-width: 1200px) {
       float: left;
       font-size: 160%;
       min-width: 120px;
@@ -27,8 +33,13 @@
     display: inline-block;
   }
   ul {
+    @media (min-width: 992px) and (max-width: 1200px) {
+      li {
+        margin-top: 10px;
+        font-size: 90%;
+      }
+    }
     @media (min-width: 708px) and (max-width: 992px) {
-      display: block;
       li {
         margin-top: 10px;
         font-size: 85%;
