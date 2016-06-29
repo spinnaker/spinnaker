@@ -12,7 +12,7 @@
       <p class="text-center">Please check your URL - we can't find any data for <em>{{application.name}}</em>.</p>
     </div>
     <span ng-include="ctrl.applicationNavTemplate"></span>
-    <div class="page-button pull-right">
+    <div class="page-button pull-right" ng-if="application.attributes.pdApiKey">
       <button class="btn btn-xs btn-danger"
               ng-click="ctrl.pageApplicationOwner()"
               uib-tooltip="Page application owner">
