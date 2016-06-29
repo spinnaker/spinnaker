@@ -202,14 +202,15 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
 
     };
 
-    this.cloneServerGroup = function cloneServerGroup(serverGroup) {
+    this.cloneServerGroup = (serverGroup) => {
       $uibModal.open({
         templateUrl: require('../configure/wizard/serverGroupWizard.html'),
         controller: 'azureCloneServerGroupCtrl as ctrl',
+        size: 'lg',
         resolve: {
-          title: function() { return 'Clone ' + serverGroup.name; },
-          application: function() { return app; },
-          serverGroupCommand: function() { return azureServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup); },
+          title: () => 'Clone ' + serverGroup.name,
+          application: () => app,
+          serverGroupCommand: () => azureServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup),
         }
       });
     };

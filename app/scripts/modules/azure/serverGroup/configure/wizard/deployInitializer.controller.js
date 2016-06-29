@@ -60,7 +60,6 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.deployIni
         angular.extend(details, serverGroup);
         return azureServerGroupCommandBuilder.buildServerGroupCommandFromExisting($scope.application, details, 'editPipeline').then(function (command) {
           applyCommandToScope(command);
-          $scope.command.strategy = 'redblack';
         });
       });
     }

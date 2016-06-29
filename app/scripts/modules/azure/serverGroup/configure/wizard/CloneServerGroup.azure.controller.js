@@ -11,10 +11,10 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
   require('../../../../core/task/monitor/taskMonitorService.js'),
   require('../../../../core/modal/wizard/v2modalWizard.service.js'),
 ])
-  .controller('azureCloneServerGroupCtrl', function($scope, $uibModalInstance, _, $q, $exceptionHandler, $state,
+  .controller('azureCloneServerGroupCtrl', function($scope, $uibModalInstance, _, $q, $state,
                                                   serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                   azureServerGroupConfigurationService, serverGroupCommand,
-                                                  azureServerGroupTransformer, application, title) {
+                                                  application, title) {
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
       basicSettings: require('./basicSettings/basicSettings.html'),
@@ -89,7 +89,6 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
           serverGroupCommand.viewState.useAllImageSelection = true;
         }
         $scope.state.loaded = true;
-        initializeSpecificImage();
         initializeWizardState();
         initializeSelectOptions();
         initializeWatches();
@@ -130,17 +129,6 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
       }
     }
 
-    function initializeSpecificImage() {
-      if (serverGroupCommand.viewState.imageId) {
-        var foundImage = $scope.command.backingData.packageImages.filter(function(image) {
-          return image.amis[serverGroupCommand.region] && image.amis[serverGroupCommand.region].indexOf(serverGroupCommand.viewState.imageId) !== -1;
-        });
-        if (foundImage.length) {
-          serverGroupCommand.amiName = foundImage[0].imageName;
-        }
-      }
-    }
-
     this.isValid = function () {
       return $scope.command &&
         ($scope.command.application !== null) &&
@@ -151,7 +139,7 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
     };
 
     this.showSubmitButton = function () {
-      //return modalWizardService.getWizard().allPagesVisited();
+      //return v2modalWizardService.allPagesVisited();
       return true;
     };
 
