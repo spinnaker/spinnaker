@@ -23,11 +23,13 @@ import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+@EnableScheduling
 @Configuration
 @ComponentScan({
     "com.netflix.spinnaker.fiat",

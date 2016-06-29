@@ -20,6 +20,7 @@ dependencies {
   compile spinnaker.dependency('bootWeb')
   compile spinnaker.dependency('korkWeb')
   compile project(':fiat-core')
+  compile project(':fiat-roles')
 }
 
 applicationName = 'fiat'
