@@ -115,6 +115,9 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
     };
 
     this.getStagesOf = (stageType) => {
+      if (!this.command.pipeline) {
+        return [];
+      }
       return this.command.pipeline.stages.filter( stage => stage.type === stageType);
     };
 
