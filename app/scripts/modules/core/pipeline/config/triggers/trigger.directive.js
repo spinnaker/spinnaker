@@ -3,7 +3,8 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.trigger.triggerDirective', [
-  require('../pipelineConfigProvider.js'),
+  require('../pipelineConfigProvider'),
+  require('../../../config/settings'),
 ])
   .directive('trigger', function() {
     return {
@@ -21,9 +22,11 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.triggerD
       }
     };
   })
-  .controller('TriggerCtrl', function($scope, $element, pipelineConfig, $compile, $controller, $templateCache) {
+  .controller('TriggerCtrl', function($scope, $element, pipelineConfig, $compile, $controller, $templateCache, settings) {
     var triggerTypes = pipelineConfig.getTriggerTypes();
     $scope.options = triggerTypes;
+
+    this.disableAutoTriggering = settings.disableAutoTriggering || [];
 
     this.removeTrigger = function(trigger) {
       var triggerIndex = $scope.pipeline.triggers.indexOf(trigger);
@@ -34,6 +37,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.triggerD
       var type = $scope.trigger.type,
           triggerScope = $scope.$new();
       if (type) {
+        if (disableAutoTriggering.indexOf(type) > -1) {
+          $scope.trigger.enabled = false;
+        }
         var triggerConfig = triggerTypes.filter(function(config) {
           return config.key === type;
         });
