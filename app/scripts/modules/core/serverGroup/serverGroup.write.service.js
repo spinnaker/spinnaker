@@ -117,6 +117,7 @@ module.exports = angular
         serverGroupName: serverGroup.name,
         credentials: serverGroup.account,
         region: serverGroup.region,
+        amiName: serverGroup.launchConfig.imageId,
         type: 'updateSecurityGroupsForServerGroup'
       };
       return taskExecutor.executeTask({
