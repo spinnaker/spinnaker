@@ -28,6 +28,8 @@ spec:
               name: spinnaker-config
             - mountPath: /root/.kube
               name: creds-config
+            - mountPath: /root/.aws
+              name: aws-config
           readinessProbe:
             httpGet:
               path: /env
@@ -41,3 +43,6 @@ spec:
         - name: creds-config
           secret:
             secretName: creds-config
+        - name: aws-config
+          secret:
+            secretName: aws-config
