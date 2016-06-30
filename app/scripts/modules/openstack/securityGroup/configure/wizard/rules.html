@@ -1,0 +1,55 @@
+<ng-form ng-controller="openstackSecurityGroupRulesController as rulesController" class="container-fluid form-horizontal" name="rules">
+  <div class="form-group">
+    <div class="col-md-12">
+      <table class="table table-condensed packed">
+        <thead>
+        <tr>
+          <th style="width: 15%">Protocol</th>
+          <th style="width: 15%">From Port</th>
+          <th style="width: 15%">To Port</th>
+          <th style="width: 15%">CIDR</th>
+          <th></th>
+        </tr>
+        </thead>
+        <div>
+          <tbody>
+            <tr ng-repeat="rule in securityGroup.rules">
+              <td><select class="form-control input-sm" ng-model="rule.type"
+                          ng-options="protocol as protocol.toUpperCase() for protocol in ['tcp']" required></select></td>
+              <td><input class="form-control input-sm" name="fromPort_{{$index}}" type="number" min="1" max="{{rule.toPort}}" ng-model="rule.fromPort" required/></td>
+              <td><input class="form-control input-sm" name="toPort_{{$index}}" type="number" min="{{rule.fromPort}}" max="65535" ng-model="rule.toPort" required/></td>
+              <td><input class="form-control input-sm" type="text" ng-model="rule.cidr" required/></td>
+              <td><a class="sm-label"
+                     ng-click="rulesController.removeRule($index)">
+                <span class="glyphicon glyphicon-trash"></span></a>
+              </td>
+              <td>
+                <validation-error ng-if="rules['fromPort_'+$index].$error.min"
+                                  message="Port should be greater than 0.">
+                </validation-error>
+                <validation-error ng-if="rules['fromPort_'+$index].$error.max"
+                                  message="From Port cannot be greater than To Port.">
+                </validation-error>
+                <validation-error ng-if="rules['toPort_'+$index].$error.min"
+                                  message="To Port cannot be less than From Port.">
+                </validation-error>
+                <validation-error ng-if="rules['toPort_'+$index].$error.max"
+                                  message="Port should be less than or equal to 65535.">
+                </validation-error>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="6">
+                <button class="add-new col-md-12" ng-click="rulesController.addRule()" ng-disabled="rules.$invalid"><span
+                  class="glyphicon glyphicon-plus-sign"></span> Add New Rule
+                </button>
+              </td>
+            </tr>
+          </tfoot>
+        </div>
+      </table>
+    </div>
+  </div>
+</ng-form>

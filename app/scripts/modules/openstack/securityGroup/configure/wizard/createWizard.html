@@ -1,0 +1,17 @@
+<ng-form role="form" name="form" novalidate>
+    <v2-modal-wizard heading="Create New Security Group">
+      <v2-wizard-page key="basic-settings" label="Basic Settings">
+        <ng-include src="pages.basicSettings"></ng-include>
+      </v2-wizard-page>
+      <v2-wizard-page key="rules" label="Rules">
+        <ng-include src="pages.rules"></ng-include>
+      </v2-wizard-page>
+  </v2-modal-wizard>
+  <div class="modal-footer">
+    <button ng-disabled="taskMonitor.submitting" class="btn btn-default"
+            ng-click="ctrl.cancel()">Cancel
+    </button>
+    <submit-button is-disabled="form.$invalid || taskMonitor.submitting"
+                   submitting="taskMonitor.submitting" on-click="ctrl.submit()" is-new="isNew"></submit-button>
+  </div>
+</ng-form>
