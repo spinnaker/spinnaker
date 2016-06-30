@@ -29,6 +29,12 @@ public interface PermissionsResolver {
   UserPermission resolve(String userId);
 
   /**
+   * Resolves a single user's permissions, taking into account externally
+   * provided list of roles.
+   */
+  UserPermission resolveAndMerge(String userId, Collection<String> externalRoles);
+
+  /**
    * Resolves multiple user's permissions. Returned map is keyed by userId.
    */
   Map<String, UserPermission> resolve(Collection<String> userIds);

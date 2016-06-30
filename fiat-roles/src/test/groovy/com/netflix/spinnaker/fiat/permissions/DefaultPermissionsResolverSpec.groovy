@@ -55,19 +55,37 @@ class DefaultPermissionsResolverSpec extends Specification {
       thrown IllegalArgumentException
 
     when:
-      1 * userRolesProvider.loadRoles(testUserId) >> []
       def result = resolver.resolve(testUserId)
 
     then:
+      1 * userRolesProvider.loadRoles(testUserId) >> []
       result?.getId() == testUserId
+      result?.getAccounts()?.size() == 1
       result?.getAccounts()*.name.containsAll(["noReqGroups"])
 
     when:
-      1 * userRolesProvider.loadRoles(testUserId) >> ["group2"]
       result = resolver.resolve(testUserId)
 
     then:
+      1 * userRolesProvider.loadRoles(testUserId) >> ["group2"]
+      result?.getAccounts()?.size() == 2
       result?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1and2"])
+
+    when: "different capitalization"
+      result = resolver.resolve(testUserId)
+
+    then:
+      1 * userRolesProvider.loadRoles(testUserId) >> ["gRoUp2"]
+      result?.getAccounts()?.size() == 2
+      result?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1and2"])
+
+    when: "merge externally provided roles"
+      result = resolver.resolveAndMerge(testUserId, ["group1"])
+
+    then:
+      1 * userRolesProvider.loadRoles(testUserId) >> ["group2"]
+      result?.getAccounts()?.size() == 3
+      result?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1", "reqGroup1and2"])
   }
 
   def "should resolve all user's permissions"() {

@@ -50,7 +50,7 @@ public class RolesController {
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.PUT)
   public void putUserPermission(@PathVariable String userId,
                                 @RequestBody @NonNull List<String> externalRoles) {
-    // TODO(ttomsu): Add role merging capability to permissionsRepo.
+    permissionsRepository.put(userId, permissionsResolver.resolveAndMerge(userId, externalRoles));
   }
 
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.DELETE)

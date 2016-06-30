@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.fiat.permissions;
 
-import com.netflix.spinnaker.fiat.providers.AccountProvider;
 import com.netflix.spinnaker.fiat.model.UserPermission;
+import com.netflix.spinnaker.fiat.providers.AccountProvider;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -27,11 +27,10 @@ import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 @NoArgsConstructor
@@ -49,8 +48,16 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
 
   @Override
   public UserPermission resolve(@NonNull String userId) {
+    return resolveAndMerge(userId, Collections.emptyList());
+  }
+
+  @Override
+  public UserPermission resolveAndMerge(String userId, Collection<String> externalRoles) {
     val roles = userRolesProvider.loadRoles(userId);
-    val accounts = accountProvider.getAccounts(roles);
+    val combo = Stream.concat(roles.stream(), externalRoles.stream())
+                      .map(String::toLowerCase)
+                      .collect(Collectors.toSet());
+    val accounts = accountProvider.getAccounts(combo);
 
     return new UserPermission().setId(userId).setAccounts(accounts);
   }

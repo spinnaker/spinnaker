@@ -43,7 +43,7 @@ public class AccountProvider {
         .collect(Collectors.toSet());
   }
 
-  public Set<Account> getAccounts(@NonNull List<String> groups) {
+  public Set<Account> getAccounts(@NonNull Collection<String> groups) {
     return cloudProviderAccounts
         .stream()
         .flatMap(cloudAccountProvider -> cloudAccountProvider.getAccounts().stream())
