@@ -2,12 +2,12 @@ server:
   port: 8087
 
 rosco:
-  configDir: /Users/duftler/spinnaker/rosco/rosco-web/config/packer
+  configDir: /some/path/to/config/packer
 
 metrics:
   reporter:
     jmx:
-      enabled: true
+      enabled: false
 
 # If a repository is set here, it will be added by packer as repository when baking images for GCE and AWS.
 # It is safe to leave this out (or blank) if you do not need to configure your own repository.
