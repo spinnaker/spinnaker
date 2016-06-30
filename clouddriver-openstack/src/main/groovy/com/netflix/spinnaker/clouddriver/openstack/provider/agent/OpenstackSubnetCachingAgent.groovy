@@ -17,37 +17,34 @@
 package com.netflix.spinnaker.clouddriver.openstack.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.cats.agent.*
+import com.netflix.spinnaker.cats.agent.AgentDataType
+import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.openstack.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
-import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackInstance
+import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackSubnet
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import groovy.util.logging.Slf4j
-import org.openstack4j.model.compute.Server
+import org.openstack4j.model.network.Subnet
 
-import static com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider.ATTRIBUTES
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
-import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SUBNETS
+import static com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider.ATTRIBUTES
 
 @Slf4j
-class OpenstackInstanceCachingAgent extends AbstractOpenstackCachingAgent {
+class OpenstackSubnetCachingAgent extends AbstractOpenstackCachingAgent {
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
-    AUTHORITATIVE.forType(INSTANCES.ns)
+    AUTHORITATIVE.forType(SUBNETS.ns)
   ] as Set)
 
   final ObjectMapper objectMapper
 
-  OpenstackInstanceCachingAgent(
+  OpenstackSubnetCachingAgent(
     final OpenstackNamedAccountCredentials account, final String region, final ObjectMapper objectMapper) {
     super(account, region)
-    this.objectMapper = objectMapper
-  }
 
-  @Override
-  String getAgentType() {
-    "${account.name}/${region}/${OpenstackInstanceCachingAgent.simpleName}"
+    this.objectMapper = objectMapper
   }
 
   @Override
@@ -56,20 +53,27 @@ class OpenstackInstanceCachingAgent extends AbstractOpenstackCachingAgent {
   }
 
   @Override
+  String getAgentType() {
+    "${account.name}/${region}/${OpenstackSubnetCachingAgent.simpleName}"
+  }
+
+  @Override
   CacheResult loadData(ProviderCache providerCache) {
+    log.info("Describing items in ${agentType}")
+
     CacheResultBuilder cacheResultBuilder = new CacheResultBuilder()
 
-    clientProvider.getInstances(region)?.each { Server server ->
-      String instanceKey = Keys.getInstanceKey(server.id, accountName, region)
+    clientProvider.listSubnets(region)?.each { Subnet subnet ->
+      String subnetKey = Keys.getSubnetKey(subnet.id, region, accountName)
 
-      Map<String, Object> instanceAttributes = objectMapper.convertValue(OpenstackInstance.from(server, accountName, region), ATTRIBUTES)
+      Map<String, Object> subnetAttributes = objectMapper.convertValue(OpenstackSubnet.from(subnet, accountName, region), ATTRIBUTES)
 
-      cacheResultBuilder.namespace(INSTANCES.ns).keep(instanceKey).with {
-        attributes = instanceAttributes
+      cacheResultBuilder.namespace(SUBNETS.ns).keep(subnetKey).with {
+        attributes = subnetAttributes
       }
     }
 
-    log.info("Caching ${cacheResultBuilder.namespace(INSTANCES.ns).keepSize()} items in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(SUBNETS.ns).keepSize()} items in ${agentType}")
 
     cacheResultBuilder.build()
   }

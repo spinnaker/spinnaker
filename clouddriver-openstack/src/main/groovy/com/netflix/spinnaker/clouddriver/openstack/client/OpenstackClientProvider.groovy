@@ -38,6 +38,7 @@ import org.openstack4j.model.heat.StackCreate
 import org.openstack4j.model.heat.StackUpdate
 import org.openstack4j.model.network.NetFloatingIP
 import org.openstack4j.model.network.Port
+import org.openstack4j.model.network.Subnet
 import org.openstack4j.model.network.ext.HealthMonitor
 import org.openstack4j.model.network.ext.HealthMonitorType
 import org.openstack4j.model.network.ext.LbMethod
@@ -71,7 +72,7 @@ abstract class OpenstackClientProvider {
    * Returns a list of instances in a given region.
    * @param region
    * @return
-     */
+   */
   List<? extends Server> getInstances(String region) {
     handleRequest {
       getRegionClient(region).compute().servers().list()
@@ -83,7 +84,7 @@ abstract class OpenstackClientProvider {
    * @param region
    * @param serverId
    * @return
-     */
+   */
   String getConsoleOutput(String region, String serverId) {
     handleRequest {
       getRegionClient(region).compute().servers().getConsoleOutput(serverId, -1)
@@ -726,6 +727,17 @@ abstract class OpenstackClientProvider {
   void deleteSecurityGroup(String region, String securityGroupId) {
     handleRequest {
       client.useRegion(region).compute().securityGroups().delete(securityGroupId)
+    }
+  }
+
+  /**
+   * Returns a list of available subnets by region.
+   * @param region
+   * @return
+   */
+  List<Subnet> listSubnets(String region) {
+    handleRequest {
+      getRegionClient(region).networking().subnet().list()
     }
   }
 

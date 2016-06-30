@@ -16,34 +16,33 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.provider.agent
 
-import com.google.common.collect.Sets
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.agent.CacheResult
-import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
-
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
+import com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import org.openstack4j.model.common.ActionResponse
-import org.openstack4j.model.heat.Stack
+import org.openstack4j.model.network.Subnet
 import spock.lang.Specification
 
-import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.APPLICATIONS
-import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.CLUSTERS
-import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SERVER_GROUPS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SUBNETS
 
-class OpenstackServerGroupCachingAgentSpec extends Specification {
+class OpenstackSubnetCachingAgentSpec extends Specification {
 
-  OpenstackServerGroupCachingAgent cachingAgent
+  OpenstackSubnetCachingAgent cachingAgent
   OpenstackNamedAccountCredentials namedAccountCredentials
-  String region = 'east'
-  String account = 'test'
+  ObjectMapper objectMapper
+  final String region = 'east'
+  final String account = 'account'
 
   void "setup"() {
     namedAccountCredentials = GroovyMock(OpenstackNamedAccountCredentials)
-    cachingAgent = Spy(OpenstackServerGroupCachingAgent, constructorArgs: [namedAccountCredentials, region])
+    objectMapper = Mock(ObjectMapper)
+    cachingAgent = Spy(OpenstackSubnetCachingAgent, constructorArgs: [namedAccountCredentials, region, objectMapper])
   }
 
   void "test load data"() {
@@ -51,58 +50,27 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     ProviderCache providerCache = Mock(ProviderCache)
     OpenstackCredentials credentials = GroovyMock()
     OpenstackClientProvider provider = Mock()
-    Stack stack = Mock(Stack)
-    String appName = 'testapp'
-    String clusterName = "${appName}-stack-detail"
-    String serverGroupName = "${clusterName}-v000"
-
-    and:
-    String clusterKey = Keys.getClusterKey(account, appName, clusterName)
-    String appKey = Keys.getApplicationKey(appName)
-    String serverGroupKey = Keys.getServerGroupKey(serverGroupName, account, region)
+    Subnet subnet = Mock(Subnet)
+    String subnetId = UUID.randomUUID().toString()
+    Map<String, Object> subnetAttributes = Mock(Map)
+    String subnetKey = Keys.getSubnetKey(subnetId, region, account)
 
     when:
     CacheResult result = cachingAgent.loadData(providerCache)
 
     then:
     1 * namedAccountCredentials.credentials >> credentials
-    3 * cachingAgent.getAccountName() >> account
+    _ * cachingAgent.getAccountName() >> account
     1 * credentials.provider >> provider
-    1 * provider.listStacks(region) >> [stack]
-    1 * stack.name >> serverGroupName
+    1 * provider.listSubnets(region) >> [subnet]
+    _ * subnet.id >> subnetId
+    1 * objectMapper.convertValue(_, OpenstackInfrastructureProvider.ATTRIBUTES) >> subnetAttributes
 
     and:
-    result.cacheResults != null
+    result.cacheResults.get(SUBNETS.ns).first().id == subnetKey
+    result.cacheResults.get(SUBNETS.ns).first().attributes == subnetAttributes
     noExceptionThrown()
-
-    and:
-    Collection<CacheData> applicationData = result.cacheResults.get(APPLICATIONS.ns)
-    applicationData.size() == 1
-    applicationData.first().with {
-      id == appKey
-      attributes == ['name': appName]
-      relationships == [(CLUSTERS.ns): Sets.newHashSet(clusterKey)]
-    }
-
-    and:
-    Collection<CacheData> clusterData = result.cacheResults.get(CLUSTERS.ns)
-    clusterData.size() == 1
-    clusterData.first().with {
-      id == clusterKey
-      attributes == ['name': clusterName, 'accountName': account]
-      relationships == [(APPLICATIONS.ns): Sets.newHashSet(appKey), (SERVER_GROUPS.ns): Sets.newHashSet(serverGroupKey)]
-    }
-
-    and:
-    Collection<CacheData> serverGroupData = result.cacheResults.get(SERVER_GROUPS.ns)
-    serverGroupData.size() == 1
-    serverGroupData.first().with {
-      id == serverGroupKey
-      attributes == [:]
-      relationships == [(APPLICATIONS.ns): Sets.newHashSet(appKey), (CLUSTERS.ns): Sets.newHashSet(clusterKey)]
-    }
   }
-
 
   void "test load data exception"() {
     given:
@@ -117,7 +85,7 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     then:
     1 * namedAccountCredentials.credentials >> credentials
     1 * credentials.provider >> provider
-    1 * provider.listStacks(region) >> { throw throwable }
+    1 * provider.listSubnets(region) >> { throw throwable }
 
     and:
     OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)

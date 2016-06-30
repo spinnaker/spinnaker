@@ -16,10 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.cache
 
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace
-import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import static com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider.ID
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SUBNETS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.APPLICATIONS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.CLUSTERS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SERVER_GROUPS
 
 @Unroll
 class KeysSpec extends Specification {
@@ -62,7 +67,7 @@ class KeysSpec extends Specification {
     Map<String, String> result = Keys.parse(key)
 
     then:
-    result == [account: account, region: region, instanceId: instanceId, provider: OpenstackCloudProvider.ID, type: Namespace.INSTANCES.ns]
+    result == [account: account, region: region, instanceId: instanceId, provider: ID, type: INSTANCES.ns]
   }
 
   void "test application map"() {
@@ -74,7 +79,7 @@ class KeysSpec extends Specification {
     Map<String, String> result = Keys.parse(key)
 
     then:
-    result == [application: application, provider: OpenstackCloudProvider.ID, type: Namespace.APPLICATIONS.ns]
+    result == [application: application, provider: ID, type: APPLICATIONS.ns]
   }
 
   void "test cluster map"() {
@@ -90,7 +95,21 @@ class KeysSpec extends Specification {
     Map<String, String> result = Keys.parse(key)
 
     then:
-    result == [application: application, account: account, cluster: cluster, stack: stack, detail: detail, provider: OpenstackCloudProvider.ID, type: Namespace.CLUSTERS.ns]
+    result == [application: application, account: account, cluster: cluster, stack: stack, detail: detail, provider: ID, type: CLUSTERS.ns]
+  }
+
+  void "test subnet map"() {
+    given:
+    String subnetId = UUID.randomUUID().toString()
+    String region = 'region'
+    String account = 'account'
+    String subnetKey = Keys.getSubnetKey(subnetId, region, account)
+
+    when:
+    Map<String, String> result = Keys.parse(subnetKey)
+
+    then:
+    result == [region: region, id: subnetId, account: account, provider: ID, type: SUBNETS.ns]
   }
 
   void "test get instance key"() {
@@ -103,7 +122,7 @@ class KeysSpec extends Specification {
     String result = Keys.getInstanceKey(instanceId, account, region)
 
     then:
-    result == "${OpenstackCloudProvider.ID}:${Namespace.INSTANCES}:${account}:${region}:${instanceId}" as String
+    result == "${ID}:${INSTANCES}:${account}:${region}:${instanceId}" as String
   }
 
   void "test get application key"() {
@@ -114,7 +133,7 @@ class KeysSpec extends Specification {
     String result = Keys.getApplicationKey(application)
 
     then:
-    result == "${OpenstackCloudProvider.ID}:${Namespace.APPLICATIONS}:${application}" as String
+    result == "${ID}:${APPLICATIONS}:${application}" as String
   }
 
   void "test get server group key"() {
@@ -128,7 +147,7 @@ class KeysSpec extends Specification {
     String result = Keys.getServerGroupKey(serverGroupName, account, region)
 
     then:
-    result == "${OpenstackCloudProvider.ID}:${Namespace.SERVER_GROUPS}:${cluster}:${account}:${region}:${serverGroupName}" as String
+    result == "${ID}:${SERVER_GROUPS}:${cluster}:${account}:${region}:${serverGroupName}" as String
   }
 
   void "test get cluster key"() {
@@ -141,6 +160,19 @@ class KeysSpec extends Specification {
     String result = Keys.getClusterKey(account, application, cluster)
 
     then:
-    result == "${OpenstackCloudProvider.ID}:${Namespace.CLUSTERS}:${account}:${application}:${cluster}" as String
+    result == "${ID}:${CLUSTERS}:${account}:${application}:${cluster}" as String
+  }
+
+  void "test get subnet key"() {
+    given:
+    String subnetId = UUID.randomUUID().toString()
+    String region = 'region'
+    String account = 'account'
+
+    when:
+    String result = Keys.getSubnetKey(subnetId, region, account)
+
+    then:
+    result == "${ID}:${SUBNETS}:${subnetId}:${account}:${region}" as String
   }
 }

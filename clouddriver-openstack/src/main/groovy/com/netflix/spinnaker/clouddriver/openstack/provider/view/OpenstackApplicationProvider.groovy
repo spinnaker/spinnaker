@@ -24,19 +24,20 @@ import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackApplication
+import com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.APPLICATIONS
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.CLUSTERS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.APPLICATIONS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.CLUSTERS
 
 @Component
 class OpenstackApplicationProvider implements ApplicationProvider {
-  private final Cache cacheView
-  private final ObjectMapper objectMapper
+  final Cache cacheView
+  final ObjectMapper objectMapper
 
   @Autowired
-  OpenstackApplicationProvider(Cache cacheView, ObjectMapper objectMapper) {
+  OpenstackApplicationProvider(final Cache cacheView, final ObjectMapper objectMapper) {
     this.cacheView = cacheView
     this.objectMapper = objectMapper
   }
@@ -56,19 +57,19 @@ class OpenstackApplicationProvider implements ApplicationProvider {
   }
 
   OpenstackApplication translate(CacheData cacheData) {
-    if (cacheData == null) {
-      return null
-    }
-
-    String name = Keys.parse(cacheData.id).application
-    Map<String, String> attributes = objectMapper.convertValue(cacheData.attributes, OpenstackApplication.ATTRIBUTES)
-    Map<String, Set<String>> clusterNames = [:].withDefault { new HashSet<String>() }
-    for (String clusterId : cacheData.relationships[CLUSTERS.ns]) {
-      Map<String, String> cluster = Keys.parse(clusterId)
-      if (cluster.account && cluster.cluster) {
-        clusterNames[cluster.account].add(cluster.cluster)
+    OpenstackApplication result = null
+    if (cacheData) {
+      String name = Keys.parse(cacheData.id).application
+      Map<String, String> attributes = objectMapper.convertValue(cacheData.attributes, OpenstackInfrastructureProvider.ATTRIBUTES)
+      Map<String, Set<String>> clusterNames = [:].withDefault { new HashSet<String>() }
+      for (String clusterId : cacheData.relationships[CLUSTERS.ns]) {
+        Map<String, String> cluster = Keys.parse(clusterId)
+        if (cluster.account && cluster.cluster) {
+          clusterNames[cluster.account].add(cluster.cluster)
+        }
       }
+      result = new OpenstackApplication(name, attributes, clusterNames)
     }
-    new OpenstackApplication(name, attributes, clusterNames)
+    result
   }
 }

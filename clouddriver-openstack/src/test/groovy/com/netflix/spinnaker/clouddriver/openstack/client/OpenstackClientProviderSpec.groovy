@@ -2352,4 +2352,42 @@ class OpenstackClientProviderSpec extends Specification {
     thrown(OpenstackProviderException)
   }
 
+
+  def "list subnets succeeds"() {
+    setup:
+    NetworkingService networkingService = Mock(NetworkingService)
+    SubnetService subnetService = Mock(SubnetService)
+    List<Subnet> mockSubnets = [Mock(Subnet)]
+
+    when:
+    List<Subnet> result = provider.listSubnets(region)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.subnet() >> subnetService
+    1 * subnetService.list() >> mockSubnets
+
+    and:
+    result == mockSubnets
+    noExceptionThrown()
+  }
+
+  def "list subnets expection"() {
+    setup:
+    NetworkingService networkingService = Mock(NetworkingService)
+    SubnetService subnetService = Mock(SubnetService)
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.listSubnets(region)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.subnet() >> subnetService
+    1 * subnetService.list() >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
 }

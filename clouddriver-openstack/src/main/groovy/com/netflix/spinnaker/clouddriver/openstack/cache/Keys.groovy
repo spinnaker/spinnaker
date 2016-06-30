@@ -17,13 +17,37 @@
 package com.netflix.spinnaker.clouddriver.openstack.cache
 
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
 import groovy.transform.CompileStatic
 
-//TODO - Refactor to use template pattern and add to core so common code can be shared across implementations.
+import static com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider.ID
+
+/**
+ * Defines custom namespaces, keys for Openstack caching ... Encapsulates parsing logic for keys across
+ * providers.
+ */
 @CompileStatic
 class Keys {
+
+  static enum Namespace {
+    SUBNETS,
+    INSTANCES,
+    APPLICATIONS,
+    CLUSTERS,
+    SERVER_GROUPS
+
+    final String ns
+
+    private Namespace() {
+      def parts = name().split('_')
+
+      ns = parts.tail().inject(new StringBuilder(parts.head().toLowerCase())) { val, next -> val.append(next.charAt(0)).append(next.substring(1).toLowerCase()) }
+    }
+
+    String toString() {
+      ns
+    }
+  }
 
   static Map<String, String> parse(String key) {
     def result = [:]
@@ -52,6 +76,11 @@ class Keys {
               result << [application: parts[3].toLowerCase(), account: parts[2], cluster: parts[4], stack: names.stack, detail: names.detail]
             }
             break
+          case Namespace.SUBNETS.ns:
+            if (parts.length == 5) {
+              result << [id: parts[2], account: parts[3], region: parts[4]]
+            }
+            break
         }
 
         if (!result.isEmpty()) {
@@ -63,19 +92,23 @@ class Keys {
   }
 
   static String getInstanceKey(String instanceId, String account, String region) {
-    "${OpenstackCloudProvider.ID}:${Namespace.INSTANCES}:${account}:${region}:${instanceId}"
+    "${ID}:${Namespace.INSTANCES}:${account}:${region}:${instanceId}"
+  }
+
+  static String getSubnetKey(String subnetId, String region, String account) {
+    "${ID}:${Namespace.SUBNETS}:${subnetId}:${account}:${region}"
   }
 
   static String getApplicationKey(String application) {
-    "${OpenstackCloudProvider.ID}:${Namespace.APPLICATIONS}:${application.toLowerCase()}"
+    "${ID}:${Namespace.APPLICATIONS}:${application.toLowerCase()}"
   }
 
   static String getServerGroupKey(String serverGroupName, String account, String region) {
     Names names = Names.parseName(serverGroupName)
-    "${OpenstackCloudProvider.ID}:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}"
+    "${ID}:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}"
   }
 
   static String getClusterKey(String account, String application, String clusterName) {
-    "${OpenstackCloudProvider.ID}:${Namespace.CLUSTERS}:${account}:${application}:${clusterName}"
+    "${ID}:${Namespace.CLUSTERS}:${account}:${application}:${clusterName}"
   }
 }

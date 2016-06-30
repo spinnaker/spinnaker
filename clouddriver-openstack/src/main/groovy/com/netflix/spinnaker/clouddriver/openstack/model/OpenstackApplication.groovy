@@ -16,13 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.model
 
-import com.fasterxml.jackson.core.type.TypeReference
 import com.netflix.spinnaker.clouddriver.model.Application
 import groovy.transform.EqualsAndHashCode
 
 @EqualsAndHashCode
 class OpenstackApplication implements Application {
-  public static final TypeReference<Map<String, String>> ATTRIBUTES = new TypeReference<Map<String, String>>() {}
   final String name
   final Map<String, String> attributes
   final Map<String, Set<String>> clusterNames

@@ -22,12 +22,13 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackApplication
+import com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider
 import org.mockito.internal.util.collections.Sets
 import redis.clients.jedis.exceptions.JedisException
 import spock.lang.Specification
 
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.APPLICATIONS
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.CLUSTERS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.APPLICATIONS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.CLUSTERS
 
 class OpenstackApplicationProviderSpec extends Specification {
 
@@ -49,7 +50,7 @@ class OpenstackApplicationProviderSpec extends Specification {
     String cluster = "$appName-stack-detail-v000"
     String clusterKey = Keys.getClusterKey(account, appName, cluster)
     String dataKey = Keys.getApplicationKey(appName)
-    Map<String, Object> relationships = [(CLUSTERS.ns) : [clusterKey]]
+    Map<String, Object> relationships = [(CLUSTERS.ns): [clusterKey]]
     Map<String, String> attributes = [application: appName]
     CacheData mockData = Mock(CacheData)
     Collection<CacheData> cacheData = [mockData]
@@ -65,7 +66,7 @@ class OpenstackApplicationProviderSpec extends Specification {
     1 * mockData.id >> dataKey
     1 * mockData.attributes >> attributes
     1 * mockData.getRelationships() >> relationships
-    1 * objectMapper.convertValue(attributes, OpenstackApplication.ATTRIBUTES) >> attributes
+    1 * objectMapper.convertValue(attributes, OpenstackInfrastructureProvider.ATTRIBUTES) >> attributes
     result?.first() == expected
     noExceptionThrown()
   }
@@ -106,7 +107,7 @@ class OpenstackApplicationProviderSpec extends Specification {
     String cluster = "$appName-stack-detail-v000"
     String clusterKey = Keys.getClusterKey(account, appName, cluster)
     String dataKey = Keys.getApplicationKey(appName)
-    Map<String, Object> relationships = [(CLUSTERS.ns) : [clusterKey]]
+    Map<String, Object> relationships = [(CLUSTERS.ns): [clusterKey]]
     Map<String, String> attributes = [application: appName]
     CacheData cacheData = Mock(CacheData)
     OpenstackApplication expected = new OpenstackApplication(appName, attributes, [(account): Sets.newSet(cluster)])
@@ -118,7 +119,7 @@ class OpenstackApplicationProviderSpec extends Specification {
     1 * cache.get(APPLICATIONS.ns, dataKey) >> cacheData
     1 * cacheData.id >> dataKey
     1 * cacheData.attributes >> attributes
-    1 * objectMapper.convertValue(attributes, OpenstackApplication.ATTRIBUTES) >> attributes
+    1 * objectMapper.convertValue(attributes, OpenstackInfrastructureProvider.ATTRIBUTES) >> attributes
     1 * cacheData.getRelationships() >> relationships
     result == expected
     noExceptionThrown()

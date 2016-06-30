@@ -16,26 +16,33 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.provider.agent
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace
+import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
+import com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import org.openstack4j.model.common.ActionResponse
 import org.openstack4j.model.compute.Server
 import spock.lang.Specification
 
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.INSTANCES
+
 class OpenstackInstanceCachingAgentSpec extends Specification {
 
   OpenstackInstanceCachingAgent cachingAgent
   OpenstackNamedAccountCredentials namedAccountCredentials
+  ObjectMapper objectMapper
   String region = 'east'
+  String account = 'test'
 
   void "setup"() {
     namedAccountCredentials = GroovyMock(OpenstackNamedAccountCredentials)
-    cachingAgent = new OpenstackInstanceCachingAgent(namedAccountCredentials, region)
+    objectMapper = Mock(ObjectMapper)
+    cachingAgent = Spy(OpenstackInstanceCachingAgent, constructorArgs: [namedAccountCredentials, region, objectMapper])
   }
 
   void "test load data"() {
@@ -44,21 +51,24 @@ class OpenstackInstanceCachingAgentSpec extends Specification {
     OpenstackCredentials credentials = GroovyMock()
     OpenstackClientProvider provider = Mock()
     Server server = Mock(Server)
-    String name = 'test-server'
+    String id = UUID.randomUUID().toString()
+    String instanceKey = Keys.getInstanceKey(id, account, region)
+    Map<String, Object> instanceAttributes = Mock(Map)
 
     when:
     CacheResult result = cachingAgent.loadData(providerCache)
 
     then:
     1 * namedAccountCredentials.credentials >> credentials
+    _ * cachingAgent.getAccountName() >> account
     1 * credentials.provider >> provider
     1 * provider.getInstances(region) >> [server]
-    1 * server.name >> name
+    _ * server.id >> id
+    1 * objectMapper.convertValue(_, OpenstackInfrastructureProvider.ATTRIBUTES) >> instanceAttributes
 
     and:
-    result.cacheResults != null
-    result.cacheResults.get(Namespace.INSTANCES.ns) != null
-    noExceptionThrown()
+    result.cacheResults.get(INSTANCES.ns).first().id == instanceKey
+    result.cacheResults.get(INSTANCES.ns).first().attributes == instanceAttributes
   }
 
   void "test load data exception"() {

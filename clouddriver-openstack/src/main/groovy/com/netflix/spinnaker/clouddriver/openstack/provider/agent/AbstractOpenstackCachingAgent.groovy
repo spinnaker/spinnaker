@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.openstack.provider.agent
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
-import com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfastructureProvider
+import com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 
 /**
@@ -29,7 +29,7 @@ abstract class AbstractOpenstackCachingAgent implements CachingAgent, AccountAwa
   final OpenstackNamedAccountCredentials account
   final String region
 
-  AbstractOpenstackCachingAgent(OpenstackNamedAccountCredentials account, String region) {
+  AbstractOpenstackCachingAgent(final OpenstackNamedAccountCredentials account, final String region) {
     this.account = account
     this.region = region
   }
@@ -41,7 +41,7 @@ abstract class AbstractOpenstackCachingAgent implements CachingAgent, AccountAwa
 
   @Override
   String getProviderName() {
-    OpenstackInfastructureProvider.PROVIDER_NAME
+    OpenstackInfrastructureProvider.PROVIDER_NAME
   }
 
   OpenstackClientProvider getClientProvider() {

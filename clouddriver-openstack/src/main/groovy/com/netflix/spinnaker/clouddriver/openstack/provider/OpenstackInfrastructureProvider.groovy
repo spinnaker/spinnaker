@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.provider
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
@@ -23,12 +24,14 @@ import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 
 @ConditionalOnProperty('openstack.enabled')
-class OpenstackInfastructureProvider extends AgentSchedulerAware implements SearchableProvider {
-  public static final String PROVIDER_NAME = OpenstackInfastructureProvider.name
+class OpenstackInfrastructureProvider extends AgentSchedulerAware implements SearchableProvider {
+  public static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
+
+  public static final String PROVIDER_NAME = OpenstackInfrastructureProvider.name
 
   private final Collection<Agent> agents
 
-  OpenstackInfastructureProvider(Collection<Agent> agents) {
+  OpenstackInfrastructureProvider(Collection<Agent> agents) {
     this.agents = agents
   }
 

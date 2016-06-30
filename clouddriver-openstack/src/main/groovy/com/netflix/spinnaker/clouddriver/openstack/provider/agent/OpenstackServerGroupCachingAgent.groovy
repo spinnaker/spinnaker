@@ -29,9 +29,9 @@ import org.openstack4j.model.heat.Stack
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.APPLICATIONS
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.CLUSTERS
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.SERVER_GROUPS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.APPLICATIONS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.CLUSTERS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SERVER_GROUPS
 
 //TODO - Implement full server group caching and on-demand caching
 @Slf4j
