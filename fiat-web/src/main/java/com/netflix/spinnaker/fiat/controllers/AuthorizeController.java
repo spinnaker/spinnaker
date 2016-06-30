@@ -16,12 +16,14 @@
 
 package com.netflix.spinnaker.fiat.controllers;
 
-import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Account;
-import lombok.NonNull;
+import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
 import java.util.Set;
@@ -50,10 +52,5 @@ public class AuthorizeController {
         .filter(account -> accountName.equalsIgnoreCase(account.getName()))
         .findFirst()
         .orElseThrow(NotFoundException::new);
-  }
-
-  @RequestMapping(value = "/{userId:.+}", method = RequestMethod.PUT)
-  public void putUserPermission(@PathVariable String userId, @RequestBody @NonNull UserPermission permission) {
-    permissionsRepository.put(userId, permission);
   }
 }

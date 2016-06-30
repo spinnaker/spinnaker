@@ -27,4 +27,6 @@ public interface PermissionsRepository {
   UserPermission get(String id);
 
   Map<String, UserPermission> getAllById();
+
+  UserPermission remove(String id);
 }

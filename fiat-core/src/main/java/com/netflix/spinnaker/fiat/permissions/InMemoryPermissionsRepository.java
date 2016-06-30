@@ -41,4 +41,9 @@ public class InMemoryPermissionsRepository implements PermissionsRepository {
   public Map<String, UserPermission> getAllById() {
     return ImmutableMap.copyOf(permissions);
   }
+
+  @Override
+  public UserPermission remove(String id) {
+    return this.permissions.remove(id);
+  }
 }
