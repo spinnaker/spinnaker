@@ -22,9 +22,12 @@ fi
 /usr/sbin/a2enmod proxy_http
 service apache2 restart
 
-# Install cassandra keyspaces
-cqlsh -f "/opt/spinnaker/cassandra/create_echo_keyspace.cql"
-cqlsh -f "/opt/spinnaker/cassandra/create_front50_keyspace.cql"
+# Install cassandra keyspaces if we installed Cassandra
+if [ -f /opt/spinnaker/cassandra/SPINNAKER_INSTALLED_CASSANDRA ]; then
+  cqlsh -f "/opt/spinnaker/cassandra/create_echo_keyspace.cql"
+  cqlsh -f "/opt/spinnaker/cassandra/create_front50_keyspace.cql"
+fi
+
 
 # Disable auto upstart of the services.
 # We'll have spinnaker auto start, and start them as it does.

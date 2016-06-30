@@ -678,7 +678,10 @@ fi
 ## Spinnaker
 install_spinnaker
 
-#write values to /etc/default/spinnaker
+# Touch a file to tell other scripts we installed Cassandra.
+touch /opt/spinnaker/cassandra/SPINNAKER_INSTALLED_CASSANDRA
+
+# Write values to /etc/default/spinnaker.
 if [[ $AWS_ENABLED || $AZURE_ENABLED || $GOOGLE_ENABLED ]] ; then
   if [[ $AWS_ENABLED == true ]] ; then
     write_default_value "SPINNAKER_AWS_ENABLED" "true"

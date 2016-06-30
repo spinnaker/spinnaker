@@ -59,6 +59,9 @@ _FRONT50_KEYS = ['front50.cassandra.enabled', 'front50.redis.enabled',
                  'front50.s3.enabled', 'front50.gcs.enabled',
                  'front50.storage_bucket']
 
+SPINNAKER_INSTALLED_PATH = '/opt/spinnaker/cassandra/SPINNAKER_INSTALLED_CASSANDRA'
+SPINNAKER_DISABLED_PATH = '/opt/spinnaker/cassandra/SPINNAKER_DISABLED_CASSANDRA'
+
 class CassandraChanger(object):
   @classmethod
   def init_argument_parser(cls, parser):
@@ -104,12 +107,18 @@ class CassandraChanger(object):
     self.__bindings.import_dict(config)
 
   def disable_cassandra(self):
+    if os.path.exists(SPINNAKER_INSTALLED_PATH):
+      os.remove(SPINNAKER_INSTALLED_PATH)
+      open(SPINNAKER_DISABLED_PATH, 'w').close()
     with open('/etc/init/cassandra.override', 'w') as f:
         f.write('manual')
     print 'Stopping cassandra service...'
     os.system('service cassandra stop')
 
   def enable_cassandra(self):
+    if os.path.exists(SPINNAKER_DISABLED_PATH):
+      os.remove(SPINNAKER_DISABLED_PATH)
+      open(SPINNAKER_INSTALLED_PATH, 'w').close()
     try:
       os.remove('/etc/init/cassandra.override')
     except OSError as err:
