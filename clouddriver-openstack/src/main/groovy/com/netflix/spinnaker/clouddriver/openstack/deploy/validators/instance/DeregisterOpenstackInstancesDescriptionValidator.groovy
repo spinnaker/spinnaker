@@ -23,4 +23,5 @@ import org.springframework.stereotype.Component
 @OpenstackOperation(AtomicOperations.DEREGISTER_INSTANCES_FROM_LOAD_BALANCER)
 @Component
 class DeregisterOpenstackInstancesDescriptionValidator extends AbstractRegistrationOpenstackInstancesDescriptionValidator {
+  String context = "deregisterOpenstackRegistrationAtomicOperationDescription"
 }

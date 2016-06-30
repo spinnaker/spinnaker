@@ -61,6 +61,11 @@ resources:
 outputs:
   OS::stack_id:
     value: {get_resource: asg}
+  # we need to store subtemplate in asg output from create, as it is required to do an update and there is no native way
+  # of obtaining it from a stack
+  asg_resource:
+    description: asg_resource.yaml template value
+    value: {get_file: asg_resource.yaml}
   scale_up_url:
     description: >
       This URL is the webhook to scale up the autoscaling group.  You

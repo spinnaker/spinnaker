@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Veritas Technologies LLC.
+ * Copyright 2016 The original authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,13 +47,13 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
 
   //this is the file name of the heat template used to create the auto scaling group,
   //and needs to be loaded into memory as a String
-  private final String TEMPLATE_FILE = 'asg.yaml'
+  final String TEMPLATE_FILE = 'asg.yaml'
 
   //this is the name of the subtemplate referenced by the template,
   //and needs to be loaded into memory as a String
-  private final String SUBTEMPLATE_FILE = 'asg_resource.yaml'
+  final String SUBTEMPLATE_FILE = 'asg_resource.yaml'
 
-  DeployOpenstackAtomicOperationDescription description;
+  DeployOpenstackAtomicOperationDescription description
 
   DeployOpenstackAtomicOperation(DeployOpenstackAtomicOperationDescription description) {
     this.description = description
@@ -64,7 +64,7 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
   }
 
   /*
-  * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "stack": "teststack", "application": "myapp", "region": "RegionOne", "heatTemplate": "{\"heat_template_version\":\"2013-05-23\",\"description\":\"Simple template to test heat commands\",\"parameters\":{\"flavor\":{\"default\":\"m1.nano\",\"type\":\"string\"}},\"resources\":{\"hello_world\":{\"type\":\"OS::Nova::Server\",\"properties\":{\"flavor\":{\"get_param\":\"flavor\"},\"image\":\"cirros-0.3.4-x86_64-uec\",\"user_data\":\"\"}}}}", "timeoutMins": "5", "account": "test" }} ]' localhost:7002/openstack/ops
+  * curl -X POST -H "Content-Type: application/json" -d '[{"createServerGroup":{"stack":"teststack","application":"myapp","serverGroupParameters":{"instanceType":"m1.medium","image":"4e0d0b4b-8089-4703-af99-b6a0c90fbbc7","maxSize":5,"minSize":3,"networkId":"77bb3aeb-c1e2-4ce5-8d8f-b8e9128af651","poolId":"87077f97-83e7-4ea1-9ca9-40dc691846db","securityGroups":["sg-heat-test-1"]},"region":"REGION1","disableRollback":false,"timeoutMins":5,"account":"test"}}]' localhost:7002/openstack/ops
   * curl -X GET -H "Accept: application/json" localhost:7002/task/1
   */
   @Override

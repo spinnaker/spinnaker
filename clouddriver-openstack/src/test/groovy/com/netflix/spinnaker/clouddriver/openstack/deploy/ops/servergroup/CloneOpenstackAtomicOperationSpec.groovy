@@ -25,7 +25,6 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergrou
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.DeployOpenstackAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
-import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.openstack.domain.ServerGroupParameters
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
@@ -142,7 +141,7 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
     given:
     def inputDescription = new CloneOpenstackAtomicOperationDescription(
       source: new CloneOpenstackAtomicOperationDescription.OpenstackCloneSource(
-        serverGroup: ANCESTOR_STACK_NAME,
+        serverGroupName: ANCESTOR_STACK_NAME,
         region: REGION
       ),
       region: REGION,
@@ -189,7 +188,7 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
       timeoutMins: TIMEOUT_MINS_N,
       disableRollback: DISABLE_ROLLBACK_N,
       source: new CloneOpenstackAtomicOperationDescription.OpenstackCloneSource(
-        serverGroup: ANCESTOR_STACK_NAME,
+        serverGroupName: ANCESTOR_STACK_NAME,
         region: REGION
       ),
       credentials: credentials,
@@ -223,7 +222,7 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
     def stackName = 'app-stack-details-v000'
     def notFound = new OpenstackProviderException("foo")
     def inputDescription = new CloneOpenstackAtomicOperationDescription(
-      source: new CloneOpenstackAtomicOperationDescription.OpenstackCloneSource(serverGroup: stackName, region: REGION),
+      source: new CloneOpenstackAtomicOperationDescription.OpenstackCloneSource(serverGroupName: stackName, region: REGION),
       region: REGION,
       account: ACCOUNT_NAME,
       credentials: credentials

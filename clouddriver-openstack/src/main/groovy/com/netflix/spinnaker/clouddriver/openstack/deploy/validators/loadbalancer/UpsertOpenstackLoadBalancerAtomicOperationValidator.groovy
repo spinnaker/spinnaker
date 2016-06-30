@@ -16,33 +16,23 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.validators.loadbalancer
 
-import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackOperation
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.loadbalancer.OpenstackLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.OpenstackAttributeValidator
+import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.AbstractOpenstackDescriptionValidator
 import com.netflix.spinnaker.clouddriver.openstack.domain.PoolHealthMonitor
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
 @OpenstackOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
 @Component
-class UpsertOpenstackLoadBalancerAtomicOperationValidator extends DescriptionValidator<OpenstackLoadBalancerDescription> {
-  static final String context = "upsertOpenstackLoadBalancerAtomicOperationDescription"
+class UpsertOpenstackLoadBalancerAtomicOperationValidator extends AbstractOpenstackDescriptionValidator<OpenstackLoadBalancerDescription> {
 
-  @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+  String context = "upsertOpenstackLoadBalancerAtomicOperationDescription"
 
   @Override
-  void validate(List priorDescriptions, OpenstackLoadBalancerDescription description, Errors errors) {
-
-    def validator = new OpenstackAttributeValidator(context, errors)
-
-    if (!validator.validateCredentials(description.account, accountCredentialsProvider)) {
-      return
-    }
+  void validate(OpenstackAttributeValidator validator, List priorDescriptions, OpenstackLoadBalancerDescription description, Errors errors) {
 
     if (description.id) {
       validator.validateUUID(description.id, 'id')
@@ -54,7 +44,6 @@ class UpsertOpenstackLoadBalancerAtomicOperationValidator extends DescriptionVal
 
     // Shared validations between create/update
     validator.validateNotEmpty(description.name, 'name')
-    validator.validateNotEmpty(description.region, 'region')
     validator.validatePort(description.internalPort, 'internalPort')
 
     validator.validateNotNull(description.method, 'method')

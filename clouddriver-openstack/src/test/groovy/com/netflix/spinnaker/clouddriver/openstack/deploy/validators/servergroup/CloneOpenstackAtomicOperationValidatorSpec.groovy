@@ -10,33 +10,35 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ *  See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-package com.netflix.spinnaker.clouddriver.openstack.deploy.validators.securitygroup
+package com.netflix.spinnaker.clouddriver.openstack.deploy.validators.servergroup
 
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFactory
-import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.DeleteOpenstackSecurityGroupDescription
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.CloneOpenstackAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ResizeOpenstackAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.validation.Errors
-import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
 
-class DeleteOpenstackSecurityGroupDescriptionValidatorSpec extends Specification {
+class CloneOpenstackAtomicOperationValidatorSpec extends Specification {
 
   Errors errors
   AccountCredentialsProvider provider
-  @Shared
-  DeleteOpenstackSecurityGroupDescriptionValidator validator
+  ResizeOpenstackAtomicOperationValidator validator
   OpenstackNamedAccountCredentials credentials
   OpenstackCredentials credz
   OpenstackClientProvider clientProvider
+
+  String account = 'foo'
+  String application = 'app1'
+  String region = 'r1'
+  String stack = 'stack1'
 
   def setup() {
     clientProvider = Mock(OpenstackClientProvider)
@@ -51,36 +53,29 @@ class DeleteOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
     provider = Mock(AccountCredentialsProvider) {
       _ * getCredentials(_) >> credentials
     }
-    validator = new DeleteOpenstackSecurityGroupDescriptionValidator(accountCredentialsProvider: provider)
+    validator = new ResizeOpenstackAtomicOperationValidator(accountCredentialsProvider: provider)
   }
 
-  def "valid id"() {
+  def "Validate - no error"() {
     given:
-    def id = UUID.randomUUID().toString()
-    def description = new DeleteOpenstackSecurityGroupDescription(account: 'foo', region: 'r1', id: id, credentials: credz)
+    ResizeOpenstackAtomicOperationDescription description = new ResizeOpenstackAtomicOperationDescription(serverGroupName: 'from', region: 'r1', credentials: credz, account: account, capacity: new ResizeOpenstackAtomicOperationDescription.Capacity(max: 5, min: 3))
 
     when:
     validator.validate([], description, errors)
 
     then:
-    0 * errors.rejectValue(_, _)
+    0 * errors.rejectValue(_,_)
   }
 
-  @Unroll
-  def "invalid ids"() {
+  def "Validate invalid sizing"() {
     given:
-    def description = new DeleteOpenstackSecurityGroupDescription(account: 'foo', id: id, credentials: credz, region: 'r1')
+    ResizeOpenstackAtomicOperationDescription description = new ResizeOpenstackAtomicOperationDescription(serverGroupName: 'from', region: 'r1', credentials: credz, account: account, capacity: new ResizeOpenstackAtomicOperationDescription.Capacity(max: 3, min: 4))
 
     when:
     validator.validate([], description, errors)
 
     then:
-    1 * errors.rejectValue(_, msg)
-
-    where:
-    id     | expected | msg
-    null   | false    | validator.context + '.id.empty'
-    ''     | false    | validator.context + '.id.empty'
-    '1234' | false    | validator.context + '.id.notUUID'
+    1 * errors.rejectValue(_,_)
   }
+
 }

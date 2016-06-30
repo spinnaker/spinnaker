@@ -16,27 +16,22 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.validators.instance
 
-import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackOperation
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.instance.OpenstackInstancesDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.OpenstackAttributeValidator
+import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.AbstractOpenstackDescriptionValidator
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
 @OpenstackOperation(AtomicOperations.REBOOT_INSTANCES)
 @Component
-class RebootOpenstackInstancesDescriptionValidator extends DescriptionValidator<OpenstackInstancesDescription> {
+class RebootOpenstackInstancesDescriptionValidator extends AbstractOpenstackDescriptionValidator<OpenstackInstancesDescription> {
 
-  @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+  String context = "rebootOpenstackRegistrationAtomicOperationDescription"
 
   @Override
-  void validate(List priorDescriptions, OpenstackInstancesDescription description, Errors errors) {
-    def validator = new OpenstackAttributeValidator("rebootOpenstackInstancesAtomicOperationDescription", errors)
-    validator.validateCredentials(description.account, accountCredentialsProvider)
+  void validate(OpenstackAttributeValidator validator, List priorDescriptions, OpenstackInstancesDescription description, Errors errors) {
     validator.validateNotEmpty(description.instanceIds, "instanceIds")
   }
 }

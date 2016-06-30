@@ -42,7 +42,7 @@ class CloneOpenstackAtomicOperation implements AtomicOperation<DeploymentResult>
   }
 
   /*
-  * curl -X POST -H "Content-Type: application/json" -d '[{"cloneServerGroup": {"source": {"serverGroup": "myapp-teststack-v000", "region": "RegionOne"}, "region": "RegionTwo", "account": "test"}}]' localhost:7002/openstack/ops
+  * curl -X POST -H "Content-Type: application/json" -d '[{"cloneServerGroup": {"source": {"serverGroupName": "myapp-teststack-v000", "region": "RegionOne"}, "region": "RegionTwo", "account": "test"}}]' localhost:7002/openstack/ops
   * curl -X GET -H "Accept: application/json" localhost:7002/task/1
   */
   @Override
@@ -51,12 +51,12 @@ class CloneOpenstackAtomicOperation implements AtomicOperation<DeploymentResult>
     try {
       DeployOpenstackAtomicOperationDescription newDescription = cloneAndOverrideDescription()
 
-      task.updateStatus BASE_PHASE, "Initializing cloning of server group ${description.source.serverGroup}"
+      task.updateStatus BASE_PHASE, "Initializing cloning of server group ${description.source.serverGroupName}"
 
       DeployOpenstackAtomicOperation deployer = new DeployOpenstackAtomicOperation(newDescription)
       deploymentResult = deployer.operate(priorOutputs) // right now this is null from deployOpenstackAtomicOperation
 
-      task.updateStatus BASE_PHASE, "Finished cloning server group ${description.source.serverGroup}"
+      task.updateStatus BASE_PHASE, "Finished cloning server group ${description.source.serverGroupName}"
     } catch (Exception e) {
       throw new OpenstackOperationException(AtomicOperations.CLONE_SERVER_GROUP, e)
     }
@@ -66,16 +66,16 @@ class CloneOpenstackAtomicOperation implements AtomicOperation<DeploymentResult>
   DeployOpenstackAtomicOperationDescription cloneAndOverrideDescription() {
     DeployOpenstackAtomicOperationDescription deployDescription = description.clone()
 
-    task.updateStatus BASE_PHASE, "Reading ancestor stack name ${description.source.serverGroup}"
+    task.updateStatus BASE_PHASE, "Reading ancestor stack name ${description.source.serverGroupName}"
 
-    Stack ancestorStack = description.credentials.provider.getStack(description.source.region, description.source.serverGroup)
+    Stack ancestorStack = description.credentials.provider.getStack(description.source.region, description.source.serverGroupName)
     if (!ancestorStack) {
-      throw new OpenstackOperationException(AtomicOperations.CLONE_SERVER_GROUP, "Source stack ${description.source.serverGroup} does not exist")
+      throw new OpenstackOperationException(AtomicOperations.CLONE_SERVER_GROUP, "Source stack ${description.source.serverGroupName} does not exist")
     }
     ServerGroupParameters ancestorParams = ServerGroupParameters.fromParamsMap(ancestorStack.parameters)
-    Names ancestorNames = Names.parseName(description.source.serverGroup)
+    Names ancestorNames = Names.parseName(description.source.serverGroupName)
 
-    task.updateStatus BASE_PHASE, "Done reading ancestor stack name ${description.source.serverGroup}"
+    task.updateStatus BASE_PHASE, "Done reading ancestor stack name ${description.source.serverGroupName}"
 
     task.updateStatus BASE_PHASE, "Creating new server group description"
 

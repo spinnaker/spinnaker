@@ -23,7 +23,7 @@ class CloneOpenstackAtomicOperationDescription extends DeployOpenstackAtomicOper
 
   @Canonical
   static class OpenstackCloneSource {
-    String serverGroup
+    String serverGroupName
     String region
   }
 

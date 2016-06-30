@@ -27,7 +27,7 @@ import org.springframework.validation.Errors
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class DeployOpenstackAtomicOperationValidatorSpec extends Specification {
+class ResizeOpenstackAtomicOperationValidatorSpec extends Specification {
 
   Errors errors
   AccountCredentialsProvider provider
@@ -85,11 +85,7 @@ class DeployOpenstackAtomicOperationValidatorSpec extends Specification {
     given:
     ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
     DeployOpenstackAtomicOperationDescription description = new DeployOpenstackAtomicOperationDescription(account: account, application: application, region: region, stack: stack, freeFormDetails: freeFormDetails, disableRollback: disableRollback, timeoutMins: timeoutMins, serverGroupParameters: params, credentials: credz)
-    if (attribute != 'stack') {
-      description."$attribute" = ''
-    } else {
-      description."$attribute" = '1-2-3'
-    }
+    description."$attribute" = value
 
     when:
     validator.validate([], description, errors)
@@ -98,8 +94,10 @@ class DeployOpenstackAtomicOperationValidatorSpec extends Specification {
     times * errors.rejectValue(_,_)
 
     where:
-    attribute << ['application', 'stack']
-    times << [2,1]
+    attribute     | times | value
+    'application' | 2     | ''
+    'stack'       | 1     | '1-2-3'
+
   }
 
   @Unroll
@@ -116,8 +114,14 @@ class DeployOpenstackAtomicOperationValidatorSpec extends Specification {
     times * errors.rejectValue(_,_)
 
     where:
-    attribute << ['instanceType', 'image', 'maxSize', 'minSize', 'networkId', 'poolId', 'securityGroups']
-    times << [1,1,2,2,1,1,1]
+    attribute        | times
+    'instanceType'   | 1
+    'image'          | 1
+    'maxSize'        | 2
+    'minSize'        | 2
+    'networkId'      | 1
+    'poolId'         | 1
+    'securityGroups' | 1
   }
 
   def "Validate sizing - error"() {

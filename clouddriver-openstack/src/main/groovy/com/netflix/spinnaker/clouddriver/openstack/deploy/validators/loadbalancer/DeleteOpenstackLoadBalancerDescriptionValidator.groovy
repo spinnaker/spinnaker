@@ -16,28 +16,22 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.validators.loadbalancer
 
-import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackOperation
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.loadbalancer.DeleteOpenstackLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.OpenstackAttributeValidator
+import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.AbstractOpenstackDescriptionValidator
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
 @OpenstackOperation(AtomicOperations.DELETE_LOAD_BALANCER)
 @Component
-class DeleteOpenstackLoadBalancerDescriptionValidator extends DescriptionValidator<DeleteOpenstackLoadBalancerDescription> {
+class DeleteOpenstackLoadBalancerDescriptionValidator extends AbstractOpenstackDescriptionValidator<DeleteOpenstackLoadBalancerDescription> {
 
-  @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
-
+  String context = "deleteOpenstackLoadBalancerAtomicOperationDescription"
   @Override
-  void validate(List priorDescriptions, DeleteOpenstackLoadBalancerDescription description, Errors errors) {
-    def validator = new OpenstackAttributeValidator("deleteOpenstackLoadBalancerAtomicOperationDescription", errors)
-    validator.validateCredentials(description.account, accountCredentialsProvider)
-    validator.validateNotEmpty(description.region, 'region')
+  void validate(OpenstackAttributeValidator validator, List priorDescriptions, DeleteOpenstackLoadBalancerDescription description, Errors errors) {
     validator.validateUUID(description.id, 'id')
   }
+
 }

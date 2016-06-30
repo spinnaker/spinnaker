@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientV2Provider
+import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientV3Provider
 import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerMethod
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
@@ -340,4 +342,62 @@ class OpenstackAttributeValidatorSpec extends Specification {
     2       | 2     | false  | ''
     3       | 4     | false  | 'context.test.empty'
   }
+
+  def "ValidateGreaterThanEqual"() {
+    when:
+    boolean actual = validator.validateGreaterThanEqual(subject, other, "test")
+
+    then:
+    actual == result
+    if (!result) {
+      validator.errors.getFieldError('context.test')?.rejectedValue == expectedRejectedValue
+    }
+
+    where:
+    subject | other | result | expectedRejectedValue
+    1       | 0     | true   | ''
+    2       | 2     | true   | ''
+    3       | 4     | false  | 'context.test.empty'
+  }
+
+  def "ValidateRegion"() {
+    given:
+    String region = 'region1'
+    def v2 = Mock(OpenstackClientV2Provider)
+    def v3 = Mock(OpenstackClientV3Provider)
+
+    when:
+    boolean actual = validator.validateRegion(region, v2)
+
+    then:
+    _ * v2.getProperty('allRegions') >> result
+    actual == expected
+
+    when:
+    actual = validator.validateRegion(region, v3)
+
+    then:
+    _ * v3.getProperty('allRegions') >> result
+    actual == expected
+
+    when:
+    actual = validator.validateRegion('', v2)
+
+    then:
+    0 * v2.getProperty('allRegions')
+    !actual
+
+    when:
+    actual = validator.validateRegion('', v3)
+
+    then:
+    0 * v3.getProperty('allRegions')
+    !actual
+
+    where:
+    result      | expected
+    ['region1'] | true
+    []          | false
+  }
+
 }

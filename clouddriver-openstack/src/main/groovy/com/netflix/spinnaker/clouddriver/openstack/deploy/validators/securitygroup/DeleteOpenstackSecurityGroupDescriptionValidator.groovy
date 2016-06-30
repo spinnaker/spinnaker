@@ -17,13 +17,11 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.validators.securitygroup
 
-import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackOperation
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.DeleteOpenstackSecurityGroupDescription
+import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.AbstractOpenstackDescriptionValidator
 import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.OpenstackAttributeValidator
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
@@ -32,18 +30,13 @@ import org.springframework.validation.Errors
  */
 @OpenstackOperation(AtomicOperations.DELETE_SECURITY_GROUP)
 @Component
-class DeleteOpenstackSecurityGroupDescriptionValidator extends DescriptionValidator<DeleteOpenstackSecurityGroupDescription> {
+class DeleteOpenstackSecurityGroupDescriptionValidator extends AbstractOpenstackDescriptionValidator<DeleteOpenstackSecurityGroupDescription> {
 
-  static final String CONTEXT = "deleteOpenstackSecurityGroupAtomicOperationDescription"
-
-  @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+  String context = "deleteOpenstackSecurityGroupAtomicOperationDescription"
 
   @Override
-  void validate(List priorDescriptions, DeleteOpenstackSecurityGroupDescription description, Errors errors) {
-    def validator = new OpenstackAttributeValidator(CONTEXT, errors)
-    validator.validateCredentials(description.account, accountCredentialsProvider)
-    validator.validateNotEmpty(description.region, "region")
+  void validate(OpenstackAttributeValidator validator, List priorDescriptions, DeleteOpenstackSecurityGroupDescription description, Errors errors) {
     validator.validateUUID(description.id, "id")
   }
+
 }

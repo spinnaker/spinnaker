@@ -16,12 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.UpsertOpenstackSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import org.apache.commons.net.util.SubnetUtils
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
-import org.apache.commons.net.util.SubnetUtils
 import org.springframework.validation.Errors
 
 import static UpsertOpenstackSecurityGroupDescription.Rule
@@ -133,7 +134,19 @@ class OpenstackAttributeValidator {
 
   boolean validateGreaterThan(Integer subject, Integer other, String attribute) {
     def result
-    if (subject != null && other != null && other < subject) {
+    if (subject != null && other != null && subject > other) {
+      result = true
+    }
+    else {
+      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.notGreaterThan")
+      result = false
+    }
+    result
+  }
+
+  boolean validateGreaterThanEqual(Integer subject, Integer other, String attribute) {
+    def result
+    if (subject != null && other != null && subject >= other) {
       result = true
     }
     else {
@@ -284,6 +297,23 @@ class OpenstackAttributeValidator {
     } catch (MalformedURLException | URISyntaxException | IllegalArgumentException e) {
       result = false
       reject(attribute, 'invalid URL')
+    }
+    result
+  }
+
+  /**
+   * Validate the region
+   * @param region
+   * @param credentials
+   * @return
+   */
+  def validateRegion(String region, OpenstackClientProvider provider) {
+    boolean result = validateNotEmpty(region, 'region')
+    if (result) {
+      result = provider?.allRegions?.contains(region)
+      if (!result) {
+        reject('region', 'invalid region')
+      }
     }
     result
   }

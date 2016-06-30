@@ -16,25 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.validators.instance
 
-import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.instance.OpenstackInstancesRegistrationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.OpenstackAttributeValidator
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import org.springframework.beans.factory.annotation.Autowired
+import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.AbstractOpenstackDescriptionValidator
 import org.springframework.validation.Errors
 
-/**
- *
- */
-class AbstractRegistrationOpenstackInstancesDescriptionValidator extends DescriptionValidator<OpenstackInstancesRegistrationDescription> {
-
-  @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+abstract class AbstractRegistrationOpenstackInstancesDescriptionValidator extends AbstractOpenstackDescriptionValidator<OpenstackInstancesRegistrationDescription> {
 
   @Override
-  void validate(List priorDescriptions, OpenstackInstancesRegistrationDescription description, Errors errors) {
-    def validator = new OpenstackAttributeValidator("OpenstackInstancesRegistrationDescription", errors)
-    validator.validateCredentials(description.account, accountCredentialsProvider)
+  void validate(OpenstackAttributeValidator validator, List priorDescriptions, OpenstackInstancesRegistrationDescription description, Errors errors) {
     validator.validateNotEmpty(description.instanceIds, "instanceIds")
     validator.validateNotEmpty(description.loadBalancerIds, "loadBalancerIds")
   }

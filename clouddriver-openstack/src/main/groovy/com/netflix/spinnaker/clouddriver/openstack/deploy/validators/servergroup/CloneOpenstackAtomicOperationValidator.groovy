@@ -16,35 +16,26 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.validators.servergroup
 
-import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackOperation
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.CloneOpenstackAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.OpenstackAttributeValidator
-import com.netflix.spinnaker.clouddriver.openstack.domain.ServerGroupParameters
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
 @OpenstackOperation(AtomicOperations.CLONE_SERVER_GROUP)
-@Component("cloneOpenstackAtomicOperationValidator")
-class CloneOpenstackAtomicOperationValidator extends DescriptionValidator<CloneOpenstackAtomicOperationDescription> {
-  @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+@Component
+class CloneOpenstackAtomicOperationValidator extends AbstractServergroupOpenstackAtomicOperationValidator<CloneOpenstackAtomicOperationDescription> {
+
+  String context = "cloneOpenstackAtomicOperationDescription"
 
   @Override
-  void validate(List priorDescriptions, CloneOpenstackAtomicOperationDescription description, Errors errors) {
-    def validator = new OpenstackAttributeValidator("cloneOpenstackAtomicOperationDescription", errors)
+  void validate(OpenstackAttributeValidator validator, List priorDescriptions, CloneOpenstackAtomicOperationDescription description, Errors errors) {
 
-    if (!validator.validateCredentials(description.account, accountCredentialsProvider)) {
-      return
-    }
     if (!validator.validateNotNull(description.source, "source")) {
       return
     }
-    validator.validateNotEmpty(description.source.region, "region")
-    validator.validateNotEmpty(description.source.serverGroup, "serverGroup")
+    validator.validateNotEmpty(description.source.serverGroupName, "serverGroupName")
     if (description.application) {
       validator.validateApplication(description.application, "application")
     }
@@ -55,22 +46,6 @@ class CloneOpenstackAtomicOperationValidator extends DescriptionValidator<CloneO
     }
     if (description.timeoutMins) {
       validator.validateNonNegative(description.timeoutMins, "timeoutMins")
-    }
-  }
-
-
-  //TODO this is copy-paste from DeployOpenstackAtomicOperationValidator
-  def validateServerGroup(OpenstackAttributeValidator validator, ServerGroupParameters parameters) {
-    String prefix = "serverGroupParameters"
-    parameters.with {
-      validator.validateNotEmpty(instanceType, "${prefix}.instanceType")
-      validator.validateNotEmpty(image, "${prefix}.image")
-      validator.validatePositive(maxSize, "${prefix}.maxSize")
-      validator.validatePositive(minSize, "${prefix}.minSize")
-      validator.validateGreaterThan(maxSize, minSize, "${prefix}.maxSize")
-      validator.validateNotEmpty(networkId, "${prefix}.networkId")
-      validator.validateNotEmpty(poolId, "${prefix}.poolId")
-      validator.validateNotEmpty(securityGroups, "${prefix}.securityGroups")
     }
   }
 

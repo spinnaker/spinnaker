@@ -17,11 +17,14 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.validators.securitygroup
 
+import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
+import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFactory
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.UpsertOpenstackSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.validation.Errors
+import spock.lang.Shared
 import spock.lang.Specification
 
 class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification {
@@ -29,18 +32,24 @@ class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
   Errors errors
   AccountCredentialsProvider provider
   UpsertOpenstackSecurityGroupDescriptionValidator validator
-  OpenstackNamedAccountCredentials namedAccountCredentials
-  OpenstackCredentials credentials
+  OpenstackNamedAccountCredentials credentials
+  @Shared
+  OpenstackCredentials credz
+  OpenstackClientProvider clientProvider
 
   def setup() {
-    credentials = Mock(OpenstackCredentials)
-    namedAccountCredentials = Mock(OpenstackNamedAccountCredentials) {
-      1 * getCredentials() >> credentials
+    clientProvider = Mock(OpenstackClientProvider)
+    clientProvider.getProperty('allRegions') >> ['r1']
+    GroovyMock(OpenstackProviderFactory, global: true)
+    OpenstackProviderFactory.createProvider(credentials) >> clientProvider
+    credz = new OpenstackCredentials(credentials)
+    errors = Mock(Errors)
+    credentials = Mock(OpenstackNamedAccountCredentials) {
+      _ * getCredentials() >> credz
     }
     provider = Mock(AccountCredentialsProvider) {
-      1 * getCredentials(_) >> namedAccountCredentials
+      _ * getCredentials(_) >> credentials
     }
-    errors = Mock(Errors)
     validator = new UpsertOpenstackSecurityGroupDescriptionValidator(accountCredentialsProvider: provider)
   }
 
@@ -49,7 +58,7 @@ class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
     def id = UUID.randomUUID().toString()
     def name = 'name'
     def desc = 'description'
-    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', 'region': 'west', id: id, name: name, description: desc, rules: [])
+    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', 'region': 'r1', id: id, name: name, description: desc, rules: [], credentials: credz)
 
     when:
     validator.validate([], description, errors)
@@ -67,7 +76,7 @@ class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
       new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: 80, toPort: 80, cidr: '0.0.0.0/0'),
       new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: 443, toPort: 443, cidr: '0.0.0.0/0')
     ]
-    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', 'region': 'west', id: id, name: name, description: desc, rules: rules)
+    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', 'region': 'r1', id: id, name: name, description: desc, rules: rules, credentials: credz)
 
     when:
     validator.validate([], description, errors)
@@ -81,7 +90,7 @@ class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
     def id = 'not a uuid'
     def name = 'name'
     def desc = 'description'
-    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', 'region': 'west', id: id, name: name, description: desc, rules: [])
+    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', 'region': 'r1', id: id, name: name, description: desc, rules: [], credentials: credz)
 
     when:
     validator.validate([], description, errors)
@@ -94,26 +103,13 @@ class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
     setup:
     def name = 'name'
     def desc = 'description'
-    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', 'region': 'west', id: null, name: name, description: desc, rules: [])
+    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', 'region': 'r1', id: null, name: name, description: desc, rules: [], credentials: credz)
 
     when:
     validator.validate([], description, errors)
 
     then:
     0 * errors.rejectValue(_, _)
-  }
-
-  def "missing region is invalid"() {
-    setup:
-    def name = 'name'
-    def desc = 'description'
-    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', id: null, name: name, description: desc, rules: [])
-
-    when:
-    validator.validate([], description, errors)
-
-    then:
-    1 * errors.rejectValue(_, 'upsertOpenstackSecurityGroupAtomicOperationDescription.region.empty')
   }
 
   def "validate with invalid rule"() {
@@ -124,7 +120,7 @@ class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
     def rules = [
       new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: fromPort, toPort: toPort, cidr: cidr)
     ]
-    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', 'region': 'west', id: id, name: name, description: desc, rules: rules)
+    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', 'region': 'r1', id: id, name: name, description: desc, rules: rules, credentials: credz)
 
     when:
     validator.validate([], description, errors)

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.client
 
-import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerPool
@@ -36,6 +35,7 @@ import org.openstack4j.model.compute.Server
 import org.openstack4j.model.heat.Resource
 import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.heat.StackCreate
+import org.openstack4j.model.heat.StackUpdate
 import org.openstack4j.model.network.NetFloatingIP
 import org.openstack4j.model.network.Port
 import org.openstack4j.model.network.ext.HealthMonitor
@@ -486,20 +486,19 @@ abstract class OpenstackClientProvider {
   }
 
   /**
+   * TODO: Handle heat autoscaling migration to senlin in versions > Mitaka
    * Create a Spinnaker Server Group (Openstack Heat Stack).
-   * @param stackName
-   * @param heatTemplate
-   * @param parameters
-   * @param disableRollback
-   * @param timeoutMins
-   * @return
+   * @param region the openstack region
+   * @param stackName the openstack stack name
+   * @param template the main heat template
+   * @param subtemplate a map of subtemplate files references by the template
+   * @param parameters the parameters substituted into the heat template
+   * @param disableRollback if true, resources are not removed upon stack create failure
+   * @param timeoutMins stack create timeout, after which the operation will fail
    */
   void deploy(String region, String stackName, String template, Map<String, String> subtemplate, ServerGroupParameters parameters, boolean disableRollback, Long timeoutMins) {
-
     handleRequest {
-
       Map<String, String> params = parameters.toParamsMap()
-
       StackCreate create = Builders.stack()
         .name(stackName)
         .template(template)
@@ -508,13 +507,26 @@ abstract class OpenstackClientProvider {
         .disableRollback(disableRollback)
         .timeoutMins(timeoutMins)
         .build()
-
       getRegionClient(region).heat().stacks().create(create)
-
     }
+  }
 
-    //TODO: Handle heat autoscaling migration to senlin in versions > Mitaka
-
+  /**
+   * TODO: Handle heat autoscaling migration to senlin in versions > Mitaka
+   * Updates a Spinnaker Server Group (Openstack Heat Stack).
+   * @param region the openstack region
+   * @param stackName the openstack stack name
+   * @param stackId the openstack stack id
+   * @param template the main heat template
+   * @param subtemplate a map of subtemplate files references by the template
+   * @param parameters the parameters substituted into the heat template
+   */
+  void updateStack(String region, String stackName, String stackId, String template, Map<String, String> subtemplate, ServerGroupParameters parameters) {
+    handleRequest {
+      Map<String, String> params = parameters.toParamsMap()
+      StackUpdate update = Builders.stackUpdate().template(template).files(subtemplate).parameters(params).build()
+      getRegionClient(region).heat().stacks().update(stackName, stackId, update)
+    }
   }
 
   /**
@@ -525,11 +537,8 @@ abstract class OpenstackClientProvider {
    * @return
    */
   String getHeatTemplate(String region, String stackName, String stackId) {
-    try {
-      def template = client.useRegion(region).heat().templates().getTemplateAsString(stackName, stackId)
-      return template
-    } catch (Exception e) {
-      throw new OpenstackOperationException(e)
+    handleRequest {
+      client.useRegion(region).heat().templates().getTemplateAsString(stackName, stackId)
     }
   }
 
@@ -731,6 +740,8 @@ abstract class OpenstackClientProvider {
       result = closure()
     } catch (UndeclaredThrowableException e) {
       throw new OpenstackProviderException('Unable to process request', e.cause)
+    } catch (OpenstackProviderException e) { //allows nested calls to handleRequest
+      throw e
     } catch (Exception e) {
       throw new OpenstackProviderException('Unable to process request', e)
     }

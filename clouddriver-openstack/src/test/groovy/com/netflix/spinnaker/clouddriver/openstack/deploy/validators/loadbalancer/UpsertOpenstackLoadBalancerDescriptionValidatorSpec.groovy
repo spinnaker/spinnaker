@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.validators.loadbalancer
 
+import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
+import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFactory
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.loadbalancer.OpenstackLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.OpenstackAttributeValidator
 import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerMethod
@@ -39,26 +41,35 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
   UpsertOpenstackLoadBalancerAtomicOperationValidator validator
   OpenstackNamedAccountCredentials credentials
   OpenstackCredentials credz
+  OpenstackClientProvider clientProvider
+
+  def setup() {
+    clientProvider = Mock(OpenstackClientProvider)
+    clientProvider.getProperty('allRegions') >> ['r1']
+    GroovyMock(OpenstackProviderFactory, global: true)
+    OpenstackProviderFactory.createProvider(credentials) >> clientProvider
+    credz = new OpenstackCredentials(credentials)
+    errors = Mock(Errors)
+    credentials = Mock(OpenstackNamedAccountCredentials) {
+      _ * getCredentials() >> credz
+    }
+    provider = Mock(AccountCredentialsProvider) {
+      _ * getCredentials(_) >> credentials
+    }
+  }
 
   def "Validate create load balancer no exceptions"() {
     given:
-    credz = Mock(OpenstackCredentials)
-    credentials = Mock(OpenstackNamedAccountCredentials) {
-      1 * getCredentials() >> credz
-    }
-    provider = Mock(AccountCredentialsProvider) {
-      1 * getCredentials(_) >> credentials
-    }
-    errors = Mock(Errors)
     validator = new UpsertOpenstackLoadBalancerAtomicOperationValidator(accountCredentialsProvider: provider)
     OpenstackLoadBalancerDescription description = new OpenstackLoadBalancerDescription(account: 'foo'
-      , region: 'west'
+      , region: 'r1'
       , name: 'name'
       , internalPort: 80
       , externalPort: 80
       , subnetId: UUID.randomUUID().toString()
       , method: LoadBalancerMethod.ROUND_ROBIN
-      , protocol: LoadBalancerProtocol.HTTP)
+      , protocol: LoadBalancerProtocol.HTTP
+      , credentials: credz)
 
     when:
     validator.validate([], description, errors)
@@ -69,21 +80,14 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
 
   def "Validate update load balancer no exceptions"() {
     given:
-    credz = Mock(OpenstackCredentials)
-    credentials = Mock(OpenstackNamedAccountCredentials) {
-      1 * getCredentials() >> credz
-    }
-    provider = Mock(AccountCredentialsProvider) {
-      1 * getCredentials(_) >> credentials
-    }
-    errors = Mock(Errors)
     validator = new UpsertOpenstackLoadBalancerAtomicOperationValidator(accountCredentialsProvider: provider)
     OpenstackLoadBalancerDescription description = new OpenstackLoadBalancerDescription(account: 'foo'
-      , region: 'west'
+      , region: 'r1'
       , id: UUID.randomUUID().toString()
       , name: 'name'
       , internalPort: 80
-      , method: LoadBalancerMethod.ROUND_ROBIN)
+      , method: LoadBalancerMethod.ROUND_ROBIN
+      , credentials: credz)
 
     when:
     validator.validate([], description, errors)
@@ -92,40 +96,13 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
     0 * errors.rejectValue(_, _)
   }
 
-  def "Validate empty account exception"() {
-    given:
-    credz = Mock(OpenstackCredentials)
-    credentials = Mock(OpenstackNamedAccountCredentials) {
-      0 * getCredentials() >> credz
-    }
-    provider = Mock(AccountCredentialsProvider) {
-      0 * getCredentials(_) >> credentials
-    }
-    errors = Mock(Errors)
-    validator = new UpsertOpenstackLoadBalancerAtomicOperationValidator(accountCredentialsProvider: provider)
-    OpenstackLoadBalancerDescription description = new OpenstackLoadBalancerDescription(account: '')
-
-    when:
-    validator.validate([], description, errors)
-
-    then:
-    1 * errors.rejectValue(_, _)
-  }
-
   def "Validate create missing required field - #attribute"() {
     given:
-    credz = Mock(OpenstackCredentials)
-    credentials = Mock(OpenstackNamedAccountCredentials) {
-      1 * getCredentials() >> credz
-    }
-    provider = Mock(AccountCredentialsProvider) {
-      1 * getCredentials(_) >> credentials
-    }
-    errors = Mock(Errors)
     validator = new UpsertOpenstackLoadBalancerAtomicOperationValidator(accountCredentialsProvider: provider)
-    Map<String, ?> inputMap = ['account'       : 'foo', 'region': 'west', 'internalPort': 80
+    Map<String, ?> inputMap = ['account'       : 'foo', 'region': 'r1', 'internalPort': 80
                                , 'externalPort': 80, 'subnetId': UUID.randomUUID().toString(), 'name': 'name'
-                               , 'method'      : LoadBalancerMethod.ROUND_ROBIN, 'protocol': LoadBalancerProtocol.HTTP]
+                               , 'method'      : LoadBalancerMethod.ROUND_ROBIN, 'protocol': LoadBalancerProtocol.HTTP
+                               , 'credentials': credz]
     inputMap.remove(attribute)
     OpenstackLoadBalancerDescription description = new OpenstackLoadBalancerDescription(inputMap)
 
@@ -133,7 +110,7 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
     validator.validate([], description, errors)
 
     then:
-    1 * errors.rejectValue("${context}.${attribute}", _)
+    1 * errors.rejectValue("${validator.context}.${attribute}", _)
 
     where:
     attribute << ['name', 'region', 'internalPort', 'externalPort', 'subnetId', 'method', 'protocol']
@@ -141,17 +118,9 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
 
   def "Validate update missing required field - #attribute"() {
     given:
-    credz = Mock(OpenstackCredentials)
-    credentials = Mock(OpenstackNamedAccountCredentials) {
-      1 * getCredentials() >> credz
-    }
-    provider = Mock(AccountCredentialsProvider) {
-      1 * getCredentials(_) >> credentials
-    }
-    errors = Mock(Errors)
     validator = new UpsertOpenstackLoadBalancerAtomicOperationValidator(accountCredentialsProvider: provider)
-    Map<String, ?> inputMap = ['account': 'foo', 'region': 'west', 'internalPort': 80, 'id': UUID.randomUUID().toString(),
-                               'name'   : 'name', 'method': LoadBalancerMethod.ROUND_ROBIN]
+    Map<String, ?> inputMap = ['account': 'foo', 'region': 'r1', 'internalPort': 80, 'id': UUID.randomUUID().toString(),
+                               'name'   : 'name', 'method': LoadBalancerMethod.ROUND_ROBIN, 'credentials': credz]
     inputMap.remove(attribute)
     OpenstackLoadBalancerDescription description = new OpenstackLoadBalancerDescription(inputMap)
 
@@ -159,7 +128,7 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
     validator.validate([], description, errors)
 
     then:
-    1 * errors.rejectValue("${context}.${attribute}", _)
+    1 * errors.rejectValue("${validator.context}.${attribute}", _)
 
     where:
     attribute << ['name', 'region', 'internalPort', 'method']
@@ -167,18 +136,11 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
 
   def "Validate create invalid field "() {
     given:
-    credz = Mock(OpenstackCredentials)
-    credentials = Mock(OpenstackNamedAccountCredentials) {
-      1 * getCredentials() >> credz
-    }
-    provider = Mock(AccountCredentialsProvider) {
-      1 * getCredentials(_) >> credentials
-    }
-    errors = Mock(Errors)
     validator = new UpsertOpenstackLoadBalancerAtomicOperationValidator(accountCredentialsProvider: provider)
-    Map<String, ?> inputMap = ['account'       : 'foo', 'region': 'west', 'internalPort': 80
+    Map<String, ?> inputMap = ['account'       : 'foo', 'region': 'r1', 'internalPort': 80
                                , 'externalPort': 80, 'subnetId': UUID.randomUUID().toString(), 'name': 'name'
-                               , 'method'      : LoadBalancerMethod.ROUND_ROBIN, 'protocol': LoadBalancerProtocol.HTTP]
+                               , 'method'      : LoadBalancerMethod.ROUND_ROBIN, 'protocol': LoadBalancerProtocol.HTTP
+                               , 'credentials': credz]
     inputMap.put(attribute.key, attribute.value)
     OpenstackLoadBalancerDescription description = new OpenstackLoadBalancerDescription(inputMap)
 
@@ -186,7 +148,7 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
     validator.validate([], description, errors)
 
     then:
-    1 * errors.rejectValue("${context}.${attribute.key}", _)
+    1 * errors.rejectValue("${validator.context}.${attribute.key}", _)
 
     where:
     attribute << ['name': '', 'region': '', 'internalPort': -1, 'externalPort': -1, 'subnetId': 'abc', 'method': null, 'protocol': null]
@@ -194,17 +156,9 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
 
   def "Validate update invalid field"() {
     given:
-    credz = Mock(OpenstackCredentials)
-    credentials = Mock(OpenstackNamedAccountCredentials) {
-      1 * getCredentials() >> credz
-    }
-    provider = Mock(AccountCredentialsProvider) {
-      1 * getCredentials(_) >> credentials
-    }
-    errors = Mock(Errors)
     validator = new UpsertOpenstackLoadBalancerAtomicOperationValidator(accountCredentialsProvider: provider)
-    Map<String, ?> inputMap = ['account': 'foo', 'region': 'west', 'internalPort': 80, 'id': UUID.randomUUID().toString(),
-                               'name'   : 'name', 'method': LoadBalancerMethod.ROUND_ROBIN]
+    Map<String, ?> inputMap = ['account': 'foo', 'region': 'r1', 'internalPort': 80, 'id': UUID.randomUUID().toString(),
+                               'name'   : 'name', 'method': LoadBalancerMethod.ROUND_ROBIN, 'credentials': credz]
     inputMap.put(attribute.key, attribute.value)
     println(attribute.class)
     OpenstackLoadBalancerDescription description = new OpenstackLoadBalancerDescription(inputMap)
@@ -213,7 +167,7 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
     validator.validate([], description, errors)
 
     then:
-    1 * errors.rejectValue("${context}.${attribute.key}", _)
+    1 * errors.rejectValue("${validator.context}.${attribute.key}", _)
 
     where:
     attribute << ['name': '', 'region': '', 'internalPort': -1, 'method': null, 'id': 'abc']
@@ -221,9 +175,8 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
 
   def "Validate health monitor values"() {
     given:
-    errors = Mock(Errors)
-    OpenstackAttributeValidator attributeValidator = new OpenstackAttributeValidator(context, errors)
     validator = new UpsertOpenstackLoadBalancerAtomicOperationValidator(accountCredentialsProvider: provider)
+    OpenstackAttributeValidator attributeValidator = new OpenstackAttributeValidator(validator.context, errors)
     Map<String, ?> inputMap = ['type'        : PoolHealthMonitorType.HTTP, 'delay': 5, 'timeout': 5
                                , 'maxRetries': 5, 'httpMethod': 'GET', 'expectedHttpStatusCodes': [200]
                                , 'url'       : 'http://www.google.com']
@@ -235,7 +188,7 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
     validator.validateHealthMonitor(attributeValidator, poolHealthMonitor)
 
     then:
-    1 * errors.rejectValue("${context}.${attribute.key}", _)
+    1 * errors.rejectValue("${validator.context}.${attribute.key}", _)
 
     where:
     attribute << [ 'type': null, 'delay': -1, 'timeout': -1, 'maxRetries': -1, 'httpMethod': 'test', 'expectedHttpStatusCodes': [20], 'url': '\\backslash']
@@ -247,7 +200,6 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
     List<Integer> expectedCodes = [100]
     int delay, timeout, maxRetries = 2
     String method = 'GET'
-    errors = Mock(Errors)
     validator = new UpsertOpenstackLoadBalancerAtomicOperationValidator()
     OpenstackAttributeValidator attributeValidator = Mock()
     PoolHealthMonitor poolHealthMonitor = Mock()
@@ -277,7 +229,6 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
     List<Integer> expectedCodes = null
     int delay, timeout, maxRetries = 2
     String method = null
-    errors = Mock(Errors)
     validator = new UpsertOpenstackLoadBalancerAtomicOperationValidator()
     OpenstackAttributeValidator attributeValidator = Mock()
     PoolHealthMonitor poolHealthMonitor = Mock()

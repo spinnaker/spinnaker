@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.validators.instance
 
+import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
+import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFactory
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.instance.OpenstackInstancesRegistrationDescription
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
@@ -36,19 +38,27 @@ class AbstractRegistrationOpenstackInstancesDescriptionValidatorSpec extends Spe
   AccountCredentialsProvider provider
   OpenstackNamedAccountCredentials credentials
   OpenstackCredentials credz
+  OpenstackClientProvider clientProvider
+
+  def setup() {
+    clientProvider = Mock(OpenstackClientProvider)
+    clientProvider.getProperty('allRegions') >> ['r1']
+    GroovyMock(OpenstackProviderFactory, global: true)
+    OpenstackProviderFactory.createProvider(credentials) >> clientProvider
+    credz = new OpenstackCredentials(credentials)
+    errors = Mock(Errors)
+    credentials = Mock(OpenstackNamedAccountCredentials) {
+      _ * getCredentials() >> credz
+    }
+    provider = Mock(AccountCredentialsProvider) {
+      _ * getCredentials(_) >> credentials
+    }
+  }
 
   def "Validate no exception"() {
     given:
-    credz = Mock(OpenstackCredentials)
-    credentials = Mock(OpenstackNamedAccountCredentials) {
-      1 * getCredentials() >> credz
-    }
-    provider = Mock(AccountCredentialsProvider) {
-      1 * getCredentials(_) >> credentials
-    }
     def validator = validatorClass.newInstance(accountCredentialsProvider: provider)
-    errors = Mock(Errors)
-    OpenstackInstancesRegistrationDescription description = new OpenstackInstancesRegistrationDescription(account: 'foo', instanceIds: ['1','2'], loadBalancerIds: ['lb1','lb2'])
+    OpenstackInstancesRegistrationDescription description = new OpenstackInstancesRegistrationDescription(account: 'foo', instanceIds: ['1','2'], loadBalancerIds: ['lb1','lb2'], credentials: credz, region: 'r1')
 
     when:
     validator.validate([], description, errors)
@@ -62,16 +72,8 @@ class AbstractRegistrationOpenstackInstancesDescriptionValidatorSpec extends Spe
 
   def "Validate empty account exception"() {
     given:
-    credz = Mock(OpenstackCredentials)
-    credentials = Mock(OpenstackNamedAccountCredentials) {
-      0 * getCredentials() >> credz
-    }
-    provider = Mock(AccountCredentialsProvider) {
-      0 * getCredentials(_) >> credentials
-    }
     def validator = validatorClass.newInstance(accountCredentialsProvider: provider)
-    errors = Mock(Errors)
-    OpenstackInstancesRegistrationDescription description = new OpenstackInstancesRegistrationDescription(account: '', instanceIds: ['1','2'], loadBalancerIds: ['lb1','lb2'])
+    OpenstackInstancesRegistrationDescription description = new OpenstackInstancesRegistrationDescription(account: '', instanceIds: ['1','2'], loadBalancerIds: ['lb1','lb2'], credentials: credz, region: 'r1')
 
     when:
     validator.validate([], description, errors)
@@ -85,16 +87,8 @@ class AbstractRegistrationOpenstackInstancesDescriptionValidatorSpec extends Spe
 
   def "Validate empty instance list exception"() {
     given:
-    credz = Mock(OpenstackCredentials)
-    credentials = Mock(OpenstackNamedAccountCredentials) {
-      1 * getCredentials() >> credz
-    }
-    provider = Mock(AccountCredentialsProvider) {
-      1 * getCredentials(_) >> credentials
-    }
     def validator = validatorClass.newInstance(accountCredentialsProvider: provider)
-    errors = Mock(Errors)
-    OpenstackInstancesRegistrationDescription description = new OpenstackInstancesRegistrationDescription(account: 'foo', instanceIds: [], loadBalancerIds: ['lb1','lb2'])
+    OpenstackInstancesRegistrationDescription description = new OpenstackInstancesRegistrationDescription(account: 'foo', instanceIds: [], loadBalancerIds: ['lb1','lb2'], credentials: credz, region: 'r1')
 
     when:
     validator.validate([], description, errors)
@@ -108,16 +102,8 @@ class AbstractRegistrationOpenstackInstancesDescriptionValidatorSpec extends Spe
 
   def "Validate empty load balancer list exception"() {
     given:
-    credz = Mock(OpenstackCredentials)
-    credentials = Mock(OpenstackNamedAccountCredentials) {
-      1 * getCredentials() >> credz
-    }
-    provider = Mock(AccountCredentialsProvider) {
-      1 * getCredentials(_) >> credentials
-    }
     def validator = validatorClass.newInstance(accountCredentialsProvider: provider)
-    errors = Mock(Errors)
-    OpenstackInstancesRegistrationDescription description = new OpenstackInstancesRegistrationDescription(account: 'foo', instanceIds: ['1','2'], loadBalancerIds: [])
+    OpenstackInstancesRegistrationDescription description = new OpenstackInstancesRegistrationDescription(account: 'foo', instanceIds: ['1','2'], loadBalancerIds: [], credentials: credz, region: 'r1')
 
     when:
     validator.validate([], description, errors)
