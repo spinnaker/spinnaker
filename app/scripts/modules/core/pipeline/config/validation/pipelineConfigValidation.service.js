@@ -86,6 +86,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.validator.servic
                   regionFound = true;
                 }
               });
+            } else if (toTest.type === 'cloneServerGroup' && toTest.targetCluster === stage.cluster && toTest.region === region) {
+              regionFound = true;
             }
           });
           if (!regionFound) {
