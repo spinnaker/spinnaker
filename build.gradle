@@ -20,7 +20,7 @@ allprojects {
   group = "com.netflix.spinnaker.rosco"
 
   spinnaker {
-    dependenciesVersion = "0.41.0"
+    dependenciesVersion = "0.42.0"
   }
 
   configurations.all {
