@@ -19,6 +19,7 @@
 package com.netflix.spinnaker.echo.config
 
 import com.netflix.spinnaker.config.OkHttpClientConfiguration
+import com.squareup.okhttp.ConnectionPool
 import com.squareup.okhttp.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -42,9 +43,21 @@ class Front50Config {
   @Autowired
   OkHttpClientConfiguration okHttpClientConfig
 
+  @Value('${okHttpClient.connectionPool.maxIdleConnections:5}')
+  int maxIdleConnections
+
+  @Value('${okHttpClient.connectionPool.keepAliveDurationMs:300000}')
+  int keepAliveDurationMs
+
+  @Value('${okHttpClient.retryOnConnectionFailure:true}')
+  boolean retryOnConnectionFailure
+
   @Bean
   OkHttpClient okHttpClient() {
-    return okHttpClientConfig.create()
+    def cli = okHttpClientConfig.create()
+    cli.connectionPool = new ConnectionPool(maxIdleConnections, keepAliveDurationMs)
+    cli.retryOnConnectionFailure = retryOnConnectionFailure
+    return cli
   }
 
   @Bean
