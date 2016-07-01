@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.config
 import com.netflix.spinnaker.config.OkHttpClientConfiguration
 import com.netflix.spinnaker.igor.docker.model.DockerRegistryAccounts
 import com.netflix.spinnaker.igor.docker.service.ClouddriverService
+import com.squareup.okhttp.ConnectionPool
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -38,6 +39,15 @@ class DockerRegistryConfig {
     @Autowired
     OkHttpClientConfiguration okHttpClientConfig
 
+    @Value('${okHttpClient.connectionPool.maxIdleConnections:5}')
+    int maxIdleConnections
+
+    @Value('${okHttpClient.connectionPool.keepAliveDurationMs:300000}')
+    int keepAliveDurationMs
+
+    @Value('${okHttpClient.retryOnConnectionFailure:true}')
+    boolean retryOnConnectionFailure
+
     @Bean
     DockerRegistryAccounts dockerRegistryAccounts() {
         new DockerRegistryAccounts()
@@ -50,9 +60,13 @@ class DockerRegistryConfig {
             null
         }
 
+        def cli = okHttpClientConfig.create()
+        cli.setConnectionPool(new ConnectionPool(maxIdleConnections, keepAliveDurationMs))
+        cli.setRetryOnConnectionFailure(retryOnConnectionFailure)
+
         new RestAdapter.Builder()
                 .setEndpoint(Endpoints.newFixedEndpoint(address))
-                .setClient(new OkClient(okHttpClientConfig.create()))
+                .setClient(new OkClient(cli))
                 .setLogLevel(RestAdapter.LogLevel.BASIC)
                 .build()
                 .create(ClouddriverService)
