@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.config
 
 import com.netflix.spinnaker.config.OkHttpClientConfiguration
 import com.netflix.spinnaker.igor.history.EchoService
+import com.squareup.okhttp.ConnectionPool
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -36,6 +37,15 @@ class EchoConfig {
     @Autowired
     OkHttpClientConfiguration okHttpClientConfig
 
+    @Value('${okHttpClient.connectionPool.maxIdleConnections:5}')
+    int maxIdleConnections
+
+    @Value('${okHttpClient.connectionPool.keepAliveDurationMs:300000}')
+    int keepAliveDurationMs
+
+    @Value('${okHttpClient.retryOnConnectionFailure:true}')
+    boolean retryOnConnectionFailure
+
     @Bean
     @SuppressWarnings('GStringExpressionWithinString')
     EchoService echoService(@Value('${services.echo.baseUrl}') String address) {
@@ -43,9 +53,13 @@ class EchoConfig {
             return null
         }
 
+        def cli = okHttpClientConfig.create()
+        cli.setConnectionPool(new ConnectionPool(maxIdleConnections, keepAliveDurationMs))
+        cli.setRetryOnConnectionFailure(retryOnConnectionFailure)
+
         new RestAdapter.Builder()
             .setEndpoint(Endpoints.newFixedEndpoint(address))
-            .setClient(new OkClient(okHttpClientConfig.create()))
+            .setClient(new OkClient(cli))
             .setLogLevel(RestAdapter.LogLevel.NONE)
             .build()
             .create(EchoService)
