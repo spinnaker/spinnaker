@@ -240,6 +240,15 @@ class KubernetesApiConverter {
               containerBuilder = containerBuilder.withScheme(get.uriScheme)
             }
 
+            if (get.httpHeaders) {
+              def headers = get.httpHeaders.collect() {
+                def builder = new HTTPHeaderBuilder()
+                return builder.withName(it.name).withValue(it.value).build()
+              }
+
+              containerBuilder.withHttpHeaders(headers)
+            }
+
             containerBuilder = containerBuilder.endHttpGet()
             break
         }
@@ -515,6 +524,9 @@ class KubernetesApiConverter {
     kubernetesHttpGetAction.path = httpGet.path
     kubernetesHttpGetAction.port = httpGet.port?.intVal
     kubernetesHttpGetAction.uriScheme = httpGet.scheme
+    kubernetesHttpGetAction.httpHeaders = httpGet.httpHeaders?.collect() {
+      new KeyValuePair(name: it.name, value: it.value)
+    }
     return kubernetesHttpGetAction
   }
 }
