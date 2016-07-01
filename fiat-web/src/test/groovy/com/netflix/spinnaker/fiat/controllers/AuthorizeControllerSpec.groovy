@@ -40,7 +40,7 @@ class AuthorizeControllerSpec extends Specification {
       def result = controller.getUserPermission("foo")
 
     then:
-      result == foo
+      result == foo.view
   }
 
   def "should get user's accounts from repo"() {
@@ -61,7 +61,7 @@ class AuthorizeControllerSpec extends Specification {
       def result = controller.getUserAccounts("foo")
 
     then:
-      result == [bar] as Set
+      result == [bar.view] as Set
   }
 
   def "should get user's accounts by name from repo"() {
@@ -82,6 +82,6 @@ class AuthorizeControllerSpec extends Specification {
       def result = controller.getUserAccount("foo", "bar")
 
     then:
-      result == bar
+      result == bar.view
   }
 }

@@ -16,15 +16,41 @@
 
 package com.netflix.spinnaker.fiat.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import lombok.Data;
 
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Data
 public class UserPermission {
   private String id;
-  private Set<Account> accounts;
-  private Set<Application> applications;
+  private Set<Account> accounts = new HashSet<>();
+  private Set<Application> applications = new HashSet<>();
+
+  @JsonIgnore
+  public View getView() {
+    return new View();
+  }
+
+  @Data
+  public class View {
+    String name = UserPermission.this.id;
+    Map<String, Object> resources = ImmutableMap.of(
+        "accounts",
+        UserPermission.this.accounts
+            .stream()
+            .map(Account::getView)
+            .collect(Collectors.toSet()),
+        "applications",
+        UserPermission.this.applications
+            .stream()
+            .map(Application::getView)
+            .collect(Collectors.toSet()));
+  }
 }

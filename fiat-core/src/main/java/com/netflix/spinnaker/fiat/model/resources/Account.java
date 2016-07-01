@@ -35,6 +35,7 @@ public class Account {
     return new View();
   }
 
+  @Data
   public class View {
     String name = Account.this.name;
     Set<Authorization> authorizations = ImmutableSet.of(Authorization.READ,

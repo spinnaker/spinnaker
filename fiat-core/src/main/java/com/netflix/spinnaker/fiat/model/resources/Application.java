@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.fiat.model.resources;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import lombok.Data;
 
@@ -25,4 +27,16 @@ import java.util.Set;
 public class Application {
   private final String name;
   private final Set<Authorization> authorizations;
+
+  @JsonIgnore
+  public View getView() {
+    return new View();
+  }
+
+  @Data
+  public class View {
+    String name = Application.this.name;
+    Set<Authorization> authorizations = ImmutableSet.of(Authorization.READ,
+                                                        Authorization.WRITE);
+  }
 }
