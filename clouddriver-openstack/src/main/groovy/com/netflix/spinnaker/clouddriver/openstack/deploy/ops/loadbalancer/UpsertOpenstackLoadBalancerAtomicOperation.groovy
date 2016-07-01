@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.openstack4j.model.compute.FloatingIP
 import org.openstack4j.model.network.NetFloatingIP
+import org.openstack4j.model.network.Network
 import org.openstack4j.model.network.ext.HealthMonitor
 import org.openstack4j.model.network.ext.LbPool
 import org.openstack4j.model.network.ext.Vip
@@ -41,12 +42,11 @@ class UpsertOpenstackLoadBalancerAtomicOperation implements AtomicOperation<Map>
 
   /*
    * Create:
-   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "upsertLoadBalancer": { "region": "region", "account": "test", "name": "test",  "protocol": "HTTP", "method" : "ROUND_ROBIN", "subnetId": "9e0d71a9-0086-494a-91d8-abad0912ba83", "externalPort": 80, "internalPort": 8100, "floatingIpId": "9e0d71a9-0086-494a-91d8-abad0912ba83", "healthMonitor": { "type": "PING", "delay": 10, "timeout": 10, "maxRetries": 10 } } } ]' localhost:7002/openstack/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "upsertLoadBalancer": { "region": "region", "account": "test", "name": "test",  "protocol": "HTTP", "method" : "ROUND_ROBIN", "subnetId": "9e0d71a9-0086-494a-91d8-abad0912ba83", "externalPort": 80, "internalPort": 8100, "networkId": "08c2990a-b630-491c-9d1b-5534e25bc118", "healthMonitor": { "type": "PING", "delay": 10, "timeout": 10, "maxRetries": 10 } } } ]' localhost:7002/openstack/ops
    *
    * Update:
-   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "upsertLoadBalancer": { "region": "region", "id": "7d1b3734-5c29-4305-b124-c973516b83eb",  "account": "test", "method": "ROUND_ROBIN", "name": "test", "internalPort": 8181, "floatingIpId": "7d1b3734-5c29-4305-b124-c973516b83eb", "healthMonitor": { "type": "PING", "delay": 1, "timeout": 1, "maxRetries": 1 } } } ]' localhost:7002/openstack/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "upsertLoadBalancer": { "region": "region", "id": "7d1b3734-5c29-4305-b124-c973516b83eb",  "account": "test", "method": "ROUND_ROBIN", "name": "test", "internalPort": 8181, "networkId": "08c2990a-b630-491c-9d1b-5534e25bc118", "healthMonitor": { "type": "PING", "delay": 1, "timeout": 1, "maxRetries": 1 } } } ]' localhost:7002/openstack/ops
    */
-
   @Override
   Map operate(List priorOutputs) {
     task.updateStatus UPSERT_LOADBALANCER_PHASE, "Initializing upsert of load balancer ${description.id ?: description.name} in ${description.region}..."
@@ -106,9 +106,17 @@ class UpsertOpenstackLoadBalancerAtomicOperation implements AtomicOperation<Map>
       task.updateStatus UPSERT_LOADBALANCER_PHASE, "Created health checks for lbPool ${resultPool.name} in ${region}."
     }
 
-    if (description.floatingIpId) {
-      task.updateStatus UPSERT_LOADBALANCER_PHASE, "Associating floating IP ${description.floatingIpId} with ${vip.id}..."
-      NetFloatingIP floatingIP = openstackClientProvider.associateFloatingIpToVip(region, description.floatingIpId, vip.id)
+    if (description.networkId) {
+      task.updateStatus UPSERT_LOADBALANCER_PHASE, "Obtaining network name from network id $description.networkId..."
+      Network network = openstackClientProvider.getNetwork(region, description.networkId)
+      task.updateStatus UPSERT_LOADBALANCER_PHASE, "Successfully obtained network name from network id $description.networkId."
+
+      task.updateStatus UPSERT_LOADBALANCER_PHASE, "Obtaining floating IP from network $network.name..."
+      FloatingIP ip = openstackClientProvider.getOrCreateFloatingIp(region, network.name)
+      task.updateStatus UPSERT_LOADBALANCER_PHASE, "Successfully obtained floating IP from network $network.name."
+
+      task.updateStatus UPSERT_LOADBALANCER_PHASE, "Associating floating IP ${ip.id} with ${vip.id}..."
+      NetFloatingIP floatingIP = openstackClientProvider.associateFloatingIpToVip(region, ip.id, vip.id)
       task.updateStatus UPSERT_LOADBALANCER_PHASE, "Associated floating IP ${floatingIP.floatingIpAddress} with ${vip.id}."
     }
     resultPool
@@ -167,17 +175,25 @@ class UpsertOpenstackLoadBalancerAtomicOperation implements AtomicOperation<Map>
     }
 
     FloatingIP floatingIP = openstackClientProvider.getAssociatedFloatingIp(region, existingVip.id)
-    if (description.floatingIpId) {
+    if (description.networkId) {
+      task.updateStatus UPSERT_LOADBALANCER_PHASE, "Obtaining network name from network id $description.networkId..."
+      Network network = openstackClientProvider.getNetwork(region, description.networkId)
+      task.updateStatus UPSERT_LOADBALANCER_PHASE, "Successfully obtained network name from network id $description.networkId..."
+
+      task.updateStatus UPSERT_LOADBALANCER_PHASE, "Obtaining floating IP from network $network.name..."
+      FloatingIP ip = openstackClientProvider.getOrCreateFloatingIp(region, network.name)
+      task.updateStatus UPSERT_LOADBALANCER_PHASE, "Successfully obtained floating IP from network $network.name..."
+
       if (!floatingIP) {
-        task.updateStatus UPSERT_LOADBALANCER_PHASE, "Associating floating IP ${description.floatingIpId} with ${existingVip.id}..."
-        openstackClientProvider.associateFloatingIpToVip(region, description.floatingIpId, existingVip.id)
-        task.updateStatus UPSERT_LOADBALANCER_PHASE, "Associated floating IP ${description.floatingIpId} with ${existingVip.id}."
+        task.updateStatus UPSERT_LOADBALANCER_PHASE, "Associating floating IP ${ip.id} with ${existingVip.id}..."
+        openstackClientProvider.associateFloatingIpToVip(region, ip.id, existingVip.id)
+        task.updateStatus UPSERT_LOADBALANCER_PHASE, "Associated floating IP ${ip.id} with ${existingVip.id}."
       } else {
-        if (!description.floatingIpId.equals(floatingIP.id)) {
-          task.updateStatus UPSERT_LOADBALANCER_PHASE, "Disassociating ip ${floatingIP.id} and associating ip ${description.floatingIpId} with vip ${existingVip.name}..."
+        if (ip.id != floatingIP.id) {
+          task.updateStatus UPSERT_LOADBALANCER_PHASE, "Disassociating ip ${floatingIP.id} and associating ip ${ip.id} with vip ${existingVip.name}..."
           openstackClientProvider.disassociateFloatingIp(region, floatingIP.id)
-          openstackClientProvider.associateFloatingIpToVip(region, description.floatingIpId, existingVip.id)
-          task.updateStatus UPSERT_LOADBALANCER_PHASE, "Disassociated ip ${floatingIP.id} and associated ip ${description.floatingIpId} with vip ${existingVip.name}."
+          openstackClientProvider.associateFloatingIpToVip(region, ip.id, existingVip.id)
+          task.updateStatus UPSERT_LOADBALANCER_PHASE, "Disassociated ip ${floatingIP.id} and associated ip ${ip.id} with vip ${existingVip.name}."
         }
       }
     } else {

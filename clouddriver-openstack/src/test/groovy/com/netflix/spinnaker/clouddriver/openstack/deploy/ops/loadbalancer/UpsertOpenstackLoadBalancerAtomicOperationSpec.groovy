@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccoun
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.openstack4j.model.compute.FloatingIP
 import org.openstack4j.model.network.NetFloatingIP
+import org.openstack4j.model.network.Network
 import org.openstack4j.model.network.ext.HealthMonitor
 import org.openstack4j.model.network.ext.HealthMonitorType
 import org.openstack4j.model.network.ext.LbPool
@@ -128,7 +129,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     openstackOperationException.message.contains(AtomicOperations.UPSERT_LOAD_BALANCER)
   }
 
-  def "should create load balancer pool - no floating ip and health monitor"() {
+  def "should create load balancer pool - no network id and health monitor"() {
     given:
     description.region = 'west'
     description.subnetId = 'subnetId'
@@ -147,7 +148,9 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     1 * provider.createLoadBalancerPool(description.region, loadBalancerPool) >> newLoadBalancerPool
     1 * provider.createVip(description.region, virtualIP) >> newVip
     0 * provider.createHealthCheckForPool(description.region, newLoadBalancerPool.id, description.healthMonitor)
-    0 * provider.associateFloatingIpToVip(description.region, description.floatingIpId, newVip.id) >> newFloatingIp
+    0 * provider.getNetwork(description.region, description.networkId)
+    0 * provider.getOrCreateFloatingIp(description.region, _)
+    0 * provider.associateFloatingIpToVip(description.region, _ , newVip.id) >> newFloatingIp
     result == newLoadBalancerPool
     noExceptionThrown()
   }
@@ -156,10 +159,18 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     given:
     description.region = 'west'
     description.subnetId = UUID.randomUUID().toString()
-    description.floatingIpId = UUID.randomUUID().toString()
+    description.networkId = UUID.randomUUID().toString()
+    String ipId = UUID.randomUUID().toString()
+    String networkName = 'n1'
     @Subject def operation = new UpsertOpenstackLoadBalancerAtomicOperation(description)
     LoadBalancerPool loadBalancerPool = Mock()
     VirtualIP virtualIP = Mock()
+    Network network = Mock(Network) {
+      getName() >> networkName
+    }
+    FloatingIP floatingIP = Mock(FloatingIP) {
+      getId() >> ipId
+    }
     def newLoadBalancerPool = Stub(LbPool) { getId() >> UUID.randomUUID().toString() }
     def newVip = Stub(Vip) { getId() >> UUID.randomUUID().toString() }
 
@@ -171,7 +182,9 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     1 * provider.createLoadBalancerPool(description.region, loadBalancerPool) >> newLoadBalancerPool
     1 * provider.createVip(description.region, virtualIP) >> newVip
     0 * provider.createHealthCheckForPool(description.region, newLoadBalancerPool.id, description.healthMonitor)
-    1 * provider.associateFloatingIpToVip(description.region, description.floatingIpId, newVip.id) >> Mock(NetFloatingIP)
+    1 * provider.getNetwork(description.region, description.networkId) >> network
+    1 * provider.getOrCreateFloatingIp(description.region, network.name) >> floatingIP
+    1 * provider.associateFloatingIpToVip(description.region, floatingIP.id, newVip.id) >> Mock(NetFloatingIP)
     result == newLoadBalancerPool
     noExceptionThrown()
   }
@@ -180,11 +193,19 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     given:
     description.region = 'west'
     description.subnetId = 'subnetId'
-    description.floatingIpId = UUID.randomUUID().toString()
     description.healthMonitor = Mock(PoolHealthMonitor)
+    description.networkId = UUID.randomUUID().toString()
+    String ipId = UUID.randomUUID().toString()
+    String networkName = 'n1'
     @Subject def operation = new UpsertOpenstackLoadBalancerAtomicOperation(description)
     LoadBalancerPool loadBalancerPool = Mock()
     VirtualIP virtualIP = Mock()
+    Network network = Mock(Network) {
+      getName() >> networkName
+    }
+    FloatingIP floatingIP = Mock(FloatingIP) {
+      getId() >> ipId
+    }
     def newLoadBalancerPool = Stub(LbPool) { getId() >> UUID.randomUUID().toString() }
     def newVip = Stub(Vip) { getId() >> UUID.randomUUID().toString() }
 
@@ -196,7 +217,9 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     1 * provider.createLoadBalancerPool(description.region, loadBalancerPool) >> newLoadBalancerPool
     1 * provider.createVip(description.region, virtualIP) >> newVip
     1 * provider.createHealthCheckForPool(description.region, newLoadBalancerPool.id, description.healthMonitor)
-    1 * provider.associateFloatingIpToVip(description.region, description.floatingIpId, newVip.id) >> Mock(NetFloatingIP)
+    1 * provider.getNetwork(description.region, description.networkId) >> network
+    1 * provider.getOrCreateFloatingIp(description.region, network.name) >> floatingIP
+    1 * provider.associateFloatingIpToVip(description.region, floatingIP.id, newVip.id) >> Mock(NetFloatingIP)
     result == newLoadBalancerPool
     noExceptionThrown()
   }
@@ -205,11 +228,19 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     given:
     description.region = 'west'
     description.subnetId = 'subnetId'
-    description.floatingIpId = UUID.randomUUID().toString()
+    description.networkId = UUID.randomUUID().toString()
+    String ipId = UUID.randomUUID().toString()
+    String networkName = 'n1'
     description.healthMonitor = Mock(PoolHealthMonitor)
     LoadBalancerPool loadBalancerPool = Mock()
     VirtualIP virtualIP = Mock()
     @Subject def operation = new UpsertOpenstackLoadBalancerAtomicOperation(description)
+    Network network = Mock(Network) {
+      getName() >> networkName
+    }
+    FloatingIP floatingIP = Mock(FloatingIP) {
+      getId() >> ipId
+    }
     def newLoadBalancerPool = Stub(LbPool) { getId() >> UUID.randomUUID().toString() }
     def newVip = Stub(Vip) { getId() >> UUID.randomUUID().toString() }
     Throwable throwable = new OpenstackProviderException('foo')
@@ -222,7 +253,9 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     1 * provider.createLoadBalancerPool(description.region, loadBalancerPool) >> newLoadBalancerPool
     1 * provider.createVip(description.region, virtualIP) >> newVip
     1 * provider.createHealthCheckForPool(description.region, newLoadBalancerPool.id, description.healthMonitor)
-    1 * provider.associateFloatingIpToVip(description.region, description.floatingIpId, newVip.id) >> {
+    1 * provider.getNetwork(description.region, description.networkId) >> network
+    1 * provider.getOrCreateFloatingIp(description.region, network.name) >> floatingIP
+    1 * provider.associateFloatingIpToVip(description.region, floatingIP.id, newVip.id) >> {
       throw throwable
     }
 
@@ -409,7 +442,15 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     and:
     LoadBalancerPool loadBalancerPool = new LoadBalancerPool(id: UUID.randomUUID().toString(), name: 'test')
     description.region = 'west'
-    description.floatingIpId = 'floatingIpId'
+    description.networkId = UUID.randomUUID().toString()
+    String ipId = UUID.randomUUID().toString()
+    String networkName = 'n1'
+    Network network = Mock(Network) {
+      getName() >> networkName
+    }
+    FloatingIP floatingIP = Mock(FloatingIP) {
+      getId() >> ipId
+    }
 
     when:
     LbPool result = operation.updateLoadBalancer(description.region, loadBalancerPool, virtualIP, description.healthMonitor)
@@ -421,8 +462,10 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     1 * vip.name >> 'newVip'
     1 * provider.updateVip(description.region, virtualIP)
     1 * lbPool.healthMonitors >> []
+    1 * provider.getNetwork(description.region, description.networkId) >> network
+    1 * provider.getOrCreateFloatingIp(description.region, network.name) >> floatingIP
     1 * provider.getAssociatedFloatingIp(description.region, vip.id) >> null
-    1 * provider.associateFloatingIpToVip(description.region, description.floatingIpId, vip.id)
+    1 * provider.associateFloatingIpToVip(description.region, floatingIP.id, vip.id)
     result == lbPool
     noExceptionThrown()
   }
@@ -432,13 +475,24 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     @Subject def operation = new UpsertOpenstackLoadBalancerAtomicOperation(description)
     LbPool lbPool = Mock()
     Vip vip = Mock()
-    FloatingIP floatingIP = Mock()
     VirtualIP virtualIP = Mock()
+    String oldIpId = UUID.randomUUID().toString()
+    FloatingIP oldFloatingIP = Mock(FloatingIP) {
+      getId() >> oldIpId
+    }
 
     and:
     LoadBalancerPool loadBalancerPool = new LoadBalancerPool(id: UUID.randomUUID().toString(), name: 'test')
     description.region = 'west'
-    description.floatingIpId = 'floatingIpId'
+    description.networkId = UUID.randomUUID().toString()
+    String ipId = UUID.randomUUID().toString()
+    String networkName = 'n1'
+    Network network = Mock(Network) {
+      getName() >> networkName
+    }
+    FloatingIP floatingIP = Mock(FloatingIP) {
+      getId() >> ipId
+    }
 
     when:
     LbPool result = operation.updateLoadBalancer(description.region, loadBalancerPool, virtualIP, description.healthMonitor)
@@ -450,10 +504,12 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     3 * vip.name >> 'newVip'
     1 * provider.updateVip(description.region, virtualIP)
     1 * lbPool.healthMonitors >> []
-    1 * provider.getAssociatedFloatingIp(description.region, vip.id) >> floatingIP
+    1 * provider.getNetwork(description.region, description.networkId) >> network
+    1 * provider.getOrCreateFloatingIp(description.region, network.name) >> floatingIP
+    1 * provider.getAssociatedFloatingIp(description.region, vip.id) >> oldFloatingIP
     5 * floatingIP.id >> UUID.randomUUID().toString()
-    1 * provider.disassociateFloatingIp(description.region, floatingIP.id)
-    1 * provider.associateFloatingIpToVip(description.region, description.floatingIpId, vip.id)
+    1 * provider.disassociateFloatingIp(description.region, oldFloatingIP.id)
+    1 * provider.associateFloatingIpToVip(description.region, floatingIP.id, vip.id)
     result == lbPool
     noExceptionThrown()
   }

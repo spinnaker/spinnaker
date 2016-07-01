@@ -50,8 +50,8 @@ class UpsertOpenstackLoadBalancerAtomicOperationValidator extends AbstractOpenst
 
     validateHealthMonitor(validator, description.healthMonitor)
 
-    if (description.floatingIpId) {
-      validator.validateUUID(description.floatingIpId, 'floatingIpId')
+    if (description.networkId) {
+      validator.validateUUID(description.networkId, 'networkId')
     }
   }
 

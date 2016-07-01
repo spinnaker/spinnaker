@@ -28,7 +28,7 @@ class OpenstackLoadBalancerDescription extends OpenstackAtomicOperationDescripti
   String region
   String id
   String name
-  String floatingIpId
+  String networkId
   LoadBalancerProtocol protocol
   LoadBalancerMethod method
   String subnetId
