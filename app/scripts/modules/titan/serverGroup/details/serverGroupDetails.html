@@ -31,12 +31,9 @@
             Titan Job Actions <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-            <!-- TODO: Uncomment below line when titus job can be resized manually through API-->
-            <!--<li><a href ng-click="ctrl.resizeServerGroup()">Resize</a></li>-->
-            <!-- TODO: Uncomment below two lines when we have discovery integrated for titus containers-->
-            <!--<li><a href ng-if="!serverGroup.isDisabled" ng-click="ctrl.disableServerGroup()">Disable</a></li>-->
-            <!--<li><a href ng-if="serverGroup.isDisabled" ng-click="ctrl.enableServerGroup()">Enable</a></li>-->
             <li><a href ng-click="ctrl.resizeServerGroup()">Resize</a></li>
+            <li><a href ng-if="!serverGroup.isDisabled" ng-click="ctrl.disableServerGroup()">Disable</a></li>
+            <li><a href ng-if="serverGroup.isDisabled" ng-click="ctrl.enableServerGroup()">Enable</a></li>
             <li><a href ng-click="ctrl.destroyServerGroup()">Destroy</a></li>
             <li><a href ng-click="ctrl.cloneServerGroup()">Clone</a></li>
           </ul>

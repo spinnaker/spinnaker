@@ -18,7 +18,7 @@ module.exports = angular.module('spinnaker.core.deploymentStrategy.custom', [
         label: 'Custom',
         description: 'Runs a custom deployment strategy',
         key: 'custom',
-        providers: ['aws', 'gce'],
+        providers: ['aws', 'gce', 'titan'],
         additionalFields: [],
         additionalFieldsTemplateUrl: require('./additionalFields.html'),
         initializationMethod: angular.noop,
