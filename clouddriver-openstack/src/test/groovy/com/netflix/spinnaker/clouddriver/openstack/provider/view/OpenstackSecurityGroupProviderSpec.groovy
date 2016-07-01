@@ -18,8 +18,15 @@
 package com.netflix.spinnaker.clouddriver.openstack.provider.view
 
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
+import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
+import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFactory
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackSecurityGroup
+import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
+import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import org.openstack4j.model.compute.IPProtocol
+import org.openstack4j.model.compute.SecGroupExtension
+import org.openstack4j.openstack.compute.domain.NovaSecGroupExtension
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -32,7 +39,6 @@ class OpenstackSecurityGroupProviderSpec extends Specification {
   OpenstackSecurityGroupProvider provider
 
   AccountCredentialsProvider accountCredentialsProvider
-
 
   @Shared
   Set<OpenstackSecurityGroup> account1East = [1, 2].collect { createSecurityGroup('account1', 'east') }
@@ -147,6 +153,50 @@ class OpenstackSecurityGroupProviderSpec extends Specification {
     'account1' | 'west' | 'name-west' | account1West      | account1West[0]
     'account2' | 'west' | 'name-west' | allSecurityGroups | account2West[0]
   }
+
+  def "get all with rules"() {
+    given:
+    String region = 'region'
+    SecGroupExtension secGroupExtension = new NovaSecGroupExtension(id: UUID.randomUUID().toString(),
+      name: 'sec-group',
+      description: "description",
+      rules: [
+        createRule(1000, 1003, '10.10.0.0/32', IPProtocol.TCP),
+        createRule(2000, 2003, '0.0.0.0/24', IPProtocol.TCP),
+        createRule(80, 80, '192.168.1.1', IPProtocol.TCP)
+      ]
+    )
+    OpenstackClientProvider clientProvider = Mock()
+    GroovyMock(OpenstackProviderFactory, global: true)
+    OpenstackNamedAccountCredentials namedAccountCredentials = Mock()
+    OpenstackProviderFactory.createProvider(namedAccountCredentials) >> { clientProvider }
+    OpenstackCredentials credentials = new OpenstackCredentials(namedAccountCredentials)
+
+    when:
+    Set<OpenstackSecurityGroup> securityGroups = provider.getAll(true)
+
+    then:
+    1 * accountCredentialsProvider.getAll() >> [namedAccountCredentials]
+    1 * namedAccountCredentials.getCredentials() >> credentials
+    1 * clientProvider.getProperty('allRegions') >> [region]
+    1 * clientProvider.getSecurityGroups(region) >> [secGroupExtension]
+
+    and:
+    securityGroups.size() == 1
+    securityGroups.first().with {
+      name == 'sec-group'
+      description == 'description'
+      region == region
+      inboundRules.size() == 3
+    }
+  }
+
+  def createRule(int fromPort, int toPort, String cidr, IPProtocol protocol) {
+    def ipRange = new NovaSecGroupExtension.SecurityGroupRule.RuleIpRange(cidr: cidr)
+    new NovaSecGroupExtension.SecurityGroupRule(fromPort: fromPort, toPort: toPort, ipProtocol: protocol, ipRange: ipRange)
+  }
+
+
 
   def createSecurityGroup(String account, String region) {
     new OpenstackSecurityGroup(id: UUID.randomUUID().toString(),

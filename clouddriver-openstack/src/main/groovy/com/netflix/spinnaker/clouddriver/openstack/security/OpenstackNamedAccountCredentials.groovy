@@ -78,7 +78,7 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
   }
 
   private OpenstackCredentials buildCredentials() {
-    return new OpenstackCredentials(this)
+    new OpenstackCredentials(this)
   }
 
   @Override

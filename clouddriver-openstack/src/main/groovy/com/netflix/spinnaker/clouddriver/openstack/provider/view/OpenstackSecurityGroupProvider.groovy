@@ -17,9 +17,12 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.provider.view
 
+import com.netflix.spinnaker.clouddriver.model.AddressableRange
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupProvider
+import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
+import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackSecurityGroup
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -50,7 +53,7 @@ class OpenstackSecurityGroupProvider implements SecurityGroupProvider<OpenstackS
     Set<OpenstackSecurityGroup> securityGroups = []
     accountCredentialsProvider.all.each { account ->
       if (account instanceof OpenstackNamedAccountCredentials) {
-        def provider = ((OpenstackNamedAccountCredentials) account).credentials.provider
+        OpenstackClientProvider provider = ((OpenstackNamedAccountCredentials) account).credentials.provider
 
         provider.allRegions.each { region ->
           securityGroups.addAll(
@@ -113,7 +116,26 @@ class OpenstackSecurityGroupProvider implements SecurityGroupProvider<OpenstackS
   }
 
   private List<Rule> buildInboundRules(SecGroupExtension securityGroup) {
-    // TODO build the rules
-    []
+    securityGroup.rules.collect { sgr ->
+      def portRange = new Rule.PortRange(startPort: sgr.fromPort, endPort: sgr.toPort)
+      def addressableRange = buildAddressableRangeFromCidr(sgr.range.cidr)
+      new IpRangeRule(protocol: sgr.IPProtocol.value(),
+                      portRanges: [portRange] as SortedSet,
+                      range: addressableRange
+      )
+    }
+  }
+
+  private AddressableRange buildAddressableRangeFromCidr(String cidr) {
+    def rangeParts = cidr.split('/') as List
+
+    // If the cidr just a single IP address, use 32 as the mask
+    if (rangeParts.size() == 1) {
+      rangeParts << "32"
+    }
+
+    new AddressableRange(ip: rangeParts[0], cidr: "/${rangeParts[1]}")
+
+
   }
 }
