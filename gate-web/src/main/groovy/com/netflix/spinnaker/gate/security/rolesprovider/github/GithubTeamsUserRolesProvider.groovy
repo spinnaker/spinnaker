@@ -60,7 +60,7 @@ class GithubTeamsUserRolesProvider implements UserRolesProvider, InitializingBea
         log.error("Could not find the server ${master.baseUrl}", e)
         return []
       } else if (e.response.status == 404) {
-        log.error("Could not find the GitHub organization ${gitHubProperties.organization}", e)
+        log.error("User ${userName} is not a member of GitHub organization ${gitHubProperties.organization}")
         return []
       } else if (e.response.status == 401) {
         log.error("Cannot get GitHub organization ${gitHubProperties.organization} informations: Not authorized.", e)
