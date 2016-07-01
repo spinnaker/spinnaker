@@ -39,8 +39,7 @@ module.exports = angular.module('spinnaker.core.deploymentStrategy.deploymentStr
         newStrategy.initializationMethod($scope.command);
       }
     }
-
-    $scope.deploymentStrategies = deploymentStrategyService.listAvailableStrategies($scope.command.selectedProvider);
+    $scope.deploymentStrategies = deploymentStrategyService.listAvailableStrategies($scope.command.selectedProvider || $scope.command.cloudProvider);
 
     $scope.$watch('command.strategy', selectStrategy);
 
