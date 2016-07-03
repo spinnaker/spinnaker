@@ -100,6 +100,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
           findStartupScript();
           prepareDiskDescriptions();
           prepareAvailabilityPolicies();
+          prepareAutoHealingPolicy();
           prepareAuthScopes();
           augmentTagsWithHelp();
         } else {
@@ -159,6 +160,16 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
           automaticRestart: scheduling.automaticRestart ? 'On' : 'Off',
           onHostMaintenance: scheduling.onHostMaintenance === 'MIGRATE' ? 'Migrate' : 'Terminate',
         };
+      }
+    };
+
+    let prepareAutoHealingPolicy = () => {
+      if (this.serverGroup.autoHealingPolicy) {
+        let autoHealingPolicy = this.serverGroup.autoHealingPolicy;
+        let healthCheckUrl = autoHealingPolicy.healthCheck;
+
+        this.serverGroup.autoHealingPolicyHealthCheck = healthCheckUrl ? _.last(healthCheckUrl.split('/')) : null;
+        this.serverGroup.initialDelaySec = autoHealingPolicy.initialDelaySec;
       }
     };
 

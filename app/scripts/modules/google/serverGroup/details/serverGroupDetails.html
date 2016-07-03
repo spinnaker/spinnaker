@@ -188,6 +188,19 @@
       <p>Autoscaling can be configured via the Developers Console.</p>
       <gce-scaling-policy ng-repeat="policy in [ctrl.serverGroup.autoscalingPolicy]" policy="policy"></gce-scaling-policy>
     </collapsible-section>
+    <collapsible-section heading="AutoHealing" ng-if="ctrl.serverGroup.autoHealingPolicyHealthCheck">
+      <p>AutoHealing can be configured via the Developers Console.</p>
+      <dt>
+        Health Check
+        <help-field key="gce.serverGroup.autoHealing"></help-field>
+      </dt>
+      <dd>{{ctrl.serverGroup.autoHealingPolicyHealthCheck}}</dd>
+      <dt>
+        Initial Delay
+        <help-field key="gce.serverGroup.initialDelaySec"></help-field>
+      </dt>
+      <dd>{{ctrl.serverGroup.initialDelaySec}} seconds</dd>
+    </collapsible-section>
     <collapsible-section heading="Custom Metadata">
       <div ng-if="!ctrl.serverGroup.launchConfig.instanceTemplate.properties.metadata.items.length">No custom metadata associated with this server group</div>
       <dl ng-if="ctrl.serverGroup.launchConfig.instanceTemplate.properties.metadata.items.length">

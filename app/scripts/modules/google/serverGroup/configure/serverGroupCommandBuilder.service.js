@@ -126,6 +126,21 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       }
     }
 
+    function populateAutoHealingPolicy(serverGroup, command) {
+      if (serverGroup.autoHealingPolicy) {
+        let autoHealingPolicy = serverGroup.autoHealingPolicy;
+        let healthCheckUrl = autoHealingPolicy.healthCheck;
+        let autoHealingPolicyHealthCheck = healthCheckUrl ? _.last(healthCheckUrl.split('/')) : null;
+
+        if (autoHealingPolicyHealthCheck) {
+          command.autoHealingPolicy = {
+            healthCheck: autoHealingPolicyHealthCheck,
+            initialDelaySec: autoHealingPolicy.initialDelaySec,
+          };
+        }
+      }
+    }
+
     function populateCustomMetadata(metadataItems, command) {
       if (metadataItems) {
         if (angular.isArray(metadataItems)) {
@@ -303,6 +318,8 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       if (application && application.attributes && application.attributes.platformHealthOnly) {
         command.interestingHealthProviderNames = ['Google'];
       }
+
+      populateAutoHealingPolicy(serverGroup, command);
 
       if (serverGroup.launchConfig) {
         let instanceType = serverGroup.launchConfig.instanceType;
