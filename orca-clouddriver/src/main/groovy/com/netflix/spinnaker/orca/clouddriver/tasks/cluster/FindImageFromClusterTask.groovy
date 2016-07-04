@@ -169,8 +169,8 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
       }
 
       def deploymentDetailTemplate = imageSummaries.find { k, v -> v != null }.value[0]
-      if (!(deploymentDetailTemplate.image && deploymentDetailTemplate.buildInfo)) {
-        throw new IllegalStateException("Missing image or buildInfo on ${deploymentDetailTemplate}")
+      if (!deploymentDetailTemplate.image) {
+        throw new IllegalStateException("Missing image on ${deploymentDetailTemplate}")
       }
 
       def mkDeploymentDetail = { String imageName, String imageId ->
@@ -179,7 +179,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
           imageName      : imageName,
           serverGroupName: config.cluster,
           image          : deploymentDetailTemplate.image + [imageId: imageId, name: imageName],
-          buildInfo      : deploymentDetailTemplate.buildInfo
+          buildInfo      : deploymentDetailTemplate.buildInfo ?: [:]
         ]
       }
 
