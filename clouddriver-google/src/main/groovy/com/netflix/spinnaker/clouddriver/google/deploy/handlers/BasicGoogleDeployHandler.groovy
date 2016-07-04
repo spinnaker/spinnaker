@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.handlers
 
 import com.google.api.services.compute.model.Autoscaler
 import com.google.api.services.compute.model.InstanceGroupManager
+import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy
 import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -184,6 +185,17 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       GCEUtil.calibrateTargetSizeWithAutoscaler(description)
     }
 
+    def autoHealingPolicy =
+      description.autoHealingPolicy?.healthCheck
+      ? [new InstanceGroupManagerAutoHealingPolicy(
+             healthCheck: GCEUtil.queryHealthCheck(project,
+                                                   description.autoHealingPolicy.healthCheck,
+                                                   compute,
+                                                   task,
+                                                   BASE_PHASE).selfLink,
+             initialDelaySec: description.autoHealingPolicy.initialDelaySec)]
+      : null
+
     if (isRegional) {
       def migCreateOperation = compute.regionInstanceGroupManagers().insert(project,
                                                                             region,
@@ -192,7 +204,8 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                                                 .setBaseInstanceName(serverGroupName)
                                                                                 .setInstanceTemplate(instanceTemplateUrl)
                                                                                 .setTargetSize(description.targetSize)
-                                                                                .setTargetPools(networkLoadBalancers)).execute()
+                                                                                .setTargetPools(networkLoadBalancers)
+                                                                                .setAutoHealingPolicies(autoHealingPolicy)).execute()
 
       if (autoscalerIsSpecified(description)) {
         // Before creating the Autoscaler we must wait until the managed instance group is created.
@@ -213,7 +226,8 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                                           .setBaseInstanceName(serverGroupName)
                                                                           .setInstanceTemplate(instanceTemplateUrl)
                                                                           .setTargetSize(description.targetSize)
-                                                                          .setTargetPools(networkLoadBalancers)).execute()
+                                                                          .setTargetPools(networkLoadBalancers)
+                                                                          .setAutoHealingPolicies(autoHealingPolicy)).execute()
 
       if (autoscalerIsSpecified(description)) {
         // Before creating the Autoscaler we must wait until the managed instance group is created.

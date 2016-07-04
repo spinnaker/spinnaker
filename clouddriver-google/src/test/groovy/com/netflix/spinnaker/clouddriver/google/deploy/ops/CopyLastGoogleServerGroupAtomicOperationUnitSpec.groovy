@@ -133,7 +133,9 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                         launchConfig: [instanceTemplate: instanceTemplate],
                                         autoscalingPolicy: [coolDownPeriodSec: 45,
                                                             minNumReplicas: 2,
-                                                            maxNumReplicas: 5]).view
+                                                            maxNumReplicas: 5],
+                                        autoHealingPolicy: [healthCheck: 'some-health-check',
+                                                            initialDelaySec: 600]).view
   }
 
   @Unroll
@@ -159,11 +161,16 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          loadBalancers: ["testlb-west-1", "testlb-west-2"],
                                                          securityGroups: ["sg-3", "sg-4"] as Set,
                                                          autoscalingPolicy:
-                                                            new BasicGoogleDeployDescription.AutoscalingPolicy(
-                                                                coolDownPeriodSec: 90,
-                                                                minNumReplicas: 5,
-                                                                maxNumReplicas: 9
-                                                            ),
+                                                             new BasicGoogleDeployDescription.AutoscalingPolicy(
+                                                                 coolDownPeriodSec: 90,
+                                                                 minNumReplicas: 5,
+                                                                 maxNumReplicas: 9
+                                                             ),
+                                                         autoHealingPolicy:
+                                                             new BasicGoogleDeployDescription.AutoHealingPolicy(
+                                                                 healthCheck: 'different-health-check',
+                                                                 initialDelaySec: 900
+                                                             ),
                                                          source: [region: REGION,
                                                                   serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
                                                          accountName: ACCOUNT_NAME,
@@ -224,6 +231,9 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.autoscalingPolicy = new BasicGoogleDeployDescription.AutoscalingPolicy(coolDownPeriodSec: 45,
                                                                                             minNumReplicas: 2,
                                                                                             maxNumReplicas: 5)
+      newDescription.autoHealingPolicy = new BasicGoogleDeployDescription.AutoHealingPolicy(healthCheck: 'some-health-check',
+                                                                                            initialDelaySec: 600)
+
       def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
       @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)
       operation.googleClusterProvider = googleClusterProviderMock

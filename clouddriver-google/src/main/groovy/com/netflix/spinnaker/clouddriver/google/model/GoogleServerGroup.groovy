@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.google.api.services.compute.model.AutoscalingPolicy
 import com.google.api.services.compute.model.InstanceGroupManagerActionsSummary
+import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
@@ -49,6 +50,9 @@ class GoogleServerGroup {
 
   @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="class")
   AutoscalingPolicy autoscalingPolicy
+
+  @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="class")
+  InstanceGroupManagerAutoHealingPolicy autoHealingPolicy
 
   // Non-serialized values built up by providers
   @JsonIgnore
@@ -80,6 +84,7 @@ class GoogleServerGroup {
     String selfLink = GoogleServerGroup.this.selfLink
     InstanceGroupManagerActionsSummary currentActions = GoogleServerGroup.this.currentActions
     AutoscalingPolicy autoscalingPolicy = GoogleServerGroup.this.autoscalingPolicy
+    InstanceGroupManagerAutoHealingPolicy autoHealingPolicy = GoogleServerGroup.this.autoHealingPolicy
 
     @Override
     Boolean isDisabled() { // Because groovy isn't smart enough to generate this method :-(

@@ -417,7 +417,8 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
           launchConfig: [createdTime: Utils.getTimeFromTimestamp(instanceGroupManager.creationTimestamp)],
           asg: [minSize        : instanceGroupManager.targetSize,
                 maxSize        : instanceGroupManager.targetSize,
-                desiredCapacity: instanceGroupManager.targetSize]
+                desiredCapacity: instanceGroupManager.targetSize],
+          autoHealingPolicy: instanceGroupManager.autoHealingPolicies?.getAt(0)
       )
     }
 

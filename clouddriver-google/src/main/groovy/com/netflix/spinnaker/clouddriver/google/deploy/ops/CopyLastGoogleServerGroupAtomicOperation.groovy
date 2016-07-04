@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.model.AttachedDisk
 import com.google.api.services.compute.model.AutoscalingPolicy
+import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy
 import com.google.api.services.compute.model.InstanceProperties
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -232,6 +233,12 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
       GCEUtil.buildAutoscalingPolicyDescriptionFromAutoscalingPolicy(ancestorAutoscalingPolicy)
 
     newDescription.autoscalingPolicy = description.autoscalingPolicy ?: ancestorAutoscalingPolicyDescription
+
+    InstanceGroupManagerAutoHealingPolicy ancestorAutoHealingPolicy = ancestorServerGroup.autoHealingPolicy
+    BasicGoogleDeployDescription.AutoHealingPolicy ancestorAutoHealingPolicyDescription =
+      GCEUtil.buildAutoHealingPolicyDescriptionFromAutoHealingPolicy(ancestorAutoHealingPolicy)
+
+    newDescription.autoHealingPolicy = description.autoHealingPolicy ?: ancestorAutoHealingPolicyDescription
 
     return newDescription
   }

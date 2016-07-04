@@ -35,6 +35,7 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
   List<String> loadBalancers
   Set<String> securityGroups
   AutoscalingPolicy autoscalingPolicy
+  AutoHealingPolicy autoHealingPolicy
   Source source = new Source()
 
   @Canonical
@@ -70,6 +71,13 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
         DELTA_PER_MINUTE;
       }
     }
+  }
+
+  @Canonical
+  @ToString(includeNames = true)
+  static class AutoHealingPolicy {
+    String healthCheck
+    int initialDelaySec = 300
   }
 
   @Canonical

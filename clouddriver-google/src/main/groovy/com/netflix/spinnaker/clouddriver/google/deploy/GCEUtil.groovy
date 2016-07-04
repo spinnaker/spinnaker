@@ -38,6 +38,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDiskType
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
@@ -179,12 +180,37 @@ class GCEUtil {
     }
   }
 
+  // TODO(duftler): Update this to query for the exact health check instead of searching all.
   static HttpHealthCheck queryHttpHealthCheck(
     String projectName, String httpHealthCheckName, Compute compute, Task task, String phase) {
     task.updateStatus phase, "Checking for existing network load balancer (http health check) $httpHealthCheckName..."
 
     return compute.httpHealthChecks().list(projectName).execute().items.find { existingHealthCheck ->
       existingHealthCheck.name == httpHealthCheckName
+    }
+  }
+
+  static def queryHealthCheck(String projectName, String healthCheckName, Compute compute, Task task, String phase) {
+    task.updateStatus phase, "Looking up http(s) health check $healthCheckName..."
+
+    try {
+      return compute.httpHealthChecks().get(projectName, healthCheckName).execute()
+    } catch (GoogleJsonResponseException e) {
+      // 404 is thrown, and the details are populated, if the health check does not exist in the given project.
+      // Any other exception should be propagated directly.
+      if (e.getStatusCode() == 404 && e.details) {
+        try {
+          return compute.httpsHealthChecks().get(projectName, healthCheckName).execute()
+        } catch (GoogleJsonResponseException exc) {
+          if (exc.getStatusCode() == 404 && exc.details) {
+            updateStatusAndThrowNotFoundException("Http(s) health check $healthCheckName not found.", task, phase)
+          } else {
+            throw e
+          }
+        }
+      } else {
+        throw e
+      }
     }
   }
 
@@ -429,6 +455,18 @@ class GCEUtil {
 
       return autoscalingPolicyDescription
     }
+  }
+
+  static BasicGoogleDeployDescription.AutoHealingPolicy buildAutoHealingPolicyDescriptionFromAutoHealingPolicy(
+    InstanceGroupManagerAutoHealingPolicy autoHealingPolicy) {
+    if (!autoHealingPolicy) {
+      return null
+    }
+
+    return new BasicGoogleDeployDescription.AutoHealingPolicy(
+      healthCheck: Utils.getLocalName(autoHealingPolicy.healthCheck),
+      initialDelaySec: autoHealingPolicy.initialDelaySec
+    )
   }
 
   static List<String> retrieveScopesFromServiceAccount(String serviceAccountEmail, List<ServiceAccount> serviceAccounts) {
