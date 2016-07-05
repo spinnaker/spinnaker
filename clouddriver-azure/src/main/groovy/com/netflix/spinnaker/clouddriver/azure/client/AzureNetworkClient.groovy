@@ -301,7 +301,7 @@ class AzureNetworkClient extends AzureBaseClient {
       if (!agDescription || (agDescription.cluster && agDescription.cluster != parsedName.cluster)) {
         // The selected server group must be in the same cluster and region (see resourceGroup) with the one already
         //   assigned for the selected application gateway.
-        def errMsg = "Failed to associate ${serverGroupName} with ${appGatewayName}; expecting server group to be in ${parsedName.cluster} cluster"
+        def errMsg = "Failed to associate ${serverGroupName} with ${appGatewayName}; expecting server group to be in ${agDescription.cluster} cluster"
         log.error(errMsg)
         throw new RuntimeException(errMsg)
       }

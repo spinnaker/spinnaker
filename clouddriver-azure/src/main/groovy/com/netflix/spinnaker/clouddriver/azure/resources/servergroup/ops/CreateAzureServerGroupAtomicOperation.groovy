@@ -158,33 +158,49 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
       task.updateStatus(BASE_PHASE, "Deployment for server group ${description.name} in ${description.region} has succeeded.")
     }
     else {
-      if (description.image?.imageName) {
-        // cleanup any resources that might have been created prior to server group failing to deploy
-        task.updateStatus(BASE_PHASE, "Cleanup any resources created as part of server group upsert")
-        try {
-          if (serverGroupName) {
+      // cleanup any resources that might have been created prior to server group failing to deploy
+      task.updateStatus(BASE_PHASE, "Cleanup any resources created as part of server group upsert")
+      try {
+        if (serverGroupName) {
+          def sgDescription = description.credentials
+            .computeClient
+            .getServerGroup(resourceGroupName, serverGroupName)
+          if (sgDescription) {
             description.credentials
               .computeClient
               .destroyServerGroup(resourceGroupName, serverGroupName)
+
+            // If this an Azure Market Store image, delete the storage that was created for it as well
+            if (!sgDescription.image.isCustom) {
+              sgDescription.storageAccountNames?.each { def storageAccountName ->
+                description.credentials
+                  .storageClient
+                  .deleteStorageAccount(resourceGroupName, storageAccountName)
+              }
+            }
           }
-          if (appGatewayPoolID) {
-            description.credentials
-              .networkClient
-              .removeAppGatewayBAPforServerGroup(resourceGroupName, description.appGatewayName, description.name)
-          }
-          if (subnetName) {
-            description.credentials
-              .networkClient
-              .deleteSubnet(resourceGroupName, virtualNetworkName, subnetName)
-          }
-        } catch (Exception e) {
-          def errMessage = "Unexpected exception: ${e.message}; please log in into the Azure Portal and manually remove the following resources: ${subnetName}"
-          task.updateStatus(BASE_PHASE, errMessage)
-          errList.add(errMessage)
         }
-      } else {
-        // can not automatically delete a server group
-        errList.add("Please log in into Azure Portal and manualy delete any resource associated with the ${description.name} server group such as storage accounts and subnets (${subnetName})")
+        if (subnetName) {
+          description.credentials
+            .networkClient
+            .deleteSubnet(resourceGroupName, virtualNetworkName, subnetName)
+        }
+      } catch (Exception e) {
+        def errMessage = "Unexpected exception: ${e.message}! Please log in into Azure Portal and manually delete any resource associated with the ${description.name} server group such as storage accounts, internal load balancer, public IP and subnets"
+        task.updateStatus(BASE_PHASE, errMessage)
+        errList.add(errMessage)
+      }
+
+      try {
+        if (appGatewayPoolID) {
+          description.credentials
+            .networkClient
+            .removeAppGatewayBAPforServerGroup(resourceGroupName, description.appGatewayName, description.name)
+        }
+      } catch (Exception e) {
+        def errMessage = "Unexpected exception: ${e.message}! Application Gateway backend address pool entry ${appGatewayPoolID} associated with the ${description.name} server group could not be deleted"
+        task.updateStatus(BASE_PHASE, errMessage)
+        errList.add(errMessage)
       }
 
       throw new AtomicOperationException(
