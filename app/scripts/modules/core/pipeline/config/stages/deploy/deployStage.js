@@ -66,6 +66,12 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
       });
     };
 
+    this.hasInstanceTypeDeployments = () => {
+      return stage.clusters.some((cluster) => {
+        return cluster.instanceType !== undefined;
+      });
+    };
+
     this.getSubnet = (cluster) => {
       let cloudProvider = cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws';
       if (cloudProviderRegistry.hasValue(cloudProvider, 'subnet')) {
