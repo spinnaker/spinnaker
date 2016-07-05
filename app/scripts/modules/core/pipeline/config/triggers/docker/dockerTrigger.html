@@ -3,7 +3,7 @@
     <div class="col-md-3 sm-label-right">
       Registry Name
     </div>
-    <div class="col-md-6">
+    <div class="col-md-8">
       <ui-select ng-model="trigger.account" class="form-control input-sm">
         <ui-select-match>{{trigger.account}}</ui-select-match>
         <ui-select-choices repeat="account in accounts | filter: $select.search | orderBy">
@@ -25,7 +25,7 @@
     <div class="col-md-3 sm-label-right">
       Organization
     </div>
-    <div class="col-md-6">
+    <div class="col-md-8">
       <ui-select ng-model="trigger.organization" class="form-control input-sm">
         <ui-select-match placeholder="No organization">{{trigger.organization}}</ui-select-match>
         <ui-select-choices repeat="organization in organizations | filter: $select.search | orderBy">
@@ -38,7 +38,7 @@
     <div class="col-md-3 sm-label-right">
       Image
     </div>
-    <div class="col-md-6">
+    <div class="col-md-8">
       <ui-select ng-model="trigger.repository" class="form-control input-sm">
         <ui-select-match>{{trigger.repository}}</ui-select-match>
         <ui-select-choices repeat="repository in repositories | filter: $select.search | orderBy">
@@ -52,7 +52,7 @@
       Tag
       <help-field key="pipeline.config.docker.trigger.tag"></help-field>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-8">
       <input type="text" class="form-control input-sm" ng-model="trigger.tag"/>
     </div>
   </div>

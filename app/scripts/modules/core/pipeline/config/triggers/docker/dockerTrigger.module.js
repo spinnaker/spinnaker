@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
   ])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerTrigger({
-      label: 'Docker',
+      label: 'Docker Registry',
       description: 'Executes the pipeline on an image update',
       key: 'docker',
       controller: 'DockerTriggerCtrl as ctrl',
@@ -22,7 +22,7 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
   .factory('dockerTriggerExecutionHandler', function ($q) {
     return {
       formatLabel: (trigger) => {
-        return $q.when(`(Docker) ${trigger.account}: ${trigger.repository}`);
+        return $q.when(`(Docker Registry) ${trigger.account}: ${trigger.repository}`);
       },
       selectorTemplate: require('./selectorTemplate.html'),
     };
