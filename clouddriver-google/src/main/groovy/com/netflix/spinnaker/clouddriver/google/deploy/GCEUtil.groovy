@@ -494,6 +494,10 @@ class GCEUtil {
 
     def firstPersistentDisk = disks.find { it.persistent }
 
+    if (firstPersistentDisk && sourceImage.diskSizeGb > firstPersistentDisk.sizeGb) {
+      firstPersistentDisk.sizeGb = sourceImage.diskSizeGb
+    }
+
     return disks.collect { disk ->
       def diskType = useDiskTypeUrl ? buildDiskTypeUrl(projectName, zone, disk.type) : disk.type
       def attachedDiskInitializeParams =
