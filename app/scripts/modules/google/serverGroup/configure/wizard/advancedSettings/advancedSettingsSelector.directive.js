@@ -28,7 +28,12 @@ module.exports = angular
     };
 
     this.setPreemptible = () => {
-      this.command.automaticRestart = false;
-      this.command.onHostMaintenance = 'TERMINATE';
+      if (this.command.preemptible) {
+        this.command.automaticRestart = false;
+        this.command.onHostMaintenance = 'TERMINATE';
+      } else {
+        this.command.automaticRestart = true;
+        this.command.onHostMaintenance = 'MIGRATE';
+      }
     };
   });
