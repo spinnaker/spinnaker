@@ -1,19 +1,23 @@
 'use strict';
 
+require('./applicationLinks.component.less');
+
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.application.config.applicationLinks.component', [
-    require('../../utils/lodash'),
-    require('../service/applications.write.service'),
-    require('../../config/settings'),
+    require('../../../utils/lodash'),
+    require('../../service/applications.write.service'),
+    require('./editLinks.modal.controller'),
+    require('../../../config/settings'),
+    require('angular-ui-bootstrap'),
   ])
   .component('applicationLinks', {
     bindings: {
       application: '=',
     },
     templateUrl: require('./applicationLinks.component.html'),
-    controller: function(applicationWriter, settings, _) {
+    controller: function($uibModal, applicationWriter, settings, _) {
 
       let initialize = () => {
         if (this.application.notFound) {
@@ -29,9 +33,21 @@ module.exports = angular
           saveError: false,
           isDirty: false,
         };
+
+        this.setDefaultLinkState();
+      };
+
+      this.setDefaultLinkState = () => {
+        this.usingDefaultLinks = angular.toJson(this.sections) === angular.toJson(settings.defaultInstanceLinks);
+        this.defaultLinksConfigured = !!settings.defaultInstanceLinks;
       };
 
       this.revert = initialize;
+
+      this.useDefaultLinks = () => {
+        this.sections = _.cloneDeep(settings.defaultInstanceLinks);
+        this.configChanged();
+      };
 
       this.save = () => {
         this.viewState.saving = true;
@@ -62,8 +78,9 @@ module.exports = angular
       };
 
       this.addSection = () => {
-        this.sections.push({title: '', links: []});
-        this.configChanged();
+        let section = {title: '', links: []};
+        this.sections.push(section);
+        this.addLink(section);
       };
 
       this.removeSection = (index) => {
@@ -72,7 +89,27 @@ module.exports = angular
       };
 
       this.configChanged = () => {
+        this.setDefaultLinkState();
         this.viewState.isDirty = this.viewState.originalStringVal !== JSON.stringify(angular.copy(this.sections));
+      };
+
+      this.editJson = () => {
+        $uibModal.open({
+          templateUrl: require('./editLinks.modal.html'),
+          controller: 'EditLinksModalCtrl as vm',
+          resolve: {
+            sections: () => this.sections,
+          }
+        }).result.then(newSections => {
+          this.sections = newSections;
+          this.configChanged();
+        });
+      };
+
+      this.sortOptions = {
+        axis: 'y',
+        delay: 150,
+        stop: () => this.configChanged(),
       };
 
       this.$onInit = initialize;

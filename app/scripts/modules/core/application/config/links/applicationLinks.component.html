@@ -1,0 +1,113 @@
+<div class="row">
+  <div class="col-md-7">
+    <h4>Instance Links</h4>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <div class="row">
+          <div class="col-md-9">
+            <p class="panel-description">Links appear in the instance details panel and provide a shortcut to common features,
+              such as logs, health, etc.</p>
+          </div>
+          <div class="col-md-3 text-right">
+            <button class="btn btn-sm btn-default" ng-click="$ctrl.editJson()">
+              <span class="small glyphicon glyphicon-cog"></span> Edit as JSON
+            </button>
+          </div>
+        </div>
+        <div class="row" ng-if="!$ctrl.usingDefaultLinks && $ctrl.defaultLinksConfigured">
+          <div class="col-md-9">
+            This application's links have been customized.
+            <a href ng-click="$ctrl.useDefaultLinks()">Revert to default links</a>
+          </div>
+        </div>
+        <div ui-sortable="$ctrl.sortOptions" ng-model="$ctrl.sections">
+          <div class="link-section" ng-repeat="section in $ctrl.sections">
+            <div class="row row-heading">
+              <div class="col-md-1">
+                <span
+                  ng-if="$ctrl.sections.length > 1"
+                  class="clickable glyphicon glyphicon-resize-vertical"></span>
+              </div>
+              <div class="col-md-2 sm-label-right">Section heading</div>
+              <div class="col-md-9">
+                <div class="row">
+                  <div class="col-md-4" style="padding-right: 0">
+                    <input type="text" class="form-control input" ng-model="section.title" ng-change="$ctrl.configChanged()"/>
+                  </div>
+                  <div class="col-md-2 col-md-offset-6" style="padding: 5px 0">
+                    <a href ng-click="$ctrl.removeSection($index)" uib-tooltip="Remove section">
+                      <span class="glyphicon glyphicon-trash"></span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row" style="margin-top: 10px">
+              <div class="col-md-3 sm-label-right">Links</div>
+              <div class="col-md-9" ui-sortable="$ctrl.sortOptions" ng-model="section.links">
+                <div class="row" ng-repeat="link in section.links"
+                     style="padding-bottom: 5px">
+                  <div class="col-md-4 link-title" style="padding-right: 0">
+                    <span
+                      ng-if="section.links.length > 1"
+                      class="clickable glyphicon glyphicon-resize-vertical"></span>
+                    <input class="form-control input-sm" type="text"
+                           placeholder="Label, e.g. Health"
+                           ng-change="$ctrl.configChanged()"
+                           ng-model="link.title"/>
+                  </div>
+                  <div class="col-md-6">
+                    <input class="form-control input-sm" type="text"
+                           placeholder="Path, e.g. /health, :7002/alt-port-link"
+                           ng-change="$ctrl.configChanged()"
+                           ng-model="link.path"/>
+                  </div>
+                  <div class="col-md-2" style="padding: 5px 0">
+                    <a href ng-click="$ctrl.removeLink(section, $index)"><span class="glyphicon glyphicon-trash"></span></a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-8 col-md-offset-3">
+                <button class="btn btn-block add-new small" ng-click="$ctrl.addLink(section)">
+                  <span class="glyphicon glyphicon-plus-sign"></span> Add Link
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-10 col-md-offset-1">
+            <button class="btn btn-block add-new" ng-click="$ctrl.addSection()">
+              <span class="glyphicon glyphicon-plus-sign"></span> Add Section
+            </button>
+          </div>
+        </div>
+
+        <div class="row pipeline-footer">
+          <div class="col-md-3">
+            <button class="btn btn-default" ng-click="$ctrl.revert()"
+                    ng-if="$ctrl.viewState.isDirty"
+                    style="visibility: visible;"><span class="glyphicon glyphicon-flash"></span> Revert
+            </button>
+          </div>
+          <div class="col-md-9 text-right">
+            <button class="btn btn-primary" ng-if="$ctrl.viewState.isDirty"
+                    ng-click="$ctrl.save()">
+              <span ng-if="!$ctrl.viewState.saving">
+                <span class="glyphicon glyphicon-ok-circle"></span> Save Changes
+              </span>
+              <span ng-if="$ctrl.viewState.saving" class="pulsing">
+                <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span> Saving&hellip;
+              </span>
+            </button>
+            <div class="error-message" ng-if="$ctrl.viewState.saveError">There was an error saving your changes. Please try again.</div>
+            <span ng-if="!$ctrl.viewState.isDirty" class="btn btn-link disabled"><span class="glyphicon glyphicon-ok-circle"></span> In sync with server</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

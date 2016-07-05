@@ -9,7 +9,7 @@ module.exports = angular
     require('./applicationNotifications.directive.js'),
     require('./applicationCacheManagement.directive.js'),
     require('./deleteApplicationSection.directive.js'),
-    require('./applicationLinks.component.js'),
+    require('./links/applicationLinks.component.js'),
   ])
   .controller('ApplicationConfigController', function ($state, app) {
     this.application = app;

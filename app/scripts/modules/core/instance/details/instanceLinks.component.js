@@ -17,8 +17,8 @@ module.exports = angular
     },
     templateUrl: require('./instanceLinks.component.html'),
     controller: function(settings, _, $interpolate) {
-      this.port = this.application.attributes.instancePort || settings.defaultInstancePort;
-      this.sections = _.cloneDeep(this.application.attributes.instanceLinks || settings.defaultInstanceLinks || []);
+      this.port = _.get(this.application, 'attributes.instancePort', settings.defaultInstancePort) || 80;
+      this.sections = _.cloneDeep(_.get(this.application, 'attributes.instanceLinks', settings.defaultInstanceLinks) || []);
       this.sections.forEach(section => {
         section.links = section.links.map(link => {
           let port = link.path.indexOf(':') === 0 || !this.port ? '' : ':' + this.port;
