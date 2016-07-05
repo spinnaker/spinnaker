@@ -124,7 +124,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
 
       return gceImageReader.findImages({
         provider: command.selectedProvider,
-        q: packageBase + '-*',
+        q: packageBase + '*',
       });
     }
 
