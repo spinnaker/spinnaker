@@ -45,19 +45,11 @@ class DestroyServerGroupStage extends TargetServerGroupLinearStageSupport {
     try {
       composeTargets(stage)
 
-      List steps = []
-
-      //TODO(cfieber) - need to remove this once proper enable / disable has been implemented in Titus.
-      if (!stage.context.cloudProvider || stage.context.cloudProvider != 'titan') {
-        steps += [
-          buildStep(stage, "disableServerGroup", DisableServerGroupTask),
-          buildStep(stage, "monitorServerGroup", MonitorKatoTask),
-          buildStep(stage, "waitForNotUpInstances", WaitForAllInstancesNotUpTask),
-          buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
-        ]
-      }
-
-      steps + [
+      List steps = [
+        buildStep(stage, "disableServerGroup", DisableServerGroupTask),
+        buildStep(stage, "monitorServerGroup", MonitorKatoTask),
+        buildStep(stage, "waitForNotUpInstances", WaitForAllInstancesNotUpTask),
+        buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
         buildStep(stage, "destroyServerGroup", DestroyServerGroupTask),
         buildStep(stage, "monitorServerGroup", MonitorKatoTask),
         buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
