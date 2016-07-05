@@ -16,6 +16,7 @@
           <th ng-if="deployStageCtrl.hasSubnetDeployments()">Subnet</th>
           <th>Strategy</th>
           <th>Capacity</th>
+          <th ng-if="deployStageCtrl.hasInstanceTypeDeployments()">Instance Type</th>
           <th>Actions</th>
         </tr>
         </thead>
@@ -55,16 +56,24 @@
               {{cluster.targetSize}}
             </div>
           </td>
+          <td ng-if="deployStageCtrl.hasInstanceTypeDeployments()">
+             {{ cluster.instanceType  || '[none]' }}
+          </td>
           <td>
-            <a class="btn btn-xs btn-link" href ng-click="deployStageCtrl.editCluster(cluster, $index)">Edit</a>
-            <a class="btn btn-xs btn-link pad-left" href ng-click="deployStageCtrl.removeCluster($index)">Remove</a>
-            <a class="btn btn-xs btn-link pad-left" href ng-click="deployStageCtrl.copyCluster($index)">Duplicate</a>
+            <a class="btn btn-sm btn-link" href ng-click="deployStageCtrl.editCluster(cluster, $index)">
+              <span class="glyphicon glyphicon-edit" uib-tooltip="Edit"></span></a>
+            <a class="btn btn-sm btn-link pad-left" href ng-click="deployStageCtrl.removeCluster($index)">
+              <span class="glyphicon glyphicon-trash" uib-tooltip="Remove"></span>
+            </a>
+            <a class="btn btn-sm btn-link pad-left" href ng-click="deployStageCtrl.copyCluster($index)">
+              <span class="glyphicon glyphicon-duplicate" uib-tooltip="Duplicate"></span>
+            </a>
           </td>
         </tr>
         </tbody>
         <tfoot>
         <tr>
-          <td colspan="8">
+          <td colspan="9">
             <button class="btn btn-block btn-sm add-new" ng-click="deployStageCtrl.addCluster()">
               <span class="glyphicon glyphicon-plus-sign"></span> Add server group
             </button>
