@@ -18,15 +18,15 @@ package com.netflix.spinnaker.clouddriver.titus.deploy.ops
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.EnableDisableServerGroupDescription
 
-class DisableTitusServerGroupAtomicOperation extends AbstractEnableDisableAtomicOperation {
-  static final String phaseName = "DISABLE_TITUS_SERVER_GROUP"
+class EnableTitusServerGroupAtomicOperation extends AbstractEnableDisableAtomicOperation {
+  static final String phaseName = "ENABLE_TITUS_SERVER_GROUP"
 
-  DisableTitusServerGroupAtomicOperation(TitusClientProvider titusClientProvider, EnableDisableServerGroupDescription description) {
+  EnableTitusServerGroupAtomicOperation(TitusClientProvider titusClientProvider, EnableDisableServerGroupDescription description) {
     super(titusClientProvider, description)
   }
 
   @Override
   boolean isDisable() {
-    true
+    false
   }
 }

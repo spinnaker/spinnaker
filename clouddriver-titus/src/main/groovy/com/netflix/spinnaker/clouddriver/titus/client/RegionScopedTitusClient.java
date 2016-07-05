@@ -172,6 +172,14 @@ public class RegionScopedTitusClient implements TitusClient {
     }
 
     @Override
+    public void activateJob(ActivateJobRequest activateJobRequest){
+        if(activateJobRequest.getUser() == null){
+           activateJobRequest.withUser("spinnaker");
+        }
+        execute(titusRestAdapter.activateJob(activateJobRequest));
+    }
+
+    @Override
     public void terminateJob(String jobId) {
         execute(titusRestAdapter.killJob(RequestBody.create(MediaType.parse("text/plain"), jobId)));
     }

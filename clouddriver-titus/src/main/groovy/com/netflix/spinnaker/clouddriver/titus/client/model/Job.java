@@ -169,6 +169,7 @@ public class Job {
     private String version;
     private String entryPoint;
     private String iamProfile;
+    private Boolean inService;
     private int instances;
     private int instancesMin;
     private int instancesMax;
@@ -354,6 +355,10 @@ public class Job {
     public String getIamProfile() { return iamProfile; }
 
     public void setIamProfile(String iamProfile) { this.iamProfile = iamProfile; }
+
+    public Boolean isInService() { return inService; }
+
+    public void setInService(Boolean inService) { this.inService = inService; }
 
     public List<String> getSecurityGroups() { return securityGroups; }
 

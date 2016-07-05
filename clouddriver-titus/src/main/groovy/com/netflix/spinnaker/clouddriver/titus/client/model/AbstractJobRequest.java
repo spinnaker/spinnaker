@@ -16,40 +16,25 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client.model;
 
-public class ResizeJobRequest extends AbstractJobRequest{
+public class AbstractJobRequest {
+  private String user;
+  private String jobId;
 
-  private int instancesDesired;
-  private int instancesMax;
-  private int instancesMin;
-
-  public ResizeJobRequest() {
+  public String getUser() {
+    return user;
   }
 
-  public int getInstancesDesired() {
-    return instancesDesired;
-  }
-
-  public ResizeJobRequest withInstancesDesired(int instancesDesired) {
-    this.instancesDesired = instancesDesired;
+  public AbstractJobRequest withUser(String user) {
+    this.user = user;
     return this;
   }
 
-  public int getInstancesMax() {
-    return instancesMax;
+  public String getJobId() {
+    return jobId;
   }
 
-  public ResizeJobRequest withInstancesMax(int instancesMax) {
-    this.instancesMax = instancesMax;
+  public AbstractJobRequest withJobId(String jobId) {
+    this.jobId = jobId;
     return this;
   }
-
-  public int getInstancesMin() {
-    return instancesMin;
-  }
-
-  public ResizeJobRequest withInstancesMin(int instancesMin) {
-    this.instancesMin = instancesMin;
-    return this;
-  }
-
 }

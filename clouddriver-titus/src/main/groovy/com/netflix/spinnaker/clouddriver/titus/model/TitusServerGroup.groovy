@@ -71,8 +71,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
     placement.region = region
     instances = job.tasks.findAll { it != null }.collect { new TitusInstance(job, it) } as Set
     capacity = new ServerGroup.Capacity(min: job.instancesMin, max: job.instancesMax, desired: job.instancesDesired)
-    //TODO(cfieber) - more of the 'disable is stop all the tasks' nonsense here:
-    disabled = job.tasks.every { it.state == TaskState.STOPPED }
+    disabled = !job.inService
     securityGroups = job.securityGroups
   }
 

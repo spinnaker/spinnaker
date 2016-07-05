@@ -22,24 +22,24 @@ import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCreden
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusOperation
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.EnableDisableServerGroupDescription
-import com.netflix.spinnaker.clouddriver.titus.deploy.ops.DisableTitusServerGroupAtomicOperation
+import com.netflix.spinnaker.clouddriver.titus.deploy.ops.EnableTitusServerGroupAtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-@TitusOperation(AtomicOperations.DISABLE_SERVER_GROUP)
+@TitusOperation(AtomicOperations.ENABLE_SERVER_GROUP)
 @Component
-class DisableTitusServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+class EnableTitusServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
   private final TitusClientProvider titusClientProvider
 
   @Autowired
-  DisableTitusServerGroupAtomicOperationConverter(TitusClientProvider titusClientProvider) {
+  EnableTitusServerGroupAtomicOperationConverter(TitusClientProvider titusClientProvider) {
     this.titusClientProvider = titusClientProvider
   }
 
   @Override
   AtomicOperation convertOperation(Map input) {
-    new DisableTitusServerGroupAtomicOperation(titusClientProvider, convertDescription(input))
+    new EnableTitusServerGroupAtomicOperation(titusClientProvider, convertDescription(input))
   }
 
   @Override

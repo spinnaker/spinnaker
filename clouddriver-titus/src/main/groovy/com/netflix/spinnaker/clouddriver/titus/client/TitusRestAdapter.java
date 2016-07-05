@@ -64,4 +64,7 @@ public interface TitusRestAdapter {
 
     @POST("/v2/jobs/setinstancecounts")
     Call<Void> resizeJob(@Body ResizeJobRequest resizeJob);
+
+    @POST("/v2/jobs/setinservice")
+    Call<Void> activateJob(@Body ActivateJobRequest activateJob);
 }
