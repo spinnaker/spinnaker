@@ -19,8 +19,9 @@ module.exports = angular.module('spinnaker.pageApplicationOwner.modal.controller
       };
 
       var submitMethod = () => {
+        var reason = '[' + this.application.name.toUpperCase() + '] ' + this.command.reason;
         return applicationWriter.pageApplicationOwner(
-          this.application, this.command.reason
+          this.application, reason
         );
       };
 
