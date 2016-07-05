@@ -26,10 +26,6 @@ interface ImageNameFactory {
    *   - Producing an image name.
    *   - (If one or more package names are specified) Attempting to derive the AppVersion descriptor from the
    *     first package name. If the AppVersion could not be derived, this value will be null.
-   *   - This is temporary and will be removed shortly: (If one or more package names are specified) Replacing
-   *     the first package name in the list of packages with just the 'packageName' value from the derived AppVersion.
-   *     This is here as a temporary workaround for test/dev since we are not actually publishing the built packages
-   *     to a deb repo yet (so any reference to a fully-qualified debian package would fail to be resolved).
    *
    * This method always returns a list of size 3 with the following elements:
    *   1) A derived image name (to be used for naming the image being baked).
