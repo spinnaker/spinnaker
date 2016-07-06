@@ -56,6 +56,7 @@ class RegisterAcaTaskTask implements Task {
     def canary = mineService.getCanary(canaryId)
     def outputs = [
       canary: canary,
+      continueOnUnhealthy: stage.context.continueOnUnhealthy ?: false,
       stageTimeoutMs: getMonitorTimeout(canary),
     ]
 
