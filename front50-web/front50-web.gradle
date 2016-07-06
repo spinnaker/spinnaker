@@ -113,6 +113,7 @@ ospackage {
     into('/etc/logrotate.d')
     user = 'root'
     permissionGroup = 'root'
+    fileMode = 0644
     fileType = CONFIG | NOREPLACE
   }
 
