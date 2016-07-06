@@ -92,9 +92,10 @@ import citest.service_testing as st
 # Spinnaker modules.
 import spinnaker_testing as sk
 import spinnaker_testing.gate as gate
+import google_quota_test as quota
 
 
-class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
+class BakeAndDeployTestScenario(quota.GoogleQuotaTestScenario):
   @classmethod
   def new_agent(cls, bindings):
     return gate.new_agent(bindings)
@@ -598,7 +599,8 @@ def main():
   return st.ScenarioTestRunner.main(
       BakeAndDeployTestScenario,
       default_binding_overrides=defaults,
-      test_case_list=[BakeAndDeployTest])
+      test_case_list=[quota.GoogleQuotaTest,
+                      BakeAndDeployTest])
 
 
 if __name__ == '__main__':
