@@ -26,10 +26,12 @@ import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccoun
  * Base agent that implements common logic for all agents.
  */
 abstract class AbstractOpenstackCachingAgent implements CachingAgent, AccountAware {
+
   final OpenstackNamedAccountCredentials account
   final String region
+  final String providerName = OpenstackInfrastructureProvider.PROVIDER_NAME
 
-  AbstractOpenstackCachingAgent(final OpenstackNamedAccountCredentials account, final String region) {
+  AbstractOpenstackCachingAgent(OpenstackNamedAccountCredentials account, String region) {
     this.account = account
     this.region = region
   }
@@ -37,11 +39,6 @@ abstract class AbstractOpenstackCachingAgent implements CachingAgent, AccountAwa
   @Override
   String getAccountName() {
     account.name
-  }
-
-  @Override
-  String getProviderName() {
-    OpenstackInfrastructureProvider.PROVIDER_NAME
   }
 
   OpenstackClientProvider getClientProvider() {

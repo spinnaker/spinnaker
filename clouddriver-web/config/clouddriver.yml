@@ -25,6 +25,7 @@ swagger:
     - .*security.*
     - .*vpcs.*
     - .*credentials.*
+    - .*networks.*
     - .*subnets.*
     - .*ops.*
     - .*task.*
@@ -288,7 +289,7 @@ cf:
       password: ${cf.account.password}
       artifactUsername: ${cf.repo.username}
       artifactPassword: ${cf.repo.password}
- 
+
 spring:
   jackson:
     mapper:

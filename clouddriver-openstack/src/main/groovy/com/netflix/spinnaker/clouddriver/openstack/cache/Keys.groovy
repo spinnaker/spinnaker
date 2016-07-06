@@ -30,6 +30,7 @@ import static com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
 class Keys {
 
   static enum Namespace {
+    NETWORKS,
     SUBNETS,
     INSTANCES,
     APPLICATIONS,
@@ -81,6 +82,11 @@ class Keys {
               result << [id: parts[2], account: parts[3], region: parts[4]]
             }
             break
+          case Namespace.NETWORKS.ns:
+            if (parts.length == 5) {
+              result << [id: parts[2], account: parts[3], region: parts[4]]
+            }
+            break
         }
 
         if (!result.isEmpty()) {
@@ -111,4 +117,9 @@ class Keys {
   static String getClusterKey(String account, String application, String clusterName) {
     "${ID}:${Namespace.CLUSTERS}:${account}:${application}:${clusterName}"
   }
+
+  static String getNetworkKey(String networkId, String account, String region) {
+    "${ID}:${Namespace.NETWORKS}:${networkId}:${account}:${region}"
+  }
+
 }

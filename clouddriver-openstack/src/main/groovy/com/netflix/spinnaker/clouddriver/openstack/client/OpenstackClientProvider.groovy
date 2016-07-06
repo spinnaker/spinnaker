@@ -758,7 +758,18 @@ abstract class OpenstackClientProvider {
    */
   void deleteSecurityGroup(String region, String securityGroupId) {
     handleRequest {
-      client.useRegion(region).compute().securityGroups().delete(securityGroupId)
+      getRegionClient(region).compute().securityGroups().delete(securityGroupId)
+    }
+  }
+
+  /**
+   * List the available networks in a region. These will be both internal and external networks.
+   * @param region
+   * @return
+   */
+  List<Network> listNetworks(String region) {
+    handleRequest {
+      getRegionClient(region).networking().network().list()
     }
   }
 
