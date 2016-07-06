@@ -38,8 +38,8 @@ dependencies {
   compile gradleApi()
   compile localGroovy()
   compile 'com.netflix.nebula:gradle-netflixoss-project-plugin:3.2.3'
-  compile 'com.netflix.nebula:gradle-ospackage-plugin:latest.release'
-  compile 'com.netflix.nebula:nebula-ospackage-plugin:latest.release'
-  compile 'com.jfrog.bintray.gradle:gradle-bintray-plugin:latest.release'
-  compile 'org.yaml:snakeyaml:latest.release'
+  compile 'com.netflix.nebula:gradle-ospackage-plugin:3.4.0'
+  compile 'com.netflix.nebula:nebula-ospackage-plugin:3.1.1'
+  compile 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
+  compile 'org.yaml:snakeyaml:1.17'
 }
