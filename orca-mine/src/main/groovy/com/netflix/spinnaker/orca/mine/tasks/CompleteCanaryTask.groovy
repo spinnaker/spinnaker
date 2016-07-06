@@ -32,7 +32,7 @@ class CompleteCanaryTask implements Task {
       return new DefaultTaskResult(ExecutionStatus.CANCELED)
     } else if (canary.canaryResult?.overallResult == 'SUCCESS') {
       return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
-    } else if (canary.continueOnUnhealthy && canary.health.health == "UNHEALTHY") {
+    } else if (stage.context.continueOnUnhealthy && canary.health.health == "UNHEALTHY") {
       return new DefaultTaskResult(ExecutionStatus.FAILED_CONTINUE)
     } else {
       throw new IllegalStateException("Canary failed")

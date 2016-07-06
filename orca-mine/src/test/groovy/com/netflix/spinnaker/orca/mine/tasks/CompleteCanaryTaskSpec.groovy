@@ -65,9 +65,9 @@ class CompleteCanaryTaskSpec extends Specification {
       canary: [
         health: [
             health: "UNHEALTHY"
-        ],
-        continueOnUnhealthy: true
-      ]
+        ]
+      ],
+      continueOnUnhealthy: true
     ])
 
     when:
@@ -83,9 +83,9 @@ class CompleteCanaryTaskSpec extends Specification {
       canary: [
         health: [
           health: "UNHEALTHY"
-        ],
-        continueOnUnhealthy: false
-      ]
+        ]
+      ],
+      continueOnUnhealthy: false
     ])
 
     when:
