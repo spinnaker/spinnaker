@@ -117,7 +117,7 @@ providers:
       repository: ${SPINNAKER_DOCKER_REPOSITORY:library/nginx}
       username: ${SPINNAKER_DOCKER_USERNAME}
       # A path to a plain text file containing the user's password
-      passwordFile: ${SPINNAKER_DOCKER_PASSWORD_FILE} 
+      passwordFile: ${SPINNAKER_DOCKER_PASSWORD_FILE}
 
 services:
   default:
@@ -132,7 +132,7 @@ services:
   redis:
     # If you are using a remote redis server, you can set the host here.
     # If the remote server is on a different port or url, you can add
-    # a "port" or "baseUrl" field here instead.
+    # a "port" or "host" field here instead.
     host: localhost
 
   cassandra:
