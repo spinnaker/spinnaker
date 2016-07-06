@@ -31,6 +31,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta
 import io.fabric8.kubernetes.api.model.PodList
 import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.ReplicationControllerList
+import io.fabric8.kubernetes.api.model.ReplicationControllerSpec
 import spock.lang.Specification
 
 class KubernetesServerGroupCachingAgentSpec extends Specification {
@@ -69,7 +70,7 @@ class KubernetesServerGroupCachingAgentSpec extends Specification {
     applicationKey = Keys.getApplicationKey(APP)
     clusterKey = Keys.getClusterKey(ACCOUNT_NAME, APP, 'serverGroup', CLUSTER)
     serverGroupKey = Keys.getServerGroupKey(ACCOUNT_NAME, NAMESPACE, REPLICATION_CONTROLLER)
-    instanceKey = Keys.getInstanceKey(ACCOUNT_NAME, NAMESPACE, REPLICATION_CONTROLLER, POD)
+    instanceKey = Keys.getInstanceKey(ACCOUNT_NAME, NAMESPACE, POD)
 
     cachingAgent = new KubernetesServerGroupCachingAgent(new KubernetesCloudProvider(), ACCOUNT_NAME, kubernetesCredentials, NAMESPACE, new ObjectMapper(), registryMock)
   }
@@ -78,8 +79,12 @@ class KubernetesServerGroupCachingAgentSpec extends Specification {
     setup:
       def replicationControllerMock = Mock(ReplicationController)
       def replicationControllerMetadataMock = Mock(ObjectMeta)
+      def replicationControllerSpecMock = Mock(ReplicationControllerSpec)
+      def selector = ['replicationController': REPLICATION_CONTROLLER.toString()]
+      replicationControllerSpecMock.getSelector() >> selector
       replicationControllerMetadataMock.getName() >> REPLICATION_CONTROLLER
       replicationControllerMock.getMetadata() >> replicationControllerMetadataMock
+      replicationControllerMock.getSpec() >> replicationControllerSpecMock
 
       def podMock = Mock(ReplicationController)
       def podMetadataMock = Mock(ObjectMeta)
@@ -87,7 +92,7 @@ class KubernetesServerGroupCachingAgentSpec extends Specification {
       podMock.getMetadata() >> podMetadataMock
 
       apiMock.getReplicationControllers(NAMESPACE) >> [replicationControllerMock]
-      apiMock.getReplicationControllerPods(NAMESPACE, _) >> [podMock]
+      apiMock.getPods(NAMESPACE, selector) >> [podMock]
 
       def providerCacheMock = Mock(ProviderCache)
       providerCacheMock.getAll(_, _) >> []

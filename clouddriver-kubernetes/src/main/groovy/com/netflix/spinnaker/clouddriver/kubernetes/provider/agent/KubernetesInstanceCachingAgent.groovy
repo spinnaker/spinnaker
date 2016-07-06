@@ -89,23 +89,11 @@ class KubernetesInstanceCachingAgent implements  CachingAgent, AccountAware {
         continue
       }
 
-      // Not owned by spinnaker
-      if (!pod.metadata.labels) {
-        continue
-      }
-
-      def rc = pod.metadata.labels[KubernetesUtil.REPLICATION_CONTROLLER_LABEL] ?: ''
-      def job = pod.metadata.labels[KubernetesUtil.JOB_LABEL] ?: ''
-
-
-      if (job) {
-        def key = Keys.getProcessKey(accountName, namespace, job, pod.metadata.name)
-        cachedProcesses[key].with {
-          attributes.name = pod.metadata.name
-          attributes.pod = pod
-        }
-      } else {
-        def key = Keys.getInstanceKey(accountName, namespace, rc, pod.metadata.name)
+      def key = Keys.getProcessKey(accountName, namespace, pod.metadata.name)
+      cachedProcesses[key].with {
+        attributes.name = pod.metadata.name
+        attributes.pod = pod
+        key = Keys.getInstanceKey(accountName, namespace, pod.metadata.name)
         cachedInstances[key].with {
           attributes.name = pod.metadata.name
           attributes.pod = pod

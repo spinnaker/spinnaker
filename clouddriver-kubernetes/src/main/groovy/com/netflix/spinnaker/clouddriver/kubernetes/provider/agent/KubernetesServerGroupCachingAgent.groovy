@@ -195,8 +195,8 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
     credentials.apiAdaptor.getReplicationController(namespace, name)
   }
 
-  List<Pod> loadPods(String replicationControllerName) {
-    credentials.apiAdaptor.getReplicationControllerPods(namespace, replicationControllerName)
+  List<Pod> loadPods(ReplicationController replicationController) {
+    credentials.apiAdaptor.getPods(namespace, replicationController.spec.selector)
   }
 
   @Override
@@ -267,7 +267,7 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
         cache(cacheResults, Keys.Namespace.INSTANCES.ns, cachedInstances)
       } else {
         def replicationControllerName = replicationController.metadata.name
-        def pods = loadPods(replicationControllerName)
+        def pods = loadPods(replicationController)
         def names = Names.parseName(replicationControllerName)
         def applicationName = names.app
         def clusterName = names.cluster
@@ -295,7 +295,7 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
         }
 
         pods.forEach { pod ->
-          def key = Keys.getInstanceKey(accountName, namespace, replicationControllerName, pod.metadata.name)
+          def key = Keys.getInstanceKey(accountName, namespace, pod.metadata.name)
           instanceKeys << key
           cachedInstances[key].with {
             relationships[Keys.Namespace.APPLICATIONS.ns].add(applicationKey)

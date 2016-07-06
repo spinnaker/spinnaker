@@ -294,7 +294,7 @@ class KubernetesJobCachingAgent implements CachingAgent, OnDemandAgent, AccountA
         }
 
         pods.forEach { pod ->
-          def key = Keys.getProcessKey(accountName, namespace, jobName, pod.metadata.name)
+          def key = Keys.getProcessKey(accountName, namespace, pod.metadata.name)
           processKeys << key
           cachedProcesses[key].with {
             relationships[Keys.Namespace.APPLICATIONS.ns].add(applicationKey)

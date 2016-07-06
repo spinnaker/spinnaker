@@ -73,7 +73,7 @@ class Keys {
             name: parts[5],
             cluster: parts[5],
             stack: names.stack,
-            detail: names.detail
+            detail: names.detail,
         ]
         break
       case Namespace.JOBS.ns:
@@ -81,39 +81,39 @@ class Keys {
         result << [
             application: names.app,
             account: parts[2],
-            name: parts[4],
             namespace: parts[3],
+            region: parts[3],
+            name: parts[4],
+            job: parts[4],
             stack: names.stack,
             cluster: names.cluster,
             detail: names.detail,
             sequence: names.sequence?.toString(),
-            job: parts[4],
-            region: parts[3]
         ]
         break
       case Namespace.SERVER_GROUPS.ns:
         def names = Names.parseName(parts[4])
         result << [
-            application: names.app,
             account: parts[2],
             name: parts[4],
             namespace: parts[3],
+            region: parts[3],
+            serverGroup: parts[4],
+            application: names.app,
             stack: names.stack,
             cluster: names.cluster,
             detail: names.detail,
             sequence: names.sequence?.toString(),
-            serverGroup: parts[4],
-            region: parts[3]
         ]
         break
       case Namespace.LOAD_BALANCERS.ns:
         def names = Names.parseName(parts[4])
         result << [
-            application: names.app,
             account: parts[2],
+            namespace: parts[3],
             name: parts[4],
             loadBalancer: parts[4],
-            namespace: parts[3],
+            application: names.app,
             stack: names.stack,
             detail: names.detail
         ]
@@ -121,36 +121,35 @@ class Keys {
       case Namespace.INSTANCES.ns:
         def names = Names.parseName(parts[4])
         result << [
-            application: names.app,
             account: parts[2],
-            serverGroup: parts[4],
             namespace: parts[3],
-            name: parts[5],
-            instanceId: parts[5],
-            region: parts[3]
+            region: parts[3],
+            name: parts[4],
+            instanceId: parts[4],
+            application: names.app,
         ]
         break
       case Namespace.PROCESSES.ns:
         def names = Names.parseName(parts[4])
         result << [
-            application: names.app,
             account: parts[2],
             serverGroup: parts[4],
             namespace: parts[3],
             name: parts[5],
             processId: parts[5],
-            region: parts[3]
+            region: parts[3],
+            application: names.app,
         ]
         break
       case Namespace.SECURITY_GROUPS.ns:
         def names = Names.parseName(parts[4])
         result << [
-            application: names.app,
             account: parts[2],
             namespace: parts[3],
             region: parts[3],
             name: parts[4],
-            id: parts[4]
+            id: parts[4],
+            application: names.app,
         ]
         break
       default:
@@ -181,12 +180,12 @@ class Keys {
     "${Namespace.provider}:${Namespace.LOAD_BALANCERS}:${account}:${namespace}:${serviceName}"
   }
 
-  static String getInstanceKey(String account, String namespace, String replicationControllerName, String name) {
-    "${Namespace.provider}:${Namespace.INSTANCES}:${account}:${namespace}:${replicationControllerName}:${name}"
+  static String getInstanceKey(String account, String namespace, String name) {
+    "${Namespace.provider}:${Namespace.INSTANCES}:${account}:${namespace}:${name}"
   }
 
-  static String getProcessKey(String account, String namespace, String jobName, String name) {
-    "${Namespace.provider}:${Namespace.PROCESSES}:${account}:${namespace}:${jobName}:${name}"
+  static String getProcessKey(String account, String namespace, String name) {
+    "${Namespace.provider}:${Namespace.PROCESSES}:${account}:${namespace}:${name}"
   }
 
   static String getSecurityGroupKey(String account, String namespace, String ingressName) {

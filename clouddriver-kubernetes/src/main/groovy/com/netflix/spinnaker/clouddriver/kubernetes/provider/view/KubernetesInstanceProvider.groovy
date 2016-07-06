@@ -41,9 +41,9 @@ class KubernetesInstanceProvider implements InstanceProvider<KubernetesInstance>
 
   @Override
   KubernetesInstance getInstance(String account, String namespace, String name) {
-    Set<CacheData> instances = KubernetesProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.INSTANCES.ns, Keys.getInstanceKey(account, namespace, "*", name))
+    Set<CacheData> instances = KubernetesProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.INSTANCES.ns, Keys.getInstanceKey(account, namespace, name))
     if (!instances || instances.size() == 0) {
-      instances = KubernetesProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.PROCESSES.ns, Keys.getProcessKey(account, namespace, "*", name))
+      instances = KubernetesProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.PROCESSES.ns, Keys.getProcessKey(account, namespace, name))
       if (!instances || instances.size() == 0) {
         return null
       }

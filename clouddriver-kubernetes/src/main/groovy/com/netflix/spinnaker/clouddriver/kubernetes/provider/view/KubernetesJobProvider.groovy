@@ -56,8 +56,9 @@ class KubernetesJobProvider implements JobProvider<KubernetesJob> {
 
     def securityGroups = KubernetesClusterProvider.loadBalancerToSecurityGroupMap(securityGroupProvider, cacheView, allLoadBalancers)
 
-    Set<CacheData> processes = KubernetesProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.PROCESSES.ns,
-                                                                                Keys.getProcessKey(account, location, (String)jobData.attributes.name, "*"))
+    Set<CacheData> processes = KubernetesClusterProvider.resolveRelationshipDataForCollection(cacheView, [jobData],
+                                                                                              Keys.Namespace.INSTANCES.ns,
+                                                                                              RelationshipCacheFilter.none())
 
     def job = objectMapper.convertValue(jobData.attributes.job, Job)
     def res = new KubernetesJob(job, KubernetesProviderUtils.controllerToInstanceMap(objectMapper, processes)[(String)jobData.attributes.name], account)

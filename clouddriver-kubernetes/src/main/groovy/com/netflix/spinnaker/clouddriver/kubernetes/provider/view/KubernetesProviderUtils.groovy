@@ -48,15 +48,19 @@ class KubernetesProviderUtils {
     relationships ? cacheView.getAll(relationship, relationships, cacheFilter) : []
   }
 
+  static KubernetesInstance convertInstance(ObjectMapper objectMapper, CacheData instance) {
+    def pod = objectMapper.convertValue(instance.attributes.pod, Pod)
+    def loadBalancers = instance.relationships[Keys.Namespace.LOAD_BALANCERS.ns].collect {
+      Keys.parse(it).name
+    }
+
+    return new KubernetesInstance(pod, loadBalancers)
+  }
+
   static Map<String, Set<KubernetesInstance>> controllerToInstanceMap(ObjectMapper objectMapper, Collection<CacheData> instances) {
     Map<String, Set<KubernetesInstance>> instanceMap = [:].withDefault { _ -> [] as Set }
     instances?.forEach {
-      def pod = objectMapper.convertValue(it.attributes.pod, Pod)
-      def loadBalancers = it.relationships[Keys.Namespace.LOAD_BALANCERS.ns].collect {
-        Keys.parse(it).name
-      }
-
-      KubernetesInstance instance = new KubernetesInstance(pod, loadBalancers)
+      def instance = convertInstance(objectMapper, it)
       instanceMap[instance.controllerName].add(instance)
     }
     return instanceMap

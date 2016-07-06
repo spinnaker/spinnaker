@@ -133,18 +133,18 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
   }
 
   private Map<String, Set<KubernetesServerGroup>> translateServerGroups(Collection<CacheData> serverGroupData) {
-    Collection<CacheData> allInstances = resolveRelationshipDataForCollection(cacheView, serverGroupData, Keys.Namespace.INSTANCES.ns, RelationshipCacheFilter.none())
     Collection<CacheData> allLoadBalancers = resolveRelationshipDataForCollection(cacheView, serverGroupData, Keys.Namespace.LOAD_BALANCERS.ns, RelationshipCacheFilter.include(Keys.Namespace.SECURITY_GROUPS.ns))
-
-    Map<String, Set<KubernetesInstance>> instances = KubernetesProviderUtils.controllerToInstanceMap(objectMapper, allInstances)
-
     def securityGroups = loadBalancerToSecurityGroupMap(securityGroupProvider, cacheView, allLoadBalancers)
 
     Map<String, Set<KubernetesServerGroup>> serverGroups = [:].withDefault { _ -> [] as Set }
-    serverGroupData.forEach {
-      def replicationController = objectMapper.convertValue(it.attributes.replicationController, ReplicationController)
-      def parse = Keys.parse(it.id)
-      def serverGroup = new KubernetesServerGroup(replicationController, instances[(String) it.attributes.name], parse.account)
+    serverGroupData.forEach { cacheData ->
+      def replicationController = objectMapper.convertValue(cacheData.attributes.replicationController, ReplicationController)
+      Collection<CacheData> instances = resolveRelationshipDataForCollection(cacheView, [cacheData], Keys.Namespace.INSTANCES.ns, RelationshipCacheFilter.none())
+      def parse = Keys.parse(cacheData.id)
+      def serverGroup = new KubernetesServerGroup(replicationController, instances.collect { it ->
+        KubernetesProviderUtils.convertInstance(objectMapper, it)
+      } as Set, parse.account)
+
       serverGroup.loadBalancers?.each {
         serverGroup.securityGroups.addAll(securityGroups[it])
       }
@@ -196,13 +196,15 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
     }
 
     Collection<CacheData> allLoadBalancers = resolveRelationshipDataForCollection(cacheView, [serverGroupData], Keys.Namespace.LOAD_BALANCERS.ns, RelationshipCacheFilter.include(Keys.Namespace.SECURITY_GROUPS.ns))
+    Collection<CacheData> instances = resolveRelationshipDataForCollection(cacheView, [serverGroupData], Keys.Namespace.INSTANCES.ns, RelationshipCacheFilter.none())
 
     def securityGroups = loadBalancerToSecurityGroupMap(securityGroupProvider, cacheView, allLoadBalancers)
 
-    Set<CacheData> instances = KubernetesProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.INSTANCES.ns, Keys.getInstanceKey(account, namespace, name, "*"))
-
     def replicationController = objectMapper.convertValue(serverGroupData.attributes.replicationController, ReplicationController)
-    def res = new KubernetesServerGroup(replicationController, KubernetesProviderUtils.controllerToInstanceMap(objectMapper, instances)[name], account)
+    def res = new KubernetesServerGroup(replicationController, instances.collect { it ->
+      KubernetesProviderUtils.convertInstance(objectMapper, it)
+    } as Set, account)
+
     res.loadBalancers?.each {
       res.securityGroups.addAll(securityGroups[it])
     }

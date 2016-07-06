@@ -172,6 +172,12 @@ class KubernetesApiAdaptor {
     }
   }
 
+  List<Pod> getPods(String namespace, Map<String, String> labels) {
+    atomicWrapper("Get Pods matching $labels", namespace) { KubernetesClient client ->
+      client.pods().inNamespace(namespace).withLabels(labels).list().items
+    }
+  }
+
   boolean deletePod(String namespace, String name) {
     atomicWrapper("Delete Pod $name", namespace) { KubernetesClient client ->
       client.pods().inNamespace(namespace).withName(name).delete()
