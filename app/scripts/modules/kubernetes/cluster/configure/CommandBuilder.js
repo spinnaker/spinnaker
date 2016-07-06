@@ -29,9 +29,7 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
     }
 
     function applyHealthProviders(application, command) {
-      if (application && application.attributes && application.attributes.platformHealthOnly) {
-        command.interestingHealthProviderNames = ['Kubernetes'];
-      }
+      command.interestingHealthProviderNames = ['KubernetesContainer', 'KubernetesPod'];
     }
 
     function buildNewClusterCommand(application, defaults = {}) {

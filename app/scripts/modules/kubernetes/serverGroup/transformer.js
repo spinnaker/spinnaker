@@ -22,7 +22,6 @@ module.exports = angular
       delete command.viewState;
       delete command.backingData;
       delete command.selectedProvider;
-      delete command.interestingHealthProviderNames;
 
       command.region = command.namespace;
 
