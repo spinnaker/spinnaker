@@ -53,9 +53,10 @@ import citest.service_testing as st
 # Spinnaker modules.
 import spinnaker_testing as sk
 import spinnaker_testing.gate as gate
+import google_quota_test as quota
 
 
-class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
+class GoogleSmokeTestScenario(quota.GoogleQuotaTestScenario):
   """Defines the scenario for the smoke test.
 
   This scenario defines the different test operations.
@@ -367,7 +368,10 @@ def main():
   return st.ScenarioTestRunner.main(
       GoogleSmokeTestScenario,
       default_binding_overrides=defaults,
-      test_case_list=[GoogleSmokeTest])
+      test_case_list=[
+        quota.GoogleQuotaTest,
+        GoogleSmokeTest
+      ])
 
 
 if __name__ == '__main__':

@@ -378,6 +378,11 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     it is testing.
     """
     # pylint: disable=bad-indentation
+
+    # For read-only tests that don't make mutating calls to Spinnaker,
+    # there is nothing to update in the bindings, e.g. GCP quota test.
+    if agent is None:
+      return
     for key, value in agent.runtime_config.items():
         try:
           if self.bindings[key]:

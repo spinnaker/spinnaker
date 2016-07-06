@@ -10,9 +10,10 @@ import citest.service_testing as st
 # Spinnaker modules.
 import spinnaker_testing as sk
 import spinnaker_testing.gate as gate
+import google_quota_test as quota
 
 
-class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
+class GoogleServerGroupTestScenario(quota.GoogleQuotaTestScenario):
 
   @classmethod
   def new_agent(cls, bindings):
@@ -375,7 +376,8 @@ def main():
   return st.ScenarioTestRunner.main(
       GoogleServerGroupTestScenario,
       default_binding_overrides=defaults,
-      test_case_list=[GoogleServerGroupTest])
+      test_case_list=[quota.GoogleQuotaTest,
+                      GoogleServerGroupTest])
 
 
 if __name__ == '__main__':
