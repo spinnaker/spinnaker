@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
   require('../../transformer.js'),
   require('../../../../core/region/regionSelectField.directive.js'),
   require('../../../subnet/subnetSelectField.directive.js'),
-  require('../../../floatingIp/floatingIpSelectField.directive.js'),
+  require('../../../network/networkSelectField.directive.js'),
   require('../../../common/isolateForm.directive.js'),
 ])
   .controller('openstackUpsertLoadBalancerController', function($scope, $uibModalInstance, $state,

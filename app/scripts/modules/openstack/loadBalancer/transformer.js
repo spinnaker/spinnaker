@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', 
         stack: '',
         detail: '',
         subnetId: '',
-        floatingIpId: '',
+        networkId: '',
         protocol: 'HTTPS',
         externalPort: 443,
         internalPort: 443,
@@ -46,6 +46,10 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', 
 
     function convertLoadBalancerForEditing(loadBalancer) {
       loadBalancer.healthMonitor = _.defaults(loadBalancer.healthMonitor || {}, defaults.healthMonitor);
+
+      //TODO: get from network
+      loadBalancer.ipAddress = '0.0.0.0';
+
       _.defaults(loadBalancer, defaults);
       return loadBalancer;
     }

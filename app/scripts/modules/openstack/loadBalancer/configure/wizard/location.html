@@ -52,7 +52,7 @@
         </div>
       </div>
 
-      <os-subnet-select-field model="loadBalancer.subnetId" filter="subnetFilter" onChange="ctrl.onSubnetChanged()"></os-subnet-select-field>
+      <os-subnet-select-field model="loadBalancer.subnetId" filter="subnetFilter"></os-subnet-select-field>
 
       <div class="form-group">
         <div class="col-md-7 col-md-offset-3" ng-if="locationForm.stackName.$error.pattern">

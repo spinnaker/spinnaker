@@ -39,7 +39,7 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
       stack: '',
       detail: '',
       subnetId: '',
-      floatingIpId: '',
+      networkId: '',
       protocol: 'HTTPS',
       externalPort: 443,
       internalPort: 443,
@@ -221,7 +221,7 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
               this.ctrl.onSubnetChanged();
             });
 
-            it('loads the list of floating IPs', function() {
+            it('loads the list of networks', function() {
               //TODO (jcwest)... work in progress.... may not be needed
             });
           });
@@ -269,10 +269,6 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
             it('- updates the subnet filter', function() {
               expect(this.$scope.subnetFilter).toEqual({type: 'openstack', account: this.$scope.loadBalancer.account, region: this.$scope.loadBalancer.region});
             });
-          });
-
-          describe('& subnet selection changed', function() {
-            //TODO(jcwest): loads floating IPs
           });
 
           describe('& submit() called', function() {
@@ -406,7 +402,7 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
       expect(this.$scope.isNew).toBeFalsy();
       expect(this.$scope.regions).toEqual([]);
       expect(this.$scope.subnetFilter).toEqual({});
-      expect(this.$scope.loadBalancer).toEqual(_.defaults(angular.copy(this.testData.loadBalancerList[3]),this.loadBalancerDefaults));
+      expect(this.$scope.loadBalancer).toEqual(_.defaults(angular.copy(this.testData.loadBalancerList[3]), _.defaults({ipAddress: '0.0.0.0'},this.loadBalancerDefaults)));
     });
 
     describe('& account list returned', function() {

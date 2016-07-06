@@ -33,15 +33,11 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.details.contro
       }
     }
 
-    function resolveFloatingIp() {
+    function resolveNetwork() {
       $scope.lbLink = undefined;
-      if ($scope.loadBalancer.floatingIpId ) {
-        //TODO (jcwest): resolve floating IP from ID... waiting for back-end API to be available
-        $scope.floatingIp = undefined;
-
-        if( $scope.floatingIp && $scope.loadBalancer.protocol.substring(0,4).toLowerCase() === 'http' ) {
-          $scope.lbLink = $scope.loadBalancer.protocol.toLowerCase() + '://' + $scope.floatingIp.address + ':' + $scope.loadBalancer.externalPort + '/';
-        }
+      if ($scope.loadBalancer.networkId) {
+        //TODO (jcwest): resolve network ID ... waiting for back-end API to be available
+        $scope.network = $scope.loadBalancer.networkId;
       }
     }
 
@@ -56,8 +52,12 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.details.contro
         $scope.loadBalancer = appLoadBalancer;
         $scope.state.loading = false;
 
+      if($scope.loadBalancer.protocol.substring(0,4).toLowerCase() === 'http') {
+        $scope.lbLink = $scope.loadBalancer.protocol.toLowerCase() + '://' + $scope.loadBalancer.ipAddress + ':' + $scope.loadBalancer.externalPort + '/';
+      }
+
         resolveSubnet();
-        resolveFloatingIp();
+        resolveNetwork();
       } else {
         autoClose();
       }
