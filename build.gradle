@@ -37,7 +37,7 @@ repositories {
 dependencies {
   compile gradleApi()
   compile localGroovy()
-  compile 'com.netflix.nebula:gradle-netflixoss-project-plugin:latest.release'
+  compile 'com.netflix.nebula:gradle-netflixoss-project-plugin:3.2.3'
   compile 'com.netflix.nebula:gradle-ospackage-plugin:latest.release'
   compile 'com.netflix.nebula:nebula-ospackage-plugin:latest.release'
   compile 'com.jfrog.bintray.gradle:gradle-bintray-plugin:latest.release'
