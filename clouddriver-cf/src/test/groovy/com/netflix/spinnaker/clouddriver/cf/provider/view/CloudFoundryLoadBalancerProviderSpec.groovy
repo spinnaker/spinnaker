@@ -33,9 +33,7 @@ import spock.lang.Specification
 
 import static com.netflix.spinnaker.clouddriver.cf.provider.ProviderUtils.buildNativeApplication
 import static com.netflix.spinnaker.clouddriver.cf.provider.ProviderUtils.mapToMeta
-/**
- * @author Greg Turnquist
- */
+
 class CloudFoundryLoadBalancerProviderSpec extends Specification {
 
 	private static final ACCOUNT_NAME = "test"

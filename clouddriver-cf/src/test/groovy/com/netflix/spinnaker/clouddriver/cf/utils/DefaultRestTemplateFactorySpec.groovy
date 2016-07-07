@@ -20,9 +20,6 @@ import org.springframework.test.util.ReflectionTestUtils
 import org.springframework.web.client.RestTemplate
 import spock.lang.Specification
 
-/**
- * @author Greg Turnquist
- */
 class DefaultRestTemplateFactorySpec extends Specification {
 
   void "should create a RestTemplate with buffering switched off"() {

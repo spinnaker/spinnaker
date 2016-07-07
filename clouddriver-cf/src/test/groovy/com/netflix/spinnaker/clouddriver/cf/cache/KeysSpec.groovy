@@ -19,10 +19,6 @@ package com.netflix.spinnaker.clouddriver.cf.cache
 import spock.lang.Specification
 import spock.lang.Unroll
 
-
-/**
- * @author Greg Turnquist
- */
 class KeysSpec extends Specification {
 
   @Unroll

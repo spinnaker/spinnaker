@@ -26,7 +26,6 @@ import org.cloudfoundry.client.lib.domain.CloudApplication
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 
-
 class DestroyCloudFoundryServerGroupAtomicOperation implements AtomicOperation<Void> {
 
   private static final String BASE_PHASE = "DESTROY_SERVER_GROUP"

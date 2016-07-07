@@ -36,9 +36,7 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.*
 import static com.netflix.spinnaker.clouddriver.cf.provider.ProviderUtils.buildNativeApplication
 import static com.netflix.spinnaker.clouddriver.cf.provider.ProviderUtils.mapToMeta
-/**
- * @author Greg Turnquist
- */
+
 class ClusterCachingAgentSpec extends Specification {
 
   CloudFoundryClient client

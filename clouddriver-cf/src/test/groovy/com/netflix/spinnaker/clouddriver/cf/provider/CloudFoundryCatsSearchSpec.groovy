@@ -31,9 +31,7 @@ import spock.lang.Specification
 
 import static com.netflix.spinnaker.clouddriver.cf.provider.ProviderUtils.buildNativeApplication
 import static com.netflix.spinnaker.clouddriver.cf.provider.ProviderUtils.mapToMeta
-/**
- * @author Greg Turnquist
- */
+
 class CloudFoundryCatsSearchSpec extends Specification {
 
   CloudFoundryClient client

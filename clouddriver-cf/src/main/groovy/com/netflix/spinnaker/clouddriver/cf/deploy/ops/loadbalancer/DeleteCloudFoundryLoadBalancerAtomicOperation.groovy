@@ -23,9 +23,6 @@ import com.netflix.spinnaker.clouddriver.cf.deploy.description.DeleteCloudFoundr
 import com.netflix.spinnaker.clouddriver.cf.utils.CloudFoundryClientFactory
 import org.springframework.beans.factory.annotation.Autowired
 
-/**
- * @author Greg Turnquist
- */
 class DeleteCloudFoundryLoadBalancerAtomicOperation implements AtomicOperation<Void> {
 
   private static final String BASE_PHASE = "DELETE_LOAD_BALANCER"

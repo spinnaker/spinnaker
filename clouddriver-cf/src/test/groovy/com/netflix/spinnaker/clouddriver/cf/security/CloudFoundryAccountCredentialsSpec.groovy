@@ -17,9 +17,7 @@
 package com.netflix.spinnaker.clouddriver.cf.security
 
 import spock.lang.Specification
-/**
- * @author Greg Turnquist
- */
+
 class CloudFoundryAccountCredentialsSpec extends Specification {
 
   void "verify basic behavior"() {

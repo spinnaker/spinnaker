@@ -28,9 +28,6 @@ import spock.lang.Specification
 
 import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.LOAD_BALANCERS
 
-/**
- * @author Greg Turnquist
- */
 class CloudFoundryLoadBalancerControllerSpec extends Specification {
 
   @Shared

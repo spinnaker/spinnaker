@@ -30,9 +30,7 @@ import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.cats.cache.RelationshipCacheFilter.include
 import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.*
-/**
- * @author Greg Turnquist
- */
+
 @Component
 class CloudFoundryLoadBalancerProvider implements LoadBalancerProvider<CloudFoundryLoadBalancer> {
 

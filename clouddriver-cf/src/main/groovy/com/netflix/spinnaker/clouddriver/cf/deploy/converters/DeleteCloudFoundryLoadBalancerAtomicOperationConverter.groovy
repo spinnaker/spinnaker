@@ -23,9 +23,7 @@ import com.netflix.spinnaker.clouddriver.cf.deploy.description.DeleteCloudFoundr
 import com.netflix.spinnaker.clouddriver.cf.deploy.ops.loadbalancer.DeleteCloudFoundryLoadBalancerAtomicOperation
 import org.springframework.stereotype.Component
 
-/**
- * @author Greg Turnquist
- */
+
 @CloudFoundryOperation(AtomicOperations.DELETE_LOAD_BALANCER)
 @Component("deleteCloudFoundryLoadBalancerDescription")
 class DeleteCloudFoundryLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {

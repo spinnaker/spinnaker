@@ -46,9 +46,6 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.*
 
-/**
- * @author Greg Turnquist
- */
 class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
 
   final static Logger log = LoggerFactory.getLogger(ClusterCachingAgent)

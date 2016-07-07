@@ -24,9 +24,6 @@ import com.netflix.spinnaker.clouddriver.cf.deploy.description.UpsertCloudFoundr
 import com.netflix.spinnaker.clouddriver.cf.deploy.ops.loadbalancer.UpsertCloudFoundryLoadBalancerAtomicOperation
 import org.springframework.stereotype.Component
 
-/**
- * @author Greg Turnquist
- */
 @CloudFoundryOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
 @Component("upsertCloudFoundryLoadBalancerDescription")
 class UpsertCloudFoundryLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {

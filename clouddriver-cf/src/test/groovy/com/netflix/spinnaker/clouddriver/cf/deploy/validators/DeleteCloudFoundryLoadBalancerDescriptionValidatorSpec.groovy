@@ -24,9 +24,6 @@ import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
-/**
- * @author Greg Turnquist
- */
 class DeleteCloudFoundryLoadBalancerDescriptionValidatorSpec extends Specification {
 
   private static final LOAD_BALANCER_NAME = "service-registry"

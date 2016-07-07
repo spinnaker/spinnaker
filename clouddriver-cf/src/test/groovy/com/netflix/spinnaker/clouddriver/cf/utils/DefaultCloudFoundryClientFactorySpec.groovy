@@ -19,9 +19,7 @@ import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredenti
 import org.cloudfoundry.client.lib.CloudFoundryException
 import org.springframework.http.HttpStatus
 import spock.lang.Specification
-/**
- * @author Greg Turnquist
- */
+
 class DefaultCloudFoundryClientFactorySpec extends Specification {
 
   void "fails to connect to PWS with fake credentials"() {

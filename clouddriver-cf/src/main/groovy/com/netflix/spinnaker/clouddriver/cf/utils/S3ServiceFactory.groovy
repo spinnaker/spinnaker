@@ -19,9 +19,6 @@ package com.netflix.spinnaker.clouddriver.cf.utils
 import org.jets3t.service.S3Service
 import org.jets3t.service.security.AWSCredentials
 
-/**
- * @author Greg Turnquist
- */
 interface S3ServiceFactory {
 
   S3Service createS3Service(AWSCredentials credentials)
