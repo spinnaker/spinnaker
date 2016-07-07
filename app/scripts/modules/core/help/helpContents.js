@@ -245,8 +245,6 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.findAmi.imageNamePattern': 'A regex used to match the name of the image. Must result in exactly one match to succeed. Empty is treated as match any.',
     'pipeline.config.dependsOn': 'Declares which stages must be run <em>before</em> this stage begins.',
     'pipeline.config.fastProperty.rollback': 'Enables the Fast Property to be rolled back to it previous state when the pipeline completes.',
-    'pipeline.config.parallel.execution': '<p>Enabling parallel stage execution allows you to run stages only after dependent ' +
-      'stages have completed.</p><p>By configuring a pipeline this way, you can reduce the time it takes to run.</p>',
     'pipeline.config.parallel.cancel.queue': '<p>If concurrent pipeline execution is disabled, then the pipelines that are in the waiting queue will get canceled by default. <br><br>Check this box if you want to keep them in the queue.</p>',
     'pipeline.config.timeout': '<p>Allows you to override the amount of time the stage can run before failing.</p> ' +
     '<p><b>Note:</b> this is not the overall time the stage has, but rather the time for specific tasks.</p>',

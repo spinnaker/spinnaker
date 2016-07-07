@@ -60,19 +60,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
         });
     };
 
-    this.disableParallel = function() {
-      $uibModal.open({
-        templateUrl: require('./actions/disableParallel/disableParallel.html'),
-        controller: 'DisableParallelModalCtrl',
-        controllerAs: 'disableParallelModalCtrl',
-        resolve: {
-          pipeline: function() { return $scope.pipeline; },
-        }
-      }).result.then(function() {
-          $scope.$broadcast('pipeline-parallel-changed');
-        });
-    };
-
     this.deletePipeline = function() {
       $uibModal.open({
         templateUrl: require('./actions/delete/deletePipelineModal.html'),
