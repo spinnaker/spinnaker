@@ -18,7 +18,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       return getFilteredExecutions(applicationName, {statuses: activeStatuses, limit: runningLimit});
     }
 
-    function getFilteredExecutions(applicationName, {statuses = Object.keys(ExecutionFilterModel.sortFilter.status), limit = ExecutionFilterModel.sortFilter.count} = {}) {
+    function getFilteredExecutions(applicationName, {statuses = Object.keys(ExecutionFilterModel.sortFilter.status || {}), limit = ExecutionFilterModel.sortFilter.count} = {}) {
       let url = [ settings.gateUrl, 'applications', applicationName, `pipelines?limit=${limit}`].join('/');
       if (statuses.length) {
         url += '&statuses=' + statuses.map((status) => status.toUpperCase()).join(',');
