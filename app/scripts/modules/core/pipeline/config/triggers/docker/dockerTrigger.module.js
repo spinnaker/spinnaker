@@ -3,6 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
+    require('../../../../../core/utils/lodash'),
     require('../../../../../core/config/settings.js'),
     require('../../../../../docker/image/image.reader.js'),
     require('./dockerTriggerOptions.directive.js'),
@@ -27,7 +28,7 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
       selectorTemplate: require('./selectorTemplate.html'),
     };
   })
-  .controller('DockerTriggerCtrl', function (trigger, $scope, dockerImageReader) {
+  .controller('DockerTriggerCtrl', function (trigger, $scope, dockerImageReader, _) {
     $scope.viewState = {
       imagesLoaded: false,
       imagesRefreshing: false,
@@ -58,7 +59,7 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
     }
 
     function updateTag() {
-      if (trigger.tag !== null && trigger.tag.trim() === '') {
+      if (_.trim(trigger.tag) === '') {
         trigger.tag = null;
       }
     }
