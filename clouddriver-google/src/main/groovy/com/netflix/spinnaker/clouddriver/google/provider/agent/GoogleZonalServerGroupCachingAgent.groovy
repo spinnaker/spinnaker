@@ -217,7 +217,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
       evictions[SERVER_GROUPS.ns].addAll(identifiers)
     }
 
-    log.info("On demand cache refresh succeeded. Data: ${data}")
+    log.info("On demand cache refresh succeeded. Data: ${data}. Added ${serverGroup ? 1 : 0} items to the cache.")
 
     return new OnDemandAgent.OnDemandResult(
         sourceAgentType: getOnDemandAgentType(),
