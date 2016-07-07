@@ -266,7 +266,7 @@ running-tasks-tag {
   border: 1px solid #777777;
   padding: 0;
   border-radius: 3px;
-  box-shadow: 0px 0px 5px 2px #dddddd;
+  box-shadow: 0 0 2px 0 #dddddd;
   min-width: 150px;
   div {
     font-weight: 600;
@@ -326,7 +326,7 @@ load-balancers-tag {
 
   .btn-multiple-load-balancers {
     text-align: right;
-    margin-right: 15px;
+    margin-right: 3px;
     &:hover {
       text-decoration: none;
     }
@@ -336,18 +336,16 @@ load-balancers-tag {
     .icon-elb {
       height: 0;
       width: 0;
-      &::before {
-        text-shadow: #2A6496 0 0 1px;
-      }
     }
     .counter {
-      color: #2A6496;
+      color: @spinnaker-link-color;
       background-color: #fff;
-      box-shadow: 0 0 2px #2A6496;
-      right: -28px;
-      font-size: 90%;
+      border: 1px solid @spinnaker-link-color;
+      right: 0;
+      top: -3px;
+      font-size: 100%;
       padding: 1px 4px;
-      border-radius: 6px;
+      border-radius: 4px;
     }
     span {
       position: relative;

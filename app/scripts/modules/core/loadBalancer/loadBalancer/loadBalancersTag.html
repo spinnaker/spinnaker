@@ -4,9 +4,11 @@
       ng-if="serverGroup.loadBalancers.length > maxDisplay"
       ng-click="popover.show = !popover.show; $event.stopPropagation();"
       uib-tooltip="{{popover.show ? 'Hide' : 'Show'}} all {{serverGroup.loadBalancers.length}} load balancers">
-    <span class="badge counter">{{serverGroup.loadBalancers.length}}</span>
-    <span class="icon">
-      <span class="icon-elb"></span>
+    <span class="badge counter">
+      <span class="icon">
+        <span class="icon-elb"></span>
+      </span>
+      {{serverGroup.loadBalancers.length}}
     </span>
   </button>
   <div class="menu-load-balancers" ng-if="popover.show">
