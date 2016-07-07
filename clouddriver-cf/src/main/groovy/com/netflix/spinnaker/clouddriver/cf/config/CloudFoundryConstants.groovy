@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cf.config
 
-/**
- * @author Greg Turnquist
- */
 class CloudFoundryConstants {
 
   /**

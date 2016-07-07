@@ -20,9 +20,7 @@ import org.jets3t.service.impl.rest.httpclient.RestS3Service
 import org.jets3t.service.security.AWSCredentials
 import org.springframework.test.util.ReflectionTestUtils
 import spock.lang.Specification
-/**
- * @author Greg Turnquist
- */
+
 class DefaultS3ServiceFactorySpec extends Specification {
 
   void "handles null AWS credentials"() {

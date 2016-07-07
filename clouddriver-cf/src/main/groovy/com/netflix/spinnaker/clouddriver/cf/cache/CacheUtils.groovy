@@ -36,9 +36,6 @@ import org.cloudfoundry.client.lib.domain.InstanceInfo
 
 import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.*
 
-/**
- * @author Greg Turnquist
- */
 class CacheUtils {
 
   static Collection<CloudFoundryCluster> translateClusters(Cache cacheView, Collection<CacheData> clusterData, boolean includeDetails) {

@@ -30,9 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.*
-/**
- * @author Greg Turnquist
- */
+
 @Component
 class CloudFoundryClusterProvider implements ClusterProvider<CloudFoundryCluster> {
 

@@ -25,7 +25,6 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.validation.Errors
 import spock.lang.Specification
 
-
 class DestroyOpenstackAtomicOperationValidatorSpec extends Specification {
 
   Errors errors

@@ -20,9 +20,7 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import org.cloudfoundry.client.lib.domain.*
-/**
- * @author Greg Turnquist
- */
+
 class ProviderUtils {
 
   static CloudApplication buildNativeApplication(Map serverGroupData) {

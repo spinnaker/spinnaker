@@ -23,9 +23,6 @@ import com.netflix.spinnaker.clouddriver.cf.deploy.description.UpsertCloudFoundr
 import com.netflix.spinnaker.clouddriver.cf.utils.CloudFoundryClientFactory
 import org.springframework.beans.factory.annotation.Autowired
 
-/**
- * @author Greg Turnquist
- */
 class UpsertCloudFoundryLoadBalancerAtomicOperation implements AtomicOperation<Map> {
 
   private static final String BASE_PHASE = "UPSERT_LOAD_BALANCER"

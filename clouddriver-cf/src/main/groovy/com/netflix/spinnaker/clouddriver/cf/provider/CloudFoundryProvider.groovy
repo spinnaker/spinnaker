@@ -23,9 +23,6 @@ import com.netflix.spinnaker.clouddriver.cf.cache.Keys
 import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.CLUSTERS
 import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.SERVER_GROUPS
 
-/**
- * @author Greg Turnquist
- */
 class CloudFoundryProvider extends AgentSchedulerAware implements SearchableProvider {
 
   static final String PROVIDER_NAME = CloudFoundryProvider.name

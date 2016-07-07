@@ -18,10 +18,6 @@ package com.netflix.spinnaker.clouddriver.cf
 
 import spock.lang.Specification
 
-
-/**
- * @author Greg Turnquist
- */
 class CloudFoundryCloudProviderSpec extends Specification {
 
   void "check basics"() {

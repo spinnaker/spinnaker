@@ -22,9 +22,6 @@ import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.cloudfoundry.client.lib.domain.CloudRoute
 
-/**
- * @author Greg Turnquist
- */
 @CompileStatic
 @EqualsAndHashCode(includes = ["name"])
 class CloudFoundryLoadBalancer implements LoadBalancer {

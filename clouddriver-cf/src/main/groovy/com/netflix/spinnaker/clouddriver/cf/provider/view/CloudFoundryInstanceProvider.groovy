@@ -31,9 +31,6 @@ import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.SERVER_GROUPS
 
-/**
- * @author Greg Turnquist
- */
 @Component
 @CompileStatic
 class CloudFoundryInstanceProvider implements InstanceProvider<CloudFoundryApplicationInstance> {

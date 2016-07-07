@@ -25,9 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
-/**
- * @author Greg Turnquist
- */
 @CloudFoundryOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
 @Component("upsertCloudFoundryLoadBalancerDescriptionValidator")
 class UpsertCloudFoundryLoadBalancerDescriptionValidator extends DescriptionValidator<UpsertCloudFoundryLoadBalancerDescription> {

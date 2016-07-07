@@ -20,9 +20,6 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.cf.CloudFoundryCloudProvider
 import groovy.transform.CompileStatic
 
-/**
- * @author Greg Turnquist
- */
 @CompileStatic
 class Keys {
 

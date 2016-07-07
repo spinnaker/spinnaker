@@ -25,9 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
-/**
- * @author Greg Turnquist
- */
 @CloudFoundryOperation(AtomicOperations.DELETE_LOAD_BALANCER)
 @Component("deleteCloudFoundryLoadBalancerDescriptionValidator")
 class DeleteCloudFoundryLoadBalancerDescriptionValidator extends DescriptionValidator<DeleteCloudFoundryLoadBalancerDescription> {

@@ -18,9 +18,6 @@ package com.netflix.spinnaker.clouddriver.cf.deploy.description
 
 import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
 
-/**
- * @author Greg Turnquist
- */
 class DeleteCloudFoundryLoadBalancerDescription {
   String loadBalancerName
   String region

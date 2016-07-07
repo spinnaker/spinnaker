@@ -34,9 +34,7 @@ import org.springframework.context.annotation.DependsOn
 import org.springframework.context.annotation.Scope
 
 import java.util.concurrent.ConcurrentHashMap
-/**
- * @author Greg Turnquist
- */
+
 @Configuration
 class CloudFoundryProviderConfig {
 
