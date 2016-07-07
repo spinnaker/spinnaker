@@ -68,6 +68,20 @@ module.exports = function($provide) {
         //Set reference to ngModel from uiSelectCtrl
         $select.ngModel = ngModel;
 
+        if (angular.isDefined(attrs.required)) {
+          $select.ngModel.$validators.validateRequired = (modelValue) => {
+            if (angular.isDefined(modelValue)) {
+              if (angular.isArray(modelValue)) {
+                return modelValue.length > 0;
+              } else {
+                return true;
+              }
+            } else {
+              return false;
+            }
+          };
+        }
+
         $select.choiceGrouped = function(group) {
           return $select.isGrouped && group && group.name;
         };

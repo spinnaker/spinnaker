@@ -1,109 +1,107 @@
-<form name="form" class="container-fluid form-horizontal" ng-controller="kubernetesServerGroupBasicSettingsController as basicSettingsController" novalidate>
-  <ng-form name="basicSettings">
-    <div class="form-group">
-      <div class="col-md-3 sm-label-right">
-        <b>Account</b>
-      </div>
-      <div class="col-md-7">
-        <account-select-field component="command" field="account" accounts="command.backingData.accounts" provider="'kubernetes'"></account-select-field>
-      </div>
+<ng-form name="basicSettings" ng-controller="kubernetesServerGroupBasicSettingsController as basicSettingsController" novalidate>
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right">
+      <b>Account</b>
     </div>
-      <namespace-select-field component="command" field="namespace" account="command.account" namespaces="command.backingData.filtered.namespaces"></namespace-select-field>
-    <div class="form-group">
-      <div class="col-md-3 sm-label-right">
-        Stack
-        <help-field key="kubernetes.serverGroup.stack"></help-field>
-      </div>
-      <div class="col-md-7"><input type="text"
-                                   class="form-control input-sm"
-                                   ng-pattern="basicSettingsController.stackPattern"
-                                   name="stack"
-                                   ng-model="command.stack"/></div>
+    <div class="col-md-7">
+      <account-select-field component="command" field="account" accounts="command.backingData.accounts" provider="'kubernetes'"></account-select-field>
     </div>
-    <div class="form-group row slide-in animated" ng-if="basicSettings.stack.$error.pattern">
-      <div class="col-sm-9 col-sm-offset-2 error-message">
-        <span>Only dot(.) and underscore(_) special characters are allowed in the Stack field.</span>
-      </div>
+  </div>
+    <namespace-select-field component="command" field="namespace" account="command.account" namespaces="command.backingData.filtered.namespaces"></namespace-select-field>
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right">
+      Stack
+      <help-field key="kubernetes.serverGroup.stack"></help-field>
     </div>
-    <div class="form-group">
-      <div class="col-md-3 sm-label-right">
-        Detail
-        <help-field key="kubernetes.serverGroup.detail"></help-field>
-      </div>
-      <div class="col-md-7"><input type="text" class="form-control input-sm"
-                                   ng-pattern="basicSettingsController.detailPattern"
-                                   name="details"
-                                   ng-model="command.freeFormDetails"/></div>
+    <div class="col-md-7"><input type="text"
+                                 class="form-control input-sm"
+                                 ng-pattern="basicSettingsController.stackPattern"
+                                 name="stack"
+                                 ng-model="command.stack"/></div>
+  </div>
+  <div class="form-group row slide-in animated" ng-if="basicSettings.stack.$error.pattern">
+    <div class="col-sm-9 col-sm-offset-2 error-message">
+      <span>Only dot(.) and underscore(_) special characters are allowed in the Stack field.</span>
     </div>
-    <div class="form-group row slide-in animated" ng-if="basicSettings.details.$error.pattern">
-      <div class="col-sm-9 col-sm-offset-2 error-message">
-        <span>Only dot(.), underscore(_), and dash(-) special characters are allowed in the Detail field.</span>
-      </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right">
+      Detail
+      <help-field key="kubernetes.serverGroup.detail"></help-field>
     </div>
+    <div class="col-md-7"><input type="text" class="form-control input-sm"
+                                 ng-pattern="basicSettingsController.detailPattern"
+                                 name="details"
+                                 ng-model="command.freeFormDetails"/></div>
+  </div>
+  <div class="form-group row slide-in animated" ng-if="basicSettings.details.$error.pattern">
+    <div class="col-sm-9 col-sm-offset-2 error-message">
+      <span>Only dot(.), underscore(_), and dash(-) special characters are allowed in the Detail field.</span>
+    </div>
+  </div>
 
-    <div class="col-md-12" ng-if="command.viewState.dirty.containers">
-      <div class="alert alert-warning">
-        <p><span class="glyphicon glyphicon-warning-sign"></span>
-          The following containers are not registered in the above namespace/account and were removed:
-        </p>
-        <ul>
-          <li ng-repeat="removed in command.viewState.dirty.containers">{{removed}}</li>
-        </ul>
-        <p class="text-right">
-          <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="command.viewState.dirty.containers = null">Okay</a>
-        </p>
-      </div>
+  <div class="col-md-12" ng-if="command.viewState.dirty.containers">
+    <div class="alert alert-warning">
+      <p><span class="glyphicon glyphicon-warning-sign"></span>
+        The following containers are not registered in the above namespace/account and were removed:
+      </p>
+      <ul>
+        <li ng-repeat="removed in command.viewState.dirty.containers">{{removed}}</li>
+      </ul>
+      <p class="text-right">
+        <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="command.viewState.dirty.containers = null">Okay</a>
+      </p>
     </div>
+  </div>
 
-    <div class="form-group">
-      <div class="col-md-3 sm-label-right"><b>Containers</b>
-      <help-field key="kubernetes.serverGroup.containers"></help-field>
-      </div>
-      <div class="col-md-9">
-        <ui-select multiple ng-model="command.containers" class="form-control input-sm">
-          <ui-select-match>{{$item.imageDescription.imageId}}</ui-select-match>
-          <ui-select-choices 
-            repeat="container in command.backingData.filtered.containers | filter: { imageDescription: { imageId: $select.search } } | orderBy:'imageDescription.imageId'" 
-            group-by="command.groupByRegistry"
-            refresh="basicSettingsController.searchImages($select.search)">
-            <span ng-bind-html="container.imageDescription.imageId | highlight: $select.search"></span>
-          </ui-select-choices>
-        </ui-select>
-      </div>
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right"><b>Containers</b>
+    <help-field key="kubernetes.serverGroup.containers"></help-field>
     </div>
-    <deployment-strategy-selector label-columns="3" field-columns="9" ng-if="!command.viewState.disableStrategySelection && command.selectedProvider" command="command"></deployment-strategy-selector>
-    <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
-      <div class="col-md-9 col-md-offset-2">
-        <div class="well-compact" ng-class="basicSettingsController.showPreviewAsWarning() ? 'alert alert-warning' : 'well'">
-          <h5 class="text-center">
-            <p>Your server group will be in the cluster:</p>
+    <div class="col-md-9">
+      <ui-select multiple name="containerSelect" ng-model="command.containers" class="form-control input-sm" required>
+        <ui-select-match>{{$item.imageDescription.imageId}}</ui-select-match>
+        <ui-select-choices
+          repeat="container in command.backingData.filtered.containers | filter: { imageDescription: { imageId: $select.search } } | orderBy:'imageDescription.imageId'"
+          group-by="command.groupByRegistry"
+          refresh="basicSettingsController.searchImages($select.search)">
+          <span ng-bind-html="container.imageDescription.imageId | highlight: $select.search"></span>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
+  <deployment-strategy-selector label-columns="3" field-columns="9" ng-if="!command.viewState.disableStrategySelection && command.selectedProvider" command="command"></deployment-strategy-selector>
+  <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
+    <div class="col-md-9 col-md-offset-2">
+      <div class="well-compact" ng-class="basicSettingsController.showPreviewAsWarning() ? 'alert alert-warning' : 'well'">
+        <h5 class="text-center">
+          <p>Your server group will be in the cluster:</p>
+          <p>
+            <strong>
+              {{basicSettingsController.getNamePreview()}}
+              <span ng-if="basicSettingsController.createsNewCluster()"> (new cluster)</span>
+            </strong>
+          </p>
+          <div ng-if="!basicSettingsController.createsNewCluster() && command.viewState.mode === 'create' && latestServerGroup">
             <p>
-              <strong>
-                {{basicSettingsController.getNamePreview()}}
-                <span ng-if="basicSettingsController.createsNewCluster()"> (new cluster)</span>
-              </strong>
+              There is already a server group in this cluster. Do you want to clone it?
             </p>
-            <div ng-if="!basicSettingsController.createsNewCluster() && command.viewState.mode === 'create' && latestServerGroup">
-              <p>
-                There is already a server group in this cluster. Do you want to clone it?
-              </p>
-              <p>
-                Cloning copies the entire configuration from the selected server group, allowing you
-                to modify whichever fields (e.g. image) you need to change in the new server group.
-              </p>
-              <p>
-                To clone a server group, select "Clone" from the "Server Group Actions" menu in the details view of the
-                server group.
-              </p>
-              <p>
-                <a href ng-click="basicSettingsController.navigateToLatestServerGroup()">
-                  Go to details for {{latestServerGroup.name}}
-                </a>
-              </p>
-            </div>
-          </h5>
-        </div>
+            <p>
+              Cloning copies the entire configuration from the selected server group, allowing you
+              to modify whichever fields (e.g. image) you need to change in the new server group.
+            </p>
+            <p>
+              To clone a server group, select "Clone" from the "Server Group Actions" menu in the details view of the
+              server group.
+            </p>
+            <p>
+              <a href ng-click="basicSettingsController.navigateToLatestServerGroup()">
+                Go to details for {{latestServerGroup.name}}
+              </a>
+            </p>
+          </div>
+        </h5>
       </div>
     </div>
-  </ng-form>
-</form>
+  </div>
+</ng-form>
