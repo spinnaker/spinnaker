@@ -101,15 +101,15 @@ class SecurityGroupLookupFactory {
       new SecurityGroupUpdater(newSecurityGroup, amazonEC2)
     }
 
-    SecurityGroupUpdater getSecurityGroupByName(String accountName, String name, String vpcId) {
+    Optional<SecurityGroupUpdater> getSecurityGroupByName(String accountName, String name, String vpcId) {
       final credentials = getCredentialsForName(accountName)
-      if (!credentials) { return null }
+      if (!credentials) { return Optional.empty() }
 
       def amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region, true)
       def cachedSecurityGroupKey = name.toLowerCase() + "." + vpcId
       def cachedSecurityGroup = securityGroupByName.get(cachedSecurityGroupKey)
       if (cachedSecurityGroup) {
-        return new SecurityGroupUpdater(cachedSecurityGroup, amazonEC2)
+        return Optional.of(new SecurityGroupUpdater(cachedSecurityGroup, amazonEC2))
       }
       def describeSecurityGroupsRequest = new DescribeSecurityGroupsRequest().withFilters(
         new Filter("group-name", [name])
@@ -122,20 +122,20 @@ class SecurityGroupLookupFactory {
       if (securityGroup) {
         securityGroupByName[cachedSecurityGroupKey] = securityGroup
         securityGroupById[securityGroup.groupId + "." + vpcId] = securityGroup
-        return new SecurityGroupUpdater(securityGroup, amazonEC2)
+        return Optional.of(new SecurityGroupUpdater(securityGroup, amazonEC2))
       }
-      null
+      Optional.empty()
     }
 
-    SecurityGroupUpdater getSecurityGroupById(String accountName, String groupId, String vpcId) {
+    Optional<SecurityGroupUpdater> getSecurityGroupById(String accountName, String groupId, String vpcId) {
       final credentials = getCredentialsForName(accountName)
-      if (!credentials) { return null }
+      if (!credentials) { return Optional.empty() }
 
       def amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region, true)
       def cachedSecurityGroupKey = groupId.toLowerCase() + "." + vpcId
       def cachedSecurityGroup = securityGroupById.get(cachedSecurityGroupKey)
       if (cachedSecurityGroup) {
-        return new SecurityGroupUpdater(cachedSecurityGroup, amazonEC2)
+        return Optional.of(new SecurityGroupUpdater(cachedSecurityGroup, amazonEC2))
       }
       def describeSecurityGroupsRequest = new DescribeSecurityGroupsRequest().withGroupIds(groupId)
 
@@ -146,9 +146,9 @@ class SecurityGroupLookupFactory {
       if (securityGroup) {
         securityGroupById[cachedSecurityGroupKey] = securityGroup
         securityGroupByName[securityGroup.groupName.toLowerCase() + "." + vpcId] = securityGroup
-        return new SecurityGroupUpdater(securityGroup, amazonEC2)
+        return Optional.of(new SecurityGroupUpdater(securityGroup, amazonEC2))
       }
-      null
+      Optional.empty()
     }
   }
 

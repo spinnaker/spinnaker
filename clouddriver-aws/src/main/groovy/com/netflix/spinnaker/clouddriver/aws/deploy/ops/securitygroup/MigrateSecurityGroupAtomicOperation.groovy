@@ -23,6 +23,8 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
+import javax.inject.Provider
+
 import static com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupLookup
 
 class MigrateSecurityGroupAtomicOperation implements AtomicOperation<Void> {
@@ -37,7 +39,7 @@ class MigrateSecurityGroupAtomicOperation implements AtomicOperation<Void> {
   SecurityGroupLookupFactory securityGroupLookupFactory
 
   @Autowired
-  MigrateSecurityGroupStrategy migrationStrategy
+  Provider<MigrateSecurityGroupStrategy> migrationStrategy
 
 
   private static Task getTask() {
@@ -51,7 +53,7 @@ class MigrateSecurityGroupAtomicOperation implements AtomicOperation<Void> {
       sourceLookup :
       securityGroupLookupFactory.getInstance(description.target.region)
 
-    task.addResultObjects( [new SecurityGroupMigrator(sourceLookup, targetLookup, migrationStrategy, description.source, description.target)
+    task.addResultObjects( [new SecurityGroupMigrator(sourceLookup, targetLookup, migrationStrategy.get(), description.source, description.target)
       .migrate(description.dryRun)])
   }
 }

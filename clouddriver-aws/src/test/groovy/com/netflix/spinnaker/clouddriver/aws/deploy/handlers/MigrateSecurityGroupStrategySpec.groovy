@@ -16,9 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.handlers
 
+import com.amazonaws.services.ec2.AmazonEC2
+import com.amazonaws.services.ec2.model.DescribeVpcsResult
 import com.amazonaws.services.ec2.model.IpPermission
 import com.amazonaws.services.ec2.model.SecurityGroup
+import com.amazonaws.services.ec2.model.Tag
 import com.amazonaws.services.ec2.model.UserIdGroupPair
+import com.amazonaws.services.ec2.model.Vpc
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.MigrateSecurityGroupReference
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupLookup
@@ -48,7 +52,8 @@ class MigrateSecurityGroupStrategySpec extends Specification {
   AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
 
   def setup() {
-    strategy = new DefaultMigrateSecurityGroupStrategy(amazonClientProvider)
+    strategy = new DefaultMigrateSecurityGroupStrategy(amazonClientProvider, ['infra'])
+
     sourceLookup.getCredentialsForId(testCredentials.accountId) >> testCredentials
     targetLookup.getCredentialsForId(testCredentials.accountId) >> testCredentials
 
@@ -78,8 +83,8 @@ class MigrateSecurityGroupStrategySpec extends Specification {
     then:
     results.target.targetName == 'groupA'
     results.created[0] == results.target
-    1 * sourceLookup.getSecurityGroupByName('test', 'groupA', null) >> null
-    1 * targetLookup.getSecurityGroupByName('prod', 'groupA', null) >> null
+    1 * sourceLookup.getSecurityGroupByName('test', 'groupA', null) >> Optional.empty()
+    1 * targetLookup.getSecurityGroupByName('prod', 'groupA', null) >> Optional.empty()
     0 * _
   }
 
@@ -93,7 +98,7 @@ class MigrateSecurityGroupStrategySpec extends Specification {
 
     then:
     thrown IllegalStateException
-    1 * sourceLookup.getSecurityGroupByName('test', 'groupA', null) >> null
+    1 * sourceLookup.getSecurityGroupByName('test', 'groupA', null) >> Optional.empty()
     0 * _
   }
 
@@ -116,10 +121,10 @@ class MigrateSecurityGroupStrategySpec extends Specification {
     then:
     results.created.size() == 3
     results.created.targetName.sort() == ['group1', 'group2', 'group3']
-    1 * sourceLookup.getSecurityGroupByName('test', 'group1', null) >> sourceUpdater
-    1 * targetLookup.getSecurityGroupByName('prod', 'group1', null) >> null
-    1 * targetLookup.getSecurityGroupByName('test', 'group2', null) >> null
-    1 * targetLookup.getSecurityGroupByName('prod', 'group3', null) >> null
+    1 * sourceLookup.getSecurityGroupByName('test', 'group1', null) >> Optional.of(sourceUpdater)
+    1 * targetLookup.getSecurityGroupByName('prod', 'group1', null) >> Optional.empty()
+    1 * targetLookup.getSecurityGroupByName('test', 'group2', null) >> Optional.empty()
+    1 * targetLookup.getSecurityGroupByName('prod', 'group3', null) >> Optional.empty()
   }
 
   void 'should warn on references in unknown accounts'() {
@@ -148,20 +153,19 @@ class MigrateSecurityGroupStrategySpec extends Specification {
     sourceLookup.getCredentialsForId(mysteryAccount.accountId) >> null
     targetLookup.accountIdExists(mysteryAccount.accountId) >> false
     targetLookup.getAccountNameForId(mysteryAccount.accountId) >> mysteryAccount.accountId
-    1 * sourceLookup.getSecurityGroupByName('test', 'group1', null) >> sourceUpdater
-    1 * targetLookup.getSecurityGroupByName('prod', 'group1', null) >> null
-    1 * targetLookup.getSecurityGroupByName('test', 'group2', null) >> null
+    1 * sourceLookup.getSecurityGroupByName('test', 'group1', null) >> Optional.of(sourceUpdater)
+    1 * targetLookup.getSecurityGroupByName('prod', 'group1', null) >> Optional.empty()
+    1 * targetLookup.getSecurityGroupByName('test', 'group2', null) >> Optional.empty()
   }
 
-  void 'should skip amazon-elb group without warning'() {
+  void 'should skip infrastructure app dependencies'() {
     given:
-    def source = new SecurityGroupLocation(credentials: testCredentials, region: 'us-east-1', name: 'group1')
+    def source = new SecurityGroupLocation(credentials: testCredentials, region: 'us-east-1', name: 'infra-g1')
     def target = new SecurityGroupLocation(credentials: testCredentials, region: 'us-west-1')
-    def sourceGroup = new SecurityGroup(groupName: 'group1', groupId: 'sg-1', ownerId: testCredentials.accountId)
+    def sourceGroup = new SecurityGroup(groupName: 'infra-g1', groupId: 'sg-1', ownerId: testCredentials.accountId)
     sourceGroup.ipPermissions = [
       new IpPermission().withUserIdGroupPairs(
-        new UserIdGroupPair(userId: 'amazon-elb', groupId: 'sg-2', groupName: 'do-not-copy'),
-        new UserIdGroupPair(userId: testCredentials.accountId, groupId: 'sg-3', groupName: 'group3')),
+        new UserIdGroupPair(userId: testCredentials.accountId, groupId: 'sg-2', groupName: 'group1')),
     ]
     def sourceUpdater = Stub(SecurityGroupUpdater) {
       getSecurityGroup() >> sourceGroup
@@ -171,14 +175,68 @@ class MigrateSecurityGroupStrategySpec extends Specification {
     def results = strategy.generateResults(source, target, sourceLookup, targetLookup, false, true)
 
     then:
-    results.created.size() == 2
-    results.created.targetName.sort() == ['group1', 'group3']
+    results.created.size() == 1
+    results.created.targetName == ['infra-g1']
+    results.skipped.empty
+    results.reused.empty
+    1 * sourceLookup.getSecurityGroupByName('test', 'infra-g1', null) >> Optional.of(sourceUpdater)
+    1 * targetLookup.getSecurityGroupByName('test', 'infra-g1', null) >> Optional.empty()
+  }
+
+  void 'should skip missing dependencies if they belong to infrastructure apps'() {
+    given:
+    def source = new SecurityGroupLocation(credentials: testCredentials, region: 'us-east-1', name: 'group1')
+    def target = new SecurityGroupLocation(credentials: testCredentials, region: 'us-west-1')
+    def sourceGroup = new SecurityGroup(groupName: 'group1', groupId: 'sg-1', ownerId: testCredentials.accountId)
+    sourceGroup.ipPermissions = [
+      new IpPermission().withUserIdGroupPairs(
+        new UserIdGroupPair(userId: testCredentials.accountId, groupId: 'sg-2', groupName: 'infra-g1')),
+    ]
+    def sourceUpdater = Stub(SecurityGroupUpdater) {
+      getSecurityGroup() >> sourceGroup
+    }
+
+    when:
+    def results = strategy.generateResults(source, target, sourceLookup, targetLookup, false, true)
+
+    then:
+    results.created.size() == 1
+    results.created.targetName == ['group1']
+    results.skipped.size() == 1
+    results.skipped.targetName == ['infra-g1']
+    results.reused.empty
+    1 * sourceLookup.getSecurityGroupByName('test', 'group1', null) >> Optional.of(sourceUpdater)
+    1 * targetLookup.getSecurityGroupByName('test', 'group1', null) >> Optional.empty()
+    1 * targetLookup.getSecurityGroupByName('test', 'infra-g1', null) >> Optional.empty()
+  }
+
+  void 'should skip amazon-elb group without warning when target is in VPC'() {
+    given:
+    def source = new SecurityGroupLocation(credentials: testCredentials, region: 'us-east-1', name: 'group1')
+    def target = new SecurityGroupLocation(credentials: testCredentials, region: 'us-west-1', vpcId: 'vpc-2')
+    def sourceGroup = new SecurityGroup(groupName: 'group1', groupId: 'sg-1', ownerId: testCredentials.accountId)
+    AmazonEC2 amazonEC2 = Mock(AmazonEC2)
+    sourceGroup.ipPermissions = [
+      new IpPermission().withUserIdGroupPairs(
+        new UserIdGroupPair(userId: 'amazon-elb', groupId: 'sg-2', groupName: 'do-not-copy')),
+    ]
+    def sourceUpdater = Stub(SecurityGroupUpdater) {
+      getSecurityGroup() >> sourceGroup
+    }
+
+    when:
+    def results = strategy.generateResults(source, target, sourceLookup, targetLookup, false, true)
+
+    then:
+    results.created.size() == 1
+    results.created.targetName.sort() == ['group1']
     results.skipped.targetName == ['do-not-copy']
     sourceLookup.getCredentialsForId('amazon-elb') >> null
     targetLookup.accountIdExists('amazon-elb') >> false
-    1 * sourceLookup.getSecurityGroupByName('test', 'group1', null) >> sourceUpdater
-    1 * targetLookup.getSecurityGroupByName('test', 'group1', null) >> null
-    1 * targetLookup.getSecurityGroupByName('test', 'group3', null) >> null
+    2 * amazonClientProvider.getAmazonEC2(testCredentials, 'us-west-1') >> amazonEC2
+    amazonEC2.describeVpcs() >> new DescribeVpcsResult().withVpcs(new Vpc().withVpcId('vpc-2').withTags(new Tag("Name", "vpc2")))
+    1 * sourceLookup.getSecurityGroupByName('test', 'group1', null) >> Optional.of(sourceUpdater)
+    1 * targetLookup.getSecurityGroupByName('test', 'group1', 'vpc-2') >> Optional.empty()
   }
 
   void 'should include target reference'() {
@@ -199,8 +257,8 @@ class MigrateSecurityGroupStrategySpec extends Specification {
     results.created.targetName == ['group1']
     !results.targetExists()
     targetLookup.accountIdExists(_) >> true
-    1 * sourceLookup.getSecurityGroupByName('test', 'group1', null) >> sourceUpdater
-    1 * targetLookup.getSecurityGroupByName('prod', 'group1', null) >> null
+    1 * sourceLookup.getSecurityGroupByName('test', 'group1', null) >> Optional.of(sourceUpdater)
+    1 * targetLookup.getSecurityGroupByName('prod', 'group1', null) >> Optional.empty()
   }
 
   void 'should flag target as existing if it exists in target location'() {
@@ -220,8 +278,8 @@ class MigrateSecurityGroupStrategySpec extends Specification {
     results.reused.targetName == ['group1']
     results.created.empty
     results.targetExists()
-    1 * sourceLookup.getSecurityGroupByName('test', 'group1', null) >> sourceUpdater
-    1 * targetLookup.getSecurityGroupByName('prod', 'group1', null) >> targetUpdater
+    1 * sourceLookup.getSecurityGroupByName('test', 'group1', null) >> Optional.of(sourceUpdater)
+    1 * targetLookup.getSecurityGroupByName('prod', 'group1', null) >> Optional.of(targetUpdater)
   }
 
   void 'should halt if any errors are found'() {
@@ -243,7 +301,7 @@ class MigrateSecurityGroupStrategySpec extends Specification {
     results.reused.empty
     results.created.empty
     !results.targetExists()
-    1 * sourceLookup.getSecurityGroupByName('test', 'group1', null) >> sourceUpdater
+    1 * sourceLookup.getSecurityGroupByName('test', 'group1', null) >> Optional.of(sourceUpdater)
   }
 
   void 'generates ingress rules based on source'() {
@@ -283,10 +341,11 @@ class MigrateSecurityGroupStrategySpec extends Specification {
     then:
     results.ingressUpdates.size() == 3
     results.target.targetId == 'sg-5'
-    sourceLookup.getSecurityGroupByName('test', 'group1', null) >> sourceUpdater
-    targetLookup.getSecurityGroupByName('prod', 'group1', null) >>> [null, targetUpdater1]
-    targetLookup.getSecurityGroupByName('test', 'group2', null) >>> [null, targetUpdater2]
-    targetLookup.getSecurityGroupByName('prod', 'group3', null) >>> [null, targetUpdater3]
+    sourceLookup.getSecurityGroupByName('test', 'group1', null) >> Optional.of(sourceUpdater)
+    targetLookup.getSecurityGroupByName('prod', 'group1', null) >>> [Optional.empty(), Optional.of(targetUpdater1)]
+    targetLookup.getSecurityGroupByName('test', 'group2', null) >>> [Optional.empty(), Optional.of(targetUpdater2)]
+    targetLookup.getSecurityGroupByName('prod', 'group3', null) >>> [Optional.empty(), Optional.of(targetUpdater3)]
+    sourceLookup.getSecurityGroupByName(_, _, _) >> Optional.empty()
     1 * targetLookup.createSecurityGroup({t -> t.name == 'group1'}) >> targetUpdater1
     1 * targetLookup.createSecurityGroup({t -> t.name == 'group2'}) >> targetUpdater2
     1 * targetLookup.createSecurityGroup({t -> t.name == 'group3'}) >> targetUpdater3
@@ -334,9 +393,10 @@ class MigrateSecurityGroupStrategySpec extends Specification {
     then:
     results.ingressUpdates.size() == 1
     results.target.targetId == 'sg-5'
-    sourceLookup.getSecurityGroupByName('test', 'group1', null) >> sourceUpdater
-    targetLookup.getSecurityGroupByName('prod', 'group1', null) >> targetUpdater1
-    targetLookup.getSecurityGroupByName('test', 'group2', null) >>> [null, targetUpdater2]
+    sourceLookup.getSecurityGroupByName('test', 'group1', null) >> Optional.of(sourceUpdater)
+    targetLookup.getSecurityGroupByName('prod', 'group1', null) >> Optional.of(targetUpdater1)
+    targetLookup.getSecurityGroupByName('test', 'group2', null) >>> [Optional.empty(), Optional.of(targetUpdater2)]
+    sourceLookup.getSecurityGroupByName(_, _, _) >> Optional.empty()
     0 * targetLookup.createSecurityGroup({t -> t.name == 'group1'}) >> targetUpdater1
     1 * targetLookup.createSecurityGroup({t -> t.name == 'group2'}) >> targetUpdater2
     1 * targetUpdater1.addIngress({t -> t.size() == 1
@@ -373,9 +433,9 @@ class MigrateSecurityGroupStrategySpec extends Specification {
     then:
     results.ingressUpdates.size() == 1
     results.target.targetId == 'sg-5'
-    sourceLookup.getSecurityGroupByName('test', 'group1', null) >> sourceUpdater
-    targetLookup.getSecurityGroupByName('prod', 'group1', null) >> targetUpdater1
-    targetLookup.getSecurityGroupByName('test', 'group2', null) >>> [null, targetUpdater2]
+    sourceLookup.getSecurityGroupByName('test', 'group1', null) >> Optional.of(sourceUpdater)
+    targetLookup.getSecurityGroupByName('prod', 'group1', null) >> Optional.of(targetUpdater1)
+    targetLookup.getSecurityGroupByName('test', 'group2', null) >>> [Optional.empty(), Optional.of(targetUpdater2)]
     1 * targetUpdater1.addIngress({t -> t.size() == 1
       t[0].fromPort == 7001 && t[0].toPort == 7003 && t[0].ipRanges == ["1.2.3.4"]
     })
@@ -409,12 +469,12 @@ class MigrateSecurityGroupStrategySpec extends Specification {
     then:
     results.ingressUpdates.empty
     results.target.targetId == 'sg-5'
-    sourceLookup.getSecurityGroupByName('test', 'group1', null) >> sourceUpdater
-    targetLookup.getSecurityGroupByName('prod', 'group1', null) >> targetUpdater1
-    targetLookup.getSecurityGroupByName('test', 'group2', null) >>> [null, targetUpdater2]
+    sourceLookup.getSecurityGroupByName('test', 'group1', null) >> Optional.of(sourceUpdater)
+    targetLookup.getSecurityGroupByName('prod', 'group1', null) >> Optional.of(targetUpdater1)
+    targetLookup.getSecurityGroupByName('test', 'group2', null) >>> [Optional.empty(), Optional.of(targetUpdater2)]
   }
 
-  private static class ErrorfulMigrationStrategy implements MigrateSecurityGroupStrategy {
+  private static class ErrorfulMigrationStrategy extends MigrateSecurityGroupStrategy {
 
     private AmazonClientProvider amazonClientProvider
 
@@ -423,14 +483,17 @@ class MigrateSecurityGroupStrategySpec extends Specification {
       return amazonClientProvider
     }
 
+    @Override
+    public List<String> getInfrastructureApplications() {
+      return new ArrayList<>();
+    }
+
     public ErrorfulMigrationStrategy(AmazonClientProvider amazonClientProvider) {
       this.amazonClientProvider = amazonClientProvider
     }
 
     @Override
-    Set<MigrateSecurityGroupReference> shouldError(SecurityGroupLookup sourceLookup,
-                                                   SecurityGroupLookup targetLookup,
-                                                   SecurityGroupLocation target,
+    Set<MigrateSecurityGroupReference> shouldError(SecurityGroupLocation target,
                                                    Set<MigrateSecurityGroupReference> references) {
       return references;
     }

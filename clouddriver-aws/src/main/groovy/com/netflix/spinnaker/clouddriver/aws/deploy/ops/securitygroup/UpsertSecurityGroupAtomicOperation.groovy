@@ -63,7 +63,8 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
     )
 
     List<IpPermission> existingIpPermissions
-    if (securityGroupUpdater) {
+    if (securityGroupUpdater.present) {
+      securityGroupUpdater = securityGroupUpdater.get()
       existingIpPermissions = SecurityGroupIngressConverter.
         flattenPermissions(securityGroupUpdater.securityGroup.ipPermissions)
     } else {
@@ -77,7 +78,7 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
             description.credentialAccount,
             description.name,
             description.vpcId
-          )
+          ).get()
           existingIpPermissions = SecurityGroupIngressConverter.
             flattenPermissions(securityGroupUpdater.securityGroup.ipPermissions)
         } else {

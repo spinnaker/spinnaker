@@ -90,6 +90,9 @@ class AwsConfiguration {
   @Value('${aws.cleanup.alarms.daysToKeep:90}')
   int daysToKeepAlarms
 
+  @Value('${aws.migration.infrastructureApplications}')
+  List<String> infrastructureApplications
+
   @Autowired
   SpectatorMetricCollector spectatorMetricCollector
 
@@ -144,8 +147,9 @@ class AwsConfiguration {
 
   @Bean
   @ConditionalOnMissingBean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   MigrateSecurityGroupStrategy migrateSecurityGroupStrategy(AmazonClientProvider amazonClientProvider) {
-    new DefaultMigrateSecurityGroupStrategy(amazonClientProvider)
+    new DefaultMigrateSecurityGroupStrategy(amazonClientProvider, infrastructureApplications)
   }
 
   @Bean

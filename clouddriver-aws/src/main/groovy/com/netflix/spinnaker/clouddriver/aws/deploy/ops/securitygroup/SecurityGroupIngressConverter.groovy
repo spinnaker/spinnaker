@@ -47,8 +47,8 @@ class SecurityGroupIngressConverter {
         newUserIdGroupPair = new UserIdGroupPair(userId: accountId, groupId: ingress.id)
       } else {
           final ingressSecurityGroup = securityGroupLookup.getSecurityGroupByName(accountName, ingress.name, vpcId)
-          if (ingressSecurityGroup) {
-            final groupId = ingressSecurityGroup.getSecurityGroup().groupId
+          if (ingressSecurityGroup.present) {
+            final groupId = ingressSecurityGroup.get().getSecurityGroup().groupId
             newUserIdGroupPair = new UserIdGroupPair(userId: accountId, groupId: groupId)
           } else {
             if (description.vpcId) {
