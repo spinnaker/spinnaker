@@ -42,6 +42,7 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.rollback.c
       };
 
       this.rollback = function () {
+        this.submitting = true;
         if (!this.isValid()) {
           return;
         }

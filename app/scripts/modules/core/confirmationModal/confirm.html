@@ -27,7 +27,7 @@
       <task-reason ng-if="(taskMonitor || taskMonitors) && params.askForReason" command="params"></task-reason>
     </div>
     <div class="modal-footer">
-      <user-verification verification="verification" account="params.account" label="params.verificationLabel" autofocus="true"></user-verification>
+      <user-verification ng-if="!state.submitting" verification="verification" account="params.account" label="params.verificationLabel" autofocus="true"></user-verification>
       <button class="btn btn-default"
               type="button"
               ng-click="ctrl.cancel()">{{params.cancelButtonText}}</button>

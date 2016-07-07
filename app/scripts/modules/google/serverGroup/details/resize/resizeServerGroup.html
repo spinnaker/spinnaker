@@ -1,6 +1,6 @@
 <div modal-page class="confirmation-modal">
   <task-monitor monitor="taskMonitor"></task-monitor>
-  <form role="form">
+  <form role="form" ng-if="!ctrl.submitting">
     <modal-close></modal-close>
     <div class="modal-header">
       <h3>Resize {{serverGroup.name}}</h3>

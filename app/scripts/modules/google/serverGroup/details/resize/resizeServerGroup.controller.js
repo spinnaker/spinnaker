@@ -45,6 +45,7 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.resize.con
     };
 
     this.resize = function () {
+      this.submitting = true;
       if (!this.isValid()) {
         return;
       }
