@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.clouddriver.aws.deploy.ops
+
+package com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup
 
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.model.DeleteSecurityGroupRequest

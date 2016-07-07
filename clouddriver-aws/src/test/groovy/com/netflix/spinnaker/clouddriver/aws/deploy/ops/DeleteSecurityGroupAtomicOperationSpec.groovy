@@ -21,7 +21,7 @@ import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DeleteSecurityGroupRequest
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.SecurityGroup
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.DeleteSecurityGroupAtomicOperation
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.DeleteSecurityGroupAtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask

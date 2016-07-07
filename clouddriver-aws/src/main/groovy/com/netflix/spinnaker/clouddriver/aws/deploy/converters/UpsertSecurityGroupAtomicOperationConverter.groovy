@@ -22,7 +22,7 @@ import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.UpsertSecurityGroupAtomicOperation
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.UpsertSecurityGroupAtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 

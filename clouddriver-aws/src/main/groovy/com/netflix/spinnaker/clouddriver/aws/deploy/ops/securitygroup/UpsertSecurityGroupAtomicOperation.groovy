@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.aws.deploy.ops
+package com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup
 
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.model.IpPermission
-import com.netflix.spinnaker.clouddriver.aws.model.SecurityGroupIngressConverter
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
-import com.netflix.spinnaker.clouddriver.aws.model.SecurityGroupLookupFactory
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 

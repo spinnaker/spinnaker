@@ -26,6 +26,6 @@ abstract class AbstractAmazonCredentialsDescription {
 
   @JsonProperty("credentials")
   String getCredentialAccount() {
-    this.credentials.name
+    this.credentials?.name
   }
 }

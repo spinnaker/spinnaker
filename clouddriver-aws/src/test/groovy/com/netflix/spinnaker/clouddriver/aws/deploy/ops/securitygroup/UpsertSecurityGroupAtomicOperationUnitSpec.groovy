@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,31 +14,22 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.aws.deploy.ops
+package com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup
 
 import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest
-import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
-import com.amazonaws.services.ec2.model.CreateSecurityGroupResult
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.IpPermission
-import com.amazonaws.services.ec2.model.RevokeSecurityGroupIngressRequest
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.amazonaws.services.ec2.model.UserIdGroupPair
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.UpsertSecurityGroupAtomicOperation
-import com.netflix.spinnaker.clouddriver.aws.model.SecurityGroupLookupFactory
-import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.UpsertSecurityGroupAtomicOperation
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription.SecurityGroupIngress
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription.IpIngress
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
   def setupSpec() {

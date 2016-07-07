@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.aws.model
+package com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup
 
 import com.amazonaws.services.ec2.model.IpPermission
 import com.amazonaws.services.ec2.model.UserIdGroupPair
