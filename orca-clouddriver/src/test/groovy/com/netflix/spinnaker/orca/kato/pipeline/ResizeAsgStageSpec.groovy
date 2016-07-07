@@ -27,6 +27,7 @@ import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.context.ApplicationContext
@@ -38,6 +39,9 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class ResizeAsgStageSpec extends Specification {
+
+  @Shared
+  def stageNavigator = new StageNavigator(Mock(ApplicationContext))
 
   @Shared
   @AutoCleanup("destroy")
@@ -61,7 +65,7 @@ class ResizeAsgStageSpec extends Specification {
 
   def setup() {
     stageBuilder.steps = new StepBuilderFactory(Stub(JobRepository), Stub(PlatformTransactionManager))
-    stageBuilder.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository, [])
+    stageBuilder.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository, [], stageNavigator)
     stageBuilder.applicationContext = Stub(ApplicationContext) {
       getBean(_) >> { Class type -> type.newInstance() }
     }

@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.model.OptionalStageSupport
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task as TaskModel
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User
 import groovy.transform.CompileStatic
@@ -48,15 +49,18 @@ class TaskTasklet implements Tasklet {
   private final ExecutionRepository executionRepository
   private final List<ExceptionHandler> exceptionHandlers
   private final Registry registry
+  private final StageNavigator stageNavigator
 
   TaskTasklet(Task task,
               ExecutionRepository executionRepository,
               List<ExceptionHandler> exceptionHandlers,
-              Registry registry) {
+              Registry registry,
+              StageNavigator stageNavigator) {
     this.task = task
     this.executionRepository = executionRepository
     this.exceptionHandlers = exceptionHandlers
     this.registry = registry
+    this.stageNavigator = stageNavigator
   }
 
   Class<? extends Task> getTaskType() {
@@ -173,9 +177,17 @@ class TaskTasklet implements Tasklet {
     }
 
     try {
-      def currentUser = new User(
+      // An AuthenticatedStage can override the default pipeline authentication credentials
+      def authenticatedUser = stageNavigator.findAll(stage, { Stage ancestorStage, StageBuilder stageBuilder ->
+        return stageBuilder instanceof AuthenticatedStage
+      }).findResult {
+        return ((AuthenticatedStage) it.stageBuilder).authenticatedUser(it.stage).orElse(null)
+      }
+
+      def currentUser = authenticatedUser ?: new User(
         email: stage.execution?.authentication?.user,
         allowedAccounts: stage.execution?.authentication?.allowedAccounts).asImmutable()
+
       return AuthenticatedRequest.propagate({
                                               doExecuteTask(stage.asImmutable(), chunkContext)
                                             }, false, currentUser).call() as TaskResult

@@ -223,4 +223,5 @@ interface Stage<T extends Execution> {
    */
   void resolveStrategyParams()
 
+  AbstractStage.LastModifiedDetails getLastModified()
 }

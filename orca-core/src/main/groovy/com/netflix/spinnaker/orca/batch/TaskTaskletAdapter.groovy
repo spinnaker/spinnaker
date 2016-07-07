@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.batch
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
@@ -42,23 +43,26 @@ class TaskTaskletAdapter {
 
   private final ExecutionRepository executionRepository
   private final List<ExceptionHandler> exceptionHandlers
+  private final StageNavigator stageNavigator
   private final Registry registry
   private final Sleeper sleeper
 
   @Autowired
   TaskTaskletAdapter(ExecutionRepository executionRepository,
                      List<ExceptionHandler> exceptionHandlers,
+                     StageNavigator stageNavigator,
                      Registry registry = new NoopRegistry(),
                      Sleeper sleeper = DEFAULT_SLEEPER) {
     this.executionRepository = executionRepository
     this.exceptionHandlers = exceptionHandlers
+    this.stageNavigator = stageNavigator
     this.registry = registry
     this.sleeper = sleeper
   }
 
   Tasklet decorate(Task task) {
     if (task instanceof RetryableTask) {
-      def tasklet = new RetryableTaskTasklet(task, executionRepository, exceptionHandlers, registry)
+      def tasklet = new RetryableTaskTasklet(task, executionRepository, exceptionHandlers, registry, stageNavigator)
       def proxyFactory = new ProxyFactory(Tasklet, new SingletonTargetSource(tasklet))
       def backOffPolicy = new FixedBackOffPolicy(
         backOffPeriod: task.backoffPeriod,
@@ -71,7 +75,7 @@ class TaskTaskletAdapter {
       )
       return proxyFactory.proxy as Tasklet
     } else {
-      return new TaskTasklet(task, executionRepository, exceptionHandlers, registry)
+      return new TaskTasklet(task, executionRepository, exceptionHandlers, registry, stageNavigator)
     }
   }
 

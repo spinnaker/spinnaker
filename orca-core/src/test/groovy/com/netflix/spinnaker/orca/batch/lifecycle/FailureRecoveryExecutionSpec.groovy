@@ -20,14 +20,20 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
+import org.springframework.context.ApplicationContext
 import spock.lang.Ignore
+import spock.lang.Shared
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
 class FailureRecoveryExecutionSpec extends AbstractBatchLifecycleSpec {
+  @Shared
+  def stageNavigator = new StageNavigator(Mock(ApplicationContext))
 
   def startTask = Stub(Task)
   def recoveryTask = Mock(Task)
@@ -79,7 +85,7 @@ class FailureRecoveryExecutionSpec extends AbstractBatchLifecycleSpec {
         startTask: startTask,
         recoveryTask: recoveryTask,
         endTask: endTask,
-        taskTaskletAdapter: new TaskTaskletAdapter(executionRepository, [])
+        taskTaskletAdapter: new TaskTaskletAdapter(executionRepository, [], stageNavigator)
     ).build(builder, pipeline.namedStage("failureRecovery"))
      .build()
      .build()

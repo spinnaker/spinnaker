@@ -29,10 +29,12 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import org.springframework.batch.core.*
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
 import org.springframework.batch.repeat.RepeatStatus
+import org.springframework.context.ApplicationContext
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 import spock.lang.*
@@ -43,6 +45,9 @@ import static org.springframework.batch.test.MetaDataInstanceFactory.createStepE
 class TaskTaskletSpec extends Specification {
 
   @Shared @AutoCleanup("destroy") EmbeddedRedis embeddedRedis
+
+  @Shared
+  def stageNavigator = new StageNavigator(Mock(ApplicationContext))
 
   def setupSpec() {
     embeddedRedis = EmbeddedRedis.embed()
@@ -61,7 +66,7 @@ class TaskTaskletSpec extends Specification {
   def task = Mock(Task)
 
   @Subject
-  def tasklet = new TaskTasklet(task, executionRepository, [], new NoopRegistry())
+  def tasklet = new TaskTasklet(task, executionRepository, [], new NoopRegistry(), stageNavigator)
 
   JobExecution jobExecution
   StepExecution stepExecution
@@ -273,7 +278,7 @@ class TaskTaskletSpec extends Specification {
     def task = Mock(taskType)
     task.execute(_) >> { throw new RuntimeException() }
 
-    def tasklet = new TaskTasklet(task, executionRepository, [], new NoopRegistry())
+    def tasklet = new TaskTasklet(task, executionRepository, [], new NoopRegistry(), stageNavigator)
     tasklet.exceptionHandlers << Mock(ExceptionHandler) {
       1 * handles(_) >> {
         true

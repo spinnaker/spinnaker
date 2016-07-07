@@ -24,13 +24,20 @@ import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.JobBuilder
+import org.springframework.context.ApplicationContext
+import spock.lang.Shared
+
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
 class ExecutionCancellationSpec extends AbstractBatchLifecycleSpec {
+  @Shared
+  def stageNavigator = new StageNavigator(Mock(ApplicationContext))
+
   def startTask = Mock(Task)
   def endTask = Mock(Task)
   def detailsTask = Stub(Task) {
@@ -75,7 +82,7 @@ class ExecutionCancellationSpec extends AbstractBatchLifecycleSpec {
       .flow(initializationStep(steps, pipeline))
     def stageBuilder = new CancellationStageBuilder(
       steps: steps,
-      taskTaskletAdapter: new TaskTaskletAdapter(executionRepository, [])
+      taskTaskletAdapter: new TaskTaskletAdapter(executionRepository, [], stageNavigator)
     )
     stageBuilder.applicationContext = applicationContext
     stageBuilder.build(builder, stage).build().build()

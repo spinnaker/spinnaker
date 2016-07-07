@@ -60,6 +60,8 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
   List<InjectedStageConfiguration> afterStages = []
   long scheduledTime
 
+  LastModifiedDetails lastModified
+
   @JsonIgnore
   AtomicInteger stageCounter = new AtomicInteger(0)
 
@@ -198,5 +200,11 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
         ((ObjectNode) destNode).replace(fieldName, sourceFieldValue)
       }
     }
+  }
+
+  static class LastModifiedDetails implements Serializable {
+    String user
+    Collection<String> allowedAccounts
+    Long lastModifiedTime
   }
 }

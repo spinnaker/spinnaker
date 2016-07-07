@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.parallel.PipelineInitializationTask
 import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionStage
 import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionTask
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.job.builder.FlowJobBuilder
 import org.springframework.batch.core.job.builder.JobBuilderHelper
@@ -38,6 +39,7 @@ import org.springframework.batch.core.job.flow.support.SimpleFlow
 import org.springframework.batch.core.listener.StepExecutionListenerSupport
 import org.springframework.batch.core.repository.support.SimpleJobRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationContext
 import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
@@ -53,6 +55,9 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 class PipelineJobBuilderSpec extends Specification {
   @Shared @AutoCleanup("destroy") EmbeddedRedis embeddedRedis
+
+  @Shared
+  def stageNavigator = new StageNavigator(Mock(ApplicationContext))
 
   def setupSpec() {
     embeddedRedis = EmbeddedRedis.embed()
@@ -71,7 +76,7 @@ class PipelineJobBuilderSpec extends Specification {
 
   def pipelineInitializationStage = new PipelineInitializationStage()
   def waitForRequisiteCompletionStage = new WaitForRequisiteCompletionStage()
-  def taskTaskletAdapter = new TaskTaskletAdapter(executionRepository, [])
+  def taskTaskletAdapter = new TaskTaskletAdapter(executionRepository, [], stageNavigator)
 
   @Shared
   def jobBuilder

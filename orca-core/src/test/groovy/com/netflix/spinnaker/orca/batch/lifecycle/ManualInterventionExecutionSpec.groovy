@@ -20,15 +20,21 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException
+import org.springframework.context.ApplicationContext
 import spock.lang.Ignore
+import spock.lang.Shared
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
 class ManualInterventionExecutionSpec extends AbstractBatchLifecycleSpec {
+  @Shared
+  def stageNavigator = new StageNavigator(Mock(ApplicationContext))
 
   def preInterventionTask = Stub(Task)
   def postInterventionTask = Mock(Task)
@@ -120,7 +126,7 @@ class ManualInterventionExecutionSpec extends AbstractBatchLifecycleSpec {
         preInterventionTask: preInterventionTask,
         postInterventionTask: postInterventionTask,
         finalTask: finalTask,
-        taskTaskletAdapter: new TaskTaskletAdapter(executionRepository, [])
+        taskTaskletAdapter: new TaskTaskletAdapter(executionRepository, [], stageNavigator)
     ).build(builder, pipeline.namedStage("manualIntervention"))
      .build()
      .build()

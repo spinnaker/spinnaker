@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.echo.pipeline
 
 import com.google.common.annotations.VisibleForTesting
+import com.netflix.spinnaker.orca.AuthenticatedStage
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
@@ -25,6 +26,7 @@ import com.netflix.spinnaker.orca.batch.RestartableStage
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,7 +35,7 @@ import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
 
 @Component
-class ManualJudgmentStage extends LinearStage implements RestartableStage {
+class ManualJudgmentStage extends LinearStage implements RestartableStage, AuthenticatedStage {
   private static final String MAYO_CONFIG_NAME = "manualJudgment"
 
   ManualJudgmentStage() {
@@ -54,6 +56,20 @@ class ManualJudgmentStage extends LinearStage implements RestartableStage {
     return stage
   }
 
+  @Override
+  Optional<User> authenticatedUser(Stage stage) {
+    def stageData = stage.mapTo(StageData)
+    if (stageData.state != StageData.State.CONTINUE || !stage.lastModified?.user || !stageData.propagateAuthenticationContext) {
+      return Optional.empty()
+    }
+
+    def user = new User()
+    user.setAllowedAccounts(stage.lastModified.allowedAccounts)
+    user.setUsername(stage.lastModified.user)
+    user.setEmail(stage.lastModified.user)
+    return Optional.of(user.asImmutable())
+  }
+
   @Slf4j
   @Component
   @VisibleForTesting
@@ -67,10 +83,10 @@ class ManualJudgmentStage extends LinearStage implements RestartableStage {
     @Override
     TaskResult execute(Stage stage) {
       def stageData = stage.mapTo(StageData)
-      switch (stageData.judgmentStatus.toLowerCase()) {
-        case "continue":
+      switch (stageData.state) {
+        case StageData.State.CONTINUE:
           return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
-        case "stop":
+        case StageData.State.STOP:
           def executionStatus = ExecutionStatus.TERMINAL
           return new DefaultTaskResult(executionStatus)
       }
@@ -94,6 +110,24 @@ class ManualJudgmentStage extends LinearStage implements RestartableStage {
   static class StageData {
     String judgmentStatus = ""
     List<Notification> notifications = []
+    boolean propagateAuthenticationContext
+
+    State getState() {
+      switch (judgmentStatus?.toLowerCase()) {
+        case "continue":
+          return State.CONTINUE
+        case "stop":
+          return State.STOP
+        default:
+          return State.UNKNOWN
+      }
+    }
+
+    enum State {
+      CONTINUE,
+      STOP,
+      UNKNOWN
+    }
   }
 
   static class Notification {

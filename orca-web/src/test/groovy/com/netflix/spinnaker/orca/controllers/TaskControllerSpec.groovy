@@ -236,7 +236,10 @@ class TaskControllerSpec extends Specification {
       ]
     }
     1 * executionRepository.storeStage({ stage ->
-      stage.id == "s1" && stage.context == [
+        stage.id == "s1" &&
+        stage.lastModified.allowedAccounts == [] &&
+        stage.lastModified.user == "anonymous" &&
+        stage.context == [
         judgmentStatus: "stop", value: "1", lastModifiedBy: "anonymous"
       ]
                                        } as PipelineStage)

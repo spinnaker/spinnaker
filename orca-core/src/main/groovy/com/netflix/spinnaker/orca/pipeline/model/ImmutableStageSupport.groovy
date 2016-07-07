@@ -111,6 +111,11 @@ class ImmutableStageSupport {
     }
 
     @Override
+    AbstractStage.LastModifiedDetails getLastModified() {
+      return self.getLastModified()
+    }
+
+    @Override
     Stage preceding(String type) {
       self.preceding(type)?.asImmutable()
     }
