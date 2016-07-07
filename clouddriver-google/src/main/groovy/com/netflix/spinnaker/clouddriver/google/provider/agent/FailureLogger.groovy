@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory
 trait FailureLogger {
 
   void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-    def errorJson = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(e)
-    LoggerFactory.getLogger(this.class).error errorJson
+    LoggerFactory.getLogger(this.class).error e.getMessage()
   }
 }
