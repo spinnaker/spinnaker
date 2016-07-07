@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.front50.config;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,6 +19,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.web.client.RestTemplate;
 import rx.schedulers.Schedulers;
 
+import java.util.Optional;
 import java.util.concurrent.Executors;
 
 @Configuration
@@ -30,6 +33,9 @@ public class S3Config {
   @Value("${spinnaker.s3.rootFolder}")
   private String rootFolder;
 
+  @Value("${spinnaker.s3.region:#{null}}")
+  private String s3Region;
+
   @Bean
   public AmazonClientProvider amazonClientProvider() {
     return new AmazonClientProvider();
@@ -37,7 +43,12 @@ public class S3Config {
 
   @Bean
   public AmazonS3 awsS3Client(AWSCredentialsProvider awsCredentialsProvider) {
-    return new AmazonS3Client(awsCredentialsProvider);
+    AmazonS3Client client = new AmazonS3Client(awsCredentialsProvider);
+    Optional.ofNullable(s3Region)
+            .map(Regions::fromName)
+            .map(Region::getRegion)
+            .ifPresent(client::setRegion);
+    return client;
   }
 
   @Bean
