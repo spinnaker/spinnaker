@@ -680,6 +680,8 @@ install_spinnaker
 
 # Touch a file to tell other scripts we installed Cassandra.
 touch /opt/spinnaker/cassandra/SPINNAKER_INSTALLED_CASSANDRA
+cqlsh -f "/opt/spinnaker/cassandra/create_echo_keyspace.cql"
+cqlsh -f "/opt/spinnaker/cassandra/create_front50_keyspace.cql"
 
 # Write values to /etc/default/spinnaker.
 if [[ $AWS_ENABLED || $AZURE_ENABLED || $GOOGLE_ENABLED ]] ; then
