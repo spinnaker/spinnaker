@@ -131,14 +131,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
       pipeline.parallel = true;
     }
 
-    function disableParallelExecution(pipeline) {
-      pipeline.stages.forEach(function(stage) {
-        delete stage.refId;
-        delete stage.requisiteStageRefIds;
-      });
-      delete pipeline.parallel;
-    }
-
     return {
       getPipelinesForApplication: getPipelinesForApplication,
       getStrategiesForApplication: getStrategiesForApplication,
@@ -150,7 +142,5 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
       getDependencyCandidateStages: getDependencyCandidateStages,
       getAllUpstreamDependencies: getAllUpstreamDependencies,
       enableParallelExecution: enableParallelExecution,
-      disableParallelExecution: disableParallelExecution,
     };
-
   });

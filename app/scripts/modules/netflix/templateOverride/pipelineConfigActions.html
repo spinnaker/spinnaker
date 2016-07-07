@@ -6,7 +6,6 @@
     <li><a href ng-click="pipelineConfigurerCtrl.renamePipeline()">Rename</a></li>
     <li><a href ng-click="pipelineConfigurerCtrl.deletePipeline()">Delete</a></li>
     <li><a href ng-click="pipelineConfigurerCtrl.editPipelineJson()">Edit as JSON</a></li>
-    <li ng-if="pipeline.parallel"><a href ng-click="pipelineConfigurerCtrl.disableParallel()">Disable parallel stage execution</a></li>
     <li ng-if="!pipeline.parallel"><a href ng-click="pipelineConfigurerCtrl.enableParallel()">Enable parallel stage execution</a></li>
     <li><pipeline-migrator pipeline="pipeline" application="application"></pipeline-migrator></li>
   </ul>
