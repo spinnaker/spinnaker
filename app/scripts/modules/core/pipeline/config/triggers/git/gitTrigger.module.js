@@ -3,6 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.trigger.git', [
+    require('../../../../../core/utils/lodash'),
     require('../../../../../core/config/settings.js'),
   ])
   .config(function (pipelineConfigProvider) {
@@ -16,7 +17,7 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.git', [
       popoverLabelUrl: require('./gitPopoverLabel.html'),
     });
   })
-  .controller('GitTriggerCtrl', function (trigger, $scope, settings) {
+  .controller('GitTriggerCtrl', function (trigger, $scope, settings, _) {
     this.trigger = trigger;
 
     $scope.gitTriggerTypes = ['stash', 'github'];
@@ -30,7 +31,7 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.git', [
     }
 
     function updateBranch() {
-      if (trigger.branch !== null && trigger.branch.trim() === '') {
+      if (_.trim(trigger.branch) === '') {
         trigger.branch = null;
       }
     }
