@@ -28,7 +28,9 @@ import com.netflix.spinnaker.clouddriver.aws.agent.CleanupDetachedInstancesAgent
 import com.netflix.spinnaker.clouddriver.aws.agent.ReconcileClassicLinkSecurityGroupsAgent
 import com.netflix.spinnaker.clouddriver.aws.bastion.BastionConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.BasicAmazonDeployHandler
+import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.DefaultMigrateLoadBalancerStrategy
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.DefaultMigrateSecurityGroupStrategy
+import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.MigrateLoadBalancerStrategy
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.MigrateSecurityGroupStrategy
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProvider
@@ -150,6 +152,15 @@ class AwsConfiguration {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   MigrateSecurityGroupStrategy migrateSecurityGroupStrategy(AmazonClientProvider amazonClientProvider) {
     new DefaultMigrateSecurityGroupStrategy(amazonClientProvider, infrastructureApplications)
+  }
+
+  @Bean
+  @ConditionalOnMissingBean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  MigrateLoadBalancerStrategy migrateLoadBalancerStrategy(AmazonClientProvider amazonClientProvider,
+                                                          RegionScopedProviderFactory regionScopedProviderFactory,
+                                                          DeployDefaults deployDefaults) {
+    new DefaultMigrateLoadBalancerStrategy(amazonClientProvider, regionScopedProviderFactory, deployDefaults)
   }
 
   @Bean
