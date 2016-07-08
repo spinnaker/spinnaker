@@ -101,6 +101,7 @@ module.exports = angular.module('spinnaker.core.account.service', [
             let attributes = _(credentialsByAccount)
               .pluck(attribute)
               .flatten()
+              .compact()
               .map(reg => reg.name || reg)
               .uniq()
               .value();
