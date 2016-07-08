@@ -136,6 +136,7 @@ class GoogleQuotaTestScenario(sk.SpinnakerTestScenario):
         This is not used for this test, but needed for superclasses.
     """
     zone = bindings['GCE_ZONE']
+    self.__service_account = bindings['GCE_SERVICE_ACCOUNT']
     self.__gcloud = gcp.GCloudAgent(bindings['GCE_PROJECT'],
                                     zone)
     self.__logger = logging.getLogger(__name__)
@@ -156,8 +157,10 @@ class GoogleQuotaTestScenario(sk.SpinnakerTestScenario):
     global_clause_builder = contract_builder.new_clause_builder(
       'Global Quota Check'
     )
-    global_verifier = global_clause_builder.inspect_resource('project-info',
-                                                             None)
+    extra_args = ['--account', self.__service_account]
+    global_verifier = (global_clause_builder
+                       .inspect_resource('project-info', None,
+                                         extra_args=extra_args))
     global_quotas = {
       'IMAGES',
       'IN_USE_ADDRESSES',
@@ -173,8 +176,9 @@ class GoogleQuotaTestScenario(sk.SpinnakerTestScenario):
     regional_clause_builder = contract_builder.new_clause_builder(
       'Regional Quota Check'
     )
-    regional_verifier = regional_clause_builder.inspect_resource('regions',
-                                                               self.__region)
+    regional_verifier = (regional_clause_builder
+                         .inspect_resource('regions', self.__region,
+                                           extra_args=extra_args))
     regional_verifier.add_constraint(QuotaPredicate('regional',
                                                     self.__project,
                                                     self.__threshold,
@@ -198,7 +202,8 @@ def main():
 
   defaults = {
     'GCE_PROJECT': 'spinnaker-build',
-    'GCE_ZONE': 'us-central1-f'
+    'GCE_ZONE': 'us-central1-f',
+    'GCE_SERVICE_ACCOUNT': 'builder@spinnaker-build.iam.gserviceaccount.com',
   }
 
   return st.ScenarioTestRunner.main(
