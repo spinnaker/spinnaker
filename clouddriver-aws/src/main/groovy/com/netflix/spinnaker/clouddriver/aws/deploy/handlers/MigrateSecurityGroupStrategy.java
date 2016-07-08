@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.handlers;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.IpPermission;
 import com.amazonaws.services.ec2.model.SecurityGroup;
+import com.amazonaws.services.ec2.model.UserIdGroupPair;
 import com.amazonaws.services.ec2.model.Vpc;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AbstractAmazonCredentialsDescription;
@@ -279,7 +280,14 @@ public abstract class MigrateSecurityGroupStrategy {
       .map(IpPermission::getUserIdGroupPairs)
       .flatMap(List::stream)
       .filter(pair -> !pair.getGroupId().equals(group.getGroupId()) || !pair.getUserId().equals(group.getOwnerId()))
-      .map(pair -> new MigrateSecurityGroupReference(pair, sourceLookup.getCredentialsForId(pair.getUserId())))
+      .map(pair -> {
+        NetflixAmazonCredentials account = sourceLookup.getCredentialsForId(pair.getUserId());
+        if (pair.getGroupName() == null) {
+          sourceLookup.getSecurityGroupById(account.getName(), pair.getGroupId(), pair.getVpcId())
+            .ifPresent(u -> pair.setGroupName(u.getSecurityGroup().getGroupName()));
+        }
+        return new MigrateSecurityGroupReference(pair, account);
+      })
       .collect(Collectors.toSet());
   }
 
@@ -348,9 +356,13 @@ public abstract class MigrateSecurityGroupStrategy {
     List<IpPermission> targetPermissions = SecurityGroupIngressConverter
       .flattenPermissions(sourceGroup.getIpPermissions())
       .stream()
+      .map(p -> {
+        p.setUserIdGroupPairs(p.getUserIdGroupPairs().stream().map(UserIdGroupPair::clone).collect(Collectors.toList()));
+        return p;
+      })
       .filter(p -> p.getUserIdGroupPairs().isEmpty() ||
         p.getUserIdGroupPairs().stream().allMatch(pair -> targetGroups.stream()
-          .anyMatch(g -> pair.getGroupId().equals(g.getSourceId()))))
+          .anyMatch(g -> g.getSourceId().equals(pair.getGroupId()))))
       .collect(Collectors.toList());
 
     targetPermissions.forEach(permission ->

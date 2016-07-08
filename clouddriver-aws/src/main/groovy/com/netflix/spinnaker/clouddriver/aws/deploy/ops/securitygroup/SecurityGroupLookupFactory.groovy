@@ -139,7 +139,11 @@ class SecurityGroupLookupFactory {
       }
       def describeSecurityGroupsRequest = new DescribeSecurityGroupsRequest().withGroupIds(groupId)
 
-      def securityGroups = amazonEC2.describeSecurityGroups(describeSecurityGroupsRequest).securityGroups
+      def securityGroups = []
+      try {
+        securityGroups = amazonEC2.describeSecurityGroups(describeSecurityGroupsRequest).securityGroups
+      } catch (Exception ignored) {}
+
       def securityGroup = securityGroups.find {
         it.groupId == groupId && it.vpcId == vpcId
       }
