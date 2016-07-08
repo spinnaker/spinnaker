@@ -89,8 +89,13 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
   }
 
   @Override
-  GoogleCluster.View getCluster(String application, String account, String name) {
-    getClusters(application, account).find { it.name == name }
+  GoogleCluster.View getCluster(String applicationName, String accountName, String clusterName) {
+    CacheData clusterData = cacheView.get(
+      CLUSTERS.ns,
+      Keys.getClusterKey(accountName, applicationName, clusterName),
+      RelationshipCacheFilter.include(SERVER_GROUPS.ns))
+
+    return clusterData ? clusterFromCacheData(clusterData, true /* Include instance details */ ) : null
   }
 
   @Override
