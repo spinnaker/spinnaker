@@ -19,9 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
-/**
- * @author Greg Turnquist
- */
+
 class CloudFoundryServerGroupCreatorSpec extends Specification {
 
   def "should get operations"() {
