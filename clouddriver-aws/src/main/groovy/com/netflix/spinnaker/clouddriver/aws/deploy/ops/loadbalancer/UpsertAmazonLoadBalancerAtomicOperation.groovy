@@ -17,13 +17,8 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
 import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancing.model.ApplySecurityGroupsToLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.ConfigureHealthCheckRequest
-import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerListenersRequest
-import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.CrossZoneLoadBalancing
-import com.amazonaws.services.elasticloadbalancing.model.DeleteLoadBalancerListenersRequest
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
 import com.amazonaws.services.elasticloadbalancing.model.HealthCheck
 import com.amazonaws.services.elasticloadbalancing.model.Listener
@@ -31,14 +26,15 @@ import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerAttributes
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.amazonaws.services.elasticloadbalancing.model.ModifyLoadBalancerAttributesRequest
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.LoadBalancerUpsertHandler
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerResult.LoadBalancer
+import com.netflix.spinnaker.clouddriver.aws.model.SubnetTarget
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationException
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.aws.model.SubnetTarget
-import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import org.springframework.beans.factory.annotation.Autowired
 /**
  * An AtomicOperation for creating an Elastic Load Balancer from the description of {@link UpsertAmazonLoadBalancerDescription}.
@@ -87,9 +83,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
 
       task.updateStatus BASE_PHASE, "Setting up listeners for ${loadBalancerName} in ${region}..."
       def listeners = []
-      // ignore the old listener :0 => :0, which AWS adds to ELBs created sometime before 2012-09-26
       description.listeners
-        .findAll { it.internalPort != 0 && it.externalPort != 0 && it.externalProtocol }
         .each { UpsertAmazonLoadBalancerDescription.Listener listener ->
           def awsListener = new Listener()
           awsListener.withLoadBalancerPort(listener.externalPort).withInstancePort(listener.internalPort)
@@ -126,10 +120,10 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
           subnetIds = regionScopedProvider.subnetAnalyzer.getSubnetIdsForZones(availabilityZones,
                   description.subnetType, SubnetTarget.ELB, 1)
         }
-        dnsName = createLoadBalancer(loadBalancing, loadBalancerName, isInternal, availabilityZones, subnetIds, listeners, securityGroups)
+        dnsName = LoadBalancerUpsertHandler.createLoadBalancer(loadBalancing, loadBalancerName, isInternal, availabilityZones, subnetIds, listeners, securityGroups)
       } else {
         dnsName = loadBalancer.DNSName
-        updateLoadBalancer(loadBalancing, loadBalancer, listeners, securityGroups)
+        LoadBalancerUpsertHandler.updateLoadBalancer(loadBalancing, loadBalancer, listeners, securityGroups)
       }
 
       // Configure health checks
@@ -154,83 +148,9 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
       )
 
       task.updateStatus BASE_PHASE, "Done deploying ${loadBalancerName} to ${description.credentials.name} in ${region}."
-      operationResult.loadBalancers[region] = new UpsertAmazonLoadBalancerResult.LoadBalancer(loadBalancerName, dnsName)
+      operationResult.loadBalancers[region] = new LoadBalancer(loadBalancerName, dnsName)
     }
     task.updateStatus BASE_PHASE, "Done deploying load balancers."
     operationResult
   }
-
-  private void updateLoadBalancer(AmazonElasticLoadBalancing loadBalancing, LoadBalancerDescription loadBalancer,
-                                  List<Listener> listeners, Collection<String> securityGroups) {
-    def amazonErrors = []
-    def loadBalancerName = loadBalancer.loadBalancerName
-
-    if (listeners) {
-      def existingListeners = loadBalancer.listenerDescriptions*.listener.findAll {
-        // ignore the old listener :0 => :0, which AWS adds to ELBs created sometime before 2012-09-26
-        it.protocol && it.instancePort != 0 && it.loadBalancerPort != 0
-      }
-      def listenersToRemove = existingListeners.findAll {
-        // existed previously but were not supplied in upsert and should be deleted
-        !listeners.contains(it)
-      }
-      listeners.removeAll(listenersToRemove)
-
-      // no need to recreate existing listeners
-      listeners.removeAll(existingListeners)
-
-      listenersToRemove.each {
-        loadBalancing.deleteLoadBalancerListeners(
-          new DeleteLoadBalancerListenersRequest(loadBalancerName, [it.loadBalancerPort])
-        )
-        task.updateStatus BASE_PHASE, "Listener removed from ${loadBalancerName} (${it.loadBalancerPort}:${it.protocol}:${it.instancePort})."
-      }
-
-      listeners.each { Listener listener ->
-        try {
-          loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(loadBalancerName, [listener]))
-          task.updateStatus BASE_PHASE, "Listener added to ${loadBalancerName} (${listener.loadBalancerPort}:${listener.protocol}:${listener.instancePort})."
-        } catch (AmazonServiceException e) {
-          def exceptionMessage = "Failed to add listener to ${loadBalancerName} (${listener.loadBalancerPort}:${listener.protocol}:${listener.instancePort}) - reason: ${e.errorMessage}."
-          task.updateStatus BASE_PHASE, exceptionMessage
-          amazonErrors << exceptionMessage
-        }
-      }
-    }
-
-    if (description.securityGroups) {
-      loadBalancing.applySecurityGroupsToLoadBalancer(new ApplySecurityGroupsToLoadBalancerRequest(
-              loadBalancerName: loadBalancerName,
-              securityGroups: securityGroups
-      ))
-      task.updateStatus BASE_PHASE, "Security groups updated on ${loadBalancerName}."
-    }
-
-    if (amazonErrors) {
-      throw new AtomicOperationException("Failed to apply all load balancer updates", amazonErrors)
-    }
-  }
-
-  private String createLoadBalancer(AmazonElasticLoadBalancing loadBalancing, String loadBalancerName, boolean isInternal,
-                                    Collection<String> availabilityZones, Collection<String> subnetIds,
-                                    Collection<Listener> listeners, Collection<String> securityGroups) {
-    def request = new CreateLoadBalancerRequest(loadBalancerName)
-
-    // Networking Related
-    if (description.subnetType) {
-      task.updateStatus BASE_PHASE, "Subnet type: ${description.subnetType} = [$subnetIds]"
-      request.withSubnets(subnetIds)
-      if (isInternal) {
-        request.scheme = 'internal'
-      }
-    } else {
-      request.withAvailabilityZones(availabilityZones)
-    }
-    task.updateStatus BASE_PHASE, "Creating load balancer."
-    request.withListeners(listeners)
-    request.withSecurityGroups(securityGroups)
-    def result = loadBalancing.createLoadBalancer(request)
-    result.DNSName
-  }
-
 }

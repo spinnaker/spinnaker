@@ -60,7 +60,7 @@ public abstract class MigrateSecurityGroupStrategy {
    *                              if false and the source group cannot be found, an IllegalStateException will be thrown
    * @return the result set
    */
-  public MigrateSecurityGroupResult generateResults(SecurityGroupLocation source, SecurityGroupLocation target,
+  public synchronized MigrateSecurityGroupResult generateResults(SecurityGroupLocation source, SecurityGroupLocation target,
                                                     SecurityGroupLookup sourceLookup, SecurityGroupLookup targetLookup,
                                                     boolean createIfSourceMissing, boolean dryRun) {
 

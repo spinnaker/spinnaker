@@ -48,6 +48,7 @@ final class AtomicOperations {
   // Load Balancer operations
   public static final String DELETE_LOAD_BALANCER = "deleteLoadBalancer"
   public static final String UPSERT_LOAD_BALANCER = "upsertLoadBalancer"
+  public static final String MIGRATE_LOAD_BALANCER = "migrateLoadBalancer"
 
   // Security Group operations
   public static final String DELETE_SECURITY_GROUP = "deleteSecurityGroup"

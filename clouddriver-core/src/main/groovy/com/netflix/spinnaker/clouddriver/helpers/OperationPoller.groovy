@@ -20,6 +20,9 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.exceptions.OperationTimedOutException
 import groovy.util.logging.Slf4j
 
+import java.util.function.Function
+import java.util.function.Predicate
+
 /**
  * A poller with an upper time limit combined with a Fibonacci-based backoff.
  * Let's you wrap the operation in a Groovy closure and the "if complete" operation in another.
@@ -57,6 +60,24 @@ class OperationPoller {
                           Long timeoutSeconds, Task task, String resourceString, String basePhase) {
     return handleFinishedAsyncOperation(
         pollOperation(operation, ifDone, getTimeout(timeoutSeconds)), task, resourceString, basePhase)
+  }
+
+  static void retryWithBackoff(Function operation, long backOff, int maxRetries) {
+    int retries = 0
+    boolean succeeded = false
+    while (!succeeded) {
+      try {
+        operation.apply(null);
+        succeeded = true
+      } catch (Exception e) {
+        if (retries >= maxRetries) {
+          throw e
+        }
+        retries++
+        long timeout = Math.pow(2, retries) * backOff
+        Thread.sleep(timeout)
+      }
+    }
   }
 
   private long getTimeout(Long timeoutSeconds) {

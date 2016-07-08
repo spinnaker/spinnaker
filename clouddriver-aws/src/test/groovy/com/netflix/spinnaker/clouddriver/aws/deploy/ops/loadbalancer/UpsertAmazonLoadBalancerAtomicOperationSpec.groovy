@@ -92,9 +92,11 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
     def existingLoadBalancers = []
 
     when:
+    description.subnetType = 'internal'
     operation.operate([])
 
     then:
+    1 * mockSubnetAnalyzer.getSubnetIdsForZones(['us-east-1a'], 'internal', SubnetTarget.ELB, 1) >> ["subnet-1"]
     1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-main-frontend"])) >>
             new DescribeLoadBalancersResult(loadBalancerDescriptions: existingLoadBalancers)
     1 * loadBalancing.createLoadBalancer(new CreateLoadBalancerRequest(
@@ -102,9 +104,10 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
             listeners: [
                     new Listener(protocol: "HTTP", loadBalancerPort: 80, instanceProtocol: "HTTP", instancePort: 8501)
             ],
-            availabilityZones: ["us-east-1a"],
-            subnets: [],
+            availabilityZones: [],
+            subnets: ["subnet-1"],
             securityGroups: ["sg-1234"],
+            scheme: "internal",
             tags: []
     )) >> new CreateLoadBalancerResult(dNSName: "dnsName1")
     1 * loadBalancing.configureHealthCheck(new ConfigureHealthCheckRequest(
