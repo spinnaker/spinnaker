@@ -139,8 +139,9 @@ class OrcaConfiguration {
   @Bean
   TaskTaskletAdapter taskTaskletAdapter(ExecutionRepository executionRepository,
                                         List<ExceptionHandler> exceptionHandlers,
+                                        StageNavigator stageNavigator,
                                         Registry registry) {
-    new TaskTaskletAdapter(executionRepository, exceptionHandlers, registry)
+    new TaskTaskletAdapter(executionRepository, exceptionHandlers, stageNavigator, registry)
   }
 
   @Bean

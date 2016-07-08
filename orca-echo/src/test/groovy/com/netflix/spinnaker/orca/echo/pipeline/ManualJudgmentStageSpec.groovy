@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.echo.pipeline
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.echo.EchoService
+import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
@@ -39,13 +40,13 @@ class ManualJudgmentStageSpec extends Specification {
     result.stageOutputs.isEmpty()
 
     where:
-    context                                                    || expectedStatus
-    [:]                                                        || ExecutionStatus.RUNNING
-    [judgmentStatus: "continue"]                               || ExecutionStatus.SUCCEEDED
-    [judgmentStatus: "Continue"]                               || ExecutionStatus.SUCCEEDED
-    [judgmentStatus: "stop"]                                   || ExecutionStatus.TERMINAL
-    [judgmentStatus: "STOP"]                                   || ExecutionStatus.TERMINAL
-    [judgmentStatus: "unknown"]                                || ExecutionStatus.RUNNING
+    context                      || expectedStatus
+    [:]                          || ExecutionStatus.RUNNING
+    [judgmentStatus: "continue"] || ExecutionStatus.SUCCEEDED
+    [judgmentStatus: "Continue"] || ExecutionStatus.SUCCEEDED
+    [judgmentStatus: "stop"]     || ExecutionStatus.TERMINAL
+    [judgmentStatus: "STOP"]     || ExecutionStatus.TERMINAL
+    [judgmentStatus: "unknown"]  || ExecutionStatus.RUNNING
   }
 
   void "should only send notifications for supported types"() {
@@ -104,5 +105,32 @@ class ManualJudgmentStageSpec extends Specification {
       true
     } as EchoService.Notification)
     0 * _
+  }
+
+  @Unroll
+  void "should return modified authentication context"() {
+    given:
+    def stage = new PipelineStage(new Pipeline(), "", [
+      judgmentStatus                : judgmentStatus,
+      propagateAuthenticationContext: propagateAuthenticationContext
+    ])
+    stage.lastModified = new AbstractStage.LastModifiedDetails(user: "modifiedUser", allowedAccounts: ["group1"])
+
+    when:
+    def authenticatedUser = new ManualJudgmentStage().authenticatedUser(stage)
+
+    then:
+    authenticatedUser.isPresent() == isPresent
+    !isPresent || (authenticatedUser.get().username == "modifiedUser" && authenticatedUser.get().allowedAccounts == ["group1"])
+
+    where:
+    judgmentStatus | propagateAuthenticationContext || isPresent
+    "continue"     | true                           || true
+    "ContinuE"     | true                           || true
+    "continue"     | false                          || false
+    "stop"         | true                           || false
+    "stop"         | false                          || false
+    ""             | true                           || false
+    null           | true                           || false
   }
 }

@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.test.TestConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import org.springframework.batch.core.Job
@@ -33,6 +34,7 @@ import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.test.context.ContextConfiguration
+import spock.lang.Shared
 import spock.lang.Unroll
 
 import java.text.SimpleDateFormat
@@ -45,6 +47,9 @@ import static com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWin
 @Unroll
 @ContextConfiguration(classes = [EmbeddedRedisConfiguration, JesqueConfiguration, OrcaConfiguration, TestConfiguration])
 class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
+
+  @Shared
+  def stageNavigator = new StageNavigator(Mock(ApplicationContext))
 
   @Autowired ApplicationContext applicationContext;
   def listeners = [new StageStatusPropagationListener(executionRepository)]
@@ -176,7 +181,7 @@ class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
   protected Job configureJob(JobBuilder jobBuilder) {
     def stage = pipeline.namedStage("stage2")
     def builder = jobBuilder.flow(initializationStep(steps, pipeline))
-    def stageBuilder = new InjectStageBuilder(applicationContext, steps, new TaskTaskletAdapter(executionRepository, []))
+    def stageBuilder = new InjectStageBuilder(applicationContext, steps, new TaskTaskletAdapter(executionRepository, [], stageNavigator))
     stageBuilder.build(builder, stage).build().build()
   }
 

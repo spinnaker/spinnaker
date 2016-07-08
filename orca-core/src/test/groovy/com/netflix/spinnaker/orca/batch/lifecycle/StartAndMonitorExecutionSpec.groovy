@@ -20,14 +20,20 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
+import org.springframework.context.ApplicationContext
+import spock.lang.Shared
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
 class StartAndMonitorExecutionSpec extends AbstractBatchLifecycleSpec {
+  @Shared
+  def stageNavigator = new StageNavigator(Mock(ApplicationContext))
 
   def startTask = Stub(Task)
   def monitorTask = Mock(Task)
@@ -94,7 +100,7 @@ class StartAndMonitorExecutionSpec extends AbstractBatchLifecycleSpec {
       startTask: startTask,
       detailsTask: detailsTask,
       monitorTask: monitorTask,
-      taskTaskletAdapter: new TaskTaskletAdapter(executionRepository, [])
+      taskTaskletAdapter: new TaskTaskletAdapter(executionRepository, [], stageNavigator)
     )
     stageBuilder.applicationContext = applicationContext
     stageBuilder.build(flowBuilder, pipeline.namedStage("startAndMonitor"))

@@ -16,8 +16,9 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
-import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
+import org.springframework.context.ApplicationContext
 
 import java.time.Clock
 import java.time.Instant
@@ -57,6 +58,9 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
 
   @Shared @AutoCleanup("destroy") EmbeddedRedis embeddedRedis
 
+  @Shared
+  def stageNavigator = new StageNavigator(Mock(ApplicationContext))
+
   def setupSpec() {
     embeddedRedis = EmbeddedRedis.embed()
   }
@@ -78,7 +82,7 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
   def sleeper = Mock(Sleeper)
   def objectMapper = new OrcaObjectMapper()
   def executionRepository = new JedisExecutionRepository(new NoopRegistry(), jedisPool, 1, 50)
-  def taskFactory = new TaskTaskletAdapter(executionRepository, [], new NoopRegistry(), sleeper)
+  def taskFactory = new TaskTaskletAdapter(executionRepository, [], stageNavigator, new NoopRegistry(), sleeper)
   Pipeline pipeline
 
   @Shared def random = Random.newInstance()
@@ -153,7 +157,7 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
 
     and:
     def stage = new PipelineStage(new Pipeline(), null, stageContext)
-    def tasklet = new RetryableTaskTasklet(task, null, null, new NoopRegistry(), clock)
+    def tasklet = new RetryableTaskTasklet(task, null, null, new NoopRegistry(), stageNavigator, clock)
     stage.execution.paused = new Execution.PausedDetails(pauseTime: 0)
 
     when:
@@ -193,7 +197,7 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
     stage.tasks << new DefaultTask(status: SUCCEEDED)
     stage.tasks << new DefaultTask(status: RUNNING)
     stage.execution.status = PAUSED
-    def tasklet = new RetryableTaskTasklet(task, null, null, new NoopRegistry(), clock)
+    def tasklet = new RetryableTaskTasklet(task, null, null, new NoopRegistry(), stageNavigator, clock)
 
     when:
     def taskResult = tasklet.doExecuteTask(stage.asImmutable(), chunkContext)

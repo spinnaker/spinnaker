@@ -398,6 +398,7 @@ class JedisExecutionRepository implements ExecutionRepository {
     map["stage.${stage.id}.scheduledTime".toString()] = String.valueOf(stage.scheduledTime)
     map["stage.${stage.id}.context".toString()] = mapper.writeValueAsString(stage.context)
     map["stage.${stage.id}.tasks".toString()] = mapper.writeValueAsString(stage.tasks)
+    map["stage.${stage.id}.lastModified".toString()] = stage.lastModified ? mapper.writeValueAsString(stage.lastModified) : null
     return map
   }
 
@@ -449,6 +450,9 @@ class JedisExecutionRepository implements ExecutionRepository {
         stage.scheduledTime = map["stage.${stageId}.scheduledTime".toString()]?.toLong()
         stage.context = mapper.readValue(map["stage.${stageId}.context".toString()], MAP_STRING_TO_OBJECT)
         stage.tasks = mapper.readValue(map["stage.${stageId}.tasks".toString()], LIST_OF_TASKS)
+        if (map["stage.${stageId}.lastModified".toString()]) {
+          stage.lastModified = mapper.readValue(map["stage.${stageId}.lastModified".toString()], MAP_STRING_TO_OBJECT)
+        }
         stage.execution = execution
         execution.stages << stage
       }
@@ -465,51 +469,6 @@ class JedisExecutionRepository implements ExecutionRepository {
     } else {
       throw new ExecutionNotFoundException("No ${type.simpleName} found for $id")
     }
-  }
-
-  @Deprecated
-  @CompileDynamic
-  private <T extends Execution> T sortStages(JedisCommands jedis, T execution, Class<T> type) {
-    List<Stage<T>> reorderedStages = []
-
-    def childStagesByParentStageId = execution.stages.findAll {
-      it.parentStageId != null
-    }.groupBy { it.parentStageId }
-    execution.stages.findAll {
-      it.parentStageId == null
-    }.each { Stage<T> parentStage ->
-      reorderedStages << parentStage
-
-      def children = childStagesByParentStageId[parentStage.id] ?: []
-      while (!children.isEmpty()) {
-        def child = children.remove(0)
-        children.addAll(0, childStagesByParentStageId[child.id] ?: [])
-        reorderedStages << child
-      }
-    }
-
-    List<Stage<T>> retrievedStages = retrieveStages(jedis, type, reorderedStages.collect {
-      it.id
-    })
-    def retrievedStagesById = retrievedStages.findAll { it?.id }.groupBy {
-      it.id
-    } as Map<String, Stage>
-    execution.stages = reorderedStages.collect {
-      def explicitStage = retrievedStagesById[it.id] ? retrievedStagesById[it.id][0] : it
-      explicitStage.execution = execution
-      return explicitStage
-    }
-    return execution
-  }
-
-  @Deprecated
-  private <T extends Execution> List<Stage<T>> retrieveStages(Jedis jedis, Class<T> type, List<String> ids) {
-    def pipeline = jedis.pipelined()
-    ids.each { id ->
-      pipeline.hget("${type.simpleName.toLowerCase()}:stage:${id}", "config")
-    }
-    def results = pipeline.syncAndReturnAll()
-    return results.collect { it ? mapper.readValue(it as String, Stage) : null }
   }
 
   private <T extends Execution> void deleteInternal(Jedis jedis, Class<T> type, String id) {

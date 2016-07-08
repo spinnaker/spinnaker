@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.context.ApplicationContext
@@ -43,6 +44,9 @@ import spock.lang.Subject
 class QuickPatchStageSpec extends Specification {
 
   @Shared @AutoCleanup("destroy") EmbeddedRedis embeddedRedis
+
+  @Shared
+  def stageNavigator = new StageNavigator(Mock(ApplicationContext))
 
   def setupSpec() {
     embeddedRedis = EmbeddedRedis.embed()
@@ -72,7 +76,7 @@ class QuickPatchStageSpec extends Specification {
     }
     quickPatchStage.objectMapper = objectMapper
     quickPatchStage.steps = new StepBuilderFactory(Stub(JobRepository), Stub(PlatformTransactionManager))
-    quickPatchStage.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository, [])
+    quickPatchStage.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository, [], stageNavigator)
     quickPatchStage.oortService = oort
     quickPatchStage.bulkQuickPatchStage = bulkQuickPatchStage
     quickPatchStage.INSTANCE_VERSION_SLEEP = 1

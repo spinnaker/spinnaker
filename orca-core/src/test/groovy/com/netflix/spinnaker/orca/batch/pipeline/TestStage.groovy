@@ -22,10 +22,12 @@ import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.StepExecutionListener
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
+import org.springframework.context.support.GenericApplicationContext
 
 /**
  * A stub +Stage+ implementation for unit tests that doesn't need to be Spring-wired in order to work. It will
@@ -39,7 +41,10 @@ class TestStage extends LinearStage {
   TestStage(String name, StepBuilderFactory steps, ExecutionRepository executionRepository, Task... tasks) {
     super(name)
     this.steps = steps
-    this.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository, [])
+
+    def applicationContext = new GenericApplicationContext()
+    applicationContext.refresh()
+    this.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository, [], new StageNavigator(applicationContext))
     this.taskListeners = [
       new StageStatusPropagationListener(executionRepository)
     ] as List<StepExecutionListener>
