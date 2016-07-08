@@ -30,7 +30,6 @@ import spock.lang.Specification
  * NOTE: Since both validators are simply declarative subclasses on one abstract validator,
  * both sets of tests are handled in this one test spec.
  *
- * @author Greg Turnquist
  */
 class EnableDisabledCloudFoundryServerGroupDescriptionValidatorSpec extends Specification {
 
