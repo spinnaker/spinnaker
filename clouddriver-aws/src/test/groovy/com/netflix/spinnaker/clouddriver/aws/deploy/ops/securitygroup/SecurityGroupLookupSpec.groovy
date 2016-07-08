@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.aws.model
+package com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup
 
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest
@@ -25,6 +25,7 @@ import com.amazonaws.services.ec2.model.IpPermission
 import com.amazonaws.services.ec2.model.RevokeSecurityGroupIngressRequest
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupUpdater
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
@@ -85,7 +86,7 @@ class SecurityGroupLookupSpec extends Specification {
 
   void "should look up security group"() {
     when:
-    final result = securityGroupLookup.getSecurityGroupByName("test", "wideOpen", "vpc-1")
+    final result = securityGroupLookup.getSecurityGroupByName("test", "wideOpen", "vpc-1").get()
 
     then:
     1 * amazonEC2.describeSecurityGroups(_) >> new DescribeSecurityGroupsResult(
@@ -101,7 +102,7 @@ class SecurityGroupLookupSpec extends Specification {
 
   void "should look up security group, but not call AWS again"() {
     when:
-    final result = securityGroupLookup.getSecurityGroupByName("test", "wideOpen", "vpc-1")
+    final result = securityGroupLookup.getSecurityGroupByName("test", "wideOpen", "vpc-1").get()
 
     then:
     1 * amazonEC2.describeSecurityGroups(_) >> new DescribeSecurityGroupsResult(
@@ -112,14 +113,14 @@ class SecurityGroupLookupSpec extends Specification {
     result.securityGroup == new SecurityGroup(ownerId: "id-test", groupId: "sg-123", groupName: "wideOpen", vpcId: "vpc-1")
 
     when:
-    result = securityGroupLookup.getSecurityGroupByName("test", "wideOpen", "vpc-1")
+    result = securityGroupLookup.getSecurityGroupByName("test", "wideOpen", "vpc-1").get()
 
     then:
     result.securityGroup == new SecurityGroup(ownerId: "id-test", groupId: "sg-123", groupName: "wideOpen", vpcId: "vpc-1")
     0 * _
   }
 
-  void "should return null on look up when security group does not exist"() {
+  void "should return empty on look up when security group does not exist"() {
     when:
     final result = securityGroupLookup.getSecurityGroupByName("test", "wideOpen", "vpc-1")
 
@@ -131,12 +132,12 @@ class SecurityGroupLookupSpec extends Specification {
     )
 
     then:
-    result == null
+    !result.isPresent()
     0 * _
   }
 
   void "should add and remove ingress"() {
-    final securityGroupUpdater = new SecurityGroupLookupFactory.SecurityGroupUpdater(
+    final securityGroupUpdater = new SecurityGroupUpdater(
       new SecurityGroup(groupId: "sg-123"), amazonEC2
     )
 

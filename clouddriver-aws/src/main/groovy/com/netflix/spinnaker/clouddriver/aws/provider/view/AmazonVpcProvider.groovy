@@ -58,16 +58,18 @@ class AmazonVpcProvider implements NetworkProvider<AmazonVpc> {
   AmazonVpc fromCacheData(CacheData cacheData) {
     def parts = Keys.parse(cacheData.id)
     def vpc = objectMapper.convertValue(cacheData.attributes, Vpc)
-    def tag = vpc.tags.find { it.key == NAME_TAG_KEY }
     def isDeprecated = vpc.tags.find { it.key == DEPRECATED_TAG_KEY }?.value
-    String name = tag?.value
     new AmazonVpc(
       cloudProvider: AmazonCloudProvider.AWS,
       id: vpc.vpcId,
-      name: name,
+      name: getVpcName(vpc),
       account: parts.account,
       region: parts.region,
       deprecated: new Boolean(isDeprecated)
     )
+  }
+
+  static String getVpcName(Vpc vpc) {
+    vpc?.tags?.find { it.key == NAME_TAG_KEY }?.value
   }
 }
