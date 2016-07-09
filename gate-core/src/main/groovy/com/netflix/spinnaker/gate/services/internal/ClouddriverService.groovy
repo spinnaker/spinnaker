@@ -187,7 +187,8 @@ interface ClouddriverService {
                        @Query("q") String query,
                        @Query("region") String region,
                        @Query("account") String account,
-                       @Query("count") Integer count)
+                       @Query("count") Integer count,
+                       @QueryMap Map additionalFilters)
 
   @Headers("Accept: application/json")
   @GET("/search")
