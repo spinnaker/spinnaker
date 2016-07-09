@@ -30,6 +30,8 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
+import javax.servlet.http.HttpServletRequest
+
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.IMAGES
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.NAMED_IMAGES
 
@@ -57,18 +59,15 @@ class AmazonNamedImageLookupController {
       throw new ImageNotFoundException("${imageId} not found in ${account}/${region}")
     }
     Collection<String> namedImageKeys = cd.relationships[NAMED_IMAGES.ns]
-    Collection<Map> imageTags = cd.attributes.tags
-
     if (!namedImageKeys) {
       throw new ImageNotFoundException("Name not found on image ${imageId} in ${account}/${region}")
     }
 
-    Collection<CacheData> namedImages = cacheView.getAll(NAMED_IMAGES.ns, namedImageKeys)
-    render(namedImages, null, imageTags, region)
+    render(null, [cd], null, region)
   }
 
   @RequestMapping(value = '/find', method = RequestMethod.GET)
-  List<NamedImage> list(LookupOptions lookupOptions) {
+  List<NamedImage> list(LookupOptions lookupOptions, HttpServletRequest request) {
     if (lookupOptions.q == null || lookupOptions.q.length() < MIN_NAME_FILTER) {
       throw new InsufficientLookupOptionsException(EXCEPTION_REASON)
     }
@@ -95,11 +94,25 @@ class AmazonNamedImageLookupController {
 
     Collection<CacheData> matchesByImageId = cacheView.getAll(IMAGES.ns, imageIdentifiers)
 
-    render(matchesByName, matchesByImageId, null, lookupOptions.q, lookupOptions.region)
+    return filter(
+      render(matchesByName, matchesByImageId, lookupOptions.q, lookupOptions.region),
+      extractTagFilters(request)
+    )
   }
 
-  private List<NamedImage> render(Collection<CacheData> namedImages, Collection<CacheData> images, Collection<CacheData> imageTags, String requestedName = null, String requiredRegion = null) {
+  private List<NamedImage> render(Collection<CacheData> namedImages, Collection<CacheData> images, String requestedName = null, String requiredRegion = null) {
     Map<String, NamedImage> byImageName = [:].withDefault { new NamedImage(imageName: it) }
+
+    cacheView.getAll(IMAGES.ns, namedImages.collect {
+      (it.relationships[IMAGES.ns] ?: []).collect {
+        it
+      }
+    }.flatten() as Collection<String>).each {
+      // associate tags with their AMI's image id
+      byImageName[it.attributes.name as String].tagsByImageId[it.attributes.imageId as String] =
+        ((it.attributes.tags as List)?.collectEntries { [it.key.toLowerCase(), it.value] })
+    }
+
     for (CacheData data : namedImages) {
       Map<String, String> keyParts = Keys.parse(data.id)
       NamedImage thisImage = byImageName[keyParts.imageName]
@@ -110,26 +123,18 @@ class AmazonNamedImageLookupController {
         Map<String, String> imageParts = Keys.parse(imageKey)
         thisImage.amis[imageParts.region].add(imageParts.imageId)
       }
-
-      imageTags?.each {
-        thisImage.tags.put(it.key, it.value)
-      }
     }
 
-    for (CacheData data : images ) {
+    for (CacheData data : images) {
       Map<String, String> amiKeyParts = Keys.parse(data.id)
       Map<String, String> namedImageKeyParts = Keys.parse(data.relationships[NAMED_IMAGES.ns][0])
       NamedImage thisImage = byImageName[namedImageKeyParts.imageName]
       thisImage.attributes.virtualizationType = data.attributes.virtualizationType
       thisImage.attributes.creationDate = data.attributes.creationDate
       thisImage.accounts.add(namedImageKeyParts.account)
-      amiKeyParts.tags.each {
-        thisImage.tags << [it.key, it.value]
-      }
       thisImage.amis[amiKeyParts.region].add(amiKeyParts.imageId)
-      imageTags?.each {
-        thisImage.tags.put(it.key, it.value)
-      }
+      thisImage.tags.putAll((data.attributes.tags as List)?.collectEntries { [it.key.toLowerCase(), it.value] })
+      thisImage.tagsByImageId[data.attributes.imageId as String] = thisImage.tags
     }
 
     List<NamedImage> results = byImageName.values().findAll { requiredRegion ? it.amis.containsKey(requiredRegion) : true }
@@ -151,20 +156,65 @@ class AmazonNamedImageLookupController {
     }
   }
 
+  /**
+   * Apply tag-based filtering to the list of named images.
+   *
+   * ie. /aws/images/find?q=PackageName&tag:engine=spinnaker&tag:stage=released
+   */
+  private static List<NamedImage> filter(List<NamedImage> namedImages, Map<String, String> tagFilters) {
+    if (!tagFilters) {
+      return namedImages
+    }
+
+    return namedImages.findResults { NamedImage namedImage ->
+      def invalidImageIds = []
+      namedImage.tagsByImageId.each { String imageId, Map<String, String> tags ->
+        def matches = tagFilters.every {
+          tags[it.key.toLowerCase()]?.equalsIgnoreCase(it.value)
+        }
+        if (!matches) {
+          invalidImageIds << imageId
+        }
+      }
+
+      invalidImageIds.each { String imageId ->
+        // remove all traces of any images that did not pass the filter criteria
+        namedImage.amis.each { String region, Collection<String> imageIds ->
+          imageIds.removeAll(imageId)
+        }
+        namedImage.amis = namedImage.amis.findAll { !it.value.isEmpty() }
+        namedImage.tagsByImageId.remove(imageId)
+      }
+
+      return (!namedImage.tagsByImageId || namedImage.amis.values().flatten().isEmpty()) ? null : namedImage
+    }
+  }
+
+  private static Map<String, String> extractTagFilters(HttpServletRequest httpServletRequest) {
+    return httpServletRequest.getParameterNames().findAll {
+      it.toLowerCase().startsWith("tag:")
+    }.collectEntries { String tagParameter ->
+      [tagParameter.replaceAll("tag:", "").toLowerCase(), httpServletRequest.getParameter(tagParameter)]
+    } as Map<String, String>
+  }
+
   @ResponseStatus(value = HttpStatus.BAD_REQUEST)
   @InheritConstructors
-  private static class InsufficientLookupOptionsException extends RuntimeException { }
+  private static class InsufficientLookupOptionsException extends RuntimeException {}
 
   @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = 'Image not found')
   @InheritConstructors
-  private static class ImageNotFoundException extends RuntimeException { }
+  private static class ImageNotFoundException extends RuntimeException {}
 
   private static class NamedImage {
     String imageName
-    Map<String,Object> attributes = [:]
-    Map<String,String> tags = [:]
+    Map<String, Object> attributes = [:]
+    Map<String, Map<String, String>> tagsByImageId = [:]
     Set<String> accounts = []
     Map<String, Collection<String>> amis = [:].withDefault { new HashSet<String>() }
+
+    @Deprecated
+    Map<String, String> tags = [:]
   }
 
   private static class LookupOptions {
