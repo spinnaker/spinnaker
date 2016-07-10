@@ -10,6 +10,7 @@ module.exports = angular
     require('../../filter/executionFilter.model.js'),
     require('../../../confirmationModal/confirmationModal.service.js'),
     require('../../../navigation/urlParser.service.js'),
+    require('../../../scheduler/scheduler.factory'),
   ])
   .directive('execution', function() {
     return {
@@ -25,7 +26,7 @@ module.exports = angular
       controllerAs: 'vm',
     };
   })
-  .controller('ExecutionCtrl', function ($scope, $location, $stateParams, $state, urlParser,
+  .controller('ExecutionCtrl', function ($scope, $location, $stateParams, $state, urlParser, schedulerFactory,
                                          settings, ExecutionFilterModel, executionService, confirmationModalService) {
 
     this.pipelinesUrl = [settings.gateUrl, 'pipelines/'].join('/');
@@ -120,7 +121,26 @@ module.exports = angular
       });
     };
 
+    let activeRefresher = schedulerFactory.createScheduler(2000);
+
+    if (this.execution.isRunning && !this.standalone) {
+      let refreshing = false;
+      activeRefresher.subscribe(() => {
+        if (refreshing) {
+          return;
+        }
+        refreshing = true;
+        executionService.getExecution(this.execution.id).then(execution => {
+          if (!$scope.$$destroyed) {
+            executionService.updateExecution(this.application, execution);
+          }
+          refreshing = false;
+        });
+      });
+    }
+
     $scope.$on('$destroy', () => {
+      activeRefresher.dispose();
       if (this.isActive()) {
         this.hideDetails();
       }

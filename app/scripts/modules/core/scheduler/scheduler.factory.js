@@ -78,8 +78,11 @@ module.exports = angular.module('spinnaker.core.scheduler', [
         subscribe: scheduler.subscribe.bind(scheduler),
         scheduleImmediate: scheduleImmediate,
         dispose: () => {
-          scheduler.onNext(false);
-          scheduler.dispose();
+          suspended = true;
+          if (scheduler) {
+            scheduler.onNext(false);
+            scheduler.dispose();
+          }
           scheduler = null;
           source = null;
           $timeout.cancel(pendingRun);

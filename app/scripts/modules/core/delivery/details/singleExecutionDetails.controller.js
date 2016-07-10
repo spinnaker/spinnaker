@@ -22,6 +22,10 @@ module.exports = angular.module('spinnaker.singleExecutionDetails.controller', [
       {
         this.execution = execution;
         executionService.transformExecution(this.application, this.execution);
+        if (!execution.isActive) {
+          executionScheduler.dispose();
+          executionLoader.dispose();
+        }
       }, () => {
         this.execution = null;
         this.stateNotFound = true;

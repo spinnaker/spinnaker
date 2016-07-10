@@ -244,6 +244,17 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       }
     }
 
+    function updateExecution(application, execution) {
+      if (application.executions.data && application.executions.data.length) {
+        application.executions.data.forEach((t, idx) => {
+          if (execution.id === t.id) {
+            transformExecution(application, execution);
+            application.executions.data[idx] = execution;
+          }
+        });
+      }
+    }
+
     return {
       getExecutions: getExecutions,
       getExecution: getExecution,
@@ -259,5 +270,6 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       getSectionCacheKey: getSectionCacheKey,
       getProjectExecutions: getProjectExecutions,
       addExecutionsToApplication: addExecutionsToApplication,
+      updateExecution: updateExecution,
     };
   });
