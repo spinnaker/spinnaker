@@ -121,7 +121,7 @@ module.exports = angular
       });
     };
 
-    let activeRefresher = schedulerFactory.createScheduler(2000);
+    let activeRefresher = schedulerFactory.createScheduler(1000);
 
     if (this.execution.isRunning && !this.standalone) {
       let refreshing = false;

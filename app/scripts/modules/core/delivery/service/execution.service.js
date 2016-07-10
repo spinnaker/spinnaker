@@ -248,8 +248,12 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       if (application.executions.data && application.executions.data.length) {
         application.executions.data.forEach((t, idx) => {
           if (execution.id === t.id) {
-            transformExecution(application, execution);
-            application.executions.data[idx] = execution;
+            execution.stringVal = JSON.stringify(execution);
+            if (t.stringVal !== execution.stringVal) {
+              transformExecution(application, execution);
+              application.executions.data[idx] = execution;
+              application.executions.refreshStream.onNext();
+            }
           }
         });
       }
