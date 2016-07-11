@@ -18,15 +18,14 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.ImageService
-import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
-@CompileStatic
 @RequestMapping("/images")
 @RestController
 class ImageController {
@@ -46,7 +45,13 @@ class ImageController {
                        @RequestParam(value = "q", required = false) String query,
                        @RequestParam(value = "region", required = false) String region,
                        @RequestParam(value = "account", required = false) String account,
-                       @RequestParam(value = "count", required = false) Integer count) {
-    imageService.search(provider, query, region, account, count)
+                       @RequestParam(value = "count", required = false) Integer count,
+                       HttpServletRequest httpServletRequest) {
+    def additionalFilters = httpServletRequest.getParameterNames().findAll { String parameterName ->
+      !["provider", "q", "region", "account", "count"].contains(parameterName.toLowerCase())
+    }.collectEntries { String parameterName ->
+      [parameterName, httpServletRequest.getParameter(parameterName)]
+    }
+    imageService.search(provider, query, region, account, count, additionalFilters)
   }
 }
