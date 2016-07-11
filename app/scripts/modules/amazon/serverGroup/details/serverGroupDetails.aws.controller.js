@@ -189,8 +189,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         region: serverGroup.region
       };
 
-
-      confirmationModalService.confirm({
+      var confirmationModalParams = {
         header: 'Really destroy ' + serverGroup.name + '?',
         buttonText: 'Destroy ' + serverGroup.name,
         account: serverGroup.account,
@@ -198,6 +197,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
         askForReason: true,
+        platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
+        platformHealthType: 'Amazon',
         body: this.getBodyTemplate(serverGroup, app),
         onTaskComplete: () => {
           if ($state.includes('**.serverGroup', stateParams)) {
@@ -209,7 +210,14 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
             $state.go('^');
           }
         }
-      });
+      };
+
+      if (app.attributes.platformHealthOnly) {
+        confirmationModalParams.interestingHealthProviderNames = ['Amazon'];
+      }
+
+      confirmationModalService.confirm(confirmationModalParams);
+
     };
 
     this.getBodyTemplate = (serverGroup, app) => {
