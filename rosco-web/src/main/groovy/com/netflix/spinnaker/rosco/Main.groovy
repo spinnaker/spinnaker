@@ -67,7 +67,7 @@ class Main extends SpringBootServletInitializer {
   }
 
   @Override
-  SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+  SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
     builder.properties(DEFAULT_PROPS).sources(Main)
   }
 

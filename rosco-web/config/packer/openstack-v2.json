@@ -1,0 +1,54 @@
+{
+  "variables": {
+    "openstack_instance_type": null,
+    "openstack_floating_ip_pool": null,
+    "openstack_image_name": null,
+    "openstack_identity_endpoint": null,
+    "openstack_insecure": "false",
+    "openstack_source_image_name": null,
+    "openstack_ssh_username": null,
+    "openstack_username": "{{env `OS_USERNAME`}}",
+    "openstack_password": "{{env `OS_PASSWORD`}}",
+    "openstack_region": null,
+    "openstack_security_groups": null,
+    "openstack_tenant_name": null,
+    "appversion": "",
+    "build_host": "",
+    "repository": "",
+    "package_type": "",
+    "packages": "",
+    "upgrade": "",
+    "configDir": null
+  },
+  "builders": [
+    {
+      "type": "openstack",
+      "flavor": "{{user `openstack_instance_type`}}",
+      "floating_ip_pool": "{{user `openstack_floating_ip_pool`}}",
+      "image_name": "{{user `openstack_image_name`}}",
+      "identity_endpoint": "{{user `openstack_identity_endpoint`}}",
+      "insecure": "{{user `openstack_insecure`}}",
+      "metadata": {"appversion": "{{user `appversion`}}", "build_host": "{{user `build_host`}}"},
+      "region": "{{user `openstack_region`}}",
+      "ssh_username": "{{user `openstack_ssh_username`}}",
+      "source_image_name": "{{user `openstack_source_image_name`}}",
+      "username": "{{user `openstack_username`}}",
+      "password": "{{user `openstack_password`}}",
+      "security_groups": "{{user `openstack_security_groups`}}",
+      "tenant_name": "{{user `openstack_tenant_name`}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "script": "{{user `configDir`}}/install_packages.sh",
+      "environment_vars": [
+        "repository={{user `repository`}}",
+        "package_type={{user `package_type`}}",
+        "packages={{user `packages`}}",
+        "upgrade={{user `upgrade`}}"
+      ],
+      "pause_before": "30s"
+    }
+  ]
+}

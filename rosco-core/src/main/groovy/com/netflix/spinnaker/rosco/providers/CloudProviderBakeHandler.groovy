@@ -185,4 +185,13 @@ abstract class CloudProviderBakeHandler {
     }
     return osVirtualizationSettings.baseImage
   }
+
+  /**
+   * This allows providers to specify Packer variables names whose values will be masked with '******'
+   * in logging output. Subclasses should override this if they need to mask sensitive data sent to Packer.
+   * @return
+   */
+  List<String> getMaskedPackerParameters() {
+    return []
+  }
 }

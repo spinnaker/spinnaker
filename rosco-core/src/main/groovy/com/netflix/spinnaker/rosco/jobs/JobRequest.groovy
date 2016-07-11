@@ -26,5 +26,16 @@ import groovy.transform.Immutable
 @CompileStatic
 class JobRequest {
   List<String> tokenizedCommand
+  List<String> maskedPackerParameters = []
+
+  List<String> getMaskedTokenizedCommand() {
+    return tokenizedCommand.collect { String masked ->
+      String key = masked.split('=').first()
+      if (key && key in maskedPackerParameters) {
+        masked = "$key=******".toString()
+      }
+      return masked
+    }
+  }
 }
 

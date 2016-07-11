@@ -202,13 +202,13 @@ openstack:
   bakeryDefaults:
     identityEndpoint: ${OS_AUTH_URL:}
     domainName: Default
-    floatingIpPool: ext_vlan1472_net
+    floatingIpPool: ext_network
     securityGroups: default
-    tenantName: PRD-spinnakeropenstack
+    tenantName: tenant
     insecure: true
     username: ${OS_USERNAME}
     password: ${OS_PASSWORD}
-    templateFile: openstack.json
+    templateFile: openstack-v3.json
     baseImages:
     - baseImage:
         id: vivid
@@ -216,11 +216,11 @@ openstack:
         detailedDescription: Ubuntu Vivid Vervet v15.04
         packageType: deb
       virtualizationSettings:
-      - region: TTEOSCORE1
+      - region: r1
         instanceType: smem-2vcpu
         sourceImageName: ubuntu-latest
         sshUserName: ubuntu
-      - region: TTCOSCORE1
+      - region: r2
         instanceType: smem-2vcpu
         sourceImageName: ubuntu-latest
         sshUserName: ubuntu

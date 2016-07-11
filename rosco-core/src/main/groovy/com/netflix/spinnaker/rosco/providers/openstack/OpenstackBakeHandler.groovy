@@ -22,7 +22,6 @@ import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.openstack.config.RoscoOpenstackConfiguration
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 /**
@@ -146,5 +145,10 @@ public class OpenstackBakeHandler extends CloudProviderBakeHandler {
     }
 
     new Bake(id: bakeId, image_name: imageName)
+  }
+
+  @Override
+  List<String> getMaskedPackerParameters() {
+    ['openstack_password']
   }
 }

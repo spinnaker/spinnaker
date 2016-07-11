@@ -47,7 +47,7 @@ class JobExecutorLocal implements JobExecutor {
 
   @Override
   String startJob(JobRequest jobRequest) {
-    log.info("Starting job: $jobRequest.tokenizedCommand...")
+    log.info("Starting job: $jobRequest.maskedTokenizedCommand...")
 
     String jobId = UUID.randomUUID().toString()
 
@@ -60,7 +60,7 @@ class JobExecutorLocal implements JobExecutor {
           CommandLine commandLine
 
           if (jobRequest.tokenizedCommand) {
-            log.info("Executing $jobId with tokenized command: $jobRequest.tokenizedCommand")
+            log.info("Executing $jobId with tokenized command: $jobRequest.maskedTokenizedCommand")
 
             // Grab the first element as the command.
             commandLine = new CommandLine(jobRequest.tokenizedCommand[0])
