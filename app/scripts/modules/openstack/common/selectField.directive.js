@@ -49,7 +49,7 @@ module.exports = angular.module('spinnaker.openstack.selectField.directive', [
             //if the selection changed as a result of updating the options
             if (scope.model !== previousSelection) {
               //ensure that the change handler is invoked... but give time for the two-way binding to propagate the value
-              if( scope.onChange ){
+              if( scope.onChange ) {
                 $timeout(scope.onChange);
               }
             }
