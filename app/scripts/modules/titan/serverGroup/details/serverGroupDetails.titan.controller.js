@@ -112,25 +112,33 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
         region: serverGroup.region
       };
 
-      confirmationModalService.confirm({
+      var confirmationModalParams = {
         header: 'Really destroy ' + serverGroup.name + '?',
         buttonText: 'Destroy ' + serverGroup.name,
         provider: 'titan',
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
+        platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
+        platformHealthType: 'Titus',
         submitMethod: submitMethod,
         body: this.getBodyTemplate(serverGroup, application),
-        onTaskComplete: function() {
+        onTaskComplete: function () {
           if ($state.includes('**.serverGroup', stateParams)) {
             $state.go('^');
           }
         },
-        onApplicationRefresh: function() {
+        onApplicationRefresh: function () {
           if ($state.includes('**.serverGroup', stateParams)) {
             $state.go('^');
           }
         }
-      });
+      };
+
+      if (app.attributes.platformHealthOnly) {
+        confirmationModalParams.interestingHealthProviderNames = ['Titus'];
+      }
+
+      confirmationModalService.confirm(confirmationModalParams);
     };
 
     this.getBodyTemplate = (serverGroup, application) => {
@@ -165,15 +173,22 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
         });
       };
 
-      confirmationModalService.confirm({
+      var confirmationModalParams = {
         header: 'Really disable ' + serverGroup.name + '?',
         buttonText: 'Disable ' + serverGroup.name,
         provider: 'titan',
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
+        platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
+        platformHealthType: 'Titus',
         submitMethod: submitMethod
-      });
+      };
 
+      if (app.attributes.platformHealthOnly) {
+        confirmationModalParams.interestingHealthProviderNames = ['Titus'];
+      }
+
+      confirmationModalService.confirm(confirmationModalParams);
     };
 
     this.enableServerGroup = function enableServerGroup() {
@@ -194,13 +209,21 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
         });
       };
 
-      confirmationModalService.confirm({
+      var confirmationModalParams = {
         header: 'Really enable ' + serverGroup.name + '?',
         buttonText: 'Enable ' + serverGroup.name,
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
+        platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
+        platformHealthType: 'Titus',
         submitMethod: submitMethod
-      });
+      };
+
+      if (app.attributes.platformHealthOnly) {
+        confirmationModalParams.interestingHealthProviderNames = ['Titus'];
+      }
+
+      confirmationModalService.confirm(confirmationModalParams);
 
     };
 
@@ -229,6 +252,5 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
         }
       });
     };
-
   }
 );

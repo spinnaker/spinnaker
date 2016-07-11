@@ -21,6 +21,14 @@ module.exports = angular.module('spinnaker.titan.serverGroup.details.resize.cont
     $scope.command = angular.copy($scope.currentSize);
     $scope.command.advancedMode = serverGroup.capacity.min !== serverGroup.capacity.max;
 
+    if (application && application.attributes) {
+      if (application.attributes.platformHealthOnly) {
+        $scope.command.interestingHealthProviderNames = ['Titus'];
+      }
+
+      $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
+    }
+
     this.isValid = function () {
       var command = $scope.command;
       if (!$scope.verification.verified) {
@@ -45,6 +53,7 @@ module.exports = angular.module('spinnaker.titan.serverGroup.details.resize.cont
           capacity: capacity,
           serverGroupName: serverGroup.name,
           instances: capacity.desired,
+          interestingHealthProviderNames: $scope.command.interestingHealthProviderNames,
           region: serverGroup.region,
         });
       };
