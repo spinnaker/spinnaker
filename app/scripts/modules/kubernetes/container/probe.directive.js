@@ -90,5 +90,18 @@ module.exports = angular.module('spinnaker.kubernetes.container.probe.directive'
       }
     };
 
+    this.addHttpHeader = function(getAction) {
+      getAction.httpHeaders = getAction.httpHeaders || [];
+      getAction.httpHeaders.push({});
+    };
+
+    this.deleteHttpHeader = function(getAction, index) {
+      if (getAction.httpHeaders.length < 2) {
+        delete getAction.httpHeaders;
+      } else {
+        getAction.httpHeaders.splice(index, 1);
+      }
+    };
+
     this.prepareProbe();
   });

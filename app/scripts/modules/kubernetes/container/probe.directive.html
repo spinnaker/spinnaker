@@ -132,6 +132,34 @@
           </select>
         </div>
       </div>
+      <hr>
+      <div ng-repeat="header in probeController.probe.handler.httpGetAction.httpHeaders"
+        class="form-group">
+        <div class="form-group">
+          <div class="col-md-3 sm-label-right">
+            Name
+          </div>
+          <div class="col-md-3">
+            <input class="form-control input-sm" ng-model="header.name"/>
+          </div>
+          <div class="col-md-1 sm-label-right">
+            Value
+          </div>
+          <div class="col-md-3">
+            <input class="form-control input-sm" name="details" ng-model="header.value"/>
+          </div>
+          <div class="col-md-1">
+            <button class="btn btn-sm btn-default"
+                    ng-click="probeController.deleteHttpHeader(probeController.probe.handler.httpGetAction, $index)">
+              <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <button class="add-new col-md-12"
+              ng-click="probeController.addHttpHeader(probeController.probe.handler.httpGetAction)">
+        <span class="glyphicon glyphicon-plus-sign"></span> Add HTTP Header
+      </button>
     </div>
   </div>
 </form>
