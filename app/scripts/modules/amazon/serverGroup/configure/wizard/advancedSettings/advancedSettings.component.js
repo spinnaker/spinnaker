@@ -23,7 +23,8 @@ module.exports = angular
   ])
   .component('awsServerGroupAdvancedSettings', {
     bindings: {
-      command: '='
+      command: '=',
+      application: '=',
     },
     templateUrl: require('./advancedSettings.component.html')
   });
