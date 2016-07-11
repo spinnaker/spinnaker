@@ -35,7 +35,8 @@ class Keys {
     INSTANCES,
     APPLICATIONS,
     CLUSTERS,
-    SERVER_GROUPS
+    SERVER_GROUPS,
+    SECURITY_GROUPS
 
     final String ns
 
@@ -87,6 +88,14 @@ class Keys {
               result << [id: parts[2], account: parts[3], region: parts[4]]
             }
             break
+          case Namespace.SECURITY_GROUPS.ns:
+            if (parts.length == 6) {
+              def names = Names.parseName(parts[2])
+              result << [
+                application: names.app, name: parts[2], id: parts[3], region: parts[4], account: parts[5]
+              ]
+            }
+            break
         }
 
         if (!result.isEmpty()) {
@@ -122,4 +131,7 @@ class Keys {
     "${ID}:${Namespace.NETWORKS}:${networkId}:${account}:${region}"
   }
 
+  static String getSecurityGroupKey(String securityGroupName, String securityGroupId, String account, String region) {
+    "${ID}:${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}"
+  }
 }

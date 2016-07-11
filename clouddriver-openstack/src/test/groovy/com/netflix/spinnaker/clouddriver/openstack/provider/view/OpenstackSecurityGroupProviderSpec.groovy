@@ -17,16 +17,18 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.provider.view
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.cats.cache.WriteableCache
+import com.netflix.spinnaker.cats.mem.InMemoryCache
+import com.netflix.spinnaker.clouddriver.model.AddressableRange
+import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
+import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
-import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
-import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFactory
+import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackSecurityGroup
-import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
-import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import org.openstack4j.model.compute.IPProtocol
-import org.openstack4j.model.compute.SecGroupExtension
-import org.openstack4j.openstack.compute.domain.NovaSecGroupExtension
+import com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider
+import redis.clients.jedis.exceptions.JedisException
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -38,7 +40,8 @@ class OpenstackSecurityGroupProviderSpec extends Specification {
   @Subject
   OpenstackSecurityGroupProvider provider
 
-  AccountCredentialsProvider accountCredentialsProvider
+  WriteableCache cache = new InMemoryCache()
+  ObjectMapper mapper = new ObjectMapper()
 
   @Shared
   Set<OpenstackSecurityGroup> account1East = [1, 2].collect { createSecurityGroup('account1', 'east') }
@@ -52,10 +55,8 @@ class OpenstackSecurityGroupProviderSpec extends Specification {
   Set<OpenstackSecurityGroup> allSecurityGroups = account1East.plus(account1West).plus(account2East).plus(account2West)
 
   def setup() {
-    accountCredentialsProvider = Mock()
-
-    // TODO Shouldn't need the spy once the data is coming from the caching layer
-    provider = Spy(OpenstackSecurityGroupProvider, constructorArgs: [accountCredentialsProvider])
+    provider = new OpenstackSecurityGroupProvider(cache, mapper)
+    cache.mergeAll(Keys.Namespace.SECURITY_GROUPS.ns, getAllCacheData())
   }
 
   def "type is openstack"() {
@@ -67,75 +68,88 @@ class OpenstackSecurityGroupProviderSpec extends Specification {
   }
 
   def "get all security groups"() {
-    // TODO Flesh out better once the caching layer is in place
+    when:
+    def securityGroups = provider.getAll(true)
+
+    then:
+    allSecurityGroups == securityGroups
+  }
+
+  def "get all security groups without rules"() {
+    given:
+    def securityGroupsWithoutRules = allSecurityGroups.collect { sg ->
+        new OpenstackSecurityGroup(id: sg.id,
+          accountName: sg.accountName,
+          region: sg.region,
+          name: sg.name,
+          description: sg.description,
+          inboundRules: []
+        )
+      } as Set
+
     when:
     def securityGroups = provider.getAll(false)
 
     then:
-    1 * provider.getSecurityGroups(_) >> allSecurityGroups
-    allSecurityGroups == securityGroups
+    securityGroups == securityGroupsWithoutRules
   }
 
   def "get all by region"() {
     when:
-    def securityGroups = provider.getAllByRegion(false, region)
+    def securityGroups = provider.getAllByRegion(true, region)
 
     then:
-    1 * provider.getSecurityGroups(_) >> all
     expected == securityGroups
 
     where:
-    region | all               | expected
-    'west' | account1West      | account1West
-    'east' | account1West      | [] as Set
-    'east' | allSecurityGroups | account2East.plus(account1East)
+    region | expected
+    'mid'  | [] as Set
+    'west' | account1West.plus(account2West)
+    'east' | account2East.plus(account1East)
   }
 
   def "get all by account"() {
     when:
-    def securityGroups = provider.getAllByAccount(false, account)
+    def securityGroups = provider.getAllByAccount(true, account)
 
     then:
-    1 * provider.getSecurityGroups(_) >> all
     expected == securityGroups
 
     where:
-    account    | all               | expected
-    'account1' | account1West      | account1West
-    'account1' | account2West      | [] as Set
-    'account2' | allSecurityGroups | account2West.plus(account2East)
+    account    | expected
+    'account3' | [] as Set
+    'account1' | account1West.plus(account1East)
+    'account2' | account2West.plus(account2East)
   }
 
   def "get all by account and name"() {
     when:
-    def securityGroups = provider.getAllByAccountAndName(false, account, name)
+    def securityGroups = provider.getAllByAccountAndName(true, account, name)
 
     then:
-    1 * provider.getSecurityGroups(_) >> all
     expected == securityGroups
 
     where:
-    account    | name        | all               | expected
-    'account1' | 'name-west' | account2West      | [] as Set
-    'account2' | 'name-east' | account2West      | [] as Set
-    'account1' | 'name-west' | account1West      | account1West.findAll { it.name == 'name-west' }
-    'account2' | 'name-west' | allSecurityGroups | account2West.findAll { it.name == 'name-west' }
+    account    | name        | expected
+    'account1' | 'invalid'   | [] as Set
+    'invalid'  | 'name-west' | [] as Set
+    'account1' | 'name-west' | account1West.findAll { it.name == 'name-west' }
+    'account2' | 'name-west' | account2West.findAll { it.name == 'name-west' }
   }
 
   def "get all by account and region"() {
     when:
-    def securityGroups = provider.getAllByAccountAndRegion(false, account, region)
+    def securityGroups = provider.getAllByAccountAndRegion(true, account, region)
 
     then:
-    1 * provider.getSecurityGroups(_) >> all
     expected == securityGroups
 
     where:
-    account    | region | all               | expected
-    'account1' | 'west' | account2West      | [] as Set
-    'account2' | 'east' | account2West      | [] as Set
-    'account1' | 'west' | account1West      | account1West
-    'account2' | 'west' | allSecurityGroups | account2West
+    account    | region    | expected
+    'invalid'  | 'west'    | [] as Set
+    'account2' | 'invalid' | [] as Set
+    'account1' | 'west'    | account1West
+    'account2' | 'west'    | account2West
   }
 
   def "get security group"() {
@@ -143,59 +157,54 @@ class OpenstackSecurityGroupProviderSpec extends Specification {
     def securityGroup = provider.get(account, region, name, null)
 
     then:
-    1 * provider.getSecurityGroups(_) >> all
-    expected == securityGroup
+    if (expected) {
+      // Security groups are not guaranteed to be unique by account, region, and name
+      // Just ensuring the found security group have those attributes correct
+      expected.accountName == securityGroup.accountName
+      expected.region == securityGroup.region
+      expected.name == securityGroup.name
+      expected.inboundRules == securityGroup.inboundRules
+    } else {
+      securityGroup == null
+    }
 
     where:
-    account    | region | name        | all               | expected
-    'account1' | 'west' | 'name-east' | account2West      | null
-    'account2' | 'east' | 'name-west' | account2West      | null
-    'account1' | 'west' | 'name-west' | account1West      | account1West[0]
-    'account2' | 'west' | 'name-west' | allSecurityGroups | account2West[0]
+    account    | region | name        | expected
+    'account1' | 'west' | 'name-east' | null
+    'account1' | 'west' | 'name-west' | account1West[0]
+    'account2' | 'west' | 'name-west' | account2West[0]
   }
 
-  def "get all with rules"() {
+  def "get all with an empty cache"() {
     given:
-    String region = 'region'
-    SecGroupExtension secGroupExtension = new NovaSecGroupExtension(id: UUID.randomUUID().toString(),
-      name: 'sec-group',
-      description: "description",
-      rules: [
-        createRule(1000, 1003, '10.10.0.0/32', IPProtocol.TCP),
-        createRule(2000, 2003, '0.0.0.0/24', IPProtocol.TCP),
-        createRule(80, 80, '192.168.1.1', IPProtocol.TCP)
-      ]
-    )
-    OpenstackClientProvider clientProvider = Mock()
-    GroovyMock(OpenstackProviderFactory, global: true)
-    OpenstackNamedAccountCredentials namedAccountCredentials = Mock()
-    OpenstackProviderFactory.createProvider(namedAccountCredentials) >> { clientProvider }
-    OpenstackCredentials credentials = new OpenstackCredentials(namedAccountCredentials)
+    // Recreate the provider with an empty cache
+    cache = new InMemoryCache()
+    provider = new OpenstackSecurityGroupProvider(cache, mapper)
 
     when:
-    Set<OpenstackSecurityGroup> securityGroups = provider.getAll(true)
+    def securityGroups = provider.getAll(false)
 
     then:
-    1 * accountCredentialsProvider.getAll() >> [namedAccountCredentials]
-    1 * namedAccountCredentials.getCredentials() >> credentials
-    1 * clientProvider.getProperty('allRegions') >> [region]
-    1 * clientProvider.getSecurityGroups(region) >> [secGroupExtension]
-
-    and:
-    securityGroups.size() == 1
-    securityGroups.first().with {
-      name == 'sec-group'
-      description == 'description'
-      region == region
-      inboundRules.size() == 3
-    }
+    securityGroups.empty
   }
 
-  def createRule(int fromPort, int toPort, String cidr, IPProtocol protocol) {
-    def ipRange = new NovaSecGroupExtension.SecurityGroupRule.RuleIpRange(cidr: cidr)
-    new NovaSecGroupExtension.SecurityGroupRule(fromPort: fromPort, toPort: toPort, ipProtocol: protocol, ipRange: ipRange)
-  }
+  void "get all throws an exception"() {
+    given:
+    // Recreate the provider with a mock cache to enable throwing an exception
+    cache = Mock(WriteableCache)
+    provider = new OpenstackSecurityGroupProvider(cache, mapper)
+    def filters = []
+    def throwable = new JedisException('test')
 
+    when:
+    provider.getAll(false)
+
+    then:
+    1 * cache.filterIdentifiers(Keys.Namespace.SECURITY_GROUPS.ns, _) >> filters
+    1 * cache.getAll(Keys.Namespace.SECURITY_GROUPS.ns, filters, _) >> { throw throwable }
+    Throwable exception = thrown(JedisException)
+    exception == throwable
+  }
 
 
   def createSecurityGroup(String account, String region) {
@@ -204,6 +213,20 @@ class OpenstackSecurityGroupProviderSpec extends Specification {
       region: region,
       name: "name-$region",
       description: "Description",
-      inboundRules: [])
+      inboundRules: [
+        new IpRangeRule(protocol: 'tcp',
+          portRanges: [new Rule.PortRange(startPort: 3272, endPort: 3272)] as SortedSet,
+          range: new AddressableRange(ip: '10.10.0.0', cidr: '/24')
+        )
+      ]
+    )
+  }
+
+  def getAllCacheData() {
+    allSecurityGroups.collect { sg ->
+      def key = Keys.getSecurityGroupKey(sg.name, sg.id, sg.accountName, sg.region)
+      Map<String, Object> attributes = mapper.convertValue(sg, OpenstackInfrastructureProvider.ATTRIBUTES)
+      new DefaultCacheData(key, attributes, [:])
+    }
   }
 }

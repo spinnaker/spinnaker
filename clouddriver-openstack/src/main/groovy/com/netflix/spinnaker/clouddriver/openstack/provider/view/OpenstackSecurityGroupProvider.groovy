@@ -17,55 +17,34 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.provider.view
 
-import com.netflix.spinnaker.clouddriver.model.AddressableRange
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupProvider
-import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
-import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
-import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
+import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackSecurityGroup
-import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import groovy.util.logging.Slf4j
-import org.openstack4j.model.compute.SecGroupExtension
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SECURITY_GROUPS
+
 /**
  * Provides a view of existing Openstack security groups in all configured Openstack accounts.
- *
- * TODO: Remove direct lookup to Openstack and lookup from cache view instead
  */
 @Slf4j
 @Component
 class OpenstackSecurityGroupProvider implements SecurityGroupProvider<OpenstackSecurityGroup> {
 
-  final AccountCredentialsProvider accountCredentialsProvider
+  final Cache cacheView
+  final ObjectMapper objectMapper
 
   @Autowired
-  OpenstackSecurityGroupProvider(AccountCredentialsProvider accountCredentialsProvider) {
-    this.accountCredentialsProvider = accountCredentialsProvider
-  }
-
-  Set<OpenstackSecurityGroup> getSecurityGroups(boolean includeRules) {
-    // TODO This is not thread safe and not cached
-    // This just proves the provider is working once it has a data set.
-    Set<OpenstackSecurityGroup> securityGroups = []
-    accountCredentialsProvider.all.each { account ->
-      if (account instanceof OpenstackNamedAccountCredentials) {
-        OpenstackClientProvider provider = ((OpenstackNamedAccountCredentials) account).credentials.provider
-
-        provider.allRegions.each { region ->
-          securityGroups.addAll(
-            provider.getSecurityGroups(region)
-              .flatten()
-              .collect { convertToOpenstackSecurityGroup(includeRules, it, account.name, region) }
-          )
-        }
-      }
-    }
-
-    securityGroups
+  OpenstackSecurityGroupProvider(Cache cacheView, ObjectMapper objectMapper) {
+    this.cacheView = cacheView
+    this.objectMapper = objectMapper
   }
 
   @Override
@@ -75,67 +54,55 @@ class OpenstackSecurityGroupProvider implements SecurityGroupProvider<OpenstackS
 
   @Override
   Set<OpenstackSecurityGroup> getAll(boolean includeRules) {
-    getSecurityGroups(includeRules)
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', '*', '*'), includeRules)
   }
 
   @Override
   Set<OpenstackSecurityGroup> getAllByRegion(boolean includeRules, String region) {
-    getSecurityGroups(includeRules).findAll { it.region == region }
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', '*', region), includeRules)
   }
 
   @Override
   Set<OpenstackSecurityGroup> getAllByAccount(boolean includeRules, String account) {
-    getSecurityGroups(includeRules).findAll { it.accountName == account }
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', account, '*'), includeRules)
   }
 
   @Override
   Set<OpenstackSecurityGroup> getAllByAccountAndName(boolean includeRules, String account, String name) {
-    getAllByAccount(includeRules, account).findAll { it.name == name }
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(name, '*', account, '*'), includeRules)
   }
 
   @Override
-  Set<OpenstackSecurityGroup> getAllByAccountAndRegion(boolean includeRule, String account, String region) {
-    getAllByAccount(includeRule, account).findAll { it.region == region }
+  Set<OpenstackSecurityGroup> getAllByAccountAndRegion(boolean includeRules, String account, String region) {
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', account, region), includeRules)
   }
 
   @Override
   OpenstackSecurityGroup get(String account, String region, String name, String vpcId) {
-    getAllByAccountAndRegion(true, account, region).find { it.name == name }
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(name, '*', account, region), true)[0]
   }
 
-  private OpenstackSecurityGroup convertToOpenstackSecurityGroup(boolean includeRules, SecGroupExtension securityGroup, String account, String region) {
-    List<Rule> inboundRules = includeRules ? buildInboundRules(securityGroup) : []
+  private Set<OpenstackSecurityGroup> getAllMatchingKeyPattern(String pattern, boolean includeRules) {
+    loadResults(includeRules, cacheView.filterIdentifiers(SECURITY_GROUPS.ns, pattern))
+  }
 
+  private Set<OpenstackSecurityGroup> loadResults(boolean includeRules, Collection<String> identifiers) {
+    Closure<OpenstackSecurityGroup> handleRules = includeRules ? {x -> x} : this.&stripRules
+    Collection<CacheData> data = cacheView.getAll(SECURITY_GROUPS.ns, identifiers, RelationshipCacheFilter.none())
+    data.collect(this.&fromCacheData).collect(handleRules)
+  }
+
+  private OpenstackSecurityGroup fromCacheData(CacheData cacheData) {
+    objectMapper.convertValue(cacheData.attributes, OpenstackSecurityGroup)
+  }
+
+  private OpenstackSecurityGroup stripRules(OpenstackSecurityGroup securityGroup) {
     new OpenstackSecurityGroup(id: securityGroup.id,
-      accountName: account,
-      region: region,
+      accountName: securityGroup.accountName,
+      region: securityGroup.region,
       name: securityGroup.name,
       description: securityGroup.description,
-      inboundRules: inboundRules
+      inboundRules: []
     )
-  }
-
-  private List<Rule> buildInboundRules(SecGroupExtension securityGroup) {
-    securityGroup.rules.collect { sgr ->
-      def portRange = new Rule.PortRange(startPort: sgr.fromPort, endPort: sgr.toPort)
-      def addressableRange = buildAddressableRangeFromCidr(sgr.range.cidr)
-      new IpRangeRule(protocol: sgr.IPProtocol.value(),
-                      portRanges: [portRange] as SortedSet,
-                      range: addressableRange
-      )
-    }
-  }
-
-  private AddressableRange buildAddressableRangeFromCidr(String cidr) {
-    def rangeParts = cidr.split('/') as List
-
-    // If the cidr just a single IP address, use 32 as the mask
-    if (rangeParts.size() == 1) {
-      rangeParts << "32"
-    }
-
-    new AddressableRange(ip: rangeParts[0], cidr: "/${rangeParts[1]}")
-
-
   }
 }

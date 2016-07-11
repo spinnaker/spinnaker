@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.model
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
 
 /**
  * A representation of a security group
  */
+@JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property='class')
 interface SecurityGroup {
 
   /**

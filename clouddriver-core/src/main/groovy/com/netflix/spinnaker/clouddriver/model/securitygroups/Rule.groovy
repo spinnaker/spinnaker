@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.model.securitygroups
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import groovy.transform.Canonical
 import groovy.transform.Sortable
 
@@ -25,6 +26,7 @@ import groovy.transform.Sortable
  * @see IpRangeRule
  * @see SecurityGroupRule
  */
+@JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property='class')
 interface Rule {
   /**
    * The port ranges associated with this rule

@@ -25,6 +25,7 @@ import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.S
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.APPLICATIONS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.CLUSTERS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SERVER_GROUPS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SECURITY_GROUPS
 
 @Unroll
 class KeysSpec extends Specification {
@@ -174,5 +175,34 @@ class KeysSpec extends Specification {
 
     then:
     result == "${ID}:${SUBNETS}:${subnetId}:${account}:${region}" as String
+  }
+
+  def "test get security group key"() {
+    given:
+    def id = UUID.randomUUID().toString()
+    def name = 'name'
+    def region = 'region'
+    def account = 'account'
+
+    when:
+    def result = Keys.getSecurityGroupKey(name, id, account, region)
+
+    then:
+    result == "${ID}:${SECURITY_GROUPS}:${name}:${id}:${region}:${account}" as String
+  }
+
+  def "test security group map"() {
+    given:
+    def id = UUID.randomUUID().toString()
+    def name = 'name'
+    def region = 'region'
+    def account = 'account'
+    def key = Keys.getSecurityGroupKey(name, id, account, region)
+
+    when:
+    Map<String, String> result = Keys.parse(key)
+
+    then:
+    result == [application: name, account: account, region: region, id: id, name: name, provider: ID, type: SECURITY_GROUPS.ns]
   }
 }
