@@ -157,8 +157,6 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
     };
 
     this.onSubnetChanged = function() {
-      //TODO (jcwest): query, filter by selected subnet, and only include only unassigned (where port_id == None?)
-      $scope.floatingIps = [];
     };
 
     this.newStatusCode = 200;

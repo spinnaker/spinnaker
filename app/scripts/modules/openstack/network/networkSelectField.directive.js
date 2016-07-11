@@ -4,9 +4,10 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.network.networkSelectField.directive', [
   require('../../core/utils/lodash'),
+  require('../../core/network/network.read.service.js'),
   require('../common/selectField.directive.js')
 ])
-  .directive('networkSelectField', function (_) {
+  .directive('networkSelectField', function (_, networkReader) {
     return {
       restrict: 'E',
       templateUrl: require('./networkSelectField.directive.html'),
@@ -26,22 +27,27 @@ module.exports = angular.module('spinnaker.openstack.network.networkSelectField.
         _.defaults(scope, {
           label: 'Network',
           labelColumnSize: 3,
-          floatingIps: []
+          networks: []
         });
 
-        function updateOptions() {
-          //TODO (jcwest): replace with reader when available
-          var floatingIps = [
-            {provider: 'openstack', id: 'd2cbbf3e-0eeb-4040-9c4e-21dc97010022', name: 'defaultNetwork'},
-            {provider: 'openstack', id: 'invalid', name: 'invalid'}
-          ];
-          scope.floatingIps = _(floatingIps)
-            .filter(_.assign({provider: 'openstack'}, scope.filter || {}))
-            .map(function(a) { return {label: a.name, value: a.id}; })
-            .valueOf();
+        var currentRequestId = 0;
+
+        function updateNetworkOptions() {
+          currentRequestId++;
+          var requestId = currentRequestId;
+          networkReader.listNetworksByProvider('openstack').then(function(networks) {
+            if (requestId !== currentRequestId) {
+              return;
+            }
+
+            scope.networks = _(networks)
+              .filter(scope.filter || {})
+              .map(function(a) { return {label: a.name, value: a.id}; })
+              .valueOf();
+          });
         }
 
-        scope.$watch('filter', updateOptions);
+        scope.$watch('filter', updateNetworkOptions);
       }
     };
 });

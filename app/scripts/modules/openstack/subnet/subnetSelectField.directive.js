@@ -37,13 +37,13 @@ module.exports = angular.module('spinnaker.openstack.subnet.subnetSelectField.di
         function updateSubnetOptions() {
           currentRequestId++;
           var requestId = currentRequestId;
-          subnetReader.listSubnets().then(function(subnets) {
+          subnetReader.listSubnetsByProvider('openstack').then(function(subnets) {
             if (requestId !== currentRequestId) {
               return;
             }
 
             scope.subnets = _(subnets)
-              .filter(_.assign({type: 'openstack'}, scope.filter))
+              .filter(scope.filter || {})
               .map(function(s) { return {label: s.name, value: s.id}; })
               .valueOf();
           });

@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.openstack.selectField.directive', [
   require('../../core/utils/lodash'),
 ])
-  .directive('selectField', function (_) {
+  .directive('selectField', function (_, $timeout) {
     return {
       restrict: 'E',
       templateUrl: require('./selectField.directive.html'),
@@ -48,8 +48,10 @@ module.exports = angular.module('spinnaker.openstack.selectField.directive', [
 
             //if the selection changed as a result of updating the options
             if (scope.model !== previousSelection) {
-              //ensure that the change handler is invoked
-              scope.onChange();
+              //ensure that the change handler is invoked... but give time for the two-way binding to propagate the value
+              if( scope.onChange ){
+                $timeout(scope.onChange);
+              }
             }
           }
         }
