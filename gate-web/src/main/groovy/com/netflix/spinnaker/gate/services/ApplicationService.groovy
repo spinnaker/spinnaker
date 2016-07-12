@@ -135,9 +135,9 @@ class ApplicationService {
     } execute()
   }
 
-  Map getPipelineConfigForApplication(String app, String pipelineName) {
+  Map getPipelineConfigForApplication(String app, String pipelineNameOrId) {
     HystrixFactory.newMapCommand(GROUP, "getPipelineConfig") {
-      front50Service.getPipelineConfigsForApplication(app).find { it.name == pipelineName }
+      front50Service.getPipelineConfigsForApplication(app).find { it.name == pipelineNameOrId || it.id == pipelineNameOrId }
     } execute()
   }
 
