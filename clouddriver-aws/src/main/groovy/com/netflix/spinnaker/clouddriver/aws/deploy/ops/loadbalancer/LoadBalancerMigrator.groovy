@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AbstractAmazonCredentialsDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.MigrateLoadBalancerStrategy
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.MigrateSecurityGroupStrategy
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.servergroup.ServerGroupMigrator.ServerGroupLocation
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -88,6 +89,15 @@ class LoadBalancerMigrator {
     String region
     String vpcId
     List<String> availabilityZones
+
+    LoadBalancerLocation() {}
+
+    LoadBalancerLocation(ServerGroupLocation serverGroupLocation) {
+      this.credentials = serverGroupLocation.credentials
+      this.availabilityZones = serverGroupLocation.availabilityZones
+      this.region = serverGroupLocation.region
+      this.vpcId = serverGroupLocation.vpcId
+    }
 
     @Override
     String toString() {

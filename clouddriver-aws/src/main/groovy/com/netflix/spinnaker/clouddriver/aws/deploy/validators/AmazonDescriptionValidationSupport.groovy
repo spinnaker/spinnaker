@@ -26,7 +26,7 @@ public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmaz
 
   abstract void validate(List priorDescriptions, T description, Errors errors)
 
-  static void validateAsgs(T description, Errors errors) {
+  void validateAsgs(T description, Errors errors) {
     if (!description.asgs) {
       errors.rejectValue("asgs", "${description.getClass().simpleName}.empty")
     } else {
@@ -36,7 +36,7 @@ public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmaz
     }
   }
 
-  static void validateAsgDescription(T description, AsgDescription asgDescription, Errors errors) {
+  void validateAsgDescription(T description, AsgDescription asgDescription, Errors errors) {
     def key = description.getClass().simpleName
     if (!asgDescription.serverGroupName) {
       errors.rejectValue("serverGroupName", "${key}.serverGroupName.empty")
@@ -49,7 +49,7 @@ public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmaz
     }
   }
 
-  static void validateAsgsWithCapacity(T description, Errors errors) {
+  void validateAsgsWithCapacity(T description, Errors errors) {
     if (!description.asgs) {
       errors.rejectValue("asgs", "${description.getClass().simpleName}.empty")
     } else {
@@ -59,23 +59,23 @@ public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmaz
     }
   }
 
-  static void validateAsgDescriptionWithCapacity(T description, ResizeAsgDescription.AsgTargetDescription asgDescription, Errors errors) {
+  void validateAsgDescriptionWithCapacity(T description, ResizeAsgDescription.AsgTargetDescription asgDescription, Errors errors) {
     validateAsgDescription description, asgDescription, errors
     validateCapacity asgDescription, errors
   }
 
-  static void validateAsgName(T description, Errors errors) {
+  void validateAsgName(T description, Errors errors) {
     def key = description.getClass().simpleName
     if (!description.asgName) {
       errors.rejectValue("asgName", "${key}.asgName.empty")
     }
   }
 
-  static void validateRegion(T description, String regionName, String errorKey, Errors errors) {
+  void validateRegion(T description, String regionName, String errorKey, Errors errors) {
     validateRegions(description, regionName ? [regionName] : [], errorKey, errors, "region")
   }
 
-  static void validateRegions(T description, Collection<String> regionNames, String errorKey, Errors errors, String attributeName = "regions") {
+  void validateRegions(T description, Collection<String> regionNames, String errorKey, Errors errors, String attributeName = "regions") {
     if (!regionNames) {
       errors.rejectValue(attributeName, "${errorKey}.${attributeName}.empty")
     } else {
@@ -86,7 +86,7 @@ public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmaz
     }
   }
 
-  static void validateAsgNameAndRegionAndInstanceIds(T description, Errors errors) {
+  void validateAsgNameAndRegionAndInstanceIds(T description, Errors errors) {
     def key = description.class.simpleName
     if (description.asgName) {
       validateAsgName(description, errors)

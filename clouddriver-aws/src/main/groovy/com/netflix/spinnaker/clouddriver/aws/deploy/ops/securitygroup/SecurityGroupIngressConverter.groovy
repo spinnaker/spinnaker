@@ -44,17 +44,17 @@ class SecurityGroupIngressConverter {
       final vpcId = ingress.vpcId ?: description.vpcId
       def newUserIdGroupPair = null
       if (ingress.id) {
-        newUserIdGroupPair = new UserIdGroupPair(userId: accountId, groupId: ingress.id)
+        newUserIdGroupPair = new UserIdGroupPair(userId: accountId, groupId: ingress.id, vpcId: ingress.vpcId)
       } else {
           final ingressSecurityGroup = securityGroupLookup.getSecurityGroupByName(accountName, ingress.name, vpcId)
           if (ingressSecurityGroup.present) {
             final groupId = ingressSecurityGroup.get().getSecurityGroup().groupId
-            newUserIdGroupPair = new UserIdGroupPair(userId: accountId, groupId: groupId)
+            newUserIdGroupPair = new UserIdGroupPair(userId: accountId, groupId: groupId, vpcId: ingress.vpcId)
           } else {
             if (description.vpcId) {
               missing.add(ingress)
             } else {
-              newUserIdGroupPair = new UserIdGroupPair(userId: accountId, groupName: ingress.name)
+              newUserIdGroupPair = new UserIdGroupPair(userId: accountId, groupName: ingress.name, vpcId: ingress.vpcId)
             }
           }
       }
@@ -72,7 +72,6 @@ class SecurityGroupIngressConverter {
     ipPermissions.collect { IpPermission ipPermission ->
       ipPermission.userIdGroupPairs.collect {
         it.groupName = null
-        it.vpcId = null
         it.peeringStatus = null
         it.vpcPeeringConnectionId = null
         new IpPermission()
