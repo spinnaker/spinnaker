@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+
 import static com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerMigrator.LoadBalancerLocation
 
 class MigrateLoadBalancerDescription {
@@ -25,5 +28,10 @@ class MigrateLoadBalancerDescription {
   String subnetType
   String application
   boolean dryRun
+
+  @JsonIgnore
+  NetflixAmazonCredentials getCredentials() {
+    return target.getCredentials();
+  }
 
 }

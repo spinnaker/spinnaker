@@ -16,10 +16,17 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupMigrator
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupMigrator.SecurityGroupLocation
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 
 class MigrateSecurityGroupDescription {
-  SecurityGroupMigrator.SecurityGroupLocation source
-  SecurityGroupMigrator.SecurityGroupLocation target
+  SecurityGroupLocation source
+  SecurityGroupLocation target
   boolean dryRun
+
+  @JsonIgnore
+  NetflixAmazonCredentials getCredentials() {
+    return target.getCredentials();
+  }
 }
