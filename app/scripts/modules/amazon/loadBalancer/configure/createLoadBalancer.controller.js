@@ -365,7 +365,16 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     };
 
     this.addListener = function() {
-      $scope.loadBalancer.listeners.push({internalProtocol: 'HTTP', externalProtocol: 'HTTP'});
+      $scope.loadBalancer.listeners.push({internalProtocol: 'HTTP', externalProtocol: 'HTTP', externalPort: 80});
+    };
+
+    this.listenerProtocolChanged = (listener) => {
+      if (listener.externalProtocol === 'HTTPS') {
+        listener.externalPort = 443;
+      }
+      if (listener.externalProtocol === 'HTTP') {
+        listener.externalPort = 80;
+      }
     };
 
     this.showSslCertificateIdField = function() {

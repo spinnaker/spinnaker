@@ -16,6 +16,7 @@
           <tbody>
           <tr ng-repeat="listener in loadBalancer.listeners">
             <td><select class="form-control input-sm" ng-model="listener.externalProtocol"
+                        ng-change="ctrl.listenerProtocolChanged(listener)"
                         ng-options="protocol for protocol in ['HTTP','HTTPS','TCP','SSL']"></select></td>
             <td><input class="form-control input-sm" type="number" min="0" ng-model="listener.externalPort"
                        required/></td>
