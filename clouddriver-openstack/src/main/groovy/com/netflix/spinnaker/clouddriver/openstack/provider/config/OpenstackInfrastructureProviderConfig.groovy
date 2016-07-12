@@ -21,6 +21,7 @@ import com.google.common.collect.Sets
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider
+import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackImageCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackInstanceCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackNetworkCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackSecurityGroupCachingAgent
@@ -35,7 +36,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
 import org.springframework.context.annotation.Scope
-
 
 @Configuration
 class OpenstackInfrastructureProviderConfig {
@@ -81,9 +81,10 @@ class OpenstackInfrastructureProviderConfig {
       if (!scheduledAccounts.contains(credentials.name)) {
         credentials.regions.each { String region ->
           newlyAddedAgents << new OpenstackInstanceCachingAgent(credentials, region, objectMapper)
-          newlyAddedAgents << new OpenstackServerGroupCachingAgent(credentials, region)
+          newlyAddedAgents << new OpenstackServerGroupCachingAgent(credentials, region, objectMapper)
           newlyAddedAgents << new OpenstackSubnetCachingAgent(credentials, region, objectMapper)
           newlyAddedAgents << new OpenstackNetworkCachingAgent(credentials, region, objectMapper)
+          newlyAddedAgents << new OpenstackImageCachingAgent(credentials, region, objectMapper)
           newlyAddedAgents << new OpenstackSecurityGroupCachingAgent(credentials, region, objectMapper)
         }
       }

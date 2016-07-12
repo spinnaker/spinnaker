@@ -36,7 +36,9 @@ class Keys {
     APPLICATIONS,
     CLUSTERS,
     SERVER_GROUPS,
-    SECURITY_GROUPS
+    SECURITY_GROUPS,
+    LOAD_BALANCERS,
+    IMAGES
 
     final String ns
 
@@ -96,6 +98,16 @@ class Keys {
               ]
             }
             break
+          case Namespace.IMAGES.ns:
+            if (parts.length == 5)
+              result << [account: parts[2], region: parts[3], imageId: parts[4]]
+            break
+          case Namespace.SERVER_GROUPS.ns:
+            def names = Names.parseName(parts[5])
+            if (parts.length == 6) {
+              result << [application: names.app.toLowerCase(), cluster: parts[2], account: parts[3], region: parts[4], serverGroup: parts[5], stack: names.stack, detail: names.detail, sequence: names.sequence?.toString()]
+            }
+            break
         }
 
         if (!result.isEmpty()) {
@@ -133,5 +145,13 @@ class Keys {
 
   static String getSecurityGroupKey(String securityGroupName, String securityGroupId, String account, String region) {
     "${ID}:${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}"
+  }
+
+  static String getLoadBalancerKey(String loadBalancerId, String account, String region) {
+    "${ID}:${Namespace.LOAD_BALANCERS}:${account}:${region}:${loadBalancerId}"
+  }
+
+  static String getImageKey(String imageId, String account, String region) {
+    "${ID}:${Namespace.IMAGES}:${account}:${region}:${imageId}"
   }
 }

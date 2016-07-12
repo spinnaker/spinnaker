@@ -32,10 +32,12 @@ import org.openstack4j.model.compute.IPProtocol
 import org.openstack4j.model.compute.RebootType
 import org.openstack4j.model.compute.SecGroupExtension
 import org.openstack4j.model.compute.Server
+import org.openstack4j.model.compute.ext.AvailabilityZone
 import org.openstack4j.model.heat.Resource
 import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.heat.StackCreate
 import org.openstack4j.model.heat.StackUpdate
+import org.openstack4j.model.image.Image
 import org.openstack4j.model.network.NetFloatingIP
 import org.openstack4j.model.network.Network
 import org.openstack4j.model.network.Port
@@ -78,6 +80,15 @@ abstract class OpenstackClientProvider {
     handleRequest {
       getRegionClient(region).compute().servers().list()
     }
+  }
+
+  /**
+   * Returns a map of instances grouped by server group UUID.  Matches not found are added into an unknown bucket.
+   * @param region
+   * @return
+     */
+  Map<String, List<? extends Server>> getInstancesByServerGroup(String region) {
+    getInstances(region)?.groupBy { Server server -> server?.metadata['metering.stack'] ?: 'unknown' }
   }
 
   /**
@@ -781,6 +792,18 @@ abstract class OpenstackClientProvider {
   List<Subnet> listSubnets(String region) {
     handleRequest {
       getRegionClient(region).networking().subnet().list()
+    }
+  }
+
+  /**
+   * Returns a list of images.
+   * @param region
+   * @param filters
+   * @return
+   */
+  List<Image> listImages(String region, Map<String, String> filters = null) {
+    handleRequest {
+      getRegionClient(region).images().list(filters)
     }
   }
 

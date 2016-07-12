@@ -61,7 +61,7 @@ class ClusterController {
     clusterNames
   }
 
-  @RequestMapping(value = "/{account:.+}")
+  @RequestMapping(value = "/{account:.+}", method = RequestMethod.GET)
   Set<ClusterViewModel> getForAccount(@PathVariable String application, @PathVariable String account) {
     def clusters = clusterProviders.collect {
       def clusters = (Set<Cluster>) it.getClusters(application, account)

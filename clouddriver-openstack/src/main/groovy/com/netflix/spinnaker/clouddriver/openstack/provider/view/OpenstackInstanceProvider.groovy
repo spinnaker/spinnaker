@@ -48,11 +48,24 @@ class OpenstackInstanceProvider implements InstanceProvider<OpenstackInstance> {
     OpenstackCloudProvider.ID
   }
 
+  Set<OpenstackInstance> getInstances(Collection<String> cacheKeys) {
+    cacheKeys.collect(this.&getInstanceInternal).toSet()
+  }
+
   @Override
   OpenstackInstance getInstance(String account, String region, String id) {
-    OpenstackInstance result
+    getInstanceInternal(Keys.getInstanceKey(id, account, region))
+  }
 
-    CacheData instanceEntry = cacheView.get(INSTANCES.ns, Keys.getInstanceKey(id, account, region))
+  /**
+   * Shared logic between getInstance and getInstances
+   * @param cacheKey
+   * @return
+   */
+  protected OpenstackInstance getInstanceInternal(String cacheKey) {
+    OpenstackInstance result = null
+
+    CacheData instanceEntry = cacheView.get(INSTANCES.ns, cacheKey)
     if (instanceEntry) {
       result = objectMapper.convertValue(instanceEntry.attributes, OpenstackInstance)
     }
@@ -62,7 +75,7 @@ class OpenstackInstanceProvider implements InstanceProvider<OpenstackInstance> {
   @Override
   String getConsoleOutput(String account, String region, String id) {
     String result
-    OpenstackNamedAccountCredentials namedAccountCredentials = this.accountCredentialsProvider.getCredentials(account)
+    OpenstackNamedAccountCredentials namedAccountCredentials = (OpenstackNamedAccountCredentials) this.accountCredentialsProvider.getCredentials(account)
     if (!namedAccountCredentials) {
       throw new IllegalArgumentException("Invalid credentials: ${account}:${region}")
     } else {

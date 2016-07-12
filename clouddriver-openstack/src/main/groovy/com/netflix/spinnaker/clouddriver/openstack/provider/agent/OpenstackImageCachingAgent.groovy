@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Target Inc.
+ * Copyright 2016 Target, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,29 +22,33 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.openstack.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
-import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackSubnet
+import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackImage
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import groovy.util.logging.Slf4j
-import org.openstack4j.model.network.Subnet
+import org.openstack4j.model.image.Image
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
-import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SUBNETS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.IMAGES
 import static com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider.ATTRIBUTES
 
 @Slf4j
-class OpenstackSubnetCachingAgent extends AbstractOpenstackCachingAgent {
+class OpenstackImageCachingAgent extends AbstractOpenstackCachingAgent {
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
-    AUTHORITATIVE.forType(SUBNETS.ns)
+    AUTHORITATIVE.forType(IMAGES.ns)
   ] as Set)
 
   final ObjectMapper objectMapper
 
-  OpenstackSubnetCachingAgent(
+  OpenstackImageCachingAgent(
     final OpenstackNamedAccountCredentials account, final String region, final ObjectMapper objectMapper) {
     super(account, region)
-
     this.objectMapper = objectMapper
+  }
+
+  @Override
+  String getAgentType() {
+    "${account.name}/${region}/${OpenstackImageCachingAgent.simpleName}"
   }
 
   @Override
@@ -53,30 +57,35 @@ class OpenstackSubnetCachingAgent extends AbstractOpenstackCachingAgent {
   }
 
   @Override
-  String getAgentType() {
-    "${account.name}/${region}/${OpenstackSubnetCachingAgent.simpleName}"
-  }
-
-  @Override
   CacheResult loadData(ProviderCache providerCache) {
     log.info("Describing items in ${agentType}")
 
     CacheResultBuilder cacheResultBuilder = new CacheResultBuilder()
 
-    clientProvider.listSubnets(region)?.each { Subnet subnet ->
-      String subnetKey = Keys.getSubnetKey(subnet.id, region, accountName)
+    List<Image> images = this.clientProvider.listImages(region)
 
-      Map<String, Object> subnetAttributes = objectMapper.convertValue(OpenstackSubnet.from(subnet, accountName, region), ATTRIBUTES)
-
-      cacheResultBuilder.namespace(SUBNETS.ns).keep(subnetKey).with {
-        attributes = subnetAttributes
-        attributes.account = accountName
-        attributes.region = region
+    images?.each { Image image ->
+      cacheResultBuilder.namespace(IMAGES.ns).keep(Keys.getImageKey(image.id, accountName, region)).with {
+        attributes = objectMapper.convertValue(buildImage(image), ATTRIBUTES)
       }
     }
 
-    log.info("Caching ${cacheResultBuilder.namespace(SUBNETS.ns).keepSize()} items in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(IMAGES.ns).keepSize()} items in ${agentType}")
 
     cacheResultBuilder.build()
+  }
+
+  OpenstackImage buildImage(Image image) {
+    OpenstackImage.builder()
+      .id(image.id)
+      .status(image.status?.value())
+      .size(image.size)
+      .location(image.location)
+      .createdAt(image.createdAt?.time)
+      .deletedAt(image.deletedAt?.time)
+      .updatedAt(image.updatedAt?.time)
+      .properties(image.properties)
+      .name(image.name)
+      .build()
   }
 }

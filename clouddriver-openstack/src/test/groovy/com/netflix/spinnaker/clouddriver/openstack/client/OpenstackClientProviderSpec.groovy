@@ -33,6 +33,7 @@ import org.openstack4j.api.heat.HeatService
 import org.openstack4j.api.heat.ResourcesService
 import org.openstack4j.api.heat.StackService
 import org.openstack4j.api.heat.TemplateService
+import org.openstack4j.api.image.ImageService
 import org.openstack4j.api.networking.NetFloatingIPService
 import org.openstack4j.api.networking.NetworkingService
 import org.openstack4j.api.networking.PortService
@@ -53,6 +54,7 @@ import org.openstack4j.model.heat.Resource
 import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.heat.StackCreate
 import org.openstack4j.model.heat.StackUpdate
+import org.openstack4j.model.image.Image
 import org.openstack4j.model.network.NetFloatingIP
 import org.openstack4j.model.network.Port
 import org.openstack4j.model.network.Subnet
@@ -116,7 +118,7 @@ class OpenstackClientProviderSpec extends Specification {
     provider.createSecurityGroupRule(region, id, protocol, cidr, fromPort, toPort)
 
     then:
-    1 * securityGroupService.createRule({r ->
+    1 * securityGroupService.createRule({ r ->
       r.parentGroupId == id && r.ipProtocol == protocol && r.cidr == cidr && r.fromPort == fromPort && r.toPort == toPort
     })
   }
@@ -171,7 +173,7 @@ class OpenstackClientProviderSpec extends Specification {
     provider.deleteSecurityGroupRule(region, id)
 
     then:
-    1 * securityGroupService.deleteRule(id) >> { throw new RuntimeException('foo')}
+    1 * securityGroupService.deleteRule(id) >> { throw new RuntimeException('foo') }
     thrown(OpenstackProviderException)
   }
 
@@ -239,7 +241,7 @@ class OpenstackClientProviderSpec extends Specification {
     provider.createSecurityGroup(region, name, description)
 
     then:
-    1 * securityGroupService.create(name, description) >> { throw new RuntimeException('foo')}
+    1 * securityGroupService.create(name, description) >> { throw new RuntimeException('foo') }
     thrown(OpenstackProviderException)
   }
 
@@ -276,7 +278,7 @@ class OpenstackClientProviderSpec extends Specification {
     provider.updateSecurityGroup(region, id, name, description)
 
     then:
-    1 * securityGroupService.update(id, name, description) >> { throw new RuntimeException('foo')}
+    1 * securityGroupService.update(id, name, description) >> { throw new RuntimeException('foo') }
     thrown(OpenstackProviderException)
   }
 
@@ -328,7 +330,7 @@ class OpenstackClientProviderSpec extends Specification {
     provider.getSecurityGroup(region, id)
 
     then:
-    1 * securityGroupService.get(id) >> { throw new RuntimeException('foo')}
+    1 * securityGroupService.get(id) >> { throw new RuntimeException('foo') }
     thrown(OpenstackProviderException)
   }
 
@@ -1539,7 +1541,7 @@ class OpenstackClientProviderSpec extends Specification {
     heat.stacks() >> stackApi
     String stackName = "mystack"
     String tmpl = "foo: bar"
-    Map<String, String> subtmpl = [sub:"foo: bar"]
+    Map<String, String> subtmpl = [sub: "foo: bar"]
     String region = 'region'
     boolean disableRollback = false
     int timeoutMins = 5
@@ -1550,16 +1552,16 @@ class OpenstackClientProviderSpec extends Specification {
     String networkId = '1234'
     String poolId = '5678'
     List<String> securityGroups = ['sg1']
-    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
+    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
     Map<String, String> params = [
-      'flavor':parameters.instanceType,
-      'image':parameters.image,
-      'internal_port':"$parameters.internalPort".toString(),
-      'max_size':"$parameters.maxSize".toString(),
-      'min_size':"$parameters.minSize".toString(),
-      'network_id':parameters.networkId,
-      'pool_id':parameters.poolId,
-      'security_groups':parameters.securityGroups.join(',')
+      'flavor'         : parameters.instanceType,
+      'image'          : parameters.image,
+      'internal_port'  : "$parameters.internalPort".toString(),
+      'max_size'       : "$parameters.maxSize".toString(),
+      'min_size'       : "$parameters.minSize".toString(),
+      'network_id'     : parameters.networkId,
+      'pool_id'        : parameters.poolId,
+      'security_groups': parameters.securityGroups.join(',')
     ]
     StackCreate stackCreate = Builders.stack().disableRollback(disableRollback).files(subtmpl).name(stackName).parameters(params).template(tmpl).timeoutMins(timeoutMins).build()
 
@@ -1585,7 +1587,7 @@ class OpenstackClientProviderSpec extends Specification {
     heat.stacks() >> stackApi
     String stackName = "mystack"
     String tmpl = "foo: bar"
-    Map<String, String> subtmpl = [sub:"foo: bar"]
+    Map<String, String> subtmpl = [sub: "foo: bar"]
     String region = 'region'
     boolean disableRollback = false
     int timeoutMins = 5
@@ -1596,7 +1598,7 @@ class OpenstackClientProviderSpec extends Specification {
     String networkId = '1234'
     String poolId = '5678'
     List<String> securityGroups = ['sg1']
-    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
+    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
 
     when:
     provider.deploy(region, stackName, tmpl, subtmpl, parameters, disableRollback, timeoutMins)
@@ -1608,7 +1610,7 @@ class OpenstackClientProviderSpec extends Specification {
     e.cause.message == 'foobar'
   }
 
-  def "get instance ids for stack succeeds" () {
+  def "get instance ids for stack succeeds"() {
     setup:
     HeatService heat = Mock()
     ResourcesService resourcesService = Mock()
@@ -1635,7 +1637,7 @@ class OpenstackClientProviderSpec extends Specification {
     noExceptionThrown()
   }
 
-  def "get instance ids for stack throws exception" () {
+  def "get instance ids for stack throws exception"() {
     setup:
     HeatService heat = Mock()
     ResourcesService resourcesService = Mock()
@@ -1647,7 +1649,7 @@ class OpenstackClientProviderSpec extends Specification {
     then:
     1 * mockClient.heat() >> heat
     1 * heat.resources() >> resourcesService
-    1 * resourcesService.list("mystack")>> { throw throwable }
+    1 * resourcesService.list("mystack") >> { throw throwable }
 
     and:
     OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
@@ -2260,19 +2262,19 @@ class OpenstackClientProviderSpec extends Specification {
     String networkId = '1234'
     String poolId = '5678'
     List<String> securityGroups = ['sg1']
-    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
+    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
     Map<String, String> params = [
-      'flavor':parameters.instanceType,
-      'image':parameters.image,
-      'internal_port':"$parameters.internalPort".toString(),
-      'max_size':"$parameters.maxSize".toString(),
-      'min_size':"$parameters.minSize".toString(),
-      'network_id':parameters.networkId,
-      'pool_id':parameters.poolId,
-      'security_groups':parameters.securityGroups.join(',')
+      'flavor'         : parameters.instanceType,
+      'image'          : parameters.image,
+      'internal_port'  : "$parameters.internalPort".toString(),
+      'max_size'       : "$parameters.maxSize".toString(),
+      'min_size'       : "$parameters.minSize".toString(),
+      'network_id'     : parameters.networkId,
+      'pool_id'        : parameters.poolId,
+      'security_groups': parameters.securityGroups.join(',')
     ]
     String template = "foo: bar"
-    Map<String, String> subtmpl = [sub:"foo: bar"]
+    Map<String, String> subtmpl = [sub: "foo: bar"]
 
     when:
     provider.updateStack(region, stackName, stackId, template, subtmpl, parameters)
@@ -2307,9 +2309,9 @@ class OpenstackClientProviderSpec extends Specification {
     String networkId = '1234'
     String poolId = '5678'
     List<String> securityGroups = ['sg1']
-    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
+    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
     String template = "foo: bar"
-    Map<String, String> subtmpl = [sub:"foo: bar"]
+    Map<String, String> subtmpl = [sub: "foo: bar"]
 
     when:
     provider.updateStack(region, stackName, stackId, template, subtmpl, parameters)
@@ -2340,9 +2342,9 @@ class OpenstackClientProviderSpec extends Specification {
     String networkId = '1234'
     String poolId = '5678'
     List<String> securityGroups = ['sg1']
-    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
+    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
     String template = "foo: bar"
-    Map<String, String> subtmpl = [sub:"foo: bar"]
+    Map<String, String> subtmpl = [sub: "foo: bar"]
 
     when:
     provider.updateStack(region, stackName, stackId, template, subtmpl, parameters)
@@ -2372,7 +2374,7 @@ class OpenstackClientProviderSpec extends Specification {
     noExceptionThrown()
   }
 
-  def "list subnets expection"() {
+  def "list subnets exception"() {
     setup:
     NetworkingService networkingService = Mock(NetworkingService)
     SubnetService subnetService = Mock(SubnetService)
@@ -2385,6 +2387,84 @@ class OpenstackClientProviderSpec extends Specification {
     1 * mockClient.networking() >> networkingService
     1 * networkingService.subnet() >> subnetService
     1 * subnetService.list() >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "list images succeeds"() {
+    setup:
+    Map<String, String> filters = null
+    ImageService imageService = Mock(ImageService)
+    List<Image> images = [Mock(Image)]
+
+    when:
+    List<Subnet> result = provider.listImages(region, filters)
+
+    then:
+    1 * mockClient.images() >> imageService
+    1 * imageService.list(filters) >> images
+
+    and:
+    result == images
+    noExceptionThrown()
+  }
+
+  def "list images exception"() {
+    setup:
+    Map<String, String> filters = null
+    ImageService imageService = Mock(ImageService)
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.listImages(region, filters)
+
+    then:
+    1 * mockClient.images() >> imageService
+    1 * imageService.list(filters) >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "get instances by server group"() {
+    setup:
+    ComputeService computeService = Mock(ComputeService)
+    ServerService serverService = Mock(ServerService)
+    Server server = Mock(Server)
+    List<Server> servers = [server]
+    String stackId = UUID.randomUUID().toString()
+    Map<String, String> metadata = ['metering.stack': stackId]
+
+    when:
+    Map<String, List<Server>> result = provider.getInstancesByServerGroup(region)
+
+    then:
+    1 * mockClient.compute() >> computeService
+    1 * computeService.servers() >> serverService
+    1 * serverService.list() >> servers
+    1 * server.metadata >> metadata
+
+    and:
+    result == [(stackId): servers]
+    noExceptionThrown()
+  }
+
+  def "get instances by server group exception"() {
+    setup:
+    ComputeService computeService = Mock(ComputeService)
+    ServerService serverService = Mock(ServerService)
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.getInstancesByServerGroup(region)
+
+    then:
+    1 * mockClient.compute() >> computeService
+    1 * computeService.servers() >> serverService
+    1 * serverService.list() >> { throw throwable }
 
     and:
     OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
