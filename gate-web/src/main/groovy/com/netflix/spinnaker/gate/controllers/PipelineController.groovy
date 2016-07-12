@@ -98,20 +98,20 @@ class PipelineController {
     pipelineService.startPipeline(map, authenticatedUser)
   }
 
-  @RequestMapping(value = "/{application}/{pipelineName:.+}", method = RequestMethod.POST)
+  @RequestMapping(value = "/{application}/{pipelineNameOrId:.+}", method = RequestMethod.POST)
   HttpEntity invokePipelineConfig(@PathVariable("application") String application,
-                                  @PathVariable("pipelineName") String pipelineName,
+                                  @PathVariable("pipelineNameOrId") String pipelineNameOrId,
                                   @RequestBody(required = false) Map trigger) {
     trigger = trigger ?: [:]
     trigger.user = trigger.user ?: AuthenticatedRequest.getSpinnakerUser().orElse('anonymous')
 
     try {
-      def body = pipelineService.trigger(application, pipelineName, trigger)
+      def body = pipelineService.trigger(application, pipelineNameOrId, trigger)
       new ResponseEntity(body, HttpStatus.ACCEPTED)
     } catch (PipelineConfigNotFoundException e) {
       throw e
     } catch (e) {
-      log.error("Unable to trigger pipeline (application: ${application}, pipelineName: ${pipelineName})", e)
+      log.error("Unable to trigger pipeline (application: ${application}, pipelineName: ${pipelineNameOrId})", e)
       new ResponseEntity([message: e.message], new HttpHeaders(), HttpStatus.UNPROCESSABLE_ENTITY)
     }
   }

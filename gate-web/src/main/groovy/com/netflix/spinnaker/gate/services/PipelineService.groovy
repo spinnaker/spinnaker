@@ -56,8 +56,8 @@ class PipelineService {
     front50Service.movePipelineConfig(moveCommand)
   }
 
-  Map trigger(String application, String pipelineName, Map trigger) {
-    def pipelineConfig = applicationService.getPipelineConfigForApplication(application, pipelineName)
+  Map trigger(String application, String pipelineNameOrId, Map trigger) {
+    def pipelineConfig = applicationService.getPipelineConfigForApplication(application, pipelineNameOrId)
     if (!pipelineConfig) {
       throw new PipelineConfigNotFoundException()
     }

@@ -230,4 +230,34 @@ class ApplicationServiceSpec extends Specification {
     "prod"      | "test"        || "prod,test"
     null        | null          || ""
   }
+
+  @Unroll
+  void "should return pipeline config based on name or id"() {
+    given:
+    HystrixRequestContext.initializeContext()
+
+    def service = new ApplicationService()
+    def front50 = Mock(Front50Service)
+    def clouddriver = Mock(ClouddriverService)
+    def config = new ServiceConfiguration(services: [front50: new Service()])
+
+    service.serviceConfiguration = config
+    service.front50Service = front50
+    service.clouddriverService = clouddriver
+    service.executorService = Executors.newFixedThreadPool(1)
+    def app = "theApp"
+
+    when:
+    def result = service.getPipelineConfigForApplication(app, nameOrId) != null
+
+    then:
+    result == expected
+    1 * front50.getPipelineConfigsForApplication(app) >> [ [ id: "by-id", name: "by-name" ] ]
+
+    where:
+    nameOrId  || expected
+    "by-id"   || true
+    "by-name" || true
+    "not-id"  || false
+  }
 }
