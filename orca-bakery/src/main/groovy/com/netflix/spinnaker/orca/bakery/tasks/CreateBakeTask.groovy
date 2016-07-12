@@ -148,7 +148,7 @@ class CreateBakeTask implements RetryableTask {
     }
 
     if (!roscoApisEnabled) {
-      bakeRequest = bakeRequest.copyWith(templateFileName: null, extendedAttributes: null, buildInfoUrl: null)
+      bakeRequest = bakeRequest.copyWith(templateFileName: null, extendedAttributes: null, buildInfoUrl: null, instanceType: null)
     }
 
     return bakeRequest

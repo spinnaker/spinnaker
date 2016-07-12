@@ -95,6 +95,7 @@ class CreateBakeTaskSpec extends Specification {
     cloudProviderType  : "aws",
     baseOs             : "ubuntu",
     baseLabel          : BakeRequest.Label.release.name(),
+    instanceType       : "myType",
     templateFileName   : "somePackerTemplate.json",
     extendedAttributes : [
       playbook_file : "subdir1/site.yml",
@@ -661,12 +662,13 @@ class CreateBakeTaskSpec extends Specification {
     bake.baseLabel.name()   == bakeConfigWithCloudProviderType.baseLabel
     bake.templateFileName   == templateFileName
     bake.extendedAttributes == extendedAttributes
+    bake.instanceType       == instanceType
     bake.buildInfoUrl       == buildInfoUrl
 
     where:
-    roscoApisEnabled | templateFileName          | extendedAttributes                                               | buildInfoUrl
-    false            | null                      | null                                                             | null
-    true             | "somePackerTemplate.json" | [playbook_file: "subdir1/site.yml", someOtherAttr: "someValue"]  | bakeConfigWithTemplateFileNameExtendedAttributesAndBuildInfoUrl.buildInfoUrl
+    roscoApisEnabled | instanceType | templateFileName          | extendedAttributes | buildInfoUrl
+    false            | null         | null                      | null  | null
+    true             | "myType"     | "somePackerTemplate.json" | [playbook_file: "subdir1/site.yml", someOtherAttr: "someValue"] | bakeConfigWithTemplateFileNameExtendedAttributesAndBuildInfoUrl.buildInfoUrl
   }
 
   @Unroll
