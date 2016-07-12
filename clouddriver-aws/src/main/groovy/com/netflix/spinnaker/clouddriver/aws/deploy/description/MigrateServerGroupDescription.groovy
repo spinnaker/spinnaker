@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+
 import static com.netflix.spinnaker.clouddriver.aws.deploy.ops.servergroup.ServerGroupMigrator.ServerGroupLocation
 
 class MigrateServerGroupDescription {
@@ -28,4 +31,8 @@ class MigrateServerGroupDescription {
   String targetAmi
   boolean dryRun
 
+  @JsonIgnore
+  NetflixAmazonCredentials getCredentials() {
+    return target.getCredentials();
+  }
 }
