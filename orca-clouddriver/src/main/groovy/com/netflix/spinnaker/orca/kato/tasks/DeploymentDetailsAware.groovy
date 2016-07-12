@@ -35,8 +35,11 @@ trait DeploymentDetailsAware {
     def result = [:]
     if (previousStage) {
       if (previousStage.context.containsKey("amiDetails")) {
-        result.amiName = previousStage.context.amiDetails.ami
-        result.imageId = previousStage.context.amiDetails.imageId
+        def amiDetail = previousStage.context.amiDetails.find {
+          it.region == targetRegion
+        } ?: previousStage.context.amiDetails[0]
+        result.amiName = amiDetail.ami
+        result.imageId = amiDetail.imageId
       } else {
         result.amiName = previousStage.context.ami
         result.imageId = previousStage.context.imageId
@@ -47,7 +50,8 @@ trait DeploymentDetailsAware {
 
   Stage getPreviousStageWithImage(Stage stage, String targetRegion) {
     getAncestors(stage).find {
-      (it.context.containsKey("ami") || it.context.containsKey("amiDetails")) && it.context.region == targetRegion
+      def regions = (it.context.region ? [it.context.region] : it.context.regions) as Set<String>
+      (it.context.containsKey("ami") || it.context.containsKey("amiDetails")) && regions?.contains(targetRegion)
     }
   }
 

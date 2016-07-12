@@ -320,7 +320,7 @@ class CreateDeployTaskSpec extends Specification {
     ]
 
     and:
-    def findImageStage = new PipelineStage(stage.execution, "findImage", [region: deployRegion, amiDetails: [ami: amiName]])
+    def findImageStage = new PipelineStage(stage.execution, "findImage", [regions: [deployRegion], amiDetails: [[ami: amiName]]])
     findImageStage.id = UUID.randomUUID()
     findImageStage.refId = "1a"
     stage.execution.stages << findImageStage
