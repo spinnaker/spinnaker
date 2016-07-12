@@ -8,14 +8,19 @@ module.exports = angular
     require('../cache/infrastructureCaches.js'),
     require('../utils/lodash')
   ])
-  .factory('subnetReader', function (_, Restangular, infrastructureCaches) {
+  .factory('subnetReader', function ($q, _, Restangular, infrastructureCaches) {
+
+    let cachedSubnets = null;
 
     function listSubnets() {
+      if (cachedSubnets) {
+        return $q.when(cachedSubnets);
+      }
       return Restangular.all('subnets')
         .withHttpConfig({cache: infrastructureCaches.subnets})
         .getList()
         .then(function(subnets) {
-          return subnets.map(function(subnet) {
+          let results = subnets.map(subnet => {
             subnet.label = subnet.purpose;
             subnet.deprecated = !!subnet.deprecated;
             if (subnet.deprecated) {
@@ -23,6 +28,8 @@ module.exports = angular
             }
             return subnet.plain();
           });
+          cachedSubnets = results;
+          return results;
         });
     }
 
@@ -39,10 +46,18 @@ module.exports = angular
         });
     }
 
+    function getSubnetPurpose(id) {
+      return listSubnets().then(subnets => {
+        let [match] = subnets.filter(test => test.id === id);
+        return match ? match.purpose : null;
+      });
+    }
+
     return {
       listSubnets: listSubnets,
       listSubnetsByProvider: listSubnetsByProvider,
       getSubnetByIdAndProvider: getSubnetByIdAndProvider,
+      getSubnetPurpose: getSubnetPurpose,
     };
 
   });
