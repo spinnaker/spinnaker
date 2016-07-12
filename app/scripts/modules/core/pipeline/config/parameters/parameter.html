@@ -1,19 +1,28 @@
 <div class="row">
+
   <div class="col-md-12">
     <div class="form-horizontal panel-pipeline-phase">
-      <stage-config-field label="Name" field-columns="9">
-        <div class="row">
-          <div class="col-md-6">
-            <input type="text" required ng-model="parameter.name"
-                   class="form-control input-sm"/>
-          </div>
-          <div class="col-md-1 col-md-offset-5">
-            <button class="btn-link" ng-click="parameterCtrl.remove(parameter)">
-              <span class="glyphicon glyphicon-trash" uib-tooltip="Remove parameter"></span><span class="sr-only">Remove Parameter</span>
-            </button>
+      <div class="form-group name-field">
+        <div class="col-md-1">
+          <span ng-if="pipeline.parameterConfig.length > 1" class="clickable glyphicon glyphicon-resize-vertical"></span>
+        </div>
+        <label class="col-md-2 sm-label-right">
+          <span class="label-text">Name</span>
+        </label>
+        <div class="col-md-9">
+          <div class="row">
+            <div class="col-md-6">
+              <input type="text" required ng-model="parameter.name"
+                     class="form-control input-sm"/>
+            </div>
+            <div class="col-md-1 col-md-offset-5">
+              <button class="btn-link" ng-click="parameterCtrl.remove(parameter)">
+                <span class="glyphicon glyphicon-trash" uib-tooltip="Remove parameter"></span><span class="sr-only">Remove Parameter</span>
+              </button>
+            </div>
           </div>
         </div>
-      </stage-config-field>
+      </div>
 
       <stage-config-field label="Description" help-key="pipeline.config.parameter.description">
         <input type="text" required ng-model="parameter.description"

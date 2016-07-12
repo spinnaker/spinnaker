@@ -1,4 +1,6 @@
-<parameter ng-repeat="parameter in pipeline.parameterConfig" parameter="parameter" pipeline="pipeline"></parameter>
+<div ng-model="pipeline.parameterConfig" ui-sortable="parametersCtrl.sortOptions">
+  <parameter ng-repeat="parameter in pipeline.parameterConfig" parameter="parameter" pipeline="pipeline"></parameter>
+</div>
 <div class="row">
   <div class="col-md-12">
     <p ng-if="!pipeline.parameterConfig.length">

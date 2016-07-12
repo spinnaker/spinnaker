@@ -24,4 +24,10 @@ module.exports = angular.module('spinnaker.core.pipeline.parameters.parameters',
       $scope.pipeline.parameterConfig.push(newParameter);
     };
 
+    this.sortOptions = {
+      axis: 'y',
+      delay: 150,
+      handle: '.glyphicon-resize-vertical',
+    };
+
   });

@@ -229,6 +229,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       $scope.pipeline.triggers = original.triggers;
       $scope.pipeline.notifications = original.notifications;
       $scope.pipeline.persistedProperties = original.persistedProperties;
+      $scope.pipeline.parameterConfig = original.parameterConfig;
 
       // if we were looking at a stage that no longer exists, move to the last stage
       if ($scope.viewState.section === 'stage') {
