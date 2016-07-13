@@ -168,12 +168,29 @@ abstract class CloudProviderBakeHandler {
     parameterMap.configDir = configDir
 
     if (bakeRequest.extended_attributes) {
-      parameterMap << bakeRequest.extended_attributes
+      if (bakeRequest.extended_attributes.containsKey('share_with')) {
+        unrollParameters("share_with_", bakeRequest.extended_attributes.get('share_with'), parameterMap)
+      }
+
+      if (bakeRequest.extended_attributes.containsKey('copy_to')) {
+        unrollParameters("copy_to_", bakeRequest.extended_attributes.get('copy_to'), parameterMap)
+      }
+
+      List attributes = bakeRequest.extended_attributes.keySet().asList()
+      parameterMap << bakeRequest.extended_attributes.subMap(
+              attributes.findAll { !it.equals('share_with') && !it.equals('copy_to') })
     }
 
     def finalTemplateFileName = bakeRequest.template_file_name ?: templateFileName
 
     return packerCommandFactory.buildPackerCommand(baseCommand, parameterMap, "$configDir/$finalTemplateFileName")
+  }
+
+  private void unrollParameters(String prefix, String rolledParameter, Map parameterMap) {
+    List<String> values = rolledParameter.tokenize(",")
+    values.eachWithIndex { value, index, counter = index + 1 ->
+      parameterMap.put(prefix + counter, value.trim())
+    }
   }
 
   BaseImage findBaseImage(BakeRequest bakeRequest) {

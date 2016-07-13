@@ -859,4 +859,106 @@ class AWSBakeHandlerSpec extends Specification {
       bakeKey1 == "bake:aws:centos:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb:us-east-1:hvm:enhancedNWDisabled"
       bakeKey2 == bakeKey1
   }
+
+  void 'produces packer command with all required parameters including shared_with multiple accounts as extended_attribute'() {
+    setup:
+      def imageNameFactoryMock = Mock(ImageNameFactory)
+      def packerCommandFactoryMock = Mock(PackerCommandFactory)
+      def fullyQualifiedPackageName = "nflx-djangobase-enhanced_0.1-h12.170cdbd_all"
+      def appVersionStr = "nflx-djangobase-enhanced-0.1-170cdbd.h12"
+      def buildHost = "http://some-build-server:8080"
+      def buildInfoUrl = "http://some-build-server:8080/repogroup/repo/builds/320282"
+      def share_account = "000001, 000002"
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: fullyQualifiedPackageName,
+                                        base_os: "trusty",
+                                        vm_type: BakeRequest.VmType.hvm,
+                                        build_host: buildHost,
+                                        cloud_provider_type: BakeRequest.CloudProviderType.aws,
+                                        extended_attributes: [share_with: share_account],
+                                        build_info_url: buildInfoUrl)
+      def targetImageName = "kato-x8664-timestamp-trusty"
+      def parameterMap = [
+        aws_region: REGION,
+        aws_ssh_username: "ubuntu",
+        aws_instance_type: "t2.micro",
+        aws_source_ami: SOURCE_TRUSTY_HVM_IMAGE_NAME,
+        aws_target_ami: targetImageName,
+        package_type: BakeRequest.PackageType.DEB.packageType,
+        repository: DEBIAN_REPOSITORY,
+        packages: fullyQualifiedPackageName,
+        share_with_1: "000001",
+        share_with_2: "000002",
+        configDir: configDir,
+        appversion: appVersionStr,
+        build_host: buildHost,
+        build_info_url: buildInfoUrl
+      ]
+
+      @Subject
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(configDir: configDir,
+                                                         awsBakeryDefaults: awsBakeryDefaults,
+                                                         imageNameFactory: imageNameFactoryMock,
+                                                         packerCommandFactory: packerCommandFactoryMock,
+                                                         debianRepository: DEBIAN_REPOSITORY,
+                                                         yumRepository: YUM_REPOSITORY)
+
+    when:
+      awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+
+    then:
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, appVersionStr, fullyQualifiedPackageName]
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
+  }
+
+  void 'produces packer command with all required parameters including copy_to multiple regions as extended_attribute'() {
+    setup:
+      def imageNameFactoryMock = Mock(ImageNameFactory)
+      def packerCommandFactoryMock = Mock(PackerCommandFactory)
+      def fullyQualifiedPackageName = "nflx-djangobase-enhanced_0.1-h12.170cdbd_all"
+      def appVersionStr = "nflx-djangobase-enhanced-0.1-170cdbd.h12"
+      def buildHost = "http://some-build-server:8080"
+      def buildInfoUrl = "http://some-build-server:8080/repogroup/repo/builds/320282"
+      def copy_regions = "us-west-1, us-west-2"
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: fullyQualifiedPackageName,
+                                        base_os: "trusty",
+                                        vm_type: BakeRequest.VmType.hvm,
+                                        build_host: buildHost,
+                                        cloud_provider_type: BakeRequest.CloudProviderType.aws,
+                                        extended_attributes: [copy_to: copy_regions],
+                                        build_info_url: buildInfoUrl)
+      def targetImageName = "kato-x8664-timestamp-trusty"
+      def parameterMap = [
+        aws_region: REGION,
+        aws_ssh_username: "ubuntu",
+        aws_instance_type: "t2.micro",
+        aws_source_ami: SOURCE_TRUSTY_HVM_IMAGE_NAME,
+        aws_target_ami: targetImageName,
+        package_type: BakeRequest.PackageType.DEB.packageType,
+        repository: DEBIAN_REPOSITORY,
+        packages: fullyQualifiedPackageName,
+        copy_to_1: "us-west-1",
+        copy_to_2: "us-west-2",
+        configDir: configDir,
+        appversion: appVersionStr,
+        build_host: buildHost,
+        build_info_url: buildInfoUrl
+      ]
+
+      @Subject
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(configDir: configDir,
+                                                         awsBakeryDefaults: awsBakeryDefaults,
+                                                         imageNameFactory: imageNameFactoryMock,
+                                                         packerCommandFactory: packerCommandFactoryMock,
+                                                         debianRepository: DEBIAN_REPOSITORY,
+                                                         yumRepository: YUM_REPOSITORY)
+
+    when:
+      awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+
+    then:
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, appVersionStr, fullyQualifiedPackageName]
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
+  }
 }
