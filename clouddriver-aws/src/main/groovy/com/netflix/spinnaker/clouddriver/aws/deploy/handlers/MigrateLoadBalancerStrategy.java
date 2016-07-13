@@ -216,6 +216,7 @@ public abstract class MigrateLoadBalancerStrategy {
     elbGroup.setTargetName(appName + "-elb");
     MigrateSecurityGroupResult addedGroup = new MigrateSecurityGroupResult();
     addedGroup.setTarget(elbGroup);
+    addedGroup.getCreated().add(elbGroup);
     result.getSecurityGroups().add(addedGroup);
     if (!dryRun) {
       AmazonEC2 targetAmazonEC2 = getAmazonClientProvider().getAmazonEC2(target.getCredentials(), target.getRegion(), true);
@@ -250,9 +251,10 @@ public abstract class MigrateLoadBalancerStrategy {
         MigrateSecurityGroupReference appGroupReference = new MigrateSecurityGroupReference();
         appGroupReference.setAccountId(target.getCredentials().getAccountId());
         appGroupReference.setVpcId(target.getVpcId());
-        appGroupReference.setTargetName(appName + "-elb");
+        appGroupReference.setTargetName(appName);
         MigrateSecurityGroupResult addedGroup = new MigrateSecurityGroupResult();
         addedGroup.setTarget(appGroupReference);
+        addedGroup.getCreated().add(appGroupReference);
         result.getSecurityGroups().add(addedGroup);
         if (!dryRun) {
           String newGroupId = targetAmazonEC2.createSecurityGroup(
@@ -267,19 +269,22 @@ public abstract class MigrateLoadBalancerStrategy {
             200, 5);
         }
       }
-      SecurityGroup appGroup = appGroups.stream().filter(isAppSecurityGroup(target, appName)).findFirst().get();
-      if (!dryRun && appGroup.getIpPermissions().stream()
-        .noneMatch(p -> p.getUserIdGroupPairs().stream().anyMatch(u -> u.getGroupId().equals(elbGroupId)))) {
-        sourceDescription.getListenerDescriptions().stream().forEach(l -> {
-          Listener listener = l.getListener();
-          IpPermission newPermission = new IpPermission().withIpProtocol("tcp")
-            .withFromPort(listener.getInstancePort()).withToPort(listener.getInstancePort())
-            .withUserIdGroupPairs(new UserIdGroupPair().withGroupId(elbGroupId).withVpcId(target.getVpcId()));
-          targetAmazonEC2.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest()
-            .withGroupId(appGroup.getGroupId())
-            .withIpPermissions(newPermission)
-          );
-        });
+      if (!dryRun) {
+        SecurityGroup appGroup = appGroups.stream().filter(isAppSecurityGroup(target, appName)).findFirst().get();
+        boolean hasElbIngressPermission = appGroup.getIpPermissions().stream()
+          .anyMatch(p -> p.getUserIdGroupPairs().stream().anyMatch(u -> u.getGroupId().equals(elbGroupId)));
+        if (!hasElbIngressPermission) {
+          sourceDescription.getListenerDescriptions().stream().forEach(l -> {
+            Listener listener = l.getListener();
+            IpPermission newPermission = new IpPermission().withIpProtocol("tcp")
+              .withFromPort(listener.getInstancePort()).withToPort(listener.getInstancePort())
+              .withUserIdGroupPairs(new UserIdGroupPair().withGroupId(elbGroupId).withVpcId(target.getVpcId()));
+            targetAmazonEC2.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest()
+              .withGroupId(appGroup.getGroupId())
+              .withIpPermissions(newPermission)
+            );
+          });
+        }
       }
     }
   }

@@ -162,7 +162,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     0 * amazonEC2.authorizeSecurityGroupIngress(_)
   }
 
-  void 'creates elb group and adds classic link ingress when moving from non-VPC to VPC'() {
+  void 'creates app group and elb group and adds classic link ingress when moving from non-VPC to VPC'() {
     given:
     LoadBalancerDescription sourceDescription = new LoadBalancerDescription(loadBalancerName: 'app-elb',
       listenerDescriptions: [ new ListenerDescription().withListener(
@@ -182,9 +182,10 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     def elbGroup = new SecurityGroup(groupName: 'app-elb', groupId: 'sg-4', ownerId: prodCredentials.accountId, vpcId: 'vpc-2')
 
     when:
-    strategy.generateResults(sourceLookup, targetLookup, securityGroupStrategy, source, target, 'internal', 'app', false)
+    def results = strategy.generateResults(sourceLookup, targetLookup, securityGroupStrategy, source, target, 'internal', 'app', false)
 
     then:
+    results.securityGroups.created.targetName.flatten().sort() == ['app', 'app-elb']
     amazonClientProvider.getAmazonEC2(prodCredentials, 'eu-west-1', true) >> amazonEC2
     amazonClientProvider.getAmazonEC2(prodCredentials, 'eu-west-1') >> amazonEC2
     amazonClientProvider.getAmazonElasticLoadBalancing(testCredentials, 'us-east-1', true) >> loadBalancing
@@ -193,9 +194,10 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     regionProvider.getSubnetAnalyzer() >> subnetAnalyzer
     1 * loadBalancing.describeLoadBalancers(_) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(sourceDescription)
     1 * targetLoadBalancing.createLoadBalancer(_) >> new CreateLoadBalancerResult().withDNSName('new-elb-dns')
-    1 * amazonEC2.createSecurityGroup(_) >> new CreateSecurityGroupResult().withGroupId('sg-4')
+    amazonEC2.createSecurityGroup(_) >>> [new CreateSecurityGroupResult().withGroupId('sg-4'), new CreateSecurityGroupResult().withGroupId('sg-3')]
     1 * targetLookup.getSecurityGroupByName(prodCredentials.name, 'classic-link', 'vpc-2') >> Optional.of(new SecurityGroupUpdater(elbGroup, amazonEC2))
-    1 * amazonEC2.describeSecurityGroups({r -> r.filters[0].values == ['app', 'app-elb']}) >> new DescribeSecurityGroupsResult().withSecurityGroups([appGroup])
+    1 * amazonEC2.describeSecurityGroups({r -> r.groupIds == ['sg-3']}) >> new DescribeSecurityGroupsResult().withSecurityGroups([appGroup])
+    1 * amazonEC2.describeSecurityGroups({r -> r.filters[0].values == ['app', 'app-elb']}) >> new DescribeSecurityGroupsResult().withSecurityGroups([])
     1 * amazonEC2.describeVpcs(_) >> new DescribeVpcsResult().withVpcs(new Vpc())
     1 * amazonEC2.authorizeSecurityGroupIngress({r -> r.groupId == 'sg-4' &&
       !r.ipPermissions.empty &&
