@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cloneServerGroupS
       key: 'cloneServerGroup',
       label: 'Clone Server Group',
       description: 'Clones a server group',
-      strategy: true,
+      strategy: false,
     });
   });
 
