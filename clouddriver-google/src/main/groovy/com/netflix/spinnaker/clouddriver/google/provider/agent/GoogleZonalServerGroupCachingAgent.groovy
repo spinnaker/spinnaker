@@ -421,6 +421,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
           region: region,
           zone: zone,
           zones: [zone],
+          selfLink: instanceGroupManager.selfLink,
           currentActions: instanceGroupManager.currentActions,
           launchConfig: [createdTime: Utils.getTimeFromTimestamp(instanceGroupManager.creationTimestamp)],
           asg: [minSize        : instanceGroupManager.targetSize,

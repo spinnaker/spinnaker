@@ -413,6 +413,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
           regional: true,
           region: region,
           zones: zoneNames,
+          selfLink: instanceGroupManager.selfLink,
           currentActions: instanceGroupManager.currentActions,
           launchConfig: [createdTime: Utils.getTimeFromTimestamp(instanceGroupManager.creationTimestamp)],
           asg: [minSize        : instanceGroupManager.targetSize,
