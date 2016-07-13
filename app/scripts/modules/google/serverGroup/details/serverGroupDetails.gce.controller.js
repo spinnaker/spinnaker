@@ -264,7 +264,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         region: serverGroup.region
       };
 
-      confirmationModalService.confirm({
+      var confirmationModalParams = {
         header: 'Really destroy ' + serverGroup.name + '?',
         buttonText: 'Destroy ' + serverGroup.name,
         account: serverGroup.account,
@@ -272,6 +272,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
         askForReason: true,
+        platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
+        platformHealthType: 'Google',
         body: this.getBodyTemplate(serverGroup, app),
         onTaskComplete: () => {
           if ($state.includes('**.serverGroup', stateParams)) {
@@ -283,7 +285,13 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
             $state.go('^');
           }
         }
-      });
+      };
+
+      if (app.attributes.platformHealthOnly) {
+        confirmationModalParams.interestingHealthProviderNames = ['Google'];
+      }
+
+      confirmationModalService.confirm(confirmationModalParams);
     };
 
     this.getBodyTemplate = (serverGroup, app) => {
