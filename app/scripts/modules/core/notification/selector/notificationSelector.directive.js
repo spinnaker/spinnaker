@@ -20,8 +20,16 @@ module.exports = angular.module('spinnaker.core.notification.selector.directive'
 
     this.notificationTypes = notificationTypeService.listNotificationTypes();
 
+    this.originalType = this.notification.type;
+    this.originalAddress = this.notification.address;
+
     this.updateNotificationType = function () {
-      this.notification.address = null;
+      if (this.notification.type === this.originalType) {
+        this.notification.address = this.originalAddress;
+      } else {
+        this.notification.address = null;
+      }
+
       let notificationConfig = notificationTypeService.getNotificationType(this.notification.type);
       this.notificationConfig = notificationConfig ? notificationConfig.config : {};
       this.addressTemplateUrl = notificationConfig ? notificationConfig.addressTemplateUrl : '';
