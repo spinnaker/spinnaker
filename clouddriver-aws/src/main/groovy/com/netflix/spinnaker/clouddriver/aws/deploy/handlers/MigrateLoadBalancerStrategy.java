@@ -205,7 +205,7 @@ public abstract class MigrateLoadBalancerStrategy {
   protected String buildElbSecurityGroup(List<SecurityGroup> appGroups, LoadBalancerLocation source, LoadBalancerLocation target, final String appName, MigrateLoadBalancerResult result, boolean dryRun, LoadBalancerDescription sourceDescription) {
     String elbGroupId = null;
     Optional<SecurityGroup> existingGroup = appGroups.stream()
-      .filter(g -> g.getVpcId().equals(target.getVpcId()) && g.getGroupName().equals(appName + "-elb"))
+      .filter(g -> g.getVpcId() != null && g.getVpcId().equals(target.getVpcId()) && g.getGroupName().equals(appName + "-elb"))
       .findFirst();
     if (existingGroup.isPresent()) {
       return existingGroup.get().getGroupId();
@@ -245,7 +245,7 @@ public abstract class MigrateLoadBalancerStrategy {
   protected void buildApplicationSecurityGroup(LoadBalancerDescription sourceDescription, List<SecurityGroup> appGroups, LoadBalancerLocation target, String appName, MigrateLoadBalancerResult result, boolean dryRun, String elbGroupId) {
     if (getDeployDefaults().getAddAppGroupToServerGroup()) {
       AmazonEC2 targetAmazonEC2 = getAmazonClientProvider().getAmazonEC2(target.getCredentials(), target.getRegion(), true);
-      boolean exists = appGroups.stream().anyMatch(g -> g.getVpcId().equals(target.getVpcId()) && g.getGroupName().equals(appName));
+      boolean exists = appGroups.stream().anyMatch(isAppSecurityGroup(target, appName));
       if (!exists) {
         MigrateSecurityGroupReference appGroupReference = new MigrateSecurityGroupReference();
         appGroupReference.setAccountId(target.getCredentials().getAccountId());
@@ -267,7 +267,7 @@ public abstract class MigrateLoadBalancerStrategy {
             200, 5);
         }
       }
-      SecurityGroup appGroup = appGroups.stream().filter(g -> g.getVpcId().equals(target.getVpcId()) && g.getGroupName().equals(appName)).findFirst().get();
+      SecurityGroup appGroup = appGroups.stream().filter(isAppSecurityGroup(target, appName)).findFirst().get();
       if (!dryRun && appGroup.getIpPermissions().stream()
         .noneMatch(p -> p.getUserIdGroupPairs().stream().anyMatch(u -> u.getGroupId().equals(elbGroupId)))) {
         sourceDescription.getListenerDescriptions().stream().forEach(l -> {
@@ -282,6 +282,18 @@ public abstract class MigrateLoadBalancerStrategy {
         });
       }
     }
+  }
+
+  private Predicate<SecurityGroup> isAppSecurityGroup(LoadBalancerLocation target, String appName) {
+    return g -> {
+      if (!g.getGroupName().equals(appName)) {
+        return false;
+      }
+      if (g.getVpcId() == null) {
+        return target.getVpcId() == null;
+      }
+      return g.getVpcId().equals(target.getVpcId());
+    };
   }
 
   // Adds a default public ingress for the load balancer. Called when migrating from Classic to VPC
