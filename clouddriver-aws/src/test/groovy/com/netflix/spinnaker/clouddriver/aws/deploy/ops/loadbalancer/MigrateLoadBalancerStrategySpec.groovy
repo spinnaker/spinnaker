@@ -235,4 +235,54 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     '123456789012345678901234567-elb'   | null          | 'vpc2'        || '123456789012345678901234567-vpc2'
     '12345678901234567890123-elb'       | null          | 'vpc2'        || '12345678901234567890123-elb-vpc2'
   }
+
+  void 'uses supplied target name if present'() {
+    LoadBalancerDescription sourceDescription = new LoadBalancerDescription(loadBalancerName: 'app-elb',
+      listenerDescriptions: []
+    )
+    LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: 'app-elb')
+    LoadBalancerLocation target = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', availabilityZones: ['us-east-1a'], name: 'newapp-elb')
+
+    AmazonEC2 amazonEC2 = Mock(AmazonEC2)
+    AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
+    RegionScopedProvider regionProvider = Mock(RegionScopedProvider)
+
+    when:
+    strategy.generateResults(sourceLookup, targetLookup, securityGroupStrategy, source, target, null, 'app', false)
+
+    then:
+    amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1', true) >> amazonEC2
+    amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1') >> amazonEC2
+    amazonClientProvider.getAmazonElasticLoadBalancing(testCredentials, 'us-east-1', true) >> loadBalancing
+    regionScopedProviderFactory.forRegion(testCredentials, 'us-east-1') >> regionProvider
+    1 * loadBalancing.describeLoadBalancers({ it.loadBalancerNames == ['app-elb']}) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(sourceDescription)
+    1 * loadBalancing.describeLoadBalancers({ it.loadBalancerNames == ['newapp-elb']}) >> new DescribeLoadBalancersResult()
+    1 * loadBalancing.createLoadBalancer({ it.loadBalancerName == 'newapp-elb'}) >> new CreateLoadBalancerResult().withDNSName('new-elb-dns')
+    0 * amazonEC2.authorizeSecurityGroupIngress(_)
+  }
+
+  void 'generates target name, removing old suffixes'() {
+    LoadBalancerDescription sourceDescription = new LoadBalancerDescription(loadBalancerName: 'app-elb',
+      listenerDescriptions: []
+    )
+    LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: 'app-elb-frontend')
+    LoadBalancerLocation target = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', availabilityZones: ['us-east-1a'])
+
+    AmazonEC2 amazonEC2 = Mock(AmazonEC2)
+    AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
+    RegionScopedProvider regionProvider = Mock(RegionScopedProvider)
+
+    when:
+    strategy.generateResults(sourceLookup, targetLookup, securityGroupStrategy, source, target, null, 'app', false)
+
+    then:
+    amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1', true) >> amazonEC2
+    amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1') >> amazonEC2
+    amazonClientProvider.getAmazonElasticLoadBalancing(testCredentials, 'us-east-1', true) >> loadBalancing
+    regionScopedProviderFactory.forRegion(testCredentials, 'us-east-1') >> regionProvider
+    1 * loadBalancing.describeLoadBalancers({ it.loadBalancerNames == ['app-elb-frontend']}) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(sourceDescription)
+    1 * loadBalancing.describeLoadBalancers({ it.loadBalancerNames == ['app-elb']}) >> new DescribeLoadBalancersResult()
+    1 * loadBalancing.createLoadBalancer({ it.loadBalancerName == 'app-elb'}) >> new CreateLoadBalancerResult().withDNSName('new-elb-dns')
+    0 * amazonEC2.authorizeSecurityGroupIngress(_)
+  }
 }

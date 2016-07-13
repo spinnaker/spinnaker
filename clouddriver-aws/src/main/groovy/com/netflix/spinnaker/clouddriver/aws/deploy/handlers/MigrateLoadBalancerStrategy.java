@@ -78,7 +78,7 @@ public abstract class MigrateLoadBalancerStrategy {
     Vpc sourceVpc = getVpc(source);
     Vpc targetVpc = getVpc(target);
 
-    String targetName = generateLoadBalancerName(source.getName(), sourceVpc, targetVpc);
+    String targetName = target.getName() != null ? target.getName() : generateLoadBalancerName(source.getName(), sourceVpc, targetVpc);
     LoadBalancerDescription targetLoadBalancer = getLoadBalancer(target.getCredentials(), target.getRegion(), targetName);
 
     List<MigrateSecurityGroupResult> targetGroups = getTargetSecurityGroups(sourceLoadBalancer, source, target, result, dryRun);
