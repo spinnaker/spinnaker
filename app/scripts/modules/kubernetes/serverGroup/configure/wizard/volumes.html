@@ -1,87 +1,85 @@
-<form class="container-fluid form-horizontal" ng-controller="kubernetesServerGroupVolumesController as volumesController" name="form" novalidate>
-  <div class="form-group">
-    <div ng-repeat="source in command.volumeSources">
-      <div class="form-group">
-        <div class="col-md-3 sm-label-right">
-          Volume Source
-          <help-field key="kubernetes.pod.volume"></help-field>
-        </div>
-        <div class="col-md-4">
-          <select class="form-control input-sm" ng-model="source.type">
-            <option ng-repeat="type in volumesController.volumeTypes" value="{{type}}"
-                    ng-selected="source.type === type">{{type}}</option>
-          </select>
-        </div>
-        <div class="col-md-1">
-            <button class="btn btn-sm btn-default" ng-click="volumesController.removeVolume($index)">
-              <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
-              <span class="visible-lg-inline"> Remove Volume Source</span>
-            </button>
-        </div>
+<div class="form-group container-fluid form-horizontal" ng-controller="kubernetesServerGroupVolumesController as volumesController">
+  <div ng-repeat="source in command.volumeSources">
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        Volume Source
+        <help-field key="kubernetes.pod.volume"></help-field>
       </div>
-      <div class="form-group">
-        <div class="col-md-3 sm-label-right">
-          Name
-        </div>
-        <div class="col-md-4">
-          <input type="text" class="form-control input-sm" name="path" ng-model="source.name"/>
-        </div>
+      <div class="col-md-4">
+        <select class="form-control input-sm" ng-model="source.type">
+          <option ng-repeat="type in volumesController.volumeTypes" value="{{type}}"
+                  ng-selected="source.type === type">{{type}}</option>
+        </select>
       </div>
-      <div class="form-group" ng-show="source.type === 'EMPTYDIR'">
-        <div class="col-md-3 sm-label-right">
-          Medium
-          <help-field key="kubernetes.pod.emptydir.medium"></help-field>
-        </div>
-        <div class="col-md-4">
-          <select class="form-control input-sm" ng-model="source.emptyDir.medium">
-            <option ng-repeat="type in volumesController.mediumTypes" value="{{type}}"
-                    ng-selected="source.emptyDir.medium === type">{{type}}</option>
-          </select>
-        </div>
+      <div class="col-md-1">
+          <button class="btn btn-sm btn-default" ng-click="volumesController.removeVolume($index)">
+            <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
+            <span class="visible-lg-inline"> Remove Volume Source</span>
+          </button>
       </div>
-      <div class="form-group" ng-show="source.type === 'HOSTPATH'">
-        <div class="col-md-3 sm-label-right">
-          Path
-          <help-field key="kubernetes.pod.volume.hostpath.path"></help-field>
-        </div>
-        <div class="col-md-4">
-          <input type="text" class="form-control input-sm" ng-pattern="volumesController.pathPattern" name="path" ng-model="source.hostPath.path"/>
-        </div>
-      </div>
-      <div class="form-group" ng-show="source.type === 'PERSISTENTVOLUMECLAIM'">
-        <div class="col-md-3 sm-label-right">
-          Claim Name
-          <help-field key="kubernetes.pod.volume.persistentvolumelclaim.claim"></help-field>
-        </div>
-        <div class="col-md-4">
-          <input type="text" class="form-control input-sm" ng-model="source.persistentVolumeClaim.claimName"/>
-        </div>
-      </div>
-      <div class="form-group" ng-show="source.type === 'PERSISTENTVOLUMECLAIM'">
-        <div class="col-md-3 sm-label-right">
-          Read Only
-        </div>
-        <div class="col-md-2">
-          <input type="checkbox" ng-model="source.persistentVolumeClaim.readOnly"/>
-        </div>
-      </div>
-      <div class="form-group" ng-show="source.type === 'SECRET'">
-        <div class="col-md-3 sm-label-right">
-          Secret Name
-          <help-field key="kubernetes.pod.volume.secret.secretname"></help-field>
-        </div>
-        <div class="col-md-4">
-          <input type="text" class="form-control input-sm" name="path" ng-model="source.secret.secretName"/>
-        </div>
-      </div>
-      <hr ng-show="command.volumeSources.length > 1">
     </div>
-    <div>
-      <td colspan="1">
-        <button class="add-new col-md-12" ng-click="volumesController.addVolume()"><span
-          class="glyphicon glyphicon-plus-sign"></span> Add Volume Source
-        </button>
-      </td>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        Name
+      </div>
+      <div class="col-md-4">
+        <input type="text" class="form-control input-sm" name="path" ng-model="source.name"/>
+      </div>
     </div>
+    <div class="form-group" ng-show="source.type === 'EMPTYDIR'">
+      <div class="col-md-3 sm-label-right">
+        Medium
+        <help-field key="kubernetes.pod.emptydir.medium"></help-field>
+      </div>
+      <div class="col-md-4">
+        <select class="form-control input-sm" ng-model="source.emptyDir.medium">
+          <option ng-repeat="type in volumesController.mediumTypes" value="{{type}}"
+                  ng-selected="source.emptyDir.medium === type">{{type}}</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" ng-show="source.type === 'HOSTPATH'">
+      <div class="col-md-3 sm-label-right">
+        Path
+        <help-field key="kubernetes.pod.volume.hostpath.path"></help-field>
+      </div>
+      <div class="col-md-4">
+        <input type="text" class="form-control input-sm" ng-pattern="volumesController.pathPattern" name="path" ng-model="source.hostPath.path"/>
+      </div>
+    </div>
+    <div class="form-group" ng-show="source.type === 'PERSISTENTVOLUMECLAIM'">
+      <div class="col-md-3 sm-label-right">
+        Claim Name
+        <help-field key="kubernetes.pod.volume.persistentvolumelclaim.claim"></help-field>
+      </div>
+      <div class="col-md-4">
+        <input type="text" class="form-control input-sm" ng-model="source.persistentVolumeClaim.claimName"/>
+      </div>
+    </div>
+    <div class="form-group" ng-show="source.type === 'PERSISTENTVOLUMECLAIM'">
+      <div class="col-md-3 sm-label-right">
+        Read Only
+      </div>
+      <div class="col-md-2">
+        <input type="checkbox" ng-model="source.persistentVolumeClaim.readOnly"/>
+      </div>
+    </div>
+    <div class="form-group" ng-show="source.type === 'SECRET'">
+      <div class="col-md-3 sm-label-right">
+        Secret Name
+        <help-field key="kubernetes.pod.volume.secret.secretname"></help-field>
+      </div>
+      <div class="col-md-4">
+        <input type="text" class="form-control input-sm" name="path" ng-model="source.secret.secretName"/>
+      </div>
+    </div>
+    <hr ng-show="command.volumeSources.length > 1">
   </div>
-</form>
+  <div>
+    <td colspan="1">
+      <button class="add-new col-md-12" ng-click="volumesController.addVolume()"><span
+        class="glyphicon glyphicon-plus-sign"></span> Add Volume Source
+      </button>
+    </td>
+  </div>
+</div>
