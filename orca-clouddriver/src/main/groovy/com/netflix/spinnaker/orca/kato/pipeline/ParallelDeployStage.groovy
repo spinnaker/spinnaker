@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CreateServerGroupStage
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.ParallelStage
@@ -64,7 +65,7 @@ class ParallelDeployStage extends ParallelStage {
 
       if (!existingStage) {
         // in the case of a restart, this stage will already have been added to the execution
-        ((AbstractStage) nextStage).type = PIPELINE_CONFIG_TYPE
+        ((AbstractStage) nextStage).type = isClone(stage) ? CloneServerGroupStage.PIPELINE_CONFIG_TYPE : PIPELINE_CONFIG_TYPE
         stage.execution.stages.add(nextStage)
       }
 
@@ -84,16 +85,17 @@ class ParallelDeployStage extends ParallelStage {
 
   @CompileDynamic
   protected Map<String, Object> clusterContext(Stage stage, Map defaultStageContext, Map cluster) {
-    def type = CreateServerGroupStage.PIPELINE_CONFIG_TYPE
+    def type = isClone(stage) ? CloneServerGroupStage.PIPELINE_CONFIG_TYPE : CreateServerGroupStage.PIPELINE_CONFIG_TYPE
 
     if (cluster.providerType && !(cluster.providerType in ['aws', 'titan'])) {
       type += "_$cluster.providerType"
     }
 
-    String name = cluster.region ? "Deploy in ${cluster.region}" : "Deploy in ${(cluster.availabilityZones as Map).keySet()[0]}"
+    String baseName = isClone(stage) ? 'Clone' : 'Deploy'
+    String name = cluster.region ? "$baseName in ${cluster.region}" : "$baseName in ${(cluster.availabilityZones as Map).keySet()[0]}"
 
     return defaultStageContext + [
-      account: cluster.account ?: stage.context.account,
+      account: cluster.account ?: cluster.credentials ?: stage.context.account ?: stage.context.credentials,
       cluster: cluster,
       type   : type,
       name   : name
@@ -139,6 +141,8 @@ class ParallelDeployStage extends ParallelStage {
         // Avoid passing 'stageEnabled' configuration on to the deploy stage in a strategy pipeline
         cluster.remove("stageEnabled")
 
+        // Parent stage can be deploy or cloneServerGroup.
+        ((AbstractStage) stage).type = parentStage.type
         stage.context.clusters = [cluster as Map<String, Object>]
       }
     }
@@ -168,8 +172,22 @@ class ParallelDeployStage extends ParallelStage {
   }
 
   @Override
+  @CompileDynamic
   String parallelStageName(Stage stage, boolean hasParallelFlows) {
-    return stage.name
+    return isClone(stage) ? 'Clone' : stage.name
+  }
+
+  @CompileDynamic
+  private boolean isClone(Stage stage) {
+    if (stage.execution instanceof Pipeline) {
+      Map trigger = ((Pipeline) stage.execution).trigger
+
+      if (trigger.parameters?.clone == true) {
+        return true
+      }
+    }
+
+    return false
   }
 
   @Override
