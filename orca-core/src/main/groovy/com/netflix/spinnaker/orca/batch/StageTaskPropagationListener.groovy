@@ -43,6 +43,7 @@ class StageTaskPropagationListener extends AbstractStagePropagationListener {
       task.startTime = System.currentTimeMillis()
       task.endTime = null
       task.status = ExecutionStatus.RUNNING
+      log.info("Setting task status to ${task.status} (stageId: ${stage.id}, taskId: ${taskId}) [beforeTask]")
       saveStage stage
     }
   }
@@ -53,6 +54,8 @@ class StageTaskPropagationListener extends AbstractStagePropagationListener {
     def task = stage.tasks.find { it.id == taskId }
     task.status = stepExecution.executionContext.get("orcaTaskStatus") as ExecutionStatus
     task.endTime = task.endTime ?: System.currentTimeMillis()
+
+    log.info("Setting task status to ${task.status} (stageId: ${stage.id}, taskId: ${taskId}) [afterTask]")
     saveStage stage
   }
 }
