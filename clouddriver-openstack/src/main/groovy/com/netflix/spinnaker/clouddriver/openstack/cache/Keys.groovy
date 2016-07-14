@@ -33,6 +33,7 @@ class Keys {
     NETWORKS,
     SUBNETS,
     INSTANCES,
+    INSTANCE_TYPES,
     APPLICATIONS,
     CLUSTERS,
     SERVER_GROUPS,
@@ -69,6 +70,11 @@ class Keys {
               result << [account: parts[2], region: parts[3], instanceId: parts[4]]
             }
             break
+          case Namespace.INSTANCE_TYPES.ns:
+            if (parts.length == 5) {
+              result << [account: parts[3], region: parts[4], instanceTypeId: parts[2]]
+            }
+            break
           case Namespace.APPLICATIONS.ns:
             if (parts.length == 3) {
               result << [application: parts[2].toLowerCase()]
@@ -93,9 +99,7 @@ class Keys {
           case Namespace.SECURITY_GROUPS.ns:
             if (parts.length == 6) {
               def names = Names.parseName(parts[2])
-              result << [
-                application: names.app, name: parts[2], id: parts[3], region: parts[4], account: parts[5]
-              ]
+              result << [application: names.app, name: parts[2], id: parts[3], region: parts[4], account: parts[5]]
             }
             break
           case Namespace.IMAGES.ns:
@@ -153,5 +157,9 @@ class Keys {
 
   static String getImageKey(String imageId, String account, String region) {
     "${ID}:${Namespace.IMAGES}:${account}:${region}:${imageId}"
+  }
+
+  static String getInstanceTypeKey(String instanceType, String account, String region) {
+    "${ID}:${Namespace.INSTANCE_TYPES}:${instanceType}:${account}:${region}"
   }
 }

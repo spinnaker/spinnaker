@@ -23,6 +23,7 @@ import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackImageCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackInstanceCachingAgent
+import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackInstanceTypeCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackNetworkCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackSecurityGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackServerGroupCachingAgent
@@ -86,6 +87,7 @@ class OpenstackInfrastructureProviderConfig {
           newlyAddedAgents << new OpenstackNetworkCachingAgent(credentials, region, objectMapper)
           newlyAddedAgents << new OpenstackImageCachingAgent(credentials, region, objectMapper)
           newlyAddedAgents << new OpenstackSecurityGroupCachingAgent(credentials, region, objectMapper)
+          newlyAddedAgents << new OpenstackInstanceTypeCachingAgent(credentials, region, objectMapper)
         }
       }
     }

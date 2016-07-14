@@ -27,12 +27,12 @@ import org.openstack4j.api.Builders
 import org.openstack4j.api.OSClient
 import org.openstack4j.api.networking.ext.LoadBalancerService
 import org.openstack4j.model.common.ActionResponse
+import org.openstack4j.model.compute.Flavor
 import org.openstack4j.model.compute.FloatingIP
 import org.openstack4j.model.compute.IPProtocol
 import org.openstack4j.model.compute.RebootType
 import org.openstack4j.model.compute.SecGroupExtension
 import org.openstack4j.model.compute.Server
-import org.openstack4j.model.compute.ext.AvailabilityZone
 import org.openstack4j.model.heat.Resource
 import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.heat.StackCreate
@@ -86,7 +86,7 @@ abstract class OpenstackClientProvider {
    * Returns a map of instances grouped by server group UUID.  Matches not found are added into an unknown bucket.
    * @param region
    * @return
-     */
+   */
   Map<String, List<? extends Server>> getInstancesByServerGroup(String region) {
     getInstances(region)?.groupBy { Server server -> server?.metadata['metering.stack'] ?: 'unknown' }
   }
@@ -804,6 +804,17 @@ abstract class OpenstackClientProvider {
   List<Image> listImages(String region, Map<String, String> filters = null) {
     handleRequest {
       getRegionClient(region).images().list(filters)
+    }
+  }
+
+  /**
+   * Returns a list of flavors by region.
+   * @param region
+   * @return
+     */
+  List<? extends Flavor> listFlavors(String region) {
+    handleRequest {
+      this.getRegionClient(region).compute().flavors().list()
     }
   }
 

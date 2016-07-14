@@ -26,6 +26,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.APPLICATIONS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.CLUSTERS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.INSTANCE_TYPES
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SECURITY_GROUPS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SERVER_GROUPS
 
@@ -46,7 +47,8 @@ class OpenstackInfrastructureProvider extends AgentSchedulerAware implements Sea
     CLUSTERS.ns,
     INSTANCES.ns,
     SECURITY_GROUPS.ns,
-    SERVER_GROUPS.ns
+    SERVER_GROUPS.ns,
+    INSTANCE_TYPES.ns
   ].asImmutable()
 
   //TODO - Need to define urlMappingTemplates
