@@ -20,7 +20,11 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.batch.ExecutionPropagationListener
 import com.netflix.spinnaker.orca.libdiffs.ComparableLooseVersion
 import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
+import org.springframework.batch.core.StepExecution
+import org.springframework.batch.core.StepExecutionListener
+import org.springframework.batch.core.listener.CompositeStepExecutionListener
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.ApplicationContext
 
@@ -145,13 +149,51 @@ class OrcaConfiguration {
   }
 
   @Bean
-  StageStatusPropagationListener stageStatusPropagationListener(ExecutionRepository executionRepository) {
-    new StageStatusPropagationListener(executionRepository)
-  }
+  CompositeStepExecutionListener compositeStepExecutionListener(ExecutionRepository executionRepository) {
+    /*
+     The CompositeStepExecutionListener runs in this order:
+     (1).beforeTask
+     (2).beforeTask
+     (2).afterTask
+     (1).afterTask
 
-  @Bean
-  StageTaskPropagationListener stageTaskPropagationListener(ExecutionRepository executionRepository) {
-    new StageTaskPropagationListener(executionRepository)
+     We really expect:
+     (1).beforeTask
+     (2).beforeTask
+     (1).afterTask
+     (2).afterTask
+
+     To achieve this we can overload listeners while providing no-op implementations to
+     ensure a consistent execution ordering.
+     */
+    def compositeStepExecutionListener = new CompositeStepExecutionListener()
+    compositeStepExecutionListener.setListeners([
+      new StageTaskPropagationListener(executionRepository) {
+        @Override
+        void afterTask(Stage stage, StepExecution stepExecution) {
+          // do nothing
+        }
+      },
+      new StageStatusPropagationListener(executionRepository)  {
+        @Override
+        void afterTask(Stage stage, StepExecution stepExecution) {
+          // do nothing
+        }
+      },
+      new StageStatusPropagationListener(executionRepository) {
+        @Override
+        void beforeTask(Stage stage, StepExecution stepExecution) {
+          // do nothing
+        }
+      },
+      new StageTaskPropagationListener(executionRepository)  {
+        @Override
+        void beforeTask(Stage stage, StepExecution stepExecution) {
+          // do nothing
+        }
+      }
+    ] as StepExecutionListener[])
+    return compositeStepExecutionListener
   }
 
   @Bean
