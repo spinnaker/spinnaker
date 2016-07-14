@@ -20,8 +20,7 @@ import com.netflix.frigga.Names
 
 class Keys {
 
-  //TODO(cfieber) - titan->titus. This is still externally referenced in a bunch of spots, rename in conjunction with updates to orca/deck
-  public static final PROVIDER = "titan"
+  public static final PROVIDER = "titus"
 
   static enum Namespace {
     IMAGES,
