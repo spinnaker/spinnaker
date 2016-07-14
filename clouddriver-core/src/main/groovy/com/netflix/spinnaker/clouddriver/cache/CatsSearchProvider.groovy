@@ -43,6 +43,7 @@ class CatsSearchProvider implements SearchProvider {
     this.cacheView = cacheView
     this.providers = providers
     defaultCaches = providers.defaultCaches.flatten()
+    log.info("Enabled default caches: ${defaultCaches}")
     searchResultHydrators = providers.inject([:]) { Map acc, SearchableProvider prov ->
       acc.putAll(prov.searchResultHydrators)
       return acc

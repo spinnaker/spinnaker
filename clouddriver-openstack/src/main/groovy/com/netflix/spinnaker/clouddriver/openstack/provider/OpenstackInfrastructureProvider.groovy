@@ -23,6 +23,12 @@ import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.APPLICATIONS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.CLUSTERS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SECURITY_GROUPS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SERVER_GROUPS
+
 @ConditionalOnProperty('openstack.enabled')
 class OpenstackInfrastructureProvider extends AgentSchedulerAware implements SearchableProvider {
   public static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
@@ -35,8 +41,14 @@ class OpenstackInfrastructureProvider extends AgentSchedulerAware implements Sea
     this.agents = agents
   }
 
-  //TODO - Need to define default caches
-  final Set<String> defaultCaches = Collections.emptySet()
+  final Set<String> defaultCaches = [
+    APPLICATIONS.ns,
+    CLUSTERS.ns,
+    INSTANCES.ns,
+    SECURITY_GROUPS.ns,
+    SERVER_GROUPS.ns
+  ].asImmutable()
+
   //TODO - Need to define urlMappingTemplates
   final Map<String, String> urlMappingTemplates = Collections.emptyMap()
   //TODO - Need to define (if applicable)
