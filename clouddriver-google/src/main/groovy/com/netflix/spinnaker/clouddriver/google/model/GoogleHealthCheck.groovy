@@ -44,6 +44,8 @@ class GoogleHealthCheck {
     int timeout = GoogleHealthCheck.this.timeoutSec
     int unhealthyThreshold = GoogleHealthCheck.this.unhealthyThreshold
     int healthyThreshold = GoogleHealthCheck.this.healthyThreshold
+    int port = GoogleHealthCheck.this.port
+    String requestPath = GoogleHealthCheck.this.requestPath
 
     String getTarget() {
       GoogleHealthCheck.this.port ?

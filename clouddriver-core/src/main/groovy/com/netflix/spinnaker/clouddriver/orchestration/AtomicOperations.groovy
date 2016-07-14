@@ -63,4 +63,7 @@ final class AtomicOperations {
 
   // Machine Image operations
   public static final String UPSERT_MACHINE_IMAGE_TAGS = "upsertMachineImageTags"
+
+  // Serialize operations
+  public static final String SERIALIZE_APPLICATION = "serializeApplication"
 }

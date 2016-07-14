@@ -33,6 +33,7 @@ class GoogleLoadBalancer {
   String ipAddress
   String ipProtocol
   String portRange
+  String targetPool
   GoogleHealthCheck healthCheck
   List<GoogleLoadBalancerHealth> healths
 
@@ -52,6 +53,7 @@ class GoogleLoadBalancer {
     String ipAddress = GoogleLoadBalancer.this.ipAddress
     String ipProtocol = GoogleLoadBalancer.this.ipProtocol
     String portRange = GoogleLoadBalancer.this.portRange
+    String targetPool =  GoogleLoadBalancer.this.targetPool
     GoogleHealthCheck.View healthCheck = GoogleLoadBalancer.this.healthCheck?.view
 
     Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()

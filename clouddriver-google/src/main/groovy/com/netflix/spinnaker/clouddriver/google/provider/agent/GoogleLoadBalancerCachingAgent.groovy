@@ -213,6 +213,7 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
 
     @Override
     void onSuccess(TargetPool targetPool, HttpHeaders responseHeaders) throws IOException {
+      googleLoadBalancer.targetPool = targetPool?.selfLink
       boolean hasHealthChecks = targetPool?.healthChecks
       targetPool?.healthChecks?.each { def healthCheckUrl ->
         def localHealthCheckName = Utils.getLocalName(healthCheckUrl)
