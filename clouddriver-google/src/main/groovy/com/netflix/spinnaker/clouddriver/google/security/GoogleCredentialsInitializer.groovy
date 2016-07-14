@@ -44,7 +44,7 @@ class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizab
   AccountCredentialsRepository accountCredentialsRepository
 
   @Autowired
-  ApplicationContext appContext;
+  ApplicationContext appContext
 
   @Autowired
   List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers
@@ -81,6 +81,7 @@ class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizab
             .imageProjects(managedAccount.imageProjects)
             .requiredGroupMembership(managedAccount.requiredGroupMembership)
             .applicationName(googleApplicationName)
+            .consulConfig(managedAccount.consul)
             .build()
 
         if (!managedAccount.project) {

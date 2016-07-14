@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.config
 
+import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import groovy.transform.ToString
 
 class GoogleConfigurationProperties {
@@ -32,6 +33,7 @@ class GoogleConfigurationProperties {
     String jsonPath
     List<String> imageProjects
     List<String> requiredGroupMembership
+    ConsulConfig consul
 
     public InputStream getInputStream() {
       if (jsonPath) {

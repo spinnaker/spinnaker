@@ -20,6 +20,7 @@ import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Region
 import com.google.api.services.compute.model.RegionList
 import com.google.common.annotations.VisibleForTesting
+import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.google.ComputeVersion
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -42,6 +43,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
   final ComputeVersion computeVersion
   final Map<String, List<String>> regionToZonesMap
   final Compute compute
+  final ConsulConfig consulConfig
 
   static class Builder {
     String name
@@ -56,6 +58,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
     String jsonKey
     GoogleCredentials credentials
     Compute compute
+    ConsulConfig consulConfig
 
     /**
      * If true, overwrites any value in regionToZoneMap with values from the platform.
@@ -114,6 +117,11 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
 
     Builder regionLookupEnabled(boolean enabled) {
       this.regionLookupEnabled = enabled
+      return this
+    }
+
+    Builder consulConfig(ConsulConfig consulConfig) {
+      this.consulConfig = consulConfig
       return this
     }
 

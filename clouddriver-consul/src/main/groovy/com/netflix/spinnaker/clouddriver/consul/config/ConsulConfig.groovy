@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.consul.api.v1.model
+package com.netflix.spinnaker.clouddriver.consul.config
 
-class CheckResult {
-  String Node
-  String CheckID
-  String Name
-  Status Status
-  String Notes
-  String Output
-  String ServiceID
-  String ServiceName
-
-  enum Status {
-    passing,
-    critical,
-    warning,
-    unknown,
-  }
+class ConsulConfig {
+  boolean enabled
+  // required: reachable Consul server endpoints (IP address or DNS name)
+  List<String> servers
+  // optional: datacenters to cache/keep updated
+  List<String> datacenters
 }
