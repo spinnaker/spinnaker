@@ -78,6 +78,12 @@ services:
     storage_bucket: # Needs to be a globally unique name. Pick something clever.
     bucket_root: front50
 
+    # when using S3 and running behind a proxy, uncomment the following lines
+    # region: eu-central-1
+    # proxyHost: webproxy.foo.bar
+    # proxyPort: 8080
+    # proxyProtocol: HTTP
+
     cassandra:
       enabled: false
     redis:
