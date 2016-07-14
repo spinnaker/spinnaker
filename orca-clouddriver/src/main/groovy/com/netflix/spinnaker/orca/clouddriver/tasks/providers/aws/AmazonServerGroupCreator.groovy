@@ -89,7 +89,7 @@ class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
         operation.imageId = deploymentDetails[0]?.imageId
       } else {
         // Get image id from the trigger
-        if (context.cloudProvider == 'titan') {
+        if (context.cloudProvider == 'titus') {
           Map trigger = ((Pipeline) stage.execution).trigger
           if (trigger && trigger.repository && trigger.tag) {
             operation.imageId = "${trigger.repository}:${trigger.tag}".toString()
@@ -108,7 +108,7 @@ class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
     operation.securityGroups = operation.securityGroups ?: []
     def defaultSecurityGroupsForAccount
 
-    if (context.cloudProvider != 'titan') {
+    if (context.cloudProvider != 'titus') {
       if (operation.subnetType && !operation.subnetType.contains('vpc0')) {
         //TODO(cfieber)- remove the VPC special case asap
         defaultSecurityGroupsForAccount = defaultVpcSecurityGroups

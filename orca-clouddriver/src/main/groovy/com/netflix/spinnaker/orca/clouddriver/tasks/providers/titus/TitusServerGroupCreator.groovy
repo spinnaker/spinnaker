@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.clouddriver.tasks.providers.titan
+package com.netflix.spinnaker.orca.clouddriver.tasks.providers.titus
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.AmazonServerGroupCreator
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
-class TitanServerGroupCreator implements ServerGroupCreator {
+class TitusServerGroupCreator implements ServerGroupCreator {
 
   /**
    * Prefer composition over inheritance FTW!
@@ -33,7 +33,7 @@ class TitanServerGroupCreator implements ServerGroupCreator {
   @Autowired
   AmazonServerGroupCreator delegate
 
-  final String cloudProvider = "titan"
+  final String cloudProvider = "titus"
 
   String getCloudProvider() {
     return cloudProvider
