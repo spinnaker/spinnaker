@@ -110,11 +110,11 @@ class BuildController {
         @PathVariable String queuedBuild,
         @PathVariable Integer buildNumber) {
 
-        if (!masters.map.containsKey(master)) {
+        if (!buildMasters.map.containsKey(master)) {
             throw new MasterNotFoundException("Master '${master}' not found")
         }
 
-        def jenkinsService = masters.map[master]
+        def jenkinsService = buildMasters.map[master]
 
         // Jobs that haven't been started yet won't have a buildNumber
         // (They're still in the queue). We use 0 to denote that case
