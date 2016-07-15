@@ -111,7 +111,7 @@ class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task, D
   private TaskId deploy(String cloudProvider, Map deployOperation) {
     deployOperation.securityGroups = deployOperation.securityGroups ?: []
 
-    if (cloudProvider != 'titan') {
+    if (cloudProvider != 'titus') {
       //TODO(cfieber)- remove the VPC special case asap
       if (deployOperation.subnetType && !deployOperation.subnetType.contains('vpc0')) {
         addAllNonEmpty(deployOperation.securityGroups, defaultVpcSecurityGroups)
