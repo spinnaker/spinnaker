@@ -139,9 +139,22 @@ public abstract class MigrateLoadBalancerStrategy {
       boolean isInternal = subnetType == null || subnetType.contains("internal");
       LoadBalancerUpsertHandler.createLoadBalancer(
         client, targetName, isInternal, target.getAvailabilityZones(), subnetIds, listeners, securityGroups);
+      configureHealthCheck(client, sourceLoadBalancer, targetName);
     } else {
       LoadBalancerUpsertHandler.updateLoadBalancer(client, targetLoadBalancer, listeners, securityGroups);
     }
+  }
+
+  private void configureHealthCheck(AmazonElasticLoadBalancing loadBalancing,
+                                    LoadBalancerDescription source, String loadBalancerName) {
+    HealthCheck healthCheck = new HealthCheck()
+      .withTarget(source.getHealthCheck().getTarget())
+      .withInterval(source.getHealthCheck().getInterval())
+      .withTimeout(source.getHealthCheck().getTimeout())
+      .withUnhealthyThreshold(source.getHealthCheck().getUnhealthyThreshold())
+      .withHealthyThreshold(source.getHealthCheck().getHealthyThreshold());
+
+    loadBalancing.configureHealthCheck(new ConfigureHealthCheckRequest(loadBalancerName, healthCheck));
   }
 
   private Predicate<Listener> listenerCannotBeMigrated(LoadBalancerLocation source, LoadBalancerLocation target) {
