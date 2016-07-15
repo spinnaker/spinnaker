@@ -103,11 +103,13 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
 
     function updateLoadBalancerNames() {
       var account = $scope.loadBalancer.account;
+      var namespace = $scope.loadBalancer.namespace;
 
-      if (allLoadBalancerNames[account]) {
-        $scope.existingLoadBalancerNames = _.flatten(_.map(allLoadBalancerNames[account]));
-      } else {
-        $scope.existingLoadBalancerNames = [];
+      $scope.existingLoadBalancerNames = [];
+      if (account && namespace &&
+          allLoadBalancerNames[account] &&
+          allLoadBalancerNames[account][namespace]) {
+        $scope.existingLoadBalancerNames = allLoadBalancerNames[account][namespace];
       }
     }
 
