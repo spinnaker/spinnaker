@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.batch
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -29,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired
 @CompileStatic
 @Slf4j
 class StageStatusPropagationListener extends AbstractStagePropagationListener {
+  private static final ObjectMapper objectMapper = new ObjectMapper()
 
   @Autowired
   StageStatusPropagationListener(ExecutionRepository executionRepository) {
@@ -41,6 +43,7 @@ class StageStatusPropagationListener extends AbstractStagePropagationListener {
       return
     }
 
+    log.info("Marking Stage as RUNNING (stageId: ${stage.id})")
     stage.startTime = stage.startTime ?: System.currentTimeMillis()
     stage.status = ExecutionStatus.RUNNING
     saveStage stage
@@ -54,6 +57,7 @@ class StageStatusPropagationListener extends AbstractStagePropagationListener {
       if (orcaTaskStatus == ExecutionStatus.SUCCEEDED && (nonBookendTasks && nonBookendTasks[-1].status != ExecutionStatus.SUCCEEDED)) {
         // mark stage as RUNNING as not all tasks have completed
         stage.status = ExecutionStatus.RUNNING
+        log.info("Task SUCCEEDED but not all other tasks are complete (stageId: ${stage.id}, nonBookEndTaskStatus: ${nonBookendTasks[-1].status}) ... tasks: ${nonBookendTasks.collect { objectMapper.writeValueAsString(it) }}")
         for (Task task : nonBookendTasks) {
           if (task.status == ExecutionStatus.FAILED_CONTINUE) {
             // task fails and continue pipeline on failure is checked, set stage to the same status.

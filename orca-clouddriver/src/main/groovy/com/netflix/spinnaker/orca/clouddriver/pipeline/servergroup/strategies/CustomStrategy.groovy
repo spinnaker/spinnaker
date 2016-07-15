@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
 import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -42,6 +43,7 @@ class CustomStrategy implements Strategy {
       (cleanupConfig.location.singularType()): cleanupConfig.location.value,
       cloudProvider                          : cleanupConfig.cloudProvider,
       strategy                               : true,
+      clone                                  : stage.type == CloneServerGroupStage.PIPELINE_CONFIG_TYPE,
       parentPipelineId                       : stage.execution.id,
       parentStageId                          : stage.id
     ]
