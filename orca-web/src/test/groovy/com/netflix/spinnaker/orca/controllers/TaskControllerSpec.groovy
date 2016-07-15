@@ -64,24 +64,6 @@ class TaskControllerSpec extends Specification {
     1 * executionRepository.retrieveOrchestrations() >> { return rx.Observable.empty() }
   }
 
-  void '/tasks are sorted by startTime, with non-started tasks first'() {
-    given:
-    def tasks = [
-      [startTime: 1, id: 'c'],
-      [startTime: 2, id: 'd'],
-      [id: 'b'],
-      [id: 'a']
-    ]
-
-    when:
-    def response = mockMvc.perform(get("/pipelines")).andReturn().response
-    List results = new ObjectMapper().readValue(response.contentAsString, List)
-
-    then:
-    1 * executionRepository.retrievePipelines() >> rx.Observable.from(tasks)
-    results.id == ['b', 'a', 'd', 'c']
-  }
-
   void 'step names are properly translated'() {
     when:
     def response = mockMvc.perform(get('/tasks')).andReturn().response
@@ -154,34 +136,6 @@ class TaskControllerSpec extends Specification {
 
     then:
     response.id == ['not-started-2', 'not-started-1', 'not-too-old', 'pretty-new']
-  }
-
-  void '/pipelines should return a list of pipelines'() {
-    when:
-    def response = mockMvc.perform(get("/pipelines")).andReturn().response
-
-    then:
-    1 * executionRepository.retrievePipelines() >> rx.Observable.from([new Pipeline(), new Pipeline()])
-    List tasks = new ObjectMapper().readValue(response.contentAsString, List)
-    tasks.size() == 2
-  }
-
-  void '/pipelines sorted by startTime, with non-started pipelines first'() {
-    given:
-    def pipelines = [
-      [startTime: 1, id: 'c'],
-      [startTime: 2, id: 'd'],
-      [id: 'b'],
-      [id: 'a']
-    ]
-
-    when:
-    def response = mockMvc.perform(get("/pipelines")).andReturn().response
-    List results = new ObjectMapper().readValue(response.contentAsString, List)
-
-    then:
-    1 * executionRepository.retrievePipelines() >> rx.Observable.from(pipelines)
-    results.id == ['b', 'a', 'd', 'c']
   }
 
   void '/applications/{application}/pipelines should only return pipelines from the past two weeks, newest first'() {
