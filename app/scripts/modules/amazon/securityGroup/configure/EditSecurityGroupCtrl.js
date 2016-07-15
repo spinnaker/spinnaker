@@ -45,12 +45,12 @@ module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
     });
 
     securityGroup.securityGroupIngress = _(securityGroup.inboundRules)
-      .filter(function(rule) {
-        return rule.securityGroup;
-      }).map(function(rule) {
-        return rule.portRanges.map(function(portRange) {
+      .filter(rule => rule.securityGroup)
+      .map(rule => rule.portRanges.map(portRange => {
           return {
             accountName: rule.securityGroup.accountName || rule.securityGroup.accountId,
+            accountId: rule.securityGroup.accountId,
+            vpcId: rule.securityGroup.vpcId,
             id: rule.securityGroup.id,
             name: rule.securityGroup.name,
             type: rule.protocol,
@@ -58,8 +58,8 @@ module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
             endPort: portRange.endPort,
             existing: true,
           };
-        });
-      })
+        })
+      )
       .flatten()
       .value();
 
