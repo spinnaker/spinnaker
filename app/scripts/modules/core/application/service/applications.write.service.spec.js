@@ -75,13 +75,13 @@ describe('Service: applicationWriter', function () {
         owner: 'jojo',
         type: 'test',
         pdApiKey: '229293',
-        cloudProviders: ['titan', 'cf'],
+        cloudProviders: ['titus', 'cf'],
       };
 
       applicationWriter.updateApplication(application);
 
       expect(job).not.toBe(null);
-      expect(job.application.cloudProviders).toBe('titan,cf');
+      expect(job.application.cloudProviders).toBe('titus,cf');
 
     });
   });

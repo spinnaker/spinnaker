@@ -19,9 +19,9 @@ describe('Directives: accountSelectField', function () {
         {name: 'prod', type: 'aws', primaryAccount: true},
         {name: 'backup', type: 'aws', primaryAccount: false}
       ],
-      titan: [
-        {name: 'titanprod', type: 'titan', primaryAccount: true},
-        {name: 'titanbackup', type: 'titan', primaryAccount: false}
+      titus: [
+        {name: 'titusprod', type: 'titus', primaryAccount: true},
+        {name: 'titusbackup', type: 'titus', primaryAccount: false}
       ]
     };
     ctrl = $controller('AccountSelectFieldCtrl', {
@@ -33,12 +33,12 @@ describe('Directives: accountSelectField', function () {
   }));
 
   it('groups accounts by primary field when provider not specified', function() {
-    ctrl.accounts = accounts.aws.concat(accounts.titan);
+    ctrl.accounts = accounts.aws.concat(accounts.titus);
 
     scope.$digest();
 
-    expect(ctrl.primaryAccounts).toEqual(['prod', 'titanprod']);
-    expect(ctrl.secondaryAccounts).toEqual(['backup', 'titanbackup']);
+    expect(ctrl.primaryAccounts).toEqual(['prod', 'titusprod']);
+    expect(ctrl.secondaryAccounts).toEqual(['backup', 'titusbackup']);
     expect(accountService.getAllAccountDetailsForProvider.calls.count()).toBe(2);
   });
 
