@@ -48,10 +48,12 @@ import java.util.stream.Collectors;
 /**
  * This Redis-backed permission repository is structured in a way to optimized reading types of
  * resource permissions. In general, this looks like a key schema like:
- * <p>
- * "prefix:myuser@domain.org:resources" -> {"resourceName1" -> "<serialized json of resourceName1>",
- * "resourceName2" -> "<serialized json of resourceName1>"}
- * <p>
+ * <code>
+ * "prefix:myuser@domain.org:resources": {
+ *   "resourceName1": "[serialized json of resourceName1]",
+ *   "resourceName2": "[serialized json of resourceName2]"
+ * }
+ * </code>
  * Additionally, a helper key, called the "all users" key, maintains a set of all usernames.
  */
 @Component

@@ -29,8 +29,19 @@ import java.util.Optional;
  */
 public interface PermissionsRepository {
 
+  /**
+   * Adds the specified permission to the repository, overwriting anything under the same id.
+   * @param permission
+   * @return This PermissionRepository
+   */
   PermissionsRepository put(UserPermission permission);
 
+  /**
+   * Gets the UserPermission from the repository, if available. Returns an empty Optional if not
+   * found.
+   * @param id
+   * @return The UserPermission wrapped in an Optional.
+   */
   Optional<UserPermission> get(String id);
 
   /**
@@ -38,5 +49,9 @@ public interface PermissionsRepository {
    */
   Map<String, UserPermission> getAllById();
 
+  /**
+   * Delete the specified user permission.
+   * @param id
+   */
   void remove(String id);
 }
