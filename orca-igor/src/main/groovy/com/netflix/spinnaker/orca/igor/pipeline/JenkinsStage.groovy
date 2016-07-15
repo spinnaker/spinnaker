@@ -77,7 +77,11 @@ class JenkinsStage extends LinearStage implements RestartableStage, CancellableS
   CancellableStage.Result cancel(Stage stage) {
     log.info("Cancelling stage (stageId: ${stage.id}, executionId: ${stage.execution.id}, context: ${stage.context as Map})")
 
-    stopJenkinsJobTask.execute(stage)
+    try {
+      stopJenkinsJobTask.execute(stage)
+    } catch (Exception e) {
+      log.info("Failed to cancel stage (stageId: ${stage.id}, executionId: ${stage.execution.id}), e: ${e.message}")
+    }
 
     return new CancellableStage.Result(stage, [:])
   }
