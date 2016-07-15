@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup
 import com.amazonaws.services.ec2.model.IpPermission
 import com.amazonaws.services.ec2.model.UserIdGroupPair
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription.SecurityGroupIngress
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupLookup
 import groovy.transform.Canonical
 import groovy.transform.Immutable
 
@@ -28,19 +30,19 @@ class SecurityGroupIngressConverter {
   @Immutable
   static class ConvertedIngress {
     List<IpPermission> converted
-    List<UpsertSecurityGroupDescription.SecurityGroupIngress> missingSecurityGroups
+    List<SecurityGroupIngress> missingSecurityGroups
   }
 
-  static ConvertedIngress convertIngressToIpPermissions(SecurityGroupLookupFactory.SecurityGroupLookup securityGroupLookup,
-                                                 UpsertSecurityGroupDescription description) {
-    List<UpsertSecurityGroupDescription.SecurityGroupIngress> missing = []
+  static ConvertedIngress convertIngressToIpPermissions(SecurityGroupLookup securityGroupLookup,
+                                                        UpsertSecurityGroupDescription description) {
+    List<SecurityGroupIngress> missing = []
     List<IpPermission> ipPermissions = description.ipIngress.collect { ingress ->
       new IpPermission(ipProtocol: ingress.ipProtocol, fromPort: ingress.startPort, toPort: ingress.endPort,
         ipRanges: [ingress.cidr])
     }
     description.securityGroupIngress.each { ingress ->
       final accountName = ingress.accountName ?: description.credentialAccount
-      final accountId = securityGroupLookup.getAccountIdForName(accountName)
+      final accountId = ingress.accountId ?: securityGroupLookup.getAccountIdForName(accountName)
       final vpcId = ingress.vpcId ?: description.vpcId
       def newUserIdGroupPair = null
       if (ingress.id) {
@@ -54,7 +56,7 @@ class SecurityGroupIngressConverter {
             if (description.vpcId) {
               missing.add(ingress)
             } else {
-              newUserIdGroupPair = new UserIdGroupPair(userId: accountId, groupName: ingress.name, vpcId: ingress.vpcId)
+              newUserIdGroupPair = new UserIdGroupPair(userId: accountId, groupName: ingress.name)
             }
           }
       }
