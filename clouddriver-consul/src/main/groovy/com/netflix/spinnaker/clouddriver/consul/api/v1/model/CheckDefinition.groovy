@@ -16,15 +16,36 @@
 
 package com.netflix.spinnaker.clouddriver.consul.api.v1.model
 
+import com.fasterxml.jackson.annotation.JsonProperty
+
 class CheckDefinition {
-  String ID
-  String Name
-  String Notes
-  String Script
-  String DockerContainerID
-  String Shell
-  String HTTP
-  String TCP
-  String Interval
-  String TTL
+  @JsonProperty("ID")
+  String iD
+
+  @JsonProperty("Name")
+  String name
+
+  @JsonProperty("Notes")
+  String notes
+
+  @JsonProperty("Script")
+  String script
+
+  @JsonProperty("DockerContainerID")
+  String dockerContainerID
+
+  @JsonProperty("Shell")
+  String shell
+
+  @JsonProperty("HTTP")
+  String http
+
+  @JsonProperty("TCP")
+  String tcp
+
+  @JsonProperty("Interval")
+  String interval
+
+  @JsonProperty("TTL")
+  String ttl
 }

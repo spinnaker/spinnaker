@@ -16,11 +16,24 @@
 
 package com.netflix.spinnaker.clouddriver.consul.api.v1.model
 
+import com.fasterxml.jackson.annotation.JsonProperty
+
 class ServiceDefinition {
-  String ID
-  String Name
-  List<String> Tags
-  String Address
-  Integer Port
-  CheckDefinition Check
+  @JsonProperty("ID")
+  String iD
+
+  @JsonProperty("Name")
+  String name
+
+  @JsonProperty("Tags")
+  List<String> tags
+
+  @JsonProperty("Address")
+  String address
+
+  @JsonProperty("Port")
+  Integer port
+
+  @JsonProperty("Check")
+  CheckDefinition check
 }

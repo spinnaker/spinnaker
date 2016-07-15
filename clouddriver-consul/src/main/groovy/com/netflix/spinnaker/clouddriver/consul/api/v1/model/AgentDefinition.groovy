@@ -16,59 +16,148 @@
 
 package com.netflix.spinnaker.clouddriver.consul.api.v1.model
 
+import com.fasterxml.jackson.annotation.JsonProperty
+
 class AgentDefinition {
-  Config Config
-  Coord Coord
-  Member Member
+  @JsonProperty("Config")
+  Config config
+
+  @JsonProperty("Coord")
+  Coord coord
+
+  @JsonProperty("Member")
+  Member member
+
 
   class Config {
-    Boolean Bootstrap
-    Boolean Server
-    String Datacenter
-    String DataDir
-    String DNSRecursor
-    List<String> DNSRecursors
-    String Domain
-    String LogLevel
-    String NodeName
-    String ClientAddr
-    String BindAddr
-    String AdvertiseAddr
-    Map<String, Integer> Ports
-    Boolean LeaveOnTerm
-    Boolean SkipLeaveOnInt
-    String StatsiteAddr
-    Integer Protocol
-    Boolean EnableDebug
-    Boolean VerifyIncoming
-    Boolean VerifyOutgoing
-    String CAFile
-    String CertFile
-    String KeyFile
+    @JsonProperty("Bootstrap")
+    Boolean bootstrap
+
+    @JsonProperty("Server")
+    Boolean server
+
+    @JsonProperty("Datacenter")
+    String datacenter
+
+    @JsonProperty("DataDir")
+    String dataDir
+
+    @JsonProperty("DNSRecursor")
+    String dnsRecursor
+
+    @JsonProperty("DNSRecursors")
+    List<String> dnsRecursors
+
+    @JsonProperty("Domain")
+    String domain
+
+    @JsonProperty("LogLevel")
+    String logLevel
+
+    @JsonProperty("NodeName")
+    String nodeName
+
+    @JsonProperty("ClientAddr")
+    String clientAddr
+
+    @JsonProperty("BindAddr")
+    String bindAddr
+
+    @JsonProperty("AdvertiseAddr")
+    String advertiseAddr
+
+    @JsonProperty("Ports")
+    Map<String, Integer> ports
+
+    @JsonProperty("LeaveOnTerm")
+    Boolean leaveOnTerm
+
+    @JsonProperty("SkipLeaveOnInt")
+    Boolean skipLeaveOnInt
+
+    @JsonProperty("StatsiteAddr")
+    String statsiteAddr
+
+    @JsonProperty("Protocol")
+    Integer protocol
+
+    @JsonProperty("EnableDebug")
+    Boolean enableDebug
+
+    @JsonProperty("VerifyIncoming")
+    Boolean verifyIncoming
+
+    @JsonProperty("VerifyOutgoing")
+    Boolean verifyOutgoing
+
+    @JsonProperty("CAFile")
+    String caFile
+
+    @JsonProperty("CertFile")
+    String certFile
+
+    @JsonProperty("KeyFile")
+    String keyFile
+
     List<String> StartJoin
-    String UiDir
-    String PidFile
-    Boolean EnableSyslog
-    Boolean RejoinAfterLeave
+    @JsonProperty("UiDir")
+    String uiDir
+
+    @JsonProperty("PidFile")
+    String pidFile
+
+    @JsonProperty("EnableSyslog")
+    Boolean enableSyslog
+
+    @JsonProperty("RejoinAfterLeave")
+    Boolean rejoinAfterLeave
+
   }
 
   class Coord {
-    Integer Adjustment
-    Integer Error
-    List<Integer> Vec
+    @JsonProperty("Adjustment")
+    Integer adjustment
+
+    @JsonProperty("Error")
+    Integer error
+
+    @JsonProperty("Vec")
+    List<Integer> vec
   }
 
   class Member {
-    String Name
-    String Addr
-    Integer Port
-    Map<String, String> Tags
-    Integer Status
-    Integer ProtocolMin
-    Integer ProtocolMax
-    Integer ProtocolCur
-    Integer DelegateMin
-    Integer DelegateMax
-    Integer DelegateCur
+    @JsonProperty("Name")
+    String name
+
+    @JsonProperty("Addr")
+    String addr
+
+    @JsonProperty("Port")
+    Integer port
+
+    @JsonProperty("Tags")
+    Map<String, String> tags
+
+    @JsonProperty("Status")
+    Integer status
+
+    @JsonProperty("ProtocolMin")
+    Integer protocolMin
+
+    @JsonProperty("ProtocolMax")
+    Integer protocolMax
+
+    @JsonProperty("ProtocolCur")
+    Integer protocolCur
+
+    @JsonProperty("DelegateMin")
+    Integer delegateMin
+
+    @JsonProperty("DelegateMax")
+    Integer delegateMax
+
+    @JsonProperty("DelegateCur")
+    Integer delegateCur
+
   }
 }

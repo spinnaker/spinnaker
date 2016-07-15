@@ -16,15 +16,32 @@
 
 package com.netflix.spinnaker.clouddriver.consul.api.v1.model
 
+import com.fasterxml.jackson.annotation.JsonProperty
+
 class CheckResult {
-  String Node
-  String CheckID
-  String Name
-  Status Status
-  String Notes
-  String Output
-  String ServiceID
-  String ServiceName
+  @JsonProperty("Node")
+  String node
+
+  @JsonProperty("CheckID")
+  String checkID
+
+  @JsonProperty("Name")
+  String name
+
+  @JsonProperty("Status")
+  Status status
+
+  @JsonProperty("Notes")
+  String notes
+
+  @JsonProperty("Output")
+  String output
+
+  @JsonProperty("ServiceID")
+  String serviceID
+
+  @JsonProperty("ServiceName")
+  String serviceName
 
   enum Status {
     passing,
