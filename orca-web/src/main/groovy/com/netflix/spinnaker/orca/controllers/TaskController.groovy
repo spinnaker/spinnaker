@@ -170,16 +170,6 @@ class TaskController {
     pipeline
   }
 
-  @RequestMapping(value = "/pipelines", method = RequestMethod.GET)
-  List<Pipeline> getPipelines() {
-    def allPipelines = executionRepository.retrievePipelines().toBlocking().iterator.toList()
-    try {
-      return allPipelines.sort { it.startTime ?: it.id }.reverse()
-    } catch (Exception ignored) {
-      return allPipelines
-    }
-  }
-
   @RequestMapping(value = "/v2/applications/{application}/pipelines", method = RequestMethod.GET)
   List<Pipeline> getApplicationPipelines(@PathVariable String application,
                                          @RequestParam(value = "limit", defaultValue = "5") int limit,
