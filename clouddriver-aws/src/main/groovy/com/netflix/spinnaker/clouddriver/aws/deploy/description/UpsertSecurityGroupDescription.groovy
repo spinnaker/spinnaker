@@ -42,6 +42,7 @@ class UpsertSecurityGroupDescription extends AbstractAmazonCredentialsDescriptio
   @Canonical
   static class SecurityGroupIngress extends Ingress {
     String accountName
+    String accountId
 
     String id
 
@@ -49,7 +50,7 @@ class UpsertSecurityGroupDescription extends AbstractAmazonCredentialsDescriptio
     String name
 
     String toString() {
-      "${accountName ?: ''}.${vpcId ?: ''}.${name ?: id ?: ''}"
+      "${accountName ?: accountId ?: ''}.${vpcId ?: ''}.${name ?: id ?: ''}"
     }
   }
 
