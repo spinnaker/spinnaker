@@ -82,4 +82,33 @@ class HealthHelper {
       health.healthClass == 'platform'
     } as Map
   }
+
+
+  static boolean someAreDownAndNoneAreUp(Map instance, Collection<String> interestingHealthProviderNames) {
+
+    List<Map> healths = filterHealths(instance, interestingHealthProviderNames)
+
+    if (!interestingHealthProviderNames && !healths) {
+      // No health indications (and no specific providers to check), consider instance to be down.
+      return true
+    }
+
+    if (isDownConsideringPlatformHealth(healths)) {
+      return true
+    }
+
+    boolean someAreDown = healths.any { it.state == 'Down' || it.state == 'OutOfService' }
+    boolean noneAreUp = !healths.any { it.state == 'Up' }
+
+    return someAreDown && noneAreUp
+  }
+
+  static boolean someAreUpAndNoneAreDown(Map instance, Collection<String> interestingHealthProviderNames) {
+    List<Map> healths = filterHealths(instance, interestingHealthProviderNames)
+    boolean someAreUp = healths.any { Map health -> health.state == 'Up' }
+    someAreUp = areSomeUpConsideringPlatformHealth(healths, interestingHealthProviderNames, someAreUp)
+
+    boolean noneAreDown = !healths.any { Map health -> health.state == 'Down' }
+    return someAreUp && noneAreDown
+  }
 }

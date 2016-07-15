@@ -65,7 +65,7 @@ class AbstractWaitForInstanceHealthChangeTaskSpec extends Specification {
     [[instanceId: "1", health: [h("LB", "Down"), h("D", "Down")]]] | null                            | ExecutionStatus.SUCCEEDED
     [[instanceId: "1", health: [h("LB", "Down"), h("D", "Down")]]] | []                              | ExecutionStatus.SUCCEEDED
     [[instanceId: "1", health: [h("LB", "Up"), h("D", "Down")]]]   | ["D"]                           | ExecutionStatus.SUCCEEDED
-    [[instanceId: "1", health: []]]                                | ["D"]                           | ExecutionStatus.SUCCEEDED
+    [[instanceId: "1", health: []]]                                | ["D"]                           | ExecutionStatus.RUNNING
   }
 
   @Unroll

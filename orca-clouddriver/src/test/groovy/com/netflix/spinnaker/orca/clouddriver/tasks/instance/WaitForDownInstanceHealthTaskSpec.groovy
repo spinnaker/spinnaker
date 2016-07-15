@@ -20,22 +20,28 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class WaitForDownInstanceHealthTaskSpec extends Specification {
-  @Unroll
-  def "should succeed when at least one health provider is 'Down'/'Out of Service' and none are 'Up'"() {
+  @Unroll("#interestedHealthProviderNames with instnace: #instance => shouldBeDown: #shouldBeDown")
+  def "test if instance with a given interested health provider name should be considered down"() {
     expect:
-    new WaitForDownInstanceHealthTask().hasSucceeded(healthProviders) == hasSucceeded
+    new WaitForDownInstanceHealthTask().hasSucceeded(instance, interestedHealthProviderNames) == shouldBeDown
 
     where:
-    healthProviders                               || hasSucceeded
-    null                                          || true
-    []                                            || true
-    [[state: "Up"]]                               || false
-    [[state: "Down"], [state: "Up"]]              || false
-    [[state: "OutOfService"], [state: "Up"]]      || false
-    [[state: "Down"], [state: "OutOfService"]]    || true
-    [[state: "Down"]]                             || true
-    [[state: "OutOfService"]]                     || true
-    [[state: "OutOfService"], [state: "Unknown"]] || true
+    interestedHealthProviderNames || instance                                                                                                            || shouldBeDown
+    []                            || [health: []]                                                                                                        || true
+    []                            || [health: null]                                                                                                      || true
+    ["Amazon"]                    || [health: [[type: "Amazon", healthClass: "platform", state: "Unknown"]]]                                             || true
+    ["Amazon", "Discovery"]       || [health: [[type: "Amazon", healthClass: "platform", state: "Unknown"], [type: "Discovery", state: "Down"]]]         || true
+    ["Amazon", "Discovery"]       || [health: [[type: "Amazon", healthClass: "platform", state: "Unknown"], [type: "Discovery", state: "OutOfService"]]] || true
+    ["Discovery"]                 || [health: [[type: "Discovery", state: "Down"]]]                                                                      || true
+    ["Discovery"]                 || [health: [[type: "Discovery", state: "OutOfService"]]]                                                              || true
+    ["Discovery", "Other"]        || [health: [[type: "Other", state: "Down"]]]                                                                          || true
+    ["Amazon"]                    || [health: []]                                                                                                        || false
+    ["Amazon"]                    || [health: [[type: "Amazon", healthClass: "platform", state: "Up"]]]                                                  || false
+    ["Amazon", "Discovery"]       || [health: [[type: "Amazon", healthClass: "platform", state: "Unknown"], [type: "Discovery", state: "Up"]]]           || false
+    ["Discovery"]                 || [health: [[type: "Discovery", state: "Up"]]]                                                                        || false
+    ["Discovery"]                 || [health: [[type: "Other", state: "Up"]]]                                                                            || false
+    ["Discovery", "Other"]        || [health: [[type: "Other", state: "Up"]]]                                                                            || false
+    ["Discovery"]                 || [health: [[type: "Other", state: "Down"]]]                                                                          || false
   }
 
 }

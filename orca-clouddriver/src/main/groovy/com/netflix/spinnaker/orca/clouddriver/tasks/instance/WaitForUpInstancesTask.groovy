@@ -54,13 +54,9 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
     }
 
     def healthyCount = instances.count { Map instance ->
-      List<Map> healths = HealthHelper.filterHealths(instance, interestingHealthProviderNames)
-      boolean someAreUp = healths.any { Map health -> health.state == 'Up' }
-      someAreUp = HealthHelper.areSomeUpConsideringPlatformHealth(healths, interestingHealthProviderNames, someAreUp)
-
-      boolean noneAreDown = !healths.any { Map health -> health.state == 'Down' }
-      someAreUp && noneAreDown
+      HealthHelper.someAreUpAndNoneAreDown(instance, interestingHealthProviderNames)
     }
+
     log.info("${serverGroup.name}: Instances up check - healthy: $healthyCount, target: $targetDesiredSize")
     return healthyCount >= targetDesiredSize
   }

@@ -32,21 +32,7 @@ class WaitForAllInstancesDownTask extends AbstractWaitingForInstancesTask {
     }
 
     instances.every { instance ->
-      List<Map> healths = HealthHelper.filterHealths(instance, interestingHealthProviderNames)
-
-      if (!interestingHealthProviderNames && !healths) {
-        // No health indications (and no specific providers to check), consider instance to be down.
-        return true
-      }
-
-      if (HealthHelper.isDownConsideringPlatformHealth(healths)) {
-        return true
-      }
-
-      boolean someAreDown = healths.any { it.state == 'Down' || it.state == 'OutOfService' }
-      boolean noneAreUp = !healths.any { it.state == 'Up' }
-
-      return someAreDown && noneAreUp
+      return HealthHelper.someAreDownAndNoneAreUp(instance, interestingHealthProviderNames)
     }
   }
 }
