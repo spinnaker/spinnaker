@@ -40,10 +40,10 @@ class DeployKubernetesAtomicOperationDescription extends KubernetesAtomicOperati
 @Canonical
 class KubernetesContainerPort {
   String name
-  int containerPort
+  Integer containerPort
   String protocol
   String hostIp
-  int hostPort
+  Integer hostPort
 }
 
 @AutoClone
