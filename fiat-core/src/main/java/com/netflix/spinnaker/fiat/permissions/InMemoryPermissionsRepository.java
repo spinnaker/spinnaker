@@ -21,20 +21,21 @@ import com.netflix.spinnaker.fiat.model.UserPermission;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class InMemoryPermissionsRepository implements PermissionsRepository {
 
   private final Map<String, UserPermission> permissions = new HashMap<>();
 
   @Override
-  public InMemoryPermissionsRepository put(String id, UserPermission permission) {
-    this.permissions.put(id, permission);
+  public InMemoryPermissionsRepository put(UserPermission permission) {
+    this.permissions.put(permission.getId(), permission);
     return this;
   }
 
   @Override
-  public UserPermission get(String id) {
-    return this.permissions.get(id);
+  public Optional<UserPermission> get(String id) {
+    return Optional.ofNullable(this.permissions.get(id));
   }
 
   @Override
@@ -43,7 +44,7 @@ public class InMemoryPermissionsRepository implements PermissionsRepository {
   }
 
   @Override
-  public UserPermission remove(String id) {
-    return this.permissions.remove(id);
+  public void remove(String id) {
+    this.permissions.remove(id);
   }
 }

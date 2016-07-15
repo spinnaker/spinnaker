@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":fiat-core")
+package com.netflix.spinnaker.fiat.model.resources;
 
-  spinnaker.group("retrofitDefault")
+import lombok.NonNull;
+import org.apache.commons.lang3.StringUtils;
 
-  compile spinnaker.dependency("bootActuator")
-  compile spinnaker.dependency("bootWeb")
-  compile spinnaker.dependency("groovy")
+public enum Resource {
+  ACCOUNT,
+  APPLICATION;
 
-  compile "redis.clients:jedis:2.6.2"
-  compile "com.google.api-client:google-api-client:1.21.0"
-  compile "com.google.apis:google-api-services-admin-directory:directory_v1-rev65-1.21.0"
-  compile "com.squareup.retrofit:converter-simplexml:1.9.0"
-  compile "com.diffplug.durian:durian:3.4.0"
+  // TODO(ttomsu): This is Redis-specific, so it probably shouldn't go here.
+  public static Resource parse(@NonNull String key) {
+    String resources = StringUtils.substringAfterLast(key, ":");
+    String resource = StringUtils.removeEnd(resources, "s");
+    return Resource.valueOf(resource.toUpperCase());
+  }
 
-  testCompile spinnaker.dependency("korkJedisTest")
+  public String keySuffix() {
+    return this.toString().toLowerCase() + "s";
+  }
 }

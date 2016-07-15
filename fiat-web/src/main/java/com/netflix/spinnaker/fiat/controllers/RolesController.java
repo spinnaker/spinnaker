@@ -44,13 +44,13 @@ public class RolesController {
 
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.POST)
   public void putUserPermission(@PathVariable String userId) {
-    permissionsRepository.put(userId, permissionsResolver.resolve(userId));
+    permissionsRepository.put(permissionsResolver.resolve(userId));
   }
 
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.PUT)
   public void putUserPermission(@PathVariable String userId,
                                 @RequestBody @NonNull List<String> externalRoles) {
-    permissionsRepository.put(userId, permissionsResolver.resolveAndMerge(userId, externalRoles));
+    permissionsRepository.put(permissionsResolver.resolveAndMerge(userId, externalRoles));
   }
 
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.DELETE)

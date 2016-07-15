@@ -23,54 +23,54 @@ class AccountProviderSpec extends Specification {
 
   def "should get all configured accounts"() {
     setup:
-      AccountProvider accountProvider = new AccountProvider().setCloudProviderAccounts(
-          [
-              new CloudProviderAccounts("A").setAccounts([new Account().setName("account1")]),
-              new CloudProviderAccounts("B").setAccounts([new Account().setName("account2")])
-          ]);
+    AccountProvider accountProvider = new AccountProvider().setCloudProviderAccounts(
+        [
+            new CloudProviderAccounts("A").setAccounts([new Account().setName("account1")]),
+            new CloudProviderAccounts("B").setAccounts([new Account().setName("account2")])
+        ]);
 
     when:
-      def result = accountProvider.getAccounts()
+    def result = accountProvider.getAccounts()
 
     then:
-      result.size() == 2
-      result*.name.containsAll(["account1", "account2"])
+    result.size() == 2
+    result*.name.containsAll(["account1", "account2"])
   }
 
   def "should get all accounts based on supplied roles"() {
     setup:
-      AccountProvider accountProvider = new AccountProvider().setCloudProviderAccounts(
-          [
-              new CloudProviderAccounts("A").setAccounts([
-                  new Account().setName("noReqGroups")
-              ]),
-              new CloudProviderAccounts("B").setAccounts([
-                  new Account().setName("reqGroup1").setRequiredGroupMembership(["group1"])
-              ]),
-              new CloudProviderAccounts("C").setAccounts([
-                  new Account().setName("reqGroup1and2").setRequiredGroupMembership(["group1", "group2"])
-              ]),
-          ]);
+    AccountProvider accountProvider = new AccountProvider().setCloudProviderAccounts(
+        [
+            new CloudProviderAccounts("A").setAccounts([
+                new Account().setName("noReqGroups")
+            ]),
+            new CloudProviderAccounts("B").setAccounts([
+                new Account().setName("reqGroup1").setRequiredGroupMembership(["group1"])
+            ]),
+            new CloudProviderAccounts("C").setAccounts([
+                new Account().setName("reqGroup1and2").setRequiredGroupMembership(["group1", "group2"])
+            ]),
+        ]);
 
     when:
-      def result = accountProvider.getAccounts(input)
+    def result = accountProvider.getAccounts(input)
 
     then:
-      result*.name.containsAll(values)
+    result*.name.containsAll(values)
 
     when:
-      accountProvider.getAccounts(null)
+    accountProvider.getAccounts(null)
 
     then:
-      thrown IllegalArgumentException
+    thrown IllegalArgumentException
 
     where:
-      input                || values
-      []                   || ["noReqGroups"]
-      ["group1"]           || ["noReqGroups", "reqGroup1", "reqGroup1and2"]
-      ["group2"]           || ["noReqGroups", "reqGroup1and2"]
-      ["group1", "group2"] || ["noReqGroups", "reqGroup1", "reqGroup1and2"]
-      ["group3"]           || ["noReqGroups"]
-      ["group2", "group3"] || ["noReqGroups", "reqGroup1and2"]
+    input                || values
+    []                   || ["noReqGroups"]
+    ["group1"]           || ["noReqGroups", "reqGroup1", "reqGroup1and2"]
+    ["group2"]           || ["noReqGroups", "reqGroup1and2"]
+    ["group1", "group2"] || ["noReqGroups", "reqGroup1", "reqGroup1and2"]
+    ["group3"]           || ["noReqGroups"]
+    ["group2", "group3"] || ["noReqGroups", "reqGroup1and2"]
   }
 }

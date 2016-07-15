@@ -44,9 +44,9 @@ public class UserRolesSyncer {
     val permissionMap = permissionsRepository.getAllById();
 
     permissionsResolver.resolve(permissionMap.keySet())
-                       .entrySet()
+                       .values()
                        .stream()
-                       .forEach(entry -> permissionsRepository.put(entry.getKey(), entry.getValue()));
+                       .forEach(permission -> permissionsRepository.put(permission));
     log.info("Synced " + permissionMap.keySet().size() + " user roles.");
   }
 }

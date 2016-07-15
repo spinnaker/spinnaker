@@ -3,9 +3,11 @@ dependencies {
 
   // TODO(cfieber): Setup a configuration scope for it so this doesn't
   // become a transitive dependency
-  compile spinnaker.dependency('lombok')
-  compile spinnaker.dependency('springContext')
-  compile spinnaker.dependency('guava')
+  compile spinnaker.dependency("lombok")
+  compile spinnaker.dependency("springContext")
+  compile spinnaker.dependency("guava")
 
-  testCompile spinnaker.dependency('spockSpring')
+  compile "org.apache.commons:commons-lang3:3.4"
+
+  testCompile spinnaker.dependency("spockSpring")
 }

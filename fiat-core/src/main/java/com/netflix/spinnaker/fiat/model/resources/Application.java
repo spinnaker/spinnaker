@@ -21,12 +21,14 @@ import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 @Data
-public class Application {
-  private final String name;
-  private final Set<Authorization> authorizations;
+public class Application implements Named {
+  private String name;
+  private List<String> requiredGroupMembership = new ArrayList<>();
 
   @JsonIgnore
   public View getView() {

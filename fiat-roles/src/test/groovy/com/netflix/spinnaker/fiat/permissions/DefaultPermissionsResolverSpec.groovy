@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.fiat.permissions
 
+import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.providers.AccountProvider
 import com.netflix.spinnaker.fiat.providers.CloudProviderAccounts
-import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider
 import spock.lang.Shared
 import spock.lang.Specification
@@ -42,79 +42,79 @@ class DefaultPermissionsResolverSpec extends Specification {
 
   def "should resolve a single user's permissions"() {
     setup:
-      def testUserId = "testUserId"
-      UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
-      @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver()
-          .setUserRolesProvider(userRolesProvider)
-          .setAccountProvider(accountProvider)
+    def testUserId = "testUserId"
+    UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
+    @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver()
+        .setUserRolesProvider(userRolesProvider)
+        .setAccountProvider(accountProvider)
 
     when:
-      resolver.resolve(null as String)
+    resolver.resolve(null as String)
 
     then:
-      thrown IllegalArgumentException
+    thrown IllegalArgumentException
 
     when:
-      def result = resolver.resolve(testUserId)
+    def result = resolver.resolve(testUserId)
 
     then:
-      1 * userRolesProvider.loadRoles(testUserId) >> []
-      result?.getId() == testUserId
-      result?.getAccounts()?.size() == 1
-      result?.getAccounts()*.name.containsAll(["noReqGroups"])
+    1 * userRolesProvider.loadRoles(testUserId) >> []
+    result?.getId() == testUserId
+    result?.getAccounts()?.size() == 1
+    result?.getAccounts()*.name.containsAll(["noReqGroups"])
 
     when:
-      result = resolver.resolve(testUserId)
+    result = resolver.resolve(testUserId)
 
     then:
-      1 * userRolesProvider.loadRoles(testUserId) >> ["group2"]
-      result?.getAccounts()?.size() == 2
-      result?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1and2"])
+    1 * userRolesProvider.loadRoles(testUserId) >> ["group2"]
+    result?.getAccounts()?.size() == 2
+    result?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1and2"])
 
     when: "different capitalization"
-      result = resolver.resolve(testUserId)
+    result = resolver.resolve(testUserId)
 
     then:
-      1 * userRolesProvider.loadRoles(testUserId) >> ["gRoUp2"]
-      result?.getAccounts()?.size() == 2
-      result?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1and2"])
+    1 * userRolesProvider.loadRoles(testUserId) >> ["gRoUp2"]
+    result?.getAccounts()?.size() == 2
+    result?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1and2"])
 
     when: "merge externally provided roles"
-      result = resolver.resolveAndMerge(testUserId, ["group1"])
+    result = resolver.resolveAndMerge(testUserId, ["group1"])
 
     then:
-      1 * userRolesProvider.loadRoles(testUserId) >> ["group2"]
-      result?.getAccounts()?.size() == 3
-      result?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1", "reqGroup1and2"])
+    1 * userRolesProvider.loadRoles(testUserId) >> ["group2"]
+    result?.getAccounts()?.size() == 3
+    result?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1", "reqGroup1and2"])
   }
 
   def "should resolve all user's permissions"() {
     setup:
-      def user1 = "user1"
-      def user2 = "user2"
-      UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
-      @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver()
-          .setUserRolesProvider(userRolesProvider)
-          .setAccountProvider(accountProvider)
+    def user1 = "user1"
+    def user2 = "user2"
+    UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
+    @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver()
+        .setUserRolesProvider(userRolesProvider)
+        .setAccountProvider(accountProvider)
 
     when:
-      resolver.resolve(null as Collection)
+    resolver.resolve(null as Collection)
 
     then:
-      thrown IllegalArgumentException
+    thrown IllegalArgumentException
 
     when:
-      1 * userRolesProvider.multiLoadRoles(_) >> [
+    1 * userRolesProvider.multiLoadRoles(_) >> [
         user1: ["group1"],
         user2: ["group2"],
-      ]
-      def result = resolver.resolve([user1, user2])
+    ]
+    def result = resolver.resolve([user1, user2])
 
     then:
-      result.size() == 2
-      result["user1"]?.id == "user1"
-      result["user1"]?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1", "reqGroup1and2"])
-      result["user2"]?.id == "user2"
-      result["user2"]?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1and2"])
+    result.size() == 2
+    result["user1"]?.id == "user1"
+    result["user1"]?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1", "reqGroup1and2"])
+    result["user2"]?.id == "user2"
+    result["user2"]?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1and2"])
   }
 }

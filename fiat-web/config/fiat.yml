@@ -1,2 +1,5 @@
 server:
   port: 7003
+
+redis:
+  connection: ${services.redis.connection:redis://localhost:6379}

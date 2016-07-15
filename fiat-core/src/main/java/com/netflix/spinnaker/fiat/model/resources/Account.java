@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Set;
 
 @Data
-public class Account {
+public class Account implements Named {
   private String name;
   private List<String> requiredGroupMembership = new ArrayList<>();
 

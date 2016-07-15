@@ -34,6 +34,11 @@ public class UserPermission {
   private Set<Application> applications = new HashSet<>();
 
   @JsonIgnore
+  public boolean isEmpty() {
+    return accounts.isEmpty() && applications.isEmpty();
+  }
+
+  @JsonIgnore
   public View getView() {
     return new View();
   }

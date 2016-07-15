@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.fiat.config;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.permissions.InMemoryPermissionsRepository;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
@@ -13,8 +15,15 @@ import java.util.*;
 public class FiatConfig {
 
   @Bean
+  @ConditionalOnMissingBean(PermissionsRepository.class)
   PermissionsRepository permissionsRepository() {
     return new InMemoryPermissionsRepository();
+  }
+
+  @Bean
+  ObjectMapper objectMapper() {
+    return new ObjectMapper()
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   }
 
   @Bean

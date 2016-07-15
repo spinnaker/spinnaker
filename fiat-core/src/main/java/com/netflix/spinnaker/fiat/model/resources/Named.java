@@ -14,20 +14,8 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":fiat-core")
+package com.netflix.spinnaker.fiat.model.resources;
 
-  spinnaker.group("retrofitDefault")
-
-  compile spinnaker.dependency("bootActuator")
-  compile spinnaker.dependency("bootWeb")
-  compile spinnaker.dependency("groovy")
-
-  compile "redis.clients:jedis:2.6.2"
-  compile "com.google.api-client:google-api-client:1.21.0"
-  compile "com.google.apis:google-api-services-admin-directory:directory_v1-rev65-1.21.0"
-  compile "com.squareup.retrofit:converter-simplexml:1.9.0"
-  compile "com.diffplug.durian:durian:3.4.0"
-
-  testCompile spinnaker.dependency("korkJedisTest")
+public interface Named {
+  String getName();
 }

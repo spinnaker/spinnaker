@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,30 +37,30 @@ public class AuthorizeController {
 
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.GET)
   public UserPermission.View getUserPermission(@PathVariable String userId) {
-    return Optional.ofNullable(permissionsRepository.get(userId))
-                   .map(UserPermission::getView)
-                   .orElseThrow(NotFoundException::new);
+    return permissionsRepository.get(userId)
+                                .orElseThrow(NotFoundException::new)
+                                .getView();
   }
 
   @RequestMapping(value = "/{userId:.+}/accounts", method = RequestMethod.GET)
   public Set<Account.View> getUserAccounts(@PathVariable String userId) {
-    return Optional.ofNullable(permissionsRepository.get(userId))
-                   .orElseThrow(NotFoundException::new)
-                   .getAccounts()
-                   .stream()
-                   .map(Account::getView)
-                   .collect(Collectors.toSet());
+    return permissionsRepository.get(userId)
+                                .orElseThrow(NotFoundException::new)
+                                .getAccounts()
+                                .stream()
+                                .map(Account::getView)
+                                .collect(Collectors.toSet());
   }
 
   @RequestMapping(value = "/{userId:.+}/accounts/{accountName:.+}", method = RequestMethod.GET)
   public Account.View getUserAccount(@PathVariable String userId, @PathVariable String accountName) {
-    return Optional.ofNullable(permissionsRepository.get(userId))
-                   .orElseThrow(NotFoundException::new)
-                   .getAccounts()
-                   .stream()
-                   .filter(account -> accountName.equalsIgnoreCase(account.getName()))
-                   .findFirst()
-                   .map(Account::getView)
-                   .orElseThrow(NotFoundException::new);
+    return permissionsRepository.get(userId)
+                                .orElseThrow(NotFoundException::new)
+                                .getAccounts()
+                                .stream()
+                                .filter(account -> accountName.equalsIgnoreCase(account.getName()))
+                                .findFirst()
+                                .map(Account::getView)
+                                .orElseThrow(NotFoundException::new);
   }
 }
