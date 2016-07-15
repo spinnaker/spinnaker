@@ -21,22 +21,6 @@ import spock.lang.Specification
 
 class AccountProviderSpec extends Specification {
 
-  def "should get all configured accounts"() {
-    setup:
-    AccountProvider accountProvider = new AccountProvider().setCloudProviderAccounts(
-        [
-            new CloudProviderAccounts("A").setAccounts([new Account().setName("account1")]),
-            new CloudProviderAccounts("B").setAccounts([new Account().setName("account2")])
-        ]);
-
-    when:
-    def result = accountProvider.getAccounts()
-
-    then:
-    result.size() == 2
-    result*.name.containsAll(["account1", "account2"])
-  }
-
   def "should get all accounts based on supplied roles"() {
     setup:
     AccountProvider accountProvider = new AccountProvider().setCloudProviderAccounts(

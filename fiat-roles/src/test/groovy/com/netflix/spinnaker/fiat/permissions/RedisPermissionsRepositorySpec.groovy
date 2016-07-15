@@ -87,6 +87,27 @@ class RedisPermissionsRepositorySpec extends Specification {
         ['app1': '{"name":"app1","requiredGroupMembership":[]}']
   }
 
+  def "should remove permission that has been revoked"() {
+    setup:
+    jedis.sadd("unittest:users", "testUser2");
+    jedis.hset("unittests:permissions:testUser2:accounts",
+               "account2",
+               '{"name":"account2","requiredGroupMembership":[]}')
+    jedis.hset("unittests:permissions:testUser2:applications",
+               "app2",
+               '{"name":"app2","requiredGroupMembership":[]}')
+
+    when:
+    repo.put(new UserPermission()
+                 .setId("testUser1")
+                 .setAccounts([] as Set)
+                 .setApplications([] as Set))
+
+    then:
+    jedis.hgetAll("unittests:permissions:testUser1:accounts") == [:]
+    jedis.hgetAll("unittests:permissions:testUser1:applications") == [:]
+  }
+
   def "should get the permission out of redis"() {
     setup:
     jedis.sadd("unittest:users", "testUser2");

@@ -100,9 +100,13 @@ public class RedisPermissionsRepository implements PermissionsRepository {
             break;
         }
 
+        String userId = permission.getId();
+        String userResourceKey = userKey(userId, r);
+
+        jedis.del(userResourceKey); // Clears any values that may have been deleted.
         if (!resourceValues.isEmpty()) {
-          jedis.hmset(userKey(permission.getId(), r), resourceValues);
-          jedis.sadd(allUsersKey(), permission.getId());
+          jedis.hmset(userResourceKey, resourceValues);
+          jedis.sadd(allUsersKey(), userId);
         }
       }
     } catch (Exception e) {

@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.fiat.model;
+package com.netflix.spinnaker.fiat.providers;
 
-public enum Authorization {
-  CREATE,
-  READ,
-  WRITE
+import com.netflix.spinnaker.fiat.model.resources.Application;
+
+import java.util.Collection;
+import java.util.Set;
+
+public interface ApplicationProvider {
+
+  Set<Application> getApplications(Collection<String> groups);
 }

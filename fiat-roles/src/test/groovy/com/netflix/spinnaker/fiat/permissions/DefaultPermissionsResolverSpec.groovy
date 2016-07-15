@@ -18,6 +18,7 @@ package com.netflix.spinnaker.fiat.permissions
 
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.providers.AccountProvider
+import com.netflix.spinnaker.fiat.providers.ApplicationProvider
 import com.netflix.spinnaker.fiat.providers.CloudProviderAccounts
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider
 import spock.lang.Shared
@@ -44,9 +45,13 @@ class DefaultPermissionsResolverSpec extends Specification {
     setup:
     def testUserId = "testUserId"
     UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
+    ApplicationProvider applicationProvider = Mock(ApplicationProvider) {
+      getApplications(*_) >> []
+    }
     @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver()
         .setUserRolesProvider(userRolesProvider)
         .setAccountProvider(accountProvider)
+        .setApplicationProvider(applicationProvider)
 
     when:
     resolver.resolve(null as String)
@@ -62,6 +67,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     result?.getId() == testUserId
     result?.getAccounts()?.size() == 1
     result?.getAccounts()*.name.containsAll(["noReqGroups"])
+    result?.getApplications() == [] as Set
 
     when:
     result = resolver.resolve(testUserId)
@@ -93,9 +99,13 @@ class DefaultPermissionsResolverSpec extends Specification {
     def user1 = "user1"
     def user2 = "user2"
     UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
+    ApplicationProvider applicationProvider = Mock(ApplicationProvider) {
+      getApplications(*_) >> []
+    }
     @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver()
         .setUserRolesProvider(userRolesProvider)
         .setAccountProvider(accountProvider)
+        .setApplicationProvider(applicationProvider)
 
     when:
     resolver.resolve(null as Collection)
@@ -114,7 +124,9 @@ class DefaultPermissionsResolverSpec extends Specification {
     result.size() == 2
     result["user1"]?.id == "user1"
     result["user1"]?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1", "reqGroup1and2"])
+    result["user1"]?.getApplications() == [] as Set
     result["user2"]?.id == "user2"
     result["user2"]?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1and2"])
+    result["user2"]?.getApplications() == [] as Set
   }
 }

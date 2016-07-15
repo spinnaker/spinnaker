@@ -35,14 +35,6 @@ public class AccountProvider {
   @Setter
   private List<CloudProviderAccounts> cloudProviderAccounts;
 
-  public Set<Account> getAccounts() {
-    return cloudProviderAccounts
-        .stream()
-        .map(CloudProviderAccounts::getAccounts)
-        .flatMap(Collection::stream)
-        .collect(Collectors.toSet());
-  }
-
   public Set<Account> getAccounts(@NonNull Collection<String> groups) {
     return cloudProviderAccounts
         .stream()

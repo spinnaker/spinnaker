@@ -18,6 +18,7 @@ package com.netflix.spinnaker.fiat.permissions;
 
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.providers.AccountProvider;
+import com.netflix.spinnaker.fiat.providers.ApplicationProvider;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -27,7 +28,9 @@ import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -45,6 +48,10 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
   @Setter
   private AccountProvider accountProvider;
 
+  @Autowired
+  @Setter
+  private ApplicationProvider applicationProvider;
+
 
   @Override
   public UserPermission resolve(@NonNull String userId) {
@@ -58,8 +65,9 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
                       .map(String::toLowerCase)
                       .collect(Collectors.toSet());
     val accounts = accountProvider.getAccounts(combo);
+    val apps = applicationProvider.getApplications(combo);
 
-    return new UserPermission().setId(userId).setAccounts(accounts);
+    return new UserPermission().setId(userId).setAccounts(accounts).setApplications(apps);
   }
 
   @Override
@@ -70,7 +78,8 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
                 .map(entry ->
                          new UserPermission()
                              .setId(entry.getKey())
-                             .setAccounts(accountProvider.getAccounts(new ArrayList<>(entry.getValue()))))
+                             .setAccounts(accountProvider.getAccounts(entry.getValue()))
+                             .setApplications(applicationProvider.getApplications(entry.getValue())))
                 .collect(Collectors.toMap(UserPermission::getId, Function.identity()));
   }
 }

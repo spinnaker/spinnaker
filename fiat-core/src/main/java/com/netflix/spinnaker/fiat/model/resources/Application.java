@@ -38,7 +38,8 @@ public class Application implements Named {
   @Data
   public class View {
     String name = Application.this.name;
-    Set<Authorization> authorizations = ImmutableSet.of(Authorization.READ,
+    Set<Authorization> authorizations = ImmutableSet.of(Authorization.CREATE,
+                                                        Authorization.READ,
                                                         Authorization.WRITE);
   }
 }
