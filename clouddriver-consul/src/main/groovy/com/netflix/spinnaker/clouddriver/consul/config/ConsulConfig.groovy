@@ -16,10 +16,18 @@
 
 package com.netflix.spinnaker.clouddriver.consul.config
 
+import java.util.concurrent.TimeUnit
+
 class ConsulConfig {
   boolean enabled
   // required: reachable Consul server endpoints (IP address or DNS name)
   List<String> servers
   // optional: datacenters to cache/keep updated
   List<String> datacenters
+  // required: Port consul is running on for every agent
+  Integer agentPort
+}
+
+class ConsulProperties {
+  static long DEFAULT_TIMEOUT_MILLIS = TimeUnit.SECONDS.toMillis(2)
 }

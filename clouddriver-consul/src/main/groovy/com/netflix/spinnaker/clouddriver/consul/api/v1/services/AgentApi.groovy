@@ -51,4 +51,7 @@ interface AgentApi {
 
   @PUT("/v1/agent/service/maintenance/{serviceId}")
   Response maintenance(@Path("serviceId") String serviceId, @Query("enable") boolean enable, @Query("reason") String reason)
+
+  @PUT("/v1/agent/maintenance")
+  Response maintenance(@Query("enable") boolean enable, @Query("reason") String reason)
 }
