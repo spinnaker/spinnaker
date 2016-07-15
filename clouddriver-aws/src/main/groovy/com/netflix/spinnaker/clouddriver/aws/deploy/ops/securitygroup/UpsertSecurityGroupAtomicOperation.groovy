@@ -66,7 +66,7 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
     if (securityGroupUpdater.present) {
       securityGroupUpdater = securityGroupUpdater.get()
       existingIpPermissions = SecurityGroupIngressConverter.
-        flattenPermissions(securityGroupUpdater.securityGroup.ipPermissions)
+        flattenPermissions(securityGroupUpdater.securityGroup)
     } else {
       try {
         securityGroupUpdater = securityGroupLookup.createSecurityGroup(description)
@@ -80,7 +80,7 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
             description.vpcId
           ).get()
           existingIpPermissions = SecurityGroupIngressConverter.
-            flattenPermissions(securityGroupUpdater.securityGroup.ipPermissions)
+            flattenPermissions(securityGroupUpdater.securityGroup)
         } else {
           task.updateStatus BASE_PHASE, "Failed to create security group '${description.name}' in ${description.credentialAccount}: ${e.errorMessage}"
           throw e

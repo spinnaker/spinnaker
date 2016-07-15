@@ -354,7 +354,7 @@ public abstract class MigrateSecurityGroupStrategy {
                                        MigrateSecurityGroupResult results) {
 
     List<IpPermission> targetPermissions = SecurityGroupIngressConverter
-      .flattenPermissions(sourceGroup.getIpPermissions())
+      .flattenPermissions(sourceGroup)
       .stream()
       .map(p -> {
         p.setUserIdGroupPairs(p.getUserIdGroupPairs().stream().map(UserIdGroupPair::clone).collect(Collectors.toList()));

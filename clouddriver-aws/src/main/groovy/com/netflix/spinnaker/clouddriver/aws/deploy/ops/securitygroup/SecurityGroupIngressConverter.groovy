@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup
 
 import com.amazonaws.services.ec2.model.IpPermission
+import com.amazonaws.services.ec2.model.SecurityGroup
 import com.amazonaws.services.ec2.model.UserIdGroupPair
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription.SecurityGroupIngress
@@ -70,12 +71,17 @@ class SecurityGroupIngressConverter {
     new ConvertedIngress(ipPermissions, missing)
   }
 
-  static List<IpPermission> flattenPermissions(Collection<IpPermission> ipPermissions) {
+  static List<IpPermission> flattenPermissions(SecurityGroup securityGroup) {
+    Collection<IpPermission> ipPermissions = securityGroup.ipPermissions
     ipPermissions.collect { IpPermission ipPermission ->
       ipPermission.userIdGroupPairs.collect {
         it.groupName = null
         it.peeringStatus = null
         it.vpcPeeringConnectionId = null
+        // AWS does not populate the vpcId unless the rule is cross-account
+        if (it.userId == securityGroup.ownerId) {
+          it.vpcId = securityGroup.vpcId
+        }
         new IpPermission()
           .withFromPort(ipPermission.fromPort)
           .withToPort(ipPermission.toPort)
