@@ -32,6 +32,7 @@ public class UserPermission {
   private String id;
   private Set<Account> accounts = new HashSet<>();
   private Set<Application> applications = new HashSet<>();
+  private Set<ServiceAccount> serviceAccounts = new HashSet<>();
 
   @JsonIgnore
   public boolean isEmpty() {
@@ -46,7 +47,11 @@ public class UserPermission {
   @Data
   public class View {
     String name = UserPermission.this.id;
-    Map<String, Object> resources = ImmutableMap.of(
+    Set<ServiceAccount.View> serviceAccounts = UserPermission.this.serviceAccounts
+        .stream()
+        .map(ServiceAccount::getView)
+        .collect(Collectors.toSet());
+    Map<String, Object> cloudResources = ImmutableMap.of(
         "accounts",
         UserPermission.this.accounts
             .stream()

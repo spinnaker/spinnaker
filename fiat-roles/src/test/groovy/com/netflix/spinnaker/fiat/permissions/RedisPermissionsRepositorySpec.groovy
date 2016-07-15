@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.permissions
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.fiat.model.ServiceAccount
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.model.resources.Application
@@ -70,85 +71,107 @@ class RedisPermissionsRepositorySpec extends Specification {
 
   def "should put the specified permission in redis"() {
     setup:
-    Account account1 = new Account().setName("account1")
-    Application app1 = new Application().setName("app1")
+    Account account1 = new Account().setName("account")
+    Application app1 = new Application().setName("app")
+    ServiceAccount serviceAccount1 = new ServiceAccount().setName("serviceAccount")
 
     when:
     repo.put(new UserPermission()
-                 .setId("testUser1")
+                 .setId("testUser")
                  .setAccounts([account1] as Set)
-                 .setApplications([app1] as Set))
+                 .setApplications([app1] as Set)
+                 .setServiceAccounts([serviceAccount1] as Set))
 
     then:
-    jedis.smembers("unittests:users") == ["testUser1"] as Set
-    jedis.hgetAll("unittests:permissions:testUser1:accounts") ==
-        ['account1': '{"name":"account1","requiredGroupMembership":[]}']
-    jedis.hgetAll("unittests:permissions:testUser1:applications") ==
-        ['app1': '{"name":"app1","requiredGroupMembership":[]}']
+    jedis.smembers("unittests:users") == ["testUser"] as Set
+    jedis.hgetAll("unittests:permissions:testUser:accounts") ==
+        ['account': '{"name":"account","requiredGroupMembership":[]}']
+    jedis.hgetAll("unittests:permissions:testUser:applications") ==
+        ['app': '{"name":"app","requiredGroupMembership":[]}']
+    jedis.hgetAll("unittests:permissions:testUser:service_accounts") ==
+        ['serviceAccount': '{"name":"serviceAccount"}']
   }
 
   def "should remove permission that has been revoked"() {
     setup:
-    jedis.sadd("unittest:users", "testUser2");
-    jedis.hset("unittests:permissions:testUser2:accounts",
-               "account2",
-               '{"name":"account2","requiredGroupMembership":[]}')
-    jedis.hset("unittests:permissions:testUser2:applications",
-               "app2",
-               '{"name":"app2","requiredGroupMembership":[]}')
+    jedis.sadd("unittest:users", "testUser");
+    jedis.hset("unittests:permissions:testUser:accounts",
+               "account",
+               '{"name":"account","requiredGroupMembership":[]}')
+    jedis.hset("unittests:permissions:testUser:applications",
+               "app",
+               '{"name":"app","requiredGroupMembership":[]}')
+    jedis.hset("unittests:permissions:testUser:service_accounts",
+               "serviceAccount",
+               '{"name":"serviceAccount"}')
 
     when:
     repo.put(new UserPermission()
-                 .setId("testUser1")
+                 .setId("testUser")
                  .setAccounts([] as Set)
-                 .setApplications([] as Set))
+                 .setApplications([] as Set)
+                 .setServiceAccounts([] as Set))
 
     then:
-    jedis.hgetAll("unittests:permissions:testUser1:accounts") == [:]
-    jedis.hgetAll("unittests:permissions:testUser1:applications") == [:]
+    jedis.hgetAll("unittests:permissions:testUser:accounts") == [:]
+    jedis.hgetAll("unittests:permissions:testUser:applications") == [:]
+    jedis.hgetAll("unittests:permissions:testUser:service_accounts") == [:]
   }
 
   def "should get the permission out of redis"() {
     setup:
-    jedis.sadd("unittest:users", "testUser2");
-    jedis.hset("unittests:permissions:testUser2:accounts",
-               "account2",
-               '{"name":"account2","requiredGroupMembership":[]}')
-    jedis.hset("unittests:permissions:testUser2:applications",
-               "app2",
-               '{"name":"app2","requiredGroupMembership":[]}')
+    jedis.sadd("unittest:users", "testUser");
+    jedis.hset("unittests:permissions:testUser:accounts",
+               "account",
+               '{"name":"account","requiredGroupMembership":[]}')
+    jedis.hset("unittests:permissions:testUser:applications",
+               "app",
+               '{"name":"app","requiredGroupMembership":[]}')
+    jedis.hset("unittests:permissions:testUser:service_accounts",
+               "serviceAccount",
+               '{"name":"serviceAccount"}')
 
     when:
-    def result = repo.get("testUser2").get()
+    def result = repo.get("testUser").get()
 
     then:
     result
-    result.id == "testUser2"
-    result.accounts == [new Account().setName("account2")] as Set
-    result.applications == [new Application().setName("app2")] as Set
+    result.id == "testUser"
+    result.accounts == [new Account().setName("account")] as Set
+    result.applications == [new Application().setName("app")] as Set
   }
 
   def "should get all users from redis"() {
     setup:
-    jedis.sadd("unittests:users", "testUser3", "testUser4");
-    jedis.hset("unittests:permissions:testUser3:accounts",
-               "account3",
-               '{"name":"account3","requiredGroupMembership":[]}')
-    jedis.hset("unittests:permissions:testUser4:accounts",
-               "account4",
-               '{"name":"account4","requiredGroupMembership":["abc"]}')
-    jedis.hset("unittests:permissions:testUser3:applications",
-               "app3",
-               '{"name":"app3","requiredGroupMembership":[]}')
-    jedis.hset("unittests:permissions:testUser4:applications",
-               "app4",
-               '{"name":"app4","requiredGroupMembership":["abc"]}')
+    jedis.sadd("unittests:users", "testUser1", "testUser2");
 
     and:
-    Account account3 = new Account().setName("account3")
-    Application app3 = new Application().setName("app3")
-    Account account4 = new Account().setName("account4").setRequiredGroupMembership(["abc"])
-    Application app4 = new Application().setName("app4").setRequiredGroupMembership(["abc"])
+    Account account1 = new Account().setName("account1")
+    Application app1 = new Application().setName("app1")
+    ServiceAccount serviceAccount1 = new ServiceAccount().setName("serviceAccount1")
+    jedis.hset("unittests:permissions:testUser1:accounts",
+               "account1",
+               '{"name":"account1","requiredGroupMembership":[]}')
+    jedis.hset("unittests:permissions:testUser1:applications",
+               "app1",
+               '{"name":"app1","requiredGroupMembership":[]}')
+    jedis.hset("unittests:permissions:testUser1:service_accounts",
+               "serviceAccount1",
+               '{"name":"serviceAccount1"}')
+
+    and:
+    Account account2 = new Account().setName("account2").setRequiredGroupMembership(["abc"])
+    Application app2 = new Application().setName("app2").setRequiredGroupMembership(["abc"])
+    ServiceAccount serviceAccount2 = new ServiceAccount().setName("serviceAccount2")
+    jedis.hset("unittests:permissions:testUser2:accounts",
+               "account2",
+               '{"name":"account2","requiredGroupMembership":["abc"]}')
+    jedis.hset("unittests:permissions:testUser2:applications",
+               "app2",
+               '{"name":"app2","requiredGroupMembership":["abc"]}')
+    jedis.hset("unittests:permissions:testUser2:service_accounts",
+               "serviceAccount2",
+               '{"name":"serviceAccount2"}')
 
     when:
     def result = repo.getAllById();
@@ -156,24 +179,26 @@ class RedisPermissionsRepositorySpec extends Specification {
     then:
     result
     result.size() == 2
-    result["testUser3"] == new UserPermission().setId("testUser3")
-                                               .setAccounts([account3] as Set)
-                                               .setApplications([app3] as Set)
-    result["testUser4"] == new UserPermission().setId("testUser4")
-                                               .setAccounts([account4] as Set)
-                                               .setApplications([app4] as Set)
+    result["testUser1"] == new UserPermission().setId("testUser1")
+                                               .setAccounts([account1] as Set)
+                                               .setApplications([app1] as Set)
+                                               .setServiceAccounts([serviceAccount1] as Set)
+    result["testUser2"] == new UserPermission().setId("testUser2")
+                                               .setAccounts([account2] as Set)
+                                               .setApplications([app2] as Set)
+                                               .setServiceAccounts([serviceAccount2] as Set)
   }
 
   def "should delete the specified user"() {
     given:
     jedis.keys("*").size() == 0
 
-    Account account1 = new Account().setName("account1")
-    Application app1 = new Application().setName("app1")
+    Account account1 = new Account().setName("account")
+    Application app1 = new Application().setName("app")
 
     when:
     repo.put(new UserPermission()
-                 .setId("testUser1")
+                 .setId("testUser")
                  .setAccounts([account1] as Set)
                  .setApplications([app1] as Set))
 
@@ -181,7 +206,7 @@ class RedisPermissionsRepositorySpec extends Specification {
     jedis.keys("*").size() == 3 // users, accounts, and applications.
 
     when:
-    repo.remove("testUser1")
+    repo.remove("testUser")
 
     then:
     jedis.keys("*").size() == 0

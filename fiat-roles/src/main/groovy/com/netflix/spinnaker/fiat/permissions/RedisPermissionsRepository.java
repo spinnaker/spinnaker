@@ -20,7 +20,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.util.ArrayIterator;
 import com.google.common.collect.ArrayTable;
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import com.netflix.spinnaker.fiat.model.ServiceAccount;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
@@ -77,7 +79,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
   // TODO(ttomsu): Add RedisCacheOptions from Clouddriver.
   @Override
-  public PermissionsRepository put(@NonNull UserPermission permission) {
+  public RedisPermissionsRepository put(@NonNull UserPermission permission) {
     try (Jedis jedis = jedisSource.getJedis()) {
       for (Resource r : Resource.values()) {
         Map<String, String> resourceValues = new HashMap<>();
@@ -97,6 +99,9 @@ public class RedisPermissionsRepository implements PermissionsRepository {
             break;
           case APPLICATION:
             permission.getApplications().stream().forEach(putInValuesMap);
+            break;
+          case SERVICE_ACCOUNT:
+            permission.getServiceAccounts().stream().forEach(putInValuesMap);
             break;
         }
 
@@ -129,6 +134,8 @@ public class RedisPermissionsRepository implements PermissionsRepository {
           case APPLICATION:
             userPermission.getApplications().addAll(extractApplications(resourceMap));
             break;
+          case SERVICE_ACCOUNT:
+            userPermission.getServiceAccounts().addAll(extractServiceAccounts(resourceMap));
         }
       }
     } catch (Exception e) {
@@ -164,6 +171,12 @@ public class RedisPermissionsRepository implements PermissionsRepository {
             allById.computeIfAbsent(userId, newUser)
                    .getApplications()
                    .addAll(extractApplications(resourceMap));
+            break;
+          case SERVICE_ACCOUNT:
+            allById.computeIfAbsent(userId, newUser)
+                   .getServiceAccounts()
+                   .addAll(extractServiceAccounts(resourceMap));
+            break;
         }
       }
     }
@@ -174,6 +187,9 @@ public class RedisPermissionsRepository implements PermissionsRepository {
     try (Jedis jedis = jedisSource.getJedis()) {
       Set<String> allUserIds = jedis.smembers(allUsersKey());
 
+      if (allUserIds.size() == 0) {
+        return HashBasedTable.create();
+      }
       Table<String, Resource, Response<Map<String, String>>> responseTable =
           ArrayTable.create(allUserIds, new ArrayIterator<>(Resource.values()));
 
@@ -227,6 +243,15 @@ public class RedisPermissionsRepository implements PermissionsRepository {
         .stream()
         .map((ThrowingFunction<String, Application>) serialized ->
             objectMapper.readValue(serialized, Application.class))
+        .collect(Collectors.toSet());
+  }
+
+  private Set<ServiceAccount> extractServiceAccounts(Map<String, String> resourceMap) {
+    return resourceMap
+        .values()
+        .stream()
+        .map((ThrowingFunction<String, ServiceAccount>) serialized ->
+            objectMapper.readValue(serialized, ServiceAccount.class))
         .collect(Collectors.toSet());
   }
 

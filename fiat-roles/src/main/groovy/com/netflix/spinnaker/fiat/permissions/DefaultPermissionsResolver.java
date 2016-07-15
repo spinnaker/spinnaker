@@ -19,6 +19,7 @@ package com.netflix.spinnaker.fiat.permissions;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.providers.AccountProvider;
 import com.netflix.spinnaker.fiat.providers.ApplicationProvider;
+import com.netflix.spinnaker.fiat.providers.ServiceAccountProvider;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -52,6 +53,10 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
   @Setter
   private ApplicationProvider applicationProvider;
 
+  @Autowired
+  @Setter
+  private ServiceAccountProvider serviceAccountProvider;
+
 
   @Override
   public UserPermission resolve(@NonNull String userId) {
@@ -66,8 +71,13 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
                       .collect(Collectors.toSet());
     val accounts = accountProvider.getAccounts(combo);
     val apps = applicationProvider.getApplications(combo);
+    val serviceAccts = serviceAccountProvider.getAccounts(combo);
 
-    return new UserPermission().setId(userId).setAccounts(accounts).setApplications(apps);
+    return new UserPermission()
+        .setId(userId)
+        .setAccounts(accounts)
+        .setApplications(apps)
+        .setServiceAccounts(serviceAccts);
   }
 
   @Override
@@ -79,7 +89,8 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
                          new UserPermission()
                              .setId(entry.getKey())
                              .setAccounts(accountProvider.getAccounts(entry.getValue()))
-                             .setApplications(applicationProvider.getApplications(entry.getValue())))
+                             .setApplications(applicationProvider.getApplications(entry.getValue()))
+                             .setServiceAccounts(serviceAccountProvider.getAccounts(entry.getValue())))
                 .collect(Collectors.toMap(UserPermission::getId, Function.identity()));
   }
 }

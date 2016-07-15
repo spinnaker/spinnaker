@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.fiat.model.resources;
+package com.netflix.spinnaker.fiat.model;
 
-import lombok.NonNull;
-import org.apache.commons.lang3.StringUtils;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.spinnaker.fiat.model.resources.Named;
+import lombok.Data;
 
-public enum Resource {
-  ACCOUNT,
-  APPLICATION,
-  SERVICE_ACCOUNT; // Fiat service account.
+@Data
+public class ServiceAccount implements Named {
+  private String name;
 
-  // TODO(ttomsu): This is Redis-specific, so it probably shouldn't go here.
-  public static Resource parse(@NonNull String key) {
-    String resources = StringUtils.substringAfterLast(key, ":");
-    String resource = StringUtils.removeEnd(resources, "s");
-    return Resource.valueOf(resource.toUpperCase());
+  @JsonIgnore
+  public View getView() {
+    return new View();
   }
 
-  public String keySuffix() {
-    return this.toString().toLowerCase() + "s";
+  @Data
+  public class View {
+    String name = ServiceAccount.this.name;
   }
 }

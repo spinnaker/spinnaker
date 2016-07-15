@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.fiat.permissions;
 
+import com.netflix.spinnaker.fiat.model.ServiceAccount;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 
 import java.util.Collection;
