@@ -50,8 +50,8 @@ class UserRolesSyncer {
    */
   @Scheduled(initialDelay = 10000L, fixedRate = 600000L)
   public void sync() {
-    Map<String, String> emailSessionIdMap = [:]
-    Map<String, Collection<String>> emailCurrentGroupsMap = [:]
+    Map<String, String> usernameSessionIdMap = [:]
+    Map<String, Collection<String>> usernameCurrentGroupsMap = [:]
     Set<String> sessionKeys = sessionRedisTemplate.execute(new RedisCallback<Set<String>>() {
       @Override
       public Set<String> doInRedis(RedisConnection connection) throws DataAccessException {
@@ -78,20 +78,20 @@ class UserRolesSyncer {
         def secCtx = session.getAttribute("SPRING_SECURITY_CONTEXT") as SecurityContext
         def principal = secCtx?.authentication?.principal
         if (principal && principal instanceof User) {
-          emailSessionIdMap[principal.email] = id
-          emailCurrentGroupsMap[principal.email] = principal.roles
+          usernameSessionIdMap[principal.username] = id
+          usernameCurrentGroupsMap[principal.username] = principal.roles
         }
       }
     }
 
-    def newGroupsMap = userRolesProvider.multiLoadRoles(emailSessionIdMap.keySet())
+    def newGroupsMap = userRolesProvider.multiLoadRoles(usernameSessionIdMap.keySet())
     def sessionIdsToDelete = []
-    newGroupsMap.each { String email, Collection<String> newGroups ->
+    newGroupsMap.each { String username, Collection<String> newGroups ->
       // cast for equals check to work
       List<String> newList = newGroups as List
-      List<String> oldList = emailCurrentGroupsMap[email] as List
+      List<String> oldList = usernameCurrentGroupsMap[username] as List
       if (oldList != newList) {
-        sessionIdsToDelete.add(emailSessionIdMap[email])
+        sessionIdsToDelete.add(usernameSessionIdMap[username])
       }
     }
 
