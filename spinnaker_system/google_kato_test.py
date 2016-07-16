@@ -54,6 +54,7 @@ import citest.service_testing as st
 # Spinnaker modules.
 import spinnaker_testing as sk
 import spinnaker_testing.kato as kato
+import citest.base
 
 
 class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
@@ -575,6 +576,11 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
 
 
 class GoogleKatoIntegrationTest(st.AgentTestCase):
+  @property
+  def scenario(self):
+    return citest.base.TestRunner.global_runner().get_shared_data(
+        GoogleKatoTestScenario)
+
   def Xtest_a_upsert_server_group_tags(self):
     self.run_test_case(self.scenario.upsert_google_server_group_tags())
 
@@ -630,8 +636,8 @@ class GoogleKatoIntegrationTest(st.AgentTestCase):
 
 
 def main():
-  return st.ScenarioTestRunner.main(
-      GoogleKatoTestScenario,
+  return citest.base.TestRunner.main(
+      parser_inits=[GoogleKatoTestScenario.initArgumentParser],
       test_case_list=[GoogleKatoIntegrationTest])
 
 

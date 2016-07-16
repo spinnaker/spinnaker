@@ -54,6 +54,7 @@ import citest.service_testing as st
 import spinnaker_testing as sk
 import spinnaker_testing.gate as gate
 import google_quota_test as quota
+import citest.base
 
 
 class GoogleSmokeTestScenario(quota.GoogleQuotaTestScenario):
@@ -330,6 +331,11 @@ class GoogleSmokeTest(st.AgentTestCase):
   """
   # pylint: disable=missing-docstring
 
+  @property
+  def scenario(self):
+    return citest.base.TestRunner.global_runner().get_shared_data(
+        GoogleSmokeTestScenario)
+
   def test_a_create_app(self):
     self.run_test_case(self.scenario.create_app())
 
@@ -365,8 +371,8 @@ def main():
       'TEST_APP': 'gcpsmoketest' + GoogleSmokeTestScenario.DEFAULT_TEST_ID
   }
 
-  return st.ScenarioTestRunner.main(
-      GoogleSmokeTestScenario,
+  return citest.base.TestRunner.main(
+      parser_inits=[GoogleSmokeTestScenario.initArgumentParser],
       default_binding_overrides=defaults,
       test_case_list=[
         quota.GoogleQuotaTest,

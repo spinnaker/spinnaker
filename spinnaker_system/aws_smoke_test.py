@@ -56,6 +56,7 @@ import citest.aws_testing as aws
 import citest.json_contract as jc
 import citest.json_predicate as jp
 import citest.service_testing as st
+import citest.base
 
 # Spinnaker modules.
 import spinnaker_testing as sk
@@ -65,28 +66,16 @@ import spinnaker_testing.gate as gate
 class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
   """Defines the scenario for the smoke test.
 
-  This scenario defines the different test operations.
-  We're going to:
-    Create a Spinnaker Application
-    Create a Load Balancer
-    Create a Server Group
-    Delete each of the above (in reverse order)
+  The scenario remembers:
+     * The agent used to talk to gate.
+     * The name of the unique Spinnaker application we create for this test.
+     * The name of the load balancer we create used.
   """
 
   @classmethod
   def new_agent(cls, bindings):
     """Implements citest.service_testing.AgentTestScenario.new_agent."""
     return gate.new_agent(bindings)
-
-  @classmethod
-  def initArgumentParser(cls, parser, defaults=None):
-    """Initialize command line argument parser.
-
-    Args:
-      parser: argparse.ArgumentParser
-    """
-    super(AwsSmokeTestScenario, cls).initArgumentParser(parser,
-                                                        defaults=defaults)
 
   def __init__(self, bindings, agent=None):
     """Constructor.
@@ -98,10 +87,10 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
     super(AwsSmokeTestScenario, self).__init__(bindings, agent)
     bindings = self.bindings
 
-    self.__lb_detail = 'lb'
-    self.__lb_name = '{app}-{stack}-{detail}'.format(
+    self.lb_detail = 'lb'
+    self.lb_name = '{app}-{stack}-{detail}'.format(
         app=bindings['TEST_APP'], stack=bindings['TEST_STACK'],
-        detail=self.__lb_detail)
+        detail=self.lb_detail)
 
     # We'll call out the app name because it is widely used
     # because it scopes the context of our activities.
@@ -141,7 +130,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
     # any region.
     region = bindings['TEST_AWS_REGION']
     avail_zones = [region + 'a', region + 'b']
-    load_balancer_name = self.__lb_name
+    load_balancer_name = self.lb_name
 
     if use_vpc:
       # TODO(ewiseblatt): 20160301
@@ -208,7 +197,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
             'credentials': bindings['AWS_CREDENTIALS'],
             'name': load_balancer_name,
             'stack': bindings['TEST_STACK'],
-            'detail': self.__lb_detail,
+            'detail': self.lb_detail,
             'region': bindings['TEST_AWS_REGION'],
 
             'availabilityZones': {region: avail_zones},
@@ -275,7 +264,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
       use_vpc: [bool] if True delete the VPC load balancer, otherwise
          the non-VPC load balancer.
     """
-    load_balancer_name = self.__lb_name
+    load_balancer_name = self.lb_name
     if not use_vpc:
       # This is the second load balancer, where we decorated the name in upsert.
       load_balancer_name += '-pub'
@@ -337,7 +326,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
             'strategy':'',
             'capacity': {'min':2, 'max':2, 'desired':2},
             'targetHealthyDeployPercentage': 100,
-            'loadBalancers': [self.__lb_name],
+            'loadBalancers': [self.lb_name],
             'cooldown': 8,
             'healthCheckType': 'EC2',
             'healthCheckGracePeriod': 40,
@@ -432,6 +421,16 @@ class AwsSmokeTest(st.AgentTestCase):
   """
   # pylint: disable=missing-docstring
 
+  @property
+  def scenario(self):
+    return citest.base.TestRunner.global_runner().get_shared_data(
+        AwsSmokeTestScenario)
+
+  @property
+  def testing_agent(self):
+    scenario = self.scenario
+    return self.scenario.agent
+
   def test_a_create_app(self):
     self.run_test_case(self.scenario.create_app())
 
@@ -474,8 +473,8 @@ def main():
       'TEST_APP': 'smoketest' + AwsSmokeTestScenario.DEFAULT_TEST_ID
   }
 
-  return st.ScenarioTestRunner.main(
-      AwsSmokeTestScenario,
+  return citest.base.TestRunner.main(
+      parser_inits=[AwsSmokeTestScenario.initArgumentParser],
       default_binding_overrides=defaults,
       test_case_list=[AwsSmokeTest])
 
