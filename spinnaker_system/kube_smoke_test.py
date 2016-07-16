@@ -53,6 +53,7 @@ import citest.service_testing as st
 import spinnaker_testing as sk
 import spinnaker_testing.gate as gate
 import spinnaker_testing.frigga as frigga
+import citest.base
 
 
 class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
@@ -457,6 +458,11 @@ class KubeSmokeTest(st.AgentTestCase):
   """
   # pylint: disable=missing-docstring
 
+  @property
+  def scenario(self):
+    return citest.base.TestRunner.global_runner().get_shared_data(
+        KubeSmokeTestScenario)
+
   def test_a_create_app(self):
     self.run_test_case(self.scenario.create_app())
 
@@ -499,8 +505,8 @@ def main():
       'TEST_APP': 'kubsmok' + KubeSmokeTestScenario.DEFAULT_TEST_ID
   }
 
-  return st.ScenarioTestRunner.main(
-      KubeSmokeTestScenario,
+  return citest.base.TTestRunner.main(
+      parser_inits=[KubeSmokeTestScenario.initArgumentParser],
       default_binding_overrides=defaults,
       test_case_list=[KubeSmokeTest])
 

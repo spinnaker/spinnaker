@@ -26,7 +26,7 @@ import citest.service_testing as st
 # Spinnaker modules.
 import spinnaker_testing as sk
 import spinnaker_testing.front50 as front50
-
+import citest.base
 
 
 class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
@@ -217,6 +217,11 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
 
 
 class GoogleFront50Test(st.AgentTestCase):
+  @property
+  def scenario(self):
+    return citest.base.TestRunner.global_runner().get_shared_data(
+        GoogleFront50TestScenario)
+
   def test_a_create_app(self):
     self.run_test_case(self.scenario.create_app())
 
@@ -234,8 +239,8 @@ def main():
       'TEST_APP': 'gcpfront50test' + GoogleFront50TestScenario.DEFAULT_TEST_ID
   }
 
-  return st.ScenarioTestRunner.main(
-      GoogleFront50TestScenario,
+  return citest.base.TestRunner.main(
+      parser_inits=[GoogleFront50TestScenario.initArgumentParser],
       default_binding_overrides=defaults,
       test_case_list=[GoogleFront50Test])
 

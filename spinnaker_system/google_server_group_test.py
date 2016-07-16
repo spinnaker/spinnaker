@@ -11,6 +11,7 @@ import citest.service_testing as st
 import spinnaker_testing as sk
 import spinnaker_testing.gate as gate
 import google_quota_test as quota
+import citest.base
 
 
 class GoogleServerGroupTestScenario(quota.GoogleQuotaTestScenario):
@@ -334,6 +335,11 @@ class GoogleServerGroupTestScenario(quota.GoogleQuotaTestScenario):
 
 
 class GoogleServerGroupTest(st.AgentTestCase):
+  @property
+  def scenario(self):
+    return citest.base.TestRunner.global_runner().get_shared_data(
+        GoogleServerGroupTestScenario)
+
   def test_a_create_load_balancer(self):
     self.run_test_case(self.scenario.create_load_balancer())
 
@@ -373,8 +379,8 @@ def main():
     'TEST_APP': 'gcpsvrgrptst' + GoogleServerGroupTestScenario.DEFAULT_TEST_ID
   }
 
-  return st.ScenarioTestRunner.main(
-      GoogleServerGroupTestScenario,
+  return citest.base.TestRunner.main(
+      parser_inits=[GoogleServerGroupTestScenario.initArgumentParser],
       default_binding_overrides=defaults,
       test_case_list=[quota.GoogleQuotaTest,
                       GoogleServerGroupTest])

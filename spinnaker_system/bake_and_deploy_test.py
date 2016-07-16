@@ -93,6 +93,7 @@ import citest.service_testing as st
 import spinnaker_testing as sk
 import spinnaker_testing.gate as gate
 import google_quota_test as quota
+import citest.base
 
 
 class BakeAndDeployTestScenario(quota.GoogleQuotaTestScenario):
@@ -527,6 +528,16 @@ class BakeAndDeployTestScenario(quota.GoogleQuotaTestScenario):
 
 
 class BakeAndDeployTest(st.AgentTestCase):
+  @property
+  def scenario(self):
+    return citest.base.TestRunner.global_runner().get_shared_data(
+        BakeAndDeployTestScenario)
+
+  @property
+  def testing_agent(self):
+    scenario = self.scenario
+    return self.scenario.agent
+
   def test_a_create_app(self):
     if not self.scenario.run_tests:
       self.skipTest("No --test_{google, aws} flags were set")
@@ -596,8 +607,8 @@ def main():
     'TEST_APP': 'baketest' + BakeAndDeployTestScenario.DEFAULT_TEST_ID
   }
 
-  return st.ScenarioTestRunner.main(
-      BakeAndDeployTestScenario,
+  return citest.base.TestRunner.main(
+      parser_inits=[BakeAndDeployTestScenario.initArgumentParser],
       default_binding_overrides=defaults,
       test_case_list=[quota.GoogleQuotaTest,
                       BakeAndDeployTest])

@@ -24,6 +24,7 @@ import citest.service_testing as st
 
 # Spinnaker modules.
 import spinnaker_testing as sk
+import citest.base
 
 
 # TODO(jacobkiefer): Make a more general 'lambda' Predicate to replace this.
@@ -157,7 +158,10 @@ class GoogleQuotaTestScenario(sk.SpinnakerTestScenario):
     global_clause_builder = contract_builder.new_clause_builder(
       'Global Quota Check'
     )
-    extra_args = ['--account', self.__service_account]
+    extra_args = (['--account', self.__service_account]
+                  if self.__service_account
+                  else [])
+
     global_verifier = (global_clause_builder
                        .inspect_resource('project-info', None,
                                          extra_args=extra_args))
@@ -193,6 +197,11 @@ class GoogleQuotaTestScenario(sk.SpinnakerTestScenario):
 class GoogleQuotaTest(st.AgentTestCase):
   """The test fixture for QuotaTest."""
 
+  @property
+  def scenario(self):
+    return citest.base.TestRunner.global_runner().get_shared_data(
+        GoogleQuotaTestScenario)
+
   def test_a_check_quotas(self):
     self.run_test_case(self.scenario.check_quotas())
 
@@ -200,14 +209,10 @@ class GoogleQuotaTest(st.AgentTestCase):
 def main():
   """Implements the method running this quota test."""
 
-  defaults = {
-    'GCE_PROJECT': 'spinnaker-build',
-    'GCE_ZONE': 'us-central1-f',
-    'GCE_SERVICE_ACCOUNT': 'builder@spinnaker-build.iam.gserviceaccount.com',
-  }
+  defaults = {}
 
-  return st.ScenarioTestRunner.main(
-    GoogleQuotaTestScenario,
+  return citest.base.TestRunner.main(
+    parser_inits=[GoogleQuotaTestScenario.initArgumentParser],
     default_binding_overrides=defaults,
     test_case_list=[GoogleQuotaTest]
   )

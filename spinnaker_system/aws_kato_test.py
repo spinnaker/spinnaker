@@ -67,6 +67,7 @@ import citest.service_testing as st
 # Spinnaker modules.
 import spinnaker_testing as sk
 import spinnaker_testing.kato as kato
+import citest.base
 
 
 class AwsKatoTestScenario(sk.SpinnakerTestScenario):
@@ -206,6 +207,16 @@ class AwsKatoIntegrationTest(st.AgentTestCase):
   """
   # pylint: disable=missing-docstring
 
+  @property
+  def scenario(self):
+    return citest.base.TestRunner.global_runner().get_shared_data(
+        AwsKatoTestScenario)
+
+  @property
+  def testing_agent(self):
+    scenario = self.scenario
+    return self.scenario.agent
+
   def test_a_upsert_load_balancer(self):
     self.run_test_case(self.scenario.upsert_load_balancer())
 
@@ -220,8 +231,8 @@ def main():
       'TEST_APP': 'awskatotest' + AwsKatoTestScenario.DEFAULT_TEST_ID
   }
 
-  return st.ScenarioTestRunner.main(
-      AwsKatoTestScenario,
+  return citest.base.TestRunner.main(
+      parser_inits=[AwsKatoTestScenario.initArgumentParser],
       default_binding_overrides=defaults,
       test_case_list=[AwsKatoIntegrationTest])
 
