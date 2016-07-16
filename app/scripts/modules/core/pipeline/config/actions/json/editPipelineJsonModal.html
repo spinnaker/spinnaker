@@ -1,9 +1,9 @@
-<div modal-page>
+<div modal-page class="flex-fill">
   <modal-close></modal-close>
   <div class="modal-header">
     <h3>Edit {{isStrategy === true ? 'Strategy' : 'Pipeline'}} JSON</h3>
   </div>
-  <div class="modal-body">
+  <div class="modal-body flex-fill">
     <div class="row">
       <div class="col-md-12">
         <p>
@@ -12,9 +12,9 @@
         </p>
       </div>
     </div>
-    <form role="form" name="form" class="form-horizontal">
-      <div class="form-group">
-        <textarea class="code form-control" rows=20 ng-model="command.pipelineJSON"></textarea>
+    <form role="form" name="form" class="form-horizontal flex-fill">
+      <div class="form-group flex-fill">
+        <textarea class="code form-control flex-fill" ng-model="command.pipelineJSON"></textarea>
       </div>
     </form>
     <div class="row">

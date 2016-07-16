@@ -97,6 +97,7 @@ module.exports = angular
         $uibModal.open({
           templateUrl: require('./editLinks.modal.html'),
           controller: 'EditLinksModalCtrl as vm',
+          size: 'lg modal-fullscreen',
           resolve: {
             sections: () => this.sections,
           }

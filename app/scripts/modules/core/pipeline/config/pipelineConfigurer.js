@@ -142,6 +142,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
         templateUrl: require('./actions/json/editPipelineJsonModal.html'),
         controller: 'EditPipelineJsonModalCtrl',
         controllerAs: 'editPipelineJsonModalCtrl',
+        size: 'lg modal-fullscreen',
         resolve: {
           pipeline: function() { return $scope.pipeline; },
         }

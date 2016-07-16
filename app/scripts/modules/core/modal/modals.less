@@ -17,7 +17,9 @@
   }
   modal-close {
     display: block;
-    position: relative;
+    position: absolute;
+    right: 0;
+    top: 5px;
     z-index: 6;
   }
 }
@@ -26,6 +28,23 @@
   background-color: #f5f5f5;
   h3 {
     margin: 0;
+  }
+}
+
+.modal-fullscreen {
+  height: calc(~"100% - 60px");
+  .modal-content {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    .modal-body {
+      flex: 1;
+    }
+  }
+  .flex-fill {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
   }
 }
 
