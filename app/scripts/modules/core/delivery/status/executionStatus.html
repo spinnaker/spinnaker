@@ -49,7 +49,12 @@
       {{::parameter.key}}: {{::parameter.value}}
     </li>
   </ul>
-  <a href ng-if="::!vm.standalone" ng-click="vm.toggleDetails({executionId: vm.execution.id})">
+  <a href
+     ng-if="::!vm.standalone"
+     analytics-on="click"
+     analytics-category="Pipeline"
+     analytics-event="Execution details toggled (Details link)"
+     ng-click="vm.toggleDetails({executionId: vm.execution.id})">
     <span class="small glyphicon"
           ng-class="vm.showingDetails() ? 'glyphicon-chevron-down' : 'glyphicon-chevron-up'">
     </span>

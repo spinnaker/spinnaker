@@ -1,7 +1,12 @@
 <div class="col-md-12 filter-tags" ng-if="tags.length">
   Filtered by: <span class="filter-tag" ng-repeat="tag in tags">
       <strong>{{tag.label}}</strong>: {{tag.value}}
-      <a href ng-click="tag.clear(); tagCleared();"><span class="glyphicon glyphicon-remove-sign"></span></a>
+      <a href
+         analytics-on="click" analytics-category="Filter Tags" analytics-event="Individual tag removed"
+         ng-click="tag.clear(); tagCleared();"><span class="glyphicon glyphicon-remove-sign"></span></a>
     </span>
-  <a href class="clear-filters" ng-click="clearFilters()" ng-if="tags.length > 1">Clear All</a>
+  <a href
+     class="clear-filters"
+     analytics-on="click" analytics-category="Filter Tags" analytics-event="Clear All clicked"
+     ng-click="clearFilters()" ng-if="tags.length > 1">Clear All</a>
 </div>

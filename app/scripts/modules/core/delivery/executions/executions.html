@@ -20,16 +20,29 @@
     <div class="execution-groups-header" ng-if="!vm.viewState.loading">
       <form class="form-inline execution-filters">
         <div class="form-group" ng-if="vm.filter.groupBy" style="margin-right: 20px">
-          <a class="btn btn-xs btn-default" href ng-click="vm.toggleExpansion(true)" uib-tooltip="expand all">
+          <a class="btn btn-xs btn-default" href
+             analytics-on="click"
+             analytics-category="Pipelines"
+             analytics-event="Expand All"
+             ng-click="vm.toggleExpansion(true)" uib-tooltip="expand all">
             <span class="glyphicon glyphicon-plus"></span>
           </a>
-          <a class="btn btn-xs btn-default" href ng-click="vm.toggleExpansion(false)" uib-tooltip="collapse all">
+          <a class="btn btn-xs btn-default" href
+             analytics-on="click"
+             analytics-category="Pipelines"
+             analytics-event="Collapse All"
+             ng-click="vm.toggleExpansion(false)" uib-tooltip="collapse all">
             <span class="glyphicon glyphicon-minus"></span>
           </a>
         </div>
         <div class="form-group">
           <label>Group by</label>
-          <select class="form-control input-sm" ng-model="vm.filter.groupBy" ng-change="vm.updateExecutionGroups()">
+          <select class="form-control input-sm"
+                  analytics-on="change"
+                  analytics-category="Pipelines"
+                  analytics-event="Group By"
+                  analytics-label="{{vm.filter.groupBy}}"
+                  ng-model="vm.filter.groupBy" ng-change="vm.updateExecutionGroups()">
             <option value="none">None</option>
             <option value="name">Pipeline</option>
             <option value="timeBoundary">Time Boundary</option>
@@ -37,19 +50,33 @@
         </div>
         <div class="form-group">
           <label>Show</label>
-          <select class="form-control input-sm" ng-model="vm.filter.count" ng-change="vm.updateExecutionGroups(true)"
+          <select class="form-control input-sm"
+                  analytics-on="change"
+                  analytics-category="Pipelines"
+                  analytics-event="Change Count"
+                  analytics-label="{{vm.filter.count}}"
+                  ng-model="vm.filter.count"
+                  ng-change="vm.updateExecutionGroups(true)"
                   ng-options="count for count in filterCountOptions">
           </select>
           executions per pipeline
         </div>
         <div class="form-group checkbox">
           <label>
-            <input type="checkbox" ng-model="vm.filter.showStageDuration">
+            <input type="checkbox"
+                   ng-model="vm.filter.showStageDuration"
+                   analytics-on="change"
+                   analytics-category="Pipelines"
+                   analytics-event="Toggle Durations"
+                   analytics-label="{{vm.filter.showStageDuration}}">
             stage durations
           </label>
         </div>
         <div class="form-group pull-right">
           <a href class="btn btn-sm btn-primary"
+             analytics-on="click"
+             analytics-category="Pipelines"
+             analytics-event="Trigger Pipeline (top level)"
              ng-click="vm.triggerPipeline()"
              ng-disabled="vm.viewState.triggeringExecution">
             <span ng-if="vm.viewState.triggeringExecution" class="pulsing">

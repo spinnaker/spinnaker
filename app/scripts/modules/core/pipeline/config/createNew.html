@@ -1,14 +1,26 @@
 <div class="dropdown pull-left" style="margin-right:10px"  uib-dropdown>
-    <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
+    <button type="button" class="btn btn-sm btn-default dropdown-toggle"
+            analytics-on="click"
+            analytics-category="Pipelines"
+            analytics-event="Configure (top level)"
+            uib-dropdown-toggle>
         Configure <span class="caret"></span>
     </button>
     <ul class="dropdown-menu" uib-dropdown-menu role="menu">
         <li><create-pipeline-button application="application"></create-pipeline-button></li>
         <li class="dropdown-header" style="margin-top:0" ng-if="application.pipelineConfigs.data.length">PIPELINES</li>
-        <li ng-repeat="pipeline in application.pipelineConfigs.data"><a href
-                                                                   ui-sref="^.pipelineConfig({pipelineId: pipeline.id})">{{pipeline.name}}</a></li>
+        <li ng-repeat="pipeline in application.pipelineConfigs.data">
+          <a href
+             analytics-on="click"
+             analytics-category="Pipelines"
+             analytics-event="Configure pipeline (via top level)"
+             ui-sref="^.pipelineConfig({pipelineId: pipeline.id})">{{pipeline.name}}</a></li>
         <li class="dropdown-header" style="margin-top:0" ng-if="application.strategyConfigs.data.length">DEPLOYMENT STRATEGIES</li>
-        <li  ng-repeat="pipeline in application.strategyConfigs.data"><a href
-                                                                    ui-sref="^.pipelineConfig({pipelineId: pipeline.id})">{{pipeline.name}}</a></li>
+        <li  ng-repeat="pipeline in application.strategyConfigs.data">
+          <a href
+             analytics-on="click"
+             analytics-category="Pipelines"
+             analytics-event="Configure strategy (via top level)"
+             ui-sref="^.pipelineConfig({pipelineId: pipeline.id})">{{pipeline.name}}</a></li>
     </ul>
 </div>

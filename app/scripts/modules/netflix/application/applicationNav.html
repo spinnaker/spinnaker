@@ -1,6 +1,9 @@
 <ul class="nav nav-pills" ng-if="!application.notFound">
   <li ng-if="feature.pipelines !== false">
     <a ui-sref=".executions"
+       analytics-on="click"
+       analytics-category="Application Nav"
+       analytics-event="Pipelines"
        ng-if="!application.executions.loadFailure"
        ng-class="{active: $state.includes('**.executions.**') || $state.includes('**.pipelineConfig')}">
       Pipelines
@@ -17,31 +20,45 @@
   </li>
   <li>
     <a ui-sref=".insight.clusters"
+       analytics-on="click"
+       analytics-category="Application Nav"
+       analytics-event="Clusters"
        ng-class="{active: $state.includes('**.clusters.**')}">
       Clusters
     </a>
   </li>
   <li>
     <a ui-sref=".insight.loadBalancers"
+       analytics-on="click"
+       analytics-category="Application Nav"
+       analytics-event="Load Balancers"
        ng-class="{active: $state.includes('**.loadBalancers.**') || $state.includes('*.loadBalancer')}">
       Load Balancers
     </a>
   </li>
   <li>
     <a ui-sref=".insight.securityGroups"
+       analytics-on="click"
+       analytics-category="Application Nav"
+       analytics-event="Security Groups"
        ng-class="{active: $state.includes('**.securityGroups.**')}">
       Security Groups
     </a>
   <li>
-    <!-- TODO: Get this out somehow, maybe by overriding the file in template cache, who knows -->
   <li ng-if="feature.fastProperty">
     <a ui-sref=".propInsights.properties"
+       analytics-on="click"
+       analytics-category="Application Nav"
+       analytics-event="Fast Properties"
        ng-class="{active: $state.includes('**.properties.**')}">
       Properties
     </a>
   <li>
   <li>
     <a ui-sref=".tasks"
+       analytics-on="click"
+       analytics-category="Application Nav"
+       analytics-event="Tasks"
        ng-if="!application.tasks.loadFailure"
        ng-class="{active: $state.includes('**.tasks.**')}">
       Tasks
@@ -58,6 +75,9 @@
   </li>
   <li>
     <a ui-sref=".config"
+       analytics-on="click"
+       analytics-category="Application Nav"
+       analytics-event="Config"
        ng-class="{active: $state.includes('**.config.**')}">
       Config
     </a>

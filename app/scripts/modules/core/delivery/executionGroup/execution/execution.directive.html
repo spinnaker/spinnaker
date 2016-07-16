@@ -16,12 +16,19 @@
            uib-tooltip-template="stage.labelTemplateUrl"
            tooltip-title="(Click for details)"
            tooltip-placement="bottom"
+           analytics-on="click"
+           analytics-category="Pipeline"
+           analytics-event="Stage clicked (bar)"
            ng-click="vm.toggleDetails({executionId: vm.execution.id, index: $index})">
         <span class="duration">{{stage.runningTimeInMs | duration}}</span>
       </div>
       <div ng-if="::!vm.execution.stageSummaries.length" class="text-center">
         No stages found.
-        <a target="_blank" ng-href="{{vm.pipelinesUrl + vm.execution.id}}">Source</a>
+        <a target="_blank"
+           analytics-on="click"
+           analytics-category="Pipeline"
+           analytics-event="Execution source clicked (no stages found)"
+           ng-href="{{vm.pipelinesUrl + vm.execution.id}}">Source</a>
       </div>
     </div>
     <div class="execution-summary">
@@ -35,24 +42,36 @@
   <div class="execution-actions">
     <a href
        ng-if="::vm.execution.isRunning"
+       analytics-on="click"
+       analytics-category="Pipeline"
+       analytics-event="Execution pause clicked"
        ng-click="vm.pauseExecution(); $event.stopPropagation();"
        uib-tooltip="Pause execution">
       <span class="glyphicon glyphicon-pause"></span>
     </a>
     <a href
        ng-if="::vm.execution.isPaused"
+       analytics-on="click"
+       analytics-category="Pipeline"
+       analytics-event="Execution resume clicked"
        ng-click="vm.resumeExecution(); $event.stopPropagation();"
        uib-tooltip="Resume execution">
       <span class="glyphicon glyphicon-play"></span>
     </a>
     <a href
        ng-if="::!vm.execution.isActive"
+       analytics-on="click"
+       analytics-category="Pipeline"
+       analytics-event="Execution delete clicked"
        ng-click="vm.deleteExecution(); $event.stopPropagation();"
        uib-tooltip="Delete execution">
       <span class="glyphicon glyphicon-trash"></span>
     </a>
     <a href
        ng-if="::vm.execution.isActive"
+       analytics-on="click"
+       analytics-category="Pipeline"
+       analytics-event="Execution cancel clicked"
        ng-click="vm.cancelExecution(); $event.stopPropagation();"
        uib-tooltip="Cancel execution">
       <span class="glyphicon glyphicon-remove-circle"></span>
@@ -75,9 +94,16 @@
     </div>
     <div class="row permalinks text-right">
       <div class="col-md-12">
-        <a target="_blank" ng-href="{{vm.pipelinesUrl + vm.execution.id}}">Source</a>
+        <a target="_blank"
+           analytics-on="click"
+           analytics-category="Pipeline"
+           analytics-event="Execution source clicked"
+           ng-href="{{vm.pipelinesUrl + vm.execution.id}}">Source</a>
         |
-        <a ng-href="{{::vm.getUrl()}}">Permalink</a>
+        <a ng-href="{{::vm.getUrl()}}"
+           analytics-on="click"
+           analytics-category="Pipeline"
+           analytics-event="Permalink clicked">Permalink</a>
         <copy-to-clipboard text="{{::vm.getUrl()}}" tool-tip="Copy permalink to clipboard"></copy-to-clipboard>
       </div>
     </div>

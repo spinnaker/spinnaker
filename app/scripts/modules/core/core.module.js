@@ -44,6 +44,7 @@ module.exports = angular
     require('./application/application.module.js'),
 
     require('./account/accountLabelColor.directive.js'),
+    require('./analytics/analytics.service'),
     require('./authentication/authentication.module.js'),
 
     require('./bootstrap/applicationBootstrap.directive.js'),

@@ -32,6 +32,9 @@
         ng-mouseover="ctrl.focussedResult = result"
         class="result">
       <a ng-keydown="ctrl.navigateResults($event)"
+         analytics-on="click"
+         analytics-category="Global Search"
+         analytics-event="Recent Item Selected"
          ui-sref="{{ result.state }}(result.params)"
          ng-click="ctrl.hideResults()"
          ng-focus="ctrl.focussedResult = result">
@@ -50,6 +53,9 @@
         ng-mouseover="ctrl.focussedResult = result"
         class="result">
       <a ng-keydown="ctrl.navigateResults($event)" ng-click="ctrl.clearFilters(result)" href="{{ result.href }}"
+         analytics-on="click"
+         analytics-category="Global Search"
+         analytics-event="Result Selected"
          ng-focus="ctrl.focussedResult = result">
         <search-result item="result"></search-result>
       </a>
@@ -58,6 +64,9 @@
     <li class="result" ng-if="categories.length">
     <a href="#/infrastructure?q={{ query }}"
          class="expand-results"
+         analytics-on="click"
+         analytics-category="Global Search"
+         analytics-event="See more results selected"
          ng-keydown="ctrl.navigateResults($event)"
          ng-show="categories.length">
            See more results

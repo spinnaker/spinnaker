@@ -3,12 +3,21 @@
     {{stageSummary.name || stageSummary.type }} Details
 
     <div ng-if="(!stage.isRunning && !stage.isCompleted) && ctrl.isRestartable(stage)" uib-dropdown class="btn-group pull-right">
-      <button type="button" class="btn btn-default btn-sm dropdown-toggle" aria-expanded="false" uib-dropdown-toggle>
+      <button type="button"
+              class="btn btn-default btn-sm dropdown-toggle"
+              analytics-on="click"
+              analytics-category="Pipeline"
+              analytics-event="Execution actions menu toggled"
+              aria-expanded="false" uib-dropdown-toggle>
         Actions
         <span class="caret"></span>
       </button>
       <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-        <li><a href ng-controller="RestartStageCtrl as restartCtrl" ng-click="restartCtrl.restart()">Restart {{ stageSummary.name }}</a></li>
+        <li><a href ng-controller="RestartStageCtrl as restartCtrl"
+               analytics-on="click"
+               analytics-category="Pipeline"
+               analytics-event="Execution restart clicked"
+               ng-click="restartCtrl.restart()">Restart {{ stageSummary.name }}</a></li>
       </ul>
     </div>
   </h5>
@@ -25,6 +34,10 @@
     </thead>
     <tbody>
     <tr class="clickable"
+        analytics-on="click"
+        analytics-category="Pipeline"
+        analytics-event="Execution step selected"
+        analytics-label="ctrl.getStepLabel(step)"
         ng-repeat="step in stageSummary.stages"
         ng-class="{ info: ctrl.isStepCurrent($index) }"
         ng-click="ctrl.toggleDetails($index)">

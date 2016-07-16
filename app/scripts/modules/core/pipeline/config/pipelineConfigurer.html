@@ -14,7 +14,11 @@
 
 
     <div class="permalink">
-      <a target="_blank" ng-href="{{pipelineConfigurerCtrl.getUrl()}}">Permalink</a>
+      <a target="_blank"
+         analytics-on="click"
+         analytics-category="Pipeline Config"
+         analytics-event="Permalink clicked"
+         ng-href="{{pipelineConfigurerCtrl.getUrl()}}">Permalink</a>
       <copy-to-clipboard text="{{pipelineConfigurerCtrl.getUrl()}}" tool-tip="Copy permalink to clipboard"></copy-to-clipboard>
     </div>
     <div class="create-action">
@@ -30,6 +34,9 @@
         <ul class="nav-pipeline-config">
           <li class="config-section">
             <a href class="btn btn-default"
+               analytics-on="click"
+               analytics-category="Pipeline Config"
+               analytics-event="Configuration button clicked"
                ng-class="{active: pipelineConfigurerCtrl.isActive('triggers') }"
                ng-click="pipelineConfigurerCtrl.navigateTo({section: 'triggers'})">
               <span class="glyphicon glyphicon-certificate"></span> Configuration
@@ -39,6 +46,9 @@
             <h4>Stages</h4>
             <div class="sortable-stages" ui-sortable="stageSortOptions" ng-model="pipeline.stages">
               <a href ng-repeat="stage in pipeline.stages" class="btn btn-default"
+                 analytics-on="click"
+                 analytics-category="Pipeline Config"
+                 analytics-event="Stage button clicked"
                  ng-click="pipelineConfigurerCtrl.navigateToStage($index, $event)"
                  ng-class="{'active': pipelineConfigurerCtrl.stageIsActive($index)}">
                 {{$index+1}}: {{stage.name || '[Unnamed Stage]'}}
@@ -46,7 +56,11 @@
                       class="glyphicon glyphicon-time small" uib-tooltip="This stage is configured to only run during specified windows"></span>
               </a>
             </div>
-            <button class="btn btn-sm add-new" ng-click="pipelineConfigurerCtrl.addStage()">
+            <button class="btn btn-sm add-new"
+                    analytics-on="click"
+                    analytics-category="Pipeline Config"
+                    analytics-event="Add stage button clicked (non-parallel)"
+                    ng-click="pipelineConfigurerCtrl.addStage()">
               <span class="glyphicon glyphicon-plus-sign"></span> Add stage
             </button>
           </li>
@@ -59,7 +73,11 @@
       </div>
       <div class="row">
         <div class="col-md-12">
-          <button class="btn btn-block btn-sm add-new" ng-click="pipelineConfigurerCtrl.addStage()">
+          <button class="btn btn-block btn-sm add-new"
+                  analytics-on="click"
+                  analytics-category="Pipeline Config"
+                  analytics-event="Add stage button clicked"
+                  ng-click="pipelineConfigurerCtrl.addStage()">
             <span class="glyphicon glyphicon-plus-sign"></span> Add stage
           </button>
         </div>
@@ -70,14 +88,26 @@
 
     <div class="row pipeline-footer">
       <div class="col-md-3">
-        <button is-visible="viewState.isDirty" class="btn btn-default" ng-click="pipelineConfigurerCtrl.revertPipelineChanges()"><span class="glyphicon glyphicon-flash"></span> Revert</button>
+        <button is-visible="viewState.isDirty" class="btn btn-default"
+                analytics-on="click"
+                analytics-category="Pipeline Config"
+                analytics-event="Revert changes clicked"
+                ng-click="pipelineConfigurerCtrl.revertPipelineChanges()"><span class="glyphicon glyphicon-flash"></span> Revert</button>
       </div>
       <div class="col-md-9 text-right">
         <span ng-if="viewState.saveError" class="alert alert-danger">
           There was an error saving your pipeline.
-          <a class="alert-dismiss" href ng-click="viewState.saveError = false">[dismiss]</a>
+          <a class="alert-dismiss" href
+             analytics-on="click"
+             analytics-category="Pipeline Config"
+             analytics-event="Error saving changes dismissed"
+             ng-click="viewState.saveError = false">[dismiss]</a>
         </span>
-        <button ng-if="viewState.isDirty" ng-disabled="!pipelineConfigurerCtrl.isValid()" class="btn btn-primary" ng-click="pipelineConfigurerCtrl.savePipeline()">
+        <button ng-if="viewState.isDirty" ng-disabled="!pipelineConfigurerCtrl.isValid()" class="btn btn-primary"
+                analytics-on="click"
+                analytics-category="Pipeline Config"
+                analytics-event="Save pipeline clicked"
+                ng-click="pipelineConfigurerCtrl.savePipeline()">
           <span ng-if="!viewState.saving">
             <span class="glyphicon glyphicon-ok-circle"></span> Save Changes
           </span>

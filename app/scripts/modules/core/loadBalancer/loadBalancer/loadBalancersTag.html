@@ -3,6 +3,9 @@
       class="btn btn-link btn-multiple-load-balancers clearfix no-padding"
       ng-if="serverGroup.loadBalancers.length > maxDisplay"
       ng-click="popover.show = !popover.show; $event.stopPropagation();"
+      analytics-on="click"
+      analytics-category="Cluster Pod"
+      analytics-event="Toggle Load Balancers Menu ({{popover.show}})"
       uib-tooltip="{{popover.show ? 'Hide' : 'Show'}} all {{serverGroup.loadBalancers.length}} load balancers">
     <span class="badge counter">
       <span class="icon">
@@ -17,6 +20,9 @@
     </div>
     <a
       ng-repeat="loadBalancer in serverGroup.loadBalancers | orderBy:'toString()'"
+      analytics-on="click"
+      analytics-category="Cluster Pod"
+      analytics-event="Load Load Balancer Details (multiple menu)"
       ui-sref=".loadBalancerDetails({region: serverGroup.region, accountId: serverGroup.account, name: loadBalancer, provider: serverGroup.type})"
       >{{loadBalancer}}
     </a>
@@ -25,6 +31,9 @@
     <button
        class="btn btn-link no-padding"
        ng-repeat="loadBalancer in serverGroup.loadBalancers | orderBy:'toString()'"
+       analytics-on="click"
+       analytics-category="Cluster Pod"
+       analytics-event="Load Load Balancer Details"
        ui-sref=".loadBalancerDetails({region: serverGroup.region, accountId: serverGroup.account, name: loadBalancer, provider: serverGroup.type})"
        ui-sref-active="active"
        uib-tooltip="Load Balancer: {{loadBalancer}}">

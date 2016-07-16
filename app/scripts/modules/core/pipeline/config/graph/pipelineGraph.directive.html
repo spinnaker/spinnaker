@@ -17,6 +17,9 @@
             ng-class="{active: stage.isActive}"
             ng-attr-fill-opacity="{{!stage.isActive && stage.executionStage ? 0.4: 1}}"
             ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
+            analytics-on="click"
+            analytics-category="Pipeline Graph ({{execution ? 'execution' : 'config'}})"
+            analytics-event="Node clicked"
             ng-click="nodeClicked(stage)"></circle>
 
     <rect ng-if="stage.root && !stage.executionStage"
@@ -26,6 +29,9 @@
           ng-attr-transform="translate({{nodeRadius*-1}},{{nodeRadius*-1}})"
           class="clickable"
           ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
+          analytics-on="click"
+          analytics-category="Pipeline Graph (config)"
+          analytics-event="Node clicked"
           ng-click="nodeClicked(stage)"></rect>
 
     <rect ng-if="stage.leaf && !stage.executionStage"
@@ -35,6 +41,9 @@
           ng-attr-transform="translate(0,{{nodeRadius*-1}})"
           class="clickable"
           ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
+          analytics-on="click"
+          analytics-category="Pipeline Graph (config)"
+          analytics-event="Node clicked"
           ng-click="nodeClicked(stage)"></rect>
 
   </g>
@@ -46,12 +55,18 @@
            ng-if="stage.labelTemplateUrl"
            ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
            ng-style="{height: stage.height + 'px'}"
+           analytics-on="click"
+           analytics-category="Pipeline Graph ({{execution ? 'execution' : 'config'}})"
+           analytics-event="Node label clicked"
            ng-click="nodeClicked(stage)">
         <div ng-include="stage.labelTemplateUrl"></div>
       </div>
       <div class="label-body node clickable"
            ng-if="!stage.labelTemplateUrl"
            ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
+           analytics-on="click"
+           analytics-category="Pipeline Graph ({{execution ? 'execution' : 'config'}})"
+           analytics-event="Node label clicked"
            ng-click="nodeClicked(stage)"><a>{{stage.name}}</a></div>
     </foreignobject>
   </g>

@@ -3,13 +3,20 @@
     <h3>
       Filters
       <span class="btn btn-default btn-light"
-                    ng-click="vm.clearFilters()">Clear All</span>
+            analytics-on="click"
+            analytics-category="Pipelines"
+            analytics-event="Filter: clear all (side nav)"
+            ng-click="vm.clearFilters()">Clear All</span>
     </h3>
     <collapsible-section heading="Search" expanded="true" help-key="executions.search">
       <form class="form-horizontal" role="form">
         <div class="form-group nav-search">
           <input type="search" class="form-control input-sm" ng-model="sortFilter.filter"
                  ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
+                 analytics-on="change"
+                 analytics-category="Pipelines"
+                 analytics-event="Filter: search"
+                 analytics-label="{{sortFilter.filter}}"
                  ng-change="vm.updateExecutionGroups()" style="width: 85%; display: inline-block">
         </div>
       </form>
@@ -28,6 +35,10 @@
                 ng-if="!vm.viewState.pipelineReorderDisabled"
                 class="glyphicon glyphicon-resize-vertical"></span>
               <input type="checkbox"
+                     analytics-on="change"
+                     analytics-category="Pipelines"
+                     analytics-event="Filter: pipeline"
+                     analytics-label="{{pipeline}}"
                      ng-disabled="!vm.viewState.pipelineReorderDisabled"
                      ng-show="vm.viewState.pipelineReorderDisabled"
                      ng-model="sortFilter.pipeline[pipeline]"
@@ -38,9 +49,15 @@
         </div>
         <div ng-if="vm.pipelineNames.length">
           <a class="btn btn-xs btn-default" href
+             analytics-on="click"
+             analytics-category="Pipelines"
+             analytics-event="Filter: reorder"
              ng-if="vm.viewState.pipelineReorderDisabled"
              ng-click="vm.enablePipelineReorder()">Reorder Pipelines</a>
           <a class="btn btn-xs btn-default" href
+             analytics-on="click"
+             analytics-category="Pipelines"
+             analytics-event="Filter: stop reorder"
              ng-if="!vm.viewState.pipelineReorderDisabled"
              ng-click="vm.disablePipelineReorder()">Done</a>
         </div>
@@ -52,6 +69,10 @@
         <div class="checkbox">
           <label>
             <input type="checkbox"
+                   analytics-on="change"
+                   analytics-category="Pipelines"
+                   analytics-event="Filter: status"
+                   analytics-label="RUNNING"
                    ng-model="sortFilter.status.RUNNING"
                    ng-change="vm.updateExecutionGroups(true)"/>
             Running
@@ -60,6 +81,10 @@
         <div class="checkbox">
           <label>
             <input type="checkbox"
+                   analytics-on="change"
+                   analytics-category="Pipelines"
+                   analytics-event="Filter: status"
+                   analytics-label="TERMINAL"
                    ng-model="sortFilter.status.TERMINAL"
                    ng-change="vm.updateExecutionGroups(true)"/>
             Terminal
@@ -68,6 +93,10 @@
         <div class="checkbox">
           <label>
             <input type="checkbox"
+                   analytics-on="change"
+                   analytics-category="Pipelines"
+                   analytics-event="Filter: status"
+                   analytics-label="SUCCEEDED"
                    ng-model="sortFilter.status.SUCCEEDED"
                    ng-change="vm.updateExecutionGroups(true)"/>
             Succeeded
@@ -76,6 +105,10 @@
         <div class="checkbox">
           <label>
             <input type="checkbox"
+                   analytics-on="change"
+                   analytics-category="Pipelines"
+                   analytics-event="Filter: status"
+                   analytics-label="NOT STARTED"
                    ng-model="sortFilter.status.NOT_STARTED"
                    ng-change="vm.updateExecutionGroups(true)"/>
             Not Started
@@ -84,6 +117,10 @@
         <div class="checkbox">
           <label>
             <input type="checkbox"
+                   analytics-on="change"
+                   analytics-category="Pipelines"
+                   analytics-event="Filter: status"
+                   analytics-label="CANCELED"
                    ng-model="sortFilter.status.CANCELED"
                    ng-change="vm.updateExecutionGroups(true)"/>
             Canceled
@@ -92,6 +129,10 @@
         <div class="checkbox">
           <label>
             <input type="checkbox"
+                   analytics-on="change"
+                   analytics-category="Pipelines"
+                   analytics-event="Filter: status"
+                   analytics-label="STOPPED"
                    ng-model="sortFilter.status.STOPPED"
                    ng-change="vm.updateExecutionGroups(true)"/>
             Stopped

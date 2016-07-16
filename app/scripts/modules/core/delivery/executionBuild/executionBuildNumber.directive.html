@@ -1,8 +1,14 @@
 <a ng-if="::execution.trigger.parentPipelineId"
+   analytics-on="click"
+   analytics-category="Pipeline"
+   analytics-event="Execution build number clicked - parent pipeline"
    ui-sref="^.executionDetails.execution({application: execution.trigger.parentPipelineApplication, executionId: execution.trigger.parentPipelineId})">
   {{::execution.trigger.parentPipelineName}}
 </a>
 <a ng-if="::execution.buildInfo.number"
+   analytics-on="click"
+   analytics-category="Pipeline"
+   analytics-event="Execution build number clicked - build info"
    href="{{::execution.buildInfo.url}}"
    target="_blank"
    ng-click="$event.stopPropagation()">

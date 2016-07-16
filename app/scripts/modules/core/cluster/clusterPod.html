@@ -41,8 +41,8 @@
         parent-heading="subgroup.heading"></job>
     </div>
     <div class="permalinks text-right">
-      <a ng-href="{{permalink}}" target="_blank">Permalink</a>
-      <copy-to-clipboard text="{{host}}/{{permalink}}" tool-tip="Copy permalink to clipboard"></copy-to-clipboard>
+      <a ng-href="{{permalink}}" target="_blank" analytics-on="click" analytics-category="Cluster Pod" analytics-event="Permalink clicked">Permalink</a>
+      <copy-to-clipboard text="{{host}}/{{permalink}}" tool-tip="Copy permalink to clipboard" analytics-label="Deep link to cluster"></copy-to-clipboard>
     </div>
   </div>
 </div>

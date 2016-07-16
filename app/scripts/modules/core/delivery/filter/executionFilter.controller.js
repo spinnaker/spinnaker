@@ -6,9 +6,10 @@ module.exports = angular.module('spinnaker.core.delivery.filter.executionFilter.
   require('./executionFilter.service.js'),
   require('./executionFilter.model.js'),
   require('../../utils/lodash.js'),
+  require('angulartics'),
 ])
   .controller('ExecutionFilterCtrl', function ($scope, $rootScope, _, $q, pipelineConfigService,
-                                               executionFilterService, ExecutionFilterModel) {
+                                               executionFilterService, ExecutionFilterModel, $analytics) {
 
     $scope.sortFilter = ExecutionFilterModel.sortFilter;
 
@@ -75,6 +76,7 @@ module.exports = angular.module('spinnaker.core.delivery.filter.executionFilter.
       delay: 150,
       disabled: true,
       stop: () => {
+        $analytics.eventTrack('Reordered pipeline', {category: 'Pipelines'});
         var dirty = [];
         this.application.pipelineConfigs.data.forEach((pipeline, index) => {
           if (pipeline.index !== index) {

@@ -1,5 +1,8 @@
 <div class="rollup-pod-server-group clickable clickable-row"
      waypoint="{{viewModel.waypoint}}"
+     analytics-on="click"
+     analytics-category="Cluster Pod"
+     analytics-event="Load Server Group Details"
      ng-click="loadDetails($event)"
      ng-class="{
         disabled: viewModel.serverGroup.isDisabled,

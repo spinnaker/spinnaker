@@ -5,13 +5,14 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.search.global.controller', [
+  require('angulartics'),
   require('../../utils/jQuery.js'),
   require('../searchResult/searchResult.directive.js'),
   require('../searchRank.filter.js'),
   require('../../history/recentHistory.service.js'),
 ])
   .controller('GlobalSearchCtrl', function($scope, $element, infrastructureSearchService, recentHistoryService,
-                                           $stateParams, _, $, $log, clusterFilterService) {
+                                           $stateParams, _, $, $log, clusterFilterService, $analytics) {
     var ctrl = this;
     var search = infrastructureSearchService();
 
@@ -75,16 +76,20 @@ module.exports = angular.module('spinnaker.core.search.global.controller', [
       if ($scope.showSearchResults || $scope.hasRecentItems) {
         var code = event.which;
         if (code === 27) { // escape
+          $analytics.eventTrack('Global Search', {category: 'Keyboard Nav', label: 'escape (from input)'});
           return reset();
         }
         if (code === 40) { // down
+          $analytics.eventTrack('Global Search', {category: 'Keyboard Nav', label: 'arrow down (from input)'});
           return ctrl.focusFirstSearchResult(event);
         }
         if (code === 38) { // up
+          $analytics.eventTrack('Global Search', {category: 'Keyboard Nav', label: 'arrow up (from input)'});
           return ctrl.focusLastSearchResult(event);
         }
         if (code === 9) { // tab
           if (!event.shiftKey) {
+            $analytics.eventTrack('Global Search', {category: 'Keyboard Nav', label: 'tab (from input)'});
             ctrl.focusFirstSearchResult(event);
           }
           return;
@@ -103,6 +108,7 @@ module.exports = angular.module('spinnaker.core.search.global.controller', [
     };
 
     this.executeQuery = _.debounce(function() {
+      $analytics.eventTrack('Global Search', {category: 'Query', label: $scope.query});
       $scope.querying = true;
       search.query($scope.query).then(function (result) {
         $scope.$eval(function () {
@@ -143,15 +149,18 @@ module.exports = angular.module('spinnaker.core.search.global.controller', [
     this.navigateResults = function(event) {
       var $target = $(event.target);
       if (event.which === 27) { // escape
+        $analytics.eventTrack('Global Search', {category: 'Keyboard Nav', label: 'escape (from result)'});
         reset();
       }
       if (event.which === 9) { // tab - let it navigate automatically, but close menu if on the last result
         if ($element.find('ul.dropdown-menu').find('a').last().is(':focus')) {
+          $analytics.eventTrack('Global Search', {category: 'Keyboard Nav', label: 'tab (from result)'});
           ctrl.hideResults();
           return;
         }
       }
       if (event.which === 40) { // down
+        $analytics.eventTrack('Global Search', {category: 'Keyboard Nav', label: 'down (from result)'});
         ctrl.focussedResult = null;
         try {
           $target
@@ -165,6 +174,7 @@ module.exports = angular.module('spinnaker.core.search.global.controller', [
         event.preventDefault();
       }
       if (event.which === 38) { // up
+        $analytics.eventTrack('Global Search', {category: 'Keyboard Nav', label: 'up (from result)'});
         ctrl.focussedResult = null;
         try {
           $target

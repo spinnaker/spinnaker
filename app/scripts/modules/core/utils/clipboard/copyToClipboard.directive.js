@@ -19,6 +19,10 @@ module.exports = angular
         tooltip-placement="top"
         tooltip-enable="true"
         tooltip-is-open="cb.isOpen"
+        analytics-on="click"
+        analytics-category="Copy to Clipboard"
+        analytics-event="{{cb.toolTip}}"
+        analytics-label="{{cb.analyticsLabel || cb.text}}"
         data-clipboard-action="copy"
         data-clipboard-text="{{cb.text}}"
         aria-label="Copy to clipboard">
@@ -27,7 +31,8 @@ module.exports = angular
 
       bindToController: {
         text: '@',
-        toolTip: '@'
+        toolTip: '@',
+        analyticsLabel: '@',
       },
       controller: 'copyToClipboardController',
       controllerAs: 'cb',

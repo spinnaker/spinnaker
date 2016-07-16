@@ -1,6 +1,10 @@
 <ul class="nav nav-pills">
   <li ng-repeat="section in sections">
     <a ui-sref=".execution({details: section})"
+       analytics-on="click"
+       analytics-category="Pipeline"
+       analytics-event="Execution details section selected"
+       analytics-label="{{section}}"
        ui-sref-active="active">{{section | robotToHuman}}</a>
   </li>
 </ul>
