@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer;
+package com.netflix.spinnaker.orca.clouddriver.tasks.securitygroup;
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.MigrateTask;
 import org.springframework.stereotype.Component;
 
 @Component
-public class MigrateLoadBalancerTask extends MigrateTask {
+public class MigrateSecurityGroupTask extends MigrateTask {
 
   @Override
   public String getCloudOperationType() {
-    return "migrateLoadBalancer";
+    return "migrateSecurityGroup";
   }
 }
