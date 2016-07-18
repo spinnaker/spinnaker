@@ -67,18 +67,19 @@ class MonitorKatoTask implements RetryableTask {
         outputs["deploy.jobs"] = deployed
       }
     }
-    if (status == ExecutionStatus.SUCCEEDED || status == ExecutionStatus.TERMINAL) {
+    if (status == ExecutionStatus.SUCCEEDED || status == ExecutionStatus.TERMINAL || status == ExecutionStatus.RUNNING) {
       List<Map<String, Object>> katoTasks = []
       if (stage.context.containsKey("kato.tasks")) {
         katoTasks = stage.context."kato.tasks" as List<Map<String, Object>>
       }
+      katoTasks.removeIf { it.id == katoTask.id } // replace with updated version
       Map<String, Object> m = [
         id           : katoTask.id,
         status       : katoTask.status,
         history      : katoTask.history,
         resultObjects: katoTask.resultObjects
       ]
-      if (katoTask.resultObjects.find { it.type == "EXCEPTION" }) {
+      if (katoTask.resultObjects?.find { it.type == "EXCEPTION" }) {
         def exception = katoTask.resultObjects.find { it.type == "EXCEPTION" }
         m.exception = exception
       }
