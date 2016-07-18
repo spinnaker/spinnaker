@@ -128,8 +128,8 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
     serverGroup = new GoogleServerGroup(name: ANCESTOR_SERVER_GROUP_NAME,
                                         zone: ZONE,
-                                        asg: [desiredCapacity: 2,
-                                              loadBalancerNames: LOAD_BALANCERS],
+                                        asg: [(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES): LOAD_BALANCERS,
+                                            desiredCapacity: 2],
                                         launchConfig: [instanceTemplate: instanceTemplate],
                                         autoscalingPolicy: [coolDownPeriodSec: 45,
                                                             minNumReplicas: 2,

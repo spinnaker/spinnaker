@@ -16,26 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
-import com.google.api.services.compute.model.AccessConfig
-import com.google.api.services.compute.model.AttachedDisk
-import com.google.api.services.compute.model.AttachedDiskInitializeParams
-import com.google.api.services.compute.model.AutoscalingPolicy
-import com.google.api.services.compute.model.AutoscalingPolicyCpuUtilization
-import com.google.api.services.compute.model.AutoscalingPolicyCustomMetricUtilization
-import com.google.api.services.compute.model.AutoscalingPolicyLoadBalancingUtilization
-import com.google.api.services.compute.model.InstanceProperties
-import com.google.api.services.compute.model.InstanceTemplate
-import com.google.api.services.compute.model.Metadata
-import com.google.api.services.compute.model.NetworkInterface
-import com.google.api.services.compute.model.Scheduling
-import com.google.api.services.compute.model.Tags
+import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.google.deploy.description.SerializeApplicationDescription.SerializeApplicationDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceIllegalStateException
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.SerializeApplicationAtomicOperation.SerializeApplicationAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
-import com.netflix.spinnaker.clouddriver.google.model.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.model.securitygroups.HttpRule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
 import spock.lang.Specification
@@ -148,7 +136,7 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
                                                                                                                             utilizationTargetType: AUTOSCALING_METRIC_TYPE)])
       def serverGroup = new GoogleServerGroup(name: SERVER_GROUP_NAME,
                                               zone: SERVER_GROUP_ZONE,
-                                              asg: ["loadBalancerNames": SERVER_GROUP_LOAD_BALANCERS],
+                                              asg: [(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES): SERVER_GROUP_LOAD_BALANCERS],
                                               launchConfig: ["instanceTemplate": instanceTemplate],
                                               autoscalingPolicy: autoscalingPolicy)
 
@@ -300,7 +288,7 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
       // Create a server group with no instance template
       def serverGroup = new GoogleServerGroup(name: SERVER_GROUP_NAME,
         zone: SERVER_GROUP_ZONE,
-        asg: ["loadBalancerNames": SERVER_GROUP_LOAD_BALANCERS],
+        asg: [(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES): SERVER_GROUP_LOAD_BALANCERS],
         launchConfig: ["instanceTemplate": null])
       @Subject def operation = new SerializeApplicationAtomicOperation(new SerializeApplicationDescription())
 

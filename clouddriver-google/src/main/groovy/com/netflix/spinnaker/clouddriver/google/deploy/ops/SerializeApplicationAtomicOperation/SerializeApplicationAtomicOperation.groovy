@@ -16,26 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.SerializeApplicationAtomicOperation
 
-import com.google.api.services.compute.model.AccessConfig
-import com.google.api.services.compute.model.AttachedDisk
-import com.google.api.services.compute.model.AttachedDiskInitializeParams
-import com.google.api.services.compute.model.AutoscalingPolicy
-import com.google.api.services.compute.model.InstanceProperties
-import com.google.api.services.compute.model.InstanceTemplate
-import com.google.api.services.compute.model.Metadata
-import com.google.api.services.compute.model.NetworkInterface
-import com.google.api.services.compute.model.Scheduling
-import com.google.api.services.compute.model.ServiceAccount
-import com.google.api.services.compute.model.Tags
+import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.SerializeApplicationDescription.SerializeApplicationDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceIllegalStateException
-import com.netflix.spinnaker.clouddriver.google.model.GoogleCluster
-import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
-import com.netflix.spinnaker.clouddriver.google.model.GoogleLoadBalancer
-import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
-import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.model.*
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider

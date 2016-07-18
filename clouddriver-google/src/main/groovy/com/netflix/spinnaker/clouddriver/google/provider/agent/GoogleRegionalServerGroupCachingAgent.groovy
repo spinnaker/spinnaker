@@ -53,6 +53,8 @@ import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 @Slf4j
 class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent implements OnDemandAgent {
 
+  static final String GLOBAL_LOAD_BALANCER_NAMES = GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES
+  static final String REGIONAL_LOAD_BALANCER_NAMES = GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES
   final String region
 
   final Set<AgentDataType> providedDataTypes = [
@@ -281,11 +283,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
       }
       serverGroup.instances.clear()
 
-      serverGroup.asg.loadBalancerNames.each { String loadBalancerName ->
-        loadBalancerKeys << Keys.getLoadBalancerKey(region,
-                                                    accountName,
-                                                    loadBalancerName)
-      }
+      GoogleZonalServerGroupCachingAgent.populateLoadBalancerKeys(serverGroup, loadBalancerKeys)
 
       loadBalancerKeys.each { String loadBalancerKey ->
         cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keep(loadBalancerKey).with {
@@ -432,6 +430,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
                                                                                                          instanceGroupsCallback)
 
       String instanceTemplateName = Utils.getLocalName(instanceGroupManager.instanceTemplate)
+      // TODO(jacobkiefer): We need to derive HTTP/S LB names here as well.
       List<String> loadBalancerNames =
         Utils.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(instanceGroupManager.getTargetPools())
       InstanceTemplatesCallback instanceTemplatesCallback = new InstanceTemplatesCallback(providerCache: providerCache,
@@ -457,6 +456,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
   class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<InstanceTemplate> implements FailureLogger {
 
     private static final String LOAD_BALANCER_NAMES = "load-balancer-names"
+    private static final String GLOBAL_LOAD_BALANCER_NAMES = "global-load-balancer-names"
 
     ProviderCache providerCache
     GoogleServerGroup serverGroup
@@ -489,18 +489,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
       }
 
       def instanceMetadata = instanceTemplate?.properties?.metadata
-      if (instanceMetadata) {
-        def metadataMap = Utils.buildMapFromMetadata(instanceMetadata)
-        def loadBalancerNameList = metadataMap?.get(LOAD_BALANCER_NAMES)?.split(",")
-        if (loadBalancerNameList) {
-          serverGroup.asg.loadBalancerNames = loadBalancerNameList
-
-          // The isDisabled property of a server group is set based on whether there are associated target pools,
-          // and whether the metadata of the server group contains a list of load balancers to actually associate
-          // the server group with.
-          serverGroup.setDisabled(loadBalancerNames.empty)
-        }
-      }
+      GoogleZonalServerGroupCachingAgent.setLoadBalancerMetadataOnInstance(loadBalancerNames, instanceMetadata, serverGroup)
     }
   }
 

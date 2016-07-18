@@ -23,6 +23,7 @@ import com.google.api.services.compute.model.AutoscalingPolicy
 import com.google.api.services.compute.model.InstanceGroupManagerActionsSummary
 import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
@@ -67,6 +68,8 @@ class GoogleServerGroup {
   @Canonical
   class View implements ServerGroup {
     final String type = GoogleCloudProvider.GCE
+    static final String REGIONAL_LOAD_BALANCER_NAMES = "regionalLoadBalancerNames"
+    static final String GLOBAL_LOAD_BALANCER_NAMES = "globalLoadBalancerNames"
 
     String name = GoogleServerGroup.this.name
     String region = GoogleServerGroup.this.region
@@ -110,8 +113,11 @@ class GoogleServerGroup {
     Set<String> getLoadBalancers() {
       Set<String> loadBalancerNames = []
       def asg = GoogleServerGroup.this.asg
-      if (asg && asg.containsKey("loadBalancerNames")) {
-        loadBalancerNames = (Set<String>) asg.loadBalancerNames
+      if (asg?.containsKey(REGIONAL_LOAD_BALANCER_NAMES)) {
+        loadBalancerNames.addAll(asg.get(REGIONAL_LOAD_BALANCER_NAMES) as Set<String>)
+      }
+      if (asg?.containsKey(GLOBAL_LOAD_BALANCER_NAMES)) {
+        loadBalancerNames.addAll(asg.get(GLOBAL_LOAD_BALANCER_NAMES) as Set<String>)
       }
       return loadBalancerNames
     }
