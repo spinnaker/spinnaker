@@ -305,4 +305,16 @@ class Application implements Timestamped {
   static class ValidationException extends RuntimeException {
     Errors errors
   }
+
+  static class Permission implements Timestamped {
+    String name
+    Long lastModified
+    List<String> requiredGroupMembership
+
+    @Override
+    @JsonIgnore()
+    String getId() {
+      return name.toLowerCase()
+    }
+  }
 }

@@ -68,6 +68,11 @@ public class S3Config {
   }
 
   @Bean
+  public S3ApplicationPermissionDAO s3ApplicationPermissionDAO(ObjectMapper objectMapper, AmazonS3 amazonS3) {
+    return new S3ApplicationPermissionDAO(objectMapper, amazonS3, Schedulers.from(Executors.newFixedThreadPool(20)), 15000, bucket, rootFolder);
+  }
+
+  @Bean
   public S3ProjectDAO s3ProjectDAO(ObjectMapper objectMapper, AmazonS3 amazonS3) {
     return new S3ProjectDAO(objectMapper, amazonS3, Schedulers.from(Executors.newFixedThreadPool(10)), 30000, bucket, rootFolder);
   }

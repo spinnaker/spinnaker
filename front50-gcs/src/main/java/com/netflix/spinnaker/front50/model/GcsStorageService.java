@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.front50.model;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 
 import com.google.api.services.storage.Storage;
@@ -48,7 +49,7 @@ import java.util.Map;
 
 
 public class GcsStorageService implements StorageService {
-  private static final String DATA_FILENAME = "specification.json";
+  private static final String DEFAULT_DATA_FILENAME = "specification.json";
   private static final String LAST_MODIFIED_FILENAME = "last-modified";
   private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -58,6 +59,7 @@ public class GcsStorageService implements StorageService {
   private String basePath;
   private Storage storage;
   private Storage.Objects obj_api;
+  private String dataFilename = DEFAULT_DATA_FILENAME;
 
   public Storage getStorage() { return this.storage; }
   public ObjectMapper getObjectMapper() { return this.objectMapper; }
@@ -72,14 +74,15 @@ public class GcsStorageService implements StorageService {
                       .createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_FULL_CONTROL));
       log.info("Loaded credentials from from " + jsonPath);
     } else {
-      log.info("spinnaker.gcs.enabled without spinnaker.gcs.jsonPath. Using default application credentials. Using default credentials.");
+      log.info("spinnaker.gcs.enabled without spinnaker.gcs.jsonPath. " +
+                   "Using default application credentials. Using default credentials.");
       credential = GoogleCredential.getApplicationDefault();
     }
     return credential;
   }
 
-  public GcsStorageService(String bucketName, String basePath,
-                           String projectName, Storage storage) {
+  @VisibleForTesting
+  GcsStorageService(String bucketName, String basePath, String projectName, Storage storage) {
     this.bucketName = bucketName;
     this.basePath = basePath;
     this.projectName = projectName;
@@ -87,9 +90,25 @@ public class GcsStorageService implements StorageService {
     this.obj_api = storage.objects();
   }
 
-  public GcsStorageService(String bucketName, String basePath,
-                           String projectName, String credentialsPath,
+  public GcsStorageService(String bucketName,
+                           String basePath,
+                           String projectName,
+                           String credentialsPath,
                            String applicationVersion) {
+    this(bucketName,
+         basePath,
+         projectName,
+         credentialsPath,
+         applicationVersion,
+         DEFAULT_DATA_FILENAME);
+  }
+
+  public GcsStorageService(String bucketName,
+                           String basePath,
+                           String projectName,
+                           String credentialsPath,
+                           String applicationVersion,
+                           String dataFilename) {
     Storage storage;
 
     try {
@@ -111,6 +130,7 @@ public class GcsStorageService implements StorageService {
     this.projectName = projectName;
     this.storage = storage;
     this.obj_api = this.storage.objects();
+    this.dataFilename = dataFilename;
   }
 
   /**
@@ -212,7 +232,7 @@ public class GcsStorageService implements StorageService {
   public Map<String, Long> listObjectKeys(String daoTypeName) {
     String rootFolder = daoRoot(daoTypeName);
     int skipToOffset = rootFolder.length() + 1;  // + Trailing slash
-    int skipFromEnd = DATA_FILENAME.length() + 1;  // + Leading slash
+    int skipFromEnd = dataFilename.length() + 1;  // + Leading slash
 
     Map<String, Long> result = new HashMap<String, Long>();
     log.debug("Listing {}", daoTypeName);
@@ -226,7 +246,7 @@ public class GcsStorageService implements StorageService {
           if (items != null) {
               for (StorageObject item: items) {
                   String name = item.getName();
-                  if (name.endsWith(DATA_FILENAME)) {
+                  if (name.endsWith(dataFilename)) {
                       result.put(name.substring(skipToOffset,
                                                 name.length() - skipFromEnd),
                                  item.getUpdated().getValue());
@@ -380,6 +400,6 @@ public class GcsStorageService implements StorageService {
   }
 
   private String keyToPath(String key, String daoTypeName) {
-      return daoRoot(daoTypeName) + '/' + key + '/' + DATA_FILENAME;
+      return daoRoot(daoTypeName) + '/' + key + '/' + dataFilename;
   }
 }

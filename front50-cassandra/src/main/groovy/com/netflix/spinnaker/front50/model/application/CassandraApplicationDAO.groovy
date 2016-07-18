@@ -39,9 +39,13 @@ import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
 
+/**
+ * @deprecated - Use GCS or S3 bucket implementations instead.
+ */
 @Slf4j
 @Component
 @ConditionalOnExpression('${cassandra.enabled:false}')
+@Deprecated
 class CassandraApplicationDAO implements ApplicationDAO {
 
   private static final MapSerializer<String, String> mapSerializer = new MapSerializer<String, String>(UTF8Type.instance, UTF8Type.instance)
