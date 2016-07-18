@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.eureka.model
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.netflix.spinnaker.clouddriver.model.DiscoveryHealth
 import com.netflix.spinnaker.clouddriver.model.Health
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import groovy.transform.CompileStatic
@@ -27,11 +28,12 @@ import groovy.transform.Immutable
 @CompileStatic
 @Immutable
 @EqualsAndHashCode(cache = true)
-class EurekaInstance implements Health {
-  public static final String HEALTH_TYPE = 'Discovery'
-  public String getType() {
-    HEALTH_TYPE
+class EurekaInstance extends DiscoveryHealth {
+  @Override
+  public static String getDiscoveryType() {
+    return "Eureka"
   }
+
   String hostName
   String application
   String ipAddress

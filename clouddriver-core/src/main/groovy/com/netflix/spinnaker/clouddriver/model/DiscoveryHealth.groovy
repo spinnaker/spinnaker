@@ -14,39 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.consul.api.v1.model
+package com.netflix.spinnaker.clouddriver.model
 
-import com.fasterxml.jackson.annotation.JsonProperty
-
-class CheckResult {
-  @JsonProperty("Node")
-  String node
-
-  @JsonProperty("CheckID")
-  String checkId
-
-  @JsonProperty("Name")
-  String name
-
-  @JsonProperty("Status")
-  Status status
-
-  @JsonProperty("Notes")
-  String notes
-
-  @JsonProperty("Output")
-  String output
-
-  @JsonProperty("ServiceID")
-  String serviceId
-
-  @JsonProperty("ServiceName")
-  String serviceName
-
-  enum Status {
-    passing,
-    critical,
-    warning,
-    unknown,
+abstract class DiscoveryHealth implements Health {
+  public String getType() {
+    return "Discovery"
   }
+
+  abstract public String getDiscoveryType()
 }
