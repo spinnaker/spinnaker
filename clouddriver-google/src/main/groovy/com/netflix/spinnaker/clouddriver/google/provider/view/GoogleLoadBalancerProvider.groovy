@@ -63,6 +63,10 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
     cacheView.getAll(SERVER_GROUPS.ns,
                      serverGroupKeys,
                      RelationshipCacheFilter.include(INSTANCES.ns))?.each { CacheData serverGroupCacheData ->
+      if (!serverGroupCacheData) {
+        return
+      }
+
       GoogleServerGroup serverGroup = objectMapper.convertValue(serverGroupCacheData.attributes, GoogleServerGroup)
 
       def loadBalancerServerGroup = new LoadBalancerServerGroup(
