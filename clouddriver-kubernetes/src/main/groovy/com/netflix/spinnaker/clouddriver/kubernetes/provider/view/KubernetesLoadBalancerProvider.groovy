@@ -88,8 +88,12 @@ class KubernetesLoadBalancerProvider implements LoadBalancerProvider<KubernetesL
     Service service = objectMapper.convertValue(loadBalancerEntry.attributes.service, Service)
     List<KubernetesServerGroup> serverGroups = []
     List<String> securityGroups
-    loadBalancerEntry.relationships[Keys.Namespace.SERVER_GROUPS.ns]?.forEach {
-      serverGroups << serverGroupMap[it]
+    loadBalancerEntry.relationships[Keys.Namespace.SERVER_GROUPS.ns]?.forEach { String serverGroupKey ->
+      KubernetesServerGroup serverGroup = serverGroupMap[serverGroupKey]
+      if (serverGroup) {
+        serverGroups << serverGroup
+      }
+      return
     }
 
     securityGroups = KubernetesProviderUtils.resolveRelationshipData(cacheView, loadBalancerEntry, Keys.Namespace.SECURITY_GROUPS.ns).findResults { cacheData ->
