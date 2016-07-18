@@ -26,11 +26,11 @@ import java.util.concurrent.TimeUnit
 class ConsulCatalog {
   public CatalogApi api
 
-  ConsulCatalog(String agentBaseUrl, Long timeout) {
+  ConsulCatalog(String serverBaseUrl, Long timeout) {
     OkHttpClient client = new OkHttpClient()
     client.setReadTimeout(timeout, TimeUnit.MILLISECONDS)
     this.api = new RestAdapter.Builder()
-      .setEndpoint(agentBaseUrl)
+      .setEndpoint(serverBaseUrl)
       .setClient(new OkClient(client))
       .setLogLevel(RestAdapter.LogLevel.NONE)
       .build()

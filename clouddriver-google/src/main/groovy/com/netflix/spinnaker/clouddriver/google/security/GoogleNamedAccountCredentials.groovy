@@ -121,7 +121,10 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
     }
 
     Builder consulConfig(ConsulConfig consulConfig) {
-      this.consulConfig = consulConfig
+      if (consulConfig?.enabled) {
+        consulConfig.applyDefaults()
+        this.consulConfig = consulConfig
+      }
       return this
     }
 

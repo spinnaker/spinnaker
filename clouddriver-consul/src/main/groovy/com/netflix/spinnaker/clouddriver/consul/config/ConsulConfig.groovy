@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.consul.config
 
+import com.netflix.spinnaker.clouddriver.consul.api.v1.ConsulCatalog
+
 import java.util.concurrent.TimeUnit
 
 class ConsulConfig {
@@ -24,8 +26,29 @@ class ConsulConfig {
   List<String> servers
   // optional: datacenters to cache/keep updated
   List<String> datacenters
-  // required: Port consul is running on for every agent
+  // optional: Port consul is running on for every agent
   Integer agentPort
+
+  // Since this is config injected into every participating provider's Spring config, there is no easy way to
+  // standardize where default values should come from. Instead, we require this method to be called after the
+  // config is loaded.
+  void applyDefaults() {
+    if (!enabled) {
+      throw new IllegalStateException("Consul not enabled, cannot set defaults")
+    }
+
+    if (!agentPort) {
+      agentPort = 8500 // Default used by consul
+    }
+
+    if (!servers) {
+      throw new IllegalArgumentException("Consul servers must be provided.")
+    }
+
+    if (!datacenters) {
+      datacenters = (new ConsulCatalog(servers[0], ConsulProperties.DEFAULT_TIMEOUT_MILLIS)).api.datacenters()
+    }
+  }
 }
 
 class ConsulProperties {
