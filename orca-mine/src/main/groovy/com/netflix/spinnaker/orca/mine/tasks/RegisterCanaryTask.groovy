@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
+import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -23,11 +24,11 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.mine.pipeline.DeployCanaryStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.util.logging.Slf4j
-import org.apache.commons.lang.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.client.Response
+import static java.util.concurrent.TimeUnit.HOURS
+import static java.util.concurrent.TimeUnit.MINUTES
 
 @Component
 @Slf4j
@@ -39,7 +40,9 @@ class RegisterCanaryTask implements Task {
   @Override
   TaskResult execute(Stage stage) {
     String app = stage.context.application ?: stage.execution.application
-    Stage deployStage = stage.execution.stages.find { it.parentStageId == stage.parentStageId && it.type == DeployCanaryStage.PIPELINE_CONFIG_TYPE }
+    Stage deployStage = stage.execution.stages.find {
+      it.parentStageId == stage.parentStageId && it.type == DeployCanaryStage.PIPELINE_CONFIG_TYPE
+    }
 
     Map c = buildCanary(app, deployStage)
 
@@ -54,8 +57,8 @@ class RegisterCanaryTask implements Task {
 
     def canary = mineService.getCanary(canaryId)
     def outputs = [
-      canary: canary,
-      stageTimeoutMs: getMonitorTimeout(canary),
+      canary              : canary,
+      stageTimeoutMs      : getMonitorTimeout(canary),
       deployedClusterPairs: deployStage.context.deployedClusterPairs
     ]
     return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
@@ -75,8 +78,9 @@ class RegisterCanaryTask implements Task {
   }
 
   private static Long getMonitorTimeout(Map canary) {
-    String configuredTimeout = (canary.canaryConfig.lifetimeHours.toString() ?: "46")
-    int timeoutHours = StringUtils.isNumeric(configuredTimeout) ? Integer.parseInt(configuredTimeout) + 2: 48
-    return timeoutHours * 60 * 60 * 1000
+    def lifetimeHours = canary.canaryConfig.lifetimeHours?.toString() ?: "46"
+    def warmupMinutes = canary.canaryConfig.canaryAnalysisConfig?.beginCanaryAnalysisAfterMins?.toString() ?: "120"
+    int timeoutMinutes = HOURS.toMinutes(lifetimeHours.isInteger() ? lifetimeHours.toInteger() : 46) + (warmupMinutes.isInteger() ? warmupMinutes.toInteger() : 120)
+    return MINUTES.toMillis(timeoutMinutes)
   }
 }

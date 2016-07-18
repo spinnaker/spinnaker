@@ -40,61 +40,61 @@ class RegisterCanaryTaskSpec extends Specification {
     def canaryStageId = UUID.randomUUID().toString()
     def parentStageId = UUID.randomUUID().toString()
     def deployCanaryStage = new PipelineStage(pipeline, DeployCanaryStage.PIPELINE_CONFIG_TYPE, [
-      canaryStageId: canaryStageId,
-      account     : 'test',
-      canary: [
-        owner       : [name: 'cfieber', email: 'cfieber@netflix.com'],
-        watchers    : [],
-        canaryConfig: [
-          lifetimeHours           : 1,
+      canaryStageId       : canaryStageId,
+      account             : 'test',
+      canary              : [
+        owner            : [name: 'cfieber', email: 'cfieber@netflix.com'],
+        watchers         : [],
+        canaryConfig     : [
+          lifetimeHours               : 1,
           combinedCanaryResultStrategy: 'LOWEST',
-          canarySuccessCriteria   : [canaryResultScore: 95],
-          canaryHealthCheckHandler: [minimumCanaryResultScore: 75],
-          canaryAnalysisConfig    : [
-            name                      : 'beans',
+          canarySuccessCriteria       : [canaryResultScore: 95],
+          canaryHealthCheckHandler    : [minimumCanaryResultScore: 75],
+          canaryAnalysisConfig        : [
+            name                        : 'beans',
             beginCanaryAnalysisAfterMins: 5,
-            notificationHours         : [1, 2],
-            canaryAnalysisIntervalMins: 15
+            notificationHours           : [1, 2],
+            canaryAnalysisIntervalMins  : 15
           ]
         ],
         canaryDeployments: [[
-          canaryCluster: [
-            name: 'foo--cfieber-canary',
-            serverGroup: 'foo--cfieber-canary-v000',
-            accountName: 'test',
-            region: 'us-west-1',
-            imageId: 'ami-12345',
-            buildId: 100
-          ],
-          baselineCluster: [
-            name: 'foo--cfieber-baseline',
-            serverGroup: 'foo--cfieber-baseline-v000',
-            accountName: 'test',
-            region: 'us-west-1',
-            imageId: 'ami-12344',
-            buildId: 99
-          ]
-        ]]
+                              canaryCluster  : [
+                                name       : 'foo--cfieber-canary',
+                                serverGroup: 'foo--cfieber-canary-v000',
+                                accountName: 'test',
+                                region     : 'us-west-1',
+                                imageId    : 'ami-12345',
+                                buildId    : 100
+                              ],
+                              baselineCluster: [
+                                name       : 'foo--cfieber-baseline',
+                                serverGroup: 'foo--cfieber-baseline-v000',
+                                accountName: 'test',
+                                region     : 'us-west-1',
+                                imageId    : 'ami-12344',
+                                buildId    : 99
+                              ]
+                            ]]
       ],
       deployedClusterPairs: [[
-              canaryStage: canaryStageId,
-              canaryCluster: [
-                name: 'foo--cfieber-canary',
-                serverGroup: 'foo--cfieber-canary-v000',
-                accountName: 'test',
-                region: 'us-west-1',
-                imageId: 'ami-12345',
-                buildId: 100
-              ],
-              baselineCluster: [
-                name: 'foo--cfieber-baseline',
-                serverGroup: 'foo--cfieber-baseline-v000',
-                accountName: 'test',
-                region: 'us-west-1',
-                imageId: 'ami-12344',
-                buildId: 99
-              ]
-      ]]
+                               canaryStage    : canaryStageId,
+                               canaryCluster  : [
+                                 name       : 'foo--cfieber-canary',
+                                 serverGroup: 'foo--cfieber-canary-v000',
+                                 accountName: 'test',
+                                 region     : 'us-west-1',
+                                 imageId    : 'ami-12345',
+                                 buildId    : 100
+                               ],
+                               baselineCluster: [
+                                 name       : 'foo--cfieber-baseline',
+                                 serverGroup: 'foo--cfieber-baseline-v000',
+                                 accountName: 'test',
+                                 region     : 'us-west-1',
+                                 imageId    : 'ami-12344',
+                                 buildId    : 99
+                               ]
+                             ]]
     ])
     deployCanaryStage.parentStageId = parentStageId
     def monitorCanaryStage = new PipelineStage(pipeline, MonitorCanaryStage.PIPELINE_CONFIG_TYPE, [:])
@@ -129,7 +129,7 @@ class RegisterCanaryTaskSpec extends Specification {
   }
 
   @Unroll
-  void "should set stage timeout to #hours hours based on canary #canary"() {
+  void "should set stage timeout to #expectedTimeoutHours hours based on a lifetime of #lifetimeHours hours and warmup of #warmupMinutes minutes"() {
 
     given:
     def pipeline = new Pipeline(application: 'foo')
@@ -149,17 +149,29 @@ class RegisterCanaryTaskSpec extends Specification {
     }
     1 * mineService.getCanary("canaryId") >> canary
 
-    result.stageOutputs.stageTimeoutMs == hours * 60 * 60 * 1000
+    result.stageOutputs.stageTimeoutMs == expectedTimeoutHours * 60 * 60 * 1000
 
     where:
-    canary                                 || hours
-    [canaryConfig: [:]]                    || 48
-    [canaryConfig: [lifetimeHours: "n/a"]] || 48
-    [canaryConfig: [lifetimeHours: "0"]]   || 2
-    [canaryConfig: [lifetimeHours: "1"]]   || 3
-    [canaryConfig: [lifetimeHours: "100"]] || 102
-    [canaryConfig: [lifetimeHours: 0]]     || 2
-    [canaryConfig: [lifetimeHours: 1]]     || 3
-    [canaryConfig: [lifetimeHours: 8]]     || 10
+    lifetimeHours | warmupMinutes || expectedTimeoutHours
+    null          | null          || 48
+    "NaN"         | null          || 48
+    "0"           | null          || 2
+    "1"           | null          || 3
+    "100"         | null          || 102
+    0             | null          || 2
+    1             | null          || 3
+    8             | null          || 10
+    1             | 60            || 2
+    1             | 180           || 4
+
+    canary = [
+      canaryConfig:
+        [
+          lifetimeHours       : lifetimeHours,
+          canaryAnalysisConfig: [
+            beginCanaryAnalysisAfterMins: warmupMinutes
+          ]
+        ]
+    ]
   }
 }
