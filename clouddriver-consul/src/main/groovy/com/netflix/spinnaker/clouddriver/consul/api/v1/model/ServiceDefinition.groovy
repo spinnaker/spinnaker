@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 class ServiceDefinition {
   @JsonProperty("ID")
-  String iD
+  String id
 
   @JsonProperty("Name")
   String name

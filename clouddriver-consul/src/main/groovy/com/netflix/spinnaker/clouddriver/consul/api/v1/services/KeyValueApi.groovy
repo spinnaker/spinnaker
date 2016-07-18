@@ -30,7 +30,7 @@ interface KeyValueApi {
   List<KeyValuePair> getKey(@Path("key") String key, @Query("dc") String dc, @Query("recurse") Boolean recurse)
 
   @PUT("/v1/kv/{key}")
-  Response putKey(@Body String data, @Query("dc") String dc)
+  Response putKey(@Path("key") String key, @Body String data, @Query("dc") String dc)
 
   @DELETE("/v1/kv/{key}")
   Response deleteKey(@Path("key") String key, @Query("dc") String dc, @Query("recurse") Boolean recurse)

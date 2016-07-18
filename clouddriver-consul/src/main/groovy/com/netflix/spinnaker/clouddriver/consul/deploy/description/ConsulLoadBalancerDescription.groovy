@@ -14,38 +14,24 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.consul.api.v1.model
+package com.netflix.spinnaker.clouddriver.consul.deploy.description
 
-import com.fasterxml.jackson.annotation.JsonProperty
-
-class CheckDefinition {
-  @JsonProperty("ID")
-  String iD
-
-  @JsonProperty("Name")
+class ConsulLoadBalancerDescription {
   String name
+  String datacenter
+  List<String> tags
+  Integer port
+  ConsulCheckDefinition check
 
-  @JsonProperty("Notes")
-  String notes
-
-  @JsonProperty("Script")
-  String script
-
-  @JsonProperty("DockerContainerID")
-  String dockerContainerId
-
-  @JsonProperty("Shell")
-  String shell
-
-  @JsonProperty("HTTP")
-  String http
-
-  @JsonProperty("TCP")
-  String tcp
-
-  @JsonProperty("Interval")
-  String interval
-
-  @JsonProperty("TTL")
-  String ttl
+  static class ConsulCheckDefinition {
+    String name
+    String notes
+    String script
+    String dockerContainerId
+    String shell
+    String http
+    String tcp
+    String interval
+    String ttl
+  }
 }
