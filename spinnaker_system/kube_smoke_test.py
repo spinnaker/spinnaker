@@ -505,7 +505,7 @@ def main():
       'TEST_APP': 'kubsmok' + KubeSmokeTestScenario.DEFAULT_TEST_ID
   }
 
-  return citest.base.TTestRunner.main(
+  return citest.base.TestRunner.main(
       parser_inits=[KubeSmokeTestScenario.initArgumentParser],
       default_binding_overrides=defaults,
       test_case_list=[KubeSmokeTest])
