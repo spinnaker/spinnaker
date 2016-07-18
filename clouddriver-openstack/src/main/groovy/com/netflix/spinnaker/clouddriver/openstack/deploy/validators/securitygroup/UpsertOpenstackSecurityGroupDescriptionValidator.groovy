@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.OpenstackAt
 import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.AbstractOpenstackDescriptionValidator
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.apache.commons.lang.StringUtils
+import org.openstack4j.model.compute.IPProtocol
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
@@ -33,6 +34,11 @@ import org.springframework.validation.Errors
 @Component
 class UpsertOpenstackSecurityGroupDescriptionValidator extends AbstractOpenstackDescriptionValidator<UpsertOpenstackSecurityGroupDescription> {
 
+  static final int MIN_PORT = -1
+  static final int MAX_PORT = (1 << 16) - 1
+  static final int ICMP_MIN = -1
+  static final int ICMP_MAX = 255
+
   String context = "upsertOpenstackSecurityGroupAtomicOperationDescription"
 
   @Override
@@ -40,12 +46,25 @@ class UpsertOpenstackSecurityGroupDescriptionValidator extends AbstractOpenstack
     if (StringUtils.isNotEmpty(description.id)) {
       validator.validateUUID(description.id, 'id')
     }
-    if (!description.rules.isEmpty()) {
+
+    if (!description.rules?.isEmpty()) {
       description.rules.each { r ->
-        validator.validateCIDR(r.cidr, 'cidr')
-        validator.validatePort(r.fromPort, 'fromPort')
-        validator.validatePort(r.toPort, 'toPort')
         validator.validateRuleType(r.ruleType, 'ruleType')
+
+        // Either the remote security group id or cidr must be provided
+        if (r.remoteSecurityGroupId) {
+          validator.validateUUID(r.remoteSecurityGroupId, 'remoteSecurityGroupId')
+        } else {
+          validator.validateCIDR(r.cidr, 'cidr')
+        }
+
+        if (IPProtocol.value(r.ruleType) == IPProtocol.ICMP) {
+          validator.validateRange(r.icmpCode, ICMP_MIN, ICMP_MAX, 'icmpCode')
+          validator.validateRange(r.icmpType, ICMP_MIN, ICMP_MAX, 'icmpType')
+        } else {
+          validator.validateRange(r.fromPort, MIN_PORT, MAX_PORT, 'fromPort')
+          validator.validateRange(r.toPort, MIN_PORT, MAX_PORT, 'toPort')
+        }
       }
     }
   }

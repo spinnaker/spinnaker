@@ -66,7 +66,7 @@ class UpsertOpenstackSecurityGroupAtomicOperationSpec extends Specification {
     0 * provider.getSecurityGroup(_, _)
     0 * provider.updateSecurityGroup(_, _, _, _)
     0 * provider.deleteSecurityGroupRule(_, _)
-    0 * provider.createSecurityGroupRule(_, _, _, _, _, _)
+    0 * provider.createSecurityGroupRule(_, _, _, _, _, _, _, _, _)
     noExceptionThrown()
   }
 
@@ -77,8 +77,10 @@ class UpsertOpenstackSecurityGroupAtomicOperationSpec extends Specification {
     def desc = 'A description'
     SecGroupExtension securityGroup = new NovaSecGroupExtension(id: id, name: name, description: desc)
     def rules = [
-      new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: 80, toPort: 80, cidr: '0.0.0.0/0'),
-      new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: 443, toPort: 443, cidr: '0.0.0.0/0')
+      new UpsertOpenstackSecurityGroupDescription.Rule(ruleType: 'TCP', fromPort: 80, toPort: 80, cidr: '0.0.0.0/0'),
+      new UpsertOpenstackSecurityGroupDescription.Rule(ruleType: 'TCP', fromPort: 443, toPort: 443, cidr: '0.0.0.0/0'),
+      new UpsertOpenstackSecurityGroupDescription.Rule(ruleType: 'ICMP', icmpType: 3, icmpCode: 4, remoteSecurityGroupId: 'abc')
+
     ]
 
     def description = new UpsertOpenstackSecurityGroupDescription(account: ACCOUNT_NAME, region: REGION, credentials: credentials, name: name, description: desc, rules: rules)
@@ -93,7 +95,7 @@ class UpsertOpenstackSecurityGroupAtomicOperationSpec extends Specification {
     0 * provider.updateSecurityGroup(_, _, _, _)
     0 * provider.deleteSecurityGroupRule(_, _)
     rules.each { rule ->
-      1 * provider.createSecurityGroupRule(REGION, id, IPProtocol.TCP, rule.cidr, rule.fromPort, rule.toPort)
+      1 * provider.createSecurityGroupRule(REGION, id, IPProtocol.value(rule.ruleType), rule.cidr, rule.remoteSecurityGroupId, rule.fromPort, rule.toPort, rule.icmpType, rule.icmpCode)
     }
     noExceptionThrown()
   }
@@ -111,8 +113,8 @@ class UpsertOpenstackSecurityGroupAtomicOperationSpec extends Specification {
     def existingSecurityGroup = new NovaSecGroupExtension(id: id, name: name, description: desc, rules: existingRules)
 
     def newRules = [
-      new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: 80, toPort: 80, cidr: '0.0.0.0/0'),
-      new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: 443, toPort: 443, cidr: '0.0.0.0/0')
+      new UpsertOpenstackSecurityGroupDescription.Rule(ruleType: 'TCP', fromPort: 80, toPort: 80, cidr: '0.0.0.0/0'),
+      new UpsertOpenstackSecurityGroupDescription.Rule(ruleType: 'TCP', fromPort: 443, toPort: 443, cidr: '0.0.0.0/0')
     ]
 
     def description = new UpsertOpenstackSecurityGroupDescription(account: ACCOUNT_NAME, region: REGION, id: id, credentials: credentials, name: name, description: desc, rules: newRules)
@@ -128,7 +130,7 @@ class UpsertOpenstackSecurityGroupAtomicOperationSpec extends Specification {
       1 * provider.deleteSecurityGroupRule(REGION, rule.id)
     }
     newRules.each { rule ->
-      1 * provider.createSecurityGroupRule(REGION, id, IPProtocol.TCP, rule.cidr, rule.fromPort, rule.toPort)
+      1 * provider.createSecurityGroupRule(REGION, id, IPProtocol.TCP, rule.cidr, rule.remoteSecurityGroupId, rule.fromPort, rule.toPort, rule.icmpType, rule.icmpCode)
     }
     0 * provider.createSecurityGroup(_, _, _)
     noExceptionThrown()

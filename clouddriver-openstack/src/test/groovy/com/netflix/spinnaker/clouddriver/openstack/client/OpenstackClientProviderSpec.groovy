@@ -100,7 +100,6 @@ class OpenstackClientProviderSpec extends Specification {
     mockClient.useRegion(region) >> mockClient
   }
 
-
   def "create security group rule"() {
     setup:
     ComputeService compute = Mock()
@@ -109,18 +108,23 @@ class OpenstackClientProviderSpec extends Specification {
     compute.securityGroups() >> securityGroupService
 
     def id = UUID.randomUUID().toString()
-    def protocol = IPProtocol.TCP
-    def cidr = '0.0.0.0/0'
-    def fromPort = 80
-    def toPort = 8080
 
     when:
-    provider.createSecurityGroupRule(region, id, protocol, cidr, fromPort, toPort)
+    provider.createSecurityGroupRule(region, id, protocol, cidr, remoteSecurityGroupId, fromPort, toPort, icmpType, icmpCode)
 
     then:
     1 * securityGroupService.createRule({ r ->
-      r.parentGroupId == id && r.ipProtocol == protocol && r.cidr == cidr && r.fromPort == fromPort && r.toPort == toPort
+      def from = protocol == IPProtocol.ICMP ? icmpType : fromPort
+      def to = protocol == IPProtocol.ICMP ? icmpCode : toPort
+      r.parentGroupId == id && r.ipProtocol == protocol && r.cidr == cidr && r.fromPort == from && r.toPort == to
     })
+
+    where:
+    protocol        | cidr        | remoteSecurityGroupId        | fromPort | toPort | icmpType | icmpCode
+    IPProtocol.TCP  | '0.0.0.0/0' | null                         | 80       | 81     | null     | null
+    IPProtocol.UDP  | null        | UUID.randomUUID().toString() | 80       | 81     | null     | null
+    IPProtocol.ICMP | '0.0.0.0/0' | null                         | null     | null   | 2        | 3
+
   }
 
   def "create security group rule throws exception"() {
@@ -137,7 +141,7 @@ class OpenstackClientProviderSpec extends Specification {
     def toPort = 8080
 
     when:
-    provider.createSecurityGroupRule(region, id, protocol, cidr, fromPort, toPort)
+    provider.createSecurityGroupRule(region, id, protocol, cidr, null, fromPort, toPort, null, null)
 
     then:
     1 * securityGroupService.createRule(_) >> { throw new RuntimeException('foo') }

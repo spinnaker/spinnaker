@@ -29,6 +29,9 @@ import org.springframework.validation.Errors
 @Component
 class UpsertOpenstackLoadBalancerAtomicOperationValidator extends AbstractOpenstackDescriptionValidator<OpenstackLoadBalancerDescription> {
 
+  static final int MIN_PORT = 1
+  static final int MAX_PORT = (1 << 16) - 1
+
   String context = "upsertOpenstackLoadBalancerAtomicOperationDescription"
 
   @Override
@@ -37,14 +40,14 @@ class UpsertOpenstackLoadBalancerAtomicOperationValidator extends AbstractOpenst
     if (description.id) {
       validator.validateUUID(description.id, 'id')
     } else {
-      validator.validatePort(description.externalPort, 'externalPort')
+      validator.validateRange(description.externalPort, MIN_PORT, MAX_PORT, 'externalPort')
       validator.validateUUID(description.subnetId, 'subnetId')
       validator.validateNotNull(description.protocol, 'protocol')
     }
 
     // Shared validations between create/update
     validator.validateNotEmpty(description.name, 'name')
-    validator.validatePort(description.internalPort, 'internalPort')
+    validator.validateRange(description.internalPort, MIN_PORT, MAX_PORT, 'internalPort')
 
     validator.validateNotNull(description.method, 'method')
 

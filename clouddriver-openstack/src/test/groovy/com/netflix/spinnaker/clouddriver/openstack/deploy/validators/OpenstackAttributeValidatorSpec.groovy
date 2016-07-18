@@ -27,9 +27,6 @@ import org.springframework.validation.Errors
 import spock.lang.Specification
 import spock.lang.Unroll
 
-/**
- *
- */
 @Unroll
 class OpenstackAttributeValidatorSpec extends Specification {
 
@@ -85,20 +82,23 @@ class OpenstackAttributeValidatorSpec extends Specification {
     1 * errors.rejectValue('context.foo', 'context.foo.invalid (reason)')
   }
 
-  def "ValidatePort"() {
+  def "validate range"() {
     when:
-    boolean actual = validator.validatePort(port, 'foo')
+    boolean actual = validator.validateRange(value, min, max, 'foo')
 
     then:
     actual == result
     if (!result) {
-      1 * errors.rejectValue('context.foo', 'context.foo.invalid (Must be in range [1, 65535])')
+      1 * errors.rejectValue('context.foo', "context.foo.notInRange (Must be in range [${min}, ${max}])")
     }
 
     where:
-    port | result
-    80   | true
-    -5   | false
+    value | min | max | result
+    80    | 0   | 100 | true
+    0     | 0   | 10  | true
+    -1    | 0   | 5   | false
+    5     | 0   | 5   | true
+    6     | 0   | 5   | false
   }
 
   def "ValidateNotEmpty"() {
@@ -269,10 +269,13 @@ class OpenstackAttributeValidatorSpec extends Specification {
     }
 
     where:
-    value | result
-    ''    | false
-    'UDP' | false
-    'TCP' | true
+    value  | result
+    ''     | false
+    'SSH'  | false
+    'ICMP' | true
+    'UDP'  | true
+    'TCP'  | true
+    'tcp'  | true
   }
 
   def "ValidateHttpMethod"() {

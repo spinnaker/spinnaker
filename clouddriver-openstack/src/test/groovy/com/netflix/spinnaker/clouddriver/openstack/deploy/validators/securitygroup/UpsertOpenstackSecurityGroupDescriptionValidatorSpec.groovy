@@ -26,16 +26,20 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification {
 
   Errors errors
   AccountCredentialsProvider provider
-  UpsertOpenstackSecurityGroupDescriptionValidator validator
   OpenstackNamedAccountCredentials credentials
+  OpenstackClientProvider clientProvider
   @Shared
   OpenstackCredentials credz
-  OpenstackClientProvider clientProvider
+  @Shared
+  UpsertOpenstackSecurityGroupDescriptionValidator validator
+
+
 
   def setup() {
     clientProvider = Mock(OpenstackClientProvider)
@@ -58,7 +62,7 @@ class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
     def id = UUID.randomUUID().toString()
     def name = 'name'
     def desc = 'description'
-    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', 'region': 'r1', id: id, name: name, description: desc, rules: [], credentials: credz)
+    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', region: 'r1', id: id, name: name, description: desc, rules: [], credentials: credz)
 
     when:
     validator.validate([], description, errors)
@@ -73,10 +77,11 @@ class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
     def name = 'name'
     def desc = 'description'
     def rules = [
-      new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: 80, toPort: 80, cidr: '0.0.0.0/0'),
-      new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: 443, toPort: 443, cidr: '0.0.0.0/0')
+      new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: 80, toPort: 80, cidr: '0.0.0.0/0', ruleType: 'TCP'),
+      new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: 443, toPort: 443, remoteSecurityGroupId: UUID.randomUUID().toString(), ruleType: 'UDP'),
+      new UpsertOpenstackSecurityGroupDescription.Rule(icmpType: 2, icmpCode: 3, cidr: '0.0.0.0/0', ruleType: 'ICMP'),
     ]
-    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', 'region': 'r1', id: id, name: name, description: desc, rules: rules, credentials: credz)
+    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', region: 'r1', id: id, name: name, description: desc, rules: rules, credentials: credz)
 
     when:
     validator.validate([], description, errors)
@@ -90,20 +95,20 @@ class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
     def id = 'not a uuid'
     def name = 'name'
     def desc = 'description'
-    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', 'region': 'r1', id: id, name: name, description: desc, rules: [], credentials: credz)
+    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', region: 'r1', id: id, name: name, description: desc, rules: [], credentials: credz)
 
     when:
     validator.validate([], description, errors)
 
     then:
-    1 * errors.rejectValue('upsertOpenstackSecurityGroupAtomicOperationDescription.id', 'upsertOpenstackSecurityGroupAtomicOperationDescription.id.notUUID')
+    1 * errors.rejectValue("${validator.context}.id", "${validator.context}.id.notUUID")
   }
 
   def "validate without id is valid"() {
     setup:
     def name = 'name'
     def desc = 'description'
-    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', 'region': 'r1', id: null, name: name, description: desc, rules: [], credentials: credz)
+    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', region: 'r1', id: null, name: name, description: desc, rules: [], credentials: credz)
 
     when:
     validator.validate([], description, errors)
@@ -112,27 +117,41 @@ class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
     0 * errors.rejectValue(_, _)
   }
 
+  @Unroll
   def "validate with invalid rule"() {
     setup:
     def id = UUID.randomUUID().toString()
     def name = 'name'
     def desc = 'description'
     def rules = [
-      new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: fromPort, toPort: toPort, cidr: cidr)
+      new UpsertOpenstackSecurityGroupDescription.Rule(
+        ruleType: ruleType,
+        fromPort: fromPort,
+        toPort: toPort,
+        icmpType: icmpType,
+        icmpCode: icmpCode,
+        cidr: cidr,
+        remoteSecurityGroupId: remoteGroupId
+      )
     ]
-    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', 'region': 'r1', id: id, name: name, description: desc, rules: rules, credentials: credz)
+    def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', region: 'r1', id: id, name: name, description: desc, rules: rules, credentials: credz)
 
     when:
     validator.validate([], description, errors)
 
     then:
-    1 * errors.rejectValue(_, rejectValue)
+    1 * errors.rejectValue(_, { it.endsWith(rejectValue) })
 
     where:
-    fromPort | toPort | cidr        | rejectValue
-    80       | 80     | '0.0.0.0'   | 'upsertOpenstackSecurityGroupAtomicOperationDescription.cidr.invalidCIDR'
-    80       | 80     | null        | 'upsertOpenstackSecurityGroupAtomicOperationDescription.cidr.empty'
-    0        | 80     | '0.0.0.0/0' | 'upsertOpenstackSecurityGroupAtomicOperationDescription.fromPort.invalid (Must be in range [1, 65535])'
-    80       | 0      | '0.0.0.0/0' | 'upsertOpenstackSecurityGroupAtomicOperationDescription.toPort.invalid (Must be in range [1, 65535])'
+    ruleType | fromPort | toPort | icmpType | icmpCode | cidr        | remoteGroupId | rejectValue
+    'TCP'    | 80       | 80     | null     | null     | '0.0.0.0'   | null          | '.cidr.invalidCIDR'
+    'TCP'    | 80       | 80     | null     | null     | null        | null          | '.cidr.empty'
+    'TCP'    | -2       | 80     | null     | null     | '0.0.0.0/0' | null          | '.fromPort.notInRange (Must be in range [-1, 65535])'
+    'TCP'    | 80       | -2     | null     | null     | '0.0.0.0/0' | null          | '.toPort.notInRange (Must be in range [-1, 65535])'
+    'TCP'    | 80       | 80     | null     | null     | null        | 'abc'         | '.remoteSecurityGroupId.notUUID'
+    'ICMP'   | null     | null   | -2       | 4        | '0.0.0.0/0' | null          | '.notInRange (Must be in range [-1, 255])'
+    'ICMP'   | null     | null   | 8        | 256      | '0.0.0.0/0' | null          | '.notInRange (Must be in range [-1, 255])'
+    'SSH'    | 2        | 2      | null     | null     | '0.0.0.0/0' | null          | '.invalidSecurityGroupRuleType'
+
   }
 }

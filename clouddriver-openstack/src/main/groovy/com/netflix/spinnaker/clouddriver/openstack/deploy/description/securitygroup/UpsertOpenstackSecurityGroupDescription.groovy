@@ -19,11 +19,7 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.description.securityg
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.OpenstackAtomicOperationDescription
 
 /**
- * Description for creating security groups with TCP rules.
- *
- * UDP and ICMP are not supported.
- *
- * Only CIDR remote types are supported.
+ * Description for creating security groups with rules
  */
 class UpsertOpenstackSecurityGroupDescription extends OpenstackAtomicOperationDescription {
 
@@ -33,10 +29,19 @@ class UpsertOpenstackSecurityGroupDescription extends OpenstackAtomicOperationDe
   List<Rule> rules
 
   static class Rule {
-    static final String RULE_TYPE_TCP = 'TCP'
-    String ruleType = RULE_TYPE_TCP //only support TCP for now, in openstack could also be UDP or ICMP
-    int fromPort
-    int toPort
+    // Expected values: TCP, UDP, & ICMP
+    String ruleType
+
+    // Used by TCP and UDP rules
+    Integer fromPort
+    Integer toPort
+
+    // Used by ICMP rules
+    Integer icmpType
+    Integer icmpCode
+
+    // Rule applies to either the given CIDR or another security group
+    String remoteSecurityGroupId
     String cidr
   }
 

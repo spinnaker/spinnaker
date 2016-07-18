@@ -42,13 +42,7 @@ import org.openstack4j.model.network.NetFloatingIP
 import org.openstack4j.model.network.Network
 import org.openstack4j.model.network.Port
 import org.openstack4j.model.network.Subnet
-import org.openstack4j.model.network.ext.HealthMonitor
-import org.openstack4j.model.network.ext.HealthMonitorType
-import org.openstack4j.model.network.ext.LbMethod
-import org.openstack4j.model.network.ext.LbPool
-import org.openstack4j.model.network.ext.Member
-import org.openstack4j.model.network.ext.Protocol
-import org.openstack4j.model.network.ext.Vip
+import org.openstack4j.model.network.ext.*
 
 import java.lang.reflect.UndeclaredThrowableException
 import java.util.regex.Matcher
@@ -56,9 +50,6 @@ import java.util.regex.Pattern
 
 /**
  * Provides access to the Openstack API.
- *
- * TODO use OpenstackProviderException here instead of OpenstackOperationException.
- * Use of OpenstackOperationException belongs in Operation classes.
  *
  * TODO region support will need to be added to all client calls not already using regions
  *
@@ -462,22 +453,52 @@ abstract class OpenstackClientProvider {
 
   /**
    * Creates a security group rule.
+   *
+   * If the rule is for TCP or UDP, the fromPort and toPort are used. For ICMP rules, the imcpType and icmpCode are used instead.
+   *
    * @param region the region to create the rule in
    * @param securityGroupId id of the security group which this rule belongs to
    * @param protocol the protocol of the rule
    * @param cidr the cidr for the rule
+   * @param remoteSecurityGroupId id of security group referenced by this rule
    * @param fromPort the fromPort for the rule
    * @param toPort the toPort for the rule
+   * @param icmpType the type of the ICMP control message
+   * @param icmpCode the code or subtype of the ICMP control message
    * @return the created rule
    */
-  SecGroupExtension.Rule createSecurityGroupRule(String region, String securityGroupId, IPProtocol protocol, String cidr, int fromPort, int toPort) {
+  SecGroupExtension.Rule createSecurityGroupRule(String region,
+                                                 String securityGroupId,
+                                                 IPProtocol protocol,
+                                                 String cidr,
+                                                 String remoteSecurityGroupId,
+                                                 Integer fromPort,
+                                                 Integer toPort,
+                                                 Integer icmpType,
+                                                 Integer icmpCode) {
+
+    def builder = Builders.secGroupRule()
+      .parentGroupId(securityGroupId)
+      .protocol(protocol)
+
+    /*
+     * Openstack/Openstack4J overload the port range to indicate ICMP type and code. This isn't immediately
+     * obvious and was found through testing and inferring things from the Openstack documentation.
+     */
+    if (protocol == IPProtocol.ICMP) {
+      builder.range(icmpType, icmpCode)
+    } else {
+      builder.range(fromPort, toPort)
+    }
+
+    if (remoteSecurityGroupId) {
+      builder.groupId(remoteSecurityGroupId)
+    } else {
+      builder.cidr(cidr)
+    }
+
     handleRequest {
-      client.useRegion(region).compute().securityGroups().createRule(Builders.secGroupRule()
-        .parentGroupId(securityGroupId)
-        .protocol(protocol)
-        .cidr(cidr)
-        .range(fromPort, toPort)
-        .build())
+      client.useRegion(region).compute().securityGroups().createRule(builder.build())
     }
   }
 

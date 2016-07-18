@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygr
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.apache.commons.net.util.SubnetUtils
+import org.openstack4j.model.compute.IPProtocol
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.validation.Errors
@@ -42,8 +43,6 @@ class OpenstackAttributeValidator {
     this.context = context
     this.errors = errors
   }
-
-  static final maxPort = (1 << 16) - 1
 
   boolean validateByRegex(String value, String attribute, String regex) {
     def result
@@ -71,10 +70,13 @@ class OpenstackAttributeValidator {
     errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid ($reason)")
   }
 
-  def validatePort(int port, String attribute) {
-    def result = (port >= 1 && port <= maxPort)
-    if (!result) {
-      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid (Must be in range [1, $maxPort])")
+  def validateRange(Integer value, int min, int max, String attribute) {
+    def result = validateNotEmpty(value, attribute)
+    if (result) {
+      result = value >= min && value <= max
+      if (!result) {
+        errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.notInRange (Must be in range [${min}, ${max}])")
+      }
     }
     result
   }
@@ -240,9 +242,19 @@ class OpenstackAttributeValidator {
     result
   }
 
+  /**
+   * Validates a security rule type. Should be TCP, UDP, or ICMP.
+   */
   def validateRuleType(String value, String attribute) {
-    validateNotEmpty(value, attribute) &&
-      validateByContainment(value, attribute, [Rule.RULE_TYPE_TCP])
+    boolean result = validateNotEmpty(value, attribute)
+    if (result) {
+      def type = IPProtocol.value(value)
+      if (type == IPProtocol.UNRECOGNIZED) {
+        errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalidSecurityGroupRuleType")
+        result = false
+      }
+    }
+    result
   }
 
   /**

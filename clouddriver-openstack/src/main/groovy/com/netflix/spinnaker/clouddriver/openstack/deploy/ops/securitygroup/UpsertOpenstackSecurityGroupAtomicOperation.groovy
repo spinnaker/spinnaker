@@ -52,9 +52,9 @@ class UpsertOpenstackSecurityGroupAtomicOperation implements AtomicOperation<Voi
 
   /*
   * Create:
-  * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertSecurityGroup": { "region": "west", "name": "sg-test-1", "description": "test", "account": "test", "rules": [ { "fromPort": 80, "toPort": 90, "cidr": "0.0.0.0/0"  } ] } } ]' localhost:7002/openstack/ops
+  * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertSecurityGroup": { "region": "west", "name": "sg-test-1", "description": "test", "account": "test", "rules": [ { "ruleType": "TCP", "fromPort": 80, "toPort": 90, "cidr": "0.0.0.0/0"  } ] } } ]' localhost:7002/openstack/ops
   * Update:
-  * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertSecurityGroup": { "region": "west", "id": "e56fa7eb-550d-42d4-8d3f-f658fbacd496", "name": "sg-test-1", "description": "test", "account": "test", "rules": [ { "fromPort": 80, "toPort": 90, "cidr": "0.0.0.0/0"  } ] } } ]' localhost:7002/openstack/ops
+  * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertSecurityGroup": { "region": "west", "id": "e56fa7eb-550d-42d4-8d3f-f658fbacd496", "name": "sg-test-1", "description": "test", "account": "test", "rules": [ { "ruleType": "TCP", "fromPort": 80, "toPort": 90, "cidr": "0.0.0.0/0"  } ] } } ]' localhost:7002/openstack/ops
   * Task status:
   * curl -X GET -H "Accept: application/json" localhost:7002/task/1
   */
@@ -87,9 +87,18 @@ class UpsertOpenstackSecurityGroupAtomicOperation implements AtomicOperation<Voi
 
       description.rules.each { rule ->
         task.updateStatus BASE_PHASE, "Creating rule for ${rule.cidr} from port ${rule.fromPort} to port ${rule.toPort}"
-        provider.createSecurityGroupRule(description.region, securityGroup.id, IPProtocol.value(rule.ruleType), rule.cidr, rule.fromPort, rule.toPort)
+        provider.createSecurityGroupRule(description.region,
+          securityGroup.id,
+          IPProtocol.value(rule.ruleType),
+          rule.cidr,
+          rule.remoteSecurityGroupId,
+          rule.fromPort,
+          rule.toPort,
+          rule.icmpType,
+          rule.icmpCode
+        )
       }
-      task.updateStatus BASE_PHASE, " Finished upserting security group ${description.name}."
+      task.updateStatus BASE_PHASE, "Finished upserting security group ${description.name}."
     } catch (OpenstackProviderException e) {
       throw new OpenstackOperationException(AtomicOperations.UPSERT_SECURITY_GROUP, e)
     }
