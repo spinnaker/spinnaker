@@ -214,7 +214,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
         task.updateStatus BASE_PHASE, "Creating regional autoscaler for $serverGroupName..."
 
-        Autoscaler autoscaler = GCEUtil.buildAutoscaler(serverGroupName, migCreateOperation, description)
+        Autoscaler autoscaler = GCEUtil.buildAutoscaler(serverGroupName,
+                                                        migCreateOperation.targetLink,
+                                                        description.autoscalingPolicy)
 
         compute.regionAutoscalers().insert(project, region, autoscaler).execute()
       }
@@ -236,7 +238,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
         task.updateStatus BASE_PHASE, "Creating zonal autoscaler for $serverGroupName..."
 
-        Autoscaler autoscaler = GCEUtil.buildAutoscaler(serverGroupName, migCreateOperation, description)
+        Autoscaler autoscaler = GCEUtil.buildAutoscaler(serverGroupName,
+                                                        migCreateOperation.targetLink,
+                                                        description.autoscalingPolicy)
 
         compute.autoscalers().insert(project, zone, autoscaler).execute()
       }

@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.handlers.BasicGoogleDeployHandler
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
@@ -161,7 +162,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          loadBalancers: ["testlb-west-1", "testlb-west-2"],
                                                          securityGroups: ["sg-3", "sg-4"] as Set,
                                                          autoscalingPolicy:
-                                                             new BasicGoogleDeployDescription.AutoscalingPolicy(
+                                                             new GoogleAutoscalingPolicy(
                                                                  coolDownPeriodSec: 90,
                                                                  minNumReplicas: 5,
                                                                  maxNumReplicas: 9
@@ -228,9 +229,9 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.subnet = SUBNET_NAME
       newDescription.loadBalancers = LOAD_BALANCERS
       newDescription.securityGroups = SECURITY_GROUPS
-      newDescription.autoscalingPolicy = new BasicGoogleDeployDescription.AutoscalingPolicy(coolDownPeriodSec: 45,
-                                                                                            minNumReplicas: 2,
-                                                                                            maxNumReplicas: 5)
+      newDescription.autoscalingPolicy = new GoogleAutoscalingPolicy(coolDownPeriodSec: 45,
+                                                                     minNumReplicas: 2,
+                                                                     maxNumReplicas: 5)
       newDescription.autoHealingPolicy = new BasicGoogleDeployDescription.AutoHealingPolicy(healthCheck: 'some-health-check',
                                                                                             initialDelaySec: 600)
 

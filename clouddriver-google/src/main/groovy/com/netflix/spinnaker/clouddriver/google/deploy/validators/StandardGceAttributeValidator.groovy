@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDiskType
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceTypeDisk
@@ -186,6 +187,15 @@ class StandardGceAttributeValidator {
     def result = true
     if (value < 0) {
       errors.rejectValue attribute, "${context}.${attribute}.negative"
+      result = false
+    }
+    return result
+  }
+
+  def validateInRangeExclusive(double value, double min, double max, String attribute) {
+    def result = true
+    if (value <= min || value >= max) {
+      errors.rejectValue attribute, "${context}.${attribute} must be between ${min} and ${max}."
       result = false
     }
     return result
@@ -371,6 +381,48 @@ class StandardGceAttributeValidator {
         errors.rejectValue("disks",
                            "${context}.disk${index}.autoDelete.required",
                            "Local SSD disks must have auto-delete set.")
+      }
+    }
+  }
+
+  def validateAutoscalingPolicy(GoogleAutoscalingPolicy policy) {
+    if (policy) {
+      policy.with {
+        if (minNumReplicas != null) {
+          validateNonNegativeLong(minNumReplicas, "autoscalingPolicy.minNumReplicas")
+        }
+
+        if (maxNumReplicas != null) {
+          validateNonNegativeLong(maxNumReplicas, "autoscalingPolicy.maxNumReplicas")
+        }
+
+        if (coolDownPeriodSec != null) {
+          validateNonNegativeLong(coolDownPeriodSec, "autoscalingPolicy.coolDownPeriodSec")
+        }
+
+        if (minNumReplicas != null && maxNumReplicas != null) {
+          validateMaxNotLessThanMin(minNumReplicas,
+                                    maxNumReplicas,
+                                    "autoscalingPolicy.minNumReplicas",
+                                    "autoscalingPolicy.maxNumReplicas")
+        }
+
+        customMetricUtilizations.eachWithIndex { utilization, index ->
+          def path = "autoscalingPolicy.customMetricUtilizations[${index}]"
+
+          utilization.with {
+            validateNotEmpty(metric, "${path}.metric")
+            validateInRangeExclusive(utilizationTarget, 0, 1, "${path}.utilizationTarget")
+            validateNotEmpty(utilizationTargetType, "${path}.utilizationTargetType")
+          }
+        }
+      }
+
+      [ "cpuUtilization", "loadBalancingUtilization" ].each {
+        if (policy[it] != null && policy[it].utilizationTarget != null) {
+          validateInRangeExclusive(policy[it].utilizationTarget,
+                                   0, 1, "autoscalingPolicy.${it}.utilizationTarget")
+        }
       }
     }
   }

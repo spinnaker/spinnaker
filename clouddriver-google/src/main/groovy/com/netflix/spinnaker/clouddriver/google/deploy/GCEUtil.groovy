@@ -34,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleL
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDiskType
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
@@ -414,7 +415,7 @@ class GCEUtil {
     )
   }
 
-  static BasicGoogleDeployDescription.AutoscalingPolicy buildAutoscalingPolicyDescriptionFromAutoscalingPolicy(
+  static GoogleAutoscalingPolicy buildAutoscalingPolicyDescriptionFromAutoscalingPolicy(
     AutoscalingPolicy autoscalingPolicy) {
     if (!autoscalingPolicy) {
       return null
@@ -422,7 +423,7 @@ class GCEUtil {
 
     autoscalingPolicy.with {
       def autoscalingPolicyDescription =
-          new BasicGoogleDeployDescription.AutoscalingPolicy(
+          new GoogleAutoscalingPolicy(
               coolDownPeriodSec: coolDownPeriodSec,
               minNumReplicas: minNumReplicas,
               maxNumReplicas: maxNumReplicas
@@ -430,14 +431,14 @@ class GCEUtil {
 
       if (cpuUtilization) {
         autoscalingPolicyDescription.cpuUtilization =
-            new BasicGoogleDeployDescription.AutoscalingPolicy.CpuUtilization(
+            new GoogleAutoscalingPolicy.CpuUtilization(
                 utilizationTarget: cpuUtilization.utilizationTarget
             )
       }
 
       if (loadBalancingUtilization) {
         autoscalingPolicyDescription.loadBalancingUtilization =
-            new BasicGoogleDeployDescription.AutoscalingPolicy.LoadBalancingUtilization(
+            new GoogleAutoscalingPolicy.LoadBalancingUtilization(
                 utilizationTarget: loadBalancingUtilization.utilizationTarget
             )
       }
@@ -445,7 +446,7 @@ class GCEUtil {
       if (customMetricUtilizations) {
         autoscalingPolicyDescription.customMetricUtilizations =
             customMetricUtilizations.collect {
-              new BasicGoogleDeployDescription.AutoscalingPolicy.CustomMetricUtilization(
+              new GoogleAutoscalingPolicy.CustomMetricUtilization(
                   metric: it.metric,
                   utilizationTarget: it.utilizationTarget,
                   utilizationTargetType: it.utilizationTargetType
@@ -549,9 +550,9 @@ class GCEUtil {
 
 
   static Autoscaler buildAutoscaler(String serverGroupName,
-                                    Operation migCreateOperation,
-                                    BasicGoogleDeployDescription description) {
-    description.autoscalingPolicy.with {
+                                    String targetLink,
+                                    GoogleAutoscalingPolicy autoscalingPolicy) {
+    autoscalingPolicy.with {
       def gceAutoscalingPolicy = new AutoscalingPolicy(coolDownPeriodSec: coolDownPeriodSec,
                                                        minNumReplicas: minNumReplicas,
                                                        maxNumReplicas: maxNumReplicas)
@@ -574,10 +575,9 @@ class GCEUtil {
         }
       }
 
-      return new Autoscaler(name: serverGroupName,
-                            zone: migCreateOperation.zone,
-                            target: migCreateOperation.targetLink,
-                            autoscalingPolicy: gceAutoscalingPolicy)
+      new Autoscaler(name: serverGroupName,
+                     target: targetLink,
+                     autoscalingPolicy: gceAutoscalingPolicy)
     }
   }
 

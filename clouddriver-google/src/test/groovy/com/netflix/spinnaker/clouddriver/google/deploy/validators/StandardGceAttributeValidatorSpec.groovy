@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.CustomMetricUtilization.UtilizationTargetType
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
@@ -614,5 +616,158 @@ class StandardGceAttributeValidatorSpec extends Specification {
       1 * errors.rejectValue("instanceIds", "${DECORATOR}.instanceId1.empty")
       1 * errors.rejectValue("instanceIds", "${DECORATOR}.instanceId3.empty")
       0 * errors._
+  }
+
+  void "valid in range exclusive"() {
+    setup:
+      def errors = Mock(Errors)
+      def validator = new StandardGceAttributeValidator(DECORATOR, errors)
+      def label = "testAttribute"
+
+    when:
+      validator.validateInRangeExclusive(0, -1, 1, label)
+      validator.validateInRangeExclusive(10, 0, 20,  label)
+      validator.validateInRangeExclusive(0.5, 0, 1, label)
+    then:
+      0 * errors._
+  }
+
+  void "invalid in range exclusive"() {
+    setup:
+      def errors = Mock(Errors)
+      def validator = new StandardGceAttributeValidator(DECORATOR, errors)
+      def label = "testAttribute"
+
+    when:
+      validator.validateInRangeExclusive(-1, 0, 1, label)
+      validator.validateInRangeExclusive(0, 0, 1, label)
+      validator.validateInRangeExclusive(1, 0, 1, label)
+    then:
+      3 * errors.rejectValue(label, "decorator.testAttribute must be between 0.0 and 1.0.")
+  }
+
+  void "valid basic scaling policy"() {
+    setup:
+      def errors = Mock(Errors)
+      def validator = new StandardGceAttributeValidator(DECORATOR, errors)
+      def scalingPolicy = new GoogleAutoscalingPolicy(
+        minNumReplicas: 1,
+        maxNumReplicas: 10,
+        coolDownPeriodSec: 60,
+        cpuUtilization: new GoogleAutoscalingPolicy.CpuUtilization(utilizationTarget: 0.9))
+
+    when:
+      validator.validateAutoscalingPolicy(scalingPolicy)
+
+    then:
+      0 * errors._
+  }
+
+  void "valid complex scaling policy"() {
+    setup:
+      def errors = Mock(Errors)
+      def validator = new StandardGceAttributeValidator(DECORATOR, errors)
+
+      def scalingPolicy = new GoogleAutoscalingPolicy(
+        minNumReplicas: 1,
+        maxNumReplicas: 10,
+        coolDownPeriodSec: 60,
+        cpuUtilization: new GoogleAutoscalingPolicy.CpuUtilization(utilizationTarget: 0.7),
+        loadBalancingUtilization: new GoogleAutoscalingPolicy.LoadBalancingUtilization(utilizationTarget: 0.7),
+        customMetricUtilizations: [ new GoogleAutoscalingPolicy.CustomMetricUtilization(metric: "myMetric",
+          utilizationTarget: 0.9,
+          utilizationTargetType: UtilizationTargetType.DELTA_PER_MINUTE) ])
+
+    when:
+      validator.validateAutoscalingPolicy(scalingPolicy)
+
+    then:
+      0 * errors._
+  }
+
+  void "invalid autoscaler min, max or cooldown"() {
+    setup:
+      def errors = Mock(Errors)
+      def validator = new StandardGceAttributeValidator(DECORATOR, errors)
+
+    when:
+      validator.validateAutoscalingPolicy(new GoogleAutoscalingPolicy(minNumReplicas: -5))
+
+    then:
+      1 * errors.rejectValue("autoscalingPolicy.minNumReplicas",
+        "decorator.autoscalingPolicy.minNumReplicas.negative")
+
+    when:
+      validator.validateAutoscalingPolicy(new GoogleAutoscalingPolicy(maxNumReplicas: -5))
+
+    then:
+    1 * errors.rejectValue("autoscalingPolicy.maxNumReplicas",
+      "decorator.autoscalingPolicy.maxNumReplicas.negative")
+
+    when:
+      validator.validateAutoscalingPolicy(new GoogleAutoscalingPolicy(coolDownPeriodSec: -5))
+
+    then:
+      1 * errors.rejectValue("autoscalingPolicy.coolDownPeriodSec",
+        "decorator.autoscalingPolicy.coolDownPeriodSec.negative")
+
+    when:
+      validator.validateAutoscalingPolicy(new GoogleAutoscalingPolicy(minNumReplicas: 5, maxNumReplicas: 3))
+
+    then:
+      1 * errors.rejectValue("autoscalingPolicy.maxNumReplicas",
+        "decorator.autoscalingPolicy.maxNumReplicas.lessThanMin",
+        "decorator.autoscalingPolicy.maxNumReplicas must not be less than " +
+          "decorator.autoscalingPolicy.minNumReplicas.")
+  }
+
+  void "invalid autoscaler loadBalancingUtilization or cpuUtilization"() {
+    setup:
+      def errors = Mock(Errors)
+      def validator = new StandardGceAttributeValidator(DECORATOR, errors)
+
+    when:
+      validator.validateAutoscalingPolicy(new GoogleAutoscalingPolicy(
+        cpuUtilization: new GoogleAutoscalingPolicy.CpuUtilization(utilizationTarget: -1)))
+
+    then:
+      1 * errors.rejectValue("autoscalingPolicy.cpuUtilization.utilizationTarget",
+        "decorator.autoscalingPolicy.cpuUtilization.utilizationTarget " +
+        "must be between 0.0 and 1.0.")
+
+    when:
+      validator.validateAutoscalingPolicy(new GoogleAutoscalingPolicy(
+        loadBalancingUtilization: new GoogleAutoscalingPolicy.LoadBalancingUtilization(utilizationTarget: -1)))
+
+    then:
+      1 * errors.rejectValue("autoscalingPolicy.loadBalancingUtilization.utilizationTarget",
+        "decorator.autoscalingPolicy.loadBalancingUtilization.utilizationTarget " +
+          "must be between 0.0 and 1.0.")
+  }
+
+  void "invalid autoscaler customMetricUtilizations" () {
+    setup:
+      def errors = Mock(Errors)
+      def validator = new StandardGceAttributeValidator(DECORATOR, errors)
+
+    when:
+      validator.validateAutoscalingPolicy(new GoogleAutoscalingPolicy(
+        customMetricUtilizations: [ new GoogleAutoscalingPolicy.CustomMetricUtilization(utilizationTarget: -1,
+          metric: "myMetric", utilizationTargetType: UtilizationTargetType.DELTA_PER_MINUTE) ]))
+
+    then:
+      1 * errors.rejectValue("autoscalingPolicy.customMetricUtilizations[0].utilizationTarget",
+        "decorator.autoscalingPolicy.customMetricUtilizations[0].utilizationTarget " +
+          "must be between 0.0 and 1.0.")
+
+    when:
+      validator.validateAutoscalingPolicy(new GoogleAutoscalingPolicy(
+        customMetricUtilizations: [ new GoogleAutoscalingPolicy.CustomMetricUtilization(utilizationTarget: 0.5,
+          utilizationTargetType: UtilizationTargetType.DELTA_PER_MINUTE ) ]))
+
+    then:
+      1 * errors.rejectValue("autoscalingPolicy.customMetricUtilizations[0].metric",
+        "decorator.autoscalingPolicy.customMetricUtilizations[0].metric.empty")
+
   }
 }
