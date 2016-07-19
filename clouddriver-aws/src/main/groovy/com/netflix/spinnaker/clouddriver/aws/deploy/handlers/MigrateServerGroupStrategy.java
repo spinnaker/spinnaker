@@ -39,7 +39,6 @@ import com.netflix.spinnaker.clouddriver.aws.services.AsgService;
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory;
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult;
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidationErrors;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.validation.Errors;
 
 import java.util.*;
@@ -164,7 +163,7 @@ public abstract class MigrateServerGroupStrategy {
 
       result.setServerGroupNames(Collections.singletonList(targetName));
     }
-    migrateResult.setServerGroupName(result.getServerGroupNames().get(0));
+    migrateResult.setServerGroupNames(result.getServerGroupNames());
     migrateResult.setLoadBalancers(targetLoadBalancers);
     migrateResult.setSecurityGroups(targetSecurityGroups);
     return migrateResult;
@@ -188,7 +187,7 @@ public abstract class MigrateServerGroupStrategy {
 
     if (errors.hasErrors()) {
       throw new IllegalStateException("Invalid deployment configuration. Errors: "
-        + errors.getAllErrors().stream().flatMap(s -> Arrays.asList(s.getCodes()).stream()).collect(Collectors.toList()));
+        + errors.getAllErrors().stream().flatMap(s -> Arrays.stream(s.getCodes())).collect(Collectors.toList()));
     }
   }
 
