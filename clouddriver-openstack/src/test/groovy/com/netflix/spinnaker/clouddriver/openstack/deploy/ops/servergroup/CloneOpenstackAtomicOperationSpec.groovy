@@ -47,7 +47,7 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
   private static final String IMAGE = 'ubuntu-latest-orig'
   private static final int MAX_SIZE = 6
   private static final int MIN_SIZE = 4
-  private static final String NETWORK_ID = '12356'
+  private static final String SUBNET_ID = '12356'
   private static final String POOL_ID = '47890'
   private static final List<String> SECURITY_GROUPS = ['sg99','sg3434']
 
@@ -65,7 +65,7 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
   private static final String IMAGE_N = 'ubuntu-latest'
   private static final int MAX_SIZE_N = 5
   private static final int MIN_SIZE_N = 3
-  private static final String NETWORK_ID_N = '1234'
+  private static final String SUBNET_ID_N = '1234'
   private static final String POOL_ID_N = '5678'
   private static final List<String> SECURITY_GROUPS_N = ['sg1']
 
@@ -82,7 +82,7 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
       image:IMAGE,
       maxSize: MAX_SIZE,
       minSize: MIN_SIZE,
-      networkId: NETWORK_ID,
+      subnetId: SUBNET_ID,
       poolId: POOL_ID,
       securityGroups: SECURITY_GROUPS
     )
@@ -105,7 +105,7 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
       image:IMAGE_N,
       maxSize: MAX_SIZE_N,
       minSize: MIN_SIZE_N,
-      networkId: NETWORK_ID_N,
+      subnetId: SUBNET_ID_N,
       poolId: POOL_ID_N,
       securityGroups: SECURITY_GROUPS_N
     )
@@ -176,7 +176,7 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
       image:IMAGE_N,
       maxSize: MAX_SIZE_N,
       minSize: MIN_SIZE_N,
-      networkId: NETWORK_ID_N,
+      subnetId: SUBNET_ID_N,
       poolId: POOL_ID_N,
       securityGroups: SECURITY_GROUPS_N
     )

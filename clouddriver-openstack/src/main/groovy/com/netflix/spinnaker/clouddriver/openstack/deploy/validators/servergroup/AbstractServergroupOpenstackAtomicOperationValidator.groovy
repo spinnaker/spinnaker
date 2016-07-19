@@ -40,7 +40,7 @@ abstract class AbstractServergroupOpenstackAtomicOperationValidator<T extends Op
       validator.validatePositive(maxSize, "${prefix}.maxSize")
       validator.validatePositive(minSize, "${prefix}.minSize")
       validator.validateGreaterThan(maxSize, minSize, "${prefix}.maxSize")
-      validator.validateNotEmpty(networkId, "${prefix}.networkId")
+      validator.validateNotEmpty(subnetId, "${prefix}.subnetId")
       validator.validateNotEmpty(poolId, "${prefix}.poolId")
       validator.validateNotEmpty(securityGroups, "${prefix}.securityGroups")
     }

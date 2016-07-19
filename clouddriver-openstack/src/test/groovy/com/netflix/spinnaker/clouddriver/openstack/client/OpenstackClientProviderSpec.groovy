@@ -511,7 +511,7 @@ class OpenstackClientProviderSpec extends Specification {
     openstackProviderException.cause == throwable
   }
 
-  def "validate subnet - #testCase"() {
+  def "get subnet - #testCase"() {
     setup:
     String region = 'region1'
     String subnetId = UUID.randomUUID().toString()
@@ -519,22 +519,22 @@ class OpenstackClientProviderSpec extends Specification {
     SubnetService subnetService = Mock()
 
     when:
-    boolean result = provider.validateSubnetId(region, subnetId)
+    Subnet subnet = provider.getSubnet(region, subnetId)
 
     then:
     1 * mockClient.networking() >> networkingService
     1 * networkingService.subnet() >> subnetService
-    1 * subnetService.get(subnetId) >> subnetResult
-    result == expected
+    1 * subnetService.get(subnetId) >> expected
+    subnet == expected
     noExceptionThrown()
 
     where:
-    testCase           | subnetResult | expected
-    'Subnet found'     | Mock(Subnet) | true
-    'Subnet not found' | null         | false
+    testCase           | expected
+    'Subnet found'     | Mock(Subnet)
+    'Subnet not found' | null
   }
 
-  def "validate subnet - exception"() {
+  def "get subnet - exception"() {
     setup:
     String region = 'region1'
     String subnetId = UUID.randomUUID().toString()
@@ -543,7 +543,7 @@ class OpenstackClientProviderSpec extends Specification {
     Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
 
     when:
-    provider.validateSubnetId(region, subnetId)
+    provider.getSubnet(region, subnetId)
 
     then:
     1 * mockClient.networking() >> networkingService

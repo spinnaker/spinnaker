@@ -86,7 +86,7 @@ class UpsertOpenstackLoadBalancerAtomicOperation implements AtomicOperation<Map>
     LbPool resultPool
     OpenstackClientProvider openstackClientProvider = getClientProvider()
 
-    if (!openstackClientProvider.validateSubnetId(region, subnetId)) {
+    if (!openstackClientProvider.getSubnet(region, subnetId)) {
       task.updateStatus UPSERT_LOADBALANCER_PHASE, "Unable to retrieve referenced subnet ${subnetId} in ${region}."
       throw new OpenstackOperationException(AtomicOperations.UPSERT_LOAD_BALANCER, "Subnet ${subnetId} not found in ${region}")
     }

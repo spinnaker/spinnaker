@@ -54,7 +54,7 @@ class CloneOpenstackAtomicOperation implements AtomicOperation<DeploymentResult>
       task.updateStatus BASE_PHASE, "Initializing cloning of server group ${description.source.serverGroupName}"
 
       DeployOpenstackAtomicOperation deployer = new DeployOpenstackAtomicOperation(newDescription)
-      deploymentResult = deployer.operate(priorOutputs) // right now this is null from deployOpenstackAtomicOperation
+      deploymentResult = deployer.operate(priorOutputs)
 
       task.updateStatus BASE_PHASE, "Finished cloning server group ${description.source.serverGroupName}"
     } catch (Exception e) {
@@ -88,7 +88,7 @@ class CloneOpenstackAtomicOperation implements AtomicOperation<DeploymentResult>
       instanceType = description.serverGroupParameters?.instanceType ?: ancestorParams.instanceType
       maxSize = description.serverGroupParameters?.maxSize ?: ancestorParams.maxSize
       minSize = description.serverGroupParameters?.minSize ?: ancestorParams.minSize
-      networkId = description.serverGroupParameters?.networkId ?: ancestorParams.networkId
+      subnetId = description.serverGroupParameters?.subnetId ?: ancestorParams.subnetId
       poolId = description.serverGroupParameters?.poolId ?: ancestorParams.poolId
       securityGroups = description.serverGroupParameters?.securityGroups ?: ancestorParams.securityGroups
     }
@@ -96,7 +96,7 @@ class CloneOpenstackAtomicOperation implements AtomicOperation<DeploymentResult>
     deployDescription.timeoutMins = description.timeoutMins ?: ancestorStack.timeoutMins
     deployDescription.region = description.region
 
-    task.updateStatus BASE_PHASE, "Finished reating new server group description"
+    task.updateStatus BASE_PHASE, "Finished creating new server group description"
 
     deployDescription
   }

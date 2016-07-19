@@ -25,6 +25,9 @@ parameters:
   security_groups:
     type: comma_delimited_list
     description: security groups to use
+  subnet_id:
+    type: string
+    description: Subnet used to allocate a fixed IP for each server
 resources:
   asg:
     type: OS::Heat::AutoScalingGroup
@@ -42,6 +45,7 @@ resources:
           network_id: {get_param: network_id}
           pool_id: {get_param: pool_id}
           security_groups: {get_param: security_groups}
+          subnet_id: {get_param: subnet_id}
   # TODO parameterize
   web_server_scaleup_policy:
     type: OS::Heat::ScalingPolicy

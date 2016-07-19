@@ -33,6 +33,7 @@ class ServerGroupParameters {
   Integer maxSize
   Integer minSize
   String networkId
+  String subnetId
   String poolId
   List<String> securityGroups
 
@@ -44,6 +45,7 @@ class ServerGroupParameters {
       'max_size':maxSize ? maxSize.toString() : null,
       'min_size':minSize? minSize.toString() : null,
       'network_id':networkId,
+      'subnet_id':subnetId,
       'pool_id':poolId,
       'security_groups':securityGroups ? securityGroups.join(',') : null
     ]
@@ -57,6 +59,7 @@ class ServerGroupParameters {
       maxSize: params.get('max_size')?.toInteger(),
       minSize: params.get('min_size')?.toInteger(),
       networkId: params.get('network_id'),
+      subnetId: params.get('subnet_id'),
       poolId: params.get('pool_id'),
       securityGroups: params.get('security_groups')?.split(',')?.toList()
     )

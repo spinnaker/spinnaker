@@ -32,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.openstack4j.model.compute.FloatingIP
 import org.openstack4j.model.network.NetFloatingIP
 import org.openstack4j.model.network.Network
+import org.openstack4j.model.network.Subnet
 import org.openstack4j.model.network.ext.HealthMonitor
 import org.openstack4j.model.network.ext.HealthMonitorType
 import org.openstack4j.model.network.ext.LbPool
@@ -144,7 +145,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     LbPool result = operation.createLoadBalancer(description.region, description.subnetId, loadBalancerPool, virtualIP, description.healthMonitor)
 
     then:
-    1 * provider.validateSubnetId(description.region, description.subnetId) >> true
+    1 * provider.getSubnet(description.region, description.subnetId) >> Mock(Subnet)
     1 * provider.createLoadBalancerPool(description.region, loadBalancerPool) >> newLoadBalancerPool
     1 * provider.createVip(description.region, virtualIP) >> newVip
     0 * provider.createHealthCheckForPool(description.region, newLoadBalancerPool.id, description.healthMonitor)
@@ -178,7 +179,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     LbPool result = operation.createLoadBalancer(description.region, description.subnetId, loadBalancerPool, virtualIP, description.healthMonitor)
 
     then:
-    1 * provider.validateSubnetId(description.region, description.subnetId) >> true
+    1 * provider.getSubnet(description.region, description.subnetId) >> Mock(Subnet)
     1 * provider.createLoadBalancerPool(description.region, loadBalancerPool) >> newLoadBalancerPool
     1 * provider.createVip(description.region, virtualIP) >> newVip
     0 * provider.createHealthCheckForPool(description.region, newLoadBalancerPool.id, description.healthMonitor)
@@ -213,7 +214,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     LbPool result = operation.createLoadBalancer(description.region, description.subnetId, loadBalancerPool, virtualIP, description.healthMonitor)
 
     then:
-    1 * provider.validateSubnetId(description.region, description.subnetId) >> true
+    1 * provider.getSubnet(description.region, description.subnetId) >> Mock(Subnet)
     1 * provider.createLoadBalancerPool(description.region, loadBalancerPool) >> newLoadBalancerPool
     1 * provider.createVip(description.region, virtualIP) >> newVip
     1 * provider.createHealthCheckForPool(description.region, newLoadBalancerPool.id, description.healthMonitor)
@@ -249,7 +250,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     operation.createLoadBalancer(description.region, description.subnetId, loadBalancerPool, virtualIP, description.healthMonitor)
 
     then:
-    1 * provider.validateSubnetId(description.region, description.subnetId) >> true
+    1 * provider.getSubnet(description.region, description.subnetId) >> Mock(Subnet)
     1 * provider.createLoadBalancerPool(description.region, loadBalancerPool) >> newLoadBalancerPool
     1 * provider.createVip(description.region, virtualIP) >> newVip
     1 * provider.createHealthCheckForPool(description.region, newLoadBalancerPool.id, description.healthMonitor)
@@ -276,7 +277,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     operation.createLoadBalancer(description.region, description.subnetId, loadBalancerPool, virtualIP, description.healthMonitor)
 
     then:
-    1 * provider.validateSubnetId(description.region, description.subnetId) >> false
+    1 * provider.getSubnet(description.region, description.subnetId) >> null
     OpenstackOperationException ex = thrown(OpenstackOperationException)
     [AtomicOperations.UPSERT_LOAD_BALANCER, description.region, description.subnetId].every {
       ex.message.contains(it)

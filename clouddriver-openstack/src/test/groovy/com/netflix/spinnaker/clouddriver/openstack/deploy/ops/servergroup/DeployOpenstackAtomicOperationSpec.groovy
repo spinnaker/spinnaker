@@ -21,11 +21,11 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFactory
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.DeployOpenstackAtomicOperationDescription
-import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.domain.ServerGroupParameters
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import org.openstack4j.model.heat.Stack
+import org.openstack4j.model.network.Subnet
 import org.openstack4j.model.network.ext.LbPool
 import spock.lang.Specification
 import spock.lang.Subject
@@ -44,7 +44,7 @@ class DeployOpenstackAtomicOperationSpec extends Specification {
   String image = 'ubuntu-latest'
   int maxSize = 5
   int minSize = 3
-  String networkId = '1234'
+  String subnetId = '1234'
   String poolId = '5678'
   List<String> securityGroups = ['sg1']
 
@@ -53,6 +53,7 @@ class DeployOpenstackAtomicOperationSpec extends Specification {
   def description
   def provider
   def mockPool
+  def mockSubnet
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -64,10 +65,12 @@ class DeployOpenstackAtomicOperationSpec extends Specification {
     OpenstackNamedAccountCredentials creds = Mock(OpenstackNamedAccountCredentials)
     OpenstackProviderFactory.createProvider(creds) >> { provider }
     credentials = new OpenstackCredentials(creds)
-    serverGroupParams = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
+    serverGroupParams = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, subnetId: subnetId, poolId: poolId, securityGroups: securityGroups)
     description = new DeployOpenstackAtomicOperationDescription(stack: stack, application: application, freeFormDetails: details, region: region, serverGroupParameters: serverGroupParams, timeoutMins: timeoutMins, disableRollback: disableRollback, account: accountName, credentials: credentials)
     mockPool = Mock(LbPool)
     mockPool.name >> { 'mockpool' }
+    mockSubnet = Mock(Subnet)
+    mockSubnet.networkId >> { '1234' }
   }
 
   def "should deploy a heat stack"() {
@@ -82,6 +85,7 @@ class DeployOpenstackAtomicOperationSpec extends Specification {
     1 * provider.listStacks(region) >> []
     1 * provider.getLoadBalancerPool(region, poolId) >> mockPool
     1 * provider.getInternalLoadBalancerPort(mockPool) >> internalPort
+    1 * provider.getSubnet(region, subnetId) >> mockSubnet
     1 * provider.deploy(region, createdStackName, _ as String, _ as Map<String,String>, serverGroupParams, _ as Boolean, _ as Long)
     noExceptionThrown()
   }
@@ -102,6 +106,7 @@ class DeployOpenstackAtomicOperationSpec extends Specification {
     1 * provider.listStacks(_) >> [stack]
     1 * provider.getLoadBalancerPool(region, poolId) >> mockPool
     1 * provider.getInternalLoadBalancerPort(mockPool) >> internalPort
+    1 * provider.getSubnet(region, subnetId) >> mockSubnet
     1 * provider.deploy(region, newStackName, _ as String, _ as Map<String,String>, serverGroupParams, _ as Boolean, _ as Long)
     noExceptionThrown()
   }

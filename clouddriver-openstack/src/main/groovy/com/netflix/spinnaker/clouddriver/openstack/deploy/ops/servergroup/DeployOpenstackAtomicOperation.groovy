@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOpe
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.apache.commons.io.IOUtils
+import org.openstack4j.model.network.Subnet
 import org.openstack4j.model.network.ext.LbPool
 
 /**
@@ -94,9 +95,16 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
       int port = provider.getInternalLoadBalancerPort(pool)
       task.updateStatus BASE_PHASE, "Found internal port $port used for load balancer $pool.name"
 
+      String subnetId = description.serverGroupParameters.subnetId
+      task.updateStatus BASE_PHASE, "Getting network id from subnet $subnetId"
+      Subnet subnet = provider.getSubnet(description.region, subnetId)
+      task.updateStatus BASE_PHASE, "Found network id $subnet.networkId from subnet $subnetId"
+
       task.updateStatus BASE_PHASE, "Creating heat stack $stackName"
       provider.deploy(description.region, stackName, template, [(SUBTEMPLATE_FILE): subtemplate], description.serverGroupParameters.identity {
-        internalPort = port; it
+        networkId = subnet.networkId
+        internalPort = port
+        it
       }, description.disableRollback, description.timeoutMins)
       task.updateStatus BASE_PHASE, "Finished creating heat stack $stackName"
 

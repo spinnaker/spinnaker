@@ -47,7 +47,7 @@ class DeployOpenstackAtomicOperationValidatorSpec extends Specification {
   String image = 'ubuntu-latest'
   int maxSize = 5
   int minSize = 3
-  String networkId = '1234'
+  String subnetId = '1234'
   String poolId = '5678'
   List<String> securityGroups = ['sg1']
 
@@ -69,7 +69,7 @@ class DeployOpenstackAtomicOperationValidatorSpec extends Specification {
 
   def "Validate no error"() {
     given:
-    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
+    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, subnetId: subnetId, poolId: poolId, securityGroups: securityGroups)
     DeployOpenstackAtomicOperationDescription description = new DeployOpenstackAtomicOperationDescription(account: account, application: application, region: region, stack: stack, freeFormDetails: freeFormDetails, disableRollback: disableRollback, timeoutMins: timeoutMins, serverGroupParameters: params, credentials: credz)
 
     when:
@@ -83,7 +83,7 @@ class DeployOpenstackAtomicOperationValidatorSpec extends Specification {
   @Unroll
   def "Validate create missing required core field - #attribute"() {
     given:
-    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
+    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, subnetId: subnetId, poolId: poolId, securityGroups: securityGroups)
     DeployOpenstackAtomicOperationDescription description = new DeployOpenstackAtomicOperationDescription(account: account, application: application, region: region, stack: stack, freeFormDetails: freeFormDetails, disableRollback: disableRollback, timeoutMins: timeoutMins, serverGroupParameters: params, credentials: credz)
     if (attribute != 'stack') {
       description."$attribute" = ''
@@ -105,7 +105,7 @@ class DeployOpenstackAtomicOperationValidatorSpec extends Specification {
   @Unroll
   def "Validate create missing required template field - #attribute"() {
     given:
-    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
+    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, subnetId: subnetId, poolId: poolId, securityGroups: securityGroups)
     DeployOpenstackAtomicOperationDescription description = new DeployOpenstackAtomicOperationDescription(account: account, application: application, region: region, stack: stack, freeFormDetails: freeFormDetails, disableRollback: disableRollback, timeoutMins: timeoutMins, serverGroupParameters: params, credentials: credz)
     description.serverGroupParameters."$attribute" = null
 
@@ -116,13 +116,13 @@ class DeployOpenstackAtomicOperationValidatorSpec extends Specification {
     times * errors.rejectValue(_,_)
 
     where:
-    attribute << ['instanceType', 'image', 'maxSize', 'minSize', 'networkId', 'poolId', 'securityGroups']
+    attribute << ['instanceType', 'image', 'maxSize', 'minSize', 'subnetId', 'poolId', 'securityGroups']
     times << [1,1,2,2,1,1,1]
   }
 
   def "Validate sizing - error"() {
     given:
-    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: -2, minSize: -1, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
+    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: -2, minSize: -1, subnetId: subnetId, poolId: poolId, securityGroups: securityGroups)
     DeployOpenstackAtomicOperationDescription description = new DeployOpenstackAtomicOperationDescription(account: account, application: application, region: region, stack: stack, freeFormDetails: freeFormDetails, disableRollback: disableRollback, timeoutMins: timeoutMins, serverGroupParameters: params, credentials: credz)
 
     when:

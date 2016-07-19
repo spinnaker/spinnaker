@@ -42,7 +42,13 @@ import org.openstack4j.model.network.NetFloatingIP
 import org.openstack4j.model.network.Network
 import org.openstack4j.model.network.Port
 import org.openstack4j.model.network.Subnet
-import org.openstack4j.model.network.ext.*
+import org.openstack4j.model.network.ext.HealthMonitor
+import org.openstack4j.model.network.ext.HealthMonitorType
+import org.openstack4j.model.network.ext.LbMethod
+import org.openstack4j.model.network.ext.LbPool
+import org.openstack4j.model.network.ext.Member
+import org.openstack4j.model.network.ext.Protocol
+import org.openstack4j.model.network.ext.Vip
 
 import java.lang.reflect.UndeclaredThrowableException
 import java.util.regex.Matcher
@@ -158,18 +164,6 @@ abstract class OpenstackClientProvider {
       throw new OpenstackProviderException("Unable to find vip ${vipId} in ${region}")
     }
     result
-  }
-
-  /**
-   * Validates the subnet in a region.
-   * @param region
-   * @param subnetId
-   * @return boolean
-   */
-  boolean validateSubnetId(final String region, final String subnetId) {
-    handleRequest {
-      getRegionClient(region).networking().subnet().get(subnetId) != null
-    }
   }
 
   /**
@@ -813,6 +807,18 @@ abstract class OpenstackClientProvider {
   List<Subnet> listSubnets(String region) {
     handleRequest {
       getRegionClient(region).networking().subnet().list()
+    }
+  }
+
+  /**
+   * Get the subnet in a region.
+   * @param region
+   * @param subnetId
+   * @return boolean
+   */
+  Subnet getSubnet(final String region, final String subnetId) {
+    handleRequest {
+      getRegionClient(region).networking().subnet().get(subnetId)
     }
   }
 
