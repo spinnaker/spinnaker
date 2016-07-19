@@ -62,6 +62,13 @@ class PipelineService {
       throw new PipelineConfigNotFoundException()
     }
     pipelineConfig.trigger = trigger
+    if (trigger.notifications) {
+      if (pipelineConfig.notifications) {
+        ((List) pipelineConfig.notifications).addAll(trigger.notifications)
+      } else {
+        pipelineConfig.notifications = trigger.notifications;
+      }
+    }
     orcaService.startPipeline(pipelineConfig, trigger.user?.toString())
   }
 

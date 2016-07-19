@@ -104,6 +104,7 @@ class PipelineController {
                                   @RequestBody(required = false) Map trigger) {
     trigger = trigger ?: [:]
     trigger.user = trigger.user ?: AuthenticatedRequest.getSpinnakerUser().orElse('anonymous')
+    trigger.notifications = trigger.notifications ?: [];
 
     try {
       def body = pipelineService.trigger(application, pipelineNameOrId, trigger)
