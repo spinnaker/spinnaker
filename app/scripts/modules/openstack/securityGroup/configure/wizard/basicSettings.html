@@ -46,7 +46,7 @@
          </div>
       </div>
 
-      <select-field label="Region" options="regions" model="securityGroup.region"></select-field>
+      <os-region-select-field account="securityGroup.account" value="securityGroup.region" on-change="ctrl.onRegionChanged(region)"></os-region-select-field>
     </div>
   </div>
 </form>

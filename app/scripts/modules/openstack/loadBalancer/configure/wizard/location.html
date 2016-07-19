@@ -27,7 +27,7 @@
         </div>
       </div>
 
-      <select-field label="Region" options="regions" model="loadBalancer.region" on-change="ctrl.regionUpdated()"></select-field>
+      <os-region-select-field account="loadBalancer.account" value="loadBalancer.region" on-change="ctrl.onRegionChanged(region)"></os-region-select-field>
 
       <div class="form-group">
         <div class="col-md-3 sm-label-right">Stack <help-field key="openstack.loadBalancer.stack"></help-field></div>
@@ -52,7 +52,7 @@
         </div>
       </div>
 
-      <os-subnet-select-field model="loadBalancer.subnetId" filter="subnetFilter"></os-subnet-select-field>
+      <os-subnet-select-field model="loadBalancer.subnetId" filter="subnetFilter" help-key="openstack.loadBalancer.subnet" on-change="ctrl.onSubnetChanged(subnet)"></os-subnet-select-field>
 
       <div class="form-group">
         <div class="col-md-7 col-md-offset-3" ng-if="locationForm.stackName.$error.pattern">

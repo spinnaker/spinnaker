@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.securityGroup.openstack.create.contro
   require('../../../../core/modal/wizard/v2modalWizard.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js'),
   require('../../../../core/search/search.service.js'),
-  require('../../../common/selectField.directive.js'),
+  require('../../../region/regionSelectField.directive.js'),
   require('../../transformer.js'),
 ])
   .controller('openstackUpsertSecurityGroupController', function($q, $scope, $uibModalInstance, $state,
@@ -33,7 +33,6 @@ module.exports = angular.module('spinnaker.securityGroup.openstack.create.contro
       submitting: false
     };
 
-    $scope.regions = [];
     function onApplicationRefresh() {
       // If the user has already closed the modal, do not navigate to the new details view
       if ($scope.$$destroyed) {
@@ -69,8 +68,7 @@ module.exports = angular.module('spinnaker.securityGroup.openstack.create.contro
 
     function getLoadBalancerNames(loadBalancers) {
       return _(loadBalancers)
-        .filter({ account: $scope.securityGroup.account })
-        .filter({ region: $scope.securityGroup.region })
+        .filter({ account: $scope.securityGroup.account, region: $scope.securityGroup.region })
         .pluck('name')
         .flatten(true)
         .unique()
@@ -152,9 +150,10 @@ module.exports = angular.module('spinnaker.securityGroup.openstack.create.contro
     };
 
     this.accountUpdated = function() {
-        accountService.getRegionsForAccount($scope.securityGroup.account).then(function(regions) {
-        $scope.regions = _.map(regions, function(r) { return {label: r, value: r}; });
-      });
+    };
+
+    this.onRegionChanged = function(region) {
+      $scope.securityGroup.region = region;
     };
 
     this.submit = function () {

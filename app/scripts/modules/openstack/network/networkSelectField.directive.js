@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.openstack.network.networkSelectField.directive', [
   require('../../core/utils/lodash'),
   require('../../core/network/network.read.service.js'),
-  require('../common/selectField.directive.js')
+  require('../common/selectField.component.js')
 ])
   .directive('networkSelectField', function (_, networkReader) {
     return {
@@ -43,6 +43,7 @@ module.exports = angular.module('spinnaker.openstack.network.networkSelectField.
             scope.networks = _(networks)
               .filter(scope.filter || {})
               .map(function(a) { return {label: a.name, value: a.id}; })
+              .sortBy(function(o) { return o.label; })
               .valueOf();
           });
         }

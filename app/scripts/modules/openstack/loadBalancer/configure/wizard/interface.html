@@ -3,7 +3,7 @@
     <div class="form-group">
       <div class="col-md-3 sm-label-right">
         Protocol
-        <help-field key="openstack.service.ports.protocol"></help-field>
+        <help-field key="openstack.loadBalancer.protocol"></help-field>
       </div>
       <div class="col-md-2">
         <select class="form-control input-sm"
@@ -14,7 +14,7 @@
         </select>
       </div>
     </div>
-    <network-select-field model="loadBalancer.networkId"></network-select-field>
+    <network-select-field model="loadBalancer.networkId" help-key="openstack.loadBalancer.network" on-change="ctrl.onNetworkChanged(network)"></network-select-field>
     <div class="form-group">
       <div class="col-md-3 sm-label-right">
         Port

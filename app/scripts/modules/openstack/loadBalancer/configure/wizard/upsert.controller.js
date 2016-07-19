@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
   require('../../../../core/task/monitor/taskMonitorService.js'),
   require('../../../../core/search/search.service.js'),
   require('../../transformer.js'),
-  require('../../../../core/region/regionSelectField.directive.js'),
+  require('../../../region/regionSelectField.directive.js'),
   require('../../../subnet/subnetSelectField.directive.js'),
   require('../../../network/networkSelectField.directive.js'),
   require('../../../common/isolateForm.directive.js'),
@@ -37,7 +37,6 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
       submitting: false
     };
 
-    $scope.regions = [];
     $scope.subnetFilter = {};
 
     $scope.protocols = ['HTTP', 'HTTPS'];
@@ -136,40 +135,37 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
       return loadBalancer.name;
     };
 
-    var currentRegionRequest = 0;
     this.accountUpdated = function() {
+      ctrl.updateName();
       updateLoadBalancerNames();
-
-      currentRegionRequest++;
-      var requestId = currentRegionRequest;
-      accountService.getRegionsForAccount($scope.loadBalancer.account).then(function(regions) {
-        if (requestId !== currentRegionRequest) {
-          return;
-        }
-
-        $scope.regions = _.map(regions, function(r) { return {label: r, value: r}; });
-      });
     };
 
-    this.regionUpdated = function() {
+    this.onRegionChanged = function(regionId) {
+      $scope.loadBalancer.region = regionId;
+
       //updating the filter triggers a refresh of the subnets
       $scope.subnetFilter = {type: 'openstack', account: $scope.loadBalancer.account, region: $scope.loadBalancer.region};
     };
 
-    this.onSubnetChanged = function() {
+    this.onSubnetChanged = function(subnetId) {
+      $scope.loadBalancer.subnetId = subnetId;
+    };
+
+    this.onNetworkChanged = function(networkId) {
+      $scope.loadBalancer.networkId = networkId;
     };
 
     this.newStatusCode = 200;
     this.addStatusCode = function() {
       var newCode = parseInt(this.newStatusCode);
-      if ($scope.loadBalancer.healthMonitor.expectedStatusCodes.indexOf(newCode) === -1) {
-        $scope.loadBalancer.healthMonitor.expectedStatusCodes.push(newCode);
-        $scope.loadBalancer.healthMonitor.expectedStatusCodes.sort();
+      if ($scope.loadBalancer.healthMonitor.expectedHttpStatusCodes.indexOf(newCode) === -1) {
+        $scope.loadBalancer.healthMonitor.expectedHttpStatusCodes.push(newCode);
+        $scope.loadBalancer.healthMonitor.expectedHttpStatusCodes.sort();
       }
     };
 
     this.removeStatusCode = function(code) {
-      $scope.loadBalancer.healthMonitor.expectedStatusCodes = $scope.loadBalancer.healthMonitor.expectedStatusCodes.filter(function(c) {
+      $scope.loadBalancer.healthMonitor.expectedHttpStatusCodes = $scope.loadBalancer.healthMonitor.expectedHttpStatusCodes.filter(function(c) {
         return c !== code;
       });
     };

@@ -70,7 +70,6 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
     this.mockSecurityGroupReader = addDeferredMock({}, 'loadSecurityGroups');
 
     this.mockAccountService = addDeferredMock({}, 'listAccounts');
-    addDeferredMock(this.mockAccountService, 'getRegionsForAccount');
     this.mockSecurityGroupWriter = addDeferredMock({}, 'upsertSecurityGroup');
     this.mockTaskMonitor = {
       submit: jasmine.createSpy()
@@ -121,7 +120,6 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
         submitting: false
       });
       expect(this.$scope.isNew).toEqual(true);
-      expect(this.$scope.regions).toEqual([]);
       expect(this.$scope.securityGroup).toEqual(this.securityGroupDefaults);
     });
 
@@ -144,10 +142,6 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
         expect(this.$scope.securityGroup.account).toEqual(this.testData.accountList[0].name);
       });
 
-      it('requests the list of regions', function () {
-        expect(this.mockAccountService.getRegionsForAccount).toHaveBeenCalledWith('account1');
-      });
-
       describe('& securityGroup list returned', function () {
         beforeEach(function () {
           this.mockSecurityGroupReader.loadSecurityGroups.deferred.resolve(this.testData.loadSecurityGroups);
@@ -167,10 +161,6 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
           beforeEach(function () {
             this.$scope.securityGroup.account = 'account2';
             this.ctrl.accountUpdated();
-          });
-
-          it('requests the list of regions', function () {
-            expect(this.mockAccountService.getRegionsForAccount).toHaveBeenCalledWith('account2');
           });
 
           describe('& submit() called', function () {

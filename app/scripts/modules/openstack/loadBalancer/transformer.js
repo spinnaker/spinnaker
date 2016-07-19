@@ -20,9 +20,9 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', 
           type: 'HTTPS',
           method: 'GET',
           url: '/healthCheck',
-          expectedStatusCodes: [200],
+          expectedHttpStatusCodes: [200],
           delay: 10,
-          timeout: 200,
+          timeout: 1,
           maxRetries: 2
         }
     };

@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.openstack.subnet.subnetSelectField.di
   require('../../core/config/settings'),
   require('../../core/utils/lodash'),
   require('../../core/subnet/subnet.read.service.js'),
-  require('../common/selectField.directive.js')
+  require('../common/selectField.component.js')
 ])
   .directive('osSubnetSelectField', function (settings, _, subnetReader) {
     return {
@@ -45,6 +45,7 @@ module.exports = angular.module('spinnaker.openstack.subnet.subnetSelectField.di
             scope.subnets = _(subnets)
               .filter(scope.filter || {})
               .map(function(s) { return {label: s.name, value: s.id}; })
+              .sortBy(function(o) { return o.label; })
               .valueOf();
           });
         }

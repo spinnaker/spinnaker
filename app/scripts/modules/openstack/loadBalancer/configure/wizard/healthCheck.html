@@ -11,15 +11,12 @@
       </select>
     </div>
     <div class="col-md-3 sm-label-right">
-      Delay
+      Interval
       <help-field key="openstack.loadBalancer.healthCheck.delay"></help-field>
     </div>
-    <div class="col-md-3">
-      <div class="input-group">
-        <input type="number" class="form-control input-sm" name="delay" ng-model="loadBalancer.healthMonitor.delay"
-               min="1"/>
-        <span class="input-group-addon">s</span>
-      </div>
+    <div class="col-md-2">
+      <input type="number" class="form-control input-sm" name="delay" ng-model="loadBalancer.healthMonitor.delay"
+             min="{{loadBalancer.healthMonitor.timeout}}"/>
     </div>
   </div>
   <div class="form-group">
@@ -27,14 +24,11 @@
       Timeout
       <help-field key="openstack.loadBalancer.healthCheck.timeout"></help-field>
     </div>
-    <div class="col-md-3">
-      <div class="input-group">
-        <input type="number" class="form-control input-sm" name="timeout" ng-model="loadBalancer.healthMonitor.timeout"
-               min="1"/>
-        <span class="input-group-addon">ms</span>
-      </div>
+    <div class="col-md-2">
+      <input type="number" class="form-control input-sm" name="timeout" ng-model="loadBalancer.healthMonitor.timeout"
+             min="1" max="{{loadBalancer.healthMonitor.delay}}"/>
     </div>
-    <div class="col-md-2 sm-label-right">
+    <div class="col-md-3 sm-label-right">
       Retries
       <help-field key="openstack.loadBalancer.healthCheck.maxRetries"></help-field>
     </div>
@@ -72,7 +66,7 @@
       <help-field key="openstack.loadBalancer.healthCheck.statusCodes"></help-field>
     </div>
     <div class="col-md-8">
-      <div ng-repeat="statusCode in loadBalancer.healthMonitor.expectedStatusCodes" class="status-code pull-left">
+      <div ng-repeat="statusCode in loadBalancer.healthMonitor.expectedHttpStatusCodes" class="status-code pull-left">
         {{statusCode}}
         <span class="glyphicon glyphicon-remove-circle" aria-hidden="true" ng-click="ctrl.removeStatusCode(statusCode);"></span>
       </div>

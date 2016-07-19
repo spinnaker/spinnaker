@@ -48,9 +48,9 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
         type: 'HTTPS',
         method: 'GET',
         url: '/healthCheck',
-        expectedStatusCodes: [200],
+        expectedHttpStatusCodes: [200],
         delay: 10,
-        timeout: 200,
+        timeout: 1,
         maxRetries: 2
       }
     };
@@ -86,7 +86,6 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
 
     this.mockLoadBalancerReader = addDeferredMock({}, 'listLoadBalancers');
     this.mockAccountService = addDeferredMock({}, 'listAccounts');
-    addDeferredMock(this.mockAccountService, 'getRegionsForAccount');
     this.mockLoadBalancerWriter = addDeferredMock({}, 'upsertLoadBalancer');
     this.mockTaskMonitor = {
       submit: jasmine.createSpy()
@@ -137,7 +136,6 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
         submitting: false
       });
       expect(this.$scope.isNew).toBeTruthy();
-      expect(this.$scope.regions).toEqual([]);
       expect(this.$scope.subnetFilter).toEqual({});
       expect(this.$scope.loadBalancer).toEqual(this.loadBalancerDefaults);
     });
@@ -162,13 +160,13 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
     it('can add and remove health check status codes', function() {
       this.ctrl.newStatusCode = 302;
       this.ctrl.addStatusCode();
-      expect(this.$scope.loadBalancer.healthMonitor.expectedStatusCodes).toEqual([200,302]);
+      expect(this.$scope.loadBalancer.healthMonitor.expectedHttpStatusCodes).toEqual([200,302]);
       this.ctrl.addStatusCode();
-      expect(this.$scope.loadBalancer.healthMonitor.expectedStatusCodes).toEqual([200,302]);
+      expect(this.$scope.loadBalancer.healthMonitor.expectedHttpStatusCodes).toEqual([200,302]);
       this.ctrl.removeStatusCode(102);
-      expect(this.$scope.loadBalancer.healthMonitor.expectedStatusCodes).toEqual([200,302]);
+      expect(this.$scope.loadBalancer.healthMonitor.expectedHttpStatusCodes).toEqual([200,302]);
       this.ctrl.removeStatusCode(200);
-      expect(this.$scope.loadBalancer.healthMonitor.expectedStatusCodes).toEqual([302]);
+      expect(this.$scope.loadBalancer.healthMonitor.expectedHttpStatusCodes).toEqual([302]);
     });
 
     describe('& account list returned', function() {
@@ -179,10 +177,6 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
 
       it('sets the account to the first one in the list', function() {
         expect(this.$scope.loadBalancer.account).toEqual(this.testData.accountList[0].name);
-      });
-
-      it('requests the list of regions', function() {
-        expect(this.mockAccountService.getRegionsForAccount).toHaveBeenCalledWith('account1');
       });
 
       describe('& load balancer list returned', function() {
@@ -200,15 +194,9 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
 
         describe('& region list returned', function() {
           beforeEach(function() {
-            this.mockAccountService.getRegionsForAccount.deferred.resolve(this.testData.regionList);
-            this.$scope.$digest();
-
-            //simulate select-field enforcing selection of the region
-            this.$scope.loadBalancer.region = this.testData.regionList[0];
-            this.$scope.$digest();
-
             //simulate forced selection by select-field directive
-            this.ctrl.regionUpdated();
+            this.ctrl.onRegionChanged(this.testData.regionList[0]);
+            this.$scope.$digest();
           });
 
           it('- updates the subnet filter', function() {
@@ -232,38 +220,18 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
               this.ctrl.accountUpdated();
             });
 
-            it('requests the list of regions', function() {
-              expect(this.mockAccountService.getRegionsForAccount).toHaveBeenCalledWith('account2');
-            });
-
             it('- updates the list of load balancer names', function() {
               expect(this.$scope.existingLoadBalancerNames).toEqual(
                 _.map(_.filter(this.testData.loadBalancerList, {account: 'account2'}), function(lb) { return lb.name; })
               );
-            });
-
-            describe('& account selection changed again', function() {
-              var firstDeferred;
-              beforeEach(function() {
-                firstDeferred = this.mockAccountService.getRegionsForAccount.deferred;
-                this.$scope.loadBalancer.account = 'account1';
-                this.ctrl.accountUpdated();
-              });
-
-              it('- ignores the response to the first query if it comes second', function() {
-                this.mockAccountService.getRegionsForAccount.deferred.resolve(['second']);
-                this.$scope.$digest();
-                firstDeferred.resolve([]);
-                this.$scope.$digest();
-                expect(this.$scope.regions).toEqual([{label: 'second', value: 'second'}]);
-              });
             });
           });
 
           describe('& region selection changed', function() {
             beforeEach(function() {
               this.$scope.loadBalancer.account = 'account2';
-              this.ctrl.regionUpdated();
+              this.ctrl.onRegionChanged(this.testData.regionList[1]);
+              this.$scope.$digest();
             });
 
             it('- updates the subnet filter', function() {
@@ -400,7 +368,6 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
         submitting: false
       });
       expect(this.$scope.isNew).toBeFalsy();
-      expect(this.$scope.regions).toEqual([]);
       expect(this.$scope.subnetFilter).toEqual({});
       expect(this.$scope.loadBalancer).toEqual(_.defaults(angular.copy(this.testData.loadBalancerList[3]), _.defaults({ipAddress: '0.0.0.0'},this.loadBalancerDefaults)));
     });

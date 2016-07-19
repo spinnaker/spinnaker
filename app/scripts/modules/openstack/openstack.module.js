@@ -25,7 +25,7 @@ module.exports = angular.module('spinnaker.openstack', [
   require('./loadBalancer/details/details.openstack.module.js'),
   require('./loadBalancer/transformer.js'),
   require('../core/subnet/subnet.module.js'),
-  require('./common/selectField.directive.js'),
+  require('./common/selectField.component.js'),
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('openstack', {
