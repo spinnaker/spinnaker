@@ -325,13 +325,18 @@ class JedisExecutionRepository implements ExecutionRepository {
           }
         }
       }
+      filteredOrchestrationIds = filteredOrchestrationIds.subList(0, Math.min(criteria.limit, filteredOrchestrationIds.size()))
     }
 
     return retrieveObservable(Orchestration, allOrchestrationsKey, new Func1<String, Iterable<String>>() {
       @Override
       Iterable<String> call(String key) {
         withJedis { Jedis jedis ->
-          return filteredOrchestrationIds != null ? filteredOrchestrationIds : jedis.smembers(key)
+          if (filteredOrchestrationIds != null) {
+            return filteredOrchestrationIds
+          }
+          def unfiltered = jedis.smembers(key).toList()
+          return unfiltered.subList(0, Math.min(criteria.limit, unfiltered.size()))
         }
       }
     }, queryByAppScheduler)

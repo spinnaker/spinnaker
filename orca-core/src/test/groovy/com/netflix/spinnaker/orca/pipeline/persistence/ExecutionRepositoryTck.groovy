@@ -20,6 +20,7 @@ import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
@@ -497,5 +498,30 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     and:
     repository.retrievePipelines().toList().toBlocking().first() == []
     jedis.zrange(JedisExecutionRepository.executionsByPipelineKey(pipeline.pipelineConfigId), 0, 1).isEmpty()
+  }
+
+  @Unroll
+  def "retrieving orchestrations limits the number of returned results"() {
+    given:
+    repository.store(new Orchestration(application: "orca", buildTime: 0))
+    repository.store(new Orchestration(application: "orca", buildTime: 0))
+    repository.store(new Orchestration(application: "orca", buildTime: 0))
+    repository.store(new Orchestration(application: "orca", buildTime: 0))
+
+    when:
+    def retrieved = repository.retrieveOrchestrationsForApplication("orca", new ExecutionCriteria(limit: limit))
+      .toList().toBlocking().first()
+
+    then:
+    retrieved.size() == actual
+
+    where:
+    limit  || actual
+    0      || 0
+    1      || 1
+    2      || 2
+    4      || 4
+    100    || 4
+
   }
 }
