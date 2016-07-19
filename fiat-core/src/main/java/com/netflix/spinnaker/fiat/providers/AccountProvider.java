@@ -17,31 +17,15 @@
 package com.netflix.spinnaker.fiat.providers;
 
 import com.netflix.spinnaker.fiat.model.resources.Account;
-import lombok.NonNull;
-import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-@Component
-public class AccountProvider {
+public interface AccountProvider {
 
-  @Autowired
-  @Setter
-  private List<CloudProviderAccounts> cloudProviderAccounts;
-
-  public Set<Account> getAccounts(@NonNull Collection<String> groups) {
-    return cloudProviderAccounts
-        .stream()
-        .flatMap(cloudAccountProvider -> cloudAccountProvider.getAccounts().stream())
-        .filter(account ->
-                    account.getRequiredGroupMembership().isEmpty() ||
-                        !Collections.disjoint(account.getRequiredGroupMembership(), groups))
-        .collect(Collectors.toSet());
-  }
+  /**
+   * @param groups
+   * @return all accounts to which a user with the specified set of roles or groups has access.
+   */
+  Set<Account> getAccounts(Collection<String> groups);
 }

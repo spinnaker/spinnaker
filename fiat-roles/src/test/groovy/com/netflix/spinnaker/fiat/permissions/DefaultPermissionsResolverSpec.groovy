@@ -18,10 +18,10 @@ package com.netflix.spinnaker.fiat.permissions
 
 import com.netflix.spinnaker.fiat.model.ServiceAccount
 import com.netflix.spinnaker.fiat.model.resources.Account
-import com.netflix.spinnaker.fiat.providers.AccountProvider
 import com.netflix.spinnaker.fiat.providers.ApplicationProvider
-import com.netflix.spinnaker.fiat.providers.CloudProviderAccounts
+import com.netflix.spinnaker.fiat.providers.DefaultAccountProvider
 import com.netflix.spinnaker.fiat.providers.ServiceAccountProvider
+import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider
 import spock.lang.Shared
 import spock.lang.Specification
@@ -30,18 +30,18 @@ import spock.lang.Subject
 class DefaultPermissionsResolverSpec extends Specification {
 
   @Shared
-  AccountProvider accountProvider = new AccountProvider().setCloudProviderAccounts(
-      [
-          new CloudProviderAccounts("A").setAccounts([
-              new Account().setName("noReqGroups")
-          ]),
-          new CloudProviderAccounts("B").setAccounts([
-              new Account().setName("reqGroup1").setRequiredGroupMembership(["group1"])
-          ]),
-          new CloudProviderAccounts("C").setAccounts([
-              new Account().setName("reqGroup1and2").setRequiredGroupMembership(["group1", "group2"])
-          ]),
-      ]);
+  ClouddriverService clouddriverService = Mock(ClouddriverService) {
+    getAccounts() >> [
+        new Account().setName("noReqGroups"),
+        new Account().setName("reqGroup1").setRequiredGroupMembership(["group1"]),
+        new Account().setName("reqGroup1and2").setRequiredGroupMembership(["group1", "group2"]),
+    ]
+  }
+
+  @Shared
+  DefaultAccountProvider accountProvider = new DefaultAccountProvider(
+      clouddriverService: clouddriverService
+  )
 
   @Shared
   ServiceAccountProvider serviceAccountProvider = new ServiceAccountProvider().setServiceAccountsByName(

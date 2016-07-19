@@ -19,12 +19,16 @@ package com.netflix.spinnaker.fiat.controllers;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
+import io.swagger.annotations.ApiOperation;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,6 +38,26 @@ public class AuthorizeController {
 
   @Autowired
   private PermissionsRepository permissionsRepository;
+
+  @Value("${auth.getAll.enabled:false}")
+  @Setter
+  private boolean getAllEnabled;
+
+  @ApiOperation(value = "Used mostly for testing. Not really any real value to the rest of " +
+      "the system. Disabled by default.")
+  @RequestMapping(method = RequestMethod.GET)
+  public Set<UserPermission.View> getAll() {
+    if (!getAllEnabled) {
+      return new HashSet<>(0);
+    }
+
+    return permissionsRepository
+        .getAllById()
+        .values()
+        .stream()
+        .map(UserPermission::getView)
+        .collect(Collectors.toSet());
+  }
 
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.GET)
   public UserPermission.View getUserPermission(@PathVariable String userId) {

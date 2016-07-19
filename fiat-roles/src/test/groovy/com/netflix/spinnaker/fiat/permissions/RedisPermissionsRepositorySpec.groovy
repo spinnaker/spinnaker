@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.fiat.permissions
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.fiat.model.ServiceAccount
 import com.netflix.spinnaker.fiat.model.UserPermission
@@ -38,7 +39,7 @@ class RedisPermissionsRepositorySpec extends Specification {
   EmbeddedRedis embeddedRedis
 
   @Shared
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
 
   @Shared
   Jedis jedis

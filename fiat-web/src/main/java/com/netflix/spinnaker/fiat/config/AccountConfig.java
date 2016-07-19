@@ -16,47 +16,45 @@
 
 package com.netflix.spinnaker.fiat.config;
 
-import com.netflix.spinnaker.fiat.providers.CloudProviderAccounts;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService;
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import retrofit.Endpoints;
+import retrofit.RestAdapter;
+import retrofit.client.OkClient;
+import retrofit.converter.JacksonConverter;
 
 @Configuration
 public class AccountConfig {
 
-  @Bean
-  @ConfigurationProperties("aws")
-  @ConditionalOnProperty("providers.aws.enabled")
-  public CloudProviderAccounts awsAccounts() {
-    return new CloudProviderAccounts("aws");
-  }
+  @Autowired
+  @Setter
+  private RestAdapter.LogLevel retrofitLogLevel;
+
+  @Autowired
+  @Setter
+  private ObjectMapper objectMapper;
+
+  @Autowired
+  @Setter
+  private OkClient okClient;
+
+  @Value("${services.clouddriver.baseUrl}")
+  @Setter
+  private String clouddriverEndpoint;
 
   @Bean
-  @ConfigurationProperties("azure")
-  @ConditionalOnProperty("providers.azure.enabled")
-  public CloudProviderAccounts azureAccounts() {
-    return new CloudProviderAccounts("azure");
-  }
-
-  @Bean
-  @ConfigurationProperties("cf")
-  @ConditionalOnProperty("providers.cf.enabled")
-  public CloudProviderAccounts cfAccounts() {
-    return new CloudProviderAccounts("cf");
-  }
-
-  @Bean
-  @ConfigurationProperties("google")
-  @ConditionalOnProperty("providers.google.enabled")
-  public CloudProviderAccounts googleAccounts() {
-    return new CloudProviderAccounts("google");
-  }
-
-  @Bean
-  @ConfigurationProperties("kubernetes")
-  @ConditionalOnProperty("providers.kubernetes.enabled")
-  public CloudProviderAccounts kubernetesAccounts() {
-    return new CloudProviderAccounts("kubernetes");
+  ClouddriverService clouddriverService() {
+    return new RestAdapter.Builder()
+        .setEndpoint(Endpoints.newFixedEndpoint(clouddriverEndpoint))
+        .setClient(okClient)
+        .setConverter(new JacksonConverter(objectMapper))
+        .setLogLevel(retrofitLogLevel)
+        .build()
+        .create(ClouddriverService.class);
   }
 }

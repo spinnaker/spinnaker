@@ -3,3 +3,7 @@ server:
 
 redis:
   connection: ${services.redis.connection:redis://localhost:6379}
+
+auth:
+  getAll:
+    enabled: false

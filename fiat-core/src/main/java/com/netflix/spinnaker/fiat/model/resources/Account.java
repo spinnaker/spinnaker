@@ -28,6 +28,7 @@ import java.util.Set;
 @Data
 public class Account implements Named {
   private String name;
+  private String cloudProvider;
   private List<String> requiredGroupMembership = new ArrayList<>();
 
   @JsonIgnore

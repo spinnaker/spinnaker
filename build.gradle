@@ -47,8 +47,11 @@ allprojects {
 
 subprojects { project ->
   dependencies {
-    testCompile spinnaker.dependency('groovy')
     spinnaker.group('test')
+
+    compile spinnaker.dependency("korkSwagger")
+
+    testCompile spinnaker.dependency('groovy')
   }
 }
 

@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.fiat.providers;
+package com.netflix.spinnaker.fiat.providers.internal;
 
 import com.netflix.spinnaker.fiat.model.resources.Account;
-import lombok.Data;
+import retrofit.http.GET;
 
-import java.util.ArrayList;
 import java.util.List;
 
-@Data
-public class CloudProviderAccounts {
-  private final String cloudProvider;
-  private List<Account> accounts = new ArrayList<>();
+public interface ClouddriverService {
+
+  @GET("/credentials")
+  List<Account> getAccounts();
 }

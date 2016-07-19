@@ -17,24 +17,25 @@
 package com.netflix.spinnaker.fiat.providers
 
 import com.netflix.spinnaker.fiat.model.resources.Account
+import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
 import spock.lang.Specification
+import spock.lang.Subject
 
-class AccountProviderSpec extends Specification {
+class DefaultAccountProviderSpec extends Specification {
 
   def "should get all accounts based on supplied roles"() {
     setup:
-    AccountProvider accountProvider = new AccountProvider().setCloudProviderAccounts(
-        [
-            new CloudProviderAccounts("A").setAccounts([
-                new Account().setName("noReqGroups")
-            ]),
-            new CloudProviderAccounts("B").setAccounts([
-                new Account().setName("reqGroup1").setRequiredGroupMembership(["group1"])
-            ]),
-            new CloudProviderAccounts("C").setAccounts([
-                new Account().setName("reqGroup1and2").setRequiredGroupMembership(["group1", "group2"])
-            ]),
-        ]);
+    ClouddriverService clouddriverService = Mock(ClouddriverService) {
+      getAccounts() >> [
+          new Account().setName("noReqGroups"),
+          new Account().setName("reqGroup1").setRequiredGroupMembership(["group1"]),
+          new Account().setName("reqGroup1and2").setRequiredGroupMembership(["group1", "group2"]),
+      ]
+    }
+    @Subject
+    DefaultAccountProvider accountProvider = new DefaultAccountProvider(
+        clouddriverService: clouddriverService
+    )
 
     when:
     def result = accountProvider.getAccounts(input)
