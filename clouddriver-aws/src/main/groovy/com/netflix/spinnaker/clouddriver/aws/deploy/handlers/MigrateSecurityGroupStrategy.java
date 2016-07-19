@@ -85,7 +85,7 @@ public abstract class MigrateSecurityGroupStrategy {
       targetReferences = getTargetReferences(sourceUpdater.get());
 
       // convert names before determining if rules are important
-      targetReferences.stream().forEach(reference -> reference.setTargetName(getTargetName(reference.getSourceName())));
+      targetReferences.forEach(reference -> reference.setTargetName(getTargetName(reference.getSourceName())));
 
       result.setErrors(shouldError(target, targetReferences));
       if (!result.getErrors().isEmpty()) {
@@ -133,8 +133,7 @@ public abstract class MigrateSecurityGroupStrategy {
     if (!results.targetExists()) {
       targetGroups.add(results.getTarget());
     }
-    results.getCreated().stream()
-      .forEach(r -> r.setTargetId(
+    results.getCreated().forEach(r -> r.setTargetId(
         createDependentSecurityGroup(r, source, target).getSecurityGroup().getGroupId()));
 
     Optional<SecurityGroupUpdater> targetGroup = targetLookup.getSecurityGroupByName(
@@ -316,7 +315,7 @@ public abstract class MigrateSecurityGroupStrategy {
 
     String targetName = AmazonVpcProvider.getVpcName(targetVpc);
 
-    accounts.stream().forEach(account -> {
+    accounts.forEach(account -> {
       List<Vpc> vpcs = getAmazonClientProvider().getAmazonEC2(account, target.getRegion()).describeVpcs().getVpcs();
       Vpc match = vpcs.stream()
         .filter(vpc -> AmazonVpcProvider.getVpcName(vpc).equals(targetName))

@@ -268,7 +268,7 @@ class MigrateServerGroupStrategySpec extends Specification {
     1 * basicAmazonDeployHandler.copySourceAttributes(regionScopedProvider, 'asg-v001', false, _) >> { a, b, c, d -> d }
     1 * basicAmazonDeployHandler.handle(_, []) >> new DeploymentResult(serverGroupNames: ['asg-v003'])
     0 * _
-    results.serverGroupName == 'asg-v003'
+    results.serverGroupNames == ['asg-v003']
   }
 
   void 'sets name on dryRun'() {
@@ -297,7 +297,7 @@ class MigrateServerGroupStrategySpec extends Specification {
     1 * deployDefaults.getAddAppGroupToServerGroup() >> false
     1 * nameResolver.resolveNextServerGroupName('asg', null, null, false) >> 'asg-v002'
     0 * _
-    results.serverGroupName == 'asg-v002'
+    results.serverGroupNames == ['asg-v002']
   }
 
 }
