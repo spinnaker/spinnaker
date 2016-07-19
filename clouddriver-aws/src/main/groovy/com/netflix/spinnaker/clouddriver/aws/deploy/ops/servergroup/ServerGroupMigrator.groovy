@@ -72,10 +72,10 @@ class ServerGroupMigrator {
 
   public MigrateServerGroupResult migrate(boolean dryRun) {
     task.updateStatus BASE_PHASE, (dryRun ? "Calculating" : "Beginning") + " migration of server group " + source.toString()
-    def results = migrationStrategy.generateResults(source, target, sourceLookup, targetLookup,
+    MigrateServerGroupResult results = migrationStrategy.generateResults(source, target, sourceLookup, targetLookup,
       migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, subnetType, iamRole, keyPair, targetAmi, dryRun)
     task.updateStatus BASE_PHASE, "Migration of server group " + source.toString() +
-      (dryRun ? " calculated" : " completed") + ". Migrated server group name: " + results.serverGroupName
+      (dryRun ? " calculated" : " completed") + ". Migrated server group name: " + results.serverGroupNames.get(0)
     results
   }
 
