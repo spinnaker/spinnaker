@@ -17,23 +17,16 @@
 package com.netflix.spinnaker.clouddriver.consul.api.v1
 
 import com.netflix.spinnaker.clouddriver.consul.api.v1.services.KeyValueApi
+import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
+import com.netflix.spinnaker.clouddriver.consul.config.ConsulProperties
 import com.squareup.okhttp.OkHttpClient
 import retrofit.RestAdapter
 import retrofit.client.OkClient
 
 import java.util.concurrent.TimeUnit
 
-class ConsulKeyValueStore {
-  public KeyValueApi api
-
-  ConsulKeyValueStore(String agentBaseUrl, Long timeout) {
-    OkHttpClient client = new OkHttpClient()
-    client.setReadTimeout(timeout, TimeUnit.MILLISECONDS)
-    this.api = new RestAdapter.Builder()
-      .setEndpoint(agentBaseUrl)
-      .setClient(new OkClient(client))
-      .setLogLevel(RestAdapter.LogLevel.NONE)
-      .build()
-      .create(KeyValueApi)
+class ConsulKeyValueStore extends Consul<KeyValueApi> {
+  ConsulKeyValueStore(ConsulConfig config) {
+    super(config)
   }
 }

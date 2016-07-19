@@ -25,7 +25,7 @@ import retrofit.http.PUT
 import retrofit.http.Path
 import retrofit.http.Query
 
-interface KeyValueApi {
+interface KeyValueApi extends ConsulApi {
   @GET("/v1/kv/{key}")
   List<KeyValuePair> getKey(@Path("key") String key, @Query("dc") String dc, @Query("recurse") Boolean recurse)
 

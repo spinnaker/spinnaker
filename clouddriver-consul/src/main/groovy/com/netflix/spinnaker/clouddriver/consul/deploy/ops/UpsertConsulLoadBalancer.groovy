@@ -34,7 +34,7 @@ class UpsertConsulLoadBalancer {
     def jsonSlurper = new JsonSlurper()
     def objectMapper = new ObjectMapper()
 
-    def kvApi = new ConsulKeyValueStore(config.servers[0], ConsulProperties.DEFAULT_TIMEOUT_MILLIS).api
+    def kvApi = new ConsulKeyValueStore(config).api
     List<KeyValuePair> services = kvApi.getKey(description.name, description.datacenter, false)
 
     ConsulLoadBalancerDescription oldDescription = new ConsulLoadBalancerDescription()

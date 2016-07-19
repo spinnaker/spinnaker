@@ -17,23 +17,16 @@
 package com.netflix.spinnaker.clouddriver.consul.api.v1
 
 import com.netflix.spinnaker.clouddriver.consul.api.v1.services.CatalogApi
+import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
+import com.netflix.spinnaker.clouddriver.consul.config.ConsulProperties
 import com.squareup.okhttp.OkHttpClient
 import retrofit.RestAdapter
 import retrofit.client.OkClient
 
 import java.util.concurrent.TimeUnit
 
-class ConsulCatalog {
-  public CatalogApi api
-
-  ConsulCatalog(String serverBaseUrl, Long timeout) {
-    OkHttpClient client = new OkHttpClient()
-    client.setReadTimeout(timeout, TimeUnit.MILLISECONDS)
-    this.api = new RestAdapter.Builder()
-      .setEndpoint(serverBaseUrl)
-      .setClient(new OkClient(client))
-      .setLogLevel(RestAdapter.LogLevel.NONE)
-      .build()
-      .create(CatalogApi)
+class ConsulCatalog extends Consul<CatalogApi> {
+  ConsulCatalog(ConsulConfig config) {
+    super(config)
   }
 }

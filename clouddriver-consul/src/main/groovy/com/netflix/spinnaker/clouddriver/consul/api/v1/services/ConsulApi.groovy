@@ -14,18 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.consul.api.v1
+package com.netflix.spinnaker.clouddriver.consul.api.v1.services
 
-import com.netflix.spinnaker.clouddriver.consul.api.v1.services.AgentApi
-import com.netflix.spinnaker.clouddriver.consul.config.ConsulProperties
-import com.squareup.okhttp.OkHttpClient
-import retrofit.RestAdapter
-import retrofit.client.OkClient
-
-import java.util.concurrent.TimeUnit
-
-class ConsulAgent extends Consul<AgentApi> {
-  ConsulAgent(String agentBaseUrl) {
-    super(agentBaseUrl, ConsulProperties.DEFAULT_TIMEOUT_MILLIS)
-  }
+interface ConsulApi {
 }

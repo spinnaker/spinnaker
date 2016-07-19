@@ -16,16 +16,33 @@
 
 package com.netflix.spinnaker.clouddriver.consul.api.v1
 
-import com.netflix.spinnaker.clouddriver.consul.api.v1.services.AgentApi
+import com.netflix.spinnaker.clouddriver.consul.api.v1.services.ConsulApi
+import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulProperties
 import com.squareup.okhttp.OkHttpClient
 import retrofit.RestAdapter
 import retrofit.client.OkClient
 
-import java.util.concurrent.TimeUnit
+class Consul<T extends ConsulApi> {
+  T api
+  String endpoint
+  Long timeout
 
-class ConsulAgent extends Consul<AgentApi> {
-  ConsulAgent(String agentBaseUrl) {
-    super(agentBaseUrl, ConsulProperties.DEFAULT_TIMEOUT_MILLIS)
+  Consul(ConsulConfig config) {
+    if (!config.enabled) {
+      throw new IllegalArgumentException("Consul not enabled, cannot create Consul API")
+    }
+    Consul(config.servers[0], ConsulProperties.DEFAULT_TIMEOUT_MILLIS)
+  }
+
+  Consul(String endpoint, Long timeout) {
+    this.endpoint = endpoint
+    this.timeout = timeout
+    this.api = new RestAdapter.Builder()
+      .setEndpoint(endpoint)
+      .setClient(new OkClient(new OkHttpClient()))
+      .setLogLevel(RestAdapter.LogLevel.NONE)
+      .build()
+      .create(T)
   }
 }

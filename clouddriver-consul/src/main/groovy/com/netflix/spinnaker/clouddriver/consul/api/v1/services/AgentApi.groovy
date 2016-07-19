@@ -16,15 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.consul.api.v1.services
 
-import com.netflix.spinnaker.clouddriver.consul.api.v1.model.AgentDefinition
-import com.netflix.spinnaker.clouddriver.consul.api.v1.model.CheckDefinition
-import com.netflix.spinnaker.clouddriver.consul.api.v1.model.CheckResult
-import com.netflix.spinnaker.clouddriver.consul.api.v1.model.ServiceDefinition
-import com.netflix.spinnaker.clouddriver.consul.api.v1.model.ServiceResult
+import com.netflix.spinnaker.clouddriver.consul.api.v1.model.*
 import com.squareup.okhttp.Response
 import retrofit.http.*
 
-interface AgentApi {
+interface AgentApi extends ConsulApi {
   @GET("/v1/agent/checks")
   Map<String, CheckResult> checks()
 

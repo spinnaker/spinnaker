@@ -46,7 +46,7 @@ class ConsulConfig {
     }
 
     if (!datacenters) {
-      datacenters = (new ConsulCatalog(servers[0], ConsulProperties.DEFAULT_TIMEOUT_MILLIS)).api.datacenters()
+      datacenters = (new ConsulCatalog(this)).api.datacenters()
     }
   }
 }
