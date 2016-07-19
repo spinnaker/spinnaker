@@ -66,8 +66,11 @@ public abstract class MigrateTask extends AbstractCloudProviderAwareTask impleme
       .first();
 
     Map<String, Object> outputs = new HashMap<>();
+    Map<String, String> target = (Map<String, String>) stage.getContext().get("target");
     outputs.put("notification.type", getCloudOperationType().toLowerCase());
     outputs.put("kato.last.task.id", taskId);
+    outputs.put("account.name", target.get("credentials"));
+    outputs.put("region", target.get("region"));
     return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs);
   }
 }
