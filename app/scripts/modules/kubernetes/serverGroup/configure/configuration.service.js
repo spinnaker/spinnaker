@@ -12,10 +12,24 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
   .factory('kubernetesServerGroupConfigurationService', function($q, accountService, kubernetesImageReader, _,
                                                                  loadBalancerReader, cacheInitializer) {
     function configureCommand(application, command, query = '') {
+
+      // this ensures we get the images we need when cloning or copying a server group template.
+      let queries = command.containers
+        .map(c => formatQuery(grabImageAndTag(c.imageDescription.imageId)));
+
+      queries.push(formatQuery(query));
+
+      let imagesPromise = $q.all(queries
+        .map(q => kubernetesImageReader.findImages({
+          provider: 'dockerRegistry',
+          count: 50,
+          q: q })))
+        .then(_.flatten);
+
       return $q.all({
         accounts: accountService.listAccounts('kubernetes'),
         loadBalancers: loadBalancerReader.listLoadBalancers('kubernetes'),
-        allImages: kubernetesImageReader.findImages({ provider: 'dockerRegistry', count: 50, q: formatQuery(query) }),
+        allImages: imagesPromise
       }).then(function(backingData) {
         backingData.filtered = {};
         backingData.securityGroups = [];
@@ -40,6 +54,10 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
 
     function formatQuery(query) {
       return `*${query}*`;
+    }
+
+    function grabImageAndTag(imageId) {
+      return imageId.split('/').pop();
     }
 
     function mapImageToContainer(command) {
