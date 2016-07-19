@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import groovy.transform.CompileStatic
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.SimpleType
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -90,7 +92,7 @@ interface Stage<T extends Execution> {
    * Gets all ancestor stages that satisfy {@code matcher}, including the current stage.
    * @return
    */
-  List<StageNavigator.Result> ancestors(Closure<Boolean> matcher)
+  List<StageNavigator.Result> ancestors(@ClosureParams(value=SimpleType, options="com.netflix.spinnaker.orca.pipeline.model.Stage, com.netflix.spinnaker.orca.batch.StageBuilder") Closure<Boolean> matcher)
 
   /**
    * Gets all ancestor stages, including the current stage.

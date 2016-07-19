@@ -19,47 +19,67 @@ package com.netflix.spinnaker.orca.kato.tasks.quip
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import retrofit.RetrofitError
 import retrofit.client.Client
 import retrofit.client.Response
-import retrofit.mime.TypedString
+import retrofit.mime.TypedByteArray
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
+import java.nio.charset.Charset
 
 class TriggerQuipTaskSpec extends Specification {
 
   @Subject task = Spy(TriggerQuipTask)
   InstanceService instanceService = Mock(InstanceService)
 
+  @Shared
+  ObjectMapper mapper = new ObjectMapper()
+
   def setup() {
-    task.objectMapper = new ObjectMapper()
+    task.objectMapper = mapper
     task.retrofitClient = Stub(Client)
   }
 
   @Shared
-  def patchResponse = '{ \"ref\": \"/tasks/93fa4\"}'
+  String app = 'foo'
+
   @Shared
-  def patchResponse2 = '{ \"ref\": \"/tasks/abcd\"}'
+  Pipeline pipe = new Pipeline.Builder()
+    .withApplication(app)
+    .build()
+
   @Shared
-  def patchResponse3 = '{ \"ref\": \"/tasks/efghi\"}'
+  Stage versionStage = new PipelineStage(pipe, "quickPatch", ["version": "1.2"])
+
+
   @Shared
-  Response instanceResponse = new Response('http://foo.com', 200, 'OK', [], new TypedString(patchResponse))
+  StageNavigator navigator = Stub(StageNavigator) {
+    findAll(_ as Stage, _ as Closure<Boolean>) >> [new StageNavigator.Result(versionStage, Stub(StageBuilder))]
+  }
+
   @Shared
-  Response instanceResponse2 = new Response('http://foo2.com', 200, 'OK', [], new TypedString(patchResponse2))
+  Response instanceResponse = mkResponse([ref: "/tasks/93fa4"])
   @Shared
-  Response instanceResponse3 = new Response('http://foo3.com', 200, 'OK', [], new TypedString(patchResponse3))
+  Response instanceResponse2 = mkResponse([ref: "/tasks/abcd"])
+  @Shared
+  Response instanceResponse3 = mkResponse([ref: "/tasks/efghi"])
+
+  private Response mkResponse(Object body) {
+    new Response('http://foo.com', 200, 'OK', [], new TypedByteArray("application/json", mapper.writeValueAsString(body).getBytes(Charset.forName("UTF8"))))
+  }
 
   @Unroll
   def "successfully trigger quip on #instances.size() instance(s)"() {
     given:
-    def pipe = new Pipeline.Builder()
-      .withApplication(app)
-      .build()
     def stage = new PipelineStage(pipe, 'triggerQuip', [
       "clusterName" : cluster,
       "account" : account,
@@ -67,10 +87,11 @@ class TriggerQuipTaskSpec extends Specification {
       "application" : app,
       "baseOs" : "ubuntu",
       "package" : app,
-      "version" : "1.2"
+      "skipUpToDate": false,
+      "instances": instances
     ])
+    stage.stageNavigator = navigator
 
-    stage.context.instances = instances
     instances.size() * task.createInstanceService(_) >> instanceService
 
     when:
@@ -79,10 +100,12 @@ class TriggerQuipTaskSpec extends Specification {
     then:
     instances.size() * instanceService.patchInstance(app, "1.2", "") >>> response
     result.stageOutputs.taskIds == dnsTaskMap
+    result.stageOutputs.instanceIds.sort() == instances.keySet().sort()
+    result.stageOutputs.skippedInstances == [:]
+    result.stageOutputs.remainingInstances == [:]
     result.status == ExecutionStatus.SUCCEEDED
 
     where:
-    app = 'foo'
     cluster = 'foo-test'
     account = 'test'
     region = "us-east-1"
@@ -93,12 +116,8 @@ class TriggerQuipTaskSpec extends Specification {
     ["i-1234" :["hostName" :  "foo.com"], "i-2345" : ["hostName" : "foo2.com"], "i-3456" : ["hostName" : "foo3.com"] ]| [instanceResponse,instanceResponse2,instanceResponse3]  | ["foo.com" : "93fa4", "foo2.com" : "abcd", "foo3.com" : "efghi"]
   }
 
-  @Unroll
-  def "servers return errors, expect RUNNING"() {
+  def "checks versions and skips up to date instances in skipUpToDate mode"() {
     given:
-    def pipe = new Pipeline.Builder()
-      .withApplication(app)
-      .build()
     def stage = new PipelineStage(pipe, 'triggerQuip', [
       "clusterName" : cluster,
       "account" : account,
@@ -106,8 +125,52 @@ class TriggerQuipTaskSpec extends Specification {
       "application" : app,
       "baseOs" : "ubuntu",
       "package" : app,
-      "version" : "1.2"
+      "version" : "1.2",
+      "skipUpToDate": true,
+      "instances": instances
     ])
+    stage.stageNavigator = navigator
+
+    2 * task.createInstanceService(_) >> instanceService
+
+    when:
+    TaskResult result = task.execute(stage)
+
+    then:
+    2 * instanceService.getCurrentVersion(app) >>> currentVersions
+    1 * instanceService.patchInstance(app, "1.2", "") >> patchResponse
+
+    result.stageOutputs.instances == patchInstances
+    result.stageOutputs.skippedInstances == skipInstances
+    result.stageOutputs.instanceIds.sort() == ['i-1'].sort()
+    result.stageOutputs.remainingInstances == [:]
+
+
+    where:
+    cluster = 'foo-test'
+    account = 'test'
+    region = "us-east-1"
+
+    patchInstances = ['i-1': [hostName: 'foo1.com']]
+    skipInstances = ['i-2': [hostName: 'foo2.com']]
+    instances = patchInstances + skipInstances
+    currentVersions = [mkResponse([version: "1.1"]), mkResponse([version: "1.2"])]
+    patchResponse = mkResponse(["ref": "/tasks/12345"])
+  }
+
+  @Unroll
+  def "servers return errors, expect RUNNING"() {
+    def stage = new PipelineStage(pipe, 'triggerQuip', [
+      "clusterName" : cluster,
+      "account" : account,
+      "region" : region,
+      "application" : app,
+      "baseOs" : "ubuntu",
+      "package" : app,
+      "version" : "1.2",
+      "skipUpToDate": false
+    ])
+    stage.stageNavigator = navigator
 
     stage.context.instances = instances
     instances.size() * task.createInstanceService(_) >> instanceService
@@ -129,7 +192,6 @@ class TriggerQuipTaskSpec extends Specification {
     result.status == ExecutionStatus.RUNNING
 
     where:
-    app = 'foo'
     cluster = 'foo-test'
     account = 'test'
     region = "us-east-1"
@@ -143,9 +205,6 @@ class TriggerQuipTaskSpec extends Specification {
   @Unroll
   def 'missing configuration data'() {
     given:
-    def pipe = new Pipeline.Builder()
-      .withApplication(app)
-      .build()
     def stage = new PipelineStage(pipe, 'triggerQuip', [
       "clusterName" : cluster,
       "account" : account,
@@ -170,10 +229,41 @@ class TriggerQuipTaskSpec extends Specification {
     cluster = 'foo-test'
     account = 'test'
     region = "us-east-1"
-    app = "foo"
     packageName | patchVersion | instances
     null | "1.2" | ["i-1234": ["hostName" : "foo.com"]]
     "bar" | null | ["i-1234": ["hostName" : "foo.com"]]
     "bar" | "1.2" | null
+  }
+
+  def "skipUpToDate with getVersion retries"() {
+    def stage = new PipelineStage(pipe, 'triggerQuip', [
+      "clusterName" : cluster,
+      "account" : account,
+      "region" : region,
+      "application" : app,
+      "baseOs" : "ubuntu",
+      "package" : app,
+      "skipUpToDate": true
+    ])
+    stage.stageNavigator = navigator
+
+    stage.context.instances = instances
+    task.instanceVersionSleep = 1
+    task.createInstanceService(_) >> instanceService
+
+    when:
+    TaskResult result = task.execute(stage)
+
+    then:
+    2 * instanceService.getCurrentVersion(app) >> { throw RetrofitError.networkError('http://foo', new IOException('failed')) } >> mkResponse([version: patchVersion])
+
+    result.stageOutputs.skippedInstances.keySet() == ["i-1234"] as Set
+
+    where:
+    cluster = 'foo-test'
+    account = 'test'
+    region = "us-east-1"
+    patchVersion = "1.2"
+    instances = ["i-1234" : ["hostName" : "foo.com"] ]
   }
 }

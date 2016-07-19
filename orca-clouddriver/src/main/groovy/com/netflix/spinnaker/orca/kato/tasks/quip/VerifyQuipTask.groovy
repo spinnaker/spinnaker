@@ -45,19 +45,18 @@ class VerifyQuipTask extends AbstractQuipTask implements Task {
     String cluster = stage.context?.clusterName
     String region = stage.context?.region
     String account = stage.context?.account
-    String app = stage.context?.application
     Map instances = stage.context?.instances
     ArrayList healthProviders = stage.context?.healthProviders
     Map stageOutputs = [:]
     ExecutionStatus executionStatus = ExecutionStatus.SUCCEEDED
-    if (cluster && region && account && healthProviders != null && app && instances) {
+    if (cluster && region && account && healthProviders != null && instances) {
       stageOutputs.put("interestingHealthProviderNames", healthProviders) // for waitForUpInstanceHealthTask
 
       if(!checkInstancesForQuip(instances)) {
         throw new RuntimeException("quip is not running on all instances : ${instances}")
       }
     } else {
-      throw new RuntimeException("one or more of these parameters is missing : cluster || region || account || healthProviders || app")
+      throw new RuntimeException("one or more of these parameters is missing : cluster || region || account || healthProviders")
     }
     return new DefaultTaskResult(executionStatus, stageOutputs, [:])
   }
