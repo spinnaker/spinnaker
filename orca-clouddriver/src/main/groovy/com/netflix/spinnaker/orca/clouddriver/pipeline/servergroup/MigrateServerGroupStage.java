@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup;
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.MigrateForceRefreshDependenciesTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.MigrateServerGroupTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask;
 import com.netflix.spinnaker.orca.pipeline.LinearStage;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.batch.core.Step;
@@ -40,6 +42,10 @@ public class MigrateServerGroupStage extends LinearStage {
     List<Step> steps = new ArrayList<>();
     steps.add(buildStep(stage, "migrateLoadBalancer", MigrateServerGroupTask.class));
     steps.add(buildStep(stage, "monitorMigration", MonitorKatoTask.class));
+    if (!(Boolean) stage.getContext().getOrDefault("dryRun", true)) {
+      steps.add(buildStep(stage, "refreshDependencies", MigrateForceRefreshDependenciesTask.class));
+      steps.add(buildStep(stage, "refreshServerGroup", ServerGroupCacheForceRefreshTask.class));
+    }
     return steps;
   }
 }
