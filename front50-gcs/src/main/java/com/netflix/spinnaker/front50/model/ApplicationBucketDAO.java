@@ -17,14 +17,13 @@
 
 package com.netflix.spinnaker.front50.model;
 
-import com.google.api.services.storage.Storage;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.model.application.Application;
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO;
 import rx.Scheduler;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
 
 public class ApplicationBucketDAO extends BucketDAO<Application> implements ApplicationDAO {
    public ApplicationBucketDAO(String basePath,
