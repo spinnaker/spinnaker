@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerView
 import com.netflix.spinnaker.clouddriver.model.Cluster
 import groovy.transform.Canonical
 import groovy.transform.CompileStatic
@@ -44,6 +44,6 @@ class GoogleCluster {
     String accountName = GoogleCluster.this.accountName
 
     Set<GoogleServerGroup.View> serverGroups = [] as Set
-    Set<GoogleLoadBalancer.View> loadBalancers = [] as Set
+    Set<GoogleLoadBalancerView> loadBalancers = [] as Set
   }
 }

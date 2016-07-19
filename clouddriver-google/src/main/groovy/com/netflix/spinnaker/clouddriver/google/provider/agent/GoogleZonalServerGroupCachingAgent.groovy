@@ -279,7 +279,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
       }
       serverGroup.instances.clear()
 
-      populateLoadBalancerKeys(serverGroup, loadBalancerKeys)
+      populateLoadBalancerKeys(serverGroup, loadBalancerKeys, accountName, region)
 
       loadBalancerKeys.each { String loadBalancerKey ->
         cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keep(loadBalancerKey).with {
@@ -505,7 +505,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
     }
   }
 
-  static void populateLoadBalancerKeys(GoogleServerGroup serverGroup, List<String> loadBalancerKeys) {
+  static void populateLoadBalancerKeys(GoogleServerGroup serverGroup, List<String> loadBalancerKeys, String accountName, String region) {
     serverGroup.asg.get(REGIONAL_LOAD_BALANCER_NAMES).each { String loadBalancerName ->
       loadBalancerKeys << Keys.getLoadBalancerKey(region, accountName, loadBalancerName)
     }

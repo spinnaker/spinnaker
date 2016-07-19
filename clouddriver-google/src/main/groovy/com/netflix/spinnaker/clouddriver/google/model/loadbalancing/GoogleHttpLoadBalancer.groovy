@@ -16,9 +16,63 @@
 
 package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
+import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import groovy.transform.Canonical
 
 @Canonical
-class GoogleHttpLoadBalancer extends BaseGoogleHttpLoadBalancer {
-  static final GoogleLoadBalancerType type = GoogleLoadBalancerType.HTTP
+class GoogleHttpLoadBalancer {
+  GoogleLoadBalancerType type = GoogleLoadBalancerType.HTTP
+
+  String name
+  String account
+  String region
+  Long createdTime
+  String ipAddress
+  String ipProtocol
+  String portRange
+  String targetPool
+  GoogleHealthCheck healthCheck
+  List<GoogleLoadBalancerHealth> healths
+
+  /**
+   * Default backend service a request is sent to if no host rules are matched.
+   */
+  String defaultService
+
+  /**
+   * List of host rules that map incoming requests to GooglePathMatchers based on host header.
+   */
+  List<GoogleHostRule> hostRules
+
+  /**
+   * SSL certificate. This is populated only if this load balancer is a HTTPS load balancer.
+   */
+  String certificate
+
+  @JsonIgnore
+  GoogleLoadBalancerView getView() {
+    new View()
+  }
+
+  @Canonical
+  class View extends GoogleLoadBalancerView {
+    String loadBalancerType = GoogleHttpLoadBalancer.this.type
+
+    String name = GoogleHttpLoadBalancer.this.name
+    String account = GoogleHttpLoadBalancer.this.account
+    String region = GoogleHttpLoadBalancer.this.region
+    Long createdTime = GoogleHttpLoadBalancer.this.createdTime
+    String ipAddress = GoogleHttpLoadBalancer.this.ipAddress
+    String ipProtocol = GoogleHttpLoadBalancer.this.ipProtocol
+    String portRange = GoogleHttpLoadBalancer.this.portRange
+    String targetPool = GoogleHttpLoadBalancer.this.targetPool
+    String certificate = GoogleHttpLoadBalancer.this.certificate
+    GoogleHealthCheck.View healthCheck = GoogleHttpLoadBalancer.this.healthCheck?.view
+
+    Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
+    List<GoogleHostRule> hostRules = GoogleHttpLoadBalancer.this.hostRules
+  }
 }

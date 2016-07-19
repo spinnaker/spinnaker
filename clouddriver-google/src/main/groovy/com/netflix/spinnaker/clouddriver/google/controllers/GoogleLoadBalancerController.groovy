@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerView
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
@@ -43,10 +43,10 @@ class GoogleLoadBalancerController {
   List<GoogleLoadBalancerAccountRegionSummary> list() {
     def loadBalancerViewsByName = googleLoadBalancerProvider.getApplicationLoadBalancers("").groupBy { it.name }
 
-    loadBalancerViewsByName.collect { String name, List<GoogleLoadBalancer.View> views ->
+    loadBalancerViewsByName.collect { String name, List<GoogleLoadBalancerView> views ->
       def summary = new GoogleLoadBalancerAccountRegionSummary(name: name)
 
-      views.each { GoogleLoadBalancer.View view ->
+      views.each { GoogleLoadBalancerView view ->
         summary.mappedAccounts[view.account].mappedRegions[view.region].loadBalancers << new GoogleLoadBalancerSummary(
             account: view.account,
             region: view.region,
@@ -68,7 +68,7 @@ class GoogleLoadBalancerController {
   List<GoogleLoadBalancerDetails> getDetailsInAccountAndRegionByName(@PathVariable String account,
                                                                      @PathVariable String region,
                                                                      @PathVariable String name) {
-    GoogleLoadBalancer.View view = googleLoadBalancerProvider.getApplicationLoadBalancers(name).find { view ->
+    GoogleLoadBalancerView view = googleLoadBalancerProvider.getApplicationLoadBalancers(name).find { view ->
       view.account == account && view.region == region
     }
 

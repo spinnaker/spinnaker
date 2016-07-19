@@ -16,29 +16,26 @@
 
 package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 
-import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
+import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
+import com.netflix.spinnaker.clouddriver.model.LoadBalancer
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import groovy.transform.Canonical
 
 @Canonical
-class BaseGoogleHttpLoadBalancer extends GoogleLoadBalancer {
-  /**
-   * Default backend service a request is sent to if no host rules are matched.
-   */
-  String defaultService
+abstract class GoogleLoadBalancerView implements LoadBalancer {
+  final String type = GoogleCloudProvider.GCE
+  String loadBalancerType
 
-  /**
-   * List of host rules that map incoming requests to GooglePathMatchers based on host header.
-   */
-  List<GoogleHostRule> hostRules
+  String name
+  String account
+  String region
+  Long createdTime
+  String ipAddress
+  String ipProtocol
+  String portRange
+  String targetPool
+  GoogleHealthCheck.View healthCheck
 
-  @JsonIgnore
-  @Override
-  View getView() {
-    new View()
-  }
-
-  @Canonical
-  class View extends GoogleLoadBalancer.View {
-    List<GoogleHostRule> hostRules = BaseGoogleHttpLoadBalancer.this.hostRules
-  }
+  Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
 }

@@ -21,8 +21,11 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.SerializeApplicationDescription.SerializeApplicationDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceIllegalStateException
-import com.netflix.spinnaker.clouddriver.google.model.*
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.GoogleCluster
+import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
+import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerView
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
@@ -97,7 +100,7 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
     }
 
     task.updateStatus BASE_PHASE, "Serializing load balancers for the application ${this.applicationName} in account ${this.accountName}"
-    googleLoadBalancerProvider.getApplicationLoadBalancers(applicationName).each { GoogleLoadBalancer.View loadBalancer ->
+    googleLoadBalancerProvider.getApplicationLoadBalancers(applicationName).each { GoogleLoadBalancerView loadBalancer ->
       if (loadBalancer.account == this.accountName) {
         addLoadBalancerToResourceMap(loadBalancer, resourceMap)
       }
@@ -414,7 +417,7 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
     return null
   }
 
-  private Void addLoadBalancerToResourceMap(GoogleLoadBalancer.View loadBalancer, Map resourceMap) {
+  private Void addLoadBalancerToResourceMap(GoogleLoadBalancerView loadBalancer, Map resourceMap) {
 
     def targetPoolMap = [:]
     def forwardingRuleMap = [:]

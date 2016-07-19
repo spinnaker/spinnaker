@@ -20,13 +20,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
-import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import groovy.transform.Canonical
 
 @Canonical
 class GoogleLoadBalancer {
-  static final GoogleLoadBalancerType type = GoogleLoadBalancerType.NETWORK
+  GoogleLoadBalancerType type = GoogleLoadBalancerType.NETWORK
 
   String name
   String account
@@ -40,13 +39,13 @@ class GoogleLoadBalancer {
   List<GoogleLoadBalancerHealth> healths
 
   @JsonIgnore
-  View getView() {
+  GoogleLoadBalancerView getView() {
     new View()
   }
 
-  @Canonical
-  class View implements LoadBalancer {
+  class View extends GoogleLoadBalancerView {
     final String type = GoogleCloudProvider.GCE
+    String loadBalancerType = GoogleLoadBalancer.this.type
 
     String name = GoogleLoadBalancer.this.name
     String account = GoogleLoadBalancer.this.account

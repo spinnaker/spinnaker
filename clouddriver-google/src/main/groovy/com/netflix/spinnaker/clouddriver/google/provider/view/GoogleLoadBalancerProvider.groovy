@@ -23,7 +23,10 @@ import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerView
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
@@ -33,7 +36,7 @@ import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
 @Component
-class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalancer.View> {
+class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalancerView> {
 
   @Autowired
   Cache cacheView
@@ -41,7 +44,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
   ObjectMapper objectMapper
 
   @Override
-  Set<GoogleLoadBalancer.View> getApplicationLoadBalancers(String application) {
+  Set<GoogleLoadBalancerView> getApplicationLoadBalancers(String application) {
     def pattern = Keys.getLoadBalancerKey("*", "*", "${application}*")
     def identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, pattern)
 
@@ -52,9 +55,21 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
     } as Set
   }
 
-  GoogleLoadBalancer.View loadBalancersFromCacheData(CacheData loadBalancerCacheData) {
-    GoogleLoadBalancer loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleLoadBalancer)
-    GoogleLoadBalancer.View loadBalancerView = loadBalancer?.view
+  GoogleLoadBalancerView loadBalancersFromCacheData(CacheData loadBalancerCacheData) {
+    def loadBalancer = null
+    switch (loadBalancerCacheData.attributes?.type) {
+      case GoogleLoadBalancerType.HTTP.toString():
+        loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleHttpLoadBalancer)
+        break
+      case GoogleLoadBalancerType.NETWORK.toString():
+        loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleLoadBalancer)
+        break
+      default:
+        loadBalancer = null
+        break
+    }
+
+    def loadBalancerView = loadBalancer?.view
 
     def serverGroupKeys = loadBalancerCacheData.relationships[SERVER_GROUPS.ns]
     if (!serverGroupKeys) {

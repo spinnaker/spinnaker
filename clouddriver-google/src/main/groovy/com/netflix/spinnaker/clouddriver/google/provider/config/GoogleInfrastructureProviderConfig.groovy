@@ -23,25 +23,14 @@ import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.provider.GoogleInfrastructureProvider
-import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleImageCachingAgent
-import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleInstanceCachingAgent
-import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleLoadBalancerCachingAgent
-import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleNetworkCachingAgent
-import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleRegionalServerGroupCachingAgent
-import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleSecurityGroupCachingAgent
-import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleSubnetCachingAgent
-import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleZonalServerGroupCachingAgent
+import com.netflix.spinnaker.clouddriver.google.provider.agent.*
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.DependsOn
-import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Scope
+import org.springframework.context.annotation.*
 
 import java.util.concurrent.ConcurrentHashMap
 

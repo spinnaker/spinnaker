@@ -68,8 +68,8 @@ class GoogleServerGroup {
   @Canonical
   class View implements ServerGroup {
     final String type = GoogleCloudProvider.GCE
-    static final String REGIONAL_LOAD_BALANCER_NAMES = "regionalLoadBalancerNames"
-    static final String GLOBAL_LOAD_BALANCER_NAMES = "globalLoadBalancerNames"
+    static final String REGIONAL_LOAD_BALANCER_NAMES = "load-balancer-names"
+    static final String GLOBAL_LOAD_BALANCER_NAMES = "global-load-balancer-names"
 
     String name = GoogleServerGroup.this.name
     String region = GoogleServerGroup.this.region
