@@ -204,6 +204,43 @@ class MigrateServerGroupStrategySpec extends Specification {
     0 * _
   }
 
+  void 'does not add app security group if it is already there'() {
+    given:
+    ServerGroupLocation source = new ServerGroupLocation(name: 'theapp-v001', credentials: testCredentials, vpcId: 'vpc-1', region: 'us-east-1')
+    ServerGroupLocation target = new ServerGroupLocation(credentials: prodCredentials, vpcId: 'vpc-2', region: 'eu-west-1')
+    AutoScalingGroup asg = new AutoScalingGroup(launchConfigurationName: 'theapp-v001-lc')
+    LaunchConfiguration lc = new LaunchConfiguration(
+      instanceMonitoring: new InstanceMonitoring(enabled: false),
+      securityGroups: ['sg-1']
+    )
+    RegionScopedProvider regionScopedProvider = Stub(RegionScopedProvider) {
+      getAsgService() >> asgService
+    }
+    SecurityGroup appGroup = new SecurityGroup(groupId: 'sg-1', groupName: 'theapp', vpcId: 'vpc-1')
+    SecurityGroupUpdater updater = Stub(SecurityGroupUpdater) {
+      getSecurityGroup() >> appGroup
+    }
+
+    when:
+    strategy.generateResults(source, target, sourceLookup, targetLookup,
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', null, null, null, true)
+
+    then:
+    amazonClientProvider.getAutoScaling(testCredentials, 'us-east-1', true) >> amazonAutoScaling
+    amazonAutoScaling.describeAutoScalingGroups() >> new DescribeAutoScalingGroupsResult().withAutoScalingGroups(asg)
+    regionScopedProviderFactory.forRegion(testCredentials, 'us-east-1') >> regionScopedProvider
+    regionScopedProviderFactory.forRegion(prodCredentials, 'eu-west-1') >> regionScopedProvider
+    sourceLookup.getSecurityGroupById('test', 'sg-1', 'vpc-1') >> Optional.of(updater)
+    1 * asgService.getAutoScalingGroup('theapp-v001') >> asg
+    1 * asgService.getLaunchConfiguration('theapp-v001-lc') >> lc
+    1 * deployDefaults.getAddAppGroupToServerGroup() >> true
+    1 * migrateSecurityGroupStrategy.generateResults(
+      {s -> s.name == 'theapp' && s.region == 'us-east-1' && s.credentials == testCredentials},
+      {s -> s.region == 'eu-west-1' && s.credentials == prodCredentials},
+      sourceLookup, targetLookup, false, true) >> new MigrateSecurityGroupResult(target: new MigrateSecurityGroupReference(targetName: 'theapp'))
+    0 * _
+  }
+
   void 'copies over suspended processes'() {
     given:
     ServerGroupLocation source = new ServerGroupLocation(name: 'asg-v001', credentials: testCredentials, vpcId: 'vpc-1', region: 'us-east-1')

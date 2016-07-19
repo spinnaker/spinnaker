@@ -229,7 +229,11 @@ public abstract class MigrateServerGroupStrategy {
     ).collect(Collectors.toList());
 
     if (getDeployDefaults().getAddAppGroupToServerGroup()) {
-      targetSecurityGroups.add(generateAppSecurityGroup(source, target, sourceLookup, targetLookup, dryRun));
+      Names names = Names.parseName(source.getName());
+      // if the app security group is already present, don't include it twice
+      if (targetSecurityGroups.stream().noneMatch(r -> names.getApp().equals(r.getTarget().getTargetName()))) {
+        targetSecurityGroups.add(generateAppSecurityGroup(source, target, sourceLookup, targetLookup, dryRun));
+      }
     }
 
     return targetSecurityGroups;
