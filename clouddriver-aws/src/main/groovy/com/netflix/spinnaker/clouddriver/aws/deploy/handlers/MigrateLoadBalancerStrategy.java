@@ -117,7 +117,7 @@ public abstract class MigrateLoadBalancerStrategy {
       .map(ListenerDescription::getListener)
       .filter(listenerCannotBeMigrated(source, target)).collect(Collectors.toList());
 
-    unmigratableListeners.stream().forEach(l -> result.getWarnings().add(
+    unmigratableListeners.forEach(l -> result.getWarnings().add(
       "The following listeners could not be created: " +
         l.getProtocol() + ":" + l.getLoadBalancerPort() + " => " +
         l.getInstanceProtocol() + ":" + l.getInstancePort() + " (certificate: " + l.getSSLCertificateId() + ")."
@@ -197,7 +197,6 @@ public abstract class MigrateLoadBalancerStrategy {
 
       String elbGroupId = buildElbSecurityGroup(appGroups, source, target, applicationName, result,
         dryRun, sourceDescription);
-      buildApplicationSecurityGroup(sourceDescription, appGroups, target, applicationName, result, dryRun, elbGroupId);
       newGroups.add(elbGroupId);
     }
     return newGroups;
@@ -237,11 +236,16 @@ public abstract class MigrateLoadBalancerStrategy {
         new CreateSecurityGroupRequest(appName + "-elb", "Application load balancer security group for " + appName)
           .withVpcId(target.getVpcId())
       ).getGroupId();
+      elbGroup.setTargetId(elbGroupId);
       if (source.getVpcId() == null) {
         addClassicLinkIngress(target, elbGroupId);
         addPublicIngress(targetAmazonEC2, elbGroupId, sourceDescription);
       }
     }
+    if (getDeployDefaults().getAddAppGroupToServerGroup()) {
+      buildApplicationSecurityGroup(sourceDescription, appGroups, target, appName, dryRun, addedGroup);
+    }
+
     return elbGroupId;
   }
 
@@ -251,24 +255,22 @@ public abstract class MigrateLoadBalancerStrategy {
    * @param appGroups  list of existing security groups in which to look for existing app security group
    * @param target     the target location of the load balancer
    * @param appName    the name of the application being migrated
-   * @param result     the result set for the load balancer migration - this will potentially be mutated as a side effect
    * @param dryRun     whether the migration should actually occur or just be calculated
-   * @param elbGroupId the groupId of the elb specific security group, which will allow ingress permission from the
+   * @param elbGroup   the elb specific security group, which will allow ingress permission from the
    *                   app specific security group
    */
-  protected void buildApplicationSecurityGroup(LoadBalancerDescription sourceDescription, List<SecurityGroup> appGroups, LoadBalancerLocation target, String appName, MigrateLoadBalancerResult result, boolean dryRun, String elbGroupId) {
+  protected void buildApplicationSecurityGroup(LoadBalancerDescription sourceDescription, List<SecurityGroup> appGroups, LoadBalancerLocation target, String appName, boolean dryRun, MigrateSecurityGroupResult elbGroup) {
     if (getDeployDefaults().getAddAppGroupToServerGroup()) {
       AmazonEC2 targetAmazonEC2 = getAmazonClientProvider().getAmazonEC2(target.getCredentials(), target.getRegion(), true);
-      boolean exists = appGroups.stream().anyMatch(isAppSecurityGroup(target, appName));
-      if (!exists) {
-        MigrateSecurityGroupReference appGroupReference = new MigrateSecurityGroupReference();
-        appGroupReference.setAccountId(target.getCredentials().getAccountId());
-        appGroupReference.setVpcId(target.getVpcId());
-        appGroupReference.setTargetName(appName);
-        MigrateSecurityGroupResult addedGroup = new MigrateSecurityGroupResult();
-        addedGroup.setTarget(appGroupReference);
-        addedGroup.getCreated().add(appGroupReference);
-        result.getSecurityGroups().add(addedGroup);
+      Optional<SecurityGroup> existing = appGroups.stream().filter(isAppSecurityGroup(target, appName)).findFirst();
+      MigrateSecurityGroupReference appGroupReference = new MigrateSecurityGroupReference();
+      appGroupReference.setAccountId(target.getCredentials().getAccountId());
+      appGroupReference.setVpcId(target.getVpcId());
+      appGroupReference.setTargetName(appName);
+      if (existing.isPresent()) {
+        elbGroup.getReused().add(appGroupReference);
+      } else {
+        elbGroup.getCreated().add(appGroupReference);
         if (!dryRun) {
           String newGroupId = targetAmazonEC2.createSecurityGroup(
             new CreateSecurityGroupRequest(appName, "Application security group for " + appName)
@@ -283,11 +285,12 @@ public abstract class MigrateLoadBalancerStrategy {
         }
       }
       if (!dryRun) {
+        String elbGroupId = elbGroup.getTarget().getTargetId();
         SecurityGroup appGroup = appGroups.stream().filter(isAppSecurityGroup(target, appName)).findFirst().get();
         boolean hasElbIngressPermission = appGroup.getIpPermissions().stream()
           .anyMatch(p -> p.getUserIdGroupPairs().stream().anyMatch(u -> u.getGroupId().equals(elbGroupId)));
         if (!hasElbIngressPermission) {
-          sourceDescription.getListenerDescriptions().stream().forEach(l -> {
+          sourceDescription.getListenerDescriptions().forEach(l -> {
             Listener listener = l.getListener();
             IpPermission newPermission = new IpPermission().withIpProtocol("tcp")
               .withFromPort(listener.getInstancePort()).withToPort(listener.getInstancePort())

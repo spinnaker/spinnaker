@@ -189,7 +189,8 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     def results = strategy.generateResults(sourceLookup, targetLookup, securityGroupStrategy, source, target, 'internal', 'app', false)
 
     then:
-    results.securityGroups.created.targetName.flatten().sort() == ['app', 'app-elb']
+    results.securityGroups[0].created.targetName.sort() == ['app', 'app-elb']
+    results.securityGroups[0].target.targetName == 'app-elb'
     amazonClientProvider.getAmazonEC2(prodCredentials, 'eu-west-1', true) >> amazonEC2
     amazonClientProvider.getAmazonEC2(prodCredentials, 'eu-west-1') >> amazonEC2
     amazonClientProvider.getAmazonElasticLoadBalancing(testCredentials, 'us-east-1', true) >> loadBalancing
