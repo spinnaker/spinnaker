@@ -40,11 +40,10 @@ class SerializeApplicationTask extends AbstractCloudProviderAwareTask implements
       .toBlocking()
       .first()
     Map outputs = [
-      "notification.type"  : "destroyjob",
-      "kato.last.task.id"  : taskId,
-      "delete.name"        : stage.context.jobName,
-      "delete.region"      : stage.context.region,
-      "delete.account.name": account
+      "notification.type"     : "serializeapplication",
+      "kato.last.task.id"     : taskId,
+      "serialize.application" : stage.context.applicationName,
+      "serialize.account.name": account
     ]
     return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
