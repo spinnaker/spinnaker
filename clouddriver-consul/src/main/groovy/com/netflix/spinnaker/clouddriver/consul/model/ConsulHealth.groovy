@@ -22,7 +22,7 @@ import com.netflix.spinnaker.clouddriver.model.HealthState
 
 class ConsulHealth extends DiscoveryHealth {
   @Override
-  public static String getDiscoveryType() {
+  public String getDiscoveryType() {
     return "Consul"
   }
 

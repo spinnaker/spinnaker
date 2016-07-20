@@ -30,7 +30,7 @@ import groovy.transform.Immutable
 @EqualsAndHashCode(cache = true)
 class EurekaInstance extends DiscoveryHealth {
   @Override
-  public static String getDiscoveryType() {
+  public String getDiscoveryType() {
     return "Eureka"
   }
 
