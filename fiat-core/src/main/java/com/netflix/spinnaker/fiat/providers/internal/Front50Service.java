@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.fiat.providers;
+package com.netflix.spinnaker.fiat.providers.internal;
 
-import com.netflix.spinnaker.fiat.model.ServiceAccount;
+import com.netflix.spinnaker.fiat.model.resources.Application;
+import retrofit.http.GET;
 
-import java.util.Collection;
-import java.util.Optional;
-import java.util.Set;
+import java.util.List;
 
-public interface ServiceAccountProvider {
-  Optional<ServiceAccount> getAccount(String name);
+public interface Front50Service {
 
-  Set<ServiceAccount> getAccounts(Collection<String> groups);
+  @GET("/permissions/applications")
+  List<Application> getAllApplicationPermissions();
 }

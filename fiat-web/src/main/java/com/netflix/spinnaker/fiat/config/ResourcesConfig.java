@@ -18,6 +18,7 @@ package com.netflix.spinnaker.fiat.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService;
+import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,8 +30,7 @@ import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
 
 @Configuration
-public class AccountConfig {
-
+public class ResourcesConfig {
   @Autowired
   @Setter
   private RestAdapter.LogLevel retrofitLogLevel;
@@ -43,9 +43,24 @@ public class AccountConfig {
   @Setter
   private OkClient okClient;
 
+  @Value("${services.front50.baseUrl}")
+  @Setter
+  private String front50Endpoint;
+
   @Value("${services.clouddriver.baseUrl}")
   @Setter
   private String clouddriverEndpoint;
+
+  @Bean
+  Front50Service front50Service() {
+    return new RestAdapter.Builder()
+        .setEndpoint(Endpoints.newFixedEndpoint(front50Endpoint))
+        .setClient(okClient)
+        .setConverter(new JacksonConverter(objectMapper))
+        .setLogLevel(retrofitLogLevel)
+        .build()
+        .create(Front50Service.class);
+  }
 
   @Bean
   ClouddriverService clouddriverService() {

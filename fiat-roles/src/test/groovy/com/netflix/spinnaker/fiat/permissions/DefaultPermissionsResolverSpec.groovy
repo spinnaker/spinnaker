@@ -20,6 +20,7 @@ import com.netflix.spinnaker.fiat.model.ServiceAccount
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.providers.ApplicationProvider
 import com.netflix.spinnaker.fiat.providers.DefaultAccountProvider
+import com.netflix.spinnaker.fiat.providers.DefaultServiceAccountProvider
 import com.netflix.spinnaker.fiat.providers.ServiceAccountProvider
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider
@@ -44,7 +45,7 @@ class DefaultPermissionsResolverSpec extends Specification {
   )
 
   @Shared
-  ServiceAccountProvider serviceAccountProvider = new ServiceAccountProvider().setServiceAccountsByName(
+  ServiceAccountProvider serviceAccountProvider = new DefaultServiceAccountProvider().setServiceAccountsByName(
       [
           "group1": new ServiceAccount().setName("group1"),
           "group2": new ServiceAccount().setName("group2"),

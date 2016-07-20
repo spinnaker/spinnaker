@@ -21,11 +21,11 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
-class ServiceAccountProviderSpec extends Specification {
+class DefaultServiceAccountProviderSpec extends Specification {
 
   @Shared
   @Subject
-  ServiceAccountProvider provider = new ServiceAccountProvider(
+  DefaultServiceAccountProvider provider = new DefaultServiceAccountProvider(
       serviceAccountsByName: [
           "abc": new ServiceAccount(name: "abc"),
           "xyz": new ServiceAccount(name: "xyz")

@@ -17,27 +17,25 @@
 package com.netflix.spinnaker.fiat.providers
 
 import com.netflix.spinnaker.fiat.model.resources.Application
+import com.netflix.spinnaker.fiat.providers.internal.Front50Service
 import org.apache.commons.io.FileUtils
 import spock.lang.Specification
 import spock.lang.Subject
 
-class FileBasedApplicationProviderSpec extends Specification {
+class DefaultApplicationProviderSpec extends Specification {
 
-  @Subject FileBasedApplicationProvider provider
-
-  def cleanup() {
-    if (provider) {
-      provider.close()
-    }
-  }
+  @Subject DefaultApplicationProvider provider
 
   def "should get all accounts based on supplied roles"() {
     setup:
-    provider = new FileBasedApplicationProvider([
-        "noReqGroups"  : new Application().setName("noReqGroups"),
-        "reqGroup1"    : new Application().setName("reqGroup1").setRequiredGroupMembership(["group1"]),
-        "reqGroup1and2": new Application().setName("reqGroup1and2").setRequiredGroupMembership(["group1", "group2"])
-    ]);
+    Front50Service front50Service = Mock(Front50Service) {
+      getAllApplicationPermissions() >> [
+          new Application().setName("noReqGroups"),
+          new Application().setName("reqGroup1").setRequiredGroupMembership(["group1"]),
+          new Application().setName("reqGroup1and2").setRequiredGroupMembership(["group1", "group2"])
+      ]
+    }
+    provider = new DefaultApplicationProvider(front50Service: front50Service)
 
     when:
     def result = provider.getApplications(input)
@@ -59,40 +57,5 @@ class FileBasedApplicationProviderSpec extends Specification {
     ["group1", "group2"] || ["noReqGroups", "reqGroup1", "reqGroup1and2"]
     ["group3"]           || ["noReqGroups"]
     ["group2", "group3"] || ["noReqGroups", "reqGroup1and2"]
-  }
-
-  def "should watch config file directory"() {
-    setup:
-    String config1Content = """
-name: abc
-requiredGroupMembership:
-- abcGroup
-"""
-    String config2Content = """
-name: def
-"""
-
-    File configFile1 = File.createTempFile("abc", ".config")
-    configFile1.deleteOnExit()
-    FileUtils.write(configFile1, config1Content, "UTF-8", false /* append */)
-
-    Map applicationMap = [:]
-    provider = new FileBasedApplicationProvider(applicationMap)
-
-    when:
-    provider.watch(configFile1.getParentFile().getAbsolutePath())
-    sleep(250)
-
-    then:
-    applicationMap["abc"] == new Application().setName("abc").setRequiredGroupMembership(["abcGroup"])
-
-    when:
-    File configFile2 = File.createTempFile("abc", ".config")
-    configFile2.deleteOnExit()
-    FileUtils.write(configFile2, config2Content, "UTF-8", false /* append */)
-    sleep(250)
-
-    then:
-    applicationMap["def"] == new Application().setName("def")
   }
 }

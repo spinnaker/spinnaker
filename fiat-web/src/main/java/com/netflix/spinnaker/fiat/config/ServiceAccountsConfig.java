@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import com.netflix.spinnaker.fiat.model.ServiceAccount;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
+import com.netflix.spinnaker.fiat.providers.DefaultServiceAccountProvider;
 import com.netflix.spinnaker.fiat.providers.ServiceAccountProvider;
 import lombok.Data;
 import lombok.val;
@@ -31,6 +32,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+// TODO(ttomsu): Remove when service accounts are part of Front50
 @Configuration
 public class ServiceAccountsConfig {
 
@@ -56,7 +58,7 @@ public class ServiceAccountsConfig {
         })
         .collect(Collectors.toMap(ServiceAccount::getName, Function.identity()));
 
-    return new ServiceAccountProvider().setServiceAccountsByName(serviceAcctsByName);
+    return new DefaultServiceAccountProvider().setServiceAccountsByName(serviceAcctsByName);
   }
 
   // It's silly that we have to define a container class for List objects, but that's apparently
