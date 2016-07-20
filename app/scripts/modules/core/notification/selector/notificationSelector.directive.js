@@ -11,6 +11,7 @@ module.exports = angular.module('spinnaker.core.notification.selector.directive'
         notification: '=',
         level: '='
       },
+      scope: {},
       templateUrl: require('./notificationSelector.html'),
       controller: 'NotificationSelectorCtrl',
       controllerAs: 'vm'

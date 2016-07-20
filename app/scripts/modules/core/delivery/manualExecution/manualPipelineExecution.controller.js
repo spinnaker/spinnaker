@@ -9,15 +9,56 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
   require('./inlinePropertyScope.filter'),
   require('../../utils/lodash.js'),
   require('../../pipeline/config/pipelineConfigProvider.js'),
-  require('../../pipeline/config/services/pipelineConfigService')
+  require('../../pipeline/config/services/pipelineConfigService'),
+  require('../../notification/notification.service'),
+  require('../../authentication/authentication.service'),
 ])
-  .controller('ManualPipelineExecutionCtrl', function (_, $uibModalInstance, pipeline, application, pipelineConfig, pipelineConfigService) {
+  .controller('ManualPipelineExecutionCtrl', function (_, $uibModalInstance, pipeline, application, pipelineConfig,
+                                                       notificationService, authenticationService,
+                                                       pipelineConfigService) {
 
     this.origPipeline = {};
+
+    let applicationNotifications = [];
+    let pipelineNotifications = [];
+
+    this.notificationTooltip = require('./notifications.tooltip.html');
+
+    notificationService.getNotificationsForApplication(application.name).then(notifications => {
+      Object.keys(notifications).sort().filter(k => Array.isArray(notifications[k])).forEach(type => {
+        notifications[type].forEach(notification => {
+          applicationNotifications.push(notification);
+        });
+      });
+      synchronizeNotifications();
+    });
+
+    let user = authenticationService.getAuthenticatedUser();
+
+    let synchronizeNotifications = () => {
+      this.notifications = applicationNotifications.concat(pipelineNotifications);
+    };
+
+    this.getNotifications = () => {
+      return _.has(this.command, 'pipeline.notifications') ?
+        this.command.pipeline.notifications.concat(applicationNotifications) :
+        applicationNotifications;
+    };
+    
+    let userEmail = user.authenticated && user.name.indexOf('@') > -1 ? user.name : null;
 
     this.command = {
       pipeline: pipeline,
       trigger: null,
+      notificationEnabled: false,
+      notification: {
+        type: 'email',
+        address: userEmail,
+        when: [
+          'pipeline.complete',
+          'pipeline.failed'
+        ]
+      }
     };
 
     let addTriggers = () => {
@@ -62,6 +103,9 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
       let pipeline = this.command.pipeline,
           executions = application.executions.data || [];
 
+      pipelineNotifications = pipeline.notifications || [];
+      synchronizeNotifications();
+
       this.origPipeline = _.cloneDeep(pipeline); // make a copy to diff changes
 
       this.currentlyRunningExecutions = executions
@@ -88,6 +132,10 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
       let selectedTrigger = this.command.trigger || {},
           command = { trigger: selectedTrigger },
           pipeline = this.command.pipeline;
+
+      if (this.command.notificationEnabled && this.command.notification.address) {
+        selectedTrigger.notifications = [this.command.notification];
+      }
 
       // include any extra data populated by trigger manual execution handlers
       angular.extend(selectedTrigger, this.command.extraFields);

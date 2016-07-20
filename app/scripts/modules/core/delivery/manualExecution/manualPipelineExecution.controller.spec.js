@@ -8,9 +8,10 @@ describe('Controller: ManualPipelineExecution', function () {
     )
   );
 
-  beforeEach(window.inject(function ($controller, $rootScope, _, $q) {
+  beforeEach(window.inject(function ($controller, $rootScope, _, $q, _notificationService_) {
     this.scope = $rootScope.$new();
     this.$q = $q;
+    this.notificationService = _notificationService_;
 
     this.initializeController = function(application, pipeline, modalInstance, pipelineConfig) {
       this.ctrl = $controller('ManualPipelineExecutionCtrl', {
@@ -19,7 +20,8 @@ describe('Controller: ManualPipelineExecution', function () {
         pipeline: pipeline,
         pipelineConfig: pipelineConfig,
         _: _,
-        $uibModalInstance: modalInstance || {}
+        $uibModalInstance: modalInstance || {},
+        notificationService: this.notificationService,
       });
     };
   }));
@@ -101,6 +103,62 @@ describe('Controller: ManualPipelineExecution', function () {
         this.initializeController(application, application.pipelineConfigs.data[0]);
         expect(this.ctrl.parameters).toEqual({foo: undefined, bar: 'mr. peanutbutter', baz: '', bojack: null});
       });
+    });
+  });
+
+  describe('notifications', function () {
+    it('merges notifications from application and pipeline config', function () {
+      let notifications = [
+        {type: 'email', address: 'example@spinnaker.io'},
+        {type: 'email', address: 'example2@spinnaker.io'},
+        {type: 'slack', address: 'spinnaker'},
+        {type: 'email', address: 'pipeline@spinnaker.io'},
+      ];
+      spyOn(this.notificationService, 'getNotificationsForApplication').and.returnValue(this.$q.when({
+        application: 'myapp',
+        email: [ notifications[0], notifications[1] ],
+        slack: [ notifications[2] ]
+      }));
+      let application = {
+        pipelineConfigs: { data: [
+          { id: 'a', name: 'aa', triggers: [], stages: [], notifications: [
+            notifications[3]
+          ]},
+        ]},
+        executions: { data: []}
+      };
+      this.initializeController(application, application.pipelineConfigs.data[0], this.modalInstance);
+      this.scope.$digest();
+      expect(this.ctrl.notifications).toEqual(notifications);
+    });
+
+    it('updates notifications when pipeline changes', function () {
+      let notifications = [
+        {type: 'email', address: 'pipeline@spinnaker.io'},
+        {type: 'email', address: 'example2@spinnaker.io'},
+        {type: 'slack', address: 'spinnaker'},
+      ];
+      spyOn(this.notificationService, 'getNotificationsForApplication').and.returnValue(this.$q.when({
+        application: 'myapp',
+        email: [ notifications[1] ],
+      }));
+      let application = {
+        pipelineConfigs: { data: [
+          { id: 'a', name: 'aa', triggers: [], stages: [], notifications: [
+            notifications[0]
+          ]},
+          { id: 'b', name: 'aa', triggers: [], stages: [], notifications: [
+            notifications[2]
+          ]},
+        ]},
+        executions: { data: []}
+      };
+      this.initializeController(application, application.pipelineConfigs.data[0], this.modalInstance);
+      this.scope.$digest();
+      expect(this.ctrl.notifications).toEqual([notifications[1], notifications[0]]);
+      this.ctrl.command.pipeline = application.pipelineConfigs.data[1];
+      this.ctrl.pipelineSelected();
+      expect(this.ctrl.notifications).toEqual([notifications[1], notifications[2]]);
     });
   });
 

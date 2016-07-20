@@ -1,0 +1,10 @@
+<div class="notifications-list">
+  <ul>
+    <li ng-repeat="notification in vm.notifications">
+      <b>{{notification.address}}</b> when:
+      <ul>
+        <li ng-repeat="when in notification.when">{{when|notificationWhen}}</li>
+      </ul>
+    </li>
+  </ul>
+</div>

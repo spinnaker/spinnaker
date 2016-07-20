@@ -124,6 +124,26 @@
         </div>
       </div>
 
+      <div class="form-group">
+        <label class="col-md-4 sm-label-right">Notifications</label>
+        <div class="col-md-8">
+          <div class="checkbox checkbox-notify">
+            <label>
+              <input type="checkbox" ng-model="vm.command.notificationEnabled"> Notify me when the pipeline completes
+            </label>
+          </div>
+          <div ng-if="vm.notifications.length === 1" class="small">
+            There is <a uib-popover-template="vm.notificationTooltip" popover-placement="bottom">one notification</a> configured for this pipeline
+          </div>
+          <div ng-if="vm.notifications.length > 1" class="small">
+            There are <a uib-popover-template="vm.notificationTooltip" popover-placement="bottom" popover-trigger="mouseenter">{{vm.notifications.length}} notifications</a> configured for this pipeline</div>
+        </div>
+      </div>
+      <div class="form-group" ng-if="vm.command.notificationEnabled">
+        <div class="col-md-8 col-md-offset-2">
+          <notification-selector notification="vm.command.notification"></notification-selector>
+        </div>
+      </div>
     </div>
 
     <div class="modal-footer">
