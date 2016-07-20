@@ -44,6 +44,7 @@ public class GcsConfig {
   private static int NOTIFICATION_REFRESH_MS = (int)TimeUnit.MINUTES.toMillis(1);
   private static int PIPELINE_REFRESH_MS = (int)TimeUnit.MINUTES.toMillis(1);
   private static int PIPELINE_STRATEGY_REFRESH_MS = (int)TimeUnit.MINUTES.toMillis(1);
+  private static int SERVICE_ACCOUNT_REFRESH_MS = (int)TimeUnit.MINUTES.toMillis(1);
 
   @Value("${spinnaker.gcs.bucket}")
   private String bucket;
@@ -104,6 +105,14 @@ public class GcsConfig {
                                               service,
                                               Schedulers.from(Executors.newFixedThreadPool(5)),
                                               APPLICATION_REFRESH_MS);
+  }
+
+  @Bean
+  public ServiceAccountBucketDAO serviceAccountBucketDAO(GcsStorageService service) {
+    return new ServiceAccountBucketDAO(rootFolder,
+                                       service,
+                                       Schedulers.from(Executors.newFixedThreadPool(5)),
+                                       SERVICE_ACCOUNT_REFRESH_MS);
   }
 
   @Bean
