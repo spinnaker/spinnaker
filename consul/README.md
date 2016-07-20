@@ -23,7 +23,7 @@ If you're using Consul, Spinnaker assumes that you've taken care of
 installing the Consul agent on each machine you want to be discoverable. The
 best way to take care of this is to create a base image with Consul installed,
 and install further packages on top of that. To do so, copy the file in
-`./install/install.sh` onto a VM, run `$ sudo bash install.sh`, and capture the
+`./install/install.sh` onto a VM, run `$ sudo bash install.sh [client|server]`, and capture the
 resulting disk [as an
 image](https://cloud.google.com/compute/docs/images/create-delete-deprecate-private-images). 
 There are many ways to do this (Packer, config-management, etc...) and we'll 
@@ -36,12 +36,15 @@ one acting as the leader. There are a few ways to get the Consul server nodes
 set up, and they are detailed
 [here](https://www.consul.io/docs/guides/bootstrapping.html).
 
-For an easy startup path, take the base image produced by the `install.sh`
-script mentioned above, and start a 3 node cluster. Once this cluster is
-running with nodes `$NODE1, $NODE2, $NODE3`, run `$ consul join $NODE2 $NODE3`
-on `$NODE1`.
+For an easy startup path, take the base image produced by running `$ sudo bash 
+install.sh server` as described above, and start a 3 node cluster. 
+Once this cluster is running with nodes `$NODE1, $NODE2, $NODE3`, run 
+`$ consul join $NODE2 $NODE3` on `$NODE1`.
 
 ## 2. Starting your Consul Agents
 
 We recommend having both the Consul binary, and a corresponding `/etc/init.d/`
 entry on whatever base image you use to produce application images.
+
+As an example, you can capture the image produced by running `$ sudo bash
+install.sh client`.

@@ -1,5 +1,9 @@
 #! /bin/bash
 
+if [ -z "$1" ] then
+    echo "Please provide either 'server' or 'client' as the only argument to this script"
+fi
+
 CONSUL_VERSION=0.6.4
 CONSUL_ARCH=linux_amd64
 
@@ -29,4 +33,4 @@ cp -r config/* /etc/consul.d/
 
 # Setup upstart
 
-cp upstart/consul.conf /etc/init/
+cp upstart/consul.${1}.conf /etc/init/
