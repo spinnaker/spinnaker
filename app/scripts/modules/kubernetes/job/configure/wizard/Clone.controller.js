@@ -8,11 +8,13 @@ module.exports = angular.module('spinnaker.job.configure.kubernetes.clone', [
   require('../../../../core/job/job.write.service.js'),
   require('../../../../core/modal/wizard/v2modalWizard.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js'),
+  require('../../../../core/modal/wizard/wizardSubFormValidation.service.js'),
 ])
   .controller('kubernetesCloneJobController', function($scope, $uibModalInstance, _, jobWriter,
                                                        v2modalWizardService, taskMonitorService,
                                                        kubernetesServerGroupConfigurationService,
-                                                       jobCommand, application, title) {
+                                                       jobCommand, application, title,
+                                                       wizardSubFormValidation) {
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
       basicSettings: require('../../../serverGroup/configure/wizard/basicSettings.html'),
@@ -65,6 +67,10 @@ module.exports = angular.module('spinnaker.job.configure.kubernetes.clone', [
         v2modalWizardService.markComplete('replicas');
         v2modalWizardService.markComplete('volumes');
       }
+
+      wizardSubFormValidation
+        .config({ scope: $scope, form: 'form' })
+        .register({ page: 'location', subForm: 'basicSettings'});
     }
 
     this.isValid = function () {

@@ -45,13 +45,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.basi
       $uibModalStack: $uibModalStack,
       $state: $state,
     }));
-
-    $scope.$watch('form.$valid', function(newVal) {
-      if (newVal) {
-        v2modalWizardService.markClean('location');
-        v2modalWizardService.markComplete('location');
-      } else {
-        v2modalWizardService.markIncomplete('location');
-      }
-    });
   });

@@ -96,13 +96,4 @@ module.exports = angular.module('spinnaker.google.serverGroup.configure.wizard.b
       }
     };
 
-    $scope.$watch('form.$valid', function(newVal) {
-      if (newVal) {
-        v2modalWizardService.markClean('location');
-        v2modalWizardService.markComplete('location');
-      } else {
-        v2modalWizardService.markIncomplete('location');
-      }
-    });
-
   });

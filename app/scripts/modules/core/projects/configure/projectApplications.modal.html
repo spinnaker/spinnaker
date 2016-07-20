@@ -1,8 +1,8 @@
-<form name="form" class="container-fluid form-horizontal">
+<ng-form name="applicationsSubForm" class="form-horizontal">
   <div class="modal-body">
     <div class="form-group">
       <div class="col-sm-10 col-sm-offset-1">
-        <ui-select multiple required name="applications" class="form-control input-sm"
+        <ui-select multiple name="applications" class="form-control input-sm"
                    ng-model="command.config.applications"
                    on-select="ctrl.addApplication($item)"
                    on-remove="ctrl.applicationRemoved($item)">
@@ -18,4 +18,4 @@
       </div>
     </div>
   </div>
-</form>
+</ng-form>

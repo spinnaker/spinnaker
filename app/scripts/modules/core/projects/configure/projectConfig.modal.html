@@ -1,4 +1,4 @@
-<form name="form" class="container-fluid form-horizontal">
+<ng-form name="configSubForm" class="form-horizontal">
   <div class="modal-body">
     <div class="form-group">
       <div class="col-md-3 sm-label-right">
@@ -14,7 +14,7 @@
                validate-ignore-case="true"/>
       </div>
     </div>
-    <div class="form-group row slide-in animated" ng-if="form.name.$error.pattern">
+    <div class="form-group row slide-in animated" ng-if="configSubForm.name.$error.pattern">
       <div class="col-sm-9 col-sm-offset-3 error-message">
         <div>
           Project name cannot contain any of the following characters:
@@ -22,7 +22,7 @@
         <code>/  \  ?  %  #</code>
       </div>
     </div>
-    <div class="form-group row slide-in animated" ng-if="form.name.$error.validateUnique">
+    <div class="form-group row slide-in animated" ng-if="configSubForm.name.$error.validateUnique">
       <div class="col-sm-9 col-sm-offset-3 error-message">
         <span>There is already a project with that name.</span>
       </div>
@@ -40,7 +40,7 @@
                required/>
       </div>
     </div>
-    <div class="form-group row slide-in animated" ng-if="newApplicationForm.email.$dirty && newApplicationForm.email.$invalid">
+    <div class="form-group row slide-in animated" ng-if="configSubForm.email.$dirty && configSubForm.email.$invalid">
       <div class="col-sm-9 col-sm-offset-3 error-message">
         <span>Please enter a valid email address</span>
       </div>
@@ -76,4 +76,4 @@
       </div>
     </div>
   </div>
-</form>
+</ng-form>

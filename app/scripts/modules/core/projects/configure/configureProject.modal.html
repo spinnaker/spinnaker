@@ -1,20 +1,22 @@
-<v2-modal-wizard heading="Configure Project">
-  <v2-wizard-page key="config" label="Project Attributes">
-    <ng-include src="ctrl.pages.config"></ng-include>
-  </v2-wizard-page>
-  <v2-wizard-page key="applications" label="Applications">
-    <ng-include src="ctrl.pages.applications"></ng-include>
-  </v2-wizard-page>
-  <v2-wizard-page key="clusters" label="Clusters">
-    <ng-include src="ctrl.pages.clusters"></ng-include>
-  </v2-wizard-page>
-  <v2-wizard-page key="pipelines" label="Pipelines" mandatory="false">
-    <ng-include src="ctrl.pages.pipelines"></ng-include>
-  </v2-wizard-page>
-</v2-modal-wizard>
-<div class="modal-footer">
-  <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
-  <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="taskMonitor.submitting"
-                 label="'Save'"
-                 submitting="taskMonitor.submitting" on-click="ctrl.updateProject()"></submit-button>
-</div>
+<form name="projectConfigForm" novalidate>
+  <v2-modal-wizard heading="Configure Project">
+    <v2-wizard-page key="config" label="Project Attributes" mark-complete-on-view="false">
+      <ng-include src="ctrl.pages.config"></ng-include>
+    </v2-wizard-page>
+    <v2-wizard-page key="applications" label="Applications" mark-complete-on-view="false">
+      <ng-include src="ctrl.pages.applications"></ng-include>
+    </v2-wizard-page>
+    <v2-wizard-page key="clusters" label="Clusters" mark-complete-on-view="false">
+      <ng-include src="ctrl.pages.clusters"></ng-include>
+    </v2-wizard-page>
+    <v2-wizard-page key="pipelines" label="Pipelines" mandatory="false" done="true">
+      <ng-include src="ctrl.pages.pipelines"></ng-include>
+    </v2-wizard-page>
+  </v2-modal-wizard>
+  <div class="modal-footer">
+    <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
+    <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="taskMonitor.submitting"
+                   label="'Save'"
+                   submitting="taskMonitor.submitting" on-click="ctrl.updateProject()"></submit-button>
+  </div>
+</form>

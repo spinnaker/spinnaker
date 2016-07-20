@@ -7,12 +7,14 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
   require('../../../../core/application/modal/platformHealthOverride.directive.js'),
   require('./../../../instance/custom/customInstanceBuilder.gce.service.js'),
   require('../../../../core/instance/instanceTypeService.js'),
+  require('../../../../core/modal/wizard/wizardSubFormValidation.service.js'),
 ])
   .controller('gceCloneServerGroupCtrl', function($scope, $uibModalInstance, _, $q, $state,
                                                   serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                   gceServerGroupConfigurationService,
                                                   serverGroupCommand, application, title,
-                                                  gceCustomInstanceBuilderService, instanceTypeService) {
+                                                  gceCustomInstanceBuilderService, instanceTypeService,
+                                                  wizardSubFormValidation) {
     $scope.pages = {
       templateSelection: require('./templateSelection/templateSelection.html'),
       basicSettings: require('./location/basicSettings.html'),
@@ -89,6 +91,11 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
         $scope.state.loaded = true;
         initializeSelectOptions();
         initializeWatches();
+        wizardSubFormValidation
+          .config({ scope: $scope, form: 'form'})
+          .register({ page: 'location', subForm: 'basicSettings' })
+          .register({ page: 'capacity', subForm: 'capacitySubForm' })
+          .register({ page: 'zones', subForm: 'zonesSubForm' });
       });
     }
 
