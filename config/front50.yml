@@ -26,6 +26,7 @@ spinnaker:
   gcs:
     enabled: ${services.front50.gcs.enabled:false}
     bucket: ${services.front50.storage_bucket:}
+    # See https://cloud.google.com/storage/docs/managing-buckets#manage-class-location
     bucketLocation: ${services.front50.bucket_location:}
     rootFolder: ${services.front50.bucket_root:front50}
     project: ${providers.google.primaryCredentials.project}
