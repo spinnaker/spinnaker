@@ -94,6 +94,8 @@ services:
     # If using storage bucket persistence (gcs or s3), specify the bucket here
     # disable cassandra and enable the storage service below.
     storage_bucket:
+    # (GCS Only) Location for bucket.
+    bucket_location:
     bucket_root: front50
 
     cassandra:
