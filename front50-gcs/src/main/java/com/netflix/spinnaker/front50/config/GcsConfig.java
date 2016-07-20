@@ -48,6 +48,9 @@ public class GcsConfig {
   @Value("${spinnaker.gcs.bucket}")
   private String bucket;
 
+  @Value("${spinnaker.gcs.bucketLocation}")
+  private String bucketLocation;
+
   @Value("${spinnaker.gcs.rootFolder}")
   private String rootFolder;
 
@@ -68,9 +71,9 @@ public class GcsConfig {
   private GcsStorageService googleCloudStorageService(String dataFilename) {
     GcsStorageService service;
     if (dataFilename == null || dataFilename.isEmpty()) {
-      service = new GcsStorageService(bucket, rootFolder, project, jsonPath, applicationVersion);
+      service = new GcsStorageService(bucket, bucketLocation, rootFolder, project, jsonPath, applicationVersion);
     } else {
-      service = new GcsStorageService(bucket, rootFolder, project, jsonPath, applicationVersion, dataFilename);
+      service = new GcsStorageService(bucket, bucketLocation, rootFolder, project, jsonPath, applicationVersion, dataFilename);
     }
     service.ensureBucketExists();
     log.info("Using Google Cloud Storage bucket={} in project={}",

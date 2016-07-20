@@ -38,6 +38,9 @@ class GoogleStorageServiceSpec extends Specification {
   String BUCKET_NAME = "TestBucket"
 
   @Shared
+  String BUCKET_LOCATION = "US"
+
+  @Shared
   String BASE_PATH = "/A/B/C"
   
   @Shared
@@ -48,8 +51,7 @@ class GoogleStorageServiceSpec extends Specification {
   GcsStorageService gcs
 
   GcsStorageService makeGcs() {
-    return new GcsStorageService(BUCKET_NAME, BASE_PATH, PROJECT_NAME,
-                                 mockStorage)    
+    return new GcsStorageService(BUCKET_NAME, BUCKET_LOCATION, BASE_PATH, PROJECT_NAME, mockStorage)
   }
 
   def "ensureBucketExists make bucket"() {
@@ -58,7 +60,10 @@ class GoogleStorageServiceSpec extends Specification {
      Storage.Buckets.Get mockGetBucket = Mock(Storage.Buckets.Get)
      Storage.Buckets.Insert mockInsertBucket = Mock(Storage.Buckets.Insert)
      Bucket.Versioning ver = new Bucket.Versioning().setEnabled(true)
-     Bucket bucketSpec = new Bucket().setName(BUCKET_NAME).setVersioning(ver)
+     Bucket bucketSpec = new Bucket()
+         .setName(BUCKET_NAME)
+         .setVersioning(ver)
+         .setLocation(BUCKET_LOCATION)
 
     when:
      gcs = makeGcs()
@@ -104,9 +109,6 @@ class GoogleStorageServiceSpec extends Specification {
     given:
      Storage.Buckets mockBucketApi = Mock(Storage.Buckets)
      Storage.Buckets.Get mockGetBucket = Mock(Storage.Buckets.Get)
-     Storage.Buckets.Insert mockInsertBucket = Mock(Storage.Buckets.Insert)
-     Bucket.Versioning ver = new Bucket.Versioning().setEnabled(true)
-     Bucket bucketSpec = new Bucket().setName(BUCKET_NAME).setVersioning(ver)
      HttpResponseException exception = new HttpResponseException.Builder(
          403, 'Oops', new HttpHeaders()).build()
 
