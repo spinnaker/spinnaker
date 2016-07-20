@@ -64,7 +64,7 @@ class OpenstackSubnetCachingAgent extends AbstractOpenstackCachingAgent {
     CacheResultBuilder cacheResultBuilder = new CacheResultBuilder()
 
     clientProvider.listSubnets(region)?.each { Subnet subnet ->
-      String subnetKey = Keys.getSubnetKey(subnet.id, region, accountName)
+      String subnetKey = Keys.getSubnetKey(subnet.id, accountName, region)
 
       Map<String, Object> subnetAttributes = objectMapper.convertValue(OpenstackSubnet.from(subnet, accountName, region), ATTRIBUTES)
 

@@ -21,13 +21,17 @@ import com.google.common.collect.Sets
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider
+import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackFloatingIPCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackImageCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackInstanceCachingAgent
+import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackLoadBalancerCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackInstanceTypeCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackNetworkCachingAgent
+import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackPortCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackSecurityGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackServerGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackSubnetCachingAgent
+import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackVipCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
@@ -72,7 +76,7 @@ class OpenstackInfrastructureProviderConfig {
   @Bean
   OpenstackProviderSynchronizer synchronizeOpenstackProvider(OpenstackInfrastructureProvider openstackInfastructureProvider,
                                                              AccountCredentialsRepository accountCredentialsRepository,
-                                                             ObjectMapper objectMapper) {
+                                                             @Qualifier('infraObjectMapper') ObjectMapper objectMapper) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(openstackInfastructureProvider)
     def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, OpenstackNamedAccountCredentials)
 
@@ -87,6 +91,10 @@ class OpenstackInfrastructureProviderConfig {
           newlyAddedAgents << new OpenstackNetworkCachingAgent(credentials, region, objectMapper)
           newlyAddedAgents << new OpenstackImageCachingAgent(credentials, region, objectMapper)
           newlyAddedAgents << new OpenstackSecurityGroupCachingAgent(credentials, region, objectMapper)
+          newlyAddedAgents << new OpenstackVipCachingAgent(credentials, region, objectMapper)
+          newlyAddedAgents << new OpenstackFloatingIPCachingAgent(credentials, region, objectMapper)
+          newlyAddedAgents << new OpenstackPortCachingAgent(credentials, region, objectMapper)
+          newlyAddedAgents << new OpenstackLoadBalancerCachingAgent(credentials, region, objectMapper)
           newlyAddedAgents << new OpenstackInstanceTypeCachingAgent(credentials, region, objectMapper)
         }
       }

@@ -22,52 +22,53 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.openstack.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
-import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackNetwork
+import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackPort
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import groovy.util.logging.Slf4j
-import org.openstack4j.model.network.Network
+import org.openstack4j.model.network.Port
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.PORTS
 import static com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider.ATTRIBUTES
 
 @Slf4j
-class OpenstackNetworkCachingAgent extends AbstractOpenstackCachingAgent {
+class OpenstackPortCachingAgent extends AbstractOpenstackCachingAgent {
 
   Collection<AgentDataType> providedDataTypes = Collections.unmodifiableSet([
-    AUTHORITATIVE.forType(Keys.Namespace.NETWORKS.ns)
+    AUTHORITATIVE.forType(PORTS.ns)
   ] as Set)
 
   final ObjectMapper objectMapper
 
-  String agentType = "${accountName}/${region}/${OpenstackNetworkCachingAgent.simpleName}"
+  String agentType = "${accountName}/${region}/${OpenstackPortCachingAgent.simpleName}"
 
-  OpenstackNetworkCachingAgent(OpenstackNamedAccountCredentials account, String region, final ObjectMapper objectMapper) {
+  OpenstackPortCachingAgent(OpenstackNamedAccountCredentials account, String region, final ObjectMapper objectMapper) {
     super(account, region)
     this.objectMapper = objectMapper
   }
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    List<Network> networkList = clientProvider.listNetworks(region)
-    buildCacheResult(networkList)
+    List<Port> ports = clientProvider.listPorts(region)
+    buildCacheResult(ports)
   }
 
-  private CacheResult buildCacheResult(List<Network> networkList) {
+  private CacheResult buildCacheResult(List<Port> ports) {
     log.info("Describing items in ${agentType}")
 
     def cacheResultBuilder = new CacheResultBuilder()
 
-    networkList.each { Network network ->
-      String networkKey = Keys.getNetworkKey(network.id, accountName, region)
+    ports.each { Port port ->
+      String portKey = Keys.getPortKey(port.id, accountName, region)
 
-      Map<String, Object> networkAttributes = objectMapper.convertValue(OpenstackNetwork.from(network, accountName, region), ATTRIBUTES)
+      Map<String, Object> portAttributes = objectMapper.convertValue(OpenstackPort.from(port, accountName, region), ATTRIBUTES)
 
-      cacheResultBuilder.namespace(Keys.Namespace.NETWORKS.ns).keep(networkKey).with {
-        attributes = networkAttributes
+      cacheResultBuilder.namespace(PORTS.ns).keep(portKey).with {
+        attributes = portAttributes
       }
     }
 
-    log.info("Caching ${cacheResultBuilder.namespace(Keys.Namespace.NETWORKS.ns).keepSize()} networks in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(PORTS.ns).keepSize()} ports in ${agentType}")
 
     cacheResultBuilder.build()
   }

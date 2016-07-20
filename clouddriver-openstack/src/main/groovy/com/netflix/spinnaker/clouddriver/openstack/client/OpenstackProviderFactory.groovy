@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.client
 
+import com.netflix.spinnaker.clouddriver.openstack.security.AccountType
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import org.openstack4j.api.OSClient
 import org.openstack4j.core.transport.Config
@@ -51,15 +52,6 @@ class OpenstackProviderFactory {
       throw new IllegalArgumentException("Unknown account type ${credentials.accountType}")
     }
     provider
-  }
-
-  static enum AccountType {
-
-    V2, V3
-
-    String value() {
-      return toString().toLowerCase()
-    }
   }
 
 }

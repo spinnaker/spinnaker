@@ -27,6 +27,7 @@ import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.A
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.CLUSTERS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.INSTANCE_TYPES
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.LOAD_BALANCERS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SECURITY_GROUPS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SERVER_GROUPS
 
@@ -48,7 +49,8 @@ class OpenstackInfrastructureProvider extends AgentSchedulerAware implements Sea
     INSTANCES.ns,
     SECURITY_GROUPS.ns,
     SERVER_GROUPS.ns,
-    INSTANCE_TYPES.ns
+    INSTANCE_TYPES.ns,
+    LOAD_BALANCERS.ns
   ].asImmutable()
 
   //TODO - Need to define urlMappingTemplates

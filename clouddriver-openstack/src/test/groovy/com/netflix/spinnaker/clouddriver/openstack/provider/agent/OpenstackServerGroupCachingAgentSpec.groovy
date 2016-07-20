@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccoun
 import org.openstack4j.model.common.ActionResponse
 import org.openstack4j.model.compute.Server
 import org.openstack4j.model.heat.Stack
+import org.openstack4j.model.network.ext.LbPool
 import redis.clients.jedis.exceptions.JedisException
 import spock.lang.Shared
 import spock.lang.Specification
@@ -79,6 +80,7 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     String clusterName = "${appName}-stack-detail"
     String serverGroupName = "${clusterName}-v000"
     String poolId = UUID.randomUUID().toString()
+    String poolName = "$appName-lb"
 
     and:
     Server server = Mock(Server) {
@@ -86,7 +88,11 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     }
     Stack stack = Mock(Stack) {
       getId() >> { stackId }
-      getName() >> serverGroupName
+      getName() >> { serverGroupName }
+    }
+    LbPool pool = Mock(LbPool) {
+      getId() >> { poolId }
+      getName() >> { poolName }
     }
     Stack stackDetail = Mock(Stack) { getParameters() >> ['pool_id': poolId] }
     OpenstackServerGroup openstackServerGroup = OpenstackServerGroup.builder().account(account).name(serverGroupName).build()
@@ -96,7 +102,7 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     String clusterKey = Keys.getClusterKey(account, appName, clusterName)
     String appKey = Keys.getApplicationKey(appName)
     String serverGroupKey = Keys.getServerGroupKey(serverGroupName, account, region)
-    String loadBalancerKey = Keys.getLoadBalancerKey(poolId, account, region)
+    String loadBalancerKey = Keys.getLoadBalancerKey(poolName, poolId, account, region)
     String instanceKey = Keys.getInstanceKey(serverId, account, region)
 
     when:
@@ -106,6 +112,7 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     1 * provider.getInstancesByServerGroup(region) >> [(stackId): [server]]
     1 * provider.listStacks(region) >> [stack]
     1 * provider.getStack(region, stack.name) >> stackDetail
+    1 * provider.getLoadBalancerPool(region, poolId) >> pool
     1 * cachingAgent.buildServerGroup(providerCache, stackDetail, _) >> openstackServerGroup
 
     and:

@@ -40,7 +40,7 @@ class OpenstackNamedAccountCredentialsSpec extends Specification {
     IOSClientBuilder.V2.metaClass.authenticate = { mockClient }
 
     when:
-    def credentials = new OpenstackNamedAccountCredentials("name", "test", "v2", "test", "user", "pw", "tenant", "domain", "endpoint", regions, false)
+    def credentials = new OpenstackNamedAccountCredentials("name", "test", "v2", "v1", "test", "user", "pw", "tenant", "domain", "endpoint", regions, false)
 
     then:
     1 * mockClient.access >> Mock(Access)
@@ -55,7 +55,7 @@ class OpenstackNamedAccountCredentialsSpec extends Specification {
     IOSClientBuilder.V3.metaClass.authenticate = { mockClient }
 
     when:
-    def credentials = new OpenstackNamedAccountCredentials("name", "test", "v3", "test", "user", "pw", "tenant", "domain", "endpoint", regions, false)
+    def credentials = new OpenstackNamedAccountCredentials("name", "test", "v3", "v1", "test", "user", "pw", "tenant", "domain", "endpoint", regions, false)
 
     then:
     1 * mockClient.token >> Mock(Token)
@@ -66,7 +66,7 @@ class OpenstackNamedAccountCredentialsSpec extends Specification {
 
   def "Provider factory throws exception for unknown account type"() {
     when:
-    new OpenstackNamedAccountCredentials("name", "test", "v1", "test", "user", "pw", "tenant", "domain", "endpoint", regions, false)
+    new OpenstackNamedAccountCredentials("name", "test", "v1", "v1", "test", "user", "pw", "tenant", "domain", "endpoint", regions, false)
 
     then:
     thrown IllegalArgumentException

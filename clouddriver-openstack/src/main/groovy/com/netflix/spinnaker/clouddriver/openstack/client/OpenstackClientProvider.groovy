@@ -57,7 +57,7 @@ import java.util.regex.Pattern
 /**
  * Provides access to the Openstack API.
  *
- * TODO region support will need to be added to all client calls not already using regions
+ * TODO move lbaas-related methods into an lbaas provider. This class can then delegate to the appropriate v1 or v2 lbaas provider.
  *
  * TODO tokens will need to be regenerated if they are expired.
  */
@@ -148,6 +148,17 @@ abstract class OpenstackClientProvider {
       throw new OpenstackProviderException("Unable to find load balancer ${loadBalancerId} in ${region}")
     }
     result
+  }
+
+  /**
+   * Get all vips in a region.
+   * @param region
+   * @return
+     */
+  List<? extends Vip> listVips(final String region) {
+    handleRequest {
+      getRegionClient(region).networking().loadbalancers().vip().list()
+    }
   }
 
   /**
@@ -423,6 +434,17 @@ abstract class OpenstackClientProvider {
   }
 
   /**
+   * List all floating ips in the region.
+   * @param region
+   * @return
+     */
+  List<? extends FloatingIP> listFloatingIps(final String region) {
+    handleRequest {
+      getRegionClient(region).compute().floatingIps().list()
+    }
+  }
+
+  /**
    * Internal helper to look up port associated to vip.
    * @param region
    * @param vipId
@@ -431,6 +453,17 @@ abstract class OpenstackClientProvider {
   protected Port getPortForVip(final String region, final String vipId) {
     handleRequest {
       getRegionClient(region).networking().port().list()?.find { it.name == "vip-${vipId}" }
+    }
+  }
+
+  /**
+   * List all ports in the region.
+   * @param region
+   * @return
+     */
+  List<? extends Port> listPorts(final String region) {
+    handleRequest {
+      getRegionClient(region).networking().port().list()
     }
   }
 

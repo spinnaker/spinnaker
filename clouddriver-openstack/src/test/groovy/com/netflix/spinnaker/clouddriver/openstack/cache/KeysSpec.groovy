@@ -20,12 +20,17 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import static com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider.ID
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.FLOATING_IPS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.LOAD_BALANCERS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.NETWORKS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.PORTS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SUBNETS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.APPLICATIONS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.CLUSTERS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SERVER_GROUPS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SECURITY_GROUPS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.VIPS
 
 @Unroll
 class KeysSpec extends Specification {
@@ -104,7 +109,7 @@ class KeysSpec extends Specification {
     String subnetId = UUID.randomUUID().toString()
     String region = 'region'
     String account = 'account'
-    String subnetKey = Keys.getSubnetKey(subnetId, region, account)
+    String subnetKey = Keys.getSubnetKey(subnetId, account, region)
 
     when:
     Map<String, String> result = Keys.parse(subnetKey)
@@ -151,6 +156,20 @@ class KeysSpec extends Specification {
     result == "${ID}:${SERVER_GROUPS}:${cluster}:${account}:${region}:${serverGroupName}" as String
   }
 
+  void "test get server group key by cluster and server group name"() {
+    given:
+    String cluster = 'myapp-teststack'
+    String serverGroupName = "$cluster-v000"
+    String account = 'account'
+    String region = 'region'
+
+    when:
+    String result = Keys.getServerGroupKey(cluster, serverGroupName, account, region)
+
+    then:
+    result == "${ID}:${SERVER_GROUPS}:${cluster}:${account}:${region}:${serverGroupName}" as String
+  }
+
   void "test get cluster key"() {
     given:
     String application = 'myapp'
@@ -171,10 +190,23 @@ class KeysSpec extends Specification {
     String account = 'account'
 
     when:
-    String result = Keys.getSubnetKey(subnetId, region, account)
+    String result = Keys.getSubnetKey(subnetId, account, region)
 
     then:
-    result == "${ID}:${SUBNETS}:${subnetId}:${account}:${region}" as String
+    result == "${ID}:${SUBNETS}:${account}:${region}:${subnetId}" as String
+  }
+
+  void "test get network key"() {
+    given:
+    String networkId = UUID.randomUUID().toString()
+    String region = 'region'
+    String account = 'account'
+
+    when:
+    String result = Keys.getNetworkKey(networkId, account, region)
+
+    then:
+    result == "${ID}:${NETWORKS}:${account}:${region}:${networkId}" as String
   }
 
   def "test get security group key"() {
@@ -205,4 +237,58 @@ class KeysSpec extends Specification {
     then:
     result == [application: name, account: account, region: region, id: id, name: name, provider: ID, type: SECURITY_GROUPS.ns]
   }
+
+  void "test get lb key"() {
+    given:
+    String lbId = UUID.randomUUID().toString()
+    String lbName = 'myapp-lb'
+    String region = 'region'
+    String account = 'account'
+
+    when:
+    String result = Keys.getLoadBalancerKey(lbName, lbId, account, region)
+
+    then:
+    result == "${ID}:${LOAD_BALANCERS}:${account}:${region}:${lbId}:${lbName}" as String
+  }
+
+  void "test get vip key"() {
+    given:
+    String vipId = UUID.randomUUID().toString()
+    String region = 'region'
+    String account = 'account'
+
+    when:
+    String result = Keys.getVipKey(vipId, account, region)
+
+    then:
+    result == "${ID}:${VIPS}:${account}:${region}:${vipId}" as String
+  }
+
+  void "test get ip key"() {
+    given:
+    String ipId = UUID.randomUUID().toString()
+    String region = 'region'
+    String account = 'account'
+
+    when:
+    String result = Keys.getFloatingIPKey(ipId, account, region)
+
+    then:
+    result == "${ID}:${FLOATING_IPS}:${account}:${region}:${ipId}" as String
+  }
+
+  void "test get port key"() {
+    given:
+    String portId = UUID.randomUUID().toString()
+    String region = 'region'
+    String account = 'account'
+
+    when:
+    String result = Keys.getPortKey(portId, account, region)
+
+    then:
+    result == "${ID}:${PORTS}:${account}:${region}:${portId}" as String
+  }
+
 }

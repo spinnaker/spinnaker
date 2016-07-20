@@ -259,6 +259,7 @@ openstack:
     - name: test
       environment: test
       accountType: v2
+      lbaasVersion: v1
       master: test
       username: ${OS_USERNAME:'username'}
       password: ${OS_PASSWORD:'password'}

@@ -65,7 +65,7 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
   }
 
   /*
-  * curl -X POST -H "Content-Type: application/json" -d '[{"createServerGroup":{"stack":"teststack","application":"myapp","serverGroupParameters":{"instanceType":"m1.medium","image":"4e0d0b4b-8089-4703-af99-b6a0c90fbbc7","maxSize":5,"minSize":3,"networkId":"77bb3aeb-c1e2-4ce5-8d8f-b8e9128af651","poolId":"87077f97-83e7-4ea1-9ca9-40dc691846db","securityGroups":["sg-heat-test-1"]},"region":"REGION1","disableRollback":false,"timeoutMins":5,"account":"test"}}]' localhost:7002/openstack/ops
+  * curl -X POST -H "Content-Type: application/json" -d '[{"createServerGroup":{"stack":"teststack","application":"myapp","serverGroupParameters":{"instanceType":"m1.medium","image":"4e0d0b4b-8089-4703-af99-b6a0c90fbbc7","maxSize":5,"minSize":3,"subnetId":"77bb3aeb-c1e2-4ce5-8d8f-b8e9128af651","poolId":"87077f97-83e7-4ea1-9ca9-40dc691846db","securityGroups":["sg-heat-test-1"]},"region":"REGION1","disableRollback":false,"timeoutMins":5,"account":"test"}}]' localhost:7002/openstack/ops
   * curl -X GET -H "Accept: application/json" localhost:7002/task/1
   */
   @Override

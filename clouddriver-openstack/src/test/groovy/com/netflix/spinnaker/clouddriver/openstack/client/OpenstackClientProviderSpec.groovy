@@ -2474,4 +2474,117 @@ class OpenstackClientProviderSpec extends Specification {
     OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
     openstackProviderException.cause == throwable
   }
+
+  def "list vips success"() {
+    setup:
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    VipService vipService = Mock()
+    List<? extends Vip> vips = Mock()
+
+    when:
+    List<? extends LbPool> result = provider.listVips(region)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.vip() >> vipService
+    1 * vipService.list() >> vips
+    result == vips
+    noExceptionThrown()
+  }
+
+  def "list vips exception"() {
+    setup:
+    NetworkingService networkingService = Mock()
+    LoadBalancerService loadBalancerService = Mock()
+    VipService vipService = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.listVips(region)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.loadbalancers() >> loadBalancerService
+    1 * loadBalancerService.vip() >> vipService
+    1 * vipService.list() >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "list ports success"() {
+    setup:
+    NetworkingService networkingService = Mock()
+    PortService portService = Mock()
+    List<? extends Port> ports = Mock()
+
+    when:
+    List<? extends Port> result = provider.listPorts(region)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.port() >> portService
+    1 * portService.list() >> ports
+    result == ports
+    noExceptionThrown()
+  }
+
+  def "list ports exception"() {
+    setup:
+    NetworkingService networkingService = Mock()
+    PortService portService = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.listPorts(region)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.port() >> portService
+    1 * portService.list() >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "list floating ips success"() {
+    setup:
+    ComputeService computeService = Mock()
+    ComputeFloatingIPService ipService = Mock()
+    List<? extends FloatingIP> ips = Mock()
+
+    when:
+    List<? extends FloatingIP> result = provider.listFloatingIps(region)
+
+    then:
+    1 * mockClient.compute() >> computeService
+    1 * computeService.floatingIps() >> ipService
+    1 * ipService.list() >> ips
+    result == ips
+    noExceptionThrown()
+  }
+
+  def "list floating ips exception"() {
+    setup:
+    ComputeService computeService = Mock()
+    ComputeFloatingIPService ipService = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.listFloatingIps(region)
+
+    then:
+    1 * mockClient.compute() >> computeService
+    1 * computeService.floatingIps() >> ipService
+    1 * ipService.list() >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
 }

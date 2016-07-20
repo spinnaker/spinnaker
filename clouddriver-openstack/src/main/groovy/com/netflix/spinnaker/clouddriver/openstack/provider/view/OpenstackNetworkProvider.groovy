@@ -24,7 +24,7 @@ import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.model.NetworkProvider
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
-import com.netflix.spinnaker.clouddriver.openstack.domain.OpenstackNetwork
+import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackNetwork
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 

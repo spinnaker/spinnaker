@@ -16,14 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
-import groovy.transform.EqualsAndHashCode
+import groovy.transform.Canonical
 import org.openstack4j.model.compute.Server
 
 import static org.openstack4j.model.compute.Server.Status
 
-@EqualsAndHashCode
+@Canonical
 class OpenstackInstance implements Instance, Serializable {
   String name
   String instanceId
@@ -37,6 +38,7 @@ class OpenstackInstance implements Instance, Serializable {
 
   //TODO - Determine if load balancers, security groups, and server groups are needed
   // TODO - Determine which external health checks matter
+  @JsonIgnore
   @Override
   List<Map<String, String>> getHealth() {
     [[
@@ -48,6 +50,7 @@ class OpenstackInstance implements Instance, Serializable {
   }
 
   //TODO - Further define health states ... There are 18 OP and 7 spinnaker states.
+  @JsonIgnore
   @Override
   HealthState getHealthState() {
     switch (Status.forValue(status)) {

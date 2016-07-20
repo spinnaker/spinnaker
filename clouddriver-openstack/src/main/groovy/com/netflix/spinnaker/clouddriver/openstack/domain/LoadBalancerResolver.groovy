@@ -19,8 +19,8 @@ package com.netflix.spinnaker.clouddriver.openstack.domain
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-
 trait LoadBalancerResolver {
+
   final String nameRegex = "(\\w+)-(\\w+)-(\\w+)"
   final Pattern namePattern = Pattern.compile(nameRegex)
   final String descriptionRegex = ".*internal_port=([0-9]+).*"

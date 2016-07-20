@@ -20,14 +20,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
-import com.netflix.spinnaker.clouddriver.openstack.domain.OpenstackNetwork
-import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackSubnet
+import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackNetwork
 import redis.clients.jedis.exceptions.JedisException
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.NETWORKS
-import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SUBNETS
 
 class OpenstackNetworkProviderSpec extends Specification {
 

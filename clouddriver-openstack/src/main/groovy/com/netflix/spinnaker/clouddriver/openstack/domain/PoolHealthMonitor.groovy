@@ -18,6 +18,10 @@ package com.netflix.spinnaker.clouddriver.openstack.domain
 
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
+import org.openstack4j.api.Builders
+import org.openstack4j.model.network.ext.HealthMonitor
+import org.openstack4j.model.network.ext.HealthMonitorType
+import org.openstack4j.openstack.networking.domain.ext.NeutronHealthMonitor
 
 @AutoClone
 @Canonical
@@ -32,4 +36,11 @@ class PoolHealthMonitor {
   String httpMethod
   String url
   List<Integer> expectedHttpStatusCodes
+
+  static PoolHealthMonitor from(HealthMonitor healthMonitor) {
+    new PoolHealthMonitor(id: healthMonitor.id, type: PoolHealthMonitorType.valueOf(healthMonitor.type.name()),
+      delay: healthMonitor.delay, timeout: healthMonitor.delay, maxRetries: healthMonitor.maxRetries,
+      httpMethod: healthMonitor.httpMethod, url: healthMonitor.urlPath,
+      expectedHttpStatusCodes: healthMonitor.expectedCodes?.split(',')?.toList()?.collect { Integer.parseInt(it) })
+  }
 }

@@ -16,19 +16,20 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
-import com.netflix.spinnaker.clouddriver.model.ServerGroup.InstanceCounts
-import com.netflix.spinnaker.clouddriver.model.ServerGroup.ImagesSummary
-import com.netflix.spinnaker.clouddriver.model.ServerGroup.ImageSummary
 import com.netflix.spinnaker.clouddriver.model.ServerGroup.Capacity
+import com.netflix.spinnaker.clouddriver.model.ServerGroup.ImageSummary
+import com.netflix.spinnaker.clouddriver.model.ServerGroup.ImagesSummary
+import com.netflix.spinnaker.clouddriver.model.ServerGroup.InstanceCounts
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
-import groovy.transform.EqualsAndHashCode
+import groovy.transform.Canonical
 import groovy.transform.builder.Builder
 
 @Builder
-@EqualsAndHashCode
+@Canonical
 class OpenstackServerGroup implements ServerGroup, Serializable {
   String account
   String name
@@ -45,26 +46,30 @@ class OpenstackServerGroup implements ServerGroup, Serializable {
   Boolean disabled
   String type = OpenstackCloudProvider.ID
 
+  @JsonIgnore
   @Override
   Boolean isDisabled() { // Because groovy isn't smart enough to generate this method :-(
     disabled
   }
 
+  @JsonIgnore
   @Override
   Set<String> getSecurityGroups() {
     (launchConfig && launchConfig.containsKey('securityGroups')) ? (Set<String>) launchConfig.securityGroups : []
   }
 
+  @JsonIgnore
   @Override
   InstanceCounts getInstanceCounts() {
-      new InstanceCounts(total: instances ? instances.size() : 0,
-        up: filterInstancesByHealthState(instances, HealthState.Up)?.size() ?: 0,
-        down: filterInstancesByHealthState(instances, HealthState.Down)?.size() ?: 0,
-        unknown: filterInstancesByHealthState(instances, HealthState.Unknown)?.size() ?: 0,
-        starting: filterInstancesByHealthState(instances, HealthState.Starting)?.size() ?: 0,
-        outOfService: filterInstancesByHealthState(instances, HealthState.OutOfService)?.size() ?: 0)
+    new InstanceCounts(total: instances ? instances.size() : 0,
+      up: filterInstancesByHealthState(instances, HealthState.Up)?.size() ?: 0,
+      down: filterInstancesByHealthState(instances, HealthState.Down)?.size() ?: 0,
+      unknown: filterInstancesByHealthState(instances, HealthState.Unknown)?.size() ?: 0,
+      starting: filterInstancesByHealthState(instances, HealthState.Starting)?.size() ?: 0,
+      outOfService: filterInstancesByHealthState(instances, HealthState.OutOfService)?.size() ?: 0)
   }
 
+  @JsonIgnore
   @Override
   Capacity getCapacity() {
     scalingConfig ?
@@ -72,11 +77,13 @@ class OpenstackServerGroup implements ServerGroup, Serializable {
       : null
   }
 
+  @JsonIgnore
   @Override
   ImagesSummary getImagesSummary() {
     new DefaultImagesSummary(summaries: [new DefaultImageSummary(serverGroupName: name, imageName: image?.name, imageId: image?.id, buildInfo: buildInfo, image: image)])
   }
 
+  @JsonIgnore
   @Override
   ImageSummary getImageSummary() {
     imagesSummary?.summaries?.getAt(0)
