@@ -17,8 +17,8 @@ module.exports = angular.module('spinnaker.authentication.initializer.service', 
       }
       $http.get(settings.authEndpoint)
         .success(function (data) {
-          if (data.email) {
-            authenticationService.setAuthenticatedUser(data.email);
+          if (data.username) {
+            authenticationService.setAuthenticatedUser(data.username);
           } else {
             loginNotification();
           }
@@ -30,8 +30,8 @@ module.exports = angular.module('spinnaker.authentication.initializer.service', 
       $rootScope.authenticating = true;
       $http.get(settings.authEndpoint)
         .success(function (data) {
-          if (data.email) {
-            authenticationService.setAuthenticatedUser(data.email);
+          if (data.username) {
+            authenticationService.setAuthenticatedUser(data.username);
             $rootScope.authenticating = false;
           } else {
             loginRedirect();

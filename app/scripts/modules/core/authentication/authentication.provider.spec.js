@@ -26,7 +26,7 @@ describe('authenticationProvider: application startup', function() {
   describe('authenticateUser', function() {
     it('requests authentication from gate, then sets authentication name field', function() {
       if(!this.settings.authEnabled) { pending(); } //prevents the test from running if authentication is not enabled
-      this.$http.whenGET(this.settings.authEndpoint).respond(200, {email: 'joe!'});
+      this.$http.whenGET(this.settings.authEndpoint).respond(200, {username: 'joe!'});
       this.$timeout.flush();
       this.$http.flush();
 
