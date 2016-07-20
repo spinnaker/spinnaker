@@ -233,7 +233,6 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
     if (instanceTemplate.properties.description) {
       instanceTemplateMap.instance_description = instanceTemplate.properties.description
     }
-    instanceTemplate.getProperties().getTags().ite
     if (instanceTemplate.properties.tags?.items) {
       instanceTemplateMap.tags = instanceTemplate.properties.tags.items
       applicationTags.addAll(instanceTemplate.properties.tags.items)
