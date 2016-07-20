@@ -21,7 +21,7 @@ describe('Controller: Project Dashboard', function () {
     recentHistoryService = _recentHistoryService_;
     $q = _$q_;
     $scope = $rootScope.$new();
-    projectConfig = { name: 'the project', config: { applications: ['a', 'b'] } };
+    projectConfig = { name: 'the project', config: { applications: ['a', 'b'], clusters: ['a'] } };
 
     this.initialize = () => {
       vm = $controller('ProjectDashboardCtrl', {

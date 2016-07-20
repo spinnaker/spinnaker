@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
   require('../../presentation/refresher/componentRefresher.directive.js'),
 ])
   .controller('ProjectDashboardCtrl', function ($scope, projectConfiguration, executionService, projectReader,
-                                                schedulerFactory, recentHistoryService) {
+                                                schedulerFactory, recentHistoryService, $q) {
 
     this.project = projectConfiguration;
 
@@ -54,7 +54,19 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
       let state = this.state.clusters;
       state.error = false;
       state.refreshing = true;
-      return projectReader.getProjectClusters(projectConfiguration.name).then((clusters) => {
+
+      let clusterCount = _.get(projectConfiguration.config.clusters, 'length');
+      let clustersPromise;
+
+      if (clusterCount > 0) {
+        clustersPromise = projectReader.getProjectClusters(projectConfiguration.name);
+      } else if (clusterCount === 0) {
+        clustersPromise = $q.when([]);
+      } else { // shouldn't hide error if clusterCount is somehow undefined.
+        clustersPromise = $q.reject(null);
+      }
+
+      return clustersPromise.then((clusters) => {
         this.clusters = clusters;
         state.initializing = false;
         state.loaded = true;
