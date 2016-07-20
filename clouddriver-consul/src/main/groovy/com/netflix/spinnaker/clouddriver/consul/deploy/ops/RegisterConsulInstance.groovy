@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Netflix, Inc.
+ * Copyright 2016 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,12 @@ import com.netflix.spinnaker.clouddriver.consul.api.v1.ConsulAgent
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulProperties
 
-class EnableDisableConsulInstance {
-  static enum State {
-    enable,
-    disable,
-  }
-
-  static void operate(ConsulConfig config, String agentEndpoint, State state) {
+// The difference between "Register" and "EnableDisable" is that "Register" first joins a node to the Consul cluster,
+// whereas "EnableDisable" keeps a node in a cluster, but changes its discovery status
+class RegisterConsulInstance {
+  static void operate(ConsulConfig config, String agentEndpoint) {
     def agent = new ConsulAgent("${agentEndpoint}:${config.agentPort}")
-
-    // Enabling maintenance mode means the instance is removed from discovery & DNS lookups
-    agent.api.maintenance(state == State.disable, "Spinnaker ${state} Operation")
+    agent.api.join(config.servers[0], 0 /* Not joining the WAN, since this is a client node */ )
+    return
   }
 }
