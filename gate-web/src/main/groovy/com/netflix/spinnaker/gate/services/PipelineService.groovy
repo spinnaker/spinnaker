@@ -64,7 +64,7 @@ class PipelineService {
     pipelineConfig.trigger = trigger
     if (trigger.notifications) {
       if (pipelineConfig.notifications) {
-        ((List) pipelineConfig.notifications).addAll(trigger.notifications)
+        pipelineConfig.notifications = (List) pipelineConfig.notifications + (List) trigger.notifications
       } else {
         pipelineConfig.notifications = trigger.notifications;
       }
