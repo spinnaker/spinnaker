@@ -2,7 +2,10 @@
 
 const angular = require('angular');
 
-require('style!n3-charts/build/LineChart.min.css');
+// TODO: Remove LineChartHack, replace require with commented out one once
+// https://github.com/n3-charts/line-chart/issues/512 is resolved
+// require('style!n3-charts/build/LineChart.css');
+require('./LineChartHack.css');
 require('./metricAlarmChart.component.less');
 
 module.exports = angular
