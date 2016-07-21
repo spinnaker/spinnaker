@@ -19,11 +19,8 @@ package com.netflix.spinnaker.fiat.providers;
 import com.netflix.spinnaker.fiat.model.ServiceAccount;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.util.Set;
 
 public interface ServiceAccountProvider {
-  Optional<ServiceAccount> getAccount(String name);
-
   Set<ServiceAccount> getAccounts(Collection<String> groups);
 }

@@ -16,40 +16,71 @@
 
 package com.netflix.spinnaker.fiat.providers;
 
+import com.google.common.collect.Sets;
 import com.netflix.spinnaker.fiat.model.ServiceAccount;
+import com.netflix.spinnaker.fiat.model.UserPermission;
+import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
+import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
 import lombok.NonNull;
-import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-// TODO(ttomsu): Pull this feature config into Front50.
 @Component
-public class DefaultServiceAccountProvider implements ServiceAccountProvider {
+@Slf4j
+public class DefaultServiceAccountProvider implements ServiceAccountProvider, InitializingBean {
 
-  @Setter
-  private Map<String, ServiceAccount> serviceAccountsByName;
+  @Autowired
+  private Front50Service front50Service;
+
+  @Autowired
+  private PermissionsRepository permissionsRepo;
 
   @Override
-  public Optional<ServiceAccount> getAccount(@NonNull String name) {
-    return Optional.ofNullable(serviceAccountsByName.get(name));
+  public void afterPropertiesSet() {
+    front50Service
+        .getAllServiceAccounts()
+        .stream()
+        .forEach(serviceAccount -> {
+          // Can't resolve full account/application permissions here because it would cause
+          // a dependency cycle. Instead, account/applications are resolved on the first
+          // periodic sync.
+          permissionsRepo.put(new UserPermission()
+                                  .setId(serviceAccount.getName())
+                                  .setServiceAccounts(Sets.newHashSet(serviceAccount)));
+          log.info("Adding service account '{}' to permission repo", serviceAccount.getName());
+        });
   }
 
   /**
    * Return the set of service accounts to which a user with the specified collection of groups
    * has access.
+   *
+   * Service accounts are usually defined using a full email address, but the specified groups are
+   * normally just the first part before the "@" symbol. This implementation strips everything
+   * after the "@" symbol for the purposes of service account/group matching.
    */
   @Override
   public Set<ServiceAccount> getAccounts(@NonNull Collection<String> groups) {
-    if (serviceAccountsByName == null) {
-      return Collections.emptySet();
-    }
+    // There is a potential here for a naming collision where service account
+    // "my-svc-account@abc.com" and "my-svc-account@xyz.com" each allow one another's users to use
+    // their service account. In practice, though, I don't think this will be an issue.
+    Map<String, ServiceAccount> serviceAccountsByName = front50Service
+        .getAllServiceAccounts()
+        .stream()
+        .collect(Collectors.toMap(ServiceAccount::getNameWithoutDomain, Function.identity()));
 
     return groups
         .stream()
-        .filter(group -> serviceAccountsByName.containsKey(group))
-        .map(group -> serviceAccountsByName.get(group))
+        .filter(serviceAccountsByName::containsKey)
+        .map(serviceAccountsByName::get)
         .collect(Collectors.toSet());
   }
 }

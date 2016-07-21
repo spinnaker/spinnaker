@@ -19,10 +19,16 @@ package com.netflix.spinnaker.fiat.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.fiat.model.resources.Named;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 @Data
 public class ServiceAccount implements Named {
   private String name;
+
+  @JsonIgnore
+  public String getNameWithoutDomain() {
+    return StringUtils.substringBefore(name, "@");
+  }
 
   @JsonIgnore
   public View getView() {

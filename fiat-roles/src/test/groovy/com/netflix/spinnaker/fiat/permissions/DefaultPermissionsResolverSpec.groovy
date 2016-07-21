@@ -21,8 +21,8 @@ import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.providers.ApplicationProvider
 import com.netflix.spinnaker.fiat.providers.DefaultAccountProvider
 import com.netflix.spinnaker.fiat.providers.DefaultServiceAccountProvider
-import com.netflix.spinnaker.fiat.providers.ServiceAccountProvider
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
+import com.netflix.spinnaker.fiat.providers.internal.Front50Service
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider
 import spock.lang.Shared
 import spock.lang.Specification
@@ -45,11 +45,16 @@ class DefaultPermissionsResolverSpec extends Specification {
   )
 
   @Shared
-  ServiceAccountProvider serviceAccountProvider = new DefaultServiceAccountProvider().setServiceAccountsByName(
-      [
-          "group1": new ServiceAccount().setName("group1"),
-          "group2": new ServiceAccount().setName("group2"),
-      ]
+  Front50Service front50Service = Mock(Front50Service) {
+    getAllServiceAccounts() >> [
+        new ServiceAccount().setName("group1"),
+        new ServiceAccount().setName("group2@domain.com"),
+    ]
+  }
+
+  @Shared
+  DefaultServiceAccountProvider serviceAccountProvider = new DefaultServiceAccountProvider(
+      front50Service: front50Service
   )
 
   def "should resolve a single user's permissions"() {
@@ -90,7 +95,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     result?.getAccounts()?.size() == 2
     result?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1and2"])
     result?.getServiceAccounts()?.size() == 1
-    result?.getServiceAccounts()*.name.containsAll(["group2"])
+    result?.getServiceAccounts()*.name.containsAll(["group2@domain.com"])
 
     when: "different capitalization"
     result = resolver.resolve(testUserId)
@@ -100,7 +105,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     result?.getAccounts()?.size() == 2
     result?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1and2"])
     result?.getServiceAccounts()?.size() == 1
-    result?.getServiceAccounts()*.name.containsAll(["group2"])
+    result?.getServiceAccounts()*.name.containsAll(["group2@domain.com"])
 
     when: "merge externally provided roles"
     result = resolver.resolveAndMerge(testUserId, ["group1"])
@@ -110,7 +115,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     result?.getAccounts()?.size() == 3
     result?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1", "reqGroup1and2"])
     result?.getServiceAccounts()?.size() == 2
-    result?.getServiceAccounts()*.name.containsAll(["group1", "group2"])
+    result?.getServiceAccounts()*.name.containsAll(["group1", "group2@domain.com"])
   }
 
   def "should resolve all user's permissions"() {
@@ -149,6 +154,6 @@ class DefaultPermissionsResolverSpec extends Specification {
     result["user2"]?.id == "user2"
     result["user2"]?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1and2"])
     result["user2"]?.getApplications() == [] as Set
-    result["user2"]?.getServiceAccounts()*.name.containsAll(["group2"])
+    result["user2"]?.getServiceAccounts()*.name.containsAll(["group2@domain.com"])
   }
 }

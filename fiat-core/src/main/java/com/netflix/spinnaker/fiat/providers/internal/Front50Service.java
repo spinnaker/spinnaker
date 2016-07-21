@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.fiat.providers.internal;
 
+import com.netflix.spinnaker.fiat.model.ServiceAccount;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import retrofit.http.GET;
 
@@ -25,4 +26,7 @@ public interface Front50Service {
 
   @GET("/permissions/applications")
   List<Application> getAllApplicationPermissions();
+
+  @GET("/serviceAccounts")
+  List<ServiceAccount> getAllServiceAccounts();
 }

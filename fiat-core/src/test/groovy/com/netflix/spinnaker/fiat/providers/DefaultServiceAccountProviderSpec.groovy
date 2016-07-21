@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.providers
 
 import com.netflix.spinnaker.fiat.model.ServiceAccount
+import com.netflix.spinnaker.fiat.providers.internal.Front50Service
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -24,26 +25,27 @@ import spock.lang.Subject
 class DefaultServiceAccountProviderSpec extends Specification {
 
   @Shared
+  ServiceAccount abcAcct = new ServiceAccount(name: "abc")
+
+  @Shared
+  ServiceAccount xyzAcct = new ServiceAccount(name: "xyz@domain.com")
+
+  @Shared
+  Front50Service front50Service = Mock(Front50Service) {
+    getAllServiceAccounts() >> [abcAcct, xyzAcct]
+  }
+
   @Subject
   DefaultServiceAccountProvider provider = new DefaultServiceAccountProvider(
-      serviceAccountsByName: [
-          "abc": new ServiceAccount(name: "abc"),
-          "xyz": new ServiceAccount(name: "xyz")
-      ]
+      front50Service: front50Service
   )
-
-  def "should return single account"() {
-    expect:
-    provider.getAccount("abc").get().name == "abc"
-    !provider.getAccount("def").isPresent()
-  }
 
   def "should return all accounts the specified groups has access to"() {
     when:
     def result = provider.getAccounts(input)
 
     then:
-    result*.name.containsAll(values)
+    result.containsAll(values)
 
     when:
     provider.getAccounts(null)
@@ -54,8 +56,8 @@ class DefaultServiceAccountProviderSpec extends Specification {
     where:
     input                 || values
     []                    || []
-    ["abc"]               || ["abc"]
-    ["abc", "xyz"]        || ["abc", "xyz"]
-    ["abc", "xyz", "def"] || ["abc", "xyz"]
+    ["abc"]               || [abcAcct]
+    ["abc", "xyz"]        || [abcAcct, xyzAcct]
+    ["abc", "xyz", "def"] || [abcAcct, xyzAcct]
   }
 }
