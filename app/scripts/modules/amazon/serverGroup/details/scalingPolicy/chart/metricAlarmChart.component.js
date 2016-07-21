@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-require('style!n3-charts/build/LineChart.css');
+require('style!n3-charts/build/LineChart.min.css');
 require('./metricAlarmChart.component.less');
 
 module.exports = angular
