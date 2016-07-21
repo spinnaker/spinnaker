@@ -22,6 +22,14 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
       templateUrl: require('./pipelineGraph.directive.html'),
       link: function (scope, elem) {
 
+        // track and save the graph scroll position for executions so it doesn't get reset to
+        // zero every second due to repaint.
+        elem.on('mousewheel', function() {
+          if(scope.execution) {
+            pipelineGraphService.xScrollOffset[scope.execution.id] = elem.scrollLeft();
+          }
+        });
+
         var minLabelWidth = 100;
 
         scope.nodeRadius = 8;
@@ -238,6 +246,13 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
             scope.graphWidth = '100%';
             scope.graphClass = '';
           }
+
+          // get the saved horizontal scroll position for executions
+          if(scope.execution) {
+            let offsetForId = pipelineGraphService.xScrollOffset[scope.execution.id] || 0;
+            elem.scrollLeft(offsetForId);
+          }
+
         }
 
         function applyNodeHeights() {
@@ -321,7 +336,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
           setNodePositions();
           createLinks();
           applyAllNodes();
-
         }
 
         var handleWindowResize = _.throttle(function() {

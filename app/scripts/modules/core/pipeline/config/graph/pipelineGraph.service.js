@@ -8,6 +8,8 @@ module.exports = angular
   ])
   .factory('pipelineGraphService', function () {
 
+    let xScrollOffset = {};
+
     function generateExecutionGraph(execution, viewState) {
       let nodes = [];
       (execution.stageSummaries || []).forEach(function(stage, idx) {
@@ -82,6 +84,7 @@ module.exports = angular
     }
 
     return {
+      xScrollOffset: xScrollOffset,
       generateExecutionGraph: generateExecutionGraph,
       generateConfigGraph: generateConfigGraph,
     };
