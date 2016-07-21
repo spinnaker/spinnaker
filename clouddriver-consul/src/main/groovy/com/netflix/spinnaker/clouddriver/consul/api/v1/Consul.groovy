@@ -32,7 +32,7 @@ class Consul<T extends ConsulApi> {
     if (!config.enabled) {
       throw new IllegalArgumentException("Consul not enabled, cannot create Consul API")
     }
-    Consul(config.servers[0], ConsulProperties.DEFAULT_TIMEOUT_MILLIS)
+    Consul(config.agentEndpoint, ConsulProperties.DEFAULT_TIMEOUT_MILLIS)
   }
 
   Consul(String endpoint, Long timeout) {

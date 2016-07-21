@@ -57,7 +57,5 @@ class UpsertConsulLoadBalancer {
 
     def serializedDescription = JsonOutput.toJson(description)
     kvApi.putKey(description.name, serializedDescription, description.datacenter)
-
-    return
   }
 }
