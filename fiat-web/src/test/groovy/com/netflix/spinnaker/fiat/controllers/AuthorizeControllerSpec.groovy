@@ -30,15 +30,15 @@ class AuthorizeControllerSpec extends Specification {
     AuthorizeController controller = new AuthorizeController(permissionsRepository: repository)
 
     when:
-    controller.getUserPermission("foo")
+    controller.getUserPermission("foo%40batman.com")
 
     then:
     thrown NotFoundException
 
     when:
-    def foo = new UserPermission().setId("foo")
+    def foo = new UserPermission().setId("foo@batman.com")
     repository.put(foo)
-    def result = controller.getUserPermission("foo")
+    def result = controller.getUserPermission("foo%40batman.com")
 
     then:
     result == foo.view

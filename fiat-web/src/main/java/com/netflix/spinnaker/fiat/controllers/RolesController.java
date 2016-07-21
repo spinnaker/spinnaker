@@ -44,18 +44,18 @@ public class RolesController {
 
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.POST)
   public void putUserPermission(@PathVariable String userId) {
-    permissionsRepository.put(permissionsResolver.resolve(userId));
+    permissionsRepository.put(permissionsResolver.resolve(ControllerSupport.decode(userId)));
   }
 
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.PUT)
   public void putUserPermission(@PathVariable String userId,
                                 @RequestBody @NonNull List<String> externalRoles) {
-    permissionsRepository.put(permissionsResolver.resolveAndMerge(userId, externalRoles));
+    permissionsRepository.put(permissionsResolver.resolveAndMerge(ControllerSupport.decode(userId), externalRoles));
   }
 
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.DELETE)
   public void deleteUserPermission(@PathVariable String userId) {
-    permissionsRepository.remove(userId);
+    permissionsRepository.remove(ControllerSupport.decode(userId));
   }
 
   @RequestMapping(value = "/sync", method = RequestMethod.POST)

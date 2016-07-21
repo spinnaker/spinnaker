@@ -61,14 +61,14 @@ public class AuthorizeController {
 
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.GET)
   public UserPermission.View getUserPermission(@PathVariable String userId) {
-    return permissionsRepository.get(userId)
+    return permissionsRepository.get(ControllerSupport.decode(userId))
                                 .orElseThrow(NotFoundException::new)
                                 .getView();
   }
 
   @RequestMapping(value = "/{userId:.+}/accounts", method = RequestMethod.GET)
   public Set<Account.View> getUserAccounts(@PathVariable String userId) {
-    return permissionsRepository.get(userId)
+    return permissionsRepository.get(ControllerSupport.decode(userId))
                                 .orElseThrow(NotFoundException::new)
                                 .getAccounts()
                                 .stream()
@@ -78,7 +78,7 @@ public class AuthorizeController {
 
   @RequestMapping(value = "/{userId:.+}/accounts/{accountName:.+}", method = RequestMethod.GET)
   public Account.View getUserAccount(@PathVariable String userId, @PathVariable String accountName) {
-    return permissionsRepository.get(userId)
+    return permissionsRepository.get(ControllerSupport.decode(userId))
                                 .orElseThrow(NotFoundException::new)
                                 .getAccounts()
                                 .stream()
