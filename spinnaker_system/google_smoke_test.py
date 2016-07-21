@@ -53,11 +53,10 @@ import citest.service_testing as st
 # Spinnaker modules.
 import spinnaker_testing as sk
 import spinnaker_testing.gate as gate
-import google_quota_test as quota
 import citest.base
 
 
-class GoogleSmokeTestScenario(quota.GoogleQuotaTestScenario):
+class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
   """Defines the scenario for the smoke test.
 
   This scenario defines the different test operations.
@@ -67,6 +66,21 @@ class GoogleSmokeTestScenario(quota.GoogleQuotaTestScenario):
     Create a Server Group
     Delete each of the above (in reverse order)
   """
+
+  MINIMUM_PROJECT_QUOTA = {
+      'INSTANCE_TEMPLATES': 1,
+      'HEALTH_CHECKS': 1,
+      'FORWARDING_RULES': 1,
+      'IN_USE_ADDRESSES': 2,
+      'TARGET_POOLS': 1,
+  }
+
+  MINIMUM_REGION_QUOTA = {
+      'CPUS': 2,
+      'IN_USE_ADDRESSES': 2,
+      'INSTANCE_GROUP_MANAGERS': 1,
+      'INSTANCES': 2,
+  }
 
   @classmethod
   def new_agent(cls, bindings):
@@ -91,6 +105,7 @@ class GoogleSmokeTestScenario(quota.GoogleQuotaTestScenario):
       agent: [GateAgent] The agent for invoking the test operations on Gate.
     """
     super(GoogleSmokeTestScenario, self).__init__(bindings, agent)
+
     bindings = self.bindings
 
     self.__lb_detail = 'lb'
@@ -331,6 +346,22 @@ class GoogleSmokeTest(st.AgentTestCase):
   """
   # pylint: disable=missing-docstring
 
+  @staticmethod
+  def setUpClass():
+    runner = citest.base.TestRunner.global_runner()
+    scenario = runner.get_shared_data(GoogleSmokeTestScenario)
+    managed_region = runner.bindings['TEST_GCE_REGION']
+    title = 'Check Quota for {0}'.format(scenario.__class__.__name__)
+
+    verify_results = gcp.verify_quota(
+        title,
+        scenario.gce_observer,
+        project_quota=GoogleSmokeTestScenario.MINIMUM_PROJECT_QUOTA,
+        regions=[(managed_region,
+                  GoogleSmokeTestScenario.MINIMUM_REGION_QUOTA)])
+    if not verify_results:
+      raise RuntimeError('Insufficient Quota: {0}'.format(verify_results))
+
   @property
   def scenario(self):
     return citest.base.TestRunner.global_runner().get_shared_data(
@@ -374,10 +405,7 @@ def main():
   return citest.base.TestRunner.main(
       parser_inits=[GoogleSmokeTestScenario.initArgumentParser],
       default_binding_overrides=defaults,
-      test_case_list=[
-        quota.GoogleQuotaTest,
-        GoogleSmokeTest
-      ])
+      test_case_list=[GoogleSmokeTest])
 
 
 if __name__ == '__main__':

@@ -92,11 +92,27 @@ import citest.service_testing as st
 # Spinnaker modules.
 import spinnaker_testing as sk
 import spinnaker_testing.gate as gate
-import google_quota_test as quota
 import citest.base
 
 
-class BakeAndDeployTestScenario(quota.GoogleQuotaTestScenario):
+class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
+
+  MINIMUM_PROJECT_QUOTA = {
+      'INSTANCE_TEMPLATES': 1,
+      'HEALTH_CHECKS': 1,
+      'FORWARDING_RULES': 1,
+      'IN_USE_ADDRESSES': 1,
+      'TARGET_POOLS': 1,
+      'IMAGES': 1,
+  }
+
+  MINIMUM_REGION_QUOTA = {
+      'CPUS': 1,
+      'IN_USE_ADDRESSES': 1,
+      'INSTANCE_GROUP_MANAGERS': 1,
+      'INSTANCES': 1,
+  }
+
   @classmethod
   def new_agent(cls, bindings):
     return gate.new_agent(bindings)
@@ -528,6 +544,25 @@ class BakeAndDeployTestScenario(quota.GoogleQuotaTestScenario):
 
 
 class BakeAndDeployTest(st.AgentTestCase):
+  @staticmethod
+  def setUpClass():
+    runner = citest.base.TestRunner.global_runner()
+    scenario = runner.get_shared_data(BakeAndDeployTestScenario)
+    if not scenario.test_google:
+      return
+
+    managed_region = runner.bindings['TEST_GCE_REGION']
+    title = 'Check Quota for {0}'.format(scenario.__class__.__name__)
+
+    verify_results = gcp.verify_quota(
+        title,
+        scenario.gce_observer,
+        project_quota=BakeAndDeployTestScenario.MINIMUM_PROJECT_QUOTA,
+        regions=[(managed_region,
+                  BakeAndDeployTestScenario.MINIMUM_REGION_QUOTA)])
+    if not verify_results:
+      raise RuntimeError('Insufficient Quota: {0}'.format(verify_results))
+
   @property
   def scenario(self):
     return citest.base.TestRunner.global_runner().get_shared_data(
@@ -610,8 +645,7 @@ def main():
   return citest.base.TestRunner.main(
       parser_inits=[BakeAndDeployTestScenario.initArgumentParser],
       default_binding_overrides=defaults,
-      test_case_list=[quota.GoogleQuotaTest,
-                      BakeAndDeployTest])
+      test_case_list=[BakeAndDeployTest])
 
 
 if __name__ == '__main__':
