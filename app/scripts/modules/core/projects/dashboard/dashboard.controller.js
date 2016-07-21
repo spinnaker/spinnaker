@@ -12,8 +12,9 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
   require('../../scheduler/scheduler.factory.js'),
   require('../../history/recentHistory.service.js'),
   require('../../presentation/refresher/componentRefresher.directive.js'),
+  require('../../utils/lodash')
 ])
-  .controller('ProjectDashboardCtrl', function ($scope, projectConfiguration, executionService, projectReader,
+  .controller('ProjectDashboardCtrl', function ($scope, projectConfiguration, executionService, projectReader, _,
                                                 schedulerFactory, recentHistoryService, $q) {
 
     this.project = projectConfiguration;

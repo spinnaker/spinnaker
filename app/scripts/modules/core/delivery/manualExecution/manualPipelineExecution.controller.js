@@ -44,7 +44,7 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
         this.command.pipeline.notifications.concat(applicationNotifications) :
         applicationNotifications;
     };
-    
+
     let userEmail = user.authenticated && user.name.indexOf('@') > -1 ? user.name : null;
 
     this.command = {
