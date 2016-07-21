@@ -23,11 +23,17 @@ If you're using Consul, Spinnaker assumes that you've taken care of
 installing the Consul agent on each machine you want to be discoverable. The
 best way to take care of this is to create a base image with Consul installed,
 and install further packages on top of that. To do so, copy the file in
-`./install/install.sh` onto a VM, run `$ sudo bash install.sh [client|server]`, and capture the
-resulting disk [as an
+`./install/install.sh` onto a VM, run `$ sudo bash install.sh [client|server]`, 
+and capture the resulting disk [as an
 image](https://cloud.google.com/compute/docs/images/create-delete-deprecate-private-images). 
 There are many ways to do this (Packer, config-management, etc...) and we'll 
 leave that up to you.
+
+> __IMPORTANT__ For spinnaker to communicate with and join Consul nodes to the
+> network, they must provide the `-client` flag to Consul with an
+> address that's reachable from the machine running Spinnaker. This is taken 
+> care of in the installation path provided here. We do enable a setup
+> that does not require this, but that will be covered later.
 
 ## 1. Starting your Consul Server
 
@@ -48,3 +54,22 @@ entry on whatever base image you use to produce application images.
 
 As an example, you can capture the image produced by running `$ sudo bash
 install.sh client`.
+
+## 3. Configuring Spinnaker
+
+The easiest way to allow Spinnaker to communicate with Consul is to run a
+Consul agent on whichever machine is running Clouddriver. The rational is that
+this agent will always be able to keep track of the full list of Consul nodes,
+providing Clouddriver with a fixed endpoint to query. Now all that's needed in
+`clouddriver.yml` is the highlighted section below
+
+```yaml
+google:
+  enabled: true
+  accounts:
+   - name: my-google-account
+     consul:                         # # # # # # # # # # # # # # 
+       enabled: true                 # This is the new section #
+       agentEndpoint: localhost      # # # # # # # # # # # # # #
+     jsonPath:  # ... configure the rest as you would normally
+```
