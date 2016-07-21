@@ -412,7 +412,12 @@ class StandardGceAttributeValidator {
 
           utilization.with {
             validateNotEmpty(metric, "${path}.metric")
-            validateInRangeExclusive(utilizationTarget, 0, 1, "${path}.utilizationTarget")
+
+            if (utilizationTarget <= 0) {
+              errors.rejectValue("${context}.${path}.utilizationTarget",
+                                 "${context}.${path}.utilizationTarget must be greater than zero.")
+            }
+
             validateNotEmpty(utilizationTargetType, "${path}.utilizationTargetType")
           }
         }

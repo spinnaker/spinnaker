@@ -756,9 +756,9 @@ class StandardGceAttributeValidatorSpec extends Specification {
           metric: "myMetric", utilizationTargetType: UtilizationTargetType.DELTA_PER_MINUTE) ]))
 
     then:
-      1 * errors.rejectValue("autoscalingPolicy.customMetricUtilizations[0].utilizationTarget",
-        "decorator.autoscalingPolicy.customMetricUtilizations[0].utilizationTarget " +
-          "must be between 0.0 and 1.0.")
+      1 * errors.rejectValue("decorator.autoscalingPolicy.customMetricUtilizations[0].utilizationTarget",
+                             "decorator.autoscalingPolicy.customMetricUtilizations[0].utilizationTarget " +
+                             "must be greater than zero.")
 
     when:
       validator.validateAutoscalingPolicy(new GoogleAutoscalingPolicy(
