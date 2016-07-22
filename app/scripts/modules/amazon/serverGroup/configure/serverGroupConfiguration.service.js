@@ -364,6 +364,8 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         command.loadBalancers = _.intersection(newLoadBalancers, matched);
         if (!command.vpcId) {
           command.vpcLoadBalancers = _.intersection(vpcLoadBalancers, matched);
+        } else {
+          delete command.vpcLoadBalancers;
         }
         if (removed.length) {
           result.dirty.loadBalancers = removed;
