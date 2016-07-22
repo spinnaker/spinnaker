@@ -21,6 +21,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
   require('./rollback/rollbackServerGroup.controller'),
   require('./scalingPolicy/scalingPolicy.directive.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
+  require('./scalingPolicy/upsert/addScalingPolicyButton.component.js')
 ])
   .controller('gceServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup, InsightFilterStateModel,
                                                      gceServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, _, serverGroupWriter,

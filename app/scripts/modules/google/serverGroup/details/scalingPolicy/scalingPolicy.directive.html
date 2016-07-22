@@ -1,5 +1,5 @@
-<dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'" style="margin-bottom: 20px">
-  <dt ng-repeat-start="basis in policy.bases">
+<dl ng-class="$ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'" style="margin-bottom: 20px">
+  <dt ng-repeat-start="basis in $ctrl.policy.bases">
     Target {{basis.description}}
     <help-field key="{{basis.helpKey}}"></help-field>
   </dt>
@@ -10,15 +10,21 @@
     Min # VMs
     <help-field key="gce.serverGroup.autoscaling.minVMs"></help-field>
   </dt>
-  <dd>{{policy.minNumReplicas}}</dd>
+  <dd>{{$ctrl.policy.minNumReplicas}}</dd>
   <dt>
     Max # VMs
     <help-field key="gce.serverGroup.autoscaling.maxVMs"></help-field>
   </dt>
-  <dd>{{policy.maxNumReplicas}}</dd>
+  <dd>{{$ctrl.policy.maxNumReplicas}}</dd>
   <dt>
     Cool-down Period
     <help-field key="gce.serverGroup.autoscaling.cooldown"></help-field>
   </dt>
-  <dd>{{policy.coolDownPeriodSec}} sec</dd>
+  <dd>{{$ctrl.policy.coolDownPeriodSec}} sec</dd>
+  <action-icons class="text-right"
+                edit="$ctrl.editPolicy()"
+                edit-info="Edit Policy"
+                destroy="$ctrl.deletePolicy()"
+                destroy-info="Delete Policy">
+  </action-icons>
 </dl>
