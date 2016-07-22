@@ -1,6 +1,7 @@
 <div class="form-horizontal">
   <stage-config-field label="Wait Time" field-columns="3">
-      <input type="number" class="form-control input-sm" ng-model="stage.waitTime" style="width: 50%; display: inline-block"/>
+      <input ng-if="(stage.waitTime | isNumber) || (stage.waitTime | isUndefined)" type="number" class="form-control input-sm" ng-model="stage.waitTime" style="width: 50%; display: inline-block"/>
+      <input ng-if="stage.waitTime | isString" type="text" class="form-control input-sm" ng-model="stage.waitTime" style="width: 100%; display: inline-block"/>
       <span class="form-control-static"> seconds</span>
   </stage-config-field>
 </div>
