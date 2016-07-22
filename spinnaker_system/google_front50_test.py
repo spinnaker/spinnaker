@@ -59,11 +59,11 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     self.BUCKET = config['spinnaker.gcs.bucket']
     self.BASE_PATH = config['spinnaker.gcs.rootFolder']
     self.TEST_APP = self.bindings['TEST_APP']
-    self.gcs_observer = gcp.GoogleCloudStorageAgent(
-        self.bindings['GOOGLE_JSON_PATH'],
-        gcp.google_cloud_storage_agent.FULL_SCOPE)
+    self.gcs_observer = gcp.GcpStorageAgent.make_agent(
+        credentials_path=self.bindings['GCE_CREDENTIALS_PATH'],
+        scopes=gcp.google_cloud_storage_agent.FULL_SCOPE)
 
-    metadata = self.gcs_observer.inspect(self.BUCKET)
+    metadata = self.gcs_observer.inspect_bucket(self.BUCKET)
     self.versioning_enabled = (metadata.get('versioning', {})
                                .get('enabled', False))
     if not self.versioning_enabled:
@@ -102,15 +102,15 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
 
     # Note that curiosly the updated timestamp is not adjusted in the storage
     # file.
-    gcs_builder = gcp.GoogleCloudStorageContractBuilder(self.gcs_observer)
+    gcs_builder = gcp.GcpStorageContractBuilder(self.gcs_observer)
     (gcs_builder.new_clause_builder('Created Google Cloud Storage File',
                                     retryable_for_secs=5)
-     .list(self.BUCKET, '/'.join([self.BASE_PATH, 'applications']))
+     .list_bucket(self.BUCKET, '/'.join([self.BASE_PATH, 'applications']))
      .contains_path_value('name', self.TEST_APP))
     (gcs_builder.new_clause_builder('Wrote File Content')
-     .retrieve(self.BUCKET,
-               '/'.join([self.BASE_PATH, 'applications', self.TEST_APP,
-                         'specification.json']),
+     .retrieve_content(self.BUCKET,
+                       '/'.join([self.BASE_PATH, 'applications', self.TEST_APP,
+                                 'specification.json']),
                transform=json.JSONDecoder().decode)
      .contains_path_eq('', expect))
     for clause in gcs_builder.build().clauses:
@@ -167,18 +167,18 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     # Add clauses that observe Front50 to verify the history method works
     # and that the get method is the current version.
     num_versions = 2 if self.versioning_enabled else 1
-    builder = gcp.GoogleCloudStorageContractBuilder(self.gcs_observer)
+    builder = gcp.GcpStorageContractBuilder(self.gcs_observer)
     (builder.new_clause_builder('Google Cloud Storage Contains File')
-     .list(self.BUCKET,
-           '/'.join([self.BASE_PATH, 'applications', self.TEST_APP]),
-           with_versions=True)
+     .list_bucket(self.BUCKET,
+                  '/'.join([self.BASE_PATH, 'applications', self.TEST_APP]),
+                  with_versions=True)
      .contains_path_value('name', self.TEST_APP,
                           min=num_versions, max=num_versions))
     (builder.new_clause_builder('Updated File Content')
-     .retrieve(self.BUCKET,
-               '/'.join([self.BASE_PATH, 'applications', self.TEST_APP,
-                         'specification.json']),
-               transform=json.JSONDecoder().decode)
+     .retrieve_content(self.BUCKET,
+                       '/'.join([self.BASE_PATH, 'applications', self.TEST_APP,
+                                 'specification.json']),
+                       transform=json.JSONDecoder().decode)
      .contains_path_value('', expect))
 
     # TODO(ewiseblatt): 20160524
@@ -204,9 +204,9 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     for clause in f50_builder.build().clauses:
       contract.add_clause(clause)
 
-    gcs_builder = gcp.GoogleCloudStorageContractBuilder(self.gcs_observer)
+    gcs_builder = gcp.GcpStorageContractBuilder(self.gcs_observer)
     (gcs_builder.new_clause_builder('Deleted File')
-     .list(self.BUCKET, '/'.join([self.BASE_PATH, 'applications']))
+     .list_bucket(self.BUCKET, '/'.join([self.BASE_PATH, 'applications']))
      .excludes_path_value('name', self.TEST_APP.upper()))
     for clause in gcs_builder.build().clauses:
       contract.add_clause(clause)
@@ -218,6 +218,11 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
 
 
 class GoogleFront50Test(st.AgentTestCase):
+  @staticmethod
+  def setUpClass():
+    runner = citest.base.TestRunner.global_runner()
+    scenario = runner.get_shared_data(GoogleFront50TestScenario)
+
   @property
   def scenario(self):
     return citest.base.TestRunner.global_runner().get_shared_data(

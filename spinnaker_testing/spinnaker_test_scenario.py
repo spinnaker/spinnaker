@@ -153,6 +153,12 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
              ' is GCE.')
 
     parser.add_argument(
+        '--gce_credentials_path',
+        default=defaults.get('GCE_CREDENTIALS_PATH', None),
+        help='A path to the JSON file with credentials to use for observing'
+             ' tests run against Google Cloud Platform.')
+
+    parser.add_argument(
         '--gce_ssh_passphrase_file',
         default=defaults.get('GCE_SSH_PASSPHRASE_FILE', None),
         help='Specifying a file containing the SSH passphrase'
