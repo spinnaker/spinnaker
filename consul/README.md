@@ -49,7 +49,7 @@ Once this cluster is running with nodes `$NODE1, $NODE2, $NODE3`, run
 
 ## 2. Starting your Consul Agents
 
-We recommend having both the Consul binary, and a corresponding `/etc/init.d/`
+We recommend having both the Consul binary, and a corresponding `/etc/init/`
 entry on whatever base image you use to produce application images.
 
 As an example, you can capture the image produced by running `$ sudo bash
