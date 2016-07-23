@@ -34,6 +34,12 @@ defaultCloudProviderType: aws
 templatesNeedingRoot: aws-chroot.json
 
 aws:
+  # The property referenced below, AWS_ENABLED, is not set in the
+  # 'unified config' supported by the spinnaker/spinnaker project. If you
+  # copy/paste this section into a new rosco-local.yml file for use with a
+  # pre-built Spinnaker image, make sure to either replace AWS_ENABLED
+  # with SPINNAKER_AWS_ENABLED or to explicitly set the property's value
+  # to true.
   enabled: ${AWS_ENABLED:false}
   bakeryDefaults:
     awsAssociatePublicIpAddress: true
@@ -127,6 +133,11 @@ aws:
         sshUserName: ubuntu
 
 azure:
+  # The property referenced below, AZURE_ENABLED, is not set in the
+  # 'unified config' supported by the spinnaker/spinnaker project. If you
+  # copy/paste this section into a new rosco-local.yml file for use with a
+  # pre-built Spinnaker image, make sure to explicitly set the property's
+  # value to true.
   enabled: ${AZURE_ENABLED:false}
   bakeryDefaults:
     templateFile: azure-linux.json
@@ -153,6 +164,11 @@ azure:
         packageType: rpm
 
 docker:
+  # The property referenced below, DOCKER_ENABLED, is not set in the
+  # 'unified config' supported by the spinnaker/spinnaker project. If you
+  # copy/paste this section into a new rosco-local.yml file for use with a
+  # pre-built Spinnaker image, make sure to explicitly set the property's
+  # value to true.
   enabled: ${DOCKER_ENABLED:false}
   bakeryDefaults:
     targetRepository: ${DOCKER_TARGET_REPOSITORY:}
@@ -174,6 +190,12 @@ docker:
         sourceImage: ubuntu:trusty
 
 google:
+  # The property referenced below, GOOGLE_ENABLED, is not set in the
+  # 'unified config' supported by the spinnaker/spinnaker project. If you
+  # copy/paste this section into a new rosco-local.yml file for use with a
+  # pre-built Spinnaker image, make sure to either replace GOOGLE_ENABLED
+  # with SPINNAKER_GOOGLE_ENABLED or to explicitly set the property's value
+  # to true.
   enabled: ${GOOGLE_ENABLED:false}
   gce:
     bakeryDefaults:
@@ -198,6 +220,11 @@ google:
           sourceImage: ubuntu-1404-trusty-v20150909a
 
 openstack:
+  # The property referenced below, OS_ENABLED, is not set in the
+  # 'unified config' supported by the spinnaker/spinnaker project. If you
+  # copy/paste this section into a new rosco-local.yml file for use with a
+  # pre-built Spinnaker image, make sure to explicitly set the property's
+  # value to true.
   enabled: ${OS_ENABLED:false}
   bakeryDefaults:
     identityEndpoint: ${OS_AUTH_URL:}
