@@ -199,7 +199,7 @@ $ bash scripts/cleanup-all.sh # This deletes everything in the spinnaker namespa
 ```
 
 If you just want to delete the Spinnaker components, but leave the persistence
-mechanisms (Redis & Cassandra), run
+mechanism (Redis), run
 
 ```
 $ bash scripts/cleanup-spinnaker.sh # This deletes everything with application name spin
