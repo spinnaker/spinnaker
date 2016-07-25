@@ -14,34 +14,23 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.consul.model
+package com.netflix.spinnaker.clouddriver.consul.provider
 
+import com.netflix.spinnaker.clouddriver.consul.api.v1.ConsulAgent
 import com.netflix.spinnaker.clouddriver.consul.api.v1.model.CheckResult
+import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
+import com.netflix.spinnaker.clouddriver.consul.model.ConsulHealth
 import com.netflix.spinnaker.clouddriver.model.DiscoveryHealth
-import com.netflix.spinnaker.clouddriver.model.HealthState
-import groovy.transform.Canonical
+import retrofit.RetrofitError
 
-@Canonical
-class ConsulHealth extends DiscoveryHealth {
-  @Override
-  public String getDiscoveryType() {
-    return "Consul"
-  }
-
-  CheckResult result
-
-  String source
-
-  @Override
-  HealthState getState() {
-    switch (result.status) {
-      case CheckResult.Status.passing:
-        return HealthState.Up
-      case CheckResult.Status.critical:
-      case CheckResult.Status.warning:
-        return HealthState.Down
-      default:
-        return HealthState.Unknown
+class ConsulProviderUtils {
+  static List<ConsulHealth> getHealths(ConsulConfig config, String agent) {
+    try {
+      new ConsulAgent(config, agent).api.checks()?.collect { String name, CheckResult result ->
+        new ConsulHealth(result: result, source: result.checkId)
+      } ?: []
+    } catch (RetrofitError e) {
+      return []
     }
   }
 }

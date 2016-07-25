@@ -20,7 +20,7 @@ import com.netflix.spinnaker.clouddriver.consul.api.v1.model.NodeDefinition
 import retrofit.http.GET
 import retrofit.http.Query
 
-interface CatalogApi extends ConsulApi {
+interface CatalogApi {
   @GET("/v1/catalog/datacenters")
   List<String> datacenters()
 

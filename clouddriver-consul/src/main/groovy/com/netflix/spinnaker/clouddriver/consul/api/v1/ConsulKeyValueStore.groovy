@@ -27,6 +27,6 @@ import java.util.concurrent.TimeUnit
 
 class ConsulKeyValueStore extends Consul<KeyValueApi> {
   ConsulKeyValueStore(ConsulConfig config) {
-    super(config)
+    super(config, KeyValueApi)
   }
 }

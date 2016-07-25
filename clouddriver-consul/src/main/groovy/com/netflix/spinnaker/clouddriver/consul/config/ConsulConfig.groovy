@@ -17,7 +17,12 @@
 package com.netflix.spinnaker.clouddriver.consul.config
 
 import com.netflix.spinnaker.clouddriver.consul.api.v1.ConsulCatalog
+import com.netflix.spinnaker.clouddriver.consul.api.v1.services.CatalogApi
+import com.squareup.okhttp.OkHttpClient
+import retrofit.RestAdapter
+import retrofit.client.OkClient
 
+import java.lang.invoke.ConstantCallSite
 import java.util.concurrent.TimeUnit
 
 class ConsulConfig {
@@ -42,15 +47,13 @@ class ConsulConfig {
     }
 
     if (!agentEndpoint) {
-      agentEndpoint = 'localhost'
-    }
-
-    if (!agentEndpoint.contains(":")) {
-      agentEndpoint += ":${agentPort}"
+      agentEndpoint = "localhost"
     }
 
     if (!datacenters) {
-      datacenters = (new ConsulCatalog(this)).api.datacenters()
+      def catalog = new ConsulCatalog(this)
+
+      datacenters = catalog.api.datacenters()
     }
   }
 }

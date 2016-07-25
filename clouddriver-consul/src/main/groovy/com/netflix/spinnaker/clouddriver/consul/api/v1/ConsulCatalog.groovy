@@ -27,6 +27,6 @@ import java.util.concurrent.TimeUnit
 
 class ConsulCatalog extends Consul<CatalogApi> {
   ConsulCatalog(ConsulConfig config) {
-    super(config)
+    super(config, CatalogApi)
   }
 }

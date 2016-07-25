@@ -20,7 +20,7 @@ import com.netflix.spinnaker.clouddriver.consul.api.v1.model.*
 import com.squareup.okhttp.Response
 import retrofit.http.*
 
-interface AgentApi extends ConsulApi {
+interface AgentApi {
   @GET("/v1/agent/checks")
   Map<String, CheckResult> checks()
 

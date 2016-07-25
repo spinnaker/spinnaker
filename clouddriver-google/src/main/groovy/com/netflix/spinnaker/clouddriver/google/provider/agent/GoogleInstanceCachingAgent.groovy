@@ -24,11 +24,14 @@ import com.google.api.services.compute.model.InstancesScopedList
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.consul.model.ConsulHealth
+import com.netflix.spinnaker.clouddriver.consul.provider.ConsulProviderUtils
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleInstanceHealth
+import com.netflix.spinnaker.clouddriver.model.DiscoveryHealth
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 
@@ -88,6 +91,9 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
       instanceAggregatedList?.items?.each { String zone, InstancesScopedList instancesScopedList ->
         def localZoneName = Utils.getLocalName(zone)
         instancesScopedList?.instances?.each { Instance instance ->
+          List<ConsulHealth> consulHealths = credentials.consulConfig?.enabled ?
+            ConsulProviderUtils.getHealths(credentials.consulConfig, instance.getName())
+            : []
           long instanceTimestamp = instance.creationTimestamp ?
               Utils.getTimeFromTimestamp(instance.creationTimestamp) :
               Long.MAX_VALUE
@@ -104,6 +110,7 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
               serviceAccounts: instance.serviceAccounts,
               selfLink: instance.selfLink,
               tags: instance.tags,
+              consulHealths: consulHealths,
               instanceHealth: new GoogleInstanceHealth(
                   status: GoogleInstanceHealth.Status.valueOf(instance.getStatus())
               ))

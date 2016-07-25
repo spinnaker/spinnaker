@@ -43,8 +43,8 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
   final List<String> imageProjects
   final ComputeVersion computeVersion
   final Map<String, List<String>> regionToZonesMap
-  final Compute compute
   final ConsulConfig consulConfig
+  final Compute compute
 
   static class Builder {
     String name
@@ -179,6 +179,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
                                         imageProjects,
                                         computeVersion,
                                         regionToZonesMap,
+                                        consulConfig,
                                         compute)
 
     }
