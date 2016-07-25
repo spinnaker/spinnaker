@@ -27,9 +27,9 @@ spec:
             - "cp /opt/spinnaker/config/settings.js .; npm start"
           env:
             - name: DECK_HOST
-              value: 0.0.0.0
+              value: "0.0.0.0"
             - name: DECK_PORT
-              value: 9000
+              value: "9000"
           ports:
             - containerPort: 9000
               name: deck
