@@ -40,7 +40,7 @@ class TerminateOpenstackInstancesAtomicOperation implements AtomicOperation<Void
   }
 
   /*
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "terminateInstances": { "instanceIds": ["os-test-v000-beef"], "account": "test" }} ]' localhost:7002/openstack/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "terminateInstances": { "instanceIds": ["os-test-v000-beef"], "account": "test", "region": "region1" }} ]' localhost:7002/openstack/ops
    * curl -X GET -H "Accept: application/json" localhost:7002/task/1
    */
   @Override
@@ -49,7 +49,7 @@ class TerminateOpenstackInstancesAtomicOperation implements AtomicOperation<Void
 
     description.instanceIds.each {
       task.updateStatus BASE_PHASE, "Deleting $it"
-      description.credentials.provider.deleteInstance(it)
+      description.credentials.provider.deleteInstance(description.region, it)
       task.updateStatus BASE_PHASE, "Deleted $it"
     }
 

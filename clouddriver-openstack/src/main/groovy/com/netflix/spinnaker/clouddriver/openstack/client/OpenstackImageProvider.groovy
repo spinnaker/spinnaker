@@ -14,12 +14,28 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.openstack.security
+package com.netflix.spinnaker.clouddriver.openstack.client
 
-enum AccountType {
-  V2, V3
+import org.openstack4j.model.image.Image
 
-  String value() {
-    return toString().toLowerCase()
-  }
+/**
+ *
+ */
+interface OpenstackImageProvider {
+
+  /**
+   * Returns a list of images.
+   * @param region
+   * @param filters
+   * @return
+   */
+  List<Image> listImages(String region, Map<String, String> filters)
+
+  /**
+   * Returns a list of images.
+   * @param region
+   * @return
+   */
+  List<Image> listImages(String region)
+
 }

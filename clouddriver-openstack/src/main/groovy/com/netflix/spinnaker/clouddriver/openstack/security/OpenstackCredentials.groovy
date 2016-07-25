@@ -19,9 +19,6 @@ package com.netflix.spinnaker.clouddriver.openstack.security
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFactory
 
-/**
- * TODO this layer is probably not needed. we could put the provider directly into the description.
- */
 public class OpenstackCredentials {
 
   final OpenstackClientProvider provider

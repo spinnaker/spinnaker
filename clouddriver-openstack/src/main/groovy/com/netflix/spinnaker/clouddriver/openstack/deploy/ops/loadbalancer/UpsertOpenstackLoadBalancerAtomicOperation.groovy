@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.openstack4j.model.compute.FloatingIP
 import org.openstack4j.model.network.NetFloatingIP
 import org.openstack4j.model.network.Network
+import org.openstack4j.model.network.Port
 import org.openstack4j.model.network.ext.HealthMonitor
 import org.openstack4j.model.network.ext.LbPool
 import org.openstack4j.model.network.ext.Vip
@@ -174,7 +175,8 @@ class UpsertOpenstackLoadBalancerAtomicOperation implements AtomicOperation<Map>
       }
     }
 
-    FloatingIP floatingIP = openstackClientProvider.getAssociatedFloatingIp(region, existingVip.id)
+    Port port = openstackClientProvider.getPortForVip(region, existingVip.id)
+    FloatingIP floatingIP = openstackClientProvider.getAssociatedFloatingIp(region, port.deviceId, existingVip.id)
     if (description.networkId) {
       task.updateStatus UPSERT_LOADBALANCER_PHASE, "Obtaining network name from network id $description.networkId..."
       Network network = openstackClientProvider.getNetwork(region, description.networkId)

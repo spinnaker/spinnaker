@@ -16,12 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.client
 
-import com.netflix.spinnaker.clouddriver.openstack.security.AccountType
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
-import org.openstack4j.api.OSClient
-import org.openstack4j.core.transport.Config
-import org.openstack4j.model.common.Identifier
-import org.openstack4j.openstack.OSFactory
 
 /**
  * Builds the appropriate {@link OpenstackClientProvider} based on the configuration.
@@ -29,29 +24,12 @@ import org.openstack4j.openstack.OSFactory
 class OpenstackProviderFactory {
 
   static OpenstackClientProvider createProvider(OpenstackNamedAccountCredentials credentials) {
-    OSClient osClient
-    OpenstackClientProvider provider
-    Config config = credentials.insecure ? Config.newConfig().withSSLVerificationDisabled() : Config.newConfig()
-    if (AccountType.V2.value() == credentials.accountType) {
-      osClient = OSFactory.builderV2()
-        .withConfig(config)
-        .endpoint(credentials.endpoint)
-        .credentials(credentials.username, credentials.password)
-        .tenantName(credentials.tenantName)
-        .authenticate()
-      provider = new OpenstackClientV2Provider(osClient, credentials.regions)
-    } else if (AccountType.V3.value() == credentials.accountType) {
-      osClient = OSFactory.builderV3()
-        .withConfig(config)
-        .endpoint(credentials.endpoint)
-        .credentials(credentials.username, credentials.password, Identifier.byName(credentials.domainName))
-        .scopeToProject(Identifier.byName(credentials.tenantName), Identifier.byName(credentials.domainName))
-        .authenticate()
-      provider = new OpenstackClientV3Provider(osClient)
-    } else {
-      throw new IllegalArgumentException("Unknown account type ${credentials.accountType}")
-    }
-    provider
+    OpenstackIdentityProvider identityProvider = new OpenstackIdentityV3Provider(credentials)
+    OpenstackComputeV2Provider computeProvider = new OpenstackComputeV2Provider(identityProvider)
+    OpenstackNetworkingProvider networkingProvider = new OpenstackNetworkingV2Provider(identityProvider)
+    OpenstackOrchestrationProvider orchestrationProvider = new OpenstackOrchestrationV1Provider(identityProvider)
+    OpenstackImageProvider imageProvider = new OpenstackImageV1Provider(identityProvider)
+    new OpenstackClientProvider(identityProvider, computeProvider, networkingProvider, orchestrationProvider, imageProvider)
   }
 
 }

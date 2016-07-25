@@ -35,6 +35,8 @@ class RebootOpenstackInstancesAtomicOperationUnitSpec extends Specification {
   def credentials
   def description
 
+  String region = 'r1'
+
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
@@ -45,7 +47,7 @@ class RebootOpenstackInstancesAtomicOperationUnitSpec extends Specification {
     OpenstackNamedAccountCredentials credz = Mock(OpenstackNamedAccountCredentials)
     OpenstackProviderFactory.createProvider(credz) >> { provider }
     credentials = new OpenstackCredentials(credz)
-    description = new OpenstackInstancesDescription(instanceIds: INSTANCE_IDS, account: ACCOUNT_NAME, credentials: credentials)
+    description = new OpenstackInstancesDescription(instanceIds: INSTANCE_IDS, account: ACCOUNT_NAME, credentials: credentials, region: region)
   }
 
   def "should reboot instances"() {
@@ -57,7 +59,7 @@ class RebootOpenstackInstancesAtomicOperationUnitSpec extends Specification {
 
     then:
     INSTANCE_IDS.each {
-      1 * credentials.provider.rebootInstance(it)
+      1 * credentials.provider.rebootInstance(region, it)
     }
     noExceptionThrown()
   }
@@ -71,7 +73,7 @@ class RebootOpenstackInstancesAtomicOperationUnitSpec extends Specification {
 
     then:
     INSTANCE_IDS.each {
-      credentials.provider.rebootInstance(it) >> { throw new OpenstackOperationException("foobar") }
+      credentials.provider.rebootInstance(region, it) >> { throw new OpenstackOperationException("foobar") }
     }
     OpenstackOperationException ex = thrown(OpenstackOperationException)
     ex.message == "foobar"

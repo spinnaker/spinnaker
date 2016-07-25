@@ -41,7 +41,7 @@ class RebootOpenstackInstancesAtomicOperation implements AtomicOperation<Void> {
   }
 
   /*
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "rebootInstances": { "instanceIds": ["os-test-v000-beef"], "account": "test" }} ]' localhost:7002/openstack/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "rebootInstances": { "instanceIds": ["os-test-v000-beef"], "account": "test", "region": "region1" }} ]' localhost:7002/openstack/ops
    * curl -X GET -H "Accept: application/json" localhost:7002/task/1
    */
 
@@ -52,7 +52,7 @@ class RebootOpenstackInstancesAtomicOperation implements AtomicOperation<Void> {
 
     description.instanceIds.each {
       task.updateStatus BASE_PHASE, "Rebooting $it"
-      description.credentials.provider.rebootInstance(it)
+      description.credentials.provider.rebootInstance(description.region, it)
       task.updateStatus BASE_PHASE, "Rebooted $it"
     }
 

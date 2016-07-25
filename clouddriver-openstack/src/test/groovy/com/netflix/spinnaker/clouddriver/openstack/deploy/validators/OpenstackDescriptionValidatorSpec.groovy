@@ -36,8 +36,9 @@ class OpenstackDescriptionValidatorSpec extends Specification {
   OpenstackClientProvider clientProvider
 
   def "Validate no exception"() {
-    clientProvider = Mock(OpenstackClientProvider)
-    clientProvider.getProperty('allRegions') >> ['r1']
+    clientProvider = Mock(OpenstackClientProvider) {
+      getAllRegions() >> { ['r1'] }
+    }
     GroovyMock(OpenstackProviderFactory, global: true)
     OpenstackProviderFactory.createProvider(credentials) >> clientProvider
     credz = new OpenstackCredentials(credentials)
@@ -115,7 +116,7 @@ class OpenstackDescriptionValidatorSpec extends Specification {
       1 * getCredentials(_) >> credentials
     }
     validator = new FooValidator<>(accountCredentialsProvider: provider)
-    OpenstackInstancesDescription description = new OpenstackInstancesDescription(account: 'test', instanceIds: ['1','2'], credentials: credz, region: '')
+    OpenstackInstancesDescription description = new OpenstackInstancesDescription(account: 'test', instanceIds: ['1','2'], credentials: credz, region: 'r1')
 
     when:
     validator.validate([], description, errors)

@@ -35,8 +35,9 @@ class DestroyOpenstackAtomicOperationValidatorSpec extends Specification {
   OpenstackClientProvider clientProvider
 
   def setup() {
-    clientProvider = Mock(OpenstackClientProvider)
-    clientProvider.getProperty('allRegions') >> ['r1']
+    clientProvider = Mock(OpenstackClientProvider) {
+      getAllRegions() >> ['r1']
+    }
     GroovyMock(OpenstackProviderFactory, global: true)
     OpenstackProviderFactory.createProvider(credentials) >> clientProvider
     credz = new OpenstackCredentials(credentials)

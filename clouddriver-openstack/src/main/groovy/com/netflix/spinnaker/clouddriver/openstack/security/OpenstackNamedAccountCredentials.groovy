@@ -24,7 +24,6 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
   final String name
   final String environment
   final String accountType
-  final String lbaasVersion
   final String master
   final String username
   @JsonIgnore
@@ -32,15 +31,14 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
   final String tenantName
   final String domainName
   final String endpoint
-  final List<String> regions
   final List<String> requiredGroupMembership
   final OpenstackCredentials credentials
+  List<String> regions
   final Boolean insecure
 
   OpenstackNamedAccountCredentials(String accountName,
                                    String environment,
                                    String accountType,
-                                   String lbaasVersion,
                                    String master,
                                    String username,
                                    String password,
@@ -49,13 +47,12 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
                                    String endpoint,
                                    List<String> regions,
                                    Boolean insecure) {
-    this(accountName, environment, accountType, lbaasVersion, master, username, password, null, tenantName, domainName, endpoint, regions, insecure)
+    this(accountName, environment, accountType, master, username, password, null, tenantName, domainName, endpoint, regions, insecure)
   }
 
   OpenstackNamedAccountCredentials(String accountName,
                                    String environment,
                                    String accountType,
-                                   String lbaasVersion,
                                    String master,
                                    String username,
                                    String password,
@@ -68,7 +65,6 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
     this.name = accountName
     this.environment = environment
     this.accountType = accountType
-    this.lbaasVersion = lbaasVersion
     this.master = master
     this.username = username
     this.password = password
@@ -76,8 +72,8 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
     this.domainName = domainName
     this.endpoint = endpoint
     this.requiredGroupMembership = requiredGroupMembership
-    this.insecure = insecure
     this.regions = regions
+    this.insecure = insecure
     this.credentials = buildCredentials()
   }
 

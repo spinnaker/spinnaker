@@ -35,6 +35,8 @@ class TerminateOpenstackInstancesAtomicOperationUnitSpec extends Specification {
   def credentials
   def description
 
+  String region = 'r1'
+
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
@@ -45,7 +47,7 @@ class TerminateOpenstackInstancesAtomicOperationUnitSpec extends Specification {
     OpenstackNamedAccountCredentials credz = Mock(OpenstackNamedAccountCredentials)
     OpenstackProviderFactory.createProvider(credz) >> { provider }
     credentials = new OpenstackCredentials(credz)
-    description = new OpenstackInstancesDescription(instanceIds: INSTANCE_IDS, account: ACCOUNT_NAME, credentials: credentials)
+    description = new OpenstackInstancesDescription(instanceIds: INSTANCE_IDS, account: ACCOUNT_NAME, credentials: credentials, region: region)
   }
 
   def "should terminate instances"() {
@@ -57,7 +59,7 @@ class TerminateOpenstackInstancesAtomicOperationUnitSpec extends Specification {
 
     then:
     INSTANCE_IDS.each {
-      1 * credentials.provider.deleteInstance(it)
+      1 * credentials.provider.deleteInstance(region, it)
     }
     noExceptionThrown()
   }
@@ -71,7 +73,7 @@ class TerminateOpenstackInstancesAtomicOperationUnitSpec extends Specification {
 
     then:
     INSTANCE_IDS.each {
-      credentials.provider.deleteInstance(it) >> { throw new OpenstackOperationException("foobar") }
+      credentials.provider.deleteInstance(region, it) >> { throw new OpenstackOperationException("foobar") }
     }
     OpenstackOperationException ex = thrown(OpenstackOperationException)
     ex.message == "foobar"

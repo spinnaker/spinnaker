@@ -17,45 +17,58 @@
 package com.netflix.spinnaker.clouddriver.openstack.client
 
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
+import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import org.openstack4j.api.OSClient
+import org.openstack4j.api.client.IOSClientBuilder
 import org.openstack4j.api.exceptions.ServerResponseException
 import org.openstack4j.api.identity.v3.IdentityService
 import org.openstack4j.api.identity.v3.RegionService
 import org.openstack4j.model.identity.v3.Region
+import org.openstack4j.model.identity.v3.Token
 import org.springframework.http.HttpStatus
 import spock.lang.Specification
 import spock.lang.Unroll
 
 
 @Unroll
-class OpenstackClientV3ProviderSpec extends Specification {
-  OpenstackClientV3Provider provider
+class OpenstackIdentityV3ProviderSpec extends Specification {
+  OpenstackNamedAccountCredentials credentials
+  OpenstackIdentityV3Provider provider
   OSClient.OSClientV3 mockClient
 
   def "setup"() {
-    mockClient = Mock(OSClient.OSClientV3)
-    provider = new OpenstackClientV3Provider(mockClient) {
-      @Override
-      OSClient getClient() {
-        mockClient
-      }
-
-      OSClient getRegionClient(String region) {
-        mockClient
-      }
+    String accountName = 'test'
+    String environment = 'env'
+    String accountType = 'main'
+    String master = 'master'
+    String username = 'foo'
+    String password = 'bar'
+    String tenantName = 'tenant'
+    String domainName = 'domain'
+    String endpoint = 'http://fake.com'
+    Boolean insecure = true
+    credentials = new OpenstackNamedAccountCredentials(accountName, environment, accountType, master, username, password, tenantName, domainName, endpoint, [], insecure)
+    mockClient = Mock(OSClient.OSClientV3) {
+      getToken() >> { Mock(Token) }
+    }
+    //IOSClientBuilder.V3.metaClass.authenticate = { mockClient }
+    provider = Spy(OpenstackIdentityV3Provider, constructorArgs:[credentials]) {
+      buildClient() >> { mockClient }
+      getClient() >> { mockClient }
+      getRegionClient(_ as String) >> { mockClient }
     }
   }
 
   def "test get regions lookup"() {
     given:
-    IdentityService identityService = Mock()
-    RegionService regionService = Mock()
-    Region region = Mock()
+    IdentityService identityService = Mock(IdentityService)
+    RegionService regionService = Mock(RegionService)
+    Region region = Mock(Region)
     String regionId = UUID.randomUUID().toString()
     List<? extends Region> regions = [region]
 
     when:
-    List<String> result = provider.getAllRegions()
+    List<String> result = provider.allRegions
 
     then:
     1 * mockClient.identity() >> identityService
@@ -68,8 +81,8 @@ class OpenstackClientV3ProviderSpec extends Specification {
 
   def "test get regions lookup exception"() {
     given:
-    IdentityService identityService = Mock()
-    RegionService regionService = Mock()
+    IdentityService identityService = Mock(IdentityService)
+    RegionService regionService = Mock(RegionService)
     Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
 
     when:
