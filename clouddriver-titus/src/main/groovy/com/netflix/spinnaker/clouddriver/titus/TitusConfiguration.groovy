@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.titus
 
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.TitusDeployHandler
@@ -77,12 +78,12 @@ class TitusConfiguration {
 
   @Bean
   @DependsOn("netflixTitusCredentials")
-  TitusClientProvider titusClientProvider(@Value('#{netflixTitusCredentials}') List<NetflixTitusCredentials> netflixTitusCredentials) {
+  TitusClientProvider titusClientProvider(@Value('#{netflixTitusCredentials}') List<NetflixTitusCredentials> netflixTitusCredentials, Registry registry) {
     List<TitusClientProvider.TitusClientHolder> titusClientHolders = []
     netflixTitusCredentials.each { credentials ->
       credentials.regions.each { region ->
         titusClientHolders << new TitusClientProvider.TitusClientHolder(
-          credentials.name, region.name, new RegionScopedTitusClient(region)
+          credentials.name, region.name, new RegionScopedTitusClient(region, registry)
         )
       }
     }

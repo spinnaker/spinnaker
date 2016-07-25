@@ -18,6 +18,8 @@ package com.netflix.spinnaker.clouddriver.titus.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.frigga.Names;
+import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.titus.client.model.*;
 import okhttp3.*;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -58,20 +60,23 @@ public class RegionScopedTitusClient implements TitusClient {
     /** Titus client uses Jackson converter for retrofit. Titus client users can override this */
     private final ObjectMapper objectMapper;
 
-    public RegionScopedTitusClient(TitusRegion titusRegion) {
-        this(titusRegion, DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT, TitusClientObjectMapper.configure());
+    private final Registry registry;
+
+    public RegionScopedTitusClient(TitusRegion titusRegion, Registry registry) {
+        this(titusRegion, DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT, TitusClientObjectMapper.configure(), registry);
     }
 
     public RegionScopedTitusClient(TitusRegion titusRegion,
                                    long connectTimeoutMillis,
                                    long readTimeoutMillis,
-                                   ObjectMapper objectMapper) {
-
+                                   ObjectMapper objectMapper,
+                                   Registry registry) {
         this.titusRegion = titusRegion;
         this.connectTimeoutMillis = connectTimeoutMillis;
         this.readTimeoutMillis = readTimeoutMillis;
         this.objectMapper = objectMapper;
         this.titusRestAdapter = createTitusRestAdapter(titusRegion);
+        this.registry = registry;
     }
 
     private TitusRestAdapter createTitusRestAdapter(TitusRegion titusRegion) {
@@ -97,25 +102,38 @@ public class RegionScopedTitusClient implements TitusClient {
 
     @Override
     public Job getJob(String jobId) {
-        return execute(titusRestAdapter.getJob(jobId));
+        return execute("getJob", titusRestAdapter.getJob(jobId));
     }
 
-    private <T> T execute(Call<T> call) {
+    private <T> T execute(String requestName, Call<T> call) {
+        long startTime = System.nanoTime();
+        boolean success = false;
+        Integer responseCode = null;
         try {
             retrofit2.Response<T> response = call.execute();
-            if (response.isSuccess()) {
+            responseCode = response.code();
+            success = response.isSuccess();
+            if (success) {
                 return response.body();
             }
             throw new RuntimeException("response failed " + response.code() + " " + response.message());
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
+        } finally {
+            Id timerId = registry.createId("titus.request")
+              .withTag("titusAccount", titusRegion.getAccount())
+              .withTag("titusRegion", titusRegion.getName())
+              .withTag("request", requestName)
+              .withTag("success", Boolean.toString(success))
+              .withTag("responseCode", Optional.ofNullable(responseCode).map(Object::toString).orElse("UNKNOWN"));
+            registry.timer(timerId).record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
         }
 
     }
 
     @Override
     public Job findJobByName(String jobName) {
-        List<Job> jobs = execute(titusRestAdapter.getJobsByLabel("name=" + jobName));
+        List<Job> jobs = execute("getJobsByLabel", titusRestAdapter.getJobsByLabel("name=" + jobName));
         if (jobs.isEmpty()) {
             return null;
         }
@@ -125,7 +143,7 @@ public class RegionScopedTitusClient implements TitusClient {
 
     @Override
     public List<Job> findJobsByApplication(String application) {
-        return execute(titusRestAdapter.getJobsByApplication(application));
+        return execute("getJobsByApplication", titusRestAdapter.getJobsByApplication(application));
     }
 
     @Override
@@ -147,7 +165,7 @@ public class RegionScopedTitusClient implements TitusClient {
         }
         jobDescription.getLabels().put("name", jobDescription.getName());
         jobDescription.getLabels().put("source", "spinnaker");
-        SubmitJobResponse response = execute(titusRestAdapter.submitJob(jobDescription));
+        SubmitJobResponse response = execute("submitJob", titusRestAdapter.submitJob(jobDescription));
         if (response == null) throw new RuntimeException(String.format("Failed to submit a titus job request for %s", jobDescription));
         String jobUri = response.getJobUri();
         return jobUri.substring(jobUri.lastIndexOf("/") + 1);
@@ -155,12 +173,12 @@ public class RegionScopedTitusClient implements TitusClient {
 
     @Override
     public void updateJob(String jobId, Map<String, Object> jobAttributes) {
-        execute(titusRestAdapter.updateJob(jobId, jobAttributes));
+        execute("updateJob", titusRestAdapter.updateJob(jobId, jobAttributes));
     }
 
     @Override
     public Task getTask(String taskId) {
-        return execute(titusRestAdapter.getTask(taskId));
+        return execute("getTask", titusRestAdapter.getTask(taskId));
     }
 
     @Override
@@ -168,7 +186,7 @@ public class RegionScopedTitusClient implements TitusClient {
         if(resizeJobRequest.getUser() == null){
            resizeJobRequest.withUser("spinnaker");
         }
-        execute(titusRestAdapter.resizeJob(resizeJobRequest));
+        execute("resizeJob", titusRestAdapter.resizeJob(resizeJobRequest));
     }
 
     @Override
@@ -176,22 +194,22 @@ public class RegionScopedTitusClient implements TitusClient {
         if(activateJobRequest.getUser() == null){
            activateJobRequest.withUser("spinnaker");
         }
-        execute(titusRestAdapter.activateJob(activateJobRequest));
+        execute("activateJob", titusRestAdapter.activateJob(activateJobRequest));
     }
 
     @Override
     public void terminateJob(String jobId) {
-        execute(titusRestAdapter.killJob(RequestBody.create(MediaType.parse("text/plain"), jobId)));
+        execute("killJob", titusRestAdapter.killJob(RequestBody.create(MediaType.parse("text/plain"), jobId)));
     }
 
     @Override
     public void terminateTask(String taskId) {
-        execute(titusRestAdapter.terminateTask(taskId));
+        execute("terminateTask", titusRestAdapter.terminateTask(taskId));
     }
 
     @Override
     public Logs getLogs(String taskId) {
-        return execute(titusRestAdapter.getLogs(taskId));
+        return execute("getLogs", titusRestAdapter.getLogs(taskId));
     }
 
     @Override
@@ -219,7 +237,7 @@ public class RegionScopedTitusClient implements TitusClient {
     }
 
     private Stream<Job> getAllJobsStream() {
-        return execute(titusRestAdapter.getJobsByType("service")).stream();
+        return execute("getJobsByType", titusRestAdapter.getJobsByType("service")).stream();
     }
 
 }
