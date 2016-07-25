@@ -26,9 +26,8 @@ import org.springframework.stereotype.Component
 
 /**
  * TODO(drmaas): need to figure out the following:
- * 1) packer openstack variables - required vs optional (currently have a best guess for what is required for v3)
+ * 1) packer openstack variables - required vs optional (currently have a best guess for what is required for identity v3)
  * 2) openstack username/password management (currently will load via environment variable passed to java process)
- * 3) v2 vs. v3 apis (currently implemented for v3)
  */
 @Component
 public class OpenstackBakeHandler extends CloudProviderBakeHandler {
@@ -117,6 +116,10 @@ public class OpenstackBakeHandler extends CloudProviderBakeHandler {
 
     if (openstackBakeryDefaults.tenantName != null) {
       parameterMap.openstack_tenant_name = openstackBakeryDefaults.tenantName
+    }
+
+    if (bakeRequest.build_info_url) {
+      parameterMap.build_info_url = bakeRequest.build_info_url
     }
 
     return parameterMap

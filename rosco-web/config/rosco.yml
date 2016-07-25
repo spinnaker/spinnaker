@@ -235,7 +235,7 @@ openstack:
     insecure: true
     username: ${OS_USERNAME}
     password: ${OS_PASSWORD}
-    templateFile: openstack-v3.json
+    templateFile: openstack.json
     baseImages:
     - baseImage:
         id: vivid

@@ -293,6 +293,60 @@ Build 'openstack' finished.
     1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$openstackBakeryDefaults.templateFile")
   }
 
+  void 'produces packer command with all required parameters including appversion, build_host and build_info_url for trusty'() {
+    setup:
+    String instanceType = openstackBakeryDefaults.baseImages[0].virtualizationSettings[0].instanceType
+    def imageNameFactoryMock = Mock(ImageNameFactory)
+    def packerCommandFactoryMock = Mock(PackerCommandFactory)
+    def appVersionStr = "nflx-djangobase-enhanced-0.1-170cdbd.h12"
+    def buildHost = "http://some-build-server:8080"
+    def buildInfoUrl = "http://some-build-server:8080/repogroup/repo/builds/320282"
+    def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+            package_name: PACKAGES_NAME,
+            base_os: "ubuntu",
+            instance_type: instanceType,
+            build_host: buildHost,
+            build_info_url: buildInfoUrl,
+            cloud_provider_type: BakeRequest.CloudProviderType.openstack)
+    def targetImageName = "1f28b46b-b36f-4b7c-bc34-40e2371886fa"
+    def parameterMap = [
+            openstack_identity_endpoint: OPENSTACK_ENDPOINT,
+            openstack_region: REGION,
+            openstack_ssh_username: "ubuntu",
+            openstack_instance_type: instanceType,
+            openstack_source_image_name: SOURCE_UBUNTU_IMAGE_NAME,
+            openstack_image_name: targetImageName,
+            openstack_username: openstackBakeryDefaults.username,
+            openstack_password: openstackBakeryDefaults.password,
+            openstack_domain_name: openstackBakeryDefaults.domainName,
+            openstack_insecure: openstackBakeryDefaults.insecure,
+            openstack_floating_ip_pool: openstackBakeryDefaults.floatingIpPool,
+            openstack_security_groups: openstackBakeryDefaults.securityGroups,
+            openstack_tenant_name: openstackBakeryDefaults.tenantName,
+            repository: DEBIAN_REPOSITORY,
+            package_type: BakeRequest.PackageType.DEB.packageType,
+            packages: PACKAGES_NAME,
+            configDir: configDir,
+            appversion: appVersionStr,
+            build_host: buildHost,
+            build_info_url: buildInfoUrl
+    ]
+
+    @Subject
+    OpenstackBakeHandler openstackBakeHandler = new OpenstackBakeHandler(configDir: configDir,
+            openstackBakeryDefaults: openstackBakeryDefaults,
+            imageNameFactory: imageNameFactoryMock,
+            packerCommandFactory: packerCommandFactoryMock,
+            debianRepository: DEBIAN_REPOSITORY)
+
+    when:
+    openstackBakeHandler.producePackerCommand(REGION, bakeRequest)
+
+    then:
+    1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, appVersionStr, PACKAGES_NAME]
+    1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$openstackBakeryDefaults.templateFile")
+  }
+
   void 'produces packer command with all required parameters, overriding base ami'() {
     setup:
     String instanceType = openstackBakeryDefaults.baseImages[0].virtualizationSettings[0].instanceType
