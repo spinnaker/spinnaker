@@ -1,4 +1,4 @@
-echo "Bootstraping redis master..."
+echo "Bootstrapping redis master..."
 echo
 
 # Create a service to track the servers
