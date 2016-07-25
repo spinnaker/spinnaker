@@ -16,13 +16,15 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
-import groovy.util.logging.Slf4j
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.batch.StageBuilder
+import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
@@ -31,42 +33,90 @@ import retrofit.client.Client
 @Component
 @Slf4j
 class TriggerQuipTask extends AbstractQuipTask implements RetryableTask {
-  @Autowired ObjectMapper objectMapper
+  @Autowired
+  ObjectMapper objectMapper
 
-  @Autowired Client retrofitClient
+  @Autowired
+  Client retrofitClient
+
+  private static final long DEFAULT_INSTANCE_VERSION_SLEEP = 10000
+
+  long instanceVersionSleep = DEFAULT_INSTANCE_VERSION_SLEEP
 
   long backoffPeriod = 10000
-  long timeout = 60000 // 1min
+  long timeout = 120000 // 1min
 
   @Override
   TaskResult execute(Stage stage) {
     Map taskIdMap = [:]
-    Map stageOutputs = [:]
 
-    def instances = stage.context?.instances
-    ExecutionStatus executionStatus = ExecutionStatus.SUCCEEDED
+    Map<String, Map> instances = stage.context.instances
+    Map<String, Map> remainingInstances = stage.context.remainingInstances == null ? new HashMap<>(instances) : stage.context.remainingInstances
     String packageName = stage.context?.package
-    String version = stage.context.version
+    String version = stage.ancestors { Stage ancestorStage, StageBuilder ancestorStageBuilder ->
+      ancestorStage.id == stage.parentStageId
+    }.getAt(0)?.stage?.context?.version
+    Map<String, Map> skippedInstances = stage.context.skippedInstances ?: [:]
+    Set<String> patchedInstanceIds = []
     // verify instance list, package, and version are in the context
-    if (version && packageName && instances) {
+    if (version && packageName && remainingInstances) {
       // trigger patch on target server
-      instances.each { String key, Map valueMap ->
-        String hostName = valueMap.hostName
-        def instanceService = createInstanceService("http://${hostName}:5050")
-
-        try {
-          def instanceResponse = instanceService.patchInstance(packageName, version, "")
-          def ref = objectMapper.readValue(instanceResponse.body.in().text, Map).ref
-          taskIdMap.put(hostName, ref.substring(1 + ref.lastIndexOf('/')))
-        } catch (RetrofitError e) {
-          log.warn("Error in Quip request: {}", e.message)
-          executionStatus = ExecutionStatus.RUNNING
+      remainingInstances.each { String instanceId, Map instance ->
+        String instanceHostName = instance.hostName
+        def instanceService = createInstanceService("http://${instanceHostName}:5050")
+        if (stage.context.skipUpToDate &&
+          // optionally check the installed package version and skip if == target version
+          (getAppVersion(instanceService, packageName) == version)) {
+            skippedInstances.put(instanceId, instance)
+            //remove from instances so we don't wait for it to quip
+            instances.remove(instanceId)
+        } else {
+          try {
+            def instanceResponse = instanceService.patchInstance(packageName, version, "")
+            def ref = objectMapper.readValue(instanceResponse.body.in().text, Map).ref
+            taskIdMap.put(instanceHostName, ref.substring(1 + ref.lastIndexOf('/')))
+            patchedInstanceIds << instanceId
+          } catch (RetrofitError e) {
+            log.warn("Error in Quip request: {}", e.message)
+          }
         }
       }
+      remainingInstances.keySet().removeAll(patchedInstanceIds)
+      remainingInstances.keySet().removeAll(skippedInstances.keySet())
     } else {
       throw new RuntimeException("one or more required parameters are missing : version (${version}) || package (${packageName})|| instances (${instances})")
     }
-    stageOutputs.put("taskIds", taskIdMap)
-    return new DefaultTaskResult(executionStatus, stageOutputs)
+    Map stageOutputs = [
+      taskIds: taskIdMap,
+      instances: instances,
+      instanceIds: instances.keySet(), // for WaitForDown/UpInstancesTask
+      skippedInstances: skippedInstances,
+      remainingInstances: remainingInstances,
+      version: version
+    ]
+    return new DefaultTaskResult(remainingInstances ? ExecutionStatus.RUNNING : ExecutionStatus.SUCCEEDED, stageOutputs)
+  }
+
+  String getAppVersion(InstanceService instanceService, String packageName) {
+    int retries = 5;
+    def instanceResponse
+    String version
+
+    while (retries) {
+      try {
+        instanceResponse = instanceService.getCurrentVersion(packageName)
+        version = objectMapper.readValue(instanceResponse.body.in().text, Map)?.version
+        if (version && !version.isEmpty()) {
+          return version
+        }
+      } catch (RetrofitError e) {
+        //retry
+      }
+      sleep(instanceVersionSleep)
+      --retries
+    }
+
+    // instead of failing the stage if we can't detect the version, try to install new version anyway
+    return null
   }
 }

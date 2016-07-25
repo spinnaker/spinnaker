@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.pipeline.util
 
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.Canonical
 import groovy.transform.CompileStatic
 import org.springframework.context.ApplicationContext
 
@@ -38,7 +39,7 @@ class StageNavigator {
       def stageBuilder = stageBuilders.find { it.type == stage.type }
       return matcher.call(stage, stageBuilder)
     }.collect { Stage stage ->
-      new Result(stage: stage, stageBuilder: stageBuilders.find { it.type == stage.type })
+      new Result(stage, stageBuilders.find { it.type == stage.type })
     }
 
     return results
@@ -65,8 +66,10 @@ class StageNavigator {
     }
   }
 
+
+  @Canonical
   static class Result {
-    Stage stage
-    StageBuilder stageBuilder
+    final Stage stage
+    final StageBuilder stageBuilder
   }
 }
