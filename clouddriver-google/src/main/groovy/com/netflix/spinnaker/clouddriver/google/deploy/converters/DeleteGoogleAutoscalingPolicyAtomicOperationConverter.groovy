@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
-import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleScalingPolicyDescription
-import com.netflix.spinnaker.clouddriver.google.deploy.ops.DeleteGoogleScalingPolicyAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleAutoscalingPolicyDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.DeleteGoogleAutoscalingPolicyAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
@@ -26,14 +26,14 @@ import org.springframework.stereotype.Component
 
 @GoogleOperation(AtomicOperations.DELETE_SCALING_POLICY)
 @Component("deleteGoogleScalingPolicyDescription")
-class DeleteGoogleScalingPolicyAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+class DeleteGoogleAutoscalingPolicyAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Override
   AtomicOperation convertOperation(Map input) {
-    new DeleteGoogleScalingPolicyAtomicOperation(convertDescription(input))
+    new DeleteGoogleAutoscalingPolicyAtomicOperation(convertDescription(input))
   }
 
   @Override
   convertDescription(Map input) {
-    GoogleAtomicOperationConverterHelper.convertDescription(input, this, DeleteGoogleScalingPolicyDescription)
+    GoogleAtomicOperationConverterHelper.convertDescription(input, this, DeleteGoogleAutoscalingPolicyDescription)
   }
 }

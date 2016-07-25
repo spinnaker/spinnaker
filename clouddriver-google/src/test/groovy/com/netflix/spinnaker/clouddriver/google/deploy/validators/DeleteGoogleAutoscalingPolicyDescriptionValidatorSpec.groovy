@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
-import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleScalingPolicyDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
@@ -25,16 +25,16 @@ import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
-class DeleteGoogleScalingPolicyDescriptionValidatorSpec extends Specification {
+class DeleteGoogleAutoscalingPolicyDescriptionValidatorSpec extends Specification {
   private static final SERVER_GROUP_NAME = "my-server-group"
   private static final ACCOUNT_NAME = "my-account-name"
   private static final REGION = "us-central1"
 
   @Shared
-  DeleteGoogleScalingPolicyDescriptionValidator validator
+  DeleteGoogleAutoscalingPolicyDescriptionValidator validator
 
   void setupSpec() {
-    validator = new DeleteGoogleScalingPolicyDescriptionValidator()
+    validator = new DeleteGoogleAutoscalingPolicyDescriptionValidator()
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
     def credentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
     def credentials = new GoogleNamedAccountCredentials.Builder().name(ACCOUNT_NAME).credentials(new FakeGoogleCredentials()).build()
@@ -44,7 +44,7 @@ class DeleteGoogleScalingPolicyDescriptionValidatorSpec extends Specification {
 
   void "pass validation with proper description inputs"() {
     setup:
-    def description = new DeleteGoogleScalingPolicyDescription(serverGroupName: SERVER_GROUP_NAME,
+    def description = new DeleteGoogleAutoscalingPolicyDescription(serverGroupName: SERVER_GROUP_NAME,
       accountName: ACCOUNT_NAME,
       region: REGION)
     def errors = Mock(Errors)
@@ -58,7 +58,7 @@ class DeleteGoogleScalingPolicyDescriptionValidatorSpec extends Specification {
 
   void "null input fails validation"() {
     setup:
-    def description = new DeleteGoogleScalingPolicyDescription()
+    def description = new DeleteGoogleAutoscalingPolicyDescription()
     def errors = Mock(Errors)
 
     when:

@@ -17,14 +17,14 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleScalingPolicyDescription
-import com.netflix.spinnaker.clouddriver.google.deploy.ops.DeleteGoogleScalingPolicyAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleAutoscalingPolicyDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.DeleteGoogleAutoscalingPolicyAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import spock.lang.Shared
 import spock.lang.Specification
 
-class DeleteGoogleScalingPolicyAtomicOperationConverterUnitSpec extends Specification {
+class DeleteGoogleAutoscalingPolicyAtomicOperationConverterUnitSpec extends Specification {
   private static final SERVER_GROUP_NAME = "my-server-group"
   private static final ACCOUNT_NAME = "my-account-name"
 
@@ -32,10 +32,10 @@ class DeleteGoogleScalingPolicyAtomicOperationConverterUnitSpec extends Specific
   ObjectMapper mapper = new ObjectMapper()
 
   @Shared
-  DeleteGoogleScalingPolicyAtomicOperationConverter converter
+  DeleteGoogleAutoscalingPolicyAtomicOperationConverter converter
 
   def setupSpec() {
-    this.converter = new DeleteGoogleScalingPolicyAtomicOperationConverter(objectMapper: mapper)
+    this.converter = new DeleteGoogleAutoscalingPolicyAtomicOperationConverter(objectMapper: mapper)
     def accountCredentialsProvider = Mock(AccountCredentialsProvider)
     def mockCredentials = Mock(GoogleNamedAccountCredentials)
     accountCredentialsProvider.getCredentials(_) >> mockCredentials
@@ -51,12 +51,12 @@ class DeleteGoogleScalingPolicyAtomicOperationConverterUnitSpec extends Specific
     def description = converter.convertDescription(input)
 
     then:
-    description instanceof DeleteGoogleScalingPolicyDescription
+    description instanceof DeleteGoogleAutoscalingPolicyDescription
 
     when:
     def operation = converter.convertOperation(input)
 
     then:
-    operation instanceof DeleteGoogleScalingPolicyAtomicOperation
+    operation instanceof DeleteGoogleAutoscalingPolicyAtomicOperation
   }
 }

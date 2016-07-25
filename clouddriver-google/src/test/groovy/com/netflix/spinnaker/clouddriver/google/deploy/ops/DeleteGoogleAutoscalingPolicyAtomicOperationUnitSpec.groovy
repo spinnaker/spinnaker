@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 import com.google.api.services.compute.Compute
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleScalingPolicyDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
@@ -27,7 +27,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-class DeleteGoogleScalingPolicyAtomicOperationUnitSpec extends Specification {
+class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification {
   private static final SERVER_GROUP_NAME = "my-server-group"
   private static final ACCOUNT_NAME = "my-account-name"
   private static final REGION = "us-central1"
@@ -54,11 +54,11 @@ class DeleteGoogleScalingPolicyAtomicOperationUnitSpec extends Specification {
 
     def serverGroup = new GoogleServerGroup(zone: ZONE, regional: isRegional).view
     def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
-    def description = new DeleteGoogleScalingPolicyDescription(serverGroupName: SERVER_GROUP_NAME,
+    def description = new DeleteGoogleAutoscalingPolicyDescription(serverGroupName: SERVER_GROUP_NAME,
       region: REGION,
       accountName: ACCOUNT_NAME,
       credentials: credentials)
-    @Subject def operation = new DeleteGoogleScalingPolicyAtomicOperation(description)
+    @Subject def operation = new DeleteGoogleAutoscalingPolicyAtomicOperation(description)
     operation.googleClusterProvider = googleClusterProviderMock
 
     when:

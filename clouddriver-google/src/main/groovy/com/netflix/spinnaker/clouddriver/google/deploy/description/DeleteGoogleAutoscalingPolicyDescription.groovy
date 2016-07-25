@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
-class DeleteGoogleScalingPolicyDescription extends AbstractGoogleCredentialsDescription {
+class DeleteGoogleAutoscalingPolicyDescription extends AbstractGoogleCredentialsDescription {
   String serverGroupName
   String accountName
   String region

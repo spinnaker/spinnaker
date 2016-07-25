@@ -19,15 +19,15 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
-import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleScalingPolicyDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
-class DeleteGoogleScalingPolicyAtomicOperation implements AtomicOperation<Void>{
+class DeleteGoogleAutoscalingPolicyAtomicOperation implements AtomicOperation<Void>{
 
   private static final String BASE_PHASE = "DELETE_SCALING_POLICY"
-  private final DeleteGoogleScalingPolicyDescription description
+  private final DeleteGoogleAutoscalingPolicyDescription description
 
   @Autowired
   private GoogleClusterProvider googleClusterProvider
@@ -36,7 +36,7 @@ class DeleteGoogleScalingPolicyAtomicOperation implements AtomicOperation<Void>{
     TaskRepository.threadLocalTask.get()
   }
 
-  DeleteGoogleScalingPolicyAtomicOperation(DeleteGoogleScalingPolicyDescription description) {
+  DeleteGoogleAutoscalingPolicyAtomicOperation(DeleteGoogleAutoscalingPolicyDescription description) {
     this.description = description
   }
 

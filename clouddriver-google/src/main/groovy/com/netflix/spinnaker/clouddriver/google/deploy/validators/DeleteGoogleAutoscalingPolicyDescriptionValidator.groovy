@@ -18,8 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
-import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleScalingPolicyDescription
-import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleSecurityGroupDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,12 +27,12 @@ import org.springframework.validation.Errors
 
 @GoogleOperation(AtomicOperations.DELETE_SCALING_POLICY)
 @Component
-class DeleteGoogleScalingPolicyDescriptionValidator extends DescriptionValidator<DeleteGoogleScalingPolicyDescription> {
+class DeleteGoogleAutoscalingPolicyDescriptionValidator extends DescriptionValidator<DeleteGoogleAutoscalingPolicyDescription> {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, DeleteGoogleScalingPolicyDescription description, Errors errors) {
+  void validate(List priorDescriptions, DeleteGoogleAutoscalingPolicyDescription description, Errors errors) {
     def helper = new StandardGceAttributeValidator("deleteGoogleScalingPolicyDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
