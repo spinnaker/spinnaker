@@ -2,27 +2,25 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.gce.enableAsgStage', [
-  require('../../../../../../core/application/listExtractor/listExtractor.service'),
-  require('../../../../../application/modal/platformHealthOverride.directive.js'),
-  require('../../stageConstants.js'),
-  require('./enableAsgExecutionDetails.controller.js')
+module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableClusterStage', [
+  require('../../../../core/account/account.service.js'),
+  require('./disableClusterExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
-      provides: 'enableServerGroup',
+      provides: 'disableCluster',
       cloudProvider: 'gce',
-      templateUrl: require('./enableAsgStage.html'),
-      executionDetailsUrl: require('./enableAsgExecutionDetails.html'),
-      executionStepLabelUrl: require('./enableAsgStepLabel.html'),
+      templateUrl: require('./disableClusterStage.html'),
+      executionDetailsUrl: require('./disableClusterExecutionDetails.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'target' },
-        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'remainingEnabledServerGroups', fieldLabel: 'Keep [X] enabled Server Groups'},
+        { type: 'requiredField', fieldName: 'regions', },
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
-      ]
+      ],
     });
-  }).controller('gceEnableAsgStageCtrl', function($scope, accountService, stageConstants) {
+  }).controller('gceDisableClusterStageCtrl', function($scope, accountService) {
+    var ctrl = this;
 
     let stage = $scope.stage;
 
@@ -35,8 +33,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.enableAsgStag
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
-
-    $scope.targets = stageConstants.targetList;
 
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'gce';
@@ -52,10 +48,20 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.enableAsgStag
       stage.regions.push($scope.application.defaultRegions.gce);
     }
 
-    if (!stage.target) {
-      stage.target = $scope.targets[0].val;
+    if (stage.remainingEnabledServerGroups === undefined) {
+      stage.remainingEnabledServerGroups = 1;
     }
 
-    $scope.$watch('stage.credentials', $scope.accountUpdated);
+    ctrl.pluralize = function(str, val) {
+      if (val === 1) {
+        return str;
+      }
+      return str + 's';
+    };
+
+    if (stage.preferLargerOverNewer === undefined) {
+      stage.preferLargerOverNewer = 'false';
+    }
+    stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
   });
 

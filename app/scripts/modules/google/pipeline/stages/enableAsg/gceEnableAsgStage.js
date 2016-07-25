@@ -2,29 +2,27 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.gce.destroyAsgStage', [
-  require('../../stageConstants.js'),
-  require('./destroyAsgExecutionDetails.controller.js')
+module.exports = angular.module('spinnaker.core.pipeline.stage.gce.enableAsgStage', [
+  require('../../../../core/application/listExtractor/listExtractor.service.js'),
+  require('../../../../core/application/modal/platformHealthOverride.directive.js'),
+  require('../../../../core/pipeline/config/stages/stageConstants.js'),
+  require('./enableAsgExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
-      provides: 'destroyServerGroup',
+      provides: 'enableServerGroup',
       cloudProvider: 'gce',
-      templateUrl: require('./destroyAsgStage.html'),
-      executionDetailsUrl: require('./destroyAsgExecutionDetails.html'),
-      executionStepLabelUrl: require('./destroyAsgStepLabel.html'),
+      templateUrl: require('./enableAsgStage.html'),
+      executionDetailsUrl: require('./enableAsgExecutionDetails.html'),
+      executionStepLabelUrl: require('./enableAsgStepLabel.html'),
       validators: [
-        {
-          type: 'targetImpedance',
-          message: 'This pipeline will attempt to destroy a server group without deploying a new version into the same cluster.'
-        },
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'target', },
-        { type: 'requiredField', fieldName: 'regions', },
+        { type: 'requiredField', fieldName: 'target' },
+        { type: 'requiredField', fieldName: 'regions' },
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
-      ],
+      ]
     });
-  }).controller('gceDestroyAsgStageCtrl', function($scope, accountService, stageConstants) {
+  }).controller('gceEnableAsgStageCtrl', function($scope, accountService, stageConstants) {
 
     let stage = $scope.stage;
 
@@ -43,6 +41,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.destroyAsgSta
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'gce';
 
+    if (stage.isNew && $scope.application.attributes.platformHealthOnly) {
+      stage.interestingHealthProviderNames = ['Google'];
+    }
+
     if (!stage.credentials && $scope.application.defaultCredentials.gce) {
       stage.credentials = $scope.application.defaultCredentials.gce;
     }
@@ -54,5 +56,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.destroyAsgSta
       stage.target = $scope.targets[0].val;
     }
 
+    $scope.$watch('stage.credentials', $scope.accountUpdated);
   });
 

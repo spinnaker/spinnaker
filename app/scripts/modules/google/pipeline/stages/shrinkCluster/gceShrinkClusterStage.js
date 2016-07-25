@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.shrinkClusterStage', [
-  require('../../../../../account/account.service.js'),
+  require('../../../../core/account/account.service.js'),
   require('./shrinkClusterExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {

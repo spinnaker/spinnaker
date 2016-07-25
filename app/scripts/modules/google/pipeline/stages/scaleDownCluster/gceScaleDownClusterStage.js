@@ -2,24 +2,25 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableClusterStage', [
-  require('../../../../../account/account.service.js'),
-  require('./disableClusterExecutionDetails.controller.js')
+module.exports = angular.module('spinnaker.core.pipeline.stage.gce.scaleDownClusterStage', [
+  require('../../../../core/account/account.service.js'),
+  require('./scaleDownClusterExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
-      provides: 'disableCluster',
+      provides: 'scaleDownCluster',
       cloudProvider: 'gce',
-      templateUrl: require('./disableClusterStage.html'),
-      executionDetailsUrl: require('./disableClusterExecutionDetails.html'),
+      templateUrl: require('./scaleDownClusterStage.html'),
+      executionDetailsUrl: require('./scaleDownClusterExecutionDetails.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'remainingEnabledServerGroups', fieldLabel: 'Keep [X] enabled Server Groups'},
+        { type: 'requiredField', fieldName: 'remainingFullSizeServerGroups', fieldLabel: 'Keep [X] full size Server Groups'},
         { type: 'requiredField', fieldName: 'regions', },
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
+      strategy: true,
     });
-  }).controller('gceDisableClusterStageCtrl', function($scope, accountService) {
+  }).controller('gceScaleDownClusterStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -37,10 +38,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableCluste
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'gce';
 
-    if (stage.isNew && $scope.application.attributes.platformHealthOnly) {
-      stage.interestingHealthProviderNames = ['Google'];
-    }
-
     if (!stage.credentials && $scope.application.defaultCredentials.gce) {
       stage.credentials = $scope.application.defaultCredentials.gce;
     }
@@ -48,8 +45,12 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableCluste
       stage.regions.push($scope.application.defaultRegions.gce);
     }
 
-    if (stage.remainingEnabledServerGroups === undefined) {
-      stage.remainingEnabledServerGroups = 1;
+    if (stage.remainingFullSizeServerGroups === undefined) {
+      stage.remainingFullSizeServerGroups = 1;
+    }
+
+    if (stage.allowScaleDownActive === undefined) {
+      stage.allowScaleDownActive = false;
     }
 
     ctrl.pluralize = function(str, val) {

@@ -3,12 +3,12 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.cloneServerGroup.gce.executionDetails.controller', [
-  require('../../../../../utils/lodash.js'),
+  require('../../../../core/utils/lodash.js'),
   require('angular-ui-router'),
-  require('../../../../../cluster/filter/clusterFilter.service.js'),
-  require('../../../../../delivery/details/executionDetailsSection.service.js'),
-  require('../../../../../delivery/details/executionDetailsSectionNav.directive.js'),
-  require('../../../../../navigation/urlBuilder.service.js'),
+  require('../../../../core/cluster/filter/clusterFilter.service.js'),
+  require('../../../../core/delivery/details/executionDetailsSection.service.js'),
+  require('../../../../core/delivery/details/executionDetailsSectionNav.directive.js'),
+  require('../../../../core/navigation/urlBuilder.service.js'),
 ])
   .controller('gceCloneServerGroupExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService, $timeout, urlBuilderService, clusterFilterService) {
 
