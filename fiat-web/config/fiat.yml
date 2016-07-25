@@ -5,5 +5,7 @@ redis:
   connection: ${services.redis.connection:redis://localhost:6379}
 
 auth:
+  anonymous:
+    enabled: false
   getAll:
     enabled: false

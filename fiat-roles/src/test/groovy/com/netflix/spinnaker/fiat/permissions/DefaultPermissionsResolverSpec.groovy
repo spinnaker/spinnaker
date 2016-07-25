@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.fiat.permissions
 
+import com.netflix.spinnaker.fiat.config.AnonymousUserConfig
 import com.netflix.spinnaker.fiat.model.ServiceAccount
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.providers.ApplicationProvider
@@ -57,13 +58,39 @@ class DefaultPermissionsResolverSpec extends Specification {
       front50Service: front50Service
   )
 
+  @Shared
+  ApplicationProvider applicationProvider = Mock(ApplicationProvider) {
+    getApplications(*_) >> []
+  }
+
+  def "should resolve the anonymous user permission, when enabled"() {
+    setup:
+    @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver()
+        .setAccountProvider(accountProvider)
+        .setApplicationProvider(applicationProvider)
+        .setServiceAccountProvider(serviceAccountProvider)
+        .setAnonymousEnabled(false)
+
+    when:
+    def result = resolver.resolveAnonymous()
+
+    then:
+    !result.isPresent()
+
+    when:
+    resolver.setAnonymousEnabled(true)
+    result = resolver.resolveAnonymous().get()
+
+    then:
+    result.getId() == AnonymousUserConfig.ANONYMOUS_USERNAME
+    result.getAccounts()?.size() == 1
+    result.getAccounts()*.name.containsAll(["noReqGroups"])
+  }
+
   def "should resolve a single user's permissions"() {
     setup:
     def testUserId = "testUserId"
     UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
-    ApplicationProvider applicationProvider = Mock(ApplicationProvider) {
-      getApplications(*_) >> []
-    }
     @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver()
         .setUserRolesProvider(userRolesProvider)
         .setAccountProvider(accountProvider)
@@ -77,45 +104,45 @@ class DefaultPermissionsResolverSpec extends Specification {
     thrown IllegalArgumentException
 
     when:
-    def result = resolver.resolve(testUserId)
+    def result = resolver.resolve(testUserId).get()
 
     then:
     1 * userRolesProvider.loadRoles(testUserId) >> []
-    result?.getId() == testUserId
-    result?.getAccounts()?.size() == 1
-    result?.getAccounts()*.name.containsAll(["noReqGroups"])
-    result?.getApplications() == [] as Set
-    result?.getServiceAccounts()?.size() == 0
+    result.getId() == testUserId
+    result.getAccounts()?.size() == 1
+    result.getAccounts()*.name.containsAll(["noReqGroups"])
+    result.getApplications() == [] as Set
+    result.getServiceAccounts()?.size() == 0
 
     when:
-    result = resolver.resolve(testUserId)
+    result = resolver.resolve(testUserId).get()
 
     then:
     1 * userRolesProvider.loadRoles(testUserId) >> ["group2"]
-    result?.getAccounts()?.size() == 2
-    result?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1and2"])
-    result?.getServiceAccounts()?.size() == 1
-    result?.getServiceAccounts()*.name.containsAll(["group2@domain.com"])
+    result.getAccounts()?.size() == 2
+    result.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1and2"])
+    result.getServiceAccounts()?.size() == 1
+    result.getServiceAccounts()*.name.containsAll(["group2@domain.com"])
 
     when: "different capitalization"
-    result = resolver.resolve(testUserId)
+    result = resolver.resolve(testUserId).get()
 
     then:
     1 * userRolesProvider.loadRoles(testUserId) >> ["gRoUp2"]
-    result?.getAccounts()?.size() == 2
-    result?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1and2"])
-    result?.getServiceAccounts()?.size() == 1
-    result?.getServiceAccounts()*.name.containsAll(["group2@domain.com"])
+    result.getAccounts()?.size() == 2
+    result.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1and2"])
+    result.getServiceAccounts()?.size() == 1
+    result.getServiceAccounts()*.name.containsAll(["group2@domain.com"])
 
     when: "merge externally provided roles"
-    result = resolver.resolveAndMerge(testUserId, ["group1"])
+    result = resolver.resolveAndMerge(testUserId, ["group1"]).get()
 
     then:
     1 * userRolesProvider.loadRoles(testUserId) >> ["group2"]
-    result?.getAccounts()?.size() == 3
-    result?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1", "reqGroup1and2"])
-    result?.getServiceAccounts()?.size() == 2
-    result?.getServiceAccounts()*.name.containsAll(["group1", "group2@domain.com"])
+    result.getAccounts()?.size() == 3
+    result.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1", "reqGroup1and2"])
+    result.getServiceAccounts()?.size() == 2
+    result.getServiceAccounts()*.name.containsAll(["group1", "group2@domain.com"])
   }
 
   def "should resolve all user's permissions"() {
@@ -123,9 +150,6 @@ class DefaultPermissionsResolverSpec extends Specification {
     def user1 = "user1"
     def user2 = "user2"
     UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
-    ApplicationProvider applicationProvider = Mock(ApplicationProvider) {
-      getApplications(*_) >> []
-    }
     @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver()
         .setUserRolesProvider(userRolesProvider)
         .setAccountProvider(accountProvider)

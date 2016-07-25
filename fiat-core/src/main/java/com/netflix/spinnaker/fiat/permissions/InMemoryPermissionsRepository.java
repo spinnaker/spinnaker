@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.fiat.permissions;
 
-import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 
 import java.util.HashMap;
@@ -40,7 +39,7 @@ public class InMemoryPermissionsRepository implements PermissionsRepository {
 
   @Override
   public Map<String, UserPermission> getAllById() {
-    return ImmutableMap.copyOf(permissions);
+    return new HashMap<>(permissions);
   }
 
   @Override

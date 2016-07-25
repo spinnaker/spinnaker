@@ -20,19 +20,26 @@ import com.netflix.spinnaker.fiat.model.UserPermission;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 public interface PermissionsResolver {
 
   /**
+   * @return The UserPermission for an anonymous user. May return empty if anonymous users are
+   * disabled.
+   */
+  Optional<UserPermission> resolveAnonymous();
+
+  /**
    * Resolves a single user's permissions.
    */
-  UserPermission resolve(String userId);
+  Optional<UserPermission> resolve(String userId);
 
   /**
    * Resolves a single user's permissions, taking into account externally
    * provided list of roles.
    */
-  UserPermission resolveAndMerge(String userId, Collection<String> externalRoles);
+  Optional<UserPermission> resolveAndMerge(String userId, Collection<String> externalRoles);
 
   /**
    * Resolves multiple user's permissions. Returned map is keyed by userId.

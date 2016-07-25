@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.fiat.roles;
 
+import com.netflix.spinnaker.fiat.config.AnonymousUserConfig;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
 import lombok.Setter;
@@ -38,15 +39,22 @@ public class UserRolesSyncer {
   private PermissionsResolver permissionsResolver;
 
   // TODO(ttomsu): Acquire a lock in order to make this scale to multiple instances.
-  @Scheduled(initialDelay = 10000L, fixedRate = 600000L)
+  @Scheduled(initialDelay = 10000L, fixedDelay = 600000L)
   public void sync() {
     log.info("Starting user role sync.");
     val permissionMap = permissionsRepository.getAllById();
+
+    if (permissionMap.remove(AnonymousUserConfig.ANONYMOUS_USERNAME) != null) {
+      permissionsResolver.resolveAnonymous().ifPresent(permission -> {
+        permissionsRepository.put(permission);
+        log.info("Synced anonymous user role.");
+      });
+    }
 
     permissionsResolver.resolve(permissionMap.keySet())
                        .values()
                        .stream()
                        .forEach(permission -> permissionsRepository.put(permission));
-    log.info("Synced " + permissionMap.keySet().size() + " user roles.");
+    log.info("Synced " + permissionMap.keySet().size() + " non-anonymous user roles.");
   }
 }

@@ -16,15 +16,14 @@
 
 package com.netflix.spinnaker.fiat.providers;
 
-import com.google.common.collect.Sets;
 import com.netflix.spinnaker.fiat.model.ServiceAccount;
-import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
+import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -35,7 +34,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-public class DefaultServiceAccountProvider implements ServiceAccountProvider, InitializingBean {
+public class DefaultServiceAccountProvider implements ServiceAccountProvider {
 
   @Autowired
   private Front50Service front50Service;
@@ -43,21 +42,8 @@ public class DefaultServiceAccountProvider implements ServiceAccountProvider, In
   @Autowired
   private PermissionsRepository permissionsRepo;
 
-  @Override
-  public void afterPropertiesSet() {
-    front50Service
-        .getAllServiceAccounts()
-        .stream()
-        .forEach(serviceAccount -> {
-          // Can't resolve full account/application permissions here because it would cause
-          // a dependency cycle. Instead, account/applications are resolved on the first
-          // periodic sync.
-          permissionsRepo.put(new UserPermission()
-                                  .setId(serviceAccount.getName())
-                                  .setServiceAccounts(Sets.newHashSet(serviceAccount)));
-          log.info("Adding service account '{}' to permission repo", serviceAccount.getName());
-        });
-  }
+  @Autowired
+  private PermissionsResolver permissionsResolver;
 
   /**
    * Return the set of service accounts to which a user with the specified collection of groups
@@ -82,5 +68,15 @@ public class DefaultServiceAccountProvider implements ServiceAccountProvider, In
         .filter(serviceAccountsByName::containsKey)
         .map(serviceAccountsByName::get)
         .collect(Collectors.toSet());
+  }
+
+  @Scheduled(initialDelay = 0, fixedDelay = 600000L)
+  public void updateServiceAccounts() {
+    front50Service
+        .getAllServiceAccounts()
+        .forEach(serviceAccount ->
+          permissionsResolver.resolve(serviceAccount.getName())
+              .ifPresent(permissionsRepo::put)
+        );
   }
 }
