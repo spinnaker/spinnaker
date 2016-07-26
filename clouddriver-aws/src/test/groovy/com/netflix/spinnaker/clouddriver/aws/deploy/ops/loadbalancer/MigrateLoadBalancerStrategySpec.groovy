@@ -200,8 +200,9 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     1 * loadBalancing.describeLoadBalancers(_) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(sourceDescription)
     1 * targetLoadBalancing.createLoadBalancer(_) >> new CreateLoadBalancerResult().withDNSName('new-elb-dns')
     1 * targetLoadBalancing.configureHealthCheck(_)
-    amazonEC2.createSecurityGroup(_) >>> [new CreateSecurityGroupResult().withGroupId('sg-4'), new CreateSecurityGroupResult().withGroupId('sg-3')]
     1 * targetLookup.getSecurityGroupByName(prodCredentials.name, 'classic-link', 'vpc-2') >> Optional.of(new SecurityGroupUpdater(elbGroup, amazonEC2))
+    1 * targetLookup.createSecurityGroup({ it.name == 'app' && it.vpcId == 'vpc-2' && it.credentials == prodCredentials}) >> new SecurityGroupUpdater(appGroup, amazonEC2)
+    1 * targetLookup.createSecurityGroup({ it.name == 'app-elb' && it.vpcId == 'vpc-2' && it.credentials == prodCredentials}) >> new SecurityGroupUpdater(elbGroup, amazonEC2)
     1 * amazonEC2.describeSecurityGroups({r -> r.groupIds == ['sg-3']}) >> new DescribeSecurityGroupsResult().withSecurityGroups([appGroup])
     1 * amazonEC2.describeSecurityGroups({r -> r.filters[0].values == ['app', 'app-elb']}) >> new DescribeSecurityGroupsResult().withSecurityGroups([])
     1 * amazonEC2.describeVpcs(_) >> new DescribeVpcsResult().withVpcs(new Vpc())

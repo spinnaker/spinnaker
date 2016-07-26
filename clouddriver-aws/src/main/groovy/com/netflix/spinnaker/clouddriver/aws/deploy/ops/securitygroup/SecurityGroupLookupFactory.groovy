@@ -42,11 +42,15 @@ class SecurityGroupLookupFactory {
   }
 
   SecurityGroupLookup getInstance(String region) {
+    getInstance(region, true)
+  }
+
+  SecurityGroupLookup getInstance(String region, boolean skipEdda) {
     final allNetflixAmazonCredentials = (Set<NetflixAmazonCredentials>) accountCredentialsRepository.all.findAll {
       it instanceof NetflixAmazonCredentials
     }
     final accounts = ImmutableSet.copyOf(allNetflixAmazonCredentials)
-    new SecurityGroupLookup(amazonClientProvider, region, accounts)
+    new SecurityGroupLookup(amazonClientProvider, region, accounts, skipEdda)
   }
 
   /**
@@ -57,6 +61,8 @@ class SecurityGroupLookupFactory {
     private final AmazonClientProvider amazonClientProvider
     private final String region
     private final ImmutableSet<NetflixAmazonCredentials> accounts
+    private final boolean skipEdda
+    List<SecurityGroup> eddaCachedSecurityGroups
 
     private final Map<String, SecurityGroup> securityGroupByName = [:]
     private final Map<String, SecurityGroup> securityGroupById = [:]
@@ -66,6 +72,15 @@ class SecurityGroupLookupFactory {
       this.amazonClientProvider = amazonClientProvider
       this.region = region
       this.accounts = accounts
+      this.skipEdda = true
+    }
+
+    SecurityGroupLookup(AmazonClientProvider amazonClientProvider, String region,
+                        ImmutableSet<NetflixAmazonCredentials> accounts, boolean skipEdda) {
+      this.amazonClientProvider = amazonClientProvider
+      this.region = region
+      this.accounts = accounts
+      this.skipEdda = skipEdda
     }
 
     NetflixAmazonCredentials getCredentialsForName(String accountName) {
@@ -98,6 +113,11 @@ class SecurityGroupLookupFactory {
       final result = amazonEC2.createSecurityGroup(request)
       final newSecurityGroup = new SecurityGroup(ownerId: credentials.accountId, groupId: result.groupId,
         groupName: description.name, description: description.description, vpcId: description.vpcId)
+      securityGroupById.put(result.groupId, newSecurityGroup)
+      securityGroupByName.put(description.name, newSecurityGroup)
+      if (!skipEdda) {
+        getEddaSecurityGroups(amazonEC2).add(newSecurityGroup)
+      }
       new SecurityGroupUpdater(newSecurityGroup, amazonEC2)
     }
 
@@ -105,17 +125,22 @@ class SecurityGroupLookupFactory {
       final credentials = getCredentialsForName(accountName)
       if (!credentials) { return Optional.empty() }
 
-      def amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region, true)
+      def amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region, skipEdda)
       def cachedSecurityGroupKey = name.toLowerCase() + "." + vpcId
       def cachedSecurityGroup = securityGroupByName.get(cachedSecurityGroupKey)
       if (cachedSecurityGroup) {
         return Optional.of(new SecurityGroupUpdater(cachedSecurityGroup, amazonEC2))
       }
-      def describeSecurityGroupsRequest = new DescribeSecurityGroupsRequest().withFilters(
-        new Filter("group-name", [name])
-      )
+      def securityGroups
+      if (skipEdda) {
+        def describeSecurityGroupsRequest = new DescribeSecurityGroupsRequest().withFilters(
+          new Filter("group-name", [name])
+        )
+        securityGroups = amazonEC2.describeSecurityGroups(describeSecurityGroupsRequest).securityGroups
+      } else {
+        securityGroups = getEddaSecurityGroups(amazonEC2)
+      }
 
-      def securityGroups = amazonEC2.describeSecurityGroups(describeSecurityGroupsRequest).securityGroups
       def securityGroup = securityGroups.find {
         it.groupName == name && it.vpcId == vpcId
       }
@@ -127,22 +152,32 @@ class SecurityGroupLookupFactory {
       Optional.empty()
     }
 
+    private List<SecurityGroup> getEddaSecurityGroups(AmazonEC2 amazonEC2) {
+      if (!eddaCachedSecurityGroups) {
+        eddaCachedSecurityGroups = amazonEC2.describeSecurityGroups().securityGroups
+      }
+      return eddaCachedSecurityGroups
+    }
+
     Optional<SecurityGroupUpdater> getSecurityGroupById(String accountName, String groupId, String vpcId) {
       final credentials = getCredentialsForName(accountName)
       if (!credentials) { return Optional.empty() }
 
-      def amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region, true)
+      def amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region, skipEdda)
       def cachedSecurityGroupKey = groupId.toLowerCase() + "." + vpcId
       def cachedSecurityGroup = securityGroupById.get(cachedSecurityGroupKey)
       if (cachedSecurityGroup) {
         return Optional.of(new SecurityGroupUpdater(cachedSecurityGroup, amazonEC2))
       }
-      def describeSecurityGroupsRequest = new DescribeSecurityGroupsRequest().withGroupIds(groupId)
-
       def securityGroups = []
-      try {
-        securityGroups = amazonEC2.describeSecurityGroups(describeSecurityGroupsRequest).securityGroups
-      } catch (Exception ignored) {}
+      if (skipEdda) {
+        def describeSecurityGroupsRequest = new DescribeSecurityGroupsRequest().withGroupIds(groupId)
+        try {
+          securityGroups = amazonEC2.describeSecurityGroups(describeSecurityGroupsRequest).securityGroups
+        } catch (Exception ignored) {}
+      } else {
+        securityGroups = getEddaSecurityGroups(amazonEC2)
+      }
 
       def securityGroup = securityGroups.find {
         it.groupId == groupId && it.vpcId == vpcId

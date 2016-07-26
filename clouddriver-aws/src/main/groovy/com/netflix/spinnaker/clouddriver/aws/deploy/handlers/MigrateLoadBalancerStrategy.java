@@ -21,6 +21,7 @@ import com.amazonaws.services.ec2.model.*;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.model.*;
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults;
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerMigrator.LoadBalancerLocation;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.MigrateLoadBalancerResult;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.MigrateSecurityGroupReference;
@@ -231,11 +232,14 @@ public abstract class MigrateLoadBalancerStrategy {
     addedGroup.getCreated().add(elbGroup);
     result.getSecurityGroups().add(addedGroup);
     if (!dryRun) {
+      UpsertSecurityGroupDescription upsertDescription = new UpsertSecurityGroupDescription();
+      upsertDescription.setDescription("Application load balancer security group for " + appName);
+      upsertDescription.setName(appName + "-elb");
+      upsertDescription.setVpcId(target.getVpcId());
+      upsertDescription.setRegion(target.getRegion());
+      upsertDescription.setCredentials(target.getCredentials());
+      elbGroupId = targetLookup.createSecurityGroup(upsertDescription).getSecurityGroup().getGroupId();
       AmazonEC2 targetAmazonEC2 = getAmazonClientProvider().getAmazonEC2(target.getCredentials(), target.getRegion(), true);
-      elbGroupId = targetAmazonEC2.createSecurityGroup(
-        new CreateSecurityGroupRequest(appName + "-elb", "Application load balancer security group for " + appName)
-          .withVpcId(target.getVpcId())
-      ).getGroupId();
       elbGroup.setTargetId(elbGroupId);
       if (source.getVpcId() == null) {
         addClassicLinkIngress(target, elbGroupId);
@@ -272,12 +276,15 @@ public abstract class MigrateLoadBalancerStrategy {
       } else {
         elbGroup.getCreated().add(appGroupReference);
         if (!dryRun) {
-          String newGroupId = targetAmazonEC2.createSecurityGroup(
-            new CreateSecurityGroupRequest(appName, "Application security group for " + appName)
-              .withVpcId(target.getVpcId())
-          ).getGroupId();
+          UpsertSecurityGroupDescription upsertDescription = new UpsertSecurityGroupDescription();
+          upsertDescription.setDescription("Application security group for " + appName);
+          upsertDescription.setName(appName);
+          upsertDescription.setVpcId(target.getVpcId());
+          upsertDescription.setRegion(target.getRegion());
+          upsertDescription.setCredentials(target.getCredentials());
+          String newGroupId = targetLookup.createSecurityGroup(upsertDescription).getSecurityGroup().getGroupId();
           // After the create request completes, there is a brief period where the security group might not be
-          // available
+          // available and subsequent operations on it will fail, so make sure it's there
           OperationPoller.retryWithBackoff(
             o -> appGroups.addAll(targetAmazonEC2.describeSecurityGroups(
               new DescribeSecurityGroupsRequest().withGroupIds(newGroupId)).getSecurityGroups()),

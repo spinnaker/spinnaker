@@ -48,10 +48,10 @@ class MigrateSecurityGroupAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
-    SecurityGroupLookup sourceLookup = securityGroupLookupFactory.getInstance(description.source.region)
+    SecurityGroupLookup sourceLookup = securityGroupLookupFactory.getInstance(description.source.region, false)
     SecurityGroupLookup targetLookup = description.source.region == description.target.region ?
       sourceLookup :
-      securityGroupLookupFactory.getInstance(description.target.region)
+      securityGroupLookupFactory.getInstance(description.target.region, false)
 
     task.addResultObjects( [new SecurityGroupMigrator(sourceLookup, targetLookup, migrationStrategy.get(), description.source, description.target)
       .migrate(description.dryRun)])

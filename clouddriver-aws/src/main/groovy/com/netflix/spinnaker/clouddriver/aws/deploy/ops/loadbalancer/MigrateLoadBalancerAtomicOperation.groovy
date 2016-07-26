@@ -63,10 +63,10 @@ class MigrateLoadBalancerAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
-    SecurityGroupLookup sourceLookup = securityGroupLookupFactory.getInstance(description.source.region)
+    SecurityGroupLookup sourceLookup = securityGroupLookupFactory.getInstance(description.source.region, false)
     SecurityGroupLookup targetLookup = description.source.region == description.target.region ?
       sourceLookup :
-      securityGroupLookupFactory.getInstance(description.target.region)
+      securityGroupLookupFactory.getInstance(description.target.region, false)
 
     def migrator = new LoadBalancerMigrator(sourceLookup, targetLookup, amazonClientProvider,
       regionScopedProviderFactory, migrateSecurityGroupStrategy.get(), deployDefaults, migrationStrategy.get(),
