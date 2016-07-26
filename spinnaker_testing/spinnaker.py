@@ -21,8 +21,7 @@ by specializations for the individual subsystems.
 (e.g. gate.py)
 
 To talk to spinnaker, we make HTTP calls (via SpinnakerAgent abstraction).
-To talk to GCE we use gcloud(via GCloudAgent abstraction) for convenience,
-especially auth.
+To talk to GCE we use the GcpAgent.
 
 In order to talk to spinnaker, it must have network access. If you are
 running outside the project (e.g. on a laptop) then you'll probably need

@@ -88,9 +88,9 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
       'user': 'integration-tests'
     }]
 
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Load Balancer Created', retryable_for_secs=30)
-     .list_resources('forwarding-rules')
+     .list_resource('forwardingRules')
      .contains_path_value('name', self.__lb_name))
 
     payload = self.agent.make_json_payload_from_kwargs(
@@ -131,9 +131,9 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
       'user': 'integration-tests'
     }]
 
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Instance Created', retryable_for_secs=150)
-     .list_resources('instance-groups')
+     .list_resource('instanceGroups')
      .contains_path_value('name', self.__server_group_name))
 
     payload = self.agent.make_json_payload_from_kwargs(
@@ -168,9 +168,9 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
       'user': 'integration-tests'
     }]
 
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Server Group Resized', retryable_for_secs=90)
-     .inspect_resource('instance-groups',
+     .inspect_resource('instanceGroups',
                        self.__server_group_name,
                        ['--zone', self.TEST_ZONE])
      .contains_path_eq('size', 2))
@@ -217,9 +217,9 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
       'user': 'integration-tests'
     }]
 
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Server Group Cloned', retryable_for_secs=90)
-     .list_resources('managed-instance-groups')
+     .list_resource('instanceGroupManagers')
      .contains_path_value('baseInstanceName', self.__cloned_server_group_name))
 
     payload = self.agent.make_json_payload_from_kwargs(
@@ -245,9 +245,9 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
       'user': 'integration-tests'
     }]
 
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Server Group Disabled', retryable_for_secs=90)
-     .list_resources('managed-instance-groups')
+     .list_resource('instanceGroupManagers')
      .contains_path_value('baseInstanceName', self.__server_group_name)
      .excludes_pred_list([
          jp.PathContainsPredicate('baseInstanceName', self.__server_group_name),
@@ -276,9 +276,9 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
       'user': 'integration-tests'
     }]
 
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Server Group Enabled', retryable_for_secs=90)
-     .list_resources('managed-instance-groups')
+     .list_resource('instanceGroupManagers')
      .contains_pred_list([
          jp.PathContainsPredicate('baseInstanceName', self.__server_group_name),
          jp.PathContainsPredicate('targetPools', 'https')]))
@@ -307,9 +307,9 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
       'user': 'integration-tests'
     }]
 
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Server Group Destroyed', retryable_for_secs=90)
-     .list_resources('managed-instance-groups')
+     .list_resource('instanceGroupManagers')
      .excludes_path_value('baseInstanceName', serverGroupName))
 
     payload = self.agent.make_json_payload_from_kwargs(
@@ -333,9 +333,9 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
       "user": "integration-tests"
     }]
 
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Load Balancer Created', retryable_for_secs=30)
-     .list_resources('forwarding-rules')
+     .list_resource('forwardingRules')
      .excludes_path_value('name', self.__lb_name))
 
     payload = self.agent.make_json_payload_from_kwargs(
@@ -359,7 +359,7 @@ class GoogleServerGroupTest(st.AgentTestCase):
 
     verify_results = gcp.verify_quota(
         title,
-        scenario.gce_observer,
+        scenario.gcp_observer,
         project_quota=GoogleServerGroupTestScenario.MINIMUM_PROJECT_QUOTA,
         regions=[(managed_region,
                   GoogleServerGroupTestScenario.MINIMUM_REGION_QUOTA)])
