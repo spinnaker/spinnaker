@@ -20,6 +20,8 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackPro
 import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerPool
 import com.netflix.spinnaker.clouddriver.openstack.domain.PoolHealthMonitor
 import com.netflix.spinnaker.clouddriver.openstack.domain.VirtualIP
+import org.openstack4j.api.compute.ComputeFloatingIPService
+import org.openstack4j.api.compute.ComputeService
 import org.openstack4j.api.exceptions.ServerResponseException
 import org.openstack4j.api.networking.NetFloatingIPService
 import org.openstack4j.api.networking.NetworkingService
@@ -31,6 +33,7 @@ import org.openstack4j.api.networking.ext.LoadBalancerService
 import org.openstack4j.api.networking.ext.MemberService
 import org.openstack4j.api.networking.ext.VipService
 import org.openstack4j.model.common.ActionResponse
+import org.openstack4j.model.compute.FloatingIP
 import org.openstack4j.model.network.NetFloatingIP
 import org.openstack4j.model.network.Port
 import org.openstack4j.model.network.Subnet
@@ -1506,6 +1509,85 @@ class OpenstackNetworkingV2ClientProviderSpec extends OpenstackClientProviderSpe
     1 * mockClient.networking() >> networkingService
     1 * networkingService.port() >> portService
     1 * portService.list() >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "get associated floating ip success"() {
+    setup:
+    String portId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    NetFloatingIPService floatingIPService = Mock()
+    NetFloatingIP floatingIP = Stub() {
+      getPortId() >> portId
+    }
+
+    when:
+    NetFloatingIP result = provider.getFloatingIpForPort(region, portId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.floatingip() >> floatingIPService
+    1 * floatingIPService.list() >> [floatingIP]
+    result == floatingIP
+    noExceptionThrown()
+  }
+
+  def "get associated floating ip - exception"() {
+    setup:
+    String portId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock()
+    NetFloatingIPService floatingIPService = Mock()
+    NetFloatingIP floatingIP = Stub() {
+      getPortId() >> portId
+    }
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.getFloatingIpForPort(region, portId)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.floatingip() >> floatingIPService
+    1 * floatingIPService.list() >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException.cause == throwable
+  }
+
+  def "list floating ip success"() {
+    setup:
+    List<NetFloatingIP> ips = [Mock(NetFloatingIP)]
+    NetworkingService networkingService = Mock()
+    NetFloatingIPService floatingIPService = Mock()
+
+    when:
+    List<NetFloatingIP> result = provider.listNetFloatingIps(region)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.floatingip() >> floatingIPService
+    1 * floatingIPService.list() >> ips
+    result == ips
+    noExceptionThrown()
+  }
+
+  def "list floating ip - exception"() {
+    setup:
+    NetworkingService networkingService = Mock()
+    NetFloatingIPService floatingIPService = Mock()
+    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
+
+    when:
+    provider.listNetFloatingIps(region)
+
+    then:
+    1 * mockClient.networking() >> networkingService
+    1 * networkingService.floatingip() >> floatingIPService
+    1 * floatingIPService.list() >> { throw throwable }
 
     and:
     OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)

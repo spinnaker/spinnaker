@@ -81,15 +81,6 @@ interface OpenstackComputeProvider {
   FloatingIP getOrCreateFloatingIp(final String region, final String networkName)
 
   /**
-   * Looks up the port associated by vip and uses the deviceId to get the attached floatingIp.
-   * @param region
-   * @param portDeviceId
-   * @param vipId
-   * @return
-   */
-  FloatingIP getAssociatedFloatingIp(final String region, final String portDeviceId, final String vipId)
-
-  /**
    * List all floating ips in the region.
    * @param region
    * @return

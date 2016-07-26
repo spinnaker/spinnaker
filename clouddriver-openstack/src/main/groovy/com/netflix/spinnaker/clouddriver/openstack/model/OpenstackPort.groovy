@@ -21,7 +21,7 @@ import org.openstack4j.model.network.Port
 
 @Canonical
 class OpenstackPort {
-  String deviceId
+  String id
   String name
   String networkId
   List<String> securityGroups
@@ -34,7 +34,7 @@ class OpenstackPort {
    * @return
    */
   static OpenstackPort from(Port port, String account, String region) {
-    new OpenstackPort(deviceId: port.deviceId, name: port.name, networkId: port.networkId,
+    new OpenstackPort(id: port.id, name: port.name, networkId: port.networkId,
       securityGroups: port.securityGroups, account: account, region: region)
   }
 }

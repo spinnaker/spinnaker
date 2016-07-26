@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.clouddriver.openstack.model
 
 import groovy.transform.Canonical
-import org.openstack4j.model.compute.FloatingIP
+import org.openstack4j.model.network.NetFloatingIP
 
 @Canonical
 class OpenstackFloatingIP {
   String id
-  String pool
-  String instanceId
+  String portId
+  String networkId
   String fixedIpAddress
   String floatingIpAddress
   String account
@@ -34,8 +34,8 @@ class OpenstackFloatingIP {
    * @param vip
    * @return
    */
-  static OpenstackFloatingIP from(FloatingIP ip, String account, String region) {
-    new OpenstackFloatingIP(id: ip.id, pool: ip.pool, instanceId: ip.instanceId, fixedIpAddress: ip.fixedIpAddress,
+  static OpenstackFloatingIP from(NetFloatingIP ip, String account, String region) {
+    new OpenstackFloatingIP(id: ip.id, portId: ip.portId, networkId: ip.floatingNetworkId, fixedIpAddress: ip.fixedIpAddress,
       floatingIpAddress: ip.floatingIpAddress, account: account, region: region)
   }
 

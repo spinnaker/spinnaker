@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import org.openstack4j.model.common.ActionResponse
 import org.openstack4j.model.compute.FloatingIP
+import org.openstack4j.model.network.NetFloatingIP
 import spock.lang.Specification
 
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.FLOATING_IPS
@@ -56,7 +57,7 @@ class OpenstackFloatingIPCachingAgentSpec extends Specification {
     ProviderCache providerCache = Mock(ProviderCache)
     OpenstackClientProvider provider = Mock(OpenstackClientProvider)
     String ipId = UUID.randomUUID().toString()
-    FloatingIP floatingIP = Mock(FloatingIP) {
+    NetFloatingIP floatingIP = Mock(NetFloatingIP) {
       it.id >> { ipId }
     }
     Map<String, Object> ipAttributes = Mock(Map)
@@ -67,7 +68,7 @@ class OpenstackFloatingIPCachingAgentSpec extends Specification {
 
     then:
     1 * credentials.provider >> provider
-    1 * provider.listFloatingIps(region) >> [floatingIP]
+    1 * provider.listNetFloatingIps(region) >> [floatingIP]
     1 * objectMapper.convertValue(_, OpenstackInfrastructureProvider.ATTRIBUTES) >> ipAttributes
 
     and:
@@ -87,7 +88,7 @@ class OpenstackFloatingIPCachingAgentSpec extends Specification {
 
     then:
     1 * credentials.provider >> provider
-    1 * provider.listFloatingIps(region) >> { throw throwable }
+    1 * provider.listNetFloatingIps(region) >> { throw throwable }
 
     and:
     OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)

@@ -331,16 +331,24 @@ class OpenstackNetworkingV2Provider implements OpenstackNetworkingProvider, Open
     }
   }
 
-  /**
-   * Internal helper to look up port associated to vip.
-   * @param region
-   * @param vipId
-   * @return
-   */
   @Override
   Port getPortForVip(final String region, final String vipId) {
     handleRequest {
-      getRegionClient(region).networking().port().list()?.find { it.name == "vip-${vipId}" }
+      getRegionClient(region).networking().port().list()?.find { it.name == "vip-${vipId}".toString() }
+    }
+  }
+
+  @Override
+  NetFloatingIP getFloatingIpForPort(final String region, final String portId) {
+    handleRequest {
+      listNetFloatingIps(region)?.find { it.portId == portId }
+    }
+  }
+
+  @Override
+  List<NetFloatingIP> listNetFloatingIps(final String region) {
+    handleRequest {
+      getRegionClient(region).networking().floatingip().list()
     }
   }
 

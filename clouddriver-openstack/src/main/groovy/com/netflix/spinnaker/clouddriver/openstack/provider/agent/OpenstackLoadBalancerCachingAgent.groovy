@@ -89,7 +89,7 @@ class OpenstackLoadBalancerCachingAgent extends AbstractOpenstackCachingAgent {
         if (port) {
           Collection<String> ipFilters = providerCache.filterIdentifiers(FLOATING_IPS.ns, Keys.getFloatingIPKey('*', accountName, region))
           Collection<CacheData> ipsData = providerCache.getAll(FLOATING_IPS.ns, ipFilters, RelationshipCacheFilter.none())
-          CacheData ipCacheData = ipsData.find { i -> i.attributes?.instanceId == port.deviceId }
+          CacheData ipCacheData = ipsData.find { i -> i.attributes?.portId == port.id }
           Map<String, Object> ipAttributes = ipCacheData?.attributes
           ip = objectMapper.convertValue(ipAttributes, OpenstackFloatingIP)
         }

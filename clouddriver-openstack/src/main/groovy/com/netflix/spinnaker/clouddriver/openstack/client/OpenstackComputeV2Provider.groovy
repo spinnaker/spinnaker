@@ -26,7 +26,6 @@ import org.openstack4j.model.compute.IPProtocol
 import org.openstack4j.model.compute.RebootType
 import org.openstack4j.model.compute.SecGroupExtension
 import org.openstack4j.model.compute.Server
-import org.openstack4j.model.network.Port
 
 public class OpenstackComputeV2Provider implements OpenstackComputeProvider, OpenstackRequestHandler, OpenstackIdentityAware {
 
@@ -79,7 +78,7 @@ public class OpenstackComputeV2Provider implements OpenstackComputeProvider, Ope
   @Override
   FloatingIP getOrCreateFloatingIp(final String region, final String networkName) {
     handleRequest {
-      FloatingIP ip = getRegionClient(region).compute().floatingIps().list().find { !it.fixedIpAddress }
+      FloatingIP ip = listFloatingIps(region).find { !it.fixedIpAddress }
       if (!ip) {
         ip = client.useRegion(region).compute().floatingIps().allocateIP(networkName)
         if (!ip) {
@@ -87,13 +86,6 @@ public class OpenstackComputeV2Provider implements OpenstackComputeProvider, Ope
         }
       }
       ip
-    }
-  }
-
-  @Override
-  FloatingIP getAssociatedFloatingIp(final String region, final String portDeviceId, final String vipId) {
-    handleRequest {
-      getRegionClient(region).compute().floatingIps().list()?.find { it.instanceId == portDeviceId }
     }
   }
 

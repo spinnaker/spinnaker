@@ -176,7 +176,7 @@ class UpsertOpenstackLoadBalancerAtomicOperation implements AtomicOperation<Map>
     }
 
     Port port = openstackClientProvider.getPortForVip(region, existingVip.id)
-    FloatingIP floatingIP = openstackClientProvider.getAssociatedFloatingIp(region, port.deviceId, existingVip.id)
+    NetFloatingIP existingFloatingIp = openstackClientProvider.getFloatingIpForPort(region, port.id)
     if (description.networkId) {
       task.updateStatus UPSERT_LOADBALANCER_PHASE, "Obtaining network name from network id $description.networkId..."
       Network network = openstackClientProvider.getNetwork(region, description.networkId)
@@ -186,23 +186,23 @@ class UpsertOpenstackLoadBalancerAtomicOperation implements AtomicOperation<Map>
       FloatingIP ip = openstackClientProvider.getOrCreateFloatingIp(region, network.name)
       task.updateStatus UPSERT_LOADBALANCER_PHASE, "Successfully obtained floating IP from network $network.name..."
 
-      if (!floatingIP) {
+      if (!existingFloatingIp) {
         task.updateStatus UPSERT_LOADBALANCER_PHASE, "Associating floating IP ${ip.id} with ${existingVip.id}..."
         openstackClientProvider.associateFloatingIpToVip(region, ip.id, existingVip.id)
         task.updateStatus UPSERT_LOADBALANCER_PHASE, "Associated floating IP ${ip.id} with ${existingVip.id}."
       } else {
-        if (ip.id != floatingIP.id) {
-          task.updateStatus UPSERT_LOADBALANCER_PHASE, "Disassociating ip ${floatingIP.id} and associating ip ${ip.id} with vip ${existingVip.name}..."
-          openstackClientProvider.disassociateFloatingIp(region, floatingIP.id)
+        if (ip.id != existingFloatingIp.id) {
+          task.updateStatus UPSERT_LOADBALANCER_PHASE, "Disassociating ip ${existingFloatingIp.id} and associating ip ${ip.id} with vip ${existingVip.name}..."
+          openstackClientProvider.disassociateFloatingIp(region, existingFloatingIp.id)
           openstackClientProvider.associateFloatingIpToVip(region, ip.id, existingVip.id)
-          task.updateStatus UPSERT_LOADBALANCER_PHASE, "Disassociated ip ${floatingIP.id} and associated ip ${ip.id} with vip ${existingVip.name}."
+          task.updateStatus UPSERT_LOADBALANCER_PHASE, "Disassociated ip ${existingFloatingIp.id} and associated ip ${ip.id} with vip ${existingVip.name}."
         }
       }
     } else {
-      if (floatingIP) {
-        task.updateStatus UPSERT_LOADBALANCER_PHASE, "Disassociating ip ${floatingIP.id} with vip ${existingVip.name}..."
-        openstackClientProvider.disassociateFloatingIp(region, floatingIP.id)
-        task.updateStatus UPSERT_LOADBALANCER_PHASE, "Disassociated ip ${floatingIP.id} with vip ${existingVip.name}."
+      if (existingFloatingIp) {
+        task.updateStatus UPSERT_LOADBALANCER_PHASE, "Disassociating ip ${existingFloatingIp.id} with vip ${existingVip.name}..."
+        openstackClientProvider.disassociateFloatingIp(region, existingFloatingIp.id)
+        task.updateStatus UPSERT_LOADBALANCER_PHASE, "Disassociated ip ${existingFloatingIp.id} with vip ${existingVip.name}."
       }
     }
 

@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackFloatingIP
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import groovy.util.logging.Slf4j
 import org.openstack4j.model.compute.FloatingIP
+import org.openstack4j.model.network.NetFloatingIP
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.FLOATING_IPS
@@ -49,16 +50,16 @@ class OpenstackFloatingIPCachingAgent extends AbstractOpenstackCachingAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    List<FloatingIP> ips = clientProvider.listFloatingIps(region)
+    List<NetFloatingIP> ips = clientProvider.listNetFloatingIps(region)
     buildCacheResult(ips)
   }
 
-  private CacheResult buildCacheResult(List<FloatingIP> ips) {
+  private CacheResult buildCacheResult(List<NetFloatingIP> ips) {
     log.info("Describing items in ${agentType}")
 
     def cacheResultBuilder = new CacheResultBuilder()
 
-    ips.each { FloatingIP ip ->
+    ips.each { NetFloatingIP ip ->
       String ipKey = Keys.getFloatingIPKey(ip.id, accountName, region)
 
       Map<String, Object> ipAttributes = objectMapper.convertValue(OpenstackFloatingIP.from(ip, accountName, region), ATTRIBUTES)

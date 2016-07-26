@@ -211,7 +211,7 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     where:
     testCase | parameters                                                                                           | expected
     'empty'  | [:]                                                                                                  | [:]
-    'normal' | [image: 'image', flavor: 'flavor', network_id: 'network', pool_id: 'pool', security_groups: 'a,b,c'] | [image: 'image', instanceType: 'flavor', networkId: 'network', loadBalancerId: 'pool', securityGroups: ['a', 'b', 'c']]
+    'normal' | [image: 'image', flavor: 'flavor', network_id: 'network', pool_id: 'portId', security_groups: 'a,b,c'] | [image: 'image', instanceType: 'flavor', networkId: 'network', loadBalancerId: 'portId', securityGroups: ['a', 'b', 'c']]
   }
 
   void "test build image config"() {

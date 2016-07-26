@@ -78,7 +78,7 @@ interface OpenstackNetworkingProvider {
   LbPool updateLoadBalancerPool(final String region, final LoadBalancerPool loadBalancerPool)
 
   /**
-   * Creates VIP for given region and pool.
+   * Creates VIP for given region and vip.
    * @param region
    * @param virtualIP
    * @return
@@ -207,7 +207,7 @@ interface OpenstackNetworkingProvider {
   String getMemberIdForInstance(String region, String ip, LbPool lbPool)
 
   /**
-   * Remove load balancer pool.
+   * Remove load balancer vip.
    * @param region
    * @param poolId
    */
@@ -249,4 +249,19 @@ interface OpenstackNetworkingProvider {
    * @return
    */
   Port getPortForVip(final String region, final String vipId)
+
+  /**
+   * Helper to get the floating ip bound to a port.
+   * @param region
+   * @param portId
+   * @return
+   */
+  NetFloatingIP getFloatingIpForPort(final String region, final String portId)
+
+  /**
+   * List network floating ips.
+   * @param region
+   * @return
+   */
+  List<NetFloatingIP> listNetFloatingIps(final String region)
 }

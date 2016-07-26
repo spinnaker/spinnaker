@@ -425,9 +425,9 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
       getName() >> { 'newVip' }
       getId() >> { 'id' }
     }
-    String deviceId = UUID.randomUUID().toString()
+    String portId = UUID.randomUUID().toString()
     Port port = Mock(Port) {
-      getDeviceId() >> { deviceId }
+      getId() >> { portId }
     }
 
     and:
@@ -446,7 +446,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     2 * lbPool.healthMonitors >> [existingHealthMonitorId]
     1 * provider.disassociateAndRemoveHealthMonitor(description.region, lbPool.id, existingHealthMonitorId)
     1 * provider.getPortForVip(description.region, vip.id) >> port
-    1 * provider.getAssociatedFloatingIp(description.region, deviceId, vip.id)
+    1 * provider.getFloatingIpForPort(description.region, port.id)
     result == lbPool
     noExceptionThrown()
   }
@@ -473,9 +473,9 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     FloatingIP floatingIP = Mock(FloatingIP) {
       getId() >> ipId
     }
-    String deviceId = UUID.randomUUID().toString()
+    String portId = UUID.randomUUID().toString()
     Port port = Mock(Port) {
-      getDeviceId() >> { deviceId }
+      getId() >> { portId }
     }
 
     when:
@@ -490,7 +490,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     1 * provider.getNetwork(description.region, description.networkId) >> network
     1 * provider.getOrCreateFloatingIp(description.region, network.name) >> floatingIP
     1 * provider.getPortForVip(description.region, vip.id) >> port
-    1 * provider.getAssociatedFloatingIp(description.region, deviceId, vip.id) >> null
+    1 * provider.getFloatingIpForPort(description.region, port.id) >> null
     1 * provider.associateFloatingIpToVip(description.region, floatingIP.id, vip.id)
     result == lbPool
     noExceptionThrown()
@@ -505,7 +505,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     }
     VirtualIP virtualIP = Mock()
     String oldIpId = UUID.randomUUID().toString()
-    FloatingIP oldFloatingIP = Mock(FloatingIP) {
+    NetFloatingIP oldFloatingIP = Mock(NetFloatingIP) {
       getId() >> oldIpId
     }
 
@@ -521,9 +521,9 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     FloatingIP floatingIP = Mock(FloatingIP) {
       getId() >> ipId
     }
-    String deviceId = UUID.randomUUID().toString()
+    String portId = UUID.randomUUID().toString()
     Port port = Mock(Port) {
-      getDeviceId() >> { deviceId }
+      getId() >> { portId }
     }
 
     when:
@@ -538,8 +538,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     1 * provider.getNetwork(description.region, description.networkId) >> network
     1 * provider.getOrCreateFloatingIp(description.region, network.name) >> floatingIP
     1 * provider.getPortForVip(description.region, vip.id) >> port
-    1 * provider.getAssociatedFloatingIp(description.region, deviceId, vip.id) >> oldFloatingIP
-    5 * floatingIP.id >> UUID.randomUUID().toString()
+    1 * provider.getFloatingIpForPort(description.region, port.id) >> oldFloatingIP
     1 * provider.disassociateFloatingIp(description.region, oldFloatingIP.id)
     1 * provider.associateFloatingIpToVip(description.region, floatingIP.id, vip.id)
     result == lbPool
@@ -553,11 +552,11 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     Vip vip = Mock(Vip) {
       getName() >> { 'newVip' }
     }
-    FloatingIP floatingIP = Mock()
+    NetFloatingIP floatingIP = Mock()
     VirtualIP virtualIP = Mock()
-    String deviceId = UUID.randomUUID().toString()
+    String portId = UUID.randomUUID().toString()
     Port port = Mock(Port) {
-      getDeviceId() >> { deviceId }
+      getId() >> { portId }
     }
 
     and:
@@ -574,7 +573,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     1 * provider.updateVip(description.region, virtualIP)
     1 * lbPool.healthMonitors >> []
     1 * provider.getPortForVip(description.region, vip.id) >> port
-    1 * provider.getAssociatedFloatingIp(description.region, deviceId, vip.id) >> floatingIP
+    1 * provider.getFloatingIpForPort(description.region, port.id) >> floatingIP
     1 * provider.disassociateFloatingIp(description.region, floatingIP.id)
     result == lbPool
     noExceptionThrown()
@@ -588,9 +587,9 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     VirtualIP virtualIP = Mock()
     LoadBalancerPool loadBalancerPool = Mock()
     description.region = 'west'
-    String deviceId = UUID.randomUUID().toString()
+    String portId = UUID.randomUUID().toString()
     Port port = Mock(Port) {
-      getDeviceId() >> { deviceId }
+      getId() >> { portId }
     }
 
     when:
@@ -604,7 +603,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     1 * virtualIP.doesNameMatch(vip.name) >> true
     0 * provider.updateVip(description.region, virtualIP)
     1 * provider.getPortForVip(description.region, vip.id) >> port
-    1 * provider.getAssociatedFloatingIp(description.region, deviceId, vip.id) >> null
+    1 * provider.getFloatingIpForPort(description.region, port.id) >> null
     result == lbPool
     noExceptionThrown()
   }

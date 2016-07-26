@@ -501,46 +501,4 @@ class OpenstackComputeV2ProviderSpec extends OpenstackClientProviderSpec {
     openstackProviderException.cause == throwable
   }
 
-  def "get associated floating ip success"() {
-    setup:
-    String vipId = UUID.randomUUID().toString()
-    String deviceId = UUID.randomUUID().toString()
-    ComputeService computeService = Mock()
-    ComputeFloatingIPService floatingIPService = Mock()
-    FloatingIP floatingIP = Stub() {
-      getInstanceId() >> deviceId
-    }
-
-    when:
-    FloatingIP result = provider.getAssociatedFloatingIp(region, deviceId, vipId)
-
-    then:
-    1 * mockClient.compute() >> computeService
-    1 * computeService.floatingIps() >> floatingIPService
-    1 * floatingIPService.list() >> [floatingIP]
-    result == floatingIP
-    noExceptionThrown()
-  }
-
-  def "get associated floating ip - exception"() {
-    setup:
-    String vipId = UUID.randomUUID().toString()
-    String deviceId = UUID.randomUUID().toString()
-    ComputeService computeService = Mock()
-    ComputeFloatingIPService floatingIPService = Mock()
-    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
-
-    when:
-    provider.getAssociatedFloatingIp(region, deviceId, vipId)
-
-    then:
-    1 * mockClient.compute() >> computeService
-    1 * computeService.floatingIps() >> floatingIPService
-    1 * floatingIPService.list() >> { throw throwable }
-
-    and:
-    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
-    openstackProviderException.cause == throwable
-  }
-
 }
