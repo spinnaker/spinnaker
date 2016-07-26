@@ -36,6 +36,7 @@ class ResizeOpenstackAtomicOperationValidator extends AbstractOpenstackDescripti
     validator.validateNotNull(description.capacity, "capacity")
     validator.validatePositive(description.capacity.min, "capacity.min")
     validator.validateGreaterThanEqual(description.capacity.max, description.capacity.min, "capacity.max")
+    validator.validateGreaterThanEqual(description.capacity.desired, description.capacity.min, "capacity.desired")
   }
 
 }

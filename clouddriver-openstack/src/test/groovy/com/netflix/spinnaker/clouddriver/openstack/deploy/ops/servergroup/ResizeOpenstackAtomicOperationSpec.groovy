@@ -23,7 +23,7 @@ import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFacto
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ResizeOpenstackAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
-import com.netflix.spinnaker.clouddriver.openstack.domain.ServerGroupParameters
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ServerGroupParameters
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import org.openstack4j.model.heat.Stack
@@ -37,6 +37,7 @@ class ResizeOpenstackAtomicOperationSpec extends Specification {
   String region = "r1"
   int maxSize = 5
   int minSize = 3
+  int desiredSize = 4
   String createdStackName = 'app-stack-details-v000'
   String stackId = UUID.randomUUID().toString()
 
@@ -56,8 +57,8 @@ class ResizeOpenstackAtomicOperationSpec extends Specification {
     OpenstackNamedAccountCredentials creds = Mock(OpenstackNamedAccountCredentials)
     OpenstackProviderFactory.createProvider(creds) >> { provider }
     credentials = new OpenstackCredentials(creds)
-    serverGroupParams = new ServerGroupParameters(maxSize: maxSize, minSize: minSize)
-    description = new ResizeOpenstackAtomicOperationDescription(region: region, account: accountName, credentials: credentials, serverGroupName: createdStackName, capacity: new ResizeOpenstackAtomicOperationDescription.Capacity(min: 3, max: 5))
+    serverGroupParams = new ServerGroupParameters(maxSize: maxSize, minSize: minSize, desiredSize: desiredSize)
+    description = new ResizeOpenstackAtomicOperationDescription(region: region, account: accountName, credentials: credentials, serverGroupName: createdStackName, capacity: new ResizeOpenstackAtomicOperationDescription.Capacity(min: 3, desired: 4, max: 5))
   }
 
   def "should resize a heat stack"() {

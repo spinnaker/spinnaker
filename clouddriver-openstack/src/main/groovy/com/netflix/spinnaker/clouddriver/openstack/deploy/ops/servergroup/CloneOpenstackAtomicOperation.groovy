@@ -23,7 +23,7 @@ import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.CloneOpenstackAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.DeployOpenstackAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
-import com.netflix.spinnaker.clouddriver.openstack.domain.ServerGroupParameters
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ServerGroupParameters
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.openstack4j.model.heat.Stack
@@ -88,6 +88,7 @@ class CloneOpenstackAtomicOperation implements AtomicOperation<DeploymentResult>
       instanceType = description.serverGroupParameters?.instanceType ?: ancestorParams.instanceType
       maxSize = description.serverGroupParameters?.maxSize ?: ancestorParams.maxSize
       minSize = description.serverGroupParameters?.minSize ?: ancestorParams.minSize
+      desiredSize = description.serverGroupParameters?.desiredSize ?: ancestorParams.desiredSize
       subnetId = description.serverGroupParameters?.subnetId ?: ancestorParams.subnetId
       poolId = description.serverGroupParameters?.poolId ?: ancestorParams.poolId
       securityGroups = description.serverGroupParameters?.securityGroups ?: ancestorParams.securityGroups

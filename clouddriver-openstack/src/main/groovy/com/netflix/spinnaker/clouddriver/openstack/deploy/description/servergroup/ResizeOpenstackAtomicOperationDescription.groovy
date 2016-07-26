@@ -28,6 +28,7 @@ class ResizeOpenstackAtomicOperationDescription extends OpenstackAtomicOperation
   static class Capacity {
     int min
     int max
+    int desired
   }
 
 }

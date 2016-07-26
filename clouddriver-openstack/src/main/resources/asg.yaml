@@ -16,6 +16,9 @@ parameters:
   min_size:
     type: number
     description: minimum cluster size
+  desired_size:
+    type: number
+    description: desired cluster size
   network_id:
     type: string
     description: Network used by the servers
@@ -34,6 +37,7 @@ resources:
     properties:
       min_size: {get_param: min_size}
       max_size: {get_param: max_size}
+      desired_capacity: {get_param: desired_size}
       resource:
         type: asg_resource.yaml
         properties:

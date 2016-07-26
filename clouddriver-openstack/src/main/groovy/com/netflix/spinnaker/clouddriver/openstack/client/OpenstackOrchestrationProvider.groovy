@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.client
 
-import com.netflix.spinnaker.clouddriver.openstack.domain.ServerGroupParameters
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ServerGroupParameters
 import org.openstack4j.model.heat.Stack
 
 interface OpenstackOrchestrationProvider {

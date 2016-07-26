@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.openstack.client
 
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
-import com.netflix.spinnaker.clouddriver.openstack.domain.ServerGroupParameters
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ServerGroupParameters
 import org.openstack4j.api.Builders
 import org.openstack4j.model.heat.Resource
 import org.openstack4j.model.heat.Stack

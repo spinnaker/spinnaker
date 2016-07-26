@@ -291,6 +291,7 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
     if (stack) {
       result.put('minSize', stack.parameters?.get('min_size') ?: 0)
       result.put('maxSize', stack.parameters?.get('max_size') ?: 0)
+      result.put('desiredSize', stack.parameters?.get('desired_size') ?: 0)
     }
 
     result

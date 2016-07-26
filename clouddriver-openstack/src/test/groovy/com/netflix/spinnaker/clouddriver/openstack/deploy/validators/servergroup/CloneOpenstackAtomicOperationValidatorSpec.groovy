@@ -59,7 +59,7 @@ class CloneOpenstackAtomicOperationValidatorSpec extends Specification {
 
   def "Validate - no error"() {
     given:
-    ResizeOpenstackAtomicOperationDescription description = new ResizeOpenstackAtomicOperationDescription(serverGroupName: 'from', region: 'r1', credentials: credz, account: account, capacity: new ResizeOpenstackAtomicOperationDescription.Capacity(max: 5, min: 3))
+    ResizeOpenstackAtomicOperationDescription description = new ResizeOpenstackAtomicOperationDescription(serverGroupName: 'from', region: 'r1', credentials: credz, account: account, capacity: new ResizeOpenstackAtomicOperationDescription.Capacity(max: 5, desired: 4, min: 3))
 
     when:
     validator.validate([], description, errors)
@@ -70,7 +70,7 @@ class CloneOpenstackAtomicOperationValidatorSpec extends Specification {
 
   def "Validate invalid sizing"() {
     given:
-    ResizeOpenstackAtomicOperationDescription description = new ResizeOpenstackAtomicOperationDescription(serverGroupName: 'from', region: 'r1', credentials: credz, account: account, capacity: new ResizeOpenstackAtomicOperationDescription.Capacity(max: 3, min: 4))
+    ResizeOpenstackAtomicOperationDescription description = new ResizeOpenstackAtomicOperationDescription(serverGroupName: 'from', region: 'r1', credentials: credz, account: account, capacity: new ResizeOpenstackAtomicOperationDescription.Capacity(max: 3, min: 4, desired: 5))
 
     when:
     validator.validate([], description, errors)

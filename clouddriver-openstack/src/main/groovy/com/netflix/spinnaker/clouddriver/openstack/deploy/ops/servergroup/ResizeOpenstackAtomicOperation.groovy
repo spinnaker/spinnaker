@@ -21,7 +21,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ResizeOpenstackAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
-import com.netflix.spinnaker.clouddriver.openstack.domain.ServerGroupParameters
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ServerGroupParameters
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.openstack4j.model.heat.Stack
@@ -47,7 +47,7 @@ class ResizeOpenstackAtomicOperation implements AtomicOperation<Void> {
   }
 
   /*
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "resizeServerGroup": { "serverGroupName": "myapp-teststack-v000", "capacity": { "min": 1, "max": 2 }, "account": "test", "region": "REGION1" }} ]' localhost:7002/openstack/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "resizeServerGroup": { "serverGroupName": "myapp-teststack-v000", "capacity": { "min": 1, "desired": 2, "max": 3 }, "account": "test", "region": "REGION1" }} ]' localhost:7002/openstack/ops
    * curl -X GET -H "Accept: application/json" localhost:7002/task/1
    */
   @Override
@@ -70,6 +70,7 @@ class ResizeOpenstackAtomicOperation implements AtomicOperation<Void> {
       newParams.identity {
         minSize = description.capacity.min
         maxSize = description.capacity.max
+        desiredSize = description.capacity.desired
       }
 
       //get the current template from the stack

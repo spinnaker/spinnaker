@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.openstack.domain
+package com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup
 
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
@@ -32,6 +32,7 @@ class ServerGroupParameters {
   Integer internalPort
   Integer maxSize
   Integer minSize
+  Integer desiredSize
   String networkId
   String subnetId
   String poolId
@@ -43,7 +44,8 @@ class ServerGroupParameters {
       'image':image,
       'internal_port':internalPort ? internalPort.toString() : null,
       'max_size':maxSize ? maxSize.toString() : null,
-      'min_size':minSize? minSize.toString() : null,
+      'min_size':minSize ? minSize.toString() : null,
+      'desired_size':desiredSize ? desiredSize.toString() : null,
       'network_id':networkId,
       'subnet_id':subnetId,
       'pool_id':poolId,
@@ -58,6 +60,7 @@ class ServerGroupParameters {
       internalPort: params.get('internal_port')?.toInteger(),
       maxSize: params.get('max_size')?.toInteger(),
       minSize: params.get('min_size')?.toInteger(),
+      desiredSize: params.get('desired_size')?.toInteger(),
       networkId: params.get('network_id'),
       subnetId: params.get('subnet_id'),
       poolId: params.get('pool_id'),

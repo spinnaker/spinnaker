@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.validators.servergrou
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.OpenstackAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.AbstractOpenstackDescriptionValidator
 import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.OpenstackAttributeValidator
-import com.netflix.spinnaker.clouddriver.openstack.domain.ServerGroupParameters
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ServerGroupParameters
 
 /**
  * This class adds validation for creating and cloning server groups.
@@ -40,6 +40,8 @@ abstract class AbstractServergroupOpenstackAtomicOperationValidator<T extends Op
       validator.validatePositive(maxSize, "${prefix}.maxSize")
       validator.validatePositive(minSize, "${prefix}.minSize")
       validator.validateGreaterThan(maxSize, minSize, "${prefix}.maxSize")
+      validator.validatePositive(desiredSize, "${prefix}.desiredSize")
+      validator.validateGreaterThanEqual(desiredSize, minSize, "${prefix}.desiredSize")
       validator.validateNotEmpty(subnetId, "${prefix}.subnetId")
       validator.validateNotEmpty(poolId, "${prefix}.poolId")
       validator.validateNotEmpty(securityGroups, "${prefix}.securityGroups")

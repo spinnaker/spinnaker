@@ -389,10 +389,10 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     noExceptionThrown()
 
     where:
-    testCase  | stack            | expected
-    'empty'   | null             | [:]
-    'normal'  | buildStack(1, 5) | [minSize: 1, maxSize: 5]
-    'missing' | buildStack()     | [minSize: 0, maxSize: 0]
+    testCase  | stack               | expected
+    'empty'   | null                | [:]
+    'normal'  | buildStack(1, 5, 3) | [minSize: 1, maxSize: 5, desiredSize: 3]
+    'missing' | buildStack()        | [minSize: 0, maxSize: 0, desiredSize: 0]
   }
 
   void "test build info config - #testCase"() {
@@ -598,9 +598,9 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     cacheResultBuilder.namespace('test').keep(serverGroupKey).relationships == cacheData['test'].first().relationships
   }
 
-  protected Stack buildStack(Integer minSize = null, Integer maxSize = null) {
+  protected Stack buildStack(Integer minSize = null, Integer maxSize = null, Integer desiredSize = null) {
     Stub(Stack) {
-      getParameters() >> { (minSize && maxSize) ? ['min_size': minSize, 'max_size': maxSize] : [:] }
+      getParameters() >> { (minSize && maxSize && desiredSize) ? ['min_size': minSize, 'max_size': maxSize, 'desired_size':desiredSize] : [:] }
     }
   }
 }
