@@ -14,10 +14,10 @@ let decorateFn = function ($delegate) {
       link.apply(this, arguments);
       function listener (evt) {
         let hasSpelPrefix = evt.target.value.indexOf('${') > -1;
-        let hasLink = el.nextAll('.spelLink');
+        let hasLink = el.parent().nextAll('.spelLink');
         if (hasSpelPrefix) {
           if (hasLink.length < 1) {
-            el.after('<a class="spelLink" href="http://www.spinnaker.io/docs/pipeline-expressions-guide" target="_blank">Expression Docs</a>');
+            el.parent().after('<a class="spelLink" href="http://www.spinnaker.io/docs/pipeline-expressions-guide" target="_blank">Expression Docs</a>');
           }
         } else {
           hasLink.fadeOut( 500, function() { this.remove(); });

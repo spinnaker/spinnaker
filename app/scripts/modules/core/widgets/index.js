@@ -9,4 +9,5 @@ module.exports = angular
     require('./scopeClusterSelector.directive'),
     require('./notifier/notifier.component.js'),
     require('./spelText/spelText.decorator'),
+    require('./spelText/numberInput.component')
   ]);
