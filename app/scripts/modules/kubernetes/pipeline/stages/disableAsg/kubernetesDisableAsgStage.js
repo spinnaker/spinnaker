@@ -2,21 +2,23 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.destroyAsgStage', [
-  require('../../stageConstants.js'),
-  require('./destroyAsgExecutionDetails.controller.js')
+module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.disableAsgStage', [
+  require('../../../../core/application/modal/platformHealthOverride.directive.js'),
+  require('../../../../core/pipeline/config/stages/stageConstants.js'),
+  require('../../../../core/account/account.service.js'),
+  require('./disableAsgExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
-      provides: 'destroyServerGroup',
+      provides: 'disableServerGroup',
       cloudProvider: 'kubernetes',
-      templateUrl: require('./destroyAsgStage.html'),
-      executionDetailsUrl: require('./destroyAsgExecutionDetails.html'),
-      executionStepLabelUrl: require('./destroyAsgStepLabel.html'),
+      templateUrl: require('./disableAsgStage.html'),
+      executionDetailsUrl: require('./disableAsgExecutionDetails.html'),
+      executionStepLabelUrl: require('./disableAsgStepLabel.html'),
       validators: [
         {
           type: 'targetImpedance',
-          message: 'This pipeline will attempt to destroy a server group without deploying a new version into the same cluster.'
+          message: 'This pipeline will attempt to disable a server group without deploying a new version into the same cluster.'
         },
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'target', },
@@ -24,7 +26,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.destro
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('kubernetesDestroyAsgStageCtrl', function($scope, accountService, stageConstants) {
+  }).controller('kubernetesDisableAsgStageController', function($scope, accountService, stageConstants) {
 
     let stage = $scope.stage;
 
@@ -33,17 +35,16 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.destro
       namespacesLoaded: false
     };
 
-
     accountService.listAccounts('kubernetes').then(function (accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
 
+    stage.namespaces = stage.namespaces || [];
+
     $scope.targets = stageConstants.targetList;
 
-    stage.namespaces = stage.namespaces || [];
     stage.cloudProvider = 'kubernetes';
-
     stage.interestingHealthProviderNames = ['KubernetesService'];
 
     if (!stage.credentials && $scope.application.defaultCredentials.kubernetes) {

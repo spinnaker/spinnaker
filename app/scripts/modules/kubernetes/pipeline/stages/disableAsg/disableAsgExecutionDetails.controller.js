@@ -4,8 +4,8 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.disableAsg.kubernetes.executionDetails.controller', [
   require('angular-ui-router'),
-  require('../../../../../delivery/details/executionDetailsSection.service.js'),
-  require('../../../../../delivery/details/executionDetailsSectionNav.directive.js'),
+  require('../../../../core/delivery/details/executionDetailsSection.service.js'),
+  require('../../../../core/delivery/details/executionDetailsSectionNav.directive.js'),
 ])
   .controller('kubernetesDisableAsgExecutionDetailsController', function ($scope, $stateParams, executionDetailsSectionService) {
 

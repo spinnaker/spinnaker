@@ -5,7 +5,7 @@ let angular = require('angular');
 //BEN_TODO: where is this defined?
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.disableClusterStage', [
-  require('../../../../../account/account.service.js'),
+  require('../../../../core/account/account.service.js'),
   require('./disableClusterExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
