@@ -178,20 +178,20 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
         description='Create Load Balancer: ' + self.__lb_name,
         application=self.TEST_APP)
 
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Health Check Added',
                                 retryable_for_secs=30)
-     .list_resources('http-health-checks')
+     .list_resource('httpHealthChecks')
      .contains_pred_list(
          [jp.PathContainsPredicate('name', '%s-hc' % self.__lb_name),
           jp.DICT_SUBSET(spec)]))
     (builder.new_clause_builder('Target Pool Added',
                                 retryable_for_secs=30)
-     .list_resources('target-pools')
+     .list_resource('targetPools')
      .contains_path_value('name', '%s-tp' % self.__lb_name))
     (builder.new_clause_builder('Forwarding Rules Added',
                                 retryable_for_secs=30)
-     .list_resources('forwarding-rules')
+     .list_resource('forwardingRules')
      .contains_pred_list([
           jp.PathContainsPredicate('name', self.__lb_name),
           jp.PathContainsPredicate('target', target_pool_name)]))
@@ -224,15 +224,15 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
             bindings['TEST_GCE_REGION']),
         application=self.TEST_APP)
 
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Health Check Removed', retryable_for_secs=30)
-     .list_resources('http-health-checks')
+     .list_resource('httpHealthChecks')
      .excludes_path_value('name', '%s-hc' % self.__lb_name))
     (builder.new_clause_builder('TargetPool Removed')
-     .list_resources('target-pools')
+     .list_resource('targetPools')
      .excludes_path_value('name', '%s-tp' % self.__lb_name))
     (builder.new_clause_builder('Forwarding Rule Removed')
-     .list_resources('forwarding-rules')
+     .list_resource('forwardingRules')
      .excludes_path_value('name', self.__lb_name))
 
     return st.OperationContract(
@@ -282,10 +282,10 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
         description='Create Server Group in ' + group_name,
         application=self.TEST_APP)
 
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Managed Instance Group Added',
                                 retryable_for_secs=30)
-     .inspect_resource('managed-instance-groups', group_name)
+     .inspect_resource('instanceGroupManagers', group_name)
      .contains_path_eq('targetSize', 2))
 
     return st.OperationContract(
@@ -321,15 +321,15 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
         application=self.TEST_APP,
         description='DestroyServerGroup: ' + group_name)
 
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Managed Instance Group Removed')
-     .inspect_resource('managed-instance-groups', group_name,
+     .inspect_resource('instanceGroupManagers', group_name,
                        no_resource_ok=True)
      .contains_path_eq('targetSize', 0))
 
     (builder.new_clause_builder('Instances Are Removed',
                                 retryable_for_secs=30)
-     .list_resources('instances')
+     .list_resource('instances')
      .excludes_path_value('name', group_name))
 
     return st.OperationContract(
@@ -355,7 +355,7 @@ class GoogleSmokeTest(st.AgentTestCase):
 
     verify_results = gcp.verify_quota(
         title,
-        scenario.gce_observer,
+        scenario.gcp_observer,
         project_quota=GoogleSmokeTestScenario.MINIMUM_PROJECT_QUOTA,
         regions=[(managed_region,
                   GoogleSmokeTestScenario.MINIMUM_REGION_QUOTA)])

@@ -61,7 +61,7 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     self.TEST_APP = self.bindings['TEST_APP']
     self.gcs_observer = gcp.GcpStorageAgent.make_agent(
         credentials_path=self.bindings['GCE_CREDENTIALS_PATH'],
-        scopes=gcp.google_cloud_storage_agent.FULL_SCOPE)
+        scopes=gcp.gcp_storage_agent.STORAGE_FULL_SCOPE)
 
     metadata = self.gcs_observer.inspect_bucket(self.BUCKET)
     self.versioning_enabled = (metadata.get('versioning', {})

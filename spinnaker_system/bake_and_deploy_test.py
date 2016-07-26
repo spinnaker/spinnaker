@@ -238,15 +238,15 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
 
     # We arent testing load balancers, so assume it is working,
     # but we'll look for at the health check to know it is ready.
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Health Check Added',
                                 retryable_for_secs=30)
-         .list_resources('http-health-checks')
+         .list_resource('httpHealthChecks')
          .contains_path_value('name', load_balancer_name + '-hc'))
 
     (builder.new_clause_builder('Load Balancer Created',
                                 retryable_for_secs=60)
-         .list_resources('forwarding-rules')
+         .list_resource('forwardingRules')
          .contains_path_value('name', self.__full_lb_name))
 
     return st.OperationContract(
@@ -273,9 +273,9 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
           bindings['TEST_GCE_REGION']),
       application=self.TEST_APP)
 
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Health Check Removed', retryable_for_secs=30)
-         .list_resources('http-health-checks')
+         .list_resource('httpHealthChecks')
          .excludes_path_value('name', self.__full_lb_name + '-hc'))
 
     return st.OperationContract(
@@ -537,10 +537,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     name = details[0].get('imageId') if details else None
     self.logger.info('Deleting the baked image="{0}"'.format(name))
     if name:
-      gcloud = self.gce_observer
-      args = ['compute', 'images', '--project', gcloud.project,
-              'delete', name, '--quiet']
-      gcloud.run(args)
+      self.gcp_observer.invoke('delete', 'images', resource_id=name)
 
 
 class BakeAndDeployTest(st.AgentTestCase):
@@ -556,7 +553,7 @@ class BakeAndDeployTest(st.AgentTestCase):
 
     verify_results = gcp.verify_quota(
         title,
-        scenario.gce_observer,
+        scenario.gcp_observer,
         project_quota=BakeAndDeployTestScenario.MINIMUM_PROJECT_QUOTA,
         regions=[(managed_region,
                   BakeAndDeployTestScenario.MINIMUM_REGION_QUOTA)])

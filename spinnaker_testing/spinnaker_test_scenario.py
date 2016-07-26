@@ -258,9 +258,9 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
 
 
   @property
-  def gce_observer(self):
+  def gcp_observer(self):
     """The observer for inspecting GCE platform state, if configured."""
-    return self.__gce_observer
+    return self.__gcp_observer
 
   @property
   def kube_observer(self):
@@ -356,14 +356,16 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       bindings['TEST_GCE_REGION'] = bindings['TEST_GCE_ZONE'][:-2]
 
     if bindings.get('GOOGLE_PRIMARY_MANAGED_PROJECT_ID'):
-      service_account = bindings.get('GCE_SERVICE_ACCOUNT', None)
-      self.__gce_observer = gcp.GCloudAgent(
-          project=bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'],
-          zone=bindings['TEST_GCE_ZONE'],
-          service_account=service_account,
-          ssh_passphrase_file=bindings['GCE_SSH_PASSPHRASE_FILE'])
+      self.__gcp_observer = gcp.GcpComputeAgent.make_agent(
+          scopes=gcp.COMPUTE_READ_WRITE_SCOPE,
+          credentials_path=bindings['GCE_CREDENTIALS_PATH'],
+          default_variables={
+              'project': bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'],
+              'region': bindings['TEST_GCE_REGION'],
+              'zone':bindings['TEST_GCE_ZONE']
+          })
     else:
-      self.__gce_observer = None
+      self.__gcp_observer = None
       logger = logging.getLogger(__name__)
       logger.warning(
           '--managed_gce_project was not set nor could it be inferred.'

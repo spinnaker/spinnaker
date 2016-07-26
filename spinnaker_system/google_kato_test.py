@@ -47,6 +47,8 @@ import sys
 # citest modules.
 from citest.service_testing import HttpContractBuilder
 from citest.service_testing import NoOpOperation
+from citest.base import JournalLogger
+import citest.base
 import citest.gcp_testing as gcp
 import citest.json_predicate as jp
 import citest.service_testing as st
@@ -54,7 +56,19 @@ import citest.service_testing as st
 # Spinnaker modules.
 import spinnaker_testing as sk
 import spinnaker_testing.kato as kato
-import citest.base
+
+
+GCP_STANDARD_IMAGES = {
+  'centos-cloud': ['centos-7', 'centos-6'],
+  'coreos-cloud': ['coreos-stable', 'coreos-beta', 'coreos-alpha'],
+  'debian-cloud': ['debian-8'],
+  'opensuse-cloud': [''],
+  'rhel-cloud': ['rhel-7', 'rhel-6'],
+  'suse-cloud': [''],
+  'ubuntu-os-cloud': ['ubuntu-1604-lts', 'ubuntu-1404-lts',
+                      'ubuntu-1204-lts', 'ubuntu-1510'],
+  'windows-cloud': ['windows-2012-r2', 'windows-2008-r2']
+}
 
 
 class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
@@ -139,7 +153,7 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
 
     # The instance_spec will turn into the payload of instances we request.
     instance_spec = []
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     for i in range(3):
       # pylint: disable=bad-continuation
       instance_spec.append(
@@ -156,7 +170,7 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
       # Verify we created an instance, whether or not it boots.
       (builder.new_clause_builder(
           'Instance %d Created' % i, retryable_for_secs=90)
-            .list_resources('instances')
+            .aggregated_list_resource('instances')
             .contains_path_value('name', self.use_instance_names[i]))
       if i < 2:
         # Verify the details are what we asked for.
@@ -167,7 +181,7 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
         # can assume from this test that the details are ok as well.
         (builder.new_clause_builder('Instance %d Details' % i)
             .inspect_resource('instances', self.use_instance_names[i],
-                              extra_args=['--zone', self.use_instance_zones[i]])
+                              zone=self.use_instance_zones[i])
             .contains_path_value('machineType', machine_type[i]))
         # Verify the instance eventually boots up.
         # We can combine this with above, but we'll probably need
@@ -175,8 +189,8 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
         # above is broken (wrong), we wont retry thinking it isnt there yet.
         (builder.new_clause_builder('Instance %d Is Running' % i,
                              retryable_for_secs=90)
-            .inspect_resource('instances', name=self.use_instance_names[i],
-                              extra_args=['--zone', self.use_instance_zones[i]])
+            .inspect_resource('instances', self.use_instance_names[i],
+                              zone=self.use_instance_zones[i])
             .contains_path_eq('status', 'RUNNING'))
 
     payload = self.agent.make_json_payload_from_object(instance_spec)
@@ -196,11 +210,11 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     Returns:
       st.OperationContract
     """
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     clause = (builder.new_clause_builder('Instances Deleted',
                                          retryable_for_secs=15,
                                          strict=True)
-              .list_resources('instances'))
+              .aggregated_list_resource('instances'))
     for name in names:
       # If one of our instances still exists, it should be STOPPING.
       name_matches_pred = jp.PathContainsPredicate('name', name)
@@ -238,9 +252,9 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
           'tags': ['test-tag-1', 'test-tag-2']
         })
 
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Server Group Tags Added')
-        .inspect_resource('managed-instance-groups', server_group_name)
+        .inspect_resource('instanceGroupManagers', server_group_name)
         .contains_pred_list(
             [jp.PathContainsPredicate('name', server_group_name),
              jp.PathContainsPredicate(
@@ -304,31 +318,32 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
           'credentials': self.bindings['GCE_CREDENTIALS']
         })
 
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Http Health Check Added')
-        .list_resources('http-health-checks')
+        .list_resource('httpHealthChecks')
         .contains_pred_list(
             [jp.PathContainsPredicate('name', self.__use_http_lb_hc_name),
              jp.PathContainsPredicate(None, health_check)]))
-    (builder.new_clause_builder('Forwarding Rule Added', retryable_for_secs=15)
-       .list_resources('forwarding-rules')
+    (builder.new_clause_builder('Global Forwarding Rule Added',
+                                retryable_for_secs=15)
+       .list_resource('globalForwardingRules')
        .contains_pred_list(
            [jp.PathContainsPredicate('name', self.__use_http_lb_fr_name),
             jp.PathContainsPredicate('portRange', port_range)]))
     (builder.new_clause_builder('Backend Service Added')
-       .list_resources('backend-services')
+       .list_resource('backendServices')
        .contains_pred_list(
            [jp.PathContainsPredicate('name', self.__use_http_lb_bs_name),
             jp.PathElementsContainPredicate(
                 'healthChecks', self.__use_http_lb_hc_name)]))
     (builder.new_clause_builder('Url Map Added')
-       .list_resources('url-maps')
+       .list_resource('urlMaps')
        .contains_pred_list(
            [jp.PathContainsPredicate('name', self.__use_http_lb_map_name),
             jp.PathContainsPredicate(
                 'defaultService', self.__use_http_lb_bs_name)]))
     (builder.new_clause_builder('Target Http Proxy Added')
-       .list_resources('target-http-proxies')
+       .list_resource('targetHttpProxies')
        .contains_pred_list(
            [jp.PathContainsPredicate('name', self.__use_http_lb_proxy_name),
             jp.PathContainsPredicate('urlMap', self.__use_http_lb_map_name)]))
@@ -347,21 +362,21 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
           'credentials': self.bindings['GCE_CREDENTIALS']
         })
 
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Health Check Removed')
-       .list_resources('http-health-checks')
+       .list_resource('httpHealthChecks')
        .excludes_path_value('name', self.__use_http_lb_hc_name))
-    (builder.new_clause_builder('Forwarding Rules Removed')
-       .list_resources('forwarding-rules')
+    (builder.new_clause_builder('Global Forwarding Rules Removed')
+       .list_resource('globalForwardingRules')
        .excludes_path_value('name', self.__use_http_lb_fr_name))
     (builder.new_clause_builder('Backend Service Removed')
-       .list_resources('backend-services')
+       .list_resource('backendServices')
        .excludes_path_value('name', self.__use_http_lb_bs_name))
     (builder.new_clause_builder('Url Map Removed')
-       .list_resources('url-maps')
+       .list_resource('urlMaps')
        .excludes_path_value('name', self.__use_http_lb_map_name))
     (builder.new_clause_builder('Target Http Proxy Removed')
-       .list_resources('target-http-proxies')
+       .list_resource('targetHttpProxies')
        .excludes_path_value('name', self.__use_http_lb_proxy_name))
 
     return st.OperationContract(
@@ -401,20 +416,20 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
           'loadBalancerName': self.__use_lb_name
         })
 
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Forwarding Rules Added',
                                 retryable_for_secs=30)
-       .list_resources('forwarding-rules')
+       .list_resource('forwardingRules')
        .contains_path_value('name', self.__use_lb_name)
        .contains_path_value('target', self.__use_lb_target))
     (builder.new_clause_builder('Target Pool Added', retryable_for_secs=15)
-       .list_resources('target-pools')
+       .list_resource('targetPools')
        .contains_path_value('name', self.__use_lb_tp_name))
 
      # We list the resources here because the name isnt exact
      # and the list also returns the details we need.
     (builder.new_clause_builder('Health Check Added', retryable_for_secs=15)
-       .list_resources('http-health-checks')
+       .list_resource('httpHealthChecks')
        .contains_pred_list(
            [jp.PathContainsPredicate('name', self.__use_lb_hc_name),
             jp.PathContainsPredicate(None, health_check)]))
@@ -434,15 +449,15 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
           'loadBalancerName': self.__use_lb_name
         })
 
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Health Check Removed')
-       .list_resources('http-health-checks')
+       .list_resource('httpHealthChecks')
        .excludes_path_value('name', self.__use_lb_hc_name))
     (builder.new_clause_builder('Target Pool Removed')
-       .list_resources('target-pools')
+       .list_resource('targetPools')
        .excludes_path_value('name', self.__use_lb_tp_name))
     (builder.new_clause_builder('Forwarding Rule Removed')
-       .list_resources('forwarding-rules')
+       .list_resource('forwardingRules')
        .excludes_path_value('name', self.__use_lb_name))
 
     return st.OperationContract(
@@ -472,13 +487,13 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
           'credentials': self.bindings['GCE_CREDENTIALS']
         })
 
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Instances in Target Pool',
                                 retryable_for_secs=15)
-       .list_resources('target-pools')
+       .list_resource('targetPools')
        .contains_pred_list(
           [jp.PathContainsPredicate('name', self.__use_lb_tp_name),
-           jp.PathEqPredicate('region', self.bindings['TEST_GCE_REGION']),
+           jp.PathContainsPredicate('region', self.bindings['TEST_GCE_REGION']),
            jp.PathElementsContainPredicate(
               'instances', self.use_instance_names[0]),
            jp.PathElementsContainPredicate(
@@ -516,12 +531,11 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     # I dont have a way to express that the field itself is optional,
     # just the record. Leaving it as is because displaying this type of
     # error is usually helpful for development.
-    builder = gcp.GceContractBuilder(self.gce_observer)
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Instances not in Target Pool',
                                 retryable_for_secs=5)
-       .list_resources(
-          'target-pools',
-          extra_args=['--region', self.bindings['TEST_GCE_REGION']])
+       .list_resource(
+          'targetPools', region=self.bindings['TEST_GCE_REGION'])
        .excludes_pred_list(
           [jp.PathContainsPredicate('name', self.__use_lb_tp_name),
            jp.PathElementsContainPredicate(
@@ -543,25 +557,32 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     logger = logging.getLogger(__name__)
 
     # Get the list of images available (to the service account we are using).
-    gcloud_agent = self.gce_observer
-    service_account = self.bindings.get('GCE_SERVICE_ACCOUNT', None)
-    extra_args = ['--account', service_account] if service_account else []
-    logger.debug('Looking up available images.')
-    cli_result = gcloud_agent.list_resources('images', extra_args=extra_args)
+    gcp_agent = self.gcp_observer
+    JournalLogger.begin_context('Collecting expected available images')
+    relation_context = 'ERROR'
+    try:
+      logger.debug('Looking up available images.')
 
-    if not cli_result.ok():
-      raise RuntimeError('GCloud failed with: {0}'.format(str(cli_result)))
-    json_doc = json_module.JSONDecoder().decode(cli_result.output)
+      json_doc = gcp_agent.list_resource('images')
+      for project in GCP_STANDARD_IMAGES.keys():
+        logger.info('Looking for images from project=%s', project)
+        found = gcp_agent.list_resource('images', project=project)
+        for image in found:
+          if not image.get('deprecated', None):
+            json_doc.append(image)
 
-    # Produce the list of images that we expect to receive from spinnaker
-    # (visible to the primary service account).
-    spinnaker_account = self.agent.deployed_config.get(
-        'providers.google.primaryCredentials.name')
+      # Produce the list of images that we expect to receive from spinnaker
+      # (visible to the primary service account).
+      spinnaker_account = self.agent.deployed_config.get(
+          'providers.google.primaryCredentials.name')
 
-    logger.debug('Configured with Spinnaker account "%s"', spinnaker_account)
-    expect_images = [{'account': spinnaker_account, 'imageName': image['name']}
-                     for image in json_doc]
-    expect_images = sorted(expect_images, key=lambda k: k['imageName'])
+      logger.debug('Configured with Spinnaker account "%s"', spinnaker_account)
+      expect_images = [{'account': spinnaker_account, 'imageName': image['name']}
+                       for image in json_doc]
+      expect_images = sorted(expect_images, key=lambda k: k['imageName'])
+      relation_context = 'VALID'
+    finally:
+      JournalLogger.end_context(relation=relation_context)
 
     # pylint: disable=bad-continuation
     builder = HttpContractBuilder(self.agent)
