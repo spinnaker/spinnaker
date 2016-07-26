@@ -30,7 +30,8 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
 
   private static final String BUILDER_TYPE = "amazon-(chroot|ebs)"
   private static final String IMAGE_NAME_TOKEN = "amazon-(chroot|ebs): Creating the AMI:"
-  private ImageNameFactory imageNameFactory
+
+  ImageNameFactory imageNameFactory = new ImageNameFactory()
 
   @Autowired
   RoscoAWSConfiguration.AWSBakeryDefaults awsBakeryDefaults
@@ -46,12 +47,6 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
       cloudProvider: BakeRequest.CloudProviderType.aws,
       baseImages: awsBakeryDefaults?.baseImages?.collect { it.baseImage }
     )
-  }
-
-  @Override
-  ImageNameFactory getImageNameFactory() {
-    if (imageNameFactory) return imageNameFactory
-    return new ImageNameFactory()
   }
 
   @Override

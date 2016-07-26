@@ -34,8 +34,6 @@ import org.springframework.core.convert.ConversionService
 import org.springframework.core.convert.support.DefaultConversionService
 import redis.clients.jedis.JedisPool
 
-import java.time.Clock
-
 @Configuration
 @CompileStatic
 class RoscoConfiguration {
@@ -65,11 +63,6 @@ class RoscoConfiguration {
   @Bean
   ConversionService conversionService() {
     return new DefaultConversionService()
-  }
-
-  @Bean
-  Clock clock() {
-    return Clock.systemUTC()
   }
 
   @Bean

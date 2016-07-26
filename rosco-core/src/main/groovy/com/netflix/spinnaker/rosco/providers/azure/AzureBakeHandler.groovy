@@ -30,7 +30,8 @@ public class AzureBakeHandler extends CloudProviderBakeHandler{
 
   private static final String BUILDER_TYPE  = "azure-arm"
   private static final String IMAGE_NAME_TOKEN = "OSDiskUri:"
-  private ImageNameFactory imageNameFactory
+
+  ImageNameFactory imageNameFactory = new ImageNameFactory()
 
   @Autowired
   RoscoAzureConfiguration.AzureBakeryDefaults azureBakeryDefaults
@@ -49,12 +50,6 @@ public class AzureBakeHandler extends CloudProviderBakeHandler{
       cloudProvider: BakeRequest.CloudProviderType.azure,
       baseImages: azureBakeryDefaults?.baseImages?.collect { it.baseImage }
     )
-  }
-
-  @Override
-  ImageNameFactory getImageNameFactory() {
-    if (imageNameFactory) return imageNameFactory
-    return new ImageNameFactory()
   }
 
   @Override

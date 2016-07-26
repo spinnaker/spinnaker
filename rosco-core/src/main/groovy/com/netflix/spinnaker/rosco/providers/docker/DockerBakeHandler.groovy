@@ -30,7 +30,8 @@ public class DockerBakeHandler extends CloudProviderBakeHandler {
 
   private static final String BUILDER_TYPE = "docker"
   private static final String IMAGE_NAME_TOKEN = "Repository:"
-  private ImageNameFactory imageNameFactory
+
+  ImageNameFactory imageNameFactory = new ImageNameFactory()
 
   @Autowired
   RoscoDockerConfiguration.DockerBakeryDefaults dockerBakeryDefaults
@@ -45,12 +46,6 @@ public class DockerBakeHandler extends CloudProviderBakeHandler {
       cloudProvider: BakeRequest.CloudProviderType.docker,
       baseImages: dockerBakeryDefaults?.baseImages?.collect { it.baseImage }
     )
-  }
-
-  @Override
-  ImageNameFactory getImageNameFactory() {
-    if (imageNameFactory) return imageNameFactory
-    return new ImageNameFactory()
   }
 
   @Override

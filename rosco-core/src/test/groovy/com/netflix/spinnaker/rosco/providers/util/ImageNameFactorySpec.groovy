@@ -119,9 +119,9 @@ class ImageNameFactorySpec extends Specification implements TestDefaults {
       def osPackages = parseDebOsPackageNames(bakeRequest.package_name)
 
     when:
-    def imageName = imageNameFactory.buildImageName(bakeRequest, osPackages)
-    def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages)
-    def packagesParameter = imageNameFactory.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages)
+      def imageName = imageNameFactory.buildImageName(bakeRequest, osPackages)
+      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages)
+      def packagesParameter = imageNameFactory.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages)
 
     then:
       1 * clockMock.millis() >> 123456

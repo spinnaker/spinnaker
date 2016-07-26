@@ -54,7 +54,7 @@ abstract class CloudProviderBakeHandler {
   abstract BakeOptions getBakeOptions()
 
   /**
-   * @return A ImageNameFactory object for this specific cloud provider.
+   * @return An ImageNameFactory object for this specific cloud provider.
    */
   abstract ImageNameFactory getImageNameFactory()
 

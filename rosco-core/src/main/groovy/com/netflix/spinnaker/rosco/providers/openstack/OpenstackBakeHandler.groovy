@@ -35,7 +35,8 @@ public class OpenstackBakeHandler extends CloudProviderBakeHandler {
 
   private static final String BUILDER_TYPE = 'openstack'
   private static final String IMAGE_NAME_TOKEN = 'openstack: An image was created:'
-  private ImageNameFactory imageNameFactory
+
+  ImageNameFactory imageNameFactory = new ImageNameFactory()
 
   @Autowired
   RoscoOpenstackConfiguration.OpenstackBakeryDefaults openstackBakeryDefaults
@@ -51,12 +52,6 @@ public class OpenstackBakeHandler extends CloudProviderBakeHandler {
       cloudProvider: BakeRequest.CloudProviderType.openstack,
       baseImages: openstackBakeryDefaults?.baseImages?.collect { it.baseImage }
     )
-  }
-
-  @Override
-  ImageNameFactory getImageNameFactory() {
-    if (imageNameFactory) return imageNameFactory
-    return new ImageNameFactory()
   }
 
   @Override

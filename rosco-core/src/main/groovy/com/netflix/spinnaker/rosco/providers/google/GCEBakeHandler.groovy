@@ -30,7 +30,8 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
 
   private static final String BUILDER_TYPE = "googlecompute"
   private static final String IMAGE_NAME_TOKEN = "googlecompute: A disk image was created:"
-  private ImageNameFactory imageNameFactory
+
+  ImageNameFactory imageNameFactory = new ImageNameFactory()
 
   @Autowired
   RoscoGoogleConfiguration.GCEBakeryDefaults gceBakeryDefaults
@@ -50,13 +51,6 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
       baseImages: gceBakeryDefaults?.baseImages?.collect { it.baseImage }
     )
   }
-
-  @Override
-  ImageNameFactory getImageNameFactory() {
-    if (imageNameFactory) return imageNameFactory
-    return new ImageNameFactory()
-  }
-
 
   @Override
   def findVirtualizationSettings(String region, BakeRequest bakeRequest) {
