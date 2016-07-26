@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.deck.gce.loadBalancer.hostAndPathRule
   .factory('hostAndPathRulesService', function() {
 
     function buildTable(hostRules, defaultService) {
-      let defaultRow = buildRow('Any unmatched (default)', 'Any unmatched (default)', defaultService)
+      let defaultRow = buildRow('Any unmatched (default)', 'Any unmatched (default)', defaultService);
 
       return hostRules.reduce((rows, hostRule) => {
         let [ hostPattern ] = hostRule.hostPatterns;
