@@ -149,9 +149,9 @@ abstract class CloudProviderBakeHandler {
 
     def osPackageNames = PackageNameConverter.buildOsPackageNames(packageType, packageNameList)
 
-    def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest,  osPackageNames)
+    def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackageNames)
 
-    def imageName = imageNameFactory.buildImageName(bakeRequest,  osPackageNames)
+    def imageName = imageNameFactory.buildImageName(bakeRequest, osPackageNames)
 
     def packagesParameter = imageNameFactory.buildPackagesParameter(packageType, osPackageNames)
 
