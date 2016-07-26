@@ -103,7 +103,8 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     # Note that curiosly the updated timestamp is not adjusted in the storage
     # file.
     gcs_builder = gcp.GoogleCloudStorageContractBuilder(self.gcs_observer)
-    (gcs_builder.new_clause_builder('Created Google Cloud Storage File')
+    (gcs_builder.new_clause_builder('Created Google Cloud Storage File',
+                                    retryable_for_secs=5)
      .list(self.BUCKET, '/'.join([self.BASE_PATH, 'applications']))
      .contains_path_value('name', self.TEST_APP))
     (gcs_builder.new_clause_builder('Wrote File Content')
