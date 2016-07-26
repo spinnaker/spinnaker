@@ -41,6 +41,7 @@ module.exports = angular
           this.viewState.originalStringVal = JSON.stringify(this.config);
           this.viewState.isDirty = false;
           this.viewState.saving = false;
+          this.application.attributes.chaosMonkey = this.config;
         }, () => {
           this.viewState.saving = false;
           this.viewState.saveError = true;
