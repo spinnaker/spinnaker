@@ -42,7 +42,8 @@ class Keys {
     VIPS,
     FLOATING_IPS,
     PORTS,
-    IMAGES
+    IMAGES,
+    ON_DEMAND
 
     final String ns
 

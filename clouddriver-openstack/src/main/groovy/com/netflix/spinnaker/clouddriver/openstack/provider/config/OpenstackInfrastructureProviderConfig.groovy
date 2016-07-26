@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.openstack.provider.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.Sets
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider
@@ -52,9 +53,10 @@ class OpenstackInfrastructureProviderConfig {
 
   @Bean
   @DependsOn('openstackNamedAccountCredentials')
-  OpenstackInfrastructureProvider openstackInfastructureProvider(AccountCredentialsRepository accountCredentialsRepository, @Qualifier('infraObjectMapper') ObjectMapper objectMapper) {
+  OpenstackInfrastructureProvider openstackInfastructureProvider(AccountCredentialsRepository accountCredentialsRepository,
+                                                                 @Qualifier('infraObjectMapper') ObjectMapper objectMapper, Registry registry) {
     OpenstackInfrastructureProvider provider = new OpenstackInfrastructureProvider(Sets.newConcurrentHashSet())
-    synchronizeOpenstackProvider(provider, accountCredentialsRepository, objectMapper)
+    synchronizeOpenstackProvider(provider, accountCredentialsRepository, objectMapper, registry)
     provider
   }
 
@@ -76,7 +78,8 @@ class OpenstackInfrastructureProviderConfig {
   @Bean
   OpenstackProviderSynchronizer synchronizeOpenstackProvider(OpenstackInfrastructureProvider openstackInfastructureProvider,
                                                              AccountCredentialsRepository accountCredentialsRepository,
-                                                             @Qualifier('infraObjectMapper') ObjectMapper objectMapper) {
+                                                             @Qualifier('infraObjectMapper') ObjectMapper objectMapper,
+                                                             Registry registry) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(openstackInfastructureProvider)
     def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, OpenstackNamedAccountCredentials)
 
@@ -86,7 +89,7 @@ class OpenstackInfrastructureProviderConfig {
       if (!scheduledAccounts.contains(credentials.name)) {
         credentials.credentials.provider.allRegions.each { String region ->
           newlyAddedAgents << new OpenstackInstanceCachingAgent(credentials, region, objectMapper)
-          newlyAddedAgents << new OpenstackServerGroupCachingAgent(credentials, region, objectMapper)
+          newlyAddedAgents << new OpenstackServerGroupCachingAgent(credentials, region, objectMapper, registry)
           newlyAddedAgents << new OpenstackSubnetCachingAgent(credentials, region, objectMapper)
           newlyAddedAgents << new OpenstackNetworkCachingAgent(credentials, region, objectMapper)
           newlyAddedAgents << new OpenstackImageCachingAgent(credentials, region, objectMapper)
