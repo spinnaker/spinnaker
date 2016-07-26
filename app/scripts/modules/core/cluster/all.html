@@ -1,15 +1,16 @@
 <div class="header row header-clusters">
-  <div class="col-lg-8 col-md-10">
+  <div class="col-lg-9 col-md-10 col-sm-10">
     <h3>
       Clusters <span class="small"><help-field key="cluster.description"></help-field></span>
     </h3>
     <div class="form-inline clearfix filters">
       <div class="form-group">
-        <button class="btn btn-xs btn-default" style="margin: 0 20px"
+        <button class="btn btn-xs btn-default" style="margin-left: 20px"
                 ng-class="{active: sortFilter.multiselect}"
                 ng-click="allClusters.toggleMultiselect()">
-          <span class="glyphicon glyphicon-list"></span>
-          Edit multiple
+          <span class="glyphicon glyphicon-list visible-lg-inline"></span>
+          <span class="glyphicon glyphicon-list visible-md-inline visible-sm-inline" uib-tooltip="Edit multiple"></span>
+          <span class="visible-lg-inline">Edit multiple</span>
         </button>
       </div>
       <div class="form-group">
@@ -33,7 +34,7 @@
       </div>
     </div>
   </div>
-  <div class="col-lg-4 col-md-2">
+  <div class="col-lg-3 col-md-2 col-sm-2">
     <div class="application-actions">
       <button class="btn btn-sm btn-default" ng-click="allClusters.createServerGroup()">
         <span class="glyphicon glyphicon-plus-sign visible-lg-inline"></span>
