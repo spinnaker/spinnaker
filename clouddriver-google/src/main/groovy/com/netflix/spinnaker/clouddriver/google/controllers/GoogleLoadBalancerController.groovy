@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerView
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,6 +39,8 @@ class GoogleLoadBalancerController {
   @Autowired
   GoogleLoadBalancerProvider googleLoadBalancerProvider
 
+  private static final HTTP = GoogleLoadBalancerType.HTTP.toString()
+
   @RequestMapping(method = RequestMethod.GET)
   List<GoogleLoadBalancerAccountRegionSummary> list() {
     def loadBalancerViewsByName = googleLoadBalancerProvider.getApplicationLoadBalancers("").groupBy { it.name }
@@ -47,11 +49,25 @@ class GoogleLoadBalancerController {
       def summary = new GoogleLoadBalancerAccountRegionSummary(name: name)
 
       views.each { GoogleLoadBalancerView view ->
+        def loadBalancerType = view.loadBalancerType
+        def backendServices = []
+        if (loadBalancerType == HTTP) {
+          GoogleHttpLoadBalancer.View httpView = view as GoogleHttpLoadBalancer.View
+          httpView?.hostRules?.each { GoogleHostRule hostRule ->
+            def backendService = null
+            hostRule?.pathMatcher?.pathRules?.each { GooglePathRule pathRule ->
+              backendService = pathRule.backendService
+              backendServices << pathRule.backendService
+            }
+          }
+        }
+
         summary.mappedAccounts[view.account].mappedRegions[view.region].loadBalancers << new GoogleLoadBalancerSummary(
             account: view.account,
             region: view.region,
             name: view.name,
-            loadBalancerType: view.loadBalancerType
+            loadBalancerType: loadBalancerType,
+            backendServices: loadBalancerType == HTTP ? backendServices.unique() as List<String> : null
         )
       }
 
@@ -132,6 +148,7 @@ class GoogleLoadBalancerController {
     String region
     String name
     String type = GoogleCloudProvider.GCE
+    List<String> backendServices
   }
 
   static class GoogleLoadBalancerDetails {
