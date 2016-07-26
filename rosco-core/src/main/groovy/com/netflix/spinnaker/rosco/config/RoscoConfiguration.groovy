@@ -22,8 +22,6 @@ import com.netflix.spinnaker.rosco.persistence.BakeStore
 import com.netflix.spinnaker.rosco.persistence.RedisBackedBakeStore
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
 import com.netflix.spinnaker.rosco.providers.registry.DefaultCloudProviderBakeHandlerRegistry
-import com.netflix.spinnaker.rosco.providers.util.DefaultImageNameFactory
-import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
 import com.netflix.spinnaker.rosco.providers.util.LocalJobFriendlyPackerCommandFactory
 import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
 import groovy.transform.CompileStatic
@@ -67,11 +65,6 @@ class RoscoConfiguration {
   @Bean
   ConversionService conversionService() {
     return new DefaultConversionService()
-  }
-
-  @Bean
-  ImageNameFactory imageNameFactory() {
-    return new DefaultImageNameFactory()
   }
 
   @Bean

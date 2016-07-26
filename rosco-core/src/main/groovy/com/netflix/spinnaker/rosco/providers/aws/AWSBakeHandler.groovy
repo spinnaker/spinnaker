@@ -21,6 +21,7 @@ import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.aws.config.RoscoAWSConfiguration
+import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -29,6 +30,7 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
 
   private static final String BUILDER_TYPE = "amazon-(chroot|ebs)"
   private static final String IMAGE_NAME_TOKEN = "amazon-(chroot|ebs): Creating the AMI:"
+  private ImageNameFactory imageNameFactory
 
   @Autowired
   RoscoAWSConfiguration.AWSBakeryDefaults awsBakeryDefaults
@@ -44,6 +46,12 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
       cloudProvider: BakeRequest.CloudProviderType.aws,
       baseImages: awsBakeryDefaults?.baseImages?.collect { it.baseImage }
     )
+  }
+
+  @Override
+  ImageNameFactory getImageNameFactory() {
+    if (imageNameFactory) return imageNameFactory
+    return new ImageNameFactory()
   }
 
   @Override

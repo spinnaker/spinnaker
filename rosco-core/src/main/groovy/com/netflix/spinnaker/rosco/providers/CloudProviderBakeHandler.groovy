@@ -21,6 +21,7 @@ import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeOptions.BaseImage
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
+import com.netflix.spinnaker.rosco.providers.util.PackageNameConverter
 import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -29,9 +30,6 @@ abstract class CloudProviderBakeHandler {
 
   @Value('${rosco.configDir}')
   String configDir
-
-  @Autowired
-  ImageNameFactory imageNameFactory
 
   @Autowired
   PackerCommandFactory packerCommandFactory
@@ -54,6 +52,11 @@ abstract class CloudProviderBakeHandler {
    * @return A BakeOptions object describing what options are available for this specific cloud provider.
    */
   abstract BakeOptions getBakeOptions()
+
+  /**
+   * @return A ImageNameFactory object for this specific cloud provider.
+   */
+  abstract ImageNameFactory getImageNameFactory()
 
   /**
    * Build provider-specific naming component to use in composing bake key.
@@ -140,7 +143,17 @@ abstract class CloudProviderBakeHandler {
     def virtualizationSettings = findVirtualizationSettings(region, bakeRequest)
 
     BakeOptions.Selected selectedOptions = new BakeOptions.Selected(baseImage: findBaseImage(bakeRequest))
-    def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest, selectedOptions)
+    BakeRequest.PackageType packageType = selectedOptions.baseImage.packageType
+
+    List<String> packageNameList = bakeRequest.package_name?.tokenize(" ")
+
+    def osPackageNames = PackageNameConverter.buildOsPackageNames(packageType, packageNameList)
+
+    def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest,  osPackageNames)
+
+    def imageName = imageNameFactory.buildImageName(bakeRequest,  osPackageNames)
+
+    def packagesParameter = imageNameFactory.buildPackagesParameter(packageType, osPackageNames)
 
     def parameterMap = buildParameterMap(region, virtualizationSettings, imageName, bakeRequest)
 

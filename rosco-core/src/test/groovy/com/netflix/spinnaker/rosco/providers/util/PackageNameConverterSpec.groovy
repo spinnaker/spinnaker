@@ -20,7 +20,7 @@ import com.netflix.spinnaker.rosco.api.BakeRequest
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class PackageNameConverterSpec extends Specification {
+class PackageNameConverterSpec extends Specification implements TestDefaults {
   @Unroll
   void "deb package names are properly parsed"() {
     when:
@@ -108,7 +108,7 @@ class PackageNameConverterSpec extends Specification {
     setup:
       def debPackageName = "nflx-djangobase-enhanced_0.1-h123.170cdbd_all"
       def appVersionStr = "nflx-djangobase-enhanced-0.1-h123.170cdbd/some-job-name/123"
-      def packageType = BakeRequest.PackageType.DEB
+      def packageType = DEB_PACKAGE_TYPE
       def bakeRequest = new BakeRequest(base_os: "ubuntu",
                                         job: "some-job-name",
                                         build_number: "123",
@@ -126,7 +126,7 @@ class PackageNameConverterSpec extends Specification {
     setup:
       def debPackageName = "nflx-djangobase-enhanced_0.1-h123.170cdbd_all"
       def appVersionStr = "nflx-djangobase-enhanced-0.1-h123.170cdbd/compose-job-name/123"
-      def packageType = BakeRequest.PackageType.DEB
+      def packageType = DEB_PACKAGE_TYPE
       def bakeRequest = new BakeRequest(base_os: "ubuntu", job: "compose/job/name", build_number: "123", commit_hash: "170cdbd")
 
     when:
@@ -140,7 +140,7 @@ class PackageNameConverterSpec extends Specification {
   void "if job is missing, app version string leaves off both job and build_number"() {
     setup:
       def debPackageName = "nflx-djangobase-enhanced_0.1-h12.170cdbd_all"
-      def packageType = BakeRequest.PackageType.DEB
+      def packageType = DEB_PACKAGE_TYPE
       def appVersionStr = "nflx-djangobase-enhanced-0.1-h12.170cdbd"
 
     when:
@@ -152,6 +152,18 @@ class PackageNameConverterSpec extends Specification {
 
     then:
       appVersionStrFromDebPackageName == appVersionStr
+  }
+
+  void "if package_name is empty we should have an empty list of OsPackageNames"() {
+    setup:
+      def debPackageNames = []
+      def packageType = DEB_PACKAGE_TYPE
+
+    when:
+      def parsedDebPackageNames = PackageNameConverter.buildOsPackageNames(packageType, debPackageNames)
+
+    then:
+      parsedDebPackageNames.empty
   }
 
 }

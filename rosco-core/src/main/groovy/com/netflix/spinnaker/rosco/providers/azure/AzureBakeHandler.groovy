@@ -21,6 +21,7 @@ import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.azure.config.RoscoAzureConfiguration
+import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -29,6 +30,7 @@ public class AzureBakeHandler extends CloudProviderBakeHandler{
 
   private static final String BUILDER_TYPE  = "azure-arm"
   private static final String IMAGE_NAME_TOKEN = "OSDiskUri:"
+  private ImageNameFactory imageNameFactory
 
   @Autowired
   RoscoAzureConfiguration.AzureBakeryDefaults azureBakeryDefaults
@@ -47,6 +49,12 @@ public class AzureBakeHandler extends CloudProviderBakeHandler{
       cloudProvider: BakeRequest.CloudProviderType.azure,
       baseImages: azureBakeryDefaults?.baseImages?.collect { it.baseImage }
     )
+  }
+
+  @Override
+  ImageNameFactory getImageNameFactory() {
+    if (imageNameFactory) return imageNameFactory
+    return new ImageNameFactory()
   }
 
   @Override

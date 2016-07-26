@@ -20,23 +20,22 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
+import com.netflix.spinnaker.rosco.providers.util.PackageNameConverter
 import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
 import com.netflix.spinnaker.rosco.providers.google.config.RoscoGoogleConfiguration
 import com.netflix.spinnaker.rosco.providers.google.config.RoscoGoogleConfiguration.GCEBakeryDefaults
+import com.netflix.spinnaker.rosco.providers.util.TestDefaults
 import spock.lang.Shared
 import spock.lang.Subject
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class GCEBakeHandlerSpec extends Specification {
+class GCEBakeHandlerSpec extends Specification implements TestDefaults{
 
-  private static final String PACKAGES_NAME = "kato nflx-djangobase-enhanced_0.1-h12.170cdbd_all mongodb"
   private static final String REGION = "us-central1"
   private static final String SOURCE_UBUNTU_IMAGE_NAME = "some-ubuntu-image"
   private static final String SOURCE_TRUSTY_IMAGE_NAME = "some-trusty-image"
   private static final String SOURCE_CENTOS_HVM_IMAGE_NAME = "some-centos-image"
-  private static final String DEBIAN_REPOSITORY = "http://some-debian-repository"
-  private static final String YUM_REPOSITORY = "http://some-yum-repository"
 
   @Shared
   String configDir = "/some/path"
@@ -159,6 +158,7 @@ class GCEBakeHandlerSpec extends Specification {
                                         base_os: "ubuntu",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
       def targetImageName = "kato-x8664-timestamp-ubuntu"
+      def osPackages = parseDebOsPackageNames(bakeRequest.package_name)
       def parameterMap = [
         gce_project_id: googleConfigurationProperties.accounts.get(0).project,
         gce_zone: gceBakeryDefaults.zone,
@@ -166,7 +166,7 @@ class GCEBakeHandlerSpec extends Specification {
         gce_source_image: SOURCE_UBUNTU_IMAGE_NAME,
         gce_target_image: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: BakeRequest.PackageType.DEB.packageType,
+        package_type: DEB_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -183,7 +183,9 @@ class GCEBakeHandlerSpec extends Specification {
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
   }
 
@@ -196,6 +198,7 @@ class GCEBakeHandlerSpec extends Specification {
                                         base_os: "centos",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
       def targetImageName = "kato-x8664-timestamp-centos"
+      def osPackages = parseRpmOsPackageNames(bakeRequest.package_name)
       def parameterMap = [
         gce_project_id: googleConfigurationProperties.accounts.get(0).project,
         gce_zone: gceBakeryDefaults.zone,
@@ -203,7 +206,7 @@ class GCEBakeHandlerSpec extends Specification {
         gce_source_image: SOURCE_CENTOS_HVM_IMAGE_NAME,
         gce_target_image: targetImageName,
         repository: YUM_REPOSITORY,
-        package_type: BakeRequest.PackageType.RPM.packageType,
+        package_type: RPM_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -220,7 +223,9 @@ class GCEBakeHandlerSpec extends Specification {
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(RPM_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
   }
 
@@ -234,6 +239,7 @@ class GCEBakeHandlerSpec extends Specification {
                                         base_ami: "some-gce-image-name",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
       def targetImageName = "kato-x8664-timestamp-ubuntu"
+      def osPackages = parseDebOsPackageNames(bakeRequest.package_name)
       def parameterMap = [
         gce_project_id: googleConfigurationProperties.accounts.get(0).project,
         gce_zone: gceBakeryDefaults.zone,
@@ -241,7 +247,7 @@ class GCEBakeHandlerSpec extends Specification {
         gce_source_image: "some-gce-image-name",
         gce_target_image: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: BakeRequest.PackageType.DEB.packageType,
+        package_type: DEB_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -258,7 +264,9 @@ class GCEBakeHandlerSpec extends Specification {
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
   }
 
@@ -271,6 +279,7 @@ class GCEBakeHandlerSpec extends Specification {
                                         base_os: "ubuntu",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce,
                                         template_file_name: "somePackerTemplate.json")
+      def osPackages = parseDebOsPackageNames(bakeRequest.package_name)
       def targetImageName = "kato-x8664-timestamp-ubuntu"
       def parameterMap = [
         gce_project_id: googleConfigurationProperties.accounts.get(0).project,
@@ -279,7 +288,7 @@ class GCEBakeHandlerSpec extends Specification {
         gce_source_image: SOURCE_UBUNTU_IMAGE_NAME,
         gce_target_image: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: BakeRequest.PackageType.DEB.packageType,
+        package_type: DEB_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -296,7 +305,9 @@ class GCEBakeHandlerSpec extends Specification {
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/somePackerTemplate.json")
   }
 
@@ -310,6 +321,7 @@ class GCEBakeHandlerSpec extends Specification {
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce,
                                         extended_attributes: [someAttr1: "someValue1", someAttr2: "someValue2"])
       def targetImageName = "kato-x8664-timestamp-ubuntu"
+      def osPackages = parseDebOsPackageNames(bakeRequest.package_name)
       def parameterMap = [
         gce_project_id: googleConfigurationProperties.accounts.get(0).project,
         gce_zone: gceBakeryDefaults.zone,
@@ -317,7 +329,7 @@ class GCEBakeHandlerSpec extends Specification {
         gce_source_image: SOURCE_UBUNTU_IMAGE_NAME,
         gce_target_image: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: BakeRequest.PackageType.DEB.packageType,
+        package_type: DEB_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir,
         someAttr1: "someValue1",
@@ -336,7 +348,9 @@ class GCEBakeHandlerSpec extends Specification {
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
   }
 
@@ -350,6 +364,7 @@ class GCEBakeHandlerSpec extends Specification {
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce,
                                         extended_attributes: [gce_zone: "europe-west1-b", gce_network: "other-network"])
       def targetImageName = "kato-x8664-timestamp-ubuntu"
+      def osPackages = parseDebOsPackageNames(bakeRequest.package_name)
       def parameterMap = [
         gce_project_id: googleConfigurationProperties.accounts.get(0).project,
         gce_zone: "europe-west1-b",
@@ -357,7 +372,7 @@ class GCEBakeHandlerSpec extends Specification {
         gce_source_image: SOURCE_UBUNTU_IMAGE_NAME,
         gce_target_image: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: BakeRequest.PackageType.DEB.packageType,
+        package_type: DEB_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -374,7 +389,9 @@ class GCEBakeHandlerSpec extends Specification {
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
   }
 
@@ -386,6 +403,7 @@ class GCEBakeHandlerSpec extends Specification {
                                         package_name: PACKAGES_NAME,
                                         base_os: "trusty",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
+      def osPackages = parseDebOsPackageNames(bakeRequest.package_name)
       def targetImageName = "kato-x8664-timestamp-trusty"
       def parameterMap = [
         gce_project_id: googleConfigurationProperties.accounts.get(0).project,
@@ -394,7 +412,7 @@ class GCEBakeHandlerSpec extends Specification {
         gce_source_image: SOURCE_TRUSTY_IMAGE_NAME,
         gce_target_image: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: BakeRequest.PackageType.DEB.packageType,
+        package_type: DEB_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -411,7 +429,9 @@ class GCEBakeHandlerSpec extends Specification {
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
   }
 
@@ -427,6 +447,7 @@ class GCEBakeHandlerSpec extends Specification {
                                         base_os: "trusty",
                                         build_host: buildHost,
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
+      def osPackage = PackageNameConverter.parseDebPackageName(bakeRequest.package_name)
       def targetImageName = "kato-x8664-timestamp-trusty"
       def parameterMap = [
         gce_project_id: googleConfigurationProperties.accounts.get(0).project,
@@ -435,7 +456,7 @@ class GCEBakeHandlerSpec extends Specification {
         gce_source_image: SOURCE_TRUSTY_IMAGE_NAME,
         gce_target_image: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: BakeRequest.PackageType.DEB.packageType,
+        package_type: DEB_PACKAGE_TYPE.packageType,
         packages: fullyQualifiedPackageName,
         configDir: configDir,
         appversion: appVersionStr,
@@ -454,8 +475,9 @@ class GCEBakeHandlerSpec extends Specification {
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >>
-        [targetImageName, appVersionStr, fullyQualifiedPackageName]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, [osPackage]) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, [osPackage]) >> appVersionStr
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, [osPackage]) >> fullyQualifiedPackageName
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
   }
 
@@ -490,6 +512,7 @@ class GCEBakeHandlerSpec extends Specification {
                                         package_name: PACKAGES_NAME,
                                         base_os: "trusty",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
+      def osPackages = parseDebOsPackageNames(bakeRequest.package_name)
       def targetImageName = "kato-x8664-timestamp-trusty"
 
       @Subject
@@ -503,7 +526,8 @@ class GCEBakeHandlerSpec extends Specification {
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-    1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+
       IllegalArgumentException e = thrown()
       e.message == "No Google account specified for bakery."
   }

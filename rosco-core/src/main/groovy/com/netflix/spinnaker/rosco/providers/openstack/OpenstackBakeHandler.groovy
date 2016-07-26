@@ -21,6 +21,7 @@ import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.openstack.config.RoscoOpenstackConfiguration
+import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -34,6 +35,7 @@ public class OpenstackBakeHandler extends CloudProviderBakeHandler {
 
   private static final String BUILDER_TYPE = 'openstack'
   private static final String IMAGE_NAME_TOKEN = 'openstack: An image was created:'
+  private ImageNameFactory imageNameFactory
 
   @Autowired
   RoscoOpenstackConfiguration.OpenstackBakeryDefaults openstackBakeryDefaults
@@ -49,6 +51,12 @@ public class OpenstackBakeHandler extends CloudProviderBakeHandler {
       cloudProvider: BakeRequest.CloudProviderType.openstack,
       baseImages: openstackBakeryDefaults?.baseImages?.collect { it.baseImage }
     )
+  }
+
+  @Override
+  ImageNameFactory getImageNameFactory() {
+    if (imageNameFactory) return imageNameFactory
+    return new ImageNameFactory()
   }
 
   @Override

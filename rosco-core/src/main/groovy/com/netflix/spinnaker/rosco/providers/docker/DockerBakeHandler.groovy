@@ -21,6 +21,7 @@ import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.docker.config.RoscoDockerConfiguration
+import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -29,6 +30,7 @@ public class DockerBakeHandler extends CloudProviderBakeHandler {
 
   private static final String BUILDER_TYPE = "docker"
   private static final String IMAGE_NAME_TOKEN = "Repository:"
+  private ImageNameFactory imageNameFactory
 
   @Autowired
   RoscoDockerConfiguration.DockerBakeryDefaults dockerBakeryDefaults
@@ -43,6 +45,12 @@ public class DockerBakeHandler extends CloudProviderBakeHandler {
       cloudProvider: BakeRequest.CloudProviderType.docker,
       baseImages: dockerBakeryDefaults?.baseImages?.collect { it.baseImage }
     )
+  }
+
+  @Override
+  ImageNameFactory getImageNameFactory() {
+    if (imageNameFactory) return imageNameFactory
+    return new ImageNameFactory()
   }
 
   @Override

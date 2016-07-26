@@ -16,10 +16,13 @@
 
 package com.netflix.spinnaker.rosco.providers.util
 
+import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.rosco.api.BakeRequest
+import com.netflix.spinnaker.rosco.api.BakeRequest.PackageType
 import groovy.transform.EqualsAndHashCode
-import org.springframework.util.StringUtils
+import groovy.util.logging.Slf4j
 
+@Slf4j
 class PackageNameConverter {
 
   @EqualsAndHashCode
@@ -28,6 +31,14 @@ class PackageNameConverter {
     String version
     String release
     String arch
+
+    public String qualifiedPackageName(PackageType packageType) {
+      if (!version || !release) return null // Not possible to generate without these
+
+      String versionDelimiter = packageType.getVersionDelimiter()
+      "${name}${versionDelimiter}${version}-${release}"
+    }
+
   }
 
   // Naming-convention for debs is name_version-release_arch.
@@ -66,6 +77,7 @@ class PackageNameConverter {
   // For example: nflx-djangobase-enhanced-0.1-h12.170cdbd.all
   public static OsPackageName parseRpmPackageName(String fullyQualifiedPackageName) {
     OsPackageName osPackageName = new OsPackageName()
+    String versionDelimiter = BakeRequest.PackageType.RPM.getVersionDelimiter()
 
     osPackageName.with {
       if (fullyQualifiedPackageName) {
@@ -82,6 +94,8 @@ class PackageNameConverter {
           release = parts.pop()
           version = parts.pop()
           name = parts.join("-")
+        } else {
+          name = fullyQualifiedPackageName
         }
       }
     }
@@ -90,7 +104,7 @@ class PackageNameConverter {
   }
 
   public static OsPackageName buildOsPackageName(BakeRequest.PackageType packageType, String packageName) {
-    switch(packageType) {
+    switch (packageType) {
       case BakeRequest.PackageType.DEB:
         return PackageNameConverter.parseDebPackageName(packageName)
       case BakeRequest.PackageType.RPM:
@@ -98,6 +112,12 @@ class PackageNameConverter {
       default:
         throw new IllegalArgumentException("Unrecognized packageType '$packageType'.")
     }
+  }
+
+  public static List<OsPackageName> buildOsPackageNames(BakeRequest.PackageType packageType, List<String> packageNames) {
+    packageNames.collect{ packageName ->
+      buildOsPackageName(packageType, packageName)
+    }.findAll{it.name}
   }
 
   public static String buildAppVersionStr(BakeRequest bakeRequest, OsPackageName osPackageName) {
@@ -128,7 +148,11 @@ class PackageNameConverter {
       }
     }
 
+    if (!AppVersion.parseName(appVersion)) {
+      log.debug("AppVersion.parseName() was unable to parse appVersionStr =$appVersion.")
+      return null
+    }
+
     appVersion
   }
-
 }

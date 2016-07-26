@@ -21,22 +21,21 @@ import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.docker.config.RoscoDockerConfiguration
 import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
+import com.netflix.spinnaker.rosco.providers.util.PackageNameConverter
 import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
+import com.netflix.spinnaker.rosco.providers.util.TestDefaults
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
-class DockerBakeHandlerSpec extends Specification {
+class DockerBakeHandlerSpec extends Specification implements TestDefaults {
 
-  private static final String PACKAGES_NAME = "kato-nflx-djangobase-enhanced_0.1-h12.170cdbd_all-mongodb"
   private static final String REGION = "global"
   private static final String TARGET_REPOSITORY = "my-docker-repository:5000"
   private static final String TEMPLATE_FILE = "docker_template.json"
   private static final String SOURCE_UBUNTU_IMAGE_NAME = "ubuntu:precise"
   private static final String SOURCE_TRUSTY_IMAGE_NAME = "ubuntu:trusty"
   private static final String SOURCE_CENTOS_HVM_IMAGE_NAME = "centos:6"
-  private static final String DEBIAN_REPOSITORY = "http://some-debian-repository"
-  private static final String YUM_REPOSITORY = "http://some-yum-repository"
 
   @Shared
   String configDir = "/some/path"
@@ -152,12 +151,13 @@ class DockerBakeHandlerSpec extends Specification {
                                         base_os: "ubuntu",
                                         cloud_provider_type: BakeRequest.CloudProviderType.docker)
       def targetImageName = "kato-x8664-timestamp-ubuntu"
+      def osPackages = parseDebOsPackageNames(bakeRequest.package_name)
       def parameterMap = [
         docker_source_image: SOURCE_UBUNTU_IMAGE_NAME,
         docker_target_image: targetImageName,
         docker_target_repository: TARGET_REPOSITORY,
         repository: DEBIAN_REPOSITORY,
-        package_type: BakeRequest.PackageType.DEB.packageType,
+        package_type: DEB_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -173,7 +173,9 @@ class DockerBakeHandlerSpec extends Specification {
       dockerBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$dockerBakeryDefaults.templateFile")
   }
 
@@ -186,12 +188,13 @@ class DockerBakeHandlerSpec extends Specification {
                                         base_os: "trusty",
                                         cloud_provider_type: BakeRequest.CloudProviderType.docker)
       def targetImageName = "kato-x8664-timestamp-trusty"
+      def osPackages = parseDebOsPackageNames(bakeRequest.package_name)
       def parameterMap = [
         docker_source_image: SOURCE_TRUSTY_IMAGE_NAME,
         docker_target_image: targetImageName,
         docker_target_repository: TARGET_REPOSITORY,
         repository: DEBIAN_REPOSITORY,
-        package_type: BakeRequest.PackageType.DEB.packageType,
+        package_type: DEB_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -207,7 +210,9 @@ class DockerBakeHandlerSpec extends Specification {
       dockerBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$dockerBakeryDefaults.templateFile")
   }
 
@@ -220,12 +225,13 @@ class DockerBakeHandlerSpec extends Specification {
                                         base_os: "centos",
                                         cloud_provider_type: BakeRequest.CloudProviderType.docker)
       def targetImageName = "kato-x8664-timestamp-centos"
+      def osPackages = parseRpmOsPackageNames(bakeRequest.package_name)
       def parameterMap = [
         docker_source_image: SOURCE_CENTOS_HVM_IMAGE_NAME,
         docker_target_image: targetImageName,
         docker_target_repository: TARGET_REPOSITORY,
         repository: YUM_REPOSITORY,
-        package_type: BakeRequest.PackageType.RPM.packageType,
+        package_type: RPM_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -241,7 +247,9 @@ class DockerBakeHandlerSpec extends Specification {
       dockerBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(RPM_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$dockerBakeryDefaults.templateFile")
   }
 
@@ -257,13 +265,14 @@ class DockerBakeHandlerSpec extends Specification {
                                         base_os: "trusty",
                                         build_host: buildHost,
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
+      def osPackage = PackageNameConverter.parseDebPackageName(bakeRequest.package_name)
       def targetImageName = "kato-x8664-timestamp-trusty"
       def parameterMap = [
         docker_source_image: SOURCE_TRUSTY_IMAGE_NAME,
         docker_target_image: targetImageName,
         docker_target_repository: TARGET_REPOSITORY,
         repository: DEBIAN_REPOSITORY,
-        package_type: BakeRequest.PackageType.DEB.packageType,
+        package_type: DEB_PACKAGE_TYPE.packageType,
         packages: fullyQualifiedPackageName,
         configDir: configDir,
         appversion: appVersionStr,
@@ -281,8 +290,9 @@ class DockerBakeHandlerSpec extends Specification {
       dockerBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >>
-        [targetImageName, appVersionStr, fullyQualifiedPackageName]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, [osPackage]) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, [osPackage]) >> appVersionStr
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, [osPackage]) >> fullyQualifiedPackageName
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$dockerBakeryDefaults.templateFile")
   }
 

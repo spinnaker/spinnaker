@@ -21,6 +21,7 @@ import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.google.config.RoscoGoogleConfiguration
+import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -29,6 +30,7 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
 
   private static final String BUILDER_TYPE = "googlecompute"
   private static final String IMAGE_NAME_TOKEN = "googlecompute: A disk image was created:"
+  private ImageNameFactory imageNameFactory
 
   @Autowired
   RoscoGoogleConfiguration.GCEBakeryDefaults gceBakeryDefaults
@@ -48,6 +50,13 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
       baseImages: gceBakeryDefaults?.baseImages?.collect { it.baseImage }
     )
   }
+
+  @Override
+  ImageNameFactory getImageNameFactory() {
+    if (imageNameFactory) return imageNameFactory
+    return new ImageNameFactory()
+  }
+
 
   @Override
   def findVirtualizationSettings(String region, BakeRequest bakeRequest) {

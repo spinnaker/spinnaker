@@ -22,22 +22,21 @@ import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.config.RoscoConfiguration
 import com.netflix.spinnaker.rosco.providers.aws.config.RoscoAWSConfiguration
 import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
+import com.netflix.spinnaker.rosco.providers.util.PackageNameConverter
 import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
+import com.netflix.spinnaker.rosco.providers.util.TestDefaults
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-class AWSBakeHandlerSpec extends Specification {
+class AWSBakeHandlerSpec extends Specification implements TestDefaults {
 
-  private static final String PACKAGES_NAME = "kato nflx-djangobase-enhanced_0.1-h12.170cdbd_all mongodb"
   private static final String REGION = "us-east-1"
   private static final String SOURCE_UBUNTU_HVM_IMAGE_NAME = "ami-a123456b"
   private static final String SOURCE_UBUNTU_PV_IMAGE_NAME = "ami-a654321b"
   private static final String SOURCE_TRUSTY_HVM_IMAGE_NAME = "ami-c456789d"
   private static final String SOURCE_AMZN_HVM_IMAGE_NAME = "ami-8fcee4e5"
-  private static final String DEBIAN_REPOSITORY = "http://some-debian-repository"
-  private static final String YUM_REPOSITORY = "http://some-yum-repository"
 
   @Shared
   String configDir = "/some/path"
@@ -281,14 +280,15 @@ class AWSBakeHandlerSpec extends Specification {
 
   void 'produces packer command with all required parameters for ubuntu, using default vm type'() {
     setup:
-      def imageNameFactoryMock = Mock(ImageNameFactory)
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
+      def imageNameFactoryMock = Mock(ImageNameFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGES_NAME,
                                         base_os: "ubuntu",
                                         vm_type: BakeRequest.VmType.hvm,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
       def targetImageName = "kato-x8664-timestamp-ubuntu"
+      def osPackages = parseDebOsPackageNames(PACKAGES_NAME)
       def parameterMap = [
         aws_region: REGION,
         aws_ssh_username: "ubuntu",
@@ -296,7 +296,7 @@ class AWSBakeHandlerSpec extends Specification {
         aws_source_ami: SOURCE_UBUNTU_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: BakeRequest.PackageType.DEB.packageType,
+        package_type: DEB_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -312,20 +312,23 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
   void 'produces packer command with all required parameters for amzn, using default vm type'() {
     setup:
-      def imageNameFactoryMock = Mock(ImageNameFactory)
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
+      def imageNameFactoryMock = Mock(ImageNameFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGES_NAME,
                                         base_os: "amzn",
                                         vm_type: BakeRequest.VmType.hvm,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
       def targetImageName = "kato-x8664-timestamp-amzn"
+      def osPackages = parseRpmOsPackageNames(PACKAGES_NAME)
       def parameterMap = [
         aws_region: REGION,
         aws_ssh_username: "ec2-user",
@@ -333,7 +336,7 @@ class AWSBakeHandlerSpec extends Specification {
         aws_source_ami: SOURCE_AMZN_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
         repository: YUM_REPOSITORY,
-        package_type: BakeRequest.PackageType.RPM.packageType,
+        package_type: RPM_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -349,7 +352,9 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(RPM_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
@@ -386,6 +391,8 @@ class AWSBakeHandlerSpec extends Specification {
         vm_type: BakeRequest.VmType.hvm,
         cloud_provider_type: BakeRequest.CloudProviderType.aws)
       def targetImageName = "kato-x8664-timestamp-amzn"
+      def osPackages = parseRpmOsPackageNames(PACKAGES_NAME)
+
       def parameterMap = [
         aws_region: REGION,
         aws_ssh_username: "ec2-user",
@@ -393,7 +400,7 @@ class AWSBakeHandlerSpec extends Specification {
         aws_source_ami: SOURCE_AMZN_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
         repository: YUM_REPOSITORY,
-        package_type: BakeRequest.PackageType.RPM.packageType,
+        package_type: RPM_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -410,7 +417,9 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(RPM_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("sudo", parameterMap, "$configDir/aws-chroot.json")
   }
 
@@ -425,6 +434,7 @@ class AWSBakeHandlerSpec extends Specification {
                                         vm_type: BakeRequest.VmType.hvm,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
       def targetImageName = "kato-x8664-timestamp-ubuntu"
+      def osPackages = parseDebOsPackageNames(PACKAGES_NAME)
       def parameterMap = [
         aws_region: REGION,
         aws_ssh_username: "ubuntu",
@@ -432,7 +442,7 @@ class AWSBakeHandlerSpec extends Specification {
         aws_source_ami: "ami-12345678",
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: BakeRequest.PackageType.DEB.packageType,
+        package_type: DEB_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -448,7 +458,9 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
@@ -462,6 +474,7 @@ class AWSBakeHandlerSpec extends Specification {
                                         vm_type: BakeRequest.VmType.pv,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
       def targetImageName = "kato-x8664-timestamp-ubuntu"
+      def osPackages = parseDebOsPackageNames(PACKAGES_NAME)
       def parameterMap = [
         aws_region: REGION,
         aws_ssh_username: "ubuntu",
@@ -469,7 +482,7 @@ class AWSBakeHandlerSpec extends Specification {
         aws_source_ami: SOURCE_UBUNTU_PV_IMAGE_NAME,
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: BakeRequest.PackageType.DEB.packageType,
+        package_type: DEB_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -485,7 +498,9 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
@@ -499,6 +514,7 @@ class AWSBakeHandlerSpec extends Specification {
                                         vm_type: BakeRequest.VmType.pv,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws,
                                         template_file_name: "somePackerTemplate.json")
+      def osPackages = parseDebOsPackageNames(PACKAGES_NAME)
       def targetImageName = "kato-x8664-timestamp-ubuntu"
       def parameterMap = [
         aws_region: REGION,
@@ -507,7 +523,7 @@ class AWSBakeHandlerSpec extends Specification {
         aws_source_ami: SOURCE_UBUNTU_PV_IMAGE_NAME,
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: BakeRequest.PackageType.DEB.packageType,
+        package_type: DEB_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -523,7 +539,9 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/somePackerTemplate.json")
   }
 
@@ -538,6 +556,7 @@ class AWSBakeHandlerSpec extends Specification {
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws,
                                         extended_attributes: [someAttr1: "someValue1", someAttr2: "someValue2"])
       def targetImageName = "kato-x8664-timestamp-ubuntu"
+      def osPackages = parseDebOsPackageNames(PACKAGES_NAME)
       def parameterMap = [
         aws_region: REGION,
         aws_ssh_username: "ubuntu",
@@ -545,7 +564,7 @@ class AWSBakeHandlerSpec extends Specification {
         aws_source_ami: SOURCE_UBUNTU_PV_IMAGE_NAME,
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: BakeRequest.PackageType.DEB.packageType,
+        package_type: DEB_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir,
         someAttr1: "someValue1",
@@ -563,7 +582,9 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
@@ -577,6 +598,7 @@ class AWSBakeHandlerSpec extends Specification {
                                         vm_type: BakeRequest.VmType.hvm,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
       def targetImageName = "kato-x8664-timestamp-trusty"
+      def osPackages = parseDebOsPackageNames(PACKAGES_NAME)
       def parameterMap = [
         aws_region: REGION,
         aws_ssh_username: "ubuntu",
@@ -584,7 +606,7 @@ class AWSBakeHandlerSpec extends Specification {
         aws_source_ami: SOURCE_TRUSTY_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: BakeRequest.PackageType.DEB.packageType,
+        package_type: DEB_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -600,7 +622,9 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
@@ -620,6 +644,7 @@ class AWSBakeHandlerSpec extends Specification {
                                         build_info_url: buildInfoUrl,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
       def targetImageName = "kato-x8664-timestamp-trusty"
+      def osPackages = [PackageNameConverter.parseDebPackageName(fullyQualifiedPackageName)]
       def parameterMap = [
         aws_region: REGION,
         aws_ssh_username: "ubuntu",
@@ -627,7 +652,7 @@ class AWSBakeHandlerSpec extends Specification {
         aws_source_ami: SOURCE_TRUSTY_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: BakeRequest.PackageType.DEB.packageType,
+        package_type: DEB_PACKAGE_TYPE.packageType,
         packages: fullyQualifiedPackageName,
         configDir: configDir,
         appversion: appVersionStr,
@@ -646,8 +671,9 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >>
-        [targetImageName, appVersionStr, fullyQualifiedPackageName]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> appVersionStr
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> fullyQualifiedPackageName
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
@@ -662,6 +688,7 @@ class AWSBakeHandlerSpec extends Specification {
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws,
                                         upgrade: true)
       def targetImageName = "kato-x8664-timestamp-ubuntu"
+      def osPackages = parseDebOsPackageNames(PACKAGES_NAME)
       def parameterMap = [
         aws_region: REGION,
         aws_ssh_username: "ubuntu",
@@ -669,7 +696,7 @@ class AWSBakeHandlerSpec extends Specification {
         aws_source_ami: SOURCE_UBUNTU_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: BakeRequest.PackageType.DEB.packageType,
+        package_type: DEB_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
         upgrade: true,
         configDir: configDir
@@ -686,7 +713,9 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGES_NAME]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
@@ -877,6 +906,7 @@ class AWSBakeHandlerSpec extends Specification {
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws,
                                         extended_attributes: [share_with: share_account],
                                         build_info_url: buildInfoUrl)
+      def osPackages = parseDebOsPackageNames(fullyQualifiedPackageName)
       def targetImageName = "kato-x8664-timestamp-trusty"
       def parameterMap = [
         aws_region: REGION,
@@ -884,7 +914,7 @@ class AWSBakeHandlerSpec extends Specification {
         aws_instance_type: "t2.micro",
         aws_source_ami: SOURCE_TRUSTY_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
-        package_type: BakeRequest.PackageType.DEB.packageType,
+        package_type: DEB_PACKAGE_TYPE.packageType,
         repository: DEBIAN_REPOSITORY,
         packages: fullyQualifiedPackageName,
         share_with_1: "000001",
@@ -907,7 +937,9 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, appVersionStr, fullyQualifiedPackageName]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> appVersionStr
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> fullyQualifiedPackageName
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
@@ -928,6 +960,7 @@ class AWSBakeHandlerSpec extends Specification {
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws,
                                         extended_attributes: [copy_to: copy_regions],
                                         build_info_url: buildInfoUrl)
+      def osPackages = parseDebOsPackageNames(fullyQualifiedPackageName)
       def targetImageName = "kato-x8664-timestamp-trusty"
       def parameterMap = [
         aws_region: REGION,
@@ -935,7 +968,7 @@ class AWSBakeHandlerSpec extends Specification {
         aws_instance_type: "t2.micro",
         aws_source_ami: SOURCE_TRUSTY_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
-        package_type: BakeRequest.PackageType.DEB.packageType,
+        package_type: DEB_PACKAGE_TYPE.packageType,
         repository: DEBIAN_REPOSITORY,
         packages: fullyQualifiedPackageName,
         copy_to_1: "us-west-1",
@@ -958,7 +991,9 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, appVersionStr, fullyQualifiedPackageName]
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> appVersionStr
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> fullyQualifiedPackageName
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 }

@@ -16,27 +16,59 @@
 
 package com.netflix.spinnaker.rosco.providers.util
 
-import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
+import com.netflix.spinnaker.rosco.api.BakeRequest.PackageType
+import groovy.util.logging.Slf4j
 
-interface ImageNameFactory {
+import java.time.Clock
 
   /**
-   * This method is responsible for:
-   *   - Producing an image name.
-   *   - (If one or more package names are specified) Attempting to derive the AppVersion descriptor from the
-   *     first package name. If the AppVersion could not be derived, this value will be null.
-   *
-   * This method always returns a list of size 3 with the following elements:
-   *   1) A derived image name (to be used for naming the image being baked).
-   *   2) The appversion string (to be used for tagging the newly-baked image).
-   *   3) The updated list of packages to be used for overriding the passed package list (this will be removed once the
-   *      temporary workaround described above is removed).
-   *
-   * This function is not required to return the same image name on multiple invocations with the same bake request.
-   *
-   * Returns [imageName, appVersionStr, packagesParameter].
+   * Default implementation of ImageNameFactory relies on the structure of first package_name,
+   * a timestamp, and the base_os. For more fine grained conventions, extend this class, override the required
+   * methods and alter your provider specific BakeHandlers getImageNameFactory method to reflect the change.
    */
-  def deriveImageNameAndAppVersion(BakeRequest bakeRequest, BakeOptions.Selected selectedOptions)
 
+@Slf4j
+public class ImageNameFactory {
+
+  Clock clock = Clock.systemUTC()
+
+  /**
+   * Attempts to produce an appVersionStr from the first packageName; to be used for tagging the newly-baked image
+   */
+  def buildAppVersionStr(BakeRequest bakeRequest, List<PackageNameConverter.OsPackageName> osPackageNames) {
+    String appVersionStr = null
+
+    if (osPackageNames) {
+      appVersionStr = PackageNameConverter.buildAppVersionStr(bakeRequest, osPackageNames.first())
+    }
+
+    return appVersionStr
+  }
+
+  /**
+   * Produces an imageName either from the BakeRequest.ami_name or the first package to be installed.
+   * This is to be used for naming the image being baked. Note that this function is not required to
+   * return the same image name on multiple invocations with the same bake request
+   */
+  def buildImageName(BakeRequest bakeRequest, List<PackageNameConverter.OsPackageName> osPackageNames) {
+    String timestamp = clock.millis()
+    String baseImageName = osPackageNames ? osPackageNames.first()?.name : ""
+    String baseImageArch = osPackageNames ? osPackageNames.first()?.arch : "all"
+
+    String baseName = bakeRequest.ami_name ?: baseImageName
+    String arch = baseImageArch ?: "all"
+    String release = bakeRequest.ami_suffix ?: timestamp
+
+    [baseName, arch, release, bakeRequest.base_os].findAll{it}.join("-")
+  }
+
+  /**
+   * Returns packagesParameter; the updated list of packages to be used for overriding the passed package list
+   */
+  def buildPackagesParameter(PackageType packageType, List<PackageNameConverter.OsPackageName> osPackageNames) {
+    osPackageNames.collect { osPackageName ->
+      osPackageName.qualifiedPackageName(packageType) ?: osPackageName.name
+    }.join(" ")
+  }
 }
