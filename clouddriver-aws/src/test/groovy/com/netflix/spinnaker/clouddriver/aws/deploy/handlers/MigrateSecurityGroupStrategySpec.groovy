@@ -163,10 +163,36 @@ class MigrateSecurityGroupStrategySpec extends Specification {
     def source = new SecurityGroupLocation(credentials: testCredentials, region: 'us-east-1', name: 'infra-g1')
     def target = new SecurityGroupLocation(credentials: testCredentials, region: 'us-west-1')
     def sourceGroup = new SecurityGroup(groupName: 'infra-g1', groupId: 'sg-1', ownerId: testCredentials.accountId)
+    def targetGroup = new SecurityGroup(groupName: 'infra-g1', groupId: 'sg-3', ownerId: testCredentials.accountId)
     sourceGroup.ipPermissions = [
       new IpPermission().withUserIdGroupPairs(
         new UserIdGroupPair(userId: testCredentials.accountId, groupId: 'sg-2', groupName: 'group1')),
     ]
+    def sourceUpdater = Stub(SecurityGroupUpdater) {
+      getSecurityGroup() >> sourceGroup
+    }
+    def targetUpdater = Stub(SecurityGroupUpdater) {
+      getSecurityGroup() >> targetGroup
+    }
+
+    when:
+    def results = strategy.generateResults(source, target, sourceLookup, targetLookup, false, true)
+
+    then:
+    results.reused.size() == 1
+    results.reused.targetName == ['infra-g1']
+    results.skipped.empty
+    results.created.empty
+    1 * sourceLookup.getSecurityGroupByName('test', 'infra-g1', null) >> Optional.of(sourceUpdater)
+    2 * targetLookup.getSecurityGroupByName('test', 'infra-g1', null) >> Optional.of(targetUpdater)
+  }
+
+  void 'should skip infrastructure groups if not present in target'() {
+    given:
+    def source = new SecurityGroupLocation(credentials: testCredentials, region: 'us-east-1', name: 'infra-g1')
+    def target = new SecurityGroupLocation(credentials: testCredentials, region: 'us-west-1', vpcId: 'vpc-2')
+    def sourceGroup = new SecurityGroup(groupName: 'infra-g1', groupId: 'sg-1', ownerId: testCredentials.accountId)
+    sourceGroup.ipPermissions = []
     def sourceUpdater = Stub(SecurityGroupUpdater) {
       getSecurityGroup() >> sourceGroup
     }
@@ -175,12 +201,10 @@ class MigrateSecurityGroupStrategySpec extends Specification {
     def results = strategy.generateResults(source, target, sourceLookup, targetLookup, false, true)
 
     then:
-    results.created.size() == 1
-    results.created.targetName == ['infra-g1']
-    results.skipped.empty
-    results.reused.empty
+    results.created.size() == 0
+    results.skipped.targetName == ['infra-g1']
     1 * sourceLookup.getSecurityGroupByName('test', 'infra-g1', null) >> Optional.of(sourceUpdater)
-    1 * targetLookup.getSecurityGroupByName('test', 'infra-g1', null) >> Optional.empty()
+    1 * targetLookup.getSecurityGroupByName('test', 'infra-g1', 'vpc-2') >> Optional.empty()
   }
 
   void 'should skip missing dependencies if they belong to infrastructure apps'() {

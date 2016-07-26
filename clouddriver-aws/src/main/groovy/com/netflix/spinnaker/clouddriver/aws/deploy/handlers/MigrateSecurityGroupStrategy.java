@@ -46,8 +46,9 @@ public abstract class MigrateSecurityGroupStrategy {
 
   /**
    * Infrastructure applications are treated as optional, non-managed resources when performing migrations
+   *
    * @return
-     */
+   */
   abstract List<String> getInfrastructureApplications();
 
   /**
@@ -62,8 +63,8 @@ public abstract class MigrateSecurityGroupStrategy {
    * @return the result set
    */
   public synchronized MigrateSecurityGroupResult generateResults(SecurityGroupLocation source, SecurityGroupLocation target,
-                                                    SecurityGroupLookup sourceLookup, SecurityGroupLookup targetLookup,
-                                                    boolean createIfSourceMissing, boolean dryRun) {
+                                                                 SecurityGroupLookup sourceLookup, SecurityGroupLookup targetLookup,
+                                                                 boolean createIfSourceMissing, boolean dryRun) {
 
     this.sourceLookup = sourceLookup;
     this.targetLookup = targetLookup;
@@ -76,6 +77,13 @@ public abstract class MigrateSecurityGroupStrategy {
     );
     if (!createIfSourceMissing && !sourceUpdater.isPresent()) {
       throw new IllegalStateException("Security group does not exist: " + source.toString());
+    }
+
+    if (shouldSkipSource(source, target)) {
+      MigrateSecurityGroupReference skipped = createTargetSecurityGroupReference(source, target, null);
+      result.getSkipped().add(skipped);
+      result.setTarget(skipped);
+      return result;
     }
 
     Set<MigrateSecurityGroupReference> targetReferences = new HashSet<>();
@@ -134,7 +142,7 @@ public abstract class MigrateSecurityGroupStrategy {
       targetGroups.add(results.getTarget());
     }
     results.getCreated().forEach(r -> r.setTargetId(
-        createDependentSecurityGroup(r, source, target).getSecurityGroup().getGroupId()));
+      createDependentSecurityGroup(r, source, target).getSecurityGroup().getGroupId()));
 
     Optional<SecurityGroupUpdater> targetGroup = targetLookup.getSecurityGroupByName(
       target.getCredentialAccount(),
@@ -161,7 +169,7 @@ public abstract class MigrateSecurityGroupStrategy {
    * @return a list of security groups that need to be created in order to migrate the target security group
    */
   protected Set<MigrateSecurityGroupReference> shouldCreate(SecurityGroupLocation target,
-                                                         Set<MigrateSecurityGroupReference> references) {
+                                                            Set<MigrateSecurityGroupReference> references) {
 
     List<NetflixAmazonCredentials> credentials = references.stream()
       .map(AbstractAmazonCredentialsDescription::getCredentials).distinct().collect(Collectors.toList());
@@ -182,6 +190,21 @@ public abstract class MigrateSecurityGroupStrategy {
   }
 
   /**
+   * Determines whether this security group should be skipped without consideration of ingress rules
+   *
+   * @param source the source security group
+   * @param target the target location
+   * @return true if it should be skipped, false otherwise
+   */
+  protected boolean shouldSkipSource(SecurityGroupLocation source, SecurityGroupLocation target) {
+    if (getInfrastructureApplications().contains(Names.parseName(source.getName()).getApp())) {
+      Optional<SecurityGroupUpdater> targetGroup = targetLookup.getSecurityGroupByName(target.getCredentialAccount(), getTargetName(source.getName()), target.getVpcId());
+      return !targetGroup.isPresent();
+    }
+    return false;
+  }
+
+  /**
    * Returns references to all security groups that should halt the migration
    *
    * @param target     the target security group
@@ -191,7 +214,7 @@ public abstract class MigrateSecurityGroupStrategy {
    * will not run
    */
   protected Set<MigrateSecurityGroupReference> shouldError(SecurityGroupLocation target,
-                                                        Set<MigrateSecurityGroupReference> references) {
+                                                           Set<MigrateSecurityGroupReference> references) {
     return new HashSet<>();
   }
 
@@ -204,7 +227,7 @@ public abstract class MigrateSecurityGroupStrategy {
    * @return a list of security groups that need to be created in order to migrate the target security group
    */
   protected Set<MigrateSecurityGroupReference> shouldWarn(SecurityGroupLocation target,
-                                                       Set<MigrateSecurityGroupReference> references) {
+                                                          Set<MigrateSecurityGroupReference> references) {
     return references.stream().filter(reference -> {
       if (!targetLookup.accountIdExists(reference.getAccountId())) {
         reference.setExplanation("Spinnaker does not manage the account " + reference.getAccountId());
@@ -224,7 +247,7 @@ public abstract class MigrateSecurityGroupStrategy {
    * @return a list of security groups that will be skipped when migrating the target security group
    */
   protected Set<MigrateSecurityGroupReference> shouldSkipWithoutWarning(SecurityGroupLocation target,
-                                                                     Set<MigrateSecurityGroupReference> references) {
+                                                                        Set<MigrateSecurityGroupReference> references) {
 
     return references.stream().filter(reference -> {
       if (reference.getAccountId().equals("amazon-elb") && target.getVpcId() != null) {
