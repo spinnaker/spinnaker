@@ -53,7 +53,7 @@ class BakeRequest {
   String instanceType
 
   static enum CloudProviderType {
-    aws, azure, docker, gce
+    aws, azure, docker, gce, openstack
   }
 
   static enum Label {
