@@ -50,7 +50,9 @@ class GoogleLoadBalancerController {
         summary.mappedAccounts[view.account].mappedRegions[view.region].loadBalancers << new GoogleLoadBalancerSummary(
             account: view.account,
             region: view.region,
-            name: view.name)
+            name: view.name,
+            loadBalancerType: view.loadBalancerType
+        )
       }
 
       summary
@@ -125,6 +127,7 @@ class GoogleLoadBalancerController {
   }
 
   static class GoogleLoadBalancerSummary {
+    String loadBalancerType
     String account
     String region
     String name
