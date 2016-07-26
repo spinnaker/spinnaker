@@ -36,7 +36,7 @@ describe('Service: securityGroupFilterService', function () {
     };
     resultJson = [
       { heading: 'us-east-1', vpcName: '', securityGroup: app.securityGroups.data[0], },
-      { heading: 'us-west-1', vpcName: 'main', securityGroup: app.securityGroups.data[1], },
+      { heading: 'us-west-1 (main)', vpcName: 'main', securityGroup: app.securityGroups.data[1], },
       { heading: 'us-east-1', vpcName: '', securityGroup: app.securityGroups.data[2], }
     ];
     SecurityGroupFilterModel.clearFilters();

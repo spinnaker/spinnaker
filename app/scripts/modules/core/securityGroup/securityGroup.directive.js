@@ -11,7 +11,8 @@ module.exports = angular.module('spinnaker.core.securityGroup.directive', [])
       scope: {
         application: '=',
         securityGroup: '=',
-        sortFilter: '='
+        sortFilter: '=',
+        heading: '=',
       },
       link: function (scope, el) {
         var base = el.parent().inheritedData('$uiView').state;

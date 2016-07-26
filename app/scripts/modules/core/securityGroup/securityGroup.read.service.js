@@ -90,8 +90,12 @@ module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
             try {
               var securityGroup = resolve(application.securityGroupsIndex, loadBalancer, securityGroupId);
               attachUsageFields(securityGroup);
-              securityGroup.usages.loadBalancers.push({name: loadBalancer.name});
-              application.securityGroups.data.push(securityGroup);
+              if (!securityGroup.usages.loadBalancers.some(lb => lb.name === loadBalancer.name)) {
+                securityGroup.usages.loadBalancers.push({name: loadBalancer.name});
+              }
+              if (application.securityGroups.data.indexOf(securityGroup) < 0) {
+                application.securityGroups.data.push(securityGroup);
+              }
             } catch (e) {
               $log.warn('could not attach security group to load balancer:', loadBalancer.name, securityGroupId, e);
               notFoundCaught = true;
@@ -110,8 +114,12 @@ module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
             try {
               var securityGroup = resolve(application.securityGroupsIndex, serverGroup, securityGroupId);
               attachUsageFields(securityGroup);
-              securityGroup.usages.serverGroups.push({name: serverGroup.name, isDisabled: serverGroup.isDisabled});
-              application.securityGroups.data.push(securityGroup);
+              if (!securityGroup.usages.serverGroups.some(sg => sg.name === serverGroup.name)) {
+                securityGroup.usages.serverGroups.push({name: serverGroup.name, isDisabled: serverGroup.isDisabled});
+              }
+              if (application.securityGroups.data.indexOf(securityGroup) < 0) {
+                application.securityGroups.data.push(securityGroup);
+              }
             } catch (e) {
               $log.warn('could not attach security group to server group:', serverGroup.name, securityGroupId);
               notFoundCaught = true;
@@ -147,10 +155,6 @@ module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
         return clearCacheAndRetryAttachingSecurityGroups(application, nameBasedSecurityGroups);
       } else {
         application.securityGroups.data = _.uniq(application.securityGroups.data);
-        application.securityGroups.data.forEach((group) => {
-          group.usages.loadBalancers = _.uniq(group.usages.loadBalancers, (lb) => lb.name);
-          group.usages.serverGroups = _.uniq(group.usages.serverGroups, (sg) => sg.name);
-        });
         application.securityGroups.data.forEach(addStackToSecurityGroup);
 
         return $q.all(application.securityGroups.data.map(securityGroupTransformer.normalizeSecurityGroup));
