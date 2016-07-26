@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.EnableDisableGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -40,6 +41,9 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
   @Autowired
   GoogleClusterProvider googleClusterProvider
+
+  @Autowired
+  GoogleLoadBalancerProvider googleLoadBalancerProvider
 
   AbstractEnableDisableAtomicOperation(EnableDisableGoogleServerGroupDescription description) {
     this.description = description
@@ -71,7 +75,11 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     def newTargetPoolUrls = []
 
     if (disable) {
-      task.updateStatus phaseName, "Deregistering instances from load balancers..."
+      task.updateStatus phaseName, "Deregistering server group from Http(s) load balancers..."
+
+      GCEUtil.destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName)
+
+      task.updateStatus phaseName, "Deregistering server group from network load balancers..."
 
       currentTargetPoolUrls.each { targetPoolUrl ->
         def targetPoolLocalName = GCEUtil.getLocalName(targetPoolUrl)

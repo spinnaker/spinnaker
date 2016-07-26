@@ -184,31 +184,12 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
     }
   }
 
-  Closure destroyHttpLoadBalancerBackends(Compute compute,
-                                          String project,
-                                          GoogleServerGroup.View serverGroup,
-                                          GoogleLoadBalancerProvider googleLoadBalancerProvider) {
+  static Closure destroyHttpLoadBalancerBackends(Compute compute,
+                                                 String project,
+                                                 GoogleServerGroup.View serverGroup,
+                                                 GoogleLoadBalancerProvider googleLoadBalancerProvider) {
     return {
-      def serverGroupName = serverGroup.name
-      def parsedServerGroupName = Names.parseName(serverGroupName)
-      def foundLoadBalancers = GCEUtil.queryAllLoadBalancers(googleLoadBalancerProvider, serverGroup.loadBalancers as List, parsedServerGroupName.app, task, BASE_PHASE)
-      def foundHttpLoadBalancers = foundLoadBalancers.findAll { it.loadBalancerType == GoogleLoadBalancerType.HTTP.toString()}
-
-      if (foundHttpLoadBalancers) {
-        Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
-        Map metadataMap = GCEUtil.buildMapFromMetadata(instanceMetadata)
-        List<String> backendServiceNames = metadataMap?.(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)?.split(",")
-        if (backendServiceNames) {
-          backendServiceNames.each { String backendServiceName ->
-            BackendService backendService = compute.backendServices().get(project, backendServiceName).execute()
-            backendService.backends.removeAll { Backend backend ->
-              GCEUtil.getLocalName(backend.group) == serverGroupName
-            }
-            compute.backendServices().update(project, backendServiceName, backendService).execute()
-            task.updateStatus BASE_PHASE, "Deleted backend for server group ${serverGroupName} from load balancer backend service ${backendServiceName}."
-          }
-        }
-      }
+      GCEUtil.destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, BASE_PHASE)
       null
     }
   }

@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.EnableDisableGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
@@ -48,6 +49,7 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final REGION = "us-central1"
 
   def googleClusterProviderMock
+  def googleLoadBalancerProviderMock
   def serverGroup
   def computeMock
   def instanceGroupManagersMock
@@ -69,6 +71,7 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
   def setup() {
     googleClusterProviderMock = Mock(GoogleClusterProvider)
+    googleLoadBalancerProviderMock = Mock(GoogleLoadBalancerProvider)
     serverGroup = new GoogleServerGroup(zone: ZONE).view
     computeMock = Mock(Compute)
     credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
@@ -94,6 +97,7 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     setup:
       @Subject def operation = new DisableGoogleServerGroupAtomicOperation(description)
       operation.googleClusterProvider = googleClusterProviderMock
+      operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
 
     when:
       operation.operate([])

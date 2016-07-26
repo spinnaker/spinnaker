@@ -25,6 +25,7 @@ import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.deploy.description.*
@@ -32,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.model.*
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerView
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
@@ -683,6 +685,34 @@ class GCEUtil {
           name: name
       )
     }
+  }
+
+  static void destroyHttpLoadBalancerBackends(Compute compute,
+                                              String project,
+                                              GoogleServerGroup.View serverGroup,
+                                              GoogleLoadBalancerProvider googleLoadBalancerProvider,
+                                              Task task,
+                                              String phase) {
+      def serverGroupName = serverGroup.name
+      def parsedServerGroupName = Names.parseName(serverGroupName)
+      def foundLoadBalancers = queryAllLoadBalancers(googleLoadBalancerProvider, serverGroup.loadBalancers as List, parsedServerGroupName.app, task, phase)
+      def foundHttpLoadBalancers = foundLoadBalancers.findAll { it.loadBalancerType == GoogleLoadBalancerType.HTTP.toString() }
+
+      if (foundHttpLoadBalancers) {
+        Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
+        Map metadataMap = buildMapFromMetadata(instanceMetadata)
+        List<String> backendServiceNames = metadataMap?.(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)?.split(",")
+        if (backendServiceNames) {
+          backendServiceNames.each { String backendServiceName ->
+            BackendService backendService = compute.backendServices().get(project, backendServiceName).execute()
+            backendService?.backends?.removeAll { Backend backend ->
+              getLocalName(backend.group) == serverGroupName
+            }
+            compute.backendServices().update(project, backendServiceName, backendService).execute()
+            task.updateStatus phase, "Deleted backend for server group ${serverGroupName} from Http(s) load balancer backend service ${backendServiceName}."
+          }
+        }
+      }
   }
 
   static Firewall buildFirewallRule(String projectName,
