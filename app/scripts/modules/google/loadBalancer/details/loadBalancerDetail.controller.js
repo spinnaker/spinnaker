@@ -12,6 +12,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
+  require('./hostAndPathRules/hostAndPathRulesButton.component.js')
 ])
   .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, loadBalancer, app, InsightFilterStateModel,
                                                       _, confirmationModalService, accountService, loadBalancerWriter, loadBalancerReader, $q) {

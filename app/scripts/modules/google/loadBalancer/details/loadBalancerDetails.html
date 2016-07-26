@@ -84,6 +84,14 @@
           </copy-to-clipboard>
         </dd>
       </dl>
+      <dl>
+        <dd>
+          <gce-host-and-path-rules-button default-service="loadBalancer.defaultService"
+                                          load-balancer-name="loadBalancer.name"
+                                          host-rules="loadBalancer.hostRules">
+          </gce-host-and-path-rules-button>
+        </dd>
+      </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">
       <health-counts class="pull-left" container="loadBalancer.instanceCounts"></health-counts>
