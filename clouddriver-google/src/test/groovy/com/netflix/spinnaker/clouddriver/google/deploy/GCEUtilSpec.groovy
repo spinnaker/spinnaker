@@ -22,18 +22,16 @@ import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.compute.Compute
-import com.google.api.services.compute.model.Image
-import com.google.api.services.compute.model.ImageList
-import com.google.api.services.compute.model.Instance
-import com.google.api.services.compute.model.InstanceAggregatedList
-import com.google.api.services.compute.model.InstancesScopedList
-import com.google.api.services.compute.model.ServiceAccount
+import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.mock.interceptor.MockFor
@@ -415,5 +413,40 @@ class GCEUtilSpec extends Specification {
       3              | 5              | 7              | 5
       9              | 5              | 7              | 7
       6              | 5              | 7              | 6
+  }
+
+  @Unroll
+  void "checkAllForwardingRulesExist should fail if any loadbalancers aren't found"() {
+    setup:
+      def application = "my-application"
+      def task = Mock(Task)
+      def phase = "BASE_PHASE"
+      // Note: the findAll lets us use the @Unroll feature to make this test more compact.
+      def forwardingRuleNames = [networkLB?.name, httpLB?.name].findAll { it != null }
+      def loadBalancerProvider = Mock(GoogleLoadBalancerProvider)
+      def loadBalancers = [networkLB, httpLB].findAll { it != null }
+      def notFoundNames = ['bogus-name']
+      loadBalancerProvider.getApplicationLoadBalancers(application) >> loadBalancers
+
+    when:
+      def foundLoadBalancers = GCEUtil.queryAllLoadBalancers(loadBalancerProvider, forwardingRuleNames, application, task, phase)
+
+    then:
+      foundLoadBalancers.collect { it.name } == forwardingRuleNames
+
+    when:
+      foundLoadBalancers = GCEUtil.queryAllLoadBalancers(loadBalancerProvider, forwardingRuleNames + 'bogus-name', application, task, phase)
+
+    then:
+      def resourceNotFound = thrown(GoogleResourceNotFoundException)
+      def msg = "Load balancers $notFoundNames not found."
+      resourceNotFound.message == msg.toString()
+
+    where:
+      networkLB                                         | httpLB
+      new GoogleLoadBalancer(name: "network").getView() | new GoogleHttpLoadBalancer(name: "http").getView()
+      null                                              | new GoogleHttpLoadBalancer(name: "http").getView()
+      new GoogleLoadBalancer(name: "network").getView() | null
+      null                                              | null
   }
 }

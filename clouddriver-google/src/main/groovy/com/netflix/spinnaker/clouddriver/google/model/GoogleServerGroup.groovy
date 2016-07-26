@@ -56,6 +56,7 @@ class GoogleServerGroup {
   InstanceGroupManagerAutoHealingPolicy autoHealingPolicy
 
   // Non-serialized values built up by providers
+  // TODO(jacobkiefer): Change this to GoogleLoadBalancerView?
   @JsonIgnore
   Set<GoogleLoadBalancer> loadBalancers = []
 
@@ -70,6 +71,7 @@ class GoogleServerGroup {
     final String type = GoogleCloudProvider.GCE
     static final String REGIONAL_LOAD_BALANCER_NAMES = "load-balancer-names"
     static final String GLOBAL_LOAD_BALANCER_NAMES = "global-load-balancer-names"
+    static final String BACKEND_SERVICE_NAMES = "backend-service-names"
 
     String name = GoogleServerGroup.this.name
     String region = GoogleServerGroup.this.region

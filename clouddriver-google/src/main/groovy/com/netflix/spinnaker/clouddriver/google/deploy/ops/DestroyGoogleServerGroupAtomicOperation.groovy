@@ -18,6 +18,10 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.services.compute.Compute
+import com.google.api.services.compute.model.Backend
+import com.google.api.services.compute.model.BackendService
+import com.google.api.services.compute.model.Metadata
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -25,7 +29,10 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DestroyGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationTimedOutException
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -49,6 +56,9 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
 
   @Autowired
   GoogleClusterProvider googleClusterProvider
+
+  @Autowired
+  GoogleLoadBalancerProvider googleLoadBalancerProvider
 
   DestroyGoogleServerGroupAtomicOperation(DestroyGoogleServerGroupDescription description) {
     this.description = description
@@ -84,6 +94,10 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
       destroy(destroyAutoscaler(compute, serverGroupName, project, region, zone, isRegional), "autoscaler")
       task.updateStatus BASE_PHASE, "Deleted autoscaler"
     }
+
+    task.updateStatus BASE_PHASE, "Checking for associated HTTP(S) load balancer backend services..."
+
+    destroy(destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider), "Http load balancer backend")
 
     destroy(destroyInstanceGroup(compute, serverGroupName, project, region, zone, isRegional), "instance group")
 
@@ -165,6 +179,35 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
         // We must make sure the autoscaler is deleted before deleting the managed instance group.
         googleOperationPoller.waitForZonalOperation(compute, project, zone, autoscalerDeleteOperationName, null, task,
           "zonal autoscaler $serverGroupName", BASE_PHASE)
+      }
+      null
+    }
+  }
+
+  Closure destroyHttpLoadBalancerBackends(Compute compute,
+                                          String project,
+                                          GoogleServerGroup.View serverGroup,
+                                          GoogleLoadBalancerProvider googleLoadBalancerProvider) {
+    return {
+      def serverGroupName = serverGroup.name
+      def parsedServerGroupName = Names.parseName(serverGroupName)
+      def foundLoadBalancers = GCEUtil.queryAllLoadBalancers(googleLoadBalancerProvider, serverGroup.loadBalancers as List, parsedServerGroupName.app, task, BASE_PHASE)
+      def foundHttpLoadBalancers = foundLoadBalancers.findAll { it.loadBalancerType == GoogleLoadBalancerType.HTTP.toString()}
+
+      if (foundHttpLoadBalancers) {
+        Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
+        Map metadataMap = GCEUtil.buildMapFromMetadata(instanceMetadata)
+        List<String> backendServiceNames = metadataMap?.(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)?.split(",")
+        if (backendServiceNames) {
+          backendServiceNames.each { String backendServiceName ->
+            BackendService backendService = compute.backendServices().get(project, backendServiceName).execute()
+            backendService.backends.removeAll { Backend backend ->
+              GCEUtil.getLocalName(backend.group) == serverGroupName
+            }
+            compute.backendServices().update(project, backendServiceName, backendService).execute()
+            task.updateStatus BASE_PHASE, "Deleted backend for server group ${serverGroupName} from load balancer backend service ${backendServiceName}."
+          }
+        }
       }
       null
     }

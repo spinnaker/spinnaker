@@ -19,5 +19,4 @@ package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 enum GoogleLoadBalancerType {
   NETWORK,
   HTTP,
-  HTTPS,
 }

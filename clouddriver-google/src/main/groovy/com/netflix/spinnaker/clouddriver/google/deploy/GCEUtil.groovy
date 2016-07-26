@@ -27,20 +27,14 @@ import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
-import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
-import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
-import com.netflix.spinnaker.clouddriver.google.deploy.description.CreateGoogleHttpLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleSecurityGroupDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.description.*
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
-import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
-import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
-import com.netflix.spinnaker.clouddriver.google.model.GoogleDiskType
-import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
-import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.model.*
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerView
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 
@@ -229,6 +223,22 @@ class GCEUtil {
       def foundNames = foundForwardingRules.collect { it.name }
 
       updateStatusAndThrowNotFoundException("Network load balancers ${forwardingRuleNames - foundNames} not found.", task, phase)
+    }
+  }
+
+  static List<GoogleLoadBalancerView> queryAllLoadBalancers(GoogleLoadBalancerProvider googleLoadBalancerProvider,
+                                                            List<String> forwardingRuleNames,
+                                                            String application,
+                                                            Task task,
+                                                            String phase) {
+    def loadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers(application) as List
+    def foundLoadBalancers = loadBalancers.findAll { it.name in forwardingRuleNames }
+
+    if (foundLoadBalancers.size == forwardingRuleNames.size) {
+      return foundLoadBalancers
+    } else {
+      def foundNames = loadBalancers.collect { it.name }
+      updateStatusAndThrowNotFoundException("Load balancers ${forwardingRuleNames - foundNames} not found.", task, phase)
     }
   }
 
@@ -478,6 +488,14 @@ class GCEUtil {
     return "https://www.googleapis.com/compute/v1/projects/$projectName/zones/$zone/diskTypes/$diskType"
   }
 
+  static String buildZonalServerGroupUrl(String projectName, String zone, String serverGroupName) {
+    return "https://www.googleapis.com/compute/v1/projects/$projectName/zones/$zone/instanceGroups/$serverGroupName"
+  }
+
+  static String buildRegionalServerGroupUrl(String projectName, String region, String serverGroupName) {
+    return "https://www.googleapis.com/compute/v1/projects/$projectName/regions/$region/instanceGroups/$serverGroupName"
+  }
+
   static List<AttachedDisk> buildAttachedDisks(String projectName,
                                                String zone,
                                                Image sourceImage,
@@ -622,7 +640,7 @@ class GCEUtil {
     return scheduling
   }
 
-  private static void updateStatusAndThrowNotFoundException(String errorMsg, Task task, String phase) {
+  static void updateStatusAndThrowNotFoundException(String errorMsg, Task task, String phase) {
     task.updateStatus phase, errorMsg
     throw new GoogleResourceNotFoundException(errorMsg)
   }

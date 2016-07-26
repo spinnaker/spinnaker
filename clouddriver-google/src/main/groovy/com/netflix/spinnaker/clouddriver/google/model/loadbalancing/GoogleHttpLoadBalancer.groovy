@@ -70,6 +70,7 @@ class GoogleHttpLoadBalancer {
     String portRange = GoogleHttpLoadBalancer.this.portRange
     String targetPool = GoogleHttpLoadBalancer.this.targetPool
     String certificate = GoogleHttpLoadBalancer.this.certificate
+    String defaultService = GoogleHttpLoadBalancer.this.defaultService
     GoogleHealthCheck.View healthCheck = GoogleHttpLoadBalancer.this.healthCheck?.view
 
     Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()

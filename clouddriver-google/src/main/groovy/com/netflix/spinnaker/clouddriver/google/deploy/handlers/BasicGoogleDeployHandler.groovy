@@ -16,11 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.handlers
 
-import com.google.api.services.compute.model.Autoscaler
-import com.google.api.services.compute.model.InstanceGroupManager
-import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy
-import com.google.api.services.compute.model.InstanceProperties
-import com.google.api.services.compute.model.InstanceTemplate
+import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
@@ -32,6 +28,10 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEServerGroupNameResolve
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -60,6 +60,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
   GoogleSecurityGroupProvider googleSecurityGroupProvider
 
   @Autowired
+  GoogleLoadBalancerProvider googleLoadBalancerProvider
+
+  @Autowired
   String googleApplicationName
 
   private static Task getTask() {
@@ -74,7 +77,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
   /**
    * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "dev", "image": "ubuntu-1404-trusty-v20160509a", "targetSize": 3, "instanceType": "f1-micro", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
    * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "dev", "freeFormDetails": "something", "image": "ubuntu-1404-trusty-v20160509a", "targetSize": 3, "instanceType": "f1-micro", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "dev", "image": "ubuntu-1404-trusty-v20160509a", "targetSize": 3, "instanceType": "f1-micro", "zone": "us-central1-f", "loadBalancers": ["testlb"], "instanceMetadata": { "load-balancer-names": "myapp-testlb", "global-load-balancer-names": "myapp-testhttplb", }, "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "dev", "image": "ubuntu-1404-trusty-v20160509a", "targetSize": 3, "instanceType": "f1-micro", "zone": "us-central1-f", "loadBalancers": ["testlb", "testhttplb"], "instanceMetadata": { "load-balancer-names": "myapp-testlb", "global-load-balancer-names": "myapp-testhttplb", "backend-service-names": "my-backend-service"}, "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
    * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "dev", "image": "ubuntu-1404-trusty-v20160509a", "targetSize": 3, "instanceType": "f1-micro", "zone": "us-central1-f", "tags": ["my-tag-1", "my-tag-2"], "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
    *
    * @param description
@@ -123,14 +126,18 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     def subnet =
       description.subnet ? GCEUtil.querySubnet(project, region, description.subnet, compute, task, BASE_PHASE) : null
 
-    def networkLoadBalancers = []
+    def targetPools = []
 
-    // We need the full url for each referenced network load balancer.
+    // We need the full url for each referenced network load balancer, and also to check that the HTTP(S)
+    // load balancers exist.
     if (description.loadBalancers) {
-      def forwardingRules =
-        GCEUtil.queryForwardingRules(project, region, description.loadBalancers, compute, task, BASE_PHASE)
-
-      networkLoadBalancers = forwardingRules.collect { it.target }
+      def foundLoadBalancers = GCEUtil.queryAllLoadBalancers(googleLoadBalancerProvider,
+                                                             description.loadBalancers,
+                                                             description.application,
+                                                             task,
+                                                             BASE_PHASE)
+      def networkLoadBalancers = foundLoadBalancers.findAll { it.loadBalancerType == GoogleLoadBalancerType.NETWORK.toString() }
+      targetPools = networkLoadBalancers.collect { it.targetPool }
     }
 
     def securityGroupTags = GCEUtil.querySecurityGroupTags(description.securityGroups, accountName,
@@ -196,16 +203,17 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
              initialDelaySec: description.autoHealingPolicy.initialDelaySec)]
       : null
 
+    def migCreateOperation
     if (isRegional) {
-      def migCreateOperation = compute.regionInstanceGroupManagers().insert(project,
-                                                                            region,
-                                                                            new InstanceGroupManager()
-                                                                                .setName(serverGroupName)
-                                                                                .setBaseInstanceName(serverGroupName)
-                                                                                .setInstanceTemplate(instanceTemplateUrl)
-                                                                                .setTargetSize(description.targetSize)
-                                                                                .setTargetPools(networkLoadBalancers)
-                                                                                .setAutoHealingPolicies(autoHealingPolicy)).execute()
+      migCreateOperation = compute.regionInstanceGroupManagers().insert(project,
+                                                                        region,
+                                                                        new InstanceGroupManager()
+                                                                            .setName(serverGroupName)
+                                                                            .setBaseInstanceName(serverGroupName)
+                                                                            .setInstanceTemplate(instanceTemplateUrl)
+                                                                            .setTargetSize(description.targetSize)
+                                                                            .setTargetPools(targetPools)
+                                                                            .setAutoHealingPolicies(autoHealingPolicy)).execute()
 
       if (autoscalerIsSpecified(description)) {
         // Before creating the Autoscaler we must wait until the managed instance group is created.
@@ -221,14 +229,14 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
         compute.regionAutoscalers().insert(project, region, autoscaler).execute()
       }
     } else {
-      def migCreateOperation = compute.instanceGroupManagers().insert(project,
+      migCreateOperation = compute.instanceGroupManagers().insert(project,
                                                                       zone,
                                                                       new InstanceGroupManager()
                                                                           .setName(serverGroupName)
                                                                           .setBaseInstanceName(serverGroupName)
                                                                           .setInstanceTemplate(instanceTemplateUrl)
                                                                           .setTargetSize(description.targetSize)
-                                                                          .setTargetPools(networkLoadBalancers)
+                                                                          .setTargetPools(targetPools)
                                                                           .setAutoHealingPolicies(autoHealingPolicy)).execute()
 
       if (autoscalerIsSpecified(description)) {
@@ -247,6 +255,32 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     }
 
     task.updateStatus BASE_PHASE, "Done creating server group $serverGroupName in ${isRegional ? region : zone}."
+
+    if (description.instanceMetadata
+        && description.instanceMetadata.containsKey(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)) {
+      List<String> backendServices = description.instanceMetadata[GoogleServerGroup.View.BACKEND_SERVICE_NAMES].split(",")
+
+      backendServices.each { String backendServiceName ->
+        BackendService backendService = compute.backendServices().get(project, backendServiceName).execute()
+
+        Backend sourceBackend = backendService.backends.find { Backend backend ->
+          Utils.getLocalName(backend.group) == description.source.serverGroupName
+        }
+        if (!sourceBackend) {
+          GCEUtil.updateStatusAndThrowNotFoundException("Backend for ancestor server group $description.source.serverGroupName not found.", task, BASE_PHASE)
+        }
+
+        def backendToAdd = new Backend(sourceBackend)
+        if (isRegional) {
+          backendToAdd.setGroup(GCEUtil.buildRegionalServerGroupUrl(project, region, serverGroupName))
+        } else {
+          backendToAdd.setGroup(GCEUtil.buildZonalServerGroupUrl(project, zone, serverGroupName))
+        }
+        backendService.backends << backendToAdd
+        compute.backendServices().update(project, backendServiceName, backendService).execute()
+        task.updateStatus BASE_PHASE, "Done associating server group $serverGroupName with backend service $backendServiceName."
+      }
+    }
 
     DeploymentResult deploymentResult = new DeploymentResult()
     deploymentResult.serverGroupNames = ["$region:$serverGroupName".toString()]
