@@ -123,7 +123,7 @@ class OpenstackLoadBalancerControllerSpec extends Specification {
     def serverGroups = [new LoadBalancerServerGroup(name: 'sg1', isDisabled: false,
       instances: [new LoadBalancerInstance(id: 'id', zone: "zone$i", health: [state:'up', zone: "zone$i"])])]
     new OpenstackLoadBalancer(account: account, region: region, id: id, name: name, description: description,
-      status: status, protocol: protocol, method: method, ip: ip, externalPort: externalPort, subnet: subnet,
+      status: status, protocol: protocol, method: method, ip: ip, externalPort: externalPort, subnetName: subnet,
       healthChecks: healthChecks, serverGroups: serverGroups)
   }
 

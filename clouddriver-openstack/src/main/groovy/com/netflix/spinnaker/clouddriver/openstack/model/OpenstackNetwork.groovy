@@ -18,7 +18,9 @@ package com.netflix.spinnaker.clouddriver.openstack.model
 
 import com.netflix.spinnaker.clouddriver.model.Network
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
+import groovy.transform.Canonical
 
+@Canonical
 class OpenstackNetwork implements Network {
 
   //core attributes

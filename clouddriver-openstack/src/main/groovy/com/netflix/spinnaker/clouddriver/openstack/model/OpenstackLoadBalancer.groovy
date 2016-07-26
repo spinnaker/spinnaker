@@ -30,30 +30,35 @@ import org.openstack4j.model.network.ext.LbPool
 @Canonical
 @JsonIgnoreProperties(['nameRegex','namePattern','descriptionRegex','descriptionPattern'])
 class OpenstackLoadBalancer implements LoadBalancer, Serializable, LoadBalancerResolver {
-    String type = OpenstackCloudProvider.ID
-    String account
-    String region
-    String id
-    String name
-    String description
-    String status
-    String protocol
-    String method
-    String ip
-    Integer externalPort
-    String subnet
-    Set<PoolHealthMonitor> healthChecks
-    Set<LoadBalancerServerGroup> serverGroups = Sets.newConcurrentHashSet()
 
-  static OpenstackLoadBalancer from(LbPool pool, OpenstackVip vip, OpenstackSubnet subnet, OpenstackFloatingIP ip,
+  String type = OpenstackCloudProvider.ID
+  String account
+  String region
+  String id
+  String name
+  String description
+  String status
+  String protocol
+  String method
+  String ip
+  Integer externalPort
+  String subnetId
+  String subnetName
+  String networkId
+  String networkName
+  Set<PoolHealthMonitor> healthChecks
+  Set<LoadBalancerServerGroup> serverGroups = Sets.newConcurrentHashSet()
+
+  static OpenstackLoadBalancer from(LbPool pool, OpenstackVip vip, OpenstackSubnet subnet, OpenstackNetwork network, OpenstackFloatingIP ip,
                                     Set<HealthMonitor> healthMonitors, String account, String region) {
     if (!pool) {
       throw new IllegalArgumentException("Pool must not be null.")
     }
     new OpenstackLoadBalancer(account: account, region: region, id: pool.id, name: pool.name, description: pool.description,
       status: pool.status, protocol: pool.protocol?.name(), method: pool.lbMethod?.name(),
-      ip: ip?.floatingIpAddress, externalPort: vip?.port,
-      subnet: subnet?.name, healthChecks: healthMonitors?.collect { h -> PoolHealthMonitor.from(h) }?.toSet())
+      ip: ip?.floatingIpAddress, externalPort: vip?.port, subnetId: subnet?.id, subnetName: subnet?.name,
+      networkId: network?.id, networkName: network?.name,
+      healthChecks: healthMonitors?.collect { h -> PoolHealthMonitor.from(h) }?.toSet())
   }
 
   Integer getInternalPort() {

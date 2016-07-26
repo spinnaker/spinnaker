@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvide
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackFloatingIP
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLoadBalancer
+import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackNetwork
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackPort
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackSubnet
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackVip
@@ -39,6 +40,7 @@ import spock.lang.Specification
 
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.FLOATING_IPS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.LOAD_BALANCERS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.NETWORKS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.PORTS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SUBNETS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.VIPS
@@ -79,6 +81,7 @@ class OpenstackLoadBalancerCachingAgentSpec extends Specification {
     String ipId = UUID.randomUUID().toString()
     String lbName = 'myapp-lb'
     String subnetId = UUID.randomUUID().toString()
+    String networkId = UUID.randomUUID().toString()
     LbPool pool = Mock(LbPool) {
       it.id >> { lbId }
       it.name >> { lbName }
@@ -127,8 +130,16 @@ class OpenstackLoadBalancerCachingAgentSpec extends Specification {
     OpenstackSubnet subnet = Mock(OpenstackSubnet)
 
     and:
+    Map<String, Object> networkAttributes = [id:networkId]
+    CacheData networkCacheData = Mock(CacheData) {
+      it.attributes >> { networkAttributes }
+    }
+    OpenstackNetwork network = Mock(OpenstackNetwork)
+
+    and:
     OpenstackLoadBalancer loadBalancer = Mock(OpenstackLoadBalancer)
     OpenstackLoadBalancer.metaClass.static.from = { LbPool p, OpenstackVip v, OpenstackSubnet s,
+                                                    OpenstackNetwork n,
                                                     OpenstackFloatingIP i, Set<HealthMonitor> h,
                                                     String a, String r -> loadBalancer }
 
@@ -156,6 +167,10 @@ class OpenstackLoadBalancerCachingAgentSpec extends Specification {
     and:
     1 * providerCache.get(SUBNETS.ns, Keys.getSubnetKey(pool.subnetId, account, region)) >> subnetCacheData
     1 * objectMapper.convertValue(subnetAttributes, OpenstackSubnet) >> subnet
+
+    and:
+    1 * providerCache.get(NETWORKS.ns, Keys.getNetworkKey(ip.networkId, account, region)) >> networkCacheData
+    1 * objectMapper.convertValue(networkAttributes, OpenstackNetwork) >> network
 
     and:
     1 * objectMapper.convertValue(loadBalancer, OpenstackInfrastructureProvider.ATTRIBUTES) >> lbAttributes
