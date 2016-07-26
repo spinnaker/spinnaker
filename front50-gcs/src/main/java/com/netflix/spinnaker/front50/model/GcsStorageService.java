@@ -187,7 +187,8 @@ public class GcsStorageService implements StorageService {
   public boolean supportsVersioning() {
     try {
       Bucket bucket = storage.buckets().get(bucketName).execute();
-      return bucket.getVersioning().getEnabled();
+      Bucket.Versioning v = bucket.getVersioning();
+      return v != null && v.getEnabled();
     } catch (IOException e) {
       throw new IllegalStateException(e);
     }
