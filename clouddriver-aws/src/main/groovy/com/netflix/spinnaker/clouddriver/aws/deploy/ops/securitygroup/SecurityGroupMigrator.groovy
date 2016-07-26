@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AbstractAmazonCredentialsDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.MigrateSecurityGroupStrategy
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerMigrator.LoadBalancerLocation
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.servergroup.ClusterConfigurationMigrator.ClusterConfigurationTarget
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.servergroup.ServerGroupMigrator.ServerGroupLocation
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -72,6 +73,12 @@ class SecurityGroupMigrator {
       "${name ?: '(no name)'} in $credentialAccount/$region" + (vpcId ? "/$vpcId" : "")
     }
     SecurityGroupLocation() {}
+
+    SecurityGroupLocation(ClusterConfigurationTarget clusterConfigurationTarget) {
+      this.credentials = clusterConfigurationTarget.credentials
+      this.region = clusterConfigurationTarget.region
+      this.vpcId = clusterConfigurationTarget.vpcId
+    }
 
     SecurityGroupLocation(LoadBalancerLocation loadBalancerLocation) {
       this.credentials = loadBalancerLocation.credentials
