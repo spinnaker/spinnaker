@@ -86,6 +86,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
 
       def loadBalancerServerGroup = new LoadBalancerServerGroup(
           name: serverGroup.name,
+          region: serverGroup.region,
           isDisabled: serverGroup.disabled,
           detachedInstances: [],
           instances: [])

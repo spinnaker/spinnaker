@@ -21,6 +21,7 @@ import groovy.transform.Canonical
 @Canonical
 class LoadBalancerServerGroup {
   String name
+  String region
   Boolean isDisabled
   Set<String> detachedInstances
   Set<LoadBalancerInstance> instances
