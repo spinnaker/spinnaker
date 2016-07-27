@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.security.oauth2
 
 import com.netflix.spinnaker.gate.security.rolesprovider.UserRolesProvider
 import com.netflix.spinnaker.gate.services.CredentialsService
+import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -57,6 +58,9 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
   @Autowired
   OAuth2SsoConfig.UserInfoRequirements userInfoRequirements
 
+  @Autowired
+  PermissionService permissionService
+
   @Override
   OAuth2Authentication loadAuthentication(String accessToken) throws AuthenticationException, InvalidTokenException {
     OAuth2Authentication oAuth2Authentication = userInfoTokenServices.loadAuthentication(accessToken)
@@ -83,6 +87,8 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
         null /* credentials */,
         spinnakerUser.authorities
     )
+
+    permissionService.login(username)
 
     // impl copied from UserInfoTokenServices
     OAuth2Request storedRequest = new OAuth2Request(null, sso.clientId, null, true /*approved*/,

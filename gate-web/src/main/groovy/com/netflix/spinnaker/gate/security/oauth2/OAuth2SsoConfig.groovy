@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.security.oauth2
 
 import com.netflix.spinnaker.gate.security.AuthConfig
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -55,6 +56,9 @@ import org.springframework.stereotype.Component
 @ConditionalOnExpression(''''${spring.oauth2.client.clientId:}'!=""''')
 class OAuth2SsoConfig extends OAuth2SsoConfigurerAdapter {
 
+  @Autowired
+  AuthConfig authConfig
+
   @Override
   void match(OAuth2SsoConfigurer.RequestMatchers matchers) {
     matchers.antMatchers('/**')
@@ -62,7 +66,7 @@ class OAuth2SsoConfig extends OAuth2SsoConfigurerAdapter {
 
   @Override
   void configure(HttpSecurity http) throws Exception {
-    AuthConfig.configure(http)
+    authConfig.configure(http)
   }
 
   @Primary

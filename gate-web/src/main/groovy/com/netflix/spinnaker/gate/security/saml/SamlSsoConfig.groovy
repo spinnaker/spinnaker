@@ -58,6 +58,9 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
   @Autowired
   ServerProperties serverProperties
 
+  @Autowired
+  AuthConfig authConfig
+
   @Component
   @ConfigurationProperties("saml")
   static class SAMLSecurityConfigProperties {
@@ -100,7 +103,7 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
       .and()
       .authorizeRequests().antMatchers("/saml/**").permitAll()
 
-    AuthConfig.configure(http)
+    authConfig.configure(http)
 
     configurers?.each {
       it.configure(http)

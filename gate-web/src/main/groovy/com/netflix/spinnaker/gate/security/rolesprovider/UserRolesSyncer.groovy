@@ -19,6 +19,8 @@ package com.netflix.spinnaker.gate.security.rolesprovider
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Configuration
 import org.springframework.dao.DataAccessException
 import org.springframework.data.redis.connection.RedisConnection
@@ -34,6 +36,7 @@ import org.springframework.session.SessionRepository
 
 @Slf4j
 @Configuration
+@ConditionalOnExpression('!${services.fiat.enabled:false}')
 class UserRolesSyncer {
   @Autowired
   RedisTemplate sessionRedisTemplate

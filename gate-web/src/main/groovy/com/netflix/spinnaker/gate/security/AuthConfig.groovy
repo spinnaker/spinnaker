@@ -17,16 +17,32 @@
 package com.netflix.spinnaker.gate.security
 
 import com.netflix.spinnaker.gate.security.rolesprovider.UserRolesProvider
+import com.netflix.spinnaker.gate.services.PermissionService
+import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.InitializingBean
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.core.Authentication
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler
+import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler
+import org.springframework.stereotype.Component
+
+import javax.servlet.ServletException
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 @Slf4j
 @Configuration
 class AuthConfig {
+
+  @Autowired
+  PermissionRevokingLogoutSuccessHandler permissionRevokingLogoutSuccessHandler
 
   @Bean
   @ConditionalOnMissingBean(UserRolesProvider)
@@ -44,20 +60,48 @@ class AuthConfig {
     }
   }
 
-  static void configure(HttpSecurity http) throws Exception {
+  void configure(HttpSecurity http) throws Exception {
     http
       .authorizeRequests()
         .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
         .antMatchers('/auth/user').permitAll()
+        .antMatchers(PermissionRevokingLogoutSuccessHandler.LOGGED_OUT_URL).permitAll()
         .antMatchers('/health').permitAll()
         .antMatchers('/**').authenticated()
         .and()
       .logout()
         .logoutUrl("/auth/logout")
-        .logoutSuccessUrl("/auth/loggedOut")
+        .logoutSuccessHandler(permissionRevokingLogoutSuccessHandler)
         .permitAll()
         .and()
       .csrf()
         .disable()
+  }
+
+  @Component
+  static class PermissionRevokingLogoutSuccessHandler implements LogoutSuccessHandler, InitializingBean {
+
+    static final String LOGGED_OUT_URL = "/auth/loggedOut"
+
+    @Autowired
+    PermissionService permissionService
+
+    SimpleUrlLogoutSuccessHandler delegate = new SimpleUrlLogoutSuccessHandler();
+
+    @Override
+    void afterPropertiesSet() throws Exception {
+      delegate.setDefaultTargetUrl(LOGGED_OUT_URL)
+    }
+
+    @Override
+    void onLogoutSuccess(HttpServletRequest request,
+                         HttpServletResponse response,
+                         Authentication authentication) throws IOException, ServletException {
+      def username = (authentication.getPrincipal() as User)?.username
+      if (username) {
+        permissionService.logout(username)
+      }
+      delegate.onLogoutSuccess(request, response, authentication)
+    }
   }
 }

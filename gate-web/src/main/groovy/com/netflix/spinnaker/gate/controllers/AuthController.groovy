@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import javax.servlet.http.HttpServletResponse
-import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.gate.security.SpinnakerUser
 import com.netflix.spinnaker.gate.security.rolesprovider.UserRolesSyncer
+import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.security.User
+import groovy.util.logging.Slf4j
 import org.apache.commons.lang.exception.ExceptionUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -28,6 +28,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+
+import javax.servlet.http.HttpServletResponse
 
 @Slf4j
 @RestController
@@ -47,6 +49,9 @@ class AuthController {
   ]
 
   @Autowired
+  PermissionService permissionService
+
+  @Autowired(required = false)
   UserRolesSyncer userRolesSyncer
 
   @Value('${services.deck.baseUrl}')
@@ -70,7 +75,11 @@ class AuthController {
    */
   @RequestMapping(value = "/roles/sync", method = RequestMethod.POST)
   void sync() {
-    userRolesSyncer.sync()
+    if (userRolesSyncer) {
+      userRolesSyncer.sync()
+    } else {
+      permissionService.sync()
+    }
   }
 
   @RequestMapping("/redirect")

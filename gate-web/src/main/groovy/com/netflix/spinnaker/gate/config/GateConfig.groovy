@@ -117,6 +117,12 @@ class GateConfig extends RedisHttpSessionConfiguration {
   }
 
   @Bean
+  @ConditionalOnProperty("services.fiat.enabled")
+  FiatService fiatService(OkHttpClient okHttpClient) {
+    createClient "fiat", FiatService, okHttpClient
+  }
+
+  @Bean
   Front50Service front50Service(OkHttpClient okHttpClient) {
     createClient "front50", Front50Service, okHttpClient
   }

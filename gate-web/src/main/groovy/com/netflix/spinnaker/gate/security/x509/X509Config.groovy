@@ -43,6 +43,9 @@ class X509Config {
   String subjectPrincipalRegex
 
   @Autowired
+  AuthConfig authConfig
+
+  @Autowired
   X509AuthenticationUserDetailsService x509AuthenticationUserDetailsService
 
   void configure(HttpSecurity http) {
@@ -64,7 +67,7 @@ class X509Config {
 
   class X509StandaloneAuthConfig extends WebSecurityConfigurerAdapter {
     void configure(HttpSecurity http) {
-      AuthConfig.configure(http)
+      authConfig.configure(http)
       X509Config.this.configure(http)
     }
   }
