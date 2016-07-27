@@ -537,7 +537,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     name = details[0].get('imageId') if details else None
     self.logger.info('Deleting the baked image="{0}"'.format(name))
     if name:
-      self.gcp_observer.invoke('delete', 'images', resource_id=name)
+      self.gcp_observer.invoke_resource('delete', 'images', resource_id=name)
 
 
 class BakeAndDeployTest(st.AgentTestCase):
