@@ -23,6 +23,8 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.model.AddressableRange
 import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
+import com.netflix.spinnaker.clouddriver.model.securitygroups.SecurityGroupRule
+import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
@@ -32,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import org.openstack4j.model.compute.IPProtocol
 import org.openstack4j.openstack.compute.domain.NovaSecGroupExtension
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -90,7 +93,7 @@ class OpenstackSecurityGroupCachingAgentSpec extends Specification {
     cacheData.attributes == instanceAttributes
   }
 
-  def "should load data with inbound rules"() {
+  def "should load data with cidr inbound rules"() {
     given:
     def id = UUID.randomUUID().toString()
     def name = 'a-security-group'
@@ -99,14 +102,10 @@ class OpenstackSecurityGroupCachingAgentSpec extends Specification {
     def instanceAttributes = new HashMap<>()
 
     def novaSecurityGroup = new NovaSecGroupExtension(name: name, description: desc, id: id, rules: [
-      new NovaSecGroupExtension.SecurityGroupRule(fromPort: 80,
-        toPort: 80,
-        ipProtocol: IPProtocol.TCP,
+      new NovaSecGroupExtension.SecurityGroupRule(fromPort: 80, toPort: 80, ipProtocol: IPProtocol.TCP,
         ipRange: new NovaSecGroupExtension.SecurityGroupRule.RuleIpRange(cidr: '10.10.0.0/24')
       ),
-      new NovaSecGroupExtension.SecurityGroupRule(fromPort: 22,
-        toPort: 22,
-        ipProtocol: IPProtocol.TCP,
+      new NovaSecGroupExtension.SecurityGroupRule(fromPort: 22, toPort: 22, ipProtocol: IPProtocol.TCP,
         ipRange: new NovaSecGroupExtension.SecurityGroupRule.RuleIpRange(cidr: '10.10.0.0')
       )
     ])
@@ -140,6 +139,137 @@ class OpenstackSecurityGroupCachingAgentSpec extends Specification {
     cacheData.attributes == instanceAttributes
   }
 
+  def "should load data with referencing security group inbound rule missing referenced security group"() {
+    given:
+    def securityGroupId = UUID.randomUUID().toString()
+    def name = 'a-security-group'
+    def desc = 'a description'
+    def instanceAttributes = [:]
+
+    def novaSecurityGroup = new NovaSecGroupExtension(name: name, description: desc, id: securityGroupId, rules: [
+      new NovaSecGroupExtension.SecurityGroupRule(fromPort: 80, toPort: 80, ipProtocol: IPProtocol.TCP,
+        ipRange: new NovaSecGroupExtension.SecurityGroupRule.RuleIpRange(cidr: null),
+        group: new NovaSecGroupExtension.SecurityGroupRule.RuleGroup(name: 'ref', tenantId: 'tenant')
+      )
+    ])
+
+    def securityGroup = new OpenstackSecurityGroup(id: securityGroupId,
+      accountName: accountName,
+      region: region,
+      name: name,
+      description: desc,
+      inboundRules: [
+        new SecurityGroupRule(protocol: IPProtocol.TCP.value(),
+          portRanges: [new Rule.PortRange(startPort: 80, endPort: 80)] as SortedSet,
+          securityGroup: new OpenstackSecurityGroup(name: 'ref', type: OpenstackCloudProvider.ID, accountName: accountName, region: region)
+        )
+      ]
+    )
+
+    when:
+    CacheResult cacheResult = cachingAgent.loadData(providerCache)
+
+    then:
+    1 * provider.getSecurityGroups(region) >> [novaSecurityGroup]
+    1 * objectMapper.convertValue(securityGroup, OpenstackInfrastructureProvider.ATTRIBUTES) >> instanceAttributes
+
+    and:
+    cacheResult.cacheResults.get(SECURITY_GROUPS.ns).size() == 1
+    cacheResult.cacheResults.get(SECURITY_GROUPS.ns).find { it.id == Keys.getSecurityGroupKey(name, securityGroupId, accountName, region) }
+  }
+
+  def "should load data with referencing security group inbound rule with referenced security group"() {
+    given:
+    def securityGroupId = UUID.randomUUID().toString()
+    def referencedSecurityGroupId = UUID.randomUUID().toString()
+    def name = 'a-security-group'
+    def desc = 'a description'
+    def instanceAttributes = [:]
+
+    def novaSecurityGroups = [
+      new NovaSecGroupExtension(name: name, description: desc, id: securityGroupId, rules: [
+        new NovaSecGroupExtension.SecurityGroupRule(fromPort: 80, toPort: 80, ipProtocol: IPProtocol.TCP,
+          ipRange: new NovaSecGroupExtension.SecurityGroupRule.RuleIpRange(cidr: null),
+          group: new NovaSecGroupExtension.SecurityGroupRule.RuleGroup(name: 'ref', tenantId: 'tenant')
+        )
+      ]),
+      new NovaSecGroupExtension(name: 'ref', description: desc, id: referencedSecurityGroupId, rules: [])
+    ]
+
+    def securityGroup = new OpenstackSecurityGroup(id: securityGroupId,
+      accountName: accountName,
+      region: region,
+      name: name,
+      description: desc,
+      inboundRules: [
+        new SecurityGroupRule(protocol: IPProtocol.TCP.value(),
+          portRanges: [new Rule.PortRange(startPort: 80, endPort: 80)] as SortedSet,
+          securityGroup: new OpenstackSecurityGroup(name: 'ref', type: OpenstackCloudProvider.ID, accountName: accountName, region: region, id: referencedSecurityGroupId)
+        )
+      ]
+    )
+
+    when:
+    CacheResult cacheResult = cachingAgent.loadData(providerCache)
+
+    then:
+    1 * provider.getSecurityGroups(region) >> novaSecurityGroups
+    1 * objectMapper.convertValue(securityGroup, OpenstackInfrastructureProvider.ATTRIBUTES) >> instanceAttributes
+
+    and:
+    cacheResult.cacheResults.get(SECURITY_GROUPS.ns).size() == 2
+    cacheResult.cacheResults.get(SECURITY_GROUPS.ns).find { it.id == Keys.getSecurityGroupKey(name, securityGroupId, accountName, region) }
+    cacheResult.cacheResults.get(SECURITY_GROUPS.ns).find { it.id == Keys.getSecurityGroupKey('ref', referencedSecurityGroupId, accountName, region) }
+  }
+
+  def "should load data with referencing security group inbound rule duplicate referenced security group"() {
+    given:
+    def securityGroupId = UUID.randomUUID().toString()
+    def referencedSecurityGroupId = UUID.randomUUID().toString()
+    def thirdSecurityGroupid = UUID.randomUUID().toString()
+    def name = 'a-security-group'
+    def desc = 'a description'
+    def instanceAttributes = [:]
+
+    def novaSecurityGroups = [
+      new NovaSecGroupExtension(name: name, description: desc, id: securityGroupId, rules: [
+        new NovaSecGroupExtension.SecurityGroupRule(fromPort: 80, toPort: 80, ipProtocol: IPProtocol.TCP,
+          ipRange: new NovaSecGroupExtension.SecurityGroupRule.RuleIpRange(cidr: null),
+          group: new NovaSecGroupExtension.SecurityGroupRule.RuleGroup(name: 'ref', tenantId: 'tenant')
+        )
+      ]),
+      new NovaSecGroupExtension(name: 'ref', description: desc, id: referencedSecurityGroupId, rules: []),
+      new NovaSecGroupExtension(name: 'ref', description: desc, id: thirdSecurityGroupid, rules: [])
+    ]
+
+    def securityGroup = new OpenstackSecurityGroup(id: securityGroupId,
+      accountName: accountName,
+      region: region,
+      name: name,
+      description: desc,
+      inboundRules: [
+        new SecurityGroupRule(protocol: IPProtocol.TCP.value(),
+          portRanges: [new Rule.PortRange(startPort: 80, endPort: 80)] as SortedSet,
+          securityGroup: new OpenstackSecurityGroup(name: 'ref', type: OpenstackCloudProvider.ID, accountName: accountName, region: region)
+        )
+      ]
+    )
+
+    when:
+    CacheResult cacheResult = cachingAgent.loadData(providerCache)
+
+    then:
+    1 * provider.getSecurityGroups(region) >> novaSecurityGroups
+    1 * objectMapper.convertValue(securityGroup, OpenstackInfrastructureProvider.ATTRIBUTES) >> instanceAttributes
+
+    and:
+    cacheResult.cacheResults.get(SECURITY_GROUPS.ns).size() == 3
+    cacheResult.cacheResults.get(SECURITY_GROUPS.ns).find { it.id == Keys.getSecurityGroupKey(name, securityGroupId, accountName, region) }
+    cacheResult.cacheResults.get(SECURITY_GROUPS.ns).find { it.id == Keys.getSecurityGroupKey('ref', referencedSecurityGroupId, accountName, region) }
+    cacheResult.cacheResults.get(SECURITY_GROUPS.ns).find { it.id == Keys.getSecurityGroupKey('ref', thirdSecurityGroupid, accountName, region) }
+  }
+
+
   def "load data finds no security groups"() {
     when:
     CacheResult cacheResult = cachingAgent.loadData(providerCache)
@@ -163,7 +293,7 @@ class OpenstackSecurityGroupCachingAgentSpec extends Specification {
     Throwable exception = new OpenstackProviderException()
 
     when:
-    CacheResult cacheResult = cachingAgent.loadData(providerCache)
+    cachingAgent.loadData(providerCache)
 
     then:
     1 * provider.getSecurityGroups(region) >> { throw exception }
