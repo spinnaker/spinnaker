@@ -39,7 +39,7 @@ class GoogleLoadBalancerController {
   @Autowired
   GoogleLoadBalancerProvider googleLoadBalancerProvider
 
-  private static final HTTP = GoogleLoadBalancerType.HTTP.toString()
+  private static final String HTTP = GoogleLoadBalancerType.HTTP.toString()
 
   @RequestMapping(method = RequestMethod.GET)
   List<GoogleLoadBalancerAccountRegionSummary> list() {
@@ -56,7 +56,6 @@ class GoogleLoadBalancerController {
           httpView?.hostRules?.each { GoogleHostRule hostRule ->
             def backendService = null
             hostRule?.pathMatcher?.pathRules?.each { GooglePathRule pathRule ->
-              backendService = pathRule.backendService
               backendServices << pathRule.backendService
             }
           }
