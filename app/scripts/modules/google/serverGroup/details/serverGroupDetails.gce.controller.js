@@ -70,12 +70,11 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       return serverGroupReader.getServerGroup(app.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then((details) => {
         cancelLoader();
 
-        var plainDetails = details.plain();
-        angular.extend(plainDetails, summary);
+        angular.extend(details, summary);
         // it's possible the summary was not found because the clusters are still loading
-        plainDetails.account = serverGroup.accountId;
+        details.account = serverGroup.accountId;
 
-        this.serverGroup = plainDetails;
+        this.serverGroup = details;
         this.runningExecutions = () => {
           return runningExecutionsService.filterRunningExecutions(this.serverGroup.executions);
         };

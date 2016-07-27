@@ -3,15 +3,15 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.job.configure.common.service', [
-  require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../../../cache/deckCacheFactory.js'),
   require('../../../cloudProvider/serviceDelegate.service.js'),
-  require('../../../config/settings.js')
+  require('../../../config/settings.js'),
+  require('../../job.read.service')
 ])
-  .factory('jobCommandBuilder', function (settings, Restangular, serviceDelegate) {
+  .factory('jobCommandBuilder', function (settings, serviceDelegate, jobReader) {
 
     function getJob(application, account, region, jobName) {
-      return Restangular.one('applications', application).all('jobs').all(account).all(region).one(jobName).get();
+      return jobReader.getJob(application, account, region, jobName);
     }
 
     function getDelegate(provider) {

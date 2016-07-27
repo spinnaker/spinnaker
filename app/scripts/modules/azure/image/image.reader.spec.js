@@ -18,20 +18,20 @@
 
 describe('Service: Azure Image Reader', function() {
 
-  var service, $http;
+  var service, $http, API;
 
   beforeEach(
     window.module(
-      require('./image.reader.js')
+      require('./image.reader.js'),
+      require('../../core/api/api.service')
     )
   );
 
 
-  beforeEach(window.inject(function (azureImageReader, $httpBackend) {
-
+  beforeEach(window.inject(function (azureImageReader, $httpBackend, _API_) {
+    API = _API_;
     service = azureImageReader;
     $http = $httpBackend;
-
   }));
 
   afterEach(function() {
@@ -44,7 +44,7 @@ describe('Service: Azure Image Reader', function() {
     var query = 'abc', region = 'usw';
 
     function buildQueryString() {
-      return '/images/find?provider=azure&q=' + query + '&region=' + region;
+      return API.baseUrl + '/images/find?provider=azure&q=' + query + '&region=' + region;
     }
 
     it('queries gate when 3 characters are supplied', function() {
@@ -106,7 +106,7 @@ describe('Service: Azure Image Reader', function() {
     var imageName = 'abc', region = 'usw', credentials = 'test';
 
     function buildQueryString() {
-      return ['/images', credentials, region, imageName].join('/') + '?provider=azure';
+      return [API.baseUrl, 'images', credentials, region, imageName].join('/') + '?provider=azure';
     }
 
     it('returns null if server returns 404 or an empty list', function() {

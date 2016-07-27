@@ -4,7 +4,6 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.applications.read.service', [
-    require('exports?"restangular"!imports?_=lodash!restangular'),
     require('../../cluster/cluster.service.js'),
     require('../../task/task.read.service.js'),
     require('../../loadBalancer/loadBalancer.read.service.js'),
@@ -15,17 +14,15 @@ module.exports = angular
     require('../../pipeline/config/services/pipelineConfigService.js'),
     require('../../utils/rx.js'),
     require('../../utils/lodash.js'),
+    require('../../api/api.service'),
   ])
-  .factory('applicationReader', function ($q, $log, Restangular, _, rx, $http, settings, $location,
+  .factory('applicationReader', function ($q, $log, _, rx, $http, settings, $location, API,
                                             clusterService, taskReader, loadBalancerReader, securityGroupReader,
                                             schedulerFactory, pipelineConfigService, executionService,
                                             serverGroupTransformer) {
 
     function listApplications() {
-      return Restangular
-        .all('applications')
-        .withHttpConfig({cache: true})
-        .getList();
+      return API.one('applications').useCache().get();
     }
 
     let addTasks = (application, tasks) => {

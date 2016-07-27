@@ -5,7 +5,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.canary.canaryAnalysisNameSelector.directive', [
-    require('exports?"restangular"!imports?_=lodash!restangular'),
+    require('../../core/api/api.service')
   ])
   .directive('canaryAnalysisNameSelector', () => {
     return {
@@ -18,11 +18,11 @@ module.exports = angular
       },
       controllerAs: 'ctrl',
       templateUrl: require('./canaryAnalysisNameSelector.directive.html'),
-      controller: function(Restangular) {
+      controller: function(API) {
         let vm = this;
         vm.nameList = [];
 
-        Restangular.one('canaryConfig').all('names').getList()
+        API.one('canaryConfig').all('names').getList()
           .then(
             (results) => vm.nameList = results,
             () => vm.nameList = []

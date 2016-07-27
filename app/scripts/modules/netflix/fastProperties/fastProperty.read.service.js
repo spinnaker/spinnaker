@@ -4,30 +4,30 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.fastProperties.read.service', [
-    require('exports?"restangular"!imports?_=lodash!restangular'),
+    require('../../core/api/api.service'),
     require('../../core/cache/deckCacheFactory.js'),
     require('../canary/canary.read.service')
   ])
-  .factory('fastPropertyReader', function (Restangular, canaryReadService, $q, $log) {
+  .factory('fastPropertyReader', function (API, canaryReadService, $q, $log) {
 
     function fetchForAppName(appName) {
-      return Restangular.all('fastproperties').all('application').one(appName).get();
+      return API.all('fastproperties').all('application').one(appName).get();
     }
 
     function getPropByIdAndEnv(id, env) {
-      return Restangular.all('fastproperties').one('id', id).one('env', env).get();
+      return API.all('fastproperties').one('id', id).one('env', env).get();
     }
 
     function fetchImpactCountForScope(fastPropertyScope) {
-      return Restangular.all('fastproperties').all('impact').post(fastPropertyScope);
+      return API.all('fastproperties').all('impact').post(fastPropertyScope);
     }
 
     function loadPromotions() {
-      return Restangular.all('fastproperties').all('promotions').getList();
+      return API.all('fastproperties').all('promotions').getList();
     }
 
     function loadPromotionsByApp(appName) {
-      return Restangular.all('fastproperties').one('promotions', appName).getList()
+      return API.all('fastproperties').one('promotions', appName).getList()
         .then( (promotionList) => {
 
           return $q.all(promotionList.map((promotion) => {

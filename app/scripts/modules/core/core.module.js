@@ -35,7 +35,6 @@ module.exports = angular
     require('angular-ui-router'),
     require('angular-ui-bootstrap'),
     require('exports?"angular.filter"!angular-filter'),
-    require('exports?"restangular"!imports?_=lodash!restangular'),
     require('exports?"ui.select"!ui-select'),
     require('imports?define=>false!exports?"angularSpinner"!angular-spinner'),
 
@@ -48,6 +47,8 @@ module.exports = angular
     require('./authentication/authentication.module.js'),
 
     require('./bootstrap/applicationBootstrap.directive.js'),
+
+    require('./api/api.service'),
 
     require('./cache/caches.module.js'),
     require('./cloudProvider/cloudProviderLogo.directive.js'),
@@ -184,10 +185,6 @@ module.exports = angular
   .config(function($uibModalProvider) {
     $uibModalProvider.options.backdrop = 'static';
     $uibModalProvider.options.keyboard = false;
-  })
-  .config(function(RestangularProvider, settings) {
-    RestangularProvider.setBaseUrl(settings.gateUrl);
-    RestangularProvider.setDefaultHttpFields({timeout: settings.pollSchedule * 2 + 5000}); // TODO: replace with apiHost call
   })
   .config(function($httpProvider) {
     $httpProvider.defaults.headers.patch = {

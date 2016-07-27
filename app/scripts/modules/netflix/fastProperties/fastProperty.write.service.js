@@ -4,24 +4,24 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.fastProperties.write.service', [
-    require('exports?"restangular"!imports?_=lodash!restangular'),
+    require('../../core/api/api.service'),
     require('../../core/utils/lodash.js'),
     require('../../core/authentication/authentication.service.js')
   ])
-  .factory('fastPropertyWriter', function (Restangular, authenticationService, _) {
+  .factory('fastPropertyWriter', function (API, authenticationService, _) {
 
     function upsertFastProperty(fastProperty) {
       //var payload = createPromotedPayload(fastProperty);
       fastProperty.updatedBy = authenticationService.getAuthenticatedUser().name;
       fastProperty.sourceOfUpdate = 'spinnaker';
-      return Restangular
+      return API
         .all('fastproperties')
         .all('promote')
         .post(fastProperty);
     }
 
     function deleteFastProperty(fastProperty) {
-      return Restangular.all('fastproperties')
+      return API.all('fastproperties')
         .all('delete')
         .remove({
           propId: fastProperty.propertyId,
@@ -31,19 +31,19 @@ module.exports = angular
     }
 
     function continuePromotion(promotionId) {
-      return Restangular.all('fastproperties')
+      return API.all('fastproperties')
         .one('promote', promotionId)
-        .customPUT(null, null, {pass:true});
+        .put({pass:true});
     }
 
     function stopPromotion(promotionId) {
-      return Restangular.all('fastproperties')
+      return API.all('fastproperties')
         .one('promote', promotionId)
-        .customPUT(null, null, {pass:false});
+        .put({pass:false});
     }
 
     function deletePromotion(promotionId) {
-      return Restangular.all('fastproperties')
+      return API.all('fastproperties')
         .all('promote')
         .remove({
           promotionId: promotionId

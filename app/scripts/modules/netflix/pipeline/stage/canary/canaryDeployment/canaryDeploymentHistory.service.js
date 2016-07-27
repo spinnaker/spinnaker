@@ -3,12 +3,12 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stages.canary.deployment.history.service', [
-  require('exports?"restangular"!imports?_=lodash!restangular'),
+  require('../../../../../core/api/api.service')
 ])
-  .factory('canaryDeploymentHistoryService', function (Restangular) {
+  .factory('canaryDeploymentHistoryService', function (API) {
 
     function getAnalysisHistory(canaryDeploymentId) {
-      return Restangular.one('canaryDeployments').one(canaryDeploymentId).all('canaryAnalysisHistory').getList();
+      return API.one('canaryDeployments').one(canaryDeploymentId).all('canaryAnalysisHistory').getList();
     }
 
     return {

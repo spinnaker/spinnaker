@@ -99,7 +99,6 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
         extraData.namespace = namespace;
         recentHistoryService.addExtraDataToLatest('instances', extraData);
         return instanceReader.getInstanceDetails(account, namespace, instance.instanceId).then(function(details) {
-          details = details.plain();
           $scope.state.loading = false;
           $scope.instance = _.defaults(details, instanceSummary);
           $scope.instance.account = account;

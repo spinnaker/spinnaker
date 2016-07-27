@@ -131,7 +131,6 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
             if ($scope.$$destroyed) {
               return;
             }
-            details = details.plain();
             $scope.state.loading = false;
             extractHealthMetrics(instanceSummary, details);
             $scope.instance = _.defaults(details, instanceSummary);

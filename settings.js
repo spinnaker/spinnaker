@@ -82,7 +82,7 @@ window.spinnakerSettings = {
       botName: 'spinnakerbot'
     }
   },
-  authEnabled: process.env.AUTH === 'enabled',
+  authEnabled: true,
   authTtl: 600000,
   gitSources: ['stash', 'github'],
   triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins'],

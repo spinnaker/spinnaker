@@ -3,12 +3,11 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.service', [
-  require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../../../core/cache/deckCacheFactory.js'),
   require('../../../core/account/account.service.js'),
   require('../../../core/naming/naming.service.js')
 ])
-  .factory('titusServerGroupCommandBuilder', function (settings, Restangular, $q,
+  .factory('titusServerGroupCommandBuilder', function (settings, $q,
                                                      accountService, namingService) {
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};

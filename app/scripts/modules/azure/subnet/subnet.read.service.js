@@ -4,14 +4,14 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.azure.subnet.read.service', [
-    require('exports?"restangular"!imports?_=lodash!restangular'),
+    require('../../core/api/api.service'),
     require('../../core/cache/infrastructureCaches.js')
   ])
-  .factory('azureSubnetReader', function (Restangular, infrastructureCaches) {
+  .factory('azureSubnetReader', function (API, infrastructureCaches) {
 
     function listSubnets() {
-      return Restangular.all('subnets')
-        .withHttpConfig({cache: infrastructureCaches.subnets})
+      return API.all('subnets')
+        .useCache(infrastructureCaches.subnets)
         .getList()
         .then(function(subnets) {
           return subnets.map(function(subnet) {
@@ -20,7 +20,7 @@ module.exports = angular
             if (subnet.deprecated) {
               subnet.label += ' (deprecated)';
             }
-            return subnet.plain();
+            return subnet;
           });
         });
     }

@@ -3,12 +3,12 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.image.reader', [
-  require('exports?"restangular"!imports?_=lodash!restangular'),
+  require('../../core/api/api.service')
 ])
-  .factory('azureImageReader', function ($q, Restangular) {
+  .factory('azureImageReader', function ($q, API) {
 
     function findImages(params) {
-      return Restangular.all('images/find').getList(params, {})
+      return API.one('images/find').get(params)
         .then(function(results) {
           return results;
         },
@@ -18,7 +18,14 @@ module.exports = angular.module('spinnaker.azure.image.reader', [
     }
 
     function getImage(amiName, region, credentials) {
-      return Restangular.all('images').one(credentials).one(region).all(amiName).getList({provider: 'azure'}).then(function(results) {
+      return API
+        .one('images')
+        .one(credentials)
+        .one(region)
+        .one(amiName)
+        .withParams({provider: 'azure'})
+        .get()
+        .then(function(results) {
           return results && results.length ? results[0] : null;
         },
         function() {

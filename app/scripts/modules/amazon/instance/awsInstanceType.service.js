@@ -3,13 +3,13 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.instanceType.service', [
-  require('exports?"restangular"!imports?_=lodash!restangular'),
+  require('../../core/api/api.service'),
   require('../../core/cache/deckCacheFactory.js'),
   require('../../core/utils/lodash.js'),
   require('../../core/config/settings.js'),
   require('../../core/cache/infrastructureCaches.js'),
 ])
-  .factory('awsInstanceTypeService', function ($http, $q, settings, _, Restangular, infrastructureCaches) {
+  .factory('awsInstanceTypeService', function ($http, $q, settings, _, API, infrastructureCaches) {
 
     var m3 = {
       type: 'm3',
@@ -199,8 +199,8 @@ module.exports = angular.module('spinnaker.aws.instanceType.service', [
       if (cached) {
         return $q.when(cached);
       }
-      return Restangular.all('instanceTypes')
-        .getList().then(function (types) {
+      return API.one('instanceTypes').get()
+        .then(function (types) {
           var result = _(types)
             .map(function (type) {
               return { region: type.region, account: type.account, name: type.name, key: [type.region, type.account, type.name].join(':') };

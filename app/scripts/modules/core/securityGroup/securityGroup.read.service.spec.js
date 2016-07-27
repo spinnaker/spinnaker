@@ -4,19 +4,22 @@ describe('Service: securityGroupReader', function () {
 
   var securityGroupReader,
     $http,
-    $scope;
+    $scope,
+    API;
 
   beforeEach(
     window.module(
-      require('./securityGroup.read.service.js')
+      require('./securityGroup.read.service.js'),
+      require('../api/api.service')
     )
   );
 
   beforeEach(
-    window.inject(function (_securityGroupReader_, $httpBackend,
+    window.inject(function (_securityGroupReader_, $httpBackend, _API_,
                             $rootScope, $q, securityGroupTransformer, _serviceDelegate_) {
       securityGroupReader = _securityGroupReader_;
       $http = $httpBackend;
+      API = _API_;
       $scope = $rootScope.$new();
       spyOn(securityGroupTransformer, 'normalizeSecurityGroup').and.callFake((securityGroup) => {
         return $q.when(securityGroup);
@@ -87,7 +90,7 @@ describe('Service: securityGroupReader', function () {
       },
     };
 
-    $http.expectGET('/securityGroups/test/us-east-1/sg-123?provider=aws&vpcId=vpc-1').respond(200, {
+    $http.expectGET(API.baseUrl + '/securityGroups/test/us-east-1/sg-123?provider=aws&vpcId=vpc-1').respond(200, {
       inboundRules: [
         { securityGroup: { accountName: 'test', id: 'sg-345' }},
         { securityGroup: { accountName: 'test', id: 'sg-2' }},
@@ -124,7 +127,7 @@ describe('Service: securityGroupReader', function () {
       ]}
     };
 
-    $http.expectGET('/securityGroups').respond(200, {
+    $http.expectGET(API.baseUrl + '/securityGroups').respond(200, {
       test: {
         aws: {
           'us-east-1': [

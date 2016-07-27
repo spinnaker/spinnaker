@@ -46,14 +46,10 @@ describe('Controller: renamePipelineModal', function() {
     pipeline.stage.foo[0].$$hashKey = '01F';
     pipeline.stage.bar.$$hashKey = '01G';
     pipeline.plain = function() { return pipeline; };
-    spyOn(pipeline, 'plain').and.callThrough();
 
     this.controller.initialize();
 
     var converted = JSON.parse(this.$scope.command.pipelineJSON);
-
-    // restangular fields
-    expect(pipeline.plain).toHaveBeenCalled();
 
     // name
     expect(converted.name).toBeUndefined();

@@ -77,7 +77,6 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
         extraData.region = region;
         recentHistoryService.addExtraDataToLatest('instances', extraData);
         return instanceReader.getInstanceDetails(account, region, instance.instanceId).then(function(details) {
-          details = details.plain();
           $scope.state.loading = false;
           extractHealthMetrics(instanceSummary, details);
           $scope.instance = _.defaults(details, instanceSummary);

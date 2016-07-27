@@ -36,11 +36,7 @@ module.exports = angular.module('spinnaker.core.pipeline.create.controller', [
 
     this.createPipeline = () => {
       var template = $scope.command.template;
-      if (template.fromServer) {
-        template = angular.copy(template.plain());
-      } else {
-        template = angular.copy(template);
-      }
+      template = angular.copy(template);
       if ($scope.command.template === noTemplate && $scope.command.parallel) {
         pipelineConfigService.enableParallelExecution(template);
       }

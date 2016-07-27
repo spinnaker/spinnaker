@@ -29,7 +29,7 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.con
       return securityGroupReader.getSecurityGroupDetails(application, securityGroup.accountId, securityGroup.provider, securityGroup.region, securityGroup.vpcId, securityGroup.name).then(function (details) {
         $scope.state.loading = false;
 
-        if (!details || _.isEmpty( details.plain())) {
+        if (!details || _.isEmpty( details)) {
           fourOhFour();
         } else {
           $scope.securityGroup = details;
@@ -58,7 +58,7 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.con
         controller: 'azureEditSecurityGroupCtrl as ctrl',
         resolve: {
           securityGroup: function() {
-            return angular.copy($scope.securityGroup.plain());
+            return angular.copy($scope.securityGroup);
           },
           application: function() { return application; }
         }
@@ -72,7 +72,7 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.con
         controller: 'azureCloneSecurityGroupController as ctrl',
         resolve: {
           securityGroup: function() {
-            var securityGroup = angular.copy($scope.securityGroup.plain());
+            var securityGroup = angular.copy($scope.securityGroup);
             if(securityGroup.region) {
               securityGroup.regions = [securityGroup.region];
             }

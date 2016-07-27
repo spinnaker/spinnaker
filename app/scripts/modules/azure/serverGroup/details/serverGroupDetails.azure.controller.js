@@ -51,11 +51,10 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
       return serverGroupReader.getServerGroup(app.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
         cancelLoader();
 
-        var restangularlessDetails = details.plain();
-        angular.extend(restangularlessDetails, summary);
-        restangularlessDetails.account = serverGroup.accountId; // it's possible the summary was not found because the clusters are still loading
+        angular.extend(details, summary);
+        details.account = serverGroup.accountId; // it's possible the summary was not found because the clusters are still loading
 
-        $scope.serverGroup = restangularlessDetails;
+        $scope.serverGroup = details;
 
         if (!_.isEmpty($scope.serverGroup)) {
 

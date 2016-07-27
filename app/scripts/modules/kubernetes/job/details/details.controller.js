@@ -55,10 +55,9 @@ module.exports = angular.module('spinnaker.job.details.kubernetes.controller', [
       return jobReader.getJob(application.name, job.accountId, job.region, job.name).then(function(details) {
         cancelLoader();
 
-        var restangularlessDetails = details.plain();
-        angular.extend(restangularlessDetails, summary);
+        angular.extend(details, summary);
 
-        $scope.job = restangularlessDetails;
+        $scope.job = details;
         $scope.runningExecutions = function() {
           return runningExecutionsService.filterRunningExecutions($scope.job.executions);
         };

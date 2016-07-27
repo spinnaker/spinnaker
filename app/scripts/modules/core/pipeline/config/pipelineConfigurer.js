@@ -253,7 +253,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     }
 
     function getPlain(pipeline) {
-      var base = pipeline.fromServer ? pipeline.plain() : pipeline;
+      var base = pipeline;
       var copy = _.cloneDeep(base);
       copy.stages.forEach(cleanStageForDiffing);
       return {

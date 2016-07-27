@@ -4,15 +4,17 @@ describe('pipelineConfigService', function () {
   beforeEach(
     window.module(
       require('./pipelineConfigService'),
-      require('../../../utils/lodash.js')
+      require('../../../utils/lodash.js'),
+      require('../../../api/api.service')
     )
   );
 
-  beforeEach(window.inject(function (pipelineConfigService, $httpBackend, $rootScope, ___) {
+  beforeEach(window.inject(function (pipelineConfigService, $httpBackend, $rootScope, ___, _API_) {
     this._ = ___;
     this.service = pipelineConfigService;
     this.$http = $httpBackend;
     this.$scope = $rootScope.$new();
+    this.API = _API_;
   }));
 
   describe('savePipeline', function () {
@@ -25,7 +27,7 @@ describe('pipelineConfigService', function () {
         ]
       };
 
-      this.$http.expectPOST('/pipelines').respond(200, '');
+      this.$http.expectPOST(this.API.baseUrl + '/pipelines').respond(200, '');
 
       this.service.savePipeline(pipeline);
       this.$scope.$digest();
@@ -49,7 +51,7 @@ describe('pipelineConfigService', function () {
         { name: 'first', index: 0, stages: []},
         { name: 'third', index: 2, stages: []},
       ];
-      this.$http.expectGET('/applications/app/pipelineConfigs').respond(200, fromServer);
+      this.$http.expectGET(this.API.baseUrl + '/applications/app/pipelineConfigs').respond(200, fromServer);
 
       this.service.getPipelinesForApplication('app').then(function(pipelines) {
         result = pipelines;
@@ -69,8 +71,8 @@ describe('pipelineConfigService', function () {
       ];
 
       var posted = [];
-      this.$http.expectGET('/applications/app/pipelineConfigs').respond(200, fromServer);
-      this.$http.whenPOST('/pipelines', function(data) {
+      this.$http.expectGET(this.API.baseUrl + '/applications/app/pipelineConfigs').respond(200, fromServer);
+      this.$http.whenPOST(this.API.baseUrl + '/pipelines', function(data) {
         var json = JSON.parse(data);
         posted.push({index: json.index, name: json.name});
         return true;

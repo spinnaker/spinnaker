@@ -5,16 +5,19 @@ describe('serverGroupWriter', function () {
 
   var serverGroupWriter,
     $httpBackend,
-    serverGroupTransformer;
+    serverGroupTransformer,
+    API;
 
   beforeEach(
     window.module(
-      require('./serverGroup.write.service.js')
+      require('./serverGroup.write.service.js'),
+      require('../api/api.service')
     )
   );
 
   beforeEach(function () {
-    window.inject(function (_serverGroupWriter_, _$httpBackend_, _serverGroupTransformer_) {
+    window.inject(function (_serverGroupWriter_, _$httpBackend_, _serverGroupTransformer_, _API_) {
+      API = _API_;
       serverGroupWriter = _serverGroupWriter_;
       $httpBackend = _$httpBackend_;
       serverGroupTransformer = _serverGroupTransformer_;
@@ -30,41 +33,48 @@ describe('serverGroupWriter', function () {
 
     function postTask(command) {
       var submitted = null;
-      $httpBackend.expectPOST('/applications/appName/tasks', function (bodyString) {
+      $httpBackend.expectPOST(API.baseUrl + '/applications/appName/tasks', function (bodyString) {
         submitted = angular.fromJson(bodyString);
         return true;
       }).respond(200, {ref: '/1'});
 
-      $httpBackend.expectGET('/applications/appName/tasks/1').respond({});
+      $httpBackend.expectGET(API.baseUrl + '/applications/appName/tasks/1').respond({});
 
       serverGroupWriter.cloneServerGroup(command, { name: 'appName', tasks: { refresh: angular.noop } });
+
       $httpBackend.flush();
 
       return submitted;
     }
 
-    it('sets action type and description appropriately when creating new', function () {
-      var command = {
-          viewState: {
-            mode: 'create',
-          },
-          application: { name: 'theApp'}
-        };
+    var command = {
+      viewState: {
+        mode: 'create',
+      },
+      application: { name: 'theApp'}
+    };
 
+    it('sets action type and description appropriately when creating new', function () {
       var submitted = postTask(command);
       expect(submitted.job[0].type).toBe('createServerGroup');
       expect(submitted.description).toBe('Create New Server Group in cluster appName');
+    });
 
+    it('sets action type and description appropriately when creating new', function () {
       command.stack = 'main';
-      submitted = postTask(command);
+      let submitted = postTask(command);
       expect(submitted.description).toBe('Create New Server Group in cluster appName-main');
+    });
 
+    it('sets action type and description appropriately when creating new', function () {
       command.freeFormDetails = 'details';
-      submitted = postTask(command);
+      let submitted = postTask(command);
       expect(submitted.description).toBe('Create New Server Group in cluster appName-main-details');
+    });
 
+    it('sets action type and description appropriately when creating new', function () {
       delete command.stack;
-      submitted = postTask(command);
+      let submitted = postTask(command);
       expect(submitted.description).toBe('Create New Server Group in cluster appName--details');
     });
 

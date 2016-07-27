@@ -4,10 +4,10 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.task.read.service', [
-    require('exports?"restangular"!imports?_=lodash!restangular'),
+    require('../api/api.service'),
     require('../orchestratedItem/orchestratedItem.transformer.js')
   ])
-  .factory('taskReader', function (Restangular, $log, $q, $timeout, orchestratedItemTransformer) {
+  .factory('taskReader', function (API, $log, $q, $timeout, orchestratedItemTransformer) {
 
     const activeStatuses = ['RUNNING', 'SUSPENDED', 'NOT_STARTED'];
 
@@ -23,7 +23,7 @@ module.exports = angular
     }
 
     function getTasks(applicationName, statuses = []) {
-      return Restangular.one('applications', applicationName).all('tasks')
+      return API.one('applications', applicationName).all('tasks')
         .getList({statuses: statuses.join(',')})
         .then((tasks) => {
           tasks.forEach(setTaskProperties);
@@ -72,7 +72,7 @@ module.exports = angular
     }
 
     function getTask(applicationName, taskId) {
-      return Restangular.one('applications', applicationName).one('tasks', taskId).get()
+      return API.one('applications', applicationName).one('tasks', taskId).get()
         .then((task) => {
           orchestratedItemTransformer.defineProperties(task);
           if (task.steps && task.steps.length) {
@@ -84,9 +84,8 @@ module.exports = angular
               task.execution.stages.forEach(orchestratedItemTransformer.defineProperties);
             }
           }
-          let plainTask = task.plain();
-          setTaskProperties(plainTask);
-          return plainTask;
+          setTaskProperties(task);
+          return task;
         })
         .catch((error) => $log.warn('There was an issue retrieving taskId: ', taskId, error));
     }

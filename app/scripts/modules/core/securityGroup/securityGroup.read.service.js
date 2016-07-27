@@ -3,7 +3,6 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
-  require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../cache/deckCacheFactory.js'),
   require('../search/search.service.js'),
   require('../naming/naming.service.js'),
@@ -11,14 +10,15 @@ module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
   require('../cache/infrastructureCaches.js'),
   require('./securityGroup.transformer.js'),
   require('../cloudProvider/serviceDelegate.service.js'),
+  require('../api/api.service')
 ])
-  .factory('securityGroupReader', function ($q, $log, Restangular, searchService, _, namingService,
+  .factory('securityGroupReader', function ($q, $log, searchService, _, namingService, API,
                                             infrastructureCaches, securityGroupTransformer, serviceDelegate) {
 
     function loadSecurityGroups() {
       return getAllSecurityGroups().then((groupsByAccount) => {
         let securityGroups = [];
-        _.forOwn(groupsByAccount.plain(), (groupsByProvider, account) => {
+        _.forOwn(groupsByAccount, (groupsByProvider, account) => {
           return _.forOwn(groupsByProvider, (groupsByRegion, provider) => {
             _.forOwn(groupsByRegion, (groups) => {
               groups.forEach((group) => {
@@ -184,7 +184,7 @@ module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
     }
 
     function getSecurityGroupDetails(application, account, provider, region, vpcId, id) {
-      return Restangular.one('securityGroups', account).one(region).one(id).get({provider: provider, vpcId: vpcId}).then(function(details) {
+      return API.one('securityGroups').one(account).one(region).one(id).withParams({provider: provider, vpcId: vpcId}).get().then(function(details) {
         if (details && details.inboundRules) {
           details.ipRangeRules = details.inboundRules.filter(function(rule) {
             return rule.range;
@@ -205,9 +205,7 @@ module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
     }
 
     function getAllSecurityGroups() {
-      return Restangular.one('securityGroups')
-        .withHttpConfig({cache: infrastructureCaches.securityGroups})
-        .get();
+      return API.one('securityGroups').useCache(infrastructureCaches.securityGroups).get();
     }
 
     function getApplicationSecurityGroup(application, account, region, id) {

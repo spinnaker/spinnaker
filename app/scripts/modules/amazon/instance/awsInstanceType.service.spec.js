@@ -18,15 +18,18 @@
 
 describe('Service: InstanceType', function () {
 
+  let API;
+
   beforeEach(function() {
       window.module(
-        require('./awsInstanceType.service')
+        require('./awsInstanceType.service'),
+        require('../../core/api/api.service')
       );
   });
 
 
-  beforeEach(window.inject(function (_awsInstanceTypeService_, _$httpBackend_, _settings_, infrastructureCaches) {
-
+  beforeEach(window.inject(function (_awsInstanceTypeService_, _$httpBackend_, _settings_, _API_, infrastructureCaches) {
+    API = _API_;
     this.awsInstanceTypeService = _awsInstanceTypeService_;
     this.$httpBackend = _$httpBackend_;
     this.settings = _settings_;
@@ -52,7 +55,7 @@ describe('Service: InstanceType', function () {
 
     it('returns types, indexed by region', function () {
 
-      this.$httpBackend.expectGET('/instanceTypes').respond(200, this.allTypes);
+      this.$httpBackend.expectGET( API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
 
       var results = null;
       this.awsInstanceTypeService.getAllTypesByRegion().then(function(result) {
@@ -69,7 +72,7 @@ describe('Service: InstanceType', function () {
   describe('getAvailableTypesForRegions', function() {
 
     it('returns results for a single region', function() {
-      this.$httpBackend.expectGET('/instanceTypes').respond(200, this.allTypes);
+      this.$httpBackend.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
 
       var results = null,
           service = this.awsInstanceTypeService;
@@ -83,7 +86,7 @@ describe('Service: InstanceType', function () {
     });
 
     it('returns empty list for region with no instance types', function() {
-      this.$httpBackend.expectGET('/instanceTypes').respond(200, this.allTypes);
+      this.$httpBackend.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
 
       var results = null,
           service = this.awsInstanceTypeService;
@@ -97,7 +100,7 @@ describe('Service: InstanceType', function () {
     });
 
     it('returns an intersection when multiple regions are provided', function() {
-      this.$httpBackend.expectGET('/instanceTypes').respond(200, this.allTypes);
+      this.$httpBackend.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
 
       var results = null,
           service = this.awsInstanceTypeService;

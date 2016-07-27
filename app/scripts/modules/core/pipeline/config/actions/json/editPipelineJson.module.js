@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.editJson
     }
 
     this.initialize = function() {
-      var toCopy = pipeline.hasOwnProperty('plain') ? pipeline.plain() : pipeline;
+      var toCopy = pipeline;
       var pipelineCopy = _.cloneDeep(toCopy, function (value) {
         if (value && value.$$hashKey) {
           delete value.$$hashKey;

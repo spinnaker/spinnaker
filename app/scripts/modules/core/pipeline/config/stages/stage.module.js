@@ -4,6 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
   require('../../../utils/lodash.js'),
+  require('../../../api/api.service'),
   require('../pipelineConfigProvider.js'),
   require('../services/pipelineConfigService.js'),
   require('./overrideTimeout/overrideTimeout.directive.js'),
@@ -176,10 +177,15 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
     $scope.$watch('stage.type', this.selectStage);
     $scope.$watch('viewState.stageIndex', this.selectStage);
   })
-  .controller('RestartStageCtrl', function($scope, $stateParams, $http, Restangular, confirmationModalService) {
+  .controller('RestartStageCtrl', function($scope, $stateParams, $http, API, confirmationModalService) {
     var restartStage = function () {
-      return Restangular.one('pipelines', $stateParams.executionId).one('stages', $scope.stage.id).one('restart')
-        .customPUT({skip: false})
+      return API
+        .one('pipelines')
+        .one($stateParams.executionId)
+        .one('stages', $scope.stages.id)
+        .one('restart')
+        .data({skip: false})
+        .put()
         .then(function () {
           $scope.stage.isRestarting = true;
         });

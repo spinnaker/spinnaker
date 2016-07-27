@@ -18,17 +18,18 @@
 
 describe('Service: aws Image Reader', function() {
 
-  var service, $http, scope;
+  var service, $http, scope, API;
 
   beforeEach(
     window.module(
-      require('./image.reader.js')
+      require('./image.reader.js'),
+      require('../../core/api/api.service')
     )
   );
 
 
-  beforeEach(window.inject(function (awsImageReader, $httpBackend, $rootScope) {
-
+  beforeEach(window.inject(function (awsImageReader, $httpBackend, $rootScope, _API_) {
+    API = _API_;
     service = awsImageReader;
     $http = $httpBackend;
     scope = $rootScope.$new();
@@ -45,7 +46,7 @@ describe('Service: aws Image Reader', function() {
     var query = 'abc', region = 'us-west-1';
 
     function buildQueryString() {
-      return '/images/find?provider=aws&q=' + query + '&region=' + region;
+      return API.baseUrl + '/images/find?provider=aws&q=' + query + '&region=' + region;
     }
 
     it('queries gate when 3 characters are supplied', function() {
@@ -122,7 +123,7 @@ describe('Service: aws Image Reader', function() {
     var imageName = 'abc', region = 'us-west-1', credentials = 'test';
 
     function buildQueryString() {
-      return ['/images', credentials, region, imageName].join('/') + '?provider=aws';
+      return [API.baseUrl, 'images', credentials, region, imageName].join('/') + '?provider=aws';
     }
 
     it('returns null if server returns 404 or an empty list', function() {

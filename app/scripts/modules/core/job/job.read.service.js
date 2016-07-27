@@ -4,12 +4,12 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.job.read.service', [
-    require('exports?"restangular"!imports?_=lodash!restangular'),
+    require('../api/api.service')
   ])
-  .factory('jobReader', function (Restangular) {
+  .factory('jobReader', function (API) {
 
     function getJob(application, account, region, jobName) {
-      return Restangular.one('applications', application).all('jobs').all(account).all(region).one(jobName).get();
+      return API.one('applications').one(application).all('jobs').all(account).all(region).one(jobName).get();
     }
 
     return {

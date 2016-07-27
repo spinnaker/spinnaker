@@ -3,12 +3,12 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.services.configService', [
-  require('exports?"restangular"!imports?_=lodash!restangular'),
+  require('../../../api/api.service'),
   require('../../../utils/lodash.js'),
   require('../../../authentication/authentication.service.js'),
   require('../../../cache/viewStateCache.js'),
 ])
-  .factory('pipelineConfigService', function (_, $q, Restangular, authenticationService, viewStateCache) {
+  .factory('pipelineConfigService', function (_, $q, API, authenticationService, viewStateCache) {
 
     var configViewStateCache = viewStateCache.createCache('pipelineConfig', { version: 1 });
 
@@ -17,13 +17,13 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
     }
 
     function getPipelinesForApplication(applicationName) {
-      return Restangular.one('applications', applicationName).all('pipelineConfigs').getList().then(function (pipelines) {
+      return API.one('applications').one(applicationName).all('pipelineConfigs').getList().then(function (pipelines) {
         return sortPipelines(pipelines);
       });
     }
 
     function getStrategiesForApplication(applicationName) {
-      return Restangular.one('applications', applicationName).all('strategyConfigs').getList().then(function (pipelines) {
+      return API.one('applications').one(applicationName).all('strategyConfigs').getList().then(function (pipelines) {
         return sortPipelines(pipelines);
       });
     }
@@ -51,7 +51,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
     }
 
     function deletePipeline(applicationName, pipeline, pipelineName) {
-      return Restangular.all(pipeline.strategy ? 'strategies' : 'pipelines').one(applicationName, pipelineName).remove();
+      return API.one(pipeline.strategy ? 'strategies' : 'pipelines').one(applicationName, pipelineName).remove();
     }
 
     function savePipeline(pipeline) {
@@ -62,23 +62,22 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
           delete stage.name;
         }
       });
-      return Restangular.all( pipeline.strategy ? 'strategies' : 'pipelines').post(pipeline);
+      return API.one( pipeline.strategy ? 'strategies' : 'pipelines').data(pipeline).post();
     }
 
     function renamePipeline(applicationName, pipeline, currentName, newName) {
       configViewStateCache.remove(buildViewStateCacheKey(applicationName, currentName));
-      return Restangular.all(pipeline.strategy ? 'strategies' : 'pipelines').all('move').post({
+      return API.one(pipeline.strategy ? 'strategies' : 'pipelines').all('move').data({
         application: applicationName,
         from: currentName,
         to: newName
-      });
+      }).post();
     }
 
     function triggerPipeline(applicationName, pipelineName, body) {
       body = body || {};
       body.user = authenticationService.getAuthenticatedUser().name;
-      return Restangular.one('pipelines', applicationName)
-        .customPOST(body, pipelineName);
+      return API.one('pipelines').one(applicationName).one(pipelineName).data(body).post();
     }
 
     function getDownstreamStageIds(pipeline, stage) {

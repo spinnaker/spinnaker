@@ -7,20 +7,25 @@ describe('Service: taskMonitorService', function () {
       $scope,
       $timeout,
       $http,
-      orchestratedItemTransformer;
+      orchestratedItemTransformer,
+      API;
 
   beforeEach(
-    window.module('spinnaker.tasks.monitor.service')
+    window.module(
+      require('./taskMonitorService'),
+      require('../../api/api.service')
+    )
   );
 
   beforeEach(
-    window.inject(function (_taskMonitorService_, _$q_, $rootScope, _$timeout_, $httpBackend, _orchestratedItemTransformer_) {
+    window.inject(function (_taskMonitorService_, _$q_, $rootScope, _$timeout_, $httpBackend, _orchestratedItemTransformer_, _API_) {
       taskMonitorService = _taskMonitorService_;
       $q = _$q_;
       $scope = $rootScope.$new();
       $timeout = _$timeout_;
       $http = $httpBackend;
       orchestratedItemTransformer = _orchestratedItemTransformer_;
+      API = _API_;
     })
   );
 
@@ -45,13 +50,13 @@ describe('Service: taskMonitorService', function () {
 
       $timeout.flush(); // still running first time
 
-      $http.expectGET(['/applications', 'deck', 'tasks', 'a'].join('/')).respond(200, { status: 'RUNNING' });
+      $http.expectGET([API.baseUrl, 'applications', 'deck', 'tasks', 'a'].join('/')).respond(200, { status: 'RUNNING' });
       $timeout.flush();
       $http.flush();
       expect(monitor.task.isCompleted).toBe(false);
       expect(monitor.application.runningOrchestrations.refresh.calls.count()).toBe(1);
 
-      $http.expectGET(['/applications', 'deck', 'tasks', 'a'].join('/')).respond(200, { status: 'SUCCEEDED' });
+      $http.expectGET([API.baseUrl, 'applications', 'deck', 'tasks', 'a'].join('/')).respond(200, { status: 'SUCCEEDED' });
       $timeout.flush(); // complete second time
       $http.flush();
 
@@ -99,12 +104,12 @@ describe('Service: taskMonitorService', function () {
 
       $timeout.flush(); // still running first time
 
-      $http.expectGET(['/applications', 'deck', 'tasks', 'a'].join('/')).respond(200, { status: 'RUNNING' });
+      $http.expectGET([API.baseUrl, 'applications', 'deck', 'tasks', 'a'].join('/')).respond(200, { status: 'RUNNING' });
       $timeout.flush();
       $http.flush();
       expect(monitor.task.isCompleted).toBe(false);
 
-      $http.expectGET(['/applications', 'deck', 'tasks', 'a'].join('/')).respond(200, { status: 'TERMINAL' });
+      $http.expectGET([API.baseUrl, 'applications', 'deck', 'tasks', 'a'].join('/')).respond(200, { status: 'TERMINAL' });
       $timeout.flush(); // complete second time
       $http.flush();
 

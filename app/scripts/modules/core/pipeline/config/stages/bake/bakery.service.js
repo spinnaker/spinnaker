@@ -3,11 +3,11 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.bake.service', [
-  require('exports?"restangular"!imports?_=lodash!restangular'),
+  require('../../../../api/api.service'),
   require('../../../../account/account.service.js'),
   require('../../../../config/settings.js'),
 ])
-  .factory('bakeryService', function($q, _, Restangular, accountService, settings) {
+  .factory('bakeryService', function($q, _, API, accountService, settings) {
 
     function getRegions(provider) {
       if (_.has(settings, `providers.${provider}.bakeryRegions`)) {
@@ -22,9 +22,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.bake.service', [
           return _.find(options, { cloudProvider: provider });
         });
       }
-      return Restangular
-        .all('bakery/options')
-        .withHttpConfig({cache: true})
+      return API
+        .one('bakery')
+        .one('options')
+        .useCache()
         .getList();
     }
 

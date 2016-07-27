@@ -48,11 +48,7 @@ describe('Controller: azureInstanceDetailsCtrl', function () {
       };
 
       spyOn(instanceReader, 'getInstanceDetails').and.returnValue(
-        $q.when({
-          plain: function() {
-            return details;
-          }
-        })
+        $q.when(details)
       );
       var application = {};
 

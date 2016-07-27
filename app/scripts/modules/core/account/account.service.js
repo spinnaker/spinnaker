@@ -3,13 +3,13 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.account.service', [
-  require('exports?"restangular"!imports?_=lodash!restangular'),
+  require('../api/api.service'),
   require('../utils/lodash.js'),
   require('../cache/infrastructureCaches.js'),
   require('../config/settings.js'),
   require('../cloudProvider/cloudProvider.registry.js'),
 ])
-  .factory('accountService', function(settings, $log, _, Restangular, $q, infrastructureCaches, cloudProviderRegistry) {
+  .factory('accountService', function(settings, $log, _, API, $q, infrastructureCaches, cloudProviderRegistry) {
 
     let getAllAccountDetailsForProvider = _.memoize((providerName) => {
       return listAccounts(providerName)
@@ -55,10 +55,10 @@ module.exports = angular.module('spinnaker.core.account.service', [
           return _.filter(accounts, { type: provider });
         });
       }
-      return Restangular
-        .all('credentials')
-        .withHttpConfig({cache: true})
-        .getList();
+      return API
+        .one('credentials')
+        .useCache()
+        .get();
     }
 
     let listProviders = (application) => {
@@ -81,10 +81,10 @@ module.exports = angular.module('spinnaker.core.account.service', [
       var deferred = $q.defer();
       listAccounts(provider).then(function(accounts) {
         $q.all(accounts.reduce(function(acc, account) {
-          acc[account.name] = Restangular
-            .all('credentials')
+          acc[account.name] = API
+            .one('credentials')
             .one(account.name)
-            .withHttpConfig({cache: true})
+            .useCache()
             .get();
           return acc;
         }, {})).then(function(result) {
@@ -131,8 +131,10 @@ module.exports = angular.module('spinnaker.core.account.service', [
     });
 
     function getAccountDetails(accountName) {
-      return Restangular.one('credentials', accountName)
-        .withHttpConfig({cache: true})
+      return API
+        .one('credentials')
+        .one(accountName)
+        .useCache()
         .get();
     }
 

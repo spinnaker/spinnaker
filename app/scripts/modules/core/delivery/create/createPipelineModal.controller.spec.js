@@ -117,16 +117,10 @@ describe('Controller: createPipelineModal', function() {
         application: 'the_app',
         name: 'old_name',
         stages: [{name: 'the_stage'}],
-        triggers: [{name: 'the_trigger'}],
-        fromServer: true,
-        plain: angular.noop
+        triggers: [{name: 'the_trigger'}]
       };
       var application = {};
 
-      spyOn(toCopy, 'plain').and.callFake(function () {
-        toCopy.isPlainNow = true;
-        return toCopy;
-      });
       this.initializeController(application);
       application.pipelineConfigs.data = [toCopy];
       spyOn(application.pipelineConfigs, 'refresh').and.callFake(() => {
@@ -149,7 +143,6 @@ describe('Controller: createPipelineModal', function() {
       expect(submitted.application).toBe('the_app');
       expect(submitted.stages.length).toBe(1);
       expect(submitted.triggers.length).toBe(1);
-      expect(submitted.isPlainNow).toBe(true);
     });
 
     it('should insert new pipeline as last one in application and set its index', function () {

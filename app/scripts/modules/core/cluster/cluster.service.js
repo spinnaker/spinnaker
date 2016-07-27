@@ -6,18 +6,18 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.cluster.service', [
   require('../naming/naming.service.js'),
-  require('exports?"restangular"!imports?_=lodash!restangular'),
+  require('../api/api.service'),
   require('../utils/lodash.js'),
   require('../serverGroup/serverGroup.transformer.js'),
   require('../job/job.transformer.js'),
 ])
-  .factory('clusterService', function ($q, Restangular, _, serverGroupTransformer,
+  .factory('clusterService', function ($q, API, _, serverGroupTransformer,
                                        jobTransformer, namingService) {
 
     function loadServerGroups(applicationName) {
       var serverGroupLoader = $q.all({
-        serverGroups: Restangular.one('applications', applicationName).all('serverGroups').getList().then(g => g, () => []),
-        jobs: Restangular.one('applications', applicationName).all('jobs').getList().then(jobs => jobs, () => []),
+        serverGroups: API.one('applications').one(applicationName).all('serverGroups').getList().then(g => g, () => []),
+        jobs: API.one('applications').one(applicationName).all('jobs').getList().then(jobs => jobs, () => []),
       });
       return serverGroupLoader.then(function(results) {
         results.serverGroups = results.serverGroups || [];
@@ -284,11 +284,11 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
     }
 
     function getCluster(application, account, cluster) {
-      return Restangular.one('applications', application).one('clusters', account).one(cluster).get();
+      return API.one('applications').one(application).one('clusters', account).one(cluster).get();
     }
 
     function getClusters(application) {
-      return Restangular.one('applications', application).one('clusters').get();
+      return API.one('applications').one(application).one('clusters').get();
     }
 
     function addServerGroupsToApplication(application, serverGroups = []) {

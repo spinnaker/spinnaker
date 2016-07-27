@@ -3,23 +3,23 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.diff.service', [
-  require('exports?"restangular"!imports?_=lodash!restangular'),
+  require('../../../core/api/api.service'),
   require('../../../core/utils/lodash.js'),
   require('../../../core/config/settings.js'),
 ])
-  .factory('diffService', function (_, Restangular, $q, settings) {
+  .factory('diffService', function (_, API, $q, settings) {
 
     function getClusterDiffForAccount(accountName, clusterName) {
       if (!settings.feature.clusterDiff) {
         return $q.when({});
       }
-      return Restangular
+      return API
         .all('diff')
         .all('cluster')
         .one(accountName, clusterName)
         .get().then(
           (diff) => {
-            return diff.plain();
+            return diff;
           },
           () => {
             return {};

@@ -5,18 +5,21 @@ describe('Service: taskWriter', function () {
   var taskWriter;
   var $httpBackend;
   var timeout;
+  var API;
 
   beforeEach(
     window.module(
-      require('./task.write.service')
+      require('./task.write.service'),
+      require('../api/api.service')
     )
   );
 
   beforeEach(
-    window.inject(function (_taskWriter_, _$httpBackend_, _$timeout_) {
+    window.inject(function (_taskWriter_, _$httpBackend_, _$timeout_, _API_) {
       taskWriter = _taskWriter_;
       $httpBackend = _$httpBackend_;
       timeout = _$timeout_;
+      API = _API_;
     })
   );
 
@@ -29,8 +32,8 @@ describe('Service: taskWriter', function () {
     it('should wait until task is canceled, then resolve', function () {
       let completed = false;
       let taskId = 'abc';
-      let cancelUrl = ['', 'applications', 'deck', 'tasks', taskId, 'cancel'].join('/');
-      let checkUrl = ['', 'applications', 'deck', 'tasks', taskId].join('/');
+      let cancelUrl = [API.baseUrl, 'applications', 'deck', 'tasks', taskId, 'cancel'].join('/');
+      let checkUrl = [API.baseUrl, 'applications', 'deck', 'tasks', taskId].join('/');
       let application = 'deck';
 
       $httpBackend.expectPUT(cancelUrl).respond(200, []);
@@ -55,8 +58,8 @@ describe('Service: taskWriter', function () {
     it('should wait until task is gone, then resolve', function () {
       let completed = false;
       let taskId = 'abc';
-      let deleteUrl = ['', 'tasks', taskId].join('/');
-      let checkUrl = ['', 'tasks', taskId].join('/');
+      let deleteUrl = [API.baseUrl, 'tasks', taskId].join('/');
+      let checkUrl = [API.baseUrl, 'tasks', taskId].join('/');
 
       $httpBackend.expectDELETE(deleteUrl).respond(200, []);
 

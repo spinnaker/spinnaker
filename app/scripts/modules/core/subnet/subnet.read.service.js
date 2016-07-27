@@ -4,11 +4,11 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.subnet.read.service', [
-    require('exports?"restangular"!imports?_=lodash!restangular'),
+    require('../api/api.service'),
     require('../cache/infrastructureCaches.js'),
     require('../utils/lodash')
   ])
-  .factory('subnetReader', function ($q, _, Restangular, infrastructureCaches) {
+  .factory('subnetReader', function ($q, _, API, infrastructureCaches) {
 
     let cachedSubnets = null;
 
@@ -16,8 +16,9 @@ module.exports = angular
       if (cachedSubnets) {
         return $q.when(cachedSubnets);
       }
-      return Restangular.all('subnets')
-        .withHttpConfig({cache: infrastructureCaches.subnets})
+      return API
+        .one('subnets')
+        .useCache(infrastructureCaches.subnets)
         .getList()
         .then(function(subnets) {
           let results = subnets.map(subnet => {
@@ -26,7 +27,7 @@ module.exports = angular
             if (subnet.deprecated) {
               subnet.label += ' (deprecated)';
             }
-            return subnet.plain();
+            return subnet;
           });
           cachedSubnets = results;
           return results;
@@ -34,15 +35,16 @@ module.exports = angular
     }
 
     function listSubnetsByProvider(cloudProvider) {
-      return Restangular.one('subnets', cloudProvider)
-        .withHttpConfig({cache: infrastructureCaches.subnets})
+      return API.one('subnets')
+        .one(cloudProvider)
+        .useCache(infrastructureCaches.subnets)
         .getList();
     }
 
     function getSubnetByIdAndProvider(subnetId, cloudProvider = 'aws') {
       return listSubnetsByProvider(cloudProvider)
         .then((results) => {
-          return _.first(_.filter(results.plain(), subnet => subnet.id === subnetId));
+          return _.first(_.filter(results, subnet => subnet.id === subnetId));
         });
     }
 

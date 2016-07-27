@@ -2,7 +2,6 @@
 
 describe('Service: executionFilterService', function () {
 
-
   var service;
   var ExecutionFilterModel;
   var $timeout;

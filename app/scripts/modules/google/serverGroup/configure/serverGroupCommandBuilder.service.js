@@ -3,7 +3,6 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service', [
-  require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../../../core/cache/deckCacheFactory.js'),
   require('../../../core/account/account.service.js'),
   require('../../../core/instance/instanceTypeService.js'),
@@ -11,7 +10,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
   require('../../../core/utils/lodash.js'),
   require('./../../instance/custom/customInstanceBuilder.gce.service.js'),
 ])
-  .factory('gceServerGroupCommandBuilder', function (settings, Restangular, $q,
+  .factory('gceServerGroupCommandBuilder', function (settings, $q,
                                                      accountService, instanceTypeService, namingService, _,
                                                      gceCustomInstanceBuilderService) {
 

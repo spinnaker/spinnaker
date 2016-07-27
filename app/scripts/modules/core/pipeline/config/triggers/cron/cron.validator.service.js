@@ -3,12 +3,12 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.trigger.cron.validation.service', [
-    require('exports?"restangular"!imports?_=lodash!restangular'),
+    require('../../../../api/api.service')
   ])
-  .factory('cronValidationService', function(Restangular) {
+  .factory('cronValidationService', function(API) {
 
     function validate(expression) {
-      return Restangular.one('cron', 'validate').get({expression: expression}, {});
+      return API.one('cron').one('validate').withParams({expression: expression}, {}).get();
     }
 
     return {

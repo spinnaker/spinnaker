@@ -33,7 +33,6 @@
     "loader-utils": "^0.2.11",
     "lodash": "^3.10.1",
     "moment-timezone": "^0.4.0",
-    "restangular": "~1.4.0",
     "rx": "=4.0.6",
     "select2-bootstrap-css": "git://github.com/t0m/select2-bootstrap-css.git#v1.3.1",
     "source-map": "^0.4.4",

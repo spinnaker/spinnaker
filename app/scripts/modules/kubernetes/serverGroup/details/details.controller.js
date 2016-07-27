@@ -61,10 +61,9 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
       return serverGroupReader.getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
         cancelLoader();
 
-        var restangularlessDetails = details.plain();
-        angular.extend(restangularlessDetails, summary);
+        angular.extend(details, summary);
 
-        $scope.serverGroup = restangularlessDetails;
+        $scope.serverGroup = details;
         $scope.runningExecutions = function() {
           return runningExecutionsService.filterRunningExecutions($scope.serverGroup.executions);
         };

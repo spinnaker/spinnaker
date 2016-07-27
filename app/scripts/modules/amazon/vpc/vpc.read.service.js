@@ -22,7 +22,7 @@ module.exports = angular
           if (vpc.deprecated) {
             vpc.label += ' (deprecated)';
           }
-          return vpc.plain();
+          return vpc;
         });
         cachedVpcs = results;
         return results;

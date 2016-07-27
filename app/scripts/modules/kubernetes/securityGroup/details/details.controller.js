@@ -34,7 +34,7 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.details.cont
       return securityGroupReader.getSecurityGroupDetails(application, securityGroup.accountId, securityGroup.provider, securityGroup.region, securityGroup.vpcId, securityGroup.name).then(function (details) {
         $scope.state.loading = false;
 
-        if (!details || _.isEmpty( details.plain())) {
+        if (!details || _.isEmpty(details)) {
           autoClose();
         } else {
           $scope.securityGroup = details;
