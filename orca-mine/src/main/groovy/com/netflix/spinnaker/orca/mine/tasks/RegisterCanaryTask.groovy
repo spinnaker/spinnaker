@@ -78,9 +78,10 @@ class RegisterCanaryTask implements Task {
   }
 
   private static Long getMonitorTimeout(Map canary) {
+    def timeoutPaddingMin = 120
     def lifetimeHours = canary.canaryConfig.lifetimeHours?.toString() ?: "46"
-    def warmupMinutes = canary.canaryConfig.canaryAnalysisConfig?.beginCanaryAnalysisAfterMins?.toString() ?: "120"
-    int timeoutMinutes = HOURS.toMinutes(lifetimeHours.isInteger() ? lifetimeHours.toInteger() : 46) + (warmupMinutes.isInteger() ? warmupMinutes.toInteger() : 120)
+    def warmupMinutes = canary.canaryConfig.canaryAnalysisConfig?.beginCanaryAnalysisAfterMins?.toString() ?: "0"
+    int timeoutMinutes = HOURS.toMinutes(lifetimeHours.isInteger() ? lifetimeHours.toInteger() : 46) + (warmupMinutes.isInteger() ? warmupMinutes.toInteger() + timeoutPaddingMin : timeoutPaddingMin)
     return MINUTES.toMillis(timeoutMinutes)
   }
 }

@@ -161,8 +161,8 @@ class RegisterCanaryTaskSpec extends Specification {
     0             | null          || 2
     1             | null          || 3
     8             | null          || 10
-    1             | 60            || 2
-    1             | 180           || 4
+    1             | 60            || 4
+    1             | 180           || 6
 
     canary = [
       canaryConfig:
