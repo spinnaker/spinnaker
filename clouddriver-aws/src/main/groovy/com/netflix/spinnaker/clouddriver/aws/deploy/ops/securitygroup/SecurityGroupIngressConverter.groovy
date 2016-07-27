@@ -78,10 +78,6 @@ class SecurityGroupIngressConverter {
         it.groupName = null
         it.peeringStatus = null
         it.vpcPeeringConnectionId = null
-        // AWS does not populate the vpcId unless the rule is cross-account
-        if (it.userId == securityGroup.ownerId) {
-          it.vpcId = securityGroup.vpcId
-        }
         new IpPermission()
           .withFromPort(ipPermission.fromPort)
           .withToPort(ipPermission.toPort)

@@ -371,7 +371,9 @@ public abstract class MigrateSecurityGroupStrategy {
         ).findFirst().get();
         pair.setGroupId(targetReference.getTargetId());
         pair.setGroupName(null);
-        pair.setVpcId(targetReference.getVpcId());
+        if (!targetGroup.getSecurityGroup().getOwnerId().equals(targetReference.getAccountId())) {
+          pair.setVpcId(targetReference.getVpcId());
+        }
       })
     );
 
