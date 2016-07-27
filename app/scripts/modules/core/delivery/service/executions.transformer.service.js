@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
 ])
   .factory('executionsTransformer', function(orchestratedItemTransformer, _, pipelineConfig) {
 
-    var hiddenStageTypes = ['pipelineInitialization', 'waitForRequisiteCompletion'];
+    var hiddenStageTypes = ['initialization', 'pipelineInitialization', 'waitForRequisiteCompletion'];
 
     //let totalTime = 0.0;
 
@@ -122,7 +122,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
     function flattenAndFilter(stage) {
       return flattenStages([], stage)
         .filter(function(stage) {
-          return stage.type !== 'initialization' && stage.initializationStage !== true;
+          return hiddenStageTypes.indexOf(stage.type) < 0 && stage.initializationStage !== true;
         });
     }
 
