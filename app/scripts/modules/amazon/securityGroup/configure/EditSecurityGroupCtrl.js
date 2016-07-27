@@ -47,10 +47,11 @@ module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
     securityGroup.securityGroupIngress = _(securityGroup.inboundRules)
       .filter(rule => rule.securityGroup)
       .map(rule => rule.portRanges.map(portRange => {
+          let vpcId = rule.securityGroup.vpcId === securityGroup.vpcId ? null : rule.securityGroup.vpcId;
           return {
             accountName: rule.securityGroup.accountName || rule.securityGroup.accountId,
             accountId: rule.securityGroup.accountId,
-            vpcId: rule.securityGroup.vpcId,
+            vpcId: vpcId,
             id: rule.securityGroup.id,
             name: rule.securityGroup.name,
             type: rule.protocol,
