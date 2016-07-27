@@ -39,7 +39,7 @@ module.exports = angular
       var operation = taskExecutor.executeTask({
         job: [params],
         application: application,
-        description: 'Delete security group: ' + securityGroup.name + ' in ' + securityGroup.accountId + ':' + securityGroup.region
+        description: 'Delete security group: ' + securityGroup.name + ' in ' + (params.accountId || securityGroup.accountId) + ':' + securityGroup.region
       });
 
       infrastructureCaches.clearCache('securityGroups');

@@ -12,6 +12,10 @@ module.exports = angular.module('spinnaker.openstack.cache.initializer', [
 
     let config = Object.create(null);
 
+    config.credentials = {
+      initializers: [ () => accountService.listAccounts('openstack') ],
+    };
+
     config.account = {
       initializers: [ () => accountService.getCredentialsKeyedByAccount('openstack') ],
     };

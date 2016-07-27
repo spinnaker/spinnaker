@@ -26,14 +26,30 @@ module.exports = angular.module('spinnaker.openstack.securityGroup.transformer',
          fromPort: 80,
           toPort: 80,
           cidr: '0.0.0.0/0',
-          type: 'tcp'
+          ruleType: 'tcp'
 
       };
+    }
+
+    function prepareForEdit(securityGroup) {
+
+      securityGroup.rules = _.map(securityGroup.inboundRules, function(x) {
+          return {
+              fromPort: x.portRanges[0].startPort,
+              toPort: x.portRanges[0].endPort,
+              cidr: x.range.ip + x.range.cidr,
+              ruleType: x.protocol
+          };
+      }) || [];
+      securityGroup.account = securityGroup.accountName;
+      securityGroup.accountName = undefined;
+      return securityGroup;
     }
 
     return {
       normalizeSecurityGroup: normalizeSecurityGroup,
       constructNewSecurityGroupTemplate: constructNewSecurityGroupTemplate,
-      constructNewIngressRule: constructNewIngressRule
+      constructNewIngressRule: constructNewIngressRule,
+      prepareForEdit: prepareForEdit,
     };
   });

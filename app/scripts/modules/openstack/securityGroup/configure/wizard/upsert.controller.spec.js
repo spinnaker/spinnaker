@@ -32,6 +32,11 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
       regionList: ['region1', 'region2', 'region3']
     };
 
+    this.testEditData = {
+      account: undefined, region: 'region1', name: 'sc111', edit: true, rules: [ ], accountName: undefined, stack: 'sc111'
+    };
+
+
     this.securityGroupDefaults = {
       provider: 'openstack', region: '', stack: '', detail: '', account: 'account1', rules: []
     };
@@ -115,7 +120,7 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
 
     it('initializes the scope', function () {
       expect(this.$scope.state).toEqual({
-        accountsLoaded: false,
+        accountsLoaded: true,
         securityGroupNamesLoaded: false,
         submitting: false
       });
@@ -229,7 +234,51 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
     });
   });
 
-  describe('EDIT and Show Details', function() {
-    //TODO(gadresushrut): Edit and Show details functionality yet to be implemented.
+  describe('initialized for edit', function() {
+    beforeEach(function() {
+      this.createController(angular.copy(this.testEditData));
+    });
+
+    it('has the expected methods and properties', function () {
+      expect(this.ctrl.updateName).toBeDefined();
+      expect(this.ctrl.getName).toBeDefined();
+      expect(this.ctrl.onRegionChanged).toBeDefined();
+      expect(this.ctrl.submit).toBeDefined();
+      expect(this.ctrl.cancel).toBeDefined();
+    });
+
+    it('initializes the scope', function() {
+      expect(this.$scope.state).toEqual({
+        accountsLoaded: true,
+        securityGroupNamesLoaded: false,
+        submitting: false
+      });
+      expect(this.$scope.isNew).toBeFalsy();
+      expect(this.$scope.securityGroup).toEqual(_.defaults(angular.copy(this.testEditData)));
+    });
+
+    describe('submit() called', function() {
+      beforeEach(function() {
+        this.mockState.stateIncludesSecurityGroupDetails = true;
+        this.ctrl.submit();
+      });
+
+      it('calls upsertSecurityGroup()', function() {
+        expect(this.mockTaskMonitor.submit).toHaveBeenCalled();
+
+        this.taskCompletionCallback();
+        expect(this.mockApplication.securityGroups.refresh).toHaveBeenCalled();
+
+        this.applicationRefreshCallback();
+        expect(this.mockModal.close).toHaveBeenCalled();
+        expect(this.mockState.go).toHaveBeenCalledWith('^.securityGroupDetails', {
+
+          name: this.$scope.securityGroup.name,
+          accountId: this.$scope.securityGroup.account,
+          namespace: undefined,
+          provider: 'openstack'
+        });
+      });
+    });
   });
 });

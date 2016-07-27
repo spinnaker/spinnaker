@@ -78,12 +78,8 @@ module.exports = angular.module('spinnaker.securityGroup.openstack.create.contro
     function initializeCreateMode() {
       return $q.all({
         accounts: accountService.listAccounts('openstack'),
-        //Getting Not found Error for listLoadBalancers. So commented the code.
-        //loadBalancers: loadBalancerReader.listLoadBalancers('openstack'),
       }).then(function(backingData) {
         $scope.accounts = backingData.accounts;
-        $scope.state.accountsLoaded = true;
-
         var accountNames = _.pluck($scope.accounts, 'name');
         if (accountNames.length && accountNames.indexOf($scope.securityGroup.account) === -1) {
           $scope.securityGroup.account = accountNames[0];
@@ -133,9 +129,20 @@ module.exports = angular.module('spinnaker.securityGroup.openstack.create.contro
     if ($scope.isNew) {
         $scope.securityGroup = openstackSecurityGroupTransformer.constructNewSecurityGroupTemplate();
         initializeCreateMode();
+        $scope.state.accountsLoaded = true;
+    }
+    else {
+      $scope.securityGroup = openstackSecurityGroupTransformer.prepareForEdit(securityGroup);
+      $scope.securityGroup.stack = extractStack($scope.securityGroup.name);
+      $scope.state.accountsLoaded = true;
     }
 
     initializeSecurityGroupNames();
+
+    function extractStack(securityGroupName) {
+      var n = securityGroupName.indexOf('-');
+      return securityGroupName.slice( n + 1 , securityGroupName.length);
+    }
 
     // Controller API
     this.updateName = function() {
@@ -151,7 +158,6 @@ module.exports = angular.module('spinnaker.securityGroup.openstack.create.contro
 
     this.accountUpdated = function() {
     };
-
     this.onRegionChanged = function(region) {
       $scope.securityGroup.region = region;
     };

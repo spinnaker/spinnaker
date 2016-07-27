@@ -14,7 +14,7 @@
         <div>
           <tbody>
             <tr ng-repeat="rule in securityGroup.rules">
-              <td><select class="form-control input-sm" ng-model="rule.type"
+              <td><select class="form-control input-sm" ng-model="rule.ruleType"
                           ng-options="protocol as protocol.toUpperCase() for protocol in ['tcp']" required></select></td>
               <td><input class="form-control input-sm" name="fromPort_{{$index}}" type="number" min="1" max="{{rule.toPort}}" ng-model="rule.fromPort" required/></td>
               <td><input class="form-control input-sm" name="toPort_{{$index}}" type="number" min="{{rule.fromPort}}" max="65535" ng-model="rule.toPort" required/></td>
@@ -51,5 +51,5 @@
         </div>
       </table>
     </div>
-  </div>
+</div>
 </ng-form>
