@@ -21,22 +21,8 @@ import java.util.regex.Pattern
 
 trait LoadBalancerResolver {
 
-  final String nameRegex = "(\\w+)-(\\w+)-(\\w+)"
-  final Pattern namePattern = Pattern.compile(nameRegex)
   final String descriptionRegex = ".*internal_port=([0-9]+).*"
   final Pattern descriptionPattern = Pattern.compile(descriptionRegex)
-
-  String getBaseName(final String derivedName) {
-    String result = null
-    if (derivedName) {
-      Matcher matcher = namePattern.matcher(derivedName)
-
-      if (matcher.matches() && matcher.groupCount() == 3) {
-        result = matcher.group(1)
-      }
-    }
-    result
-  }
 
   int getInternalPort(final String description) {
     int result = -1
@@ -48,5 +34,4 @@ trait LoadBalancerResolver {
     }
     result
   }
-
 }

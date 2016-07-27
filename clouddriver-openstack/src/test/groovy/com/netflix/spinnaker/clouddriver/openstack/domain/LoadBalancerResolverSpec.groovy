@@ -24,20 +24,6 @@ class LoadBalancerResolverSpec extends Specification {
 
   LoadBalancerResolver resolver = new Object() as LoadBalancerResolver
 
-  def "get base name - #testCase"() {
-    when:
-    String result = resolver.getBaseName(baseName)
-
-    then:
-    result == expected
-
-    where:
-    testCase       | baseName           | expected
-    'not matching' | 'test'             | null
-    'matching'     | 'north-south-east' | 'north'
-    'null'         | null               | null
-  }
-
   def "get internal port - #testCase"() {
     when:
     int result = resolver.getInternalPort(description)

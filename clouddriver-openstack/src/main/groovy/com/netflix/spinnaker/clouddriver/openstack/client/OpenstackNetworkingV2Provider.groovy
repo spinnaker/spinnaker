@@ -94,7 +94,7 @@ class OpenstackNetworkingV2Provider implements OpenstackNetworkingProvider, Open
     handleRequest {
       getRegionClient(region).networking().loadbalancers().lbPool().create(
         Builders.lbPool()
-          .name(loadBalancerPool.derivedName)
+          .name(loadBalancerPool.name)
           .protocol(Protocol.forValue(loadBalancerPool.protocol?.name()))
           .lbMethod(LbMethod.forValue(loadBalancerPool.method?.name()))
           .subnetId(loadBalancerPool.subnetId)
@@ -109,7 +109,7 @@ class OpenstackNetworkingV2Provider implements OpenstackNetworkingProvider, Open
     handleRequest {
       getRegionClient(region).networking().loadbalancers().lbPool().update(loadBalancerPool.id,
         Builders.lbPoolUpdate()
-          .name(loadBalancerPool.derivedName)
+          .name(loadBalancerPool.name)
           .lbMethod(LbMethod.forValue(loadBalancerPool.method?.name()))
           .description(loadBalancerPool.description)
           .adminStateUp(Boolean.TRUE)
@@ -122,7 +122,7 @@ class OpenstackNetworkingV2Provider implements OpenstackNetworkingProvider, Open
     handleRequest {
       getRegionClient(region).networking().loadbalancers().vip().create(
         Builders.vip()
-          .name(virtualIP.derivedName)
+          .name(virtualIP.name)
           .subnetId(virtualIP.subnetId)
           .poolId(virtualIP.poolId)
           .protocol(Protocol.forValue(virtualIP.protocol?.name()))
@@ -137,7 +137,7 @@ class OpenstackNetworkingV2Provider implements OpenstackNetworkingProvider, Open
     handleRequest {
       // TODO - Currently only supporting updates to name ... Expanded to update SessionPersistence & connectionLimit
       getRegionClient(region).networking().loadbalancers().vip().update(virtualIP.id,
-        Builders.vipUpdate().name(virtualIP.derivedName).adminStateUp(Boolean.TRUE).build())
+        Builders.vipUpdate().name(virtualIP.name).adminStateUp(Boolean.TRUE).build())
     }
   }
 

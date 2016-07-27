@@ -18,26 +18,19 @@ package com.netflix.spinnaker.clouddriver.openstack.domain
 
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
+import org.openstack4j.model.network.ext.Vip
 
 @AutoClone
 @Canonical
 class VirtualIP implements LoadBalancerResolver {
-  static final String VIP_BASE_NAME = 'vip'
-
   String id
   String name
-  String derivedName
   String subnetId
   String poolId
   LoadBalancerProtocol protocol
   Integer port
 
-  void setName(String name) {
-    this.name = name
-    this.derivedName = String.format("%s-%s-%d", name, VIP_BASE_NAME, System.currentTimeMillis())
-  }
-
-  boolean doesNameMatch(String name) {
-    this.name == getBaseName(name)
+  boolean equals(Vip vip) {
+    this.name == vip.name
   }
 }

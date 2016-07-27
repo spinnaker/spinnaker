@@ -304,7 +304,6 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     1 * provider.getLoadBalancerPool(description.region, loadBalancerPool.id) >> lbPool
     1 * provider.updateLoadBalancerPool(description.region, loadBalancerPool)
     1 * provider.getVip(description.region, lbPool.vipId) >> vip
-    1 * vip.name >> 'newVip'
     1 * provider.updateVip(description.region, virtualIP)
     1 * provider.getPortForVip(description.region, vip.id) >> port
     result == lbPool
@@ -334,7 +333,6 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     1 * provider.getLoadBalancerPool(description.region, loadBalancerPool.id) >> lbPool
     1 * provider.updateLoadBalancerPool(description.region, loadBalancerPool)
     1 * provider.getVip(description.region, lbPool.vipId) >> vip
-    1 * vip.name >> 'newVip'
     1 * provider.updateVip(description.region, virtualIP)
     1 * lbPool.healthMonitors >> []
     1 * provider.createHealthCheckForPool(description.region, lbPool.id, poolHealthMonitor)
@@ -368,7 +366,6 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     1 * provider.getLoadBalancerPool(description.region, loadBalancerPool.id) >> lbPool
     1 * provider.updateLoadBalancerPool(description.region, loadBalancerPool)
     1 * provider.getVip(description.region, lbPool.vipId) >> vip
-    1 * vip.name >> 'newVip'
     1 * provider.updateVip(description.region, virtualIP)
     2 * lbPool.healthMonitors >> [existingHealthMonitorId]
     1 * provider.getHealthMonitor(description.region, existingHealthMonitorId) >> existingMonitor
@@ -404,7 +401,6 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     1 * provider.getLoadBalancerPool(description.region, loadBalancerPool.id) >> lbPool
     1 * provider.updateLoadBalancerPool(description.region, _)
     1 * provider.getVip(description.region, lbPool.vipId) >> vip
-    1 * vip.name >> 'newVip'
     1 * provider.updateVip(description.region, _)
     2 * lbPool.healthMonitors >> [existingHealthMonitorId]
     1 * provider.getHealthMonitor(description.region, existingHealthMonitorId) >> existingMonitor
@@ -598,9 +594,9 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     then:
     1 * provider.getLoadBalancerPool(description.region, loadBalancerPool.id) >> lbPool
     1 * loadBalancerPool.equals(lbPool) >> true
+    1 * virtualIP.equals(vip) >> true
     0 * provider.updateLoadBalancerPool(description.region, loadBalancerPool)
     1 * provider.getVip(description.region, lbPool.vipId) >> vip
-    1 * virtualIP.doesNameMatch(vip.name) >> true
     0 * provider.updateVip(description.region, virtualIP)
     1 * provider.getPortForVip(description.region, vip.id) >> port
     1 * provider.getFloatingIpForPort(description.region, port.id) >> null
@@ -649,7 +645,6 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     1 * provider.getLoadBalancerPool(description.region, loadBalancerPool.id) >> lbPool
     1 * provider.updateLoadBalancerPool(description.region, loadBalancerPool)
     1 * provider.getVip(description.region, lbPool.vipId) >> vip
-    1 * vip.name >> 'newVip'
     1 * provider.updateVip(description.region, virtualIP)
     1 * lbPool.healthMonitors >> []
     1 * provider.createHealthCheckForPool(description.region, lbPool.id, poolHealthMonitor) >> { throw throwable }

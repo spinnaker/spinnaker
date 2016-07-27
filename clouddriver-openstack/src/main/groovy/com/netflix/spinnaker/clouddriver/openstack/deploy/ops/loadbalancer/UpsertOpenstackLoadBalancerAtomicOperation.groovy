@@ -92,10 +92,10 @@ class UpsertOpenstackLoadBalancerAtomicOperation implements AtomicOperation<Map>
       throw new OpenstackOperationException(AtomicOperations.UPSERT_LOAD_BALANCER, "Subnet ${subnetId} not found in ${region}")
     }
 
-    task.updateStatus UPSERT_LOADBALANCER_PHASE, "Creating lbPool ${newLoadBalancerPool.derivedName} in ${region}..."
+    task.updateStatus UPSERT_LOADBALANCER_PHASE, "Creating lbPool ${newLoadBalancerPool.name} in ${region}..."
     resultPool = openstackClientProvider.createLoadBalancerPool(region, newLoadBalancerPool)
     virtualIP.poolId = resultPool.id
-    task.updateStatus UPSERT_LOADBALANCER_PHASE, "Created lbPool ${newLoadBalancerPool.derivedName} in ${region}"
+    task.updateStatus UPSERT_LOADBALANCER_PHASE, "Created lbPool ${newLoadBalancerPool.name} in ${region}"
 
     task.updateStatus UPSERT_LOADBALANCER_PHASE, "Creating vip for lbPool ${resultPool.name} in ${region}..."
     Vip vip = openstackClientProvider.createVip(region, virtualIP)
@@ -131,17 +131,17 @@ class UpsertOpenstackLoadBalancerAtomicOperation implements AtomicOperation<Map>
     LbPool existingPool = getClientProvider().getLoadBalancerPool(region, loadBalancerPool.id)
 
     if (!loadBalancerPool.equals(existingPool)) {
-      task.updateStatus UPSERT_LOADBALANCER_PHASE, "Updating lbPool ${loadBalancerPool.derivedName} in ${region}..."
+      task.updateStatus UPSERT_LOADBALANCER_PHASE, "Updating lbPool ${loadBalancerPool.name} in ${region}..."
       openstackClientProvider.updateLoadBalancerPool(region, loadBalancerPool)
-      task.updateStatus UPSERT_LOADBALANCER_PHASE, "Updated lbPool ${loadBalancerPool.derivedName} in ${region}."
+      task.updateStatus UPSERT_LOADBALANCER_PHASE, "Updated lbPool ${loadBalancerPool.name} in ${region}."
     }
 
     Vip existingVip = openstackClientProvider.getVip(region, existingPool.vipId)
-    if (!virtualIP.doesNameMatch(existingVip.name)) {
-      task.updateStatus UPSERT_LOADBALANCER_PHASE, "Updating vip ${virtualIP.derivedName} in ${region}..."
+    if (!virtualIP.equals(existingVip)) {
+      task.updateStatus UPSERT_LOADBALANCER_PHASE, "Updating vip ${virtualIP.name} in ${region}..."
       virtualIP.id = existingPool.vipId
       openstackClientProvider.updateVip(region, virtualIP)
-      task.updateStatus UPSERT_LOADBALANCER_PHASE, "Updated vip ${virtualIP.derivedName} in ${region}."
+      task.updateStatus UPSERT_LOADBALANCER_PHASE, "Updated vip ${virtualIP.name} in ${region}."
     }
 
     // Currently only supporting one health check ... Could be extended to support multiple in future

@@ -39,7 +39,7 @@ class PoolHealthMonitor {
 
   static PoolHealthMonitor from(HealthMonitor healthMonitor) {
     new PoolHealthMonitor(id: healthMonitor.id, type: PoolHealthMonitorType.valueOf(healthMonitor.type.name()),
-      delay: healthMonitor.delay, timeout: healthMonitor.delay, maxRetries: healthMonitor.maxRetries,
+      delay: healthMonitor.delay, timeout: healthMonitor.timeout, maxRetries: healthMonitor.maxRetries,
       httpMethod: healthMonitor.httpMethod, url: healthMonitor.urlPath,
       expectedHttpStatusCodes: healthMonitor.expectedCodes?.split(',')?.toList()?.collect { Integer.parseInt(it) })
   }

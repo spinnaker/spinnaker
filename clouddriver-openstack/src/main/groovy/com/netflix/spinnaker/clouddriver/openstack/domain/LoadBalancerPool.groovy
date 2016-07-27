@@ -23,21 +23,13 @@ import org.openstack4j.model.network.ext.LbPool
 @AutoClone
 @Canonical
 class LoadBalancerPool implements LoadBalancerResolver {
-  static final String POOL_BASE_NAME = 'pool'
-
   String id
   String name
-  String derivedName
   LoadBalancerProtocol protocol
   LoadBalancerMethod method
   String subnetId
   Integer internalPort
   String description
-
-  void setName(String name) {
-    this.name = name
-    this.derivedName = String.format("%s-%s-%d", name, POOL_BASE_NAME, System.currentTimeMillis())
-  }
 
   void setInternalPort(Integer port) {
     this.internalPort = port
@@ -48,15 +40,11 @@ class LoadBalancerPool implements LoadBalancerResolver {
     method?.name() == methodName
   }
 
-  boolean doesNameMatch(String name) {
-    this.name == getBaseName(name)
-  }
-
   boolean doesInternalPortMatch(String currentDescription) {
     currentDescription != null && this.internalPort == getInternalPort(currentDescription)
   }
 
   boolean equals(LbPool lbPool) {
-    doesMethodMatch(lbPool.lbMethod?.name()) && doesNameMatch(lbPool.name) && doesInternalPortMatch(lbPool.description)
+    doesMethodMatch(lbPool.lbMethod?.name()) && this.name == lbPool.name && doesInternalPortMatch(lbPool.description)
   }
 }
