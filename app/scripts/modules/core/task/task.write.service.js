@@ -9,10 +9,8 @@ module.exports = angular
   ])
   .factory('taskWriter', function(API, taskReader, $q, $timeout) {
 
-    var endpoint = API.all('applications');
-
     function getEndpoint(application) {
-      return endpoint.all(application).all('tasks');
+      return API.all('applications').all(application).all('tasks');
     }
 
     function postTaskCommand(taskCommand) {
