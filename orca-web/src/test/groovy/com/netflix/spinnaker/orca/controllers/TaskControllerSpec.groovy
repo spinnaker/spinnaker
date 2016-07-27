@@ -17,40 +17,44 @@
 package com.netflix.spinnaker.orca.controllers
 
 import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
+import groovy.json.JsonSlurper
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
 import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import groovy.json.JsonSlurper
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
+import static java.time.temporal.ChronoUnit.DAYS
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 
 class TaskControllerSpec extends Specification {
 
   MockMvc mockMvc
-  ExecutionRepository executionRepository
-  Front50Service front50Service
+  def executionRepository = Mock(ExecutionRepository)
+  def front50Service = Mock(Front50Service)
+  def startTracker = Mock(PipelineStartTracker)
 
-  Clock clock = Mock(Clock)
+  def clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
   int daysOfExecutionHistory = 14
   int numberOfOldPipelineExecutionsToInclude = 2
 
   ObjectMapper objectMapper = new ObjectMapper()
 
   void setup() {
-    executionRepository = Mock(ExecutionRepository)
-    front50Service = Mock(Front50Service)
     mockMvc = MockMvcBuilders.standaloneSetup(
       new TaskController(
         front50Service: front50Service,
         executionRepository: executionRepository,
         daysOfExecutionHistory: daysOfExecutionHistory,
         numberOfOldPipelineExecutionsToInclude: numberOfOldPipelineExecutionsToInclude,
+        startTracker: startTracker,
         clock: clock
       )
     ).build()
@@ -61,7 +65,9 @@ class TaskControllerSpec extends Specification {
     mockMvc.perform(get('/tasks')).andReturn().response
 
     then:
-    1 * executionRepository.retrieveOrchestrations() >> { return rx.Observable.empty() }
+    1 * executionRepository.retrieveOrchestrations() >> {
+      return rx.Observable.empty()
+    }
   }
 
   void 'step names are properly translated'() {
@@ -118,16 +124,14 @@ class TaskControllerSpec extends Specification {
 
   void '/applications/{application}/tasks only returns un-started and tasks from the past two weeks, sorted newest first'() {
     given:
-    def now = new Date()
     def tasks = [
-      [startTime: (now - daysOfExecutionHistory).time - 1, id: 'too-old'] as Orchestration,
-      [startTime: (now - daysOfExecutionHistory).time + 1, id: 'not-too-old'] as Orchestration,
-      [startTime: (now - 1).time, id: 'pretty-new'] as Orchestration,
+      [startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minusMillis(1).toEpochMilli(), id: 'too-old'] as Orchestration,
+      [startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plusMillis(1).toEpochMilli(), id: 'not-too-old'] as Orchestration,
+      [startTime: clock.instant().minus(1, DAYS).toEpochMilli(), id: 'pretty-new'] as Orchestration,
       [id: 'not-started-1'] as Orchestration,
       [id: 'not-started-2'] as Orchestration
     ]
     def app = 'test'
-    clock.millis() >> now.time
     executionRepository.retrieveOrchestrationsForApplication(app, _) >> rx.Observable.from(tasks)
 
     when:
@@ -140,36 +144,39 @@ class TaskControllerSpec extends Specification {
 
   void '/applications/{application}/pipelines should only return pipelines from the past two weeks, newest first'() {
     given:
-    def now = new Date()
     def pipelines = [
-      [pipelineConfigId: "1", startTime: (new Date() - daysOfExecutionHistory).time - 1, id: 'old'],
-      [pipelineConfigId: "1", startTime: (new Date() - daysOfExecutionHistory).time + 1, id: 'newer'],
+      [pipelineConfigId: "1", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minusMillis(1).toEpochMilli(), id: 'old'],
+      [pipelineConfigId: "1", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plusMillis(1).toEpochMilli(), id: 'newer'],
       [pipelineConfigId: "1", id: 'not-started'],
       [pipelineConfigId: "1", id: 'also-not-started'],
 
       /*
        * If a pipeline has no recent executions, the most recent N executions should be included
        */
-      [pipelineConfigId: "2", id: 'older1', startTime: (new Date() - daysOfExecutionHistory - 1).time - 1],
-      [pipelineConfigId: "2", id: 'older2', startTime: (new Date() - daysOfExecutionHistory - 1).time - 2],
-      [pipelineConfigId: "2", id: 'older3', startTime: (new Date() - daysOfExecutionHistory - 1).time - 3]
+      [pipelineConfigId: "2", id: 'older1', startTime: clock.instant().minus(daysOfExecutionHistory + 1, DAYS).minusMillis(1).toEpochMilli()],
+      [pipelineConfigId: "2", id: 'older2', startTime: clock.instant().minus(daysOfExecutionHistory + 1, DAYS).minusMillis(2).toEpochMilli()],
+      [pipelineConfigId: "2", id: 'older3', startTime: clock.instant().minus(daysOfExecutionHistory + 1, DAYS).minusMillis(3).toEpochMilli()]
     ]
     def app = 'test'
 
+    executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> rx.Observable.from(pipelines.findAll {
+      it.pipelineConfigId == "1"
+    }.collect {
+      new Pipeline(id: it.id, startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
+    })
+    executionRepository.retrievePipelinesForPipelineConfigId("2", _) >> rx.Observable.from(pipelines.findAll {
+      it.pipelineConfigId == "2"
+    }.collect {
+      new Pipeline(id: it.id, startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
+    })
+    front50Service.getPipelines(app) >> [[id: "1"], [id: "2"]]
+    front50Service.getStrategies(app) >> []
+
     when:
-    1 * clock.millis() >> now.time
     def response = mockMvc.perform(get("/applications/$app/pipelines")).andReturn().response
     List results = new ObjectMapper().readValue(response.contentAsString, List)
 
     then:
-    1 * front50Service.getPipelines(app) >> { [[id: "1"], [id: "2"]] }
-    1 * front50Service.getStrategies(app) >> { [] }
-    1 * executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> rx.Observable.from(pipelines.findAll {it.pipelineConfigId == "1"}.collect {
-      new Pipeline(id: it.id, startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
-    })
-    1 * executionRepository.retrievePipelinesForPipelineConfigId("2", _) >> rx.Observable.from(pipelines.findAll {it.pipelineConfigId == "2"}.collect {
-      new Pipeline(id: it.id, startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
-    })
     results.id == ['not-started', 'also-not-started', 'older2', 'older1', 'newer']
   }
 
@@ -190,13 +197,13 @@ class TaskControllerSpec extends Specification {
       ]
     }
     1 * executionRepository.storeStage({ stage ->
-        stage.id == "s1" &&
+      stage.id == "s1" &&
         stage.lastModified.allowedAccounts == [] &&
         stage.lastModified.user == "anonymous" &&
         stage.context == [
         judgmentStatus: "stop", value: "1", lastModifiedBy: "anonymous"
       ]
-                                       } as PipelineStage)
+    } as PipelineStage)
     objectMapper.readValue(response.contentAsString, Map).stages*.context == [
       [value: "1", judgmentStatus: "stop", , lastModifiedBy: "anonymous"]
     ]
