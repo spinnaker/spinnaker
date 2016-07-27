@@ -87,6 +87,8 @@ class UpsertOpenstackLoadBalancerAtomicOperation implements AtomicOperation<Map>
     LbPool resultPool
     OpenstackClientProvider openstackClientProvider = getClientProvider()
 
+    newLoadBalancerPool.setCreatedTime(System.currentTimeMillis())
+
     if (!openstackClientProvider.getSubnet(region, subnetId)) {
       task.updateStatus UPSERT_LOADBALANCER_PHASE, "Unable to retrieve referenced subnet ${subnetId} in ${region}."
       throw new OpenstackOperationException(AtomicOperations.UPSERT_LOAD_BALANCER, "Subnet ${subnetId} not found in ${region}")
@@ -129,6 +131,7 @@ class UpsertOpenstackLoadBalancerAtomicOperation implements AtomicOperation<Map>
     OpenstackClientProvider openstackClientProvider = getClientProvider()
 
     LbPool existingPool = getClientProvider().getLoadBalancerPool(region, loadBalancerPool.id)
+    loadBalancerPool.setCreatedTimeFromDescription(existingPool.description)
 
     if (!loadBalancerPool.equals(existingPool)) {
       task.updateStatus UPSERT_LOADBALANCER_PHASE, "Updating lbPool ${loadBalancerPool.name} in ${region}..."

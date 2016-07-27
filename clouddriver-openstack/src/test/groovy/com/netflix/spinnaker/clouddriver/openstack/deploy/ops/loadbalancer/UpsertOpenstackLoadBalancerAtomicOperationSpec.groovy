@@ -313,7 +313,10 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
   def "should update load balancer pool, vip, add health monitor"() {
     given:
     VirtualIP virtualIP = Mock()
-    LbPool lbPool = Mock()
+    LbPool lbPool = Mock() {
+      getVipId() >> { 'id' }
+      getDescription() >> { 'internal_port=8100,created_time=12345678' }
+    }
     Vip vip = Mock(Vip) {
       getId() >> { 'id' }
     }
@@ -345,7 +348,10 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     given:
     @Subject def operation = new UpsertOpenstackLoadBalancerAtomicOperation(description)
     VirtualIP virtualIP = Mock()
-    LbPool lbPool = Mock()
+    LbPool lbPool = Mock() {
+      getVipId() >> { 'id' }
+      getDescription() >> { 'internal_port=8100,created_time=12345678' }
+    }
     Vip vip = Mock()
     PoolHealthMonitor poolHealthMonitor = Mock()
     def existingMonitor = Stub(HealthMonitor) {
@@ -379,7 +385,10 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
   def "should update load balancer pool, vip, remove existing and add new health monitor"() {
     given:
     @Subject def operation = new UpsertOpenstackLoadBalancerAtomicOperation(description)
-    LbPool lbPool = Mock()
+    LbPool lbPool = Mock() {
+      getVipId() >> { 'id' }
+      getDescription() >> { 'internal_port=8100,created_time=12345678' }
+    }
     Vip vip = Mock()
     VirtualIP virtualIP = Mock()
     PoolHealthMonitor poolHealthMonitor = Mock()
@@ -416,7 +425,10 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     given:
     @Subject def operation = new UpsertOpenstackLoadBalancerAtomicOperation(description)
     VirtualIP virtualIP = Mock()
-    LbPool lbPool = Mock()
+    LbPool lbPool = Mock() {
+      getVipId() >> { 'id' }
+      getDescription() >> { 'internal_port=8100,created_time=12345678' }
+    }
     Vip vip = Mock(Vip) {
       getName() >> { 'newVip' }
       getId() >> { 'id' }
@@ -450,7 +462,10 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
   def "should update load balancer pool and vip - add floating ip"() {
     given:
     @Subject def operation = new UpsertOpenstackLoadBalancerAtomicOperation(description)
-    LbPool lbPool = Mock()
+    LbPool lbPool = Mock() {
+      getVipId() >> { 'id' }
+      getDescription() >> { 'internal_port=8100,created_time=12345678' }
+    }
     Vip vip = Mock(Vip) {
       getName() >> { 'newVip' }
       getId() >> { 'id' }
@@ -495,7 +510,10 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
   def "should update load balancer pool and vip - remove and add floating ip"() {
     given:
     @Subject def operation = new UpsertOpenstackLoadBalancerAtomicOperation(description)
-    LbPool lbPool = Mock()
+    LbPool lbPool = Mock() {
+      getVipId() >> { 'id' }
+      getDescription() >> { 'internal_port=8100,created_time=12345678' }
+    }
     Vip vip = Mock(Vip) {
       getName() >> { 'newVip' }
     }
@@ -544,7 +562,10 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
   def "should update load balancer pool and vip - remove floating ip"() {
     given:
     @Subject def operation = new UpsertOpenstackLoadBalancerAtomicOperation(description)
-    LbPool lbPool = Mock()
+    LbPool lbPool = Mock() {
+      getVipId() >> { 'id' }
+      getDescription() >> { 'internal_port=8100,created_time=12345678' }
+    }
     Vip vip = Mock(Vip) {
       getName() >> { 'newVip' }
     }
@@ -627,7 +648,10 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
   def "should update load balancer pool, vip, add health monitor - exception"() {
     given:
     @Subject def operation = new UpsertOpenstackLoadBalancerAtomicOperation(description)
-    LbPool lbPool = Mock()
+    LbPool lbPool = Mock() {
+      getVipId() >> { 'id' }
+      getDescription() >> { 'internal_port=8100,created_time=12345678' }
+    }
     Vip vip = Mock()
     VirtualIP virtualIP = Mock()
     PoolHealthMonitor poolHealthMonitor = Mock()

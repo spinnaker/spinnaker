@@ -181,7 +181,7 @@ interface OpenstackNetworkingProvider {
    * @param pool
    * @return
    */
-  int getInternalLoadBalancerPort(LbPool pool)
+  Integer getInternalLoadBalancerPort(LbPool pool)
 
   /**
    *
@@ -190,7 +190,7 @@ interface OpenstackNetworkingProvider {
    * @param internalPort
    * @param weight
    */
-  Member addMemberToLoadBalancerPool(String region, String ip, String lbPoolId, int internalPort, int weight)
+  Member addMemberToLoadBalancerPool(String region, String ip, String lbPoolId, Integer internalPort, int weight)
 
   /**
    *

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.openstack.client
 
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerPool
+import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerResolver
 import com.netflix.spinnaker.clouddriver.openstack.domain.PoolHealthMonitor
 import com.netflix.spinnaker.clouddriver.openstack.domain.VirtualIP
 import org.apache.commons.lang.StringUtils
@@ -36,15 +37,10 @@ import org.openstack4j.model.network.ext.Member
 import org.openstack4j.model.network.ext.Protocol
 import org.openstack4j.model.network.ext.Vip
 
-import java.util.regex.Matcher
-import java.util.regex.Pattern
-
-class OpenstackNetworkingV2Provider implements OpenstackNetworkingProvider, OpenstackRequestHandler, OpenstackIdentityAware {
+class OpenstackNetworkingV2Provider implements OpenstackNetworkingProvider, OpenstackRequestHandler, OpenstackIdentityAware, LoadBalancerResolver {
 
   final int minPort = 1
   final int maxPort = (1 << 16) - 1
-  final String lbDescriptionRegex = ".*internal_port=([0-9]+).*"
-  final Pattern lbDescriptionPattern = Pattern.compile(lbDescriptionRegex)
 
   OpenstackIdentityProvider identityProvider
 
@@ -250,20 +246,16 @@ class OpenstackNetworkingV2Provider implements OpenstackNetworkingProvider, Open
   }
 
   @Override
-  int getInternalLoadBalancerPort(LbPool pool) {
-    Matcher matcher = lbDescriptionPattern.matcher(pool.description)
-    int internalPort = 0
-    if (matcher.matches()) {
-      internalPort = matcher.group(1).toInteger()
-    }
-    if (internalPort < minPort || internalPort > maxPort) {
+  Integer getInternalLoadBalancerPort(LbPool pool) {
+    Integer internalPort = parseInternalPort(pool.description)
+    if (!internalPort || internalPort < minPort || internalPort > maxPort) {
       throw new OpenstackProviderException("Internal pool port $internalPort is outside of the valid range.")
     }
     internalPort
   }
 
   @Override
-  Member addMemberToLoadBalancerPool(String region, String ip, String lbPoolId, int internalPort, int weight) {
+  Member addMemberToLoadBalancerPool(String region, String ip, String lbPoolId, Integer internalPort, int weight) {
     Member member = handleRequest {
       client.useRegion(region).networking().loadbalancers().member().create(
         Builders.member().address(ip).poolId(lbPoolId).protocolPort(internalPort).weight(weight).build()

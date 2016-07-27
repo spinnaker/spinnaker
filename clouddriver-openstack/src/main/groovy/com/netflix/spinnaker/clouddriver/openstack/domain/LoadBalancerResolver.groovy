@@ -19,19 +19,81 @@ package com.netflix.spinnaker.clouddriver.openstack.domain
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
+/**
+ * Load balancer description is a comma-deliminated set
+ * of key-value pairs.
+ *
+ * Usually this will be in the form of "internal_port=8100,created_time=12345678", for example.
+ */
 trait LoadBalancerResolver {
 
-  final String descriptionRegex = ".*internal_port=([0-9]+).*"
-  final Pattern descriptionPattern = Pattern.compile(descriptionRegex)
+  final String portRegex = ".*internal_port=([0-9]+).*"
+  final Pattern portPattern = Pattern.compile(portRegex)
+  final String createdRegex = ".*created_time=([0-9]+).*"
+  final Pattern createdPattern = Pattern.compile(createdRegex)
 
-  int getInternalPort(final String description) {
-    int result = -1
-    if (description) {
-      Matcher matcher = descriptionPattern.matcher(description)
+  /**
+   * Parse the internal port from a load balancer description in the following format.
+   * <br><br>
+   * {@code
+   *  ...,internal_port=8100,...
+   * }
+   * @param description
+   * @return the port value
+   */
+  Integer parseInternalPort(final String description) {
+    String s = match(description, portPattern)
+    s ? s.toInteger() : null
+  }
+
+  /**
+   * Generate key=value port string, e.g. internal_port=8100
+   * @param port
+   * @return
+   */
+  String generateInternalPort(int port) {
+    "internal_port=${port}"
+  }
+
+  /**
+   * Parse the created time from a load balancer description in the following format.
+   * <br><br>
+   * {@code
+   *  ...,created_time=12345678,...
+   * }
+   * @param description
+   * @return the port value
+   */
+  Long parseCreatedTime(final String description) {
+    String s = match(description, createdPattern)
+    s ? s.toLong() : null
+  }
+
+  /**
+   * Generate key=value createdTime string, e.g. created_time=12345678
+   * @param time
+   * @return
+   */
+  String generateCreatedTime(long time) {
+    "created_time=${time}"
+  }
+
+  /**
+   * Match a pattern in the comma-separated fields of the description
+   * @param description
+   * @param pattern
+   * @return
+   */
+  String match(final String description, final Pattern pattern) {
+    String result = null
+    for (String s : description?.split(',')) {
+      Matcher matcher = pattern.matcher(s)
       if (matcher.matches() && matcher.groupCount() == 1) {
-        result = matcher.group(1).toInteger()
+        result = matcher.group(1)
+        break
       }
     }
     result
   }
+
 }

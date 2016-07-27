@@ -26,15 +26,33 @@ class LoadBalancerResolverSpec extends Specification {
 
   def "get internal port - #testCase"() {
     when:
-    int result = resolver.getInternalPort(description)
+    Integer result = resolver.parseInternalPort(description)
 
     then:
     result == expected
 
     where:
-    testCase    | description        | expected
-    'not found' | 'test'             | -1
-    'found'     | 'internal_port=20' | 20
-    'null'      | null               | -1
+    testCase    | description                        | expected
+    'not found' | 'test'                             | null
+    'found'     | 'internal_port=20'                 | 20
+    'found'     | 'created_time=42,internal_port=20' | 20
+    'found'     | 'internal_port=20,created_time=42' | 20
+    'null'      | null                               | null
+  }
+
+  def "get created time - #testCase"() {
+    when:
+    Long result = resolver.parseCreatedTime(description)
+
+    then:
+    result == expected
+
+    where:
+    testCase    | description                        | expected
+    'not found' | 'test'                             | null
+    'found'     | 'created_time=42'                  | 42l
+    'found'     | 'internal_port=20,created_time=42' | 42l
+    'found'     | 'created_time=42,internal_port=20' | 42l
+    'null'      | null                               | null
   }
 }

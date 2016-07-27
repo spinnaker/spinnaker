@@ -41,7 +41,7 @@ class EnableOpenstackAtomicOperation extends AbstractEnableDisableOpenstackAtomi
     for (String id : instanceIds) {
       String ip = description.credentials.provider.getIpForInstance(description.region, id)
       for (LbPool pool : poolsForRegion) {
-        int port = description.credentials.provider.getInternalLoadBalancerPort(pool)
+        Integer port = description.credentials.provider.getInternalLoadBalancerPort(pool)
         description.credentials.provider.addMemberToLoadBalancerPool(description.region, ip, pool.id, port, DEFAULT_WEIGHT)
       }
     }
