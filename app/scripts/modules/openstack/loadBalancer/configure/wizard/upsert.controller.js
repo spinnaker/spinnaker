@@ -129,10 +129,13 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
 
     // Controller API
     this.updateName = function() {
+      if (!isNew) {
+        return;
+      }
+
       var loadBalancer = $scope.loadBalancer;
       var loadBalancerName = [application.name, (loadBalancer.stack || ''), (loadBalancer.detail || '')].join('-');
       loadBalancer.name = _.trimRight(loadBalancerName, '-');
-      return loadBalancer.name;
     };
 
     this.accountUpdated = function() {
@@ -153,6 +156,10 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
 
     this.onNetworkChanged = function(networkId) {
       $scope.loadBalancer.networkId = networkId;
+    };
+
+    this.onDistributionChanged = function(distribution) {
+      $scope.loadBalancer.method = distribution;
     };
 
     this.newStatusCode = 200;
@@ -181,9 +188,11 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
       $scope.taskMonitor.submit(
         function() {
           let params = {
-            cloudProvider: 'openstack'
+            cloudProvider: 'openstack',
+            account: $scope.loadBalancer.accountId || $scope.loadBalancer.account,
+            accountId: $scope.loadBalancer.accountId
           };
-          return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
+          return loadBalancerWriter.upsertLoadBalancer(_.omit($scope.loadBalancer, 'accountId'), application, descriptor, params);
         }
       );
     };

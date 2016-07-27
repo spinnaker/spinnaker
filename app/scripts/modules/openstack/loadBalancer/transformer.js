@@ -30,6 +30,17 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', 
     function normalizeLoadBalancer(loadBalancer) {
       loadBalancer.provider = loadBalancer.type;
       loadBalancer.instances = [];
+
+      var healthMonitor = loadBalancer.healthChecks && loadBalancer.healthChecks.length ? loadBalancer.healthChecks[0] : loadBalancer.healthMonitor || {};
+      delete loadBalancer.healthChecks;
+      _(healthMonitor).keys().each(function(k) {
+        if( healthMonitor[k] === null ) {
+          delete healthMonitor[k];
+        }
+      });
+
+      loadBalancer.healthMonitor = _.defaults(healthMonitor, defaults.healthMonitor);
+
       return loadBalancer;
     }
 
@@ -45,11 +56,6 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', 
     }
 
     function convertLoadBalancerForEditing(loadBalancer) {
-      loadBalancer.healthMonitor = _.defaults(loadBalancer.healthMonitor || {}, defaults.healthMonitor);
-
-      //TODO: get from network
-      loadBalancer.ipAddress = '0.0.0.0';
-
       _.defaults(loadBalancer, defaults);
       return loadBalancer;
     }

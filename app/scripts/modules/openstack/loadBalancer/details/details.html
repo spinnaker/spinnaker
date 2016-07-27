@@ -51,9 +51,9 @@
         <dt>Region</dt>
         <dd>{{loadBalancer.region}}</dd>
         <dt>Subnet</dt>
-        <dd>{{loadBalancer.subnetId}}</dd>
+        <dd>{{loadBalancer.subnetName}}</dd>
         <dt>Network</dt>
-        <dd>{{network}}</dd>
+        <dd>{{loadBalancer.networkName}}</dd>
         <dt>Port</dt>
         <dd>{{loadBalancer.externalPort}}</dd>
         <dt ng-if="lbLink">Link</dt>
@@ -104,7 +104,7 @@
         <dt>URL</dt>
         <dd>{{loadBalancer.healthMonitor.url}}</dd>
         <dt>Status Codes</dt>
-        <dd><div class="status-code" ng-repeat="statusCode in loadBalancer.healthMonitor.expectedStatusCodes">{{statusCode}}</div></dd>
+        <dd><div class="status-code" ng-repeat="statusCode in loadBalancer.healthMonitor.expectedHttpStatusCodes">{{statusCode}}</div></dd>
       </dl>
     </collapsible-section>
   </div>

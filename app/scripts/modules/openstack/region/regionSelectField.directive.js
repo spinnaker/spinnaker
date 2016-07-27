@@ -30,6 +30,10 @@ module.exports = angular.module('spinnaker.openstack.region.regionSelectField.di
           regions: []
         });
 
+        if( scope.model ) {
+          scope.regions.push({label: scope.model, value: scope.model});
+        }
+
         var currentRequestId = 0;
 
         function updateRegionOptions() {

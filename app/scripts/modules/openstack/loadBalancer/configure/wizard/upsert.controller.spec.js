@@ -15,24 +15,6 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
     testSuite = this;
     this.settings = settings;
 
-    this.testData = {
-      loadBalancerList: [
-        {account: 'account1', region: 'region1', name: 'lb111'},
-        {account: 'account1', region: 'region1', name: 'lb112'},
-        {account: 'account1', region: 'region1', name: 'lb113'},
-        {account: 'account2', region: 'region1', name: 'lb211'},
-        {account: 'account2', region: 'region1', name: 'lb212'},
-        {account: 'account2', region: 'region1', name: 'lb213'}
-      ],
-      accountList: [
-        {name: 'account1'},
-        {name: 'account2'},
-        {name: 'account3'}
-      ],
-      regionList: ['region1', 'region2', 'region3'],
-      subnet: 'subnet1'
-    };
-
     this.loadBalancerDefaults = {
       provider: 'openstack',
       account: settings.providers.openstack ? settings.providers.openstack.defaults.account : null,
@@ -55,28 +37,47 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
       }
     };
 
+    this.testData = {
+      loadBalancerList: [
+        {account: 'account1', region: 'region1', name: 'lb111', healthChecks: [this.loadBalancerDefaults.healthMonitor]},
+        {account: 'account1', region: 'region1', name: 'lb112', healthChecks: [this.loadBalancerDefaults.healthMonitor]},
+        {account: 'account1', region: 'region1', name: 'lb113', healthChecks: [this.loadBalancerDefaults.healthMonitor]},
+        {account: 'account2', region: 'region1', name: 'lb211', healthChecks: [this.loadBalancerDefaults.healthMonitor]},
+        {account: 'account2', region: 'region1', name: 'lb212', healthChecks: [this.loadBalancerDefaults.healthMonitor]},
+        {account: 'account2', region: 'region1', name: 'lb213', healthChecks: [this.loadBalancerDefaults.healthMonitor]}
+      ],
+      accountList: [
+        {name: 'account1'},
+        {name: 'account2'},
+        {name: 'account3'}
+      ],
+      regionList: ['region1', 'region2', 'region3'],
+      subnet: 'subnet1'
+    };
+
+
     this.$scope = $rootScope.$new();
 
     this.mockState = {
-      go: jasmine.createSpy(),
-      includes: jasmine.createSpy().and.callFake(function() { return testSuite.mockState.stateIncludesLoadBalancerDetails; })
+      go: jasmine.createSpy('state.go'),
+      includes: jasmine.createSpy('state.includes').and.callFake(function() { return testSuite.mockState.stateIncludesLoadBalancerDetails; })
     };
     this.mockModal = {
-      dismiss: jasmine.createSpy(),
-      close: jasmine.createSpy()
+      dismiss: jasmine.createSpy('modal.dismiss'),
+      close: jasmine.createSpy('modal.close')
     };
     this.mockApplication = {
       name: 'app',
       loadBalancers: {
-        refresh: jasmine.createSpy(),
-        onNextRefresh: jasmine.createSpy().and.callFake(function(scope, callback) {
+        refresh: jasmine.createSpy('application.loadBalancers.refresh'),
+        onNextRefresh: jasmine.createSpy('application.loadBalancers.onNextRefresh').and.callFake(function(scope, callback) {
           testSuite.applicationRefreshCallback = callback;
         })
       }
     };
 
     function addDeferredMock(obj, method) {
-      obj[method] = jasmine.createSpy().and.callFake(function() {
+      obj[method] = jasmine.createSpy(method).and.callFake(function() {
         var d = $q.defer();
         obj[method].deferred = d;
         return d.promise;
@@ -88,10 +89,10 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
     this.mockAccountService = addDeferredMock({}, 'listAccounts');
     this.mockLoadBalancerWriter = addDeferredMock({}, 'upsertLoadBalancer');
     this.mockTaskMonitor = {
-      submit: jasmine.createSpy()
+      submit: jasmine.createSpy('taskMonitor.submit')
     };
     this.mockTaskMonitorService = {
-      buildTaskMonitor: jasmine.createSpy().and.callFake(function(arg) {
+      buildTaskMonitor: jasmine.createSpy('taskMonitorService.buildTaskMonitor').and.callFake(function(arg) {
         testSuite.taskCompletionCallback = arg.onTaskComplete;
         return testSuite.mockTaskMonitor;
       })
@@ -256,7 +257,9 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
               it('- calls upsertLoadBalancer()', function() {
                 expect(this.mockLoadBalancerWriter.upsertLoadBalancer).toHaveBeenCalledWith(
                   this.$scope.loadBalancer, this.mockApplication, 'Create', {
-                    cloudProvider: 'openstack'
+                    cloudProvider: 'openstack',
+                    account: 'account1',
+                    accountId: undefined
                 });
               });
 
@@ -312,7 +315,9 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
               this.mockTaskMonitor.submit.calls.mostRecent().args[0]();
               expect(this.mockLoadBalancerWriter.upsertLoadBalancer).toHaveBeenCalledWith(
                 this.$scope.loadBalancer, this.mockApplication, 'Create', {
-                  cloudProvider: 'openstack'
+                  cloudProvider: 'openstack',
+                  account: 'account1',
+                  accountId: undefined
               });
 
               this.taskCompletionCallback();
@@ -369,7 +374,7 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
       });
       expect(this.$scope.isNew).toBeFalsy();
       expect(this.$scope.subnetFilter).toEqual({});
-      expect(this.$scope.loadBalancer).toEqual(_.defaults(angular.copy(this.testData.loadBalancerList[3]), _.defaults({ipAddress: '0.0.0.0'},this.loadBalancerDefaults)));
+      expect(this.$scope.loadBalancer).toEqual(_.defaults(angular.copy(this.testData.loadBalancerList[3]), this.loadBalancerDefaults));
     });
 
     describe('& account list returned', function() {
@@ -395,7 +400,9 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
         this.mockTaskMonitor.submit.calls.mostRecent().args[0]();
         expect(this.mockLoadBalancerWriter.upsertLoadBalancer).toHaveBeenCalledWith(
           this.$scope.loadBalancer, this.mockApplication, 'Update', {
-            cloudProvider: 'openstack'
+            cloudProvider: 'openstack',
+            account: 'account2',
+            accountId: undefined
         });
 
         this.taskCompletionCallback();

@@ -30,6 +30,10 @@ module.exports = angular.module('spinnaker.openstack.network.networkSelectField.
           networks: []
         });
 
+        if (scope.model) {
+          scope.networks.push( {label: scope.model, value: scope.model} );
+        }
+
         var currentRequestId = 0;
 
         function updateNetworkOptions() {

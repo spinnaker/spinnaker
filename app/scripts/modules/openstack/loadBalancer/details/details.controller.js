@@ -24,23 +24,6 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.details.contro
 
     $scope.InsightFilterStateModel = InsightFilterStateModel;
 
-    function resolveSubnet() {
-      if ($scope.loadBalancer.subnetId) {
-        subnetReader.getSubnetByIdAndProvider($scope.loadBalancer.subnetId, $scope.loadBalancer.provider)
-          .then( (subnetDetail) => {
-            $scope.subnetDetail = subnetDetail;
-          });
-      }
-    }
-
-    function resolveNetwork() {
-      $scope.lbLink = undefined;
-      if ($scope.loadBalancer.networkId) {
-        //TODO (jcwest): resolve network ID ... waiting for back-end API to be available
-        $scope.network = $scope.loadBalancer.networkId;
-      }
-    }
-
     function extractLoadBalancer() {
       let [appLoadBalancer] = app.loadBalancers.data.filter(function (test) {
         return test.name === loadBalancer.name &&
@@ -52,12 +35,10 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.details.contro
         $scope.loadBalancer = appLoadBalancer;
         $scope.state.loading = false;
 
-      if($scope.loadBalancer.protocol.substring(0,4).toLowerCase() === 'http') {
-        $scope.lbLink = $scope.loadBalancer.protocol.toLowerCase() + '://' + $scope.loadBalancer.ipAddress + ':' + $scope.loadBalancer.externalPort + '/';
-      }
+        if($scope.loadBalancer.protocol.substring(0,4).toLowerCase() === 'http') {
+          $scope.lbLink = $scope.loadBalancer.protocol.toLowerCase() + '://' + $scope.loadBalancer.ip + ':' + $scope.loadBalancer.externalPort + '/';
+        }
 
-        resolveSubnet();
-        resolveNetwork();
       } else {
         autoClose();
       }
@@ -108,9 +89,11 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.details.contro
 
       var submitMethod = function () {
         loadBalancer.providerType = $scope.loadBalancer.provider;
-        return loadBalancerWriter.deleteLoadBalancer(loadBalancer, application, {
+        return loadBalancerWriter.deleteLoadBalancer(_.omit(loadBalancer, 'accountId'), application, {
           loadBalancerName: loadBalancer.name,
-          namespace: loadBalancer.region,
+          id: $scope.loadBalancer.id,
+          account: loadBalancer.accountId,
+          region: loadBalancer.region
         });
       };
 

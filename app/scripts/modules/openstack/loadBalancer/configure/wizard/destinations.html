@@ -11,6 +11,6 @@
       </div>
     </div>
 
-    <select-field options="methods" model="loadBalancer.method" label="Distribution" help-key="openstack.loadBalancer.distribution"></select-field>
+    <select-field options="methods" model="loadBalancer.method" label="Distribution" help-key="openstack.loadBalancer.distribution" on-change="ctrl.onDistributionChanged(value)"></select-field>
   </div>
 </ng-form>
