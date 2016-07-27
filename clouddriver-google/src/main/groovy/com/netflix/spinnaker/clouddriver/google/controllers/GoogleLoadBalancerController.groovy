@@ -54,7 +54,6 @@ class GoogleLoadBalancerController {
         if (loadBalancerType == HTTP) {
           GoogleHttpLoadBalancer.View httpView = view as GoogleHttpLoadBalancer.View
           httpView?.hostRules?.each { GoogleHostRule hostRule ->
-            def backendService = null
             hostRule?.pathMatcher?.pathRules?.each { GooglePathRule pathRule ->
               backendServices << pathRule.backendService
             }
