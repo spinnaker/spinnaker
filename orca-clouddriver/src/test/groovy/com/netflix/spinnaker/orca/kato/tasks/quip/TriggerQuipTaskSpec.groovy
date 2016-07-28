@@ -142,7 +142,7 @@ class TriggerQuipTaskSpec extends Specification {
 
     result.stageOutputs.instances == patchInstances
     result.stageOutputs.skippedInstances == skipInstances
-    result.stageOutputs.instanceIds.sort() == ['i-1'].sort()
+    result.stageOutputs.instanceIds.sort() == ['i-1', 'i-2'].sort()
     result.stageOutputs.remainingInstances == [:]
 
 

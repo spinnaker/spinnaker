@@ -179,9 +179,7 @@ class MonitorQuipTaskSpec extends Specification {
     thrown(RuntimeException)
 
     where:
-    instances | taskIds
-    null | ["foo.com" : "abcd"]
-    [:] | ["foo.com" : "abcd"]
-    ["i-1234": ["hostName" : "foo.com"] ]| null
+    instances                           | taskIds
+    ["i-1234": ["hostName": "foo.com"]] | null
   }
 }
