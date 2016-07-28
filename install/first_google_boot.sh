@@ -338,13 +338,16 @@ fi
 # that by waiting for cassandra to get past its thrift initialization.
 # Otherwise, we'd prefer to upgrade first, then wait for cassandra to
 # be ready for JMX (7199).
-if ! nc -z localhost 9160; then
+if [[ -f /opt/spinnaker/cassandra/SPINNAKER_INSTALLED_CASSANDRA ]]; then
+  if ! nc -z localhost 9160; then
     echo "Waiting for Cassandra to start..."
     while ! nc -z localhost 9160; do
        sleep 1
     done
     echo "Cassandra is ready."
+  fi
 fi
+
 
 # Apply outstanding OS updates since time of image creation
 # but keep spinnaker version itself intact only during forced dist-upgrade
@@ -355,11 +358,15 @@ apt-mark hold $SPINNAKER_SUBSYSTEMS
 apt-get -y update
 DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade
 apt-mark unhold $SPINNAKER_SUBSYSTEMS
-sed -i "s/start_rpc: false/start_rpc: true/" /etc/cassandra/cassandra.yaml
-while ! $(nodetool enablethrift >& /dev/null); do
+
+if [[ -f /opt/spinnaker/cassandra/SPINNAKER_INSTALLED_CASSANDRA ]]; then
+  sed -i "s/start_rpc: false/start_rpc: true/" /etc/cassandra/cassandra.yaml
+  while ! $(nodetool enablethrift >& /dev/null); do
     sleep 1
     echo "Retrying..."
-done
+  done
+fi
+
 
 if [[ "$RESTART_BEFORE_UPGRADE" != "true" ]]; then
   echo "$STATUS_PREFIX  Restarting Spinnaker"

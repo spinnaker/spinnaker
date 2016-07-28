@@ -15,6 +15,9 @@ AWS_ENABLED=false     # set by --cloud_providers
 AZURE_ENABLED=false   # set by --cloud_providers
 GOOGLE_ENABLED=false  # set by --cloud_providers
 
+INSTALL_CASSANDRA=    # default depends on platform
+
+
 # Set by --local-install, means download packages
 # rather than adding additional external repositories.
 DOWNLOAD=false
@@ -121,6 +124,10 @@ usage: $0 [--cloud_provider <aws|google|azure|none>]
 
     --home_dir                  Override where user home directories reside
                                 example: /export/home vs /home
+
+    --install_cassandra         Force install of cassandra.
+
+    --noinstall_cassandra       Do not install cassandra.
 EOF
 }
 
@@ -169,7 +176,7 @@ function process_provider_list() {
         ;;
 
       *)
-        echo "Error invalid cloud provider: $PROVIDER"
+        echo "Error invalid cloud provider: $CLOUD_PROVIDER"
         echo "cannot continue installation; exiting."
         exit 13
     esac
@@ -220,6 +227,12 @@ function process_args() {
       --local-install)
         DOWNLOAD=true
         ;;
+      --install_cassandra)
+        INSTALL_CASSANDRA=true
+        ;;
+      --noinstall_cassandra)
+        INSTALL_CASSANDRA=false
+        ;;
       --quiet|-q)
         QUIET=true
         CLOUD_PROVIDER="none"
@@ -247,14 +260,25 @@ function process_args() {
   done
 }
 
+function prompt_if_unset() {
+  local name=$1
+  local default_value=$2
+  local prompt=$3
+  local tmp
+  if [[ "${!name}" == "" ]]; then
+    read -e -p "$prompt" tmp
+    eval ${name}=`echo ${tmp:=$default_value} | tr '[:upper:]' '[:lower:]'`
+    echo "  set ${name}=\"${!name}\""
+  fi
+}
+
 function set_aws_region() {
   if [[ "$AWS_REGION" == "" ]]; then
     if [[ "$DEFAULT_AWS_REGION" == "" ]]; then
       DEFAULT_AWS_REGION="us-west-2"
     fi
 
-    read -e -p "Specify default aws region: " -i "$DEFAULT_AWS_REGION" AWS_REGION
-    AWS_REGION=`echo $AWS_REGION | tr '[:upper:]' '[:lower:]'`
+    prompt_if_unset AWS_REGION "$DEFAULT_AWS_REGION" "Specify default aws region: "
   fi
 }
 
@@ -264,8 +288,7 @@ function set_azure_region() {
       DEFAULT_AZURE_REGION="westus"
     fi
 
-    read -e -p "Specify default azure region (westus, centralus, eastus, eastus2): " -i "$DEFAULT_AZURE_REGION" AZURE_REGION
-    AZURE_REGION=`echo $AZURE_REGION | tr '[:upper:]' '[:lower:]'`
+    prompt_if_unset AZURE_REGION "$DEFAULT_AZURE_REGION" "Specify default azure region (westus, centralus, eastus, eastus2): "
   fi
 }
 
@@ -275,8 +298,7 @@ function set_google_region() {
       DEFAULT_GOOGLE_REGION="us-central1"
     fi
 
-    read -e -p "Specify default google region: " -i "$DEFAULT_GOOGLE_REGION" GOOGLE_REGION
-    GOOGLE_REGION=`echo $GOOGLE_REGION | tr '[:upper:]' '[:lower:]'`
+    prompt_if_unset GOOGLE_REGION "$DEFAULT_GOOGLE_REGION" "Specify default google region: "
   fi
 }
 
@@ -286,15 +308,14 @@ function set_google_zone() {
       DEFAULT_GOOGLE_ZONE="us-central1-f"
     fi
 
-    read -e -p "Specify default google zone: " -i "$DEFAULT_GOOGLE_ZONE" GOOGLE_ZONE
-    GOOGLE_ZONE=`echo $GOOGLE_ZONE | tr '[:upper:]' '[:lower:]'`
+    prompt_if_unset GOOGLE_ZONE "$DEFAULT_GOOGLE_ZONE" "Specify default google zone: "
   fi
 }
 
 GOOGLE_METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
 function get_google_metadata_value() {
   local path="$1"
-  local value=$(curl -s -f -H "Metadata-Flavor: Google" \
+  local value=$(curl -L -s -f -H "Metadata-Flavor: Google" \
                      $GOOGLE_METADATA_URL/$path)
 
   if [[ $? -eq 0 ]]; then
@@ -359,6 +380,10 @@ function set_defaults_from_environ() {
   if [[ -n "$google_project_id" ]]; then
     on_platform="google"
     set_google_defaults_from_environ
+
+    if [[ "$INSTALL_CASSANDRA" != "true" ]]; then
+        INSTALL_CASSANDRA=false
+    fi
   fi
 
   local aws_az=$(get_aws_metadata_value "/placement/availability-zone")
@@ -630,10 +655,7 @@ set_defaults_from_environ
 
 process_args "$@"
 
-if [[ "$CLOUD_PROVIDER" == "" ]]; then
-  read -e -p "Specify a cloud provider (aws|azure|google|none): " -i "$DEFAULT_CLOUD_PROVIDER" CLOUD_PROVIDER
-  CLOUD_PROVIDER=`echo $CLOUD_PROVIDER | tr '[:upper:]' '[:lower:]'`
-fi
+prompt_if_unset CLOUD_PROVIDER "$DEFAULT_CLOUD_PROVIDER" "Specify a cloud provider (aws|azure|google|none): "
 
 process_provider_list
 
@@ -662,7 +684,9 @@ install_apache2
 install_platform_dependencies
 install_dependencies
 install_redis_server
-install_cassandra
+if [[ "$INSTALL_CASSANDRA" != "false" ]]; then
+  install_cassandra
+fi
 
 ## Packer
 mkdir /tmp/packer && pushd /tmp/packer
@@ -678,10 +702,14 @@ fi
 ## Spinnaker
 install_spinnaker
 
-# Touch a file to tell other scripts we installed Cassandra.
-touch /opt/spinnaker/cassandra/SPINNAKER_INSTALLED_CASSANDRA
-cqlsh -f "/opt/spinnaker/cassandra/create_echo_keyspace.cql"
-cqlsh -f "/opt/spinnaker/cassandra/create_front50_keyspace.cql"
+if [[ "$INSTALL_CASSANDRA" != "false" ]]; then
+  # Touch a file to tell other scripts we installed Cassandra.
+  touch /opt/spinnaker/cassandra/SPINNAKER_INSTALLED_CASSANDRA
+  cqlsh -f "/opt/spinnaker/cassandra/create_echo_keyspace.cql"
+  cqlsh -f "/opt/spinnaker/cassandra/create_front50_keyspace.cql"
+else
+  /opt/spinnaker/install/change_cassandra.sh --echo=inMemory --front50=gcs --change_defaults=true --change_local=false
+fi
 
 # Write values to /etc/default/spinnaker.
 if [[ $AWS_ENABLED || $AZURE_ENABLED || $GOOGLE_ENABLED ]] ; then
@@ -728,6 +756,7 @@ fi
 
 start spinnaker
 
+if ! $QUIET; then
 cat <<EOF
 
 To stop all spinnaker subsystems:
@@ -747,3 +776,4 @@ To configure the available cloud providers:
     sudo service clouddriver restart
     sudo service rosco restart
 EOF
+fi

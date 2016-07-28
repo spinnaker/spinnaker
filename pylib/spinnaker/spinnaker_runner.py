@@ -240,41 +240,6 @@ class Runner(object):
                      .format(command=command, log=base_log_path)],
                      environ=environ)
 
-  def needs_cassandra(self):
-    """Check if configuration requires cassandra or not."""
-    front50 = self.__bindings.get('services.front50.cassandra.enabled')
-    echo = self.__bindings.get('services.echo.cassandra.enabled')
-    return front50 or echo
-
-  def start_dependencies(self):
-    """Start all the external dependencies running on this host."""
-    run_dir = self.__installation.EXTERNAL_DEPENDENCY_SCRIPT_DIR
-
-    cassandra_host = self.__bindings.get('services.cassandra.host')
-    redis_host = self.__bindings.get('services.redis.host')
-
-    print 'Starting external dependencies...'
-    check_run_quick(
-        'REDIS_HOST={host}'
-        ' LOG_DIR="{log_dir}"'
-        ' "{run_dir}/start_redis.sh"'
-        .format(host=redis_host,
-                log_dir=self.__installation.LOG_DIR,
-                run_dir=run_dir),
-        echo=True)
-
-    if self.needs_cassandra():
-      check_run_quick(
-          'CASSANDRA_HOST={host}'
-          ' CASSANDRA_DIR="{install_dir}/cassandra"'
-          ' "{run_dir}/start_cassandra.sh"'
-          .format(host=cassandra_host,
-                  install_dir=self.__installation.SPINNAKER_INSTALL_DIR,
-                  run_dir=run_dir),
-           echo=True)
-    else:
-      print 'Cassandra is not used in the current configuration so not ensuring it.'
-
   def get_subsystem_environ(self, subsystem):
     if self.__bindings and subsystem != 'clouddriver':
        return os.environ
@@ -537,7 +502,6 @@ Proceeding anyway.
       os.makedirs(self.__installation.LOG_DIR)
     except OSError:
       pass
-    self.start_dependencies()
 
     google_enabled = self.__bindings.get('providers.google.enabled')
 

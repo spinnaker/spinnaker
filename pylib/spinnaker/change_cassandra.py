@@ -62,6 +62,16 @@ _FRONT50_KEYS = ['front50.cassandra.enabled', 'front50.redis.enabled',
 SPINNAKER_INSTALLED_PATH = '/opt/spinnaker/cassandra/SPINNAKER_INSTALLED_CASSANDRA'
 SPINNAKER_DISABLED_PATH = '/opt/spinnaker/cassandra/SPINNAKER_DISABLED_CASSANDRA'
 
+
+def cassandra_installed():
+  return os.system('service --status-all 2>1 | grep -q cassandra') == 0
+
+
+def service_is_running(name):
+  return os.system('service --status-all 2>1 | grep -q {name} | grep " + "'
+                   .format(name=name)) == 0
+
+
 class CassandraChanger(object):
   @classmethod
   def init_argument_parser(cls, parser):
@@ -110,25 +120,32 @@ class CassandraChanger(object):
     if os.path.exists(SPINNAKER_INSTALLED_PATH):
       os.remove(SPINNAKER_INSTALLED_PATH)
       open(SPINNAKER_DISABLED_PATH, 'w').close()
-    with open('/etc/init/cassandra.override', 'w') as f:
+
+    if cassandra_installed():
+      with open('/etc/init/cassandra.override', 'w') as f:
         f.write('manual')
-    print 'Stopping cassandra service...'
-    os.system('service cassandra stop')
+      print 'Stopping cassandra service...'
+      os.system('service cassandra stop || true')
 
   def enable_cassandra(self):
+    is_installed = cassandra_installed()
     if os.path.exists(SPINNAKER_DISABLED_PATH):
       os.remove(SPINNAKER_DISABLED_PATH)
       open(SPINNAKER_INSTALLED_PATH, 'w').close()
-    try:
-      os.remove('/etc/init/cassandra.override')
-    except OSError as err:
-      if err.errno == errno.ENOENT:
-         pass
+
+    if is_installed:
+      try:
+        os.remove('/etc/init/cassandra.override')
+      except OSError as err:
+        if err.errno == errno.ENOENT:
+           pass
 
     cassandra_host = self.__configurator.bindings['services.cassandra.host']
     cassandra_port = self.__configurator.bindings['services.cassandra.port']
     if (cassandra_host in ['localhost', '127.0.0.1', '0.0.0.0']
         or cassandra_host == socket.gethostname()):
+      if not is_installed:
+        raise RuntimeError('Cassandra is not installed - install cassandra and try again.')
       print 'Starting cassandra service...'
       os.system('service cassandra start')
       sock = socket.socket()
@@ -190,20 +207,24 @@ class CassandraChanger(object):
     self.maybe_restart_spinnaker()
 
   def maybe_restart_spinnaker(self):
-    if not self.__configurator.bindings.get(
+    if not service_is_running('echo'):
+      print 'Echo wasnt running'
+    elif not self.__configurator.bindings.get(
           'services.echo.{which}.enabled'.format(which=self.__options.echo)):
       print 'Restarting echo...'
-      os.system('service echo restart')
+      os.system('service echo restart || true')
     else:
       print 'Echo was unchanged.'
 
-    if (not self.__configurator.bindings.get(
+    if not service_is_running('front50'):
+      print 'Front50 wasnt running'
+    elif (not self.__configurator.bindings.get(
            'services.front50.{which}.enabled'.format(which=self.__options.front50))
         or (self.__options.front50 in ['s3', 'gcs']
             and self.__configurator.bindings['services.front50.storage_bucket']
                != self.__options.bucket)):
       print 'Restarting front50...'
-      os.system('service front50 restart')
+      os.system('service front50 restart || true')
     else:
       print 'Front50 was unchanged.'
 
