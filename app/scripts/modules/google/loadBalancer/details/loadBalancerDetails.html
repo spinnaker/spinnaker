@@ -50,6 +50,12 @@
         <dt>In</dt>
         <dd><account-tag account="loadBalancer.account" pad="right"></account-tag> {{loadBalancer.region}}</dd>
       </dl>
+      <dl>
+        <dt>Type</dt>
+        <dd>
+          <gce-load-balancer-type load-balancer="loadBalancer"></gce-load-balancer-type>
+        </dd>
+      </dl>
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
         <dt>Zones</dt>
         <dd>
@@ -84,7 +90,7 @@
           </copy-to-clipboard>
         </dd>
       </dl>
-      <dl>
+      <dl ng-if="loadBalancer.hostRules">
         <dd>
           <gce-host-and-path-rules-button default-service="loadBalancer.defaultService"
                                           load-balancer-name="loadBalancer.name"

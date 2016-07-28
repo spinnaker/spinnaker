@@ -262,27 +262,45 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         .filter({name: command.credentials})
         .pluck('regions')
         .flatten(true)
-        .filter({name: command.region})
         .pluck('loadBalancers')
         .flatten(true)
-        .pluck('name')
+        .filter(_.curry(isRelevantLoadBalancer)(command))
         .unique()
         .valueOf();
+    }
+
+    function isRelevantLoadBalancer(command, loadBalancer) {
+      return loadBalancer.loadBalancerType === 'HTTP' || loadBalancer.region === command.region;
     }
 
     function configureLoadBalancerOptions(command) {
       var results = { dirty: {} };
       var current = command.loadBalancers;
-      var newLoadBalancers = getLoadBalancerNames(command);
+      var newLoadBalancerObjects = getLoadBalancerNames(command);
+      var newLoadBalancers = _.map(newLoadBalancerObjects, 'name');
+      var newLoadBalancerIndex = _.indexBy(newLoadBalancerObjects, 'name');
 
       if (current && command.loadBalancers) {
         var matched = _.intersection(newLoadBalancers, command.loadBalancers);
         var removed = _.xor(matched, current);
         command.loadBalancers = matched;
+
+        var backendServices = command.loadBalancers.reduce((backendServices, loadBalancer) => {
+          if (newLoadBalancerIndex[loadBalancer].loadBalancerType === 'HTTP') {
+            backendServices[loadBalancer] = newLoadBalancerIndex[loadBalancer].backendServices;
+          }
+          return backendServices;
+        }, {});
+
+        if (Object.keys(backendServices).length > 0) {
+          command.backendServices = backendServices;
+        }
+
         if (removed.length) {
           results.dirty.loadBalancers = removed;
         }
       }
+      command.backingData.filtered.loadBalancerIndex = newLoadBalancerIndex;
       command.backingData.filtered.loadBalancers = newLoadBalancers;
       return results;
     }

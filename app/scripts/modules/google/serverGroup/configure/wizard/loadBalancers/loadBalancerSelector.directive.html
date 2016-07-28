@@ -20,7 +20,12 @@
                  multiple
                  ng-model="vm.command.loadBalancers"
                  class="form-control input-sm">
-        <ui-select-match>{{$item}}</ui-select-match>
+        <ui-select-match>
+          {{$item}}
+          <gce-backend-service-selector-generator ng-if="vm.command.backingData.filtered.loadBalancerIndex[$item].backendServices.length"
+                                        command="vm.command" load-balancer-name="{{:: $item}}">
+          </gce-backend-service-selector-generator>
+        </ui-select-match>
         <ui-select-choices repeat="loadBalancer in vm.command.backingData.filtered.loadBalancers | filter: $select.search">
           <span ng-bind-html="loadBalancer | highlight: $select.search"></span>
         </ui-select-choices>

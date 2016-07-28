@@ -39,7 +39,6 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer', [
     function normalizeLoadBalancer(loadBalancer) {
       loadBalancer.serverGroups.forEach(function(serverGroup) {
         serverGroup.account = loadBalancer.account;
-        serverGroup.region = loadBalancer.region;
         if (serverGroup.detachedInstances) {
           serverGroup.detachedInstances = serverGroup.detachedInstances.map(function(instanceId) {
             return { id: instanceId };
@@ -65,7 +64,7 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer', [
     function serverGroupIsInLoadBalancer(serverGroup, loadBalancer) {
       return serverGroup.type === 'gce' &&
         serverGroup.account === loadBalancer.account &&
-        serverGroup.region === loadBalancer.region &&
+        (serverGroup.region === loadBalancer.region || loadBalancer.region === 'global') &&
         serverGroup.loadBalancers.indexOf(loadBalancer.name) !== -1;
     }
 

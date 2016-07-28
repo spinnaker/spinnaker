@@ -216,13 +216,50 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       _.fill($scope.command.disks, localSSDDiskDescriptor, 1);
     }
 
+    function buildLoadBalancerMetadata(loadBalancerNames, loadBalancerIndex, backendServices) {
+      let metadata = {};
+
+      if (_.get(loadBalancerNames, 'length') > 0) {
+        metadata = loadBalancerNames.reduce((metadata, name) => {
+          let loadBalancerDetails = loadBalancerIndex[name];
+
+          if (loadBalancerDetails.loadBalancerType === 'HTTP') {
+            metadata['global-load-balancer-names'].push(name);
+          } else {
+            metadata['load-balancer-names'].push(name);
+          }
+          return metadata;
+        }, { 'load-balancer-names' : [], 'global-load-balancer-names': [] });
+      }
+
+      if (_.isObject(backendServices) && Object.keys(backendServices).length > 0) {
+        metadata['backend-service-names'] = _.reduce(
+          backendServices,
+          (accumulatedBackends, backends) => accumulatedBackends.concat(backends),
+          []);
+      }
+
+      for (let key in metadata) {
+        if (metadata[key].length === 0) {
+          delete metadata[key];
+        } else {
+          metadata[key] = _.uniq(metadata[key]).toString();
+        }
+      }
+
+      return metadata;
+    }
+
     this.submit = function () {
       generateDiskDescriptors();
 
       // We use this list of load balancer names when 'Enabling' a server group.
-      if ($scope.command.loadBalancers && $scope.command.loadBalancers.length > 0) {
-        $scope.command.instanceMetadata['load-balancer-names'] = $scope.command.loadBalancers.toString();
-      }
+      var loadBalancerMetadata = buildLoadBalancerMetadata(
+        $scope.command.loadBalancers,
+        $scope.command.backingData.filtered.loadBalancerIndex,
+        $scope.command.backendServices);
+
+      angular.extend($scope.command.instanceMetadata, loadBalancerMetadata);
 
       var origTags = $scope.command.tags;
       var transformedTags = [];
@@ -246,7 +283,10 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
           var promise = serverGroupWriter.cloneServerGroup(angular.copy($scope.command), application);
 
           // Copy back the original objects so the wizard can still be used if the command needs to be resubmitted.
-          delete $scope.command.instanceMetadata['load-balancer-names'];
+          $scope.command.instanceMetadata = _.omit(
+            $scope.command.instanceMetadata,
+            ['load-balancer-names', 'global-load-balancer-names', 'backend-service-names']);
+
           $scope.command.tags = origTags;
 
           return promise;

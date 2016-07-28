@@ -6,6 +6,7 @@ module.exports = angular
   .module('spinnaker.google.serverGroup.configure.wizard.loadBalancers.selector.directive', [
     require('../../../../../core/cache/infrastructureCaches.js'),
     require('../../serverGroupConfiguration.service.js'),
+    require('./backendServiceSelector.component.js'),
   ])
   .directive('gceServerGroupLoadBalancerSelector', function () {
     return {

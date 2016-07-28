@@ -18,6 +18,7 @@ module.exports = angular.module('spinnaker.core.loadBalancer.serverGroup', [
       link: function (scope) {
         scope.$state = $rootScope.$state;
         scope.sortFilter = LoadBalancerFilterModel.sortFilter;
+        scope.region = scope.serverGroup.region || scope.loadBalancer.region;
 
         function setInstances() {
           scope.viewModel = {

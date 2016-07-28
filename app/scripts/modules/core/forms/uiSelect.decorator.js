@@ -165,6 +165,17 @@ module.exports = function($provide) {
           });
         }
 
+        // nested ui-selects should be able to unhook themselves from parent events.
+        if (angular.isDefined(attrs.nested)) {
+          scope.$$listeners['uis:select'] = [];
+          scope.$on('uis:select', function(event, item) {
+            if (!event.defaultPrevented) {
+              $select.selected.push(item);
+              scope.$selectMultiple.updateModel();
+            }
+          });
+        }
+
         function onDocumentClick(e) {
           if (!$select.open) { return; }//Skip it if dropdown is close
 

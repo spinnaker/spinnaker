@@ -12,7 +12,8 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
-  require('./hostAndPathRules/hostAndPathRulesButton.component.js')
+  require('./hostAndPathRules/hostAndPathRulesButton.component.js'),
+  require('./loadBalancerType/loadBalancerType.component.js'),
 ])
   .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, loadBalancer, app, InsightFilterStateModel,
                                                       _, confirmationModalService, accountService, loadBalancerWriter, loadBalancerReader, $q) {
@@ -43,7 +44,11 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
             $scope.loadBalancer.account = loadBalancer.accountId;
 
             accountService.getCredentialsKeyedByAccount('gce').then(function(credentialsKeyedByAccount) {
-              $scope.loadBalancer.elb.availabilityZones = _.find(credentialsKeyedByAccount[loadBalancer.accountId].regions, { name: loadBalancer.region }).zones.sort();
+              if (loadBalancer.region === 'global') {
+                $scope.loadBalancer.elb.availabilityZones = [ 'All zones' ];
+              } else {
+                $scope.loadBalancer.elb.availabilityZones = _.find(credentialsKeyedByAccount[loadBalancer.accountId].regions, { name: loadBalancer.region }).zones.sort();
+              }
             });
           }
           accountService.getAccountDetails(loadBalancer.accountId).then(function(accountDetails) {

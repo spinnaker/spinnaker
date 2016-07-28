@@ -41,6 +41,16 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       return subnetworkUrl ? _.last(subnetworkUrl.split('/')) : null;
     }
 
+    function extractLoadBalancers(asg) {
+      return ['load-balancer-names', 'global-load-balancer-names']
+        .reduce((loadBalancers, property) => {
+          if (asg[property]) {
+            loadBalancers = loadBalancers.concat(asg[property]);
+          }
+          return loadBalancers;
+        }, []);
+    }
+
     function populateDisksFromExisting(disks, command) {
       let localSSDDisks = _.filter(disks, disk => {
         return disk.initializeParams.diskType === 'local-ssd';
@@ -141,21 +151,22 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
     }
 
     function populateCustomMetadata(metadataItems, command) {
+      // Hide metadata items with these keys in the wizard.
+      let hiddenMetadataKeys = [
+        'load-balancer-names',
+        'global-load-balancer-names',
+        'backend-service-names'
+      ];
+
       if (metadataItems) {
         if (angular.isArray(metadataItems)) {
           metadataItems.forEach(function (metadataItem) {
-            // Don't show 'load-balancer-names' key/value pair in the wizard.
-            if (metadataItem.key !== 'load-balancer-names') {
+            if (!_.contains(hiddenMetadataKeys, metadataItem.key)) {
               command.instanceMetadata[metadataItem.key] = metadataItem.value;
             }
           });
         } else {
-          for (var property in metadataItems) {
-            // Don't show 'load-balancer-names' key/value pair in the wizard.
-            if (property !== 'load-balancer-names') {
-              command.instanceMetadata[property] = metadataItems[property];
-            }
-          }
+          angular.extend(command.instanceMetadata, _.omit(metadataItems, hiddenMetadataKeys));
         }
       }
     }
@@ -276,7 +287,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         stack: serverGroupName.stack,
         freeFormDetails: serverGroupName.freeFormDetails,
         credentials: serverGroup.account,
-        loadBalancers: serverGroup.asg.loadBalancerNames,
+        loadBalancers: extractLoadBalancers(serverGroup.asg),
         securityGroups: serverGroup.securityGroups,
         region: serverGroup.region,
         capacity: {
