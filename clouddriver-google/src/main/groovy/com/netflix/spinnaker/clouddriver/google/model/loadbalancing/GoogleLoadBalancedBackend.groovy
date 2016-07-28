@@ -39,17 +39,6 @@ class GoogleLoadBalancedBackend {
    */
   String serverGroupUrl
 
-  static BalancingMode toBalancingMode(String mode) {
-    switch (mode) {
-      case UTILIZATION:
-        return BalancingMode.UTILIZATION
-      case RATE:
-        return BalancingMode.RATE
-      default:
-        throw new IllegalArgumentException("Backend load balancing mode: ${mode} is not a valid mode.")
-    }
-  }
-
   static enum BalancingMode {
     UTILIZATION,
     RATE

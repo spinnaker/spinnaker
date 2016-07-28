@@ -376,7 +376,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
         service.backends = backendService.backends?.collect { Backend backend ->
           new GoogleLoadBalancedBackend(
               serverGroupUrl: backend.group,
-              balancingMode: GoogleLoadBalancedBackend.toBalancingMode(backend.balancingMode),
+              balancingMode: backend.balancingMode,
               maxRatePerInstance: backend.balancingMode == GoogleLoadBalancedBackend.RATE ?
                   backend.maxRatePerInstance : null,
               maxUtilization: backend.balancingMode == GoogleLoadBalancedBackend.UTILIZATION ?
