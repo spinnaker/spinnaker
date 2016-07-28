@@ -23,7 +23,7 @@ import com.google.api.services.compute.model.AutoscalingPolicy
 import com.google.api.services.compute.model.InstanceGroupManagerActionsSummary
 import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerView
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
@@ -58,7 +58,7 @@ class GoogleServerGroup {
   // Non-serialized values built up by providers
   // TODO(jacobkiefer): Change this to GoogleLoadBalancerView?
   @JsonIgnore
-  Set<GoogleLoadBalancer> loadBalancers = []
+  Set<GoogleLoadBalancerView> loadBalancers = []
 
   @JsonIgnore
   View getView() {

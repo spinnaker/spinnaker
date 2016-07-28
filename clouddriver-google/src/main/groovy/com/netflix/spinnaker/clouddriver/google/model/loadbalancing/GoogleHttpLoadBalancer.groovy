@@ -33,14 +33,13 @@ class GoogleHttpLoadBalancer {
   String ipAddress
   String ipProtocol
   String portRange
-  String targetPool
   GoogleHealthCheck healthCheck
   List<GoogleLoadBalancerHealth> healths
 
   /**
    * Default backend service a request is sent to if no host rules are matched.
    */
-  String defaultService
+  GoogleBackendService defaultService
 
   /**
    * List of host rules that map incoming requests to GooglePathMatchers based on host header.
@@ -68,9 +67,8 @@ class GoogleHttpLoadBalancer {
     String ipAddress = GoogleHttpLoadBalancer.this.ipAddress
     String ipProtocol = GoogleHttpLoadBalancer.this.ipProtocol
     String portRange = GoogleHttpLoadBalancer.this.portRange
-    String targetPool = GoogleHttpLoadBalancer.this.targetPool
     String certificate = GoogleHttpLoadBalancer.this.certificate
-    String defaultService = GoogleHttpLoadBalancer.this.defaultService
+    GoogleBackendService defaultService = GoogleHttpLoadBalancer.this.defaultService
     GoogleHealthCheck.View healthCheck = GoogleHttpLoadBalancer.this.healthCheck?.view
 
     Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()

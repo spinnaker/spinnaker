@@ -22,6 +22,7 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
@@ -84,10 +85,17 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
 
       GoogleServerGroup serverGroup = objectMapper.convertValue(serverGroupCacheData.attributes, GoogleServerGroup)
 
+      // We have to calculate the L7 disabled state with respect to this server group since it's not
+      // set on the way to the cache.
+      def isDisabledFromHttp = false
+      if (loadBalancer.type == GoogleLoadBalancerType.HTTP) {
+        isDisabledFromHttp = Utils.determineHttpLoadBalancerDisabledState(loadBalancer, serverGroup)
+      }
+
       def loadBalancerServerGroup = new LoadBalancerServerGroup(
           name: serverGroup.name,
           region: serverGroup.region,
-          isDisabled: serverGroup.disabled,
+          isDisabled: serverGroup.disabled || isDisabledFromHttp,
           detachedInstances: [],
           instances: [])
 

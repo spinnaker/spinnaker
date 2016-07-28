@@ -54,6 +54,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
 
   static final String GLOBAL_LOAD_BALANCER_NAMES = GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES
   static final String REGIONAL_LOAD_BALANCER_NAMES = GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES
+  static final String BACKEND_SERVICE_NAMES = GoogleServerGroup.View.BACKEND_SERVICE_NAMES
   final String region
 
   final Set<AgentDataType> providedDataTypes = [
@@ -433,7 +434,6 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
                                                                                              instanceGroupsCallback)
 
       String instanceTemplateName = Utils.getLocalName(instanceGroupManager.instanceTemplate)
-      // TODO(jacobkiefer): We need to derive HTTP/S LB names here as well.
       List<String> loadBalancerNames =
         Utils.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(instanceGroupManager.getTargetPools())
       InstanceTemplatesCallback instanceTemplatesCallback = new InstanceTemplatesCallback(providerCache: providerCache,
@@ -526,9 +526,13 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
       def metadataMap = Utils.buildMapFromMetadata(instanceMetadata)
       def regionalLBNameList = metadataMap?.get(REGIONAL_LOAD_BALANCER_NAMES)?.split(",")
       def globalLBNameList = metadataMap?.get(GLOBAL_LOAD_BALANCER_NAMES)?.split(",")
-      // TODO(jacobkiefer): Figure out how to set disabled properly between these two.
+      def backendServiceList = metadataMap?.get(BACKEND_SERVICE_NAMES)?.split(",")
+
       if (globalLBNameList) {
         serverGroup.asg.put(GLOBAL_LOAD_BALANCER_NAMES, globalLBNameList)
+      }
+      if (backendServiceList) {
+        serverGroup.asg.put(BACKEND_SERVICE_NAMES, backendServiceList)
       }
 
       if (regionalLBNameList) {
@@ -537,6 +541,8 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
         // The isDisabled property of a server group is set based on whether there are associated target pools,
         // and whether the metadata of the server group contains a list of load balancers to actually associate
         // the server group with.
+        // We set the disabled state for L4 lBs here (before writing into the cache) and calculate
+        // the L7 disabled state when we read the server groups from the cache.
         serverGroup.setDisabled(loadBalancerNames.empty)
       }
     }

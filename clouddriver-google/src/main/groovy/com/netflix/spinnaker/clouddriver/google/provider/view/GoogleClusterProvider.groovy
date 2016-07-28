@@ -22,8 +22,11 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.*
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -142,9 +145,20 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
     GoogleServerGroup serverGroup = objectMapper.convertValue(cacheData.attributes, GoogleServerGroup)
 
     def loadBalancerKeys = cacheData.relationships[LOAD_BALANCERS.ns]
-    List<GoogleLoadBalancer> loadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys).collect {
-      GoogleLoadBalancer loadBalancer = objectMapper.convertValue(it.attributes, GoogleLoadBalancer)
-      serverGroup.loadBalancers << loadBalancer
+    def loadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys).collect {
+      def loadBalancer = null
+      switch (it.attributes?.type) {
+        case GoogleLoadBalancerType.HTTP.toString():
+          loadBalancer = objectMapper.convertValue(it.attributes, GoogleHttpLoadBalancer)
+          break
+        case GoogleLoadBalancerType.NETWORK.toString():
+          loadBalancer = objectMapper.convertValue(it.attributes, GoogleLoadBalancer)
+          break
+        default:
+          loadBalancer = null
+          break
+      }
+      serverGroup.loadBalancers << loadBalancer.view
       loadBalancer
     }
 
@@ -165,6 +179,14 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
         }
       }
     }
+
+    // We have to calculate the L7 disabled state with respect to this server group since it's not
+    // set on the way to the cache.
+    def httpLoadBalancers = loadBalancers.findAll { it.type == GoogleLoadBalancerType.HTTP }
+    def httpDisabledStates = httpLoadBalancers.collect { loadBalancer ->
+        Utils.determineHttpLoadBalancerDisabledState(loadBalancer, serverGroup)
+    }
+    serverGroup.disabled = serverGroup.disabled || (httpDisabledStates && httpDisabledStates.every { it })
 
     serverGroup
   }

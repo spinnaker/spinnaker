@@ -19,14 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 import groovy.transform.Canonical
 
 @Canonical
-class GooglePathMatcher {
-  /**
-   * Maps a HTTP request path to a backend service.
-   */
-  List<GooglePathRule> pathRules
-
-  /**
-   * Default backend service a request is sent to if no request paths are matched.
-   */
-  GoogleBackendService defaultService
+class GoogleBackendService {
+  String name
+  List<GoogleLoadBalancedBackend> backends
 }

@@ -52,9 +52,6 @@ import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
 @Slf4j
 class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent implements OnDemandAgent {
-
-  static final String GLOBAL_LOAD_BALANCER_NAMES = GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES
-  static final String REGIONAL_LOAD_BALANCER_NAMES = GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES
   final String region
 
   final Set<AgentDataType> providedDataTypes = [
@@ -430,7 +427,6 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
                                                                                                          instanceGroupsCallback)
 
       String instanceTemplateName = Utils.getLocalName(instanceGroupManager.instanceTemplate)
-      // TODO(jacobkiefer): We need to derive HTTP/S LB names here as well.
       List<String> loadBalancerNames =
         Utils.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(instanceGroupManager.getTargetPools())
       InstanceTemplatesCallback instanceTemplatesCallback = new InstanceTemplatesCallback(providerCache: providerCache,
@@ -454,9 +450,6 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
   }
 
   class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<InstanceTemplate> implements FailureLogger {
-
-    private static final String LOAD_BALANCER_NAMES = "load-balancer-names"
-    private static final String GLOBAL_LOAD_BALANCER_NAMES = "global-load-balancer-names"
 
     ProviderCache providerCache
     GoogleServerGroup serverGroup

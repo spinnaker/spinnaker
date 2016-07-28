@@ -33,10 +33,7 @@ import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHostRule
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GooglePathMatcher
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GooglePathRule
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
 
@@ -322,7 +319,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
         urlMap.hostRules?.each { HostRule hostRule ->
           if (hostRule.pathMatcher && hostRule.pathMatcher == pathMatcher.name) {
             def gPathMatcher = new GooglePathMatcher(
-                defaultService: pathMatchDefaultService
+                defaultService: new GoogleBackendService(name: pathMatchDefaultService)
             )
             def gHostRule = new GoogleHostRule(
                 hostPatterns: hostRule.hosts,
@@ -331,11 +328,11 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
             gPathMatcher.pathRules = pathMatcher.pathRules?.collect { PathRule pathRule ->
               new GooglePathRule(
                   paths: pathRule.paths,
-                  backendService: Utils.getLocalName(pathRule.service),
+                  backendService: new GoogleBackendService(name: Utils.getLocalName(pathRule.service)),
               )
             }
             googleLoadBalancer.hostRules << gHostRule
-            googleLoadBalancer.defaultService = urlMapDefaultService
+            googleLoadBalancer.defaultService = new GoogleBackendService(name: urlMapDefaultService)
           }
         }
 
@@ -369,6 +366,25 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
           googleLoadBalancer: googleLoadBalancer,
       )
       Boolean isHttps = backendService.protocol == 'HTTPS'
+
+      // We have to update the backend service objects we created from the UrlMapCallback.
+      // The UrlMapCallback knows which backend service is the defaultService, etc and the
+      // BackendServiceCallback has the actual serving capacity and server group data.
+      List<GoogleBackendService> backendServicesInMap = Utils.getBackendServicesFromHttpLoadBalancer(googleLoadBalancer)
+      def backendServicesToUpdate = backendServicesInMap.findAll { it && it.name == backendService.name }
+      backendServicesToUpdate.each { GoogleBackendService service ->
+        service.backends = backendService.backends?.collect { Backend backend ->
+          new GoogleLoadBalancedBackend(
+              serverGroupUrl: backend.group,
+              balancingMode: GoogleLoadBalancedBackend.toBalancingMode(backend.balancingMode),
+              maxRatePerInstance: backend.balancingMode == GoogleLoadBalancedBackend.RATE ?
+                  backend.maxRatePerInstance : null,
+              maxUtilization: backend.balancingMode == GoogleLoadBalancedBackend.UTILIZATION ?
+                  backend.maxUtilization : null,
+          )
+        }
+      }
+
       backendService.backends?.each { Backend backend ->
         def resourceGroup = new ResourceGroupReference()
         resourceGroup.setGroup(backend.group)

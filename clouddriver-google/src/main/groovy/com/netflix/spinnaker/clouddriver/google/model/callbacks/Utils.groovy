@@ -16,10 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.google.model.callbacks
 
-import com.google.api.services.compute.model.Instance
 import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.Metadata
-
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import org.springframework.util.ClassUtils
 
 import java.text.SimpleDateFormat
@@ -84,6 +85,30 @@ class Utils {
     } else {
       return null
     }
+  }
+
+  static List<GoogleBackendService> getBackendServicesFromHttpLoadBalancer(GoogleHttpLoadBalancer googleLoadBalancer) {
+    List<GoogleBackendService> backendServices = [googleLoadBalancer.defaultService]
+    List<GooglePathMatcher> pathMatchers = googleLoadBalancer?.hostRules?.collect { GoogleHostRule hostRule -> hostRule.pathMatcher }
+    pathMatchers?.each { GooglePathMatcher pathMatcher ->
+      backendServices << pathMatcher.defaultService
+      pathMatcher?.pathRules?.each { GooglePathRule googlePathRule ->
+        backendServices << googlePathRule.backendService
+      }
+    }
+    return backendServices
+  }
+
+  static boolean determineHttpLoadBalancerDisabledState(GoogleHttpLoadBalancer loadBalancer,
+                                                        GoogleServerGroup serverGroup) {
+    def httpLoadBalancersFromMetadata = serverGroup.asg.get(GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES)
+    def backendServicesFromMetadata = serverGroup.asg.get(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)
+    List<List<GoogleLoadBalancedBackend>> serviceBackends = getBackendServicesFromHttpLoadBalancer(loadBalancer)
+        .findAll { it.name in backendServicesFromMetadata }
+        .collect { it.backends }
+    List<String> backendGroupNames = serviceBackends.flatten().collect { GCEUtil.getLocalName(it.serverGroupUrl) }
+
+    return loadBalancer.name in httpLoadBalancersFromMetadata && !(serverGroup.name in backendGroupNames)
   }
 
   static String getNetworkNameFromInstanceTemplate(InstanceTemplate instanceTemplate) {

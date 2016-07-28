@@ -55,7 +55,7 @@ class GoogleLoadBalancerController {
           GoogleHttpLoadBalancer.View httpView = view as GoogleHttpLoadBalancer.View
           httpView?.hostRules?.each { GoogleHostRule hostRule ->
             hostRule?.pathMatcher?.pathRules?.each { GooglePathRule pathRule ->
-              backendServices << pathRule.backendService
+              backendServices << pathRule.backendService.name
             }
           }
         }

@@ -28,5 +28,5 @@ class GooglePathRule {
   /**
    * The local name of the backend service this path rule forwards request to.
    */
-  String backendService
+  GoogleBackendService backendService
 }
