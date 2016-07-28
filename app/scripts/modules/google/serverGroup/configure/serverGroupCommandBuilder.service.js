@@ -255,7 +255,6 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           listImplicitSecurityGroups: false,
           mode: defaults.mode || 'create',
           disableStrategySelection: true,
-          regionalEnabled: settings.providers.gce.regionalEnabled,
         }
       };
 
@@ -295,7 +294,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           max: serverGroup.asg.maxSize,
           desired: serverGroup.asg.desiredCapacity
         },
-        regional: settings.providers.gce.regionalEnabled && serverGroup.regional,
+        regional: serverGroup.regional,
         network: extractNetworkName(serverGroup),
         subnet: extractSubnetName(serverGroup),
         instanceMetadata: {},
@@ -316,7 +315,6 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           usePreferredZones: false,
           listImplicitSecurityGroups: false,
           mode: mode,
-          regionalEnabled: settings.providers.gce.regionalEnabled,
         },
       };
 
@@ -375,7 +373,6 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           disableImageSelection: true,
           useSimpleCapacity: true,
           mode: 'editPipeline',
-          regionalEnabled: settings.providers.gce.regionalEnabled,
           submitButtonLabel: 'Done',
         };
 
