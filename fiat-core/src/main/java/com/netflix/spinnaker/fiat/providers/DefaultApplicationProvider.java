@@ -21,6 +21,7 @@ import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import retrofit.RetrofitError;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -35,12 +36,16 @@ public class DefaultApplicationProvider implements ApplicationProvider {
 
   @Override
   public Set<Application> getApplications(@NonNull Collection<String> groups) {
-    return front50Service
-        .getAllApplicationPermissions()
-        .stream()
-        .filter(application ->
-                    application.getRequiredGroupMembership().isEmpty() ||
-                        !Collections.disjoint(application.getRequiredGroupMembership(), groups))
-        .collect(Collectors.toSet());
+    try {
+      return front50Service
+          .getAllApplicationPermissions()
+          .stream()
+          .filter(application ->
+                      application.getRequiredGroupMembership().isEmpty() ||
+                          !Collections.disjoint(application.getRequiredGroupMembership(), groups))
+          .collect(Collectors.toSet());
+    } catch (RetrofitError re) {
+      throw new ProviderException(re);
+    }
   }
 }

@@ -53,7 +53,6 @@ public class UserRolesSyncer {
 
     permissionsResolver.resolve(permissionMap.keySet())
                        .values()
-                       .stream()
                        .forEach(permission -> permissionsRepository.put(permission));
     log.info("Synced " + permissionMap.keySet().size() + " non-anonymous user roles.");
   }

@@ -34,6 +34,13 @@ public class UserPermission {
   private Set<Application> applications = new HashSet<>();
   private Set<ServiceAccount> serviceAccounts = new HashSet<>();
 
+  /**
+   * True if any of the resources listed above are incomplete for whatever reason - usually because
+   * an external provider was down.
+   */
+  @JsonIgnore
+  private boolean isPartialPermission = false;
+
   @JsonIgnore
   public boolean isEmpty() {
     return accounts.isEmpty() && applications.isEmpty();

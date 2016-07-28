@@ -23,5 +23,5 @@ import java.util.Set;
 
 public interface ApplicationProvider {
 
-  Set<Application> getApplications(Collection<String> groups);
+  Set<Application> getApplications(Collection<String> groups) throws ProviderException;
 }

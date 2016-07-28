@@ -22,9 +22,11 @@ import lombok.NonNull;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import retrofit.RetrofitError;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,12 +38,16 @@ public class DefaultAccountProvider implements AccountProvider {
   private ClouddriverService clouddriverService;
 
   public Set<Account> getAccounts(@NonNull Collection<String> groups) {
-    return clouddriverService
-        .getAccounts()
-        .stream()
-        .filter(account ->
-                    account.getRequiredGroupMembership().isEmpty() ||
-                        !Collections.disjoint(account.getRequiredGroupMembership(), groups))
-        .collect(Collectors.toSet());
+    try {
+      return clouddriverService
+          .getAccounts()
+          .stream()
+          .filter(account ->
+                      account.getRequiredGroupMembership().isEmpty() ||
+                          !Collections.disjoint(account.getRequiredGroupMembership(), groups))
+          .collect(Collectors.toSet());
+    } catch (RetrofitError re) {
+      throw new ProviderException(re);
+    }
   }
 }

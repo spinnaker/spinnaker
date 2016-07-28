@@ -16,16 +16,24 @@
 
 package com.netflix.spinnaker.fiat.providers;
 
-import com.netflix.spinnaker.fiat.model.resources.Account;
+public class ProviderException extends RuntimeException {
 
-import java.util.Collection;
-import java.util.Set;
+  public ProviderException() {
+  }
 
-public interface AccountProvider {
+  public ProviderException(String message) {
+    super(message);
+  }
 
-  /**
-   * @param groups
-   * @return all accounts to which a user with the specified set of roles or groups has access.
-   */
-  Set<Account> getAccounts(Collection<String> groups) throws ProviderException;
+  public ProviderException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  public ProviderException(Throwable cause) {
+    super(cause);
+  }
+
+  public ProviderException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    super(message, cause, enableSuppression, writableStackTrace);
+  }
 }

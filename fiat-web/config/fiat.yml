@@ -4,6 +4,10 @@ server:
 redis:
   connection: ${services.redis.connection:redis://localhost:6379}
 
+okHttpClient:
+  retries:
+    maxElapsedBackoffMs: 5000
+
 auth:
   anonymous:
     enabled: false

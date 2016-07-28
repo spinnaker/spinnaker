@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import retrofit.RetrofitError;
 
 import java.util.Collection;
 import java.util.Map;
@@ -58,18 +59,24 @@ public class DefaultServiceAccountProvider implements ServiceAccountProvider {
     // There is a potential here for a naming collision where service account
     // "my-svc-account@abc.com" and "my-svc-account@xyz.com" each allow one another's users to use
     // their service account. In practice, though, I don't think this will be an issue.
-    Map<String, ServiceAccount> serviceAccountsByName = front50Service
-        .getAllServiceAccounts()
-        .stream()
-        .collect(Collectors.toMap(ServiceAccount::getNameWithoutDomain, Function.identity()));
+    try {
+      Map<String, ServiceAccount> serviceAccountsByName = front50Service
+          .getAllServiceAccounts()
+          .stream()
+          .collect(Collectors.toMap(ServiceAccount::getNameWithoutDomain, Function.identity()));
 
-    return groups
-        .stream()
-        .filter(serviceAccountsByName::containsKey)
-        .map(serviceAccountsByName::get)
-        .collect(Collectors.toSet());
+      return groups
+          .stream()
+          .filter(serviceAccountsByName::containsKey)
+          .map(serviceAccountsByName::get)
+          .collect(Collectors.toSet());
+    } catch (RetrofitError re) {
+      throw new ProviderException(re);
+    }
   }
 
+  // TODO(ttomsu): Add ability to startup server even if Front50 is not up.
+  // TODO(ttomsu): forcePut() service accounts on first successful response from Front50.
   @Scheduled(initialDelay = 0, fixedDelay = 600000L)
   public void updateServiceAccounts() {
     front50Service

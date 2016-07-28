@@ -20,6 +20,7 @@ import com.netflix.spinnaker.fiat.config.AnonymousUserConfig;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.providers.AccountProvider;
 import com.netflix.spinnaker.fiat.providers.ApplicationProvider;
+import com.netflix.spinnaker.fiat.providers.ProviderException;
 import com.netflix.spinnaker.fiat.providers.ServiceAccountProvider;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
 import lombok.NoArgsConstructor;
@@ -66,15 +67,8 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
     if (!anonymousEnabled) {
       return Optional.empty();
     }
-
-    val groups = new ArrayList<String>(0);
-    val accounts = accountProvider.getAccounts(groups);
-    val apps = applicationProvider.getApplications(groups);
-    // Anonymous user has no access to service accounts.
-    return Optional.of(new UserPermission()
-                           .setId(AnonymousUserConfig.ANONYMOUS_USERNAME)
-                           .setAccounts(accounts)
-                           .setApplications(apps));
+    return Optional.of(getUserPermission(AnonymousUserConfig.ANONYMOUS_USERNAME,
+                                         new ArrayList<>(0) /* groups */));
   }
 
   @Override
@@ -87,22 +81,18 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
     List<String> roles;
     try {
       roles = userRolesProvider.loadRoles(userId);
-    } catch (Exception e) {
+    } catch (ProviderException e) {
+      // Roles are cornerstone to UserPermission resolution, so don't continue if we can't get
+      // roles. This is different than a partial UserPermission, where we can't access other
+      // Spinnaker components.
       log.warn("Failed to resolve user permission for user " + userId, e);
       return Optional.empty();
     }
     val combo = Stream.concat(roles.stream(), externalRoles.stream())
                       .map(String::toLowerCase)
                       .collect(Collectors.toSet());
-    val accounts = accountProvider.getAccounts(combo);
-    val apps = applicationProvider.getApplications(combo);
-    val serviceAccts = serviceAccountProvider.getAccounts(combo);
 
-    return Optional.of(new UserPermission()
-                           .setId(userId)
-                           .setAccounts(accounts)
-                           .setApplications(apps)
-                           .setServiceAccounts(serviceAccts));
+    return Optional.of(getUserPermission(userId, combo));
   }
 
   @Override
@@ -110,12 +100,33 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
     val roles = userRolesProvider.multiLoadRoles(userIds);
     return roles.entrySet()
                 .stream()
-                .map(entry ->
-                         new UserPermission()
-                             .setId(entry.getKey())
-                             .setAccounts(accountProvider.getAccounts(entry.getValue()))
-                             .setApplications(applicationProvider.getApplications(entry.getValue()))
-                             .setServiceAccounts(serviceAccountProvider.getAccounts(entry.getValue())))
+                .map(entry -> getUserPermission(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toMap(UserPermission::getId, Function.identity()));
+  }
+
+  private UserPermission getUserPermission(String userId, Collection<String> groups) {
+    UserPermission permission = new UserPermission().setId(userId);
+
+    try {
+      permission.setAccounts(accountProvider.getAccounts(groups));
+    } catch (ProviderException pe) {
+      permission.setPartialPermission(true);
+    }
+
+    try {
+      permission.setApplications(applicationProvider.getApplications(groups));
+    } catch (ProviderException pe) {
+      permission.setPartialPermission(true);
+    }
+
+    if (!AnonymousUserConfig.ANONYMOUS_USERNAME.equalsIgnoreCase(userId)) {
+      try {
+        permission.setServiceAccounts(serviceAccountProvider.getAccounts(groups));
+      } catch (ProviderException pe) {
+        permission.setPartialPermission(true);
+      }
+    }
+
+    return permission;
   }
 }

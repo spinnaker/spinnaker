@@ -58,6 +58,7 @@ import java.util.stream.Collectors;
  * </code>
  * Additionally, a helper key, called the "all users" key, maintains a set of all usernames.
  */
+// TODO(ttomsu): Add RedisCacheOptions from Clouddriver.
 @Component
 @Slf4j
 public class RedisPermissionsRepository implements PermissionsRepository {
@@ -77,9 +78,16 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   @Setter
   private JedisSource jedisSource;
 
-  // TODO(ttomsu): Add RedisCacheOptions from Clouddriver.
   @Override
   public RedisPermissionsRepository put(@NonNull UserPermission permission) {
+    if (!permission.isPartialPermission()) {
+      forcePut(permission);
+    }
+    return this;
+  }
+
+  @Override
+  public RedisPermissionsRepository forcePut(@NonNull UserPermission permission) {
     try (Jedis jedis = jedisSource.getJedis()) {
       for (Resource r : Resource.values()) {
         Map<String, String> resourceValues = new HashMap<>();
