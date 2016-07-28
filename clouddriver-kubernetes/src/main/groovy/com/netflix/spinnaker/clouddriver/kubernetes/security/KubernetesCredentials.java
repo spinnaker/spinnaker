@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.validation.ConstraintViolationException;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 
@@ -135,7 +136,13 @@ public class KubernetesCredentials {
         secretData.put(".dockercfg", dockerCfg);
 
         secretBuilder = secretBuilder.withData(secretData).withType("kubernetes.io/dockercfg");
-        apiAdaptor.createSecret(namespace, secretBuilder.build());
+        try {
+          apiAdaptor.createSecret(namespace, secretBuilder.build());
+        } catch (ConstraintViolationException cve) {
+          throw new IllegalStateException("Unable to build secret: " + cve.getMessage() +
+                                          " due to violations " + cve.getConstraintViolations(),
+                                          cve);
+        }
 
         List<String> existingSecrets = imagePullSecrets.get(namespace);
         existingSecrets = existingSecrets != null ? existingSecrets : new ArrayList<>();
