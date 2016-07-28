@@ -43,6 +43,9 @@ interface Front50Service {
   @GET("/pipelines/{application}")
   List<Map<String, Object>> getPipelines(@Path("application") String application)
 
+  @POST("/pipelines")
+  Response savePipeline(@Body Map pipeline)
+
   @GET("/strategies/{application}")
   List<Map<String, Object>> getStrategies(@Path("application") String application)
 
