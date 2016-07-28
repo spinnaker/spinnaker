@@ -47,6 +47,10 @@ class InstanceHealthCheckTask extends AbstractQuipTask implements RetryableTask 
     def instances = stage.context?.instances
 
     ExecutionStatus executionStatus = ExecutionStatus.SUCCEEDED
+    //skipped instances
+    if (!instances) {
+      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    }
     // verify instance list, package, and version are in the context
     if(instances) {
       // trigger patch on target server

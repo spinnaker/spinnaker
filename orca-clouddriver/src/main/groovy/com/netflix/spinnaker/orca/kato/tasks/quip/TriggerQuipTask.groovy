@@ -89,7 +89,7 @@ class TriggerQuipTask extends AbstractQuipTask implements RetryableTask {
     Map stageOutputs = [
       taskIds: taskIdMap,
       instances: instances,
-      instanceIds: instances.keySet(), // for WaitForDown/UpInstancesTask
+      instanceIds: instances.keySet() + skippedInstances.keySet(), // for WaitForDown/UpInstancesTask
       skippedInstances: skippedInstances,
       remainingInstances: remainingInstances,
       version: version

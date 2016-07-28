@@ -44,8 +44,13 @@ class MonitorQuipTask extends AbstractQuipTask implements RetryableTask {
   TaskResult execute(Stage stage) {
     def result = new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
 
-    if(!stage.context.taskIds || !stage.context.instances) {
-      throw new RuntimeException("missing taskIds and/or instances")
+    //we skipped instances that were up to date
+    if (!stage.context.instances) {
+      return result
+    }
+
+    if(!stage.context.taskIds) {
+      throw new RuntimeException("missing taskIds")
     }
 
     stage.context?.instances.each {String key, Map valueMap ->
