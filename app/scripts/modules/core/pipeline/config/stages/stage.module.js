@@ -182,7 +182,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
       return API
         .one('pipelines')
         .one($stateParams.executionId)
-        .one('stages', $scope.stages.id)
+        .one('stages', $scope.stage.id)
         .one('restart')
         .data({skip: false})
         .put()
