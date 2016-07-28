@@ -25,7 +25,6 @@ import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
-import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.deploy.description.*
@@ -39,7 +38,10 @@ import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvi
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import groovy.util.logging.Slf4j
 
+@Slf4j
 class GCEUtil {
   private static final String DISK_TYPE_PERSISTENT = "PERSISTENT"
   private static final String DISK_TYPE_SCRATCH = "SCRATCH"
@@ -692,25 +694,33 @@ class GCEUtil {
                                               GoogleLoadBalancerProvider googleLoadBalancerProvider,
                                               Task task,
                                               String phase) {
-      def serverGroupName = serverGroup.name
-      def foundLoadBalancers = queryAllLoadBalancers(googleLoadBalancerProvider, serverGroup.loadBalancers as List, task, phase)
-      def foundHttpLoadBalancers = foundLoadBalancers.findAll { it.loadBalancerType == GoogleLoadBalancerType.HTTP.toString() }
+    def serverGroupName = serverGroup.name
+    def httpLoadBalancersInMetadata = serverGroup?.asg?.get(GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES) ?: []
+    def foundHttpLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
+      it.name in serverGroup.loadBalancers && it.loadBalancerType == GoogleLoadBalancerType.HTTP.toString()
+    }
+    def deleted = httpLoadBalancersInMetadata - (foundHttpLoadBalancers.collect { it.name })
 
-      if (foundHttpLoadBalancers) {
-        Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
-        Map metadataMap = buildMapFromMetadata(instanceMetadata)
-        List<String> backendServiceNames = metadataMap?.(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)?.split(",")
-        if (backendServiceNames) {
-          backendServiceNames.each { String backendServiceName ->
-            BackendService backendService = compute.backendServices().get(project, backendServiceName).execute()
-            backendService?.backends?.removeAll { Backend backend ->
-              getLocalName(backend.group) == serverGroupName
-            }
-            compute.backendServices().update(project, backendServiceName, backendService).execute()
-            task.updateStatus phase, "Deleted backend for server group ${serverGroupName} from Http(s) load balancer backend service ${backendServiceName}."
+    log.debug("Attempting to delete backends for ${serverGroup.name} from the following Http load balancers: ${httpLoadBalancersInMetadata}")
+    if (deleted) {
+      log.warn("Could not locate the following Http load balancers: ${deleted}. Proceeding with other backend deletions without mutating them.")
+    }
+
+    if (foundHttpLoadBalancers) {
+      Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
+      Map metadataMap = buildMapFromMetadata(instanceMetadata)
+      List<String> backendServiceNames = metadataMap?.(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)?.split(",")
+      if (backendServiceNames) {
+        backendServiceNames.each { String backendServiceName ->
+          BackendService backendService = compute.backendServices().get(project, backendServiceName).execute()
+          backendService?.backends?.removeAll { Backend backend ->
+            getLocalName(backend.group) == serverGroupName
           }
+          compute.backendServices().update(project, backendServiceName, backendService).execute()
+          task.updateStatus phase, "Deleted backend for server group ${serverGroupName} from Http(s) load balancer backend service ${backendServiceName}."
         }
       }
+    }
   }
 
   static Firewall buildFirewallRule(String projectName,

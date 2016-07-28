@@ -18,10 +18,6 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.services.compute.Compute
-import com.google.api.services.compute.model.Backend
-import com.google.api.services.compute.model.BackendService
-import com.google.api.services.compute.model.Metadata
-import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -30,7 +26,6 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.DestroyGoogle
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationTimedOutException
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
