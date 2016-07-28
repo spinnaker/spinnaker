@@ -1,0 +1,19 @@
+<div class="row">
+  <div class="col-md-7">
+    <h4>Serialize Application</h4>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <p>
+          Serializing the application will save the current state of the infrastructure to a storage bucket <br>
+          using <a href="https://www.terraform.io/docs/configuration/index.html">Terraform's config language</a>.
+          Currently only GCE and GCS are supported.
+        </p>
+
+        <button class="btn btn-link" ng-click="$ctrl.serializeApplication()"><span
+          class="glyphicon glyphicon-cloud-download"></span> Serialize Application
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
