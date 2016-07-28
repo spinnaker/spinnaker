@@ -100,7 +100,7 @@
       <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
           ng-if="loadBalancer.healthMonitor.type === 'HTTP' || loadBalancer.healthMonitor.type === 'HTTPS'">
         <dt>Method</dt>
-        <dd>{{loadBalancer.healthMonitor.method}}</dd>
+        <dd>{{loadBalancer.healthMonitor.httpMethod}}</dd>
         <dt>URL</dt>
         <dd>{{loadBalancer.healthMonitor.url}}</dd>
         <dt>Status Codes</dt>
