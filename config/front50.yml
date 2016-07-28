@@ -32,7 +32,7 @@ spinnaker:
     project: ${providers.google.primaryCredentials.project}
     jsonPath: ${providers.google.primaryCredentials.jsonPath}
 
-  aws:
+  s3:
     enabled: ${services.front50.s3.enabled:false}
     bucket: ${services.front50.storage_bucket:}
     rootFolder: ${services.front50.bucket_root:front50}
