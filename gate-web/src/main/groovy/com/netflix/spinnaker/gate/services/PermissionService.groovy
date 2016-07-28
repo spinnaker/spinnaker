@@ -30,6 +30,10 @@ class PermissionService {
     fiatService?.loginUser(userId, "")
   }
 
+  void loginSAML(String userId, Collection<String> roles) {
+    fiatService?.loginSAMLUser(userId, roles)
+  }
+
   void logout(String userId) {
     fiatService?.logoutUser(userId)
   }

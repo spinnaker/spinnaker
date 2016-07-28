@@ -22,6 +22,7 @@ import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang.exception.ExceptionUtils
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.Scheduled
@@ -31,6 +32,11 @@ import org.springframework.security.config.annotation.web.servlet.configuration.
 
 import java.util.concurrent.CopyOnWriteArrayList
 
+/**
+ * Requires auth.anonymous.enabled to be true in Fiat configs to work properly. This
+ * is because anonymous users are a special permissions case, because the "user" doesn't actually
+ * exist in the backing UserRolesProvider.
+ */
 @ConditionalOnMissingBean(annotation = SpinnakerAuthConfig.class)
 @Configuration
 @Slf4j
@@ -58,6 +64,7 @@ class AnonymousConfig extends WebSecurityConfigurerAdapter {
   }
 
   @Scheduled(fixedDelay = 60000L)
+  @ConditionalOnExpression('!${services.fiat.enabled:false}')
   void updateAnonymousAccounts() {
     try {
       def newAnonAccounts = credentialsService.getAccountNames([]) ?: []

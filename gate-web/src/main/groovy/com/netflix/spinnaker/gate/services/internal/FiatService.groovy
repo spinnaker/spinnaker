@@ -30,6 +30,16 @@ interface FiatService {
   @POST("/roles/{userId}")
   Response loginUser(@Path("userId") String userId, @Body String _ /* retrofit requires this */)
 
+
+  /**
+   * Used specifically for SAML assertions that contain the users roles/groups.
+   * @param userId
+   * @param roles
+   * @return ignored.
+   */
+  @POST("/roles/{userId}")
+  Response loginSAMLUser(@Path("userId") String userId, @Body Collection<String> roles)
+
   @DELETE("/roles/{userId}")
   Response logoutUser(@Path("userId") String userId)
 }

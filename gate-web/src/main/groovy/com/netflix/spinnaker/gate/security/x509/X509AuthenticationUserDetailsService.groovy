@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.security.x509
 
 import com.netflix.spinnaker.gate.security.rolesprovider.UserRolesProvider
 import com.netflix.spinnaker.gate.services.CredentialsService
+import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.security.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.userdetails.AuthenticationUserDetailsService
@@ -44,6 +45,9 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
   @Autowired
   UserRolesProvider userRolesProvider
 
+  @Autowired
+  PermissionService permissionService
+
   @Override
   UserDetails loadUserDetails(PreAuthenticatedAuthenticationToken token) throws UsernameNotFoundException {
     if (!(token.credentials instanceof X509Certificate)) {
@@ -53,6 +57,8 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
     def x509 = (X509Certificate) token.credentials
     def email = emailFromSubjectAlternativeName(x509) ?: token.principal
     def roles = userRolesProvider.loadRoles(email as String)
+
+    permissionService.login(email as String)
 
     return new User(
         email: email,
