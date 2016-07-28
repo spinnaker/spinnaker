@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
@@ -49,8 +50,16 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
     def pattern = Keys.getLoadBalancerKey("*", "*", "${application}*")
     def identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, pattern)
 
+    def applicationServerGroups = cacheView.getAll(
+        SERVER_GROUPS.ns,
+        cacheView.filterIdentifiers(SERVER_GROUPS.ns, "${GoogleCloudProvider.GCE}:*:${application}-*")
+    )
+    applicationServerGroups.each { CacheData serverGroup ->
+      identifiers.addAll(serverGroup.relationships[LOAD_BALANCERS.ns] ?: [])
+    }
+
     cacheView.getAll(LOAD_BALANCERS.ns,
-                     identifiers,
+                     identifiers.unique(),
                      RelationshipCacheFilter.include(SERVER_GROUPS.ns)).collect { CacheData loadBalancerCacheData ->
       loadBalancersFromCacheData(loadBalancerCacheData)
     } as Set
