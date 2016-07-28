@@ -438,7 +438,6 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     String serverGroupName = "${clusterName}-v000"
     String serverGroupKey = Keys.getServerGroupKey(serverGroupName, account, region)
     Map<String, Object> data = [serverGroupName: serverGroupName, account: account, region: region]
-    Timer timer = Mock(Timer)
 
     when:
     OnDemandAgent.OnDemandResult result = cachingAgent.handle(providerCache, data)
@@ -447,7 +446,7 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     1 * provider.getStack(region, serverGroupName) >> null
 
     and:
-    result.cacheResult == null
+    result.cacheResult.cacheResults[ON_DEMAND.ns].isEmpty()
     result.evictions.get(SERVER_GROUPS.ns) == [serverGroupKey]
   }
 
@@ -549,54 +548,7 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     exception == throwable
   }
 
-  void 'should use on demand data empty'() {
-    given:
-    CacheResultBuilder cacheResultBuilder = new CacheResultBuilder(startTime: Long.MAX_VALUE)
-    String serverGroupKey = UUID.randomUUID().toString()
 
-    when:
-    boolean result = cachingAgent.shouldUseOnDemandData(cacheResultBuilder, serverGroupKey)
-
-    then:
-    !result
-  }
-
-  void 'should use on demand data - #testCase'() {
-    given:
-    String serverGroupKey = UUID.randomUUID().toString()
-    CacheResultBuilder cacheResultBuilder = new CacheResultBuilder(startTime: 5)
-    cacheResultBuilder.onDemand.toKeep[serverGroupKey] = new DefaultCacheData('id', attributes, [:])
-
-    when:
-    boolean result = cachingAgent.shouldUseOnDemandData(cacheResultBuilder, serverGroupKey)
-
-    then:
-    result == expectedResult
-
-    where:
-    testCase               | attributes     | expectedResult
-    'cache time greater'   | [cacheTime: 6] | true
-    'cache time equal'     | [cacheTime: 5] | true
-    'cache time less than' | [cacheTime: 4] | false
-  }
-
-  void 'move on demand data to namespace'() {
-    given:
-    String serverGroupKey = UUID.randomUUID().toString()
-    CacheResultBuilder cacheResultBuilder = new CacheResultBuilder()
-    Map cacheData = ['test': [[id: serverGroupKey, attributes: ['key1':'value1'], relationships: ['key2': ['value2']]]]]
-    String cacheDataString = objectMapper.writeValueAsString(cacheData)
-    cacheResultBuilder.onDemand.toKeep[serverGroupKey] = [attributes: [cacheResults: cacheDataString]]
-
-    when:
-    cachingAgent.moveOnDemandDataToNamespace(cacheResultBuilder, serverGroupKey)
-
-    then:
-    cacheResultBuilder.onDemand.toKeep[serverGroupKey] == null
-    cacheResultBuilder.namespace('test').keep(serverGroupKey).id == serverGroupKey
-    cacheResultBuilder.namespace('test').keep(serverGroupKey).attributes == cacheData['test'].first().attributes
-    cacheResultBuilder.namespace('test').keep(serverGroupKey).relationships == cacheData['test'].first().relationships
-  }
 
   protected Stack buildStack(Integer minSize = null, Integer maxSize = null, Integer desiredSize = null) {
     Stub(Stack) {

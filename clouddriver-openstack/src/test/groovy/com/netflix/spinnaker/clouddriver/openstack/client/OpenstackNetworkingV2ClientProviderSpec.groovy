@@ -169,7 +169,7 @@ class OpenstackNetworkingV2ClientProviderSpec extends OpenstackClientProviderSpe
     1 * mockClient.networking() >> networkingService
     1 * networkingService.loadbalancers() >> loadBalancerService
     1 * loadBalancerService.lbPool() >> lbPoolService
-    1 * lbPoolService.list() >> lbPools
+    1 * lbPoolService.list(null) >> lbPools
     result == lbPools
     noExceptionThrown()
   }
@@ -188,7 +188,7 @@ class OpenstackNetworkingV2ClientProviderSpec extends OpenstackClientProviderSpe
     1 * mockClient.networking() >> networkingService
     1 * networkingService.loadbalancers() >> loadBalancerService
     1 * loadBalancerService.lbPool() >> lbPoolService
-    1 * lbPoolService.list() >> { throw throwable }
+    1 * lbPoolService.list(null) >> { throw throwable }
 
     and:
     OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)

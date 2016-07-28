@@ -42,7 +42,7 @@ class OpenstackOnDemandCacheIntgSpec extends Specification {
 
   // Use for local testing
   @Ignore
-  void 'parallel on-demand call' () {
+  void 'parallel on-demand server group' () {
     given:
     ExecutorService executor = Executors.newFixedThreadPool(20)
 
@@ -51,6 +51,31 @@ class OpenstackOnDemandCacheIntgSpec extends Specification {
     RequestBody body = RequestBody.create(JSON, requestBody)
     Request request = new Request.Builder()
       .url('http://localhost:7002/cache/openstack/serverGroup')
+      .post(body)
+      .build()
+
+    when:
+    List<CompletedFuture<Response>> completedFutureList = IntStream.rangeClosed(0, 20)
+      .boxed()
+      .map { index -> CompletableFuture.supplyAsync ({ client.newCall(request).execute() }, executor) }
+      .collect(Collectors.toList())
+
+    then:
+    completedFutureList.every {
+      it.get().code() == HttpStatus.ACCEPTED.value()
+    }
+  }
+
+  @Ignore
+  void 'parallel on-demand load balancer' () {
+    given:
+    ExecutorService executor = Executors.newFixedThreadPool(20)
+
+    and:
+    String requestBody = '{"loadBalancerName": "test", "account": "test", "region": "east"}'
+    RequestBody body = RequestBody.create(JSON, requestBody)
+    Request request = new Request.Builder()
+      .url('http://localhost:7002/cache/openstack/loadBalancer')
       .post(body)
       .build()
 
