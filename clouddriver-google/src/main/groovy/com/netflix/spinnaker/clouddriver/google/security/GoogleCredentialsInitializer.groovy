@@ -76,7 +76,7 @@ class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizab
             .environment(managedAccount.environment ?: managedAccount.name)
             .accountType(managedAccount.accountType ?: managedAccount.name)
             .project(managedAccount.project)
-            .computeVersion(managedAccount.alphaListed ? ComputeVersion.ALPHA : ComputeVersion.V1)
+            .computeVersion(managedAccount.alphaListed ? ComputeVersion.ALPHA : ComputeVersion.DEFAULT)
             .httpLoadBalancingEnabled(managedAccount.httpLoadBalancingEnabled)
             .jsonKey(jsonKey)
             .imageProjects(managedAccount.imageProjects)

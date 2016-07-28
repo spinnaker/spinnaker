@@ -38,11 +38,15 @@ public class GoogleCredentials {
 
     def credential = getCredential(httpTransport, jsonFactory)
     def reqInit = setHttpTimeout(credential)
-    return new Compute.Builder(httpTransport, jsonFactory, credential)
+    def computeBuilder = new Compute.Builder(httpTransport, jsonFactory, credential)
         .setApplicationName(applicationName)
         .setHttpRequestInitializer(reqInit)
-        .setServicePath(computeVersion.servicePath)
-        .build()
+
+    if (computeVersion.servicePath) {
+      computeBuilder.setServicePath(computeVersion.servicePath)
+    }
+
+    return computeBuilder.build()
   }
 
   protected GoogleCredential getCredential(HttpTransport httpTransport, JsonFactory jsonFactory) {

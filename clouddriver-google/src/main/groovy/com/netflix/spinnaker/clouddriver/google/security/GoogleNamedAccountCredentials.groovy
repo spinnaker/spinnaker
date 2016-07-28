@@ -55,7 +55,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
     String project
     String applicationName
     List<String> imageProjects = []
-    ComputeVersion computeVersion = ComputeVersion.V1
+    ComputeVersion computeVersion = ComputeVersion.DEFAULT
     Map<String, List<String>> regionToZonesMap = [:]
     String jsonKey
     GoogleCredentials credentials

@@ -71,8 +71,10 @@ public class DefaultAgentScheduler extends CatsModuleAware implements AgentSched
 
     @Override
     public void unschedule(Agent agent) {
-        agentFutures.get(agent).cancel(false);
-        agentFutures.remove(agent);
+        if (agentFutures.containsKey(agent)) {
+          agentFutures.get(agent).cancel(false);
+          agentFutures.remove(agent);
+        }
     }
 
     @Override

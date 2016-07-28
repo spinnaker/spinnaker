@@ -83,10 +83,6 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    if (credentials.computeVersion != ComputeVersion.ALPHA) {
-      return new DefaultCacheResult([:])
-    }
-
     def cacheResultBuilder = new CacheResultBuilder(startTime: System.currentTimeMillis())
 
     List<GoogleServerGroup> serverGroups = getServerGroups(providerCache)
@@ -166,10 +162,6 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
 
   @Override
   OnDemandAgent.OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data) {
-    if (credentials.computeVersion != ComputeVersion.ALPHA) {
-      return null
-    }
-
     if (!data.containsKey("serverGroupName") || data.account != accountName || data.region != region) {
       return null
     }

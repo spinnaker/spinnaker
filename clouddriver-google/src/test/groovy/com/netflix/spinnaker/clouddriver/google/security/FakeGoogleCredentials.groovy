@@ -30,7 +30,7 @@ class FakeGoogleCredentials extends GoogleCredentials {
   }
 
   FakeGoogleCredentials(String project) {
-    super(project, ComputeVersion.V1)
+    super(project, ComputeVersion.DEFAULT)
   }
 
   @Override
