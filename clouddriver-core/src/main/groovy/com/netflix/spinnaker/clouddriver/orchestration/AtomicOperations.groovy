@@ -61,8 +61,8 @@ final class AtomicOperations {
   public static final String DESTROY_JOB = "destroyJob"
   public static final String CLONE_JOB = "cloneJob"
 
-  // Machine Image operations
-  public static final String UPSERT_MACHINE_IMAGE_TAGS = "upsertMachineImageTags"
+  // Image operations
+  public static final String UPSERT_IMAGE_TAGS = "upsertImageTags"
 
   // Serialize operations
   public static final String SERIALIZE_APPLICATION = "serializeApplication"

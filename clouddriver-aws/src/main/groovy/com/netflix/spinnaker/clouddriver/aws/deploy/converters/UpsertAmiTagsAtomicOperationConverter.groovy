@@ -25,7 +25,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
-@AmazonOperation(AtomicOperations.UPSERT_MACHINE_IMAGE_TAGS)
+@AmazonOperation(AtomicOperations.UPSERT_IMAGE_TAGS)
 @Component("upsertAmiTagsDescription")
 class UpsertAmiTagsAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   AtomicOperation convertOperation(Map input) {
