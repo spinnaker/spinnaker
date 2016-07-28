@@ -47,8 +47,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTask.detail
 
 
     $scope.loadHistory = function () {
-
-      if ($scope.deployment.canary.canaryDeployments.length > 0) {
+      if ( $scope.deployment.canary && $scope.deployment.canary.canaryDeployments.length > 0) {
         $scope.viewState.loadingHistory = true;
         $scope.viewState.loadingHistoryError = false;
 
