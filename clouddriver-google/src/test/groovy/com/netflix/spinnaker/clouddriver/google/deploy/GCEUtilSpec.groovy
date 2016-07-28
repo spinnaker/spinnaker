@@ -426,16 +426,16 @@ class GCEUtilSpec extends Specification {
       def loadBalancerProvider = Mock(GoogleLoadBalancerProvider)
       def loadBalancers = [networkLB, httpLB].findAll { it != null }
       def notFoundNames = ['bogus-name']
-      loadBalancerProvider.getApplicationLoadBalancers(application) >> loadBalancers
+      loadBalancerProvider.getApplicationLoadBalancers("") >> loadBalancers
 
     when:
-      def foundLoadBalancers = GCEUtil.queryAllLoadBalancers(loadBalancerProvider, forwardingRuleNames, application, task, phase)
+      def foundLoadBalancers = GCEUtil.queryAllLoadBalancers(loadBalancerProvider, forwardingRuleNames, task, phase)
 
     then:
       foundLoadBalancers.collect { it.name } == forwardingRuleNames
 
     when:
-      foundLoadBalancers = GCEUtil.queryAllLoadBalancers(loadBalancerProvider, forwardingRuleNames + 'bogus-name', application, task, phase)
+      foundLoadBalancers = GCEUtil.queryAllLoadBalancers(loadBalancerProvider, forwardingRuleNames + 'bogus-name', task, phase)
 
     then:
       def resourceNotFound = thrown(GoogleResourceNotFoundException)

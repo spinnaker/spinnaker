@@ -230,10 +230,9 @@ class GCEUtil {
 
   static List<GoogleLoadBalancerView> queryAllLoadBalancers(GoogleLoadBalancerProvider googleLoadBalancerProvider,
                                                             List<String> forwardingRuleNames,
-                                                            String application,
                                                             Task task,
                                                             String phase) {
-    def loadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers(application) as List
+    def loadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("") as List
     def foundLoadBalancers = loadBalancers.findAll { it.name in forwardingRuleNames }
 
     if (foundLoadBalancers.size == forwardingRuleNames.size) {
@@ -694,8 +693,7 @@ class GCEUtil {
                                               Task task,
                                               String phase) {
       def serverGroupName = serverGroup.name
-      def parsedServerGroupName = Names.parseName(serverGroupName)
-      def foundLoadBalancers = queryAllLoadBalancers(googleLoadBalancerProvider, serverGroup.loadBalancers as List, parsedServerGroupName.app, task, phase)
+      def foundLoadBalancers = queryAllLoadBalancers(googleLoadBalancerProvider, serverGroup.loadBalancers as List, task, phase)
       def foundHttpLoadBalancers = foundLoadBalancers.findAll { it.loadBalancerType == GoogleLoadBalancerType.HTTP.toString() }
 
       if (foundHttpLoadBalancers) {

@@ -133,7 +133,6 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     if (description.loadBalancers) {
       def foundLoadBalancers = GCEUtil.queryAllLoadBalancers(googleLoadBalancerProvider,
                                                              description.loadBalancers,
-                                                             description.application,
                                                              task,
                                                              BASE_PHASE)
       def networkLoadBalancers = foundLoadBalancers.findAll { it.loadBalancerType == GoogleLoadBalancerType.NETWORK.toString() }

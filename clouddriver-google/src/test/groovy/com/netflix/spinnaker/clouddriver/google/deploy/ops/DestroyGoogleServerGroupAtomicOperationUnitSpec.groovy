@@ -228,7 +228,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def backendSvcGetMock = Mock(Compute.BackendServices.Get)
       def backendUpdateMock = Mock(Compute.BackendServices.Update)
       def googleLoadBalancerProviderMock = Mock(GoogleLoadBalancerProvider)
-      googleLoadBalancerProviderMock.getApplicationLoadBalancers(APPLICATION_NAME) >> loadBalancerList
+      googleLoadBalancerProviderMock.getApplicationLoadBalancers("") >> loadBalancerList
       def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def task = Mock(Task)
       def bs = isRegional ?

@@ -314,6 +314,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
           .queue(backendServiceRequest, backendServiceCallback)
       queuedServices.add(urlMapDefaultService)
 
+      googleLoadBalancer.defaultService = new GoogleBackendService(name: urlMapDefaultService)
       urlMap.pathMatchers?.each { PathMatcher pathMatcher ->
         def pathMatchDefaultService = Utils.getLocalName(pathMatcher.defaultService)
         urlMap.hostRules?.each { HostRule hostRule ->
@@ -332,7 +333,6 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
               )
             }
             googleLoadBalancer.hostRules << gHostRule
-            googleLoadBalancer.defaultService = new GoogleBackendService(name: urlMapDefaultService)
           }
         }
 
