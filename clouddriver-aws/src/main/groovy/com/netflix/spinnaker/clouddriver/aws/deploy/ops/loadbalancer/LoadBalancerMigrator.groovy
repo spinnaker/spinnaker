@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AbstractAmazonCredentialsDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.MigrateLoadBalancerStrategy
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.MigrateSecurityGroupStrategy
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.servergroup.ClusterConfigurationMigrator.ClusterConfigurationTarget
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.servergroup.ServerGroupMigrator.ServerGroupLocation
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
@@ -97,6 +98,13 @@ class LoadBalancerMigrator {
       this.availabilityZones = serverGroupLocation.availabilityZones
       this.region = serverGroupLocation.region
       this.vpcId = serverGroupLocation.vpcId
+    }
+
+    LoadBalancerLocation(ClusterConfigurationTarget clusterConfigurationTarget) {
+      this.credentials = clusterConfigurationTarget.credentials
+      this.availabilityZones = clusterConfigurationTarget.availabilityZones
+      this.region = clusterConfigurationTarget.region
+      this.vpcId = clusterConfigurationTarget.vpcId
     }
 
     @Override

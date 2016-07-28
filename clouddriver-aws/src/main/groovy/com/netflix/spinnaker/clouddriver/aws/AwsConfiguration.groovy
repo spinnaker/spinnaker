@@ -29,9 +29,11 @@ import com.netflix.spinnaker.clouddriver.aws.agent.CleanupDetachedInstancesAgent
 import com.netflix.spinnaker.clouddriver.aws.agent.ReconcileClassicLinkSecurityGroupsAgent
 import com.netflix.spinnaker.clouddriver.aws.bastion.BastionConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.BasicAmazonDeployHandler
+import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.DefaultMigrateClusterConfigurationStrategy
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.DefaultMigrateLoadBalancerStrategy
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.DefaultMigrateSecurityGroupStrategy
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.DefaultMigrateServerGroupStrategy
+import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.MigrateClusterConfigurationStrategy
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.MigrateLoadBalancerStrategy
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.MigrateSecurityGroupStrategy
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.MigrateServerGroupStrategy
@@ -177,6 +179,15 @@ class AwsConfiguration {
                                                         DeployDefaults deployDefaults) {
     new DefaultMigrateServerGroupStrategy(amazonClientProvider, basicAmazonDeployHandler,
       regionScopedProviderFactory, basicAmazonDeployDescriptionValidator, deployDefaults)
+  }
+
+  @Bean
+  @ConditionalOnMissingBean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  MigrateClusterConfigurationStrategy migrateClusterConfigurationStrategy(AmazonClientProvider amazonClientProvider,
+                                                                          RegionScopedProviderFactory regionScopedProviderFactory,
+                                                                          DeployDefaults deployDefaults) {
+    new DefaultMigrateClusterConfigurationStrategy(amazonClientProvider, regionScopedProviderFactory, deployDefaults)
   }
 
   @Bean

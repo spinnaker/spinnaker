@@ -88,6 +88,7 @@ class MigrateServerGroupStrategySpec extends Specification {
   }
 
   void 'generates load balancers from launch config'() {
+    given:
     ServerGroupLocation source = new ServerGroupLocation(name: 'asg-v001', credentials: testCredentials, vpcId: 'vpc-1', region: 'us-east-1')
     ServerGroupLocation target = new ServerGroupLocation(credentials: prodCredentials, vpcId: 'vpc-2', region: 'eu-west-1', availabilityZones: ['eu-west-1b'])
 
