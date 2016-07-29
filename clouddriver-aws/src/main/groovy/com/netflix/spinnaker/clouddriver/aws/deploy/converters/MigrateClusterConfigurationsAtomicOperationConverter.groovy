@@ -45,7 +45,9 @@ class MigrateClusterConfigurationsAtomicOperationConverter extends AbstractAtomi
     def converted = objectMapper.convertValue(input, MigrateClusterConfigurationsDescription)
     converted.sources.each {
       it.credentials = getCredentialsObject(it.cluster.account as String)
+      converted.credentials.add(it.credentials)
     }
+    converted.accountMapping.values().each { converted.credentials.add(getCredentialsObject(it)) }
     converted
   }
 }

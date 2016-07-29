@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.servergroup.ClusterConfigurationMigrator.ClusterConfiguration
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 
 class MigrateClusterConfigurationsDescription {
   List<ClusterConfiguration> sources = []
@@ -26,4 +28,8 @@ class MigrateClusterConfigurationsDescription {
   Map<String, String> iamRoleMapping = [:];
   Map<String, String> keyPairMapping = [:];
   boolean dryRun
+
+  @JsonIgnore
+  Set<AccountCredentials> credentials = [];
+
 }
