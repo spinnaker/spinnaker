@@ -4,6 +4,7 @@ var feedbackUrl = process.env.FEEDBACK_URL || 'https://hootch.test.netflix.net/s
 var gateHost = process.env.API_HOST || 'https://spinnaker-api-prestaging.mgmttest.netflix.net';
 var bakeryDetailUrl = process.env.BAKERY_DETAIL_URL || 'http://bakery.test.netflix.net/#/?region={{context.region}}&package={{context.package}}&detail=bake:{{context.status.resourceId}}';
 var authEndpoint = process.env.AUTH_ENDPOINT || 'https://spinnaker-api-prestaging.mgmttest.netflix.net/auth/user';
+var authEnabled = process.env.AUTH_ENABLED === 'false' ? false : true;
 
 window.spinnakerSettings = {
   checkForUpdates: true,
@@ -82,7 +83,7 @@ window.spinnakerSettings = {
       botName: 'spinnakerbot'
     }
   },
-  authEnabled: true,
+  authEnabled: authEnabled,
   authTtl: 600000,
   gitSources: ['stash', 'github'],
   triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins'],
