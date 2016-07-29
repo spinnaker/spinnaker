@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.PipelineClusterExtractor;
 import com.netflix.spinnaker.orca.front50.Front50Service;
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -54,6 +53,8 @@ public class UpdateMigratedPipelineTask extends AbstractCloudProviderAwareTask {
     String newName = (String) context.getOrDefault("newPipelineName", pipeline.get("name") + " - migrated");
     pipeline.put("name", newName);
     pipeline.remove("id");
+    List<Map> triggers = (List<Map>) pipeline.getOrDefault("triggers", new ArrayList<>());
+    triggers.forEach(t -> t.put("enabled", false));
     front50Service.savePipeline(pipeline);
     String application = (String) context.get("application");
     Optional<Map<String, Object>> newPipeline = front50Service.getPipelines(application).stream()
