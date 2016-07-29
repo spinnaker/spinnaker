@@ -31,19 +31,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class MigrateTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+public abstract class MigrateTask extends AbstractCloudProviderAwareTask {
 
   public abstract String getCloudOperationType();
-
-  @Override
-  public long getBackoffPeriod() {
-    return 2000L;
-  }
-
-  @Override
-  public long getTimeout() {
-    return 300000;
-  }
 
   @Autowired
   KatoService kato;
