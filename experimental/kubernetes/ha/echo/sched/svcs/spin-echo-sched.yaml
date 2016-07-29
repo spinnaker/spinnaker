@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: spin-echo-sched
+  namespace: spinnaker
+  labels:
+    app: spin
+    stack: echo
+    detail: sched
+spec:
+  ports:
+    - port: 8089
+  selector:
+    load-balancer-spin-echo-sched: "true"

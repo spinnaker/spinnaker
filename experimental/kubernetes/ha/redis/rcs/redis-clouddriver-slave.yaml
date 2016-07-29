@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: redis-clouddriver-slave-v000
+  namespace: spinnaker
+  labels:
+    app: redis
+    stack: clouddriver
+    detail: slave
+    version: v000
+spec:
+  replicas: 3
+  selector:
+    replication-controller: redis-clouddriver-slave-v000
+  template:
+    metadata:
+      labels:
+        replication-controller: redis-clouddriver-slave-v000
+        load-balancer-redis-clouddriver-slave: "true"
+        app: redis
+        stack: slave
+    spec:
+      containers:
+      - name: redis-clouddriver-slave
+        image: gcr.io/kubernetes-spinnaker/redis:v0.0.3
+        env:
+        - name: SLAVE
+          value: "true"
+        - name: COMPONENT
+          value: "clouddriver"
+        ports:
+        - containerPort: 6379
+        resources:
+          limits:
+            cpu: "0.1"
+        volumeMounts:
+        - mountPath: /redis-slave-data
+          name: data
+      volumes:
+        - name: data
+          emptyDir: {}

@@ -1,0 +1,31 @@
+server:
+  port: ${services.igor.port}
+  address: ${services.igor.address}
+
+jenkins:
+  enabled: ${services.jenkins.enabled:false}
+  masters:
+    - name: ${services.jenkins.defaultMaster.name}
+      address: ${services.jenkins.defaultMaster.baseUrl}
+      username: ${services.jenkins.defaultMaster.username}
+      password: ${services.jenkins.defaultMaster.password}
+
+travis:
+  enabled: ${services.travis.enabled:false}
+  masters:
+    - name: ${services.travis.defaultMaster.name}
+      baseUrl: ${services.travis.defaultMaster.baseUrl}
+      address: ${services.travis.defaultMaster.address}
+      githubToken: ${services.travis.defaultMaster.githubToken}
+
+services:
+  clouddriver:
+    baseUrl: ${services.clouddriver.ro.baseUrl}
+  echo:
+    baseUrl: ${services.echo.event.baseUrl}
+
+dockerRegistry:
+  enabled: ${services.dockerRegistry.enabled:false}
+
+redis:
+  connection: ${services.redis.igor.master.connection}

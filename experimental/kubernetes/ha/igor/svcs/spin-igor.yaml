@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: spin-igor
+  namespace: spinnaker
+  labels:
+    app: spin
+    stack: igor
+spec:
+  ports:
+    - port: 8088
+  selector:
+    load-balancer-spin-igor: "true"

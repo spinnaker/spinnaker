@@ -1,0 +1,22 @@
+kubernetes:
+  enabled: true
+  accounts:
+    - name: my-kubernetes-account
+      dockerRegistries: # WARNING! only include configured accounts here
+        - accountName: my-gcr-account
+        - accountName: my-docker-account 
+
+dockerRegistry:
+  enabled: true
+  accounts:
+    - name: my-gcr-account
+      address: https://gcr.io
+      email: email@email.org # Only needs to be well-formed, no need to change.
+      username: _json_key # Don't edit
+      passwordFile: /root/.gcp/account.json # Don't edit
+      repositories:
+      # - # the names of your GCR images (<project>/<image>)
+    - name: my-docker-account
+      address: https://index.docker.io
+      repositories:
+        - library/nginx
