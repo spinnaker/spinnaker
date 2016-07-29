@@ -41,6 +41,9 @@ public abstract class MigrateSecurityGroupStrategy {
 
   protected SecurityGroupLookup sourceLookup;
   protected SecurityGroupLookup targetLookup;
+  protected SecurityGroupLocation source;
+  protected SecurityGroupLocation target;
+  protected boolean dryRun;
 
   abstract AmazonClientProvider getAmazonClientProvider();
 
@@ -68,6 +71,9 @@ public abstract class MigrateSecurityGroupStrategy {
 
     this.sourceLookup = sourceLookup;
     this.targetLookup = targetLookup;
+    this.source = source;
+    this.target = target;
+    this.dryRun = dryRun;
 
     final MigrateSecurityGroupResult result = new MigrateSecurityGroupResult();
     final Optional<SecurityGroupUpdater> sourceUpdater = sourceLookup.getSecurityGroupByName(
@@ -79,8 +85,8 @@ public abstract class MigrateSecurityGroupStrategy {
       throw new IllegalStateException("Security group does not exist: " + source.toString());
     }
 
-    if (shouldSkipSource(source, target)) {
-      MigrateSecurityGroupReference skipped = createTargetSecurityGroupReference(source, target, null);
+    if (shouldSkipSource()) {
+      MigrateSecurityGroupReference skipped = createTargetSecurityGroupReference(null);
       result.getSkipped().add(skipped);
       result.setTarget(skipped);
       return result;
@@ -95,40 +101,39 @@ public abstract class MigrateSecurityGroupStrategy {
       // convert names before determining if rules are important
       targetReferences.forEach(reference -> reference.setTargetName(getTargetName(reference.getSourceName())));
 
-      result.setErrors(shouldError(target, targetReferences));
+      result.setErrors(shouldError(targetReferences));
       if (!result.getErrors().isEmpty()) {
         return result;
       }
 
-      result.setSkipped(shouldSkipWithoutWarning(target, targetReferences));
+      result.setSkipped(shouldSkipWithoutWarning(targetReferences));
       Set<MigrateSecurityGroupReference> toCheck = new HashSet<>(targetReferences);
       toCheck.removeAll(result.getSkipped());
 
-      result.setWarnings(shouldWarn(target, toCheck));
+      result.setWarnings(shouldWarn(toCheck));
       toCheck.removeAll(result.getWarnings());
     }
-    result.setTarget(createTargetSecurityGroupReference(source, target, sourceGroupId));
+    result.setTarget(createTargetSecurityGroupReference(sourceGroupId));
 
     Set<MigrateSecurityGroupReference> toVerify = new HashSet<>(targetReferences);
     toVerify.add(result.getTarget());
     toVerify.removeAll(result.getWarnings());
     toVerify.removeAll(result.getSkipped());
 
-    result.setCreated(shouldCreate(target, toVerify));
+    result.setCreated(shouldCreate(toVerify));
 
     List<MigrateSecurityGroupReference> reused = new ArrayList<>(toVerify);
     reused.removeAll(result.getCreated());
     result.setReused(reused);
 
     if (!dryRun) {
-      performMigration(result, source, target);
+      performMigration(result);
     }
 
     return result;
   }
 
-  private void performMigration(MigrateSecurityGroupResult results, SecurityGroupLocation source,
-                                SecurityGroupLocation target) {
+  private void performMigration(MigrateSecurityGroupResult results) {
     final Optional<SecurityGroupUpdater> sourceGroupUpdater = sourceLookup.getSecurityGroupByName(
       source.getCredentialAccount(),
       source.getName(),
@@ -142,7 +147,7 @@ public abstract class MigrateSecurityGroupStrategy {
       targetGroups.add(results.getTarget());
     }
     results.getCreated().forEach(r -> r.setTargetId(
-      createDependentSecurityGroup(r, source, target).getSecurityGroup().getGroupId()));
+      createDependentSecurityGroup(r).getSecurityGroup().getGroupId()));
 
     Optional<SecurityGroupUpdater> targetGroup = targetLookup.getSecurityGroupByName(
       target.getCredentialAccount(),
@@ -163,17 +168,15 @@ public abstract class MigrateSecurityGroupStrategy {
   /**
    * Returns references to all security groups that should be created for the target
    *
-   * @param target     the target security group
    * @param references the collection of potential security groups to select from; implementations can choose to provide
    *                   additional security groups that are *not* members of this set
    * @return a list of security groups that need to be created in order to migrate the target security group
    */
-  protected Set<MigrateSecurityGroupReference> shouldCreate(SecurityGroupLocation target,
-                                                            Set<MigrateSecurityGroupReference> references) {
+  protected Set<MigrateSecurityGroupReference> shouldCreate(Set<MigrateSecurityGroupReference> references) {
 
     List<NetflixAmazonCredentials> credentials = references.stream()
       .map(AbstractAmazonCredentialsDescription::getCredentials).distinct().collect(Collectors.toList());
-    Map<String, String> vpcMappings = getVpcMappings(target, credentials);
+    Map<String, String> vpcMappings = getVpcMappings(credentials);
 
     return references.stream().distinct().filter(reference -> {
       String targetVpc = vpcMappings.get(reference.getAccountId());
@@ -192,11 +195,9 @@ public abstract class MigrateSecurityGroupStrategy {
   /**
    * Determines whether this security group should be skipped without consideration of ingress rules
    *
-   * @param source the source security group
-   * @param target the target location
    * @return true if it should be skipped, false otherwise
    */
-  protected boolean shouldSkipSource(SecurityGroupLocation source, SecurityGroupLocation target) {
+  protected boolean shouldSkipSource() {
     if (getInfrastructureApplications().contains(Names.parseName(source.getName()).getApp())) {
       Optional<SecurityGroupUpdater> targetGroup = targetLookup.getSecurityGroupByName(target.getCredentialAccount(), getTargetName(source.getName()), target.getVpcId());
       return !targetGroup.isPresent();
@@ -207,27 +208,23 @@ public abstract class MigrateSecurityGroupStrategy {
   /**
    * Returns references to all security groups that should halt the migration
    *
-   * @param target     the target security group
    * @param references the collection of potential security groups to select from; implementations can choose to provide
    *                   additional security groups that are *not* members of this set
    * @return a list of security groups that will fail the migration; if this call returns anything, additional checks
    * will not run
    */
-  protected Set<MigrateSecurityGroupReference> shouldError(SecurityGroupLocation target,
-                                                           Set<MigrateSecurityGroupReference> references) {
+  protected Set<MigrateSecurityGroupReference> shouldError(Set<MigrateSecurityGroupReference> references) {
     return new HashSet<>();
   }
 
   /**
    * Returns references to all security groups that should be created for the target
    *
-   * @param target     the target security group
    * @param references the collection of potential security groups to select from; implementations can choose to provide
    *                   additional security groups that are *not* members of this set
    * @return a list of security groups that need to be created in order to migrate the target security group
    */
-  protected Set<MigrateSecurityGroupReference> shouldWarn(SecurityGroupLocation target,
-                                                          Set<MigrateSecurityGroupReference> references) {
+  protected Set<MigrateSecurityGroupReference> shouldWarn(Set<MigrateSecurityGroupReference> references) {
     return references.stream().filter(reference -> {
       if (!targetLookup.accountIdExists(reference.getAccountId())) {
         reference.setExplanation("Spinnaker does not manage the account " + reference.getAccountId());
@@ -241,13 +238,11 @@ public abstract class MigrateSecurityGroupStrategy {
    * Returns references to all security groups that will be skipped - but not visually reported to the user - when
    * migrating the target. This includes security groups
    *
-   * @param target     the target security group
    * @param references the collection of potential security groups to select from; implementations can choose to provide
    *                   additional security groups that are *not* members of this set
    * @return a list of security groups that will be skipped when migrating the target security group
    */
-  protected Set<MigrateSecurityGroupReference> shouldSkipWithoutWarning(SecurityGroupLocation target,
-                                                                        Set<MigrateSecurityGroupReference> references) {
+  protected Set<MigrateSecurityGroupReference> shouldSkipWithoutWarning(Set<MigrateSecurityGroupReference> references) {
 
     return references.stream().filter(reference -> {
       if (reference.getAccountId().equals("amazon-elb") && target.getVpcId() != null) {
@@ -313,9 +308,7 @@ public abstract class MigrateSecurityGroupStrategy {
       .collect(Collectors.toSet());
   }
 
-  private MigrateSecurityGroupReference createTargetSecurityGroupReference(SecurityGroupLocation source,
-                                                                           SecurityGroupLocation target,
-                                                                           String sourceGroupId) {
+  private MigrateSecurityGroupReference createTargetSecurityGroupReference(String sourceGroupId) {
     MigrateSecurityGroupReference ref = new MigrateSecurityGroupReference();
     ref.setSourceName(source.getName());
     ref.setAccountId(target.getCredentials().getAccountId());
@@ -326,7 +319,7 @@ public abstract class MigrateSecurityGroupStrategy {
     return ref;
   }
 
-  private Map<String, String> getVpcMappings(SecurityGroupLocation target, List<NetflixAmazonCredentials> accounts) {
+  private Map<String, String> getVpcMappings(List<NetflixAmazonCredentials> accounts) {
     Map<String, String> mappings = new HashMap<>();
     if (target.getVpcId() == null) {
       return mappings;
@@ -349,9 +342,7 @@ public abstract class MigrateSecurityGroupStrategy {
   }
 
   // Creates a security group in the target location with no ingress rules
-  private SecurityGroupUpdater createDependentSecurityGroup(MigrateSecurityGroupReference reference,
-                                                            SecurityGroupLocation source,
-                                                            SecurityGroupLocation target) {
+  private SecurityGroupUpdater createDependentSecurityGroup(MigrateSecurityGroupReference reference) {
     String sourceAccount = sourceLookup.getAccountNameForId(reference.getAccountId());
     NetflixAmazonCredentials targetCredentials = sourceAccount.equals(source.getCredentialAccount()) ?
       target.getCredentials() :

@@ -84,7 +84,7 @@ class MigrateClusterConfigurationStrategySpec extends Specification {
 
     when:
     def results = strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'external', 'newIamRole', 'newKeyPair', true)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'external', 'newIamRole', 'newKeyPair', false, true)
 
     then:
     results.loadBalancerMigrations.empty
@@ -112,15 +112,15 @@ class MigrateClusterConfigurationStrategySpec extends Specification {
 
     when:
     def results = strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, null, null, null, true)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, null, null, null, false, true)
 
     then:
     results.loadBalancerMigrations.size() == 2
     results.cluster.loadBalancers == ['lb-a2', 'lb-b2']
     1 * migrateLoadBalancerStrategy.generateResults(sourceLookup, targetLookup, migrateSecurityGroupStrategy,
-      { it.name == 'lb-a' && it.region == 'us-east-1'}, { it.credentials == prodCredentials && it.region == 'eu-west-1'}, null, null, true) >> new MigrateLoadBalancerResult(targetName: 'lb-a2')
+      { it.name == 'lb-a' && it.region == 'us-east-1'}, { it.credentials == prodCredentials && it.region == 'eu-west-1'}, null, null, false, true) >> new MigrateLoadBalancerResult(targetName: 'lb-a2')
     1 * migrateLoadBalancerStrategy.generateResults(sourceLookup, targetLookup, migrateSecurityGroupStrategy,
-      { it.name == 'lb-b' && it.region == 'us-east-1'}, { it.credentials == prodCredentials && it.region == 'eu-west-1'}, null, null, true) >> new MigrateLoadBalancerResult(targetName: 'lb-b2')
+      { it.name == 'lb-b' && it.region == 'us-east-1'}, { it.credentials == prodCredentials && it.region == 'eu-west-1'}, null, null, false, true) >> new MigrateLoadBalancerResult(targetName: 'lb-b2')
     1 * deployDefaults.getAddAppGroupToServerGroup() >> false
     0 * _
   }
@@ -147,7 +147,7 @@ class MigrateClusterConfigurationStrategySpec extends Specification {
 
     when:
     def results = strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, null, null, null, false)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, null, null, null, false, false)
 
     then:
     results.securityGroupMigrations.size() == 2
@@ -175,7 +175,7 @@ class MigrateClusterConfigurationStrategySpec extends Specification {
 
     when:
     def results = strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, null, null, null, false)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, null, null, null, false, false)
 
     then:
     results.cluster.securityGroups == ['sg-1a']
@@ -206,7 +206,7 @@ class MigrateClusterConfigurationStrategySpec extends Specification {
 
     when:
     def results = strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, null, null, null, true)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, null, null, null, false, true)
 
     then:
     results.cluster.securityGroups == ['sg-1a']

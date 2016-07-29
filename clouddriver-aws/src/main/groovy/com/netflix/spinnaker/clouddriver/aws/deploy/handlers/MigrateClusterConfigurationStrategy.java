@@ -23,8 +23,8 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.MigrateSec
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupLookup;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupMigrator;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupMigrator.SecurityGroupLocation;
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.servergroup.ClusterConfigurationMigrator.ClusterConfigurationTarget;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.servergroup.ClusterConfigurationMigrator.ClusterConfiguration;
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.servergroup.ClusterConfigurationMigrator.ClusterConfigurationTarget;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.servergroup.MigrateClusterConfigurationResult;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.servergroup.MigrateClusterConfigurationsAtomicOperation;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
@@ -35,10 +35,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public abstract class MigrateClusterConfigurationStrategy {
+public abstract class MigrateClusterConfigurationStrategy implements MigrateStrategySupport {
 
   protected SecurityGroupLookup sourceLookup;
   protected SecurityGroupLookup targetLookup;
+  protected ClusterConfiguration source;
+  protected ClusterConfigurationTarget target;
+  protected String subnetType;
+  protected String iamRole;
+  protected String keyPair;
+  protected boolean allowIngressFromClassic;
+  protected boolean dryRun;
+
   protected MigrateSecurityGroupStrategy migrateSecurityGroupStrategy;
   protected MigrateLoadBalancerStrategy getMigrateLoadBalancerStrategy;
 
@@ -64,6 +72,7 @@ public abstract class MigrateClusterConfigurationStrategy {
    *                                     Classic migrations)
    * @param iamRole                      the iamRole to apply when migrating (optional)
    * @param keyPair                      the keyPair to apply when migrating (optional)
+   * @param allowIngressFromClassic      whether app security groups should granted ingress to classic link
    * @param dryRun                       whether to perform the migration or simply calculate the migration
    * @return a result set with the new cluster configuration and a collection of load balancers and security groups
    * required to perform the migration
@@ -72,16 +81,25 @@ public abstract class MigrateClusterConfigurationStrategy {
                                                                         SecurityGroupLookup sourceLookup, SecurityGroupLookup targetLookup,
                                                                         MigrateLoadBalancerStrategy migrateLoadBalancerStrategy,
                                                                         MigrateSecurityGroupStrategy migrateSecurityGroupStrategy,
-                                                                        String subnetType, String iamRole, String keyPair, boolean dryRun) {
+                                                                        String subnetType, String iamRole, String keyPair,
+                                                                        boolean allowIngressFromClassic, boolean dryRun) {
     this.sourceLookup = sourceLookup;
     this.targetLookup = targetLookup;
+    this.source = source;
+    this.target = target;
+    this.subnetType = subnetType;
+    this.iamRole = iamRole;
+    this.keyPair = keyPair;
+    this.allowIngressFromClassic = allowIngressFromClassic;
+    this.dryRun = dryRun;
+
     this.migrateSecurityGroupStrategy = migrateSecurityGroupStrategy;
     this.getMigrateLoadBalancerStrategy = migrateLoadBalancerStrategy;
 
     MigrateClusterConfigurationResult result = new MigrateClusterConfigurationResult();
 
-    List<MigrateLoadBalancerResult> targetLoadBalancers = generateTargetLoadBalancers(source, target, subnetType, dryRun);
-    List<MigrateSecurityGroupResult> targetSecurityGroups = generateTargetSecurityGroups(source, target, result, dryRun);
+    List<MigrateLoadBalancerResult> targetLoadBalancers = generateTargetLoadBalancers();
+    List<MigrateSecurityGroupResult> targetSecurityGroups = generateTargetSecurityGroups(result);
 
     result.setLoadBalancerMigrations(targetLoadBalancers);
     result.setSecurityGroupMigrations(targetSecurityGroups);
@@ -111,10 +129,7 @@ public abstract class MigrateClusterConfigurationStrategy {
     return result;
   }
 
-  protected List<MigrateSecurityGroupResult> generateTargetSecurityGroups(ClusterConfiguration source,
-                                                                          ClusterConfigurationTarget target,
-                                                                          MigrateClusterConfigurationResult result,
-                                                                          boolean dryRun) {
+  protected List<MigrateSecurityGroupResult> generateTargetSecurityGroups(MigrateClusterConfigurationResult result) {
 
     source.getSecurityGroupIds().stream()
       .filter(g -> !sourceLookup.getSecurityGroupById(source.getCredentialAccount(), g, source.getVpcId()).isPresent())
@@ -127,33 +142,27 @@ public abstract class MigrateClusterConfigurationStrategy {
       .map(g -> g.getSecurityGroup().getGroupName())
       .collect(Collectors.toList());
 
-    List<MigrateSecurityGroupResult> targetSecurityGroups = securityGroupNames.stream().map(group ->
-      getMigrateSecurityGroupResult(source, target, sourceLookup, targetLookup, dryRun, group)
-    ).collect(Collectors.toList());
+    List<MigrateSecurityGroupResult> targetSecurityGroups = securityGroupNames.stream()
+      .map(this::getMigrateSecurityGroupResult)
+      .collect(Collectors.toList());
 
     if (getDeployDefaults().getAddAppGroupToServerGroup()) {
       // if the app security group is already present, don't include it twice
       if (targetSecurityGroups.stream().noneMatch(r -> source.getApplication().equals(r.getTarget().getTargetName()))) {
-        targetSecurityGroups.add(generateAppSecurityGroup(source, target, sourceLookup, targetLookup, dryRun));
+        targetSecurityGroups.add(generateAppSecurityGroup());
       }
     }
 
     return targetSecurityGroups;
   }
 
-  protected List<MigrateLoadBalancerResult> generateTargetLoadBalancers(ClusterConfiguration source,
-                                                                        ClusterConfigurationTarget target,
-                                                                        String subnetType,
-                                                                        boolean dryRun) {
-    return source.getLoadBalancerNames().stream().map(lbName ->
-      getMigrateLoadBalancerResult(source, target, sourceLookup, targetLookup, subnetType, dryRun, lbName)
-    ).collect(Collectors.toList());
+  protected List<MigrateLoadBalancerResult> generateTargetLoadBalancers() {
+    return source.getLoadBalancerNames().stream()
+      .map(this::getMigrateLoadBalancerResult)
+      .collect(Collectors.toList());
   }
 
-  protected MigrateSecurityGroupResult generateAppSecurityGroup(ClusterConfiguration source,
-                                                                ClusterConfigurationTarget target,
-                                                                SecurityGroupLookup sourceLookup,
-                                                                SecurityGroupLookup targetLookup, boolean dryRun) {
+  protected MigrateSecurityGroupResult generateAppSecurityGroup() {
     SecurityGroupMigrator.SecurityGroupLocation appGroupLocation = new SecurityGroupMigrator.SecurityGroupLocation();
     appGroupLocation.setName(source.getApplication());
     appGroupLocation.setRegion(source.getRegion());
@@ -162,14 +171,15 @@ public abstract class MigrateClusterConfigurationStrategy {
     SecurityGroupMigrator migrator = new SecurityGroupMigrator(sourceLookup, targetLookup, migrateSecurityGroupStrategy,
       appGroupLocation, new SecurityGroupLocation(target));
     migrator.setCreateIfSourceMissing(true);
-    return migrator.migrate(dryRun);
+    MigrateSecurityGroupResult result = migrator.migrate(dryRun);
+    if (!dryRun && allowIngressFromClassic) {
+      addClassicLinkIngress(targetLookup, getDeployDefaults().getClassicLinkSecurityGroupName(),
+        result.getTarget().getTargetId(), target.getCredentials(), target.getVpcId());
+    }
+    return result;
   }
 
-  private MigrateSecurityGroupResult getMigrateSecurityGroupResult(ClusterConfiguration source,
-                                                                   ClusterConfigurationTarget target,
-                                                                   SecurityGroupLookup sourceLookup,
-                                                                   SecurityGroupLookup targetLookup,
-                                                                   boolean dryRun, String group) {
+  private MigrateSecurityGroupResult getMigrateSecurityGroupResult(String group) {
     SecurityGroupMigrator.SecurityGroupLocation sourceLocation = new SecurityGroupMigrator.SecurityGroupLocation();
     sourceLocation.setName(group);
     sourceLocation.setRegion(source.getRegion());
@@ -179,10 +189,7 @@ public abstract class MigrateClusterConfigurationStrategy {
       sourceLocation, new SecurityGroupMigrator.SecurityGroupLocation(target)).migrate(dryRun);
   }
 
-  private MigrateLoadBalancerResult getMigrateLoadBalancerResult(ClusterConfiguration source, ClusterConfigurationTarget target,
-                                                                 SecurityGroupLookup sourceLookup,
-                                                                 SecurityGroupLookup targetLookup, String subnetType,
-                                                                 boolean dryRun, String lbName) {
+  private MigrateLoadBalancerResult getMigrateLoadBalancerResult(String lbName) {
     LoadBalancerMigrator.LoadBalancerLocation sourceLocation = new LoadBalancerMigrator.LoadBalancerLocation();
     sourceLocation.setName(lbName);
     sourceLocation.setRegion(source.getRegion());
@@ -190,7 +197,7 @@ public abstract class MigrateClusterConfigurationStrategy {
     sourceLocation.setCredentials(source.getCredentials());
     return new LoadBalancerMigrator(sourceLookup, targetLookup, getAmazonClientProvider(), getRegionScopedProviderFactory(),
       migrateSecurityGroupStrategy, getDeployDefaults(), getMigrateLoadBalancerStrategy, sourceLocation,
-      new LoadBalancerMigrator.LoadBalancerLocation(target), subnetType, source.getApplication()).migrate(dryRun);
+      new LoadBalancerMigrator.LoadBalancerLocation(target), subnetType, source.getApplication(), allowIngressFromClassic).migrate(dryRun);
   }
 
 }

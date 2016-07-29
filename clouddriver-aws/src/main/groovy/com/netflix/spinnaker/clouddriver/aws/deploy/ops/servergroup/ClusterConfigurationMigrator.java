@@ -46,13 +46,14 @@ public class ClusterConfigurationMigrator {
   private String iamRole;
   private String keyPair;
   private String subnetType;
+  private boolean allowIngressFromClassic;
 
   public ClusterConfigurationMigrator(MigrateClusterConfigurationStrategy migrationStrategy,
                                       ClusterConfiguration source, ClusterConfigurationTarget target,
                                       SecurityGroupLookup sourceLookup, SecurityGroupLookup targetLookup,
                                       MigrateLoadBalancerStrategy migrateLoadBalancerStrategy,
                                       MigrateSecurityGroupStrategy migrateSecurityGroupStrategy,
-                                      String iamRole, String keyPair, String subnetType) {
+                                      String iamRole, String keyPair, String subnetType, boolean allowIngressFromClassic) {
     this.migrationStrategy = migrationStrategy;
     this.source = source;
     this.target = target;
@@ -63,12 +64,13 @@ public class ClusterConfigurationMigrator {
     this.iamRole = iamRole;
     this.keyPair = keyPair;
     this.subnetType = subnetType;
+    this.allowIngressFromClassic = allowIngressFromClassic;
   }
 
   public MigrateClusterConfigurationResult migrate(boolean dryRun) {
     getTask().updateStatus(BASE_PHASE, (dryRun ? "Calculating" : "Beginning") + " migration of cluster config " + source.toString());
     MigrateClusterConfigurationResult result = migrationStrategy.generateResults(source, target, sourceLookup, targetLookup, migrateLoadBalancerStrategy,
-      migrateSecurityGroupStrategy, subnetType, iamRole, keyPair, dryRun);
+      migrateSecurityGroupStrategy, subnetType, iamRole, keyPair, allowIngressFromClassic, dryRun);
     getTask().updateStatus(BASE_PHASE, "Migration of cluster configuration " + source.toString() +
       (dryRun ? " calculated" : " completed") + ".");
     return result;

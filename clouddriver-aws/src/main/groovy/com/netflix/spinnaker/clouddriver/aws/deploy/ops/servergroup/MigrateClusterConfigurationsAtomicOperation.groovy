@@ -116,7 +116,8 @@ class MigrateClusterConfigurationsAtomicOperation implements AtomicOperation<Voi
 
         def migrator = new ClusterConfigurationMigrator(migrationStrategy.get(), source, target,
           sourceLookup, targetLookup,
-          migrateLoadBalancerStrategy.get(), migrateSecurityGroupStrategy.get(), iamRole, keyPair, subnetType)
+          migrateLoadBalancerStrategy.get(), migrateSecurityGroupStrategy.get(), iamRole, keyPair, subnetType,
+          description.allowIngressFromClassic)
 
         results.add(migrator.migrate(description.dryRun))
       }

@@ -40,11 +40,18 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public abstract class MigrateLoadBalancerStrategy {
+public abstract class MigrateLoadBalancerStrategy implements MigrateStrategySupport {
 
   protected SecurityGroupLookup sourceLookup;
   protected SecurityGroupLookup targetLookup;
   protected MigrateSecurityGroupStrategy migrateSecurityGroupStrategy;
+
+  protected LoadBalancerLocation source;
+  protected LoadBalancerLocation target;
+  protected String subnetType;
+  protected String applicationName;
+  protected boolean allowIngressFromClassic;
+  protected boolean dryRun;
 
   abstract AmazonClientProvider getAmazonClientProvider();
 
@@ -55,23 +62,31 @@ public abstract class MigrateLoadBalancerStrategy {
   /**
    * Generates a result set describing the actions required to migrate the source load balancer to the target.
    *
-   * @param sourceLookup    a security group lookup cache for the source region
-   * @param targetLookup    a security group lookup cache for the target region (may be the same object as the sourceLookup)
-   * @param source          the source load balancer
-   * @param target          the target location
-   * @param subnetType      the subnetType in which to migrate the load balancer (should be null for EC Classic migrations)
-   * @param applicationName the name of the source application
-   * @param dryRun          whether to actually perform the migration
+   * @param sourceLookup            a security group lookup cache for the source region
+   * @param targetLookup            a security group lookup cache for the target region (may be the same object as the sourceLookup)
+   * @param source                  the source load balancer
+   * @param target                  the target location
+   * @param subnetType              the subnetType in which to migrate the load balancer (should be null for EC Classic migrations)
+   * @param applicationName         the name of the source application
+   * @param allowIngressFromClassic whether ingress should be granted from classic link
+   * @param dryRun                  whether to actually perform the migration
    * @return the result set
    */
   public synchronized MigrateLoadBalancerResult generateResults(SecurityGroupLookup sourceLookup, SecurityGroupLookup targetLookup,
-                                                    MigrateSecurityGroupStrategy migrateSecurityGroupStrategy,
-                                                    LoadBalancerLocation source, LoadBalancerLocation target,
-                                                    String subnetType, String applicationName, boolean dryRun) {
+                                                                MigrateSecurityGroupStrategy migrateSecurityGroupStrategy,
+                                                                LoadBalancerLocation source, LoadBalancerLocation target,
+                                                                String subnetType, String applicationName,
+                                                                boolean allowIngressFromClassic, boolean dryRun) {
 
     this.migrateSecurityGroupStrategy = migrateSecurityGroupStrategy;
     this.sourceLookup = sourceLookup;
     this.targetLookup = targetLookup;
+    this.source = source;
+    this.target = target;
+    this.subnetType = subnetType;
+    this.applicationName = applicationName;
+    this.allowIngressFromClassic = allowIngressFromClassic;
+    this.dryRun = dryRun;
 
     final MigrateLoadBalancerResult result = new MigrateLoadBalancerResult();
 
@@ -82,16 +97,16 @@ public abstract class MigrateLoadBalancerStrategy {
     String targetName = target.getName() != null ? target.getName() : generateLoadBalancerName(source.getName(), sourceVpc, targetVpc);
     LoadBalancerDescription targetLoadBalancer = getLoadBalancer(target.getCredentials(), target.getRegion(), targetName);
 
-    List<MigrateSecurityGroupResult> targetGroups = getTargetSecurityGroups(sourceLoadBalancer, source, target, result, dryRun);
+    List<MigrateSecurityGroupResult> targetGroups = getTargetSecurityGroups(sourceLoadBalancer, result);
 
     List<String> securityGroups = targetGroups.stream().map(g -> g.getTarget().getTargetId()).distinct().collect(Collectors.toList());
-    securityGroups.addAll(buildExtraSecurityGroups(source, target, sourceLoadBalancer, applicationName, result, dryRun));
+    securityGroups.addAll(buildExtraSecurityGroups(sourceLoadBalancer, result));
 
     result.getSecurityGroups().addAll(targetGroups);
     result.setTargetName(targetName);
     result.setTargetExists(targetLoadBalancer != null);
     if (!dryRun) {
-      updateTargetLoadBalancer(source, target, sourceLoadBalancer, targetLoadBalancer, targetName, subnetType, securityGroups, result);
+      updateTargetLoadBalancer(sourceLoadBalancer, targetLoadBalancer, targetName, securityGroups, result);
     }
 
     return result;
@@ -100,18 +115,14 @@ public abstract class MigrateLoadBalancerStrategy {
   /**
    * Performs the actual upsert operation against the target load balancer
    *
-   * @param source             the source load balancer
-   * @param target             the target location
    * @param sourceLoadBalancer the Amazon load balancer description of the source load balancer
    * @param targetLoadBalancer the Amazon load balancer description of the target load balancer (may be null)
    * @param targetName         the name of the target load balancer
-   * @param subnetType         the subnetType in which to migrate the load balancer (should be null for EC Classic migrations)
    * @param securityGroups     a list of security group names to attach to the load balancer
    */
-  protected void updateTargetLoadBalancer(LoadBalancerLocation source, LoadBalancerLocation target,
-                                          LoadBalancerDescription sourceLoadBalancer,
+  protected void updateTargetLoadBalancer(LoadBalancerDescription sourceLoadBalancer,
                                           LoadBalancerDescription targetLoadBalancer,
-                                          String targetName, String subnetType, Collection<String> securityGroups,
+                                          String targetName, Collection<String> securityGroups,
                                           MigrateLoadBalancerResult result) {
 
     List<Listener> unmigratableListeners = sourceLoadBalancer.getListenerDescriptions().stream()
@@ -177,15 +188,12 @@ public abstract class MigrateLoadBalancerStrategy {
   /**
    * Generates a list of security groups to add to the load balancer in addition to those on the source load balancer
    *
-   * @param source            the source location
-   * @param target            the target location
-   * @param sourceDescription the AWS description of the source load balancer
-   * @param applicationName   the name of the application in which this load balancer is being migrated
-   * @param result            the result set for the load balancer migration - this will potentially be mutated as a side effect
-   * @param dryRun            whether the migration should actually occur or just be calculated
+   * @param sourceDescription       the AWS description of the source load balancer
+   * @param result                  the result set for the load balancer migration - this will potentially be mutated as a side effect
    * @return a list security group ids that should be added to the load balancer
    */
-  protected List<String> buildExtraSecurityGroups(LoadBalancerLocation source, LoadBalancerLocation target, LoadBalancerDescription sourceDescription, String applicationName, MigrateLoadBalancerResult result, boolean dryRun) {
+  protected List<String> buildExtraSecurityGroups(LoadBalancerDescription sourceDescription,
+                                                  MigrateLoadBalancerResult result) {
     ArrayList<String> newGroups = new ArrayList<>();
     if (target.getVpcId() != null) {
       AmazonEC2 targetAmazonEC2 = getAmazonClientProvider().getAmazonEC2(target.getCredentials(), target.getRegion(), true);
@@ -194,10 +202,10 @@ public abstract class MigrateLoadBalancerStrategy {
         List<String> groupNames = Arrays.asList(applicationName, applicationName + "-elb");
         appGroups = targetAmazonEC2.describeSecurityGroups(new DescribeSecurityGroupsRequest().withFilters(
           new Filter("group-name", groupNames))).getSecurityGroups();
-      } catch (Exception ignored) { }
+      } catch (Exception ignored) {
+      }
 
-      String elbGroupId = buildElbSecurityGroup(appGroups, source, target, applicationName, result,
-        dryRun, sourceDescription);
+      String elbGroupId = buildElbSecurityGroup(sourceDescription, appGroups, result);
       newGroups.add(elbGroupId);
     }
     return newGroups;
@@ -206,48 +214,50 @@ public abstract class MigrateLoadBalancerStrategy {
   /**
    * Creates an elb specific security group, or returns the ID of one if it already exists
    *
-   * @param appGroups         list of existing security groups in which to look for existing elb security group
-   * @param source            the source location of the load balancer
-   * @param target            the target location of the load balancer
-   * @param appName           the name of the application being migrated
-   * @param result            the result set for the load balancer migration - this will potentially be mutated as a side effect
-   * @param dryRun            whether the migration should actually occur or just be calculated
-   * @param sourceDescription the AWS description of the source load balancer
+   * @param sourceDescription       the AWS description of the source load balancer
+   * @param appGroups               list of existing security groups in which to look for existing elb security group
+   * @param result                  the result set for the load balancer migration - this will potentially be mutated as a side effect
    * @return the groupId of the elb security group
    */
-  protected String buildElbSecurityGroup(List<SecurityGroup> appGroups, LoadBalancerLocation source, LoadBalancerLocation target, final String appName, MigrateLoadBalancerResult result, boolean dryRun, LoadBalancerDescription sourceDescription) {
+  protected String buildElbSecurityGroup(LoadBalancerDescription sourceDescription, List<SecurityGroup> appGroups,
+                                         MigrateLoadBalancerResult result) {
     String elbGroupId = null;
     Optional<SecurityGroup> existingGroup = appGroups.stream()
-      .filter(g -> g.getVpcId() != null && g.getVpcId().equals(target.getVpcId()) && g.getGroupName().equals(appName + "-elb"))
+      .filter(g -> g.getVpcId() != null && g.getVpcId().equals(target.getVpcId()) && g.getGroupName().equals(applicationName + "-elb"))
       .findFirst();
     if (existingGroup.isPresent()) {
+      if (!dryRun && allowIngressFromClassic) {
+        addClassicLinkIngress(targetLookup, getDeployDefaults().getClassicLinkSecurityGroupName(),
+          existingGroup.get().getGroupId(), target.getCredentials(), target.getVpcId());
+      }
       return existingGroup.get().getGroupId();
     }
     MigrateSecurityGroupReference elbGroup = new MigrateSecurityGroupReference();
     elbGroup.setAccountId(target.getCredentials().getAccountId());
     elbGroup.setVpcId(target.getVpcId());
-    elbGroup.setTargetName(appName + "-elb");
+    elbGroup.setTargetName(applicationName + "-elb");
     MigrateSecurityGroupResult addedGroup = new MigrateSecurityGroupResult();
     addedGroup.setTarget(elbGroup);
     addedGroup.getCreated().add(elbGroup);
     result.getSecurityGroups().add(addedGroup);
     if (!dryRun) {
       UpsertSecurityGroupDescription upsertDescription = new UpsertSecurityGroupDescription();
-      upsertDescription.setDescription("Application load balancer security group for " + appName);
-      upsertDescription.setName(appName + "-elb");
+      upsertDescription.setDescription("Application load balancer security group for " + applicationName);
+      upsertDescription.setName(applicationName + "-elb");
       upsertDescription.setVpcId(target.getVpcId());
       upsertDescription.setRegion(target.getRegion());
       upsertDescription.setCredentials(target.getCredentials());
       elbGroupId = targetLookup.createSecurityGroup(upsertDescription).getSecurityGroup().getGroupId();
       AmazonEC2 targetAmazonEC2 = getAmazonClientProvider().getAmazonEC2(target.getCredentials(), target.getRegion(), true);
       elbGroup.setTargetId(elbGroupId);
-      if (source.getVpcId() == null) {
-        addClassicLinkIngress(target, elbGroupId);
+      if (source.getVpcId() == null && allowIngressFromClassic) {
+        addClassicLinkIngress(targetLookup, getDeployDefaults().getClassicLinkSecurityGroupName(),
+          elbGroupId, target.getCredentials(), target.getVpcId());
         addPublicIngress(targetAmazonEC2, elbGroupId, sourceDescription);
       }
     }
     if (getDeployDefaults().getAddAppGroupToServerGroup()) {
-      buildApplicationSecurityGroup(sourceDescription, appGroups, target, appName, dryRun, addedGroup);
+      buildApplicationSecurityGroup(sourceDescription, appGroups, addedGroup);
     }
 
     return elbGroupId;
@@ -256,29 +266,27 @@ public abstract class MigrateLoadBalancerStrategy {
   /**
    * Creates the app specific security group, or returns the ID of one if it already exists
    *
-   * @param appGroups  list of existing security groups in which to look for existing app security group
-   * @param target     the target location of the load balancer
-   * @param appName    the name of the application being migrated
-   * @param dryRun     whether the migration should actually occur or just be calculated
-   * @param elbGroup   the elb specific security group, which will allow ingress permission from the
-   *                   app specific security group
+   * @param appGroups               list of existing security groups in which to look for existing app security group
+   * @param elbGroup                the elb specific security group, which will allow ingress permission from the
+   *                                app specific security group
    */
-  protected void buildApplicationSecurityGroup(LoadBalancerDescription sourceDescription, List<SecurityGroup> appGroups, LoadBalancerLocation target, String appName, boolean dryRun, MigrateSecurityGroupResult elbGroup) {
+  protected void buildApplicationSecurityGroup(LoadBalancerDescription sourceDescription, List<SecurityGroup> appGroups,
+                                               MigrateSecurityGroupResult elbGroup) {
     if (getDeployDefaults().getAddAppGroupToServerGroup()) {
       AmazonEC2 targetAmazonEC2 = getAmazonClientProvider().getAmazonEC2(target.getCredentials(), target.getRegion(), true);
-      Optional<SecurityGroup> existing = appGroups.stream().filter(isAppSecurityGroup(target, appName)).findFirst();
+      Optional<SecurityGroup> existing = appGroups.stream().filter(isAppSecurityGroup()).findFirst();
       MigrateSecurityGroupReference appGroupReference = new MigrateSecurityGroupReference();
       appGroupReference.setAccountId(target.getCredentials().getAccountId());
       appGroupReference.setVpcId(target.getVpcId());
-      appGroupReference.setTargetName(appName);
+      appGroupReference.setTargetName(applicationName);
       if (existing.isPresent()) {
         elbGroup.getReused().add(appGroupReference);
       } else {
         elbGroup.getCreated().add(appGroupReference);
         if (!dryRun) {
           UpsertSecurityGroupDescription upsertDescription = new UpsertSecurityGroupDescription();
-          upsertDescription.setDescription("Application security group for " + appName);
-          upsertDescription.setName(appName);
+          upsertDescription.setDescription("Application security group for " + applicationName);
+          upsertDescription.setName(applicationName);
           upsertDescription.setVpcId(target.getVpcId());
           upsertDescription.setRegion(target.getRegion());
           upsertDescription.setCredentials(target.getCredentials());
@@ -293,7 +301,11 @@ public abstract class MigrateLoadBalancerStrategy {
       }
       if (!dryRun) {
         String elbGroupId = elbGroup.getTarget().getTargetId();
-        SecurityGroup appGroup = appGroups.stream().filter(isAppSecurityGroup(target, appName)).findFirst().get();
+        SecurityGroup appGroup = appGroups.stream().filter(isAppSecurityGroup()).findFirst().get();
+        if (allowIngressFromClassic) {
+          addClassicLinkIngress(targetLookup, getDeployDefaults().getClassicLinkSecurityGroupName(),
+            appGroup.getGroupId(), target.getCredentials(), target.getVpcId());
+        }
         boolean hasElbIngressPermission = appGroup.getIpPermissions().stream()
           .anyMatch(p -> p.getUserIdGroupPairs().stream().anyMatch(u -> u.getGroupId().equals(elbGroupId)));
         if (!hasElbIngressPermission) {
@@ -312,9 +324,9 @@ public abstract class MigrateLoadBalancerStrategy {
     }
   }
 
-  private Predicate<SecurityGroup> isAppSecurityGroup(LoadBalancerLocation target, String appName) {
+  private Predicate<SecurityGroup> isAppSecurityGroup() {
     return g -> {
-      if (!g.getGroupName().equals(appName)) {
+      if (!g.getGroupName().equals(applicationName)) {
         return false;
       }
       if (g.getVpcId() == null) {
@@ -339,43 +351,15 @@ public abstract class MigrateLoadBalancerStrategy {
     );
   }
 
-  private void addClassicLinkIngress(LoadBalancerLocation target, String elbGroupId) {
-    Optional.ofNullable(getDeployDefaults().getClassicLinkSecurityGroupName())
-      .flatMap(classicLinkGroupName -> targetLookup.getSecurityGroupByName(target.getCredentialAccount(), classicLinkGroupName, target.getVpcId()))
-      .map(updater -> updater.getSecurityGroup().getGroupId())
-      .ifPresent(classicLinkGroupId -> {
-        AmazonEC2 targetAmazonEC2 = getAmazonClientProvider().getAmazonEC2(target.getCredentials(), target.getRegion(), true);
-        targetAmazonEC2.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest()
-          .withGroupId(elbGroupId)
-          .withIpPermissions(
-            new IpPermission()
-              .withIpProtocol("tcp").withFromPort(80).withToPort(65535)
-              .withUserIdGroupPairs(
-                new UserIdGroupPair()
-                  .withUserId(target.getCredentials().getAccountId())
-                  .withGroupId(classicLinkGroupId)
-                  .withVpcId(target.getVpcId())
-              )
-          )
-        );
-      });
-  }
-
   /**
    * Generates a list of security groups that should be applied to the target load balancer
    *
    * @param sourceDescription AWS descriptor of source load balancer
-   * @param source            source location of load balancer to migrate
-   * @param target            target location of load balancer to migrate
    * @param result            result object of the calling migate operation
-   * @param dryRun            is this a dry run? IS IT???
    * @return the list of security groups that will be created or added, excluding the elb-specific security group
    */
   protected List<MigrateSecurityGroupResult> getTargetSecurityGroups(LoadBalancerDescription sourceDescription,
-                                                                     LoadBalancerLocation source,
-                                                                     LoadBalancerLocation target,
-                                                                     MigrateLoadBalancerResult result,
-                                                                     boolean dryRun) {
+                                                                     MigrateLoadBalancerResult result) {
     sourceDescription.getSecurityGroups().stream()
       .filter(g -> !sourceLookup.getSecurityGroupById(source.getCredentialAccount(), g, source.getVpcId()).isPresent())
       .forEach(m -> result.getWarnings().add("Skipping creation of security group: " + m + " (could not be found in source location)"));

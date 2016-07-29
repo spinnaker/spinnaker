@@ -30,6 +30,7 @@ class MigrateServerGroupDescription {
   String iamRole
   String keyPair
   String targetAmi
+  boolean allowIngressFromClassic
   boolean dryRun
 
   @JsonIgnore

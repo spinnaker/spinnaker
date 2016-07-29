@@ -517,8 +517,7 @@ class MigrateSecurityGroupStrategySpec extends Specification {
     }
 
     @Override
-    Set<MigrateSecurityGroupReference> shouldError(SecurityGroupLocation target,
-                                                   Set<MigrateSecurityGroupReference> references) {
+    Set<MigrateSecurityGroupReference> shouldError(Set<MigrateSecurityGroupReference> references) {
       return references;
     }
   }

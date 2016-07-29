@@ -104,6 +104,9 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     LoadBalancerDescription sourceDescription = new LoadBalancerDescription().withSecurityGroups('sg-1', 'sg-2')
     LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, vpcId: 'vpc-1', region: 'us-east-1')
     LoadBalancerLocation target = new LoadBalancerLocation(credentials: prodCredentials, vpcId: 'vpc-2', region: 'eu-west-1')
+    strategy.source = source
+    strategy.target = target
+    strategy.dryRun = true
 
     MigrateSecurityGroupReference targetGroup1 = new MigrateSecurityGroupReference(targetName: 'group1')
     MigrateSecurityGroupReference targetGroup2 = new MigrateSecurityGroupReference(targetName: 'group2')
@@ -119,7 +122,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     }
 
     when:
-    def targets = strategy.getTargetSecurityGroups(sourceDescription, source, target, new MigrateLoadBalancerResult(), true)
+    def targets = strategy.getTargetSecurityGroups(sourceDescription, new MigrateLoadBalancerResult())
 
     then:
     targets.target == [targetGroup1, targetGroup2]
@@ -149,7 +152,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     RegionScopedProvider regionProvider = Mock(RegionScopedProvider)
 
     when:
-    def result = strategy.generateResults(sourceLookup, targetLookup, securityGroupStrategy, source, target, null, 'app', false)
+    def result = strategy.generateResults(sourceLookup, targetLookup, securityGroupStrategy, source, target, null, 'app', false, false)
 
     then:
     result.warnings.size() == 1
@@ -184,9 +187,10 @@ class MigrateLoadBalancerStrategySpec extends Specification {
 
     def appGroup = new SecurityGroup(groupName: 'app', groupId: 'sg-3', ownerId: prodCredentials.accountId, vpcId: 'vpc-2')
     def elbGroup = new SecurityGroup(groupName: 'app-elb', groupId: 'sg-4', ownerId: prodCredentials.accountId, vpcId: 'vpc-2')
+    def classicGroup = new SecurityGroup(groupName: 'classic-link', groupId: 'sg-5', ownerId: prodCredentials.accountId, vpcId: 'vpc-2')
 
     when:
-    def results = strategy.generateResults(sourceLookup, targetLookup, securityGroupStrategy, source, target, 'internal', 'app', false)
+    def results = strategy.generateResults(sourceLookup, targetLookup, securityGroupStrategy, source, target, 'internal', 'app', true, false)
 
     then:
     results.securityGroups[0].created.targetName.sort() == ['app', 'app-elb']
@@ -200,7 +204,9 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     1 * loadBalancing.describeLoadBalancers(_) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(sourceDescription)
     1 * targetLoadBalancing.createLoadBalancer(_) >> new CreateLoadBalancerResult().withDNSName('new-elb-dns')
     1 * targetLoadBalancing.configureHealthCheck(_)
-    1 * targetLookup.getSecurityGroupByName(prodCredentials.name, 'classic-link', 'vpc-2') >> Optional.of(new SecurityGroupUpdater(elbGroup, amazonEC2))
+    2 * targetLookup.getSecurityGroupByName(prodCredentials.name, 'classic-link', 'vpc-2') >> Optional.of(new SecurityGroupUpdater(classicGroup, amazonEC2))
+    1 * targetLookup.getSecurityGroupById(prodCredentials.name, 'sg-4', 'vpc-2') >> Optional.of(new SecurityGroupUpdater(elbGroup, amazonEC2))
+    1 * targetLookup.getSecurityGroupById(prodCredentials.name, 'sg-3', 'vpc-2') >> Optional.of(new SecurityGroupUpdater(appGroup, amazonEC2))
     1 * targetLookup.createSecurityGroup({ it.name == 'app' && it.vpcId == 'vpc-2' && it.credentials == prodCredentials}) >> new SecurityGroupUpdater(appGroup, amazonEC2)
     1 * targetLookup.createSecurityGroup({ it.name == 'app-elb' && it.vpcId == 'vpc-2' && it.credentials == prodCredentials}) >> new SecurityGroupUpdater(elbGroup, amazonEC2)
     1 * amazonEC2.describeSecurityGroups({r -> r.groupIds == ['sg-3']}) >> new DescribeSecurityGroupsResult().withSecurityGroups([appGroup])
@@ -208,6 +214,15 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     1 * amazonEC2.describeVpcs(_) >> new DescribeVpcsResult().withVpcs(new Vpc())
     1 * amazonEC2.authorizeSecurityGroupIngress({r -> r.groupId == 'sg-4' &&
       !r.ipPermissions.empty &&
+      r.ipPermissions[0].userIdGroupPairs &&
+      r.ipPermissions[0].userIdGroupPairs[0].groupId == 'sg-5' &&
+      r.ipPermissions[0].fromPort == 80 &&
+      r.ipPermissions[0].toPort == 65535 &&
+      r.ipPermissions[0].ipProtocol == 'tcp'})
+    1 * amazonEC2.authorizeSecurityGroupIngress({r -> r.groupId == 'sg-3' &&
+      !r.ipPermissions.empty &&
+      r.ipPermissions[0].userIdGroupPairs &&
+      r.ipPermissions[0].userIdGroupPairs[0].groupId == 'sg-5' &&
       r.ipPermissions[0].fromPort == 80 &&
       r.ipPermissions[0].toPort == 65535 &&
       r.ipPermissions[0].ipProtocol == 'tcp'})
@@ -256,7 +271,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     RegionScopedProvider regionProvider = Mock(RegionScopedProvider)
 
     when:
-    strategy.generateResults(sourceLookup, targetLookup, securityGroupStrategy, source, target, null, 'app', false)
+    strategy.generateResults(sourceLookup, targetLookup, securityGroupStrategy, source, target, null, 'app', false, false)
 
     then:
     amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1', true) >> amazonEC2
@@ -283,7 +298,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     RegionScopedProvider regionProvider = Mock(RegionScopedProvider)
 
     when:
-    strategy.generateResults(sourceLookup, targetLookup, securityGroupStrategy, source, target, null, 'app', false)
+    strategy.generateResults(sourceLookup, targetLookup, securityGroupStrategy, source, target, null, 'app', false, false)
 
     then:
     amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1', true) >> amazonEC2
@@ -311,7 +326,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     RegionScopedProvider regionProvider = Mock(RegionScopedProvider)
 
     when:
-    strategy.generateResults(sourceLookup, targetLookup, securityGroupStrategy, source, target, null, 'app', false)
+    strategy.generateResults(sourceLookup, targetLookup, securityGroupStrategy, source, target, null, 'app', false, false)
 
     then:
     amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1', true) >> amazonEC2

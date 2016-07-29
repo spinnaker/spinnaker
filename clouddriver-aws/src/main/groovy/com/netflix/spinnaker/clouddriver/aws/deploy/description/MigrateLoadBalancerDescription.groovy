@@ -27,6 +27,7 @@ class MigrateLoadBalancerDescription {
   LoadBalancerLocation target
   String subnetType
   String application
+  boolean allowIngressFromClassic
   boolean dryRun
 
   @JsonIgnore

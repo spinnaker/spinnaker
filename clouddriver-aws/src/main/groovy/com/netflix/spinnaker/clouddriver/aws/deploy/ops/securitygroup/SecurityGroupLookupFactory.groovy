@@ -209,6 +209,7 @@ class SecurityGroupLookupFactory {
         groupId: securityGroup.groupId,
         ipPermissions: ipPermissionsToAdd
       ))
+      securityGroup.ipPermissions.addAll(ipPermissionsToAdd)
     }
 
     void removeIngress(List<IpPermission> ipPermissionsToRemove) {
@@ -216,6 +217,7 @@ class SecurityGroupLookupFactory {
         groupId: securityGroup.groupId,
         ipPermissions: ipPermissionsToRemove
       ))
+      securityGroup.ipPermissions.removeAll(ipPermissionsToRemove)
     }
 
   }

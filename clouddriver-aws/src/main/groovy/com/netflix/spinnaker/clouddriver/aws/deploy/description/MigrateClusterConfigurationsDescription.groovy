@@ -27,6 +27,7 @@ class MigrateClusterConfigurationsDescription {
   Map<String, String> accountMapping = [:];
   Map<String, String> iamRoleMapping = [:];
   Map<String, String> keyPairMapping = [:];
+  boolean allowIngressFromClassic
   boolean dryRun
 
   @JsonIgnore
