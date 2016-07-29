@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.description
 
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 import groovy.transform.ToString
@@ -36,6 +37,7 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
   List<String> loadBalancers
   Set<String> securityGroups
   GoogleAutoscalingPolicy autoscalingPolicy
+  GoogleHttpLoadBalancingPolicy loadBalancingPolicy
   AutoHealingPolicy autoHealingPolicy
   Source source = new Source()
 

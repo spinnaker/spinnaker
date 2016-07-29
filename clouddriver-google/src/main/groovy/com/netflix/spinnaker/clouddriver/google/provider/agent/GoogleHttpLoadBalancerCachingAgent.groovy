@@ -374,13 +374,16 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
       def backendServicesToUpdate = backendServicesInMap.findAll { it && it.name == backendService.name }
       backendServicesToUpdate.each { GoogleBackendService service ->
         service.backends = backendService.backends?.collect { Backend backend ->
+          def backendBalancingMode = GoogleHttpLoadBalancingPolicy.BalancingMode.valueOf(backend.balancingMode)
           new GoogleLoadBalancedBackend(
               serverGroupUrl: backend.group,
-              balancingMode: backend.balancingMode,
-              maxRatePerInstance: backend.balancingMode == GoogleLoadBalancedBackend.RATE ?
-                  backend.maxRatePerInstance : null,
-              maxUtilization: backend.balancingMode == GoogleLoadBalancedBackend.UTILIZATION ?
-                  backend.maxUtilization : null,
+              policy: new GoogleHttpLoadBalancingPolicy(
+                  balancingMode: backend.balancingMode,
+                  maxRatePerInstance: backendBalancingMode == GoogleHttpLoadBalancingPolicy.BalancingMode.RATE ?
+                      backend.maxRatePerInstance : null,
+                  maxUtilization: backendBalancingMode == GoogleHttpLoadBalancingPolicy.BalancingMode.UTILIZATION ?
+                      backend.maxUtilization : null,
+              )
           )
         }
       }

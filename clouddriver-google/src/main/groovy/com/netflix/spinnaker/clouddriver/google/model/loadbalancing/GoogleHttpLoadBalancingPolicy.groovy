@@ -13,18 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 
-import groovy.transform.Canonical
-
-@Canonical
-class GoogleLoadBalancedBackend {
-
-  GoogleHttpLoadBalancingPolicy policy
-
+class GoogleHttpLoadBalancingPolicy {
   /**
-   * Full URL of the server group this backend routes traffic to.
+   * Describes the metric used to determine the serving capacity of the serverGroup.
+   * Either UTILIZATION or RATE. maxRatePerInstance must be set if RATE, and
+   * maxUtilization must be set if UTILIZATION.
    */
-  String serverGroupUrl
+  BalancingMode balancingMode
+
+  Float maxRatePerInstance
+
+  Float maxUtilization
+
+  static enum BalancingMode {
+    UTILIZATION,
+    RATE
+  }
 }

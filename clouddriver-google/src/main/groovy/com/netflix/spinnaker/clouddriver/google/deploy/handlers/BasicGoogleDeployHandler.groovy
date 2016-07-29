@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
@@ -263,13 +264,29 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
         BackendService backendService = compute.backendServices().get(project, backendServiceName).execute()
 
         Backend sourceBackend = backendService.backends.find { Backend backend ->
-          Utils.getLocalName(backend.group) == description.source.serverGroupName
+          Utils.getLocalName(backend.group) == description?.source?.serverGroupName
         }
-        if (!sourceBackend) {
-          GCEUtil.updateStatusAndThrowNotFoundException("Backend for ancestor server group $description.source.serverGroupName not found.", task, BASE_PHASE)
+        if (description?.source?.serverGroupName && !sourceBackend) {
+          GCEUtil.updateStatusAndThrowNotFoundException("Backend for ancestor server group ${description?.source?.serverGroupName} not found.", task, BASE_PHASE)
         }
 
-        def backendToAdd = new Backend(sourceBackend)
+        Backend backendToAdd
+        def loadBalancingPolicy = description.loadBalancingPolicy
+        if (sourceBackend) {
+          backendToAdd = new Backend(sourceBackend)
+        } else if (loadBalancingPolicy) {
+          def balancingMode = loadBalancingPolicy.balancingMode
+          backendToAdd = new Backend(
+              balancingMode: balancingMode,
+              maxRatePerInstance: balancingMode == GoogleHttpLoadBalancingPolicy.BalancingMode.RATE ?
+                  loadBalancingPolicy.maxRatePerInstance : null,
+              maxUtilization: balancingMode == GoogleHttpLoadBalancingPolicy.BalancingMode.UTILIZATION ?
+                  loadBalancingPolicy.maxUtilization : null,
+          )
+        } else {
+          backendToAdd = new Backend()
+        }
+
         if (isRegional) {
           backendToAdd.setGroup(GCEUtil.buildRegionalServerGroupUrl(project, region, serverGroupName))
         } else {

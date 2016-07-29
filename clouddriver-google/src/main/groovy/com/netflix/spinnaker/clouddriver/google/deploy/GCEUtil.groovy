@@ -699,11 +699,11 @@ class GCEUtil {
     def foundHttpLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
       it.name in serverGroup.loadBalancers && it.loadBalancerType == GoogleLoadBalancerType.HTTP.toString()
     }
-    def deleted = httpLoadBalancersInMetadata - (foundHttpLoadBalancers.collect { it.name })
+    def notDeleted = httpLoadBalancersInMetadata - (foundHttpLoadBalancers.collect { it.name })
 
     log.debug("Attempting to delete backends for ${serverGroup.name} from the following Http load balancers: ${httpLoadBalancersInMetadata}")
-    if (deleted) {
-      log.warn("Could not locate the following Http load balancers: ${deleted}. Proceeding with other backend deletions without mutating them.")
+    if (notDeleted) {
+      log.warn("Could not locate the following Http load balancers: ${notDeleted}. Proceeding with other backend deletions without mutating them.")
     }
 
     if (foundHttpLoadBalancers) {
