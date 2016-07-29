@@ -61,10 +61,17 @@ class UpsertAmiTagsAtomicOperation implements AtomicOperation<Void> {
         return
       }
 
-      def amiId = images?.get(0)?.imageId
-      if (upsertAmiTags(region, amiId, buildTags(description))) {
-        task.updateStatus BASE_PHASE, "Finished Upsert AMI Tags operation for ${descriptor} in ${region}."
-      } else {
+      boolean wasSuccessful = true
+
+      images.each {
+        if (upsertAmiTags(region, it.imageId, buildTags(description))) {
+          task.updateStatus BASE_PHASE, "Finished Upsert AMI Tags operation for ${descriptor} (${it.imageId}) in ${region}."
+        } else {
+          wasSuccessful = false
+        }
+      }
+
+      if (!wasSuccessful) {
         task.fail()
       }
     }
