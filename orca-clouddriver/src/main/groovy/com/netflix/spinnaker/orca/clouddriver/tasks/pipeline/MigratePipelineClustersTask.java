@@ -98,6 +98,7 @@ public class MigratePipelineClustersTask extends AbstractCloudProviderAwareTask 
     operation.put("iamRoleMapping", context.getOrDefault("iamRoleMapping", new HashMap<>()));
     operation.put("keyPairMapping", context.getOrDefault("keyPairMapping", new HashMap<>()));
     operation.put("dryRun", context.getOrDefault("dryRun", false));
+    operation.put("allowIngressFromClassic", context.getOrDefault("allowIngressFromClassic", false));
   }
 
   private Optional<Map<String, Object>> getPipeline(Map<String, Object> context) {
