@@ -29,11 +29,11 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
     function extractLoadBalancer() {
       $scope.loadBalancer = application.loadBalancers.data.filter(function (test) {
         var testVpc = test.vpcId || null;
-        return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account === loadBalancer.accountId && testVpc === loadBalancer.vpcId;
+        return test.name === loadBalancer.name && (test.region === loadBalancer.region || test.region === 'global') && test.account === loadBalancer.accountId && testVpc === loadBalancer.vpcId;
       })[0];
 
       if ($scope.loadBalancer) {
-        var detailsLoader = loadBalancerReader.getLoadBalancerDetails($scope.loadBalancer.provider, loadBalancer.accountId, loadBalancer.region, loadBalancer.name);
+        var detailsLoader = loadBalancerReader.getLoadBalancerDetails($scope.loadBalancer.provider, loadBalancer.accountId, $scope.loadBalancer.region, $scope.loadBalancer.name);
         return detailsLoader.then(function(details) {
           $scope.state.loading = false;
           var filtered = details.filter(function(test) {
@@ -44,7 +44,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
             $scope.loadBalancer.account = loadBalancer.accountId;
 
             accountService.getCredentialsKeyedByAccount('gce').then(function(credentialsKeyedByAccount) {
-              if (loadBalancer.region === 'global') {
+              if ($scope.loadBalancer.region === 'global') {
                 $scope.loadBalancer.elb.availabilityZones = [ 'All zones' ];
               } else {
                 $scope.loadBalancer.elb.availabilityZones = _.find(credentialsKeyedByAccount[loadBalancer.accountId].regions, { name: loadBalancer.region }).zones.sort();
@@ -110,7 +110,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
         loadBalancer.providerType = $scope.loadBalancer.provider;
         return loadBalancerWriter.deleteLoadBalancer(loadBalancer, application, {
           loadBalancerName: loadBalancer.name,
-          region: loadBalancer.region,
+          region: $scope.loadBalancer.region,
         });
       };
 
