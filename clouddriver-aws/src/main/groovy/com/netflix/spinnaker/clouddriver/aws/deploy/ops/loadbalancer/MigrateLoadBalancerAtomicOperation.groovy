@@ -70,7 +70,8 @@ class MigrateLoadBalancerAtomicOperation implements AtomicOperation<Void> {
 
     def migrator = new LoadBalancerMigrator(sourceLookup, targetLookup, amazonClientProvider,
       regionScopedProviderFactory, migrateSecurityGroupStrategy.get(), deployDefaults, migrationStrategy.get(),
-      description.source, description.target, description.subnetType, description.application)
+      description.source, description.target, description.subnetType, description.application,
+      description.allowIngressFromClassic)
 
     task.addResultObjects([migrator.migrate(description.dryRun)])
   }

@@ -49,6 +49,7 @@ class LoadBalancerMigrator {
   SecurityGroupLookup targetLookup
   String applicationName
   String subnetType
+  boolean allowIngressFromClassic
 
   LoadBalancerMigrator(SecurityGroupLookup sourceLookup,
                        SecurityGroupLookup targetLookup,
@@ -60,7 +61,8 @@ class LoadBalancerMigrator {
                        LoadBalancerLocation source,
                        LoadBalancerLocation target,
                        String subnetType,
-                       String applicationName) {
+                       String applicationName,
+                       boolean allowIngressFromClassic) {
 
     this.sourceLookup = sourceLookup
     this.targetLookup = targetLookup
@@ -73,12 +75,13 @@ class LoadBalancerMigrator {
     this.target = target
     this.subnetType = subnetType
     this.applicationName = applicationName
+    this.allowIngressFromClassic = allowIngressFromClassic
   }
 
   public MigrateLoadBalancerResult migrate(boolean dryRun) {
     task.updateStatus BASE_PHASE, (dryRun ? "Calculating" : "Beginning") + " migration of load balancer " + source.toString()
     def results = migrationStrategy.generateResults(sourceLookup, targetLookup, migrateSecurityGroupStrategy,
-      source, target, subnetType, applicationName, dryRun)
+      source, target, subnetType, applicationName, allowIngressFromClassic, dryRun)
     task.updateStatus BASE_PHASE, "Migration of load balancer " + source.toString() +
       (dryRun ? " calculated" : " completed") + ". Migrated load balancer name: " + results.targetName +
       (results.targetExists ? " (already exists)": "")

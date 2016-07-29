@@ -44,10 +44,16 @@ import org.springframework.validation.Errors;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public abstract class MigrateServerGroupStrategy {
+public abstract class MigrateServerGroupStrategy implements MigrateStrategySupport {
 
   protected SecurityGroupLookup sourceLookup;
   protected SecurityGroupLookup targetLookup;
+  protected ServerGroupLocation source;
+  protected ServerGroupLocation target;
+  protected boolean allowIngressFromClassic;
+  protected boolean dryRun;
+  protected String subnetType;
+
   protected MigrateSecurityGroupStrategy migrateSecurityGroupStrategy;
   protected MigrateLoadBalancerStrategy getMigrateLoadBalancerStrategy;
 
@@ -75,6 +81,9 @@ public abstract class MigrateServerGroupStrategy {
    * @param iamRole                      the iamRole to use when migrating (optional)
    * @param keyPair                      the keyPair to use when migrating (optional)
    * @param targetAmi                    the target imageId to use when migrating (optional)
+   * @param allowIngressFromClassic      if subnetType is present, and this is true, and app security groups are created
+   *                                     via the deployDefaults, will add broad (80-65535) ingress from the classic link
+   *                                     security group
    * @param dryRun                       whether to perform the migration or simply calculate the migration
    * @return a result set indicating the components required to perform the migration (if a dry run), or the objects
    * updated by the migration (if not a dry run)
@@ -84,10 +93,15 @@ public abstract class MigrateServerGroupStrategy {
                                                   MigrateLoadBalancerStrategy migrateLoadBalancerStrategy,
                                                   MigrateSecurityGroupStrategy migrateSecurityGroupStrategy,
                                                   String subnetType, String iamRole, String keyPair, String targetAmi,
-                                                  boolean dryRun) {
+                                                  boolean allowIngressFromClassic, boolean dryRun) {
 
     this.sourceLookup = sourceLookup;
     this.targetLookup = targetLookup;
+    this.source = source;
+    this.target = target;
+    this.subnetType = subnetType;
+    this.allowIngressFromClassic = allowIngressFromClassic;
+    this.dryRun = dryRun;
     this.migrateSecurityGroupStrategy = migrateSecurityGroupStrategy;
     this.getMigrateLoadBalancerStrategy = migrateLoadBalancerStrategy;
 
@@ -108,13 +122,11 @@ public abstract class MigrateServerGroupStrategy {
 
     Names names = Names.parseName(source.getName());
 
-    List<MigrateLoadBalancerResult> targetLoadBalancers = generateTargetLoadBalancers(
-      sourceGroup, source, target, subnetType, dryRun);
+    List<MigrateLoadBalancerResult> targetLoadBalancers = generateTargetLoadBalancers(sourceGroup);
 
     MigrateServerGroupResult migrateResult = new MigrateServerGroupResult();
 
-    List<MigrateSecurityGroupResult> targetSecurityGroups = generateTargetSecurityGroups(launchConfig, source,  target,
-      migrateResult, dryRun);
+    List<MigrateSecurityGroupResult> targetSecurityGroups = generateTargetSecurityGroups(launchConfig, migrateResult);
 
     Map<String, List<String>> zones = new HashMap<>();
     zones.put(target.getRegion(), target.getAvailabilityZones());
@@ -152,7 +164,7 @@ public abstract class MigrateServerGroupStrategy {
       deployDescription.setCapacity(capacity);
       deployDescription.setSubnetType(subnetType);
 
-      BasicAmazonDeployDescription description = generateDescription(source, deployDescription);
+      BasicAmazonDeployDescription description = generateDescription(deployDescription);
 
       result = getBasicAmazonDeployHandler().handle(description, new ArrayList());
     } else {
@@ -169,8 +181,7 @@ public abstract class MigrateServerGroupStrategy {
     return migrateResult;
   }
 
-  private BasicAmazonDeployDescription generateDescription(ServerGroupLocation source,
-                                                           BasicAmazonDeployDescription deployDescription) {
+  private BasicAmazonDeployDescription generateDescription(BasicAmazonDeployDescription deployDescription) {
     BasicAmazonDeployDescription description = getBasicAmazonDeployHandler().copySourceAttributes(
       getRegionScopedProviderFactory().forRegion(source.getCredentials(), source.getRegion()), source.getName(),
       false, deployDescription);
@@ -208,10 +219,7 @@ public abstract class MigrateServerGroupStrategy {
   }
 
   protected List<MigrateSecurityGroupResult> generateTargetSecurityGroups(LaunchConfiguration sourceLaunchConfig,
-                                                                          ServerGroupLocation source,
-                                                                          ServerGroupLocation target,
-                                                                          MigrateServerGroupResult result,
-                                                                          boolean dryRun) {
+                                                                          MigrateServerGroupResult result) {
 
     sourceLaunchConfig.getSecurityGroups().stream()
       .filter(g -> !sourceLookup.getSecurityGroupById(source.getCredentialAccount(), g, source.getVpcId()).isPresent())
@@ -225,33 +233,27 @@ public abstract class MigrateServerGroupStrategy {
       .collect(Collectors.toList());
 
     List<MigrateSecurityGroupResult> targetSecurityGroups = securityGroupNames.stream().map(group ->
-      getMigrateSecurityGroupResult(source, target, sourceLookup, targetLookup, dryRun, group)
+      getMigrateSecurityGroupResult(group)
     ).collect(Collectors.toList());
 
     if (getDeployDefaults().getAddAppGroupToServerGroup()) {
       Names names = Names.parseName(source.getName());
       // if the app security group is already present, don't include it twice
       if (targetSecurityGroups.stream().noneMatch(r -> names.getApp().equals(r.getTarget().getTargetName()))) {
-        targetSecurityGroups.add(generateAppSecurityGroup(source, target, sourceLookup, targetLookup, dryRun));
+        targetSecurityGroups.add(generateAppSecurityGroup());
       }
     }
 
     return targetSecurityGroups;
   }
 
-  protected List<MigrateLoadBalancerResult> generateTargetLoadBalancers(AutoScalingGroup sourceGroup,
-                                                                        ServerGroupLocation source,
-                                                                        ServerGroupLocation target,
-                                                                        String subnetType,
-                                                                        boolean dryRun) {
-    return sourceGroup.getLoadBalancerNames().stream().map(lbName ->
-      getMigrateLoadBalancerResult(source, target, sourceLookup, targetLookup, subnetType, dryRun, lbName)
-    ).collect(Collectors.toList());
+  protected List<MigrateLoadBalancerResult> generateTargetLoadBalancers(AutoScalingGroup sourceGroup) {
+    return sourceGroup.getLoadBalancerNames().stream()
+      .map(this::getMigrateLoadBalancerResult)
+      .collect(Collectors.toList());
   }
 
-  protected MigrateSecurityGroupResult generateAppSecurityGroup(ServerGroupLocation source, ServerGroupLocation target,
-                                                                SecurityGroupLookup sourceLookup,
-                                                                SecurityGroupLookup targetLookup, boolean dryRun) {
+  protected MigrateSecurityGroupResult generateAppSecurityGroup() {
     Names names = Names.parseName(source.getName());
     SecurityGroupLocation appGroupLocation = new SecurityGroupLocation();
     appGroupLocation.setName(names.getApp());
@@ -261,14 +263,15 @@ public abstract class MigrateServerGroupStrategy {
     SecurityGroupMigrator migrator = new SecurityGroupMigrator(sourceLookup, targetLookup, migrateSecurityGroupStrategy,
       appGroupLocation, new SecurityGroupLocation(target));
     migrator.setCreateIfSourceMissing(true);
-    return migrator.migrate(dryRun);
+    MigrateSecurityGroupResult result = migrator.migrate(dryRun);
+    if (!dryRun && allowIngressFromClassic) {
+      addClassicLinkIngress(targetLookup, getDeployDefaults().getClassicLinkSecurityGroupName(),
+        result.getTarget().getTargetId(), target.getCredentials(), target.getVpcId());
+    }
+    return result;
   }
 
-  private MigrateSecurityGroupResult getMigrateSecurityGroupResult(ServerGroupLocation source,
-                                                                   ServerGroupLocation target,
-                                                                   SecurityGroupLookup sourceLookup,
-                                                                   SecurityGroupLookup targetLookup,
-                                                                   boolean dryRun, String group) {
+  private MigrateSecurityGroupResult getMigrateSecurityGroupResult(String group) {
     SecurityGroupLocation sourceLocation = new SecurityGroupLocation();
     sourceLocation.setName(group);
     sourceLocation.setRegion(source.getRegion());
@@ -278,10 +281,7 @@ public abstract class MigrateServerGroupStrategy {
       sourceLocation, new SecurityGroupLocation(target)).migrate(dryRun);
   }
 
-  private MigrateLoadBalancerResult getMigrateLoadBalancerResult(ServerGroupLocation source, ServerGroupLocation target,
-                                                                 SecurityGroupLookup sourceLookup,
-                                                                 SecurityGroupLookup targetLookup, String subnetType,
-                                                                 boolean dryRun, String lbName) {
+  private MigrateLoadBalancerResult getMigrateLoadBalancerResult(String lbName) {
     Names names = Names.parseName(source.getName());
     LoadBalancerLocation sourceLocation = new LoadBalancerLocation();
     sourceLocation.setName(lbName);
@@ -290,6 +290,6 @@ public abstract class MigrateServerGroupStrategy {
     sourceLocation.setCredentials(source.getCredentials());
     return new LoadBalancerMigrator(sourceLookup, targetLookup, getAmazonClientProvider(), getRegionScopedProviderFactory(),
       migrateSecurityGroupStrategy, getDeployDefaults(), getMigrateLoadBalancerStrategy, sourceLocation,
-      new LoadBalancerLocation(target), subnetType, names.getApp()).migrate(dryRun);
+      new LoadBalancerLocation(target), subnetType, names.getApp(), allowIngressFromClassic).migrate(dryRun);
   }
 }

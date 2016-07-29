@@ -104,7 +104,7 @@ class MigrateServerGroupStrategySpec extends Specification {
 
     when:
     strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', null, null, null, false)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', null, null, null, false, false)
 
     then:
     amazonClientProvider.getAutoScaling(testCredentials, 'us-east-1', true) >> amazonAutoScaling
@@ -118,7 +118,7 @@ class MigrateServerGroupStrategySpec extends Specification {
       migrateSecurityGroupStrategy,
       {s -> s.name == 'lb-1' && s.region == 'us-east-1' && s.credentials == testCredentials && s.vpcId == 'vpc-1'},
       {s -> !s.name && s.region == 'eu-west-1' && s.credentials == prodCredentials && s.vpcId == 'vpc-2' && s.availabilityZones == ['eu-west-1b']},
-      'internal', _, false) >> new MigrateLoadBalancerResult()
+      'internal', _, false, false) >> new MigrateLoadBalancerResult()
     1 * basicAmazonDeployHandler.copySourceAttributes(regionScopedProvider, 'asg-v001', false, _) >> { a, b, c, d -> d }
     1 * basicAmazonDeployHandler.handle(_, []) >> new DeploymentResult(serverGroupNames: ['asg-v003'])
     0 * _
@@ -147,7 +147,7 @@ class MigrateServerGroupStrategySpec extends Specification {
 
     when:
     strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', null, null, null, false)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', null, null, null, false, false)
 
     then:
     amazonClientProvider.getAutoScaling(testCredentials, 'us-east-1', true) >> amazonAutoScaling
@@ -186,7 +186,7 @@ class MigrateServerGroupStrategySpec extends Specification {
 
     when:
     strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', null, null, null, false)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', null, null, null, false, false)
 
     then:
     amazonClientProvider.getAutoScaling(testCredentials, 'us-east-1', true) >> amazonAutoScaling
@@ -224,7 +224,7 @@ class MigrateServerGroupStrategySpec extends Specification {
 
     when:
     strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', null, null, null, true)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', null, null, null, false, true)
 
     then:
     amazonClientProvider.getAutoScaling(testCredentials, 'us-east-1', true) >> amazonAutoScaling
@@ -262,7 +262,7 @@ class MigrateServerGroupStrategySpec extends Specification {
 
     when:
     strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', null, null, null, false)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', null, null, null, false, false)
 
     then:
     amazonClientProvider.getAutoScaling(testCredentials, 'us-east-1', true) >> amazonAutoScaling
@@ -293,7 +293,7 @@ class MigrateServerGroupStrategySpec extends Specification {
 
     when:
     def results = strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', null, null, null, false)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', null, null, null, false, false)
 
     then:
     amazonClientProvider.getAutoScaling(testCredentials, 'us-east-1', true) >> amazonAutoScaling
@@ -323,7 +323,7 @@ class MigrateServerGroupStrategySpec extends Specification {
 
     when:
     def results = strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', null, null, null, true)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', null, null, null, false, true)
 
     then:
     amazonClientProvider.getAutoScaling(testCredentials, 'us-east-1', true) >> amazonAutoScaling
