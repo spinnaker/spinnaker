@@ -136,7 +136,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
           $scope.instance.subnet = getSubnet();
 
           $scope.instance.sshLink =
-            $scope.instance.selfLink.replace(/www.googleapis.com\/compute\/(alpha|v1)/, 'cloudssh.developers.google.com') + '?authuser=0&hl=en_US';
+            $scope.instance.selfLink.replace(/www.googleapis.com\/compute\/(alpha|beta|v1)/, 'cloudssh.developers.google.com') + '?authuser=0&hl=en_US';
 
           var pathSegments = $scope.instance.selfLink.split('/');
           var projectId = pathSegments[pathSegments.indexOf('projects') + 1];
