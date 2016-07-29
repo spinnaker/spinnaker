@@ -132,8 +132,7 @@ public abstract class BucketDAO<T extends Timestamped> {
         .flatMap(itemSet -> Observable
             .from(itemSet)
             .flatMap(item -> {
-                    service.loadCurrentObject(buildObjectKey(item.getId()),
-                                              daoTypeName, serializedClass);
+              update(item.getId(), item);
               return Observable.just(item);
             })
             .subscribeOn(scheduler)
