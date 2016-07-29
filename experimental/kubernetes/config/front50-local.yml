@@ -24,3 +24,7 @@ spinnaker:
     enabled: ${services.front50.s3.enabled}
     rootFolder: ${services.front50.bucket_root}
     bucket: ${services.front50.storage_bucket}
+    region: ${services.front50.region}
+    proxyHost: ${services.front50.proxyHost}
+    proxyPort: ${services.front50.proxyPort}
+    proxyProtocol: ${services.front50.proxyProtocol}
