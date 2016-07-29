@@ -1,0 +1,35 @@
+<div ng-controller="TagImageExecutionDetailsCtrl as tagImageCtrl">
+  <execution-details-section-nav sections="configSections"></execution-details-section-nav>
+  <div class="step-section-details" ng-if="detailsSection === 'tagImage'">
+    <div class="row">
+      <div class="col-md-12">
+        <dl class="dl-narrow dl-horizontal">
+          <dt ng-if="stage.context.target.imageName">Image Name</dt>
+          <dd ng-if="stage.context.target.imageName">{{stage.context.target.imageName}}</dd>
+          <dt ng-if="stage.context.target.regions">Regions</dt>
+          <dd ng-if="stage.context.target.imageName">{{stage.context.target.regions.join(', ')}}</dd>
+        </dl>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <strong>Updated Tags</strong>
+        <dl class="dl-narrow dl-horizontal">
+          <div ng-repeat="(key, val) in stage.context.tags" ng-if="val !== null">
+            <dt>{{key}}</dt>
+            <dd>{{val}}</dd>
+          </div>
+          <dd ng-bind-html="stage.context.instructions"></dd>
+        </dl>
+      </div>
+    </div>
+
+    <stage-failure-message is-failed="stage.isFailed" message="stage.failureMessage"></stage-failure-message>
+  </div>
+
+  <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
+    <div class="row">
+      <execution-step-details item="stage"></execution-step-details>
+    </div>
+  </div>
+</div>

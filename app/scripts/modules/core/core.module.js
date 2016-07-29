@@ -105,6 +105,7 @@ module.exports = angular
     require('./pipeline/config/stages/findAmi/findAmiStage.module.js'),
     require('./pipeline/config/stages/jenkins/jenkinsStage.module.js'),
     require('./pipeline/config/stages/manualJudgment/manualJudgmentStage.module.js'),
+    require('./pipeline/config/stages/tagImage/tagImageStage.module.js'),
     require('./pipeline/config/stages/pipeline/pipelineStage.module.js'),
     require('./pipeline/config/stages/resizeAsg/resizeAsgStage.module.js'),
     require('./pipeline/config/stages/runJob/runJobStage.module.js'),
