@@ -26,7 +26,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import groovy.util.logging.Slf4j
@@ -82,13 +82,12 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance.View> {
   String getConsoleOutput(String account, String region, String id) {
     def accountCredentials = accountCredentialsProvider.getCredentials(account)
 
-    if (!(accountCredentials?.credentials instanceof GoogleCredentials)) {
+    if (!(accountCredentials instanceof GoogleNamedAccountCredentials)) {
       throw new IllegalArgumentException("Invalid credentials: ${account}:${region}")
     }
 
-    def credentials = accountCredentials.credentials
-    def project = credentials.project
-    def compute = credentials.compute
+    def project = accountCredentials.project
+    def compute = accountCredentials.compute
     def googleInstance = getInstance(account, region, id)
 
     if (googleInstance) {
@@ -131,7 +130,7 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance.View> {
         securityGroups,
         instance.tags.items as Set<String>,
         instance.networkName)
-    
+
     instance
   }
 }
