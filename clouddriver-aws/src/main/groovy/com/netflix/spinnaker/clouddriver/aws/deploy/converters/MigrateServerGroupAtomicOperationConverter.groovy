@@ -38,6 +38,8 @@ class MigrateServerGroupAtomicOperationConverter extends AbstractAtomicOperation
     def converted = objectMapper.convertValue(input, MigrateServerGroupDescription)
     converted.source.credentials = getCredentialsObject(input.source.credentials as String)
     converted.target.credentials = getCredentialsObject(input.target.credentials as String)
+    converted.credentials.add(converted.source.credentials)
+    converted.credentials.add(converted.target.credentials)
     converted
   }
 }

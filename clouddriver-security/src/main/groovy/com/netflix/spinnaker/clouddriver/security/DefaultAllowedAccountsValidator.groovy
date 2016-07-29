@@ -41,24 +41,37 @@ class DefaultAllowedAccountsValidator implements AllowedAccountsValidator {
       return
     }
 
-    def json = null
-    try {
-      json = OBJECT_MAPPER.writeValueAsString(description)
-    } catch (Exception ignored) {
-    }
-
     /*
      * Access should be allowed iff
      * - the account is not restricted (has no requiredGroupMembership)
      * - the user has been granted specific access (has the target account in its set of allowed accounts)
      */
-    def requiredGroups = description.credentials.requiredGroupMembership*.toLowerCase()
-    def targetAccount = description.credentials.name
+    if (description.hasProperty("credentials")) {
+      if (description.credentials instanceof Collection) {
+        description.credentials.each { AccountCredentials credentials ->
+          validateTargetAccount(credentials, allowedAccounts, description, user, errors)
+        }
+      } else {
+        validateTargetAccount(description.credentials, allowedAccounts, description, user, errors)
+      }
+    } else {
+      errors.rejectValue("credentials", "missing", "no credentials found in description: ${description.class.simpleName})")
+    }
+  }
+
+  private void validateTargetAccount(AccountCredentials credentials, Collection<String> allowedAccounts, Object description, String user, Errors errors) {
+    def requiredGroups = credentials.requiredGroupMembership*.toLowerCase()
+    def targetAccount = credentials.name
     def isAuthorized = !requiredGroups || allowedAccounts.find { it.equalsIgnoreCase(targetAccount) }
+    def json = null
+    try {
+      json = OBJECT_MAPPER.writeValueAsString(description)
+    } catch (Exception ignored) {
+    }
     def message = "${user} is ${isAuthorized ? '' : 'not '}authorized (account: ${targetAccount}, description: ${description.class.simpleName}, allowedAccounts: ${allowedAccounts}, requiredGroups: ${requiredGroups}, json: ${json})"
     if (!isAuthorized) {
       log.warn(message)
-      errors.rejectValue("credentials", "unauthorized", "${user} is not authorized (account: ${description.credentials.name}, description: ${description.class.simpleName})")
+      errors.rejectValue("credentials", "unauthorized", "${user} is not authorized (account: ${targetAccount}, description: ${description.class.simpleName})")
     } else {
       log.info(message)
     }

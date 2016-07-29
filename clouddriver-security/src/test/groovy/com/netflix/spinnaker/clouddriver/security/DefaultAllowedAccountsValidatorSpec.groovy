@@ -17,11 +17,20 @@
 package com.netflix.spinnaker.clouddriver.security
 
 import org.springframework.validation.Errors
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultAllowedAccountsValidatorSpec extends Specification {
+
+  @Shared
   TestAccountCredentials credentialsWithRequiredGroup = new TestAccountCredentials(name: 'TestAccount', requiredGroupMembership: ['targetAccount1'])
+
+  @Shared
+  TestAccountCredentials credentialsWithSameRequiredGroup = new TestAccountCredentials(name: 'OtherAccount', requiredGroupMembership: ['targetAccount1'])
+
+  @Shared
+  TestAccountCredentials credentialsWithDifferentRequiredGroup = new TestAccountCredentials(name: 'AnotherAccount', requiredGroupMembership: ['targetAccount2'])
 
   @Unroll
   void "should reject if allowed accounts does not intersect with required group memberships"() {
@@ -41,12 +50,12 @@ class DefaultAllowedAccountsValidatorSpec extends Specification {
     rejectValueCount * errors.rejectValue("credentials", "unauthorized", _)
 
     where:
-    allowedAccounts                      || rejectValueCount
-    []                                   || 1
-    null                                 || 1
-    ["testAccount"]                      || 0
-    ["testaccount"]                      || 0
-    ["TestAccount"]                      || 0
+    allowedAccounts || rejectValueCount
+    []              || 1
+    null            || 1
+    ["testAccount"] || 0
+    ["testaccount"] || 0
+    ["TestAccount"] || 0
   }
 
   void "should allow if allow accounts intersect with required group memberships"() {
@@ -66,6 +75,30 @@ class DefaultAllowedAccountsValidatorSpec extends Specification {
     0 * errors.rejectValue(_, _, _)
   }
 
+  @Unroll
+  void "should allow if all accounts intersection with required group memberships"() {
+    given:
+    def errors = Mock(Errors)
+    def validator = new DefaultAllowedAccountsValidator(Mock(AccountCredentialsProvider) {
+      1 * getAll() >> { [credentialsWithRequiredGroup] }
+      0 * _
+    })
+
+    when:
+    def description = new MultiAccountDescription(credentials: requiredCredentials)
+
+    validator.validate("TestUser", userAccounts, description, errors)
+
+    then:
+    rejectValueCount * errors.rejectValue(_, _, _)
+
+    where:
+    requiredCredentials                                                   | userAccounts                     || rejectValueCount
+    [credentialsWithRequiredGroup, credentialsWithSameRequiredGroup]      | ["TestAccount", "OtherAccount"]  || 0
+    [credentialsWithRequiredGroup, credentialsWithDifferentRequiredGroup] | ["TestAccount", "OtherAccount"]  || 1
+    [credentialsWithRequiredGroup, credentialsWithDifferentRequiredGroup] | ["ProdAccount", "RandomAccount"] || 2
+  }
+
   void "should allow if no required group memberships"() {
     given:
     def errors = Mock(Errors)
@@ -76,6 +109,21 @@ class DefaultAllowedAccountsValidatorSpec extends Specification {
 
     then:
     0 * errors.rejectValue(_, _, _)
+  }
+
+  void "should reject if no credentials in description"() {
+    given:
+    def errors = Mock(Errors)
+    def validator = new DefaultAllowedAccountsValidator(Mock(AccountCredentialsProvider) {
+      1 * getAll() >> { [credentialsWithRequiredGroup] }
+      0 * _
+    })
+
+    when:
+    validator.validate("TestAccount", [], new InvalidDescription(), errors)
+
+    then:
+    1 * errors.rejectValue("credentials", "missing", _)
   }
 
   static class TestAccountCredentials implements AccountCredentials<TestCredentials> {
@@ -90,6 +138,12 @@ class DefaultAllowedAccountsValidatorSpec extends Specification {
   static class TestDescription {
     TestAccountCredentials credentials
   }
+
+  static class MultiAccountDescription {
+    Set<TestAccountCredentials> credentials = []
+  }
+
+  static class InvalidDescription {}
 
   static class TestCredentials {}
 }
