@@ -151,6 +151,8 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
       '<li><b>Auto Subnet Network</b>: Server groups will be automatically assigned to the specified region\'s subnet.</li>' +
       '<li><b>Custom Subnet Network</b>: A subnet must be selected for the server group. If no subnets have been created for the specified region, you will not be able to provision the server group.</li>' +
       '</ul>',
+    'gce.serverGroup.loadBalancingPolicy.maxRatePerInstance': 'The max requests per second that a single backend instance can handle. This is used to calculate the capacity of the group.',
+    'gce.serverGroup.loadBalancingPolicy.maxUtilization': 'This ratio defines the CPU utilization target for the group.',
     'pipeline.config.optionalStage': '' +
       '<p>When this option is enabled, stage will only execute when the supplied expression evaluates true.</p>' +
       '<p>The expression <em>does not</em> need to be wrapped in ${ and }.</p>',
