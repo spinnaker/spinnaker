@@ -18,5 +18,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce', [
   require('./wizard/zones/regionalSelector.directive.js'),
   require('./wizard/zones/zoneSelector.directive.js'),
   require('./wizard/advancedSettings/advancedSettingsSelector.directive.js'),
+  require('./wizard/loadBalancingPolicy/loadBalancingPolicySelector.component.js'),
   require('./../../instance/custom/customInstanceBuilder.gce.service.js'),
 ]);
