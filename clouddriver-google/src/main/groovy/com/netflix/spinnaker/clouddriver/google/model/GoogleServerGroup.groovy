@@ -41,6 +41,7 @@ class GoogleServerGroup {
   Set health = []
   Map<String, Object> launchConfig = [:]
   Map<String, Object> asg = [:]
+  Map<String, Integer> namedPorts = [:]
   Set<String> securityGroups = []
   Map buildInfo
   Boolean disabled = false
@@ -81,6 +82,7 @@ class GoogleServerGroup {
     Set<GoogleInstance.View> instances = GoogleServerGroup.this.instances.collect { it?.view }
     Map<String, Object> asg = GoogleServerGroup.this.asg
     Map<String, Object> launchConfig = GoogleServerGroup.this.launchConfig
+    Map<String, Integer> namedPorts = GoogleServerGroup.this.namedPorts
     Set<String> securityGroups = GoogleServerGroup.this.securityGroups
     Map buildInfo = GoogleServerGroup.this.buildInfo
     Boolean disabled = GoogleServerGroup.this.disabled

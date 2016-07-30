@@ -395,10 +395,13 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
     }
 
     GoogleServerGroup buildServerGroupFromInstanceGroupManager(InstanceGroupManager instanceGroupManager) {
+      Map<String, Integer> namedPorts = [:]
+      instanceGroupManager.namedPorts.each { namedPorts[(it.name)] = it.port }
       return new GoogleServerGroup(
           name: instanceGroupManager.name,
           regional: true,
           region: region,
+          namedPorts: namedPorts,
           zones: zoneNames,
           selfLink: instanceGroupManager.selfLink,
           currentActions: instanceGroupManager.currentActions,

@@ -16,6 +16,8 @@
 package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 
 class GoogleHttpLoadBalancingPolicy {
+  static final String HTTP_PORT_NAME = 'http'
+  static final Integer HTTP_DEFAULT_PORT = 80
   /**
    * Describes the metric used to determine the serving capacity of the serverGroup.
    * Either UTILIZATION or RATE. maxRatePerInstance must be set if RATE, and
@@ -26,6 +28,11 @@ class GoogleHttpLoadBalancingPolicy {
   Float maxRatePerInstance
 
   Float maxUtilization
+
+  /**
+   * Port that the HTTP LB will forward traffic to on the server group.
+   */
+  Integer listeningPort
 
   static enum BalancingMode {
     UTILIZATION,

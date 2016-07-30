@@ -32,12 +32,15 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
+@Slf4j
 class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescription> {
 
   // TODO(duftler): This should move to a common location.
@@ -50,6 +53,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
   @Autowired
   private GoogleConfigurationProperties googleConfigurationProperties
+
+  @Autowired
+  private GoogleClusterProvider googleClusterProvider
 
   @Autowired
   private GoogleConfiguration.DeployDefaults googleDeployDefaults
@@ -204,16 +210,48 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       : null
 
     def migCreateOperation
+    def instanceGroupManager = new InstanceGroupManager()
+        .setName(serverGroupName)
+        .setBaseInstanceName(serverGroupName)
+        .setInstanceTemplate(instanceTemplateUrl)
+        .setTargetSize(description.targetSize)
+        .setTargetPools(targetPools)
+        .setAutoHealingPolicies(autoHealingPolicy)
+
+    def hasBackendServices = description.instanceMetadata &&
+        description.instanceMetadata.containsKey(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)
+
+    if (hasBackendServices && (description?.loadBalancingPolicy || description?.source?.serverGroupName))  {
+      NamedPort namedPort = null
+      def sourceGroupName = description?.source?.serverGroupName
+      // Note: this favors the explicitly specified load balancing policy over the source server group.
+      if (sourceGroupName && !description?.loadBalancingPolicy) {
+        def sourceServerGroup = googleClusterProvider.getServerGroup(description.accountName, description.source.region, sourceGroupName)
+        if (!sourceServerGroup) {
+          log.warn("Could not locate source server group ${sourceGroupName} to update named port.")
+        }
+        namedPort = new NamedPort(
+            name: GoogleHttpLoadBalancingPolicy.HTTP_PORT_NAME,
+            port: sourceServerGroup?.namedPorts[(GoogleHttpLoadBalancingPolicy.HTTP_PORT_NAME)] ?: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT,
+        )
+      } else {
+        namedPort = new NamedPort(
+            name: GoogleHttpLoadBalancingPolicy.HTTP_PORT_NAME,
+            port: description?.loadBalancingPolicy?.listeningPort ?: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT
+        )
+      }
+      if (!namedPort) {
+        log.warn("Could not locate named port on either load balancing policy or source server group. Setting default named port.")
+        namedPort = new NamedPort(
+            name: GoogleHttpLoadBalancingPolicy.HTTP_PORT_NAME,
+            port: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT,
+        )
+      }
+      instanceGroupManager.setNamedPorts([namedPort])
+    }
+
     if (isRegional) {
-      migCreateOperation = compute.regionInstanceGroupManagers().insert(project,
-                                                                        region,
-                                                                        new InstanceGroupManager()
-                                                                            .setName(serverGroupName)
-                                                                            .setBaseInstanceName(serverGroupName)
-                                                                            .setInstanceTemplate(instanceTemplateUrl)
-                                                                            .setTargetSize(description.targetSize)
-                                                                            .setTargetPools(targetPools)
-                                                                            .setAutoHealingPolicies(autoHealingPolicy)).execute()
+      migCreateOperation = compute.regionInstanceGroupManagers().insert(project, region, instanceGroupManager).execute()
 
       if (autoscalerIsSpecified(description)) {
         // Before creating the Autoscaler we must wait until the managed instance group is created.
@@ -229,15 +267,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
         compute.regionAutoscalers().insert(project, region, autoscaler).execute()
       }
     } else {
-      migCreateOperation = compute.instanceGroupManagers().insert(project,
-                                                                      zone,
-                                                                      new InstanceGroupManager()
-                                                                          .setName(serverGroupName)
-                                                                          .setBaseInstanceName(serverGroupName)
-                                                                          .setInstanceTemplate(instanceTemplateUrl)
-                                                                          .setTargetSize(description.targetSize)
-                                                                          .setTargetPools(targetPools)
-                                                                          .setAutoHealingPolicies(autoHealingPolicy)).execute()
+      migCreateOperation = compute.instanceGroupManagers().insert(project, zone, instanceGroupManager).execute()
 
       if (autoscalerIsSpecified(description)) {
         // Before creating the Autoscaler we must wait until the managed instance group is created.
@@ -256,8 +286,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     task.updateStatus BASE_PHASE, "Done creating server group $serverGroupName in ${isRegional ? region : zone}."
 
-    if (description.instanceMetadata
-        && description.instanceMetadata.containsKey(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)) {
+    if (hasBackendServices) {
       List<String> backendServices = description.instanceMetadata[GoogleServerGroup.View.BACKEND_SERVICE_NAMES].split(",")
 
       backendServices.each { String backendServiceName ->
@@ -272,9 +301,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
         Backend backendToAdd
         def loadBalancingPolicy = description.loadBalancingPolicy
-        if (sourceBackend) {
-          backendToAdd = new Backend(sourceBackend)
-        } else if (loadBalancingPolicy) {
+        if (loadBalancingPolicy.balancingMode) {
           def balancingMode = loadBalancingPolicy.balancingMode
           backendToAdd = new Backend(
               balancingMode: balancingMode,
@@ -283,6 +310,8 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
               maxUtilization: balancingMode == GoogleHttpLoadBalancingPolicy.BalancingMode.UTILIZATION ?
                   loadBalancingPolicy.maxUtilization : null,
           )
+        } else if (sourceBackend) {
+          backendToAdd = new Backend(sourceBackend)
         } else {
           backendToAdd = new Backend()
         }

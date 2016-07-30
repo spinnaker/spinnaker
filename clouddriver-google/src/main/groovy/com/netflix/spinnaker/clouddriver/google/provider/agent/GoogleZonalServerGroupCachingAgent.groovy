@@ -410,10 +410,13 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
     GoogleServerGroup buildServerGroupFromInstanceGroupManager(InstanceGroupManager instanceGroupManager) {
       String zone = Utils.getLocalName(instanceGroupManager.zone)
 
+      Map<String, Integer> namedPorts = [:]
+      instanceGroupManager.namedPorts.each { namedPorts[(it.name)] = it.port }
       return new GoogleServerGroup(
           name: instanceGroupManager.name,
           region: region,
           zone: zone,
+          namedPorts: namedPorts,
           zones: [zone],
           selfLink: instanceGroupManager.selfLink,
           currentActions: instanceGroupManager.currentActions,
