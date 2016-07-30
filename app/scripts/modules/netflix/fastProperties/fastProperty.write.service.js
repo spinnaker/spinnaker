@@ -33,21 +33,22 @@ module.exports = angular
     function continuePromotion(promotionId) {
       return API.all('fastproperties')
         .one('promote', promotionId)
-        .put({pass:true});
+        .withParams({pass:true})
+        .put();
     }
 
     function stopPromotion(promotionId) {
       return API.all('fastproperties')
         .one('promote', promotionId)
-        .put({pass:false});
+        .withParams({pass:true})
+        .put();
     }
 
     function deletePromotion(promotionId) {
       return API.all('fastproperties')
         .all('promote')
-        .remove({
-          promotionId: promotionId
-        });
+        .withParams({promotionId: promotionId})
+        .remove();
     }
 
     function createPromotedPayload(fastProperty) {
