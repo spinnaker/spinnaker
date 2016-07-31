@@ -301,7 +301,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
         Backend backendToAdd
         def loadBalancingPolicy = description.loadBalancingPolicy
-        if (loadBalancingPolicy.balancingMode) {
+        if (loadBalancingPolicy?.balancingMode) {
           def balancingMode = loadBalancingPolicy.balancingMode
           backendToAdd = new Backend(
               balancingMode: balancingMode,
