@@ -36,7 +36,7 @@ module.exports = angular
         let index = this.command.backingData.filtered.loadBalancerIndex;
         let selected = this.command.loadBalancers;
 
-        return selected.some(s => index[s].loadBalancerType === 'HTTP');
+        return angular.isDefined(selected) && _.some(selected, s => index[s].loadBalancerType === 'HTTP');
       }
     };
   });

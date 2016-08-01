@@ -18,21 +18,38 @@ module.exports = angular.module('cluster', [
     var ctrl = this;
 
     this.updateClusterGroups = () => {
-      ClusterFilterModel.reconcileDependentFilters();
+      ClusterFilterModel.reconcileDependentFilters(ctrl.regionsKeyedByAccount);
       ClusterFilterModel.applyParamsToUrl();
       clusterFilterService.updateClusterGroups(app);
     };
 
     ctrl.getAvailabilityZoneHeadings = () => {
       let selectedRegions = ClusterFilterModel.getSelectedRegions();
+      let availableRegions = ctrl.getRegionHeadings();
 
       return selectedRegions.length === 0 ?
-        ctrl.availabilityZoneHeadings :
-        ctrl.availabilityZoneHeadings.filter((azName) => {
-          return selectedRegions.reduce((matches, region) => {
-            return matches ? matches : _.includes(azName, region);
-          }, false);
-        });
+        ctrl.availabilityZoneHeadings.filter(zoneFilter(availableRegions)) :
+        ctrl.availabilityZoneHeadings.filter(zoneFilter(_.intersection(availableRegions, selectedRegions)));
+    };
+
+    function zoneFilter(regions) {
+      return function (azName) {
+        return regions.reduce((matches, region) => {
+          return matches ? matches : _.includes(azName, region);
+        }, false);
+      };
+    }
+
+    ctrl.getRegionHeadings = () => {
+      let selectedAccounts = ClusterFilterModel.sortFilter.account;
+
+      return Object.keys(_.pick(selectedAccounts, _.identity)).length === 0 ?
+        ctrl.regionHeadings :
+        _(ctrl.regionsKeyedByAccount)
+          .filter((regions, account) => account in selectedAccounts)
+          .flatten()
+          .uniq()
+          .valueOf();
     };
 
 
@@ -54,8 +71,16 @@ module.exports = angular.module('cluster', [
       clusterFilterService.updateClusterGroups(app);
     }
 
+    function getRegionsKeyedByAccount() {
+      return _(app.serverGroups.data)
+        .groupBy('account')
+        .mapValues((instances) => _(instances).pluck('region').uniq().valueOf())
+        .valueOf();
+    }
+
     this.initialize = function() {
       ctrl.accountHeadings = getHeadingsForOption('account');
+      ctrl.regionsKeyedByAccount = getRegionsKeyedByAccount();
       ctrl.regionHeadings = getHeadingsForOption('region');
       ctrl.instanceTypeHeadings = getHeadingsForOption('instanceType');
       ctrl.providerTypeHeadings = getHeadingsForOption('type');

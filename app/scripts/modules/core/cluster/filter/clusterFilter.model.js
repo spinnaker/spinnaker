@@ -34,13 +34,17 @@ module.exports = angular
 
     filterModelService.configureFilterModel(this, filterModelConfig);
 
-    this.getSelectedRegions = () => Object.keys(this.sortFilter.region || {}).filter((key) => this.sortFilter.region[key]);
-    this.getSelectedAvailabilityZones = () => Object.keys(this.sortFilter.availabilityZone || {}).filter((key) => this.sortFilter.availabilityZone[key]);
+    let getSelectedField = (field) => {
+      return () => Object.keys(this.sortFilter[field] || {}).filter((key) => this.sortFilter[field][key]);
+    };
 
-    this.removeCheckedAvailabilityZoneIfRegionIsNotChecked = () => {
-      this.getSelectedAvailabilityZones()
-        .filter( (az) => { //select the az that need don't match a region and need to be 'unchecked'
-          let regions = this.getSelectedRegions();
+    this.getSelectedRegions = getSelectedField('region');
+    this.getSelectedAvailabilityZones = getSelectedField('availabilityZone');
+    this.getSelectedAccounts = getSelectedField('account');
+
+    let removeZonesNotInsideRegions = (zones, regions) => {
+      zones
+        .filter( (az) => {
           return regions.length && !_.any(regions, (region) => _.includes(az, region));
         })
         .forEach( (azKey) => {
@@ -48,8 +52,50 @@ module.exports = angular
         });
     };
 
-    this.reconcileDependentFilters = () => {
-      this.removeCheckedAvailabilityZoneIfRegionIsNotChecked();
+    this.removeCheckedAvailabilityZoneIfRegionIsNotChecked = (selectedZones, selectedRegions) => {
+      removeZonesNotInsideRegions(selectedZones, selectedRegions);
+    };
+
+    this.removeCheckedAvailabilityZoneIfAccountIsNotChecked = (selectedZones, regionsAvailableForAccounts) => {
+      removeZonesNotInsideRegions(selectedZones, regionsAvailableForAccounts);
+    };
+
+    this.removeCheckedRegionsIfAccountIsNotChecked = (selectedRegions, regionsAvailableForAccounts) => {
+      let availableRegionsHash = regionsAvailableForAccounts
+        .reduce((hash, r) => { // build hash so we don't have to keep looping through array.
+          hash[r] = true;
+          return hash;
+        }, {});
+
+      selectedRegions
+        .filter((region) => {
+          return !(region in availableRegionsHash);
+        })
+        .forEach((region) => {
+          delete this.sortFilter.region[region];
+        });
+    };
+
+    this.getRegionsAvailableForAccounts = (selectedAccounts, regionsKeyedByAccount) => {
+      if (selectedAccounts.length === 0) {
+        return _.reduce(regionsKeyedByAccount, (regions, r) => regions.concat(r), []);
+      } else {
+        return _(selectedAccounts)
+          .map(a => regionsKeyedByAccount[a])
+          .flatten()
+          .valueOf();
+      }
+    };
+
+    this.reconcileDependentFilters = (regionsKeyedByAccount) => {
+      let selectedAccounts = this.getSelectedAccounts();
+      let selectedRegions = this.getSelectedRegions();
+      let selectedZones = this.getSelectedAvailabilityZones();
+      let regionsAvailableForSelectedAccounts = this.getRegionsAvailableForAccounts(selectedAccounts, regionsKeyedByAccount);
+
+      this.removeCheckedRegionsIfAccountIsNotChecked(selectedRegions, regionsAvailableForSelectedAccounts);
+      this.removeCheckedAvailabilityZoneIfAccountIsNotChecked(selectedZones, regionsAvailableForSelectedAccounts);
+      this.removeCheckedAvailabilityZoneIfRegionIsNotChecked(selectedZones, selectedRegions);
     };
 
     function isClusterState(stateName) {
