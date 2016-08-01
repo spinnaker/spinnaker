@@ -42,7 +42,7 @@ public class S3Config {
   private String proxyHost;
 
   @Value("${spinnaker.s3.proxyPort:#{null}}")
-  private int proxyPort;
+  private String proxyPort;
 
   @Value("${spinnaker.s3.proxyProtocol:#{null}}")
   private String proxyProtocol;
@@ -64,6 +64,7 @@ public class S3Config {
       Optional.ofNullable(proxyHost)
               .ifPresent(clientConfiguration::setProxyHost);
       Optional.ofNullable(proxyPort)
+              .map(Integer::parseInt)
               .ifPresent(clientConfiguration::setProxyPort);
     }
 
