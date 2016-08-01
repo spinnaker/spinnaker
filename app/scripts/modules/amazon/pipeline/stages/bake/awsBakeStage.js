@@ -3,11 +3,11 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.bakeStage', [
-  require('../../../../../utils/lodash.js'),
-  require('../../../pipelineConfigProvider.js'),
+  require('../../../../core/utils/lodash.js'),
+  require('../../../../core/pipeline/config/pipelineConfigProvider.js'),
   require('./bakeExecutionDetails.controller.js'),
-  require('../bakery.service.js'),
-  require('../modal/addExtendedAttribute.controller.modal.js'),
+  require('../../../../core/pipeline/config/stages/bake/bakery.service.js'),
+  require('../../../../core/pipeline/config/stages/bake/modal/addExtendedAttribute.controller.modal.js'),
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.bakeStage', [
       description: 'Bakes an image in the specified region',
       templateUrl: require('./bakeStage.html'),
       executionDetailsUrl: require('./bakeExecutionDetails.html'),
-      executionLabelTemplateUrl: require('../bakeExecutionLabel.html'),
+      executionLabelTemplateUrl: require('../../../../core/pipeline/config/stages/bake/bakeExecutionLabel.html'),
       defaultTimeoutMs: 60 * 60 * 1000, // 60 minutes
       validators: [
         { type: 'requiredField', fieldName: 'package', },
@@ -98,7 +98,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.bakeStage', [
            $scope.stage.extendedAttributes = {};
       }
       $uibModal.open({
-        templateUrl: require('../modal/addExtendedAttribute.html'),
+        templateUrl: require('../../../../core/pipeline/config/stages/bake/modal/addExtendedAttribute.html'),
         controller: 'bakeStageAddExtendedAttributeController',
         controllerAs: 'addExtendedAttribute',
         resolve: {
