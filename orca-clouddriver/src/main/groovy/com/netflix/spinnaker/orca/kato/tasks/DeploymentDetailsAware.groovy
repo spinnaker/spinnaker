@@ -36,7 +36,7 @@ trait DeploymentDetailsAware {
     if (previousStage) {
       if (previousStage.context.containsKey("amiDetails")) {
         def amiDetail = previousStage.context.amiDetails.find {
-          it.region == targetRegion
+          !targetRegion || it.region == targetRegion
         } ?: previousStage.context.amiDetails[0]
         result.amiName = amiDetail.ami
         result.imageId = amiDetail.imageId
@@ -51,7 +51,7 @@ trait DeploymentDetailsAware {
   Stage getPreviousStageWithImage(Stage stage, String targetRegion) {
     getAncestors(stage).find {
       def regions = (it.context.region ? [it.context.region] : it.context.regions) as Set<String>
-      (it.context.containsKey("ami") || it.context.containsKey("amiDetails")) && regions?.contains(targetRegion)
+      (it.context.containsKey("ami") || it.context.containsKey("amiDetails")) && (!targetRegion || regions?.contains(targetRegion))
     }
   }
 
@@ -79,7 +79,7 @@ trait DeploymentDetailsAware {
     def result = [:]
     def deploymentDetails = (stage.context.deploymentDetails ?: []) as List<Map>
     if (deploymentDetails) {
-      result.amiName = deploymentDetails.find { it.region == targetRegion }?.ami
+      result.amiName = deploymentDetails.find { !targetRegion || it.region == targetRegion }?.ami
       // docker image ids are not region or cloud provider specific so no need to filter by region
       result.imageId = deploymentDetails.first().imageId
       callback(result)

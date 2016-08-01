@@ -17,13 +17,14 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
+import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
-class GoogleServerGroupCreator implements ServerGroupCreator {
+class GoogleServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAware {
 
   boolean katoResultExpected = false
   String cloudProvider = "gce"
@@ -43,29 +44,12 @@ class GoogleServerGroupCreator implements ServerGroupCreator {
       operation.credentials = operation.account
     }
 
-    // If this is a stage in a pipeline, look in the context for the baked image.
-    def deploymentDetails = (stage.context.deploymentDetails ?: []) as List<Map>
+    withImageFromPrecedingStage(stage, null) {
+      operation.image = operation.image ?: it.imageId
+    }
 
-    if (!operation.image && deploymentDetails) {
-      // Bakery ops are keyed off cloudProviderType
-      operation.image = deploymentDetails.find { it.cloudProviderType == 'gce' }?.ami
-
-      // Alternatively, FindImage ops distinguish between server groups deployed to different regions.
-      // This is partially because AWS images are only available regionally.
-      if (!operation.image && stage.context.region) {
-        operation.image = deploymentDetails.find { it.region == stage.context.region }?.imageId
-      }
-
-      // Lastly, fall back to any image within deploymentDetails, so long as it's unambiguous.
-      if (!operation.image) {
-        if (deploymentDetails.size() != 1) {
-          throw new IllegalStateException("Ambiguous choice of deployment images found for deployment to " +
-                                              "'${stage.context.region}'. Images found from cluster in " +
-                                              "${deploymentDetails.collect{it.region}.join(",") } - " +
-                                              "only 1 should be available.")
-        }
-        operation.image = deploymentDetails[0].imageId
-      }
+    withImageFromDeploymentDetails(stage, null) {
+      operation.image = operation.image ?: it.imageId
     }
 
     if (!operation.image) {

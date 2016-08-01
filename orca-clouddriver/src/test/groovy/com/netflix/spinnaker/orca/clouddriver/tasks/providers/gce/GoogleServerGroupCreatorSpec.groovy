@@ -28,7 +28,7 @@ class GoogleServerGroupCreatorSpec extends Specification {
           account          : "abc",
           region           : "north-pole",
           zone             : "north-pole-1",
-          deploymentDetails: [[imageId: "testImageId", zone: "north-pole-1"]],
+          deploymentDetails: [[imageId: "testImageId", region: "north-pole"]],
       ]
       def stage = new PipelineStage(new Pipeline(), "whatever", ctx)
 
@@ -44,12 +44,13 @@ class GoogleServerGroupCreatorSpec extends Specification {
                   image            : "testImageId",
                   region           : "north-pole",
                   zone             : "north-pole-1",
-                  deploymentDetails: [[imageId: "testImageId", zone: "north-pole-1"]],
+                  deploymentDetails: [[imageId: "testImageId", region: "north-pole"]],
               ],
           ]
       ]
 
-    when: "fallback to non-zone matching image"
+    when: "fallback to non-region matching image"
+      ctx.region = "south-pole"
       ctx.zone = "south-pole-1"
       stage = new PipelineStage(new Pipeline(), "whatever", ctx)
       ops = new GoogleServerGroupCreator().getOperations(stage)
@@ -61,22 +62,12 @@ class GoogleServerGroupCreatorSpec extends Specification {
                   account          : "abc",
                   credentials      : "abc",
                   image            : "testImageId",
-                  region           : "north-pole",
+                  region           : "south-pole",
                   zone             : "south-pole-1",
-                  deploymentDetails: [[imageId: "testImageId", zone: "north-pole-1"]],
+                  deploymentDetails: [[imageId: "testImageId", region: "north-pole"]],
               ],
           ]
       ]
-
-    when: "throw error if >1 image"
-      ctx.deploymentDetails = [[imageId: "testImageId-1", zone: "east-pole-1"],
-                               [imageId: "testImageId-2", zone: "west-pole-1"]]
-      stage = new PipelineStage(new Pipeline(), "whatever", ctx)
-      new GoogleServerGroupCreator().getOperations(stage)
-
-    then:
-      IllegalStateException ise = thrown()
-      ise.message.startsWith("Ambiguous choice of deployment images")
 
     when: "throw error if no image found"
       ctx.deploymentDetails = []
@@ -84,7 +75,7 @@ class GoogleServerGroupCreatorSpec extends Specification {
       new GoogleServerGroupCreator().getOperations(stage)
 
     then:
-      ise = thrown()
-      ise.message == "No image could be found in north-pole."
+      IllegalStateException ise = thrown()
+      ise.message == "No image could be found in south-pole."
   }
 }
