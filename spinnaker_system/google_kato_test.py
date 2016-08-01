@@ -557,16 +557,17 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     logger = logging.getLogger(__name__)
 
     # Get the list of images available (to the service account we are using).
+    context = citest.base.ExecutionContext()
     gcp_agent = self.gcp_observer
     JournalLogger.begin_context('Collecting expected available images')
     relation_context = 'ERROR'
     try:
       logger.debug('Looking up available images.')
 
-      json_doc = gcp_agent.list_resource('images')
+      json_doc = gcp_agent.list_resource(context, 'images')
       for project in GCP_STANDARD_IMAGES.keys():
         logger.info('Looking for images from project=%s', project)
-        found = gcp_agent.list_resource('images', project=project)
+        found = gcp_agent.list_resource(context, 'images', project=project)
         for image in found:
           if not image.get('deprecated', None):
             json_doc.append(image)
