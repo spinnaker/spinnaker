@@ -22,7 +22,10 @@ to make appropriate observations.
 
 import logging
 
-from citest.base import JournalLogger
+from citest.base import (
+    ExecutionContext,
+    JournalLogger)
+    
 import citest.service_testing as sk
 import citest.service_testing.http_agent as http_agent
 import citest.aws_testing as aws
@@ -300,6 +303,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     pass
 
   def __init_aws_bindings(self):
+    context = ExecutionContext()
     bindings = self.bindings  # base class made a copy
     if not bindings['TEST_AWS_ZONE']:
       bindings['TEST_AWS_ZONE'] = bindings['AWS_ZONE']
@@ -314,6 +318,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
         logger = logging.getLogger(__name__)
         logger.info('Determine default AWS VpcId...')
         vpc_list = self.__aws_observer.get_resource_list(
+            context,
             root_key='Vpcs',
             aws_command='describe-vpcs',
             args=['--filters', 'Name=tag:Name,Values=defaultvpc'],
@@ -331,6 +336,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
         logger = logging.getLogger(__name__)
         logger.info('Determine default AWS SecurityGroupId...')
         sg_list = self.__aws_observer.get_resource_list(
+            context,
             root_key='SecurityGroups',
             aws_command='describe-security-groups', args=[],
             region=bindings['TEST_AWS_REGION'],
