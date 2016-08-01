@@ -5,6 +5,8 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.Protocol;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.awsobjectmapper.AmazonObjectMapper;
 import com.netflix.spinnaker.clouddriver.aws.bastion.BastionConfig;
@@ -36,6 +38,15 @@ public class S3Config {
   @Value("${spinnaker.s3.region:#{null}}")
   private String s3Region;
 
+  @Value("${spinnaker.s3.proxyHost:#{null}}")
+  private String proxyHost;
+
+  @Value("${spinnaker.s3.proxyPort:#{null}}")
+  private int proxyPort;
+
+  @Value("${spinnaker.s3.proxyProtocol:#{null}}")
+  private String proxyProtocol;
+
   @Bean
   public AmazonClientProvider amazonClientProvider() {
     return new AmazonClientProvider();
@@ -43,7 +54,20 @@ public class S3Config {
 
   @Bean
   public AmazonS3 awsS3Client(AWSCredentialsProvider awsCredentialsProvider) {
-    AmazonS3Client client = new AmazonS3Client(awsCredentialsProvider);
+    ClientConfiguration clientConfiguration = new ClientConfiguration();
+    if (proxyProtocol != null) {
+      if (proxyProtocol.equalsIgnoreCase("HTTPS")) {
+        clientConfiguration.setProtocol(Protocol.HTTPS);
+      } else {
+        clientConfiguration.setProtocol(Protocol.HTTP);
+      }
+      Optional.ofNullable(proxyHost)
+              .ifPresent(clientConfiguration::setProxyHost);
+      Optional.ofNullable(proxyPort)
+              .ifPresent(clientConfiguration::setProxyPort);
+    }
+
+    AmazonS3Client client = new AmazonS3Client(awsCredentialsProvider, clientConfiguration);
     Optional.ofNullable(s3Region)
             .map(Regions::fromName)
             .map(Region::getRegion)
