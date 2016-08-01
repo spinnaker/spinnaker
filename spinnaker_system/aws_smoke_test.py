@@ -124,6 +124,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
       use_vpc: [bool] if True configure a VPC otherwise dont.
     """
     bindings = self.bindings
+    context = citest.base.ExecutionContext()
 
     # We're assuming that the given region has 'A' and 'B' availability
     # zones. This seems conservative but might be brittle since we permit
@@ -151,6 +152,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
       # the subnet we are using. We'll figure that out by looking up the
       # subnet we want.
       subnet_details = self.aws_observer.get_resource_list(
+          context,
           root_key='Subnets',
           aws_command='describe-subnets',
           aws_module='ec2',

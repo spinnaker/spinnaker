@@ -19,6 +19,8 @@ import json
 import logging
 import sys
 
+from citest.base import ExecutionContext
+
 import citest.gcp_testing as gcp
 import citest.json_contract as jc
 import citest.service_testing as st
@@ -51,6 +53,7 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
 
   def _do_init_bindings(self):
     """Hook to initialize custom test bindings so journaling is scoped."""
+    context = ExecutionContext()
     config = self.agent.deployed_config
     enabled = config.get('spinnaker.gcs.enabled', False)
     if not enabled:
@@ -63,7 +66,7 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
         credentials_path=self.bindings['GCE_CREDENTIALS_PATH'],
         scopes=gcp.gcp_storage_agent.STORAGE_FULL_SCOPE)
 
-    metadata = self.gcs_observer.inspect_bucket(self.BUCKET)
+    metadata = self.gcs_observer.inspect_bucket(context, self.BUCKET)
     self.versioning_enabled = (metadata.get('versioning', {})
                                .get('enabled', False))
     if not self.versioning_enabled:
