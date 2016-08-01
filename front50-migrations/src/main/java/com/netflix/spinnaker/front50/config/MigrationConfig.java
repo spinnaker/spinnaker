@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-rootProject.name = "front50"
+package com.netflix.spinnaker.front50.config;
 
-include 'front50-web', 'front50-core', 'front50-cassandra', 'front50-gcs', 'front50-pipelines', 'front50-redis', 'front50-s3', 'front50-test', 'front50-migrations'
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-rootProject.children.each {
-  setBuildFile(it)
+@Configuration
+@EnableScheduling
+@ComponentScan("com.netflix.spinnaker.front50.migrations")
+public class MigrationConfig {
 }
