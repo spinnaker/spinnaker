@@ -51,6 +51,7 @@ dependencies {
   compile project(":front50-redis")
   compile project(":front50-s3")
   compile project(":front50-pipelines")
+  compile project(":front50-migrations")
 
   spinnaker.group "bootWeb"
   compile spinnaker.dependency("korkWeb")
