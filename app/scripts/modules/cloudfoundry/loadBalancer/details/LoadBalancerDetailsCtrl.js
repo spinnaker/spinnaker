@@ -66,7 +66,7 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.details.controller', 
       $state.go('^', null, {location: 'replace'});
     }
 
-    extractLoadBalancer().then(() => {
+    app.loadBalancers.ready().then(extractLoadBalancer).then(() => {
       // If the user navigates away from the view before the initial extractLoadBalancer call completes,
       // do not bother subscribing to the refresh
       if (!$scope.$$destroyed) {

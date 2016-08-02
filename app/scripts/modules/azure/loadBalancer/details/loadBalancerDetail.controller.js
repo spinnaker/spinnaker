@@ -63,7 +63,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller
       return $q.when(null);
     }
 
-    extractLoadBalancer().then(() => {
+    app.loadBalancers.ready().then(extractLoadBalancer).then(() => {
       // If the user navigates away from the view before the initial extractLoadBalancer call completes,
       // do not bother subscribing to the refresh
       if (!$scope.$$destroyed) {
