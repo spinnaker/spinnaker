@@ -76,6 +76,7 @@ module.exports = angular
     this.migrationOptions = {
       allowIngressFromClassic: true,
       subnetType: 'internal (vpc0)',
+      elbSubnetType: 'external (vpc0)',
     };
 
     this.source = {
@@ -157,30 +158,31 @@ module.exports = angular
       taskReader.waitUntilTaskCompletes(application.name, task).then(migrationComplete, errorMode);
     };
 
-    // Shared config for dry run and migration
-    let migrationConfig = {
-      application: application.name,
-      type: 'migrateServerGroup',
-      name: serverGroup.name,
-      source: this.source,
-      target: this.target,
-      subnetType: 'internal (vpc0)',
-      allowIngressFromClassic: true,
-      dryRun: true
+    let buildMigrationConfig = () => {
+      return {
+        application: application.name,
+        type: 'migrateServerGroup',
+        name: serverGroup.name,
+        source: this.source,
+        target: this.target,
+        subnetType: this.migrationOptions.subnetType,
+        elbSubnetType: this.migrationOptions.elbSubnetType,
+        allowIngressFromClassic: this.migrationOptions.allowIngressFromClassic,
+        dryRun: true
+      };
     };
 
     // Generate preview
     this.calculateDryRun = () => {
-      migratorService.executeMigration(application, migrationConfig).then(dryRunStarted, errorMode);
+      migratorService.executeMigration(application, buildMigrationConfig()).then(dryRunStarted, errorMode);
     };
 
     // Button handlers
     this.submit = () => {
       this.state = 'migrate';
-      migrationConfig.dryRun = false;
-      migrationConfig.allowIngressFromClassic = this.migrationOptions.allowIngressFromClassic;
-      migrationConfig.subnetType = this.migrationOptions.subnetType;
-      let executor = migratorService.executeMigration(application, migrationConfig);
+      let config = buildMigrationConfig();
+      config.dryRun = false;
+      let executor = migratorService.executeMigration(application, config);
       executor.then(migrationStarted, errorMode);
     };
 

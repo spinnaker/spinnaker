@@ -228,6 +228,7 @@ module.exports = angular
         name: pipeline.name,
         pipelineConfigId: pipeline.id,
         subnetTypeMapping: { 'EC2-CLASSIC': this.targetSubnet },
+        elbSubnetTypeMapping: { 'EC2-CLASSIC': 'external (vpc0)' },
         accountMapping: accountMapping,
         keyPairMapping: keyPairMapping,
         newPipelineName: this.viewState.targetName,
