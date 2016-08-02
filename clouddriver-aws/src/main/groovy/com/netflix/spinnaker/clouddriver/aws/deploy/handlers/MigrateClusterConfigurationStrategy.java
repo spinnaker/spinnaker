@@ -115,7 +115,9 @@ public abstract class MigrateClusterConfigurationStrategy implements MigrateStra
     cluster.put("availabilityZones", zones);
 
     cluster.put("loadBalancers", targetLoadBalancers.stream().map(MigrateLoadBalancerResult::getTargetName).collect(Collectors.toList()));
-    cluster.put("securityGroups", targetSecurityGroups.stream().map(s -> s.getTarget().getTargetId()).collect(Collectors.toList()));
+    cluster.put("securityGroups", targetSecurityGroups.stream()
+      .filter(g -> !g.getSkipped().contains(g.getTarget()))
+      .map(s -> s.getTarget().getTargetId()).collect(Collectors.toList()));
     cluster.put("account", target.getCredentialAccount());
     if (MigrateClusterConfigurationsAtomicOperation.CLASSIC_SUBNET_KEY.equals(subnetType)) {
       cluster.remove("subnetType");

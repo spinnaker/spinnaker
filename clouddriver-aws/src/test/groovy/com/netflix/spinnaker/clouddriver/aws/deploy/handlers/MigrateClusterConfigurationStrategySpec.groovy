@@ -125,12 +125,12 @@ class MigrateClusterConfigurationStrategySpec extends Specification {
     0 * _
   }
 
-  void 'generates security groups from config'() {
+  void 'generates security groups from config, omitting skipped ones'() {
     given:
     ClusterConfigurationTarget target = new ClusterConfigurationTarget(credentials: prodCredentials, vpcId: 'vpc-2', region: 'eu-west-1', availabilityZones: ['eu-west-1b'])
     Map cluster = [
       loadBalancers : [],
-      securityGroups: ['sg-1', 'sg-2'],
+      securityGroups: ['sg-1', 'sg-2', 'sg-3'],
       region: 'us-east-1',
       availabilityZones: [ 'us-east-1': ['us-east-1c']]
     ]
@@ -138,25 +138,32 @@ class MigrateClusterConfigurationStrategySpec extends Specification {
 
     SecurityGroup group1 = new SecurityGroup(groupId: 'sg-1a', groupName: 'group1', vpcId: 'vpc-1')
     SecurityGroup group2 = new SecurityGroup(groupId: 'sg-2a', groupName: 'group2', vpcId: 'vpc-1')
+    SecurityGroup skippedGroup = new SecurityGroup(groupId: 'sg-3a', groupName: 'group3', vpcId: 'vpc-1')
     SecurityGroupUpdater updater1 = Stub(SecurityGroupUpdater) {
       getSecurityGroup() >> group1
     }
     SecurityGroupUpdater updater2 = Stub(SecurityGroupUpdater) {
       getSecurityGroup() >> group2
     }
+    SecurityGroupUpdater skipper = Stub(SecurityGroupUpdater) {
+      getSecurityGroup() >> skippedGroup
+    }
+    MigrateSecurityGroupReference skippedReference = new MigrateSecurityGroupReference()
 
     when:
     def results = strategy.generateResults(source, target, sourceLookup, targetLookup,
       migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, null, null, null, null, false, false)
 
     then:
-    results.securityGroupMigrations.size() == 2
+    results.securityGroupMigrations.size() == 3
     results.cluster.securityGroups == ['sg-1a', 'sg-2a']
 
     3 * sourceLookup.getSecurityGroupById('test', 'sg-1', null) >> Optional.of(updater1)
     3 * sourceLookup.getSecurityGroupById('test', 'sg-2', null) >> Optional.of(updater2)
+    3 * sourceLookup.getSecurityGroupById('test', 'sg-3', null) >> Optional.of(skipper)
     1 * migrateSecurityGroupStrategy.generateResults({it.name == 'group1'}, { it.region == 'eu-west-1' }, sourceLookup, targetLookup, false, false) >> new MigrateSecurityGroupResult(target: new MigrateSecurityGroupReference(targetId: 'sg-1a'))
     1 * migrateSecurityGroupStrategy.generateResults({it.name == 'group2'}, { it.region == 'eu-west-1' }, sourceLookup, targetLookup, false, false) >> new MigrateSecurityGroupResult(target: new MigrateSecurityGroupReference(targetId: 'sg-2a'))
+    1 * migrateSecurityGroupStrategy.generateResults({it.name == 'group3'}, { it.region == 'eu-west-1' }, sourceLookup, targetLookup, false, false) >> new MigrateSecurityGroupResult(target: skippedReference, skipped: [skippedReference])
     1 * deployDefaults.getAddAppGroupToServerGroup() >> false
     0 * _
   }

@@ -124,22 +124,27 @@ class MigrateServerGroupStrategySpec extends Specification {
     0 * _
   }
 
-  void 'generates security groups from launch config'() {
+  void 'generates security groups from launch config, filtering skipped ones'() {
     ServerGroupLocation source = new ServerGroupLocation(name: 'asg-v001', credentials: testCredentials, vpcId: 'vpc-1', region: 'us-east-1')
     ServerGroupLocation target = new ServerGroupLocation(credentials: prodCredentials, vpcId: 'vpc-2', region: 'eu-west-1')
     SecurityGroup group1 = new SecurityGroup(groupId: 'sg-1', groupName: 'group1', vpcId: 'vpc-1')
     SecurityGroup group2 = new SecurityGroup(groupId: 'sg-2', groupName: 'group2', vpcId: 'vpc-1')
+    SecurityGroup skippedGroup = new SecurityGroup(groupId: 'sg-3', groupName: 'group3', vpcId: 'vpc-1')
     SecurityGroupUpdater updater1 = Stub(SecurityGroupUpdater) {
       getSecurityGroup() >> group1
     }
     SecurityGroupUpdater updater2 = Stub(SecurityGroupUpdater) {
       getSecurityGroup() >> group2
     }
+    SecurityGroupUpdater skipper = Stub(SecurityGroupUpdater) {
+      getSecurityGroup() >> skippedGroup
+    }
+    MigrateSecurityGroupReference skippedReference = new MigrateSecurityGroupReference()
 
     AutoScalingGroup asg = new AutoScalingGroup(launchConfigurationName: 'asg-v001-lc')
     LaunchConfiguration lc = new LaunchConfiguration(
       instanceMonitoring: new InstanceMonitoring(enabled: false),
-      securityGroups: [ 'sg-1', 'sg-2' ]
+      securityGroups: [ 'sg-1', 'sg-2', 'sg-3' ]
     )
     RegionScopedProvider regionScopedProvider = Stub(RegionScopedProvider) {
       getAsgService() >> asgService
@@ -156,19 +161,26 @@ class MigrateServerGroupStrategySpec extends Specification {
     regionScopedProviderFactory.forRegion(prodCredentials, 'eu-west-1') >> regionScopedProvider
     3 * sourceLookup.getSecurityGroupById('test', 'sg-1', 'vpc-1') >> Optional.of(updater1)
     3 * sourceLookup.getSecurityGroupById('test', 'sg-2', 'vpc-1') >> Optional.of(updater2)
+    3 * sourceLookup.getSecurityGroupById('test', 'sg-3', 'vpc-1') >> Optional.of(skipper)
     1 * asgService.getAutoScalingGroup('asg-v001') >> asg
     1 * asgService.getLaunchConfiguration('asg-v001-lc') >> lc
     1 * deployDefaults.getAddAppGroupToServerGroup() >> false
     1 * migrateSecurityGroupStrategy.generateResults(
       {s -> s.name == 'group1' && s.region == 'us-east-1' && s.credentials == testCredentials},
       {s -> s.region == 'eu-west-1' && s.credentials == prodCredentials},
-      sourceLookup, targetLookup, false, false) >> new MigrateSecurityGroupResult(target: new MigrateSecurityGroupReference())
+      sourceLookup, targetLookup, false, false) >> new MigrateSecurityGroupResult(target: new MigrateSecurityGroupReference(targetName: 'group1-vpc'))
     1 * migrateSecurityGroupStrategy.generateResults(
       {s -> s.name == 'group2' && s.region == 'us-east-1' && s.credentials == testCredentials},
       {s -> s.region == 'eu-west-1' && s.credentials == prodCredentials},
-      sourceLookup, targetLookup, false, false) >> new MigrateSecurityGroupResult(target: new MigrateSecurityGroupReference())
+      sourceLookup, targetLookup, false, false) >> new MigrateSecurityGroupResult(target: new MigrateSecurityGroupReference(targetName: 'group2-vpc'))
+    1 * migrateSecurityGroupStrategy.generateResults(
+      {s -> s.name == 'group3' && s.region == 'us-east-1' && s.credentials == testCredentials},
+      {s -> s.region == 'eu-west-1' && s.credentials == prodCredentials},
+      sourceLookup, targetLookup, false, false) >> new MigrateSecurityGroupResult(target: skippedReference, skipped: [skippedReference])
     1 * basicAmazonDeployHandler.copySourceAttributes(regionScopedProvider, 'asg-v001', false, _) >> { a, b, c, d -> d }
-    1 * basicAmazonDeployHandler.handle(_, []) >> new DeploymentResult(serverGroupNames: ['asg-v003'])
+    1 * basicAmazonDeployHandler.handle({
+      {d -> d.securityGroups == ['group1-vpc', 'group2-vpc']}
+    }, []) >> new DeploymentResult(serverGroupNames: ['asg-v003'])
     0 * _
   }
 

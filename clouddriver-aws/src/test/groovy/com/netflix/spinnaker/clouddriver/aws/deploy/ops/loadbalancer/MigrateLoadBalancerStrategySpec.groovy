@@ -168,6 +168,65 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     0 * amazonEC2.authorizeSecurityGroupIngress(_)
   }
 
+  void 'skips skipped security groups'() {
+    given:
+    LoadBalancerDescription sourceDescription = new LoadBalancerDescription(healthCheck: new HealthCheck(),
+      listenerDescriptions: []).withSecurityGroups('sg-1', 'sg-2')
+    LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, vpcId: 'vpc-1', region: 'us-east-1')
+    LoadBalancerLocation target = new LoadBalancerLocation(credentials: prodCredentials, vpcId: 'vpc-2', region: 'eu-west-1', name: 'new-elb', availabilityZones: ['eu-west-1a'])
+    strategy.source = source
+    strategy.target = target
+    strategy.dryRun = true
+
+    MigrateSecurityGroupReference targetGroup1 = new MigrateSecurityGroupReference(targetName: 'group1', targetId: 'sg-1b')
+    MigrateSecurityGroupReference targetGroup2 = new MigrateSecurityGroupReference(targetName: 'group2', targetId: 'sg-2b')
+
+    def sourceGroup1 = new SecurityGroup(groupName: 'group1', groupId: 'sg-1', ownerId: testCredentials.accountId)
+    def sourceGroup2 = new SecurityGroup(groupName: 'group2', groupId: 'sg-2', ownerId: testCredentials.accountId)
+    def appGroup = new SecurityGroup(groupName: 'app-elb', groupId: 'sg-elb', ownerId: prodCredentials.accountId, vpcId: 'vpc-2')
+
+    def sourceUpdater1 = Stub(SecurityGroupUpdater) {
+      getSecurityGroup() >> sourceGroup1
+    }
+    def sourceUpdater2 = Stub(SecurityGroupUpdater) {
+      getSecurityGroup() >> sourceGroup2
+    }
+
+    AmazonEC2 amazonEC2 = Mock(AmazonEC2)
+    AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
+    AmazonElasticLoadBalancing targetLoadBalancing = Mock(AmazonElasticLoadBalancing)
+    RegionScopedProvider regionProvider = Mock(RegionScopedProvider)
+    SubnetAnalyzer subnetAnalyzer = Mock(SubnetAnalyzer)
+
+    when:
+    def results = strategy.generateResults(sourceLookup, targetLookup, securityGroupStrategy, source, target, 'internal', 'app', true, false)
+
+    then:
+    results.securityGroups.size() == 2
+    1 * securityGroupStrategy.generateResults({s -> s.name == 'group1'}, _, _, _, _, _) >> new MigrateSecurityGroupResult(target: targetGroup1, reused: [targetGroup1])
+    1 * securityGroupStrategy.generateResults({s -> s.name == 'group2'}, _, _, _, _, _) >> new MigrateSecurityGroupResult(target: targetGroup2, skipped: [targetGroup2])
+    sourceLookup.getSecurityGroupById('test', 'sg-1', 'vpc-1') >> Optional.of(sourceUpdater1)
+    sourceLookup.getSecurityGroupById('test', 'sg-2', 'vpc-1') >> Optional.of(sourceUpdater2)
+
+    amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1') >> amazonEC2
+    amazonClientProvider.getAmazonEC2(prodCredentials, 'eu-west-1') >> amazonEC2
+    amazonClientProvider.getAmazonEC2(prodCredentials, 'eu-west-1', true) >> amazonEC2
+    2 * amazonEC2.describeVpcs(_) >> new DescribeVpcsResult().withVpcs(new Vpc())
+
+    amazonClientProvider.getAmazonElasticLoadBalancing(testCredentials, 'us-east-1', true) >> loadBalancing
+    1 * loadBalancing.describeLoadBalancers(_) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(sourceDescription)
+
+    1 * amazonEC2.describeSecurityGroups(_) >> new DescribeSecurityGroupsResult().withSecurityGroups([appGroup])
+
+    regionScopedProviderFactory.forRegion(prodCredentials, 'eu-west-1') >> regionProvider
+    regionProvider.getSubnetAnalyzer() >> subnetAnalyzer
+    1 * subnetAnalyzer.getSubnetIdsForZones(['eu-west-1a'], 'internal', _, _) >> ['subnet-1']
+    amazonClientProvider.getAmazonElasticLoadBalancing(prodCredentials, 'eu-west-1', true) >> targetLoadBalancing
+
+    1 * targetLoadBalancing.createLoadBalancer({it.securityGroups == ['sg-1b', 'sg-elb']}) >> new CreateLoadBalancerResult().withDNSName('new-elb-dns')
+  }
+
+
   void 'creates app group and elb group and adds classic link ingress when moving from non-VPC to VPC'() {
     given:
     LoadBalancerDescription sourceDescription = new LoadBalancerDescription(loadBalancerName: 'app-elb',

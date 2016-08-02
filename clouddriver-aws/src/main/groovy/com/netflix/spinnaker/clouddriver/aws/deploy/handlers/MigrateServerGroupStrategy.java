@@ -161,6 +161,7 @@ public abstract class MigrateServerGroupStrategy implements MigrateStrategySuppo
       deployDescription.setLoadBalancers(targetLoadBalancers.stream()
         .map(MigrateLoadBalancerResult::getTargetName).collect(Collectors.toList()));
       deployDescription.setSecurityGroups(targetSecurityGroups.stream()
+        .filter(sg -> !sg.getSkipped().contains(sg.getTarget()))
         .map(sg -> sg.getTarget().getTargetName()).collect(Collectors.toList()));
       deployDescription.setAvailabilityZones(zones);
       deployDescription.setStartDisabled(true);
