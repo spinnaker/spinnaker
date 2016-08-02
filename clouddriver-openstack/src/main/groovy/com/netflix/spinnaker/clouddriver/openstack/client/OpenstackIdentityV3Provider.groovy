@@ -48,7 +48,11 @@ class OpenstackIdentityV3Provider implements OpenstackIdentityProvider, Openstac
   @Override
   OSClient getClient() {
     if (!token || tokenExpired) {
-      token = buildClient().token
+      synchronized (this) {
+        if (!token || tokenExpired) {
+          token = buildClient().token
+        }
+      }
     }
     OSFactory.clientFromToken(token)
   }
