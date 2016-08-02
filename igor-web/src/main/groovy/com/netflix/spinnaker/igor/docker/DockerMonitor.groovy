@@ -89,6 +89,8 @@ class DockerMonitor implements PollingMonitor {
             Map<String, TaggedImage> imageIds = images.collectEntries {
                 [(cache.makeKey(account, it.registry, it.repository, it.tag)): it]
             }
+
+            /* Not removing images from igor as we're seeing some reading issues in clouddriver
             Observable.from(cachedImages).filter { String id ->
                 !(id in imageIds)
             }.subscribe({ String imageId ->
@@ -98,6 +100,7 @@ class DockerMonitor implements PollingMonitor {
                 log.error("Error: ${it.message}")
             }
             )
+            */
 
             images.parallelStream().forEach({ TaggedImage image ->
                 def imageId = cache.makeKey(account, image.registry, image.repository, image.tag)
