@@ -23,23 +23,30 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 class DateUtilsSpec extends Specification {
 
   @Unroll
   void 'test cascading parse - #testCase'() {
-    given:
-
     when:
     ZonedDateTime result = DateUtils.cascadingParseDateTime(dateTime)
 
     then:
     result == expected
+    noExceptionThrown()
 
     where:
     testCase          | dateTime                    | expected
     'zoned date time' | '2011-12-03T10:15:30+01:00' | ZonedDateTime.parse('2011-12-03T10:15:30+01:00', DateTimeFormatter.ISO_OFFSET_DATE_TIME)
     'local date time' | '2011-12-03T10:15:30'       | LocalDateTime.parse('2011-12-03T10:15:30', DateTimeFormatter.ISO_LOCAL_DATE_TIME)?.atZone(ZoneId.systemDefault())
-    'bad format'      | '2011-12-03T101530'         | null
+  }
+
+  void 'test cascading parse exception'() {
+    when:
+    DateUtils.cascadingParseDateTime('2011-12-03T101530')
+
+    then:
+    thrown(DateTimeParseException)
   }
 }

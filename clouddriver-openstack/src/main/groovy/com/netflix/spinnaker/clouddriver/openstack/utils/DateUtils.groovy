@@ -24,26 +24,16 @@ import java.time.format.DateTimeParseException
 
 class DateUtils {
 
+  /**
+   * Method is intended to abstract out parsing zoned date times and local date times.
+   * @param dateTime
+   * @return
+     */
   static ZonedDateTime cascadingParseDateTime(String dateTime) {
-    ZonedDateTime result = handleParseException {
-      ZonedDateTime.parse(dateTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-    }
-
-    if (!result) {
-      result = handleParseException {
-        LocalDateTime.parse(dateTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME)?.atZone(ZoneId.systemDefault())
-      }
-    }
-
-    result
-  }
-
-  static <T> T handleParseException(Closure<T> closure) {
-    T result
     try {
-      result = closure.call()
+      return ZonedDateTime.parse(dateTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
     } catch (DateTimeParseException e) {
-      //Do nothing
+      return LocalDateTime.parse(dateTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME)?.atZone(ZoneId.systemDefault())
     }
   }
 }
