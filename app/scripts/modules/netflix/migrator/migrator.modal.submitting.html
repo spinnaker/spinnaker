@@ -1,20 +1,23 @@
-<div class="overlay overlay-modal" ng-if="vm.task && vm.state === 'migrate'" modal-page modal-overlay>
+<div class="overlay overlay-modal" ng-if="vm.task && (vm.state === 'migrate' || vm.state === 'dryRun')" modal-page modal-overlay>
   <div class="modal-header">
-    <h3>Migrating {{vm.component.name}} to VPC0</h3>
+    <h3 ng-if="vm.state === 'migrate'">Migrating {{vm.component.name}} to VPC0</h3>
+    <h3 ng-if="vm.state === 'dryRun'">Calculating migration plan</h3>
   </div>
   <div class="modal-body clearfix">
-    <div class="col-md-10 col-md-offset-1">
-      <ul class="task task-progress">
-        <li ng-repeat="entry in vm.task.getEventLog() track by $index">
-          <span class="glyphicon glyphicon-ok-circle"></span> {{entry}}
-        </li>
-      </ul>
-      <ul class="task task-progress task-progress-running">
-        <li><span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span></li>
-      </ul>
+    <div class="clearfix" auto-scroll="vm.task.getEventLog()">
+      <div class="col-md-10 col-md-offset-1">
+        <ul class="task task-progress task-progress-status">
+          <li ng-repeat="entry in vm.task.getEventLog() track by $index">
+            <span class="glyphicon glyphicon-ok-circle"></span> {{entry}}
+          </li>
+        </ul>
+        <ul class="task task-progress task-progress-running">
+          <li><span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span></li>
+        </ul>
+      </div>
     </div>
   </div>
   <div class="modal-footer">
-    <button class="btn btn-primary" ng-click="vm.cancel()" autofocus>Close</button>
+    <button class="btn btn-primary" ng-click="vm.cancel()" autofocus>{{vm.state === 'migrate' ? 'Close' : 'Cancel'}}</button>
   </div>
 </div>

@@ -25,7 +25,7 @@ describe('Service: migrator', function () {
         spyOn(taskExecutor, 'executeTask').and.returnValue($q.when(task));
 
         let result = null;
-        service.executeMigration({}).then((taskResult) => result = taskResult);
+        service.executeMigration({}, {type: task.type}).then((taskResult) => result = taskResult);
         $scope.$digest();
 
         return result.getPreview();
@@ -34,15 +34,25 @@ describe('Service: migrator', function () {
 
     it ('extracts security groups, load balancers, server groups', function () {
       let task = {
+        type: 'migrateServerGroup',
         getValueFor: (key) => {
-          if (key === 'tide.task') {
-            return {
-              mutations: [
-                { mutationDetails: { awsReference: { identity: { groupName: 'sg-1' } } } },
-                { mutationDetails: { awsReference: { identity: { loadBalancerName: 'lb-1' } } } },
-                { mutationDetails: { awsReference: { identity: { autoScalingGroupName: 'asg-1' } } } },
-              ]
-            };
+          if (key === 'kato.tasks') {
+            return [
+              { resultObjects: [
+                { type: 'should be ignored' },
+                {
+                  serverGroupNames: [ 'migrated-v001' ],
+                  securityGroups: [
+                    {
+                      created: { targetName: 'sg-1' }
+                    }
+                  ],
+                  loadBalancers: [
+                    { targetName: 'lb-1', securityGroups: [ {created: [{targetName: 'sg-2'}]}]}
+                  ]
+                }
+              ]}
+            ];
           }
           return null;
         }
@@ -50,27 +60,26 @@ describe('Service: migrator', function () {
 
       let preview = this.executeMigration(task);
 
-      expect(preview.securityGroups[0].mutationDetails.awsReference.identity.groupName).toBe('sg-1');
-      expect(preview.serverGroups[0].mutationDetails.awsReference.identity.autoScalingGroupName).toBe('asg-1');
-      expect(preview.loadBalancers[0].mutationDetails.awsReference.identity.loadBalancerName).toBe('lb-1');
-      expect(preview.pipelines).toEqual([]);
+      expect(preview.securityGroups[0].targetName).toBe('sg-1');
+      expect(preview.securityGroups[1].targetName).toBe('sg-2');
+      expect(preview.loadBalancers[0].targetName).toBe('lb-1');
+      expect(preview.serverGroupNames[0]).toBe('migrated-v001');
     });
 
-    it ('returns an empty preview object when no tide task present', function () {
+    it ('returns an empty object when no kato task present', function () {
       let task = {
+        type: 'migrateServerGroup',
         getValueFor: () => null
       };
 
       let preview = this.executeMigration(task);
 
-      expect(preview.securityGroups).toEqual([]);
-      expect(preview.serverGroups).toEqual([]);
-      expect(preview.loadBalancers).toEqual([]);
-      expect(preview.pipelines).toEqual([]);
+      expect(preview).toEqual({});
     });
 
-    it ('returns an empty preview object when tide task is empty', function () {
+    it ('returns an empty object when kato task is empty', function () {
       let task = {
+        type: 'migrateServerGroup',
         getValueFor: () => {
           return {};
         }
@@ -78,28 +87,10 @@ describe('Service: migrator', function () {
 
       let preview = this.executeMigration(task);
 
-      expect(preview.securityGroups).toEqual([]);
-      expect(preview.serverGroups).toEqual([]);
-      expect(preview.loadBalancers).toEqual([]);
-      expect(preview.pipelines).toEqual([]);
+      expect(preview).toEqual({});
 
     });
 
-    it ('returns an empty preview object when mutations array is empty', function () {
-      let task = {
-        getValueFor: () => {
-          return { mutations: [] };
-        }
-      };
-
-      let preview = this.executeMigration(task);
-
-      expect(preview.securityGroups).toEqual([]);
-      expect(preview.serverGroups).toEqual([]);
-      expect(preview.loadBalancers).toEqual([]);
-      expect(preview.pipelines).toEqual([]);
-
-    });
   });
 
   describe('getEventLog', function () {
@@ -108,7 +99,7 @@ describe('Service: migrator', function () {
         spyOn(taskExecutor, 'executeTask').and.returnValue($q.when(task));
 
         let result = null;
-        service.executeMigration({}).then((taskResult) => result = taskResult);
+        service.executeMigration({}, {type: task.type}).then((taskResult) => result = taskResult);
         $scope.$digest();
 
         return result.getEventLog();
@@ -118,14 +109,14 @@ describe('Service: migrator', function () {
     it('returns event messages sorted by timestamp', function () {
       let task = {
         getValueFor: (key) => {
-          if (key === 'tide.task') {
-            return {
+          if (key === 'kato.tasks') {
+            return [{
               history: [
-                { timeStamp: 3, message: 'third' },
-                { timeStamp: 1, message: 'first' },
-                { timeStamp: 2, message: 'second' },
+                { status: 'first' },
+                { status: 'second' },
+                { status: 'third' },
               ]
-            };
+            }];
           }
           return null;
         }

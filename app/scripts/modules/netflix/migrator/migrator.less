@@ -1,6 +1,11 @@
 @import "../../core/presentation/less/imports/commonImports.less";
 
 .migrator-modal {
+  .task-progress-status {
+    li {
+      text-indent: -8px;
+    }
+  }
   .migration-options {
     padding: 10px 15px;
 
@@ -14,17 +19,18 @@
   }
   .preview {
     h4 {
-      margin: 20px 0 8px 0;
+      margin: 8px 0;
       .glyphicon, .icon {
         color: @healthy_green;
       }
     }
-    .preview-entry {
-      margin-left:18px;
+    .strong {
       font-weight:600;
     }
+    .indent {
+      margin-left: 18px;
+    }
     .note {
-      margin-left:18px;
       margin-top:5px;
     }
     .alert {

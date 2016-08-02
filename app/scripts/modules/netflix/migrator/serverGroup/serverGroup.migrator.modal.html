@@ -23,11 +23,11 @@
             Target Account
           </div>
           <div class="col-md-6">
-            <account-select-field accounts="vm.accounts" component="vm.target" field="account" provider="'aws'" on-change="vm.filterKeyPairs()"></account-select-field>
+            <account-select-field accounts="vm.accounts" component="vm.target" field="credentials" provider="'aws'" on-change="vm.accountChanged()"></account-select-field>
           </div>
         </div>
 
-        <div class="row" ng-if="vm.source.account !== vm.target.account">
+        <div class="row" ng-if="vm.source.credentials !== vm.target.credentials">
           <div class="col-md-3 col-md-offset-1 sm-label-right">
             Target Key Name
           </div>
@@ -54,17 +54,8 @@
             <select class="form-control input-sm"
                     style="display: inline; width: auto"
                     ng-model="vm.migrationOptions.subnetType"
-                    ng-options="type for type in ['internal', 'external']"></select>
+                    ng-options="type for type in vm.subnets"></select>
           </div>
-        </div>
-      </div>
-
-      <div class="row" ng-if="vm.state === 'dryRun'">
-        <div class="col-md-10 col-md-offset-1">
-          <h3 class="text-center">
-            <span class="small glyphicon glyphicon-asterisk glyphicon-spinning"></span>
-            Calculating execution plan...
-          </h3>
         </div>
       </div>
 
@@ -72,65 +63,27 @@
         <div class="col-md-10 col-md-offset-1">
           <div ng-if="vm.state === 'preview'">
             <p>This will migrate
-              <strong>{{vm.source.asgName}}</strong>
-              in {{vm.source.region}} <account-tag account="vm.source.account"></account-tag>
-              to <account-tag account="vm.target.account"></account-tag> VPC0.
+              <strong>{{vm.source.name}}</strong>
+              in {{vm.source.region}} <account-tag account="vm.source.credentials"></account-tag>
+              to <account-tag account="vm.target.credentials" ng-if="vm.source.credentials !== vm.target.credentials"></account-tag> VPC0.
             </p>
             <p>As part of this migration, the following items will be created:</p>
           </div>
           <div ng-if="vm.state === 'complete'">
             <p>The following items have been created:</p>
           </div>
-          <div ng-if="vm.preview.securityGroups.length">
-            <h4><span class="glyphicon glyphicon-transfer small"></span> Security Groups</h4>
-            <div ng-repeat="securityGroup in vm.preview.securityGroups" class="preview-entry">
-              {{securityGroup.mutationDetails.awsReference.identity.groupName}}
-            </div>
-          </div>
-          <div ng-if="vm.preview.loadBalancers.length">
-            <h4><span class="small icon icon-elb"></span> Load Balancers</h4>
-            <div ng-repeat="loadBalancer in vm.preview.loadBalancers" class="preview-entry">
-              {{loadBalancer.mutationDetails.awsReference.identity.loadBalancerName}}
-            </div>
-            <p class="note">Note: if Route53 or sticky session policies are configured for the current load balancer,
-              you will need to set that up in the AWS console.
+          <div>
+            <h4><span class="small glyphicon glyphicon-th"></span> {{vm.preview.serverGroupNames[0]}}</h4>
+            <p class="indent note">
+              Note: the server group will be started in a <span class="strong">disabled state with zero instances.</span>
             </p>
-          </div>
-          <div ng-if="vm.preview.serverGroups.length">
-            <h4><span class="small glyphicon glyphicon-th"></span> Server Groups</h4>
-            <div ng-repeat="serverGroup in vm.preview.serverGroups" class="preview-entry">
-              {{serverGroup.mutationDetails.awsReference.identity.autoScalingGroupName}}
-            </div>
-            <p ng-if="vm.state === 'preview'" class="note">Note: server groups will be started in a disabled state with zero instances.</p>
-            <p ng-if="vm.state === 'complete'" class="note">Note: server group has been started in a disabled state with zero instances.</p>
-          </div>
-          <div ng-if="vm.preview.skipped.length" class="skipped">
-            <h4><span class="small glyphicon glyphicon-ban-circle"></span> Skipped Security Groups</h4>
-            <p>The following ingress rule<span ng-if="vm.preview.skipped.length > 1">s</span> cannot be created because
-              Spinnaker does not manage the account owning the security group.</p>
-            <div ng-repeat="skipped in vm.preview.skipped">
-              <dl class="dl-horizontal">
-                <dt>Source Security Group</dt>
-                <dd>{{skipped.mutationDetails.referencedBy.group}}</dd>
-                <dt>Account ID</dt>
-                <dd>{{skipped.mutationDetails.awsReference.account.id}}</dd>
-                <dt>Ingress Security Group</dt>
-                <dd>{{skipped.mutationDetails.awsReference.groupName}} ({{skipped.mutationDetails.awsReference.groupId}})</dd>
-              </dl>
-            </div>
-            <p ng-if="vm.state === 'preview'">After the migration completes, you will need to make sure
-              the ingress security group<span ng-if="vm.preview.skipped.length > 1">s</span>
-              exist<span ng-if="vm.preview.skipped.length === 1">s</span> in VPC0, then create an ingress rule via
-              the AWS console.</p>
-            <p ng-if="vm.state === 'complete'">Please make sure
-              the ingress security group<span ng-if="vm.preview.skipped.length > 1">s</span>
-              exist<span ng-if="vm.preview.skipped.length === 1">s</span> in VPC0, then create an ingress rule via
-              the AWS console.</p>
+            <migrated-security-groups vm="vm"></migrated-security-groups>
+            <migration-warnings vm="vm"></migration-warnings>
+            <migrated-load-balancers vm="vm"></migrated-load-balancers>
           </div>
         </div>
       </div>
     </div>
-
     <div class="row" ng-if="vm.state === 'error'">
       <div class="col-md-10 col-md-offset-1">
         <h4 ng-if="!vm.preview">We could not calculate an execution plan for {{vm.component.name}} at this time.</h4>

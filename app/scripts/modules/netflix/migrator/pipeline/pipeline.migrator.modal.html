@@ -34,7 +34,7 @@
                 <account-tag account="mapping.source"></account-tag>
               </div>
               <div class="col-md-4">
-                <account-select-field accounts="vm.accounts" component="mapping" field="target" provider="'aws'"></account-select-field>
+                <account-select-field accounts="vm.accounts" component="mapping" field="target" provider="'aws'" on-change="vm.accountChanged()"></account-select-field>
               </div>
               <div class="col-md-4">
                 <select class="form-control input-sm"
@@ -61,18 +61,9 @@
           <div class="col-md-6">
             <select class="form-control input-sm"
                     style="display: inline; width: auto"
-                    ng-model="vm.migrationOptions.subnetType"
-                    ng-options="type for type in ['internal', 'external']"></select>
+                    ng-model="vm.targetSubnet"
+                    ng-options="type for type in vm.subnets"></select>
           </div>
-        </div>
-      </div>
-
-      <div class="row" ng-if="vm.state === 'dryRun'">
-        <div class="col-md-10 col-md-offset-1">
-          <h3 class="text-center">
-            <span class="small glyphicon glyphicon-asterisk glyphicon-spinning"></span>
-            Calculating execution plan...
-          </h3>
         </div>
       </div>
 
@@ -81,59 +72,19 @@
           <div ng-if="vm.state === 'preview'">
             <p>This will create a new pipeline named
               <strong>{{vm.viewState.targetName}}</strong>. All triggers will be disabled.</p>
-            <p ng-if="!vm.preview.securityGroups.length && !vm.preview.loadBalancers.length">
-              All load balancers and security groups needed for server groups deployed in the pipeline have already
-              been migrated to VPC0, so this will just create the new pipeline.
-            </p>
-            <p ng-if="vm.preview.securityGroups.length || vm.preview.loadBalancers.length">As part of this migration, the following
-              <span ng-if="vm.preview.securityGroups.length">security groups</span>
-              <span ng-if="vm.preview.securityGroups.length && vm.preview.loadBalancers.length"> and </span>
-              <span ng-if="vm.preview.loadBalancers.length">load balancers</span>
-              will be created or updated in VPC0:</p>
-          </div>
-          <div ng-if="vm.state === 'complete'">
-            <p ng-if="vm.preview.securityGroups.length || vm.preview.loadBalancers.length">The following items have been created or updated:</p>
-          </div>
-          <div ng-if="vm.preview.securityGroups.length">
-            <h4><span class="glyphicon glyphicon-transfer small"></span> Security Groups</h4>
-            <div ng-repeat="securityGroup in vm.preview.securityGroups" class="preview-entry">
-              <account-tag ng-if="vm.accountMapping.length > 1"
-                           account="securityGroup.mutationDetails.awsReference.location.account"></account-tag>
-              {{securityGroup.mutationDetails.awsReference.identity.groupName}}</div>
-          </div>
-          <div ng-if="vm.preview.loadBalancers.length">
-            <h4><span class="small icon icon-elb"></span> Load Balancers</h4>
-            <div ng-repeat="loadBalancer in vm.preview.loadBalancers" class="preview-entry">{{loadBalancer.mutationDetails.awsReference.identity.loadBalancerName}}</div>
-            <p class="note">Note: if Route53 or sticky session policies are configured for the current load balancer,
-              you will need to set that up in the AWS console.
-            </p>
-          </div>
-          <div ng-if="vm.preview.skipped.length" class="skipped">
-            <h4><span class="small glyphicon glyphicon-ban-circle"></span> Skipped Security Groups</h4>
-            <p>The following ingress rule<span ng-if="vm.preview.skipped.length > 1">s</span> cannot be created because
-              Spinnaker does not manage the account owning the security group.</p>
-            <div ng-repeat="skipped in vm.preview.skipped">
-              <dl class="dl-horizontal">
-                <dt>Source Security Group</dt>
-                <dd>{{skipped.mutationDetails.referencedBy.group}}</dd>
-                <dt>Account ID</dt>
-                <dd>{{skipped.mutationDetails.awsReference.account.id}}</dd>
-                <dt>Ingress Security Group</dt>
-                <dd>{{skipped.mutationDetails.awsReference.groupName}} ({{skipped.mutationDetails.awsReference.groupId}})</dd>
-              </dl>
-            </div>
-            <p ng-if="vm.state === 'preview'">After the migration completes, you will need to make sure
-              the ingress security group<span ng-if="vm.preview.skipped.length > 1">s</span>
-              exist<span ng-if="vm.preview.skipped.length === 1">s</span> in VPC0, then create an ingress rule via
-              the AWS console.</p>
-            <p ng-if="vm.state === 'complete'">Please make sure
-              exist<span ng-if="vm.preview.skipped.length === 1">s</span> in VPC0, then create an ingress rule via
-              the AWS console.</p>
           </div>
           <div ng-if="vm.state === 'complete'">
             <p>The new pipeline named
               <strong>{{vm.viewState.targetName}}</strong> is available for review.</p>
           </div>
+          <p ng-if="vm.preview.securityGroups.length || vm.preview.loadBalancers.length">As part of this migration, the following
+            <span ng-if="vm.preview.securityGroups.length">security groups</span>
+            <span ng-if="vm.preview.securityGroups.length && vm.preview.loadBalancers.length"> and </span>
+            <span ng-if="vm.preview.loadBalancers.length">load balancers</span>
+            will be created in VPC0:</p>
+          <migrated-security-groups vm="vm"></migrated-security-groups>
+          <migration-warnings vm="vm"></migration-warnings>
+          <migrated-load-balancers vm="vm"></migrated-load-balancers>
           <div ng-if="vm.clustersWithStrategies.length" class="alert alert-warning">
             <h4 style="margin-top:0;">Important</h4>
             <p>

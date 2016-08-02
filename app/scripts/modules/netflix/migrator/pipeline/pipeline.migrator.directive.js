@@ -9,6 +9,7 @@ module.exports = angular
     require('angular-ui-bootstrap'),
     require('../../../amazon/vpc/vpc.read.service.js'),
     require('../../../core/config/settings.js'),
+    require('../../../core/subnet/subnet.read.service'),
     require('../../../core/utils/lodash'),
     require('../migrator.service.js'),
     require('../../../core/presentation/autoScroll/autoScroll.directive.js'),
@@ -18,6 +19,9 @@ module.exports = angular
     require('../../../core/task/task.read.service.js'),
     require('../../../amazon/keyPairs/keyPairs.read.service'),
     require('../../../amazon/vpc/vpc.read.service'),
+    require('../migrationWarnings.component'),
+    require('../migratedSecurityGroups.component'),
+    require('../migratedLoadBalancers.component'),
   ])
   .directive('pipelineMigrator', function () {
     return {
@@ -95,7 +99,7 @@ module.exports = angular
   .controller('PipelineMigratorCtrl', function ($scope, pipeline, application, migratableClusters,
                                                 $uibModalInstance, taskReader, $timeout, $state,
                                                 migratorService, pipelineConfigService, scrollToService,
-                                                cacheInitializer, _, $q, keyPairsReader, vpcReader) {
+                                                cacheInitializer, _, $q, keyPairsReader, vpcReader, subnetReader) {
 
     this.submittingTemplateUrl = require('../migrator.modal.submitting.html');
 
@@ -116,35 +120,54 @@ module.exports = angular
     };
 
     this.source = { pipelineId: pipeline.id };
-    this.target = {
-      vpcName: 'vpc0',
-      accountMapping: []
-    };
     this.accountMapping = [];
 
     migratableClusters.forEach(stage => {
       let cluster = stage.cluster;
       if (!this.accountMapping.some(a => a.source === cluster.account)) {
-        this.accountMapping.push({ source: cluster.account, target: cluster.account, keyName: cluster.keyPair });
+        this.accountMapping.push({
+          source: cluster.account,
+          target: cluster.account,
+          sourceKeyName: cluster.keyPair,
+          keyName: cluster.keyPair,
+        });
       }
     });
 
     this.migrationOptions = {
       allowIngressFromClassic: true,
-      subnetType: 'internal',
     };
 
     let keyPairLoader = keyPairsReader.listKeyPairs(),
-        vpcLoader = vpcReader.listVpcs();
+        vpcLoader = vpcReader.listVpcs(),
+        subnetLoader = subnetReader.listSubnetsByProvider('aws');
 
-    $q.all({keyPairs: keyPairLoader, vpcs: vpcLoader}).then(data => {
-      this.accounts = _.uniq(data.vpcs.filter(vpc => vpc.name === 'vpc0').map(vpc => vpc.account));
+    $q.all({keyPairs: keyPairLoader, vpcs: vpcLoader, subnets: subnetLoader}).then(data => {
+      this.vpcs = data.vpcs.filter(vpc => vpc.name === 'vpc0');
+      this.accounts = _.uniq(this.vpcs.map(vpc => vpc.account));
+      this.subnetsByAccount = {};
+      this.vpcs.forEach(vpc => {
+        vpc.subnets = _.uniq(data.subnets.filter(s => s.vpcId === vpc.id && s.purpose).map(s => s.purpose)).sort();
+        if (!this.subnetsByAccount[vpc.account]) {
+          this.subnetsByAccount[vpc.account] = [];
+        }
+        this.subnetsByAccount[vpc.account] = _.uniq(this.subnetsByAccount[vpc.account].concat(vpc.subnets));
+      });
       let filteredKeyPairs = data.keyPairs
         .filter(kp => migratableClusters
           .some(c => (c.cluster.availabilityZones || {})[kp.region]));
       this.keyPairs = _.groupBy(filteredKeyPairs || [], 'account');
+      this.accountChanged();
       this.state = 'configure';
     });
+
+    this.accountChanged = () => {
+      let subnets = this.accountMapping.map(m => m.target).map(a => this.subnetsByAccount[a]);
+      this.subnets = _.intersection.apply(null, subnets);
+      if (this.subnets.indexOf(this.targetSubnet) < 0) {
+        this.targetSubnet = this.subnets[0];
+      }
+    };
 
     // Async handlers
 
@@ -190,20 +213,32 @@ module.exports = angular
       taskReader.waitUntilTaskCompletes(application.name, task).then(migrationComplete, errorMode);
     };
 
-    let migrationConfig = {
-      application: application,
-      type: 'deepCopyPipeline',
-      name: pipeline.name,
-      source: this.source,
-      target: this.target,
-      accountMapping: this.accountMapping,
-      allowIngressFromClassic: true,
-      dryRun: true
+    this.targetSubnet = 'internal (vpc0)';
+
+    let buildCommand = (dryRun = true) => {
+      let accountMapping = {},
+          keyPairMapping = {};
+      this.accountMapping.forEach(a => {
+        accountMapping[a.source] = a.target;
+        keyPairMapping[a.sourceKeyName] = a.keyName;
+      });
+      return {
+        application: application.name,
+        type: 'migratePipeline',
+        name: pipeline.name,
+        pipelineConfigId: pipeline.id,
+        subnetTypeMapping: { 'EC2-CLASSIC': this.targetSubnet },
+        accountMapping: accountMapping,
+        keyPairMapping: keyPairMapping,
+        newPipelineName: this.viewState.targetName,
+        allowIngressFromClassic: this.migrationOptions.allowIngressFromClassic,
+        dryRun: dryRun
+      };
     };
 
     // Generate preview
     this.calculateDryRun = () => {
-      migratorService.executeMigration(migrationConfig).then(dryRunStarted, errorMode);
+      migratorService.executeMigration(application, buildCommand(true)).then(dryRunStarted, errorMode);
     };
 
     this.close = () => {
@@ -222,10 +257,6 @@ module.exports = angular
 
     this.submit = () => {
       this.state = 'migrate';
-      migrationConfig.dryRun = false;
-      migrationConfig.allowIngressFromClassic = this.migrationOptions.allowIngressFromClassic;
-      migrationConfig.target.subnetType = this.migrationOptions.subnetType;
-      let executor = migratorService.executeMigration(migrationConfig);
-      executor.then(migrationStarted, errorMode);
+      migratorService.executeMigration(application, buildCommand(false)).then(migrationStarted, errorMode);
     };
   });

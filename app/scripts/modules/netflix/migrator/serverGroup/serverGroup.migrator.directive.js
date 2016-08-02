@@ -9,11 +9,15 @@ module.exports = angular
     require('angular-ui-bootstrap'),
     require('../../../amazon/vpc/vpc.read.service.js'),
     require('../../../core/config/settings.js'),
+    require('../../../core/subnet/subnet.read.service'),
     require('../../../core/utils/lodash'),
     require('../migrator.service.js'),
     require('../../../core/presentation/autoScroll/autoScroll.directive.js'),
     require('../../../amazon/keyPairs/keyPairs.read.service'),
     require('../../../amazon/vpc/vpc.read.service'),
+    require('../migrationWarnings.component'),
+    require('../migratedSecurityGroups.component'),
+    require('../migratedLoadBalancers.component'),
   ])
   .directive('migrator', function () {
     return {
@@ -51,7 +55,7 @@ module.exports = angular
   })
   .controller('MigratorCtrl', function ($scope, $timeout, $q,
                                         $uibModalInstance, _,
-                                        migratorService, taskReader, keyPairsReader, vpcReader,
+                                        migratorService, taskReader, keyPairsReader, vpcReader, subnetReader,
                                         serverGroup, application) {
 
     this.submittingTemplateUrl = require('../migrator.modal.submitting.html');
@@ -71,36 +75,50 @@ module.exports = angular
 
     this.migrationOptions = {
       allowIngressFromClassic: true,
-      subnetType: 'internal',
+      subnetType: 'internal (vpc0)',
     };
 
     this.source = {
       region: serverGroup.region,
-      account: serverGroup.account,
-      asgName: serverGroup.name,
+      credentials: serverGroup.account,
+      name: serverGroup.name,
     };
 
     this.target = {
       region: serverGroup.region,
-      account: serverGroup.account,
+      credentials: serverGroup.account,
       vpcName: 'vpc0',
       keyName: serverGroup.launchConfig.keyName,
+      availabilityZones: serverGroup.zones,
     };
 
     let keyPairLoader = keyPairsReader.listKeyPairs(),
-        vpcLoader = vpcReader.listVpcs();
+        vpcLoader = vpcReader.listVpcs(),
+        subnetLoader = subnetReader.listSubnetsByProvider('aws');
 
-    $q.all({keyPairs: keyPairLoader, vpcs: vpcLoader}).then(data => {
-      this.accounts = _.uniq(data.vpcs.filter(vpc => vpc.name === 'vpc0').map(vpc => vpc.account));
+    $q.all({keyPairs: keyPairLoader, vpcs: vpcLoader, subnets: subnetLoader}).then(data => {
+      this.vpcs = data.vpcs.filter(vpc => vpc.name === 'vpc0');
+      this.accounts = _.uniq(this.vpcs.map(vpc => vpc.account));
+      this.vpcs.forEach(vpc => {
+        vpc.subnets = _.uniq(data.subnets.filter(s => s.vpcId === vpc.id && s.purpose).map(s => s.purpose)).sort();
+      });
+
       this.keyPairs = (data.keyPairs || []).filter(kp => kp.region === serverGroup.region).map(kp => {
         return {account: kp.account, region: kp.region, name: kp.keyName};
       });
-      this.filterKeyPairs();
+      this.accountChanged();
       this.state = 'configure';
     });
 
+    this.accountChanged = () => {
+      let vpc = this.vpcs.filter(v => v.account === this.target.credentials && v.region === this.target.region)[0];
+      this.target.vpcId = vpc.id;
+      this.subnets = vpc.subnets;
+      this.filterKeyPairs();
+    };
+
     this.filterKeyPairs = () => {
-      this.filteredKeyPairs = (this.keyPairs || []).filter(kp => kp.account === this.target.account).map(kp => kp.name);
+      this.filteredKeyPairs = (this.keyPairs || []).filter(kp => kp.account === this.target.credentials).map(kp => kp.name);
       if (this.filteredKeyPairs.indexOf(this.target.keyName) < 0) {
         this.target.keyName = null;
       }
@@ -141,18 +159,19 @@ module.exports = angular
 
     // Shared config for dry run and migration
     let migrationConfig = {
-      application: application,
-      type: 'deepCopyServerGroup',
+      application: application.name,
+      type: 'migrateServerGroup',
       name: serverGroup.name,
       source: this.source,
       target: this.target,
+      subnetType: 'internal (vpc0)',
       allowIngressFromClassic: true,
       dryRun: true
     };
 
     // Generate preview
     this.calculateDryRun = () => {
-      migratorService.executeMigration(migrationConfig).then(dryRunStarted, errorMode);
+      migratorService.executeMigration(application, migrationConfig).then(dryRunStarted, errorMode);
     };
 
     // Button handlers
@@ -160,8 +179,8 @@ module.exports = angular
       this.state = 'migrate';
       migrationConfig.dryRun = false;
       migrationConfig.allowIngressFromClassic = this.migrationOptions.allowIngressFromClassic;
-      migrationConfig.target.subnetType = this.migrationOptions.subnetType;
-      let executor = migratorService.executeMigration(migrationConfig);
+      migrationConfig.subnetType = this.migrationOptions.subnetType;
+      let executor = migratorService.executeMigration(application, migrationConfig);
       executor.then(migrationStarted, errorMode);
     };
 
