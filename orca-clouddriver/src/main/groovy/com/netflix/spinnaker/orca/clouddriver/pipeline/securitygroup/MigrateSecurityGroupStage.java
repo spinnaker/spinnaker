@@ -38,7 +38,7 @@ public class MigrateSecurityGroupStage extends LinearStage {
   @Override
   public List<Step> buildSteps(Stage stage) {
     List<Step> steps = new ArrayList<>();
-    steps.add(buildStep(stage, "migrateLoadBalancer", MigrateSecurityGroupTask.class));
+    steps.add(buildStep(stage, "migrateSecurityGroup", MigrateSecurityGroupTask.class));
     steps.add(buildStep(stage, "monitorMigration", MonitorKatoTask.class));
     return steps;
   }

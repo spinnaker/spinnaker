@@ -40,7 +40,7 @@ public class MigrateServerGroupStage extends LinearStage {
   @Override
   public List<Step> buildSteps(Stage stage) {
     List<Step> steps = new ArrayList<>();
-    steps.add(buildStep(stage, "migrateLoadBalancer", MigrateServerGroupTask.class));
+    steps.add(buildStep(stage, "migrateServerGroup", MigrateServerGroupTask.class));
     steps.add(buildStep(stage, "monitorMigration", MonitorKatoTask.class));
     if (!(Boolean) stage.getContext().getOrDefault("dryRun", true)) {
       steps.add(buildStep(stage, "refreshDependencies", MigrateForceRefreshDependenciesTask.class));
