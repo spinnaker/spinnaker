@@ -37,6 +37,7 @@ import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLaunchConfig
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackServerGroup
 import com.netflix.spinnaker.clouddriver.openstack.provider.view.MutableCacheData
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.openstack.utils.DateUtils
 import groovy.util.logging.Slf4j
 import org.openstack4j.model.compute.Server
 import org.openstack4j.model.heat.Stack
@@ -221,14 +222,7 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
 
     //TODO this check will change once we have a config that indicates the openstack version, e.g. kilo, liberty, mitaka
     //kilo stack create times have a 'Z' on the end. It was removed in liberty and mitaka.
-    ZonedDateTime zonedDateTime
-    try {
-      //kilo
-      zonedDateTime = ZonedDateTime.parse(stack.creationTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-    } catch(DateTimeParseException e) {
-      //liberty+
-      zonedDateTime = ZonedDateTime.parse(stack.creationTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-    }
+    ZonedDateTime zonedDateTime = DateUtils.cascadingParseDateTime(stack.creationTime)
 
     OpenstackServerGroup.builder()
       .account(accountName)
