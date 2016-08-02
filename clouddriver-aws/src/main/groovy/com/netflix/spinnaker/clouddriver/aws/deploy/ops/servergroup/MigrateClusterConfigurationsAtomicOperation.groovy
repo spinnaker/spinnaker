@@ -84,6 +84,7 @@ class MigrateClusterConfigurationsAtomicOperation implements AtomicOperation<Voi
       String iamRole = description.iamRoleMapping.getOrDefault(sourceIamRole, sourceIamRole)
       String subnetType = description.subnetTypeMapping.getOrDefault(sourceSubnetType, sourceSubnetType)
       String keyPair = description.keyPairMapping.getOrDefault(sourceKeyPair, sourceKeyPair)
+      String elbSubnetType = description.elbSubnetTypeMapping.getOrDefault(sourceSubnetType, sourceSubnetType)
 
       // nothing changed? don't calculate anything for this cluster
       if (sourceAccount == account && source.region == targetRegion && sourceSubnetType == subnetType) {
@@ -117,7 +118,7 @@ class MigrateClusterConfigurationsAtomicOperation implements AtomicOperation<Voi
         def migrator = new ClusterConfigurationMigrator(migrationStrategy.get(), source, target,
           sourceLookup, targetLookup,
           migrateLoadBalancerStrategy.get(), migrateSecurityGroupStrategy.get(), iamRole, keyPair, subnetType,
-          description.allowIngressFromClassic)
+          elbSubnetType, description.allowIngressFromClassic)
 
         results.add(migrator.migrate(description.dryRun))
       }

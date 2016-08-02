@@ -123,6 +123,7 @@ class MigrateClusterConfigurationsAtomicOperationSpec extends Specification {
     def source2 = new ClusterConfiguration(cluster: clusters[1])
     def source3 = new ClusterConfiguration(cluster: clusters[2])
     def description = new MigrateClusterConfigurationsDescription(
+      elbSubnetTypeMapping: [ (MigrateClusterConfigurationsAtomicOperation.CLASSIC_SUBNET_KEY): 'external' ],
       sources: [source1, source2, source3],
     subnetTypeMapping: [ (MigrateClusterConfigurationsAtomicOperation.CLASSIC_SUBNET_KEY): 'internal'])
     def operation = new MigrateClusterConfigurationsAtomicOperation(description)
@@ -166,13 +167,13 @@ class MigrateClusterConfigurationsAtomicOperationSpec extends Specification {
     then:
     1 * clusterMigrateStrategy.generateResults(source1, {
       it.region == 'us-east-1' && it.credentials == testCredentials && it.vpcId == 'vpc-test'
-    }, lookup, lookup, _, _, 'internal', 'iam', 'kp-1', false, false) >> new MigrateClusterConfigurationResult()
+    }, lookup, lookup, _, _, 'internal', 'external', 'iam', 'kp-1', false, false) >> new MigrateClusterConfigurationResult()
     1 * clusterMigrateStrategy.generateResults(source2, {
       it.region == 'us-east-1' && it.credentials == prodCredentials && it.vpcId == 'vpc-prod'
-    }, lookup, lookup, _, _, 'internal', 'iam2', 'kp-2', false, false) >> new MigrateClusterConfigurationResult()
+    }, lookup, lookup, _, _, 'internal', 'external', 'iam2', 'kp-2', false, false) >> new MigrateClusterConfigurationResult()
     1 * clusterMigrateStrategy.generateResults(source3, {
       it.region == 'us-east-1' && it.credentials == prodCredentials && it.vpcId == 'vpc-prod'
-    }, lookup, lookup, _, _, 'internal', 'iam3', 'kp-3', false, false) >> new MigrateClusterConfigurationResult()
+    }, lookup, lookup, _, _, 'internal', 'external', 'iam3', 'kp-3', false, false) >> new MigrateClusterConfigurationResult()
     task.resultObjects.size() == 3
   }
 }

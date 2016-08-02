@@ -53,6 +53,7 @@ public abstract class MigrateServerGroupStrategy implements MigrateStrategySuppo
   protected boolean allowIngressFromClassic;
   protected boolean dryRun;
   protected String subnetType;
+  protected String elbSubnetType;
 
   protected MigrateSecurityGroupStrategy migrateSecurityGroupStrategy;
   protected MigrateLoadBalancerStrategy getMigrateLoadBalancerStrategy;
@@ -78,6 +79,7 @@ public abstract class MigrateServerGroupStrategy implements MigrateStrategySuppo
    * @param migrateLoadBalancerStrategy  the load balancer migration strategy
    * @param migrateSecurityGroupStrategy the security group migration strategy
    * @param subnetType                   the subnetType in which to migrate the server group (should be null for EC Classic migrations)
+   * @param elbSubnetType                the subnetType in which to migrate load balancers
    * @param iamRole                      the iamRole to use when migrating (optional)
    * @param keyPair                      the keyPair to use when migrating (optional)
    * @param targetAmi                    the target imageId to use when migrating (optional)
@@ -89,17 +91,18 @@ public abstract class MigrateServerGroupStrategy implements MigrateStrategySuppo
    * updated by the migration (if not a dry run)
    */
   public synchronized MigrateServerGroupResult generateResults(ServerGroupLocation source, ServerGroupLocation target,
-                                                  SecurityGroupLookup sourceLookup, SecurityGroupLookup targetLookup,
-                                                  MigrateLoadBalancerStrategy migrateLoadBalancerStrategy,
-                                                  MigrateSecurityGroupStrategy migrateSecurityGroupStrategy,
-                                                  String subnetType, String iamRole, String keyPair, String targetAmi,
-                                                  boolean allowIngressFromClassic, boolean dryRun) {
+                                                               SecurityGroupLookup sourceLookup, SecurityGroupLookup targetLookup,
+                                                               MigrateLoadBalancerStrategy migrateLoadBalancerStrategy,
+                                                               MigrateSecurityGroupStrategy migrateSecurityGroupStrategy,
+                                                               String subnetType, String elbSubnetType, String iamRole, String keyPair,
+                                                               String targetAmi, boolean allowIngressFromClassic, boolean dryRun) {
 
     this.sourceLookup = sourceLookup;
     this.targetLookup = targetLookup;
     this.source = source;
     this.target = target;
     this.subnetType = subnetType;
+    this.elbSubnetType = elbSubnetType;
     this.allowIngressFromClassic = allowIngressFromClassic;
     this.dryRun = dryRun;
     this.migrateSecurityGroupStrategy = migrateSecurityGroupStrategy;
@@ -290,6 +293,6 @@ public abstract class MigrateServerGroupStrategy implements MigrateStrategySuppo
     sourceLocation.setCredentials(source.getCredentials());
     return new LoadBalancerMigrator(sourceLookup, targetLookup, getAmazonClientProvider(), getRegionScopedProviderFactory(),
       migrateSecurityGroupStrategy, getDeployDefaults(), getMigrateLoadBalancerStrategy, sourceLocation,
-      new LoadBalancerLocation(target), subnetType, names.getApp(), allowIngressFromClassic).migrate(dryRun);
+      new LoadBalancerLocation(target), elbSubnetType, names.getApp(), allowIngressFromClassic).migrate(dryRun);
   }
 }
