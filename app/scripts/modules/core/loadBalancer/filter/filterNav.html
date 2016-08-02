@@ -26,7 +26,7 @@
   </filter-section>
 
   <filter-section heading="Region" expanded="true">
-    <div class="checkbox" ng-repeat="heading in loadBalancerFilters.regionHeadings | orderBy: 'toString()' ">
+    <div class="checkbox" ng-repeat="heading in loadBalancerFilters.getRegionHeadings() | orderBy: 'toString()' ">
       <label>
         <input type="checkbox" ng-model="sortFilter.region[heading]" ng-change="loadBalancerFilters.updateLoadBalancerGroups()"/>{{heading}}
       </label>
@@ -82,7 +82,7 @@
   </filter-section>
 
   <filter-section heading="Availability Zones" expanded="true">
-    <div class="checkbox" ng-repeat="heading in loadBalancerFilters.availabilityZoneHeadings | orderBy: 'toString()' ">
+    <div class="checkbox" ng-repeat="heading in loadBalancerFilters.getAvailabilityZoneHeadings() | orderBy: 'toString()' ">
       <label>
         <input type="checkbox" ng-model="sortFilter.availabilityZone[heading]" ng-change="loadBalancerFilters.updateLoadBalancerGroups()"/>{{heading}}
       </label>

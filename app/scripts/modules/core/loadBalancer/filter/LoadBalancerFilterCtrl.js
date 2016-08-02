@@ -17,6 +17,7 @@ module.exports = angular.module('spinnaker.core.loadBalancer.filter.controller',
     var ctrl = this;
 
     this.updateLoadBalancerGroups = () => {
+      LoadBalancerFilterModel.reconcileDependentFilters(ctrl.regionsKeyedByAccount);
       LoadBalancerFilterModel.applyParamsToUrl();
       loadBalancerFilterService.updateLoadBalancerGroups(app);
     };
@@ -49,8 +50,45 @@ module.exports = angular.module('spinnaker.core.loadBalancer.filter.controller',
       loadBalancerFilterService.updateLoadBalancerGroups(app);
     }
 
+    this.getAvailabilityZoneHeadings = () => {
+      let selectedRegions = LoadBalancerFilterModel.getSelectedRegions();
+      let availableRegions = this.getRegionHeadings();
+
+      return selectedRegions.length === 0 ?
+        ctrl.availabilityZoneHeadings.filter(zoneFilter(availableRegions)) :
+        ctrl.availabilityZoneHeadings.filter(zoneFilter(_.intersection(availableRegions, selectedRegions)));
+    };
+
+    this.getRegionHeadings = () => {
+      let selectedAccounts = LoadBalancerFilterModel.sortFilter.account;
+
+      return Object.keys(_.pluck(selectedAccounts, _.identity)).length === 0 ?
+        ctrl.regionHeadings :
+        _(ctrl.regionsKeyedByAccount)
+          .filter((regions, account) => account in selectedAccounts)
+          .flatten()
+          .uniq()
+          .valueOf();
+    };
+
+    function zoneFilter(regions) {
+      return function (azName) {
+        return regions.reduce((matches, region) => {
+          return matches ? matches : _.includes(azName, region);
+        }, false);
+      };
+    }
+
+    function getRegionsKeyedByAccount() {
+      return _(app.loadBalancers.data)
+        .groupBy('account')
+        .mapValues((loadBalancers) => _(loadBalancers).pluck('region').uniq().valueOf())
+        .valueOf();
+    }
+
     this.initialize = function() {
       ctrl.accountHeadings = getHeadingsForOption('account');
+      ctrl.regionsKeyedByAccount = getRegionsKeyedByAccount();
       ctrl.regionHeadings = getHeadingsForOption('region');
       ctrl.stackHeadings = ['(none)'].concat(getHeadingsForOption('stack'));
       ctrl.providerTypeHeadings = getHeadingsForOption('type');
