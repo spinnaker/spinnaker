@@ -459,14 +459,14 @@ load-balancers-tag {
 
   .disabled {
     opacity: 1;
-    .section-title, health-counts, load-balancers-tag, instances {
+    .section-title, health-counts, load-balancers-tag .badge, instances {
       opacity: 0.4;
     }
     .icon-server-group {
       color: @mid_grey;
     }
     &:hover {
-      .section-title, health-counts, load-balancers-tag, instances {
+      .section-title, health-counts, load-balancers-tag .badge, instances {
         opacity: 0.7;
       }
     }

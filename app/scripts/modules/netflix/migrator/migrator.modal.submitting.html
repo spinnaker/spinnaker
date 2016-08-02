@@ -6,9 +6,16 @@
   <div class="modal-body clearfix">
     <div class="clearfix" auto-scroll="vm.task.getEventLog()">
       <div class="col-md-10 col-md-offset-1">
-        <ul class="task task-progress task-progress-status">
+        <ul class="task task-progress task-progress-status" ng-if="!vm.task.migrationComplete()">
           <li ng-repeat="entry in vm.task.getEventLog() track by $index">
             <span class="glyphicon glyphicon-ok-circle"></span> {{entry}}
+          </li>
+        </ul>
+        <ul class="task task-progress" ng-if="vm.task.migrationComplete() && vm.state !== 'dryRun'">
+          <li ng-repeat="step in vm.task.steps | displayableTasks" ng-class="{'not-started': step.hasNotStarted}">
+            <status-glyph item="step"></status-glyph>
+            {{step.name | robotToHuman}}
+            <span ng-if="step.startTime">({{step.runningTimeInMs | duration}})</span>
           </li>
         </ul>
         <ul class="task task-progress task-progress-running">

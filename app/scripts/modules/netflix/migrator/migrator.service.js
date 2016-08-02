@@ -21,6 +21,7 @@ module.exports = angular
       return taskStarter.then((task) => {
         task.getEventLog = () => getEventLog(task);
         task.getPreview = () => getResults(task, config.type);
+        task.migrationComplete = () => task.steps.some(t => t.name === 'monitorMigration' && t.status === 'SUCCEEDED');
         return task;
       });
     }
