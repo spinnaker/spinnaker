@@ -99,10 +99,13 @@ public abstract class MigrateLoadBalancerStrategy implements MigrateStrategySupp
 
     List<MigrateSecurityGroupResult> targetGroups = getTargetSecurityGroups(sourceLoadBalancer, result);
 
-    List<String> securityGroups = targetGroups.stream().map(g -> g.getTarget().getTargetId()).distinct().collect(Collectors.toList());
+    List<String> securityGroups = targetGroups.stream()
+      .filter(g -> !g.getSkipped().contains(g.getTarget()))
+      .map(g -> g.getTarget().getTargetId()).distinct().collect(Collectors.toList());
     securityGroups.addAll(buildExtraSecurityGroups(sourceLoadBalancer, result));
 
     result.getSecurityGroups().addAll(targetGroups);
+
     result.setTargetName(targetName);
     result.setTargetExists(targetLoadBalancer != null);
     if (!dryRun) {
