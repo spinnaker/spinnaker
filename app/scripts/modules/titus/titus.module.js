@@ -12,6 +12,7 @@ templates.keys().forEach(function(key) {
 
 module.exports = angular.module('spinnaker.titus', [
   require('../core/cloudProvider/cloudProvider.registry.js'),
+  require('./securityGroup/securityGroup.read.service'),
   require('./serverGroup/details/serverGroupDetails.titus.controller.js'),
   require('./serverGroup/configure/ServerGroupCommandBuilder.js'),
   require('./serverGroup/configure/wizard/CloneServerGroup.titus.controller.js'),
@@ -36,10 +37,12 @@ module.exports = angular.module('spinnaker.titus', [
         commandBuilder: 'titusServerGroupCommandBuilder',
         configurationService: 'titusServerGroupConfigurationService',
       },
+      securityGroup: {
+        reader: 'titusSecurityGroupReader',
+      },
       instance: {
         detailsTemplateUrl: require('./instance/details/instanceDetails.html'),
         detailsController: 'titusInstanceDetailsCtrl'
       }
     });
   });
-
