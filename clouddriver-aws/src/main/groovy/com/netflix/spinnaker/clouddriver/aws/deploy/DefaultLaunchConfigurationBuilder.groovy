@@ -22,17 +22,15 @@ import com.amazonaws.services.autoscaling.model.CreateLaunchConfigurationRequest
 import com.amazonaws.services.autoscaling.model.Ebs
 import com.amazonaws.services.autoscaling.model.InstanceMonitoring
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
-import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
-import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProperties
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.aws.deploy.LaunchConfigurationBuilder.LaunchConfigurationSettings
+import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProperties
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.aws.services.SecurityGroupService
-import groovy.transform.CompileStatic
+import com.netflix.spinnaker.clouddriver.helpers.OperationPoller
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import org.apache.commons.codec.binary.Base64
 import org.joda.time.LocalDateTime
 
@@ -125,7 +123,7 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
   }
 
   /**
-   * Constructs an LaunchConfiguration with the provided settings
+   * Constructs a LaunchConfiguration with the provided settings
    * @param application the name of the application - used to construct a default security group if none are present
    * @param subnetType the subnet type for security groups in the launch configuration
    * @param settings the settings for the launch configuration
@@ -144,12 +142,14 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
 
       String existingAppGroup = names.keySet().find { it.contains(application) }
       if (!existingAppGroup) {
-        String applicationSecurityGroup = securityGroupService.getSecurityGroupForApplication(application, subnetType)
-        if (!applicationSecurityGroup) {
-          applicationSecurityGroup = securityGroupService.createSecurityGroup(application, subnetType)
-        }
+        OperationPoller.retryWithBackoff({o ->
+          String applicationSecurityGroup = securityGroupService.getSecurityGroupForApplication(application, subnetType)
+          if (!applicationSecurityGroup) {
+            applicationSecurityGroup = securityGroupService.createSecurityGroup(application, subnetType)
+          }
 
-        securityGroupIds << applicationSecurityGroup
+          securityGroupIds << applicationSecurityGroup
+        }, 500, 3);
       }
     }
     settings = settings.copyWith(securityGroups: securityGroupIds.toList())
