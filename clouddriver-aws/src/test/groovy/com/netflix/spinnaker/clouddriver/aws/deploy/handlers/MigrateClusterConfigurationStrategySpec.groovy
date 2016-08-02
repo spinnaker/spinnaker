@@ -84,7 +84,7 @@ class MigrateClusterConfigurationStrategySpec extends Specification {
 
     when:
     def results = strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'external', 'newIamRole', 'newKeyPair', false, true)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'external', 'external', 'newIamRole', 'newKeyPair', false, true)
 
     then:
     results.loadBalancerMigrations.empty
@@ -112,7 +112,7 @@ class MigrateClusterConfigurationStrategySpec extends Specification {
 
     when:
     def results = strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, null, null, null, false, true)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, null, null, null, null, false, true)
 
     then:
     results.loadBalancerMigrations.size() == 2
@@ -147,7 +147,7 @@ class MigrateClusterConfigurationStrategySpec extends Specification {
 
     when:
     def results = strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, null, null, null, false, false)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, null, null, null, null, false, false)
 
     then:
     results.securityGroupMigrations.size() == 2
@@ -175,7 +175,7 @@ class MigrateClusterConfigurationStrategySpec extends Specification {
 
     when:
     def results = strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, null, null, null, false, false)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, null, null, null, null, false, false)
 
     then:
     results.cluster.securityGroups == ['sg-1a']
@@ -206,7 +206,7 @@ class MigrateClusterConfigurationStrategySpec extends Specification {
 
     when:
     def results = strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, null, null, null, false, true)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, null, null, null, null, false, true)
 
     then:
     results.cluster.securityGroups == ['sg-1a']

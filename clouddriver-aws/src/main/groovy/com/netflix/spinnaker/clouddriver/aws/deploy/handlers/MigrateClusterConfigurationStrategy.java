@@ -42,6 +42,7 @@ public abstract class MigrateClusterConfigurationStrategy implements MigrateStra
   protected ClusterConfiguration source;
   protected ClusterConfigurationTarget target;
   protected String subnetType;
+  protected String elbSubnetType;
   protected String iamRole;
   protected String keyPair;
   protected boolean allowIngressFromClassic;
@@ -70,6 +71,8 @@ public abstract class MigrateClusterConfigurationStrategy implements MigrateStra
    * @param migrateSecurityGroupStrategy the security group migration strategy
    * @param subnetType                   the subnetType in which to migrate the dependencies (should be null for EC
    *                                     Classic migrations)
+   * @param elbSubnetType                the subnetType in which to migrate dependent load balancers (should be null
+   *                                     for EC Classic migrations)
    * @param iamRole                      the iamRole to apply when migrating (optional)
    * @param keyPair                      the keyPair to apply when migrating (optional)
    * @param allowIngressFromClassic      whether app security groups should granted ingress to classic link
@@ -81,13 +84,14 @@ public abstract class MigrateClusterConfigurationStrategy implements MigrateStra
                                                                         SecurityGroupLookup sourceLookup, SecurityGroupLookup targetLookup,
                                                                         MigrateLoadBalancerStrategy migrateLoadBalancerStrategy,
                                                                         MigrateSecurityGroupStrategy migrateSecurityGroupStrategy,
-                                                                        String subnetType, String iamRole, String keyPair,
+                                                                        String subnetType, String elbSubnetType, String iamRole, String keyPair,
                                                                         boolean allowIngressFromClassic, boolean dryRun) {
     this.sourceLookup = sourceLookup;
     this.targetLookup = targetLookup;
     this.source = source;
     this.target = target;
     this.subnetType = subnetType;
+    this.elbSubnetType = elbSubnetType;
     this.iamRole = iamRole;
     this.keyPair = keyPair;
     this.allowIngressFromClassic = allowIngressFromClassic;
@@ -197,7 +201,7 @@ public abstract class MigrateClusterConfigurationStrategy implements MigrateStra
     sourceLocation.setCredentials(source.getCredentials());
     return new LoadBalancerMigrator(sourceLookup, targetLookup, getAmazonClientProvider(), getRegionScopedProviderFactory(),
       migrateSecurityGroupStrategy, getDeployDefaults(), getMigrateLoadBalancerStrategy, sourceLocation,
-      new LoadBalancerMigrator.LoadBalancerLocation(target), subnetType, source.getApplication(), allowIngressFromClassic).migrate(dryRun);
+      new LoadBalancerMigrator.LoadBalancerLocation(target), elbSubnetType, source.getApplication(), allowIngressFromClassic).migrate(dryRun);
   }
 
 }

@@ -27,6 +27,7 @@ class MigrateServerGroupDescription {
   ServerGroupLocation source
   ServerGroupLocation target
   String subnetType
+  String elbSubnetType
   String iamRole
   String keyPair
   String targetAmi
