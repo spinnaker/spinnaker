@@ -43,6 +43,7 @@ module.exports = angular
 
       this.$onInit = () => {
         this.operatorChanged();
+        this.adjustmentTypeChanged();
       };
     }
   });
