@@ -258,6 +258,7 @@ module.exports = angular
 
     this.submit = () => {
       this.state = 'migrate';
+      this.task = null;
       migratorService.executeMigration(application, buildCommand(false)).then(migrationStarted, errorMode);
     };
   });

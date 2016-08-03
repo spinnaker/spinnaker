@@ -179,6 +179,7 @@ module.exports = angular
 
     // Button handlers
     this.submit = () => {
+      this.task = null;
       this.state = 'migrate';
       let config = buildMigrationConfig();
       config.dryRun = false;
