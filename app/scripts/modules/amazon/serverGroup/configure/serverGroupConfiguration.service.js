@@ -180,7 +180,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
       if (command.region && (command.virtualizationType || command.viewState.disableImageSelection)) {
         var filtered = awsInstanceTypeService.getAvailableTypesForRegions(command.backingData.instanceTypes, [command.region]);
         if (command.virtualizationType) {
-          filtered = awsInstanceTypeService.filterInstanceTypesByVirtualizationType(filtered, command.virtualizationType);
+          filtered = awsInstanceTypeService.filterInstanceTypes(filtered, command.virtualizationType, !!command.vpcId);
         }
         if (command.instanceType && filtered.indexOf(command.instanceType) === -1) {
           result.dirty.instanceType = command.instanceType;
@@ -397,6 +397,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
           .find({purpose: command.subnetType, account: command.credentials, region: command.region});
         command.vpcId = subnet ? subnet.vpcId : null;
       }
+      angular.extend(result.dirty, configureInstanceTypes(command).dirty);
       return result;
     }
 

@@ -67,6 +67,7 @@ describe('Controller: awsCloneServerGroup', function () {
           mode: 'clone',
           imageId: 'ami-123',
           usePreferredZones: true,
+          dirty: {},
         }
       };
     };
@@ -82,6 +83,7 @@ describe('Controller: awsCloneServerGroup', function () {
         viewState: {
           mode: 'create',
           usePreferredZones: true,
+          dirty: {},
         }
       };
     };

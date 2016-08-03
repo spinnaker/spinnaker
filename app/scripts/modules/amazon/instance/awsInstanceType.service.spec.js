@@ -113,6 +113,15 @@ describe('Service: InstanceType', function () {
       expect(results).toEqual(['m2.xlarge']);
     });
 
+    it('filters instance types by VPC and virtualization type', function () {
+      let types = ['c4.a', 'c3.a', 'c4.a', 'c1.a'];
+      let service = this.awsInstanceTypeService;
+      expect(service.filterInstanceTypes(types, 'hvm', true)).toEqual(['c4.a', 'c3.a', 'c4.a']);
+      expect(service.filterInstanceTypes(types, 'hvm', false)).toEqual(['c3.a']);
+      expect(service.filterInstanceTypes(types, 'paravirtual', true)).toEqual(['c3.a', 'c1.a']);
+      expect(service.filterInstanceTypes(types, 'paravirtual', false)).toEqual(['c3.a', 'c1.a']);
+    });
+
   });
 
 });
