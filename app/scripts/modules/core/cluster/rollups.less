@@ -228,7 +228,6 @@ running-tasks-tag {
   margin-top: 12px;
   border: 1px solid #777777;
   padding: 5px 10px;
-  border-radius: 3px;
   box-shadow: 0 0 2px 1px #eeeeee;
   text-transform: none;
   color: @text-color;
@@ -265,7 +264,6 @@ running-tasks-tag {
   margin-top: 8px;
   border: 1px solid #777777;
   padding: 0;
-  border-radius: 3px;
   box-shadow: 0 0 2px 0 #dddddd;
   min-width: 150px;
   div {
@@ -320,36 +318,34 @@ load-balancers-tag {
   .overflowing {
     position: relative;
   }
-  .btn-load-balancer {
-    margin-right: 10px;
+  .btn-load-balancer button, .btn-multiple-load-balancers {
+    margin-top: -5px;
   }
 
-  .btn-multiple-load-balancers {
-    text-align: right;
-    margin-right: 3px;
-    &:hover {
-      text-decoration: none;
-    }
-    .icon {
-      width: 30px;
-    }
-    .icon-elb {
-      height: 0;
-      width: 0;
-    }
-    .counter {
-      color: @spinnaker-link-color;
-      background-color: #fff;
-      border: 1px solid @spinnaker-link-color;
-      right: 0;
-      top: -3px;
-      font-size: 100%;
-      padding: 1px 4px;
-      border-radius: 4px;
-    }
-    span {
-      position: relative;
-    }
+  text-align: right;
+  margin-right: 3px;
+  &:hover {
+    text-decoration: none;
+  }
+  .icon {
+    width: 30px;
+  }
+  .icon-elb {
+    height: 0;
+    width: 0;
+  }
+  .counter {
+    color: @spinnaker-link-color;
+    background-color: #fff;
+    border: 1px solid @spinnaker-link-color;
+    right: 0;
+    top: -3px;
+    font-size: 100%;
+    padding: 1px 4px;
+    border-radius: 4px;
+  }
+  span {
+    position: relative;
   }
 }
 

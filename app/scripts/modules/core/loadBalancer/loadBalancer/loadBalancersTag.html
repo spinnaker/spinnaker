@@ -37,8 +37,10 @@
        ui-sref=".loadBalancerDetails({region: serverGroup.region, accountId: serverGroup.account, name: loadBalancer, provider: serverGroup.type})"
        ui-sref-active="active"
        uib-tooltip="Load Balancer: {{loadBalancer}}">
-      <span class="icon">
-        <span class="icon-elb"></span>
+      <span class="badge counter">
+        <span class="icon">
+          <span class="icon-elb"></span>
+        </span>
       </span>
     </button>
   </span>
