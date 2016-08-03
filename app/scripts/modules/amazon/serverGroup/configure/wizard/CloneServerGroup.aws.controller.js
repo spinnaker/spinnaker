@@ -145,6 +145,10 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
       if (result.dirty.instanceType) {
         v2modalWizardService.markDirty('instance-type');
       }
+      if (result.dirty.keyPair) {
+        v2modalWizardService.markDirty('advanced');
+        v2modalWizardService.markIncomplete('advanced');
+      }
     }
 
     function initializeCommand() {
