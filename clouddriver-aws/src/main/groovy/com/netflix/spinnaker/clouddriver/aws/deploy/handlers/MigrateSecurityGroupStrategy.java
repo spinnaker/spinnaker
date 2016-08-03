@@ -218,11 +218,11 @@ public abstract class MigrateSecurityGroupStrategy {
   }
 
   /**
-   * Returns references to all security groups that should be created for the target
+   * Returns references to all security groups that cannot be created for the target and should be presented to the user
    *
    * @param references the collection of potential security groups to select from; implementations can choose to provide
    *                   additional security groups that are *not* members of this set
-   * @return a list of security groups that need to be created in order to migrate the target security group
+   * @return a list of security groups that cannot be created but should prompt the user
    */
   protected Set<MigrateSecurityGroupReference> shouldWarn(Set<MigrateSecurityGroupReference> references) {
     return references.stream().filter(reference -> {
@@ -300,8 +300,12 @@ public abstract class MigrateSecurityGroupStrategy {
       .map(pair -> {
         NetflixAmazonCredentials account = sourceLookup.getCredentialsForId(pair.getUserId());
         if (pair.getGroupName() == null) {
-          sourceLookup.getSecurityGroupById(account.getName(), pair.getGroupId(), pair.getVpcId())
-            .ifPresent(u -> pair.setGroupName(u.getSecurityGroup().getGroupName()));
+          if (account == null) {
+            pair.setGroupName(pair.getGroupId());
+          } else {
+            sourceLookup.getSecurityGroupById(account.getName(), pair.getGroupId(), pair.getVpcId())
+              .ifPresent(u -> pair.setGroupName(u.getSecurityGroup().getGroupName()));
+          }
         }
         return new MigrateSecurityGroupReference(pair, account);
       })
