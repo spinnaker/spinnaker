@@ -52,7 +52,6 @@ class DestroyServerGroupStage extends TargetServerGroupLinearStageSupport {
         buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
         buildStep(stage, "destroyServerGroup", DestroyServerGroupTask),
         buildStep(stage, "monitorServerGroup", MonitorKatoTask),
-        buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
         buildStep(stage, "waitForDestroyedServerGroup", WaitForDestroyedServerGroupTask),
       ]
 
