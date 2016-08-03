@@ -3,18 +3,20 @@
 describe('API Service', function () {
   let API;
   let $httpBackend;
-  const baseUrl = 'https://spinnaker-api-prestaging.mgmttest.netflix.net';
+  let baseUrl;
 
   beforeEach(
     window.module(
-      require('./api.service')
+      require('./api.service'),
+      require('../config/settings')
     )
   );
 
   beforeEach(
-    window.inject(function (_API_, _$httpBackend_) {
+    window.inject(function (_API_, _$httpBackend_, settings) {
       API = _API_;
       $httpBackend = _$httpBackend_;
+      baseUrl = settings.gateUrl;
     })
   );
 

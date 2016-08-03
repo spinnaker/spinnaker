@@ -14,7 +14,7 @@ module.exports = angular
     }
 
     function postTaskCommand(taskCommand) {
-      return getEndpoint(taskCommand.application).post(taskCommand);
+      return getEndpoint(taskCommand.application || taskCommand.project).post(taskCommand);
     }
 
     function cancelTask(application, taskId) {

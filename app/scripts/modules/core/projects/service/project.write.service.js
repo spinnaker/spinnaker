@@ -18,6 +18,7 @@ module.exports = angular
             project: project
           }
         ],
+        project: project,
         description: descriptor + ' project: ' + project.name
       });
     }
@@ -32,6 +33,7 @@ module.exports = angular
             },
           }
         ],
+        project: project,
         description: 'Delete project: ' + project.name
       });
     }
