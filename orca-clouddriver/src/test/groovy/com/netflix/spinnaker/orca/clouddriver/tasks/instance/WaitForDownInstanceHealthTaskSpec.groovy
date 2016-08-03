@@ -35,13 +35,13 @@ class WaitForDownInstanceHealthTaskSpec extends Specification {
     ["Discovery"]                 || [health: [[type: "Discovery", state: "Down"]]]                                                                      || true
     ["Discovery"]                 || [health: [[type: "Discovery", state: "OutOfService"]]]                                                              || true
     ["Discovery", "Other"]        || [health: [[type: "Other", state: "Down"]]]                                                                          || true
-    ["Amazon"]                    || [health: []]                                                                                                        || false
+    ["LoadBalancer"]              || [health: []]                                                                                                        || true
     ["Amazon"]                    || [health: [[type: "Amazon", healthClass: "platform", state: "Up"]]]                                                  || false
     ["Amazon", "Discovery"]       || [health: [[type: "Amazon", healthClass: "platform", state: "Unknown"], [type: "Discovery", state: "Up"]]]           || false
     ["Discovery"]                 || [health: [[type: "Discovery", state: "Up"]]]                                                                        || false
-    ["Discovery"]                 || [health: [[type: "Other", state: "Up"]]]                                                                            || false
+    ["Discovery"]                 || [health: [[type: "Other", state: "Up"]]]                                                                            || true
     ["Discovery", "Other"]        || [health: [[type: "Other", state: "Up"]]]                                                                            || false
-    ["Discovery"]                 || [health: [[type: "Other", state: "Down"]]]                                                                          || false
+    ["Discovery"]                 || [health: [[type: "Other", state: "Down"]]]                                                                          || true
   }
 
 }
