@@ -234,7 +234,7 @@ class MigrateSecurityGroupStrategySpec extends Specification {
     1 * targetLookup.getSecurityGroupByName('test', 'infra-g1', null) >> Optional.empty()
   }
 
-  void 'should skip amazon-elb group without warning when target is in VPC'() {
+  void 'should skip amazon-elb group without warning when target is in VPC, using groupId as name if not present'() {
     given:
     def source = new SecurityGroupLocation(credentials: testCredentials, region: 'us-east-1', name: 'group1')
     def target = new SecurityGroupLocation(credentials: testCredentials, region: 'us-west-1', vpcId: 'vpc-2')
@@ -242,7 +242,8 @@ class MigrateSecurityGroupStrategySpec extends Specification {
     AmazonEC2 amazonEC2 = Mock(AmazonEC2)
     sourceGroup.ipPermissions = [
       new IpPermission().withUserIdGroupPairs(
-        new UserIdGroupPair(userId: 'amazon-elb', groupId: 'sg-2', groupName: 'do-not-copy')),
+        new UserIdGroupPair(userId: 'amazon-elb', groupId: 'sg-2'),
+        new UserIdGroupPair(userId: 'amazon-elb', groupId: 'sg-3', groupName: 'do-not-copy')),
     ]
     def sourceUpdater = Stub(SecurityGroupUpdater) {
       getSecurityGroup() >> sourceGroup
@@ -253,8 +254,8 @@ class MigrateSecurityGroupStrategySpec extends Specification {
 
     then:
     results.created.size() == 1
-    results.created.targetName.sort() == ['group1']
-    results.skipped.targetName == ['do-not-copy']
+    results.created.targetName == ['group1']
+    results.skipped.targetName.sort() == ['do-not-copy', 'sg-2']
     sourceLookup.getCredentialsForId('amazon-elb') >> null
     targetLookup.accountIdExists('amazon-elb') >> false
     2 * amazonClientProvider.getAmazonEC2(testCredentials, 'us-west-1') >> amazonEC2
