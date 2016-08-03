@@ -46,7 +46,7 @@ class WaitForDestroyedServerGroupTask extends AbstractCloudProviderAwareTask imp
   TaskResult execute(Stage stage) {
     String cloudProvider = getCloudProvider(stage)
     String account = getCredentials(stage)
-    String serverGroupRegion = (stage.context.regions as Collection)?.getAt(0)
+    String serverGroupRegion = (stage.context.regions as Collection)?.getAt(0) ?: stage.context.region
     String serverGroupName = (stage.context.serverGroupName ?: stage.context.asgName) as String // TODO: Retire asgName
     Names names = Names.parseName(serverGroupName)
     try {
