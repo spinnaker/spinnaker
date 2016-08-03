@@ -117,8 +117,8 @@ class Keys {
             }
             break
           case Namespace.LOAD_BALANCERS.ns:
-            if (parts.length == 5) {
-              result << [account: parts[2], region: parts[3], id: parts[4]]
+            if (parts.length == 6) {
+              result << [account: parts[2], region: parts[3], id: parts[4], name: parts[5]]
             }
             break
           case Namespace.VIPS.ns:

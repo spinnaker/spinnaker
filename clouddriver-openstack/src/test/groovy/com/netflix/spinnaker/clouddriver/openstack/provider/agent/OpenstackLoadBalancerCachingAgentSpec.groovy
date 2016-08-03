@@ -17,10 +17,16 @@
 package com.netflix.spinnaker.clouddriver.openstack.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
+import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent.OnDemandResult
+import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
+import com.netflix.spinnaker.clouddriver.openstack.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
@@ -36,12 +42,15 @@ import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccoun
 import org.openstack4j.model.common.ActionResponse
 import org.openstack4j.model.network.ext.HealthMonitor
 import org.openstack4j.model.network.ext.LbPool
+import org.openstack4j.model.network.ext.Vip
+import spock.lang.Shared
 import spock.lang.Specification
 
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.FLOATING_IPS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.LOAD_BALANCERS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.NETWORKS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.PORTS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SERVER_GROUPS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SUBNETS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.VIPS
 
@@ -52,8 +61,12 @@ class OpenstackLoadBalancerCachingAgentSpec extends Specification {
   OpenstackCredentials credentials
   ObjectMapper objectMapper
   OpenstackClientProvider provider
-  final String region = 'east'
-  final String account = 'account'
+  Registry registry
+
+  @Shared
+  String region = 'east'
+  @Shared
+  String account = 'account'
   final String serverGroupName = 'myapp-test-v000'
 
   void "setup"() {
@@ -65,13 +78,50 @@ class OpenstackLoadBalancerCachingAgentSpec extends Specification {
       it.credentials >> { credentials }
     }
     objectMapper = Mock(ObjectMapper)
-    cachingAgent = Spy(OpenstackLoadBalancerCachingAgent, constructorArgs: [namedAccountCredentials, region, objectMapper]) {
+    registry = Stub(Registry) {
+      timer(_, _) >> Mock(Timer)
+    }
+    cachingAgent = Spy(OpenstackLoadBalancerCachingAgent, constructorArgs: [namedAccountCredentials, region, objectMapper, registry]) {
       it.accountName >> { account }
       it.clientProvider >> { provider }
     }
   }
 
-  void "test load data"() {
+  void "test load data" () {
+    given:
+    ProviderCache providerCache = Mock(ProviderCache)
+    CacheResult cacheResult = Mock(CacheResult)
+
+    when:
+    CacheResult result = cachingAgent.loadData(providerCache)
+
+    then:
+    1 * provider.getAllLoadBalancerPools(region) >> []
+    1 * cachingAgent.buildLoadDataCache(providerCache, [], _) >> cacheResult
+
+    and:
+    result == cacheResult
+    noExceptionThrown()
+  }
+
+
+  void "test load data exception"() {
+    given:
+    ProviderCache providerCache = Mock(ProviderCache)
+    Throwable throwable = new OpenstackProviderException(ActionResponse.actionFailed('test', 1))
+
+    when:
+    cachingAgent.loadData(providerCache)
+
+    then:
+    1 * provider.getAllLoadBalancerPools(region) >> { throw throwable }
+
+    and:
+    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
+    openstackProviderException == throwable
+  }
+
+  void "test build cache"() {
     given:
     ProviderCache providerCache = Mock(ProviderCache)
     String lbId = UUID.randomUUID().toString()
@@ -144,10 +194,9 @@ class OpenstackLoadBalancerCachingAgentSpec extends Specification {
                                                     String a, String r -> loadBalancer }
 
     when:
-    CacheResult result = cachingAgent.loadData(providerCache)
+    CacheResult result = cachingAgent.buildCacheResult(providerCache, [pool], new CacheResultBuilder(startTime: System.currentTimeMillis()))
 
     then:
-    1 * provider.getAllLoadBalancerPools(region) >> [pool]
     1 * provider.getHealthMonitor(region, healthId) >> healthMonitor
 
     and:
@@ -181,19 +230,101 @@ class OpenstackLoadBalancerCachingAgentSpec extends Specification {
     noExceptionThrown()
   }
 
-  void "test load data exception"() {
-    given:
-    ProviderCache providerCache = Mock(ProviderCache)
-    Throwable throwable = new OpenstackProviderException(ActionResponse.actionFailed('test', 1))
-
+  void "test handles - #testCase"() {
     when:
-    cachingAgent.loadData(providerCache)
+    boolean result = cachingAgent.handles(type, cloudProvider)
 
     then:
-    1 * provider.getAllLoadBalancerPools(region) >> { throw throwable }
+    result == expected
+
+    where:
+    testCase         | type                                    | cloudProvider             | expected
+    'wrong type'     | OnDemandAgent.OnDemandType.ServerGroup  | OpenstackCloudProvider.ID | false
+    'wrong provider' | OnDemandAgent.OnDemandType.LoadBalancer | 'aws'                     | false
+    'success'        | OnDemandAgent.OnDemandType.LoadBalancer | OpenstackCloudProvider.ID | true
+  }
+
+  void "test handle on demand no result - #testCase"() {
+    given:
+    ProviderCache providerCache = Mock(ProviderCache)
+
+    when:
+    OnDemandResult result = cachingAgent.handle(providerCache, data)
+
+    then:
+    result == null
+
+    where:
+    testCase                  | data
+    'empty data'              | [:]
+    'missing loadBalancerName'| [account: account, region: region]
+    'wrong account'           | [loadBalancerName: 'name', account: 'abc', region: region]
+    'wrong region'            | [loadBalancerName: 'name', account: account, region: 'abc']
+  }
+
+  void "test handle on demand no resource"() {
+    given:
+    ProviderCache providerCache = Mock(ProviderCache)
+    String loadbalancerName = "test"
+    String loadBalancerKey = Keys.getLoadBalancerKey(loadbalancerName, '*', account, region)
+    Map<String, Object> data = [loadBalancerName: loadbalancerName, account: account, region: region]
+    CacheResult cacheResult = new CacheResultBuilder(startTime: Long.MAX_VALUE).build()
+
+    when:
+    OnDemandResult result = cachingAgent.handle(providerCache, data)
+
+    then:
+    1 * provider.getLoadBalancerPoolByName(region, loadbalancerName) >> { throw new OpenstackProviderException('test') }
+    1 * cachingAgent.buildCacheResult(providerCache, [], _) >> cacheResult
+    1 * cachingAgent.resolveKey(providerCache, LOAD_BALANCERS.ns, loadBalancerKey) >> loadBalancerKey
+    1 * cachingAgent.processOnDemandCache(cacheResult, objectMapper, _, providerCache, loadBalancerKey)
 
     and:
-    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
-    openstackProviderException == throwable
+    result.cacheResult ==  cacheResult
+    result.evictions.get(LOAD_BALANCERS.ns) == [loadBalancerKey]
+  }
+
+  void "test handle on demand"() {
+    given:
+    ProviderCache providerCache = Mock(ProviderCache)
+    String poolId = UUID.randomUUID().toString()
+    String vipId = UUID.randomUUID().toString()
+    String loadbalancerName = "test"
+    String loadBalancerKey = Keys.getLoadBalancerKey(loadbalancerName, poolId, account, region)
+    Map<String, Object> data = [loadBalancerName: loadbalancerName, account: account, region: region]
+    CacheResult cacheResult = new CacheResultBuilder(startTime: Long.MAX_VALUE).build()
+    LbPool lbPool = Mock(LbPool) {
+      getId() >> poolId
+      getVipId() >> vipId
+    }
+
+    when:
+    OnDemandResult result = cachingAgent.handle(providerCache, data)
+
+    then:
+    1 * provider.getLoadBalancerPoolByName(region, loadbalancerName) >> lbPool
+    1 * provider.getVip(region, vipId) >> Mock(Vip)
+    1 * cachingAgent.buildCacheResult(providerCache, [lbPool], _) >> cacheResult
+    1 * cachingAgent.resolveKey(providerCache, LOAD_BALANCERS.ns, loadBalancerKey) >> loadBalancerKey
+    1 * cachingAgent.processOnDemandCache(cacheResult, objectMapper, _, providerCache, loadBalancerKey)
+
+    and:
+    result.cacheResult == cacheResult
+    result.evictions.get(LOAD_BALANCERS.ns).isEmpty()
+  }
+
+  void 'test pending on demand requests' () {
+    given:
+    ProviderCache providerCache = Mock(ProviderCache)
+    Collection<Map> maps = Mock(Collection)
+
+    when:
+    Collection<Map> result = cachingAgent.pendingOnDemandRequests(providerCache)
+
+    then:
+    1 * cachingAgent.getAllOnDemandCacheByRegionAndAccount(providerCache, account, region) >> maps
+
+    and:
+    result == maps
   }
 }

@@ -97,7 +97,7 @@ class OpenstackInfrastructureProviderConfig {
           newlyAddedAgents << new OpenstackVipCachingAgent(credentials, region, objectMapper)
           newlyAddedAgents << new OpenstackFloatingIPCachingAgent(credentials, region, objectMapper)
           newlyAddedAgents << new OpenstackPortCachingAgent(credentials, region, objectMapper)
-          newlyAddedAgents << new OpenstackLoadBalancerCachingAgent(credentials, region, objectMapper)
+          newlyAddedAgents << new OpenstackLoadBalancerCachingAgent(credentials, region, objectMapper, registry)
           newlyAddedAgents << new OpenstackInstanceTypeCachingAgent(credentials, region, objectMapper)
         }
       }

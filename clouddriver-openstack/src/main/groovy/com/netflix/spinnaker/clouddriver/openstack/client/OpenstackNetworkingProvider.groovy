@@ -47,6 +47,14 @@ interface OpenstackNetworkingProvider {
   LbPool getLoadBalancerPool(final String region, final String loadBalancerId)
 
   /**
+   * Gets load balancer pool for a given region by load balancer name.
+   * @param region
+   * @param loadBalancerName
+   * @return
+   */
+  LbPool getLoadBalancerPoolByName(final String region, final String loadBalancerName)
+
+  /**
    * Get all vips in a region.
    * @param region
    * @return

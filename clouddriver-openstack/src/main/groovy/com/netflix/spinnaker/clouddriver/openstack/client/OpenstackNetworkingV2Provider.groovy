@@ -50,10 +50,22 @@ class OpenstackNetworkingV2Provider implements OpenstackNetworkingProvider, Open
 
   @Override
   List<? extends LbPool> getAllLoadBalancerPools(final String region) {
-    List<? extends LbPool> pools = handleRequest {
-      getRegionClient(region).networking().loadbalancers().lbPool().list()
+    getInternalAllLoadBalancerPools(region)
+  }
+
+  List<? extends LbPool> getInternalAllLoadBalancerPools(final String region, Map<String, String> filterParameters = null) {
+    handleRequest {
+      getRegionClient(region).networking().loadbalancers().lbPool().list(filterParameters)
     }
-    pools
+  }
+
+  @Override
+  LbPool getLoadBalancerPoolByName(final String region, final String loadBalancerName) {
+    List<LbPool> pools = getInternalAllLoadBalancerPools(region, [name:loadBalancerName])
+    if (!pools || pools.size() > 1) {
+      throw new OpenstackProviderException("Unable to find load balancer ${loadBalancerName} in ${region}")
+    }
+    pools.first()
   }
 
   @Override

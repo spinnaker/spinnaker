@@ -16,16 +16,21 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.provider.agent
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.clouddriver.openstack.cache.OnDemandAware
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider
+import com.netflix.spinnaker.clouddriver.openstack.provider.view.MutableCacheData
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 
 /**
  * Base agent that implements common logic for all agents.
  */
-abstract class AbstractOpenstackCachingAgent implements CachingAgent, AccountAware {
+abstract class AbstractOpenstackCachingAgent implements CachingAgent, AccountAware, OnDemandAware {
+
+  final TypeReference<Map<String, List<MutableCacheData>>> typeReference = new TypeReference<Map<String, List<MutableCacheData>>>() {}
 
   final OpenstackNamedAccountCredentials account
   final String region

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.provider.agent
 
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.Maps
 import com.google.common.collect.Sets
@@ -26,16 +25,15 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
-import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.openstack.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
+import com.netflix.spinnaker.clouddriver.openstack.cache.OnDemandAware
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLaunchConfig
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackServerGroup
-import com.netflix.spinnaker.clouddriver.openstack.provider.view.MutableCacheData
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.openstack.utils.DateUtils
 import groovy.util.logging.Slf4j
@@ -46,7 +44,6 @@ import org.openstack4j.model.network.ext.LbPool
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
-import java.util.concurrent.TimeUnit
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
@@ -56,14 +53,13 @@ import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.I
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.LOAD_BALANCERS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SERVER_GROUPS
-import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.ON_DEMAND
 
 import static com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider.ATTRIBUTES
 import static com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider.ID
 import static com.netflix.spinnaker.clouddriver.cache.OnDemandAgent.OnDemandType.ServerGroup
 
 @Slf4j
-class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent implements OnDemandAgent {
+class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent implements OnDemandAgent, OnDemandAware {
 
   final Set<AgentDataType> providedDataTypes = Collections.unmodifiableSet([
     AUTHORITATIVE.forType(SERVER_GROUPS.ns),
@@ -87,30 +83,12 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    CacheResultBuilder cacheResultBuilder = new CacheResultBuilder(startTime: System.currentTimeMillis())
-
     List<Stack> stacks = clientProvider.listStacks(region)
-
     List<String> serverGroupKeys = stacks.collect { Keys.getServerGroupKey(it.name, accountName, region) }
-    providerCache.getAll(ON_DEMAND.ns, serverGroupKeys).each { CacheData cacheData ->
-      // Ensure that we don't overwrite data that was inserted by the `handle` method while we retrieved the
-      // managed instance groups. Furthermore, cache data that hasn't been moved to the proper namespace needs to be
-      // updated in the ON_DEMAND cache, so don't evict data without a processedCount > 0.
-      if (cacheData.attributes.cacheTime < cacheResultBuilder.startTime && cacheData.attributes.processedCount > 0) {
-        cacheResultBuilder.onDemand.toEvict << cacheData.id
-      } else {
-        cacheResultBuilder.onDemand.toKeep[cacheData.id] = cacheData
-      }
+
+    buildLoadDataCache(providerCache, serverGroupKeys) { CacheResultBuilder cacheResultBuilder ->
+      buildCacheResult(providerCache, cacheResultBuilder, stacks)
     }
-
-    CacheResult result = buildCacheResult(providerCache, cacheResultBuilder, stacks)
-
-    result?.cacheResults?.get(ON_DEMAND.ns)?.each { CacheData cacheData ->
-      cacheData.attributes.processedTime = System.currentTimeMillis()
-      cacheData.attributes.processedCount = (cacheData.attributes.processedCount ?: 0) + 1
-    }
-
-    result
   }
 
   protected CacheResult buildCacheResult(ProviderCache providerCache, CacheResultBuilder cacheResultBuilder, List<Stack> stacks) {
@@ -145,12 +123,16 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
         String loadBalancerKey = null
         Stack detail = clientProvider.getStack(region, stack.name)
         if (detail && detail.parameters) {
-          LbPool pool = clientProvider.getLoadBalancerPool(region, detail.parameters['pool_id'])
-          if (pool) {
-            loadBalancerKey = Keys.getLoadBalancerKey(pool.name, pool.id, accountName, region)
-            cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keep(loadBalancerKey).with {
-              relationships[SERVER_GROUPS.ns].add(serverGroupKey)
+          try {
+            LbPool pool = clientProvider.getLoadBalancerPool(region, detail.parameters['pool_id'])
+            if (pool) {
+              loadBalancerKey = Keys.getLoadBalancerKey(pool.name, pool.id, accountName, region)
+              cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keep(loadBalancerKey).with {
+                relationships[SERVER_GROUPS.ns].add(serverGroupKey)
+              }
             }
+          } catch (OpenstackProviderException ope) {
+            //Do nothing ... Load balancer not found.
           }
         }
 
@@ -165,7 +147,7 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
         OpenstackServerGroup openstackServerGroup = buildServerGroup(providerCache, detail, loadBalancerIds)
 
         if (shouldUseOnDemandData(cacheResultBuilder, serverGroupKey)) {
-          moveOnDemandDataToNamespace(cacheResultBuilder, serverGroupKey)
+          moveOnDemandDataToNamespace(objectMapper, typeReference, cacheResultBuilder, serverGroupKey)
         } else {
           cacheResultBuilder.namespace(SERVER_GROUPS.ns).keep(serverGroupKey).with {
             attributes = objectMapper.convertValue(openstackServerGroup, ATTRIBUTES)
@@ -186,27 +168,6 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
     log.info("Evicting ${cacheResultBuilder.onDemand.toEvict.size()} onDemand entries in ${agentType}")
 
     cacheResultBuilder.build()
-  }
-
-  boolean shouldUseOnDemandData(CacheResultBuilder cacheResultBuilder, String serverGroupKey) {
-    CacheData cacheData = cacheResultBuilder.onDemand.toKeep[serverGroupKey]
-    cacheData ? cacheData.attributes.cacheTime >= cacheResultBuilder.startTime : false
-  }
-
-  void moveOnDemandDataToNamespace(CacheResultBuilder cacheResultBuilder, String serverGroupKey) {
-    Map<String, List<MutableCacheData>> onDemandData = objectMapper.readValue(
-      cacheResultBuilder.onDemand.toKeep[serverGroupKey].attributes.cacheResults as String,
-      new TypeReference<Map<String, List<MutableCacheData>>>() {})
-
-    onDemandData.each { String namespace, List<MutableCacheData> cacheDatas ->
-      cacheDatas.each { MutableCacheData cacheData ->
-        cacheResultBuilder.namespace(namespace).keep(cacheData.id).with {
-          attributes = cacheData.attributes
-          relationships = cacheData.relationships
-        }
-        cacheResultBuilder.onDemand.toKeep.remove(cacheData.id)
-      }
-    }
   }
 
   /**
@@ -340,8 +301,6 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
     OnDemandAgent.OnDemandResult result = null
 
     if (data.containsKey("serverGroupName") && data.account == accountName && data.region == region) {
-      result = new OnDemandAgent.OnDemandResult(sourceAgentType: onDemandAgentType, evictions: [:].withDefault { _ -> [] })
-
       String serverGroupName = data.serverGroupName.toString()
       String serverGroupKey = Keys.getServerGroupKey(serverGroupName, accountName, region)
 
@@ -353,35 +312,12 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
         }
       }
 
-      if (stack) {
-        CacheResultBuilder cacheResultBuilder = new CacheResultBuilder(startTime: Long.MAX_VALUE)
-        result.cacheResult = metricsSupport.transformData {
-          buildCacheResult(providerCache, cacheResultBuilder, stack ? [stack] : [])
-        }
-
-        if (result.cacheResult.cacheResults.values().flatten().empty) {
-          // Avoid writing an empty onDemand cache record (instead delete any that may have previously existed).
-          providerCache.evictDeletedItems(ON_DEMAND.ns, [serverGroupKey])
-        } else {
-          metricsSupport.onDemandStore {
-            CacheData cacheData = new DefaultCacheData(
-              serverGroupKey,
-              TimeUnit.MINUTES.toSeconds(10) as Integer, // ttl
-              [
-                cacheTime     : System.currentTimeMillis(),
-                cacheResults  : objectMapper.writeValueAsString(result.cacheResult.cacheResults),
-                processedCount: 0,
-                processedTime : null
-              ],
-              [:]
-            )
-
-            providerCache.putCacheData(ON_DEMAND.ns, cacheData)
-          }
-        }
-      } else {
-        result.evictions[SERVER_GROUPS.ns].add(serverGroupKey)
+      CacheResult cacheResult = metricsSupport.transformData {
+        buildCacheResult(providerCache, new CacheResultBuilder(startTime: Long.MAX_VALUE), stack ? [stack] : [])
       }
+
+      processOnDemandCache(cacheResult, objectMapper, metricsSupport, providerCache, serverGroupKey)
+      result = buildOnDemandCache(stack, onDemandAgentType, cacheResult, SERVER_GROUPS.ns, serverGroupKey)
 
       log.info("On demand cache refresh succeeded. Data: ${data}. Added ${stack ? 1 : 0} items to the cache.")
     }
@@ -391,18 +327,6 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
 
   @Override
   Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
-    Collection<String> keys = providerCache.getIdentifiers(ON_DEMAND.ns).findAll { String key ->
-      Map<String, String> parsedKey = Keys.parse(key)
-      parsedKey && parsedKey.account == accountName && parsedKey.region == region
-    }
-
-    providerCache.getAll(ON_DEMAND.ns, keys).collect { CacheData cacheData ->
-      [
-        details       : Keys.parse(cacheData.id),
-        cacheTime     : cacheData.attributes.cacheTime,
-        processedCount: cacheData.attributes.processedCount,
-        processedTime : cacheData.attributes.processedTime
-      ]
-    }
+    getAllOnDemandCacheByRegionAndAccount(providerCache, accountName, region)
   }
 }
