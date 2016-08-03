@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.controllers
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.igor.BuildArtifactFilter
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.apache.log4j.MDC
@@ -44,10 +45,13 @@ class OperationsControllerSpec extends Specification {
   def pipelineStarter = Mock(PipelineStarter)
   def buildService = Stub(BuildService)
   def mapper = new OrcaObjectMapper()
-  def env = new MockEnvironment()
   def executionRepository = Mock(ExecutionRepository)
+
+  def env = new MockEnvironment()
+  def buildArtifactFilter = new BuildArtifactFilter(environment: env)
+
   @Subject
-    controller = new OperationsController(objectMapper: mapper, pipelineStarter: pipelineStarter, buildService: buildService, environment: env, executionRepository: executionRepository)
+    controller = new OperationsController(objectMapper: mapper, pipelineStarter: pipelineStarter, buildService: buildService, buildArtifactFilter: buildArtifactFilter, executionRepository: executionRepository)
 
   @Unroll
   void '#endpoint accepts #contentType'() {
@@ -382,8 +386,8 @@ class OperationsControllerSpec extends Specification {
   @Unroll
   def 'limits artifacts in buildInfo based on environment configuration'() {
     given:
-    env.withProperty(OperationsController.MAX_ARTIFACTS_PROP, maxArtifacts.toString())
-    env.withProperty(OperationsController.PREFERRED_ARTIFACTS_PROP, preferredArtifacts)
+    env.withProperty(BuildArtifactFilter.MAX_ARTIFACTS_PROP, maxArtifacts.toString())
+    env.withProperty(BuildArtifactFilter.PREFERRED_ARTIFACTS_PROP, preferredArtifacts)
     Pipeline startedPipeline = null
     pipelineStarter.start(_) >> { String json ->
       startedPipeline = mapper.readValue(json, Pipeline)
