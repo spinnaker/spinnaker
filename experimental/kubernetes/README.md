@@ -71,6 +71,12 @@ $ gcloud iam service-accounts keys create ~/.gcp/account.json \
     --iam-account $SA_EMAIL
 ```
 
+Give the new service account the necessary permissions to publish and read to your projects storage:
+
+```
+$ gcloud iam service-accounts add-iam-policy-binding $SA_EMAIL --role="roles/compute.storageAdmin" --member="<your email>"
+```
+
 Now in `./config/clouddriver-local.yml`, you'll find the following: 
 
 ```yaml
