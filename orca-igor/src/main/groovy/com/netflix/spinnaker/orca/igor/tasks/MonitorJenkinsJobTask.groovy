@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.igor.BuildArtifactFilter
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
@@ -39,6 +40,9 @@ class MonitorJenkinsJobTask implements RetryableTask {
   @Autowired
   BuildService buildService
 
+  @Autowired
+  BuildArtifactFilter buildArtifactFilter
+
   private static Map<String, ExecutionStatus> statusMap = [
     'ABORTED' : ExecutionStatus.CANCELED,
     'FAILURE' : ExecutionStatus.TERMINAL,
@@ -57,6 +61,11 @@ class MonitorJenkinsJobTask implements RetryableTask {
       if ((build.building && build.building != 'false') || (build.running && build.running != 'false')) {
         return new DefaultTaskResult(ExecutionStatus.RUNNING, [buildInfo: build])
       }
+
+      if (build?.artifacts) {
+        build.artifacts = buildArtifactFilter.filterArtifacts(build.artifacts as List<Map>)
+      }
+
       if (statusMap.containsKey(result)) {
         Map<String, Object> properties = [:]
         if (stage.context.propertyFile) {
