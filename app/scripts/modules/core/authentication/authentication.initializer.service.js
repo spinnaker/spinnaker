@@ -11,6 +11,7 @@ module.exports = angular.module('spinnaker.authentication.initializer.service', 
   .factory('authenticationInitializer', function ($http, $rootScope, rx, notifierService, redirectService, authenticationService, settings, $location) {
 
     let userLoggedOut = false;
+    let visibilityWatch = null;
 
     function reauthenticateUser() {
       if (userLoggedOut) {
@@ -47,6 +48,7 @@ module.exports = angular.module('spinnaker.authentication.initializer.service', 
           if (data.username) {
             authenticationService.setAuthenticatedUser(data.username);
             notifierService.clear('loggedOut');
+            visibilityWatch.dispose();
           }
         });
     }
@@ -59,7 +61,7 @@ module.exports = angular.module('spinnaker.authentication.initializer.service', 
         key: 'loggedOut',
         body: `You have been logged out. <a role="button" class="action" onclick="document.location.reload()">Log in</a>`
       });
-      rx.Observable.fromEvent(document, 'visibilitychange').subscribe(() => {
+      visibilityWatch = rx.Observable.fromEvent(document, 'visibilitychange').subscribe(() => {
         if (document.visibilityState === 'visible') {
           checkForReauthentication();
         }
