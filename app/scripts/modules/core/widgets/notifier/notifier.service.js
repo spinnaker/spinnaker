@@ -10,12 +10,17 @@ module.exports = angular
     let messageStream = new rx.Subject();
 
     let publish = (message) => {
-      let sanitized = $sce.trustAsHtml(message);
-      messageStream.onNext(sanitized);
+      message.body = $sce.trustAsHtml(message.body);
+      messageStream.onNext(message);
+    };
+
+    let clear = (key) => {
+      messageStream.onNext({action: 'remove', key: key});
     };
 
     return {
       publish: publish,
+      clear: clear,
       messageStream: messageStream,
     };
   });

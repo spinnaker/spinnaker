@@ -1,11 +1,23 @@
 @import "../../presentation/less/imports/commonImports.less";
 
 notifier {
-  z-index: 30;
-  display: block;
-  position: fixed;
-  width: 100%;
-  bottom: 5px;
+  .user-notifications {
+    position: fixed;
+    width: 100%;
+    z-index: 3;
+  }
+  .user-notifications-top {
+    top: 60px;
+    .user-notification {
+      background-color: @warning-background;
+    }
+  }
+  .user-notifications-bottom {
+    bottom: 5px;
+  }
+  user-notification {
+    width: 100%;
+  }
   .user-notification {
     .fade-in(0.1);
     text-align: center;

@@ -1,6 +1,12 @@
-<div class="user-notification animated" ng-repeat="message in $ctrl.messages">
-  <div class="message" ng-bind-html="message"></div>
-  <a class="btn btn-sm btn-link close-notification" href role="button" ng-click="$ctrl.dismiss($index)">
-    <span class="glyphicon glyphicon-remove"></span>
-  </a>
+<div class="user-notifications user-notifications-top">
+  <user-notification ng-repeat="message in $ctrl.messages"
+                     message="message"
+                     position="top"
+                     dismiss="$ctrl.dismiss($index)"></user-notification>
+</div>
+<div class="user-notifications user-notifications-bottom">
+  <user-notification ng-repeat="message in $ctrl.messages"
+                     message="message"
+                     position="bottom"
+                     dismiss="$ctrl.dismiss($index)"></user-notification>
 </div>

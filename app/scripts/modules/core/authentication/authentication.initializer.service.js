@@ -6,8 +6,9 @@ module.exports = angular.module('spinnaker.authentication.initializer.service', 
   require('../config/settings.js'),
   require('../widgets/notifier/notifier.service.js'),
   require('./authentication.service.js'),
+  require('../utils/rx'),
 ])
-  .factory('authenticationInitializer', function ($http, $rootScope, notifierService, redirectService, authenticationService, settings, $location) {
+  .factory('authenticationInitializer', function ($http, $rootScope, rx, notifierService, redirectService, authenticationService, settings, $location) {
 
     let userLoggedOut = false;
 
@@ -40,10 +41,29 @@ module.exports = angular.module('spinnaker.authentication.initializer.service', 
         .error(loginRedirect);
     }
 
+    function checkForReauthentication() {
+      $http.get(settings.authEndpoint)
+        .success(function (data) {
+          if (data.username) {
+            authenticationService.setAuthenticatedUser(data.username);
+            notifierService.clear('loggedOut');
+          }
+        });
+    }
+
     function loginNotification() {
       authenticationService.authenticationExpired();
       userLoggedOut = true;
-      notifierService.publish(`You have been logged out. <a role="button" class="action" onclick="document.location.reload()">Log in</a>`);
+      notifierService.publish({
+        position: 'top',
+        key: 'loggedOut',
+        body: `You have been logged out. <a role="button" class="action" onclick="document.location.reload()">Log in</a>`
+      });
+      rx.Observable.fromEvent(document, 'visibilitychange').subscribe(() => {
+        if (document.visibilityState === 'visible') {
+          checkForReauthentication();
+        }
+      });
     }
 
     /**
