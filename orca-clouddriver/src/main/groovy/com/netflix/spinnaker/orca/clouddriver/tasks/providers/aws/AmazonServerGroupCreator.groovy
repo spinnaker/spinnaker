@@ -73,12 +73,12 @@ class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
     }
 
     def targetRegion = operation.region ?: (operation.availabilityZones as Map<String, Object>).keySet()[0]
-    withImageFromPrecedingStage(stage, targetRegion) {
+    withImageFromPrecedingStage(stage, targetRegion, cloudProvider) {
       operation.amiName = operation.amiName ?: it.amiName
       operation.imageId = operation.imageId ?: it.imageId
     }
 
-    withImageFromDeploymentDetails(stage, targetRegion) {
+    withImageFromDeploymentDetails(stage, targetRegion, cloudProvider) {
       operation.amiName = operation.amiName ?: it.amiName
       operation.imageId = operation.imageId ?: it.imageId
     }

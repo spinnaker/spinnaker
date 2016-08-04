@@ -86,11 +86,11 @@ class UpdateLaunchConfigTask implements Task, DeploymentDetailsAware, CloudProvi
   private String getImage(Stage stage) {
     String amiName = stage.context.amiName
     String targetRegion = stage.context.region
-    withImageFromPrecedingStage(stage, targetRegion) {
+    withImageFromPrecedingStage(stage, targetRegion, "aws") {
       amiName = amiName ?: it.amiName
     }
 
-    withImageFromDeploymentDetails(stage, targetRegion) {
+    withImageFromDeploymentDetails(stage, targetRegion, "aws") {
       amiName = amiName ?: it.amiName
     }
     return amiName

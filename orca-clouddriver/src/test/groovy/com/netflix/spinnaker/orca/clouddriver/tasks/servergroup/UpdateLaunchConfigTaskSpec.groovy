@@ -59,7 +59,7 @@ class UpdateLaunchConfigTaskSpec extends Specification {
           region           : region,
           asgName          : asgName,
           deploymentDetails: [
-              [ami: deploymentDetailsAmi, region: region]
+              [ami: deploymentDetailsAmi, region: region, cloudProvider: "aws"]
           ],
           amiName          : contextAmi
       ]
@@ -91,15 +91,15 @@ class UpdateLaunchConfigTaskSpec extends Specification {
           region           : region,
           asgName          : asgName,
           deploymentDetails: [
-              ["ami": "not-my-ami", "region": region],
-              ["ami": "also-not-my-ami", "region": region]
+              ["ami": "not-my-ami", "region": region, cloudProvider: "aws"],
+              ["ami": "also-not-my-ami", "region": region, cloudProvider: "aws"]
           ]
       ]
       def stage = new PipelineStage(new Pipeline(), "whatever", taskConfig)
       stage.context.amiName = null
       stage.context.deploymentDetails = [
-          ["ami": "not-my-ami", "region": region],
-          ["ami": "also-not-my-ami", "region": region]
+          ["ami": "not-my-ami", "region": region, cloudProvider: "aws"],
+          ["ami": "also-not-my-ami", "region": region, cloudProvider: "aws"]
       ]
 
 
@@ -119,7 +119,8 @@ class UpdateLaunchConfigTaskSpec extends Specification {
       bakeStage1.refId = "1a"
       stage.execution.stages << bakeStage1
 
-      def bakeSynthetic1 = new PipelineStage(stage.execution, "bake in $region", [ami: amiName, region: region])
+      def bakeSynthetic1 =
+        new PipelineStage(stage.execution, "bake in $region", [ami: amiName, region: region, cloudProvider: "aws"])
       bakeSynthetic1.id = UUID.randomUUID()
       bakeSynthetic1.parentStageId = bakeStage1.id
       stage.execution.stages << bakeSynthetic1
@@ -130,7 +131,7 @@ class UpdateLaunchConfigTaskSpec extends Specification {
       stage.execution.stages << bakeStage2
 
       def bakeSynthetic2 = new PipelineStage(stage.execution, "bake in $region",
-                                             [ami: "parallel-branch-ami", region: region])
+                                             [ami: "parallel-branch-ami", region: region, cloudProvider: "aws"])
       bakeSynthetic2.id = UUID.randomUUID()
       bakeSynthetic2.parentStageId = bakeStage2.id
       stage.execution.stages << bakeSynthetic2

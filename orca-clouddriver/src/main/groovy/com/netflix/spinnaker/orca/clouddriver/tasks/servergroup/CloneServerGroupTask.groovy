@@ -49,19 +49,19 @@ class CloneServerGroupTask extends AbstractCloudProviderAwareTask implements Tas
     def operation = [:]
     operation.putAll(stage.context)
     String targetRegion = operation.region ?: operation.availabilityZones?.keySet()?.getAt(0) ?: operation.source?.region
-    withImageFromPrecedingStage(stage, targetRegion) {
-      operation.amiName = operation.amiName ?: it.amiName
-      operation.imageId = operation.imageId ?: it.imageId
-      operation.image = operation.image ?: it.imageId
-    }
-
-    withImageFromDeploymentDetails(stage, targetRegion) {
-      operation.amiName = operation.amiName ?: it.amiName
-      operation.imageId = operation.imageId ?: it.imageId
-      operation.image = operation.image ?: it.imageId
-    }
-
     String cloudProvider = getCloudProvider(stage)
+    withImageFromPrecedingStage(stage, targetRegion, cloudProvider) {
+      operation.amiName = operation.amiName ?: it.amiName
+      operation.imageId = operation.imageId ?: it.imageId
+      operation.image = operation.image ?: it.imageId
+    }
+
+    withImageFromDeploymentDetails(stage, targetRegion, cloudProvider) {
+      operation.amiName = operation.amiName ?: it.amiName
+      operation.imageId = operation.imageId ?: it.imageId
+      operation.image = operation.image ?: it.imageId
+    }
+
     String credentials = getCredentials(stage)
     def taskId = kato.requestOperations(cloudProvider, getDescriptions(operation)).toBlocking().first()
 

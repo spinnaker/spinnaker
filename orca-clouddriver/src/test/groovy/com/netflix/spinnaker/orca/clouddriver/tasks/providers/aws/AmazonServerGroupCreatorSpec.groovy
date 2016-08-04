@@ -136,9 +136,9 @@ class AmazonServerGroupCreatorSpec extends Specification {
     given:
       stage.context.amiName = null
       stage.context.deploymentDetails = [
-          ["ami": "not-my-ami", "region": "us-west-1"],
-          ["ami": "definitely-not-my-ami", "region": "us-west-2"],
-          ["ami": amiName, "region": deployConfig.availabilityZones.keySet()[0]]
+          ["ami": "not-my-ami", "region": "us-west-1", cloudProvider: "aws"],
+          ["ami": "definitely-not-my-ami", "region": "us-west-2", cloudProvider: "aws"],
+          ["ami": amiName, "region": deployConfig.availabilityZones.keySet()[0], cloudProvider: "aws"]
       ]
 
     when:
@@ -178,12 +178,13 @@ class AmazonServerGroupCreatorSpec extends Specification {
     def deployRegion = "us-east-1"
     stage.context.amiName = null
     stage.execution.context.deploymentDetails = [
-        ["ami": "not-my-ami", "region": deployRegion],
-        ["ami": "also-not-my-ami", "region": deployRegion]
+        ["ami": "not-my-ami", "region": deployRegion, cloudProvider: "aws"],
+        ["ami": "also-not-my-ami", "region": deployRegion, cloudProvider: "aws"]
     ]
 
     and:
-    def findImageStage = new PipelineStage(stage.execution, "findImage", [regions: [deployRegion], amiDetails: [[ami: amiName]]])
+    def findImageStage =
+      new PipelineStage(stage.execution, "findImage", [regions: [deployRegion], amiDetails: [[ami: amiName]], cloudProvider: "aws"])
     findImageStage.id = UUID.randomUUID()
     findImageStage.refId = "1a"
     stage.execution.stages << findImageStage

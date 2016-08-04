@@ -39,7 +39,7 @@ class AzureServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAw
       operation.credentials = operation.account
     }
 
-    def bakeStage = getPreviousStageWithImage(stage, operation.region)
+    def bakeStage = getPreviousStageWithImage(stage, operation.region, cloudProvider)
 
     if (bakeStage) {
       operation.image.isCustom = true

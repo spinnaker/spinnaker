@@ -189,9 +189,9 @@ class CreateDeployTaskSpec extends Specification {
       }
     }
     stage.context.deploymentDetails = [
-      ["ami": "not-my-ami", "region": "us-west-1"],
-      ["ami": "definitely-not-my-ami", "region": "us-west-2"],
-      ["ami": amiName, "region": deployRegion]
+      ["ami": "not-my-ami", "region": "us-west-1", cloudProvider: "aws"],
+      ["ami": "definitely-not-my-ami", "region": "us-west-2", cloudProvider: "aws"],
+      ["ami": amiName, "region": deployRegion, cloudProvider: "aws"]
     ]
 
     when:
@@ -258,8 +258,8 @@ class CreateDeployTaskSpec extends Specification {
       }
     }
     stage.context.deploymentDetails = [
-      ["ami": "not-my-ami", "region": deployRegion],
-      ["ami": "also-not-my-ami", "region": deployRegion]
+      ["ami": "not-my-ami", "region": deployRegion, cloudProvider: "aws"],
+      ["ami": "also-not-my-ami", "region": deployRegion, cloudProvider: "aws"]
     ]
 
     and:
@@ -268,7 +268,8 @@ class CreateDeployTaskSpec extends Specification {
     bakeStage1.refId = "1a"
     stage.execution.stages << bakeStage1
 
-    def bakeSynthetic1 = new PipelineStage(stage.execution, "bake in $deployRegion", [ami: amiName, region: deployRegion])
+    def bakeSynthetic1 =
+      new PipelineStage(stage.execution, "bake in $deployRegion", [ami: amiName, region: deployRegion, cloudProvider: "aws"])
     bakeSynthetic1.id = UUID.randomUUID()
     bakeSynthetic1.parentStageId = bakeStage1.id
     stage.execution.stages << bakeSynthetic1
@@ -278,7 +279,8 @@ class CreateDeployTaskSpec extends Specification {
     bakeStage2.refId = "2a"
     stage.execution.stages << bakeStage2
 
-    def bakeSynthetic2 = new PipelineStage(stage.execution, "bake in $deployRegion", [ami: "parallel-branch-ami", region: deployRegion])
+    def bakeSynthetic2 =
+      new PipelineStage(stage.execution, "bake in $deployRegion", [ami: "parallel-branch-ami", region: deployRegion, cloudProvider: "aws"])
     bakeSynthetic2.id = UUID.randomUUID()
     bakeSynthetic2.parentStageId = bakeStage2.id
     stage.execution.stages << bakeSynthetic2
@@ -315,12 +317,12 @@ class CreateDeployTaskSpec extends Specification {
       }
     }
     stage.execution.context.deploymentDetails = [
-      ["ami": "not-my-ami", "region": deployRegion],
-      ["ami": "also-not-my-ami", "region": deployRegion]
+      ["ami": "not-my-ami", "region": deployRegion, cloudProvider: "aws"],
+      ["ami": "also-not-my-ami", "region": deployRegion, cloudProvider: "aws"]
     ]
 
     and:
-    def findImageStage = new PipelineStage(stage.execution, "findImage", [regions: [deployRegion], amiDetails: [[ami: amiName]]])
+    def findImageStage = new PipelineStage(stage.execution, "findImage", [regions: [deployRegion], amiDetails: [[ami: amiName]], cloudProvider: "aws"])
     findImageStage.id = UUID.randomUUID()
     findImageStage.refId = "1a"
     stage.execution.stages << findImageStage
@@ -344,6 +346,54 @@ class CreateDeployTaskSpec extends Specification {
 
     where:
     amiName = "ami-name-from-find-image"
+  }
+
+  def "finds the image from an upstream stage matching the cloud provider"() {
+    given:
+    stage.context.amiName = null
+    def operations = []
+    task.kato = Stub(KatoService) {
+      requestOperations(*_) >> {
+        operations.addAll(it[1].flatten())
+        Observable.from(taskId)
+      }
+    }
+
+    and:
+    def bakeStage1 = new PipelineStage(stage.execution, "bake")
+    bakeStage1.id = UUID.randomUUID()
+    bakeStage1.refId = "1a"
+    stage.execution.stages << bakeStage1
+
+    def bakeSynthetic1 = new PipelineStage(stage.execution, "bake in $deployRegion", [ami: amiName, region: deployRegion, cloudProvider: "aws"])
+    bakeSynthetic1.id = UUID.randomUUID()
+    bakeSynthetic1.parentStageId = bakeStage1.id
+    stage.execution.stages << bakeSynthetic1
+
+    def bakeStage2 = new PipelineStage(stage.execution, "bake")
+    bakeStage2.id = UUID.randomUUID()
+    bakeStage2.refId = "2a"
+    stage.execution.stages << bakeStage2
+
+    def bakeSynthetic2 = new PipelineStage(stage.execution, "bake in $deployRegion", [ami: "different-image", region: deployRegion, cloudProvider: "gce"])
+    bakeSynthetic2.id = UUID.randomUUID()
+    bakeSynthetic2.parentStageId = bakeStage2.id
+    stage.execution.stages << bakeSynthetic2
+
+    and:
+    bakeStage2.requisiteStageRefIds = [bakeStage1.refId]
+    stage.requisiteStageRefIds = [bakeStage2.refId]
+
+    when:
+    task.execute(stage.asImmutable())
+
+    then:
+    operations.find {
+      it.containsKey("createServerGroup")
+    }.createServerGroup.amiName == amiName
+
+    where:
+    amiName = "ami-name-from-bake"
   }
 
 }

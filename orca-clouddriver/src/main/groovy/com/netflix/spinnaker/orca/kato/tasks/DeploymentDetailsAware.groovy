@@ -30,8 +30,9 @@ trait DeploymentDetailsAware {
   void withImageFromPrecedingStage(
     Stage stage,
     String targetRegion,
+    String targetCloudProvider,
     Closure callback) {
-    Stage previousStage = getPreviousStageWithImage(stage, targetRegion)
+    Stage previousStage = getPreviousStageWithImage(stage, targetRegion, targetCloudProvider)
     def result = [:]
     if (previousStage) {
       if (previousStage.context.containsKey("amiDetails")) {
@@ -48,10 +49,12 @@ trait DeploymentDetailsAware {
     }
   }
 
-  Stage getPreviousStageWithImage(Stage stage, String targetRegion) {
+  Stage getPreviousStageWithImage(Stage stage, String targetRegion, String targetCloudProvider) {
     getAncestors(stage).find {
       def regions = (it.context.region ? [it.context.region] : it.context.regions) as Set<String>
-      (it.context.containsKey("ami") || it.context.containsKey("amiDetails")) && (!targetRegion || regions?.contains(targetRegion))
+      (it.context.containsKey("ami") || it.context.containsKey("amiDetails")) &&
+      (!targetRegion || regions?.contains(targetRegion)) &&
+      (targetCloudProvider == it.context.cloudProvider || targetCloudProvider == it.context.cloudProviderType)
     }
   }
 
@@ -75,13 +78,23 @@ trait DeploymentDetailsAware {
   void withImageFromDeploymentDetails(
     Stage stage,
     String targetRegion,
+    String targetCloudProvider,
     Closure callback) {
     def result = [:]
     def deploymentDetails = (stage.context.deploymentDetails ?: []) as List<Map>
     if (deploymentDetails) {
-      result.amiName = deploymentDetails.find { !targetRegion || it.region == targetRegion }?.ami
+      result.amiName = deploymentDetails.find {
+        (!targetRegion || it.region == targetRegion) &&
+        (targetCloudProvider == it.cloudProvider || targetCloudProvider == it.cloudProviderType)
+      }?.ami
       // docker image ids are not region or cloud provider specific so no need to filter by region
-      result.imageId = deploymentDetails.first().imageId
+      // But, if both the dependent stage and the deployment details specify cloud provider, makes no sense to return
+      // the details unless they match. Without this guard, multi-provider pipelines are more challenging.
+      def firstDeploymentDetails = deploymentDetails.first()
+      def firstDeploymentDetailsCloudProvider = firstDeploymentDetails.cloudProvider ?: firstDeploymentDetails.cloudProviderType
+      if (!firstDeploymentDetailsCloudProvider || !targetCloudProvider || firstDeploymentDetailsCloudProvider == targetCloudProvider) {
+        result.imageId = firstDeploymentDetails.imageId
+      }
       callback(result)
     }
   }

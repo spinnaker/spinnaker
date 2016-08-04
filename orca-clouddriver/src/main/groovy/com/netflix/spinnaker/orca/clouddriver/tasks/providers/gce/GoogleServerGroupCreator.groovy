@@ -44,11 +44,11 @@ class GoogleServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
       operation.credentials = operation.account
     }
 
-    withImageFromPrecedingStage(stage, null) {
+    withImageFromPrecedingStage(stage, null, cloudProvider) {
       operation.image = operation.image ?: it.imageId
     }
 
-    withImageFromDeploymentDetails(stage, null) {
+    withImageFromDeploymentDetails(stage, null, cloudProvider) {
       operation.image = operation.image ?: it.imageId
     }
 

@@ -132,7 +132,7 @@ class CloneServerGroupTaskSpec extends Specification {
 
   def "amiName uses value from bake"() {
     given:
-    def bakeEast = new PipelineStage(stage.execution, "bake", [ami: bakeAmi, region: 'us-east-1'])
+    def bakeEast = new PipelineStage(stage.execution, "bake", [ami: bakeAmi, region: 'us-east-1', cloudProvider: 'aws'])
     bakeEast.refId = "1"
     stage.refId = "3"
     stage.requisiteStageRefIds = [ "1" ]
@@ -156,6 +156,40 @@ class CloneServerGroupTaskSpec extends Specification {
     operations.size() == 3
     with(operations[2].cloneServerGroup) {
       amiName == bakeAmi
+      application == "hodor"
+      availabilityZones == ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]]
+      credentials == "fzlem"
+    }
+
+    where:
+    bakeAmi = "ami-bake"
+  }
+
+  def "image is not resolved from bake if cloud provider does not match"() {
+    given:
+    def bakeEast = new PipelineStage(stage.execution, "bake", [ami: bakeAmi, region: 'us-east-1', cloudProvider: 'gce'])
+    bakeEast.refId = "1"
+    stage.refId = "3"
+    stage.requisiteStageRefIds = [ "1" ]
+    cloneServerGroupConfig.amiName = null
+    stage.execution.stages.removeAll()
+    stage.execution.stages.addAll([bakeEast, stage])
+
+
+    def operations
+    task.kato = Mock(KatoService) {
+      1 * requestOperations(_, _) >> {
+        operations = it[1]
+        Observable.from(taskId)
+      }
+    }
+
+    when:
+    task.execute(stage.asImmutable())
+
+    then:
+    with(operations[0].cloneServerGroup) {
+      !amiName
       application == "hodor"
       availabilityZones == ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]]
       credentials == "fzlem"
