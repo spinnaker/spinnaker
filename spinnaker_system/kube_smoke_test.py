@@ -74,7 +74,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
   def new_agent(cls, bindings):
     """Implements citest.service_testing.AgentTestScenario.new_agent."""
     agent = gate.new_agent(bindings)
-    agent.default_max_wait_secs = 70
+    agent.default_max_wait_secs = 90
     return agent
 
   def __init__(self, bindings, agent=None):
