@@ -157,7 +157,6 @@ public abstract class MigrateServerGroupStrategy implements MigrateStrategySuppo
       deployDescription.setTerminationPolicies(sourceGroup.getTerminationPolicies());
       deployDescription.setKernelId(launchConfig.getKernelId());
       deployDescription.setEbsOptimized(launchConfig.getEbsOptimized());
-      deployDescription.setBase64UserData(launchConfig.getUserData());
       deployDescription.setLoadBalancers(targetLoadBalancers.stream()
         .map(MigrateLoadBalancerResult::getTargetName).collect(Collectors.toList()));
       deployDescription.setSecurityGroups(targetSecurityGroups.stream()
