@@ -137,6 +137,63 @@ class MigrateSecurityGroupStrategySpec extends Specification {
     1 * targetLookup.getSecurityGroupByName('prod', 'group3', null) >> Optional.empty()
   }
 
+  void 'should generate target cross-account references'() {
+    given:
+    def source = new SecurityGroupLocation(credentials: testCredentials, region: 'us-east-1', name: 'group1')
+    def target = new SecurityGroupLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1t')
+    def sourceGroup = new SecurityGroup(groupName: 'group1', groupId: 'sg-1', ownerId: testCredentials.accountId)
+    sourceGroup.ipPermissions = [
+      new IpPermission().withUserIdGroupPairs(
+        new UserIdGroupPair(userId: testCredentials.accountId, groupId: 'sg-2', groupName: 'group2'),
+        new UserIdGroupPair(userId: prodCredentials.accountId, groupId: 'sg-3', groupName: 'group3')),
+    ]
+    def sourceUpdater = Stub(SecurityGroupUpdater) {
+      getSecurityGroup() >> sourceGroup
+    }
+    AmazonEC2 testAmazonEC2 = Mock(AmazonEC2)
+    AmazonEC2 prodAmazonEC2 = Mock(AmazonEC2)
+
+    def createdGroup1 = new SecurityGroup(ownerId: testCredentials.accountId)
+    def createdGroup2 = new SecurityGroup(ownerId: testCredentials.accountId)
+    def createdGroup3 = new SecurityGroup(ownerId: prodCredentials.accountId)
+    def createdUpdater1 = Stub(SecurityGroupUpdater) {
+      getSecurityGroup() >> createdGroup1
+    }
+    def createdUpdater2 = Stub(SecurityGroupUpdater) {
+      getSecurityGroup() >> createdGroup2
+    }
+    def createdUpdater3 = Stub(SecurityGroupUpdater) {
+      getSecurityGroup() >> createdGroup3
+    }
+
+    when:
+    def results = strategy.generateResults(source, target, sourceLookup, sourceLookup, false, false)
+
+    then:
+    results.created.size() == 3
+    results.created.targetName.sort() == ['group1', 'group2', 'group3']
+    amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1') >> testAmazonEC2
+    amazonClientProvider.getAmazonEC2(prodCredentials, 'us-east-1') >> prodAmazonEC2
+    testAmazonEC2.describeVpcs() >> new DescribeVpcsResult().withVpcs(new Vpc().withVpcId('vpc-1t').withTags(new Tag("Name", "vpc1")))
+    prodAmazonEC2.describeVpcs() >> new DescribeVpcsResult().withVpcs(new Vpc().withVpcId('vpc-1p').withTags(new Tag("Name", "vpc1")))
+    2 * sourceLookup.getSecurityGroupByName('test', 'group1', null) >> Optional.of(sourceUpdater)
+    sourceLookup.getSecurityGroupByName('test', 'group1', 'vpc-1t') >>> [Optional.empty(), Optional.empty(), Optional.of(createdUpdater1)]
+    sourceLookup.getSecurityGroupByName('test', 'group2', 'vpc-1t') >>> [Optional.empty(), Optional.empty(), Optional.of(createdUpdater2)]
+    sourceLookup.getSecurityGroupByName('prod', 'group3', 'vpc-1p') >>> [Optional.empty(), Optional.empty(), Optional.of(createdUpdater3)]
+    sourceLookup.accountIdExists(testCredentials.accountId) >> true
+    sourceLookup.accountIdExists(prodCredentials.accountId) >> true
+    1 * sourceLookup.createSecurityGroup({
+      it.credentials == testCredentials && it.vpcId == 'vpc-1t'
+    }) >> createdUpdater1
+    1 * sourceLookup.createSecurityGroup({
+      it.credentials == testCredentials && it.vpcId == 'vpc-1t'
+    }) >> createdUpdater2
+    1 * sourceLookup.createSecurityGroup({
+      it.credentials == prodCredentials && it.vpcId == 'vpc-1p'
+    }) >> createdUpdater3
+
+  }
+
   void 'should warn on references in unknown accounts'() {
     given:
     def source = new SecurityGroupLocation(credentials: testCredentials, region: 'us-east-1', name: 'group1')
