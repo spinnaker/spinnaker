@@ -54,6 +54,7 @@ public abstract class MigrateServerGroupStrategy implements MigrateStrategySuppo
   protected boolean dryRun;
   protected String subnetType;
   protected String elbSubnetType;
+  protected Map<String, String> loadBalancerNameMapping;
 
   protected MigrateSecurityGroupStrategy migrateSecurityGroupStrategy;
   protected MigrateLoadBalancerStrategy getMigrateLoadBalancerStrategy;
@@ -83,6 +84,7 @@ public abstract class MigrateServerGroupStrategy implements MigrateStrategySuppo
    * @param iamRole                      the iamRole to use when migrating (optional)
    * @param keyPair                      the keyPair to use when migrating (optional)
    * @param targetAmi                    the target imageId to use when migrating (optional)
+   * @param loadBalancerNameMapping      a mapping of source-to-target load balancer names
    * @param allowIngressFromClassic      if subnetType is present, and this is true, and app security groups are created
    *                                     via the deployDefaults, will add broad (80-65535) ingress from the classic link
    *                                     security group
@@ -95,7 +97,8 @@ public abstract class MigrateServerGroupStrategy implements MigrateStrategySuppo
                                                                MigrateLoadBalancerStrategy migrateLoadBalancerStrategy,
                                                                MigrateSecurityGroupStrategy migrateSecurityGroupStrategy,
                                                                String subnetType, String elbSubnetType, String iamRole, String keyPair,
-                                                               String targetAmi, boolean allowIngressFromClassic, boolean dryRun) {
+                                                               String targetAmi, Map<String, String> loadBalancerNameMapping,
+                                                               boolean allowIngressFromClassic, boolean dryRun) {
 
     this.sourceLookup = sourceLookup;
     this.targetLookup = targetLookup;
@@ -104,6 +107,7 @@ public abstract class MigrateServerGroupStrategy implements MigrateStrategySuppo
     this.subnetType = subnetType;
     this.elbSubnetType = elbSubnetType;
     this.allowIngressFromClassic = allowIngressFromClassic;
+    this.loadBalancerNameMapping = loadBalancerNameMapping;
     this.dryRun = dryRun;
     this.migrateSecurityGroupStrategy = migrateSecurityGroupStrategy;
     this.getMigrateLoadBalancerStrategy = migrateLoadBalancerStrategy;
@@ -291,8 +295,12 @@ public abstract class MigrateServerGroupStrategy implements MigrateStrategySuppo
     sourceLocation.setRegion(source.getRegion());
     sourceLocation.setVpcId(source.getVpcId());
     sourceLocation.setCredentials(source.getCredentials());
+    LoadBalancerLocation loadBalancerTarget = new LoadBalancerLocation(target);
+    if (loadBalancerNameMapping.containsKey(lbName)) {
+      loadBalancerTarget.setName(loadBalancerNameMapping.get(lbName));
+    }
     return new LoadBalancerMigrator(sourceLookup, targetLookup, getAmazonClientProvider(), getRegionScopedProviderFactory(),
       migrateSecurityGroupStrategy, getDeployDefaults(), getMigrateLoadBalancerStrategy, sourceLocation,
-      new LoadBalancerLocation(target), elbSubnetType, names.getApp(), allowIngressFromClassic).migrate(dryRun);
+      loadBalancerTarget, elbSubnetType, names.getApp(), allowIngressFromClassic).migrate(dryRun);
   }
 }

@@ -64,7 +64,7 @@ class MigrateServerGroupAtomicOperation implements AtomicOperation<Void> {
     def migrator = new ServerGroupMigrator(migrationStrategy.get(), description.source, description.target,
       sourceLookup, targetLookup, migrateLoadBalancerStrategy.get(), migrateSecurityGroupStrategy.get(),
       description.subnetType, description.elbSubnetType, description.iamRole, description.keyPair,
-      description.targetAmi, description.allowIngressFromClassic)
+      description.targetAmi, description.loadBalancerNameMapping, description.allowIngressFromClassic)
 
     task.addResultObjects([migrator.migrate(description.dryRun)])
   }

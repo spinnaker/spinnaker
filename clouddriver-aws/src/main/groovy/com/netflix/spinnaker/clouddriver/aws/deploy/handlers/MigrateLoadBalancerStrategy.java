@@ -103,6 +103,7 @@ public abstract class MigrateLoadBalancerStrategy implements MigrateStrategySupp
 
     String targetName = target.getName() != null ? target.getName() : generateLoadBalancerName(source.getName(), sourceVpc, targetVpc);
     LoadBalancerDescription targetLoadBalancer = getLoadBalancer(target.getCredentials(), target.getRegion(), targetName);
+    verifyLoadBalancerName(result, targetName, targetLoadBalancer);
 
     List<MigrateSecurityGroupResult> targetGroups = getTargetSecurityGroups(sourceLoadBalancer, result);
 
@@ -120,6 +121,24 @@ public abstract class MigrateLoadBalancerStrategy implements MigrateStrategySupp
     }
 
     return result;
+  }
+
+  /*
+    If migrating from Classic to VPC and the name cannot be updated, require a new name
+    If this is not a dry run, we'll throw an exception to halt the migration
+   */
+  private void verifyLoadBalancerName(MigrateLoadBalancerResult result, String targetName, LoadBalancerDescription targetLoadBalancer) {
+    boolean invalid = target.getVpcId() != null && targetLoadBalancer != null && targetLoadBalancer.getVPCId() == null;
+    if (targetName.equals(source.getName()) && target.getCredentialAccount().equals(source.getCredentialAccount()) && target.getRegion().equals(source.getRegion())) {
+      invalid = true;
+    }
+    if (invalid) {
+      if (dryRun) {
+        result.setNewNameRequired(true);
+      } else {
+        throw new IllegalStateException("A load balancer named '" + targetName + "' already exists in EC2 Classic and cannot be reused when migrating to VPC");
+      }
+    }
   }
 
   /**

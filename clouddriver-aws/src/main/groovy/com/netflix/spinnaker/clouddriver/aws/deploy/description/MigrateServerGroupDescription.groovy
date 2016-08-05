@@ -31,6 +31,7 @@ class MigrateServerGroupDescription {
   String iamRole
   String keyPair
   String targetAmi
+  Map<String, String> loadBalancerNameMapping = [:]
   boolean allowIngressFromClassic
   boolean dryRun
 

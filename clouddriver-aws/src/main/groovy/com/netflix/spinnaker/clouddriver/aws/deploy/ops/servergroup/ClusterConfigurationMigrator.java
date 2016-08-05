@@ -47,6 +47,7 @@ public class ClusterConfigurationMigrator {
   private String keyPair;
   private String subnetType;
   private String elbSubnetType;
+  private Map<String, String> loadBalancerNameMapping;
   private boolean allowIngressFromClassic;
 
   public ClusterConfigurationMigrator(MigrateClusterConfigurationStrategy migrationStrategy,
@@ -55,6 +56,7 @@ public class ClusterConfigurationMigrator {
                                       MigrateLoadBalancerStrategy migrateLoadBalancerStrategy,
                                       MigrateSecurityGroupStrategy migrateSecurityGroupStrategy,
                                       String iamRole, String keyPair, String subnetType, String elbSubnetType,
+                                      Map<String, String> loadBalancerNameMapping,
                                       boolean allowIngressFromClassic) {
     this.migrationStrategy = migrationStrategy;
     this.source = source;
@@ -67,13 +69,14 @@ public class ClusterConfigurationMigrator {
     this.keyPair = keyPair;
     this.subnetType = subnetType;
     this.elbSubnetType = elbSubnetType;
+    this.loadBalancerNameMapping = loadBalancerNameMapping;
     this.allowIngressFromClassic = allowIngressFromClassic;
   }
 
   public MigrateClusterConfigurationResult migrate(boolean dryRun) {
     getTask().updateStatus(BASE_PHASE, (dryRun ? "Calculating" : "Beginning") + " migration of cluster config " + source.toString());
     MigrateClusterConfigurationResult result = migrationStrategy.generateResults(source, target, sourceLookup, targetLookup, migrateLoadBalancerStrategy,
-      migrateSecurityGroupStrategy, subnetType, elbSubnetType, iamRole, keyPair, allowIngressFromClassic, dryRun);
+      migrateSecurityGroupStrategy, subnetType, elbSubnetType, iamRole, keyPair, loadBalancerNameMapping, allowIngressFromClassic, dryRun);
     getTask().updateStatus(BASE_PHASE, "Migration of cluster configuration " + source.toString() +
       (dryRun ? " calculated" : " completed") + ".");
     return result;
