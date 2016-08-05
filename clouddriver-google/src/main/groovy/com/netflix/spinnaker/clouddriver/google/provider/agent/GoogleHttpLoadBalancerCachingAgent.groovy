@@ -370,7 +370,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
       // We have to update the backend service objects we created from the UrlMapCallback.
       // The UrlMapCallback knows which backend service is the defaultService, etc and the
       // BackendServiceCallback has the actual serving capacity and server group data.
-      List<GoogleBackendService> backendServicesInMap = Utils.getBackendServicesFromHttpLoadBalancer(googleLoadBalancer)
+      List<GoogleBackendService> backendServicesInMap = Utils.getBackendServicesFromHttpLoadBalancerView(googleLoadBalancer.view)
       def backendServicesToUpdate = backendServicesInMap.findAll { it && it.name == backendService.name }
       backendServicesToUpdate.each { GoogleBackendService service ->
         service.backends = backendService.backends?.collect { Backend backend ->

@@ -23,7 +23,9 @@ import com.google.api.services.compute.model.AutoscalingPolicy
 import com.google.api.services.compute.model.InstanceGroupManagerActionsSummary
 import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerView
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
@@ -111,6 +113,37 @@ class GoogleServerGroup {
                                    max: asg.maxSize ? asg.maxSize as Integer : 0,
                                    desired: asg.desiredCapacity ? asg.desiredCapacity as Integer : 0) :
           null
+    }
+
+    /**
+     * @return The load balancing policy containing the * capacity metrics and named ports this server
+     * group is configured with for all L7 backends.
+     */
+    GoogleHttpLoadBalancingPolicy getLoadBalancingPolicy() {
+      def loadBalancingPolicy = null
+      def loadBalancers = GoogleServerGroup.this.loadBalancers
+      loadBalancers.each { GoogleLoadBalancerView view ->
+        if (GoogleLoadBalancerType.valueOf(view.loadBalancerType) == GoogleLoadBalancerType.HTTP) {
+          GoogleHttpLoadBalancer.View httpView = view as GoogleHttpLoadBalancer.View
+          def backendServices = Utils.getBackendServicesFromHttpLoadBalancerView(httpView)
+          backendServices.each { GoogleBackendService backendService ->
+            def foundBackends = backendService.backends.findAll { GoogleLoadBalancedBackend backend ->
+              GCEUtil.getLocalName(backend.serverGroupUrl) == GoogleServerGroup.this.name
+            }
+            // Note: we configure the same load balancing policy for all backends on a create/clone,
+            // so we can just return the policy from the first one we find.
+            if (foundBackends) {
+              def foundBackend = foundBackends?.first()
+              loadBalancingPolicy = foundBackend?.policy
+              if (loadBalancingPolicy) {
+                loadBalancingPolicy.listeningPort = GoogleServerGroup.this.namedPorts.get(GoogleHttpLoadBalancingPolicy.HTTP_PORT_NAME)
+              }
+              return loadBalancingPolicy
+            }
+          }
+        }
+      }
+      return loadBalancingPolicy
     }
 
     @Override

@@ -87,7 +87,7 @@ class Utils {
     }
   }
 
-  static List<GoogleBackendService> getBackendServicesFromHttpLoadBalancer(GoogleHttpLoadBalancer googleLoadBalancer) {
+  static List<GoogleBackendService> getBackendServicesFromHttpLoadBalancerView(GoogleHttpLoadBalancer.View googleLoadBalancer) {
     List<GoogleBackendService> backendServices = [googleLoadBalancer.defaultService]
     List<GooglePathMatcher> pathMatchers = googleLoadBalancer?.hostRules?.collect { GoogleHostRule hostRule -> hostRule.pathMatcher }
     pathMatchers?.each { GooglePathMatcher pathMatcher ->
@@ -103,7 +103,7 @@ class Utils {
                                                         GoogleServerGroup serverGroup) {
     def httpLoadBalancersFromMetadata = serverGroup.asg.get(GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES)
     def backendServicesFromMetadata = serverGroup.asg.get(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)
-    List<List<GoogleLoadBalancedBackend>> serviceBackends = getBackendServicesFromHttpLoadBalancer(loadBalancer)
+    List<List<GoogleLoadBalancedBackend>> serviceBackends = getBackendServicesFromHttpLoadBalancerView(loadBalancer.view)
         .findAll { it.name in backendServicesFromMetadata }
         .collect { it.backends }
     List<String> backendGroupNames = serviceBackends.flatten().collect { GCEUtil.getLocalName(it.serverGroupUrl) }
