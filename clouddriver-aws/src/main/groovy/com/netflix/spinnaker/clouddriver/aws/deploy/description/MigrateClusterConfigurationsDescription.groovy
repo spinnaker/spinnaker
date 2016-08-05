@@ -23,11 +23,12 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 class MigrateClusterConfigurationsDescription {
   List<ClusterConfiguration> sources = []
   Map<String, Map<String, List<String>>> regionMapping = [:]
-  Map<String, String> subnetTypeMapping = [:];
-  Map<String, String> elbSubnetTypeMapping = [:];
-  Map<String, String> accountMapping = [:];
-  Map<String, String> iamRoleMapping = [:];
-  Map<String, String> keyPairMapping = [:];
+  Map<String, String> subnetTypeMapping = [:]
+  Map<String, String> elbSubnetTypeMapping = [:]
+  Map<String, String> accountMapping = [:]
+  Map<String, String> iamRoleMapping = [:]
+  Map<String, String> keyPairMapping = [:]
+  Map<String, String> loadBalancerNameMapping = [:]
   boolean allowIngressFromClassic
   boolean dryRun
 

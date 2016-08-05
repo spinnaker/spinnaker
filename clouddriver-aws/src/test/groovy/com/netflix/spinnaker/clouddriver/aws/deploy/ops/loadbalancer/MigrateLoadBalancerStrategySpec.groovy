@@ -101,6 +101,59 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     targetLookup.accountIdExists(prodCredentials.accountId) >> true
   }
 
+  void 'throws exception when migrating to VPC and load balancer name (not changed) already exists in Classic'() {
+    given:
+    def loadBalancerName = '12345678901234567890123456789012'
+    LoadBalancerDescription sourceDescription = new LoadBalancerDescription().withLoadBalancerName(loadBalancerName)
+    LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: loadBalancerName)
+    LoadBalancerLocation target = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1')
+    strategy.source = source
+    strategy.target = target
+    strategy.dryRun = false
+
+    AmazonEC2 amazonEC2 = Mock(AmazonEC2)
+    AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
+
+    when:
+    strategy.generateResults(sourceLookup, sourceLookup, securityGroupStrategy, source, target, 'internal', 'app', true, false)
+
+    then:
+    thrown(IllegalStateException)
+
+    2 * loadBalancing.describeLoadBalancers(_) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(sourceDescription)
+    amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1') >> amazonEC2
+    amazonClientProvider.getAmazonElasticLoadBalancing(testCredentials, 'us-east-1', true) >> loadBalancing
+    amazonEC2.describeVpcs(_) >> new DescribeVpcsResult().withVpcs(new Vpc().withTags(new Tag("Name", "vpc1")))
+  }
+
+  void 'throws exception when migrating to VPC and new load balancer name already exists in Classic'() {
+    given:
+    def loadBalancerName = 'app-elb'
+    def newLoadBalancerName = 'app-elb-vpc1'
+    LoadBalancerDescription sourceDescription = new LoadBalancerDescription().withLoadBalancerName(loadBalancerName)
+    LoadBalancerDescription targetDescription = new LoadBalancerDescription().withLoadBalancerName(newLoadBalancerName)
+    LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: loadBalancerName)
+    LoadBalancerLocation target = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1', name: newLoadBalancerName)
+    strategy.source = source
+    strategy.target = target
+    strategy.dryRun = false
+
+    AmazonEC2 amazonEC2 = Mock(AmazonEC2)
+    AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
+
+    when:
+    strategy.generateResults(sourceLookup, sourceLookup, securityGroupStrategy, source, target, 'internal', 'app', true, false)
+
+    then:
+    thrown(IllegalStateException)
+
+    1 * loadBalancing.describeLoadBalancers({ it.loadBalancerNames == [loadBalancerName]}) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(sourceDescription)
+    1 * loadBalancing.describeLoadBalancers({ it.loadBalancerNames == [newLoadBalancerName]}) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(targetDescription)
+    amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1') >> amazonEC2
+    amazonClientProvider.getAmazonElasticLoadBalancing(testCredentials, 'us-east-1', true) >> loadBalancing
+    amazonEC2.describeVpcs(_) >> new DescribeVpcsResult().withVpcs(new Vpc().withTags(new Tag("Name", "vpc1")))
+  }
+
   void 'getTargetSecurityGroups maps security group IDs to actual security groups'() {
     given:
     LoadBalancerDescription sourceDescription = new LoadBalancerDescription().withSecurityGroups('sg-1', 'sg-2')
@@ -465,6 +518,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
       ]
     )
     LoadBalancerDescription targetDescription = new LoadBalancerDescription(loadBalancerName: 'app-elb-vpc1',
+      vPCId: 'vpc-1',
       healthCheck: new HealthCheck(),
       listenerDescriptions: [
         new ListenerDescription().withListener(
@@ -510,6 +564,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
       ]
     )
     LoadBalancerDescription targetDescription = new LoadBalancerDescription(loadBalancerName: 'app-elb-vpc1',
+      vPCId: 'vpc-1',
       healthCheck: new HealthCheck(),
       listenerDescriptions: [
         new ListenerDescription().withListener(

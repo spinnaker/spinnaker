@@ -167,13 +167,13 @@ class MigrateClusterConfigurationsAtomicOperationSpec extends Specification {
     then:
     1 * clusterMigrateStrategy.generateResults(source1, {
       it.region == 'us-east-1' && it.credentials == testCredentials && it.vpcId == 'vpc-test'
-    }, lookup, lookup, _, _, 'internal', 'external', 'iam', 'kp-1', false, false) >> new MigrateClusterConfigurationResult()
+    }, lookup, lookup, _, _, 'internal', 'external', 'iam', 'kp-1', [:], false, false) >> new MigrateClusterConfigurationResult()
     1 * clusterMigrateStrategy.generateResults(source2, {
       it.region == 'us-east-1' && it.credentials == prodCredentials && it.vpcId == 'vpc-prod'
-    }, lookup, lookup, _, _, 'internal', 'external', 'iam2', 'kp-2', false, false) >> new MigrateClusterConfigurationResult()
+    }, lookup, lookup, _, _, 'internal', 'external', 'iam2', 'kp-2', [:], false, false) >> new MigrateClusterConfigurationResult()
     1 * clusterMigrateStrategy.generateResults(source3, {
       it.region == 'us-east-1' && it.credentials == prodCredentials && it.vpcId == 'vpc-prod'
-    }, lookup, lookup, _, _, 'internal', 'external', 'iam3', 'kp-3', false, false) >> new MigrateClusterConfigurationResult()
+    }, lookup, lookup, _, _, 'internal', 'external', 'iam3', 'kp-3', [:], false, false) >> new MigrateClusterConfigurationResult()
     task.resultObjects.size() == 3
   }
 }

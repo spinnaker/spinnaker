@@ -45,6 +45,7 @@ class ServerGroupMigrator {
   String subnetType
   String elbSubnetType
   String targetAmi
+  Map<String, String> loadBalancerNameMapping
   boolean allowIngressFromClassic
 
   ServerGroupMigrator(MigrateServerGroupStrategy migrationStrategy,
@@ -59,6 +60,7 @@ class ServerGroupMigrator {
                       String iamRole,
                       String keyPair,
                       String targetAmi,
+                      Map<String, String> loadBalancerNameMapping,
                       boolean allowIngressFromClassic) {
 
     this.migrationStrategy = migrationStrategy
@@ -73,6 +75,7 @@ class ServerGroupMigrator {
     this.subnetType = subnetType
     this.elbSubnetType = elbSubnetType
     this.targetAmi = targetAmi
+    this.loadBalancerNameMapping = loadBalancerNameMapping
     this.allowIngressFromClassic = allowIngressFromClassic
   }
 
@@ -80,7 +83,7 @@ class ServerGroupMigrator {
     task.updateStatus BASE_PHASE, (dryRun ? "Calculating" : "Beginning") + " migration of server group " + source.toString()
     MigrateServerGroupResult results = migrationStrategy.generateResults(source, target, sourceLookup, targetLookup,
       migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, subnetType, elbSubnetType, iamRole, keyPair, targetAmi,
-      allowIngressFromClassic, dryRun)
+      loadBalancerNameMapping, allowIngressFromClassic, dryRun)
     task.updateStatus BASE_PHASE, "Migration of server group " + source.toString() +
       (dryRun ? " calculated" : " completed") + ". Migrated server group name: " + results.serverGroupNames.get(0)
     results

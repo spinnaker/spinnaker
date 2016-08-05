@@ -104,7 +104,7 @@ class MigrateServerGroupStrategySpec extends Specification {
 
     when:
     strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', 'external', null, null, null, false, false)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', 'external', null, null, null, [:], false, false)
 
     then:
     amazonClientProvider.getAutoScaling(testCredentials, 'us-east-1', true) >> amazonAutoScaling
@@ -152,7 +152,7 @@ class MigrateServerGroupStrategySpec extends Specification {
 
     when:
     strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', 'external', null, null, null, false, false)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', 'external', null, null, null, [:], false, false)
 
     then:
     amazonClientProvider.getAutoScaling(testCredentials, 'us-east-1', true) >> amazonAutoScaling
@@ -198,7 +198,7 @@ class MigrateServerGroupStrategySpec extends Specification {
 
     when:
     strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', 'external', null, null, null, false, false)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', 'external', null, null, null, [:], false, false)
 
     then:
     amazonClientProvider.getAutoScaling(testCredentials, 'us-east-1', true) >> amazonAutoScaling
@@ -236,7 +236,7 @@ class MigrateServerGroupStrategySpec extends Specification {
 
     when:
     strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', 'external', null, null, null, false, true)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', 'external', null, null, null, [:], false, true)
 
     then:
     amazonClientProvider.getAutoScaling(testCredentials, 'us-east-1', true) >> amazonAutoScaling
@@ -274,7 +274,7 @@ class MigrateServerGroupStrategySpec extends Specification {
 
     when:
     strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', 'external', null, null, null, false, false)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', 'external', null, null, null, [:], false, false)
 
     then:
     amazonClientProvider.getAutoScaling(testCredentials, 'us-east-1', true) >> amazonAutoScaling
@@ -305,7 +305,7 @@ class MigrateServerGroupStrategySpec extends Specification {
 
     when:
     def results = strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', 'external', null, null, null, false, false)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', 'external', null, null, null, [:], false, false)
 
     then:
     amazonClientProvider.getAutoScaling(testCredentials, 'us-east-1', true) >> amazonAutoScaling
@@ -335,7 +335,7 @@ class MigrateServerGroupStrategySpec extends Specification {
 
     when:
     def results = strategy.generateResults(source, target, sourceLookup, targetLookup,
-      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', 'external', null, null, null, false, true)
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, 'internal', 'external', null, null, null, [:], false, true)
 
     then:
     amazonClientProvider.getAutoScaling(testCredentials, 'us-east-1', true) >> amazonAutoScaling

@@ -45,6 +45,7 @@ public abstract class MigrateClusterConfigurationStrategy implements MigrateStra
   protected String elbSubnetType;
   protected String iamRole;
   protected String keyPair;
+  protected Map<String, String> loadBalancerNameMapping;
   protected boolean allowIngressFromClassic;
   protected boolean dryRun;
 
@@ -85,6 +86,7 @@ public abstract class MigrateClusterConfigurationStrategy implements MigrateStra
                                                                         MigrateLoadBalancerStrategy migrateLoadBalancerStrategy,
                                                                         MigrateSecurityGroupStrategy migrateSecurityGroupStrategy,
                                                                         String subnetType, String elbSubnetType, String iamRole, String keyPair,
+                                                                        Map<String, String> loadBalancerNameMapping,
                                                                         boolean allowIngressFromClassic, boolean dryRun) {
     this.sourceLookup = sourceLookup;
     this.targetLookup = targetLookup;
@@ -94,6 +96,7 @@ public abstract class MigrateClusterConfigurationStrategy implements MigrateStra
     this.elbSubnetType = elbSubnetType;
     this.iamRole = iamRole;
     this.keyPair = keyPair;
+    this.loadBalancerNameMapping = loadBalancerNameMapping;
     this.allowIngressFromClassic = allowIngressFromClassic;
     this.dryRun = dryRun;
 
@@ -201,9 +204,13 @@ public abstract class MigrateClusterConfigurationStrategy implements MigrateStra
     sourceLocation.setRegion(source.getRegion());
     sourceLocation.setVpcId(source.getVpcId());
     sourceLocation.setCredentials(source.getCredentials());
+    LoadBalancerMigrator.LoadBalancerLocation targetLocation = new LoadBalancerMigrator.LoadBalancerLocation(target);
+    if (loadBalancerNameMapping.containsKey(lbName)) {
+      targetLocation.setName(loadBalancerNameMapping.get(lbName));
+    }
     return new LoadBalancerMigrator(sourceLookup, targetLookup, getAmazonClientProvider(), getRegionScopedProviderFactory(),
       migrateSecurityGroupStrategy, getDeployDefaults(), getMigrateLoadBalancerStrategy, sourceLocation,
-      new LoadBalancerMigrator.LoadBalancerLocation(target), elbSubnetType, source.getApplication(), allowIngressFromClassic).migrate(dryRun);
+      targetLocation, elbSubnetType, source.getApplication(), allowIngressFromClassic).migrate(dryRun);
   }
 
 }
