@@ -139,6 +139,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
         }
 
         function renderInstances() {
+          instanceGroup = MultiselectModel.getOrCreateInstanceGroup(scope.serverGroup);
           var instances = (scope.instances || [])
             .filter(clusterFilterService.shouldShowInstance)
             .sort(instanceSorter);
