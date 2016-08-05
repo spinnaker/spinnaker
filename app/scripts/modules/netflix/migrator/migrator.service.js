@@ -74,11 +74,21 @@ module.exports = angular
         });
         results.securityGroups = getUniqueGroups(results.securityGroups);
         results.loadBalancers = getUniqueLoadBalancers(results.loadBalancers);
-        results.multipleAccounts = _.uniq(results.securityGroups.map(s => s.accountId)).length > 1;
+        results.multipleAccounts = getTargetAccounts(resultSummary).length > 1;
         addAccountNames(results);
         return results;
       }
       return {};
+    };
+
+    let getTargetAccounts = (resultSummary) => {
+      let targetAccounts = resultSummary.securityGroups.map(g => g.target.credentials);
+      resultSummary.securityGroups.forEach(g => {
+        g.created.forEach(g2 => {
+          targetAccounts.push(g2.credentials);
+        });
+      });
+      return _.uniq(targetAccounts);
     };
 
     let addAccountNames = (results) => {
