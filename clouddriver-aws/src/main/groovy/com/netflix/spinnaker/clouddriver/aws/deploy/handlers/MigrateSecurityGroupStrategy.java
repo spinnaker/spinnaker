@@ -353,9 +353,6 @@ public abstract class MigrateSecurityGroupStrategy {
   // Creates a security group in the target location with no ingress rules
   private SecurityGroupUpdater createDependentSecurityGroup(MigrateSecurityGroupReference reference) {
     String sourceAccount = sourceLookup.getAccountNameForId(reference.getAccountId());
-    NetflixAmazonCredentials targetCredentials = sourceAccount.equals(source.getCredentialAccount()) ?
-      target.getCredentials() :
-      sourceLookup.getCredentialsForName(sourceAccount);
     Optional<SecurityGroupUpdater> sourceGroup = sourceLookup.getSecurityGroupByName(sourceAccount, reference.getTargetName(), reference.getVpcId());
     String description = "Security group " + reference.getTargetName();
     if (sourceGroup.isPresent()) {
@@ -363,12 +360,12 @@ public abstract class MigrateSecurityGroupStrategy {
     }
     UpsertSecurityGroupDescription upsertDescription = new UpsertSecurityGroupDescription();
     upsertDescription.setName(reference.getTargetName());
-    upsertDescription.setCredentials(targetCredentials);
+    upsertDescription.setCredentials(reference.getCredentials());
     upsertDescription.setDescription(description);
-    upsertDescription.setVpcId(target.getVpcId());
+    upsertDescription.setVpcId(reference.getVpcId());
 
     getTask().updateStatus(SecurityGroupMigrator.BASE_PHASE, "Creating dependent security group " +
-      reference.getTargetName() + " in " + targetCredentials.getName() + "/" + target.getRegion() + "/" + target.getVpcId());
+      reference.getTargetName() + " in " + reference.getCredentialAccount() + "/" + target.getRegion() + "/" + target.getVpcId());
     return targetLookup.createSecurityGroup(upsertDescription);
   }
 
