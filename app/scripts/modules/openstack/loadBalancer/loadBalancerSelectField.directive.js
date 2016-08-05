@@ -2,40 +2,42 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.openstack.network.networkSelectField.directive', [
+module.exports = angular.module('spinnaker.openstack.loadBalancer.loadBalancerSelectField.directive', [
   require('../../core/utils/lodash'),
-  require('../../core/network/network.read.service.js'),
+  require('../../core/loadBalancer/loadBalancer.read.service.js'),
   require('../common/selectField.component.js')
 ])
-  .directive('networkSelectField', function (_, networkReader) {
+  .directive('osLoadBalancerSelectField', function (_, loadBalancerReader, cacheInitializer, infrastructureCaches, $rootScope) {
     return {
       restrict: 'E',
       templateUrl: require('../common/cacheBackedSelectField.template.html'),
       scope: {
-        label: '@',
+        readOnly: '=',
         labelColumnSize: '@',
+        label: '@',
         helpKey: '@',
+        valueColumnSize: '@',
         model: '=',
         filter: '=',
         onChange: '&',
-        readOnly: '=',
         allowNoSelection: '=',
         noOptionsMessage: '@',
         noSelectionMessage: '@'
       },
       link: function(scope) {
         _.defaults(scope, {
-          label: 'Network',
+          label: 'Load Balancer',
           labelColumnSize: 3,
           valueColumnSize: 7,
           options: [],
-          backingCache: 'networks',
+          filter: {},
+          backingCache: 'loadBalancers',
 
           updateOptions: function() {
-            return networkReader.listNetworksByProvider('openstack').then(function(networks) {
-              scope.options = _(networks)
+            return loadBalancerReader.listLoadBalancers('openstack').then(function(loadBalancers) {
+              scope.options = _(loadBalancers)
                 .filter(scope.filter || {})
-                .map(function(a) { return {label: a.name, value: a.id}; })
+                .map(function(s) { return {label: s.name, value: s.id}; })
                 .sortBy(function(o) { return o.label; })
                 .valueOf();
 
@@ -46,10 +48,9 @@ module.exports = angular.module('spinnaker.openstack.network.networkSelectField.
           onValueChanged: function(newValue) {
             scope.model = newValue;
             if( scope.onChange ) {
-              scope.onChange({network: newValue});
+              scope.onChange({loadBalancer: newValue});
             }
           }
-
         });
 
         scope.$watch('filter', function() { scope.$broadcast('updateOptions'); });

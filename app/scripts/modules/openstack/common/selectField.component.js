@@ -18,15 +18,20 @@ module.exports = angular.module('spinnaker.openstack.common.selectField', [
       readOnly: '<?',
       allowNoSelection: '<?',
       noOptionsMessage: '@?',
-      noSelectionMessage: '@?'
+      noSelectionMessage: '@?',
+      backingCache: '@?',
+      optionUpdate: '<?'
   }
 });
 
-function SelectFieldController($scope, $element, $attrs, _) {
+function SelectFieldController($scope, $element, $attrs, _, $timeout, $q, $rootScope, infrastructureCaches, cacheInitializer) {
   var ctrl = this;
+  var coveredThreshold = 0;
+
+  this.refreshTooltipTemplate = require('./refresh.tooltip.html');
 
   function findOptionByValue(value) {
-    return _.find(ctrl.options, function(o) { return o.value === value; });
+    return _.find(ctrl.options, function(o) { return angular.equals(o.value, value); });
   }
 
   //called whenever the list of options is updated to ensure that a default value is selected, if required
@@ -53,22 +58,42 @@ function SelectFieldController($scope, $element, $attrs, _) {
     }
   }
 
-  ctrl.$onInit = function() {
-    _.defaults(ctrl, {
-      noOptionsMessage: '(No options available)',
-      noSelectionMessage: '(No selection)',
-      labelColumnSize: 3,
-      valueColumnSize: 7,
-      readOnly: false,
-      onChange: angular.noop
-    });
+  function updateDone() {
+    if( ctrl.backingCache && infrastructureCaches[ctrl.backingCache] ) {
+      coveredThreshold = infrastructureCaches[ctrl.backingCache].getStats().ageMax;
+    }
+    ctrl.updatingOptions = false;
+  }
 
-    updateSelectedOption();
-  };
+  function updateOptions() {
+    ctrl.updatingOptions = true;
+    ctrl.optionUpdate().then(updateDone, updateDone);
+  }
 
-  ctrl.$onChanges = function(changes) {
-    if (changes['options']) {
-      updateSelectedOption();
+  function clearRefreshingFlag() {
+    ctrl.refreshing = false;
+  }
+
+  var stopWatchingRefreshTime = ctrl.backingCache ? $rootScope.$watch(function() {
+    return infrastructureCaches[ctrl.backingCache].getStats().ageMax;
+  }, function(ageMax) {
+    if (ageMax) {
+      ctrl.lastRefresh = ageMax;
+
+      //update options, but don't start an infinite loop since fetching the options can also update ageMax
+      if( !ctrl.updatingOptions && ageMax > coveredThreshold ) {
+        updateOptions();
+      }
+    }
+  }) : angular.noop;
+
+
+  this.refresh = function() {
+    ctrl.refreshing = true;
+    if( ctrl.backingCache ) {
+      cacheInitializer.refreshCache(ctrl.backingCache).then(clearRefreshingFlag, clearRefreshingFlag);
+    } else {
+      updateOptions();
     }
   };
 
@@ -77,4 +102,32 @@ function SelectFieldController($scope, $element, $attrs, _) {
       ctrl.onChange({value: ctrl.value});
     }
   };
+
+
+  ctrl.$onInit = function() {
+    $scope.showRefresh = !!ctrl.optionUpdate;
+    _.defaults(ctrl, {
+      noOptionsMessage: '(No options available)',
+      noSelectionMessage: '(No selection)',
+      labelColumnSize: 3,
+      valueColumnSize: 7,
+      readOnly: false,
+      onChange: angular.noop,
+      optionUpdate: function() { return $q.when(ctrl.options); }
+    });
+
+    updateOptions();
+  };
+
+  ctrl.$onChanges = function(changes) {
+    if (changes['options']) {
+      updateSelectedOption();
+    }
+  };
+
+  ctrl.$onDestroy = function () {
+    stopWatchingRefreshTime();
+  };
+
+  $scope.$on('updateOptions', updateOptions);
 }

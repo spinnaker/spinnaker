@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.openstack.subnet.subnetSelectField.di
   .directive('osSubnetSelectField', function (settings, _, subnetReader) {
     return {
       restrict: 'E',
-      templateUrl: require('./subnetSelectField.directive.html'),
+      templateUrl: require('../common/cacheBackedSelectField.template.html'),
       scope: {
         label: '@',
         labelColumnSize: '@',
@@ -28,30 +28,33 @@ module.exports = angular.module('spinnaker.openstack.subnet.subnetSelectField.di
         _.defaults(scope, {
           label: 'Subnet',
           labelColumnSize: 3,
-          subnets: [],
-          filter: {}
+          valueColumnSize: 7,
+          options: [],
+          filter: {},
+          backingCache: 'subnets',
+
+          updateOptions: function() {
+            return subnetReader.listSubnetsByProvider('openstack').then(function(subnets) {
+              scope.options = _(subnets)
+                .filter(scope.filter || {})
+                .map(function(s) { return {label: s.name, value: s.id}; })
+                .sortBy(function(o) { return o.label; })
+                .valueOf();
+
+              return scope.options;
+            });
+          },
+
+          onValueChanged: function(newValue) {
+            scope.model = newValue;
+            if( scope.onChange ) {
+              scope.onChange({subnet: newValue});
+            }
+          }
+
         });
 
-        var currentRequestId = 0;
-
-        function updateSubnetOptions() {
-          currentRequestId++;
-          var requestId = currentRequestId;
-          subnetReader.listSubnetsByProvider('openstack').then(function(subnets) {
-            if (requestId !== currentRequestId) {
-              return;
-            }
-
-            scope.subnets = _(subnets)
-              .filter(scope.filter || {})
-              .map(function(s) { return {label: s.name, value: s.id}; })
-              .sortBy(function(o) { return o.label; })
-              .valueOf();
-          });
-        }
-
-        scope.$watch('filter', updateSubnetOptions);
-        updateSubnetOptions();
+        scope.$watch('filter', function() { scope.$broadcast('updateOptions'); });
       }
     };
 });

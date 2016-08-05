@@ -150,14 +150,6 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
       $scope.subnetFilter = {type: 'openstack', account: $scope.loadBalancer.account, region: $scope.loadBalancer.region};
     };
 
-    this.onSubnetChanged = function(subnetId) {
-      $scope.loadBalancer.subnetId = subnetId;
-    };
-
-    this.onNetworkChanged = function(networkId) {
-      $scope.loadBalancer.networkId = networkId;
-    };
-
     this.onDistributionChanged = function(distribution) {
       $scope.loadBalancer.method = distribution;
     };

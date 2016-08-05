@@ -122,7 +122,6 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
     it('has the expected methods and properties', function() {
       expect(this.ctrl.updateName).toBeDefined();
       expect(this.ctrl.accountUpdated).toBeDefined();
-      expect(this.ctrl.onSubnetChanged).toBeDefined();
       expect(this.ctrl.addStatusCode).toBeDefined();
       expect(this.ctrl.removeStatusCode).toBeDefined();
       expect(this.ctrl.prependForwardSlash).toBeDefined();
@@ -202,17 +201,6 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
 
           it('- updates the subnet filter', function() {
             expect(this.$scope.subnetFilter).toEqual({type: 'openstack', account: this.$scope.loadBalancer.account, region: this.$scope.loadBalancer.region});
-          });
-
-          describe('& subnet updated', function() {
-            beforeEach(function() {
-              this.$scope.loadBalancer.subnet = this.testData.subnet;
-              this.ctrl.onSubnetChanged();
-            });
-
-            it('loads the list of networks', function() {
-              //TODO (jcwest)... work in progress.... may not be needed
-            });
           });
 
           describe('& account selection changed', function() {
@@ -358,7 +346,6 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
     it('has the expected methods and properties', function() {
       expect(this.ctrl.updateName).toBeDefined();
       expect(this.ctrl.accountUpdated).toBeDefined();
-      expect(this.ctrl.onSubnetChanged).toBeDefined();
       expect(this.ctrl.addStatusCode).toBeDefined();
       expect(this.ctrl.removeStatusCode).toBeDefined();
       expect(this.ctrl.prependForwardSlash).toBeDefined();

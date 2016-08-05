@@ -11,6 +11,7 @@ _.forEach(templates.keys(), function(key) {
 });
 
 module.exports = angular.module('spinnaker.openstack', [
+  require('./instance/openstackInstanceType.service.js'),
   require('./serverGroup/configure/ServerGroupCommandBuilder.js'),
   require('./serverGroup/configure/serverGroup.configure.openstack.module.js'),
   require('./serverGroup/configure/wizard/Clone.controller.js'),
@@ -40,6 +41,12 @@ module.exports = angular.module('spinnaker.openstack', [
       },
       search: {
         resultFormatter: 'openstackSearchResultFormatter',
+      },
+      image: {
+        reader: 'openstackImageReader',
+      },
+      instance: {
+        instanceTypeService: 'openstackInstanceTypeService',
       },
       securityGroup: {
         reader: 'openstackSecurityGroupReader',
