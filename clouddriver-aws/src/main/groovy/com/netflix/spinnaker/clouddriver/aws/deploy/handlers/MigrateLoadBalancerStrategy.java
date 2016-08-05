@@ -155,17 +155,65 @@ public abstract class MigrateLoadBalancerStrategy implements MigrateStrategySupp
       getRegionScopedProviderFactory().forRegion(target.getCredentials(), target.getRegion())
         .getSubnetAnalyzer().getSubnetIdsForZones(target.getAvailabilityZones(), subnetType, SubnetTarget.ELB, 1) :
       new ArrayList();
-    AmazonElasticLoadBalancing client = getAmazonClientProvider()
+    AmazonElasticLoadBalancing sourceClient = getAmazonClientProvider()
+      .getAmazonElasticLoadBalancing(source.getCredentials(), source.getRegion(), true);
+    AmazonElasticLoadBalancing targetClient = getAmazonClientProvider()
       .getAmazonElasticLoadBalancing(target.getCredentials(), target.getRegion(), true);
     if (targetLoadBalancer == null) {
       boolean isInternal = subnetType == null || subnetType.contains("internal");
       LoadBalancerUpsertHandler.createLoadBalancer(
-        client, targetName, isInternal, target.getAvailabilityZones(), subnetIds, listeners, securityGroups);
-      configureHealthCheck(client, sourceLoadBalancer, targetName);
+        targetClient, targetName, isInternal, target.getAvailabilityZones(), subnetIds, listeners, securityGroups);
+      configureHealthCheck(targetClient, sourceLoadBalancer, targetName);
     } else {
-      LoadBalancerUpsertHandler.updateLoadBalancer(client, targetLoadBalancer, listeners, securityGroups);
+      LoadBalancerUpsertHandler.updateLoadBalancer(targetClient, targetLoadBalancer, listeners, securityGroups);
     }
+    applyListenerPolicies(sourceClient, targetClient, sourceLoadBalancer, targetName);
   }
+
+
+  /**
+   * Applies any listener policies from the source load balancer to the target load balancer.
+   *
+   * Since policy names are unique to each load balancer, two policies with the same name in different load balancers
+   * may contain different policy attributes. For the sake of simplicity, we assume that policies with the same name
+   * are structurally the same, and do not attempt to reconcile any differences between attributes.
+   *
+   * We will, however, attempt to override the policies applied to a given listener if it's different, e.g., if the
+   * source load balancer has policy "a" on port 7000, and the target load balancer has policy "b" on port 7000, we
+   * will:
+   *   1. create policy "a" if it doesn't exist on the target load balancer, then
+   *   2. update the target load balancer so port 7000 will have only policy "a"
+   */
+  private void applyListenerPolicies(AmazonElasticLoadBalancing sourceClient, AmazonElasticLoadBalancing targetClient,
+                                     LoadBalancerDescription source, String loadBalancerName) {
+    Set<String> policiesToRetrieve = new HashSet<>();
+    source.getListenerDescriptions().forEach(d -> policiesToRetrieve.addAll(d.getPolicyNames()));
+    List<PolicyDescription> sourcePolicies = sourceClient.describeLoadBalancerPolicies(
+      new DescribeLoadBalancerPoliciesRequest()
+        .withLoadBalancerName(source.getLoadBalancerName())
+        .withPolicyNames(policiesToRetrieve)).getPolicyDescriptions();
+    List<PolicyDescription> targetPolicies = targetClient.describeLoadBalancerPolicies(
+      new DescribeLoadBalancerPoliciesRequest()
+        .withLoadBalancerName(loadBalancerName)
+    ).getPolicyDescriptions();
+    sourcePolicies.removeIf(p -> targetPolicies.stream().anyMatch(tp -> tp.getPolicyName().equals(p.getPolicyName())));
+    sourcePolicies.forEach(p -> targetClient.createLoadBalancerPolicy(
+      new CreateLoadBalancerPolicyRequest()
+        .withPolicyName(p.getPolicyName())
+      .withLoadBalancerName(loadBalancerName)
+      .withPolicyTypeName(p.getPolicyTypeName())
+      .withPolicyAttributes(p.getPolicyAttributeDescriptions().stream().map(d ->
+        new PolicyAttribute(d.getAttributeName(), d.getAttributeValue())).collect(Collectors.toList()))
+    ));
+    source.getListenerDescriptions().forEach(l -> targetClient.setLoadBalancerPoliciesOfListener(
+      new SetLoadBalancerPoliciesOfListenerRequest()
+        .withLoadBalancerName(loadBalancerName)
+      .withLoadBalancerPort(l.getListener().getLoadBalancerPort())
+      .withPolicyNames(l.getPolicyNames())
+      )
+    );
+  }
+
 
   private void configureHealthCheck(AmazonElasticLoadBalancing loadBalancing,
                                     LoadBalancerDescription source, String loadBalancerName) {
