@@ -26,6 +26,7 @@ import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.security.User
 import org.opensaml.saml2.core.Assertion
 import org.opensaml.saml2.core.Attribute
+import org.opensaml.xml.schema.XSAny
 import org.opensaml.xml.schema.XSString
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
@@ -197,7 +198,15 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
         def attributes = [:]
         assertion.attributeStatements*.attributes.flatten().each { Attribute attribute ->
           def name = attribute.name
-          def values = attribute.attributeValues.collect { (it as XSString)?.value }
+          def values = attribute.attributeValues.findResults {
+            switch (it) {
+              case XSString:
+                return (it as XSString)?.value
+              case XSAny:
+                return (it as XSAny)?.textContent
+            }
+            return null
+          } ?: []
           attributes[name] = values
         }
 
