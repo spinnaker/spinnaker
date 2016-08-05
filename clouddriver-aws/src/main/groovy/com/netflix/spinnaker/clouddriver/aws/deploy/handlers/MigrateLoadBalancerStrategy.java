@@ -22,6 +22,7 @@ import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.model.*;
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription;
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerMigrator;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerMigrator.LoadBalancerLocation;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.MigrateLoadBalancerResult;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.MigrateSecurityGroupReference;
@@ -34,6 +35,8 @@ import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonVpcProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory;
+import com.netflix.spinnaker.clouddriver.data.task.Task;
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 
 import java.util.*;
@@ -58,6 +61,10 @@ public abstract class MigrateLoadBalancerStrategy implements MigrateStrategySupp
   abstract RegionScopedProviderFactory getRegionScopedProviderFactory();
 
   abstract DeployDefaults getDeployDefaults();
+
+  private static Task getTask() {
+    return TaskRepository.threadLocalTask.get();
+  }
 
   /**
    * Generates a result set describing the actions required to migrate the source load balancer to the target.
@@ -250,6 +257,8 @@ public abstract class MigrateLoadBalancerStrategy implements MigrateStrategySupp
       upsertDescription.setVpcId(target.getVpcId());
       upsertDescription.setRegion(target.getRegion());
       upsertDescription.setCredentials(target.getCredentials());
+      getTask().updateStatus(LoadBalancerMigrator.BASE_PHASE, "Creating load balancer security group " +
+        upsertDescription.getName() + " in " + target.getCredentialAccount() + "/" + target.getRegion() + "/" + target.getVpcId());
       elbGroupId = targetLookup.createSecurityGroup(upsertDescription).getSecurityGroup().getGroupId();
       AmazonEC2 targetAmazonEC2 = getAmazonClientProvider().getAmazonEC2(target.getCredentials(), target.getRegion(), true);
       elbGroup.setTargetId(elbGroupId);
@@ -293,6 +302,8 @@ public abstract class MigrateLoadBalancerStrategy implements MigrateStrategySupp
           upsertDescription.setVpcId(target.getVpcId());
           upsertDescription.setRegion(target.getRegion());
           upsertDescription.setCredentials(target.getCredentials());
+          getTask().updateStatus(LoadBalancerMigrator.BASE_PHASE, "Creating security group " +
+            upsertDescription.getName() + " in " + target.getCredentialAccount() + "/" + target.getRegion() + "/" + target.getVpcId());
           String newGroupId = targetLookup.createSecurityGroup(upsertDescription).getSecurityGroup().getGroupId();
           // After the create request completes, there is a brief period where the security group might not be
           // available and subsequent operations on it will fail, so make sure it's there

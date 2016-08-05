@@ -29,10 +29,13 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.MigrateSec
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupIngressConverter;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupLookup;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupUpdater;
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupMigrator;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupMigrator.SecurityGroupLocation;
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonVpcProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
+import com.netflix.spinnaker.clouddriver.data.task.Task;
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -45,12 +48,14 @@ public abstract class MigrateSecurityGroupStrategy {
   protected SecurityGroupLocation target;
   protected boolean dryRun;
 
+  private static Task getTask() {
+    return TaskRepository.threadLocalTask.get();
+  }
+
   abstract AmazonClientProvider getAmazonClientProvider();
 
   /**
    * Infrastructure applications are treated as optional, non-managed resources when performing migrations
-   *
-   * @return
    */
   abstract List<String> getInfrastructureApplications();
 
@@ -362,6 +367,8 @@ public abstract class MigrateSecurityGroupStrategy {
     upsertDescription.setDescription(description);
     upsertDescription.setVpcId(target.getVpcId());
 
+    getTask().updateStatus(SecurityGroupMigrator.BASE_PHASE, "Creating dependent security group " +
+      reference.getTargetName() + " in " + targetCredentials.getName() + "/" + target.getRegion() + "/" + target.getVpcId());
     return targetLookup.createSecurityGroup(upsertDescription);
   }
 

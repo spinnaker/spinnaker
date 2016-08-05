@@ -30,6 +30,8 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGr
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupMigrator.SecurityGroupLocation
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -51,11 +53,17 @@ class MigrateSecurityGroupStrategySpec extends Specification {
 
   AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
 
+  def setupSpec() {
+    TaskRepository.threadLocalTask.set(Mock(Task))
+  }
+
   def setup() {
     strategy = new DefaultMigrateSecurityGroupStrategy(amazonClientProvider, ['infra'])
 
     sourceLookup.getCredentialsForId(testCredentials.accountId) >> testCredentials
     targetLookup.getCredentialsForId(testCredentials.accountId) >> testCredentials
+    sourceLookup.getCredentialsForName(testCredentials.name) >> testCredentials
+    targetLookup.getCredentialsForName(testCredentials.name) >> testCredentials
 
     sourceLookup.getAccountNameForId(testCredentials.accountId) >> 'test'
     targetLookup.getAccountNameForId(testCredentials.accountId) >> 'test'
@@ -64,6 +72,8 @@ class MigrateSecurityGroupStrategySpec extends Specification {
 
     sourceLookup.getCredentialsForId(prodCredentials.accountId) >> prodCredentials
     targetLookup.getCredentialsForId(prodCredentials.accountId) >> prodCredentials
+    sourceLookup.getCredentialsForName(prodCredentials.name) >> prodCredentials
+    targetLookup.getCredentialsForName(prodCredentials.name) >> prodCredentials
 
     sourceLookup.getAccountNameForId(prodCredentials.accountId) >> 'prod'
     targetLookup.getAccountNameForId(prodCredentials.accountId) >> 'prod'

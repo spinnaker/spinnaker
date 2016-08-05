@@ -28,7 +28,7 @@ import static com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.Sec
 
 class SecurityGroupMigrator {
 
-  private static final String BASE_PHASE = "MIGRATE_SECURITY_GROUP"
+  public static final String BASE_PHASE = "MIGRATE_SECURITY_GROUP"
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
