@@ -267,6 +267,31 @@
         <dd ng-if="ctrl.serverGroup.buildInfo.jenkins"><a target=_blank href="{{ctrl.buildJenkinsLink()}}">{{ctrl.buildJenkinsLink()}}</a></dd>
       </dl>
     </collapsible-section>
+    <collapsible-section heading="Port Name Mapping">
+      <dl ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'"
+          ng-if="ctrl.serverGroup.loadBalancingPolicy.listeningPort">
+        <dd>http &rarr; {{ ctrl.serverGroup.loadBalancingPolicy.listeningPort }}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Capacity Metrics">
+      <dl ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'"
+          ng-if="ctrl.serverGroup.loadBalancingPolicy.listeningPort">
+        <dt>Balancing Mode</dt>
+        <dd>{{ctrl.serverGroup.loadBalancingPolicy.balancingMode}}</dd>
+        <dt ng-if="ctrl.serverGroup.loadBalancingPolicy.maxRatePerInstance">Max RPS per instance</dt>
+        <dd ng-if="ctrl.serverGroup.loadBalancingPolicy.maxRatePerInstance">
+          {{ctrl.serverGroup.loadBalancingPolicy.maxRatePerInstance}}
+        </dd>
+        <dt ng-if="ctrl.serverGroup.loadBalancingPolicy.maxUtilization">Max CPU Utilization</dt>
+        <dd ng-if="ctrl.serverGroup.loadBalancingPolicy.maxUtilization">
+          {{ctrl.serverGroup.loadBalancingPolicy.maxUtilization | decimalToPercent}}
+        </dd>
+        <dt ng-if="ctrl.serverGroup.loadBalancingPolicy.capacityScaler">Capacity</dt>
+        <dd ng-if="ctrl.serverGroup.loadBalancingPolicy.capacityScaler">
+          {{ctrl.serverGroup.loadBalancingPolicy.capacityScaler | decimalToPercent}}
+        </dd>
+      </dl>
+    </collapsible-section>
     <collapsible-section heading="Logs">
       <ul>
         <li ng-if="ctrl.serverGroup.logsLink">

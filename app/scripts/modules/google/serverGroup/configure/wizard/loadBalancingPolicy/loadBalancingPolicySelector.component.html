@@ -1,51 +1,88 @@
 <ng-form name="loadBalancingPolicySubForm">
-  <div class="form-group">
-    <div class="col-md-5 sm-label-right">
-      <b>Balancing Mode</b>
+  <collapsible-section heading="Port Name Mapping" expanded="true" subsection="true">
+    <div class="form-group">
+      <div class="col-md-5 sm-label-right">
+        <span>http</span><help-field key="gce.serverGroup.loadBalancingPolicy.listeningPort"></help-field>
+      </div>
+      <div class="col-md-2"><input type="number"
+                                   name="listeningPort"
+                                   class="form-control input-sm"
+                                   ng-model="$ctrl.command.loadBalancingPolicy.listeningPort"
+                                   max="{{ $ctrl.maxPort }}"
+                                   min="1"/></div>
+      <div class="col-md-4 error-message"
+           ng-if="loadBalancingPolicySubForm.listeningPort.$error.min || loadBalancingPolicySubForm.listeningPort.$error.max">
+        Must be between 0 and {{ $ctrl.maxPort }}.
+      </div>
     </div>
-    <div class="col-md-6">
-      <ui-select ng-model="$ctrl.command.loadBalancingPolicy.balancingMode" class="form-control input-sm" required>
-        <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
-        <ui-select-choices repeat="balancingMode in ['RATE', 'UTILIZATION'] | filter: $select.search">
-          <span ng-bind-html="balancingMode"></span>
-        </ui-select-choices>
-      </ui-select>
+  </collapsible-section>
+  <collapsible-section heading="Capacity Metrics" expanded="true" subsection="true">
+    <div class="form-group">
+      <div class="col-md-5 sm-label-right">
+        <b>Balancing Mode</b>
+      </div>
+      <div class="col-md-3">
+        <ui-select ng-model="$ctrl.command.loadBalancingPolicy.balancingMode" class="form-control input-sm" required>
+          <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
+          <ui-select-choices repeat="balancingMode in ['RATE', 'UTILIZATION'] | filter: $select.search">
+            <span ng-bind-html="balancingMode"></span>
+          </ui-select-choices>
+        </ui-select>
+      </div>
     </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-5 sm-label-right">
-      <b>Listening Port</b>
+    <div ng-switch on="$ctrl.command.loadBalancingPolicy.balancingMode">
+      <div class="form-group" ng-switch-when="UTILIZATION">
+        <div class="col-md-5 sm-label-right">
+          <b>Max CPU utilization (%)</b>
+          <help-field key="gce.serverGroup.loadBalancingPolicy.maxUtilization"></help-field>
+        </div>
+        <div class="col-md-2"><input type="number"
+                                     name="maxUtilization"
+                                     class="form-control input-sm"
+                                     ng-model="$ctrl.maxUtilizationView"
+                                     ng-init="$ctrl.setView('maxUtilizationView', $ctrl.command.loadBalancingPolicy.maxUtilization)"
+                                     ng-change="$ctrl.setModel('command.loadBalancingPolicy.maxUtilization', $ctrl.maxUtilizationView)"
+                                     min="0"
+                                     max="100"/></div>
+        <div class="col-md-4 error-message"
+             ng-if="loadBalancingPolicySubForm.maxUtilization.$error.min || loadBalancingPolicySubForm.maxUtilization.$error.max">
+          Must be between 0 and 100%.
+        </div>
+      </div>
+      <div class="form-group" ng-switch-when="RATE">
+        <div class="col-md-5 sm-label-right">
+          <b>Max RPS per instance</b>
+          <help-field key="gce.serverGroup.loadBalancingPolicy.maxRatePerInstance"></help-field>
+        </div>
+        <div class="col-md-2"><input type="number"
+                                     name="maxRatePerInstance"
+                                     required
+                                     class="form-control input-sm"
+                                     ng-model="$ctrl.command.loadBalancingPolicy.maxRatePerInstance"
+                                     min="0"/></div>
+        <div class="col-md-4 error-message"
+             ng-if="loadBalancingPolicySubForm.maxRatePerInstance.$error.min">
+          Must be greater than 0.
+        </div>
+      </div>
     </div>
-    <div class="col-md-6"><input type="number"
-                                 class="form-control input-sm"
-                                 required
-                                 ng-model="$ctrl.command.loadBalancingPolicy.listeningPort"
-                                 max="{{ $ctrl.maxPort }}"
-                                 min="1"/></div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-5 sm-label-right">
-      <b>Max rate per instance</b>
-      <help-field key="gce.serverGroup.loadBalancingPolicy.maxRatePerInstance"></help-field>
+    <div class="form-group">
+      <div class="col-md-5 sm-label-right">
+        <b>Capacity (%)</b>
+        <help-field key="gce.serverGroup.loadBalancingPolicy.capacityScaler"></help-field>
+      </div>
+      <div class="col-md-2"><input type="number"
+                                   name="capacityScaler"
+                                   class="form-control input-sm"
+                                   ng-model="$ctrl.capacityScalerView"
+                                   ng-init="$ctrl.setView('capacityScalerView', $ctrl.command.loadBalancingPolicy.capacityScaler)"
+                                   ng-change="$ctrl.setModel('command.loadBalancingPolicy.capacityScaler', $ctrl.capacityScalerView)"
+                                   min="0"
+                                   max="100"/></div>
+      <div class="col-md-4 error-message"
+           ng-if="loadBalancingPolicySubForm.capacityScaler.$error.min || loadBalancingPolicySubForm.capacityScaler.$error.max">
+        Must be between 0 and 100%.
+      </div>
     </div>
-    <div class="col-md-2"><input type="number"
-                                 required
-                                 class="form-control input-sm"
-                                 ng-model="$ctrl.command.loadBalancingPolicy.maxRatePerInstance"
-                                 min="0"/></div>
-  </div>
-  <div class="form-group" ng-if="$ctrl.command.loadBalancingPolicy.balancingMode === 'UTILIZATION'">
-    <div class="col-md-5 sm-label-right">
-      <b>Max utilization</b>
-      <help-field key="gce.serverGroup.loadBalancingPolicy.maxUtilization"></help-field>
-    </div>
-    <div class="col-md-2"><input type="number"
-                                 required
-                                 class="form-control input-sm"
-                                 ng-model="$ctrl.maxUtilizationView"
-                                 ng-init="$ctrl.setMaxUtilizationView($ctrl.command.loadBalancingPolicy.maxUtilization)"
-                                 ng-change="$ctrl.setMaxUtilization($ctrl.maxUtilizationView)"
-                                 min="0"
-                                 max="100"/></div>
-  </div>
+  </collapsible-section>
 </ng-form>

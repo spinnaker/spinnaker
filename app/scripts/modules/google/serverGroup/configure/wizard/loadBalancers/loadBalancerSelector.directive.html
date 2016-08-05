@@ -46,7 +46,6 @@
       </p>
     </div>
   </div>
-  <collapsible-section heading="Load Balancing Policy" expanded="true" subsection="true" ng-if="vm.showLoadBalancingPolicy()">
-    <gce-load-balancing-policy-selector command="vm.command"></gce-load-balancing-policy-selector>
-  </collapsible-section>
+  <gce-load-balancing-policy-selector ng-if="vm.showLoadBalancingPolicy()"
+                                      command="vm.command"></gce-load-balancing-policy-selector>
 </div>

@@ -287,6 +287,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         freeFormDetails: serverGroupName.freeFormDetails,
         credentials: serverGroup.account,
         loadBalancers: extractLoadBalancers(serverGroup.asg),
+        loadBalancingPolicy: _.cloneDeep(serverGroup.loadBalancingPolicy),
         securityGroups: serverGroup.securityGroups,
         region: serverGroup.region,
         capacity: {

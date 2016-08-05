@@ -10,19 +10,19 @@ module.exports = angular.module('spinnaker.deck.gce.loadBalancingPolicySelector.
       command: '='
     },
     templateUrl: require('./loadBalancingPolicySelector.component.html'),
-    controller: function ($scope) {
+    controller: function ($scope, _) {
       if (!this.command.loadBalancingPolicy) {
         this.command.loadBalancingPolicy = {
           balancingMode: 'UTILIZATION'
         };
       }
 
-      this.setMaxUtilization = (view) => {
-        this.command.loadBalancingPolicy.maxUtilization = view / 100;
+      this.setModel = (propertyName, viewValue) => {
+        _.set(this, propertyName, viewValue / 100);
       };
 
-      this.setMaxUtilizationView = (maxUtilization) => {
-        this.maxUtilizationView = safeDecimalToPercent(maxUtilization);
+      this.setView = (propertyName, modelValue) => {
+        this[propertyName] = safeDecimalToPercent(modelValue);
       };
 
       function safeDecimalToPercent (value) {
@@ -39,6 +39,8 @@ module.exports = angular.module('spinnaker.deck.gce.loadBalancingPolicySelector.
       $scope.$watch('$ctrl.command.loadBalancingPolicy.balancingMode', (mode) => {
         if (mode === 'RATE') {
           delete this.command.loadBalancingPolicy.maxUtilization;
+        } else if (mode === 'UTILIZATION') {
+          delete this.command.loadBalancingPolicy.maxRatePerInstance;
         }
       });
 
