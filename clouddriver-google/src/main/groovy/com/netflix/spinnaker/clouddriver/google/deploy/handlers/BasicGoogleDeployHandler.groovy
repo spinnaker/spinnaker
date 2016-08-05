@@ -309,6 +309,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                   loadBalancingPolicy.maxRatePerInstance : null,
               maxUtilization: balancingMode == GoogleHttpLoadBalancingPolicy.BalancingMode.UTILIZATION ?
                   loadBalancingPolicy.maxUtilization : null,
+              capacityScaler: loadBalancingPolicy.capacityScaler != null ? loadBalancingPolicy.capacityScaler : 1.0,
           )
         } else if (sourceBackend) {
           backendToAdd = new Backend(sourceBackend)

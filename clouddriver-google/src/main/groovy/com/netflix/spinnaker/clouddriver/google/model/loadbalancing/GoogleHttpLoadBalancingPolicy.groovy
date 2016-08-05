@@ -30,6 +30,13 @@ class GoogleHttpLoadBalancingPolicy {
   Float maxUtilization
 
   /**
+   * Additional scaler option that sets the current max usage of the server group for either balancingMode.
+   * Valid values are 0.0 through 1.0.
+   * https://cloud.google.com/compute/docs/load-balancing/http/backend-service#add_instance_groups_to_a_backend_service
+   */
+  Float capacityScaler
+
+  /**
    * Port that the HTTP LB will forward traffic to on the server group.
    */
   Integer listeningPort

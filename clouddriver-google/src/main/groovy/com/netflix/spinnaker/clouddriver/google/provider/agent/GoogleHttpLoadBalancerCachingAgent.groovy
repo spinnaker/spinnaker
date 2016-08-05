@@ -383,6 +383,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
                       backend.maxRatePerInstance : null,
                   maxUtilization: backendBalancingMode == GoogleHttpLoadBalancingPolicy.BalancingMode.UTILIZATION ?
                       backend.maxUtilization : null,
+                  capacityScaler: backend.capacityScaler,
               )
           )
         }
