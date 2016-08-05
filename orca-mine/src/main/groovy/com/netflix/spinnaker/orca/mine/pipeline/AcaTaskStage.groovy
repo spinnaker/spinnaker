@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.mine.pipeline
 
 import com.netflix.spinnaker.orca.CancellableStage
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.batch.RestartableStage
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.mine.tasks.CompleteCanaryTask
 import com.netflix.spinnaker.orca.mine.tasks.MonitorAcaTaskTask
@@ -31,7 +33,7 @@ import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
-class AcaTaskStage extends LinearStage implements CancellableStage {
+class AcaTaskStage extends LinearStage implements CancellableStage, RestartableStage {
   public static final String PIPELINE_CONFIG_TYPE = "acaTask"
 
   AcaTaskStage() {
@@ -52,12 +54,45 @@ class AcaTaskStage extends LinearStage implements CancellableStage {
   }
 
   @Override
+  Stage prepareStageForRestart(Stage stage) {
+    stage = super.prepareStageForRestart(stage)
+    stage.startTime = null
+    stage.endTime = null
+
+    if (stage.context.canary) {
+      def previousCanary = stage.context.canary.clone()
+      stage.context.restartDetails << [previousCanary: previousCanary]
+      cancelCanary(stage, "Restarting AcaTaskStage for execution (${stage.execution?.id}) ")
+
+      stage.context.canary.remove("id")
+      stage.context.canary.remove("launchDate")
+      stage.context.canary.remove("endDate")
+      stage.context.canary.remove("canaryDeployments")
+      stage.context.canary.remove("canaryResult")
+      stage.context.canary.remove("status")
+      stage.context.canary.remove("health")
+    }
+
+
+    stage.tasks.each { com.netflix.spinnaker.orca.pipeline.model.Task task ->
+      task.startTime = null
+      task.endTime = null
+      task.status = ExecutionStatus.NOT_STARTED
+    }
+
+    return stage
+  }
+
+  @Override
   CancellableStage.Result cancel(Stage stage) {
     log.info("Cancelling stage (stageId: ${stage.id}, executionId: ${stage.execution.id}, context: ${stage.context as Map})")
-
-    def cancelCanaryResults = mineService.cancelCanary(stage.context.canary.id as String, "Pipeline execution (${stage.execution?.id}) canceled")
-    log.info("Canceled canary in mine (canaryId: ${stage.context.canary.id}, stageId: ${stage.id}, executionId: ${stage.execution.id})")
-
+    def cancelCanaryResults = cancelCanary(stage, "Pipeline execution (${stage.execution?.id}) canceled");
     return new CancellableStage.Result(stage, ["canary": cancelCanaryResults])
+  }
+
+  Map cancelCanary(Stage stage, String reason)  {
+    def cancelCanaryResults = mineService.cancelCanary(stage.context.canary.id as String, reason)
+    log.info("Canceled canary in mine (canaryId: ${stage.context.canary.id}, stageId: ${stage.id}, executionId: ${stage.execution.id}): ${reason}")
+    return cancelCanaryResults
   }
 }
