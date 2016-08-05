@@ -95,6 +95,7 @@ class UserRolesSyncer {
       List<String> oldList = usernameCurrentGroupsMap[username] as List
       if (oldList != newList) {
         sessionIdsToDelete.add(usernameSessionIdMap[username])
+        log.warn("Removing session for ${username} (oldList: ${oldList}, newList: ${newList})")
       }
     }
 
