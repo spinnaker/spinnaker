@@ -6,14 +6,13 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.disableAsgStag
   require('../../../../../application/modal/platformHealthOverride.directive.js'),
   require('../../../../../account/account.service.js'),
   require('../../stageConstants.js'),
-  require('./disableAsgExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'disableServerGroup',
       cloudProvider: 'cf',
       templateUrl: require('./disableAsgStage.html'),
-      executionDetailsUrl: require('./disableAsgExecutionDetails.html'),
+      executionDetailsUrl: require('../templates/disableAsgExecutionDetails.template.html'),
       executionStepLabelUrl: require('./disableAsgStepLabel.html'),
       validators: [
         {

@@ -6,7 +6,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.disabl
   require('../../../../core/application/modal/platformHealthOverride.directive.js'),
   require('../../../../core/pipeline/config/stages/stageConstants.js'),
   require('../../../../core/account/account.service.js'),
-  require('./disableAsgExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

@@ -5,14 +5,13 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.pipeline.stage.azure.destroyAsgStage', [
   require('../../../../../account/account.service.js'),
   require('../../stageConstants.js'),
-  require('./destroyAsgExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'destroyServerGroup',
       cloudProvider: 'azure',
       templateUrl: require('./destroyAsgStage.html'),
-      executionDetailsUrl: require('./destroyAsgExecutionDetails.html'),
+      executionDetailsUrl: require('../templates/destroyAsgExecutionDetails.template.html'),
       executionStepLabelUrl: require('./destroyAsgStepLabel.html'),
       validators: [
         {

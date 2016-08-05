@@ -2,12 +2,12 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.disableAsg.aws.executionDetails.controller', [
+module.exports = angular.module('spinnaker.core.pipeline.stage.disableAsg.executionDetails.controller', [
   require('angular-ui-router'),
-  require('../../../../core/delivery/details/executionDetailsSection.service.js'),
-  require('../../../../core/delivery/details/executionDetailsSectionNav.directive.js'),
+  require('../../../../../delivery/details/executionDetailsSection.service.js'),
+  require('../../../../../delivery/details/executionDetailsSectionNav.directive.js'),
 ])
-  .controller('awsDisableAsgExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
+  .controller('disableAsgExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 
     $scope.configSections = ['disableServerGroupConfig', 'taskStatus'];
 

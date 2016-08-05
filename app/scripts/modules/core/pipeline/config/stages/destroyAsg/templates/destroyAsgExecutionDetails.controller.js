@@ -2,12 +2,12 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.destroyAsg.gce.executionDetails.controller', [
+module.exports = angular.module('spinnaker.core.pipeline.stage.destroyAsg.executionDetails.controller', [
   require('angular-ui-router'),
-  require('../../../../core/delivery/details/executionDetailsSection.service.js'),
-  require('../../../../core/delivery/details/executionDetailsSectionNav.directive.js'),
+  require('../../../../../delivery/details/executionDetailsSection.service.js'),
+  require('../../../../../delivery/details/executionDetailsSectionNav.directive.js'),
 ])
-  .controller('gceDestroyAsgExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
+  .controller('destroyAsgExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 
     $scope.configSections = ['destroyServerGroupConfig', 'taskStatus'];
 
