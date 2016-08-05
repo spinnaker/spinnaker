@@ -29,7 +29,7 @@ import java.util.List;
 @Component
 public class MigrateSecurityGroupStage extends LinearStage {
 
-  public static final String PIPELINE_CONFIG_TYPE = "migrateLoadBalancer";
+  public static final String PIPELINE_CONFIG_TYPE = "migrateSecurityGroup";
 
   MigrateSecurityGroupStage() {
     super(PIPELINE_CONFIG_TYPE);
