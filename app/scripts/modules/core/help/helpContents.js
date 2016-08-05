@@ -207,6 +207,9 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.manualJudgment.failPipeline': '' +
       '<p><strong>Checked</strong> - the overall pipeline will fail whenever the manual judgment is negative.</p>' +
       '<p><strong>Unchecked</strong> - the overall pipeline will continue executing but this particular branch will stop.</p>',
+    'pipeline.config.manualJudgment.propagateAuthentication': '' +
+    '<p><strong>Checked</strong> - the pipeline will continue with the permissions of the approver.</p>' +
+    '<p><strong>Unchecked</strong> - the pipeline will continue with it\'s current permissions.</p>',
     'pipeline.config.manualJudgment.judgmentInputs': '<p>(Optional) Entries populate a dropdown displayed when ' +
       'performing a manual judgment.</p>' +
       '<p>The selected value can be used in a subsequent <strong>Check Preconditions</strong> stage to determine branching.</p>' +
