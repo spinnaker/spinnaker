@@ -31,7 +31,7 @@ import static com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.Sec
 
 class LoadBalancerMigrator {
 
-  private static final String BASE_PHASE = "MIGRATE_LOAD_BALANCER"
+  public static final String BASE_PHASE = "MIGRATE_LOAD_BALANCER"
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
