@@ -121,4 +121,9 @@ public class S3Config {
   public S3PipelineDAO s3PipelineDAO(ObjectMapper objectMapper, AmazonS3 amazonS3) {
     return new S3PipelineDAO(objectMapper, amazonS3, Schedulers.from(Executors.newFixedThreadPool(25)), 10000, bucket, rootFolder);
   }
+
+  @Bean
+  public S3SnapshotDAO s3SnapshotDAO(ObjectMapper objectMapper, AmazonS3 amazonS3) {
+    return new S3SnapshotDAO(objectMapper, amazonS3, Schedulers.from(Executors.newFixedThreadPool(5)), 10000, bucket, rootFolder);
+  }
 }

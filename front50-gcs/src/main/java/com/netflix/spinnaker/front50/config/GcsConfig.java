@@ -146,4 +146,12 @@ public class GcsConfig {
                                  Schedulers.from(Executors.newFixedThreadPool(5)),
                                  PIPELINE_REFRESH_MS);
   }
+
+  @Bean
+  public SnapshotBucketDAO snapshotBucketDAO(GcsStorageService service) {
+    return new SnapshotBucketDAO(rootFolder,
+                                                 service,
+                                                 Schedulers.from(Executors.newFixedThreadPool(5)),
+                                                 PIPELINE_REFRESH_MS);
+  }
 }
