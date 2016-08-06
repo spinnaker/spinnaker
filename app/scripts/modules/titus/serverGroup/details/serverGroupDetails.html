@@ -91,8 +91,8 @@
     </collapsible-section>
     <collapsible-section heading="Titus Job Information" expanded="true">
       <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
-        <dt>Id</dt>
-        <dd>{{serverGroup.id}}</dd>
+        <dt>Job Id</dt>
+        <dd><a href="{{ serverGroup.apiEndpoint }}v2/jobs/{{serverGroup.id}}" target="_blank">{{serverGroup.id}}</a></dd>
         <dt>Created</dt>
         <dd>{{serverGroup.createdTime | timestamp}}</dd>
         <dt ng-if="serverGroup.iamProfile">IAM Profile</dt>
@@ -105,10 +105,6 @@
         <dd><account-tag account="serverGroup.account" pad="right"></account-tag></dd>
         <dt>Region</dt>
         <dd>{{serverGroup.region}}</dd>
-        <dt ng-if="serverGroup.placement.zones">Zones</dt>
-        <dd ng-if="serverGroup.placement.zones">
-          <ul><li ng-repeat="zone in serverGroup.placement.zones">{{zone}}</li></ul>
-        </dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">

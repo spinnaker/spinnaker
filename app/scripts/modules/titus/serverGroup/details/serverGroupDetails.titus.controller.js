@@ -5,6 +5,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.titus.controller', [
   require('angular-ui-router'),
+  require('../../../core/account/account.service.js'),
   require('../configure/ServerGroupCommandBuilder.js'),
   require('../../../core/serverGroup/serverGroup.read.service.js'),
   require('../../../core/serverGroup/details/serverGroupWarningMessage.service.js'),
@@ -19,7 +20,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
 ])
   .controller('titusServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup, InsightFilterStateModel,
                                                      titusServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, _, serverGroupWriter,
-                                                       runningExecutionsService, serverGroupWarningMessageService) {
+                                                       runningExecutionsService, serverGroupWarningMessageService, accountService) {
 
     let application = app;
 
@@ -43,6 +44,11 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
 
         // it's possible the summary was not found because the clusters are still loading
         details.account = serverGroup.accountId;
+
+        accountService.getAccountDetails(details.account).then((accountDetails) => {
+          details.apiEndpoint = _.where(accountDetails.regions, {name: details.region})[0].endpoint;
+        });
+
         angular.extend(details, summary);
 
         $scope.serverGroup = details;
