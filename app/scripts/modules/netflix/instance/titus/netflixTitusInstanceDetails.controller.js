@@ -22,7 +22,7 @@ module.exports = angular.module('spinnaker.netflix.instance.titus.controller', [
                                                          instanceReader, _, instance, app, $q, $controller) {
 
     this.instanceDetailsLoaded = () => {
-      this.getBastionAddressForAccount($scope.instance.account);
+      this.getBastionAddressForAccount($scope.instance.account, $scope.instance.region);
     };
 
     angular.extend(this, $controller('titusInstanceDetailsCtrl', {
@@ -44,9 +44,10 @@ module.exports = angular.module('spinnaker.netflix.instance.titus.controller', [
       }
     }));
 
-    this.getBastionAddressForAccount = (account) => {
+    this.getBastionAddressForAccount = (account, region) => {
       return accountService.getAccountDetails(account).then((details) => {
         this.bastionHost = details.bastionHost || 'unknown';
+        this.apiEndpoint = _.where(details.regions, {name: region})[0].endpoint;
       });
     };
 

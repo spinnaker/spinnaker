@@ -58,9 +58,9 @@
     <collapsible-section heading="Titus Task Information" expanded="true">
       <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
         <dt>Task Id</dt>
-        <dd>{{instance.id}}</dd>
+        <dd><a href="{{ ctrl.apiEndpoint }}v2/tasks/{{instance.id}}" target="_blank">{{instance.id}}</a></dd>
         <dt>Job Id</dt>
-        <dd>{{instance.jobId}}</dd>
+        <dd><a href="{{ ctrl.apiEndpoint }}v2/jobs/{{instance.jobId}}" target="_blank">{{instance.jobId}}</a></dd>
         <dt ng-if="instance.serverGroup">Job Name</dt>
         <dd ng-if="instance.serverGroup">{{instance.serverGroup}}</dd>
         <dt>Launched</dt>
@@ -77,7 +77,13 @@
         <dt>Host</dt>
         <dd>{{instance.placement.host}}</dd>
         <dt ng-if="instance.placement.containerIp">Container IP</dt>
-        <dd ng-if="instance.placement.containerIp">{{instance.placement.containerIp}}</dd>
+        <dd ng-if="instance.placement.containerIp">{{instance.placement.containerIp}}
+          <copy-to-clipboard
+            class="copy-to-clipboard"
+            text="{{instance.placement.containerIp}}"
+            tool-tip="Copy container IP clipboard">
+          </copy-to-clipboard>
+        </dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Task Resources" expanded="true">
