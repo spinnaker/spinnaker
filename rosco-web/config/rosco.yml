@@ -43,6 +43,9 @@ aws:
   enabled: ${AWS_ENABLED:false}
   bakeryDefaults:
     awsAssociatePublicIpAddress: true
+    # To make use of share_with and copy_to, replace this template with aws-multi-ebs.json.
+    # When using aws-multi-ebs.json or aws-multi-chroot.json make sure to set the SPINNAKER_AWS_DEFAULT_ACCOUNT env
+    # variable to the account ID of the AWS account the Spinnaker instance is launched in.
     templateFile: aws-ebs.json
     defaultVirtualizationType: hvm
     baseImages:
