@@ -116,8 +116,13 @@ class GoogleServerGroup {
     }
 
     /**
-     * @return The load balancing policy containing the * capacity metrics and named ports this server
+     * @return The load balancing policy containing the capacity metrics and named ports this server
      * group is configured with for all L7 backends.
+     *
+     * This is intended to to be used as the suggestion in the server group wizard for load balancing policy.
+     * If a server group outside is created and added to L7 outside of Spinnaker, this will return the first
+     * load balancing policy we find. Maybe we could count the backends and report the most common configuration,
+     * but it seems like overkill at this point, since you can configure this anyway.
      */
     GoogleHttpLoadBalancingPolicy getLoadBalancingPolicy() {
       def loadBalancingPolicy = null
@@ -138,7 +143,6 @@ class GoogleServerGroup {
               if (loadBalancingPolicy) {
                 loadBalancingPolicy.listeningPort = GoogleServerGroup.this.namedPorts.get(GoogleHttpLoadBalancingPolicy.HTTP_PORT_NAME)
               }
-              return loadBalancingPolicy
             }
           }
         }
