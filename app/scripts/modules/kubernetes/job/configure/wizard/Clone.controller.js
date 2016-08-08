@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.job.configure.kubernetes.clone', [
                                                        v2modalWizardService, taskMonitorService,
                                                        kubernetesServerGroupConfigurationService,
                                                        jobCommand, application, title,
-                                                       wizardSubFormValidation) {
+                                                       wizardSubFormValidation, $timeout) {
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
       basicSettings: require('../../../serverGroup/configure/wizard/basicSettings.html'),
@@ -48,8 +48,8 @@ module.exports = angular.module('spinnaker.job.configure.kubernetes.clone', [
       jobCommand.viewState.contextImages = $scope.contextImages;
       $scope.contextImages = null;
       kubernetesServerGroupConfigurationService.configureCommand(application, jobCommand).then(function () {
-        $scope.state.loaded = true;
-        initializeWizardState();
+        $scope.state.loaded = true; // allows wizard directive to run (after digest).
+        $timeout(initializeWizardState); // wait for digest.
         initializeWatches();
       });
     }
@@ -64,7 +64,7 @@ module.exports = angular.module('spinnaker.job.configure.kubernetes.clone', [
       if (mode === 'clone' || mode === 'editPipeline') {
         v2modalWizardService.markComplete('location');
         v2modalWizardService.markComplete('load-balancers');
-        v2modalWizardService.markComplete('replicas');
+        v2modalWizardService.markComplete('completion');
         v2modalWizardService.markComplete('volumes');
       }
 
