@@ -110,8 +110,8 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
 
       task.updateStatus BASE_PHASE, "Successfully created server group."
 
-      deploymentResult.deployedNames = Arrays.asList(stackName)
-      deploymentResult.deployedNamesByLocation = [(description.region): deploymentResult.deployedNames]
+      deploymentResult.serverGroupNames = ["$description.region:$stackName".toString()] //stupid GString
+      deploymentResult.serverGroupNameByRegion = [(description.region): stackName]
     } catch (Exception e) {
       throw new OpenstackOperationException(AtomicOperations.CREATE_SERVER_GROUP, e)
     }
