@@ -142,7 +142,7 @@ class ContextParameterProcessor {
         evaluationContext.registerFunction('judgment', ContextUtilities.getDeclaredMethod("judgment", Object, String))
 
         ["judgment", "stage"].each { contextAwareStageFunction ->
-          if (convertedValue.contains("#${contextAwareStageFunction}(")) {
+          if (convertedValue.contains("#${contextAwareStageFunction}(") && !convertedValue.contains("#${contextAwareStageFunction}( #root.execution, ")) {
             convertedValue = convertedValue.replaceAll("#${contextAwareStageFunction}\\(", "#${contextAwareStageFunction}( #root.execution, ")
           }
         }
