@@ -4,6 +4,7 @@ describe('API Service', function () {
   let API;
   let $httpBackend;
   let baseUrl;
+  let authenticationInitializer;
 
   beforeEach(
     window.module(
@@ -13,10 +14,11 @@ describe('API Service', function () {
   );
 
   beforeEach(
-    window.inject(function (_API_, _$httpBackend_, settings) {
+    window.inject(function (_API_, _$httpBackend_, settings, _authenticationInitializer_) {
       API = _API_;
       $httpBackend = _$httpBackend_;
       baseUrl = settings.gateUrl;
+      authenticationInitializer = _authenticationInitializer_;
     })
   );
 
@@ -25,8 +27,60 @@ describe('API Service', function () {
     $httpBackend.verifyNoOutstandingRequest();
   });
 
+  describe('validate response content-type header', function () {
+    it('responses with non-"application/json" content types should trigger a reauthentication request and reject', function () {
+      spyOn(authenticationInitializer, 'reauthenticateUser').and.callFake(angular.noop);
+      $httpBackend.expectGET(`${baseUrl}/bad`).respond(200, '<html>this is the authentication page</html>', {'content-type':'text/html'});
 
-  describe('creating the  config with "one" function', function () {
+      let rejected = false;
+      API.one('bad').get().then(angular.noop, () => rejected = true);
+
+      $httpBackend.flush();
+      expect(authenticationInitializer.reauthenticateUser.calls.count()).toBe(1);
+      expect(rejected).toBe(true);
+    });
+
+    it('string responses starting with <html should trigger a reauthentication request and reject', function () {
+      spyOn(authenticationInitializer, 'reauthenticateUser').and.callFake(angular.noop);
+      $httpBackend.expectGET(`${baseUrl}/fine`).respond(200, 'this is fine');
+
+      let rejected = false;
+      let succeeded = false;
+      API.one('fine').get().then(() => succeeded = true, () => rejected = true);
+
+      $httpBackend.flush();
+      expect(authenticationInitializer.reauthenticateUser.calls.count()).toBe(0);
+      expect(rejected).toBe(false);
+      expect(succeeded).toBe(true);
+    });
+
+    it('object and array responses should pass through', function () {
+      spyOn(authenticationInitializer, 'reauthenticateUser').and.callFake(angular.noop);
+
+      let rejected = false;
+      let succeeded = false;
+      $httpBackend.expectGET(`${baseUrl}/some-array`).respond(200, []);
+      API.one('some-array').get().then(() => succeeded = true, () => rejected = true);
+      $httpBackend.flush();
+
+      expect(authenticationInitializer.reauthenticateUser.calls.count()).toBe(0);
+      expect(rejected).toBe(false);
+      expect(succeeded).toBe(true);
+
+      // verify object responses
+      rejected = false;
+      succeeded = false;
+      $httpBackend.expectGET(`${baseUrl}/some-object`).respond(200, {});
+      API.one('some-object').get().then(() => succeeded = true, () => rejected = true);
+      $httpBackend.flush();
+
+      expect(authenticationInitializer.reauthenticateUser.calls.count()).toBe(0);
+      expect(rejected).toBe(false);
+      expect(succeeded).toBe(true);
+    });
+  });
+
+  describe('creating the config with "one" function', function () {
     it('missing url should create a default config with the base url', function () {
       let result = API.one();
       expect(result.config).toEqual({url: baseUrl});

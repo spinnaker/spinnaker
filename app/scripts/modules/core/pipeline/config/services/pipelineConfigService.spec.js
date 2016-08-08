@@ -76,7 +76,7 @@ describe('pipelineConfigService', function () {
         var json = JSON.parse(data);
         posted.push({index: json.index, name: json.name});
         return true;
-      }).respond(200, '');
+      }).respond(200, {});
 
       this.service.getPipelinesForApplication('app');
       this.$scope.$digest();

@@ -5,9 +5,10 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.api.provider', [
-    require('../config/settings')
+    require('../config/settings'),
+    require('../authentication/authentication.initializer.service'),
   ])
-  .factory('API', function ($http, settings) {
+  .factory('API', function ($http, $q, settings, authenticationInitializer) {
     const baseUrl = settings.gateUrl;
 
     // these config params will be sent on calls to backend
@@ -15,7 +16,13 @@ module.exports = angular
       timeout: settings.pollSchedule * 2 + 5000
     };
 
-    var getData = (results) => results.data;
+    var getData = (results) => {
+      if (results.headers('content-type') && results.headers('content-type').indexOf('application/json') < 0) {
+        authenticationInitializer.reauthenticateUser();
+        return $q.reject(results);
+      }
+      return $q.when(results.data);
+    };
 
     let baseReturn = function(config) {
       return {
