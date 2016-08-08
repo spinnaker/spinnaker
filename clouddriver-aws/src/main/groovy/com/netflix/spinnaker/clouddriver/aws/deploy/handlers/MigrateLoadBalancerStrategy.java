@@ -95,6 +95,10 @@ public abstract class MigrateLoadBalancerStrategy implements MigrateStrategySupp
     this.allowIngressFromClassic = allowIngressFromClassic;
     this.dryRun = dryRun;
 
+    if (target.getAvailabilityZones() == null || target.getAvailabilityZones().isEmpty()) {
+      throw new IllegalStateException("No availability zones specified for load balancer migration");
+    }
+
     final MigrateLoadBalancerResult result = new MigrateLoadBalancerResult();
 
     LoadBalancerDescription sourceLoadBalancer = getLoadBalancer(source.getCredentials(), source.getRegion(), source.getName());
@@ -174,6 +178,9 @@ public abstract class MigrateLoadBalancerStrategy implements MigrateStrategySupp
       getRegionScopedProviderFactory().forRegion(target.getCredentials(), target.getRegion())
         .getSubnetAnalyzer().getSubnetIdsForZones(target.getAvailabilityZones(), subnetType, SubnetTarget.ELB, 1) :
       new ArrayList();
+    if (subnetIds != null && subnetIds.isEmpty() && subnetType != null) {
+      throw new IllegalStateException("Cannot " + targetLoadBalancer == null ? "create" : "update" + targetName + ".  No subnets found for subnet type: " + subnetType);
+    }
     AmazonElasticLoadBalancing sourceClient = getAmazonClientProvider()
       .getAmazonElasticLoadBalancing(source.getCredentials(), source.getRegion(), true);
     AmazonElasticLoadBalancing targetClient = getAmazonClientProvider()
