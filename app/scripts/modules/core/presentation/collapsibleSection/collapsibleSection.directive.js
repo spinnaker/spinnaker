@@ -32,7 +32,7 @@ module.exports = angular.module('spinnaker.core.presentation.collapsibleSection.
         }
         scope.state = {expanded: expanded};
         scope.getIcon = function() {
-          return scope.state.expanded ? 'down' : 'up';
+          return scope.state.expanded ? 'down' : 'right';
         };
 
         scope.getClassType = function() {

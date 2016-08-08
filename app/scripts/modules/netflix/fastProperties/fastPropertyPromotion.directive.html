@@ -24,7 +24,7 @@
           ng-repeat-start="promotion in fpPromotion.filteredPromotions"
           ng-click="fpPromotion.toggleRolloutDetails(promotion)">
         <td>
-          <span class="pull-left glyphicon glyphicon-chevron-{{fpPromotion.isRolloutDetailsOpen(promotion.id) ? 'down' : 'up'}}"></span>
+          <span class="pull-left glyphicon glyphicon-chevron-{{fpPromotion.isRolloutDetailsOpen(promotion.id) ? 'down' : 'right'}}"></span>
         </td>
         <td>
           {{ promotion.key }}

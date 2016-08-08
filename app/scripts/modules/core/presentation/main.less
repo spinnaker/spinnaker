@@ -1258,3 +1258,15 @@ ul.checkmap {
   border-bottom: 1px solid @light_grey;
   padding-bottom: 10px;
 }
+
+.visible-xl-inline {
+  display: none !important;
+}
+@media (min-width: 1400px) {
+  .visible-xl-inline {
+    display: inline !important;
+  }
+  .hidden-xl-inline {
+    display: none !important;
+  }
+}

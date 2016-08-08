@@ -17,7 +17,7 @@ module.exports = angular
       },
       controllerAs: 'vm',
       controller: function ($scope, accountService) {
-        this.getIcon = () => this.state.expanded ? 'down' : 'up';
+        this.getIcon = () => this.state.expanded ? 'down' : 'right';
 
         let getAccountType = () => {
           accountService.challengeDestructiveActions(this.account).then((challenge) => {

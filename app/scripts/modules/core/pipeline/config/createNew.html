@@ -1,13 +1,15 @@
 <div class="dropdown pull-left" style="margin-right:10px"  uib-dropdown>
+    <create-pipeline-button application="application"></create-pipeline-button>
     <button type="button" class="btn btn-sm btn-default dropdown-toggle"
             analytics-on="click"
             analytics-category="Pipelines"
             analytics-event="Configure (top level)"
             uib-dropdown-toggle>
-        Configure <span class="caret"></span>
+      <span class="visible-xl-inline"><span class="glyphicon glyphicon-cog"></span> Configure</span>
+      <span class="hidden-xl-inline" uib-tooltip="Configure pipelines"><span class="glyphicon glyphicon-cog"></span></span>
+      <span class="caret"></span>
     </button>
     <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-        <li><create-pipeline-button application="application"></create-pipeline-button></li>
         <li class="dropdown-header" style="margin-top:0" ng-if="application.pipelineConfigs.data.length">PIPELINES</li>
         <li ng-repeat="pipeline in application.pipelineConfigs.data">
           <a href

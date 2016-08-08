@@ -18,7 +18,7 @@ module.exports = angular
         var expanded = (scope.expanded === 'true');
         scope.state = {expanded: expanded};
         scope.getIcon = function () {
-          return scope.state.expanded ? 'down' : 'up';
+          return scope.state.expanded ? 'down' : 'right';
         };
 
         scope.toggle = function () {

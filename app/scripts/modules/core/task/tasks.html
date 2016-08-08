@@ -82,7 +82,7 @@
             <tr class="clickable" ng-click="tasks.toggleDetails(task.id)" ng-repeat-start="task in tasks.resultPage()">
               <td>
                 <div class="task-name">
-                  <a href id="task-{{task.id}}"><span class="glyphicon glyphicon-chevron-{{tasks.isExpanded(task.id) ? 'down' : 'up'}}"></span></a>
+                  <a href id="task-{{task.id}}"><span class="glyphicon glyphicon-chevron-{{tasks.isExpanded(task.id) ? 'down' : 'right'}}"></span></a>
                   {{task.name}}
                 </div>
 
