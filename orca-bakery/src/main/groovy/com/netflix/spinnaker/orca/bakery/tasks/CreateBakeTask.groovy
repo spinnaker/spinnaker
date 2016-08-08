@@ -52,9 +52,6 @@ class CreateBakeTask implements RetryableTask {
   @Value('${bakery.roscoApisEnabled:false}')
   boolean roscoApisEnabled
 
-  @Value('${bakery.propagateCloudProviderType:false}')
-  boolean propagateCloudProviderType
-
   @Value('${bakery.allowMissingPackageInstallation:false}')
   boolean allowMissingPackageInstallation
 
@@ -141,16 +138,7 @@ class CreateBakeTask implements RetryableTask {
                                               mapper)
 
     Map requestMap = packageInfo.findTargetPackage(allowMissingPackageInstallation)
-    BakeRequest bakeRequest = mapper.convertValue(requestMap, BakeRequest)
 
-    if (!propagateCloudProviderType) {
-      bakeRequest = bakeRequest.copyWith(cloudProviderType: null)
-    }
-
-    if (!roscoApisEnabled) {
-      bakeRequest = bakeRequest.copyWith(templateFileName: null, extendedAttributes: null, buildInfoUrl: null, instanceType: null)
-    }
-
-    return bakeRequest
+    return mapper.convertValue(requestMap, BakeRequest)
   }
 }

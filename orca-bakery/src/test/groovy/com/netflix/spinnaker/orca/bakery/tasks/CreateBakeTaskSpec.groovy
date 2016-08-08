@@ -16,17 +16,12 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks
 
-import com.netflix.spinnaker.orca.bakery.api.BaseImage
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
-import com.netflix.spinnaker.orca.pipeline.util.PackageType
-
-import static com.netflix.spinnaker.orca.bakery.api.BakeStatus.State.COMPLETED
-
 import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -38,6 +33,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.bakery.api.BakeStatus.State.COMPLETED
 import static com.netflix.spinnaker.orca.bakery.api.BakeStatus.State.RUNNING
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND
 import static java.util.UUID.randomUUID
@@ -45,7 +41,7 @@ import static java.util.UUID.randomUUID
 class CreateBakeTaskSpec extends Specification {
 
   @Subject
-    task = new CreateBakeTask()
+  task = new CreateBakeTask()
   Stage stage
   def mapper = new OrcaObjectMapper()
 
@@ -85,23 +81,6 @@ class CreateBakeTaskSpec extends Specification {
     baseOs            : "ubuntu",
     baseLabel         : BakeRequest.Label.release.name(),
     rebake            : true
-  ]
-
-  @Shared
-  def bakeConfigWithTemplateFileNameExtendedAttributesAndBuildInfoUrl = [
-    region             : "us-west-1",
-    package            : "hodor",
-    user               : "bran",
-    cloudProviderType  : "aws",
-    baseOs             : "ubuntu",
-    baseLabel          : BakeRequest.Label.release.name(),
-    instanceType       : "myType",
-    templateFileName   : "somePackerTemplate.json",
-    extendedAttributes : [
-      playbook_file : "subdir1/site.yml",
-      someOtherAttr : "someValue"
-    ],
-    buildInfoUrl : "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/",
   ]
 
   @Shared
@@ -175,15 +154,6 @@ class CreateBakeTaskSpec extends Specification {
       [name  : "refs/remotes/origin/develop",
        sha1  : "1234567f8d02a40fa84ec9d4d0dccd263d51782d",
        branch: "develop"]
-    ]
-  ]
-
-  @Shared
-  def buildInfoWithUrlNoMatch = [
-    url: "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/70/",
-    artifacts: [
-      [fileName: 'hodor_1.1_all.deb'],
-      [fileName: 'hodor-1.1.noarch.rpm']
     ]
   ]
 
@@ -606,8 +576,7 @@ class CreateBakeTaskSpec extends Specification {
     null        | buildInfo
   }
 
-  @Unroll
-  def "propagation of cloudProviderType is feature-flagged"() {
+  def "cloudProviderType is propagated"() {
     given:
     Stage stage = new PipelineStage(new Pipeline(), "bake", bakeConfigWithCloudProviderType).asImmutable()
     def bake
@@ -617,58 +586,16 @@ class CreateBakeTaskSpec extends Specification {
         Observable.from(runningStatus)
       }
     }
-    task.propagateCloudProviderType = propagateCloudProviderType
 
     when:
     task.execute(stage)
 
     then:
-    bake.cloudProviderType == expectedCloudProviderType
+    bake.cloudProviderType == BakeRequest.CloudProviderType.aws
     bake.user              == bakeConfigWithCloudProviderType.user
     bake.packageName       == bakeConfigWithCloudProviderType.package
     bake.baseOs            == bakeConfigWithCloudProviderType.baseOs
     bake.baseLabel.name()  == bakeConfigWithCloudProviderType.baseLabel
-
-    where:
-    propagateCloudProviderType | expectedCloudProviderType
-    false                      | null
-    true                       | BakeRequest.CloudProviderType.aws
-  }
-
-  @Unroll
-  def "propagation of templateFileName, extendedAttributes and buildInfoUrl is feature-flagged"() {
-    given:
-    Stage stage = new PipelineStage(new Pipeline(), "bake", bakeConfigWithTemplateFileNameExtendedAttributesAndBuildInfoUrl).asImmutable()
-    def bake
-    task.bakery = Mock(BakeryService) {
-      if (roscoApisEnabled) {
-        1 * getBaseImage(*_) >> Observable.from(new BaseImage(packageType: PackageType.DEB))
-      }
-
-      1 * createBake(*_) >> {
-        bake = it[1]
-        Observable.from(runningStatus)
-      }
-    }
-    task.roscoApisEnabled = roscoApisEnabled
-
-    when:
-    task.execute(stage)
-
-    then:
-    bake.user               == bakeConfigWithCloudProviderType.user
-    bake.packageName        == bakeConfigWithCloudProviderType.package
-    bake.baseOs             == bakeConfigWithCloudProviderType.baseOs
-    bake.baseLabel.name()   == bakeConfigWithCloudProviderType.baseLabel
-    bake.templateFileName   == templateFileName
-    bake.extendedAttributes == extendedAttributes
-    bake.instanceType       == instanceType
-    bake.buildInfoUrl       == buildInfoUrl
-
-    where:
-    roscoApisEnabled | instanceType | templateFileName          | extendedAttributes | buildInfoUrl
-    false            | null         | null                      | null  | null
-    true             | "myType"     | "somePackerTemplate.json" | [playbook_file: "subdir1/site.yml", someOtherAttr: "someValue"] | bakeConfigWithTemplateFileNameExtendedAttributesAndBuildInfoUrl.buildInfoUrl
   }
 
   @Unroll
