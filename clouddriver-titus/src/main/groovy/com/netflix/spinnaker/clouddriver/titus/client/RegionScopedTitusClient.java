@@ -21,16 +21,24 @@ import com.netflix.frigga.Names;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.titus.client.model.*;
-import okhttp3.*;
+import com.netflix.spinnaker.clouddriver.titus.model.TitusError;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.RequestBody;
 import okhttp3.logging.HttpLoggingInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.Call;
+import retrofit2.Converter;
 import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.lang.annotation.Annotation;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -62,6 +70,8 @@ public class RegionScopedTitusClient implements TitusClient {
 
     private final Registry registry;
 
+    private final Retrofit retrofit;
+
     public RegionScopedTitusClient(TitusRegion titusRegion, Registry registry) {
         this(titusRegion, DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT, TitusClientObjectMapper.configure(), registry);
     }
@@ -75,25 +85,29 @@ public class RegionScopedTitusClient implements TitusClient {
         this.connectTimeoutMillis = connectTimeoutMillis;
         this.readTimeoutMillis = readTimeoutMillis;
         this.objectMapper = objectMapper;
-        this.titusRestAdapter = createTitusRestAdapter(titusRegion);
+        this.retrofit = createRetrofit(titusRegion);
+        this.titusRestAdapter = createTitusRestAdapter(this.retrofit);
         this.registry = registry;
     }
 
-    private TitusRestAdapter createTitusRestAdapter(TitusRegion titusRegion) {
-        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor((msg) -> LOGGER.info("[{}] {}", titusRegion.getName(), msg));
-        interceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
-        OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                .connectTimeout(connectTimeoutMillis, TimeUnit.MILLISECONDS)
-                .readTimeout(readTimeoutMillis, TimeUnit.MILLISECONDS)
-                .addNetworkInterceptor(interceptor)
-                .build();
-        return new Retrofit.Builder()
-                .baseUrl(titusRegion.getEndpoint())
-                .client(okHttpClient)
-                .addConverterFactory(JacksonConverterFactory.create(objectMapper))
-                .validateEagerly(true)
-                .build()
-                .create(TitusRestAdapter.class);
+    private Retrofit createRetrofit(TitusRegion titusRegion){
+      HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor((msg) -> LOGGER.info("[{}] {}", titusRegion.getName(), msg));
+      interceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
+      OkHttpClient okHttpClient = new OkHttpClient.Builder()
+        .connectTimeout(connectTimeoutMillis, TimeUnit.MILLISECONDS)
+        .readTimeout(readTimeoutMillis, TimeUnit.MILLISECONDS)
+        .addNetworkInterceptor(interceptor)
+        .build();
+      return new Retrofit.Builder()
+        .baseUrl(titusRegion.getEndpoint())
+        .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+        .client(okHttpClient)
+        .validateEagerly(true)
+        .build();
+    }
+
+    private TitusRestAdapter createTitusRestAdapter(Retrofit retrofit) {
+        return retrofit.create(TitusRestAdapter.class);
     }
 
 
@@ -116,7 +130,16 @@ public class RegionScopedTitusClient implements TitusClient {
             if (success) {
                 return response.body();
             }
-            throw new RuntimeException("response failed " + response.code() + " " + response.message());
+            String errorMessage = response.message();
+            if (response != null && response.errorBody() != null) {
+                try {
+                  Converter<okhttp3.ResponseBody, TitusError> converter = retrofit.responseBodyConverter(TitusError.class, new Annotation[0]);
+                  TitusError error = converter.convert(response.errorBody());
+                  errorMessage = error.getMessage();
+                } catch( Exception e ){
+                }
+            }
+            throw new RuntimeException("response failed " + response.code() + " " + errorMessage);
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         } finally {
