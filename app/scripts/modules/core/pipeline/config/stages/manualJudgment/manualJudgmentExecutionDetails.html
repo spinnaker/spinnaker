@@ -2,13 +2,15 @@
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
   <div class="step-section-details" ng-if="detailsSection === 'manualJudgment'">
     <div class="row">
-      <div class="col-md-9">
+      <div class="col-md-12">
         <dl class="dl-narrow dl-horizontal">
           <dt ng-if="stage.context.judgmentStatus">Judgment</dt>
           <dd ng-if="stage.context.judgmentStatus">{{ stage.context.judgmentStatus | robotToHuman }}</dd>
           <dt ng-if="stage.context.lastModifiedBy">Judged By</dt>
           <dd ng-if="stage.context.lastModifiedBy">
-            <span ng-bind="stage.context.lastModifiedBy"></span> <br/> {{ stage.endTime | timestamp }}
+            <span ng-bind="stage.context.lastModifiedBy"></span>
+            <span ng-if="stage.context.propagateAuthenticationContext">(<em>authentication propagated</em>)</span> <br/>
+            {{ stage.endTime | timestamp }}
           </dd>
           <dt ng-if="stage.context.judgmentInput">Input</dt>
           <dd ng-if="stage.context.judgmentInput">{{ stage.context.judgmentInput | robotToHuman}}</dd>
