@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
@@ -29,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleIns
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
@@ -42,6 +44,7 @@ import spock.lang.Unroll
 class GCEUtilSpec extends Specification {
   private static final PROJECT_NAME = "my-project"
   private static final REGION = "us-central1"
+  private static final ZONE = "us-central1-f"
   private static final IMAGE_NAME = "some-image-name"
   private static final PHASE = "SOME-PHASE"
   private static final INSTANCE_LOCAL_NAME_1 = "some-instance-name-1"
@@ -448,5 +451,72 @@ class GCEUtilSpec extends Specification {
       null                                              | new GoogleHttpLoadBalancer(name: "http").getView()
       new GoogleLoadBalancer(name: "network").getView() | null
       null                                              | null
+  }
+
+  @Unroll
+  void "should add http load balancer backend if metadata exists"() {
+    setup:
+    def loadBalancerNameList = lbNames
+    def serverGroup =
+      new GoogleServerGroup(
+        name: 'application-derp-v000',
+        region: REGION,
+        regional: isRegional,
+        zone: ZONE,
+        asg: [
+          (GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES): loadBalancerNameList,
+        ],
+        launchConfig: [
+          instanceTemplate: new InstanceTemplate(name: "irrelevant-instance-template-name",
+            properties: [
+              'metadata': new Metadata(items: [
+                new Metadata.Items(
+                  key: (GoogleServerGroup.View.LOAD_BALANCING_POLICY),
+                  value: "{\"balancingMode\": \"UTILIZATION\",\"maxUtilization\": 0.80, \"listeningPort\": 8080, \"capacityScaler\": 0.77}"
+                ),
+                new Metadata.Items(
+                  key: (GoogleServerGroup.View.BACKEND_SERVICE_NAMES),
+                  value: backendServiceNames
+                )
+              ])
+            ])
+        ]).view
+    def computeMock = Mock(Compute)
+    def backendServicesMock = Mock(Compute.BackendServices)
+    def backendSvcGetMock = Mock(Compute.BackendServices.Get)
+    def backendUpdateMock = Mock(Compute.BackendServices.Update)
+    def googleLoadBalancerProviderMock = Mock(GoogleLoadBalancerProvider)
+    googleLoadBalancerProviderMock.getApplicationLoadBalancers("") >> loadBalancerList
+    def task = Mock(Task)
+    def bs = new BackendService(backends: [])
+    if (lbNames) {
+      serverGroup.launchConfig.instanceTemplate.properties.metadata.items.add(
+        new Metadata.Items(
+          key: (GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES),
+          value: lbNames.join(",").trim()
+        )
+      )
+    }
+
+    when:
+    GCEUtil.addHttpLoadBalancerBackends(computeMock, new ObjectMapper(), PROJECT_NAME, serverGroup,
+      googleLoadBalancerProviderMock, task, "PHASE")
+
+    then:
+    _ * computeMock.backendServices() >> backendServicesMock
+    _ * backendServicesMock.get(PROJECT_NAME, 'backend-service') >> backendSvcGetMock
+    _ * backendSvcGetMock.execute() >> bs
+    _ * backendServicesMock.update(PROJECT_NAME, 'backend-service', bs) >> backendUpdateMock
+    _ * backendUpdateMock.execute()
+    bs.backends.size == lbNames.size
+
+    where:
+    isRegional | location | loadBalancerList                                                         | lbNames                          | backendServiceNames
+    false      | ZONE     |  [new GoogleHttpLoadBalancer(name: 'spinnaker-http-load-balancer').view] | ['spinnaker-http-load-balancer'] | 'backend-service'
+    true       | REGION   |  [new GoogleHttpLoadBalancer(name: 'spinnaker-http-load-balancer').view] | ['spinnaker-http-load-balancer'] | 'backend-service'
+    false      | ZONE     |  [new GoogleHttpLoadBalancer(name: 'spinnaker-http-load-balancer').view] | ['spinnaker-http-load-balancer'] | 'backend-service'
+    true       | REGION   |  [new GoogleHttpLoadBalancer(name: 'spinnaker-http-load-balancer').view] | ['spinnaker-http-load-balancer'] | 'backend-service'
+    false      | ZONE     |  []                                                                      | []                               | null
+    true       | REGION   |  []                                                                      | []                               | null
   }
 }

@@ -15,9 +15,15 @@
  */
 package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+
 class GoogleHttpLoadBalancingPolicy {
+  @JsonIgnore
   static final String HTTP_PORT_NAME = 'http'
+
+  @JsonIgnore
   static final Integer HTTP_DEFAULT_PORT = 80
+
   /**
    * Describes the metric used to determine the serving capacity of the serverGroup.
    * Either UTILIZATION or RATE. maxRatePerInstance must be set if RATE, and

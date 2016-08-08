@@ -16,13 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
-import com.google.api.services.compute.model.InstanceGroupManagersSetTargetPoolsRequest
-import com.google.api.services.compute.model.InstanceGroupsListInstancesRequest
-import com.google.api.services.compute.model.InstanceReference
-import com.google.api.services.compute.model.RegionInstanceGroupManagersSetTargetPoolsRequest
-import com.google.api.services.compute.model.RegionInstanceGroupsListInstancesRequest
-import com.google.api.services.compute.model.TargetPoolsAddInstanceRequest
-import com.google.api.services.compute.model.TargetPoolsRemoveInstanceRequest
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -41,6 +36,9 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
   @Autowired
   GoogleClusterProvider googleClusterProvider
+
+  @Autowired
+  ObjectMapper objectMapper
 
   @Autowired
   GoogleLoadBalancerProvider googleLoadBalancerProvider
@@ -102,7 +100,11 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         }
       }
     } else {
-      task.updateStatus phaseName, "Registering instances with load balancers..."
+      task.updateStatus phaseName, "Registering server group with Http(s) load balancers..."
+
+      GCEUtil.addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName)
+
+      task.updateStatus phaseName, "Registering instances with network load balancers..."
 
       def groupInstances =
         isRegional

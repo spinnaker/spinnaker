@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.ForwardingRuleList
@@ -31,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.EnableDisable
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
@@ -61,6 +63,8 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final REGION = "us-central1"
 
   def googleClusterProviderMock
+  def googleLoadBalancerProviderMock
+  def objectMapperMock
   def serverGroup
   def computeMock
   def instanceGroupsMock
@@ -92,6 +96,8 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
   def setup() {
     googleClusterProviderMock = Mock(GoogleClusterProvider)
+    googleLoadBalancerProviderMock = Mock(GoogleLoadBalancerProvider)
+    objectMapperMock = Mock(ObjectMapper)
     serverGroup = new GoogleServerGroup(zone: ZONE).view
     computeMock = Mock(Compute)
     credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
@@ -133,6 +139,8 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     setup:
       @Subject def operation = new EnableGoogleServerGroupAtomicOperation(description)
       operation.googleClusterProvider = googleClusterProviderMock
+      operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
+      operation.objectMapper = objectMapperMock
 
     when:
       operation.operate([])
@@ -176,6 +184,8 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
       @Subject def operation = new EnableGoogleServerGroupAtomicOperation(description)
       operation.googleClusterProvider = googleClusterProviderMock
+      operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
+      operation.objectMapper = objectMapperMock
 
     when:
       operation.operate([])

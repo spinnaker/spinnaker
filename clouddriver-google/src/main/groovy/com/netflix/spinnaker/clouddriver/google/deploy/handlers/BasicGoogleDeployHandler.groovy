@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.handlers
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -71,6 +72,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
   @Autowired
   String googleApplicationName
+
+  @Autowired
+  ObjectMapper objectMapper
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -165,6 +169,57 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def networkInterface = GCEUtil.buildNetworkInterface(network, subnet, ACCESS_CONFIG_NAME, ACCESS_CONFIG_TYPE)
 
+    def hasBackendServices = description.instanceMetadata &&
+      description.instanceMetadata.containsKey(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)
+
+    // Resolve and queue the backend service updates, but don't execute yet.
+    // We need to resolve this information to set metadata in the template so enable can know about the
+    // load balancing policy this server group was configured with.
+    // If we try to execute the update, GCP will fail since the MIG is not created yet.
+    List<BackendService> backendServicesToUpdate = []
+    if (hasBackendServices) {
+      List<String> backendServices = description.instanceMetadata[GoogleServerGroup.View.BACKEND_SERVICE_NAMES].split(",")
+
+      backendServices.each { String backendServiceName ->
+        BackendService backendService = compute.backendServices().get(project, backendServiceName).execute()
+
+        Backend sourceBackend = backendService.backends.find { Backend backend ->
+          Utils.getLocalName(backend.group) == description?.source?.serverGroupName
+        }
+        if (description?.source?.serverGroupName && !sourceBackend) {
+          GCEUtil.updateStatusAndThrowNotFoundException("Backend for ancestor server group ${description?.source?.serverGroupName} not found.", task, BASE_PHASE)
+        }
+
+        Backend backendToAdd
+        def loadBalancingPolicy = description.loadBalancingPolicy
+        if (loadBalancingPolicy?.balancingMode) {
+          description.instanceMetadata[(GoogleServerGroup.View.LOAD_BALANCING_POLICY)] = objectMapper.writeValueAsString(loadBalancingPolicy)
+          backendToAdd = GCEUtil.backendFromLoadBalancingPolicy(loadBalancingPolicy)
+        } else if (sourceBackend) {
+          description.instanceMetadata[(GoogleServerGroup.View.LOAD_BALANCING_POLICY)] = objectMapper.writeValueAsString(GCEUtil.loadBalancingPolicyFromBackend(sourceBackend))
+          backendToAdd = new Backend(sourceBackend)
+        } else {
+          description.instanceMetadata[(GoogleServerGroup.View.LOAD_BALANCING_POLICY)] = objectMapper.writeValueAsString(
+            // defaults
+            new GoogleHttpLoadBalancingPolicy(
+              balancingMode: GoogleHttpLoadBalancingPolicy.BalancingMode.UTILIZATION,
+              maxUtilization: 0.80,
+              capacityScaler: 1.0,
+            )
+          )
+          backendToAdd = new Backend()
+        }
+
+        if (isRegional) {
+          backendToAdd.setGroup(GCEUtil.buildRegionalServerGroupUrl(project, region, serverGroupName))
+        } else {
+          backendToAdd.setGroup(GCEUtil.buildZonalServerGroupUrl(project, zone, serverGroupName))
+        }
+        backendService.backends << backendToAdd
+        backendServicesToUpdate << backendService
+      }
+    }
+
     def metadata = GCEUtil.buildMetadataFromMap(description.instanceMetadata)
 
     def tags = GCEUtil.buildTagsFromList(description.tags)
@@ -217,9 +272,6 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
         .setTargetSize(description.targetSize)
         .setTargetPools(targetPools)
         .setAutoHealingPolicies(autoHealingPolicy)
-
-    def hasBackendServices = description.instanceMetadata &&
-        description.instanceMetadata.containsKey(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)
 
     if (hasBackendServices && (description?.loadBalancingPolicy || description?.source?.serverGroupName))  {
       NamedPort namedPort = null
@@ -286,45 +338,11 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     task.updateStatus BASE_PHASE, "Done creating server group $serverGroupName in ${isRegional ? region : zone}."
 
+    // Actually update the backend services.
     if (hasBackendServices) {
-      List<String> backendServices = description.instanceMetadata[GoogleServerGroup.View.BACKEND_SERVICE_NAMES].split(",")
-
-      backendServices.each { String backendServiceName ->
-        BackendService backendService = compute.backendServices().get(project, backendServiceName).execute()
-
-        Backend sourceBackend = backendService.backends.find { Backend backend ->
-          Utils.getLocalName(backend.group) == description?.source?.serverGroupName
-        }
-        if (description?.source?.serverGroupName && !sourceBackend) {
-          GCEUtil.updateStatusAndThrowNotFoundException("Backend for ancestor server group ${description?.source?.serverGroupName} not found.", task, BASE_PHASE)
-        }
-
-        Backend backendToAdd
-        def loadBalancingPolicy = description.loadBalancingPolicy
-        if (loadBalancingPolicy?.balancingMode) {
-          def balancingMode = loadBalancingPolicy.balancingMode
-          backendToAdd = new Backend(
-              balancingMode: balancingMode,
-              maxRatePerInstance: balancingMode == GoogleHttpLoadBalancingPolicy.BalancingMode.RATE ?
-                  loadBalancingPolicy.maxRatePerInstance : null,
-              maxUtilization: balancingMode == GoogleHttpLoadBalancingPolicy.BalancingMode.UTILIZATION ?
-                  loadBalancingPolicy.maxUtilization : null,
-              capacityScaler: loadBalancingPolicy.capacityScaler != null ? loadBalancingPolicy.capacityScaler : 1.0,
-          )
-        } else if (sourceBackend) {
-          backendToAdd = new Backend(sourceBackend)
-        } else {
-          backendToAdd = new Backend()
-        }
-
-        if (isRegional) {
-          backendToAdd.setGroup(GCEUtil.buildRegionalServerGroupUrl(project, region, serverGroupName))
-        } else {
-          backendToAdd.setGroup(GCEUtil.buildZonalServerGroupUrl(project, zone, serverGroupName))
-        }
-        backendService.backends << backendToAdd
-        compute.backendServices().update(project, backendServiceName, backendService).execute()
-        task.updateStatus BASE_PHASE, "Done associating server group $serverGroupName with backend service $backendServiceName."
+      backendServicesToUpdate.each { BackendService backendService ->
+        compute.backendServices().update(project, backendService.name, backendService).execute()
+        task.updateStatus BASE_PHASE, "Done associating server group $serverGroupName with backend service ${backendService.name}."
       }
     }
 

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
@@ -32,13 +33,13 @@ import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.model.*
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerView
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import groovy.util.logging.Slf4j
 
 @Slf4j
@@ -686,6 +687,79 @@ class GCEUtil {
           name: name
       )
     }
+  }
+
+  static void addHttpLoadBalancerBackends(Compute compute,
+                                          ObjectMapper objectMapper,
+                                          String project,
+                                          GoogleServerGroup.View serverGroup,
+                                          GoogleLoadBalancerProvider googleLoadBalancerProvider,
+                                          Task task,
+                                          String phase) {
+    String serverGroupName = serverGroup.name
+    Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
+    Map metadataMap = buildMapFromMetadata(instanceMetadata)
+    def httpLoadBalancersInMetadata = metadataMap?.(GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES)?.split(",") ?: []
+    def networkLoadBalancersInMetadata = metadataMap?.(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES)?.split(",") ?: []
+
+    def allFoundLoadBalancers = (httpLoadBalancersInMetadata + networkLoadBalancersInMetadata) as List<String>
+    def httpLoadBalancersToAddTo = queryAllLoadBalancers(googleLoadBalancerProvider, allFoundLoadBalancers, task, phase)
+        .findAll { GoogleLoadBalancerType.valueOf(it.loadBalancerType) == GoogleLoadBalancerType.HTTP }
+
+    if (httpLoadBalancersToAddTo) {
+      String policyJson = metadataMap?.(GoogleServerGroup.View.LOAD_BALANCING_POLICY)
+      if (!policyJson) {
+        updateStatusAndThrowNotFoundException("Load Balancing Policy not found for server group ${serverGroupName}", task, phase)
+      }
+      GoogleHttpLoadBalancingPolicy policy = objectMapper.readValue(policyJson, GoogleHttpLoadBalancingPolicy)
+
+      List<String> backendServiceNames = metadataMap?.(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)?.split(",") ?: []
+      if (backendServiceNames) {
+        backendServiceNames.each { String backendServiceName ->
+          BackendService backendService = compute.backendServices().get(project, backendServiceName).execute()
+          Backend backendToAdd = backendFromLoadBalancingPolicy(policy)
+          if (serverGroup.regional) {
+            backendToAdd.setGroup(buildRegionalServerGroupUrl(project, serverGroup.region, serverGroupName))
+          } else {
+            backendToAdd.setGroup(buildZonalServerGroupUrl(project, serverGroup.zone, serverGroupName))
+          }
+          backendService.backends << backendToAdd
+          compute.backendServices().update(project, backendServiceName, backendService).execute()
+          task.updateStatus phase, "Enabled backend for server group ${serverGroupName} in Http(s) load balancer backend service ${backendServiceName}."
+        }
+      }
+    }
+  }
+
+  /**
+   * Build a backend from a load balancing policy. Note that this does not set the group URL, which is mandatory.
+   *
+   * @param policy - The load balancing policy to build the Backend from.
+   * @return Backend created from the load balancing policy.
+     */
+  static Backend backendFromLoadBalancingPolicy(GoogleHttpLoadBalancingPolicy policy) {
+    def balancingMode = policy.balancingMode
+    return new Backend(
+      balancingMode: balancingMode,
+      maxRatePerInstance: balancingMode == GoogleHttpLoadBalancingPolicy.BalancingMode.RATE ?
+        policy.maxRatePerInstance : null,
+      maxUtilization: balancingMode == GoogleHttpLoadBalancingPolicy.BalancingMode.UTILIZATION ?
+        policy.maxUtilization : null,
+      capacityScaler: policy.capacityScaler != null ? policy.capacityScaler : 1.0,
+    )
+  }
+
+  // Note: listeningPort is not set in this method.
+  static GoogleHttpLoadBalancingPolicy loadBalancingPolicyFromBackend(Backend backend) {
+    def backendBalancingMode = GoogleHttpLoadBalancingPolicy.BalancingMode.valueOf(backend.balancingMode)
+    return new GoogleHttpLoadBalancingPolicy(
+      balancingMode: backendBalancingMode,
+      maxRatePerInstance: backendBalancingMode == GoogleHttpLoadBalancingPolicy.BalancingMode.RATE ?
+        backend.maxRatePerInstance : null,
+      maxUtilization: backendBalancingMode == GoogleHttpLoadBalancingPolicy.BalancingMode.UTILIZATION ?
+        backend.maxUtilization : null,
+      capacityScaler: backend.capacityScaler,
+    )
   }
 
   static void destroyHttpLoadBalancerBackends(Compute compute,
