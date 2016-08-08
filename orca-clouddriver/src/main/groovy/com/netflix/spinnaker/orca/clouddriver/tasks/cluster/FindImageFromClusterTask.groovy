@@ -183,7 +183,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
         ]
       }
 
-      List<Map> images = oortService.findImage(cloudProvider, searchNames[0] + '*', account, null)
+      List<Map> images = oortService.findImage(cloudProvider, searchNames[0] + '*', account, null, null)
       for (Map image : images) {
         for (Location location : missingLocations) {
           if (imageSummaries[location] == null && image.amis && image.amis[location.value]) {
