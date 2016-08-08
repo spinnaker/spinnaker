@@ -95,6 +95,7 @@ public class MigratePipelineClustersTask extends AbstractCloudProviderAwareTask 
     operation.put("regionMapping", context.getOrDefault("regionMapping", new HashMap<>()));
     operation.put("accountMapping", context.getOrDefault("accountMapping", new HashMap<>()));
     operation.put("subnetTypeMapping", context.getOrDefault("subnetTypeMapping", new HashMap<>()));
+    operation.put("elbSubnetTypeMapping", context.getOrDefault("elbSubnetTypeMapping", new HashMap<>()));
     operation.put("iamRoleMapping", context.getOrDefault("iamRoleMapping", new HashMap<>()));
     operation.put("keyPairMapping", context.getOrDefault("keyPairMapping", new HashMap<>()));
     operation.put("dryRun", context.getOrDefault("dryRun", false));
