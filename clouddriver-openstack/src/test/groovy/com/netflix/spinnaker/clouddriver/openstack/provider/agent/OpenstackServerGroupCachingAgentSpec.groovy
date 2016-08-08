@@ -39,6 +39,7 @@ import org.openstack4j.model.compute.Server
 import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.network.ext.LbPool
 import redis.clients.jedis.exceptions.JedisException
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -52,8 +53,8 @@ import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.C
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.IMAGES
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.LOAD_BALANCERS
-import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SERVER_GROUPS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.ON_DEMAND
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SERVER_GROUPS
 
 @Unroll
 class OpenstackServerGroupCachingAgentSpec extends Specification {
@@ -382,17 +383,19 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
 
   void "test build scaling config - #testCase"() {
     when:
-    Map<String, Object> result = cachingAgent.buildScalingConfig(stack)
+    Map<String, Object> result = cachingAgent.buildScalingConfig(stack).sort { it.key }
 
     then:
-    result == expected
+    println result
+    println expected
+    result.toString() == expected.toString()
     noExceptionThrown()
 
     where:
     testCase  | stack               | expected
     'empty'   | null                | [:]
-    'normal'  | buildStack(1, 5, 3) | [minSize: 1, maxSize: 5, desiredSize: 3]
-    'missing' | buildStack()        | [minSize: 0, maxSize: 0, desiredSize: 0]
+    'normal'  | buildStack(1, 5, 3) | [minSize: 1, maxSize: 5, desiredSize: 3, autoscalingType: 'cpu', scaleup:[cooldown: 60, period: 60, adjustment: 1, threshold: 50], scaledown:[cooldown: 60, period: 600, adjustment: -1, threshold: 15]].sort { it.key }
+    'missing' | buildStack()        | [minSize: 0, maxSize: 0, desiredSize: 0, autoscalingType: 'cpu', scaleup: [cooldown:null, period:null, adjustment:null, threshold:null], scaledown: [cooldown:null, period:null, adjustment:null, threshold:null]].sort { it.key }
   }
 
   void "test build info config - #testCase"() {
@@ -550,9 +553,15 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
 
 
 
+  @Ignore
   protected Stack buildStack(Integer minSize = null, Integer maxSize = null, Integer desiredSize = null) {
     Stub(Stack) {
-      getParameters() >> { (minSize && maxSize && desiredSize) ? ['min_size': minSize, 'max_size': maxSize, 'desired_size':desiredSize] : [:] }
+      getParameters() >> {
+        (minSize && maxSize && desiredSize) ? [min_size        : minSize, max_size: maxSize,
+                                               desired_size    : desiredSize, autoscaling_type: 'cpu_util',
+                                               scaleup_cooldown  : 60, scaleup_adjustment: 1, scaleup_period: 60, scaleup_threshold: 50,
+                                               scaledown_cooldown: 60, scaledown_adjustment: -1, scaledown_period: 600, scaledown_threshold: 15] : [autoscaling_type: 'cpu_util']
+      }
     }
   }
 }

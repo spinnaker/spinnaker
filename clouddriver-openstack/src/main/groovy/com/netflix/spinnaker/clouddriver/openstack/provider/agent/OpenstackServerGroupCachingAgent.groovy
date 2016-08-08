@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.openstack.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import com.netflix.spinnaker.clouddriver.openstack.cache.OnDemandAware
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ServerGroupParameters
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLaunchConfig
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackServerGroup
@@ -42,21 +43,18 @@ import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.network.ext.LbPool
 
 import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
+import static com.netflix.spinnaker.clouddriver.cache.OnDemandAgent.OnDemandType.ServerGroup
+import static com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider.ID
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.APPLICATIONS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.CLUSTERS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.IMAGES
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.LOAD_BALANCERS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SERVER_GROUPS
-
 import static com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider.ATTRIBUTES
-import static com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider.ID
-import static com.netflix.spinnaker.clouddriver.cache.OnDemandAgent.OnDemandType.ServerGroup
 
 @Slf4j
 class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent implements OnDemandAgent, OnDemandAware {
@@ -235,6 +233,7 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
 
     result
   }
+
   /**
    * Builds scaling config map from stack definition.
    * @param stack
@@ -247,6 +246,14 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
       result.put('minSize', stack.parameters?.get('min_size') ?: 0)
       result.put('maxSize', stack.parameters?.get('max_size') ?: 0)
       result.put('desiredSize', stack.parameters?.get('desired_size') ?: 0)
+      result.put('autoscalingType', ServerGroupParameters.AutoscalingType.fromMeter(stack.parameters.get('autoscaling_type')))
+      ['up','down'].each {
+        Map<String, Object> scaler = [cooldown  : stack.parameters.get("scale${it}_cooldown".toString()),
+                                      period    : stack.parameters.get("scale${it}_period".toString()),
+                                      adjustment: stack.parameters.get("scale${it}_adjustment".toString()),
+                                      threshold : stack.parameters.get("scale${it}_threshold".toString())]
+        result.put("scale$it".toString(), scaler)
+      }
     }
 
     result

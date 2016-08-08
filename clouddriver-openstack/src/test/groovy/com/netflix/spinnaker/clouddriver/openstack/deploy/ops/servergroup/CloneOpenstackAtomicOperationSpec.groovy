@@ -77,6 +77,8 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
   }
 
   DeployOpenstackAtomicOperationDescription createAncestorDeployAtomicOperationDescription() {
+    def scaleup = new ServerGroupParameters.Scaler(cooldown: 60, adjustment: 1, period: 60, threshold: 50)
+    def scaledown = new ServerGroupParameters.Scaler(cooldown: 60, adjustment: -1, period: 600, threshold: 15)
     def params = new ServerGroupParameters(
       instanceType: INSTANCE_TYPE,
       image:IMAGE,
@@ -84,7 +86,10 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
       minSize: MIN_SIZE,
       subnetId: SUBNET_ID,
       poolId: POOL_ID,
-      securityGroups: SECURITY_GROUPS
+      securityGroups: SECURITY_GROUPS,
+      autoscalingType: ServerGroupParameters.AutoscalingType.CPU,
+      scaleup: scaleup,
+      scaledown: scaledown
     )
     new DeployOpenstackAtomicOperationDescription(
       stack: STACK,
@@ -100,6 +105,8 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
   }
 
   DeployOpenstackAtomicOperationDescription createNewDeployAtomicOperationDescription() {
+    def scaleup = new ServerGroupParameters.Scaler(cooldown: 61, adjustment: 2, period: 61, threshold: 51)
+    def scaledown = new ServerGroupParameters.Scaler(cooldown: 61, adjustment: -2, period: 601, threshold: 16)
     def params = new ServerGroupParameters(
       instanceType: INSTANCE_TYPE_N,
       image:IMAGE_N,
@@ -107,7 +114,10 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
       minSize: MIN_SIZE_N,
       subnetId: SUBNET_ID_N,
       poolId: POOL_ID_N,
-      securityGroups: SECURITY_GROUPS_N
+      securityGroups: SECURITY_GROUPS_N,
+      autoscalingType: ServerGroupParameters.AutoscalingType.NETWORK_INCOMING,
+      scaleup: scaleup,
+      scaledown: scaledown
     )
     new DeployOpenstackAtomicOperationDescription(
       stack: STACK_N,
@@ -171,6 +181,8 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
 
   def "builds a description based on ancestor server group, overrides everything"() {
     given:
+    def scaleup = new ServerGroupParameters.Scaler(cooldown: 61, adjustment: 2, period: 61, threshold: 51)
+    def scaledown = new ServerGroupParameters.Scaler(cooldown: 61, adjustment: -2, period: 601, threshold: 16)
     def params = new ServerGroupParameters(
       instanceType: INSTANCE_TYPE_N,
       image:IMAGE_N,
@@ -178,7 +190,10 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
       minSize: MIN_SIZE_N,
       subnetId: SUBNET_ID_N,
       poolId: POOL_ID_N,
-      securityGroups: SECURITY_GROUPS_N
+      securityGroups: SECURITY_GROUPS_N,
+      autoscalingType: ServerGroupParameters.AutoscalingType.NETWORK_INCOMING,
+      scaleup: scaleup,
+      scaledown: scaledown
     )
     def inputDescription = new CloneOpenstackAtomicOperationDescription(
       stack: STACK_N,

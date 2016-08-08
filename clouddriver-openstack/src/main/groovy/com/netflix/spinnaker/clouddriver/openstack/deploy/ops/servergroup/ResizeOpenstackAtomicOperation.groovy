@@ -67,7 +67,7 @@ class ResizeOpenstackAtomicOperation implements AtomicOperation<Void> {
       //update the min and max parameters
       ServerGroupParameters params = ServerGroupParameters.fromParamsMap(stack.parameters)
       ServerGroupParameters newParams = params.clone()
-      newParams.identity {
+      newParams.with {
         minSize = description.capacity.min
         maxSize = description.capacity.max
         desiredSize = description.capacity.desired

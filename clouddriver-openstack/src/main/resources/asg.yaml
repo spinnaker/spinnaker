@@ -3,22 +3,22 @@ description: Auto scaling group for Spinnaker
 parameters:
   flavor:
     type: string
-    description: flavor used by the web servers
+    description: Flavor used by the web servers
   image:
     type: string
     description: Image used for servers
   internal_port:
     type: string
-    description: internal app port for each server
+    description: Internal app port for each server
   max_size:
     type: number
-    description: maximum cluster size
+    description: Maximum cluster size
   min_size:
     type: number
-    description: minimum cluster size
+    description: Minimum cluster size
   desired_size:
     type: number
-    description: desired cluster size
+    description: Desired cluster size
   network_id:
     type: string
     description: Network used by the servers
@@ -27,10 +27,46 @@ parameters:
     description: Load balancer to use for this group
   security_groups:
     type: comma_delimited_list
-    description: security groups to use
+    description: Security groups to use
   subnet_id:
     type: string
     description: Subnet used to allocate a fixed IP for each server
+  autoscaling_type:
+    type: string
+    description: Type of autoscaling to perform. can be cpu_util, network.incoming.bytes.rate, or network.outgoing.bytes.rate
+    default: cpu_util
+  scaleup_cooldown:
+    type: number
+    description: Minimum amount of time (in seconds) between scaleup operations
+    default: 60
+  scaleup_adjustment:
+    type: number
+    description: Amount by which to change the instance count. Must be positive
+    default: 1
+  scaleup_period:
+    type: number
+    description: Amount of time (in seconds) before the scaleup action is taken
+    default: 60
+  scaleup_threshold:
+    type: number
+    description: Threshold that causes the scaleup action to occur, if held for scaleup_period seconds
+    default: 50
+  scaledown_cooldown:
+    type: number
+    description: Minimum amount of time (in seconds) between scaledown operations
+    default: 60
+  scaledown_adjustment:
+    type: number
+    description: Amount by which to change the instance count. Must be negative
+    default: -1
+  scaledown_period:
+    type: number
+    description: Amount of time (in seconds) before the scaledown action is taken
+    default: 600
+  scaledown_threshold:
+    type: number
+    description: Threshold that causes the scaledown action to occur, if held for scaledown_period seconds
+    default: 15
 resources:
   asg:
     type: OS::Heat::AutoScalingGroup
@@ -44,28 +80,52 @@ resources:
           flavor: {get_param: flavor}
           image: {get_param: image}
           internal_port: {get_param: internal_port}
-          # TODO this is here for demo purposes - will need to figure if this shoudl be parameterized
+          # This is used by ceilometer to autoscale against instances that are part of this stack
           metadata: {"metering.stack": {get_param: "OS::stack_id"}}
           network_id: {get_param: network_id}
           pool_id: {get_param: pool_id}
           security_groups: {get_param: security_groups}
           subnet_id: {get_param: subnet_id}
-  # TODO parameterize
   web_server_scaleup_policy:
     type: OS::Heat::ScalingPolicy
     properties:
       adjustment_type: change_in_capacity
       auto_scaling_group_id: {get_resource: asg}
-      cooldown: 60
-      scaling_adjustment: 1
-  # TODO parameterize
+      cooldown: {get_param: scaleup_cooldown}
+      scaling_adjustment: {get_param: scaleup_adjustment}
   web_server_scaledown_policy:
     type: OS::Heat::ScalingPolicy
     properties:
       adjustment_type: change_in_capacity
       auto_scaling_group_id: {get_resource: asg}
-      cooldown: 60
-      scaling_adjustment: -1
+      cooldown: {get_param: scaledown_cooldown}
+      scaling_adjustment: {get_param: scaledown_adjustment}
+  meter_alarm_high:
+    type: OS::Ceilometer::Alarm
+    properties:
+      description: Scale up if the average meter_name > scaleup_threshold for scaleup_period seconds
+      meter_name: {get_param: autoscaling_type}
+      statistic: avg
+      period: {get_param: scaleup_period}
+      evaluation_periods: 1
+      threshold: {get_param: scaleup_threshold}
+      alarm_actions:
+        - {get_attr: [web_server_scaleup_policy, alarm_url]}
+      matching_metadata: {'metadata.user_metadata.stack': {get_param: "OS::stack_id"}}
+      comparison_operator: gt
+  meter_alarm_low:
+    type: OS::Ceilometer::Alarm
+    properties:
+      description: Scale up if the average meter_name < scaledown_threshold for scaledown_period seconds
+      meter_name: {get_param: autoscaling_type}
+      statistic: avg
+      period: {get_param: scaledown_period}
+      evaluation_periods: 1
+      threshold: {get_param: scaledown_threshold}
+      alarm_actions:
+        - {get_attr: [web_server_scaledown_policy, alarm_url]}
+      matching_metadata: {'metadata.user_metadata.stack': {get_param: "OS::stack_id"}}
+      comparison_operator: lt
 outputs:
   OS::stack_id:
     value: {get_resource: asg}

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup
 
+import com.fasterxml.jackson.annotation.JsonCreator
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
@@ -37,19 +38,31 @@ class ServerGroupParameters {
   String subnetId
   String poolId
   List<String> securityGroups
+  AutoscalingType autoscalingType
+  Scaler scaleup
+  Scaler scaledown
 
   Map<String, String> toParamsMap() {
     [
-      'flavor':instanceType,
-      'image':image,
-      'internal_port':internalPort ? internalPort.toString() : null,
-      'max_size':maxSize ? maxSize.toString() : null,
-      'min_size':minSize ? minSize.toString() : null,
-      'desired_size':desiredSize ? desiredSize.toString() : null,
-      'network_id':networkId,
-      'subnet_id':subnetId,
-      'pool_id':poolId,
-      'security_groups':securityGroups ? securityGroups.join(',') : null
+      flavor              : instanceType,
+      image               : image,
+      internal_port       : internalPort ? internalPort.toString() : null,
+      max_size            : maxSize ? maxSize.toString() : null,
+      min_size            : minSize ? minSize.toString() : null,
+      desired_size        : desiredSize ? desiredSize.toString() : null,
+      network_id          : networkId,
+      subnet_id           : subnetId,
+      pool_id             : poolId,
+      security_groups     : securityGroups ? securityGroups.join(',') : null,
+      autoscaling_type    : autoscalingType ? autoscalingType.toString() : null,
+      scaleup_cooldown    : scaleup?.cooldown ? scaleup.cooldown.toString() : null,
+      scaleup_adjustment  : scaleup?.adjustment ? scaleup.adjustment.toString() : null,
+      scaleup_period      : scaleup?.period ? scaleup.period.toString() : null,
+      scaleup_threshold   : scaleup?.threshold ? scaleup.threshold.toString() : null,
+      scaledown_cooldown  : scaledown?.cooldown ? scaledown.cooldown.toString() : null,
+      scaledown_adjustment: scaledown?.adjustment ? scaledown.adjustment.toString() : null,
+      scaledown_period    : scaledown?.period ? scaledown.period.toString() : null,
+      scaledown_threshold : scaledown?.threshold ? scaledown.threshold.toString() : null,
     ]
   }
 
@@ -64,8 +77,87 @@ class ServerGroupParameters {
       networkId: params.get('network_id'),
       subnetId: params.get('subnet_id'),
       poolId: params.get('pool_id'),
-      securityGroups: params.get('security_groups')?.split(',')?.toList()
+      securityGroups: params.get('security_groups')?.split(',')?.toList(),
+      autoscalingType: params.get('autoscaling_type') ? AutoscalingType.fromString(params.get('autoscaling_type')) : null,
+      scaleup: new Scaler(
+        cooldown: params.get('scaleup_cooldown')?.toInteger(),
+        adjustment: params.get('scaleup_adjustment')?.toInteger(),
+        period: params.get('scaleup_period')?.toInteger(),
+        threshold: params.get('scaleup_threshold')?.toInteger()
+      ),
+      scaledown: new Scaler(
+        cooldown: params.get('scaledown_cooldown')?.toInteger(),
+        adjustment: params.get('scaledown_adjustment')?.toInteger(),
+        period: params.get('scaledown_period')?.toInteger(),
+        threshold: params.get('scaledown_threshold')?.toInteger()
+      )
     )
+  }
+
+  /**
+   * Scaleup/scaledown parameters for a server group
+   */
+  @AutoClone
+  @Canonical
+  static class Scaler {
+    Integer cooldown
+    Integer adjustment
+    Integer period
+    Integer threshold
+  }
+
+  /**
+   * CPU: average cpu utilization across server group. meter name is cpu_util.
+   * NETWORK_INCOMING: average incoming bytes/second across server group. meter name is network.incoming.bytes.rate
+   * NETWORK_OUTGOING: average outgoing bytes/second across server group. meter name is network.outgoing.bytes.rate
+   */
+  static enum AutoscalingType {
+    CPU('cpu_util'), NETWORK_INCOMING('network.incoming.bytes.rate'), NETWORK_OUTGOING('network.outgoing.bytes.rate')
+
+    String meterName
+
+    AutoscalingType(String meterName) {
+      this.meterName = meterName
+    }
+
+    @Override
+    String toString() {
+      meterName
+    }
+
+    @JsonCreator
+    static String fromMeter(String meter) {
+      switch (meter) {
+        case CPU.meterName:
+          CPU.name().toLowerCase()
+          break
+        case NETWORK_INCOMING.meterName:
+          NETWORK_INCOMING.name().toLowerCase()
+          break
+        case NETWORK_OUTGOING.meterName:
+          NETWORK_OUTGOING.name().toLowerCase()
+          break
+        default:
+          throw new IllegalArgumentException("Invalid enum meter name: $meter")
+      }
+    }
+
+    static AutoscalingType fromString(String value) {
+      switch (value) {
+        case CPU.toString():
+          CPU
+          break
+        case NETWORK_INCOMING.toString():
+          NETWORK_INCOMING
+          break
+        case NETWORK_OUTGOING.toString():
+          NETWORK_OUTGOING
+          break
+        default:
+          throw new IllegalArgumentException("Invalid enum meter name: $value")
+      }
+    }
+
   }
 
 }

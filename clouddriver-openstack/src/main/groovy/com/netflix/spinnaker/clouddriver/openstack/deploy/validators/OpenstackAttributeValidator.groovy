@@ -158,6 +158,18 @@ class OpenstackAttributeValidator {
     result
   }
 
+  boolean validateLessThanEqual(Integer subject, Integer other, String attribute) {
+    def result
+    if (subject != null && other != null && subject <= other) {
+      result = true
+    }
+    else {
+      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.notLessThan")
+      result = false
+    }
+    result
+  }
+
   def validateApplication(String value, String attribute) {
     if (validateNotEmpty(value, attribute)) {
       return validateByRegex(value, attribute, prefixPattern)

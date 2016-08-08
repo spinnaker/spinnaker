@@ -92,6 +92,9 @@ class CloneOpenstackAtomicOperation implements AtomicOperation<DeploymentResult>
       subnetId = description.serverGroupParameters?.subnetId ?: ancestorParams.subnetId
       poolId = description.serverGroupParameters?.poolId ?: ancestorParams.poolId
       securityGroups = description.serverGroupParameters?.securityGroups ?: ancestorParams.securityGroups
+      autoscalingType = description.serverGroupParameters?.autoscalingType ?: ancestorParams.autoscalingType
+      scaleup = description.serverGroupParameters?.scaleup ?: ancestorParams.scaleup
+      scaledown = description.serverGroupParameters?.scaledown ?: ancestorParams.scaledown
     }
     deployDescription.disableRollback = description.disableRollback ?: false
     deployDescription.timeoutMins = description.timeoutMins ?: ancestorStack.timeoutMins

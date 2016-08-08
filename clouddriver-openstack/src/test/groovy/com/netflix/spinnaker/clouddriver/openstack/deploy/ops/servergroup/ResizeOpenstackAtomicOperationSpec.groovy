@@ -78,7 +78,7 @@ class ResizeOpenstackAtomicOperationSpec extends Specification {
     1 * stack.getParameters() >> serverGroupParams.toParamsMap()
     _ * stack.getId() >> stackId
     _ * stack.getName() >> createdStackName
-    1 * provider.updateStack(region, createdStackName, stackId, template, sub, serverGroupParams)
+    1 * provider.updateStack(region, createdStackName, stackId, template, sub, _ as ServerGroupParameters)
     noExceptionThrown()
   }
 
@@ -111,7 +111,7 @@ class ResizeOpenstackAtomicOperationSpec extends Specification {
     1 * stack.getParameters() >> serverGroupParams.toParamsMap()
     _ * stack.getId() >> stackId
     _ * stack.getName() >> createdStackName
-    1 * provider.updateStack(region, createdStackName, stackId, template, sub, serverGroupParams) >> { throw new OpenstackProviderException('foo') }
+    1 * provider.updateStack(region, createdStackName, stackId, template, sub, _ as ServerGroupParameters) >> { throw new OpenstackProviderException('foo') }
     thrown(OpenstackOperationException)
   }
 }

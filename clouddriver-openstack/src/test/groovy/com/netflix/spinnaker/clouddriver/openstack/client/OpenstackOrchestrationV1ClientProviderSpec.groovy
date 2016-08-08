@@ -50,19 +50,38 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
     String image = 'ubuntu-latest'
     int maxSize = 5
     int minSize = 3
+    int desiredSize = 4
+    String subnetId = '9999'
     String networkId = '1234'
     String poolId = '5678'
     List<String> securityGroups = ['sg1']
-    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
+    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image,
+      maxSize: maxSize, minSize: minSize, desiredSize: desiredSize,
+      subnetId: subnetId, networkId: networkId, poolId: poolId, securityGroups: securityGroups,
+      autoscalingType: ServerGroupParameters.AutoscalingType.CPU,
+      scaleup: new ServerGroupParameters.Scaler(cooldown: 60, period: 60, adjustment: 1, threshold: 50),
+      scaledown: new ServerGroupParameters.Scaler(cooldown: 60, period: 600, adjustment: -1, threshold: 15)
+    )
     Map<String, String> params = [
-      'flavor'         : parameters.instanceType,
-      'image'          : parameters.image,
-      'internal_port'  : "$parameters.internalPort".toString(),
-      'max_size'       : "$parameters.maxSize".toString(),
-      'min_size'       : "$parameters.minSize".toString(),
-      'network_id'     : parameters.networkId,
-      'pool_id'        : parameters.poolId,
-      'security_groups': parameters.securityGroups.join(',')
+      flavor              : parameters.instanceType,
+      image               : parameters.image,
+      internal_port       : "$parameters.internalPort".toString(),
+      max_size            : "$parameters.maxSize".toString(),
+      min_size            : "$parameters.minSize".toString(),
+      desired_size        : "$parameters.desiredSize".toString(),
+      network_id          : parameters.networkId,
+      subnet_id           : "$parameters.subnetId".toString(),
+      pool_id             : parameters.poolId,
+      security_groups     : parameters.securityGroups.join(','),
+      autoscaling_type    : 'cpu_util',
+      scaleup_cooldown    : 60,
+      scaleup_adjustment  : 1,
+      scaleup_period      : 60,
+      scaleup_threshold   : 50,
+      scaledown_cooldown  : 60,
+      scaledown_adjustment:-1,
+      scaledown_period    :600,
+      scaledown_threshold :15
     ]
     StackCreate stackCreate = Builders.stack().disableRollback(disableRollback).files(subtmpl).name(stackName).parameters(params).template(tmpl).timeoutMins(timeoutMins).build()
 
@@ -71,10 +90,10 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
 
     then:
     1 * stackApi.create(_ as StackCreate) >> { StackCreate sc ->
-      sc.disableRollback == stackCreate.disableRollback
-      sc.name == stackCreate.name
-      sc.parameters == stackCreate.parameters
-      sc.template == stackCreate.parameters
+      assert sc.disableRollback == stackCreate.disableRollback
+      assert sc.name == stackCreate.name
+      assert sc.parameters.toString() == stackCreate.parameters.toString()
+      assert sc.template == stackCreate.template
       stack
     }
     noExceptionThrown()
@@ -305,19 +324,32 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
     String image = 'ubuntu-latest'
     int maxSize = 5
     int minSize = 3
+    int desiredSize = 4
     String networkId = '1234'
+    String subnetId = '9999'
     String poolId = '5678'
     List<String> securityGroups = ['sg1']
-    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
+    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image, maxSize: maxSize, minSize: minSize, desiredSize: desiredSize, networkId: networkId, subnetId: subnetId, poolId: poolId, securityGroups: securityGroups)
     Map<String, String> params = [
-      'flavor'         : parameters.instanceType,
-      'image'          : parameters.image,
-      'internal_port'  : "$parameters.internalPort".toString(),
-      'max_size'       : "$parameters.maxSize".toString(),
-      'min_size'       : "$parameters.minSize".toString(),
-      'network_id'     : parameters.networkId,
-      'pool_id'        : parameters.poolId,
-      'security_groups': parameters.securityGroups.join(',')
+      flavor              : parameters.instanceType,
+      image               : parameters.image,
+      internal_port       : "$parameters.internalPort".toString(),
+      max_size            : "$parameters.maxSize".toString(),
+      min_size            : "$parameters.minSize".toString(),
+      desired_size        : "$parameters.desiredSize".toString(),
+      network_id          : parameters.networkId,
+      subnet_id           : parameters.subnetId,
+      pool_id             : parameters.poolId,
+      security_groups     : parameters.securityGroups.join(','),
+      autoscaling_type    : null,
+      scaleup_cooldown    : null,
+      scaleup_adjustment  : null,
+      scaleup_period      : null,
+      scaleup_threshold   : null,
+      scaledown_cooldown  : null,
+      scaledown_adjustment: null,
+      scaledown_period    : null,
+      scaledown_threshold : null
     ]
     String template = "foo: bar"
     Map<String, String> subtmpl = [sub: "foo: bar"]
@@ -327,9 +359,9 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
 
     then:
     1 * stackService.update(stackName, stackId, _ as StackUpdate) >> { String name, String id, StackUpdate su ->
-      name == stackName
-      id == stackId
-      su.parameters == params
+      assert name == stackName
+      assert id == stackId
+      assert su.parameters.toString() == params.toString()
       success
     }
     noExceptionThrown()

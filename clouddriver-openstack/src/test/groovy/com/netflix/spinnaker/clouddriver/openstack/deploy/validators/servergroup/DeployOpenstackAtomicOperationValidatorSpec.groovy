@@ -81,6 +81,33 @@ class DeployOpenstackAtomicOperationValidatorSpec extends Specification {
     0 * errors.rejectValue(_,_)
   }
 
+  def "Validate with scaling parameters"() {
+    given:
+    ServerGroupParameters.Scaler scaleup = new ServerGroupParameters.Scaler(cooldown: 60, adjustment: 1, period: 60, threshold: 50)
+    ServerGroupParameters.Scaler scaledown = new ServerGroupParameters.Scaler(cooldown: 60, adjustment: -1, period: 600, threshold: 15)
+    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, desiredSize: desiredSize, subnetId: subnetId, poolId: poolId, securityGroups: securityGroups, autoscalingType: ServerGroupParameters.AutoscalingType.CPU, scaleup: scaleup, scaledown: scaledown)
+    DeployOpenstackAtomicOperationDescription description = new DeployOpenstackAtomicOperationDescription(account: account, application: application, region: region, stack: stack, freeFormDetails: freeFormDetails, disableRollback: disableRollback, timeoutMins: timeoutMins, serverGroupParameters: params, credentials: credz)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    0 * errors.rejectValue(_,_)
+  }
+
+  def "Validate with invalid scaling parameters"() {
+    given:
+    ServerGroupParameters.Scaler scaleup = new ServerGroupParameters.Scaler(cooldown: -1, adjustment: 10, period: -1, threshold: -1)
+    ServerGroupParameters.Scaler scaledown = new ServerGroupParameters.Scaler(cooldown: -1, adjustment: -15, period: -1, threshold: -1)
+    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, desiredSize: desiredSize, subnetId: subnetId, poolId: poolId, securityGroups: securityGroups, autoscalingType: ServerGroupParameters.AutoscalingType.CPU, scaleup: scaleup, scaledown: scaledown)
+    DeployOpenstackAtomicOperationDescription description = new DeployOpenstackAtomicOperationDescription(account: account, application: application, region: region, stack: stack, freeFormDetails: freeFormDetails, disableRollback: disableRollback, timeoutMins: timeoutMins, serverGroupParameters: params, credentials: credz)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    8 * errors.rejectValue(_,_)
+  }
 
   @Unroll
   def "Validate create missing required core field - #attribute"() {
