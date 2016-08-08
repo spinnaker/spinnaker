@@ -1,0 +1,12 @@
+<div class="form-horizontal">
+  <stage-config-field label="Package">
+    <input type="text" class="form-control input-sm"
+           ng-model="stage.packageName"/>
+  </stage-config-field>
+  <stage-config-field label="Regions">
+    <checklist items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
+  </stage-config-field>
+  <stage-config-field label="Tags">
+    <map-editor model="stage.tags" allow-empty="true"></map-editor>
+  </stage-config-field>
+</div>
