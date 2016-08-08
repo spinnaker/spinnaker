@@ -8,7 +8,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.openstack.insta
   require('../../../../../core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
   require('../../../../../core/modal/wizard/v2modalWizard.service.js'),
   require('../../../../../core/utils/rx.js'),
-  require('../../../../../core/utils/uiSelectRequired.directive.js'),
   require('../../../../../core/image/image.reader.js'),
   require('../../../../../core/naming/naming.service.js'),
   require('../../../../../core/serverGroup/configure/common/v2instanceArchetypeSelector.directive.js'),
