@@ -7,18 +7,48 @@ module.exports = angular
   .component('numberInput', {
     template:`
       <div class="navbar-form" style="padding: 0 ;">
-          <span class="btn-group btn-group-sm" role="group">
-            <button type="button" class="btn btn-toggle btn-small" ng-click="$ctrl.toggle()" ng-class="{active: $ctrl.numberActive}" uib-tooltip="Toggle to enter number">Num</button>
-            <button type="button" class="btn btn-toggle btn-small" ng-click="$ctrl.toggle()" ng-class="{active: $ctrl.expressionActive}" uib-tooltip="Toggle to enter expression"> $\{ </button>
+        <div class="button-input" ng-class="{number: $ctrl.numberActive, text: $ctrl.textActive, focus: $ctrl.isGlowing}">
+          <span class="btn-group btn-group-xs" role="group">
+            <button type="button"
+              class="btn btn-default"
+              ng-click="$ctrl.toggleNum()"
+              ng-class="{active: $ctrl.numberActive}"
+              ng-focus="$ctrl.glow(true)"
+              ng-blur="$ctrl.glow(false)"
+              uib-tooltip="Toggle to enter number">
+              Num
+              </button>
+            <button type="button"
+              class="btn btn-default"
+              ng-click="$ctrl.toggleText()"
+              ng-class="{active: $ctrl.expressionActive}"
+              ng-focus="$ctrl.glow(true)"
+              ng-blur="$ctrl.glow(false)"
+              uib-tooltip="Toggle to enter expression">
+              $\{…\}
+              </button>
           </span>
-          <input ng-if="$ctrl.expressionActive" type="text" class="form-control input-sm" ng-model="$ctrl.model" style="width: 433px"/>
-          <input ng-if="$ctrl.numberActive" type="number" class="form-control input-sm" ng-model="$ctrl.model" style="width: 75px"/>
+          <input
+            ng-if="$ctrl.expressionActive"
+            type="text" class="form-control borderless"
+            ng-model="$ctrl.model" ng-focus="$ctrl.glow(true)"
+            ng-blur="$ctrl.glow(false)"
+          />
+          <input
+            ng-if="$ctrl.numberActive"
+            type="number"
+            class="form-control borderless"
+            ng-model="$ctrl.model"
+            ng-focus="$ctrl.glow(true)"
+            ng-blur="$ctrl.glow(false)"
+          />
+        </div>
       </div>
       `,
     bindings: {
       model: '=',
     },
-    controller: function($scope) {
+    controller: function() {
       let ctrl = this;
       let numberType = 'number';
       let textType = 'text';
@@ -38,10 +68,16 @@ module.exports = angular
         setState(ctrl.inputType);
       };
 
-      ctrl.toggle = () => {
-        ctrl.inputType = ctrl.inputType === numberType ? textType : numberType;
-        setState(ctrl.inputType);
-        $scope.$digest();
+      ctrl.toggleNum = () => {
+        setState(numberType);
+      };
+
+      ctrl.toggleText = () => {
+        setState(textType);
+      };
+
+      ctrl.glow = (isGlowing) => {
+        ctrl.isGlowing = isGlowing;
       };
     }
   });
