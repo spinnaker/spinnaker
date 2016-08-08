@@ -22,6 +22,8 @@ import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBeare
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.exception.DockerRegistryOperationException
 import com.squareup.okhttp.OkHttpClient
 import groovy.util.logging.Slf4j
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RestAdapter
 import retrofit.RetrofitError
@@ -34,6 +36,9 @@ import java.util.concurrent.TimeUnit
 
 @Slf4j
 class DockerRegistryClient {
+
+  private static final Logger LOG = LoggerFactory.getLogger(DockerRegistryClient)
+
   private DockerBearerTokenService tokenService
 
   public String address
@@ -198,15 +203,27 @@ class DockerRegistryClient {
    * This method will hit the /v2/ endpoint of the configured docker registry. If it this endpoint is up,
    * it will return silently. Otherwise, an exception is thrown detailing why the endpoint isn't available.
    */
+
   public void checkV2Availability() {
+    try {
+      doCheckV2Availability()
+    } catch (RetrofitError error) {
+      Response response = doCheckV2Availability(tokenService.basicAuthHeader)
+      if (!response){
+        LOG.error "checkV2Availability", error
+        throw error
+      }
+    }
+    // Placate the linter (otherwise it expects to return the result of `request()`)
+    null
+  }
+
+  private Response doCheckV2Availability(String basicAuthHeader = null) {
     request({
-      registryService.checkVersion(tokenService.basicAuthHeader, dockerApplicationName)
+      registryService.checkVersion(basicAuthHeader, dockerApplicationName)
     }, { token ->
       registryService.checkVersion(token, dockerApplicationName)
     }, "v2 version check")
-
-    // Placate the linter (otherwise it expects to return the result of `request()`)
-    null
   }
 
   /*
