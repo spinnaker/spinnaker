@@ -33,12 +33,11 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Scope
-
 import static com.amazonaws.regions.Regions.*
 
 @Configuration
 @EnableConfigurationProperties
-class AmazonCredentialsInitializer implements CredentialsInitializerSynchronizable  {
+class AmazonCredentialsInitializer implements CredentialsInitializerSynchronizable {
   @Autowired
   ApplicationContext appContext;
 
@@ -72,28 +71,36 @@ class AmazonCredentialsInitializer implements CredentialsInitializerSynchronizab
   List<? extends NetflixAmazonCredentials> netflixAmazonCredentials(CredentialsLoader<? extends NetflixAmazonCredentials> credentialsLoader,
                                                                     CredentialsConfig credentialsConfig,
                                                                     AccountCredentialsRepository accountCredentialsRepository,
-                                                                    @Value('${default.account.env:default}') String defaultAccountName) {
-    synchronizeAmazonAccounts(credentialsLoader, credentialsConfig, accountCredentialsRepository, defaultAccountName, null)
+                                                                    @Value('${default.account.env:default}') String defaultAccountName,
+                                                                    @Value('${default.account.environment:#{null}}') String defaultEnvironment,
+                                                                    @Value('${default.account.accountType:#{null}}') String defaultAccountType) {
+    synchronizeAmazonAccounts(credentialsLoader, credentialsConfig, accountCredentialsRepository, defaultAccountName, defaultEnvironment, defaultAccountType, null)
   }
 
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
   List<? extends NetflixAmazonCredentials> synchronizeAmazonAccounts(CredentialsLoader<? extends NetflixAmazonCredentials> credentialsLoader,
-                                    CredentialsConfig credentialsConfig,
-                                    AccountCredentialsRepository accountCredentialsRepository,
-                                    @Value('${default.account.env:default}') String defaultAccountName,
-                                    CatsModule catsModule) {
+                                                                     CredentialsConfig credentialsConfig,
+                                                                     AccountCredentialsRepository accountCredentialsRepository,
+                                                                     @Value('${default.account.env:default}') String defaultAccountName,
+                                                                     @Value('${default.account.environment:#{null}}') String defaultEnvironment,
+                                                                     @Value('${default.account.accountType:#{null}}') String defaultAccountType,
+                                                                     CatsModule catsModule) {
     if (!credentialsConfig.accounts && !credentialsConfig.defaultAssumeRole) {
-      credentialsConfig.accounts = [new CredentialsConfig.Account(name: defaultAccountName)]
+      defaultEnvironment = defaultEnvironment ?: defaultAccountName
+      defaultAccountType = defaultAccountType ?: defaultAccountName
+      credentialsConfig.accounts = [new CredentialsConfig.Account(name: defaultAccountName, environment: defaultEnvironment, accountType: defaultAccountType)]
       if (!credentialsConfig.defaultRegions) {
-        credentialsConfig.defaultRegions = [US_EAST_1, US_WEST_1, US_WEST_2, EU_WEST_1].collect { new CredentialsConfig.Region(name: it.name) }
+        credentialsConfig.defaultRegions = [US_EAST_1, US_WEST_1, US_WEST_2, EU_WEST_1].collect {
+          new CredentialsConfig.Region(name: it.name)
+        }
       }
     }
 
     List<? extends NetflixAmazonCredentials> accounts = credentialsLoader.load(credentialsConfig)
 
     def (ArrayList<NetflixAmazonCredentials> accountsToAdd, List<String> namesOfDeletedAccounts) =
-      ProviderUtils.calculateAccountDeltas(accountCredentialsRepository, NetflixAmazonCredentials, accounts)
+    ProviderUtils.calculateAccountDeltas(accountCredentialsRepository, NetflixAmazonCredentials, accounts)
 
     accountsToAdd.each { NetflixAmazonCredentials account ->
       accountCredentialsRepository.save(account.name, account)
