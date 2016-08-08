@@ -13,29 +13,23 @@ module.exports = angular
     }
 
     function convertServerGroupCommandToDeployConfiguration(base) {
-      // use _.defaults to avoid copying the backingData, which is huge and expensive to copy over
-      var command = _.defaults({backingData: [], viewState: []}, base);
-      if (base.viewState.mode !== 'clone') {
-        delete command.source;
+      //avoid copying the backingData or viewState, which are expensive to copy over
+      var params = _.omit(base, 'backingData', 'viewState', 'selectedProvider', 'credentials', 'loadBalancers',
+        'stack', 'region', 'account', 'cloudProvider', 'application', 'type', 'freeFormDetails');
+      var command = {
+        type: base.type,
+        application: base.application,
+        cloudProvider: 'openstack',
+        account: base.account || base.credentials,
+        region: base.region,
+        stack: base.stack,
+        freeFormDetails: base.freeFormDetails,
+        serverGroupParameters: params
+      };
+
+      if (base.viewState.mode === 'clone' && base.source) {
+        command.source = base.source;
       }
-      command.account = command.credentials;
-      if (command.resources.ports) {
-        var ports = '' + command.resources.ports;
-        command.resources.ports = ports.split(/\s*,\s*/);
-      }
-      if (command.securityGroups) {
-        var securityGroups = '' + command.securityGroups;
-        command.securityGroups = securityGroups.split(/\s*,\s*/);
-      }
-      if (command.securityGroups === '') {
-        delete command.securityGroups;
-      }
-      if (command.resources.allocateIpAddress === true) {
-        delete command.resources.ports;
-      }
-      delete command.viewState;
-      delete command.backingData;
-      delete command.selectedProvider;
       return command;
     }
 

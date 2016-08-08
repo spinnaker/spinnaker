@@ -8,14 +8,17 @@
   <div>
     <form name="serverGroupWizardForm" class="form-horizontal" novalidate>
       <v2-modal-wizard ng-show="state.loaded && !state.requiresTemplateSelection" heading="{{title}}">
-        <v2-wizard-page key="basic-settings" label="Basic Settings" hide-subheading="true">
+        <v2-wizard-page key="location" label="Location" hide-subheading="true">
           <ng-include src="pages.basicSettings"></ng-include>
         </v2-wizard-page>
-        <v2-wizard-page key="load-balancers" label="Load Balancers" mark-complete-on-view="false">
-          <ng-include src="pages.loadBalancers"></ng-include>
+        <v2-wizard-page key="instance-settings" label="Instance Settings" mark-complete-on-view="false">
+          <ng-include src="pages.instanceSettings"></ng-include>
         </v2-wizard-page>
-        <v2-wizard-page key="security-groups" label="Security Groups" mark-complete-on-view="false" done="true">
-          <ng-include src="pages.securityGroups"></ng-include>
+        <v2-wizard-page key="cluster-size" label="Cluster Size" mark-complete-on-view="true">
+          <ng-include src="pages.clusterSettings"></ng-include>
+        </v2-wizard-page>
+        <v2-wizard-page key="access-settings" label="Access" mark-complete-on-view="false">
+          <ng-include src="pages.accessSettings"></ng-include>
         </v2-wizard-page>
       </v2-modal-wizard>
       <div class="modal-footer" ng-if="state.loaded">

@@ -1,0 +1,34 @@
+<div class="container-fluid form-horizontal">
+  <ng-form name="clusterSettings">
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        Minimum Size
+        <help-field key="openstack.serverGroup.minSize"></help-field>
+      </div>
+      <div class="col-md-3"><input type="number" min="1" max="{{command.maxSize}}"
+                                   class="form-control input-sm"
+                                   name="minSize"
+                                   ng-model="command.minSize"/></div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        Desired Size
+        <help-field key="openstack.serverGroup.desiredSize"></help-field>
+      </div>
+      <div class="col-md-3"><input type="number" min="{{command.minSize}}" max="{{command.maxSize}}"
+                                   class="form-control input-sm"
+                                   name="desiredSize"
+                                   ng-model="command.desiredSize"/></div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        Maximum Size
+        <help-field key="openstack.serverGroup.maxSize"></help-field>
+      </div>
+      <div class="col-md-3"><input type="number" min="{{command.minSize}}" max="32767"
+                                   class="form-control input-sm"
+                                   name="maxSize"
+                                   ng-model="command.maxSize"/></div>
+    </div>
+  </ng-form>
+</div>

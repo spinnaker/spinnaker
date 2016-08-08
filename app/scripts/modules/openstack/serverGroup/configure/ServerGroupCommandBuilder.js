@@ -5,28 +5,26 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.service', [
   require('../../image/image.reader.js'),
 ])
-  .factory('openstackServerGroupCommandBuilder', function ($q, openstackImageReader) {
+  .factory('openstackServerGroupCommandBuilder', function ($q, openstackImageReader, settings) {
 
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
 
-      var imageLoader = openstackImageReader.findImages({ provider: 'openstack', });
+      var defaultCredentials = defaults.account || application.defaultCredentials.openstack || settings.providers.openstack.defaults.account;
+      var defaultRegion = defaults.region || application.defaultRegions.openstack || settings.providers.openstack.defaults.region;
 
-      var defaultCredentials = defaults.account || application.defaultCredentials;
-      var defaultRegion = defaults.region || application.defaultRegion;
-
-      return $q.all({
-        images: imageLoader,
-      }).then(function (backingData) {
-        return {
+      return $q.when({
+          selectedProvider: 'openstack',
           application: application.name,
           credentials: defaultCredentials,
           region: defaultRegion,
-          images: backingData.images,
+          stack: '',
+          freeFormDetails: '',
+          minSize: 1,
+          desiredSize: 1,
+          maxSize: 1,
           loadBalancers: [],
           securityGroups: [],
-          strategy: '',
-          selectedProvider: 'openstack',
           viewState: {
             instanceProfile: 'custom',
             allImageSelection: null,
@@ -38,7 +36,6 @@ module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.s
             loadBalancersConfigured: false,
             securityGroupsConfigured: false,
           },
-        };
       });
     }
 

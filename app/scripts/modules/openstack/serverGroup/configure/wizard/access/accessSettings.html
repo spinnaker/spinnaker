@@ -1,0 +1,41 @@
+<div class="container-fluid form-horizontal" ng-controller="openstackServerGroupAccessSettingsCtrl as accessCtrl">
+  <div class="modal-body">
+    <ng-form name="accessSettings" novalidate>
+
+    <div class="col-md-12" ng-if="command.viewState.dirty.loadBalancers">
+      <div class="alert alert-warning">
+        <p><span class="glyphicon glyphicon-warning-sign"></span>
+          The following load balancers could not be found in the selected namespace and were removed:
+        </p>
+        <ul>
+          <li ng-repeat="loadBalancer in command.viewState.dirty.loadBalancers">{{loadBalancer}}</li>
+        </ul>
+        <p class="text-right">
+          <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="command.viewState.dirty.loadBalancers = null">Okay</a>
+        </p>
+      </div>
+    </div>
+
+    <os-load-balancer-select-field model="command.poolId" filter="lbFilter"></os-load-balancer-select-field>
+
+    <div class="form-group">
+      <div class="col-md-3 sm-label-left"><b>Security Groups</b></div>
+      <div class="col-md-7">
+        <ui-select multiple ng-model="command.securityGroups" class="form-control input-sm" on-select="accessCtrl.onSecurityGroupsChanged()">
+          <ui-select-match>{{$item.name}}</ui-select-match>
+          <ui-select-choices repeat="sg.id as sg in securityGroups | filter: $select.search">
+            <span ng-bind-html="sg.name | highlight: $select.search"></span>
+          </ui-select-choices>
+        </ui-select>
+      </div>
+      <div class="col-md-1 sm-label-left">
+        <a href="" ng-click="accessCtrl.refreshSecurityGroups()" uib-tooltip-template="accessCtrl.refreshTooltipTemplate">
+          <span class="glyphicon glyphicon-refresh" ng-class="{'glyphicon-spinning':refreshing}"></span>
+        </a>
+      </div>
+    </div>
+
+    </ng-form>
+  </div>
+</div>
+

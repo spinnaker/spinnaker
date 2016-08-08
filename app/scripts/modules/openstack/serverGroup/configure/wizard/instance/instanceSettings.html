@@ -1,0 +1,27 @@
+<div class="container-fluid form-horizontal" ng-controller="openstackServerGroupInstanceSettingsCtrl as instanceSettingsCtrl">
+  <ng-form name="instanceSettings">
+    <os-instance-type-select-field help-key="openstack.serverGroup.instanceType" model="command.instanceType" region="command.region"></os-instance-type-select-field>
+
+    <div class="form-group" ng-if="!command.viewState.disableImageSelection">
+      <div class="col-md-3 sm-label-right">
+        Image
+        <help-field key="openstack.serverGroup.imageName"></help-field>
+      </div>
+      <div class="col-md-7">
+        <ui-select ng-model="command.image"
+                   name="image"
+                   class="form-control input-sm {{image.$error ? 'ng-invalid ng-dirty' : ''}}"
+                   required>
+          <ui-select-match placeholder="Search for an image...">{{$select.selected.name || 'Search for an image...'}}</ui-select-match>
+          <ui-select-choices repeat="result.id as result in command.backingData.filtered.images track by $index"
+                             refresh="instanceSettingsCtrl.searchImages($select.search)"
+                             ui-disable-choice="result.message"
+                             reset-search-input="false">
+            <span ng-bind-html="result.message"></span>
+            <span ng-bind-html="result.name | highlight: $select.search"></span>
+          </ui-select-choices>
+        </ui-select>
+      </div>
+    </div>
+  </ng-form>
+</div>

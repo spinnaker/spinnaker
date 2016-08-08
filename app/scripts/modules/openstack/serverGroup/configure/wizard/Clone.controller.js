@@ -16,8 +16,10 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.clone
                                                                serverGroupCommand, application, title) {
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
-      basicSettings: require('./basicSettings.html'),
-      loadBalancers: require('./loadBalancers.html'),
+      basicSettings: require('./location/basicSettings.html'),
+      instanceSettings: require('./instance/instanceSettings.html'),
+      clusterSettings: require('./clusterSettings.html'),
+      accessSettings: require('./access/accessSettings.html'),
     };
 
     $scope.title = title;
@@ -65,7 +67,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.clone
     }
 
     this.isValid = function () {
-      return $scope.command && $scope.command.containers.length > 0 &&
+      return $scope.command &&
         $scope.command.account !== null &&
         v2modalWizardService.isComplete();
     };
@@ -74,7 +76,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.clone
       return v2modalWizardService.allPagesVisited();
     };
 
-    this.clone = function () {
+    this.submit = function () {
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode == 'createPipeline') {
         return $uibModalInstance.close($scope.command);
       }
