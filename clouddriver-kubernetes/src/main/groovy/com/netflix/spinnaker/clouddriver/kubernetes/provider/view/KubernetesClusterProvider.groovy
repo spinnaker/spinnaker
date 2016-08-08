@@ -23,17 +23,17 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesCluster
-import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesInstance
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesLoadBalancer
-import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesSecurityGroup
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesServerGroup
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
-import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.ReplicationController
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+import java.util.ArrayList
 
 @Component
 class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
@@ -148,6 +148,13 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
       serverGroup.loadBalancers?.each {
         serverGroup.securityGroups.addAll(securityGroups[it])
       }
+
+      def imageList = []
+      for (def container : serverGroup.deployDescription.containers) {
+        imageList.add(KubernetesUtil.getImageId(container.imageDescription))
+      }
+      Map buildInfo = [images: imageList]
+      serverGroup.buildInfo = buildInfo
       serverGroups[Names.parseName(serverGroup.name).cluster].add(serverGroup)
     }
 

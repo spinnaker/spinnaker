@@ -46,6 +46,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
   DeployKubernetesAtomicOperationDescription deployDescription
   ReplicationController replicationController
   String yaml
+  Map buildInfo
 
   Boolean isDisabled() {
     this.labels ? !(this.labels.any { key, value -> KubernetesUtil.isLoadBalancerLabel(key) && value == "true" }) : false
@@ -94,6 +95,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
 
   @Override
   ServerGroup.ImagesSummary getImagesSummary() {
+    def bi = buildInfo
     return new ServerGroup.ImagesSummary() {
       @Override
       List<ServerGroup.ImageSummary> getSummaries () {
@@ -105,7 +107,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
 
             @Override
             Map<String, Object> getBuildInfo() {
-              return [:]
+              return bi
             }
 
             @Override
