@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.findAmiStage', [
     pipelineConfigProvider.registerStage({
       useBaseProvider: true,
       key: 'findImage',
-      label: 'Find Image',
+      label: 'Find Image from Cluster',
       description: 'Finds an image to deploy from an existing cluster'
     });
   });

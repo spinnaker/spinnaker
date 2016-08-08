@@ -22,7 +22,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
       validators: [
         {
           type: 'stageBeforeType',
-          stageTypes: ['bake', 'findAmi', 'findImage'],
+          stageTypes: ['bake', 'findAmi', 'findImage', 'findImageFromTags'],
           message: 'You must have a Bake or Find Image stage before any deploy stage.',
           skipValidation: (pipeline, stage) => {
             if (!stage.clusters || !stage.clusters.length) {
