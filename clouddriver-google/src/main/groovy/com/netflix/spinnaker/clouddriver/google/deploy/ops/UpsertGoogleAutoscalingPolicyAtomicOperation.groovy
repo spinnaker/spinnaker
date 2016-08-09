@@ -84,7 +84,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation implements AtomicOperation<Vo
 
       def autoscaler = GCEUtil.buildAutoscaler(serverGroupName,
                                                serverGroup.selfLink,
-                                               description.autoscalingPolicy)
+                                               normalizeNewPolicy(description.autoscalingPolicy))
 
       if (isRegional) {
         compute.regionAutoscalers().insert(project, region, autoscaler).execute()
@@ -122,5 +122,15 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation implements AtomicOperation<Vo
     }
 
     newDescription
+  }
+
+  private static GoogleAutoscalingPolicy normalizeNewPolicy(GoogleAutoscalingPolicy newPolicy) {
+    ["cpuUtilization", "loadBalancingUtilization"].each {
+      if (newPolicy[it]?.utilizationTarget == null) {
+        newPolicy[it] = null
+      }
+    }
+
+    newPolicy
   }
 }
