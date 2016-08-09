@@ -480,24 +480,13 @@ class MigrateLoadBalancerStrategySpec extends Specification {
           new Listener().withLoadBalancerPort(443).withInstancePort(7000)).withPolicyNames("custom-policy")
       ]
     )
-    LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: 'app-elb')
-    LoadBalancerLocation target = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1')
 
-    AmazonEC2 amazonEC2 = Mock(AmazonEC2)
     AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
-    RegionScopedProvider regionProvider = Mock(RegionScopedProvider)
 
     when:
-    strategy.generateResults(sourceLookup, sourceLookup, securityGroupStrategy, source, target, null, 'app', false, false)
+    strategy.applyListenerPolicies(loadBalancing, loadBalancing, sourceDescription, 'app-elb-vpc1')
 
     then:
-    amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1', true) >> amazonEC2
-    amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1') >> amazonEC2
-    amazonClientProvider.getAmazonElasticLoadBalancing(testCredentials, 'us-east-1', true) >> loadBalancing
-    regionScopedProviderFactory.forRegion(testCredentials, 'us-east-1') >> regionProvider
-    1 * loadBalancing.describeLoadBalancers({ it.loadBalancerNames == ['app-elb']}) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(sourceDescription)
-    1 * loadBalancing.describeLoadBalancers({ it.loadBalancerNames == ['app-elb-vpc1']}) >> { throw new Exception()}
-    1 * loadBalancing.createLoadBalancer(_) >> new CreateLoadBalancerResult().withDNSName('app-dns')
     1 * loadBalancing.describeLoadBalancerPolicies({ it.loadBalancerName == 'app-elb'}) >> new DescribeLoadBalancerPoliciesResult()
       .withPolicyDescriptions(new PolicyDescription(policyName: 'custom-policy'))
     1 * loadBalancing.describeLoadBalancerPolicies({ it.loadBalancerName == 'app-elb-vpc1'}) >> new DescribeLoadBalancerPoliciesResult()
@@ -505,8 +494,6 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     1 * loadBalancing.setLoadBalancerPoliciesOfListener({
       it.loadBalancerName == 'app-elb-vpc1' && it.loadBalancerPort == 443 && it.policyNames == ['custom-policy']})
 
-    1 * amazonEC2.describeVpcs(_) >> new DescribeVpcsResult().withVpcs(new Vpc().withTags(new Tag("Name", "vpc1")))
-    1 * sourceLookup.createSecurityGroup({ it.name == 'app-elb'}) >> new SecurityGroupUpdater(new SecurityGroup(groupId: 'sg-elb'), amazonEC2)
   }
 
   void 'updates load balancer policies on existing load balancer to match source load balancer'() {
@@ -518,32 +505,13 @@ class MigrateLoadBalancerStrategySpec extends Specification {
           new Listener().withLoadBalancerPort(443).withInstancePort(7000)).withPolicyNames("custom-policy")
       ]
     )
-    LoadBalancerDescription targetDescription = new LoadBalancerDescription(loadBalancerName: 'app-elb-vpc1',
-      vPCId: 'vpc-1',
-      healthCheck: new HealthCheck(),
-      listenerDescriptions: [
-        new ListenerDescription().withListener(
-          new Listener().withLoadBalancerPort(443).withInstancePort(7000))
-      ]
-    )
 
-    LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: 'app-elb')
-    LoadBalancerLocation target = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1')
-
-    AmazonEC2 amazonEC2 = Mock(AmazonEC2)
     AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
-    RegionScopedProvider regionProvider = Mock(RegionScopedProvider)
 
     when:
-    strategy.generateResults(sourceLookup, sourceLookup, securityGroupStrategy, source, target, null, 'app', false, false)
+    strategy.applyListenerPolicies(loadBalancing, loadBalancing, sourceDescription, 'app-elb-vpc1')
 
     then:
-    amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1', true) >> amazonEC2
-    amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1') >> amazonEC2
-    amazonClientProvider.getAmazonElasticLoadBalancing(testCredentials, 'us-east-1', true) >> loadBalancing
-    regionScopedProviderFactory.forRegion(testCredentials, 'us-east-1') >> regionProvider
-    1 * loadBalancing.describeLoadBalancers({ it.loadBalancerNames == ['app-elb']}) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(sourceDescription)
-    1 * loadBalancing.describeLoadBalancers({ it.loadBalancerNames == ['app-elb-vpc1']}) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(targetDescription)
     1 * loadBalancing.describeLoadBalancerPolicies({ it.loadBalancerName == 'app-elb'}) >> new DescribeLoadBalancerPoliciesResult()
       .withPolicyDescriptions(new PolicyDescription(policyName: 'custom-policy'))
     1 * loadBalancing.describeLoadBalancerPolicies({ it.loadBalancerName == 'app-elb-vpc1'}) >> new DescribeLoadBalancerPoliciesResult()
@@ -551,8 +519,6 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     1 * loadBalancing.setLoadBalancerPoliciesOfListener({
       it.loadBalancerName == 'app-elb-vpc1' && it.loadBalancerPort == 443 && it.policyNames == ['custom-policy']})
 
-    1 * amazonEC2.describeVpcs(_) >> new DescribeVpcsResult().withVpcs(new Vpc().withTags(new Tag("Name", "vpc1")))
-    1 * sourceLookup.createSecurityGroup({ it.name == 'app-elb'}) >> new SecurityGroupUpdater(new SecurityGroup(groupId: 'sg-elb'), amazonEC2)
   }
 
   void 'does not try to recreate policies on existing load balancer if they already exist'() {
@@ -564,32 +530,12 @@ class MigrateLoadBalancerStrategySpec extends Specification {
           new Listener().withLoadBalancerPort(443).withInstancePort(7000)).withPolicyNames("custom-policy")
       ]
     )
-    LoadBalancerDescription targetDescription = new LoadBalancerDescription(loadBalancerName: 'app-elb-vpc1',
-      vPCId: 'vpc-1',
-      healthCheck: new HealthCheck(),
-      listenerDescriptions: [
-        new ListenerDescription().withListener(
-          new Listener().withLoadBalancerPort(443).withInstancePort(7000)).withPolicyNames("custom-policy")
-      ]
-    )
-
-    LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: 'app-elb')
-    LoadBalancerLocation target = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1')
-
-    AmazonEC2 amazonEC2 = Mock(AmazonEC2)
     AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
-    RegionScopedProvider regionProvider = Mock(RegionScopedProvider)
 
     when:
-    strategy.generateResults(sourceLookup, sourceLookup, securityGroupStrategy, source, target, null, 'app', false, false)
+    strategy.applyListenerPolicies(loadBalancing, loadBalancing, sourceDescription, 'app-elb-vpc1')
 
     then:
-    amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1', true) >> amazonEC2
-    amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1') >> amazonEC2
-    amazonClientProvider.getAmazonElasticLoadBalancing(testCredentials, 'us-east-1', true) >> loadBalancing
-    regionScopedProviderFactory.forRegion(testCredentials, 'us-east-1') >> regionProvider
-    1 * loadBalancing.describeLoadBalancers({ it.loadBalancerNames == ['app-elb']}) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(sourceDescription)
-    1 * loadBalancing.describeLoadBalancers({ it.loadBalancerNames == ['app-elb-vpc1']}) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(targetDescription)
     1 * loadBalancing.describeLoadBalancerPolicies({ it.loadBalancerName == 'app-elb'}) >> new DescribeLoadBalancerPoliciesResult()
       .withPolicyDescriptions(new PolicyDescription(policyName: 'custom-policy'))
     1 * loadBalancing.describeLoadBalancerPolicies({ it.loadBalancerName == 'app-elb-vpc1'}) >> new DescribeLoadBalancerPoliciesResult()
@@ -598,8 +544,6 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     1 * loadBalancing.setLoadBalancerPoliciesOfListener({
       it.loadBalancerName == 'app-elb-vpc1' && it.loadBalancerPort == 443 && it.policyNames == ['custom-policy']})
 
-    1 * amazonEC2.describeVpcs(_) >> new DescribeVpcsResult().withVpcs(new Vpc().withTags(new Tag("Name", "vpc1")))
-    1 * sourceLookup.createSecurityGroup({ it.name == 'app-elb'}) >> new SecurityGroupUpdater(new SecurityGroup(groupId: 'sg-elb'), amazonEC2)
   }
 
   @Unroll
@@ -612,32 +556,12 @@ class MigrateLoadBalancerStrategySpec extends Specification {
           new Listener().withLoadBalancerPort(443).withInstancePort(7000)).withPolicyNames("ref-policy")
       ]
     )
-    LoadBalancerDescription targetDescription = new LoadBalancerDescription(loadBalancerName: 'app-elb-vpc1',
-      vPCId: 'vpc-1',
-      healthCheck: new HealthCheck(),
-      listenerDescriptions: [
-        new ListenerDescription().withListener(
-          new Listener().withLoadBalancerPort(443).withInstancePort(7000)).withPolicyNames("other-policy")
-      ]
-    )
-
-    LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: 'app-elb')
-    LoadBalancerLocation target = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1', availabilityZones: ['us-east-1a'])
-
-    AmazonEC2 amazonEC2 = Mock(AmazonEC2)
     AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
-    RegionScopedProvider regionProvider = Mock(RegionScopedProvider)
 
     when:
-    strategy.generateResults(sourceLookup, sourceLookup, securityGroupStrategy, source, target, null, 'app', false, false)
+    strategy.applyListenerPolicies(loadBalancing, loadBalancing, sourceDescription, 'app-elb-vpc1')
 
     then:
-    amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1', true) >> amazonEC2
-    amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1') >> amazonEC2
-    amazonClientProvider.getAmazonElasticLoadBalancing(testCredentials, 'us-east-1', true) >> loadBalancing
-    regionScopedProviderFactory.forRegion(testCredentials, 'us-east-1') >> regionProvider
-    1 * loadBalancing.describeLoadBalancers({ it.loadBalancerNames == ['app-elb']}) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(sourceDescription)
-    1 * loadBalancing.describeLoadBalancers({ it.loadBalancerNames == ['app-elb-vpc1']}) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(targetDescription)
     1 * loadBalancing.describeLoadBalancerPolicies({ it.loadBalancerName == 'app-elb'}) >> new DescribeLoadBalancerPoliciesResult()
       .withPolicyDescriptions(new PolicyDescription(policyName: 'ref-policy')
         .withPolicyAttributeDescriptions(
@@ -649,12 +573,70 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     1 * loadBalancing.setLoadBalancerPoliciesOfListener({
       it.loadBalancerName == 'app-elb-vpc1' && it.loadBalancerPort == 443 && it.policyNames == ['ref-policy']})
 
-    1 * amazonEC2.describeVpcs(_) >> new DescribeVpcsResult().withVpcs(new Vpc().withTags(new Tag("Name", "vpc1")))
-    1 * sourceLookup.createSecurityGroup({ it.name == 'app-elb'}) >> new SecurityGroupUpdater(new SecurityGroup(groupId: 'sg-elb'), amazonEC2)
-
     where:
     attributes                               || requestAttributes
     ["Reference-Security-Policy", "cipher1"] || ["Reference-Security-Policy"]
     ["cipher1", "cipher2"]                   || ["cipher1", "cipher2"]
+  }
+
+  @Unroll
+  void 'prefixes policy name if reserved'() {
+    given:
+    LoadBalancerDescription sourceDescription = new LoadBalancerDescription(loadBalancerName: 'app-elb',
+      healthCheck: new HealthCheck(),
+      listenerDescriptions: [
+        new ListenerDescription().withListener(
+          new Listener().withLoadBalancerPort(443).withInstancePort(7000)).withPolicyNames(policyName)
+      ]
+    )
+    AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
+
+    when:
+    strategy.applyListenerPolicies(loadBalancing, loadBalancing, sourceDescription, 'app-elb-vpc1')
+
+    then:
+    1 * loadBalancing.describeLoadBalancerPolicies({ it.loadBalancerName == 'app-elb'}) >> new DescribeLoadBalancerPoliciesResult()
+      .withPolicyDescriptions(new PolicyDescription(policyName: policyName).withPolicyAttributeDescriptions(
+      new PolicyAttributeDescription(attributeName: 'some-cipher', attributeValue: 'some-value')
+    ))
+    1 * loadBalancing.describeLoadBalancerPolicies({ it.loadBalancerName == 'app-elb-vpc1'}) >> new DescribeLoadBalancerPoliciesResult()
+      .withPolicyDescriptions(new PolicyDescription(policyName: policyName))
+    1 * loadBalancing.createLoadBalancerPolicy({ it.policyName == newName})
+    1 * loadBalancing.setLoadBalancerPoliciesOfListener({
+      it.loadBalancerName == 'app-elb-vpc1' && it.loadBalancerPort == 443 && it.policyNames == [newName]})
+
+    where:
+    policyName            || newName
+    'not-reserved'        || 'not-reserved'
+    'ELBSecurityPolicy-1' || 'migrated-ELBSecurityPolicy-1'
+    'ELBSample-1'         || 'migrated-ELBSample-1'
+  }
+
+  void 'reuses policies when attributes match'() {
+    given:
+    LoadBalancerDescription sourceDescription = new LoadBalancerDescription(loadBalancerName: 'app-elb',
+      healthCheck: new HealthCheck(),
+      listenerDescriptions: [
+        new ListenerDescription().withListener(
+          new Listener().withLoadBalancerPort(443).withInstancePort(7000)).withPolicyNames("custom-policy")
+      ]
+    )
+    AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
+
+    when:
+    strategy.applyListenerPolicies(loadBalancing, loadBalancing, sourceDescription, 'app-elb-vpc1')
+
+    then:
+    1 * loadBalancing.describeLoadBalancerPolicies({ it.loadBalancerName == 'app-elb'}) >> new DescribeLoadBalancerPoliciesResult()
+      .withPolicyDescriptions(new PolicyDescription(policyName: 'custom-policy').withPolicyAttributeDescriptions(
+      new PolicyAttributeDescription(attributeName: 'some-attr', attributeValue: 'some-val')
+    ))
+    1 * loadBalancing.describeLoadBalancerPolicies({ it.loadBalancerName == 'app-elb-vpc1'}) >> new DescribeLoadBalancerPoliciesResult()
+      .withPolicyDescriptions(new PolicyDescription(policyName: 'custom-policy-vpc').withPolicyAttributeDescriptions(
+        new PolicyAttributeDescription(attributeName: 'some-attr', attributeValue: 'some-val')
+    ))
+    0 * loadBalancing.createLoadBalancerPolicy(_)
+    1 * loadBalancing.setLoadBalancerPoliciesOfListener({
+      it.loadBalancerName == 'app-elb-vpc1' && it.loadBalancerPort == 443 && it.policyNames == ['custom-policy-vpc']})
   }
 }
