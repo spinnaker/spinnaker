@@ -25,6 +25,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.findImageFromTags
   .controller('FindImageFromTagsStageCtrl', function($scope, bakeryService) {
     $scope.stage.tags = $scope.stage.tags || {};
     $scope.stage.regions = $scope.stage.regions || [];
+    $scope.stage.cloudProvider = $scope.stage.cloudProvider || 'aws';
 
     bakeryService.getRegions('aws').then(function(regions) {
       $scope.regions = regions;
