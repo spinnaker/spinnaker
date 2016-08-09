@@ -7,17 +7,17 @@ module.exports = angular.module('spinnaker.gce.instance.details.scalingPolicy.di
   require('../../../../core/widgets/actionIcons/actionIcons.component.js'),
   require('../../../../core/confirmationModal/confirmationModal.service.js'),
   require('angular-ui-bootstrap'),
-  require('./scalingPolicy.write.service.js'),
-  require('./upsert/upsertScalingPolicy.controller.js')
+  require('./../../../autoscalingPolicy/autoscalingPolicy.write.service.js'),
+  require('./modal/upsertAutoscalingPolicy.modal.controller.js'),
 ])
-  .component('gceScalingPolicy', {
+  .component('gceAutoscalingPolicy', {
     bindings: {
       policy: '=',
       application: '=',
       serverGroup: '='
     },
-    templateUrl: require('./scalingPolicy.directive.html'),
-    controller: function(InsightFilterStateModel, $uibModal, gceScalingPolicyWriter, confirmationModalService) {
+    templateUrl: require('./autoscalingPolicy.directive.html'),
+    controller: function(InsightFilterStateModel, $uibModal, gceAutoscalingPolicyWriter, confirmationModalService) {
       let policy = this.policy;
       this.InsightFilterStateModel = InsightFilterStateModel;
 
@@ -75,8 +75,8 @@ module.exports = angular.module('spinnaker.gce.instance.details.scalingPolicy.di
 
       this.editPolicy = () => {
         $uibModal.open({
-          templateUrl: require('./upsert/upsertScalingPolicy.modal.html'),
-          controller: 'gceUpsertScalingPolicyCtrl',
+          templateUrl: require('./modal/upsertAutoscalingPolicy.modal.html'),
+          controller: 'gceUpsertAutoscalingPolicyModalCtrl',
           controllerAs: 'ctrl',
           size: 'lg',
           resolve: {
@@ -99,7 +99,7 @@ module.exports = angular.module('spinnaker.gce.instance.details.scalingPolicy.di
           account: this.serverGroup.account,
           provider: 'gce',
           taskMonitorConfig: taskMonitor,
-          submitMethod: () => gceScalingPolicyWriter.deleteScalingPolicy(this.application, this.serverGroup)
+          submitMethod: () => gceAutoscalingPolicyWriter.deleteAutoscalingPolicy(this.application, this.serverGroup)
         });
       };
     }

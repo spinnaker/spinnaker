@@ -4,11 +4,11 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.gce.serverGroup.details.scalingPolicy.write.service', [
-    require('../../../../core/task/taskExecutor.js')
+    require('../../core/task/taskExecutor.js')
   ])
-  .factory('gceScalingPolicyWriter', function(taskExecutor) {
+  .factory('gceAutoscalingPolicyWriter', function(taskExecutor) {
 
-    function upsertScalingPolicy(application, serverGroup, policy) {
+    function upsertAutoscalingPolicy(application, serverGroup, policy) {
       return taskExecutor.executeTask({
         application,
         description: 'Upsert scaling policy ' + serverGroup.name,
@@ -25,7 +25,7 @@ module.exports = angular
       });
     }
 
-    function deleteScalingPolicy(application, serverGroup) {
+    function deleteAutoscalingPolicy(application, serverGroup) {
       return taskExecutor.executeTask({
         application,
         description: 'Delete scaling policy ' + serverGroup.name,
@@ -41,5 +41,5 @@ module.exports = angular
       });
     }
 
-    return { upsertScalingPolicy, deleteScalingPolicy };
+    return { upsertAutoscalingPolicy, deleteAutoscalingPolicy };
   });

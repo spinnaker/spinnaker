@@ -217,6 +217,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
       var command = {
         application: application.name,
+        autoscalingPolicy: {},
         credentials: defaultCredentials,
         region: defaultRegion,
         zone: defaultZone,
@@ -283,6 +284,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
       var command = {
         application: application.name,
+        autoscalingPolicy: serverGroup.autoscalingPolicy || {},
         strategy: '',
         stack: serverGroupName.stack,
         freeFormDetails: serverGroupName.freeFormDetails,

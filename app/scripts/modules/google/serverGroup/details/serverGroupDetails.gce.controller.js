@@ -19,9 +19,9 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
   require('../../../core/insight/insightFilterState.model.js'),
   require('./resize/resizeServerGroup.controller'),
   require('./rollback/rollbackServerGroup.controller'),
-  require('./scalingPolicy/scalingPolicy.directive.js'),
+  require('./autoscalingPolicy/autoscalingPolicy.directive.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
-  require('./scalingPolicy/upsert/addScalingPolicyButton.component.js')
+  require('./autoscalingPolicy/addAutoscalingPolicyButton.component.js')
 ])
   .controller('gceServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup, InsightFilterStateModel,
                                                      gceServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, _, serverGroupWriter,

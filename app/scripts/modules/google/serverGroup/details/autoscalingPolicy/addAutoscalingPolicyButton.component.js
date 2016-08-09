@@ -5,20 +5,20 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.gce.serverGroup.details.scalingPolicy.addButton', [
     require('angular-ui-bootstrap'),
-    require('./upsertScalingPolicy.controller.js')
+    require('./modal/upsertAutoscalingPolicy.modal.controller.js'),
   ])
-  .component('gceAddScalingPolicyButton', {
+  .component('gceAddAutoscalingPolicyButton', {
     bindings: {
       serverGroup: '=',
       application: '=',
     },
-    template: '<a href ng-click="$ctrl.addScalingPolicy()">Create new scaling policy</a>',
+    template: '<a href ng-click="$ctrl.addAutoscalingPolicy()">Create new scaling policy</a>',
     controller: function($uibModal) {
 
-      this.addScalingPolicy = () => {
+      this.addAutoscalingPolicy = () => {
         $uibModal.open({
-          templateUrl: require('./upsertScalingPolicy.modal.html'),
-          controller: 'gceUpsertScalingPolicyCtrl',
+          templateUrl: require('./modal/upsertAutoscalingPolicy.modal.html'),
+          controller: 'gceUpsertAutoscalingPolicyModalCtrl',
           controllerAs: 'ctrl',
           size: 'lg',
           resolve: {

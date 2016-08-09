@@ -1,0 +1,26 @@
+<div modal-page class="scaling-policy-modal gce-scaling-policy-modal  form-inline">
+  <task-monitor monitor="ctrl.taskMonitor"></task-monitor>
+  <modal-close></modal-close>
+  <div class="modal-header">
+    <h3>{{ctrl.action}} scaling policy</h3>
+  </div>
+  <ng-form name="autoscalingPolicyUpsertModal">
+    <div class="modal-body clearfix">
+        <h4 class="section-heading">Basic Settings</h4>
+        <div class="section-body">
+          <gce-autoscaling-policy-basic-settings policy="ctrl.policy"></gce-autoscaling-policy-basic-settings>
+        </div>
+        <h4 class="section-heading">Metric Types</h4>
+        <gce-autoscaling-policy-metric-settings show-no-metrics-warning="ctrl.showNoMetricsWarning"
+                                                policy="ctrl.policy">
+        </gce-autoscaling-policy-metric-settings>
+    </div>
+  </ng-form>
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+    <submit-button is-disabled="!autoscalingPolicyUpsertModal.$valid || ctrl.showNoMetricsWarning()"
+                   submitting="taskMonitor.submitting"
+                   on-click="ctrl.save()"
+                   is-new="ctrl.isNew"></submit-button>
+  </div>
+</div>

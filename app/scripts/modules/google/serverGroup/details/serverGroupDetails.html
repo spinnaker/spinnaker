@@ -183,16 +183,16 @@
       </ul>
     </collapsible-section>
     <collapsible-section heading="Autoscaling">
-      <gce-add-scaling-policy-button ng-if="!ctrl.serverGroup.autoscalingPolicy"
+      <gce-add-autoscaling-policy-button ng-if="!ctrl.serverGroup.autoscalingPolicy"
                                      server-group="ctrl.serverGroup"
                                      application="ctrl.application">
-      </gce-add-scaling-policy-button>
-      <gce-scaling-policy ng-repeat="policy in [ctrl.serverGroup.autoscalingPolicy]"
+      </gce-add-autoscaling-policy-button>
+      <gce-autoscaling-policy ng-repeat="policy in [ctrl.serverGroup.autoscalingPolicy]"
                           ng-if="ctrl.serverGroup.autoscalingPolicy"
                           application="ctrl.application"
                           server-group="ctrl.serverGroup"
                           policy="policy">
-      </gce-scaling-policy>
+      </gce-autoscaling-policy>
     </collapsible-section>
     <collapsible-section heading="AutoHealing" ng-if="ctrl.serverGroup.autoHealingPolicyHealthCheck">
       <p>AutoHealing can be configured via the Developers Console.</p>

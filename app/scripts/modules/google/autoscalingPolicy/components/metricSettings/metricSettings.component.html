@@ -1,0 +1,133 @@
+<collapsible-section heading="CPU Utilization" expanded="true" subsection="true">
+  <div class="section-body">
+    <ng-form name="cpuUtilization">
+      <div ng-if="$ctrl.showMetric('cpuUtilization')">
+        <div class="row">
+          <div class="col-md-3 sm-label-right">
+            Utilization Target (%)
+            <help-field key="gce.serverGroup.scalingPolicy.cpuUtilization"></help-field>
+          </div>
+          <div class="col-md-2 content-fields">
+            <input type="number"
+                   min="1"
+                   max="99"
+                   name="utilizationTarget"
+                   class="form-control input-sm"
+                   required
+                   ng-model="$ctrl.cpuUtilizationTargetDisplay"
+                   ng-init="$ctrl.initializeTargetDisplay('cpuUtilization')"
+                   ng-change="$ctrl.setUtilizationTargetFromDisplay('cpuUtilization', $ctrl.cpuUtilizationTargetDisplay)"/>
+          </div>
+          <div class="col-md-5 error-message">
+            <span ng-if="cpuUtilization.utilizationTarget.$error.min || cpuUtilization.utilizationTarget.$error.max">
+              Must be between 1 and 99.</span>
+          </div>
+          <div class="col-md-1">
+            <button class="btn btn-sm btn-default" ng-click="$ctrl.deleteMetric('cpuUtilization')">
+              <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
+              <span class="visible-lg-inline">Delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <button ng-hide="$ctrl.showMetric('cpuUtilization')"
+              class="add-new col-md-12" ng-click="$ctrl.addMetric('cpuUtilization')">
+        <span class="glyphicon glyphicon-plus-sign"></span> Add CPU Utilization metric
+      </button>
+    </ng-form>
+  </div>
+</collapsible-section>
+<collapsible-section heading="Load Balancing Utilization" expanded="true" subsection="true">
+  <div class="section-body">
+    <ng-form name="loadBalancingUtilization">
+      <div ng-if="$ctrl.showMetric('loadBalancingUtilization')" class="row">
+        <div class="col-md-3 sm-label-right">
+          Utilization Target (%)
+          <help-field key="gce.serverGroup.scalingPolicy.loadBalancingUtilization"></help-field>
+        </div>
+        <div class="col-md-2 content-fields">
+          <input type="number"
+                 min="1"
+                 max="99"
+                 class="form-control input-sm"
+                 required
+                 name="utilizationTarget"
+                 ng-model="$ctrl.loadBalancingUtilizationTargetDisplay"
+                 ng-init="$ctrl.initializeTargetDisplay('loadBalancingUtilization')"
+                 ng-change="$ctrl.setUtilizationTargetFromDisplay('loadBalancingUtilization', $ctrl.loadBalancingUtilizationTargetDisplay)"/>
+        </div>
+        <div class="col-md-5 error-message">
+          <span ng-if="loadBalancingUtilization.utilizationTarget.$error.min || loadBalancingUtilization.utilizationTarget.$error.max">
+            Must be between 1 and 99.
+          </span>
+        </div>
+        <div class="col-md-1">
+          <button class="btn btn-sm btn-default" ng-click="$ctrl.deleteMetric('loadBalancingUtilization')">
+            <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
+            <span class="visible-lg-inline">Delete</span>
+          </button>
+        </div>
+      </div>
+      <button ng-hide="$ctrl.showMetric('loadBalancingUtilization')"
+              class="add-new col-md-12" ng-click="$ctrl.addMetric('loadBalancingUtilization')">
+        <span class="glyphicon glyphicon-plus-sign"></span> Add Load Balancing metric
+      </button>
+    </ng-form>
+  </div>
+</collapsible-section>
+
+<collapsible-section heading="Custom Metric Utilizations" expanded="true" subsection="true">
+  <div class="section-body" ng-repeat="custom in $ctrl.policy.customMetricUtilizations track by $index">
+    <hr ng-if="$index > 0">
+    <div class="row">
+      <div class="col-md-3 sm-label-right">
+        Metric Identifier
+      </div>
+      <div class="col-md-2 content-fields">
+        <input class="form-control input-sm"
+               required
+               ng-model="custom.metric"/>
+      </div>
+      <div class="col-md-offset-5 col-md-1">
+        <button class="btn btn-sm btn-default" ng-click="$ctrl.deleteMetric('customMetricUtilizations', $index)">
+          <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
+          <span class="visible-lg-inline">Delete</span>
+        </button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-3 sm-label-right">
+        Utilization Target
+        <help-field key="gce.serverGroup.scalingPolicy.customMetricUtilizations"></help-field>
+      </div>
+      <div class="col-md-2 content-fields">
+        <input type="number"
+               name="utilizationTarget"
+               class="form-control input-sm"
+               required
+               ng-model="custom.utilizationTarget"/>
+      </div>
+      <div class="col-md-2">
+        <select class="form-control input-sm"
+                style="margin: 0px;"
+                ng-options="value as displayValue for (value, displayValue) in $ctrl.targetTypesToDisplayMap"
+                ng-model="custom.utilizationTargetType"
+                required>
+          <option value="">-- Target Type --</option>
+        </select>
+      </div>
+      <div class="col-md-5 error-message" ng-if="custom.utilizationTarget <= 0">
+        Utilization target must be greater than 0.0.
+      </div>
+    </div>
+  </div>
+  <button class="add-new col-md-12" ng-click="$ctrl.addMetric('customMetricUtilizations')">
+    <span class="glyphicon glyphicon-plus-sign"></span> Add custom metric
+  </button>
+</collapsible-section>
+<div class="col-md-12" ng-if="$ctrl.showNoMetricsWarning()">
+  <div class="alert alert-warning text-center">
+    <span class="glyphicon glyphicon-warning-sign pull-left"></span>
+    <span>At least one metric is required.</span>
+  </div>
+</div>
