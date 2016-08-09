@@ -61,5 +61,19 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.cloneServerGr
     };
 
     $scope.$watch('stage.targetCluster', this.targetClusterUpdated);
+
+    this.toggleSuspendedProcess = (process) => {
+      stage.suspendedProcesses = stage.suspendedProcesses || [];
+      var processIndex = stage.suspendedProcesses.indexOf(process);
+      if (processIndex === -1) {
+        stage.suspendedProcesses.push(process);
+      } else {
+        stage.suspendedProcesses.splice(processIndex, 1);
+      }
+    };
+
+    this.processIsSuspended = (process) => {
+      return stage.suspendedProcesses && stage.suspendedProcesses.indexOf(process) !== -1;
+    };
   });
 
