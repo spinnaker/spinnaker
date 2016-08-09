@@ -179,28 +179,22 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     List<BackendService> backendServicesToUpdate = []
     if (hasBackendServices) {
       List<String> backendServices = description.instanceMetadata[GoogleServerGroup.View.BACKEND_SERVICE_NAMES].split(",")
+      String sourcePolicyJson = description.instanceMetadata[GoogleServerGroup.View.LOAD_BALANCING_POLICY]
+      def loadBalancingPolicy = description.loadBalancingPolicy
 
       backendServices.each { String backendServiceName ->
         BackendService backendService = compute.backendServices().get(project, backendServiceName).execute()
 
-        Backend sourceBackend = backendService.backends.find { Backend backend ->
-          Utils.getLocalName(backend.group) == description?.source?.serverGroupName
-        }
-        if (description?.source?.serverGroupName && !sourceBackend) {
-          GCEUtil.updateStatusAndThrowNotFoundException("Backend for ancestor server group ${description?.source?.serverGroupName} not found.", task, BASE_PHASE)
-        }
-
         Backend backendToAdd
-        def loadBalancingPolicy = description.loadBalancingPolicy
         if (loadBalancingPolicy?.balancingMode) {
           description.instanceMetadata[(GoogleServerGroup.View.LOAD_BALANCING_POLICY)] = objectMapper.writeValueAsString(loadBalancingPolicy)
           backendToAdd = GCEUtil.backendFromLoadBalancingPolicy(loadBalancingPolicy)
-        } else if (sourceBackend) {
-          description.instanceMetadata[(GoogleServerGroup.View.LOAD_BALANCING_POLICY)] = objectMapper.writeValueAsString(GCEUtil.loadBalancingPolicyFromBackend(sourceBackend))
-          backendToAdd = new Backend(sourceBackend)
+        } else if (sourcePolicyJson) {
+          // We don't have to update the metadata here, since we are reading these properties directly from it.
+          backendToAdd = GCEUtil.backendFromLoadBalancingPolicy(objectMapper.readValue(sourcePolicyJson, GoogleHttpLoadBalancingPolicy))
         } else {
           description.instanceMetadata[(GoogleServerGroup.View.LOAD_BALANCING_POLICY)] = objectMapper.writeValueAsString(
-            // defaults
+            // Sane defaults in case of a create with no LoadBalancingPolicy specified.
             new GoogleHttpLoadBalancingPolicy(
               balancingMode: GoogleHttpLoadBalancingPolicy.BalancingMode.UTILIZATION,
               maxUtilization: 0.80,
@@ -214,6 +208,10 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
           backendToAdd.setGroup(GCEUtil.buildRegionalServerGroupUrl(project, region, serverGroupName))
         } else {
           backendToAdd.setGroup(GCEUtil.buildZonalServerGroupUrl(project, zone, serverGroupName))
+        }
+
+        if (backendService.backends == null) {
+          backendService.backends = new ArrayList<Backend>()
         }
         backendService.backends << backendToAdd
         backendServicesToUpdate << backendService

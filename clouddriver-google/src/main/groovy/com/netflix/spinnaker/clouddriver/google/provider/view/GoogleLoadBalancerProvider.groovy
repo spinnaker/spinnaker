@@ -97,16 +97,18 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
       // We have to calculate the L7 disabled state with respect to this server group since it's not
       // set on the way to the cache.
       def isDisabledFromHttp = false
-      if (loadBalancer.type == GoogleLoadBalancerType.HTTP) {
+      Boolean isHttpLoadBalancer = loadBalancer.type == GoogleLoadBalancerType.HTTP
+      if (isHttpLoadBalancer) {
         isDisabledFromHttp = Utils.determineHttpLoadBalancerDisabledState(loadBalancer, serverGroup)
       }
 
       def loadBalancerServerGroup = new LoadBalancerServerGroup(
           name: serverGroup.name,
           region: serverGroup.region,
-          isDisabled: serverGroup.disabled || isDisabledFromHttp,
+          isDisabled: isHttpLoadBalancer ? isDisabledFromHttp : serverGroup.disabled,
           detachedInstances: [],
-          instances: [])
+          instances: [],
+      )
 
       def instanceNames = serverGroupCacheData.relationships[INSTANCES.ns]?.collect {
         Keys.parse(it)?.name

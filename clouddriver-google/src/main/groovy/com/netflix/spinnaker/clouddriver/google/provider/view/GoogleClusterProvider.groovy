@@ -186,7 +186,15 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
     def httpDisabledStates = httpLoadBalancers.collect { loadBalancer ->
         Utils.determineHttpLoadBalancerDisabledState(loadBalancer, serverGroup)
     }
-    serverGroup.disabled = serverGroup.disabled || (httpDisabledStates && httpDisabledStates.every { it })
+
+    if (httpDisabledStates && httpDisabledStates.size == loadBalancers.size) {
+      // We have only L7.
+      serverGroup.disabled = httpDisabledStates.every { it }
+    } else if (httpDisabledStates) {
+      // We have a mix of L4 and L7.
+      serverGroup.disabled = serverGroup.disabled && httpDisabledStates.every { it }
+    }
+    // Otherwise, we just have L4 and disabled state is correct.
 
     serverGroup
   }
