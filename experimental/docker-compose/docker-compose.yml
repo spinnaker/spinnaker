@@ -17,6 +17,7 @@ deck:
     - DECK_HOST=0.0.0.0
     - DECK_PORT=9000
     - PROTOCOL=http
+    - AUTH_ENABLED=false
   image: quay.io/spinnaker/deck
   ports: 
     - "9000:9000"
