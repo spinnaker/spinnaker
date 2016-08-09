@@ -216,14 +216,24 @@ public abstract class MigrateLoadBalancerStrategy implements MigrateStrategySupp
         .withLoadBalancerName(loadBalancerName)
     ).getPolicyDescriptions();
     sourcePolicies.removeIf(p -> targetPolicies.stream().anyMatch(tp -> tp.getPolicyName().equals(p.getPolicyName())));
-    sourcePolicies.forEach(p -> targetClient.createLoadBalancerPolicy(
-      new CreateLoadBalancerPolicyRequest()
+    sourcePolicies.forEach(p -> {
+      CreateLoadBalancerPolicyRequest request = new CreateLoadBalancerPolicyRequest()
         .withPolicyName(p.getPolicyName())
-      .withLoadBalancerName(loadBalancerName)
-      .withPolicyTypeName(p.getPolicyTypeName())
-      .withPolicyAttributes(p.getPolicyAttributeDescriptions().stream().map(d ->
-        new PolicyAttribute(d.getAttributeName(), d.getAttributeValue())).collect(Collectors.toList()))
-    ));
+        .withLoadBalancerName(loadBalancerName)
+        .withPolicyTypeName(p.getPolicyTypeName());
+      // only copy policy attributes if this is not a pre-defined policy
+      // (as defined by the presence of 'Reference-Security-Policy'
+      Optional<PolicyAttributeDescription> referencePolicy = p.getPolicyAttributeDescriptions().stream()
+        .filter(d -> d.getAttributeName().equals("Reference-Security-Policy")).findFirst();
+      if (referencePolicy.isPresent()) {
+        request.withPolicyAttributes(
+          new PolicyAttribute(referencePolicy.get().getAttributeName(), referencePolicy.get().getAttributeValue()));
+      } else {
+        request.withPolicyAttributes(p.getPolicyAttributeDescriptions().stream().map(d ->
+          new PolicyAttribute(d.getAttributeName(), d.getAttributeValue())).collect(Collectors.toList()));
+      }
+      targetClient.createLoadBalancerPolicy(request);
+    });
     source.getListenerDescriptions().forEach(l -> targetClient.setLoadBalancerPoliciesOfListener(
       new SetLoadBalancerPoliciesOfListenerRequest()
         .withLoadBalancerName(loadBalancerName)

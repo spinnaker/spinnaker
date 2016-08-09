@@ -31,6 +31,7 @@ import com.amazonaws.services.elasticloadbalancing.model.HealthCheck
 import com.amazonaws.services.elasticloadbalancing.model.Listener
 import com.amazonaws.services.elasticloadbalancing.model.ListenerDescription
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
+import com.amazonaws.services.elasticloadbalancing.model.PolicyAttributeDescription
 import com.amazonaws.services.elasticloadbalancing.model.PolicyDescription
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
@@ -599,5 +600,61 @@ class MigrateLoadBalancerStrategySpec extends Specification {
 
     1 * amazonEC2.describeVpcs(_) >> new DescribeVpcsResult().withVpcs(new Vpc().withTags(new Tag("Name", "vpc1")))
     1 * sourceLookup.createSecurityGroup({ it.name == 'app-elb'}) >> new SecurityGroupUpdater(new SecurityGroup(groupId: 'sg-elb'), amazonEC2)
+  }
+
+  @Unroll
+  void 'only adds Reference-Security-Policy attribute if present when creating policy'() {
+    given:
+    LoadBalancerDescription sourceDescription = new LoadBalancerDescription(loadBalancerName: 'app-elb',
+      healthCheck: new HealthCheck(),
+      listenerDescriptions: [
+        new ListenerDescription().withListener(
+          new Listener().withLoadBalancerPort(443).withInstancePort(7000)).withPolicyNames("ref-policy")
+      ]
+    )
+    LoadBalancerDescription targetDescription = new LoadBalancerDescription(loadBalancerName: 'app-elb-vpc1',
+      vPCId: 'vpc-1',
+      healthCheck: new HealthCheck(),
+      listenerDescriptions: [
+        new ListenerDescription().withListener(
+          new Listener().withLoadBalancerPort(443).withInstancePort(7000)).withPolicyNames("other-policy")
+      ]
+    )
+
+    LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: 'app-elb')
+    LoadBalancerLocation target = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1', availabilityZones: ['us-east-1a'])
+
+    AmazonEC2 amazonEC2 = Mock(AmazonEC2)
+    AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
+    RegionScopedProvider regionProvider = Mock(RegionScopedProvider)
+
+    when:
+    strategy.generateResults(sourceLookup, sourceLookup, securityGroupStrategy, source, target, null, 'app', false, false)
+
+    then:
+    amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1', true) >> amazonEC2
+    amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1') >> amazonEC2
+    amazonClientProvider.getAmazonElasticLoadBalancing(testCredentials, 'us-east-1', true) >> loadBalancing
+    regionScopedProviderFactory.forRegion(testCredentials, 'us-east-1') >> regionProvider
+    1 * loadBalancing.describeLoadBalancers({ it.loadBalancerNames == ['app-elb']}) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(sourceDescription)
+    1 * loadBalancing.describeLoadBalancers({ it.loadBalancerNames == ['app-elb-vpc1']}) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(targetDescription)
+    1 * loadBalancing.describeLoadBalancerPolicies({ it.loadBalancerName == 'app-elb'}) >> new DescribeLoadBalancerPoliciesResult()
+      .withPolicyDescriptions(new PolicyDescription(policyName: 'ref-policy')
+        .withPolicyAttributeDescriptions(
+      attributes.findResults { new PolicyAttributeDescription(attributeName: it, attributeValue: it + "-v") }
+    ))
+    1 * loadBalancing.describeLoadBalancerPolicies({ it.loadBalancerName == 'app-elb-vpc1'}) >> new DescribeLoadBalancerPoliciesResult()
+      .withPolicyDescriptions(new PolicyDescription(policyName: 'other-policy'))
+    1 * loadBalancing.createLoadBalancerPolicy({ it.policyAttributes.attributeName == requestAttributes})
+    1 * loadBalancing.setLoadBalancerPoliciesOfListener({
+      it.loadBalancerName == 'app-elb-vpc1' && it.loadBalancerPort == 443 && it.policyNames == ['ref-policy']})
+
+    1 * amazonEC2.describeVpcs(_) >> new DescribeVpcsResult().withVpcs(new Vpc().withTags(new Tag("Name", "vpc1")))
+    1 * sourceLookup.createSecurityGroup({ it.name == 'app-elb'}) >> new SecurityGroupUpdater(new SecurityGroup(groupId: 'sg-elb'), amazonEC2)
+
+    where:
+    attributes                               || requestAttributes
+    ["Reference-Security-Policy", "cipher1"] || ["Reference-Security-Policy"]
+    ["cipher1", "cipher2"]                   || ["cipher1", "cipher2"]
   }
 }
