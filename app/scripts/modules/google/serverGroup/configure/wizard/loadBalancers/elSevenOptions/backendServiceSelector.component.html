@@ -5,6 +5,7 @@
   <div class="col-md-8">
     <ui-select multiple
                nested
+               required
                ng-model="$ctrl.command.backendServices[$ctrl.loadBalancerName]"
                class="form-control input-sm">
       <ui-select-match>{{$item}}</ui-select-match>

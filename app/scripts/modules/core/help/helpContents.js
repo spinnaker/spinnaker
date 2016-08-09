@@ -151,13 +151,14 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
       '<li><b>Auto Subnet Network</b>: Server groups will be automatically assigned to the specified region\'s subnet.</li>' +
       '<li><b>Custom Subnet Network</b>: A subnet must be selected for the server group. If no subnets have been created for the specified region, you will not be able to provision the server group.</li>' +
       '</ul>',
-    'gce.serverGroup.loadBalancingPolicy.maxRatePerInstance': 'The maximum number of requests per second that can be sent to the backend instance group.',
-    'gce.serverGroup.loadBalancingPolicy.maxUtilization': 'The maximum CPU utilization allowed for the backend. CPU utilization is calculated by averaging CPU use across all instances in the backend instance group.',
+    'gce.serverGroup.loadBalancingPolicy.balancingMode': 'Tells the load balancer when the backend is at capacity. If a backend is at capacity, new requests are routed to the nearest region that can handle requests. The balancing mode can be based on CPU utilization or requests per second (RPS).',
+    'gce.serverGroup.loadBalancingPolicy.maxRatePerInstance': 'The maximum number of requests per second that can be sent to the backend instance group. Input must be a number greater than zero.',
+    'gce.serverGroup.loadBalancingPolicy.maxUtilization': 'The maximum CPU utilization allowed for the backend. CPU utilization is calculated by averaging CPU use across all instances in the backend instance group. Input must be a number between 0 and 100.',
     'gce.serverGroup.loadBalancingPolicy.capacityScaler': `
       An additional control to manage your maximum CPU utilization or RPS.
       If you want your instances to operate at a max 80% CPU utilization, set your balancing mode to 80% max CPU utilization and your capacity to 100%.
-      If you want to cut instance utilization by half, set your balancing mode to 80% max CPU utilization and your capacity to 50%.`,
-    'gce.serverGroup.loadBalancingPolicy.listeningPort': 'A load balancer sends traffic to an instance group through a named port.',
+      If you want to cut instance utilization by half, set your balancing mode to 80% max CPU utilization and your capacity to 50%. Input must be a number between 0 and 100.`,
+    'gce.serverGroup.loadBalancingPolicy.listeningPort': 'A load balancer sends traffic to an instance group through a named port. Input must be a port number (i.e., between 1 and 65535).',
     'pipeline.config.optionalStage': '' +
       '<p>When this option is enabled, stage will only execute when the supplied expression evaluates true.</p>' +
       '<p>The expression <em>does not</em> need to be wrapped in ${ and }.</p>',

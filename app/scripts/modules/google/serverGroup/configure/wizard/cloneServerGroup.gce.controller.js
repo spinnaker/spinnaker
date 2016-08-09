@@ -95,7 +95,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
           .config({ scope: $scope, form: 'form'})
           .register({ page: 'location', subForm: 'basicSettings' })
           .register({ page: 'capacity', subForm: 'capacitySubForm' })
-          .register({ page: 'zones', subForm: 'zonesSubForm' });
+          .register({ page: 'zones', subForm: 'zonesSubForm' })
+          .register({ page: 'load-balancers', subForm: 'loadBalancerSubForm'});
       });
     }
 

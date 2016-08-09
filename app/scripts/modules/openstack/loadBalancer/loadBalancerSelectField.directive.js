@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.loadBalancerSe
   require('../../core/loadBalancer/loadBalancer.read.service.js'),
   require('../common/selectField.component.js')
 ])
-  .directive('osLoadBalancerSelectField', function (_, loadBalancerReader, cacheInitializer, infrastructureCaches, $rootScope) {
+  .directive('osLoadBalancerSelectField', function (_, loadBalancerReader) {
     return {
       restrict: 'E',
       templateUrl: require('../common/cacheBackedSelectField.template.html'),

@@ -6,13 +6,14 @@
       </div>
       <div class="col-md-2"><input type="number"
                                    name="listeningPort"
+                                   required
                                    class="form-control input-sm"
                                    ng-model="$ctrl.command.loadBalancingPolicy.listeningPort"
                                    max="{{ $ctrl.maxPort }}"
                                    min="1"/></div>
       <div class="col-md-4 error-message"
            ng-if="loadBalancingPolicySubForm.listeningPort.$error.min || loadBalancingPolicySubForm.listeningPort.$error.max">
-        Must be between 0 and {{ $ctrl.maxPort }}.
+        Must be between 1 and {{ $ctrl.maxPort }}.
       </div>
     </div>
   </collapsible-section>
@@ -20,6 +21,7 @@
     <div class="form-group">
       <div class="col-md-5 sm-label-right">
         <b>Balancing Mode</b>
+        <help-field key="gce.serverGroup.loadBalancingPolicy.balancingMode"></help-field>
       </div>
       <div class="col-md-3">
         <ui-select ng-model="$ctrl.command.loadBalancingPolicy.balancingMode" class="form-control input-sm" required>
@@ -38,6 +40,7 @@
         </div>
         <div class="col-md-2"><input type="number"
                                      name="maxUtilization"
+                                     required
                                      class="form-control input-sm"
                                      ng-model="$ctrl.maxUtilizationView"
                                      ng-init="$ctrl.setView('maxUtilizationView', $ctrl.command.loadBalancingPolicy.maxUtilization)"
@@ -73,6 +76,7 @@
       </div>
       <div class="col-md-2"><input type="number"
                                    name="capacityScaler"
+                                   required
                                    class="form-control input-sm"
                                    ng-model="$ctrl.capacityScalerView"
                                    ng-init="$ctrl.setView('capacityScalerView', $ctrl.command.loadBalancingPolicy.capacityScaler)"

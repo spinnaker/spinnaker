@@ -228,6 +228,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           max: 0,
           desired: 1
         },
+        backendServiceMetadata: [],
         persistentDiskType: 'pd-ssd',
         persistentDiskSizeGb: 10,
         localSSDCount: 1,
@@ -288,6 +289,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         credentials: serverGroup.account,
         loadBalancers: extractLoadBalancers(serverGroup.asg),
         loadBalancingPolicy: _.cloneDeep(serverGroup.loadBalancingPolicy),
+        backendServiceMetadata: serverGroup.asg['backend-service-names'],
         securityGroups: serverGroup.securityGroups,
         region: serverGroup.region,
         capacity: {

@@ -14,10 +14,12 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
   require('../../../core/utils/selectOnDblClick.directive.js'),
   require('../../../core/cloudProvider/cloudProvider.registry.js'),
   require('../../../core/instance/details/instanceLinks.component'),
+  require('../../loadBalancer/elSevenUtils.service.js')
 ])
   .controller('gceInstanceDetailsCtrl', function ($scope, $state, $uibModal, InsightFilterStateModel,
                                                   instanceWriter, confirmationModalService, recentHistoryService,
-                                                  cloudProviderRegistry, instanceReader, _, instance, app, $q) {
+                                                  cloudProviderRegistry, instanceReader, _, instance, app, $q,
+                                                  elSevenUtils) {
 
     // needed for standalone instances
     $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('gce', 'instance.detailsTemplateUrl');
@@ -215,7 +217,17 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
     this.canDeregisterFromLoadBalancer = function() {
       var instance = $scope.instance;
-      if (!instance.loadBalancers || !instance.loadBalancers.length) {
+      // TODO(dpeach): remove when it's possible to degister from l7 load balancer.
+      var attachedToElSeven = _(app.loadBalancers.data)
+        .filter(elSevenUtils.isElSeven)
+        .pluck('name')
+        .intersection(instance.loadBalancers)
+        .valueOf()
+        .length;
+
+      if (!instance.loadBalancers ||
+          !instance.loadBalancers.length ||
+          attachedToElSeven) {
         return false;
       }
       var hasLoadBalancerHealth = instance.health.some(function(health) {

@@ -12,11 +12,12 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
   require('../../image/image.reader.js'),
   require('../../instance/gceInstanceType.service.js'),
   require('./../../instance/custom/customInstanceBuilder.gce.service.js'),
+  require('../../loadBalancer/elSevenUtils.service.js'),
 ])
   .factory('gceServerGroupConfigurationService', function(gceImageReader, accountService, securityGroupReader,
                                                           gceInstanceTypeService, cacheInitializer,
                                                           $q, loadBalancerReader, networkReader, subnetReader,
-                                                          settings, _, gceCustomInstanceBuilderService) {
+                                                          settings, _, gceCustomInstanceBuilderService, elSevenUtils) {
 
     var persistentDiskTypes = [
       'pd-standard',
@@ -77,7 +78,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
 
         if (command.loadBalancers && command.loadBalancers.length) {
           // Verify all load balancers are accounted for; otherwise, try refreshing load balancers cache.
-          var loadBalancerNames = getLoadBalancerNames(command);
+          var loadBalancerNames = getLoadBalancers(command);
           if (_.intersection(loadBalancerNames, command.loadBalancers).length < command.loadBalancers.length) {
             loadBalancerReloader = refreshLoadBalancers(command, true);
           }
@@ -255,7 +256,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       return result;
     }
 
-    function getLoadBalancerNames(command) {
+    function getLoadBalancers(command) {
       return _(command.backingData.loadBalancers)
         .pluck('accounts')
         .flatten(true)
@@ -270,39 +271,50 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
     }
 
     function isRelevantLoadBalancer(command, loadBalancer) {
-      return loadBalancer.loadBalancerType === 'HTTP' || loadBalancer.region === command.region;
+      return elSevenUtils.isElSeven(loadBalancer) || loadBalancer.region === command.region;
     }
 
     function configureLoadBalancerOptions(command) {
       var results = { dirty: {} };
       var current = command.loadBalancers;
-      var newLoadBalancerObjects = getLoadBalancerNames(command);
-      var newLoadBalancers = _.map(newLoadBalancerObjects, 'name');
-      var newLoadBalancerIndex = _.indexBy(newLoadBalancerObjects, 'name');
+      var newLoadBalancerObjects = getLoadBalancers(command);
+      command.backingData.filtered.loadBalancerIndex = _.indexBy(newLoadBalancerObjects, 'name');
+      command.backingData.filtered.loadBalancers = _.map(newLoadBalancerObjects, 'name');
 
       if (current && command.loadBalancers) {
-        var matched = _.intersection(newLoadBalancers, command.loadBalancers);
+        var matched = _.intersection(command.backingData.filtered.loadBalancers, command.loadBalancers);
         var removed = _.xor(matched, current);
         command.loadBalancers = matched;
-
-        var backendServices = command.loadBalancers.reduce((backendServices, loadBalancer) => {
-          if (newLoadBalancerIndex[loadBalancer].loadBalancerType === 'HTTP') {
-            backendServices[loadBalancer] = newLoadBalancerIndex[loadBalancer].backendServices;
-          }
-          return backendServices;
-        }, {});
-
-        if (Object.keys(backendServices).length > 0) {
-          command.backendServices = backendServices;
-        }
+        configureBackendServiceOptions(command);
 
         if (removed.length) {
           results.dirty.loadBalancers = removed;
         }
       }
-      command.backingData.filtered.loadBalancerIndex = newLoadBalancerIndex;
-      command.backingData.filtered.loadBalancers = newLoadBalancers;
       return results;
+    }
+
+    function configureBackendServiceOptions(command) {
+      /*
+        a server group has a list of backend services, but there's no mapping from l7 -> backend service
+        for the server group. this will not populate the wizard perfectly,
+        but it is the best we can do with the given data.
+      */
+
+      let backendsFromMetadata = command.backendServiceMetadata;
+      let lbIndex = command.backingData.filtered.loadBalancerIndex;
+
+      let backendServices = command.loadBalancers.reduce((backendServices, lbName) => {
+        if (elSevenUtils.isElSeven(lbIndex[lbName])) {
+          backendServices[lbName] = _.intersection(lbIndex[lbName].backendServices, backendsFromMetadata);
+        }
+        return backendServices;
+      }, {});
+
+      if (Object.keys(backendServices).length > 0) {
+        command.backendServices = backendServices;
+      }
+
     }
 
     function extractFilteredImages(command) {
