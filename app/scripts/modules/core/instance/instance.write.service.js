@@ -20,7 +20,7 @@ module.exports = angular
       }
     }
 
-    function convertGroupToJob(instanceGroup, type) {
+    function convertGroupToJob(instanceGroup, type, additionalJobProperties) {
       let job = {
         type: type,
         cloudProvider: instanceGroup.cloudProvider,
@@ -30,15 +30,18 @@ module.exports = angular
         serverGroupName: instanceGroup.serverGroup,
         asgName: instanceGroup.serverGroup
       };
+
+      _.merge(job, additionalJobProperties);
+
       transform(instanceGroup, job);
 
       return job;
     }
 
-    function buildMultiInstanceJob(instanceGroups, type) {
+    function buildMultiInstanceJob(instanceGroups, type, additionalJobProperties = {}) {
       return instanceGroups
         .filter((instanceGroup) => instanceGroup.instances.length > 0)
-        .map((instanceGroup) => convertGroupToJob(instanceGroup, type));
+        .map((instanceGroup) => convertGroupToJob(instanceGroup, type, additionalJobProperties));
     }
 
     function buildMultiInstanceDescriptor(jobs, base, suffix) {
@@ -54,8 +57,8 @@ module.exports = angular
       return descriptor;
     }
 
-    function executeMultiInstanceTask(instanceGroups, application, type, baseDescriptor, descriptorSuffix) {
-      let jobs = buildMultiInstanceJob(instanceGroups, type);
+    function executeMultiInstanceTask(instanceGroups, application, type, baseDescriptor, descriptorSuffix, additionalJobProperties = {}) {
+      let jobs = buildMultiInstanceJob(instanceGroups, type, additionalJobProperties);
       let descriptor = buildMultiInstanceDescriptor(jobs, baseDescriptor, descriptorSuffix);
       return taskExecutor.executeTask({
         job: jobs,
@@ -79,6 +82,13 @@ module.exports = angular
         job: [params],
         application: application,
         description: 'Terminate instance: ' + instance.instanceId
+      });
+    }
+
+    function terminateInstancesAndShrinkServerGroups(instanceGroups, application) {
+      return executeMultiInstanceTask(instanceGroups, application, 'detachInstances', 'Terminate', 'and shrink server groups', {
+        'terminateDetachedInstances': true,
+        'decrementDesiredCapacity': true,
       });
     }
 
@@ -230,6 +240,7 @@ module.exports = angular
       disableInstanceInDiscovery: disableInstanceInDiscovery,
       disableInstancesInDiscovery: disableInstancesInDiscovery,
       terminateInstanceAndShrinkServerGroup: terminateInstanceAndShrinkServerGroup,
+      terminateInstancesAndShrinkServerGroups: terminateInstancesAndShrinkServerGroups,
     };
 
   });

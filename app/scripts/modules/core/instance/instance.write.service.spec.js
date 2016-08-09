@@ -94,6 +94,28 @@ describe('Service: instance writer', function () {
       expect(job.serverGroupName).toBe('asg-v002');
     });
 
+    it('includes additional job properties for terminate and shrink', function () {
+      let application = {};
+      this.addInstance(this.serverGroupA, {id: 'i-234'});
+      this.addInstance(this.serverGroupA, {id: 'i-345'});
+      service.terminateInstancesAndShrinkServerGroups(
+        [this.getInstanceGroup(this.serverGroupA)],
+        application);
+
+      expect(this.task.job.length).toBe(1);
+
+      let job = this.task.job[0];
+
+      expect(job.type).toBe('detachInstances');
+      expect(job.instanceIds).toEqual(['i-234', 'i-345']);
+      expect(job.region).toBe('us-east-1');
+      expect(job.cloudProvider).toBe('aws');
+      expect(job.credentials).toBe('prod');
+      expect(job.serverGroupName).toBe('asg-v001');
+      expect(job.terminateDetachedInstances).toBe(true);
+      expect(job.decrementDesiredCapacity).toBe(true);
+    });
+
     it('includes a useful descriptor on terminate instances', function () {
       let application = {};
       this.addInstance(this.serverGroupA, {id: 'i-123', zone: 'a', launchTime: 2});

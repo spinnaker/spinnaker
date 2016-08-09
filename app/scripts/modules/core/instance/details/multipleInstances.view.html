@@ -26,6 +26,7 @@
             <li role="presentation" class="divider"></li>
             <li><a href ng-click="vm.rebootInstances()">Reboot</a></li>
             <li><a href ng-click="vm.terminateInstances()">Terminate</a></li>
+            <li><a href ng-click="vm.terminateInstancesAndShrinkServerGroups()" ng-if="vm.canTerminateInstancesAndShrinkServerGroups()">Terminate and Shrink Server Groups</a></li>
           </ul>
         </div>
       </div>
