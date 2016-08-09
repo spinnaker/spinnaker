@@ -203,9 +203,10 @@ public abstract class MigrateLoadBalancerStrategy implements MigrateStrategySupp
    *   1. create policy "a" if it doesn't exist on the target load balancer, then
    *   2. update the target load balancer so port 7000 will have only policy "a"
    */
-  private void applyListenerPolicies(AmazonElasticLoadBalancing sourceClient, AmazonElasticLoadBalancing targetClient,
+  public void applyListenerPolicies(AmazonElasticLoadBalancing sourceClient, AmazonElasticLoadBalancing targetClient,
                                      LoadBalancerDescription source, String loadBalancerName) {
     Set<String> policiesToRetrieve = new HashSet<>();
+    Map<String, String> policyNameMap = new HashMap<>();
     source.getListenerDescriptions().forEach(d -> policiesToRetrieve.addAll(d.getPolicyNames()));
     List<PolicyDescription> sourcePolicies = sourceClient.describeLoadBalancerPolicies(
       new DescribeLoadBalancerPoliciesRequest()
@@ -215,30 +216,44 @@ public abstract class MigrateLoadBalancerStrategy implements MigrateStrategySupp
       new DescribeLoadBalancerPoliciesRequest()
         .withLoadBalancerName(loadBalancerName)
     ).getPolicyDescriptions();
-    sourcePolicies.removeIf(p -> targetPolicies.stream().anyMatch(tp -> tp.getPolicyName().equals(p.getPolicyName())));
+
     sourcePolicies.forEach(p -> {
-      CreateLoadBalancerPolicyRequest request = new CreateLoadBalancerPolicyRequest()
-        .withPolicyName(p.getPolicyName())
-        .withLoadBalancerName(loadBalancerName)
-        .withPolicyTypeName(p.getPolicyTypeName());
-      // only copy policy attributes if this is not a pre-defined policy
-      // (as defined by the presence of 'Reference-Security-Policy'
-      Optional<PolicyAttributeDescription> referencePolicy = p.getPolicyAttributeDescriptions().stream()
-        .filter(d -> d.getAttributeName().equals("Reference-Security-Policy")).findFirst();
-      if (referencePolicy.isPresent()) {
-        request.withPolicyAttributes(
-          new PolicyAttribute(referencePolicy.get().getAttributeName(), referencePolicy.get().getAttributeValue()));
+      Optional<PolicyDescription> match = targetPolicies.stream().filter(tp ->
+        tp.getPolicyAttributeDescriptions().size() == p.getPolicyAttributeDescriptions().size()
+          && tp.getPolicyAttributeDescriptions().containsAll(p.getPolicyAttributeDescriptions()))
+        .findFirst();
+
+      if (match.isPresent()) {
+        policyNameMap.put(p.getPolicyName(), match.get().getPolicyName());
       } else {
-        request.withPolicyAttributes(p.getPolicyAttributeDescriptions().stream().map(d ->
-          new PolicyAttribute(d.getAttributeName(), d.getAttributeValue())).collect(Collectors.toList()));
+        String policyName = p.getPolicyName();
+        if (policyName.startsWith("ELBSample-") || policyName.startsWith("ELBSecurityPolicy-")) {
+          policyName = "migrated-" + policyName;
+        }
+        policyNameMap.put(p.getPolicyName(), policyName);
+        CreateLoadBalancerPolicyRequest request = new CreateLoadBalancerPolicyRequest()
+          .withPolicyName(policyName)
+          .withLoadBalancerName(loadBalancerName)
+          .withPolicyTypeName(p.getPolicyTypeName());
+        // only copy policy attributes if this is not a pre-defined policy
+        // (as defined by the presence of 'Reference-Security-Policy'
+        Optional<PolicyAttributeDescription> referencePolicy = p.getPolicyAttributeDescriptions().stream()
+          .filter(d -> d.getAttributeName().equals("Reference-Security-Policy")).findFirst();
+        if (referencePolicy.isPresent()) {
+          request.withPolicyAttributes(
+            new PolicyAttribute(referencePolicy.get().getAttributeName(), referencePolicy.get().getAttributeValue()));
+        } else {
+          request.withPolicyAttributes(p.getPolicyAttributeDescriptions().stream().map(d ->
+            new PolicyAttribute(d.getAttributeName(), d.getAttributeValue())).collect(Collectors.toList()));
+        }
+        targetClient.createLoadBalancerPolicy(request);
       }
-      targetClient.createLoadBalancerPolicy(request);
     });
     source.getListenerDescriptions().forEach(l -> targetClient.setLoadBalancerPoliciesOfListener(
       new SetLoadBalancerPoliciesOfListenerRequest()
         .withLoadBalancerName(loadBalancerName)
       .withLoadBalancerPort(l.getListener().getLoadBalancerPort())
-      .withPolicyNames(l.getPolicyNames())
+      .withPolicyNames(l.getPolicyNames().stream().map(policyNameMap::get).collect(Collectors.toList()))
       )
     );
   }
