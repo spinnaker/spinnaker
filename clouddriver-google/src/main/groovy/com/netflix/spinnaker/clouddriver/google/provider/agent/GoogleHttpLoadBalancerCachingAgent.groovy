@@ -220,13 +220,18 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
               groupHealthRequest: groupHealthRequest,
           )
 
-          // We make two requests here with the same target proxy name -- this will cause problems if there is
-          // a Http and Https target proxy with the same name. This shouldn't happen in practice, since Spinnaker
-          // will control the load balancer namespace.
-          // The intent here is that exactly one of the following calls will succeed and one will fail, and
-          // the rest of the LB resource graph is built from there.
-          compute.targetHttpProxies().get(project, targetProxyName).queue(targetProxyRequest, targetProxyCallback)
-          compute.targetHttpsProxies().get(project, targetProxyName).queue(targetProxyRequest, targetHttpsProxyCallback)
+          String targetType = Utils.getTargetProxyType(forwardingRule.target)
+          switch (targetType) {
+            case "targetHttpProxies":
+              compute.targetHttpProxies().get(project, targetProxyName).queue(targetProxyRequest, targetProxyCallback)
+              break
+            case "targetHttpsProxies":
+              compute.targetHttpsProxies().get(project, targetProxyName).queue(targetProxyRequest, targetHttpsProxyCallback)
+              break
+            default:
+              log.info("Non-Http target type found for global forwarding rule ${forwardingRule.name}")
+              break
+          }
         }
       }
     }

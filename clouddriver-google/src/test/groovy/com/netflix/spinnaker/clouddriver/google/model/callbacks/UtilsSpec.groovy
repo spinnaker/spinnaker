@@ -70,4 +70,16 @@ class UtilsSpec extends Specification {
       "https://content.googleapis.com/compute/v1/projects/ttomsu-dev-spinnaker/zones/us-central1-c/instances/sekret-gce-v070-z8mh" || "us-central1-c"
       "projects/ttomsu-dev-spinnaker/zones/us-central1-c/instances/sekret-gce-v070-z8mh"                                           || "us-central1-c"
   }
+
+  def "should get target type from target proxy URL"() {
+    expect:
+      expected == Utils.getTargetProxyType(input)
+
+    where:
+      input                                                                                                  | expected
+      "https://www.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetHttpsProxies/https-proxy" | "targetHttpsProxies"
+      "https://www.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetHttpProxies/http-proxy"   | "targetHttpProxies"
+      "projects/spinnaker-jtk54/global/targetHttpsProxies/https-proxy"                                       | "targetHttpsProxies"
+      "projects/spinnaker-jtk54/global/targetHttpProxies/http-proxy"                                         | "targetHttpProxies"
+  }
 }

@@ -47,6 +47,19 @@ class Utils {
     return lastIndex != -1 ? fullUrl.substring(lastIndex + 1) : fullUrl
   }
 
+  static String getTargetProxyType(String fullUrl) {
+    if (!fullUrl) {
+      throw new IllegalFormatException("Target proxy url ${fullUrl} malformed.")
+    }
+
+    int lastIndex = fullUrl.lastIndexOf('/')
+    if (lastIndex == -1) {
+      throw new IllegalFormatException("Target proxy url ${fullUrl} malformed.")
+    }
+    String withoutName = fullUrl.substring(0, lastIndex)
+    return getLocalName(withoutName)
+  }
+
   static String getZoneFromInstanceUrl(String fullUrl) {
     def zones = "zones/"
     fullUrl.substring(fullUrl.indexOf(zones) + zones.length(),
