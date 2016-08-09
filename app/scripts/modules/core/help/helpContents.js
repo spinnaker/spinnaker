@@ -253,6 +253,8 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.canary.baselineVersion': '<p>The Canary stage will inspect the specified cluster to determine which version to deploy as the baseline in each cluster pair.</p>',
     'pipeline.config.canary.lookback':'<p>By default ACA will look at the entire duration of the canary for its analysis. Setting a look-back duration limits the number of minutes that the canary will use for it\'s analysis report.<br> <b>Useful for long running canaries that span multiple days.</b></p>',
     'pipeline.config.canary.continueOnUnhealthy':'<p>Continue the pipeline if the ACA comes back as <b>UNHEALTHY</b></p>',
+    'pipeline.config.canary.watchers': '<p>Comma separated list of emails to receive notifications of canary events.</p>',
+    'pipeline.config.canary.useGlobalDataset': '<p>Uses the global atlas dataset instead of the region specific dataset for ACA</p>',
 
     'pipeline.config.cron.expression': '<strong>Format (Year is optional)</strong><p><samp>Seconds  Minutes  Hour  DayOfMonth  Month  DayOfWeek  (Year)</samp></p>' +
     '<p><strong>Example: every 30 minutes</strong></p><samp>0 0/30 * * * ?</samp>' +

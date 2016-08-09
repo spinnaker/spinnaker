@@ -47,11 +47,29 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
     $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours || [];
     $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useLookback = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useLookback || false;
     $scope.stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins || 0;
-
+    $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useGlobalDataset = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useGlobalDataset || false;
     $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary = $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary || [
       {action: 'DISABLE'},
       {action: 'TERMINATE', delayBeforeActionInMins: 60}
     ];
+
+    this.recipients = $scope.stage.canary.watchers
+      ? angular.isArray($scope.stage.canary.watchers)
+        ? $scope.stage.canary.watchers.join(', ')
+        : $scope.stage.canary.watchers
+      : '';
+
+  
+    this.updateWatchersList = () => {
+      if(this.recipients.indexOf('${') > -1) { //check if SpEL; we don't want to convert to array
+        $scope.stage.canary.watchers = this.recipients;
+      } else {
+        $scope.stage.canary.watchers = [];
+        this.recipients.split(',').forEach((email) => {
+          $scope.stage.canary.watchers.push(email.trim());
+        });
+      }
+    };
 
     this.terminateUnhealthyCanaryEnabled = function (isEnabled) {
       if (isEnabled === true) {

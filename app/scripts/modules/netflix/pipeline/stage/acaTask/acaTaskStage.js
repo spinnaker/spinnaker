@@ -45,10 +45,18 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTaskStage',
     $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours || [];
     $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useLookback = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useLookback || false;
     $scope.stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins || 0;
+    $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useGlobalDataset = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useGlobalDataset || false;
 
     $scope.stage.canary.canaryDeployments = $scope.stage.canary.canaryDeployments || [{type: 'query', '@class':'.CanaryTaskDeployment'}];
 
     $scope.canaryDeployment = $scope.stage.canary.canaryDeployments[0];
+
+    //TODO: Extract to be reusable with canaryStage [zkt]
+    this.recipients = $scope.stage.canary.watchers
+      ? angular.isArray($scope.stage.canary.watchers) //if array, convert to comma separated string
+        ? $scope.stage.canary.watchers.join(', ')
+        : $scope.stage.canary.watchers //if it is not an array it is probably a SpEL
+      : '';
 
     accountService.getUniqueAttributeForAllAccounts('regions')('aws')
       .then( (regions) => {
@@ -61,6 +69,18 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTaskStage',
       setClusterList();
     });
 
+
+    //TODO: Extract to be reusable with canaryStage [zkt]
+    this.updateWatchersList = () => {
+      if(this.recipients.indexOf('${') > -1) { //check if SpEL; we don't want to convert to array
+        $scope.stage.canary.watchers = this.recipients;
+      } else {
+        $scope.stage.canary.watchers = [];
+        this.recipients.split(',').forEach((email) => {
+          $scope.stage.canary.watchers.push(email.trim());
+        });
+      }
+    };
 
     this.notificationHours = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours.join(',');
 
