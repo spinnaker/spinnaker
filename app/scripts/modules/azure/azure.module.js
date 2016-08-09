@@ -9,15 +9,15 @@ templates.keys().forEach(function(key) {
 });
 
 module.exports = angular.module('spinnaker.azure', [
-  require('../core/pipeline/config/stages/destroyAsg/azure/azureDestroyAsgStage.js'),
-  require('../core/pipeline/config/stages/enableAsg/azure/azureEnableAsgStage.js'),
-  require('../core/pipeline/config/stages/disableAsg/azure/azureDisableAsgStage.js'),
+  require('./pipeline/stages/destroyAsg/azureDestroyAsgStage.js'),
+  require('./pipeline/stages/enableAsg/azureEnableAsgStage.js'),
+  require('./pipeline/stages/disableAsg/azureDisableAsgStage.js'),
+  require('./pipeline/stages/bake/azureBakeStage.js'),
   require('../core/cloudProvider/cloudProvider.registry.js'),
   require('./serverGroup/details/serverGroup.details.module.js'),
   require('./serverGroup/serverGroup.transformer.js'),
   require('./serverGroup/configure/wizard/CloneServerGroup.azure.controller.js'),
   require('./serverGroup/configure/serverGroup.configure.azure.module.js'),
-  require('../core/pipeline/config/stages/bake/azure/azureBakeStage.js'),
   require('./instance/azureInstanceType.service.js'),
   require('./loadBalancer/loadBalancer.transformer.js'),
   require('./loadBalancer/details/loadBalancerDetail.controller.js'),

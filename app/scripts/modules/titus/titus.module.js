@@ -20,7 +20,7 @@ module.exports = angular.module('spinnaker.titus', [
   require('./serverGroup/serverGroup.transformer.js'),
   require('./instance/details/instance.details.controller.js'),
   require('./validation/applicationName.validator.js'),
-  require('../core/pipeline/config/stages/findAmi/titus/titusFindAmiStage.js'),
+  require('./pipeline/stages/findAmi/titusFindAmiStage.js'),
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('titus', {
