@@ -39,6 +39,7 @@ import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
@@ -55,6 +56,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
   static final String GLOBAL_LOAD_BALANCER_NAMES = GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES
   static final String REGIONAL_LOAD_BALANCER_NAMES = GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES
   static final String BACKEND_SERVICE_NAMES = GoogleServerGroup.View.BACKEND_SERVICE_NAMES
+  static final String LOAD_BALANCING_POLICY = GoogleServerGroup.View.LOAD_BALANCING_POLICY
   final String region
 
   final Set<AgentDataType> providedDataTypes = [
@@ -504,7 +506,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
       }
 
       def instanceMetadata = instanceTemplate?.properties?.metadata
-      setLoadBalancerMetadataOnInstance(loadBalancerNames, instanceMetadata, serverGroup)
+      setLoadBalancerMetadataOnInstance(loadBalancerNames, instanceMetadata, serverGroup, objectMapper)
     }
   }
 
@@ -524,18 +526,25 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
    * @param instanceMetadata -- Metadata associated with the instance template.
    * @param serverGroup -- Server groups build from the instance template.
    */
-  static void setLoadBalancerMetadataOnInstance(List<String> loadBalancerNames, Metadata instanceMetadata, GoogleServerGroup serverGroup) {
+  static void setLoadBalancerMetadataOnInstance(List<String> loadBalancerNames,
+                                                Metadata instanceMetadata,
+                                                GoogleServerGroup serverGroup,
+                                                ObjectMapper objectMapper) {
     if (instanceMetadata) {
       def metadataMap = Utils.buildMapFromMetadata(instanceMetadata)
       def regionalLBNameList = metadataMap?.get(REGIONAL_LOAD_BALANCER_NAMES)?.split(",")
       def globalLBNameList = metadataMap?.get(GLOBAL_LOAD_BALANCER_NAMES)?.split(",")
       def backendServiceList = metadataMap?.get(BACKEND_SERVICE_NAMES)?.split(",")
+      def policyJson = metadataMap?.get(LOAD_BALANCING_POLICY)
 
       if (globalLBNameList) {
         serverGroup.asg.put(GLOBAL_LOAD_BALANCER_NAMES, globalLBNameList)
       }
       if (backendServiceList) {
         serverGroup.asg.put(BACKEND_SERVICE_NAMES, backendServiceList)
+      }
+      if (policyJson) {
+        serverGroup.asg.put(LOAD_BALANCING_POLICY, objectMapper.readValue(policyJson, GoogleHttpLoadBalancingPolicy))
       }
 
       if (regionalLBNameList) {

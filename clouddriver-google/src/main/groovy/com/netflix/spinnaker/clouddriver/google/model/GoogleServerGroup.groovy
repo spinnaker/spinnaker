@@ -59,7 +59,6 @@ class GoogleServerGroup {
   InstanceGroupManagerAutoHealingPolicy autoHealingPolicy
 
   // Non-serialized values built up by providers
-  // TODO(jacobkiefer): Change this to GoogleLoadBalancerView?
   @JsonIgnore
   Set<GoogleLoadBalancerView> loadBalancers = []
 
@@ -121,34 +120,9 @@ class GoogleServerGroup {
      * group is configured with for all L7 backends.
      *
      * This is intended to to be used as the suggestion in the server group wizard for load balancing policy.
-     * If a server group outside is created and added to L7 outside of Spinnaker, this will return the first
-     * load balancing policy we find. Maybe we could count the backends and report the most common configuration,
-     * but it seems like overkill at this point, since you can configure this anyway.
      */
     GoogleHttpLoadBalancingPolicy getLoadBalancingPolicy() {
-      def loadBalancingPolicy = null
-      def loadBalancers = GoogleServerGroup.this.loadBalancers
-      loadBalancers.each { GoogleLoadBalancerView view ->
-        if (GoogleLoadBalancerType.valueOf(view.loadBalancerType) == GoogleLoadBalancerType.HTTP) {
-          GoogleHttpLoadBalancer.View httpView = view as GoogleHttpLoadBalancer.View
-          def backendServices = Utils.getBackendServicesFromHttpLoadBalancerView(httpView)
-          backendServices.each { GoogleBackendService backendService ->
-            def foundBackends = backendService.backends.findAll { GoogleLoadBalancedBackend backend ->
-              GCEUtil.getLocalName(backend.serverGroupUrl) == GoogleServerGroup.this.name
-            }
-            // Note: we configure the same load balancing policy for all backends on a create/clone,
-            // so we can just return the policy from the first one we find.
-            if (foundBackends) {
-              def foundBackend = foundBackends?.first()
-              loadBalancingPolicy = foundBackend?.policy
-              if (loadBalancingPolicy) {
-                loadBalancingPolicy.listeningPort = GoogleServerGroup.this.namedPorts.get(GoogleHttpLoadBalancingPolicy.HTTP_PORT_NAME)
-              }
-            }
-          }
-        }
-      }
-      return loadBalancingPolicy
+      return GoogleServerGroup.this.asg?.get(LOAD_BALANCING_POLICY) as GoogleHttpLoadBalancingPolicy
     }
 
     @Override
