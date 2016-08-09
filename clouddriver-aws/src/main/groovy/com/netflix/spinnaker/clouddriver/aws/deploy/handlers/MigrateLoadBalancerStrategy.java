@@ -187,8 +187,10 @@ public abstract class MigrateLoadBalancerStrategy implements MigrateStrategySupp
       .getAmazonElasticLoadBalancing(target.getCredentials(), target.getRegion(), true);
     if (targetLoadBalancer == null) {
       boolean isInternal = subnetType == null || subnetType.contains("internal");
+      LoadBalancerAttributes sourceAttributes = sourceClient.describeLoadBalancerAttributes(
+        new DescribeLoadBalancerAttributesRequest().withLoadBalancerName(source.getName())).getLoadBalancerAttributes();
       LoadBalancerUpsertHandler.createLoadBalancer(
-        targetClient, targetName, isInternal, target.getAvailabilityZones(), subnetIds, listeners, securityGroups);
+        targetClient, targetName, isInternal, target.getAvailabilityZones(), subnetIds, listeners, securityGroups, sourceAttributes);
       configureHealthCheck(targetClient, sourceLoadBalancer, targetName);
     } else {
       LoadBalancerUpsertHandler.updateLoadBalancer(targetClient, targetLoadBalancer, listeners, securityGroups);

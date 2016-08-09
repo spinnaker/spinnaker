@@ -23,7 +23,9 @@ import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerListe
 import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.DeleteLoadBalancerListenersRequest
 import com.amazonaws.services.elasticloadbalancing.model.Listener
+import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerAttributes
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
+import com.amazonaws.services.elasticloadbalancing.model.ModifyLoadBalancerAttributesRequest
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationException
@@ -88,8 +90,14 @@ class LoadBalancerUpsertHandler {
   }
 
   public static String createLoadBalancer(AmazonElasticLoadBalancing loadBalancing, String loadBalancerName, boolean isInternal,
-                                    Collection<String> availabilityZones, Collection<String> subnetIds,
-                                    Collection<Listener> listeners, Collection<String> securityGroups) {
+                                          Collection<String> availabilityZones, Collection<String> subnetIds,
+                                          Collection<Listener> listeners, Collection<String> securityGroups) {
+    return createLoadBalancer(loadBalancing, loadBalancerName, isInternal, availabilityZones, subnetIds, listeners, securityGroups, null)
+  }
+
+  public static String createLoadBalancer(AmazonElasticLoadBalancing loadBalancing, String loadBalancerName, boolean isInternal,
+                                          Collection<String> availabilityZones, Collection<String> subnetIds,
+                                          Collection<Listener> listeners, Collection<String> securityGroups, LoadBalancerAttributes sourceAttributes) {
     def request = new CreateLoadBalancerRequest(loadBalancerName)
 
     // Networking Related
@@ -106,6 +114,14 @@ class LoadBalancerUpsertHandler {
     request.withListeners(listeners)
     task.updateStatus BASE_PHASE, "Creating load balancer."
     def result = loadBalancing.createLoadBalancer(request)
+    if (sourceAttributes) {
+      task.updateStatus BASE_PHASE, "Configuring load balancer attributes."
+      loadBalancing.modifyLoadBalancerAttributes(
+        new ModifyLoadBalancerAttributesRequest()
+          .withLoadBalancerAttributes(sourceAttributes)
+          .withLoadBalancerName(loadBalancerName)
+      )
+    }
     result.DNSName
   }
 
