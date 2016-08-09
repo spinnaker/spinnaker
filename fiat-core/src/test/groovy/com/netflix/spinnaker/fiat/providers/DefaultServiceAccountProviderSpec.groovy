@@ -17,9 +17,6 @@
 package com.netflix.spinnaker.fiat.providers
 
 import com.netflix.spinnaker.fiat.model.ServiceAccount
-import com.netflix.spinnaker.fiat.model.UserPermission
-import com.netflix.spinnaker.fiat.permissions.PermissionsRepository
-import com.netflix.spinnaker.fiat.permissions.PermissionsResolver
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service
 import spock.lang.Shared
 import spock.lang.Specification
@@ -62,28 +59,5 @@ class DefaultServiceAccountProviderSpec extends Specification {
     ["abc"]               || [abcAcct]
     ["abc", "xyz"]        || [abcAcct, xyzAcct]
     ["abc", "xyz", "def"] || [abcAcct, xyzAcct]
-  }
-
-  def "should update service accounts"() {
-    setup:
-    def abcPermission = new UserPermission().setId("abc")
-    def xyzPermission = new UserPermission().setId("xyz@domain.com")
-    PermissionsRepository repo = Mock(PermissionsRepository)
-    PermissionsResolver resolver = Mock(PermissionsResolver) {
-      resolve("abc") >> Optional.of(abcPermission)
-      resolve("xyz@domain.com") >> Optional.of(xyzPermission)
-    }
-    provider = new DefaultServiceAccountProvider(
-        front50Service: front50Service,
-        permissionsResolver: resolver,
-        permissionsRepo: repo,
-    )
-
-    when:
-    provider.updateServiceAccounts()
-
-    then:
-    1 * repo.put(abcPermission)
-    1 * repo.put(xyzPermission)
   }
 }

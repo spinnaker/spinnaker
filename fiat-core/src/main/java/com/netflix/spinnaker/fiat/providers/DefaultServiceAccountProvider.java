@@ -17,13 +17,11 @@
 package com.netflix.spinnaker.fiat.providers;
 
 import com.netflix.spinnaker.fiat.model.ServiceAccount;
-import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
-import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
 
@@ -35,21 +33,29 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-public class DefaultServiceAccountProvider implements ServiceAccountProvider {
+public class DefaultServiceAccountProvider extends BaseProvider implements ServiceAccountProvider {
 
   @Autowired
   private Front50Service front50Service;
 
-  @Autowired
-  private PermissionsRepository permissionsRepo;
-
-  @Autowired
-  private PermissionsResolver permissionsResolver;
+  @Override
+  public Set<ServiceAccount> getAccounts() throws ProviderException {
+    try {
+      val returnVal = front50Service
+          .getAllServiceAccounts()
+          .stream()
+          .collect(Collectors.toSet());
+      success();
+      return returnVal;
+    } catch (RetrofitError re) {
+      failure();
+      throw new ProviderException(re);
+    }
+  }
 
   /**
    * Return the set of service accounts to which a user with the specified collection of groups
    * has access.
-   *
    * Service accounts are usually defined using a full email address, but the specified groups are
    * normally just the first part before the "@" symbol. This implementation strips everything
    * after the "@" symbol for the purposes of service account/group matching.
@@ -64,26 +70,15 @@ public class DefaultServiceAccountProvider implements ServiceAccountProvider {
           .getAllServiceAccounts()
           .stream()
           .collect(Collectors.toMap(ServiceAccount::getNameWithoutDomain, Function.identity()));
-
+      success();
       return groups
           .stream()
           .filter(serviceAccountsByName::containsKey)
           .map(serviceAccountsByName::get)
           .collect(Collectors.toSet());
     } catch (RetrofitError re) {
+      failure();
       throw new ProviderException(re);
     }
-  }
-
-  // TODO(ttomsu): Add ability to startup server even if Front50 is not up.
-  // TODO(ttomsu): forcePut() service accounts on first successful response from Front50.
-  @Scheduled(initialDelay = 0, fixedDelay = 600000L)
-  public void updateServiceAccounts() {
-    front50Service
-        .getAllServiceAccounts()
-        .forEach(serviceAccount ->
-          permissionsResolver.resolve(serviceAccount.getName())
-              .ifPresent(permissionsRepo::put)
-        );
   }
 }

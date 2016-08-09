@@ -97,6 +97,8 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
 
   @Override
   public Map<String, UserPermission> resolve(@NonNull Collection<String> userIds) {
+    // TODO(ttomsu): Make bulk version of getUserPermission. Current impl will crush the resource
+    // provider when there are a lot of users.
     val roles = userRolesProvider.multiLoadRoles(userIds);
     return roles.entrySet()
                 .stream()

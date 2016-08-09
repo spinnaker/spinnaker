@@ -22,5 +22,8 @@ import java.util.Collection;
 import java.util.Set;
 
 public interface ServiceAccountProvider {
+
+  Set<ServiceAccount> getAccounts() throws ProviderException;
+
   Set<ServiceAccount> getAccounts(Collection<String> groups) throws ProviderException;
 }

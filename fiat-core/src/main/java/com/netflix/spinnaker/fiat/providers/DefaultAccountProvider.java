@@ -20,18 +20,18 @@ import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
-public class DefaultAccountProvider implements AccountProvider {
+public class DefaultAccountProvider extends BaseProvider implements AccountProvider {
 
   @Autowired
   @Setter
@@ -39,14 +39,17 @@ public class DefaultAccountProvider implements AccountProvider {
 
   public Set<Account> getAccounts(@NonNull Collection<String> groups) {
     try {
-      return clouddriverService
+      val returnVal = clouddriverService
           .getAccounts()
           .stream()
           .filter(account ->
                       account.getRequiredGroupMembership().isEmpty() ||
                           !Collections.disjoint(account.getRequiredGroupMembership(), groups))
           .collect(Collectors.toSet());
+      success();
+      return returnVal;
     } catch (RetrofitError re) {
+      failure();
       throw new ProviderException(re);
     }
   }

@@ -8,8 +8,15 @@ okHttpClient:
   retries:
     maxElapsedBackoffMs: 5000
 
+endpoints:
+  health:
+    sensitive: false
+
 auth:
   anonymous:
     enabled: false
   getAll:
     enabled: false
+  userSync:
+    intervalMs: 600000
+    retryInterval: 10000

@@ -17,10 +17,12 @@
 package com.netflix.spinnaker.fiat.roles
 
 import com.netflix.spinnaker.fiat.config.AnonymousUserConfig
+import com.netflix.spinnaker.fiat.model.ServiceAccount
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.permissions.InMemoryPermissionsRepository
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver
+import com.netflix.spinnaker.fiat.providers.ServiceAccountProvider
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -60,7 +62,7 @@ class UserRolesSyncerSpec extends Specification {
     permissionsRepo.get(AnonymousUserConfig.ANONYMOUS_USERNAME).get() == anonUser
 
     when:
-    syncer.sync()
+    syncer.updateUserPermissions()
 
     then:
     permissionsResolver.resolve(_ as Set) >> ["user1": user1, "user2": newUser2]
@@ -72,4 +74,31 @@ class UserRolesSyncerSpec extends Specification {
     permissionsRepo.get(AnonymousUserConfig.ANONYMOUS_USERNAME).get() == anonUser
   }
 
+
+  def "should update service accounts"() {
+    setup:
+    def abcPermission = new UserPermission().setId("abc")
+    def xyzPermission = new UserPermission().setId("xyz@domain.com")
+    def permissionsRepo = new InMemoryPermissionsRepository()
+    def permissionsResolver = Mock(PermissionsResolver) {
+      resolve("abc") >> Optional.of(abcPermission)
+      resolve("xyz@domain.com") >> Optional.of(xyzPermission)
+    }
+    def serviceAccountProvider = Mock(ServiceAccountProvider) {
+      getAccounts() >> [ new ServiceAccount().setName("abc"),
+                         new ServiceAccount().setName("xyz@domain.com") ]
+    }
+
+    @Subject syncer = new UserRolesSyncer()
+        .setPermissionsRepository(permissionsRepo)
+        .setPermissionsResolver(permissionsResolver)
+        .setServiceAccountProvider(serviceAccountProvider)
+
+    when:
+    syncer.updateServiceAccounts()
+
+    then:
+    permissionsRepo.get("abc").get() == abcPermission
+    permissionsRepo.get("xyz@domain.com").get() == xyzPermission
+  }
 }

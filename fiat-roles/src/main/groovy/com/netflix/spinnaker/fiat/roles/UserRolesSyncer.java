@@ -19,12 +19,19 @@ package com.netflix.spinnaker.fiat.roles;
 import com.netflix.spinnaker.fiat.config.AnonymousUserConfig;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
+import com.netflix.spinnaker.fiat.providers.ProviderException;
+import com.netflix.spinnaker.fiat.providers.ServiceAccountProvider;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.util.backoff.BackOffExecution;
+import org.springframework.util.backoff.FixedBackOff;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Component
@@ -38,10 +45,59 @@ public class UserRolesSyncer {
   @Setter
   private PermissionsResolver permissionsResolver;
 
+  @Autowired(required = false)
+  @Setter
+  private ServiceAccountProvider serviceAccountProvider;
+
+  @Value("${auth.userSync.retryIntervalMs:10000}")
+  @Setter
+  private long retryIntervalMs;
+
   // TODO(ttomsu): Acquire a lock in order to make this scale to multiple instances.
-  @Scheduled(initialDelay = 10000L, fixedDelay = 600000L)
+  @Scheduled(fixedDelayString = "${auth.userSync.intervalMs:600000}")
   public void sync() {
-    log.info("Starting user role sync.");
+    updateServiceAccounts();
+    updateUserPermissions();
+  }
+
+  private void updateServiceAccounts() {
+    AtomicInteger updateCount = new AtomicInteger(0);
+
+    FixedBackOff backoff = new FixedBackOff();
+    backoff.setInterval(retryIntervalMs);
+    BackOffExecution backOffExec = backoff.start();
+
+    while(true) {
+      try {
+        serviceAccountProvider
+            .getAccounts()
+            .stream()
+            .forEach(serviceAccount -> permissionsResolver
+                .resolve(serviceAccount.getName())
+                .ifPresent(permission -> {
+                  permissionsRepository.put(permission);
+                  updateCount.incrementAndGet();
+                })
+            );
+        log.info("Synced " + updateCount.get() + " service accounts");
+        return;
+      } catch (ProviderException pe) {
+        long waitTime = backOffExec.nextBackOff();
+        if (waitTime == BackOffExecution.STOP) {
+          return;
+        }
+        log.warn("Service account resolution failed. Trying again in " + waitTime + "ms.", pe);
+
+        try{
+          Thread.sleep(waitTime);
+        } catch (InterruptedException ignored) {
+          return;
+        }
+      }
+    }
+  }
+
+  private void updateUserPermissions() {
     val permissionMap = permissionsRepository.getAllById();
 
     if (permissionMap.remove(AnonymousUserConfig.ANONYMOUS_USERNAME) != null) {
