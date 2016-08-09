@@ -56,6 +56,22 @@ module.exports = angular.module('spinnaker.core.instance.details.multipleInstanc
       });
     };
 
+    this.canTerminateInstancesAndShrinkServerGroups = () => {
+      return !this.selectedGroups.some((group) => {
+        // terminateInstancesAndShrinkServerGroups is aws-only
+        return group.cloudProvider !== 'aws';
+      });
+    };
+
+    this.terminateInstancesAndShrinkServerGroups = () => {
+      let submitMethod = () => instanceWriter.terminateInstancesAndShrinkServerGroups(this.selectedGroups, app);
+      confirm(submitMethod, {
+        presentContinuous: 'Terminating',
+        simplePresent: 'Terminate',
+        futurePerfect: 'Terminated'
+      });
+    };
+
     this.rebootInstances = () => {
       let submitMethod = () => instanceWriter.rebootInstances(this.selectedGroups, app);
       confirm(submitMethod, {
