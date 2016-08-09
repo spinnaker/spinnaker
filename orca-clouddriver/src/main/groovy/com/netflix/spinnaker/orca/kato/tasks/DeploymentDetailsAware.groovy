@@ -52,9 +52,12 @@ trait DeploymentDetailsAware {
   Stage getPreviousStageWithImage(Stage stage, String targetRegion, String targetCloudProvider) {
     getAncestors(stage).find {
       def regions = (it.context.region ? [it.context.region] : it.context.regions) as Set<String>
-      (it.context.containsKey("ami") || it.context.containsKey("amiDetails")) &&
-      (!targetRegion || regions?.contains(targetRegion)) &&
-      (targetCloudProvider == it.context.cloudProvider || targetCloudProvider == it.context.cloudProviderType)
+      def cloudProviderFromContext = it.context.cloudProvider ?: it.context.cloudProviderType
+      boolean hasTargetCloudProvider = !cloudProviderFromContext || targetCloudProvider == cloudProviderFromContext
+      boolean hasTargetRegion = !targetRegion || regions?.contains(targetRegion)
+      boolean hasImage = it.context.containsKey("ami") || it.context.containsKey("amiDetails")
+
+      return hasImage && hasTargetRegion && hasTargetCloudProvider
     }
   }
 
