@@ -194,7 +194,7 @@ class FindImageFromClusterTaskSpec extends Specification {
       "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> {
       throw RetrofitError.httpError("http://clouddriver", new Response("http://clouddriver", 404, 'Not Found', [], new TypedString("{}")), null, Map)
     }
-    1 * oortService.findImage("cloudProvider", "ami-012-name-ebs*", "test", null) >> imageSearchResult
+    1 * oortService.findImage("cloudProvider", "ami-012-name-ebs*", "test", null, null) >> imageSearchResult
     assertNorth(result.globalOutputs?.deploymentDetails?.find { it.region == "north" } as Map, [imageName: "ami-012-name-ebs"])
     assertSouth(result.globalOutputs?.deploymentDetails?.find { it.region == "south" } as Map, [sourceServerGroup: "foo-test", imageName: "ami-012-name-ebs1", foo: "bar"])
 
@@ -253,7 +253,7 @@ class FindImageFromClusterTaskSpec extends Specification {
       "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> {
       throw RetrofitError.httpError("http://clouddriver", new Response("http://clouddriver", 404, 'Not Found', [], new TypedString("{}")), null, Map)
     }
-    1 * oortService.findImage("cloudProvider", "ami-012-name-ebs*", "test", null) >> imageSearchResult
+    1 * oortService.findImage("cloudProvider", "ami-012-name-ebs*", "test", null, null) >> imageSearchResult
     assertNorth(result.globalOutputs?.deploymentDetails?.find { it.region == "north" } as Map, [imageName: "ami-012-name-ebs"])
     assertSouth(result.globalOutputs?.deploymentDetails?.find { it.region == "south" } as Map, [sourceServerGroup: "foo-test", imageName: "ami-012-name-ebs1", foo: "bar"])
 

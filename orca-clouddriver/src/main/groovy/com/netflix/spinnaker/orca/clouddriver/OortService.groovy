@@ -23,6 +23,7 @@ import retrofit.http.GET
 import retrofit.http.POST
 import retrofit.http.Path
 import retrofit.http.Query
+import retrofit.http.QueryMap
 
 interface OortService {
   @GET("/applications/{app}/clusters/{account}/{cluster}/{type}")
@@ -101,5 +102,6 @@ interface OortService {
   List<Map> findImage(@Path("type") String type,
                       @Query("q") String query,
                       @Query("account") String account,
-                      @Query("region") String region)
+                      @Query("region") String region,
+                      @QueryMap Map additionalFilters)
 }

@@ -150,7 +150,7 @@ public class AmazonImageTagger implements ImageTagger, CloudProviderAware {
       }
 
       // attempt to lookup the equivalent image name (given the upstream amiId/imageId)
-      List<Map> allMatchedImages = oortService.findImage(getCloudProvider(), upstreamImageId, null, null);
+      List<Map> allMatchedImages = oortService.findImage(getCloudProvider(), upstreamImageId, null, null, null);
       if (allMatchedImages.isEmpty()) {
         throw new IllegalStateException(format("No image found (imageId: %s)", upstreamImageId));
       }
@@ -161,7 +161,7 @@ public class AmazonImageTagger implements ImageTagger, CloudProviderAware {
 
     String targetImageName = imageName;
 
-    List<Map> allMatchedImages = oortService.findImage(getCloudProvider(), imageName, null, null);
+    List<Map> allMatchedImages = oortService.findImage(getCloudProvider(), imageName, null, null, null);
     Map matchedImage = allMatchedImages.stream()
       .filter(image -> image.get("imageName").equals(targetImageName))
       .findFirst()

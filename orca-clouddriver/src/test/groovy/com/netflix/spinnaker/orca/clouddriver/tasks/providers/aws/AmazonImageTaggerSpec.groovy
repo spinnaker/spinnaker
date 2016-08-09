@@ -47,7 +47,7 @@ class AmazonImageTaggerSpec extends Specification {
     then:
     thrown(IllegalArgumentException)
 
-    1 * oortService.findImage("aws", "my-ami", null, null) >> { [] }
+    1 * oortService.findImage("aws", "my-ami", null, null, null) >> { [] }
   }
 
   def "should build upsertMachineImageTags and allowLaunchDescription operations"() {
@@ -64,7 +64,7 @@ class AmazonImageTaggerSpec extends Specification {
     def operationContext = imageTagger.getOperationContext(stage)
 
     then:
-    1 * oortService.findImage("aws", "my-ami", null, null) >> {
+    1 * oortService.findImage("aws", "my-ami", null, null, null) >> {
       [
         [imageName: "my-ami-v2", accounts: ["test"], amis: ["us-east-1": ["my-ami-00002"]]],
         [imageName: "my-ami", accounts: ["test", "prod"], amis: ["us-east-1": ["my-ami-00001"]], tagsByImageId: ["my-ami-00001": [tag1: "originalValue1"]]]
