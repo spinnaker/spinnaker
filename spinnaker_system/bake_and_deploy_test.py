@@ -78,6 +78,9 @@
 #     --test_google \
 #     --test_aws
 
+# pylint: disable=bad-continuation
+# pylint: disable=invalid-name
+# pylint: disable=missing-docstring
 
 # Standard python modules.
 import os
@@ -85,6 +88,7 @@ import sys
 import logging
 
 # citest modules.
+import citest.base
 import citest.gcp_testing as gcp
 import citest.json_contract as jc
 import citest.service_testing as st
@@ -92,7 +96,6 @@ import citest.service_testing as st
 # Spinnaker modules.
 import spinnaker_testing as sk
 import spinnaker_testing.gate as gate
-import citest.base
 
 
 class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
@@ -137,7 +140,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     parser.add_argument(
       '--jenkins_auth_path', default=None,
       help='The path to a file containing the jenkins username password pair.'
-           'The contents should look like: <username> <password>.' )
+           'The contents should look like: <username> <password>.')
     parser.add_argument(
       '--jenkins_token', default='token',
       help='The authentication token for the jenkins build trigger.')
@@ -230,7 +233,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
               'unhealthyThreshold': spec['unhealthyThreshold'],
           },
           'type': 'upsertLoadBalancer',
-          'availabilityZones': { bindings['TEST_GCE_REGION']: [] },
+          'availabilityZones': {bindings['TEST_GCE_REGION']: []},
           'user': '[anonymous]'
       }],
       description='Create Load Balancer: ' + load_balancer_name,
@@ -292,10 +295,10 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
       'job': self.bindings['JENKINS_JOB']
       }
 
-  def make_bake_stage(self, package, providerType, requisiteStages=[],
+  def make_bake_stage(self, package, providerType, requisiteStages=None,
       **kwargs):
     result = {
-        'requisiteStageRefIds':requisiteStages,
+        'requisiteStageRefIds':requisiteStages or [],
         'refId': 'BAKE',
         'type': 'bake',
         'name': 'Bake',
@@ -309,9 +312,9 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     result.update(kwargs)
     return result
 
-  def make_deploy_google_stage(self, requisiteStages=[]):
+  def make_deploy_google_stage(self, requisiteStages=None):
     return {
-      'requisiteStageRefIds': requisiteStages,
+      'requisiteStageRefIds': requisiteStages or [],
       'refId': 'DEPLOY',
       'type': 'deploy',
       'name': 'Deploy',
@@ -348,7 +351,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
       }]
     }
 
-  def make_destroy_group_stage(self, cloudProvider, requisiteStages=[],
+  def make_destroy_group_stage(self, cloudProvider, requisiteStages,
       **kwargs):
     result = {
       'cloudProvider': cloudProvider,
@@ -356,7 +359,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
       'credentials': self.bindings['GCE_CREDENTIALS'],
       'name': 'Destroy Server Group',
       'refId': 'DESTROY',
-      'requisiteStageRefIds': requisiteStages,
+      'requisiteStageRefIds': requisiteStages or [],
       'target': 'current_asg_dynamic',
       'cluster': '{app}-{stack}'.format(
           app=self.TEST_APP, stack=self.bindings['TEST_STACK']),
@@ -365,10 +368,10 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     result.update(kwargs)
     return result
 
-  def make_disable_group_stage(self, cloudProvider, requisiteStages=[],
+  def make_disable_group_stage(self, cloudProvider, requisiteStages=None,
       **kwargs):
     result = {
-      'requisiteStageRefIds': requisiteStages,
+      'requisiteStageRefIds': requisiteStages or [],
       'refId': 'DISABLE',
       'type': 'disableServerGroup',
       'name': 'Disable Server Group',
@@ -428,7 +431,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
 
     pipeline_spec = dict(
       name=name,
-      stages=[bake_stage,  deploy_stage, disable_stage, destroy_stage],
+      stages=[bake_stage, deploy_stage, disable_stage, destroy_stage],
       triggers=[self.make_jenkins_trigger()],
       application=self.TEST_APP,
       stageCounter=4,
@@ -529,15 +532,20 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     status = status.trigger_status
     detail = status.detail_doc
     if isinstance(detail, list):
+      if not detail:
+        self.logger.error('No trigger_status, so baked image is unknown\n'
+                          '%s\n\n', status)
+        return
       self.logger.info('Using first status.')
       detail = detail[0]
 
     context = detail.get('context')
     details = context.get('deploymentDetails') if context else None
     name = details[0].get('imageId') if details else None
-    self.logger.info('Deleting the baked image="{0}"'.format(name))
+    self.logger.info('Deleting the baked image="%s"', name)
     if name:
-      self.gcp_observer.invoke_resource('delete', 'images', resource_id=name)
+      self.gcp_observer.invoke_resource(
+          context, 'delete', 'images', resource_id=name)
 
 
 class BakeAndDeployTest(st.AgentTestCase):
@@ -567,7 +575,6 @@ class BakeAndDeployTest(st.AgentTestCase):
 
   @property
   def testing_agent(self):
-    scenario = self.scenario
     return self.scenario.agent
 
   def test_a_create_app(self):
