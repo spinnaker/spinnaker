@@ -44,6 +44,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.MigrateSec
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupLookup
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupUpdater
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetAnalyzer
+import com.netflix.spinnaker.clouddriver.aws.model.SubnetTarget
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
@@ -102,12 +103,25 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     targetLookup.accountIdExists(prodCredentials.accountId) >> true
   }
 
+  void 'throws exception if no availability zones are specified'() {
+    given:
+    LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: 'app-elb')
+    LoadBalancerLocation target = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1')
+
+    when:
+    strategy.generateResults(sourceLookup, sourceLookup, securityGroupStrategy, source, target, 'internal', 'app', true, false)
+
+    then:
+    thrown(IllegalStateException)
+    0 * _
+  }
+
   void 'throws exception when migrating to VPC and load balancer name (not changed) already exists in Classic'() {
     given:
     def loadBalancerName = '12345678901234567890123456789012'
     LoadBalancerDescription sourceDescription = new LoadBalancerDescription().withLoadBalancerName(loadBalancerName)
     LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: loadBalancerName)
-    LoadBalancerLocation target = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1')
+    LoadBalancerLocation target = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1', availabilityZones: ['us-east-1a'])
     strategy.source = source
     strategy.target = target
     strategy.dryRun = false
@@ -127,6 +141,39 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     amazonEC2.describeVpcs(_) >> new DescribeVpcsResult().withVpcs(new Vpc().withTags(new Tag("Name", "vpc1")))
   }
 
+  void 'throws exception when migrating to VPC and no subnets found for subnetType'() {
+    given:
+    def loadBalancerName = 'app-elb'
+    def newLoadBalancerName = 'app-elb-vpc1'
+    LoadBalancerDescription sourceDescription = new LoadBalancerDescription().withLoadBalancerName(loadBalancerName)
+    LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: 'app-elb')
+    LoadBalancerLocation target = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1', availabilityZones: ['us-east-1a'])
+
+    AmazonEC2 amazonEC2 = Mock(AmazonEC2)
+    AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
+    RegionScopedProvider regionProvider = Mock(RegionScopedProvider)
+    SubnetAnalyzer subnetAnalyzer = Mock(SubnetAnalyzer)
+
+    when:
+    strategy.generateResults(sourceLookup, sourceLookup, securityGroupStrategy, source, target, 'internal', 'app', true, false)
+
+    then:
+    1 * loadBalancing.describeLoadBalancers({ it.loadBalancerNames == [loadBalancerName]}) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(sourceDescription)
+    1 * loadBalancing.describeLoadBalancers({ it.loadBalancerNames == [newLoadBalancerName]}) >> new DescribeLoadBalancersResult()
+
+    1 * amazonEC2.describeSecurityGroups(_) >> new DescribeSecurityGroupsResult().withSecurityGroups([new SecurityGroup(vpcId: 'vpc-1', groupName: 'app-elb'), new SecurityGroup()])
+
+    amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1') >> amazonEC2
+    amazonClientProvider.getAmazonEC2(testCredentials, 'us-east-1', true) >> amazonEC2
+    amazonClientProvider.getAmazonElasticLoadBalancing(testCredentials, 'us-east-1', true) >> loadBalancing
+    regionScopedProviderFactory.forRegion(testCredentials, 'us-east-1') >> regionProvider
+    deployDefaults.addAppGroupToServerGroup >> false
+    regionProvider.getSubnetAnalyzer() >> subnetAnalyzer
+    amazonEC2.describeVpcs(_) >> new DescribeVpcsResult().withVpcs(new Vpc().withTags(new Tag("Name", "vpc1")))
+    1 * subnetAnalyzer.getSubnetIdsForZones(['us-east-1a'], 'internal', SubnetTarget.ELB, 1) >> []
+    thrown(IllegalStateException)
+  }
+
   void 'throws exception when migrating to VPC and new load balancer name already exists in Classic'() {
     given:
     def loadBalancerName = 'app-elb'
@@ -134,7 +181,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     LoadBalancerDescription sourceDescription = new LoadBalancerDescription().withLoadBalancerName(loadBalancerName)
     LoadBalancerDescription targetDescription = new LoadBalancerDescription().withLoadBalancerName(newLoadBalancerName)
     LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: loadBalancerName)
-    LoadBalancerLocation target = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1', name: newLoadBalancerName)
+    LoadBalancerLocation target = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1', name: newLoadBalancerName, availabilityZones: ['us-east-1a'])
     strategy.source = source
     strategy.target = target
     strategy.dryRun = false
