@@ -25,6 +25,7 @@ import com.amazonaws.services.ec2.model.Tag
 import com.amazonaws.services.ec2.model.Vpc
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerResult
+import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancerAttributesResult
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancerPoliciesResult
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult
 import com.amazonaws.services.elasticloadbalancing.model.HealthCheck
@@ -265,6 +266,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     amazonClientProvider.getAmazonElasticLoadBalancing(prodCredentials, 'eu-west-1', true) >> targetLoadBalancing
     regionScopedProviderFactory.forRegion(prodCredentials, 'eu-west-1') >> regionProvider
     1 * loadBalancing.describeLoadBalancers(_) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(sourceDescription)
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> new DescribeLoadBalancerAttributesResult()
     1 * targetLoadBalancing.describeLoadBalancers(_) >> null
     1 * loadBalancing.describeLoadBalancerPolicies(_) >> new DescribeLoadBalancerPoliciesResult()
     1 * targetLoadBalancing.describeLoadBalancerPolicies(_) >> new DescribeLoadBalancerPoliciesResult()
@@ -329,6 +331,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     amazonClientProvider.getAmazonElasticLoadBalancing(prodCredentials, 'eu-west-1', true) >> targetLoadBalancing
 
     1 * targetLoadBalancing.createLoadBalancer({it.securityGroups == ['sg-1b', 'sg-elb']}) >> new CreateLoadBalancerResult().withDNSName('new-elb-dns')
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> new DescribeLoadBalancerAttributesResult()
     1 * loadBalancing.describeLoadBalancerPolicies(_) >> new DescribeLoadBalancerPoliciesResult()
     1 * targetLoadBalancing.describeLoadBalancerPolicies(_) >> new DescribeLoadBalancerPoliciesResult()
   }
@@ -370,6 +373,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     1 * loadBalancing.describeLoadBalancers(_) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(sourceDescription)
     1 * targetLoadBalancing.createLoadBalancer(_) >> new CreateLoadBalancerResult().withDNSName('new-elb-dns')
     1 * targetLoadBalancing.configureHealthCheck(_)
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> new DescribeLoadBalancerAttributesResult()
     1 * loadBalancing.describeLoadBalancerPolicies(_) >> new DescribeLoadBalancerPoliciesResult()
     1 * targetLoadBalancing.describeLoadBalancerPolicies(_) >> new DescribeLoadBalancerPoliciesResult()
     2 * targetLookup.getSecurityGroupByName(prodCredentials.name, 'classic-link', 'vpc-2') >> Optional.of(new SecurityGroupUpdater(classicGroup, amazonEC2))
@@ -450,6 +454,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     1 * loadBalancing.describeLoadBalancers({ it.loadBalancerNames == ['newapp-elb']}) >> new DescribeLoadBalancersResult()
     1 * loadBalancing.createLoadBalancer({ it.loadBalancerName == 'newapp-elb'}) >> new CreateLoadBalancerResult().withDNSName('new-elb-dns')
     1 * loadBalancing.configureHealthCheck(_)
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> new DescribeLoadBalancerAttributesResult()
     2 * loadBalancing.describeLoadBalancerPolicies(_) >> new DescribeLoadBalancerPoliciesResult()
     0 * amazonEC2.authorizeSecurityGroupIngress(_)
   }
@@ -478,6 +483,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     1 * loadBalancing.describeLoadBalancers({ it.loadBalancerNames == ['app-elb']}) >> new DescribeLoadBalancersResult()
     1 * loadBalancing.createLoadBalancer({ it.loadBalancerName == 'app-elb'}) >> new CreateLoadBalancerResult().withDNSName('new-elb-dns')
     1 * loadBalancing.configureHealthCheck(_)
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> new DescribeLoadBalancerAttributesResult()
     2 * loadBalancing.describeLoadBalancerPolicies(_) >> new DescribeLoadBalancerPoliciesResult()
     0 * amazonEC2.authorizeSecurityGroupIngress(_)
   }
@@ -514,6 +520,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
       it.healthCheck.unhealthyThreshold == 4 &&
       it.healthCheck.timeout == 5
     })
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> new DescribeLoadBalancerAttributesResult()
     1 * loadBalancing.describeLoadBalancerPolicies(_) >> new DescribeLoadBalancerPoliciesResult()
     1 * targetLoadBalancing.describeLoadBalancerPolicies(_) >> new DescribeLoadBalancerPoliciesResult()
   }
