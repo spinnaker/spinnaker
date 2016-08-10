@@ -495,11 +495,8 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
     @Override
     void onSuccess(Autoscaler autoscaler, HttpHeaders responseHeaders) throws IOException {
       serverGroup.autoscalingPolicy = autoscaler.getAutoscalingPolicy()
-
-      serverGroup.autoscalingPolicy.with {
-        serverGroup.asg.minSize = minNumReplicas
-        serverGroup.asg.maxSize = maxNumReplicas
-      }
+      serverGroup.asg.minSize = serverGroup.autoscalingPolicy.minNumReplicas
+      serverGroup.asg.maxSize = serverGroup.autoscalingPolicy.maxNumReplicas
     }
   }
 
@@ -521,11 +518,8 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
 
             if (serverGroup) {
               serverGroup.autoscalingPolicy = autoscaler.getAutoscalingPolicy()
-
-              serverGroup.autoscalingPolicy.with {
-                serverGroup.asg.minSize = minNumReplicas
-                serverGroup.asg.maxSize = maxNumReplicas
-              }
+              serverGroup.asg.minSize = serverGroup.autoscalingPolicy.minNumReplicas
+              serverGroup.asg.maxSize = serverGroup.autoscalingPolicy.maxNumReplicas
             }
           }
         }
