@@ -30,7 +30,7 @@ class AmazonImageTaggerSupportSpec extends Specification {
     given:
     def pipeline = new Pipeline()
     def stage1 = new PipelineStage(pipeline, "stage1", stage1Context + [cloudProvider: "aws"])
-    def stage2 = new PipelineStage(pipeline, "stage2", stage2Context + [cloudProvider: "aws"])
+    def stage2 = new PipelineStage(pipeline, "stage2", stage2Context + [cloudProviderType: "aws"])
     def stage3 = new PipelineStage(pipeline, "stage3", [:])
 
     stage3.requisiteStageRefIds = [stage2.id.toString()]
