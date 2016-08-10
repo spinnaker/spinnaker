@@ -34,10 +34,9 @@ public interface ImageTagger {
   OperationContext getOperationContext(Stage stage);
 
   /**
-   * @return true when, according to the underlying cloud provider, the machine image tags have been updated to match the
-   * target machine image.
+   * @return true when, according to the underlying cloud provider, image tags have been updated to match the respective target
    */
-  boolean isImageTagged(Image targetImage, Stage stage);
+  boolean areImagesTagged(Collection<Image> targetImages, Stage stage);
 
   /**
    * @return The cloud provider type that this object supports.

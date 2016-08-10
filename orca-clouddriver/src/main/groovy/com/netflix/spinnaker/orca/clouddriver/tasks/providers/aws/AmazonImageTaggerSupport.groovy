@@ -22,17 +22,15 @@ import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 
 class AmazonImageTaggerSupport implements DeploymentDetailsAware {
-  static String upstreamImageId(Stage sourceStage) {
+  static Collection<String> upstreamImageIds(Stage sourceStage) {
     def imageProvidingAncestorStages = sourceStage.ancestors { Stage stage, StageBuilder stageBuilder ->
       def cloudProvider = stage.context.cloudProvider ?: stage.context.cloudProviderType
       return (stage.context.containsKey("imageId") || stage.context.containsKey("amiDetails")) && cloudProvider == "aws"
     }
 
-    def imageProvidingStage = imageProvidingAncestorStages[0]?.stage
-    if (!imageProvidingStage) {
-      return null
+    return imageProvidingAncestorStages.findResults {
+      def imageProvidingStage = it.stage
+      return (imageProvidingStage.context.imageId ?: (imageProvidingStage.context.amiDetails as Collection<Map>)[0]?.imageId) as String
     }
-
-    return imageProvidingStage.context.imageId ?: (imageProvidingStage.context.amiDetails as Collection<Map>)[0].imageId
   }
 }

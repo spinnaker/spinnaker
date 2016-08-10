@@ -47,11 +47,11 @@ class AmazonImageTaggerSpec extends Specification {
     def pipeline = new Pipeline()
 
     def stage1 = new PipelineStage(pipeline, "", [
-      imageId: imageId,
+      imageId      : imageId,
       cloudProvider: "aws"
     ])
     def stage2 = new PipelineStage(pipeline, "", [
-      imageName: imageName,
+      imageNames   : imageName ? [imageName] : null,
       cloudProvider: "aws"
     ])
 
@@ -68,7 +68,7 @@ class AmazonImageTaggerSpec extends Specification {
     ImageTagger.ImageNotFound e = thrown(ImageTagger.ImageNotFound)
     e.shouldRetry == shouldRetry
 
-    1* oortService.findImage("aws", "my-ami", null, null, null) >> { [] }
+    1 * oortService.findImage("aws", "my-ami", null, null, null) >> { [] }
 
     where:
     imageId  | imageName || shouldRetry
@@ -79,8 +79,8 @@ class AmazonImageTaggerSpec extends Specification {
   def "should build upsertMachineImageTags and allowLaunchDescription operations"() {
     given:
     def stage = new OrchestrationStage(new Orchestration(), "", [
-      imageName: "my-ami",
-      tags     : [
+      imageNames: ["my-ami"],
+      tags      : [
         "tag1"      : "value1",
         "appversion": "updated app version" // builtin tags should not be updatable
       ]
@@ -113,6 +113,6 @@ class AmazonImageTaggerSpec extends Specification {
       credentials: imageTagger.defaultBakeAccount
     ]
     operationContext.extraOutput.regions == ["us-east-1"]
-    operationContext.extraOutput.originalTags == ["my-ami-00001": [tag1: "originalValue1"]]
+    operationContext.extraOutput.originalTags == ["my-ami": ["my-ami-00001": [tag1: "originalValue1"]]]
   }
 }
