@@ -9,10 +9,12 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
   require('../../../core/naming/naming.service.js'),
   require('../../../core/utils/lodash.js'),
   require('./../../instance/custom/customInstanceBuilder.gce.service.js'),
+  require('./wizard/hiddenMetadataKeys.value.js'),
 ])
   .factory('gceServerGroupCommandBuilder', function (settings, $q,
                                                      accountService, instanceTypeService, namingService, _,
-                                                     gceCustomInstanceBuilderService) {
+                                                     gceCustomInstanceBuilderService,
+                                                     gceServerGroupHiddenMetadataKeys) {
 
     // Two assumptions here:
     //   1) All GCE machine types are represented in the tree of choices.
@@ -151,22 +153,16 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
     }
 
     function populateCustomMetadata(metadataItems, command) {
-      // Hide metadata items with these keys in the wizard.
-      let hiddenMetadataKeys = [
-        'load-balancer-names',
-        'global-load-balancer-names',
-        'backend-service-names'
-      ];
-
+      // Hide metadata items in the wizard.
       if (metadataItems) {
         if (angular.isArray(metadataItems)) {
           metadataItems.forEach(function (metadataItem) {
-            if (!_.contains(hiddenMetadataKeys, metadataItem.key)) {
+            if (!_.contains(gceServerGroupHiddenMetadataKeys, metadataItem.key)) {
               command.instanceMetadata[metadataItem.key] = metadataItem.value;
             }
           });
         } else {
-          angular.extend(command.instanceMetadata, _.omit(metadataItems, hiddenMetadataKeys));
+          angular.extend(command.instanceMetadata, _.omit(metadataItems, gceServerGroupHiddenMetadataKeys));
         }
       }
     }

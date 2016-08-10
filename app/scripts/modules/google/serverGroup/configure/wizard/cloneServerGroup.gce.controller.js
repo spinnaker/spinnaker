@@ -8,13 +8,14 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
   require('./../../../instance/custom/customInstanceBuilder.gce.service.js'),
   require('../../../../core/instance/instanceTypeService.js'),
   require('../../../../core/modal/wizard/wizardSubFormValidation.service.js'),
+  require('./hiddenMetadataKeys.value.js'),
 ])
   .controller('gceCloneServerGroupCtrl', function($scope, $uibModalInstance, _, $q, $state,
                                                   serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                   gceServerGroupConfigurationService,
                                                   serverGroupCommand, application, title,
                                                   gceCustomInstanceBuilderService, instanceTypeService,
-                                                  wizardSubFormValidation) {
+                                                  wizardSubFormValidation, gceServerGroupHiddenMetadataKeys) {
     $scope.pages = {
       templateSelection: require('./templateSelection/templateSelection.html'),
       basicSettings: require('./location/basicSettings.html'),
@@ -284,9 +285,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
           var promise = serverGroupWriter.cloneServerGroup(angular.copy($scope.command), application);
 
           // Copy back the original objects so the wizard can still be used if the command needs to be resubmitted.
-          $scope.command.instanceMetadata = _.omit(
-            $scope.command.instanceMetadata,
-            ['load-balancer-names', 'global-load-balancer-names', 'backend-service-names']);
+          $scope.command.instanceMetadata = _.omit($scope.command.instanceMetadata, gceServerGroupHiddenMetadataKeys);
 
           $scope.command.tags = origTags;
 
