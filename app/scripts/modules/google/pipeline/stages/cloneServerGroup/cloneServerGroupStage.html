@@ -18,6 +18,16 @@
   <stage-config-field label="Target">
     <target-select model="stage" options="cloneServerGroupStageCtrl.cloneTargets"></target-select>
   </stage-config-field>
+  <stage-config-field label="Traffic" help-key="gce.serverGroup.traffic">
+    <div class="checkbox">
+      <label>
+        <input type="checkbox"
+               ng-click="cloneServerGroupStageCtrl.toggleDisableTraffic()"
+               ng-checked="!stage.disableTraffic"/>
+        Send client requests to new instances
+      </label>
+    </div>
+  </stage-config-field>
   <stage-platform-health-override application="application"
                                   stage="stage"
                                   platform-health-type="'Google'">

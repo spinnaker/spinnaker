@@ -19,6 +19,8 @@ module.exports = angular.module('spinnaker.gce.serverGroup.transformer', [
       if (base.viewState.mode !== 'clone') {
         delete command.source;
       }
+      // We took this approach to avoid a breaking change to existing pipelines.
+      command.disableTraffic = !command.enableTraffic;
       command.cloudProvider = 'gce';
       command.availabilityZones = {};
       command.availabilityZones[command.region] = base.zone ? [base.zone] : truncatedZones;
@@ -30,6 +32,7 @@ module.exports = angular.module('spinnaker.gce.serverGroup.transformer', [
       delete command.persistentDiskType;
       delete command.persistentDiskSizeGb;
       delete command.localSSDCount;
+      delete command.enableTraffic;
       delete command.providerType;
 
       return command;

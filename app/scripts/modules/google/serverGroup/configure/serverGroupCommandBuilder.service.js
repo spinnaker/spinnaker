@@ -245,6 +245,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           'logging.write',
           'monitoring.write',
         ],
+        enableTraffic: true,
         cloudProvider: 'gce',
         selectedProvider: 'gce',
         availabilityZones: [],
@@ -305,6 +306,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         instanceMetadata: {},
         tags: [],
         availabilityZones: [],
+        enableTraffic: true,
         cloudProvider: 'gce',
         selectedProvider: 'gce',
         source: {
@@ -384,6 +386,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         var viewOverrides = {
           region: region,
           credentials: pipelineCluster.account,
+          enableTraffic: !pipelineCluster.disableTraffic,
           viewState: viewState,
         };
 

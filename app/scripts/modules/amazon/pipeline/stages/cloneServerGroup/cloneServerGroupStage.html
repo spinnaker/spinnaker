@@ -20,13 +20,13 @@
   </stage-config-field>
   <stage-config-field label="Traffic" help-key="aws.serverGroup.traffic">
     <div class="checkbox">
-    <label>
-      <input type="checkbox"
-             ng-click="cloneServerGroupStageCtrl.toggleSuspendedProcess('AddToLoadBalancer')"
-             ng-checked="!cloneServerGroupStageCtrl.processIsSuspended('AddToLoadBalancer')"/>
-      Send client requests to new instances
-    </label>
-      </div>
+      <label>
+        <input type="checkbox"
+               ng-click="cloneServerGroupStageCtrl.toggleSuspendedProcess('AddToLoadBalancer')"
+               ng-checked="!cloneServerGroupStageCtrl.processIsSuspended('AddToLoadBalancer')"/>
+        Send client requests to new instances
+      </label>
+    </div>
   </stage-config-field>
   <stage-platform-health-override application="application"
                                   stage="stage"

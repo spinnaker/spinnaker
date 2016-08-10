@@ -61,5 +61,9 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.cloneServerGr
     };
 
     $scope.$watch('stage.targetCluster', this.targetClusterUpdated);
+
+    this.toggleDisableTraffic = () => {
+      stage.disableTraffic = !stage.disableTraffic;
+    };
   });
 
