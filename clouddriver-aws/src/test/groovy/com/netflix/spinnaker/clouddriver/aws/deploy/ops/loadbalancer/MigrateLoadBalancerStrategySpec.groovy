@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
 import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.CreateSecurityGroupResult
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.DescribeVpcsResult
 import com.amazonaws.services.ec2.model.SecurityGroup
@@ -25,12 +24,14 @@ import com.amazonaws.services.ec2.model.Tag
 import com.amazonaws.services.ec2.model.Vpc
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerResult
+import com.amazonaws.services.elasticloadbalancing.model.CrossZoneLoadBalancing
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancerAttributesResult
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancerPoliciesResult
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult
 import com.amazonaws.services.elasticloadbalancing.model.HealthCheck
 import com.amazonaws.services.elasticloadbalancing.model.Listener
 import com.amazonaws.services.elasticloadbalancing.model.ListenerDescription
+import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerAttributes
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.amazonaws.services.elasticloadbalancing.model.PolicyAttributeDescription
 import com.amazonaws.services.elasticloadbalancing.model.PolicyDescription
@@ -693,4 +694,45 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     1 * loadBalancing.setLoadBalancerPoliciesOfListener({
       it.loadBalancerName == 'app-elb-vpc1' && it.loadBalancerPort == 443 && it.policyNames == ['custom-policy-vpc']})
   }
+
+  void 'sets cross-zone load balancing flag when legacy listener is present'() {
+    given:
+    LoadBalancerDescription sourceDescription = new LoadBalancerDescription(loadBalancerName: 'app-elb',
+      healthCheck: new HealthCheck(),
+      listenerDescriptions: [
+        new ListenerDescription().withListener(new Listener().withLoadBalancerPort(0).withInstancePort(0))
+      ]
+    )
+    AmazonElasticLoadBalancing client = Mock(AmazonElasticLoadBalancing)
+
+    when:
+    def attributes = strategy.getLoadBalancerAttributes(sourceDescription, client)
+
+    then:
+    1 * client.describeLoadBalancerAttributes(_) >> new DescribeLoadBalancerAttributesResult()
+      .withLoadBalancerAttributes(new LoadBalancerAttributes()
+        .withCrossZoneLoadBalancing(new CrossZoneLoadBalancing().withEnabled(false)))
+
+    attributes.crossZoneLoadBalancing.isEnabled()
+  }
+
+  void 'ignores legacy listeners when generating listener lists'() {
+    given:
+    LoadBalancerDescription sourceDescription = new LoadBalancerDescription(loadBalancerName: 'app-elb',
+      healthCheck: new HealthCheck(),
+      listenerDescriptions: [
+        new ListenerDescription().withListener(new Listener().withLoadBalancerPort(443).withInstancePort(7000)),
+        new ListenerDescription().withListener(new Listener().withLoadBalancerPort(0).withInstancePort(0))
+      ]
+    )
+    MigrateLoadBalancerResult result = new MigrateLoadBalancerResult()
+
+    when:
+    def listeners = strategy.getListeners(sourceDescription, result)
+
+    then:
+    listeners.size() == 1
+    listeners.instancePort == [7000]
+  }
+
 }
