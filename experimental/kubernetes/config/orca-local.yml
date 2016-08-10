@@ -13,7 +13,6 @@ kato:
 bakery:
     baseUrl: ${services.bakery.baseUrl:localhost:8087}
     extractBuildDetails: ${services.bakery.extractBuildDetails:true}
-    propagateCloudProviderType: ${services.bakery.propagateCloudProviderType:true}
 echo:
     enabled: ${services.echo.enabled:false}
     baseUrl: ${services.echo.baseUrl:8089}
