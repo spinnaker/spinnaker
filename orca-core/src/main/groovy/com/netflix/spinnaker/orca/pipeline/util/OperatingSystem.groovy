@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.pipeline.util
 
 @Deprecated
 public enum OperatingSystem {
-  centos(PackageType.RPM), ubuntu(PackageType.DEB), trusty(PackageType.DEB)
+  centos(PackageType.RPM), ubuntu(PackageType.DEB), trusty(PackageType.DEB), xenial(PackageType.DEB)
 
   private final PackageType packageType
   private OperatingSystem(PackageType packageType) {
