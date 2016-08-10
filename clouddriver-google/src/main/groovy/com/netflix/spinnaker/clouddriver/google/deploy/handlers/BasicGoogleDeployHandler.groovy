@@ -142,12 +142,16 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     // We need the full url for each referenced network load balancer, and also to check that the HTTP(S)
     // load balancers exist.
     if (description.loadBalancers) {
+      // GCEUtil.queryAllLoadBalancers() will throw an exception if a referenced load balancer cannot be resolved.
       def foundLoadBalancers = GCEUtil.queryAllLoadBalancers(googleLoadBalancerProvider,
                                                              description.loadBalancers,
                                                              task,
                                                              BASE_PHASE)
-      def networkLoadBalancers = foundLoadBalancers.findAll { it.loadBalancerType == GoogleLoadBalancerType.NETWORK.toString() }
-      targetPools = networkLoadBalancers.collect { it.targetPool }
+
+      if (!description.disableTraffic) {
+        def networkLoadBalancers = foundLoadBalancers.findAll { it.loadBalancerType == GoogleLoadBalancerType.NETWORK.toString() }
+        targetPools = networkLoadBalancers.collect { it.targetPool }
+      }
     }
 
     def securityGroupTags = GCEUtil.querySecurityGroupTags(description.securityGroups, accountName,
@@ -337,7 +341,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     task.updateStatus BASE_PHASE, "Done creating server group $serverGroupName in ${isRegional ? region : zone}."
 
     // Actually update the backend services.
-    if (hasBackendServices) {
+    if (!description.disableTraffic && hasBackendServices) {
       backendServicesToUpdate.each { BackendService backendService ->
         compute.backendServices().update(project, backendService.name, backendService).execute()
         task.updateStatus BASE_PHASE, "Done associating server group $serverGroupName with backend service ${backendService.name}."

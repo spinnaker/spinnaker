@@ -35,6 +35,7 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
   Boolean regional
   String zone
   List<String> loadBalancers
+  Boolean disableTraffic
   Set<String> securityGroups
   GoogleAutoscalingPolicy autoscalingPolicy
   GoogleHttpLoadBalancingPolicy loadBalancingPolicy
