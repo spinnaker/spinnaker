@@ -10,7 +10,7 @@ module.exports = angular
   ])
   .controller('FindImageFromTagsExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 
-    $scope.configSections = ['findImageFromTags', 'taskStatus'];
+    $scope.configSections = ['findImageConfig', 'taskStatus'];
 
     function initialize() {
       executionDetailsSectionService.synchronizeSection($scope.configSections);
