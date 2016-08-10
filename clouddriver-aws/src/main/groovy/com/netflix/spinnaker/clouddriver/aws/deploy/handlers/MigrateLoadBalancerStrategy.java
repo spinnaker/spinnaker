@@ -158,21 +158,7 @@ public abstract class MigrateLoadBalancerStrategy implements MigrateStrategySupp
                                           String targetName, Collection<String> securityGroups,
                                           MigrateLoadBalancerResult result) {
 
-    List<Listener> unmigratableListeners = sourceLoadBalancer.getListenerDescriptions().stream()
-      .map(ListenerDescription::getListener)
-      .filter(listenerCannotBeMigrated(source, target)).collect(Collectors.toList());
-
-    unmigratableListeners.forEach(l -> result.getWarnings().add(
-      "The following listeners could not be created: " +
-        l.getProtocol() + ":" + l.getLoadBalancerPort() + " => " +
-        l.getInstanceProtocol() + ":" + l.getInstancePort() + " (certificate: " + l.getSSLCertificateId() + ")."
-    ));
-
-    List<Listener> listeners = sourceLoadBalancer.getListenerDescriptions().stream()
-      .map(ListenerDescription::getListener)
-      .collect(Collectors.toList());
-
-    listeners.removeAll(unmigratableListeners);
+    List<Listener> listeners = getListeners(sourceLoadBalancer, result);
 
     List<String> subnetIds = subnetType != null ?
       getRegionScopedProviderFactory().forRegion(target.getCredentials(), target.getRegion())
@@ -187,8 +173,7 @@ public abstract class MigrateLoadBalancerStrategy implements MigrateStrategySupp
       .getAmazonElasticLoadBalancing(target.getCredentials(), target.getRegion(), true);
     if (targetLoadBalancer == null) {
       boolean isInternal = subnetType == null || subnetType.contains("internal");
-      LoadBalancerAttributes sourceAttributes = sourceClient.describeLoadBalancerAttributes(
-        new DescribeLoadBalancerAttributesRequest().withLoadBalancerName(source.getName())).getLoadBalancerAttributes();
+      LoadBalancerAttributes sourceAttributes = getLoadBalancerAttributes(sourceLoadBalancer, sourceClient);
       LoadBalancerUpsertHandler.createLoadBalancer(
         targetClient, targetName, isInternal, target.getAvailabilityZones(), subnetIds, listeners, securityGroups, sourceAttributes);
       configureHealthCheck(targetClient, sourceLoadBalancer, targetName);
@@ -196,6 +181,35 @@ public abstract class MigrateLoadBalancerStrategy implements MigrateStrategySupp
       LoadBalancerUpsertHandler.updateLoadBalancer(targetClient, targetLoadBalancer, listeners, securityGroups);
     }
     applyListenerPolicies(sourceClient, targetClient, sourceLoadBalancer, targetName);
+  }
+
+  public List<Listener> getListeners(LoadBalancerDescription sourceLoadBalancer, MigrateLoadBalancerResult result) {
+    List<Listener> unmigratableListeners = sourceLoadBalancer.getListenerDescriptions().stream()
+      .map(ListenerDescription::getListener)
+      .filter(listenerCannotBeMigrated(source, target)).collect(Collectors.toList());
+
+    unmigratableListeners.forEach(l -> result.getWarnings().add(
+      "The following listeners could not be created: " +
+        l.getProtocol() + ":" + l.getLoadBalancerPort() + " => " +
+        l.getInstanceProtocol() + ":" + l.getInstancePort() + " (certificate: " + l.getSSLCertificateId() + ")."
+    ));
+
+    List<Listener> listeners = sourceLoadBalancer.getListenerDescriptions().stream()
+      .map(ListenerDescription::getListener)
+      .filter(l -> l.getInstancePort() > 0)  // strip out invalid load balancer listeners from legacy ELBs
+      .collect(Collectors.toList());
+
+    listeners.removeAll(unmigratableListeners);
+    return listeners;
+  }
+
+  public LoadBalancerAttributes getLoadBalancerAttributes(LoadBalancerDescription sourceLoadBalancer, AmazonElasticLoadBalancing sourceClient) {
+    LoadBalancerAttributes sourceAttributes = sourceClient.describeLoadBalancerAttributes(
+      new DescribeLoadBalancerAttributesRequest().withLoadBalancerName(sourceLoadBalancer.getLoadBalancerName())).getLoadBalancerAttributes();
+    if (sourceLoadBalancer.getListenerDescriptions().stream().anyMatch(l -> l.getListener().getInstancePort() == 0)) {
+      sourceAttributes.setCrossZoneLoadBalancing(new CrossZoneLoadBalancing().withEnabled(true));
+    }
+    return sourceAttributes;
   }
 
 
