@@ -24,7 +24,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 class AmazonImageTaggerSupport implements DeploymentDetailsAware {
   static String upstreamImageId(Stage sourceStage) {
     def imageProvidingAncestorStages = sourceStage.ancestors { Stage stage, StageBuilder stageBuilder ->
-      return (stage.context.containsKey("imageId") || stage.context.containsKey("amiDetails")) && stage.context.cloudProviderType == "aws"
+      return (stage.context.containsKey("imageId") || stage.context.containsKey("amiDetails")) && stage.context.cloudProvider == "aws"
     }
 
     def imageProvidingStage = imageProvidingAncestorStages[0]?.stage

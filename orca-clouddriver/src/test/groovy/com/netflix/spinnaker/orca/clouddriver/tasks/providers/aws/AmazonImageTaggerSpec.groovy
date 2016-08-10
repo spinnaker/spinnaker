@@ -19,10 +19,16 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTagger
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
+import org.springframework.context.ApplicationContext
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class AmazonImageTaggerSpec extends Specification {
 
@@ -35,26 +41,46 @@ class AmazonImageTaggerSpec extends Specification {
     defaultBakeAccount: "test"
   )
 
+  @Unroll
   def "should throw exception if image does not exist"() {
     given:
-    def stage = new OrchestrationStage(new Orchestration(), "", [
-      imageName: "my-ami"
+    def pipeline = new Pipeline()
+
+    def stage1 = new PipelineStage(pipeline, "", [
+      imageId: imageId,
+      cloudProvider: "aws"
+    ])
+    def stage2 = new PipelineStage(pipeline, "", [
+      imageName: imageName,
+      cloudProvider: "aws"
     ])
 
+    stage1.refId = stage1.id
+    stage2.requisiteStageRefIds = [stage1.refId]
+    stage2.stageNavigator = new StageNavigator(Mock(ApplicationContext))
+
+    pipeline.stages = [stage1, stage2]
+
     when:
-    imageTagger.getOperationContext(stage)
+    imageTagger.getOperationContext(stage2)
 
     then:
-    thrown(IllegalArgumentException)
+    ImageTagger.ImageNotFound e = thrown(ImageTagger.ImageNotFound)
+    e.shouldRetry == shouldRetry
 
-    1 * oortService.findImage("aws", "my-ami", null, null, null) >> { [] }
+    1* oortService.findImage("aws", "my-ami", null, null, null) >> { [] }
+
+    where:
+    imageId  | imageName || shouldRetry
+    "my-ami" | null      || true
+    null     | "my-ami"  || false       // do not retry if an explicitly provided image does not exist (user error)
   }
 
   def "should build upsertMachineImageTags and allowLaunchDescription operations"() {
     given:
     def stage = new OrchestrationStage(new Orchestration(), "", [
       imageName: "my-ami",
-      tags   : [
+      tags     : [
         "tag1"      : "value1",
         "appversion": "updated app version" // builtin tags should not be updatable
       ]
