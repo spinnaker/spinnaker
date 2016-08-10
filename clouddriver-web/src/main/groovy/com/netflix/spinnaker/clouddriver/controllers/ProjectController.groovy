@@ -198,7 +198,8 @@ class ProjectController {
               host: host,
               job: job,
               buildNumber: buildNumber,
-              deployed: serverGroup.createdTime)
+              deployed: serverGroup.createdTime,
+              images: serverGroup.imageSummary?.buildInfo?.images)
         } else {
           existingBuild.deployed = Math.max(existingBuild.deployed, serverGroup.createdTime)
         }
@@ -222,6 +223,7 @@ class ProjectController {
     String job
     String buildNumber
     Long deployed
+    List images
   }
 
 
