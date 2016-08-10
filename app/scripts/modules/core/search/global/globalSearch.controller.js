@@ -12,11 +12,13 @@ module.exports = angular.module('spinnaker.core.search.global.controller', [
   require('../../history/recentHistory.service.js'),
 ])
   .controller('GlobalSearchCtrl', function($scope, $element, infrastructureSearchService, recentHistoryService,
-                                           $stateParams, _, $, $log, clusterFilterService, $analytics) {
+                                           $stateParams, _, $, $log, clusterFilterService, $analytics, $sce) {
     var ctrl = this;
     var search = infrastructureSearchService();
 
     $scope.showSearchResults = false;
+
+    ctrl.tooltip = $sce.trustAsHtml('Keyboard shortcut: <span class="keyboard-key">/</span>');
 
     function reset() {
       $scope.querying = false;
