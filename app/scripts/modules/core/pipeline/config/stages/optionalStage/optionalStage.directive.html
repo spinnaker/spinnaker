@@ -3,7 +3,8 @@
     <div class="col-md-8 col-md-offset-1">
       <div class="checkbox pull-left">
         <label>
-          <input type="checkbox" ng-checked="optionalStageCtrl.isOptional()"
+          <input type="checkbox" ng-false-value="undefined"
+                 ng-checked="optionalStageCtrl.isOptional()"
                  ng-click="optionalStageCtrl.toggleOptional()"/>
           <strong> Conditional on <a class="spelLink" href="http://www.spinnaker.io/docs/pipeline-expressions-guide" target="_blank">Expression</a> </strong>
           <help-field key="pipeline.config.optionalStage"></help-field>

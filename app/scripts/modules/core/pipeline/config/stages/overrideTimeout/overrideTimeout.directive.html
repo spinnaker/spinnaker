@@ -4,6 +4,7 @@
             <div class="checkbox">
                 <label>
                     <input type="checkbox" ng-model="stage.overrideTimeout"
+                           ng-false-value="undefined"
                            ng-change="overrideTimeoutCtrl.setOverrideValues()"/>
                     <strong> Override default timeout</strong>
                     (

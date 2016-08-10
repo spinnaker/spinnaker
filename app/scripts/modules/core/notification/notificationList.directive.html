@@ -2,7 +2,10 @@
     <div class="col-md-9 col-md-offset-1">
         <div class="checkbox">
             <label>
-                <input type="checkbox" ng-model="parent.sendNotifications"/>
+                <input type="checkbox"
+                       ng-false-value="undefined"
+                       ng-change="notificationListCtrl.manageStateOnToggle()"
+                       ng-model="parent.sendNotifications"/>
                 <strong>Send notifications for this stage</strong>
             </label>
         </div>

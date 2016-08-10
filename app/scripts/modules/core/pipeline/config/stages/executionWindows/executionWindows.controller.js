@@ -26,6 +26,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.
             whitelist: [],
           };
         }
+      } else {
+        delete $scope.stage.restrictedExecutionWindow;
       }
     };
 

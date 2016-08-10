@@ -116,7 +116,16 @@ module.exports = angular.module('spinnaker.core.notifications.notificationList',
                     return el !== notification;
                 }
             );
+            if (!$scope.notifications.length) {
+              delete $scope.notifications;
+            }
             vm.isNotificationsDirty = true;
+        };
+
+        vm.manageStateOnToggle = function () {
+          if (!$scope.parent.sendNotifications) {
+            delete $scope.notifications;
+          }
         };
 
         return vm;
