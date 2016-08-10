@@ -11,7 +11,7 @@ module.exports = angular
   .controller('TagImageExecutionDetailsCtrl', function ($scope, $stateParams, manualJudgmentService,
                                                         executionDetailsSectionService) {
 
-    $scope.configSections = ['tagImage', 'taskStatus'];
+    $scope.configSections = ['tagImageConfig', 'taskStatus'];
 
     function initialize() {
       executionDetailsSectionService.synchronizeSection($scope.configSections);

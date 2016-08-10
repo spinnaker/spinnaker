@@ -1,25 +1,24 @@
 <div ng-controller="TagImageExecutionDetailsCtrl as tagImageCtrl">
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
-  <div class="step-section-details" ng-if="detailsSection === 'tagImage'">
-    <div class="row">
+  <div class="step-section-details" ng-if="detailsSection === 'tagImageConfig'">
+    <div class="row" ng-if="stage.context.targets">
       <div class="col-md-12">
         <dl class="dl-narrow dl-horizontal">
-          <dt ng-if="stage.context.target.imageName">Image Name</dt>
-          <dd ng-if="stage.context.target.imageName">{{stage.context.target.imageName}}</dd>
-          <dt ng-if="stage.context.target.regions">Regions</dt>
-          <dd ng-if="stage.context.target.imageName">{{stage.context.target.regions.join(', ')}}</dd>
+          <dt>Images</dt>
+          <dd ng-repeat="target in stage.context.targets">
+            {{target.imageName}}<br/>
+            <em>{{target.regions.join(', ')}}</em>
+          </dd>
         </dl>
       </div>
     </div>
     <div class="row">
       <div class="col-md-12">
-        <strong>Updated Tags</strong>
         <dl class="dl-narrow dl-horizontal">
-          <div ng-repeat="(key, val) in stage.context.tags" ng-if="val !== null">
-            <dt>{{key}}</dt>
-            <dd>{{val}}</dd>
-          </div>
-          <dd ng-bind-html="stage.context.instructions"></dd>
+          <dt>Tags</dt>
+          <dd ng-repeat="(key, val) in stage.context.tags" ng-if="val !== null">
+            {{key}} = {{val}}
+          </dd>
         </dl>
       </div>
     </div>
