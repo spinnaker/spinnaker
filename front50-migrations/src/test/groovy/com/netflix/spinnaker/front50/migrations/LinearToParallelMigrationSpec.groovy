@@ -19,6 +19,7 @@ package com.netflix.spinnaker.front50.migrations
 
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
+import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -28,10 +29,13 @@ import java.time.Instant
 
 class LinearToParallelMigrationSpec extends Specification {
   def pipelineDAO = Mock(PipelineDAO)
+  def pipelineStrategyDAO = Mock(PipelineStrategyDAO)
   def clock = Mock(Clock)
 
   @Subject
-  def migration = new LinearToParallelMigration(clock: clock, pipelineDAO: pipelineDAO)
+  def migration = new LinearToParallelMigration(
+      clock: clock, pipelineDAO: pipelineDAO, pipelineStrategyDAO: pipelineStrategyDAO
+  )
 
   @Unroll
   def "should set refId and requisiteStageRefIds when parallel = false"() {
@@ -42,10 +46,19 @@ class LinearToParallelMigrationSpec extends Specification {
             [name: "stage2"]
         ]
     ]) + additionalPipelineContext
+    pipeline.id = "pipeline-1"
 
+    def pipelineStrategy = new Pipeline([
+        stages: [
+            [name: "stage1"],
+            [name: "stage2"]
+        ]
+    ]) + additionalPipelineContext
+    pipelineStrategy.id = "pipelineStrategy-1"
 
     when:
     migration.run()
+    migration.run() // subsequent migration run should be a no-op
 
     then:
     pipeline.parallel == true
@@ -54,7 +67,18 @@ class LinearToParallelMigrationSpec extends Specification {
         [name: "stage2", refId: "1", requisiteStageRefIds: ["0"]]
 
     ]
-    1 * pipelineDAO.all() >> { return [pipeline] }
+    pipelineStrategy.parallel == true
+    pipelineStrategy.stages == [
+        [name: "stage1", refId: "0", requisiteStageRefIds: []],
+        [name: "stage2", refId: "1", requisiteStageRefIds: ["0"]]
+
+    ]
+
+    2 * pipelineDAO.all() >> { return [pipeline] }
+    2 * pipelineStrategyDAO.all() >> { return [pipelineStrategy] }
+    1 * pipelineDAO.update("pipeline-1", _)
+    1 * pipelineStrategyDAO.update("pipelineStrategy-1", _)
+    0 * _
 
     where:
     additionalPipelineContext || _

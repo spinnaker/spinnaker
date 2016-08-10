@@ -16,7 +16,10 @@
 
 package com.netflix.spinnaker.front50.migrations;
 
+import com.netflix.spinnaker.front50.model.ItemDAO;
+import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
+import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +43,9 @@ public class LinearToParallelMigration implements Migration {
   @Autowired
   PipelineDAO pipelineDAO;
 
+  @Autowired
+  PipelineStrategyDAO pipelineStrategyDAO;
+
   @Override
   public boolean isValid() {
     return  clock.instant().toEpochMilli() < VALID_UNTIL.getTime();
@@ -50,25 +56,36 @@ public class LinearToParallelMigration implements Migration {
     pipelineDAO.all().stream()
         .filter(pipeline -> !((Boolean) pipeline.getOrDefault("parallel", false)))
         .forEach(pipeline -> {
-          log.info(format("Migrating pipeline '%s' from linear -> parallel", pipeline.getId()));
+          migrate(pipelineDAO, "pipeline", pipeline);
+        });
 
-          AtomicInteger refId = new AtomicInteger(0);
-          List<Map<String, Object>> stages = (List<Map<String, Object>>) pipeline.getOrDefault("stages", Collections.emptyList());
-          stages.forEach(stage -> {
-            stage.put("refId", String.valueOf(refId.get()));
-            if (refId.get() > 0) {
-              stage.put("requisiteStageRefIds", Collections.singletonList(String.valueOf(refId.get() - 1)));
-            } else {
-              stage.put("requisiteStageRefIds", Collections.emptyList());
-            }
-
-            refId.incrementAndGet();
-          });
-
-          pipeline.put("parallel", true);
-          pipelineDAO.update(pipeline.getId(), pipeline);
-
-          log.info(format("Migrated pipeline '%s' from linear -> parallel", pipeline.getId()));
+    pipelineStrategyDAO.all().stream()
+        .filter(strategy -> !((Boolean) strategy.getOrDefault("parallel", false)))
+        .forEach(strategy -> {
+          migrate(pipelineStrategyDAO, "pipeline strategy", strategy);
         });
   }
+
+  private void migrate(ItemDAO<Pipeline> dao, String type, Pipeline pipeline) {
+    log.info(format("Migrating %s '%s' from linear -> parallel", type, pipeline.getId()));
+
+    AtomicInteger refId = new AtomicInteger(0);
+    List<Map<String, Object>> stages = (List<Map<String, Object>>) pipeline.getOrDefault("stages", Collections.emptyList());
+    stages.forEach(stage -> {
+      stage.put("refId", String.valueOf(refId.get()));
+      if (refId.get() > 0) {
+        stage.put("requisiteStageRefIds", Collections.singletonList(String.valueOf(refId.get() - 1)));
+      } else {
+        stage.put("requisiteStageRefIds", Collections.emptyList());
+      }
+
+      refId.incrementAndGet();
+    });
+
+    pipeline.put("parallel", true);
+    dao.update(pipeline.getId(), pipeline);
+
+    log.info(format("Migrated %s '%s' from linear -> parallel", type, pipeline.getId()));
+  }
+
 }
