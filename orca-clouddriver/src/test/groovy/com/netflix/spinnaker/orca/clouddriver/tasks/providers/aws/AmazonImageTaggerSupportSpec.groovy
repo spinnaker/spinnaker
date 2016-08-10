@@ -43,14 +43,14 @@ class AmazonImageTaggerSupportSpec extends Specification {
     }
 
     expect:
-    AmazonImageTaggerSupport.upstreamImageId(stage3) == expectedImageName
+    AmazonImageTaggerSupport.upstreamImageIds(stage3) == expectedImageNames
 
     where:
-    stage1Context                    | stage2Context    || expectedImageName
-    [:]                              | [:]              || null
-    [imageId: "xxx"]                 | [:]              || "xxx"
-    [imageId: "xxx"]                 | [imageId: "yyy"] || "yyy"
-    [amiDetails: [[imageId: "xxx"]]] | [:]              || "xxx"
-    [amiDetails: [[imageId: "xxx"]]] | [imageId: "yyy"] || "yyy"
+    stage1Context                    | stage2Context    || expectedImageNames
+    [:]                              | [:]              || []
+    [imageId: "xxx"]                 | [:]              || ["xxx"]
+    [imageId: "xxx"]                 | [imageId: "yyy"] || ["yyy", "xxx"]
+    [amiDetails: [[imageId: "xxx"]]] | [:]              || ["xxx"]
+    [amiDetails: [[imageId: "xxx"]]] | [imageId: "yyy"] || ["yyy", "xxx"]
   }
 }

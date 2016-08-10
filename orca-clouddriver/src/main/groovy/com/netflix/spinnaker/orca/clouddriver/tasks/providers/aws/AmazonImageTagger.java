@@ -55,61 +55,74 @@ public class AmazonImageTagger implements ImageTagger, CloudProviderAware {
   public ImageTagger.OperationContext getOperationContext(Stage stage) {
     StageData stageData = (StageData) stage.mapTo(StageData.class);
 
-    MatchedImage matchedImage = findImage(stageData.imageName, stage);
+    Collection<MatchedImage> matchedImages = findImages(stageData.imageNames, stage);
     if (stageData.regions == null || stageData.regions.isEmpty()) {
-      stageData.regions = matchedImage.amis.keySet();
+      stageData.regions = matchedImages.stream()
+        .flatMap(matchedImage -> matchedImage.amis.keySet().stream())
+        .collect(Collectors.toSet());
     }
-    stageData.imageName = matchedImage.imageName;
+
+    stageData.imageNames = matchedImages.stream()
+      .map(matchedImage -> matchedImage.imageName)
+      .collect(Collectors.toList());
 
     // Built-in tags are not updatable
     Map<String, String> tags = stageData.tags.entrySet().stream()
       .filter(entry -> !BUILT_IN_TAGS.contains(entry.getKey()))
       .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-    Image targetImage = new Image(
-      matchedImage.imageName,
-      defaultBakeAccount,
-      stageData.regions,
-      tags
-    );
-
-    log.info(format("Tagging '%s' with '%s' (executionId: %s)", targetImage.imageName, targetImage.tags, stage.getExecution().getId()));
-
+    List<Image> targetImages = new ArrayList<>();
+    Map<String, Object> originalTags = new HashMap<>();
     List<Map<String, Map>> operations = new ArrayList<>();
 
-    // Update the tags on the image in the `defaultBakeAccount`
-    operations.add(
-      ImmutableMap.<String, Map>builder()
-        .put(OPERATION, ImmutableMap.builder()
-          .put("amiName", targetImage.imageName)
-          .put("tags", targetImage.tags)
-          .put("regions", targetImage.regions)
-          .put("credentials", targetImage.account)
-          .build()
-        ).build()
-    );
+    for (MatchedImage matchedImage : matchedImages) {
+      Image targetImage = new Image(
+        matchedImage.imageName,
+        defaultBakeAccount,
+        stageData.regions,
+        tags
+      );
+      targetImages.add(targetImage);
 
-    // Re-share the image in all other accounts (will result in tags being updated)
-    matchedImage.accounts.stream()
-      .filter(account -> !account.equalsIgnoreCase(defaultBakeAccount))
-      .forEach(account -> {
-        stageData.regions.forEach(region ->
-          operations.add(
-            ImmutableMap.<String, Map>builder()
-              .put(ALLOW_LAUNCH_OPERATION, ImmutableMap.builder()
-                .put("account", account)
-                .put("credentials", defaultBakeAccount)
-                .put("region", region)
-                .put("amiName", targetImage.imageName)
-                .build()
-              ).build()
-          )
-        );
-      });
+      log.info(format("Tagging '%s' with '%s' (executionId: %s)", targetImage.imageName, targetImage.tags, stage.getExecution().getId()));
+
+      // Update the tags on the image in the `defaultBakeAccount`
+      operations.add(
+        ImmutableMap.<String, Map>builder()
+          .put(OPERATION, ImmutableMap.builder()
+            .put("amiName", targetImage.imageName)
+            .put("tags", targetImage.tags)
+            .put("regions", targetImage.regions)
+            .put("credentials", targetImage.account)
+            .build()
+          ).build()
+      );
+
+      // Re-share the image in all other accounts (will result in tags being updated)
+      matchedImage.accounts.stream()
+        .filter(account -> !account.equalsIgnoreCase(defaultBakeAccount))
+        .forEach(account -> {
+          stageData.regions.forEach(region ->
+            operations.add(
+              ImmutableMap.<String, Map>builder()
+                .put(ALLOW_LAUNCH_OPERATION, ImmutableMap.builder()
+                  .put("account", account)
+                  .put("credentials", defaultBakeAccount)
+                  .put("region", region)
+                  .put("amiName", targetImage.imageName)
+                  .build()
+                ).build()
+            )
+          );
+        });
+
+
+      originalTags.put(matchedImage.imageName, matchedImage.tagsByImageId);
+    }
 
     Map<String, Object> extraOutput = objectMapper.convertValue(stageData, Map.class);
-    extraOutput.put("target", targetImage);
-    extraOutput.put("originalTags", matchedImage.tagsByImageId);
+    extraOutput.put("targets", targetImages);
+    extraOutput.put("originalTags", originalTags);
     return new ImageTagger.OperationContext(operations, extraOutput);
   }
 
@@ -117,21 +130,36 @@ public class AmazonImageTagger implements ImageTagger, CloudProviderAware {
    * Return true iff the tags on the current machine image match the desired.
    */
   @Override
-  public boolean isImageTagged(Image targetImage, Stage stage) {
-    MatchedImage matchedImage = findImage(targetImage.imageName, stage);
+  public boolean areImagesTagged(Collection<Image> targetImages, Stage stage) {
+    Collection<MatchedImage> matchedImages = findImages(
+      targetImages.stream().map(targetImage -> targetImage.imageName).collect(Collectors.toList()),
+      stage
+    );
 
     AtomicBoolean isUpserted = new AtomicBoolean(true);
-    targetImage.regions.forEach(region -> {
-        List<String> imagesForRegion = matchedImage.amis.get(region);
-        imagesForRegion.forEach(image -> {
-          Map<String, String> allImageTags = matchedImage.tagsByImageId.get(image);
-          targetImage.tags.entrySet().forEach(entry -> {
-            // assert tag equality
-            isUpserted.set(isUpserted.get() && entry.getValue().equals(allImageTags.get(entry.getKey())));
+    for (Image targetImage : targetImages) {
+      targetImage.regions.forEach(region -> {
+          MatchedImage matchedImage = matchedImages.stream()
+            .filter(m -> m.imageName.equals(targetImage.imageName))
+            .findFirst()
+            .orElse(null);
+
+          if (matchedImage == null) {
+            isUpserted.set(false);
+            return;
+          }
+
+          List<String> imagesForRegion = matchedImage.amis.get(region);
+          imagesForRegion.forEach(image -> {
+            Map<String, String> allImageTags = matchedImage.tagsByImageId.get(image);
+            targetImage.tags.entrySet().forEach(entry -> {
+              // assert tag equality
+              isUpserted.set(isUpserted.get() && entry.getValue().equals(allImageTags.get(entry.getKey())));
+            });
           });
-        });
-      }
-    );
+        }
+      );
+    }
 
     return isUpserted.get();
   }
@@ -141,37 +169,44 @@ public class AmazonImageTagger implements ImageTagger, CloudProviderAware {
     return "aws";
   }
 
-  private MatchedImage findImage(String imageName, Stage stage) {
-    if (imageName == null) {
-      // attempt to find an upstream image in the event that one was not explicitly provided
-      String upstreamImageId = AmazonImageTaggerSupport.upstreamImageId(stage);
-      if (upstreamImageId == null) {
-        throw new IllegalStateException("Unable to determine source image");
+  private Collection<MatchedImage> findImages(List<String> imageNames, Stage stage) {
+    if (imageNames == null || imageNames.isEmpty()) {
+      imageNames = new ArrayList<>();
+
+      // attempt to find upstream images in the event that one was not explicitly provided
+      Collection<String> upstreamImageIds = AmazonImageTaggerSupport.upstreamImageIds(stage);
+      if (upstreamImageIds.isEmpty()) {
+        throw new IllegalStateException("Unable to determine source image(s)");
       }
 
-      // attempt to lookup the equivalent image name (given the upstream amiId/imageId)
-      List<Map> allMatchedImages = oortService.findImage(getCloudProvider(), upstreamImageId, null, null, null);
-      if (allMatchedImages.isEmpty()) {
-        throw new ImageNotFound(format("No image found (imageId: %s)", upstreamImageId), true);
-      }
-      imageName = (String) allMatchedImages.get(0).get("imageName");
+      for (String upstreamImageId : upstreamImageIds) {
+        // attempt to lookup the equivalent image name (given the upstream amiId/imageId)
+        List<Map> allMatchedImages = oortService.findImage(getCloudProvider(), upstreamImageId, null, null, null);
+        if (allMatchedImages.isEmpty()) {
+          throw new ImageNotFound(format("No image found (imageId: %s)", upstreamImageId), true);
+        }
 
-      log.info(format("Found upstream image '%s' (executionId: %s)", imageName, stage.getExecution().getId()));
+        String upstreamImageName = (String) allMatchedImages.get(0).get("imageName");
+        imageNames.add(upstreamImageName);
+
+        log.info(format("Found upstream image '%s' (executionId: %s)", upstreamImageName, stage.getExecution().getId()));
+      }
     }
 
-    String targetImageName = imageName;
-
-    List<Map> allMatchedImages = oortService.findImage(getCloudProvider(), imageName, null, null, null);
-    Map matchedImage = allMatchedImages.stream()
-      .filter(image -> image.get("imageName").equals(targetImageName))
-      .findFirst()
-      .orElseThrow(() -> new ImageNotFound(format("No image found (imageName: %s)", targetImageName), false));
-
-    return objectMapper.convertValue(matchedImage, MatchedImage.class);
+    return imageNames.stream()
+      .map(targetImageName -> {
+        List<Map> allMatchedImages = oortService.findImage(getCloudProvider(), targetImageName, null, null, null);
+        Map matchedImage = allMatchedImages.stream()
+          .filter(image -> image.get("imageName").equals(targetImageName))
+          .findFirst()
+          .orElseThrow(() -> new ImageNotFound(format("No image found (imageName: %s)", targetImageName), false));
+        return objectMapper.convertValue(matchedImage, MatchedImage.class);
+      })
+      .collect(Collectors.toList());
   }
 
   static class StageData {
-    public String imageName;
+    public List<String> imageNames;
     public Set<String> regions = new HashSet<>();
     public Map<String, String> tags = new HashMap<>();
   }
