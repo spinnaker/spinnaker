@@ -384,7 +384,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
               serverGroupUrl: backend.group,
               policy: GCEUtil.loadBalancingPolicyFromBackend(backend)
           )
-        }
+        } ?: []
       }
 
       backendService.backends?.each { Backend backend ->
