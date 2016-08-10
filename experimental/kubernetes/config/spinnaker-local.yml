@@ -135,7 +135,6 @@ services:
     port: ${services.rosco.port}
     baseUrl: ${services.rosco.baseUrl}
     extractBuildDetails: true
-    propagateCloudProviderType: true
 
   docker:
     # This target repository is used by the bakery to publish baked docker images.

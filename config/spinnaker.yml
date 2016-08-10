@@ -161,7 +161,6 @@ services:
     port: ${services.rosco.port}
     baseUrl: ${services.rosco.baseUrl}
     extractBuildDetails: true
-    propagateCloudProviderType: true
     allowMissingPackageInstallation: false
 
   docker:
