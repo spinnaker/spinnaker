@@ -8,6 +8,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
       'determine task completion. When this option is disabled, tasks will normally need health status reported by some other health provider (e.g. a ' +
       'load balancer or discovery service) to determine task completion.',
     'application.showPlatformHealthOverride': 'When this option is enabled, users will be able to toggle the option above on a task-by-task basis.',
+    'core.serverGroup.strategy': 'The deployment strategy tells Spinnaker what to do with the previous version of the server group.',
     'aws.associateElasticIp.elasticIp': '<p>(Optional) <b>Elastic IP</b> is an IP address that Spinnaker will associate with this cluster.' +
       '<p>If specified, this elastic IP must exist and not already be attached to an instance or cluster.</p>' +
       '<p>If left blank, Spinnaker will make a selection from the list of available elastic IPs in the provided account and region.</p>',
@@ -46,7 +47,6 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'aws.serverGroup.tags': '(Optional) <b>Tags</b> are propagated to the instances in this cluster.',
     'aws.serverGroup.allImages': 'Search for an image that does not match the name of your application.',
     'aws.serverGroup.filterImages': 'Select from a pre-filtered list of images matching the name of your application.',
-    'aws.serverGroup.strategy': 'The deployment strategy tells Spinnaker what to do with the previous version of the server group.',
     'aws.serverGroup.traffic': 'Enables the "AddToLoadBalancer" scaling process, which is used by Spinnaker and ' +
     ' discovery services to determine if the server group is enabled.',
     'aws.securityGroup.vpc': '<p>The VPC to which this security group will apply.</p>' +

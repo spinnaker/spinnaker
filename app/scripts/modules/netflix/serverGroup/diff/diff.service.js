@@ -9,6 +9,7 @@ module.exports = angular.module('spinnaker.core.diff.service', [
 ])
   .factory('diffService', function (_, API, $q, settings) {
 
+    // TODO: Consider removing entirely after 11/08/16 if nobody asks about the feature being turned off
     function getClusterDiffForAccount(accountName, clusterName) {
       if (!settings.feature.clusterDiff) {
         return $q.when({});
