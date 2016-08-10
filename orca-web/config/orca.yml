@@ -17,6 +17,8 @@ kato:
   baseUrl: http://localhost:7002
 echo:
   enabled: false
+igor:
+  baseUrl: http://localhost:8088
 bakery:
   baseUrl: http://localhost:8089
   # Rosco exposes more endpoints than Netflix's internal bakery. This disables
