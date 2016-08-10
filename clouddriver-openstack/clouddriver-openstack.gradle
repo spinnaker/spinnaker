@@ -15,7 +15,7 @@
  */
 
 ext {
-  openstack4jVersion = '3.0.0'
+  openstack4jVersion = '3.0.1'
   commonsNetVersion = '3.5'
   commonsIOVersion = '1.3.2'
 }
@@ -26,7 +26,8 @@ dependencies {
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
 
-  compile "org.pacesys:openstack4j:$openstack4jVersion"
+  compile "org.pacesys:openstack4j-core:$openstack4jVersion"
+  compile "org.pacesys.openstack4j.connectors:openstack4j-jersey2:$openstack4jVersion"
   compile "commons-net:commons-net:$commonsNetVersion"
   compile "org.apache.commons:commons-io:$commonsIOVersion"
 }

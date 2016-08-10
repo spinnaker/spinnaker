@@ -59,6 +59,8 @@ class OpenstackInstanceTypeCachingAgentSpec extends Specification {
     and:
     Flavor flavor = Mock(Flavor) {
       getId() >> { flavorId }
+      isPublic() >> { false }
+      isDisabled() >> { false }
     }
     OpenstackInstanceType openstackInstanceType = OpenstackInstanceType.builder().region(region).account(account).id(flavorId).build()
     Map<String, Object> instanceTypesAttributes = objectMapper.convertValue(openstackInstanceType, OpenstackInfrastructureProvider.ATTRIBUTES)
