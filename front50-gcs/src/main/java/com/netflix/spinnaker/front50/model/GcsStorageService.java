@@ -27,6 +27,7 @@ import com.google.api.services.storage.model.Bucket;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.util.DateTime;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpResponseException;
 import com.google.api.client.http.HttpTransport;
@@ -339,27 +340,34 @@ public class GcsStorageService implements StorageService {
 
   private void writeLastModified(String daoTypeName) {
       // We'll just touch the file since the StorageObject manages a timestamp.
-      byte[] bytes = "{}".getBytes();
-      ByteArrayContent content = new ByteArrayContent("application/json", bytes);
       String timestamp_path = daoRoot(daoTypeName) + '/' + LAST_MODIFIED_FILENAME;
       StorageObject object = new StorageObject()
           .setBucket(bucketName)
           .setName(timestamp_path)
           .setUpdated(new DateTime(System.currentTimeMillis()));
       try {
-          obj_api.insert(bucketName, object, content).execute();
+        obj_api.update(bucketName, object.getName(), object).execute();
       } catch (HttpResponseException e) {
-          log.error("writeLastModified failed: {}", e);
-          try {
-              obj_api.update(bucketName, object.getName(), object);
-          } catch (IOException ioex) {
-              log.error("writeLastModified update failed too: {}", ioex);
-              throw new IllegalStateException(ioex);
-          }
+        log.error("writeLastModified failed to update: {}", e.toString());
+
+        if (e.getStatusCode() == 404 || e.getStatusCode() == 400) {
+            byte[] bytes = "{}".getBytes();
+            ByteArrayContent content = new ByteArrayContent("application/json", bytes);
+
+            try {
+              obj_api.insert(bucketName, object, content).execute();
+            } catch (IOException ioex) {
+              log.error("writeLastModified insert failed too: {}", ioex);
+              throw new IllegalStateException(e);
+            }
+        } else {
+            throw new IllegalStateException(e);
+        }
       } catch (IOException e) {
-          log.error("writeLastModified failed: {}", e);
-          throw new IllegalStateException(e);
+        log.error("writeLastModified failed: {}", e);
+        throw new IllegalStateException(e);
       }
+
       try {
           // If the bucket is versioned, purge the old timestamp versions
           // because they serve no value and just consume storage and extra time
@@ -405,12 +413,19 @@ public class GcsStorageService implements StorageService {
   }
 
   public long getLastModified(String daoTypeName) {
+      String path = daoRoot(daoTypeName) + '/' + LAST_MODIFIED_FILENAME;
       try {
-        return obj_api.get(
-                  bucketName,
-                  daoRoot(daoTypeName) + '/' + LAST_MODIFIED_FILENAME).execute()
-              .getUpdated().getValue();
+          return obj_api.get(bucketName, path).execute().getUpdated().getValue();
+      } catch (HttpResponseException e) {
+          if (e.getStatusCode() == 404) {
+              log.error("No timestamp file at {}. Creating a new one.", path);
+              writeLastModified(daoTypeName);
+              return 0L;
+          }
+          log.error("Error writing timestamp file {}", e.toString());
+          return 0L;
       } catch (Exception e) {
+          log.error("Error accessing timestamp file {}", e.toString());
           return 0L;
       }
   }
