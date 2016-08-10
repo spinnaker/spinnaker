@@ -23,7 +23,7 @@
 
       <copy-to-clipboard
         class="copy-to-clipboard"
-        text="ssh -t {{ctrl.bastionHost}} 'titus-ssh -id {{instance.id}}'"
+        text="ssh -t {{ctrl.bastionHost}} 'titus-ssh -region {{instance.region}} -id {{instance.id}}'"
         tool-tip="Copy titus-ssh command to clipboard">
       </copy-to-clipboard>
     </div>
