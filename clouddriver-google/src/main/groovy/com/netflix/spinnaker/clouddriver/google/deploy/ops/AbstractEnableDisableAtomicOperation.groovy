@@ -28,6 +28,9 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<Void> {
+  private static final List<Integer> RETRY_ERROR_CODES = [400, 412]
+  private static final List<Integer> SUCCESSFUL_ERROR_CODES = [404]
+
   abstract boolean isDisable()
 
   abstract String getPhaseName()
@@ -75,7 +78,15 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     if (disable) {
       task.updateStatus phaseName, "Deregistering server group from Http(s) load balancers..."
 
-      GCEUtil.destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName)
+      GCEUtil.safeRetry(
+          destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
+          "destroy",
+          "Http load balancer backends",
+          task,
+          phaseName,
+          RETRY_ERROR_CODES,
+          SUCCESSFUL_ERROR_CODES
+      )
 
       task.updateStatus phaseName, "Deregistering server group from network load balancers..."
 
@@ -102,7 +113,15 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     } else {
       task.updateStatus phaseName, "Registering server group with Http(s) load balancers..."
 
-      GCEUtil.addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName)
+      GCEUtil.safeRetry(
+          addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
+          "add",
+          "Http load balancer backends",
+          task,
+          phaseName,
+          RETRY_ERROR_CODES,
+          []
+      )
 
       task.updateStatus phaseName, "Registering instances with network load balancers..."
 
@@ -183,5 +202,19 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
   Task getTask() {
     TaskRepository.threadLocalTask.get()
+  }
+
+  Closure destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
+    return {
+      GCEUtil.destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName)
+      null
+    }
+  }
+
+  Closure addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
+    return {
+      GCEUtil.addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName)
+      null
+    }
   }
 }

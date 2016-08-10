@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.deploy.description.*
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
+import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationTimedOutException
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.model.*
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
@@ -41,6 +42,8 @@ import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
+
+import java.util.concurrent.TimeUnit
 
 @Slf4j
 class GCEUtil {
@@ -794,6 +797,56 @@ class GCEUtil {
           task.updateStatus phase, "Deleted backend for server group ${serverGroupName} from Http(s) load balancer backend service ${backendServiceName}."
         }
       }
+    }
+  }
+
+  /**
+   * Retry a GCP operation if it fails. Treat any error codes in successfulErrorCodes as success.
+   *
+   * @param operation - The GCP operation.
+   * @param action - String describing the GCP operation.
+   * @param resource - Resource we are operating on.
+   * @param task
+   * @param phase
+   * @param retryCodes - GoogleJsonResponseException codes we retry on.
+   * @param successfulErrorCodes - GoogleJsonException codes we treat as success.
+   */
+  static void safeRetry(Closure operation,
+                        String action,
+                        String resource,
+                        Task task,
+                        String phase,
+                        List<Integer> retryCodes,
+                        List<Integer> successfulErrorCodes) {
+    try {
+      task.updateStatus phase, "Attempting $action of $resource..."
+      operation()
+    } catch (GoogleJsonResponseException | GoogleOperationTimedOutException _) {
+      log.warn "Initial $action of $resource failed, retrying..."
+
+      int tries = 1
+      while (tries < 10) { // Retry 10 times.
+        try {
+          tries++
+          sleep(TimeUnit.SECONDS.toMillis(10)) // With 10 seconds between tries.
+          log.warn "$action $resource attempt #$tries..."
+          operation()
+          log.warn "$action $resource attempt #$tries succeeded"
+          return
+        } catch (GoogleJsonResponseException jsonException) {
+          if (jsonException.statusCode in successfulErrorCodes) {
+            log.warn "Retry $action of $resource encountered ${jsonException.statusCode}, treating as success..."
+            return
+          } else if (jsonException.statusCode in retryCodes) {
+            log.warn "Retry $action of $resource encountered ${jsonException.statusCode}, trying again..."
+          } else {
+            throw jsonException
+          }
+        } catch (GoogleOperationTimedOutException __) {
+          log.warn "Retry $action timed out again, trying again..."
+        }
+      }
+      throw new GoogleOperationException("Failed to delete $resource after #$tries")
     }
   }
 

@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
+import com.google.api.client.googleapis.json.GoogleJsonError
+import com.google.api.client.googleapis.json.GoogleJsonResponseException
+import com.google.api.client.http.HttpHeaders
+import com.google.api.client.http.HttpResponseException
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
 import com.netflix.frigga.Names
@@ -42,7 +46,6 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final INSTANCE_TEMPLATE_NAME = "$SERVER_GROUP_NAME-${System.currentTimeMillis()}"
   private static final INSTANCE_GROUP_OP_NAME = "spinnaker-test-v000-op"
   private static final AUTOSCALERS_OP_NAME = "spinnaker-test-v000-autoscaler-op"
-  private static final BASE_PHASE = "DESTROY_SERVER_GROUP"
   private static final REGION = "us-central1"
   private static final ZONE = "us-central1-b"
   private static final DONE = "DONE"
@@ -257,7 +260,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       _ * backendUpdateMock.execute()
       bs.backends.size == 0
 
-      where:
+    where:
       isRegional | location | loadBalancerList                                                         | lbNames
       false      | ZONE     |  [new GoogleHttpLoadBalancer(name: 'spinnaker-http-load-balancer').view] | ['spinnaker-http-load-balancer']
       true       | REGION   |  [new GoogleHttpLoadBalancer(name: 'spinnaker-http-load-balancer').view] | ['spinnaker-http-load-balancer']
@@ -265,5 +268,136 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       true       | REGION   |  [new GoogleHttpLoadBalancer(name: 'spinnaker-http-load-balancer').view] | ['spinnaker-http-load-balancer']
       false      | ZONE     |  []                                                                      | []
       true       | REGION   |  []                                                                      | []
+  }
+
+  @Unroll
+  void "should retry http backend deletion on 400, 412, succeed on 404"() {
+    // Note: Implicitly tests GCEUtil.safeRetry
+    setup:
+      def computeMock = Mock(Compute)
+      def backendServicesMock = Mock(Compute.BackendServices)
+      def backendSvcGetMock = Mock(Compute.BackendServices.Get)
+      def backendUpdateMock = Mock(Compute.BackendServices.Update)
+      def googleLoadBalancerProviderMock = Mock(GoogleLoadBalancerProvider)
+      googleLoadBalancerProviderMock.getApplicationLoadBalancers("") >> loadBalancerList
+
+      def serverGroup =
+          new GoogleServerGroup(
+              name: SERVER_GROUP_NAME,
+              region: REGION,
+              regional: isRegional,
+              zone: ZONE,
+              asg: [
+                  (GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES): lbNames,
+              ],
+              launchConfig: [
+                  instanceTemplate: new InstanceTemplate(name: INSTANCE_TEMPLATE_NAME,
+                      properties: [
+                          'metadata': new Metadata(items: [
+                              new Metadata.Items(
+                                  key: (GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES),
+                                  value: 'spinnaker-http-load-balancer'
+                              ),
+                              new Metadata.Items(
+                                  key: (GoogleServerGroup.View.BACKEND_SERVICE_NAMES),
+                                  value: 'backend-service'
+                              )
+                          ])
+                      ])
+              ]).view
+
+      def errorMessage = "The resource 'my-backend-service' is not ready"
+      def errorInfo = new GoogleJsonError.ErrorInfo(
+          domain: "global",
+          message: errorMessage,
+          reason: "resourceNotReady")
+      def details = new GoogleJsonError(
+          code: 400,
+          errors: [errorInfo],
+          message: errorMessage)
+      def httpResponseExceptionBuilder = new HttpResponseException.Builder(
+          400,
+          "Bad Request",
+          new HttpHeaders()).setMessage("400 Bad Request")
+      def googleJsonResponseException = new GoogleJsonResponseException(httpResponseExceptionBuilder, details)
+
+      errorMessage = "Invalid fingerprint."
+      errorInfo = new GoogleJsonError.ErrorInfo(
+          domain: "global",
+          message: errorMessage,
+          reason: "conditionNotMet")
+      details = new GoogleJsonError(
+          code: 412,
+          errors: [errorInfo],
+          message: errorMessage)
+      httpResponseExceptionBuilder = new HttpResponseException.Builder(
+          412,
+          "Precondition Failed",
+          new HttpHeaders()).setMessage("412 Precondition Failed")
+      def fingerPrintException = new GoogleJsonResponseException(httpResponseExceptionBuilder, details)
+
+      errorMessage = "Resource 'stuff' could not be located"
+      errorInfo = new GoogleJsonError.ErrorInfo(
+          domain: "global",
+          message: errorMessage,
+          reason: "stuffNotFound")
+      details = new GoogleJsonError(
+          code: 404,
+          errors: [errorInfo],
+          message: errorMessage)
+      httpResponseExceptionBuilder = new HttpResponseException.Builder(
+          404,
+          "Not Found",
+          new HttpHeaders()).setMessage("404 Not Found")
+      def notFoundException = new GoogleJsonResponseException(httpResponseExceptionBuilder, details)
+
+      def bs = isRegional ?
+          new BackendService(backends: lbNames.collect { new Backend(group: GCEUtil.buildZonalServerGroupUrl(PROJECT_NAME, ZONE, serverGroup.name)) }) :
+          new BackendService(backends: lbNames.collect { new Backend(group: GCEUtil.buildRegionalServerGroupUrl(PROJECT_NAME, REGION, serverGroup.name)) })
+
+    when:
+      DestroyGoogleServerGroupAtomicOperation.destroy(
+          DestroyGoogleServerGroupAtomicOperation.destroyHttpLoadBalancerBackends(computeMock, PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock),
+          "Http load balancer backends"
+      )
+
+    then:
+      1 * backendUpdateMock.execute() >> { throw googleJsonResponseException }
+      2 * computeMock.backendServices() >> backendServicesMock
+      1 * backendServicesMock.get(PROJECT_NAME, 'backend-service') >> backendSvcGetMock
+      1 * backendSvcGetMock.execute() >> bs
+      1 * backendServicesMock.update(PROJECT_NAME, 'backend-service', bs) >> backendUpdateMock
+
+    then:
+      1 * backendUpdateMock.execute() >> { throw fingerPrintException }
+      2 * computeMock.backendServices() >> backendServicesMock
+      1 * backendServicesMock.get(PROJECT_NAME, 'backend-service') >> backendSvcGetMock
+      1 * backendSvcGetMock.execute() >> bs
+      1 * backendServicesMock.update(PROJECT_NAME, 'backend-service', bs) >> backendUpdateMock
+
+    then:
+      1 * backendUpdateMock.execute()
+      2 * computeMock.backendServices() >> backendServicesMock
+      1 * backendServicesMock.get(PROJECT_NAME, 'backend-service') >> backendSvcGetMock
+      1 * backendSvcGetMock.execute() >> bs
+      1 * backendServicesMock.update(PROJECT_NAME, 'backend-service', bs) >> backendUpdateMock
+
+    when:
+      DestroyGoogleServerGroupAtomicOperation.destroy(
+          DestroyGoogleServerGroupAtomicOperation.destroyHttpLoadBalancerBackends(computeMock, PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock),
+          "Http load balancer backends"
+      )
+
+    then:
+      // Note: retry fails once and we retry once to verify
+      2 * backendUpdateMock.execute() >> { throw notFoundException }
+      4 * computeMock.backendServices() >> backendServicesMock
+      2 * backendServicesMock.get(PROJECT_NAME, 'backend-service') >> backendSvcGetMock
+      2 * backendSvcGetMock.execute() >> bs
+      2 * backendServicesMock.update(PROJECT_NAME, 'backend-service', bs) >> backendUpdateMock
+
+    where:
+      isRegional | location | loadBalancerList                                                         | lbNames
+      false      | ZONE     |  [new GoogleHttpLoadBalancer(name: 'spinnaker-http-load-balancer').view] | ['spinnaker-http-load-balancer']
   }
 }

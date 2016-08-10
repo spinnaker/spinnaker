@@ -16,15 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.services.compute.Compute
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DestroyGoogleServerGroupDescription
-import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
-import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationTimedOutException
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
@@ -32,13 +29,11 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
-import java.util.concurrent.TimeUnit
-
 @Slf4j
 class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
-  private static final int MAX_DELETE_RETRIES = 10
-  private static final int DELETE_RETRY_INTERVAL_SECONDS = 10
   private static final String BASE_PHASE = "DESTROY_SERVER_GROUP"
+  private static final List<Integer> RETRY_ERROR_CODES = [400, 412]
+  private static final List<Integer> SUCCESSFUL_ERROR_CODES = [404]
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -92,7 +87,7 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
 
     task.updateStatus BASE_PHASE, "Checking for associated HTTP(S) load balancer backend services..."
 
-    destroy(destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider), "Http load balancer backend")
+    destroy(destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider), "Http load balancer backends")
 
     destroy(destroyInstanceGroup(compute, serverGroupName, project, region, zone, isRegional), "instance group")
 
@@ -106,45 +101,8 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
     null
   }
 
-  static Void destroy(Closure operation, String resource) {
-    try {
-      task.updateStatus BASE_PHASE, "Attempting destroy of $resource..."
-      operation()
-      // If the operation times out, then try
-      // 1. Deleting again ->
-      //   a. On failure (404) we treat this as a success.
-      //   b. On failure (400 meaning not ready) retry.
-      //   d. On failure (anything else) propagate error.
-      //   c. On timeout retry.
-      //   e. On success exit happily.
-    } catch (GoogleOperationTimedOutException _) {
-      log.warn "Initial delete of $resource timed out, retrying..."
-
-      int tries = 1
-      while (tries < MAX_DELETE_RETRIES) {
-        try {
-          tries++
-          sleep(TimeUnit.SECONDS.toMillis(DELETE_RETRY_INTERVAL_SECONDS))
-          log.warn "Delete $resource attempt #$tries..."
-          operation()
-          log.warn "Delete $resource attempt #$tries succeeded"
-          return
-        } catch (GoogleJsonResponseException jsonException) {
-          if (jsonException.statusCode == 404) {
-            log.warn "Retry delete of ${resource} encountered 404, treating as success..."
-            return
-          } else if (jsonException.statusCode == 400) {
-            log.warn "Retry delete of ${resource} encountered 400, trying again..."
-          } else {
-            throw jsonException
-          }
-        } catch (GoogleOperationTimedOutException __) {
-          log.warn "Retry delete timed out again, trying again..."
-        }
-      }
-
-      throw new GoogleOperationException("Failed to delete $resource after #$tries")
-    }
+  static void destroy(Closure operation, String resource) {
+    GCEUtil.safeRetry(operation, "destroy", resource, task, BASE_PHASE, RETRY_ERROR_CODES, SUCCESSFUL_ERROR_CODES)
   }
 
   Closure destroyInstanceTemplate(Compute compute, String instanceTemplateName, String project) {
