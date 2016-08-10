@@ -25,6 +25,8 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +35,8 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public class UpsertImageTagsTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+  private static final Logger log = LoggerFactory.getLogger(UpsertImageTagsTask.class);
+
   @Autowired
   KatoService kato;
 
@@ -48,15 +52,24 @@ public class UpsertImageTagsTask extends AbstractCloudProviderAwareTask implemen
       .findFirst()
       .orElseThrow(() -> new IllegalStateException("ImageTagger not found for cloudProvider " + cloudProvider));
 
-    ImageTagger.OperationContext result = tagger.getOperationContext(stage);
-    TaskId taskId = kato.requestOperations(cloudProvider, result.operations).toBlocking().first();
+    try {
+      ImageTagger.OperationContext result = tagger.getOperationContext(stage);
+      TaskId taskId = kato.requestOperations(cloudProvider, result.operations).toBlocking().first();
 
-    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, ImmutableMap.<String, Object>builder()
-      .put("notification.type", "upsertimagetags")
-      .put("kato.last.task.id", taskId)
-      .putAll(result.extraOutput)
-      .build()
-    );
+      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, ImmutableMap.<String, Object>builder()
+        .put("notification.type", "upsertimagetags")
+        .put("kato.last.task.id", taskId)
+        .putAll(result.extraOutput)
+        .build()
+      );
+    } catch (ImageTagger.ImageNotFound e) {
+      if (e.shouldRetry) {
+        log.error(String.format("Retrying... (reason: %s, executionId: %s, stageId: %s)", e.getMessage(), stage.getExecution().getId(), stage.getId()));
+        return new DefaultTaskResult(ExecutionStatus.RUNNING);
+      }
+
+      throw e;
+    }
   }
 
   @Override

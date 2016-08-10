@@ -71,4 +71,13 @@ public interface ImageTagger {
       this.tags = tags;
     }
   }
+
+  class ImageNotFound extends RuntimeException {
+    final boolean shouldRetry;
+
+    public ImageNotFound(String message, boolean shouldRetry) {
+      super(message);
+      this.shouldRetry = shouldRetry;
+    }
+  }
 }
