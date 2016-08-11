@@ -53,14 +53,15 @@ public class LinearToParallelMigration implements Migration {
 
   @Override
   public void run() {
+    log.info("Starting Linear -> Parallel Migration");
     pipelineDAO.all().stream()
-        .filter(pipeline -> !((Boolean) pipeline.getOrDefault("parallel", false)))
+        .filter(pipeline -> !(Boolean.valueOf(pipeline.getOrDefault("parallel", false).toString())))
         .forEach(pipeline -> {
           migrate(pipelineDAO, "pipeline", pipeline);
         });
 
     pipelineStrategyDAO.all().stream()
-        .filter(strategy -> !((Boolean) strategy.getOrDefault("parallel", false)))
+        .filter(strategy -> !(Boolean.valueOf(strategy.getOrDefault("parallel", false).toString())))
         .forEach(strategy -> {
           migrate(pipelineStrategyDAO, "pipeline strategy", strategy);
         });
