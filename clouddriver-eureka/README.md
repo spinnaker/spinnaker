@@ -25,3 +25,15 @@ The provider also supports a region placeholder:
             regions:
               - us-west-1
             readOnlyUrl: "http://myhostname.{{region}}.mycompany.com:8080/eureka"
+            
+Each account definition in AWS must also define a `discovery` field that denotes the URL for the writeable eureka. 
+
+```
+- name: test
+      environment: test
+      accountType: main
+      discovery: "http://mywriteableeureka.{{region}}.mycompany:8080/eureka"
+      accountId: 1234567899999
+      regions:
+        - name: us-east-1
+```
