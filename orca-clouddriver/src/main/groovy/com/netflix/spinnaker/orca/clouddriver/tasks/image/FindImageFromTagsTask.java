@@ -46,9 +46,11 @@ public class FindImageFromTagsTask extends AbstractCloudProviderAwareTask implem
       .orElseThrow(() -> new IllegalStateException("ImageFinder not found for cloudProvider " + cloudProvider));
 
     StageData stageData = (StageData) stage.mapTo(StageData.class);
+    Collection<ImageFinder.ImageDetails> imageDetails = imageFinder.byTags(stage, stageData.packageName, stageData.tags);
     return new DefaultTaskResult(
       ExecutionStatus.SUCCEEDED,
-      Collections.singletonMap("amiDetails", imageFinder.byTags(stage, stageData.packageName, stageData.tags))
+      Collections.singletonMap("amiDetails", imageDetails),
+      Collections.singletonMap("deploymentDetails", imageDetails)
     );
   }
 

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.frigga.ami.AppVersion;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageFinder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
@@ -85,19 +86,24 @@ public class AmazonImageFinder implements ImageFinder {
     Map<String, Object> attributes;
 
     @JsonProperty
+    Map<String, Map<String, String>> tagsByImageId;
+
+    @JsonProperty
     Map<String, List<String>> amis;
 
     ImageDetails toAmazonImageDetails(String region) {
-      AmazonImageDetails amazonImageDetails = new AmazonImageDetails();
-      amazonImageDetails.put("region", region);
+      String imageId = amis.get(region).get(0);
 
-      amazonImageDetails.put("imageName", imageName);
-      amazonImageDetails.put("imageId", amis.get(region).get(0));
+      Map<String, String> imageTags = tagsByImageId.get(imageId);
+      AppVersion appVersion = AppVersion.parseName(imageTags.get("appversion"));
+      JenkinsDetails jenkinsDetails = Optional
+        .ofNullable(appVersion)
+        .map(av -> new JenkinsDetails(imageTags.get("build_host"), av.getBuildJobName(), av.getBuildNumber()))
+        .orElse(null);
 
-      amazonImageDetails.put("ami", imageName);
-      amazonImageDetails.put("amiId", amis.get(region).get(0));
-
-      return amazonImageDetails;
+      return new AmazonImageDetails(
+        imageName, imageId, region, jenkinsDetails
+      );
     }
 
     @Override
@@ -115,15 +121,32 @@ public class AmazonImageFinder implements ImageFinder {
     }
   }
 
-  private static class AmazonImageDetails extends HashMap<String, String> implements ImageDetails {
+  private static class AmazonImageDetails extends HashMap<String, Object> implements ImageDetails {
+    AmazonImageDetails(String imageName, String imageId, String region, JenkinsDetails jenkinsDetails) {
+      put("imageName", imageName);
+      put("imageId", imageId);
+
+      put("ami", imageName);
+      put("amiId", imageId);
+
+      put("region", region);
+
+      put("jenkins", jenkinsDetails);
+    }
+
     @Override
     public String getImageId() {
-      return super.get("imageId");
+      return (String) super.get("imageId");
     }
 
     @Override
     public String getImageName() {
-      return super.get("imageName");
+      return (String) super.get("imageName");
+    }
+
+    @Override
+    public JenkinsDetails getJenkins() {
+      return (JenkinsDetails) super.get("jenkins");
     }
   }
 }
