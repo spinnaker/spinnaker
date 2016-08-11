@@ -201,7 +201,7 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
               accountId: sg.userId,
               accountName: ingressAccount?.name,
               region: region,
-              vpcId: ingressGroupSummary.vpcId
+              vpcId: sg.vpcId ?: ingressGroupSummary.vpcId
             ),
           portRanges   : [] as SortedSet
         ])
