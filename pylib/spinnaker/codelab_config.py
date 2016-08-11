@@ -35,5 +35,19 @@ def configure_codelab_igor_jenkins():
     }
   )
 
+def disable_destructive_action_challenge():
+  """Disables destructive action challenge for codelab.
+
+  """
+  YamlBindings.update_yml_source(
+    '/opt/spinnaker/config/clouddriver.yml',
+    {
+      'credentials': {
+        'challengeDestructiveActionsEnvironments': ''
+      }
+    }
+  )
+
 if __name__ == '__main__':
   configure_codelab_igor_jenkins()
+  disable_destructive_action_challenge()
