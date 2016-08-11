@@ -1,0 +1,50 @@
+digraph spinnaker {
+    redis_clouddriver_slave [shape=box3d];
+    redis_clouddriver_master [shape=box3d];
+
+    redis_clouddriver_slave -> redis_clouddriver_master [style=dashed];
+
+    clouddriver_ro -> redis_clouddriver_slave;
+    clouddriver_mutate -> redis_clouddriver_master;
+    clouddriver_cache -> redis_clouddriver_master;
+
+    accounts [shape=folder];
+
+    clouddriver_ro -> accounts [style=dotted];
+    clouddriver_mutate -> accounts [style=dotted];
+    clouddriver_cache -> accounts [style=dotted];
+
+    user [shape=tripleoctagon];
+
+    user -> deck;
+
+    deck -> gate;
+
+    redis_gate_master [shape=box3d];
+
+    gate -> clouddriver_ro [style=dashed];
+    gate -> orca;
+    gate -> redis_gate_master;
+
+    redis_orca_master [shape=box3d];
+
+    orca -> clouddriver_mutate;
+    orca -> front50;
+    orca -> rosco;
+    orca -> redis_orca_master;
+
+    redis_igor_master [shape=box3d];
+
+    igor -> echo_event;
+    igor -> clouddriver_ro [style=dashed];
+    igor -> redis_igor_master;
+
+    echo_event -> orca;
+    echo_sched -> orca;
+    echo_event -> front50 [style=dashed];
+    echo_sched -> front50 [style=dashed];
+
+    redis_rosco_master [shape=box3d];
+
+    rosco -> redis_rosco_master;
+}

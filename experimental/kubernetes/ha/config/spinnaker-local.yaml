@@ -1,0 +1,17 @@
+services:
+  front50:
+    # If using storage bucket persistence (gcs or s3), specify the bucket here
+    # disable cassandra and enable the storage service below.
+    storage_bucket: spinnaker
+    bucket_root: front50
+
+    cassandra:
+      enabled: false
+    redis:
+      enabled: false
+    gcs:
+      enabled: true
+      project:
+      bucket_location: us
+    s3:
+      enabled: false
