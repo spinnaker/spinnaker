@@ -6,6 +6,7 @@
     <li><a href ng-click="pipelineConfigurerCtrl.renamePipeline()">Rename</a></li>
     <li><a href ng-click="pipelineConfigurerCtrl.deletePipeline()">Delete</a></li>
     <li><a href ng-click="pipelineConfigurerCtrl.editPipelineJson()">Edit as JSON</a></li>
-    <li><a href ng-click="pipelineConfigurerCtrl.showHistory()">Show Revision History</a></li>
+    <li ng-if="viewState.hasHistory"><a href ng-click="pipelineConfigurerCtrl.showHistory()">Show Revision History</a></li>
+    <li ng-if="!viewState.hasHistory"><a class="disabled">No version history found</a></li>
   </ul>
 </div>

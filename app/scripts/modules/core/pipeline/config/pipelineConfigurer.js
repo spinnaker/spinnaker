@@ -21,6 +21,12 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
 
     this.actionsTemplateUrl = overrideRegistry.getTemplate('pipelineConfigActions', require('./actions/pipelineConfigActions.html'));
 
+    pipelineConfigService.getHistory($scope.pipeline.id, 2).then(history => {
+      if (history && history.length > 1) {
+        $scope.viewState.hasHistory = true;
+      }
+    });
+
     var configViewStateCache = viewStateCache.pipelineConfig;
 
     function buildCacheKey() {
