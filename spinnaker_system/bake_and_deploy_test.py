@@ -46,7 +46,7 @@
 #                  and store it as $JENKINS_TOKEN.
 #               c) Add a build step that produces a file.
 #                  mkdir -p somedir
-#                  touch somedir/vim_2:7.4.052-lubuntu3_amd64.deb
+#                  touch somedir/vim_2:7.4.052-1ubuntu3_amd64.deb
 #                  Note that this might need to be consistent with the
 #                  platform the bakery is on. The above works on Ubuntu 14.04
 #               d) Add post build action to archive the artifacts
@@ -544,8 +544,9 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     name = details[0].get('imageId') if details else None
     self.logger.info('Deleting the baked image="%s"', name)
     if name:
+      execution_context = citest.base.ExecutionContext()
       self.gcp_observer.invoke_resource(
-          context, 'delete', 'images', resource_id=name)
+          execution_context, 'delete', 'images', resource_id=name)
 
 
 class BakeAndDeployTest(st.AgentTestCase):

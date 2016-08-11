@@ -75,7 +75,7 @@ class JenkinsOperationStatus(base_agent.AgentOperationStatus):
     """
     super(JenkinsOperationStatus, self).__init__(operation)
     self.__trigger_status = status_class(operation, http_response)
-    self.__trigger_status._bind_id("(sync request has no ID)")
+    self.__trigger_status._bind_id("n/a for synchronous request")
     self.__trigger_status._bind_detail_path(path)
 
   def __cmp__(self, response):
