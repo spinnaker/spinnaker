@@ -4,11 +4,12 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.authentication.initializer.service', [
   require('../config/settings.js'),
-  require('../widgets/notifier/notifier.service.js'),
   require('./authentication.service.js'),
   require('../utils/rx'),
+  require('./loggedOut.modal.controller'),
 ])
-  .factory('authenticationInitializer', function ($http, $rootScope, rx, notifierService, redirectService, authenticationService, settings, $location) {
+  .factory('authenticationInitializer', function ($http, $rootScope, rx, redirectService, authenticationService,
+                                                  settings, $location, $uibModal, $uibModalStack) {
 
     let userLoggedOut = false;
     let visibilityWatch = null;
@@ -47,7 +48,7 @@ module.exports = angular.module('spinnaker.authentication.initializer.service', 
         .success(function (data) {
           if (data.username) {
             authenticationService.setAuthenticatedUser(data.username);
-            notifierService.clear('loggedOut');
+            $uibModalStack.dismissAll();
             visibilityWatch.dispose();
           }
         });
@@ -56,10 +57,10 @@ module.exports = angular.module('spinnaker.authentication.initializer.service', 
     function loginNotification() {
       authenticationService.authenticationExpired();
       userLoggedOut = true;
-      notifierService.publish({
-        position: 'top',
-        key: 'loggedOut',
-        body: `You have been logged out. <a role="button" class="action" onclick="document.location.reload()">Log in</a>`
+      $uibModal.open({
+        templateUrl: require('./loggedOut.modal.html'),
+        controller: 'LoggedOutModalCtrl as ctrl',
+        size: 'squared',
       });
       visibilityWatch = rx.Observable.fromEvent(document, 'visibilitychange').subscribe(() => {
         if (document.visibilityState === 'visible') {
