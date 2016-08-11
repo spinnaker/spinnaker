@@ -213,14 +213,21 @@ google:
           detailedDescription: Ubuntu Precise Pangolin v12.04
           packageType: deb
         virtualizationSettings:
-          sourceImage: ubuntu-1204-precise-v20150910
+          sourceImage: ubuntu-1204-precise-v20160808
       - baseImage:
           id: trusty
           shortDescription: v14.04
           detailedDescription: Ubuntu Trusty Tahr v14.04
           packageType: deb
         virtualizationSettings:
-          sourceImage: ubuntu-1404-trusty-v20150909a
+          sourceImage: ubuntu-1404-trusty-v20160809a
+      - baseImage:
+          id: xenial
+          shortDescription: v16.04
+          detailedDescription: Ubuntu Xenial Xerus v16.04
+          packageType: deb
+        virtualizationSettings:
+          sourceImage: ubuntu-1604-xenial-v20160721
 
 openstack:
   # The property referenced below, OS_ENABLED, is not set in the
