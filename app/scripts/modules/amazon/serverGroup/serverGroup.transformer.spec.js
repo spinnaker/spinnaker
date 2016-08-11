@@ -52,7 +52,7 @@ describe('awsServerGroupTransformer', function () {
 
   describe('command transforms', function () {
 
-    it('removes subnetType property when null', function () {
+    it('sets subnetType property to empty string when null', function () {
       var command = {
         viewState: {
           mode: 'create',
@@ -64,7 +64,7 @@ describe('awsServerGroupTransformer', function () {
       };
 
       var transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
-      expect(transformed.subnetType).toBe(undefined);
+      expect(transformed.subnetType).toBe('');
 
       command.subnetType = 'internal';
       transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);

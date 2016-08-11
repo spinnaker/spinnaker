@@ -91,7 +91,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.transformer', [
       delete command.vpcId;
 
       if (!command.subnetType) {
-        delete command.subnetType;
+        command.subnetType = '';
       }
       return command;
     }
