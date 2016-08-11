@@ -42,10 +42,10 @@ class ServerGroupServiceSpec extends Specification {
     ]
   }
 
-  void "should include application, account, region and serverGroup in context"() {
+  void "should include application, account, region, cluster, and serverGroup in context"() {
     expect:
     ServerGroupService.getContext("app", "prod", "us-west-1", "app-main-v001") == [
-        "application": "app", "account": "prod", "region": "us-west-1", "serverGroup": "app-main-v001"
+        "application": "app", "account": "prod", "region": "us-west-1", "serverGroup": "app-main-v001", "cluster": "app-main"
     ]
   }
 }
