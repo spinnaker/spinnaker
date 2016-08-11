@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.gate.services
 
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.gate.config.InsightConfiguration
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
@@ -63,6 +64,13 @@ class ServerGroupService {
   }
 
   static Map<String, String> getContext(String application, String account, String region, String serverGroup) {
-    return ["application": application, "account": account, "region": region, "serverGroup": serverGroup]
+    String cluster = Names.parseName(serverGroup).cluster
+    return [
+      "application": application,
+      "account": account,
+      "region": region,
+      "serverGroup": serverGroup,
+      "cluster": cluster
+    ]
   }
 }
