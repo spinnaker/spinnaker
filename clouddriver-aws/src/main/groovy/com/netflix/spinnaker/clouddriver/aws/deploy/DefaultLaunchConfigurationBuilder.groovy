@@ -282,7 +282,9 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
       request.withBlockDeviceMappings(mappings)
     }
 
-    autoScaling.createLaunchConfiguration(request)
+    OperationPoller.retryWithBackoff({o ->
+      autoScaling.createLaunchConfiguration(request)
+    }, 1500, 3);
 
     name
   }
