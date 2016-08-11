@@ -27,7 +27,7 @@ class OpenstackServerGroupCreatorSpec extends Specification {
     def ctx = [
       account          : "abc",
       region           : "north-pole",
-      deploymentDetails: [[imageId: "testImageId"]]
+      deploymentDetails: [[imageId: "testImageId", region: "north-pole"]]
     ]
     def stage = new PipelineStage(new Pipeline(), "whatever", ctx)
 
@@ -35,28 +35,37 @@ class OpenstackServerGroupCreatorSpec extends Specification {
     def ops = new OpenstackServerGroupCreator().getOperations(stage)
 
     then:
-    ops == [
+    ops.toString() == [
       [
         "createServerGroup": [
           account              : "abc",
           region               : "north-pole",
+          deploymentDetails    : [[imageId: "testImageId", region: "north-pole"]],
           serverGroupParameters: [
             image: "testImageId",
-          ],
-          deploymentDetails    : [[imageId: "testImageId"]],
+          ]
         ]
       ]
-    ]
+    ].toString()
 
-    when: "throw error if >1 image"
-    ctx.deploymentDetails = [[imageId: "testImageId-1"],
-                             [imageId: "testImageId-2"]]
+    when: "fallback to non-region matching image"
+    ctx.region = "south-pole"
     stage = new PipelineStage(new Pipeline(), "whatever", ctx)
-    new OpenstackServerGroupCreator().getOperations(stage)
+    ops = new OpenstackServerGroupCreator().getOperations(stage)
 
     then:
-    IllegalStateException ise = thrown()
-    ise.message.startsWith("Ambiguous choice of deployment images")
+    ops.toString() == [
+      [
+        "createServerGroup": [
+          account          : "abc",
+          region           : "south-pole",
+          deploymentDetails: [[imageId: "testImageId", region: "north-pole"]],
+          serverGroupParameters: [
+            image: "testImageId",
+          ]
+        ],
+      ]
+    ].toString()
 
     when: "throw error if no image found"
     ctx.deploymentDetails = []
@@ -64,8 +73,8 @@ class OpenstackServerGroupCreatorSpec extends Specification {
     new OpenstackServerGroupCreator().getOperations(stage)
 
     then:
-    ise = thrown()
-    ise.message == "No image could be found in north-pole."
+    Throwable ise = thrown()
+    ise.message == "No image could be found in south-pole."
   }
 
   def "should get image from provider context"() {
@@ -92,36 +101,6 @@ class OpenstackServerGroupCreatorSpec extends Specification {
             image: imageId,
           ],
           deploymentDetails    : [[cloudProviderType: "openstack",
-                                   imageId: imageId]]
-        ]
-      ]
-    ]
-  }
-
-  def "should get image from context"() {
-    given:
-    String imageId = UUID.randomUUID().toString()
-    def ctx = [
-      account          : "abc",
-      region           : "north-pole",
-      deploymentDetails: [[cloudProviderType: "foobar",
-                           imageId: imageId]]
-    ]
-    def stage = new PipelineStage(new Pipeline(), "whatever", ctx)
-
-    when:
-    def ops = new OpenstackServerGroupCreator().getOperations(stage)
-
-    then:
-    ops == [
-      [
-        "createServerGroup": [
-          account              : "abc",
-          region               : "north-pole",
-          serverGroupParameters: [
-            image: imageId,
-          ],
-          deploymentDetails    : [[cloudProviderType: "foobar",
                                    imageId: imageId]]
         ]
       ]

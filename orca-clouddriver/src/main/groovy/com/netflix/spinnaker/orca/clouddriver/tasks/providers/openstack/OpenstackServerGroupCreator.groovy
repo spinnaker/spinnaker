@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.openstack
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
+import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
@@ -27,7 +28,7 @@ import org.springframework.stereotype.Component
  */
 @Slf4j
 @Component
-class OpenstackServerGroupCreator implements ServerGroupCreator {
+class OpenstackServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAware {
 
   boolean katoResultExpected = false
   String cloudProvider = 'openstack'
@@ -37,37 +38,21 @@ class OpenstackServerGroupCreator implements ServerGroupCreator {
     def operation = [:]
 
     // If this stage was synthesized by a parallel deploy stage, the operation properties will be under 'cluster'.
-    if (stage.context.containsKey('cluster')) {
+    if (stage.context.containsKey("cluster")) {
       operation.putAll(stage.context.cluster as Map)
     } else {
       operation.putAll(stage.context)
     }
 
-    // If this is a stage in a pipeline, look in the context for the baked image.
-    def deploymentDetails = (stage.context.deploymentDetails ?: []) as List<Map>
-
     //let's not throw NPE's here, even if the request is invalid
     operation.serverGroupParameters = operation.serverGroupParameters ?: [:]
-    if (!operation.serverGroupParameters.image && deploymentDetails) {
-      // Bakery ops are keyed off cloudProviderType
-      operation.serverGroupParameters.image = deploymentDetails.find { it.cloudProviderType == 'openstack' }?.imageId
 
-      // Alternatively, FindImage ops distinguish between server groups deployed to different regions.
-      // This is partially because openstack images are only available regionally.
-      if (!operation.serverGroupParameters.image && stage.context.region) {
-        operation.serverGroupParameters.image = deploymentDetails.find { it.region == stage.context.region }?.imageId
-      }
+    withImageFromPrecedingStage(stage, null, cloudProvider) {
+      operation.serverGroupParameters.image = operation.serverGroupParameters.image ?: it.imageId
+    }
 
-      // Lastly, fall back to any image within deploymentDetails, so long as it's unambiguous.
-      if (!operation.serverGroupParameters.image) {
-        if (deploymentDetails.size() != 1) {
-          throw new IllegalStateException('Ambiguous choice of deployment images found for deployment to ' +
-            "'${stage.context.region}'. Images found from cluster in " +
-            "${deploymentDetails.collect{it.region}.join(",") } - " +
-            'only 1 should be available.')
-        }
-        operation.serverGroupParameters.image = deploymentDetails[0].imageId
-      }
+    withImageFromDeploymentDetails(stage, null, cloudProvider) {
+      operation.serverGroupParameters.image = operation.serverGroupParameters.image ?: it.imageId
     }
 
     if (!operation.serverGroupParameters.image) {
