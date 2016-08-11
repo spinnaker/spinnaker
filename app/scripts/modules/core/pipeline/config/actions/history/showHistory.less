@@ -1,0 +1,96 @@
+@import "../../../../presentation/less/imports/commonImports.less";
+
+.modal-show-history {
+  .modal-history-header {
+    padding-bottom: 10px;
+    .middle {
+      padding-left: 5px;
+      padding-right: 5px;
+    }
+  }
+
+  .show-history {
+    position: relative;
+    .form-control {
+      border: 0;
+    }
+    .form-group {
+      margin: 0 -15px;
+    }
+    .history {
+      color: #000000;
+      font-size: 80%;
+      overflow-x: visible;
+      margin: 0;
+      padding-bottom: 0;
+      .match, .add, .remove {
+        &::before {
+          position: relative;
+          left: 0;
+        }
+      }
+      .match {
+        color: @mid_grey;
+        &::before {
+          content: ' ';
+        }
+      }
+
+      .add {
+        background-color: #eaffea; // copied from GitHub
+        &::before {
+          content: '+';
+        }
+      }
+
+      .remove {
+        background-color: #ffecec; // also copied from GitHub
+        &::before {
+          content: '-';
+        }
+      }
+      .form-group {
+        margin-bottom: 0;
+      }
+      &::-webkit-scrollbar {
+        height: 8px;
+      }
+    }
+    .summary-nav {
+      z-index: 2;
+      width: 12px;
+      position: absolute;
+      top: 0;
+      right: -7px;
+      height: calc(~"100% - 8px");
+      .delta {
+        width: 100%;
+        position: absolute;
+        min-height: 3px;
+        &.add {
+          background: @stage-succeeded;
+        }
+        &.remove {
+          background: @unhealthy_red;
+        }
+      }
+    }
+  }
+
+  .diff-summary {
+    vertical-align: middle;
+    display:inline-block;
+    margin: 0 20px;
+    font-size: 120%;
+    font-weight: 600;
+    letter-spacing: -1px;
+  }
+  .footer-additions {
+    color: @healthy_green_border;
+  }
+  .footer-removals {
+    color: @unhealthy_red_border;
+    display: inline-block;
+    margin-left: 5px;
+  }
+}

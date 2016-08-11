@@ -1,0 +1,49 @@
+<div modal-page class="flex-fill modal-show-history">
+  <modal-close></modal-close>
+  <div class="modal-header">
+    <h3>Pipeline Revision History</h3>
+  </div>
+  <div class="modal-body" ng-if="ctrl.state.loading">
+    <h4 class="text-center"><span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span></h4>
+  </div>
+  <div class="modal-body" ng-if="ctrl.state.error">
+    <h4 class="text-center">There was an error loading the history for this pipeline.</h4>
+  </div>
+  <div class="modal-body" ng-if="ctrl.history.length <= 1">
+    <h4 class="text-center">Sorry, we couldn't find any history for this pipeline.</h4>
+  </div>
+  <div class="modal-body flex-fill" ng-if="ctrl.history.length > 1">
+    <div class="form-inline modal-history-header">
+      <label for="compare-base">Revision</label>
+      <select class="form-control input-sm"
+              id="compare-base"
+              ng-options="entry.index as entry.timestamp for entry in ctrl.history"
+              ng-change="ctrl.updateDiff()"
+              ng-model="ctrl.version"></select>
+      <div class="pull-right">
+        <label for="compare-compare" class="middle">compare to </label>
+        <select class="form-control input-sm"
+                id="compare-compare"
+                ng-options="entry for entry in ctrl.compareOptions"
+                ng-change="ctrl.updateDiff()"
+                ng-model="ctrl.compareTo"></select>
+      </div>
+      <diff-summary summary="ctrl.diff.summary"></diff-summary>
+      <button class="btn btn-sm btn-primary"
+              ng-click="ctrl.restoreVersion()"
+              ng-if="ctrl.version > 0">Restore this version</button>
+    </div>
+    <form role="form" class="form-horizontal flex-fill show-history">
+      <div class="form-group flex-fill">
+        <h3 class="text-center" ng-if="ctrl.state.loading">loading...</h3>
+        <diff-view diff="ctrl.diff" ng-if="ctrl.history" class="flex-fill"></diff-view>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary"
+            ng-click="ctrl.close()">
+      Close
+    </button>
+  </div>
+</div>

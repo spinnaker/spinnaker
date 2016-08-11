@@ -134,8 +134,24 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
           pipeline: function() { return $scope.pipeline; },
         }
       }).result.then(function() {
-          $scope.$broadcast('pipeline-json-edited');
-        });
+        $scope.$broadcast('pipeline-json-edited');
+      });
+    };
+
+    this.showHistory = () => {
+      $uibModal.open({
+        templateUrl: require('./actions/history/showHistory.modal.html'),
+        controller: 'ShowHistoryCtrl',
+        controllerAs: 'ctrl',
+        size: 'lg modal-fullscreen',
+        resolve: {
+          pipelineConfigId: () => $scope.pipeline.id,
+          currentConfig: () => $scope.viewState.isDirty ? JSON.parse(angular.toJson($scope.pipeline)) : null,
+        }
+      }).result.then(newConfig => {
+        $scope.pipeline = newConfig;
+        this.savePipeline();
+      });
     };
 
     this.navigateToStage = function(index, event) {
@@ -218,6 +234,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       $scope.pipeline.notifications = original.notifications;
       $scope.pipeline.persistedProperties = original.persistedProperties;
       $scope.pipeline.parameterConfig = original.parameterConfig;
+      $scope.pipeline.name = $scope.viewState.originalPipelineName;
 
       // if we were looking at a stage that no longer exists, move to the last stage
       if ($scope.viewState.section === 'stage') {
