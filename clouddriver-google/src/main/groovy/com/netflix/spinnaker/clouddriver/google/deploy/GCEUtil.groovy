@@ -838,7 +838,7 @@ class GCEUtil {
             log.warn "Retry $action of $resource encountered ${jsonException.statusCode}, treating as success..."
             return
           } else if (jsonException.statusCode in retryCodes) {
-            log.warn "Retry $action of $resource encountered ${jsonException.statusCode}, trying again..."
+            log.warn "Retry $action of $resource encountered ${jsonException.statusCode} with error message: ${jsonException.message}. Trying again..."
           } else {
             throw jsonException
           }
@@ -846,7 +846,7 @@ class GCEUtil {
           log.warn "Retry $action timed out again, trying again..."
         }
       }
-      throw new GoogleOperationException("Failed to delete $resource after #$tries")
+      throw new GoogleOperationException("Failed to $action $resource after #$tries.")
     }
   }
 
