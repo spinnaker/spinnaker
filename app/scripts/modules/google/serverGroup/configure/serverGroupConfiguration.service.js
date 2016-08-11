@@ -78,7 +78,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
 
         if (command.loadBalancers && command.loadBalancers.length) {
           // Verify all load balancers are accounted for; otherwise, try refreshing load balancers cache.
-          var loadBalancerNames = getLoadBalancers(command);
+          var loadBalancerNames = _.pluck(getLoadBalancers(command), 'name');
           if (_.intersection(loadBalancerNames, command.loadBalancers).length < command.loadBalancers.length) {
             loadBalancerReloader = refreshLoadBalancers(command, true);
           }

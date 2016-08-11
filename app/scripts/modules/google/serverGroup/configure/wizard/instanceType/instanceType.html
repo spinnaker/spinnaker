@@ -1,4 +1,4 @@
-<div ng-if="!!(command.viewState.disableImageSelection || command.image)">
+<div ng-if="!!((command.viewState.disableImageSelection || command.image) && (command.zone || command.regional))">
   <v2-instance-archetype-selector command="command"></v2-instance-archetype-selector>
   <div style="padding: 0 15px">
     <v2-instance-type-selector ng-if="command.viewState.instanceProfile && !ctrl.specialInstanceProfiles.has(command.viewState.instanceProfile)" command="command"></v2-instance-type-selector>
@@ -6,3 +6,5 @@
 </div>
 <h5 class="text-center"
     ng-if="!command.image && !command.viewState.disableImageSelection">Please select an image.</h5>
+<h5 class="text-center"
+    ng-if="!(command.zone || command.regional)">Please select a zone.</h5>
