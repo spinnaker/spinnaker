@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class CompleteCanaryTaskSpec extends Specification {
 
@@ -59,12 +60,13 @@ class CompleteCanaryTaskSpec extends Specification {
     taskResult.status == ExecutionStatus.SUCCEEDED
   }
 
-  def "Canaries is marked with continueOnUnhealthy and canary IS unhealthy then return ExecutionStatus.FAILED_CONTINUE"() {
+  @Unroll
+  def "Canary is marked with continueOnUnhealthy and canary heath is #health then return ExecutionStatus.FAILED_CONTINUE"() {
     given:
     def stage = new PipelineStage(new Pipeline(), "ACATask", "ACATask", [
       canary: [
         health: [
-            health: "UNHEALTHY"
+            health: health
         ]
       ],
       continueOnUnhealthy: true
@@ -75,6 +77,12 @@ class CompleteCanaryTaskSpec extends Specification {
 
     then:
     taskResult.status == ExecutionStatus.FAILED_CONTINUE
+
+    where:
+    health      | _
+    "UNHEALTHY" | _
+    "UNKNOWN"   | _
+
   }
 
   def "Canaries NOT marked with continueOnUnhealthy and canary IS unhealthy then return throw exception"() {
