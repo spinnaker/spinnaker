@@ -27,7 +27,7 @@ module.exports = angular
     if (this.application.notFound) {
       return;
     }
-    let config = this.application.attributes.chaosMonkey || {
+    let defaults = {
         enabled: false,
         meanTimeBetweenKillsInWorkDays: 2,
         minTimeBetweenKillsInWorkDays: 1,
@@ -35,6 +35,8 @@ module.exports = angular
         regionsAreIndependent: true,
         exceptions: [],
       };
+
+    let config = Object.assign({}, defaults, this.application.attributes.chaosMonkey || {});
 
     this.viewState = {
       originalConfig: _.cloneDeep(config),
