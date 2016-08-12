@@ -112,7 +112,7 @@ describe('Service: accountService ', function () {
 
     it('should list all providers when no application provided', function () {
 
-      let test = (result) => expect(result).toEqual(['aws', 'gce', 'cf']);
+      let test = (result) => expect(result).toEqual(['aws', 'cf', 'gce']);
 
       accountService.listProviders().then(test);
 
@@ -132,7 +132,7 @@ describe('Service: accountService ', function () {
     it('should fall back to the defaultProviders if none configured for the application', function () {
       let application = { attributes: {} };
 
-      let test = (result) => expect(result).toEqual(['gce', 'cf']);
+      let test = (result) => expect(result).toEqual(['cf', 'gce']);
 
       settings.defaultProviders = ['gce', 'cf'];
 
@@ -144,7 +144,7 @@ describe('Service: accountService ', function () {
     it('should return the intersection of those configured for the application and those available from the server', function () {
       let application = { attributes: { cloudProviders: 'gce,cf,unicron' } };
 
-      let test = (result) => expect(result).toEqual(['gce', 'cf']);
+      let test = (result) => expect(result).toEqual(['cf', 'gce']);
 
       settings.defaultProviders = ['aws'];
 
@@ -168,7 +168,7 @@ describe('Service: accountService ', function () {
     it('should fall back to all registered available providers if no defaults configured and none configured on app', function () {
       let application = { attributes: {} };
 
-      let test = (result) => expect(result).toEqual(['aws', 'gce', 'cf']);
+      let test = (result) => expect(result).toEqual(['aws', 'cf', 'gce']);
 
       delete settings.defaultProviders;
 

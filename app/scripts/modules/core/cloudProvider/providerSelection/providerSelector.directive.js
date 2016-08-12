@@ -19,7 +19,7 @@ module.exports = angular.module('spinnaker.providerSelection.directive', [
       templateUrl: require('./providerSelector.html'),
       link: function(scope) {
         scope.initialized = false;
-        var getProviderList = scope.providers ? $q.when(scope.providers) : accountService.listProviders();
+        var getProviderList = scope.providers ? $q.when(scope.providers.sort()) : accountService.listProviders();
         getProviderList.then(function(providers) {
           scope.initialized = true;
           if (!providers.length) {

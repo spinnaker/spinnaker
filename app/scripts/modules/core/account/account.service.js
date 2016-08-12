@@ -71,9 +71,9 @@ module.exports = angular.module('spinnaker.core.account.service', [
             settings.defaultProviders ?
               settings.defaultProviders :
               availableRegisteredProviders;
-          return _.intersection(availableRegisteredProviders, appProviders);
+          return _.intersection(availableRegisteredProviders, appProviders).sort();
         }
-        return availableRegisteredProviders;
+        return availableRegisteredProviders.sort();
       });
     };
 
