@@ -21,6 +21,7 @@ import com.amazonaws.services.s3.model.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class S3Support<T extends Timestamped> {
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -143,6 +145,7 @@ public abstract class S3Support<T extends Timestamped> {
 
   public void update(String id, T item) {
     try {
+      item.setLastModifiedBy(AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
       byte[] bytes = objectMapper.writeValueAsBytes(item);
 
       ObjectMetadata objectMetadata = new ObjectMetadata();

@@ -19,6 +19,8 @@ dependencies {
   compile 'io.reactivex:rxjava:1.0.10'
 
   spinnaker.group('google')
+  compile spinnaker.dependency("korkSecurity")
+
   /* spinnaker.group('googleStorage') */
   compile 'com.google.apis:google-api-services-storage:v1-rev72-1.22.0'
 

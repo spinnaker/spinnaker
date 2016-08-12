@@ -23,8 +23,6 @@ import com.netflix.spinnaker.front50.model.Timestamped
 class Notification extends HashMap<String, Object> implements Timestamped {
   public static final String GLOBAL_ID = "__GLOBAL"
 
-  private Long lastModified
-
   @Override
   @JsonIgnore
   String getId() {
@@ -34,11 +32,21 @@ class Notification extends HashMap<String, Object> implements Timestamped {
   @Override
   @JsonIgnore
   Long getLastModified() {
-    return lastModified
+    return (Long) super.get("lastModified")
   }
 
   @Override
   void setLastModified(Long lastModified) {
-    this.lastModified = lastModified
+    super.put("lastModified", lastModified)
+  }
+
+  @Override
+  String getLastModifiedBy() {
+    return super.get("lastModifiedBy")
+  }
+
+  @Override
+  void setLastModifiedBy(String lastModifiedBy) {
+    super.put("lastModifiedBy", lastModifiedBy)
   }
 }

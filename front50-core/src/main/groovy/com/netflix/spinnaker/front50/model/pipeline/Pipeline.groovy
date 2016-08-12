@@ -56,4 +56,14 @@ class Pipeline extends HashMap<String, Object> implements Timestamped {
   void setLastModified(Long lastModified) {
     super.put("updateTs", lastModified.toString())
   }
+
+  @Override
+  String getLastModifiedBy() {
+    return super.get("lastModifiedBy")
+  }
+
+  @Override
+  void setLastModifiedBy(String lastModifiedBy) {
+    super.put("lastModifiedBy", lastModifiedBy)
+  }
 }

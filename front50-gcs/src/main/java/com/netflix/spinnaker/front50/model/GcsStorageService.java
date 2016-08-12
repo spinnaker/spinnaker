@@ -39,6 +39,7 @@ import java.io.FileInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -237,6 +238,8 @@ public class GcsStorageService implements StorageService {
 
   public <T extends Timestamped>
          void storeObject(String objectKey, String daoTypeName, T obj) {
+    obj.setLastModifiedBy(AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
+
     String path = keyToPath(objectKey, daoTypeName);
     try {
       byte[] bytes = objectMapper.writeValueAsBytes(obj);

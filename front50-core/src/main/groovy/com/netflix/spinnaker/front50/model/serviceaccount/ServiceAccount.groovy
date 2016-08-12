@@ -22,6 +22,7 @@ import com.netflix.spinnaker.front50.model.Timestamped
 class ServiceAccount implements Timestamped {
   String name
   Long lastModified
+  String lastModifiedBy
 
   @Override
   @JsonIgnore()

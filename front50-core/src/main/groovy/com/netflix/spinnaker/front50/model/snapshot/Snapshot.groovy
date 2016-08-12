@@ -24,31 +24,23 @@ import com.netflix.spinnaker.front50.model.Timestamped
  * and security groups in the scope of the account and application. These resources are stored in a string
  * using a config language such as Terraform, CloudFormation or Heat.
  */
+
 class Snapshot implements Timestamped {
+  enum Type {
+    TERRAFORM,
+  }
 
-    enum Type {
-        TERRAFORM,
-    }
+  String id
+  String application
+  String account
 
-    String id
-    String application
-    String account
-    // Describes the resources deployed in the cloud of the application and account
-    String infrastructure
-    // Resources are described using this config language, used for deserialization
-    Type configLang
+  // Describes the resources deployed in the cloud of the application and account
+  String infrastructure
 
-    Long lastModified
-    Long timestamp
+  // Resources are described using this config language, used for deserialization
+  Type configLang
 
-    @Override
-    @JsonIgnore
-    Long getLastModified() {
-        return lastModified
-    }
-
-    @Override
-    void setLastModified(Long lastModified) {
-        this.lastModified = lastModified
-    }
+  Long lastModified
+  String lastModifiedBy
+  Long timestamp
 }
