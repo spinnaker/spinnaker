@@ -71,7 +71,8 @@ class RegionScopedTitusClientSpec extends Specification {
       .withPorts([7001] as int[])
       .withEnv(env)
       .withLabels(labels)
-      .withAllocateIpAddress(true);
+      .withAllocateIpAddress(true)
+      .withInService(false);
 
     when:
     String jobId = titusClient.submitJob(submitJobRequest);

@@ -47,6 +47,7 @@ public class JobDescription {
     private List<String> hardConstraints;
     private List<String> securityGroups;
     private Map<String, String> labels;
+    private Boolean inService;
 
     private String entryPoint;
     private String iamProfile;
@@ -85,6 +86,7 @@ public class JobDescription {
         entryPoint = request.getEntryPoint();
         iamProfile = request.getIamProfile();
         securityGroups = request.getSecurityGroups();
+        inService = request.getInService();
     }
 
     public String getName() {
@@ -267,6 +269,10 @@ public class JobDescription {
     public String getIamProfile() { return iamProfile; }
 
     public void setIamProfile(String iamProfile) { this.iamProfile = iamProfile; }
+
+    public Boolean getInService() { return inService; }
+
+    public void setInService(Boolean inService) { this.inService = inService; }
 
     public List<String> getSecurityGroups() { return securityGroups; }
 

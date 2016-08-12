@@ -86,6 +86,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         .withEntryPoint(description.entryPoint)
         .withIamProfile(description.iamProfile)
         .withLabels(description.labels)
+        .withInService(description.inService)
 
       if(description.securityGroups && !description.securityGroups.empty) {
         submitJobRequest.withSecurityGroups(description.securityGroups)

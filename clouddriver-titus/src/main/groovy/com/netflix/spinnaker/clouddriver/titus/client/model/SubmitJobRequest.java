@@ -64,6 +64,7 @@ public class SubmitJobRequest {
     private String user;
     private String entryPoint;
     private String iamProfile;
+    private Boolean inService = true;
     private int instancesMin;
     private int instancesMax;
     private int instancesDesired;
@@ -193,6 +194,11 @@ public class SubmitJobRequest {
         return this;
     }
 
+    public SubmitJobRequest withInService(Boolean inService) {
+      this.inService = inService;
+      return this;
+    }
+
     // Getters
 
 
@@ -273,6 +279,8 @@ public class SubmitJobRequest {
     public String getEntryPoint() { return entryPoint; }
 
     public String getIamProfile() { return iamProfile; }
+
+    public Boolean getInService() { return inService; }
 
     public Map<String, String> getLabels() {
         return labels;
