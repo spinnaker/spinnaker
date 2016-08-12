@@ -49,7 +49,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
 
   @Override
   public long getTimeout() {
-    30000
+    90000
   }
 
   abstract String getClouddriverOperation()
