@@ -73,6 +73,40 @@ class Utils {
     }
   }
 
+  /**
+   * Parses region from a full server group Url of the form:
+   *
+   * "https://www.googleapis.com/compute/v1/projects/$projectName/zones/$zone/instanceGroups/$serverGroupName"
+   * OR
+   * "https://www.googleapis.com/compute/v1/projects/$projectName/regions/$region/instanceGroups/$serverGroupName"
+   */
+  static String getRegionFromGroupUrl(String fullUrl) {
+    if (!fullUrl) {
+      return fullUrl
+    }
+
+    def urlParts = fullUrl.split("/")
+
+    if (urlParts.length < 4) {
+      throw new IllegalFormatException("Server group Url ${fullUrl} malformed.")
+    }
+
+    String regionsOrZones = urlParts[urlParts.length - 4]
+    switch (regionsOrZones) {
+      case "regions":
+        return urlParts[urlParts.length - 3]
+        break
+      case "zones":
+        def zone = urlParts[urlParts.length - 3]
+        def lastDash = zone.lastIndexOf("-")
+        return zone.substring(0, lastDash)
+        break
+      default:
+        throw new IllegalFormatException("Server group Url ${fullUrl} malformed.")
+        break
+    }
+  }
+
   // TODO(duftler): Consolidate this method with the same one from kato/GCEUtil and move to a common library.
   static List<String> deriveNetworkLoadBalancerNamesFromTargetPoolUrls(List<String> targetPoolUrls) {
     if (targetPoolUrls) {
@@ -119,7 +153,9 @@ class Utils {
     List<List<GoogleLoadBalancedBackend>> serviceBackends = getBackendServicesFromHttpLoadBalancerView(loadBalancer.view)
         .findAll { it.name in backendServicesFromMetadata }
         .collect { it.backends }
-    List<String> backendGroupNames = serviceBackends.flatten().collect { GCEUtil.getLocalName(it.serverGroupUrl) }
+    List<String> backendGroupNames = serviceBackends.flatten()
+        .findAll { serverGroup.region == Utils.getRegionFromGroupUrl(it.serverGroupUrl) }
+        .collect { GCEUtil.getLocalName(it.serverGroupUrl) }
 
     return loadBalancer.name in httpLoadBalancersFromMetadata && !(serverGroup.name in backendGroupNames)
   }

@@ -794,7 +794,8 @@ class GCEUtil {
         backendServiceNames.each { String backendServiceName ->
           BackendService backendService = compute.backendServices().get(project, backendServiceName).execute()
           backendService?.backends?.removeAll { Backend backend ->
-            getLocalName(backend.group) == serverGroupName
+            (getLocalName(backend.group) == serverGroupName) &&
+                (Utils.getRegionFromGroupUrl(backend.group) == serverGroup.region)
           }
           compute.backendServices().update(project, backendServiceName, backendService).execute()
           task.updateStatus phase, "Deleted backend for server group ${serverGroupName} from Http(s) load balancer backend service ${backendServiceName}."
