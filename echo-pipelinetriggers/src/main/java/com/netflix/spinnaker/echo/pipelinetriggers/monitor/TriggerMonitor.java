@@ -90,7 +90,7 @@ abstract class TriggerMonitor implements EchoEventListener {
   protected Func1<Pipeline, Optional<Pipeline>> withMatchingTrigger(final TriggerEvent event) {
     val triggerPredicate = matchTriggerFor(event);
     return pipeline -> {
-      if (pipeline.getTriggers() == null) {
+      if (pipeline.getTriggers() == null || pipeline.isDisabled()) {
         return Optional.empty();
       } else {
         return pipeline.getTriggers()
