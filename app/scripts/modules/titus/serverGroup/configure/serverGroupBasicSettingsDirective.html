@@ -58,6 +58,21 @@
       <input type="text" class="form-control input-sm" name="command" ng-model="command.entryPoint" required/>
     </div>
   </div>
+  <div class="form-group">
+    <div class="col-md-2 sm-label-right">
+      <b>Traffic</b>
+      <help-field key="titus.serverGroup.traffic"></help-field>
+    </div>
+    <div class="col-md-7">
+      <div class="checkbox">
+        <label>
+          <input type="checkbox"
+                 ng-model="command.inService"/>
+          Send client requests to new instances
+        </label>
+      </div>
+    </div>
+  </div>
   <deployment-strategy-selector ng-if="!command.viewState.disableStrategySelection && command.selectedProvider" command="command"></deployment-strategy-selector>
   <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
     <div class="col-md-12">

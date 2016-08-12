@@ -22,6 +22,7 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
         region: defaultRegion,
         zone: defaultZone,
         network: 'default',
+        inService: true,
         strategy: '',
         capacity: {
           min: 1,
@@ -73,6 +74,7 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
         entryPoint: serverGroup.entryPoint,
         iamProfile: serverGroup.iamProfile,
         securityGroups: serverGroup.securityGroups,
+        inService: serverGroup.disabled ? false : true,
         source: {
           account: serverGroup.account,
           region: serverGroup.region,
