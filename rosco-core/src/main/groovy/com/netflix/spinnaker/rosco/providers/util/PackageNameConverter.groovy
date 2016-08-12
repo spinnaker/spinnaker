@@ -50,25 +50,28 @@ class PackageNameConverter {
     if (!fullyQualifiedPackageName) return osPackageName
 
     osPackageName.with {
-        name = fullyQualifiedPackageName
-        List<String> parts = fullyQualifiedPackageName?.tokenize("_")
-        if (parts) {
-          if (parts.size() > 1) {
-            List<String> versionReleaseParts = parts[1].tokenize("-")
-            if (versionReleaseParts) {
-              version = versionReleaseParts[0]
-              name = parts[0]
+      name = fullyQualifiedPackageName
 
-              if (versionReleaseParts.size() > 1) {
-                release = versionReleaseParts[1]
-              }
-            }
-            if (parts.size() > 2) {
-              arch = parts[2]
+      List<String> parts = fullyQualifiedPackageName?.tokenize("_")
+
+      if (parts) {
+        if (parts.size() > 1) {
+          List<String> versionReleaseParts = parts[1].tokenize("-")
+
+          if (versionReleaseParts) {
+            version = versionReleaseParts[0]
+            name = parts[0]
+
+            if (versionReleaseParts.size() > 1) {
+              release = versionReleaseParts[1]
             }
           }
-        }
 
+          if (parts.size() > 2) {
+            arch = parts[2]
+          }
+        }
+      }
     }
 
     osPackageName
@@ -82,8 +85,10 @@ class PackageNameConverter {
 
     osPackageName.with {
       name = fullyQualifiedPackageName
+
       List<String> nameParts = fullyQualifiedPackageName.tokenize(".")
       int numberOfNameParts = nameParts.size()
+
       if (numberOfNameParts >= 2) {
         arch = nameParts.drop(numberOfNameParts - 1).join("")
         fullyQualifiedPackageName = nameParts.take(numberOfNameParts - 1).join(".")
@@ -91,11 +96,11 @@ class PackageNameConverter {
 
       List<String> parts = fullyQualifiedPackageName.tokenize("-")
 
-        if(parts.size() >= 3) {
-          release = parts.pop()
-          version = parts.pop()
-          name = parts.join("-")
-        }
+      if (parts.size() >= 3) {
+        release = parts.pop()
+        version = parts.pop()
+        name = parts.join("-")
+      }
     }
 
     osPackageName
