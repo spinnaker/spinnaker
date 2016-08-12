@@ -54,7 +54,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
 
   final Set<AgentDataType> providedDataTypes = [
     AUTHORITATIVE.forType(SERVER_GROUPS.ns),
-    INFORMATIVE.forType(APPLICATIONS.ns),
+    AUTHORITATIVE.forType(APPLICATIONS.ns),
     INFORMATIVE.forType(CLUSTERS.ns),
     INFORMATIVE.forType(INSTANCES.ns),
     INFORMATIVE.forType(LOAD_BALANCERS.ns),
