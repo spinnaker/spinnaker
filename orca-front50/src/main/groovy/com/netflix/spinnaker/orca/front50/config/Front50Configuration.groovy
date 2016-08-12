@@ -31,6 +31,7 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import retrofit.Endpoint
+import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.client.Client
 import retrofit.converter.JacksonConverter
@@ -52,6 +53,9 @@ class Front50Configuration {
   @Autowired
   RestAdapter.LogLevel retrofitLogLevel
 
+  @Autowired
+  RequestInterceptor spinnakerRequestInterceptor
+
   @Bean
   Endpoint front50Endpoint(
     @Value('${front50.baseUrl}') String front50BaseUrl) {
@@ -61,6 +65,7 @@ class Front50Configuration {
   @Bean
   Front50Service front50Service(Endpoint front50Endpoint, ObjectMapper mapper) {
     new RestAdapter.Builder()
+      .setRequestInterceptor(spinnakerRequestInterceptor)
       .setEndpoint(front50Endpoint)
       .setClient(retrofitClient)
       .setLogLevel(retrofitLogLevel)
