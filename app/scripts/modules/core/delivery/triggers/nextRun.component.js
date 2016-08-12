@@ -36,7 +36,10 @@ module.exports = angular
             }
           }
           let schedule = later.parse.cron(parts.join(' '), true);
-          nextTimes.push(later.schedule(schedule).next(1).getTime());
+          let nextRun = later.schedule(schedule).next(1);
+          if (nextRun) {
+            nextTimes.push(later.schedule(schedule).next(1).getTime());
+          }
         });
         if (nextTimes.length) {
           this.nextScheduled = Math.min(...nextTimes);
