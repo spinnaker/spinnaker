@@ -18,12 +18,14 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
 
     function getPipelinesForApplication(applicationName) {
       return API.one('applications').one(applicationName).all('pipelineConfigs').getList().then(function (pipelines) {
+        pipelines.forEach(p => p.stages = p.stages || []);
         return sortPipelines(pipelines);
       });
     }
 
     function getStrategiesForApplication(applicationName) {
       return API.one('applications').one(applicationName).all('strategyConfigs').getList().then(function (pipelines) {
+        pipelines.forEach(p => p.stages = p.stages || []);
         return sortPipelines(pipelines);
       });
     }
