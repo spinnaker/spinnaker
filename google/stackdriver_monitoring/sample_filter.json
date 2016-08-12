@@ -1,0 +1,25 @@
+{
+  "metrics" : {
+    "jvm.gc.allocationRate" : {
+      "values" : [ {
+        "tags" : [ ]
+      } ]
+    },
+    "jvm.memory.max" : {
+      "values" : [ {
+        "tags" : [ {
+          "key" : "memtype",
+          "value" : "NON_HEAP"
+        } ]
+      }, {
+        "tags" : [ {
+          "key" : "id",
+          "value" : "PS Eden Space"
+        } ]
+      } ]
+    },
+    "jvm.gc.liveDataSize" : {}
+ }
+}
+
+    

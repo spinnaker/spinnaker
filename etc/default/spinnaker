@@ -69,3 +69,5 @@ SPINNAKER_AZURE_DEFAULT_REGION=westus
 # We dont use a conditional here because we want scripts to be able
 # to easily replace the binding value.
 SPINNAKER_DEFAULT_STORAGE_BUCKET=`__determine_default_bucket`
+
+SPINNAKER_STACKDRIVER_ENABLED=false

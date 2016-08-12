@@ -23,3 +23,8 @@ server:
 redis:
   connection: ${services.redis.connection}
 
+stackdriver:
+  hints:
+    - name: EurekaOkClient_Request
+      labels:
+      - cause

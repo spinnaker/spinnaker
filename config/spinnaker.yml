@@ -294,3 +294,15 @@ providers:
       name: my-docker-registry-account
       address: https://index.docker.io/
       repository: library/nginx
+
+spectator:
+  webEndpoint:
+    enabled: false
+    prototypeFilter:
+      path:
+ 
+  stackdriver:
+    projectName: ${providers.google.primaryCredentials.project}
+    credentialsPath: ${providers.google.primaryCredentials.jsonPath}
+    defaultRegistry: false
+    enabled: false
