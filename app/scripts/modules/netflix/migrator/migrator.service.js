@@ -41,8 +41,8 @@ module.exports = angular
         let region = Object.keys(clusterResult.cluster.availabilityZones)[0];
         clusterResult.region = region;
         regions.push(region);
-        clusterResult.securityGroupMigrations.forEach(m => m.created.forEach(c => c.region = region));
-        clusterResult.loadBalancerMigrations.forEach(m => {
+        (clusterResult.securityGroupMigrations || []).forEach(m => m.created.forEach(c => c.region = region));
+        (clusterResult.loadBalancerMigrations || []).forEach(m => {
           m.accountName = clusterResult.cluster.account;
           m.region = region;
           m.securityGroups.forEach(s => s.created.forEach(c => c.region = region));
