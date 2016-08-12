@@ -46,11 +46,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.openstack.insta
       imageSearchResultsStream.onNext(q);
     };
 
-    this.enableAllImageSearch = () => {
-      $scope.command.viewState.useAllImageSelection = true;
-      this.searchImages('');
-    };
-
     function updateImageTypeOptions() {
       instanceTypeService.getAllTypesByRegion('openstack').then(function(result) {
         $scope.instanceTypes = _.map(result[$scope.command.region] || [], function(t) { return t.name; });

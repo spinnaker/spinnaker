@@ -1,0 +1,212 @@
+<div class="details-panel"
+     ng-class="{ disabled: ctrl.serverGroup.isDisabled }">
+
+  <div class="header" ng-if="ctrl.state.loading">
+      <div class="close-button">
+          <a class="btn btn-link"
+             ui-sref="^">
+              <span class="glyphicon glyphicon-remove"></span>
+          </a>
+      </div>
+      <h4 class="text-center">
+          <span us-spinner="{radius:20, width:6, length: 12}"></span>
+      </h4>
+  </div>
+
+
+  <div class="header" ng-if="!ctrl.state.loading">
+    <div class="close-button">
+      <a class="btn btn-link"
+          ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text">
+      <cloud-provider-logo provider="ctrl.serverGroup.type" height="36px" width="36px" style="margin-right: 10px"></cloud-provider-logo>
+      <h3 select-on-dbl-click>
+        {{ctrl.serverGroup.name}}
+      </h3>
+    </div>
+    <div>
+      <div class="actions" ng-class="{ insights: ctrl.serverGroup.insightActions.length > 0 }">
+        <div class="dropdown" uib-dropdown dropdown-append-to-body>
+          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
+            Server Group Actions <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li><a href ng-if=" !ctrl.serverGroup.isDisabled" ng-click="ctrl.rollbackServerGroup()">Rollback</a></li>
+            <li role="presentation" class="divider" ng-if=" !ctrl.serverGroup.isDisabled"></li>
+            <li><a href ng-click="ctrl.resizeServerGroup()">Resize</a></li>
+            <li><a href ng-if=" !ctrl.serverGroup.isDisabled" ng-click="ctrl.disableServerGroup()">Disable</a></li>
+            <li><a href ng-if="ctrl.serverGroup.isDisabled && !ctrl.isEnableLocked()" ng-click="ctrl.enableServerGroup()">Enable</a></li>
+            <li class="disabled" ng-if="ctrl.isEnableLocked()">
+              <a uib-tooltip="Cannot enable this server group until resize operation completes"
+                 tooltip-placement="left">
+                <span class="small glyphicon glyphicon-lock"></span>
+                Enable
+              </a>
+            </li>
+            <li><a href ng-click="ctrl.destroyServerGroup()">Destroy</a></li>
+            <li><a href ng-click="ctrl.cloneServerGroup(ctrl.serverGroup)">Clone</a></li>
+            <!--<li><migrator application="ctrl.application" server-group="ctrl.serverGroup"></migrator></li>-->
+          </ul>
+        </div>
+        <div class="dropdown" ng-if="ctrl.serverGroup.insightActions.length > 0" uib-dropdown dropdown-append-to-body>
+          <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
+            Insight <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li ng-repeat="action in ctrl.serverGroup.insightActions"><a target=_blank href="{{action.url}}">{{action.label}}</a></li>
+          </ul>
+        </div>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+  </div>
+  <div class="band band-info" ng-if="ctrl.serverGroup.isDisabled">
+    Disabled {{ctrl.disabledDate | timestamp}}
+  </div>
+  <div class="content" ng-if="!ctrl.state.loading">
+    <collapsible-section heading="Running Tasks" expanded="true" body-class="details-running-tasks" ng-if="ctrl.serverGroup.runningTasks.length > 0 || ctrl.runningExecutions().length > 0">
+      <div class="container-fluid no-padding" ng-repeat="task in ctrl.serverGroup.runningTasks | orderBy:'-startTime'">
+        <div class="row">
+          <div class="col-md-12">
+            <strong>
+              {{task.name}}
+            </strong>
+          </div>
+        </div>
+        <div class="row" ng-repeat="step in task.steps | displayableTasks">
+          <div class="col-md-7 col-md-offset-0">
+            <span class="small"><status-glyph item="step"></status-glyph></span> {{step.name | robotToHuman }}
+          </div>
+          <div class="col-md-4 text-right">
+            {{step.runningTimeInMs | duration }}
+          </div>
+        </div>
+      </div>
+
+      <div class="container-fluid no-padding" ng-repeat="execution in ctrl.runningExecutions()">
+        <div class="row">
+          <div class="col-md-12">
+            <strong>
+              Pipeline: {{execution.name}}
+            </strong>
+          </div>
+        </div>
+        <div class="row" ng-repeat="stage in execution.stages">
+          <div class="col-md-7 col-md-offset-0">
+            <span class="small"><status-glyph item="stage"></status-glyph></span> {{stage.name | robotToHuman }}
+          </div>
+          <div class="col-md-4 text-right">
+            {{stage.runningTimeInMs | duration }}
+          </div>
+        </div>
+      </div>
+
+    </collapsible-section>
+    <collapsible-section heading="Server Group Information" expanded="true">
+      <dl class="dl-horizontal" ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+        <dt>Created</dt>
+        <dd>{{ctrl.serverGroup.createdTime | timestamp}}</dd>
+        <dt>In</dt>
+        <dd>
+          <account-tag account="ctrl.serverGroup.account" pad="right"></account-tag>
+
+          {{ctrl.serverGroup.region}}
+        </dd>
+        <dt>Subnet</dt>
+        <dd>{{ctrl.subnetName || ctrl.subnetId}}<span ng-if="ctrl.subnetName">({{ctrl.serverGroup.subnetId}})</span></dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Health" expanded="true">
+      <dl class="dl-horizontal"
+          ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
+          ng-if="ctrl.serverGroup">
+        <dt>Instances</dt>
+        <dd>
+          <health-counts container="ctrl.serverGroup.instanceCounts" class="pull-left"></health-counts>
+        </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Size" expanded="true">
+      <dl class="dl-horizontal" ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+        <dt>Current</dt>
+        <dd>{{ctrl.serverGroup.instances.length}}</dd>
+        <dt ng-if="ctrl.serverGroup.scalingConfig.minSize !== ctrl.serverGroup.scalingConfig.maxSize">Min</dt>
+        <dd ng-if="ctrl.serverGroup.scalingConfig.minSize !== ctrl.serverGroup.scalingConfig.maxSize">{{ctrl.serverGroup.scalingConfig.minSize}}</dd>
+        <dt>Desired</dt>
+        <dd>{{ctrl.serverGroup.scalingConfig.desiredSize}}</dd>
+        <dt ng-if="ctrl.serverGroup.scalingConfig.minSize !== ctrl.serverGroup.scalingConfig.maxSize">Max</dt>
+        <dd ng-if="ctrl.serverGroup.scalingConfig.minSize !== ctrl.serverGroup.scalingConfig.maxSize">{{ctrl.serverGroup.scalingConfig.maxSize}}</dd>
+      </dl>
+      <div>
+        <a href ng-click="ctrl.resizeServerGroup()">Resize Server Group</a>
+      </div>
+      <!--<div>-->
+        <!--<a href ng-click="ctrl.showScalingActivities()">View Scaling Activities</a>-->
+      <!--</div>-->
+    </collapsible-section>
+    <collapsible-section heading="Launch Configuration">
+      <dl ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+        <dt>Image ID</dt>
+        <dd>{{ctrl.serverGroup.launchConfig.image}}</dd>
+
+        <dt ng-if="ctrl.serverGroup.image.name">Image Name</dt>
+        <dd ng-if="ctrl.serverGroup.image.name">{{ctrl.serverGroup.image.name}}</dd>
+
+        <dt>Instance Type</dt>
+        <dd>{{ctrl.serverGroup.launchConfig.instanceType}}</dd>
+
+        <dt ng-if="ctrl.serverGroup.image.properties.kernel_id">Kernel ID</dt>
+        <dd ng-if="ctrl.serverGroup.image.properties.kernel_id">{{ctrl.serverGroup.image.properties.kernel_id}}</dd>
+
+        <dt ng-if="ctrl.serverGroup.image.properties.ramdisk_id">Ramdisk ID</dt>
+        <dd ng-if="ctrl.serverGroup.image.properties.ramdisk_id">{{ctrl.serverGroup.image.properties.ramdisk_id}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Package">
+      <div ng-if="!(ctrl.serverGroup.buildInfo && ctrl.serverGroup.buildInfo.jenkins)">None.</div>
+      <dl ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'"
+          ng-if="ctrl.serverGroup.buildInfo && ctrl.serverGroup.buildInfo.jenkins">
+        <dt>Job</dt>
+        <dd>{{ctrl.serverGroup.buildInfo.jenkins.name}}</dd>
+        <dt>Package</dt>
+        <dd>{{ctrl.serverGroup.buildInfo.package_name}}</dd>
+        <dt>Build</dt>
+        <dd>{{ctrl.serverGroup.buildInfo.jenkins.number}}</dd>
+        <dt>Commit</dt>
+        <dd>{{ctrl.truncateCommitHash()}}</dd>
+        <dt>Version</dt>
+        <dd>{{ctrl.serverGroup.buildInfo.version}}</dd>
+        <dt>Build Link</dt>
+        <dd><a target=_blank href="{{ctrl.buildJenkinsLink()}}">{{ctrl.buildJenkinsLink()}}</a></dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Security Groups">
+      <ul>
+        <li ng-repeat="securityGroup in securityGroups | orderBy:'name'">
+          <a ui-sref="^.securityGroupDetails({name: securityGroup.name, accountId: securityGroup.accountName, region: ctrl.serverGroup.region, vpcId: ctrl.serverGroup.vpcId, provider: ctrl.serverGroup.type})">
+            {{securityGroup.name}} ({{securityGroup.id}})
+          </a>
+        </li>
+      </ul>
+      <a href ng-click="ctrl.updateSecurityGroups()">Edit Security Groups</a>
+    </collapsible-section>
+    <collapsible-section heading="Load Balancers">
+      <ul>
+        <li ng-repeat="loadBalancer in loadBalancers | orderBy:'name'">
+          <a ui-sref="^.loadBalancerDetails({name: loadBalancer.name, accountId: loadBalancer.account, region: ctrl.serverGroup.region, provider: ctrl.serverGroup.type})">
+            {{loadBalancer.name}} ({{loadBalancer.id}})
+          </a>
+        </li>
+      </ul>
+      <a href ng-click="ctrl.updateLoadBalancers()">Edit Load Balancers</a>
+    </collapsible-section>
+    <collapsible-section heading="Logs">
+      <ul>
+        <li>TBD</li>
+      </ul>
+    </collapsible-section>
+  </div>
+</div>

@@ -16,6 +16,7 @@ module.exports = angular.module('spinnaker.openstack', [
   require('./serverGroup/configure/serverGroup.configure.openstack.module.js'),
   require('./serverGroup/configure/wizard/Clone.controller.js'),
   require('./serverGroup/serverGroup.transformer.js'),
+  require('./serverGroup/details/serverGroup.details.module.js'),
   require('./securityGroup/securityGroup.reader.js'),
   require('./securityGroup/configure/configure.openstack.module.js'),
   require('./securityGroup/details/details.controller.js'),
@@ -62,6 +63,8 @@ module.exports = angular.module('spinnaker.openstack', [
         cloneServerGroupTemplateUrl: require('./serverGroup/configure/wizard/serverGroupWizard.html'),
         commandBuilder: 'openstackServerGroupCommandBuilder',
         configurationService: 'openstackServerGroupConfigurationService',
+        detailsTemplateUrl: require('./serverGroup/details/serverGroupDetails.html'),
+        detailsController: 'openstackServerGroupDetailsCtrl',
       },
       loadBalancer: {
         transformer: 'openstackLoadBalancerTransformer',

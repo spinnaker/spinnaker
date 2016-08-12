@@ -48,6 +48,8 @@ module.exports = angular.module('spinnaker.openstack.instance.instanceTypeSelect
             }
           }
         });
+
+        scope.$watch('region', function() { scope.$broadcast('updateOptions'); });
       }
     };
 });

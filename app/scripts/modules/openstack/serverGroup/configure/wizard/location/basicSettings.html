@@ -47,7 +47,7 @@
           <account-select-field read-only="command.viewState.readOnlyFields.credentials" component="command" field="credentials" accounts="command.backingData.accounts" provider="'openstack'"></account-select-field>
         </div>
       </div>
-      <os-region-select-field account="command.credentials" value="command.region" on-change="ctrl.onRegionChanged(region)"read-only="command.viewState.readOnlyFields.region"></os-region-select-field>
+      <os-region-select-field account="command.credentials" value="command.region" on-change="basicSettingsCtrl.onRegionChanged(region)"read-only="command.viewState.readOnlyFields.region"></os-region-select-field>
       <div class="form-group">
         <div class="col-md-3 sm-label-right">
           Stack

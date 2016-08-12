@@ -9,6 +9,19 @@ module.exports = angular
   .factory('openstackServerGroupTransformer', function ($q, _) {
 
     function normalizeServerGroup(serverGroup) {
+      if( serverGroup.loadBalancers ) {
+        serverGroup.loadBalancers = _.map(serverGroup.loadBalancers, function(lb) {
+          return /^openstack:/.test(lb) ? lb.split(':')[5] : lb;
+        });
+      }
+
+      //TODO(jwest): remove this once the back-end supplies properly formatted UUIDs
+      if( serverGroup.launchConfig && serverGroup.launchConfig.securityGroups ) {
+        serverGroup.launchConfig.securityGroups = _.map(serverGroup.launchConfig.securityGroups, function(sg) {
+          return /^\[u\'/.test(sg) ? sg.split('\'')[1] : sg;
+        });
+      }
+
       return $q.when(serverGroup); // no-op
     }
 

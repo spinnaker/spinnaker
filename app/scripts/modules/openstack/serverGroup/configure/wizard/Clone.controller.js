@@ -62,7 +62,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.clone
       var mode = serverGroupCommand.viewState.mode;
       if (mode === 'clone' || mode === 'editPipeline') {
         v2modalWizardService.markComplete('location');
-        v2modalWizardService.markComplete('load-balancers');
+        v2modalWizardService.markComplete('access-settings');
       }
     }
 

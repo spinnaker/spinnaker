@@ -11,6 +11,5 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure', [
   require('./wizard/instance/ServerGroupInstanceSettings.controller.js'),
   require('./wizard/access/AccessSettings.controller.js'),
   require('./wizard/Clone.controller.js'),
-  require('./wizard/LoadBalancers.controller.js'),
   require('./wizard/templateSelection.controller.js')
 ]);
