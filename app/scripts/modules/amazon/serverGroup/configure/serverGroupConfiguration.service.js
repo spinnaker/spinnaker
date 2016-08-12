@@ -155,7 +155,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
       var result = { dirty: {} };
       if (command.credentials && command.region) {
         // isDefault is imperfect, since we don't know what the previous account/region was, but probably a safe bet
-        var isDefault = _.some(command.backingData.credentialsKeyedByAccount, c => c.defaultKeyPair && command.keyPair.indexOf(c.defaultKeyPair.replace('{{region}}', '')) === 0);
+        var isDefault = _.some(command.backingData.credentialsKeyedByAccount, c => c.defaultKeyPair && command.keyPair && command.keyPair.indexOf(c.defaultKeyPair.replace('{{region}}', '')) === 0);
         var filtered = _(command.backingData.keyPairs)
           .filter({account: command.credentials, region: command.region})
           .pluck('keyName')
