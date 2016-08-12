@@ -97,7 +97,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
         def targetPool = compute.targetPools().get(project, region, targetPoolLocalName).execute()
         def instanceUrls = targetPool.getInstances()
-        def instanceReferencesToRemove = instanceUrls.findResults { instanceUrl ->
+        def instanceReferencesToRemove = instanceUrls?.findResults { instanceUrl ->
           GCEUtil.getLocalName(instanceUrl).startsWith("$serverGroupName-") ? new InstanceReference(instance: instanceUrl) : null
         }
 
