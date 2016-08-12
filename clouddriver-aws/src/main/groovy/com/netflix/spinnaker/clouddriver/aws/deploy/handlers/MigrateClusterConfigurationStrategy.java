@@ -33,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactor
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public abstract class MigrateClusterConfigurationStrategy implements MigrateStrategySupport {
@@ -157,9 +158,13 @@ public abstract class MigrateClusterConfigurationStrategy implements MigrateStra
 
     if (getDeployDefaults().getAddAppGroupToServerGroup()) {
       // if the app security group is already present, don't include it twice
-      if (targetSecurityGroups.stream().noneMatch(r -> source.getApplication().equals(r.getTarget().getTargetName()))) {
-        targetSecurityGroups.add(generateAppSecurityGroup());
+      Optional<MigrateSecurityGroupResult> appGroup = targetSecurityGroups.stream()
+        .filter(r -> source.getApplication().equals(r.getTarget().getTargetName())).findFirst();
+      if (!appGroup.isPresent()) {
+        appGroup = Optional.of(generateAppSecurityGroup());
+        targetSecurityGroups.add(appGroup.get());
       }
+      handleClassicLinkIngress(appGroup.get().getTarget().getTargetId());
     }
 
     return targetSecurityGroups;
@@ -180,12 +185,14 @@ public abstract class MigrateClusterConfigurationStrategy implements MigrateStra
     SecurityGroupMigrator migrator = new SecurityGroupMigrator(sourceLookup, targetLookup, migrateSecurityGroupStrategy,
       appGroupLocation, new SecurityGroupLocation(target));
     migrator.setCreateIfSourceMissing(true);
-    MigrateSecurityGroupResult result = migrator.migrate(dryRun);
+    return migrator.migrate(dryRun);
+  }
+
+  protected void handleClassicLinkIngress(String securityGroupId) {
     if (!dryRun && allowIngressFromClassic) {
       addClassicLinkIngress(targetLookup, getDeployDefaults().getClassicLinkSecurityGroupName(),
-        result.getTarget().getTargetId(), target.getCredentials(), target.getVpcId());
+        securityGroupId, target.getCredentials(), target.getVpcId());
     }
-    return result;
   }
 
   private MigrateSecurityGroupResult getMigrateSecurityGroupResult(String group) {

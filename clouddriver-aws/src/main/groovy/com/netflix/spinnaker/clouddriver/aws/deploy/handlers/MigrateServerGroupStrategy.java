@@ -246,9 +246,13 @@ public abstract class MigrateServerGroupStrategy implements MigrateStrategySuppo
     if (getDeployDefaults().getAddAppGroupToServerGroup()) {
       Names names = Names.parseName(source.getName());
       // if the app security group is already present, don't include it twice
-      if (targetSecurityGroups.stream().noneMatch(r -> names.getApp().equals(r.getTarget().getTargetName()))) {
-        targetSecurityGroups.add(generateAppSecurityGroup());
+      Optional<MigrateSecurityGroupResult> appGroup = targetSecurityGroups.stream()
+        .filter(r -> names.getApp().equals(r.getTarget().getTargetName())).findFirst();
+      if (!appGroup.isPresent()) {
+        appGroup = Optional.of(generateAppSecurityGroup());
+        targetSecurityGroups.add(appGroup.get());
       }
+      handleClassicLinkIngress(appGroup.get().getTarget().getTargetId());
     }
 
     return targetSecurityGroups;
@@ -271,11 +275,15 @@ public abstract class MigrateServerGroupStrategy implements MigrateStrategySuppo
       appGroupLocation, new SecurityGroupLocation(target));
     migrator.setCreateIfSourceMissing(true);
     MigrateSecurityGroupResult result = migrator.migrate(dryRun);
+    handleClassicLinkIngress(result.getTarget().getTargetId());
+    return result;
+  }
+
+  protected void handleClassicLinkIngress(String securityGroupId) {
     if (!dryRun && allowIngressFromClassic) {
       addClassicLinkIngress(targetLookup, getDeployDefaults().getClassicLinkSecurityGroupName(),
-        result.getTarget().getTargetId(), target.getCredentials(), target.getVpcId());
+        securityGroupId, target.getCredentials(), target.getVpcId());
     }
-    return result;
   }
 
   private MigrateSecurityGroupResult getMigrateSecurityGroupResult(String group) {
