@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.image;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 public interface ImageFinder {
@@ -28,5 +29,14 @@ public interface ImageFinder {
   interface ImageDetails {
     String getImageId();
     String getImageName();
+    JenkinsDetails getJenkins();
+  }
+
+  class JenkinsDetails extends HashMap<String, String> {
+    public JenkinsDetails(String host, String name, String number) {
+      put("host", host);
+      put("name", name);
+      put("number", number);
+    }
   }
 }

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageFinder
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
@@ -43,6 +44,10 @@ class AmazonImageFinderSpec extends Specification {
     def stage = new PipelineStage(new Pipeline(), "", [
       regions: ["us-west-1", "us-west-2"]
     ])
+    def tags = [
+      appversion: "mypackage-2.79.0-h247.d14bad0/mypackage/247",
+      build_host: "http://build.host"
+    ]
 
     when:
     def imageDetails = amazonImageFinder.byTags(stage, "mypackage", ["engine": "spinnaker"])
@@ -51,24 +56,27 @@ class AmazonImageFinderSpec extends Specification {
     1 * oortService.findImage("aws", "mypackage", null, null, ["tag:engine": "spinnaker"]) >> {
       [
         [
-          imageName: "image-0",
-          attributes: [creationDate: bCD("2015")],
-          amis: [
+          imageName    : "image-0",
+          attributes   : [creationDate: bCD("2015")],
+          tagsByImageId: ["ami-0": tags, "ami-1": tags],
+          amis         : [
             "us-west-1": ["ami-0"],
             "us-west-2": ["ami-1"]
           ]
         ],
         [
-          imageName: "image-2",
-          attributes: [creationDate: bCD("2016")],
-          amis: [
+          imageName    : "image-2",
+          attributes   : [creationDate: bCD("2016")],
+          tagsByImageId: ["ami-2": tags],
+          amis         : [
             "us-west-1": ["ami-2"]
           ]
         ],
         [
-          imageName: "image-3",
-          attributes: [creationDate: bCD("2016")],
-          amis: [
+          imageName    : "image-3",
+          attributes   : [creationDate: bCD("2016")],
+          tagsByImageId: ["ami-3": tags],
+          amis         : [
             "us-west-2": ["ami-3"]
           ]
         ]
@@ -77,6 +85,13 @@ class AmazonImageFinderSpec extends Specification {
     0 * _
 
     imageDetails.size() == 2
+    imageDetails.every {
+      (it.jenkins as Map) == [
+        "number": "247",
+        "host"  : "http://build.host",
+        "name"  : "mypackage"
+      ]
+    }
     imageDetails.find { it.region == "us-west-1" }.imageId == "ami-2"
     imageDetails.find { it.region == "us-west-1" }.imageName == "image-2"
     imageDetails.find { it.region == "us-west-2" }.imageId == "ami-3"
