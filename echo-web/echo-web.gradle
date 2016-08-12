@@ -41,6 +41,7 @@ dependencies {
     compile project(':echo-rest')
     compile project(':echo-webhooks')
     compile spinnaker.dependency('kork')
+    compile spinnaker.dependency('korkStackdriver')
     compile spinnaker.dependency('korkWeb')
     compile spinnaker.dependency('bootActuator')
     compile spinnaker.dependency('bootWeb')
