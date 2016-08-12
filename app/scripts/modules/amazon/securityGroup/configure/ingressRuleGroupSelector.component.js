@@ -81,7 +81,7 @@ module.exports = angular
       };
 
       let reconcileRuleVpc = (filtered) => {
-        if (this.rule.vpcId) {
+        if (this.rule.vpcId && !this.rule.existing) {
           if (!this.securityGroup.vpcId) {
             this.rule.vpcId = null;
             this.rule.name = null;
