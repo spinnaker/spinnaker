@@ -726,6 +726,9 @@ class GCEUtil {
           } else {
             backendToAdd.setGroup(buildZonalServerGroupUrl(project, serverGroup.zone, serverGroupName))
           }
+          if (backendService.backends == null) {
+            backendService.backends = []
+          }
           backendService.backends << backendToAdd
           compute.backendServices().update(project, backendServiceName, backendService).execute()
           task.updateStatus phase, "Enabled backend for server group ${serverGroupName} in Http(s) load balancer backend service ${backendServiceName}."
