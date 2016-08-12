@@ -35,6 +35,9 @@
         font-size: 80%;
       }
     }
+    @media(max-width: 1400px) {
+      font-size: 14px;
+    }
   }
   .badge {
     background-color: @lighter_grey;
@@ -51,16 +54,21 @@
   }
 }
 
-.triggers-toggle {
+.triggers-toggle, next-run-tag {
   display: inline-block;
   font-weight: 300;
   font-size: 85%;
-  margin: 9px 0 0 30px;
+  margin: 9px 0 0 0;
   position: relative;
   color: @healthy_green;
   &.disabled {
     color: @mid_light_grey;
   }
+}
+
+next-run-tag {
+  margin: 0 0 0 5px;
+  vertical-align: middle;
 }
 
 .execution-group-actions {

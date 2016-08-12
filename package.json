@@ -31,6 +31,7 @@
     "diff-match-patch": "^1.0.0",
     "jquery": "2.1.4",
     "jquery-ui": "~1.10.5",
+    "later": "^1.2.0",
     "loader-utils": "^0.2.11",
     "lodash": "^3.10.1",
     "moment-timezone": "^0.4.0",
