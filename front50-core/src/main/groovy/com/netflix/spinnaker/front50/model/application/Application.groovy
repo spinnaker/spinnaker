@@ -42,6 +42,7 @@ class Application implements Timestamped {
   String accounts
   String updateTs
   String createTs
+  String lastModifiedBy
 
   private Map<String, Object> details = new HashMap<String, Object>()
 
@@ -309,6 +310,7 @@ class Application implements Timestamped {
   static class Permission implements Timestamped {
     String name
     Long lastModified
+    String lastModifiedBy
     List<String> requiredGroupMembership
 
     @Override

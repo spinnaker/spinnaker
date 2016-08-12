@@ -41,7 +41,6 @@ public class ServiceAccountBucketDAO extends BucketDAO<ServiceAccount> implement
 
   private ServiceAccount upsert(String id, ServiceAccount permission) {
     permission.setName(id);
-    permission.setLastModified(System.currentTimeMillis());
     super.update(id, permission);
     return findById(id);
   }

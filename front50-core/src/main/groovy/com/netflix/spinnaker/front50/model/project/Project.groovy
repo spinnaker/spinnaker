@@ -30,6 +30,8 @@ class Project implements Timestamped {
   Long updateTs
   Long createTs
 
+  String lastModifiedBy
+
   @Override
   @JsonIgnore
   Long getLastModified() {

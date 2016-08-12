@@ -45,7 +45,6 @@ public class S3ApplicationPermissionDAO extends S3Support<Application.Permission
 
   private Application.Permission upsert(String id, Application.Permission permission) {
     permission.setName(id);
-    permission.setLastModified(System.currentTimeMillis());
     super.update(id, permission);
     return findById(id);
   }

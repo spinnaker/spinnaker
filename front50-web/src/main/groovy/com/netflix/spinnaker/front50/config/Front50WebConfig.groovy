@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.front50.config
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
@@ -28,6 +29,8 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
+
+import javax.servlet.Filter
 
 @Configuration
 @ComponentScan
@@ -42,6 +45,11 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
             this.registry, "controller.invocations", ["account", "application"], ["BasicErrorController"]
         )
     )
+  }
+
+  @Bean
+  Filter authenticatedRequestFilter() {
+    new AuthenticatedRequestFilter(true)
   }
 
   @Bean

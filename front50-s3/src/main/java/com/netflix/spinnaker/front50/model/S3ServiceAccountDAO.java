@@ -45,7 +45,6 @@ public class S3ServiceAccountDAO extends S3Support<ServiceAccount> implements Se
 
   private ServiceAccount upsert(String id, ServiceAccount permission) {
     permission.setName(id);
-    permission.setLastModified(System.currentTimeMillis());
     super.update(id, permission);
     return findById(id);
   }

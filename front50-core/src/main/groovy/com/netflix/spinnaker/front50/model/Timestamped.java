@@ -22,4 +22,8 @@ public interface Timestamped {
   Long getLastModified();
 
   void setLastModified(Long lastModified);
+
+  String getLastModifiedBy();
+
+  void setLastModifiedBy(String lastModifiedBy);
 }

@@ -43,7 +43,6 @@ public class ApplicationPermissionBucketDAO extends BucketDAO<Application.Permis
 
   private Application.Permission upsert(String id, Application.Permission permission) {
     permission.setName(id);
-    permission.setLastModified(System.currentTimeMillis());
     super.update(id, permission);
     return findById(id);
   }
