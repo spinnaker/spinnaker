@@ -33,41 +33,42 @@ class PackageNameConverter {
     String arch
 
     public String qualifiedPackageName(PackageType packageType) {
-      if (!version || !release) return null // Not possible to generate without these
-
-      String versionDelimiter = packageType.getVersionDelimiter()
-      "${name}${versionDelimiter}${version}-${release}"
+      if (version && release) {
+        "${name}${packageType.getVersionDelimiter()}${version}-${release}"
+      } else if (version) {
+        "${name}${packageType.getVersionDelimiter()}${version}"
+      } else {
+        return null
+      }
     }
-
   }
 
   // Naming-convention for debs is name_version-release_arch.
   // For example: nflx-djangobase-enhanced_0.1-h12.170cdbd_all
   public static OsPackageName parseDebPackageName(String fullyQualifiedPackageName) {
     OsPackageName osPackageName = new OsPackageName()
+    if (!fullyQualifiedPackageName) return osPackageName
 
     osPackageName.with {
-      List<String> parts = fullyQualifiedPackageName?.tokenize("_")
+        name = fullyQualifiedPackageName
+        List<String> parts = fullyQualifiedPackageName?.tokenize("_")
+        if (parts) {
+          if (parts.size() > 1) {
+            List<String> versionReleaseParts = parts[1].tokenize("-")
+            if (versionReleaseParts) {
+              version = versionReleaseParts[0]
+              name = parts[0]
 
-      if (parts) {
-        name = parts[0]
-
-        if (parts.size > 1) {
-          List<String> versionReleaseParts = parts[1].tokenize("-")
-
-          if (versionReleaseParts) {
-            version = versionReleaseParts[0]
-
-            if (versionReleaseParts.size > 1) {
-              release = versionReleaseParts[1]
+              if (versionReleaseParts.size() > 1) {
+                release = versionReleaseParts[1]
+              }
+            }
+            if (parts.size() > 2) {
+              arch = parts[2]
             }
           }
-
-          if (parts.size > 2) {
-            arch = parts[2]
-          }
         }
-      }
+
     }
 
     osPackageName
@@ -77,27 +78,24 @@ class PackageNameConverter {
   // For example: nflx-djangobase-enhanced-0.1-h12.170cdbd.all
   public static OsPackageName parseRpmPackageName(String fullyQualifiedPackageName) {
     OsPackageName osPackageName = new OsPackageName()
-    String versionDelimiter = BakeRequest.PackageType.RPM.getVersionDelimiter()
+    if (!fullyQualifiedPackageName) return osPackageName
 
     osPackageName.with {
-      if (fullyQualifiedPackageName) {
-        int startOfArch = fullyQualifiedPackageName.lastIndexOf('.')
+      name = fullyQualifiedPackageName
+      List<String> nameParts = fullyQualifiedPackageName.tokenize(".")
+      int numberOfNameParts = nameParts.size()
+      if (numberOfNameParts >= 2) {
+        arch = nameParts.drop(numberOfNameParts - 1).join("")
+        fullyQualifiedPackageName = nameParts.take(numberOfNameParts - 1).join(".")
+      }
 
-        if (startOfArch != -1) {
-          arch = fullyQualifiedPackageName.substring(startOfArch + 1)
-          fullyQualifiedPackageName = fullyQualifiedPackageName.substring(0, startOfArch)
-        }
+      List<String> parts = fullyQualifiedPackageName.tokenize("-")
 
-        List<String> parts = fullyQualifiedPackageName.tokenize("-")
-
-        if (parts.size >= 3) {
+        if(parts.size() >= 3) {
           release = parts.pop()
           version = parts.pop()
           name = parts.join("-")
-        } else {
-          name = fullyQualifiedPackageName
         }
-      }
     }
 
     osPackageName
