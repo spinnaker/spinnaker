@@ -1,0 +1,18 @@
+<span uib-dropdown class="pull-right clickable" on-toggle="toggled(open)" auto-close="outsideClick">
+  <h6 href uib-dropdown-toggle>
+    <span class="region-filter-button">Filter by region / namespace</span>
+    <span class="small glyphicon glyphicon-chevron-down"></span>
+  </h6>
+  <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+    <li ng-repeat="region in $ctrl.regions">
+      <a ng-click="$ctrl.toggleRegion(region)">
+        <label>{{ region }}</label>
+        <input class="pull-right" type="checkbox" ng-model="$ctrl.sortFilter.region[region]" />
+      </a>
+    </li>
+    <li class="text-center">
+      <a ng-click="$ctrl.clearFilter()">Clear all</a>
+    </li>
+  </ul>
+</span>
+

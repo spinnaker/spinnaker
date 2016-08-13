@@ -12,6 +12,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
   require('../../../cluster/filter/clusterFilter.service.js'),
   require('../../../utils/timeFormatters.js'),
   require('../../../healthCounts/healthCounts.directive.js'),
+  require('../regionFilter/regionFilter.service.js'),
 ])
   .directive('projectCluster', function () {
     return {
@@ -27,7 +28,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
     };
   })
   .controller('ProjectClusterCtrl', function($scope, urlBuilderService, _, collapsibleSectionStateCache,
-                                             clusterFilterService) {
+                                             clusterFilterService, regionFilterService) {
 
     let stateCache = collapsibleSectionStateCache;
 
@@ -118,8 +119,45 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
       )).sort();
     };
 
+    let setViewRegions = (updatedFilter) => {
+      let unfilteredRegions = this.cluster.regions;
+      if (Object.keys(_.filter(updatedFilter)).length) {
+        this.regions = unfilteredRegions.filter(region => updatedFilter[region]);
+      } else {
+        this.regions = unfilteredRegions;
+      }
+    };
+
+    let setViewInstanceCounts = (updatedFilter) => {
+      if (Object.keys(_.filter(updatedFilter)).length) {
+        this.instanceCounts = _(this.cluster.applications)
+          .map('clusters')
+          .flatten()
+          .valueOf()
+          .reduce((instanceCounts, cluster) => {
+            if (updatedFilter[cluster.region]) {
+              _.forEach(cluster.instanceCounts, (count, key) => {
+                if (!instanceCounts[key]) {
+                  instanceCounts[key] = 0;
+                }
+                instanceCounts[key] += count;
+              });
+            }
+            return instanceCounts;
+          }, {});
+      } else {
+        this.instanceCounts = this.cluster.instanceCounts;
+      }
+    };
+
+    [setViewInstanceCounts, setViewRegions].forEach(cb => {
+      regionFilterService.registerCallback(cb);
+      $scope.$on('$destroy', () => regionFilterService.deregisterCallback(cb));
+    });
+
     let initialize = () => {
       addRegions(this.cluster);
+      regionFilterService.runCallbacks();
       this.cluster.applications.forEach((application) => {
         mapClustersToRegions(this.cluster, application);
         addApplicationBuild(application);

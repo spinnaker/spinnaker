@@ -12,9 +12,9 @@
                   {{vm.cluster.applications.length}} Application<span ng-if="vm.cluster.applications.length !== 1">s</span>
                 </span>
                 <span class="cluster-health">
-                  {{vm.cluster.instanceCounts.total}} Instances
+                  {{vm.instanceCounts.total}} Instances
                 </span>
-                <health-counts container="vm.cluster.instanceCounts"></health-counts>
+                <health-counts container="vm.instanceCounts"></health-counts>
               </span>
             </h5>
           </div>
@@ -26,13 +26,16 @@
     <div ng-if="!vm.cluster.applications.length" class="text-center">
       <p>No clusters found for any applications.</p>
     </div>
-    <table class="table table-condensed" ng-if="vm.cluster.applications.length">
+    <div ng-if="!vm.regions.length" class="text-center">
+      <p>No clusters found for selected regions / namespaces.</p>
+    </div>
+    <table class="table table-condensed" ng-if="vm.cluster.applications.length && vm.regions.length">
       <thead>
         <tr>
           <th width="18%"></th>
           <th width="9%"></th>
           <th width="15%">Last Push</th>
-          <th ng-repeat="region in vm.cluster.regions" width="{{57/vm.cluster.regions.length}}%">
+          <th ng-repeat="region in vm.regions" width="{{57/vm.regions.length}}%">
             {{region}}
           </th>
         </tr>
@@ -60,7 +63,7 @@
             {{application.lastPush | relativeTime }}
           </span>
         </td>
-        <td ng-repeat="region in vm.cluster.regions">
+        <td ng-repeat="region in vm.regions">
           <span ng-if="application.regions[region]">
             <a ng-click="vm.clearFilters(application.regions[region].metadata)" ng-href="{{application.regions[region].metadata.href}}">
               <health-counts container="application.regions[region].instanceCounts"

@@ -5,6 +5,7 @@
         <component-refresher state="vm.state.clusters"
                              template-url="vm.clusterRefreshTooltipTemplate"
                              refresh="vm.refreshClusters()"></component-refresher>
+        <region-filter region-filter="regionFilter" regions="vm.allRegions"></region-filter>
       </h3>
       <project-cluster
           ng-repeat="cluster in vm.clusters"

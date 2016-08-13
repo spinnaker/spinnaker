@@ -12,9 +12,12 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
   require('../../scheduler/scheduler.factory.js'),
   require('../../history/recentHistory.service.js'),
   require('../../presentation/refresher/componentRefresher.directive.js'),
-  require('../../utils/lodash')
+  require('../../utils/lodash'),
+  require('./regionFilter/regionFilter.component.js'),
+  require('./regionFilter/regionFilter.service.js'),
 ])
-  .controller('ProjectDashboardCtrl', function ($scope, projectConfiguration, executionService, projectReader, _,
+  .controller('ProjectDashboardCtrl', function ($scope, $rootScope, projectConfiguration,
+                                                executionService, projectReader, _, regionFilterService,
                                                 schedulerFactory, recentHistoryService, $q) {
 
     this.project = projectConfiguration;
@@ -69,6 +72,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
 
       return clustersPromise.then((clusters) => {
         this.clusters = clusters;
+        this.allRegions = getAllRegions(clusters);
         state.initializing = false;
         state.loaded = true;
         state.refreshing = false;
@@ -90,11 +94,24 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
         state.loaded = true;
         state.refreshing = false;
         state.lastRefresh = new Date().getTime();
+        regionFilterService.activate();
+        regionFilterService.runCallbacks();
       }).catch(() => {
         state.initializing = false;
         state.refreshing = false;
         state.error = true;
       });
+    };
+
+    let getAllRegions = (clusters) => {
+      return _(clusters)
+        .pluck('applications')
+        .flatten()
+        .pluck('clusters')
+        .flatten()
+        .pluck('region')
+        .uniq()
+        .valueOf();
     };
 
     let clusterScheduler = schedulerFactory.createScheduler(),
@@ -118,4 +135,8 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
     this.refreshClusters();
     this.refreshExecutions();
 
+    $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', () => {
+      regionFilterService.activate();
+      regionFilterService.runCallbacks();
+    }));
   });
