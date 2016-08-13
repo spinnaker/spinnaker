@@ -100,6 +100,7 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     payload = self.agent.make_json_payload_from_object(self.initial_app_spec)
     expect = dict(self.initial_app_spec)
     expect['name'] = self.initial_app_spec['name'].upper()
+    expect['lastModifiedBy'] = 'anonymous'
 
     contract = jc.Contract()
 
