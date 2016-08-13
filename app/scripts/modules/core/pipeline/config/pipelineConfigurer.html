@@ -7,7 +7,7 @@
       <a href class="nav-popover"
          ng-click="navMenuState.showMenu = !navMenuState.showMenu"
          ng-blur="pipelineConfigurerCtrl.hideNavigationMenu()">
-        {{pipeline.name}}
+        {{pipeline.name}} <span ng-if="pipeline.disabled">(disabled)</span>
       </a>
       <pipeline-config-errors pipeline="pipeline"></pipeline-config-errors>
     </h3>

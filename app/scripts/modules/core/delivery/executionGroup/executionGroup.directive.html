@@ -8,7 +8,7 @@
        analytics-label="{{vm.group.heading}}"
        ng-click="vm.toggle()"
        ng-if="vm.group.heading">
-    <div class="col-md-12 execution-group-heading" ng-class="vm.viewState.isRetired ? 'inactive' : 'active'">
+    <div class="col-md-12 execution-group-heading" ng-class="vm.viewState.isRetired  || vm.pipelineConfig.disabled ? 'inactive' : 'active'">
       <div class="row">
         <div class="col-md-5 col-sm-5">
           <h4 class="execution-group-title">
@@ -16,7 +16,7 @@
                   ng-class="{'glyphicon-chevron-right': !vm.viewState.open, 'glyphicon-chevron-down': vm.viewState.open}">
             </span>
             <span class="execution-group-title">
-              {{ vm.group.heading }}
+              {{ vm.group.heading }} <span ng-if="vm.pipelineConfig.disabled">(disabled)</span>
               <span ng-if="vm.group.runningExecutions.length" class="badge">
                 {{vm.group.runningExecutions.length}}
               </span>
@@ -39,7 +39,7 @@
               Configure
             </a>
           </h4>
-          <h4 ng-if="vm.viewState.canTriggerPipelineManually">
+          <h4 ng-if="vm.viewState.canTriggerPipelineManually" is-visible="!vm.pipelineConfig.disabled">
             <a href
                class="btn btn-xs btn-link link-inverse"
                analytics-on="click"

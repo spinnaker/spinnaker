@@ -21,6 +21,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
 
     this.actionsTemplateUrl = overrideRegistry.getTemplate('pipelineConfigActions', require('./actions/pipelineConfigActions.html'));
 
+    let original = _.cloneDeep($scope.pipeline);
+
     pipelineConfigService.getHistory($scope.pipeline.id, 2).then(history => {
       if (history && history.length > 1) {
         $scope.viewState.hasHistory = true;
@@ -143,6 +145,30 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
         $scope.$broadcast('pipeline-json-edited');
       });
     };
+
+    this.enablePipeline = () => {
+      $uibModal.open({
+        templateUrl: require('./actions/enable/enablePipelineModal.html'),
+        controller: 'EnablePipelineModalCtrl as ctrl',
+        resolve: {
+          pipeline: () => original
+        }
+      }).result.then(disableToggled);
+    };
+
+    this.disablePipeline = () => {
+      $uibModal.open({
+        templateUrl: require('./actions/disable/disablePipelineModal.html'),
+        controller: 'DisablePipelineModalCtrl as ctrl',
+        resolve: {
+          pipeline: () => original
+        }
+      }).result.then(disableToggled);
+    };
+
+    function disableToggled() {
+      $scope.pipeline.disabled = !$scope.pipeline.disabled;
+    }
 
     this.showHistory = () => {
       $uibModal.open({

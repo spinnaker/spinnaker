@@ -16,7 +16,10 @@
              analytics-on="click"
              analytics-category="Pipelines"
              analytics-event="Configure pipeline (via top level)"
-             ui-sref="^.pipelineConfig({pipelineId: pipeline.id})">{{pipeline.name}}</a></li>
+             ui-sref="^.pipelineConfig({pipelineId: pipeline.id})">
+              {{pipeline.name}} <span ng-if="pipeline.disabled">(disabled)</span>
+          </a>
+        </li>
         <li class="dropdown-header" style="margin-top:0" ng-if="application.strategyConfigs.data.length">DEPLOYMENT STRATEGIES</li>
         <li  ng-repeat="pipeline in application.strategyConfigs.data">
           <a href

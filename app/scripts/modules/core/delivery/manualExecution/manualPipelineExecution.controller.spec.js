@@ -28,16 +28,17 @@ describe('Controller: ManualPipelineExecution', function () {
 
   describe('Initialization', function () {
     describe('No pipeline provided', function () {
-      it('sets pipeline options on controller from application', function () {
+      it('sets pipeline options on controller from application, skipping disabled', function () {
         let application = {
           pipelineConfigs: { data: [
             { id: 'a' },
-            { id: 'b' }
+            { id: 'b' },
+            { id: 'c', disabled: true }
           ]}
         };
         this.initializeController(application);
 
-        expect(this.ctrl.pipelineOptions).toBe(application.pipelineConfigs.data);
+        expect(this.ctrl.pipelineOptions).toEqual([ {id: 'a'}, {id: 'b'} ]);
       });
     });
 

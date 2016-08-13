@@ -1,0 +1,28 @@
+<div modal-page>
+  <modal-close></modal-close>
+  <div class="modal-header">
+    <h3>Really Disable Pipeline?</h3>
+  </div>
+  <div class="modal-body">
+    <div class="alert alert-danger" ng-if="ctrl.viewState.saveError">
+      <p>Could not disable pipeline.</p>
+      <p><b>Reason: </b>{{ctrl.viewState.errorMessage}}</p>
+      <p><a href ng-click="ctrl.viewState.saveError = false">[dismiss]</a></p>
+    </div>
+    <form role="form" name="form" class="form-horizontal">
+      <div class="form-group">
+        <div class="col-md-12">
+          <p>Are you sure you want to disable {{ctrl.pipelineName}}?</p>
+          <p>This will prevent any triggers from firing, and will also prevent users from running the pipeline manually.</p>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+    <button class="btn btn-primary"
+            ng-click="ctrl.disablePipeline()">
+      Disable pipeline
+    </button>
+  </div>
+</div>
