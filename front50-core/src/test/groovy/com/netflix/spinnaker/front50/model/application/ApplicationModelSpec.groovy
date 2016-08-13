@@ -20,6 +20,16 @@ package com.netflix.spinnaker.front50.model.application
 
 import com.netflix.spinnaker.front50.events.ApplicationEventListener
 import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.front50.model.notification.HierarchicalLevel
+import com.netflix.spinnaker.front50.model.notification.Notification
+import com.netflix.spinnaker.front50.model.notification.NotificationDAO
+import com.netflix.spinnaker.front50.model.pipeline.Pipeline
+import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
+import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
+import com.netflix.spinnaker.front50.model.project.Project
+import com.netflix.spinnaker.front50.model.project.Project.ClusterConfig
+import com.netflix.spinnaker.front50.model.project.Project.ProjectConfig
+import com.netflix.spinnaker.front50.model.project.ProjectDAO
 import com.netflix.spinnaker.front50.validator.HasEmailValidator
 import com.netflix.spinnaker.front50.validator.HasNameValidator
 import spock.lang.Specification
@@ -138,7 +148,7 @@ class ApplicationModelSpec extends Specification {
     thrown(Application.ValidationException)
   }
 
-  void 'save should result in an exception is no email is provided'() {
+  void 'save should result in an exception if no email is provided'() {
     def application = new Application()
     application.validators = [new HasEmailValidator()]
 
@@ -152,9 +162,23 @@ class ApplicationModelSpec extends Specification {
 
   void 'delete should just work'() {
     def dao = Mock(ApplicationDAO)
+    def projectDao = Stub(ProjectDAO) {
+      all() >> []
+    }
+    def notificationDao = Mock(NotificationDAO)
+    def pipelineDao = Stub(PipelineDAO) {
+      getPipelinesByApplication(_) >> []
+    }
+    def pipelineStrategyDao = Stub(PipelineStrategyDAO) {
+      getPipelinesByApplication(_) >> []
+    }
     def app = new Application()
     app.name = "TEST_APP"
     app.dao = dao
+    app.projectDao = projectDao
+    app.notificationDao = notificationDao
+    app.pipelineDao = pipelineDao
+    app.pipelineStrategyDao = pipelineStrategyDao
 
     when:
     app.delete()
@@ -162,6 +186,7 @@ class ApplicationModelSpec extends Specification {
     then:
     1 * dao.delete("TEST_APP")
     1 * dao.findByName("TEST_APP") >> new Application(name: "TEST_APP")
+    1 * notificationDao.delete(HierarchicalLevel.APPLICATION, "TEST_APP")
   }
 
   void 'deleting a non-existent application should no-op'() {
@@ -258,6 +283,87 @@ class ApplicationModelSpec extends Specification {
     1 * postListener.call(_, _)
     1 * postListener.rollback(_)
     1 * failingPostListener.call(_, _) >> { throw new IllegalStateException("Expected") }
+    0 * _
+  }
+
+  void 'should remove application references from projects and delete project if empty'() {
+    given:
+    def application = new Application(name: 'app1')
+    def projects = [
+            new Project(id: "1", config: new ProjectConfig(applications: ['app1', 'app2'], clusters: [])),
+            new Project(id: "2", config: new ProjectConfig(applications: ['app1', 'app2'], clusters: [
+                    new ClusterConfig(applications: ['app2', 'app1']),
+                    new ClusterConfig(applications: ['app2']),
+                    new ClusterConfig(applications: ['app1'])])
+            ),
+            new Project(id: "3", config: new ProjectConfig(applications: ['app2', 'app3'], clusters: [])),
+            new Project(id: "4", config: new ProjectConfig(applications: ['app2', 'app3'], clusters: [
+                    new ClusterConfig(applications: ['app2', 'app3'])])
+            ),
+            new Project(id: "5", config: new ProjectConfig(applications: ['app1'], clusters: []))
+    ]
+
+    ProjectDAO projectDao = Mock(ProjectDAO)
+    ApplicationDAO dao = Mock(ApplicationDAO)
+    NotificationDAO notificationDao = Stub(NotificationDAO) {
+      delete(_) >> []
+    }
+    PipelineDAO pipelineDao = Stub(PipelineDAO) {
+      getPipelinesByApplication(_) >> []
+    }
+    PipelineStrategyDAO pipelineStrategyDao = Stub(PipelineStrategyDAO) {
+      getPipelinesByApplication(_) >> []
+    }
+
+    application.dao = dao
+    application.notificationDao = notificationDao
+    application.projectDao = projectDao
+    application.pipelineDao = pipelineDao
+    application.pipelineStrategyDao = pipelineStrategyDao
+
+    when:
+    application.delete()
+
+    then:
+    1 * dao.findByName('APP1') >> application
+    1 * dao.delete('APP1')
+    1 * projectDao.all() >> projects
+    1 * projectDao.update("1", { it.config.applications == ['app2'] && it.config.clusters == []})
+    1 * projectDao.update("2", { it.config.applications == ['app2'] && it.config.clusters.applications == [ ['app2'], ['app2'], [] ]})
+    1 * projectDao.delete("5")
+    0 * _
+  }
+
+  void 'should delete all pipeline and strategy configs when deleting an application'() {
+    given:
+    def application = new Application(name: 'app1')
+    ProjectDAO projectDao = Stub(ProjectDAO) {
+      all() >> []
+    }
+    ApplicationDAO dao = Mock(ApplicationDAO)
+    NotificationDAO notificationDao = Stub(NotificationDAO) {
+      delete(_) >> []
+    }
+    PipelineDAO pipelineDao = Mock(PipelineDAO)
+    PipelineStrategyDAO pipelineStrategyDao = Mock(PipelineStrategyDAO)
+
+    application.dao = dao
+    application.notificationDao = notificationDao
+    application.projectDao = projectDao
+    application.pipelineDao = pipelineDao
+    application.pipelineStrategyDao = pipelineStrategyDao
+
+    when:
+    application.delete()
+
+    then:
+    1 * dao.findByName('APP1') >> application
+    1 * dao.delete('APP1')
+    1 * pipelineDao.getPipelinesByApplication(_) >> [new Pipeline(id: 'a'), new Pipeline(id: 'b')]
+    1 * pipelineDao.delete('a')
+    1 * pipelineDao.delete('b')
+    1 * pipelineStrategyDao.getPipelinesByApplication(_) >> [ new Pipeline(id: 'a') ]
+    1 * pipelineStrategyDao.delete('a')
     0 * _
   }
 }

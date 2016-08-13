@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.front50.model;
 
-import com.amazonaws.services.cloudtrail.model.UnsupportedOperationException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
@@ -24,7 +23,7 @@ import com.netflix.spinnaker.front50.model.project.Project;
 import com.netflix.spinnaker.front50.model.project.ProjectDAO;
 import rx.Scheduler;
 
-import java.util.*;
+import java.util.UUID;
 
 public class S3ProjectDAO extends S3Support<Project> implements ProjectDAO {
   public S3ProjectDAO(ObjectMapper objectMapper,

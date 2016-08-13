@@ -24,6 +24,12 @@ import com.netflix.spinnaker.front50.events.ApplicationEventListener
 import com.netflix.spinnaker.front50.exception.ApplicationAlreadyExistsException
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.Timestamped
+import com.netflix.spinnaker.front50.model.notification.HierarchicalLevel
+import com.netflix.spinnaker.front50.model.notification.NotificationDAO
+import com.netflix.spinnaker.front50.model.pipeline.Pipeline
+import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
+import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
+import com.netflix.spinnaker.front50.model.project.ProjectDAO
 import com.netflix.spinnaker.front50.validator.ApplicationValidationErrors
 import com.netflix.spinnaker.front50.validator.ApplicationValidator
 import groovy.transform.Canonical
@@ -76,6 +82,18 @@ class Application implements Timestamped {
 
   @JsonIgnore
   ApplicationDAO dao
+
+  @JsonIgnore
+  ProjectDAO projectDao
+
+  @JsonIgnore
+  NotificationDAO notificationDao
+
+  @JsonIgnore
+  PipelineDAO pipelineDao
+
+  @JsonIgnore
+  PipelineStrategyDAO pipelineStrategyDao
 
   @JsonIgnore
   Collection<ApplicationValidator> validators
@@ -137,6 +155,7 @@ class Application implements Timestamped {
         applicationEventListeners.findAll { it.supports(ApplicationEventListener.Type.POST_DELETE) },
         { Application originalApplication, Application modifiedApplication ->
           // onSuccess
+          deleteApplicationComponents(currentApplication.name)
           this.dao.delete(currentApplication.name)
           return null
         },
@@ -148,6 +167,37 @@ class Application implements Timestamped {
         currentApplication,
         null
     )
+  }
+
+  private void deleteApplicationComponents(String application) {
+    removeApplicationFromProjects(application)
+    deleteApplicationNotifications(application)
+    deletePipelines(application)
+  }
+
+  private void removeApplicationFromProjects(String application) {
+    projectDao.all().findAll {
+        it.config.applications.contains(application.toLowerCase())
+      }.each {
+        it.config.applications.remove(application.toLowerCase())
+        it.config.clusters.each { cluster ->
+          cluster.applications.remove(application.toLowerCase())
+        }
+        if (it.config.applications.empty) {
+          projectDao.delete(it.id)
+        } else {
+          projectDao.update(it.id, it)
+        }
+      }
+  }
+
+  private void deleteApplicationNotifications(String application) {
+    notificationDao.delete(HierarchicalLevel.APPLICATION, application)
+  }
+
+  private void deletePipelines(String application) {
+    pipelineDao.getPipelinesByApplication(application).each { Pipeline p -> pipelineDao.delete(p.id) }
+    pipelineStrategyDao.getPipelinesByApplication(application).each { Pipeline p -> pipelineStrategyDao.delete(p.id) }
   }
 
   Application clear() {
