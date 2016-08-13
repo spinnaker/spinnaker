@@ -46,6 +46,9 @@ import java.util.Map;
   boolean parallel;
 
   @JsonProperty
+  boolean disabled;
+
+  @JsonProperty
   boolean limitConcurrent;
 
   @JsonProperty
