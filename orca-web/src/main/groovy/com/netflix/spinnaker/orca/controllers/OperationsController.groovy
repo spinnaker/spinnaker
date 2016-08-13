@@ -27,8 +27,13 @@ import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.env.Environment
-import org.springframework.web.bind.annotation.*
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @Slf4j
@@ -56,6 +61,10 @@ class OperationsController {
 
     def json = objectMapper.writeValueAsString(pipeline)
     log.info('received pipeline {}:{}', pipeline.id, json)
+
+    if (pipeline.disabled) {
+      throw new DisabledPipelineException("Pipeline is disabled and cannot be started.")
+    }
 
     if (!(pipeline.trigger instanceof Map)) {
       pipeline.trigger = [:]
@@ -145,5 +154,17 @@ class OperationsController {
     log.info('requested task:{}', json)
     def pipeline = orchestrationStarter.start(json)
     [ref: "/tasks/${pipeline.id}".toString()]
+  }
+
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(DisabledPipelineException)
+  Map disabledPipelineHandler(DisabledPipelineException e) {
+    return [message: e.message, status: HttpStatus.BAD_REQUEST]
+  }
+
+  static class DisabledPipelineException extends RuntimeException {
+    DisabledPipelineException(String msg) {
+      super(msg)
+    }
   }
 }
