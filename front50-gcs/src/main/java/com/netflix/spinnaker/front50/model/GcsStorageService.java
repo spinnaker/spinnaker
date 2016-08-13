@@ -46,6 +46,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -293,27 +294,39 @@ public class GcsStorageService implements StorageService {
     String path = keyToPath(objectKey, daoTypeName);
     ArrayList<T> result = new ArrayList<T>();
     try {
+      // NOTE: gcs only returns things in forward chronological order
+      // so to get maxResults, we need to download everything then
+      // take the last maxResults, not .setMaxResults(new Long(maxResults)) here.
       Storage.Objects.List listObjects = obj_api.list(bucketName)
-          .setPrefix(path)
-          .setVersions(true)
-          .setMaxResults(new Long(maxResults));
+        .setPrefix(path)
+        .setVersions(true);
       com.google.api.services.storage.model.Objects objects;
       do {
-          objects = listObjects.execute();
-          List<StorageObject> items = objects.getItems();
-          if (items != null) {
-            for (StorageObject item : items) {
-                T have = deserialize(item, clas, false);
-                if (have != null) {
-                  result.add(have);
-                }
-            }
+        objects = listObjects.execute();
+        List<StorageObject> items = objects.getItems();
+        if (items != null) {
+          for (StorageObject item : items) {
+              T have = deserialize(item, clas, false);
+              if (have != null) {
+                have.setLastModified(item.getUpdated().getValue());
+                result.add(have);
+              }
           }
-          listObjects.setPageToken(objects.getNextPageToken());
+        }
+        listObjects.setPageToken(objects.getNextPageToken());
       } while (objects.getNextPageToken() != null);
     } catch (IOException e) {
       log.error("Could not fetch versions from Google Cloud Storage: {}", e);
       return new ArrayList<>();
+    }
+
+    Comparator<T> comp = (T a, T b) -> {
+      // reverse chronological
+      return b.getLastModified().compareTo(a.getLastModified());
+    };
+    Collections.sort(result, comp);
+    if (result.size() > maxResults) {
+      return result.subList(0, maxResults);
     }
     return result;
   }
@@ -349,26 +362,26 @@ public class GcsStorageService implements StorageService {
           .setName(timestamp_path)
           .setUpdated(new DateTime(System.currentTimeMillis()));
       try {
-        obj_api.update(bucketName, object.getName(), object).execute();
+          obj_api.update(bucketName, object.getName(), object).execute();
       } catch (HttpResponseException e) {
-        log.error("writeLastModified failed to update: {}", e.toString());
+          log.error("writeLastModified failed to update {}\n{}", timestamp_path, e.toString());
+          if (e.getStatusCode() == 404 || e.getStatusCode() == 400) {
+              byte[] bytes = "{}".getBytes();
+              ByteArrayContent content = new ByteArrayContent("application/json", bytes);
 
-        if (e.getStatusCode() == 404 || e.getStatusCode() == 400) {
-            byte[] bytes = "{}".getBytes();
-            ByteArrayContent content = new ByteArrayContent("application/json", bytes);
-
-            try {
-              obj_api.insert(bucketName, object, content).execute();
-            } catch (IOException ioex) {
-              log.error("writeLastModified insert failed too: {}", ioex);
+              try {
+                log.info("Attempting to add {}", timestamp_path);
+                obj_api.insert(bucketName, object, content).execute();
+              } catch (IOException ioex) {
+                log.error("writeLastModified insert failed too: {}", ioex);
+                throw new IllegalStateException(e);
+              }
+          } else {
               throw new IllegalStateException(e);
-            }
-        } else {
-            throw new IllegalStateException(e);
-        }
+          }
       } catch (IOException e) {
-        log.error("writeLastModified failed: {}", e);
-        throw new IllegalStateException(e);
+          log.error("writeLastModified failed: {}", e);
+          throw new IllegalStateException(e);
       }
 
       try {
