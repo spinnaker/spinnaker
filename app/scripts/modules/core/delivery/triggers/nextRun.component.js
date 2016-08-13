@@ -19,7 +19,7 @@ module.exports = angular
         if (!this.pipeline) {
           return;
         }
-        let crons = this.pipeline.triggers.filter(t => t.type === 'cron' && t.enabled);
+        let crons = (this.pipeline.triggers || []).filter(t => t.type === 'cron' && t.enabled);
         let nextTimes = [];
         crons.forEach(cron => {
           let parts = cron.cronExpression.split(' ');
