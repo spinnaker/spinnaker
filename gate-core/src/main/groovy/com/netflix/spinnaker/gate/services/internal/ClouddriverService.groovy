@@ -37,6 +37,7 @@ interface ClouddriverService {
   @JsonIgnoreProperties(ignoreUnknown = true)
   static class Account {
     String name
+    String accountId
     String type
     Collection<String> requiredGroupMembership = []
   }
