@@ -49,7 +49,7 @@ class DeployOpenstackAtomicOperationValidatorSpec extends Specification {
   int minSize = 3
   int desiredSize = 4
   String subnetId = '1234'
-  String poolId = '5678'
+  List<String> loadBalancerIds = ['5678']
   List<String> securityGroups = ['sg1']
 
   def setup() {
@@ -71,7 +71,7 @@ class DeployOpenstackAtomicOperationValidatorSpec extends Specification {
 
   def "Validate no error"() {
     given:
-    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, desiredSize: desiredSize, subnetId: subnetId, poolId: poolId, securityGroups: securityGroups)
+    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, desiredSize: desiredSize, subnetId: subnetId, loadBalancers: loadBalancerIds, securityGroups: securityGroups)
     DeployOpenstackAtomicOperationDescription description = new DeployOpenstackAtomicOperationDescription(account: account, application: application, region: region, stack: stack, freeFormDetails: freeFormDetails, disableRollback: disableRollback, timeoutMins: timeoutMins, serverGroupParameters: params, credentials: credz)
 
     when:
@@ -85,7 +85,7 @@ class DeployOpenstackAtomicOperationValidatorSpec extends Specification {
     given:
     ServerGroupParameters.Scaler scaleup = new ServerGroupParameters.Scaler(cooldown: 60, adjustment: 1, period: 60, threshold: 50)
     ServerGroupParameters.Scaler scaledown = new ServerGroupParameters.Scaler(cooldown: 60, adjustment: -1, period: 600, threshold: 15)
-    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, desiredSize: desiredSize, subnetId: subnetId, poolId: poolId, securityGroups: securityGroups, autoscalingType: ServerGroupParameters.AutoscalingType.CPU, scaleup: scaleup, scaledown: scaledown)
+    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, desiredSize: desiredSize, subnetId: subnetId, loadBalancers: loadBalancerIds, securityGroups: securityGroups, autoscalingType: ServerGroupParameters.AutoscalingType.CPU, scaleup: scaleup, scaledown: scaledown)
     DeployOpenstackAtomicOperationDescription description = new DeployOpenstackAtomicOperationDescription(account: account, application: application, region: region, stack: stack, freeFormDetails: freeFormDetails, disableRollback: disableRollback, timeoutMins: timeoutMins, serverGroupParameters: params, credentials: credz)
 
     when:
@@ -99,7 +99,7 @@ class DeployOpenstackAtomicOperationValidatorSpec extends Specification {
     given:
     ServerGroupParameters.Scaler scaleup = new ServerGroupParameters.Scaler(cooldown: -1, adjustment: 10, period: -1, threshold: -1)
     ServerGroupParameters.Scaler scaledown = new ServerGroupParameters.Scaler(cooldown: -1, adjustment: -15, period: -1, threshold: -1)
-    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, desiredSize: desiredSize, subnetId: subnetId, poolId: poolId, securityGroups: securityGroups, autoscalingType: ServerGroupParameters.AutoscalingType.CPU, scaleup: scaleup, scaledown: scaledown)
+    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, desiredSize: desiredSize, subnetId: subnetId, loadBalancers: loadBalancerIds, securityGroups: securityGroups, autoscalingType: ServerGroupParameters.AutoscalingType.CPU, scaleup: scaleup, scaledown: scaledown)
     DeployOpenstackAtomicOperationDescription description = new DeployOpenstackAtomicOperationDescription(account: account, application: application, region: region, stack: stack, freeFormDetails: freeFormDetails, disableRollback: disableRollback, timeoutMins: timeoutMins, serverGroupParameters: params, credentials: credz)
 
     when:
@@ -112,7 +112,7 @@ class DeployOpenstackAtomicOperationValidatorSpec extends Specification {
   @Unroll
   def "Validate create missing required core field - #attribute"() {
     given:
-    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, desiredSize: desiredSize, subnetId: subnetId, poolId: poolId, securityGroups: securityGroups)
+    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, desiredSize: desiredSize, subnetId: subnetId, loadBalancers: loadBalancerIds, securityGroups: securityGroups)
     DeployOpenstackAtomicOperationDescription description = new DeployOpenstackAtomicOperationDescription(account: account, application: application, region: region, stack: stack, freeFormDetails: freeFormDetails, disableRollback: disableRollback, timeoutMins: timeoutMins, serverGroupParameters: params, credentials: credz)
     if (attribute != 'stack') {
       description."$attribute" = ''
@@ -134,7 +134,7 @@ class DeployOpenstackAtomicOperationValidatorSpec extends Specification {
   @Unroll
   def "Validate create missing required template field - #attribute"() {
     given:
-    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, desiredSize: desiredSize, subnetId: subnetId, poolId: poolId, securityGroups: securityGroups)
+    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, desiredSize: desiredSize, subnetId: subnetId, loadBalancers: loadBalancerIds, securityGroups: securityGroups)
     DeployOpenstackAtomicOperationDescription description = new DeployOpenstackAtomicOperationDescription(account: account, application: application, region: region, stack: stack, freeFormDetails: freeFormDetails, disableRollback: disableRollback, timeoutMins: timeoutMins, serverGroupParameters: params, credentials: credz)
     description.serverGroupParameters."$attribute" = null
 
@@ -145,13 +145,13 @@ class DeployOpenstackAtomicOperationValidatorSpec extends Specification {
     times * errors.rejectValue(_,_)
 
     where:
-    attribute << ['instanceType', 'image', 'maxSize', 'minSize', 'desiredSize', 'subnetId', 'poolId', 'securityGroups']
+    attribute << ['instanceType', 'image', 'maxSize', 'minSize', 'desiredSize', 'subnetId', 'loadBalancers', 'securityGroups']
     times << [1,1,2,3,2,1,1,1]
   }
 
   def "Validate sizing - error"() {
     given:
-    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: -2, minSize: -1, desiredSize: -3, subnetId: subnetId, poolId: poolId, securityGroups: securityGroups)
+    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: -2, minSize: -1, desiredSize: -3, subnetId: subnetId, loadBalancers: loadBalancerIds, securityGroups: securityGroups)
     DeployOpenstackAtomicOperationDescription description = new DeployOpenstackAtomicOperationDescription(account: account, application: application, region: region, stack: stack, freeFormDetails: freeFormDetails, disableRollback: disableRollback, timeoutMins: timeoutMins, serverGroupParameters: params, credentials: credz)
 
     when:

@@ -16,76 +16,35 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup
 
-import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ResizeOpenstackAtomicOperationDescription
-import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ServerGroupParameters
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.openstack4j.model.heat.Stack
 
-class ResizeOpenstackAtomicOperation implements AtomicOperation<Void> {
+class ResizeOpenstackAtomicOperation extends AbstractStackUpdateOpenstackAtomicOperation {
 
-  private final String BASE_PHASE = "RESIZE"
+  final String phaseName = "RESIZE"
 
-  //this is the name of the subtemplate referenced by the template,
-  //and needs to be loaded into memory as a String
-  final String SUBTEMPLATE_FILE = 'asg_resource.yaml'
-
-  final String SUBTEMPLATE_OUTPUT = 'asg_resource'
-
-  ResizeOpenstackAtomicOperationDescription description
+  final String operation = AtomicOperations.RESIZE_SERVER_GROUP
 
   ResizeOpenstackAtomicOperation(ResizeOpenstackAtomicOperationDescription description) {
-    this.description = description
-  }
-
-  protected static Task getTask() {
-    TaskRepository.threadLocalTask.get()
+    super(description)
   }
 
   /*
    * curl -X POST -H "Content-Type: application/json" -d '[ { "resizeServerGroup": { "serverGroupName": "myapp-teststack-v000", "capacity": { "min": 1, "desired": 2, "max": 3 }, "account": "test", "region": "REGION1" }} ]' localhost:7002/openstack/ops
    * curl -X GET -H "Accept: application/json" localhost:7002/task/1
    */
+
   @Override
-  Void operate(List priorOutputs) {
-    try {
-      task.updateStatus BASE_PHASE, "Initializing resizing of server group"
-      OpenstackClientProvider provider = description.credentials.provider
-
-      //get stack from server group
-      task.updateStatus BASE_PHASE, "Fetching server group $description.serverGroupName"
-      Stack stack = provider.getStack(description.region, description.serverGroupName)
-      //we need to store subtemplate in asg output from create, as it is required to do an update and there is no native way of
-      //obtaining it from a stack
-      String subtemplate = stack.getOutputs().find { m -> m.get("output_key").equals(SUBTEMPLATE_OUTPUT) }.get("output_value")
-      task.updateStatus BASE_PHASE, "Successfully fetched server group $description.serverGroupName"
-
-      //update the min and max parameters
-      ServerGroupParameters params = ServerGroupParameters.fromParamsMap(stack.parameters)
-      ServerGroupParameters newParams = params.clone()
-      newParams.with {
-        minSize = description.capacity.min
-        maxSize = description.capacity.max
-        desiredSize = description.capacity.desired
-      }
-
-      //get the current template from the stack
-      task.updateStatus BASE_PHASE, "Fetching current template for server group $description.serverGroupName"
-      String template = provider.getHeatTemplate(description.region, stack.name, stack.id)
-      task.updateStatus BASE_PHASE, "Successfully fetched current template for server group $description.serverGroupName"
-
-      //update stack
-      task.updateStatus BASE_PHASE, "Updating server group $stack.name with new min size $newParams.minSize and max size $newParams.maxSize"
-      provider.updateStack(description.region, stack.name, stack.id, template, [(SUBTEMPLATE_FILE): subtemplate], newParams)
-      task.updateStatus BASE_PHASE, "Successfully updated server group $stack.name"
-
-      task.updateStatus BASE_PHASE, "Successfully resized server group."
-    } catch (Exception e) {
-      throw new OpenstackOperationException(AtomicOperations.RESIZE_SERVER_GROUP, e)
+  ServerGroupParameters buildServerGroupParameters(Stack stack) {
+    ServerGroupParameters params = ServerGroupParameters.fromParamsMap(stack.parameters)
+    ServerGroupParameters newParams = params.clone()
+    newParams.with {
+      minSize = description.capacity.min
+      maxSize = description.capacity.max
+      desiredSize = description.capacity.desired
+      it
     }
   }
 

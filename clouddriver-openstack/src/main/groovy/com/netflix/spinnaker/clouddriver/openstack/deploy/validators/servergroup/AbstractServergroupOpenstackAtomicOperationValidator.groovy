@@ -47,7 +47,7 @@ abstract class AbstractServergroupOpenstackAtomicOperationValidator<T extends Op
       validator.validatePositive(desiredSize, "${prefix}.desiredSize")
       validator.validateGreaterThanEqual(desiredSize, minSize, "${prefix}.desiredSize")
       validator.validateNotEmpty(subnetId, "${prefix}.subnetId")
-      validator.validateNotEmpty(poolId, "${prefix}.poolId")
+      validator.validateNotEmpty(loadBalancers, "${prefix}.loadBalancers")
       validator.validateNotEmpty(securityGroups, "${prefix}.securityGroups")
       int maxAdjustment = (maxSize && minSize) ? maxSize - minSize : 0
       [(scaleupPrefix):scaleup, (scaledownPrefix):scaledown].each { e -> validateScaler(validator, maxAdjustment, e.key, e.value) }

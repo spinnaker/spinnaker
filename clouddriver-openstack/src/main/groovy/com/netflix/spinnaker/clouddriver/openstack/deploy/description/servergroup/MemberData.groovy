@@ -18,15 +18,13 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergro
 
 import groovy.transform.Canonical
 
+/**
+ * This is used to represent an OS::Neutron::LBaaS::PoolMember resource. These resources
+ * are dynamically added to the heat template asg_member.yaml.
+ */
 @Canonical
-class ResizeOpenstackAtomicOperationDescription extends OpenstackServerGroupAtomicOperationDescription {
-
-  Capacity capacity = new Capacity()
-
-  static class Capacity {
-    int min
-    int max
-    int desired
-  }
-
+class MemberData {
+  String poolId
+  String internalPort
+  String subnetId
 }

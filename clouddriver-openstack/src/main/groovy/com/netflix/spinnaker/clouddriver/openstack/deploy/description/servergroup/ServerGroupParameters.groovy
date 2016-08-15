@@ -36,7 +36,7 @@ class ServerGroupParameters {
   Integer desiredSize
   String networkId
   String subnetId
-  String poolId
+  List<String> loadBalancers
   List<String> securityGroups
   AutoscalingType autoscalingType
   Scaler scaleup
@@ -46,13 +46,12 @@ class ServerGroupParameters {
     [
       flavor              : instanceType,
       image               : image,
-      internal_port       : internalPort ? internalPort.toString() : null,
       max_size            : maxSize ? maxSize.toString() : null,
       min_size            : minSize ? minSize.toString() : null,
       desired_size        : desiredSize ? desiredSize.toString() : null,
       network_id          : networkId,
       subnet_id           : subnetId,
-      pool_id             : poolId,
+      load_balancers      : loadBalancers ? loadBalancers.join(',') : null,
       security_groups     : securityGroups ? securityGroups.join(',') : null,
       autoscaling_type    : autoscalingType ? autoscalingType.toString() : null,
       scaleup_cooldown    : scaleup?.cooldown ? scaleup.cooldown.toString() : null,
@@ -70,14 +69,13 @@ class ServerGroupParameters {
     new ServerGroupParameters(
       instanceType: params.get('flavor'),
       image: params.get('image'),
-      internalPort: params.get('internal_port')?.toInteger(),
       maxSize: params.get('max_size')?.toInteger(),
       minSize: params.get('min_size')?.toInteger(),
       desiredSize: params.get('desired_size')?.toInteger(),
       networkId: params.get('network_id'),
       subnetId: params.get('subnet_id'),
-      poolId: params.get('pool_id'),
-      securityGroups: params.get('security_groups')?.split(',')?.toList(),
+      loadBalancers: unescapePythonUnicodeJsonList(params.get('load_balancers')),
+      securityGroups: unescapePythonUnicodeJsonList(params.get('security_groups')),
       autoscalingType: params.get('autoscaling_type') ? AutoscalingType.fromString(params.get('autoscaling_type')) : null,
       scaleup: new Scaler(
         cooldown: params.get('scaleup_cooldown')?.toInteger(),
@@ -92,6 +90,24 @@ class ServerGroupParameters {
         threshold: params.get('scaledown_threshold')?.toInteger()
       )
     )
+  }
+
+  /**
+   * Stack parameters of type 'comma_delimited_list' come back as a unicode json string. We need to split that up.
+   *
+   * I need a shower.
+   *
+   * @param string
+   * @return
+   */
+  static List<String> unescapePythonUnicodeJsonList(String string) {
+    string?.split(",")?.collect { s ->
+      s.replace("u'", "")
+        .replace("'","")
+        .replace("[","")
+        .replace("]","")
+        .replaceAll("([ ][ ]*)","")
+    } ?: []
   }
 
   /**

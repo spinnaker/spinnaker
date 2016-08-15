@@ -33,6 +33,8 @@ import org.openstack4j.model.network.ext.HealthMonitor
 import org.openstack4j.model.network.ext.HealthMonitorType
 import org.openstack4j.model.network.ext.LbMethod
 import org.openstack4j.model.network.ext.LbPool
+import org.openstack4j.model.network.ext.ListenerV2
+import org.openstack4j.model.network.ext.LoadBalancerV2
 import org.openstack4j.model.network.ext.Member
 import org.openstack4j.model.network.ext.Protocol
 import org.openstack4j.model.network.ext.Vip
@@ -46,6 +48,20 @@ class OpenstackNetworkingV2Provider implements OpenstackNetworkingProvider, Open
 
   OpenstackNetworkingV2Provider(OpenstackIdentityProvider identityProvider) {
     this.identityProvider = identityProvider
+  }
+
+  @Override
+  LoadBalancerV2 getLoadBalancer(final String region, final String loadBalancerId) {
+    handleRequest {
+      getRegionClient(region).networking().lbaasV2().loadbalancer().get(loadBalancerId)
+    }
+  }
+
+  @Override
+  ListenerV2 getLoadBalancerListener(final String region, final String listenerId) {
+    handleRequest {
+      getRegionClient(region).networking().lbaasV2().listener().get(listenerId)
+    }
   }
 
   @Override

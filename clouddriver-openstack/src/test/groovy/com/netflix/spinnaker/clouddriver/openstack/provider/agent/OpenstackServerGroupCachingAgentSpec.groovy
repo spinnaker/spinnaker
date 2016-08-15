@@ -38,6 +38,7 @@ import org.openstack4j.model.common.ActionResponse
 import org.openstack4j.model.compute.Server
 import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.network.ext.LbPool
+import org.openstack4j.model.network.ext.LoadBalancerV2
 import redis.clients.jedis.exceptions.JedisException
 import spock.lang.Ignore
 import spock.lang.Shared
@@ -191,8 +192,8 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     String appName = 'testapp'
     String clusterName = "${appName}-stack-detail"
     String serverGroupName = "${clusterName}-v000"
-    String poolId = UUID.randomUUID().toString()
-    String poolName = "$appName-lb"
+    String loadBalancerId = UUID.randomUUID().toString()
+    String loadBalancerName = "$appName-lb"
 
     and:
     Server server = Mock(Server) {
@@ -202,11 +203,11 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
       getId() >> { stackId }
       getName() >> { serverGroupName }
     }
-    LbPool pool = Mock(LbPool) {
-      getId() >> { poolId }
-      getName() >> { poolName }
+    LoadBalancerV2 lb = Mock(LoadBalancerV2) {
+      getId() >> { loadBalancerId }
+      getName() >> { loadBalancerName }
     }
-    Stack stackDetail = Mock(Stack) { getParameters() >> ['pool_id': poolId] }
+    Stack stackDetail = Mock(Stack) { getParameters() >> ['load_balancers': loadBalancerId] }
     OpenstackServerGroup openstackServerGroup = OpenstackServerGroup.builder().account(account).name(serverGroupName).build()
     Map<String, Object> serverGroupAttributes = objectMapper.convertValue(openstackServerGroup, OpenstackInfrastructureProvider.ATTRIBUTES)
     CacheResultBuilder cacheResultBuilder = new CacheResultBuilder()
@@ -215,7 +216,7 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     String clusterKey = Keys.getClusterKey(account, appName, clusterName)
     String appKey = Keys.getApplicationKey(appName)
     String serverGroupKey = Keys.getServerGroupKey(serverGroupName, account, region)
-    String loadBalancerKey = Keys.getLoadBalancerKey(poolName, poolId, account, region)
+    String loadBalancerKey = Keys.getLoadBalancerKey(loadBalancerName, loadBalancerId, account, region)
     String instanceKey = Keys.getInstanceKey(serverId, account, region)
 
     when:
@@ -224,7 +225,7 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     then:
     1 * provider.getInstancesByServerGroup(region) >> [(stackId): [server]]
     1 * provider.getStack(region, stack.name) >> stackDetail
-    1 * provider.getLoadBalancerPool(region, poolId) >> pool
+    1 * provider.getLoadBalancer(region, loadBalancerId) >> lb
     1 * cachingAgent.buildServerGroup(providerCache, stackDetail, _) >> openstackServerGroup
 
     and:

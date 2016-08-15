@@ -1,4 +1,4 @@
-heat_template_version: 2015-04-30
+heat_template_version: 2016-04-08
 description: Auto scaling group for Spinnaker
 parameters:
   flavor:
@@ -7,9 +7,6 @@ parameters:
   image:
     type: string
     description: Image used for servers
-  internal_port:
-    type: string
-    description: Internal app port for each server
   max_size:
     type: number
     description: Maximum cluster size
@@ -22,12 +19,12 @@ parameters:
   network_id:
     type: string
     description: Network used by the servers
-  pool_id:
-    type: string
-    description: Load balancer to use for this group
+  load_balancers:
+    type: comma_delimited_list
+    description: Comma-separated string of load balancers to associate to the stack. This is not used in the stack and is defined for auditing purposes.
   security_groups:
     type: comma_delimited_list
-    description: Security groups to use
+    description: Comma-separated string of security groups to use
   subnet_id:
     type: string
     description: Subnet used to allocate a fixed IP for each server
@@ -79,11 +76,9 @@ resources:
         properties:
           flavor: {get_param: flavor}
           image: {get_param: image}
-          internal_port: {get_param: internal_port}
           # This is used by ceilometer to autoscale against instances that are part of this stack
           metadata: {"metering.stack": {get_param: "OS::stack_id"}}
           network_id: {get_param: network_id}
-          pool_id: {get_param: pool_id}
           security_groups: {get_param: security_groups}
           subnet_id: {get_param: subnet_id}
   web_server_scaleup_policy:
@@ -134,6 +129,11 @@ outputs:
   asg_resource:
     description: asg_resource.yaml template value
     value: {get_file: asg_resource.yaml}
+  # we need to store subtemplate in asg output from create, as it is required to do an update and there is no native way
+  # of obtaining it from a stack
+  asg_member:
+    description: asg_member.yaml template value
+    value: {get_file: asg_member.yaml}
   scale_up_url:
     description: >
       This URL is the webhook to scale up the autoscaling group.  You

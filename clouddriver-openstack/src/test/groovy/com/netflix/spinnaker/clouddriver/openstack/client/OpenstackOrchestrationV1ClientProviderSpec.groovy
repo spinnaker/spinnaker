@@ -53,11 +53,11 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
     int desiredSize = 4
     String subnetId = '9999'
     String networkId = '1234'
-    String poolId = '5678'
+    List<String> loadBalancerIds = ['5678']
     List<String> securityGroups = ['sg1']
     ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image,
       maxSize: maxSize, minSize: minSize, desiredSize: desiredSize,
-      subnetId: subnetId, networkId: networkId, poolId: poolId, securityGroups: securityGroups,
+      subnetId: subnetId, networkId: networkId, loadBalancers: loadBalancerIds, securityGroups: securityGroups,
       autoscalingType: ServerGroupParameters.AutoscalingType.CPU,
       scaleup: new ServerGroupParameters.Scaler(cooldown: 60, period: 60, adjustment: 1, threshold: 50),
       scaledown: new ServerGroupParameters.Scaler(cooldown: 60, period: 600, adjustment: -1, threshold: 15)
@@ -65,13 +65,12 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
     Map<String, String> params = [
       flavor              : parameters.instanceType,
       image               : parameters.image,
-      internal_port       : "$parameters.internalPort".toString(),
       max_size            : "$parameters.maxSize".toString(),
       min_size            : "$parameters.minSize".toString(),
       desired_size        : "$parameters.desiredSize".toString(),
       network_id          : parameters.networkId,
       subnet_id           : "$parameters.subnetId".toString(),
-      pool_id             : parameters.poolId,
+      load_balancers      : parameters.loadBalancers.join(','),
       security_groups     : parameters.securityGroups.join(','),
       autoscaling_type    : 'cpu_util',
       scaleup_cooldown    : 60,
@@ -116,9 +115,9 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
     int maxSize = 5
     int minSize = 3
     String networkId = '1234'
-    String poolId = '5678'
+    List<String> loadBalancerIds = ['5678']
     List<String> securityGroups = ['sg1']
-    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
+    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image, maxSize: maxSize, minSize: minSize, networkId: networkId, loadBalancers: loadBalancerIds, securityGroups: securityGroups)
 
     when:
     provider.deploy(region, stackName, tmpl, subtmpl, parameters, disableRollback, timeoutMins)
@@ -327,19 +326,18 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
     int desiredSize = 4
     String networkId = '1234'
     String subnetId = '9999'
-    String poolId = '5678'
+    List<String> loadBalancerIds = ['5678']
     List<String> securityGroups = ['sg1']
-    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image, maxSize: maxSize, minSize: minSize, desiredSize: desiredSize, networkId: networkId, subnetId: subnetId, poolId: poolId, securityGroups: securityGroups)
+    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image, maxSize: maxSize, minSize: minSize, desiredSize: desiredSize, networkId: networkId, subnetId: subnetId, loadBalancers: loadBalancerIds, securityGroups: securityGroups)
     Map<String, String> params = [
       flavor              : parameters.instanceType,
       image               : parameters.image,
-      internal_port       : "$parameters.internalPort".toString(),
       max_size            : "$parameters.maxSize".toString(),
       min_size            : "$parameters.minSize".toString(),
       desired_size        : "$parameters.desiredSize".toString(),
       network_id          : parameters.networkId,
       subnet_id           : parameters.subnetId,
-      pool_id             : parameters.poolId,
+      load_balancers      : parameters.loadBalancers.join(','),
       security_groups     : parameters.securityGroups.join(','),
       autoscaling_type    : null,
       scaleup_cooldown    : null,
@@ -385,9 +383,9 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
     int maxSize = 5
     int minSize = 3
     String networkId = '1234'
-    String poolId = '5678'
+    List<String> loadBalancerIds = ['5678']
     List<String> securityGroups = ['sg1']
-    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
+    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image, maxSize: maxSize, minSize: minSize, networkId: networkId, loadBalancers: loadBalancerIds, securityGroups: securityGroups)
     String template = "foo: bar"
     Map<String, String> subtmpl = [sub: "foo: bar"]
 
@@ -418,9 +416,9 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
     int maxSize = 5
     int minSize = 3
     String networkId = '1234'
-    String poolId = '5678'
+    List<String> loadBalancerIds = ['5678']
     List<String> securityGroups = ['sg1']
-    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image, maxSize: maxSize, minSize: minSize, networkId: networkId, poolId: poolId, securityGroups: securityGroups)
+    ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image, maxSize: maxSize, minSize: minSize, networkId: networkId, loadBalancers: loadBalancerIds, securityGroups: securityGroups)
     String template = "foo: bar"
     Map<String, String> subtmpl = [sub: "foo: bar"]
 

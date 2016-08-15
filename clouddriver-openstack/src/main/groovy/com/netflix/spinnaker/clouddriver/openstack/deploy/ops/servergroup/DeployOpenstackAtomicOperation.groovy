@@ -22,12 +22,15 @@ import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.deploy.OpenstackServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.DeployOpenstackAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.MemberData
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
+import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.StackPoolMemberAware
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.apache.commons.io.IOUtils
 import org.openstack4j.model.network.Subnet
-import org.openstack4j.model.network.ext.LbPool
+import org.openstack4j.model.network.ext.ListenerV2
+import org.openstack4j.model.network.ext.LoadBalancerV2
 
 /**
  * For now, we want to provide 'the standard' way of being able to configure an autoscaling group in much the same way
@@ -42,17 +45,9 @@ import org.openstack4j.model.network.ext.LbPool
  * but again it would need to honor the expected parameters.
  * We could use the freeform details field to store the template string.
  */
-class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult> {
+class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult>, StackPoolMemberAware {
 
   private final String BASE_PHASE = "DEPLOY"
-
-  //this is the file name of the heat template used to create the auto scaling group,
-  //and needs to be loaded into memory as a String
-  final String TEMPLATE_FILE = 'asg.yaml'
-
-  //this is the name of the subtemplate referenced by the template,
-  //and needs to be loaded into memory as a String
-  final String SUBTEMPLATE_FILE = 'asg_resource.yaml'
 
   DeployOpenstackAtomicOperationDescription description
 
@@ -65,7 +60,7 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
   }
 
   /*
-   * curl -X POST -H "Content-Type: application/json" -d '[{
+   curl -X POST -H "Content-Type: application/json" -d '[{
     "createServerGroup": {
       "stack": "teststack",
       "application": "myapp",
@@ -76,7 +71,7 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
         "minSize": 3,
         "desiredSize": 4,
         "subnetId": "77bb3aeb-c1e2-4ce5-8d8f-b8e9128af651",
-        "poolId": "87077f97-83e7-4ea1-9ca9-40dc691846db",
+        "loadBalancers": ["87077f97-83e7-4ea1-9ca9-40dc691846db"]
         "securityGroups": ["e56fa7eb-550d-42d4-8d3f-f658fbacd496"],
         "scaleup": {
           "cooldown": 60,
@@ -112,18 +107,28 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
       def stackName = serverGroupNameResolver.resolveNextServerGroupName(description.application, description.stack, description.freeFormDetails, false)
       task.updateStatus BASE_PHASE, "Heat stack name chosen to be ${stackName}."
 
+      //look up all load balancer listeners -> pool ids and internal ports
+      task.updateStatus BASE_PHASE, "Getting load balancer details for load balancers $description.serverGroupParameters.loadBalancers"
+      List<MemberData> memberDataList = description.serverGroupParameters.loadBalancers.collectMany { loadBalancerId ->
+        task.updateStatus BASE_PHASE, "Looking up load balancer details for load balancer $loadBalancerId"
+        LoadBalancerV2 loadBalancer = provider.getLoadBalancer(description.region, loadBalancerId)
+        task.updateStatus BASE_PHASE, "Found load balancer details for load balancer $loadBalancerId"
+        loadBalancer.listeners.collect { item ->
+          task.updateStatus BASE_PHASE, "Looking up load balancer listener details for listener $item.id"
+          ListenerV2 listener = provider.getLoadBalancerListener(description.region, item.id)
+          String internalPort = parseListenerKey(listener.description).internalPort
+          String poolId = listener.defaultPoolId
+          task.updateStatus BASE_PHASE, "Found load balancer listener details (poolId=$poolId, internalPort=$internalPort) for listener $item.id"
+          new MemberData(subnetId: description.serverGroupParameters.subnetId, internalPort: internalPort, poolId: poolId)
+        }
+      }
+      task.updateStatus BASE_PHASE, "Finished getting load balancer details for load balancers $description.serverGroupParameters.loadBalancers"
+
       task.updateStatus BASE_PHASE, "Loading templates"
-      String template = IOUtils.toString(this.class.classLoader.getResourceAsStream(TEMPLATE_FILE))
-      String subtemplate = IOUtils.toString(this.class.classLoader.getResourceAsStream(SUBTEMPLATE_FILE))
+      String template = IOUtils.toString(this.class.classLoader.getResourceAsStream(ServerGroupConstants.TEMPLATE_FILE))
+      String subtemplate = IOUtils.toString(this.class.classLoader.getResourceAsStream(ServerGroupConstants.SUBTEMPLATE_FILE))
+      String memberTemplate = buildPoolMemberTemplate(memberDataList)
       task.updateStatus BASE_PHASE, "Finished loading templates"
-
-      task.updateStatus BASE_PHASE, "Getting load balancer details for pool id $description.serverGroupParameters.poolId"
-      LbPool pool = provider.getLoadBalancerPool(description.region, description.serverGroupParameters.poolId)
-      task.updateStatus BASE_PHASE, "Found load balancer details for pool id $description.serverGroupParameters.poolId with name $pool.name"
-
-      task.updateStatus BASE_PHASE, "Getting internal port used for load balancer $pool.name"
-      int port = provider.getInternalLoadBalancerPort(pool)
-      task.updateStatus BASE_PHASE, "Found internal port $port used for load balancer $pool.name"
 
       String subnetId = description.serverGroupParameters.subnetId
       task.updateStatus BASE_PHASE, "Getting network id from subnet $subnetId"
@@ -131,9 +136,8 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
       task.updateStatus BASE_PHASE, "Found network id $subnet.networkId from subnet $subnetId"
 
       task.updateStatus BASE_PHASE, "Creating heat stack $stackName"
-      provider.deploy(description.region, stackName, template, [(SUBTEMPLATE_FILE): subtemplate], description.serverGroupParameters.identity {
+      provider.deploy(description.region, stackName, template, [(ServerGroupConstants.SUBTEMPLATE_FILE): subtemplate, (ServerGroupConstants.MEMBERTEMPLATE_FILE): memberTemplate], description.serverGroupParameters.identity {
         networkId = subnet.networkId
-        internalPort = port
         it
       }, description.disableRollback, description.timeoutMins)
       task.updateStatus BASE_PHASE, "Finished creating heat stack $stackName"
@@ -146,6 +150,31 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
       throw new OpenstackOperationException(AtomicOperations.CREATE_SERVER_GROUP, e)
     }
     deploymentResult
-
   }
+
+  /**
+   * TODO this will move once the lbaasv2 operation is done
+   * Generate key in the format externalProtocol:externalPort:internalProtocol:internalPort
+   * @param port
+   * @return
+   */
+  String getListenerKey(int externalPort, String externalProtocol, int internalPort, String internalProtocol) {
+    "${externalProtocol}:${externalPort}:${internalProtocol}:${internalPort}"
+  }
+
+  /**
+   * TODO this will move once the lbaasv2 operation is done
+   * Parse the listener attributes from the key.
+   * @param key
+   * @return
+   */
+  Map<String, String> parseListenerKey(String key) {
+    Map<String, String> result = [:]
+    String[] parts = key.split(':')
+    if (parts.length == 4) {
+      result << [externalProtocol: parts[0], externalPort: parts[1], internalProtocol: parts[2], internalPort: parts[3]]
+    }
+    result
+  }
+
 }

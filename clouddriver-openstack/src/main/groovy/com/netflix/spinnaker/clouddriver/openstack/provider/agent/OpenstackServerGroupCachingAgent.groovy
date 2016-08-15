@@ -41,6 +41,7 @@ import groovy.util.logging.Slf4j
 import org.openstack4j.model.compute.Server
 import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.network.ext.LbPool
+import org.openstack4j.model.network.ext.LoadBalancerV2
 
 import java.time.ZonedDateTime
 
@@ -118,19 +119,23 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
           relationships[SERVER_GROUPS.ns].add(serverGroupKey)
         }
 
-        String loadBalancerKey = null
         Stack detail = clientProvider.getStack(region, stack.name)
+        Set<String> loadBalancerKeys = [].toSet()
         if (detail && detail.parameters) {
-          try {
-            LbPool pool = clientProvider.getLoadBalancerPool(region, detail.parameters['pool_id'])
-            if (pool) {
-              loadBalancerKey = Keys.getLoadBalancerKey(pool.name, pool.id, accountName, region)
-              cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keep(loadBalancerKey).with {
-                relationships[SERVER_GROUPS.ns].add(serverGroupKey)
+          loadBalancerKeys = ServerGroupParameters.fromParamsMap(detail.parameters).loadBalancers?.collect { loadBalancerId ->
+            String loadBalancerKey = null
+            try {
+              LoadBalancerV2 loadBalancer = clientProvider.getLoadBalancer(region, loadBalancerId)
+              if (loadBalancer) {
+                loadBalancerKey = Keys.getLoadBalancerKey(loadBalancer.name, loadBalancer.id, accountName, region)
+                cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keep(loadBalancerKey).with {
+                  relationships[SERVER_GROUPS.ns].add(serverGroupKey)
+                }
               }
+            } catch (OpenstackProviderException e) {
+              //Do nothing ... Load balancer not found.
             }
-          } catch (OpenstackProviderException ope) {
-            //Do nothing ... Load balancer not found.
+            loadBalancerKey
           }
         }
 
@@ -141,8 +146,7 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
           instanceKeys.add(instanceKey)
         }
 
-        Set<String> loadBalancerIds = loadBalancerKey ? Sets.newHashSet(loadBalancerKey) : Collections.emptySet()
-        OpenstackServerGroup openstackServerGroup = buildServerGroup(providerCache, detail, loadBalancerIds)
+        OpenstackServerGroup openstackServerGroup = buildServerGroup(providerCache, detail, loadBalancerKeys)
 
         if (shouldUseOnDemandData(cacheResultBuilder, serverGroupKey)) {
           moveOnDemandDataToNamespace(objectMapper, typeReference, cacheResultBuilder, serverGroupKey)
@@ -151,7 +155,7 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
             attributes = objectMapper.convertValue(openstackServerGroup, ATTRIBUTES)
             relationships[APPLICATIONS.ns].add(appKey)
             relationships[CLUSTERS.ns].add(clusterKey)
-            relationships[LOAD_BALANCERS.ns].add(loadBalancerKey)
+            relationships[LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
             relationships[INSTANCES.ns].addAll(instanceKeys)
           }
         }

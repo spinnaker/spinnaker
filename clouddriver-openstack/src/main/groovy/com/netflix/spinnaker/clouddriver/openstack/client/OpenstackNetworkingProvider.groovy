@@ -26,10 +26,28 @@ import org.openstack4j.model.network.Port
 import org.openstack4j.model.network.Subnet
 import org.openstack4j.model.network.ext.HealthMonitor
 import org.openstack4j.model.network.ext.LbPool
+import org.openstack4j.model.network.ext.ListenerV2
+import org.openstack4j.model.network.ext.LoadBalancerV2
 import org.openstack4j.model.network.ext.Member
 import org.openstack4j.model.network.ext.Vip
 
 interface OpenstackNetworkingProvider {
+
+  /**
+   * TODO reconcile once load balancer atomic ops / caching is implented
+   * @param region
+   * @param loadBalancerId
+   * @return
+   */
+  LoadBalancerV2 getLoadBalancer(final String region, final String loadBalancerId)
+
+  /**
+   * TODO reconcile once load balancer atomic ops / caching is implented
+   * @param region
+   * @param listenerId
+   * @return
+   */
+  ListenerV2 getLoadBalancerListener(final String region, final String listenerId)
 
   /**
    * Get all Load Balancer Pools for region
