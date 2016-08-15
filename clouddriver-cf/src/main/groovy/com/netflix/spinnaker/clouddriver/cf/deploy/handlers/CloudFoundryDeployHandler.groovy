@@ -201,11 +201,11 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
     }
 
     if (isJenkinsTrigger(description)) {
-      env[CloudFoundryConstants.JENKINS_HOST] = description.trigger.buildInfo.url
-      env[CloudFoundryConstants.JENKINS_NAME] = description.trigger.job
-      env[CloudFoundryConstants.JENKINS_BUILD] = description.trigger.buildNumber
-      env[CloudFoundryConstants.COMMIT_HASH] = description.trigger.buildInfo.scm[0].sha1
-      env[CloudFoundryConstants.COMMIT_BRANCH] = description.trigger.buildInfo.scm[0].branch
+      env[CloudFoundryConstants.JENKINS_HOST] = description.trigger?.buildInfo?.url ?: ''
+      env[CloudFoundryConstants.JENKINS_NAME] = description.trigger?.job ?: ''
+      env[CloudFoundryConstants.JENKINS_BUILD] = description.trigger?.buildNumber ?: ''
+      env[CloudFoundryConstants.COMMIT_HASH] = description.trigger?.buildInfo?.scm[0]?.sha1 ?: ''
+      env[CloudFoundryConstants.COMMIT_BRANCH] = description.trigger?.buildInfo?.scm[0]?.branch ?: ''
     }
 
     env[CloudFoundryConstants.PACKAGE] = description.artifact
