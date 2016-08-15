@@ -194,6 +194,7 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
       .image(openstackImage)
       .buildInfo(buildInfo((Map<String, String>) openstackImage?.properties))
       .disabled(loadbalancerIds.isEmpty()) //TODO - Determine if we need to check to see if the stack is suspended
+      .subnetId(stack.parameters.get('subnet_id'))
       .build()
   }
 
@@ -243,15 +244,17 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
     Map<String, Object> result = Maps.newHashMap()
 
     if (stack) {
-      result.put('minSize', stack.parameters?.get('min_size') ?: 0)
-      result.put('maxSize', stack.parameters?.get('max_size') ?: 0)
-      result.put('desiredSize', stack.parameters?.get('desired_size') ?: 0)
+      // Using a default value of 0 for min, max, & desired size
+      result.put('minSize', stack.parameters.get('min_size', '0') as Integer)
+      result.put('maxSize', stack.parameters.get('max_size', '0') as Integer)
+      result.put('desiredSize', stack.parameters.get('desired_size', '0') as Integer)
       result.put('autoscalingType', ServerGroupParameters.AutoscalingType.fromMeter(stack.parameters.get('autoscaling_type')))
       ['up','down'].each {
-        Map<String, Object> scaler = [cooldown  : stack.parameters.get("scale${it}_cooldown".toString()),
-                                      period    : stack.parameters.get("scale${it}_period".toString()),
-                                      adjustment: stack.parameters.get("scale${it}_adjustment".toString()),
-                                      threshold : stack.parameters.get("scale${it}_threshold".toString())]
+        // Not setting a default value for the scaler values
+        Map<String, Object> scaler = [cooldown  : stack.parameters.get("scale${it}_cooldown".toString()) as Integer,
+                                      period    : stack.parameters.get("scale${it}_period".toString()) as Integer,
+                                      adjustment: stack.parameters.get("scale${it}_adjustment".toString()) as Integer,
+                                      threshold : stack.parameters.get("scale${it}_threshold".toString()) as Integer]
         result.put("scale$it".toString(), scaler)
       }
     }

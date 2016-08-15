@@ -276,6 +276,7 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     Stack stack = Mock(Stack)
     Set<String> loadBalancerIds = Sets.newHashSet('loadBalancerId')
     ZonedDateTime createdTime = ZonedDateTime.now()
+    String subnetId = UUID.randomUUID().toString()
 
     and:
     Map<String, Object> launchConfig = Mock(Map)
@@ -295,6 +296,7 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
       .image(openstackImage)
       .buildInfo(buildInfo)
       .disabled(loadBalancerIds.isEmpty())
+      .subnetId(subnetId)
       .build()
 
     when:
@@ -302,6 +304,7 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
 
     then:
     _ * stack.creationTime >> DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.systemDefault()).format(createdTime.toInstant())
+    _ * stack.parameters >> [subnet_id: subnetId]
     1 * cachingAgent.buildLaunchConfig(stack.parameters) >> launchConfig
     1 * cachingAgent.buildImage(providerCache, launchConfig.image) >> openstackImage
     1 * cachingAgent.buildScalingConfig(stack) >> scalingConfig
@@ -386,9 +389,7 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     Map<String, Object> result = cachingAgent.buildScalingConfig(stack).sort { it.key }
 
     then:
-    println result
-    println expected
-    result.toString() == expected.toString()
+    result == expected
     noExceptionThrown()
 
     where:
@@ -555,13 +556,27 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
 
   @Ignore
   protected Stack buildStack(Integer minSize = null, Integer maxSize = null, Integer desiredSize = null) {
+    def params
+    if (minSize && maxSize && desiredSize) {
+      params = [
+        min_size: minSize.toString(),
+        max_size: maxSize.toString(),
+        desired_size: desiredSize.toString(),
+        autoscaling_type: 'cpu_util',
+        scaleup_cooldown: '60',
+        scaleup_adjustment: '1',
+        scaleup_period: '60',
+        scaleup_threshold: '50',
+        scaledown_cooldown: '60',
+        scaledown_adjustment: '-1',
+        scaledown_period: '600',
+        scaledown_threshold: '15'
+      ]
+    } else {
+      params = [autoscaling_type: 'cpu_util']
+    }
     Stub(Stack) {
-      getParameters() >> {
-        (minSize && maxSize && desiredSize) ? [min_size        : minSize, max_size: maxSize,
-                                               desired_size    : desiredSize, autoscaling_type: 'cpu_util',
-                                               scaleup_cooldown  : 60, scaleup_adjustment: 1, scaleup_period: 60, scaleup_threshold: 50,
-                                               scaledown_cooldown: 60, scaledown_adjustment: -1, scaledown_period: 600, scaledown_threshold: 15] : [autoscaling_type: 'cpu_util']
-      }
+      getParameters() >> { params }
     }
   }
 }
