@@ -101,6 +101,15 @@ interface Front50Service {
   @GET('/v2/projects/{projectId}')
   Map getProject(@Path('projectId') String projectId)
 
+  //
+  // Snapshot-related
+  //
+  @GET('/snapshots/{id}')
+  Map getCurrentSnapshot(@Path('id') String id)
+
+  @GET('/snapshots/{id}/history')
+  List<Map> getSnapshotHistory(@Path("id") String id, @Query("limit") int limit)
+
   @JsonIgnoreProperties(ignoreUnknown = true)
   static class HalList {
     @JsonProperty("_embedded")
