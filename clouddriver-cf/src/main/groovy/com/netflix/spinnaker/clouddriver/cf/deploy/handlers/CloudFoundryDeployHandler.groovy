@@ -156,10 +156,11 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
         loadBalancers += description.serverGroupName + domain
 
         task.updateStatus BASE_PHASE, "Memory set to ${description.memory}"
+        task.updateStatus BASE_PHASE, "Disk limit set to ${description.disk}"
         if (description?.buildpackUrl) {
           task.updateStatus BASE_PHASE, "Custom buildpack ${description.buildpackUrl}"
         }
-        client.createApplication(description.serverGroupName, staging, description.memory, loadBalancers,
+        client.createApplication(description.serverGroupName, staging, description.disk, description.memory, loadBalancers,
             description?.services)
         // TODO Add support for updating application disk quotas
       }
