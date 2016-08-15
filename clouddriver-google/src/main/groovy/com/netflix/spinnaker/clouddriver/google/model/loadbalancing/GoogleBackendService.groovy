@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 
+import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import groovy.transform.Canonical
 
 @Canonical
 class GoogleBackendService {
   String name
+  GoogleHealthCheck healthCheck
   List<GoogleLoadBalancedBackend> backends
 }

@@ -57,7 +57,7 @@ class CreateGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<De
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "createGoogleHttpLoadBalancerDescription": {"credentials": "my-account-name", "loadBalancerName": "spin-lb"}} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[{ "createGoogleHttpLoadBalancerDescription": {"credentials": "my-account-name", "loadBalancerName": "http-lb", "googleHttpLoadBalancer": {"name": "http-lb", "defaultService": {"name": "default-backend-service", "backends": [], "healthCheck": {"name": "basic-check", "requestPath": "/", "port": 80}}, "certificate": "cert-name", "hostRules": [{"hostPatterns": ["host1.com", "host2.com"], "pathMatcher": {"pathRules": [{"paths": ["/path", "/path2/more"], "backendService": {"name": "backend-service", "backends": [], "healthCheck": {"name": "basic-check", "requestPath": "/", "port": 80}}}] "defaultService": {"name": "pm-backend-service", "backends": [], "healthCheck": {"name": "basic-check", "requestPath": "/", "port": 80}}}}]}}}]' localhost:7002/ops
    *
    * @param description
    * @param priorOutputs

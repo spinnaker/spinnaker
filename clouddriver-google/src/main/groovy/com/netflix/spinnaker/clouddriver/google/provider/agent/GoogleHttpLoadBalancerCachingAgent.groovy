@@ -398,10 +398,14 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
       backendService.healthChecks?.each { String healthCheckURL ->
         def healthCheckName = Utils.getLocalName(healthCheckURL)
         if (isHttps) {
-          def healthCheckCallback = new HttpsHealthCheckCallback(googleLoadBalancer: googleLoadBalancer)
+          def healthCheckCallback = new HttpsHealthCheckCallback(
+              googleBackendServices: backendServicesToUpdate
+          )
           compute.httpsHealthChecks().get(project, healthCheckName).queue(httpHealthCheckRequest, healthCheckCallback)
         } else {
-          def healthCheckCallback = new HttpHealthCheckCallback(googleLoadBalancer: googleLoadBalancer)
+          def healthCheckCallback = new HttpHealthCheckCallback(
+              googleBackendServices: backendServicesToUpdate
+          )
           compute.httpHealthChecks().get(project, healthCheckName).queue(httpHealthCheckRequest, healthCheckCallback)
         }
       }
@@ -409,36 +413,40 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
   }
 
   class HttpsHealthCheckCallback<HttpsHealthCheck> extends JsonBatchCallback<HttpsHealthCheck> implements FailureLogger {
-    GoogleHttpLoadBalancer googleLoadBalancer
+    List<GoogleBackendService> googleBackendServices
 
     @Override
     void onSuccess(HttpsHealthCheck httpsHealthCheck, HttpHeaders responseHeaders) throws IOException {
-      googleLoadBalancer.healthCheck = new GoogleHealthCheck(
-          name: httpsHealthCheck.name,
-          requestPath: httpsHealthCheck.requestPath,
-          port: httpsHealthCheck.port,
-          checkIntervalSec: httpsHealthCheck.checkIntervalSec,
-          timeoutSec: httpsHealthCheck.timeoutSec,
-          unhealthyThreshold: httpsHealthCheck.unhealthyThreshold,
-          healthyThreshold: httpsHealthCheck.healthyThreshold,
-      )
+      googleBackendServices.each { GoogleBackendService service ->
+        service.healthCheck = new GoogleHealthCheck(
+            name: httpsHealthCheck.name,
+            requestPath: httpsHealthCheck.requestPath,
+            port: httpsHealthCheck.port,
+            checkIntervalSec: httpsHealthCheck.checkIntervalSec,
+            timeoutSec: httpsHealthCheck.timeoutSec,
+            unhealthyThreshold: httpsHealthCheck.unhealthyThreshold,
+            healthyThreshold: httpsHealthCheck.healthyThreshold,
+        )
+      }
     }
   }
 
   class HttpHealthCheckCallback<HttpHealthCheck> extends JsonBatchCallback<HttpHealthCheck> implements FailureLogger {
-    GoogleHttpLoadBalancer googleLoadBalancer
+    List<GoogleBackendService> googleBackendServices
 
     @Override
     void onSuccess(HttpHealthCheck httpHealthCheck, HttpHeaders responseHeaders) throws IOException {
-      googleLoadBalancer.healthCheck = new GoogleHealthCheck(
-          name: httpHealthCheck.name,
-          requestPath: httpHealthCheck.requestPath,
-          port: httpHealthCheck.port,
-          checkIntervalSec: httpHealthCheck.checkIntervalSec,
-          timeoutSec: httpHealthCheck.timeoutSec,
-          unhealthyThreshold: httpHealthCheck.unhealthyThreshold,
-          healthyThreshold: httpHealthCheck.healthyThreshold,
-      )
+      googleBackendServices.each { GoogleBackendService service ->
+        service.healthCheck = new GoogleHealthCheck(
+            name: httpHealthCheck.name,
+            requestPath: httpHealthCheck.requestPath,
+            port: httpHealthCheck.port,
+            checkIntervalSec: httpHealthCheck.checkIntervalSec,
+            timeoutSec: httpHealthCheck.timeoutSec,
+            unhealthyThreshold: httpHealthCheck.unhealthyThreshold,
+            healthyThreshold: httpHealthCheck.healthyThreshold,
+        )
+      }
     }
   }
 
@@ -450,10 +458,6 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
       backendServiceGroupHealth.healthStatus?.each { HealthStatus status ->
         def instanceName = Utils.getLocalName(status.instance)
         def googleLBHealthStatus = GoogleLoadBalancerHealth.PlatformStatus.valueOf(status.healthState)
-
-        if (!googleLoadBalancer.healthCheck) {
-          googleLBHealthStatus = GoogleLoadBalancerHealth.PlatformStatus.HEALTHY
-        }
 
         googleLoadBalancer.healths << new GoogleLoadBalancerHealth(
             instanceName: instanceName,

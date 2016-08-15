@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -96,11 +97,21 @@ class GoogleLoadBalancerController {
       return []
     }
 
+    def backendServiceHealthChecks = [:]
+    if (GoogleLoadBalancerType.valueOf(view.loadBalancerType) == GoogleLoadBalancerType.HTTP) {
+      GoogleHttpLoadBalancer.View httpView = view as GoogleHttpLoadBalancer.View
+      List<GoogleBackendService> backendServices = Utils.getBackendServicesFromHttpLoadBalancerView(httpView)
+      backendServices?.each { GoogleBackendService backendService ->
+        backendServiceHealthChecks[backendService.name] = backendService.healthCheck.view
+      }
+    }
+
     [new GoogleLoadBalancerDetails(loadBalancerName: view.name,
                                    createdTime: view.createdTime,
                                    dnsname: view.ipAddress,
                                    ipAddress: view.ipAddress,
-                                   healthCheck: view.healthCheck,
+                                   healthCheck: view.healthCheck ?: null,
+                                   backendServiceHealthChecks: backendServiceHealthChecks ?: null,
                                    listenerDescriptions: [[
                                        listener: new ListenerDescription(instancePort: view.portRange,
                                                                          loadBalancerPort: view.portRange,
@@ -159,6 +170,7 @@ class GoogleLoadBalancerController {
     String ipAddress
     String loadBalancerName
     GoogleHealthCheck.View healthCheck
+    Map<String, GoogleHealthCheck.View> backendServiceHealthChecks = [:]
     // TODO(ttomsu): Bizarre nesting of data. Necessary?
     List<Map<String, ListenerDescription>> listenerDescriptions = []
   }

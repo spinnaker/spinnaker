@@ -33,7 +33,6 @@ class GoogleHttpLoadBalancer {
   String ipAddress
   String ipProtocol
   String portRange
-  GoogleHealthCheck healthCheck
   List<GoogleLoadBalancerHealth> healths
 
   /**
@@ -69,7 +68,6 @@ class GoogleHttpLoadBalancer {
     String portRange = GoogleHttpLoadBalancer.this.portRange
     String certificate = GoogleHttpLoadBalancer.this.certificate
     GoogleBackendService defaultService = GoogleHttpLoadBalancer.this.defaultService
-    GoogleHealthCheck.View healthCheck = GoogleHttpLoadBalancer.this.healthCheck?.view
 
     Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
     List<GoogleHostRule> hostRules = GoogleHttpLoadBalancer.this.hostRules
