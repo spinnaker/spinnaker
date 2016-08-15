@@ -17,11 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
 import com.google.api.services.compute.Compute
-import com.google.api.services.compute.model.BackendService
-import com.google.api.services.compute.model.ForwardingRule
-import com.google.api.services.compute.model.Operation
-import com.google.api.services.compute.model.TargetHttpProxy
-import com.google.api.services.compute.model.UrlMap
+import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
@@ -38,10 +34,10 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
   private static final HTTP_LOAD_BALANCER_NAME = "default"
-  private static final TARGET_HTTP_PROXY_URL = "project/target-http-proxy"
+  private static final URL_MAP_NAME = "url-map"
+  private static final TARGET_HTTP_PROXY_URL = "projects/$PROJECT_NAME/global/targetHttpProxies/target-http-proxy"
   private static final TARGET_HTTP_PROXY_NAME = "target-http-proxy"
   private static final URL_MAP_URL = "project/url-map"
-  private static final URL_MAP_NAME = "url-map"
   private static final BACKEND_SERVICE_URL = "project/backend-service"
   private static final BACKEND_SERVICE_NAME = "backend-service"
   private static final HEALTH_CHECK_URL = "project/health-check"
@@ -68,8 +64,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def targetHttpProxiesGet = Mock(Compute.TargetHttpProxies.Get)
       def targetHttpProxy = new TargetHttpProxy(urlMap: URL_MAP_URL)
       def urlMaps = Mock(Compute.UrlMaps)
-      def urlMapsGet = Mock(Compute.UrlMaps.Get)
-      def urlMap = new UrlMap(defaultService: BACKEND_SERVICE_URL)
+      def urlMapsList = Mock(Compute.UrlMaps.List)
+      def urlMap = new UrlMap(defaultService: BACKEND_SERVICE_URL, name: URL_MAP_NAME)
       def backendServices = Mock(Compute.BackendServices)
       def backendServicesGet = Mock(Compute.BackendServices.Get)
       def backendService = new BackendService(healthChecks: [HEALTH_CHECK_URL])
@@ -123,8 +119,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * targetHttpProxies.get(PROJECT_NAME, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesGet
       1 * targetHttpProxiesGet.execute() >> targetHttpProxy
       2 * computeMock.urlMaps() >> urlMaps
-      1 * urlMaps.get(PROJECT_NAME, URL_MAP_NAME) >> urlMapsGet
-      1 * urlMapsGet.execute() >> urlMap
+      1 * urlMaps.list(PROJECT_NAME) >> urlMapsList
+      1 * urlMapsList.execute() >> new UrlMapList(items: [urlMap])
       2 * computeMock.backendServices() >> backendServices
       1 * backendServices.get(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesGet
       1 * backendServicesGet.execute() >> backendService
@@ -164,8 +160,9 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def targetHttpProxiesGet = Mock(Compute.TargetHttpProxies.Get)
       def targetHttpProxy = new TargetHttpProxy(urlMap: URL_MAP_URL)
       def urlMaps = Mock(Compute.UrlMaps)
-      def urlMapsGet = Mock(Compute.UrlMaps.Get)
+      def urlMapsList = Mock(Compute.UrlMaps.List)
       def urlMap = new UrlMap(
+          name: URL_MAP_NAME,
           defaultService: BACKEND_SERVICE_URL,
           pathMatchers: [
               [defaultService: BACKEND_SERVICE_URL+"2",
@@ -245,8 +242,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * targetHttpProxies.get(PROJECT_NAME, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesGet
       1 * targetHttpProxiesGet.execute() >> targetHttpProxy
       2 * computeMock.urlMaps() >> urlMaps
-      1 * urlMaps.get(PROJECT_NAME, URL_MAP_NAME) >> urlMapsGet
-      1 * urlMapsGet.execute() >> urlMap
+      1 * urlMaps.list(PROJECT_NAME) >> urlMapsList
+      1 * urlMapsList.execute() >> new UrlMapList(items: [urlMap])
 
       6 * computeMock.backendServices() >> backendServices
       1 * backendServices.get(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesGet
@@ -327,8 +324,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def targetHttpProxiesGet = Mock(Compute.TargetHttpProxies.Get)
       def targetHttpProxy = new TargetHttpProxy(urlMap: URL_MAP_URL)
       def urlMaps = Mock(Compute.UrlMaps)
-      def urlMapsGet = Mock(Compute.UrlMaps.Get)
-      def urlMap = new UrlMap(defaultService: BACKEND_SERVICE_URL)
+      def urlMapsList = Mock(Compute.UrlMaps.List)
+      def urlMap = new UrlMap(defaultService: BACKEND_SERVICE_URL, name: URL_MAP_NAME)
       def backendServices = Mock(Compute.BackendServices)
       def backendServicesGet = Mock(Compute.BackendServices.Get)
       def backendService = new BackendService(healthChecks: [HEALTH_CHECK_URL])
@@ -386,8 +383,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * targetHttpProxies.get(PROJECT_NAME, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesGet
       1 * targetHttpProxiesGet.execute() >> targetHttpProxy
       2 * computeMock.urlMaps() >> urlMaps
-      1 * urlMaps.get(PROJECT_NAME, URL_MAP_NAME) >> urlMapsGet
-      1 * urlMapsGet.execute() >> urlMap
+      1 * urlMaps.list(PROJECT_NAME) >> urlMapsList
+      1 * urlMapsList.execute() >> new UrlMapList(items: [urlMap])
       2 * computeMock.backendServices() >> backendServices
       1 * backendServices.get(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesGet
       1 * backendServicesGet.execute() >> backendService
@@ -428,8 +425,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def targetHttpProxiesGet = Mock(Compute.TargetHttpProxies.Get)
       def targetHttpProxy = new TargetHttpProxy(urlMap: URL_MAP_URL)
       def urlMaps = Mock(Compute.UrlMaps)
-      def urlMapsGet = Mock(Compute.UrlMaps.Get)
-      def urlMap = new UrlMap(defaultService: BACKEND_SERVICE_URL)
+      def urlMapsList = Mock(Compute.UrlMaps.List)
+      def urlMap = new UrlMap(defaultService: BACKEND_SERVICE_URL, name: URL_MAP_NAME)
       def backendServices = Mock(Compute.BackendServices)
       def backendServicesGet = Mock(Compute.BackendServices.Get)
       def backendService = new BackendService(healthChecks: [HEALTH_CHECK_URL])
@@ -463,8 +460,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * targetHttpProxies.get(PROJECT_NAME, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesGet
       1 * targetHttpProxiesGet.execute() >> targetHttpProxy
       1 * computeMock.urlMaps() >> urlMaps
-      1 * urlMaps.get(PROJECT_NAME, URL_MAP_NAME) >> urlMapsGet
-      1 * urlMapsGet.execute() >> urlMap
+      1 * urlMaps.list(PROJECT_NAME) >> urlMapsList
+      1 * urlMapsList.execute() >> new UrlMapList(items: [urlMap])
       1 * computeMock.backendServices() >> backendServices
       1 * backendServices.get(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesGet
       1 * backendServicesGet.execute() >> backendService
@@ -487,8 +484,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def targetHttpProxiesGet = Mock(Compute.TargetHttpProxies.Get)
       def targetHttpProxy = new TargetHttpProxy(urlMap: URL_MAP_URL)
       def urlMaps = Mock(Compute.UrlMaps)
-      def urlMapsGet = Mock(Compute.UrlMaps.Get)
-      def urlMap = new UrlMap(defaultService: BACKEND_SERVICE_URL)
+      def urlMapsList = Mock(Compute.UrlMaps.List)
+      def urlMap = new UrlMap(defaultService: BACKEND_SERVICE_URL, name: URL_MAP_NAME)
       def backendServices = Mock(Compute.BackendServices)
       def backendServicesGet = Mock(Compute.BackendServices.Get)
       def backendService = new BackendService(healthChecks: [HEALTH_CHECK_URL])
@@ -545,8 +542,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * targetHttpProxies.get(PROJECT_NAME, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesGet
       1 * targetHttpProxiesGet.execute() >> targetHttpProxy
       2 * computeMock.urlMaps() >> urlMaps
-      1 * urlMaps.get(PROJECT_NAME, URL_MAP_NAME) >> urlMapsGet
-      1 * urlMapsGet.execute() >> urlMap
+      1 * urlMaps.list(PROJECT_NAME) >> urlMapsList
+      1 * urlMapsList.execute() >> new UrlMapList(items: [urlMap])
       2 * computeMock.backendServices() >> backendServices
       1 * backendServices.get(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesGet
       1 * backendServicesGet.execute() >> backendService
@@ -575,5 +572,92 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * backendServicesOperationGet.execute() >> backendServicesDeleteOp
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_DELETE_OP_NAME) >> healthChecksOperationGet
       1 * healthChecksOperationGet.execute() >> healthChecksDeleteOp
+  }
+
+  void "should fail if backend service in more than one url map"() {
+    setup:
+    def computeMock = Mock(Compute)
+    def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+    def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
+    def forwardingRule = new ForwardingRule(target: TARGET_HTTP_PROXY_URL)
+    def targetHttpProxies = Mock(Compute.TargetHttpProxies)
+    def targetHttpProxiesGet = Mock(Compute.TargetHttpProxies.Get)
+    def targetHttpProxy = new TargetHttpProxy(urlMap: URL_MAP_URL)
+    def urlMaps = Mock(Compute.UrlMaps)
+    def urlMapsList = Mock(Compute.UrlMaps.List)
+    def urlMap = new UrlMap(defaultService: BACKEND_SERVICE_URL, name: URL_MAP_NAME)
+    def conflictingMap = new UrlMap(defaultService: BACKEND_SERVICE_URL, name: "conflicting")
+    def backendServices = Mock(Compute.BackendServices)
+    def backendServicesGet = Mock(Compute.BackendServices.Get)
+    def backendService = new BackendService(healthChecks: [HEALTH_CHECK_URL])
+    def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
+    def description = new DeleteGoogleHttpLoadBalancerDescription(
+        loadBalancerName: HTTP_LOAD_BALANCER_NAME,
+        accountName: ACCOUNT_NAME,
+        credentials: credentials)
+    @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
+    operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * computeMock.globalForwardingRules() >> globalForwardingRules
+    1 * globalForwardingRules.get(PROJECT_NAME, HTTP_LOAD_BALANCER_NAME) >> globalForwardingRulesGet
+    1 * globalForwardingRulesGet.execute() >> forwardingRule
+    1 * computeMock.targetHttpProxies() >> targetHttpProxies
+    1 * targetHttpProxies.get(PROJECT_NAME, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesGet
+    1 * targetHttpProxiesGet.execute() >> targetHttpProxy
+    1 * computeMock.urlMaps() >> urlMaps
+    1 * urlMaps.list(PROJECT_NAME) >> urlMapsList
+    1 * urlMapsList.execute() >> new UrlMapList(items: [urlMap, conflictingMap])
+    1 * computeMock.backendServices() >> backendServices
+    1 * backendServices.get(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesGet
+    1 * backendServicesGet.execute() >> backendService
+    thrown IllegalStateException
+  }
+
+  void "should fail if server group still associated"() {
+    setup:
+    def computeMock = Mock(Compute)
+    def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+    def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
+    def forwardingRule = new ForwardingRule(target: TARGET_HTTP_PROXY_URL)
+    def targetHttpProxies = Mock(Compute.TargetHttpProxies)
+    def targetHttpProxiesGet = Mock(Compute.TargetHttpProxies.Get)
+    def targetHttpProxy = new TargetHttpProxy(urlMap: URL_MAP_URL)
+    def urlMaps = Mock(Compute.UrlMaps)
+    def urlMapsList = Mock(Compute.UrlMaps.List)
+    def urlMap = new UrlMap(defaultService: BACKEND_SERVICE_URL, name: URL_MAP_NAME)
+    def backendServices = Mock(Compute.BackendServices)
+    def backendServicesGet = Mock(Compute.BackendServices.Get)
+    def backendService = new BackendService(healthChecks: [HEALTH_CHECK_URL], backends: [new Backend()])
+    def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
+    def description = new DeleteGoogleHttpLoadBalancerDescription(
+        loadBalancerName: HTTP_LOAD_BALANCER_NAME,
+        accountName: ACCOUNT_NAME,
+        credentials: credentials)
+    @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
+    operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * computeMock.globalForwardingRules() >> globalForwardingRules
+    1 * globalForwardingRules.get(PROJECT_NAME, HTTP_LOAD_BALANCER_NAME) >> globalForwardingRulesGet
+    1 * globalForwardingRulesGet.execute() >> forwardingRule
+    1 * computeMock.targetHttpProxies() >> targetHttpProxies
+    1 * targetHttpProxies.get(PROJECT_NAME, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesGet
+    1 * targetHttpProxiesGet.execute() >> targetHttpProxy
+    1 * computeMock.urlMaps() >> urlMaps
+    1 * urlMaps.list(PROJECT_NAME) >> urlMapsList
+    1 * urlMapsList.execute() >> new UrlMapList(items: [urlMap])
+    1 * computeMock.backendServices() >> backendServices
+    1 * backendServices.get(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesGet
+    1 * backendServicesGet.execute() >> backendService
+    thrown IllegalStateException
   }
 }

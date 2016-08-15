@@ -16,21 +16,18 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
-import com.google.api.services.compute.model.BackendService
-import com.google.api.services.compute.model.ForwardingRule
-import com.google.api.services.compute.model.Operation
-import com.google.api.services.compute.model.PathMatcher
-import com.google.api.services.compute.model.PathRule
-import com.google.api.services.compute.model.TargetHttpProxy
-import com.google.api.services.compute.model.UrlMap
+import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleHttpLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
+@Slf4j
 class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "DELETE_HTTP_LOAD_BALANCER"
 
@@ -49,7 +46,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
   }
 
   // Used to find all services referenced in a URL map.
-  private static addServicesFromPathMatchers(List<String> backendServiceUrls, List<PathMatcher> pathMatchers) {
+  private static void addServicesFromPathMatchers(List<String> backendServiceUrls, List<PathMatcher> pathMatchers) {
     for (PathMatcher pathMatcher : pathMatchers) {
       backendServiceUrls.add(pathMatcher.getDefaultService())
       for (PathRule pathRule : pathMatcher.getPathRules()) {
@@ -68,7 +65,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteGoogleHttpLoadBalancerDescription": { "credentials": "my-account-name", "loadBalancerName": "spin-lb" }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteGoogleHttpLoadBalancerDescription": { "credentials": "my-account-name", "loadBalancerName": "spin-lb", "deleteHealthChecks": false }} ]' localhost:7002/ops
    */
   @Override
   Void operate(List priorOutputs) {
@@ -91,22 +88,43 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
       GCEUtil.updateStatusAndThrowNotFoundException("Global forwarding rule $forwardingRuleName not found for $project",
           task, BASE_PHASE)
     }
-    def targetHttpProxyName = GCEUtil.getLocalName(forwardingRule.getTarget())
+    String targetProxyType = Utils.getTargetProxyType(forwardingRule.target)
+    String targetProxyName = GCEUtil.getLocalName(forwardingRule.target)
 
-    // Target HTTP proxy.
-    task.updateStatus BASE_PHASE, "Retrieving target HTTP proxy $targetHttpProxyName..."
+    // Target HTTP(S) proxy.
+    task.updateStatus BASE_PHASE, "Retrieving target proxy $targetProxyName..."
 
-    TargetHttpProxy targetHttpProxy = compute.targetHttpProxies().get(project, targetHttpProxyName).execute()
-    if (!targetHttpProxy) {
-      GCEUtil.updateStatusAndThrowNotFoundException("Target http proxy $targetHttpProxyName not found for $project", task,
+    def retrievedTargetProxy = null
+
+    switch (targetProxyType) {
+      case "targetHttpProxies":
+        retrievedTargetProxy = compute.targetHttpProxies().get(project, targetProxyName).execute()
+        break
+      case "targetHttpsProxies":
+        retrievedTargetProxy = compute.targetHttpsProxies().get(project, targetProxyName).execute()
+        break
+      default:
+        log.warn("Unexpected target proxy type for $targetProxyName.")
+        retrievedTargetProxy = null
+        break
+    }
+
+    if (!retrievedTargetProxy) {
+      GCEUtil.updateStatusAndThrowNotFoundException("Target proxy $targetProxyName not found for $project", task,
           BASE_PHASE)
     }
-    def urlMapName = GCEUtil.getLocalName(targetHttpProxy.getUrlMap())
+    def urlMapName = GCEUtil.getLocalName(retrievedTargetProxy.getUrlMap())
 
     // URL map.
     task.updateStatus BASE_PHASE, "Retrieving URL map $urlMapName..."
 
-    UrlMap urlMap = compute.urlMaps().get(project, urlMapName).execute()
+    // NOTE: This call is necessary because we cross-check backend services later.
+    UrlMapList mapList = compute.urlMaps().list(project).execute()
+    List<UrlMap> projectUrlMaps = mapList.getItems()
+
+    UrlMap urlMap = projectUrlMaps.find { it.name == urlMapName }
+    projectUrlMaps.removeAll { it.name == urlMapName }
+
     List<String> backendServiceUrls = new ArrayList<String>()
     backendServiceUrls.add(urlMap.getDefaultService())
     addServicesFromPathMatchers(backendServiceUrls, urlMap.getPathMatchers())
@@ -118,6 +136,16 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
       def backendServiceName = GCEUtil.getLocalName(backendServiceUrl)
       task.updateStatus BASE_PHASE, "Retrieving backend service $backendServiceName..."
       BackendService backendService = compute.backendServices().get(project, backendServiceName).execute()
+
+      if (backendService?.backends) {
+        task.updateStatus BASE_PHASE, "Server groups still associated with Http(s) load balancer ${description.loadBalancerName}. Failing..."
+        throw new IllegalStateException("Server groups still associated with Http(s) load balancer: ${description.loadBalancerName}.")
+      }
+      if (GCEUtil.isBackendServiceInUse(projectUrlMaps, backendServiceName)) {
+        task.updateStatus BASE_PHASE, "Backend service in use by another Http(s) load balancer. Failing..."
+        throw new IllegalStateException("Backend service in use by another Http(s) load balancer. Cannot destroy.")
+      }
+
       healthCheckUrls.addAll(backendService.getHealthChecks())
     }
     healthCheckUrls.unique()
@@ -133,11 +161,23 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
     googleOperationPoller.waitForGlobalOperation(compute, project, deleteForwardingRuleOperation.getName(),
         timeoutSeconds, task, "forwarding rule " + forwardingRuleName, BASE_PHASE)
 
-    task.updateStatus BASE_PHASE, "Deleting target HTTP proxy $targetHttpProxyName..."
-    Operation deleteTargetHttpProxyOperation = compute.targetHttpProxies().delete(project, targetHttpProxyName).execute()
+    task.updateStatus BASE_PHASE, "Deleting target proxy $targetProxyName..."
 
-    googleOperationPoller.waitForGlobalOperation(compute, project, deleteTargetHttpProxyOperation.getName(),
-        timeoutSeconds, task, "target http proxy " + targetHttpProxyName, BASE_PHASE)
+    Operation deleteTargetProxyOperation  = null
+    switch (targetProxyType) {
+      case "targetHttpProxies":
+        deleteTargetProxyOperation = compute.targetHttpProxies().delete(project, targetProxyName).execute()
+        break
+      case "targetHttpsProxies":
+        deleteTargetProxyOperation = compute.targetHttpsProxies().delete(project, targetProxyName).execute()
+        break
+      default:
+        log.warn("Unexpected target proxy type for $targetProxyName. Cannot delete target proxy.")
+        break
+    }
+
+    googleOperationPoller.waitForGlobalOperation(compute, project, deleteTargetProxyOperation.getName(),
+        timeoutSeconds, task, "target proxy" + targetProxyName, BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Deleting URL map $urlMapName..."
     Operation deleteUrlMapOperation = compute.urlMaps().delete(project, urlMapName).execute()
@@ -163,23 +203,25 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
           timeoutSeconds, task, "backend service " + asyncOperation.backendServiceName, BASE_PHASE)
     }
 
-    // Now make a list of the delete operations for health checks.
-    List<HealthCheckAsyncDeleteOperation> deleteHealthCheckAsyncOperations =
-        new ArrayList<HealthCheckAsyncDeleteOperation>()
-    for (String healthCheckUrl : healthCheckUrls) {
-      def healthCheckName = GCEUtil.getLocalName(healthCheckUrl)
-      task.updateStatus BASE_PHASE, "Deleting health check $healthCheckName for $project..."
-      Operation deleteHealthCheckOp = compute.httpHealthChecks().delete(project, healthCheckName).execute()
-      deleteHealthCheckAsyncOperations.add(new HealthCheckAsyncDeleteOperation(
-          healthCheckName: healthCheckName,
-          operationName: deleteHealthCheckOp.getName()))
-    }
+    // Now make a list of the delete operations for health checks if description says to do so.
+    if (description.deleteHealthChecks) {
+      List<HealthCheckAsyncDeleteOperation> deleteHealthCheckAsyncOperations =
+          new ArrayList<HealthCheckAsyncDeleteOperation>()
+      for (String healthCheckUrl : healthCheckUrls) {
+        def healthCheckName = GCEUtil.getLocalName(healthCheckUrl)
+        task.updateStatus BASE_PHASE, "Deleting health check $healthCheckName for $project..."
+        Operation deleteHealthCheckOp = compute.httpHealthChecks().delete(project, healthCheckName).execute()
+        deleteHealthCheckAsyncOperations.add(new HealthCheckAsyncDeleteOperation(
+            healthCheckName: healthCheckName,
+            operationName: deleteHealthCheckOp.getName()))
+      }
 
-    // Finally, wait on all of these deletes to complete.
-    for (HealthCheckAsyncDeleteOperation asyncOperation : deleteHealthCheckAsyncOperations) {
-      googleOperationPoller.waitForGlobalOperation(compute, project, asyncOperation.operationName,
-          timeoutSeconds, task, "health check " + asyncOperation.healthCheckName,
-          BASE_PHASE)
+      // Finally, wait on all of these deletes to complete.
+      for (HealthCheckAsyncDeleteOperation asyncOperation : deleteHealthCheckAsyncOperations) {
+        googleOperationPoller.waitForGlobalOperation(compute, project, asyncOperation.operationName,
+            timeoutSeconds, task, "health check " + asyncOperation.healthCheckName,
+            BASE_PHASE)
+      }
     }
 
     task.updateStatus BASE_PHASE, "Done deleting http load balancer $description.loadBalancerName."

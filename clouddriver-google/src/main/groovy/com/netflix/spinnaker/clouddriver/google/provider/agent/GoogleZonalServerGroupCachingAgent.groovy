@@ -520,11 +520,11 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
   }
 
   /**
-   * Set load balancing metadata on with the server group from the instance template.
+   * Set load balancing metadata on the server group from the instance template.
    *
    * @param loadBalancerNames -- Network load balancer names specified by target pools.
    * @param instanceMetadata -- Metadata associated with the instance template.
-   * @param serverGroup -- Server groups build from the instance template.
+   * @param serverGroup -- Server groups built from the instance template.
    */
   static void setLoadBalancerMetadataOnInstance(List<String> loadBalancerNames,
                                                 Metadata instanceMetadata,

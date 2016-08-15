@@ -21,4 +21,5 @@ class DeleteGoogleLoadBalancerDescription extends AbstractGoogleCredentialsDescr
   String loadBalancerName
   String region
   String accountName
+  Boolean deleteHealthChecks = true
 }

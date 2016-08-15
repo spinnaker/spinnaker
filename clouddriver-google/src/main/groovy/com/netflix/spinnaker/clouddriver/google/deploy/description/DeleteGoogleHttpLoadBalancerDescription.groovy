@@ -20,4 +20,5 @@ class DeleteGoogleHttpLoadBalancerDescription extends AbstractGoogleCredentialsD
   Long deleteOperationTimeoutSeconds
   String loadBalancerName
   String accountName
+  Boolean deleteHealthChecks = true
 }

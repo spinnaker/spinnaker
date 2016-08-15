@@ -804,6 +804,23 @@ class GCEUtil {
     }
   }
 
+  static Boolean isBackendServiceInUse(List<UrlMap> projectUrlMaps, String backendServiceName) {
+    def defaultServicesMatch = projectUrlMaps?.findAll { UrlMap urlMap ->
+      getLocalName(urlMap.getDefaultService()) == backendServiceName
+    }
+
+    def servicesInUse = []
+    projectUrlMaps?.each { UrlMap urlMap ->
+      urlMap?.getPathMatchers()?.each { PathMatcher pathMatcher ->
+        servicesInUse << getLocalName(pathMatcher.getDefaultService())
+        pathMatcher?.getPathRules()?.each { PathRule pathRule ->
+          servicesInUse << getLocalName(pathRule.getService())
+        }
+      }
+    }
+    return defaultServicesMatch || (backendServiceName in servicesInUse)
+  }
+
   /**
    * Retry a GCP operation if it fails. Treat any error codes in successfulErrorCodes as success.
    *
