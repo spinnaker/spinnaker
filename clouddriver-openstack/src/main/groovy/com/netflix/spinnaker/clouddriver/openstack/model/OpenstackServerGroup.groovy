@@ -69,7 +69,10 @@ class OpenstackServerGroup implements ServerGroup, Serializable {
   @Override
   Capacity getCapacity() {
     scalingConfig ?
-      new Capacity(min: scalingConfig.minSize ? scalingConfig.minSize as Integer : 0, max: scalingConfig.maxSize ? scalingConfig.maxSize as Integer : 0)
+      new Capacity(
+        min: scalingConfig.minSize ? scalingConfig.minSize as Integer : 0,
+        max: scalingConfig.maxSize ? scalingConfig.maxSize as Integer : 0,
+        desired: scalingConfig.desiredSize ? scalingConfig.desiredSize as Integer : 0)
       : null
   }
 
