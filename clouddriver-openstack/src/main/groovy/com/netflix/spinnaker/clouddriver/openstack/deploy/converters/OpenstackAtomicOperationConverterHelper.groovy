@@ -27,14 +27,23 @@ class OpenstackAtomicOperationConverterHelper {
                                                                               AbstractAtomicOperationsCredentialsSupport credentialsSupport,
                                                                               Class<T> targetDescriptionType) {
 
-    String account = input.account
+    // Deck sends in the account name as 'credentials', but that name means something else here
+    // So doing a little bit of hand-waving around the names of things
+    if (!input.account) {
+      input.account = input.credentials
+    }
+    // Remove this so it is not confused with the actual credentials object
+    input.remove('credentials')
 
-    T converted = credentialsSupport.objectMapper
+    // Save the credentials off to re-assign after ObjectMapper does its work
+    def credentials = credentialsSupport.getCredentialsObject(input.account as String).getCredentials()
+
+    T converted = credentialsSupport.getObjectMapper()
       .copy()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
       .convertValue(input, targetDescriptionType)
 
-    converted.credentials = (OpenstackCredentials) credentialsSupport.getCredentialsObject(account)?.credentials
+    converted.credentials = (OpenstackCredentials) credentials
 
     converted
   }
