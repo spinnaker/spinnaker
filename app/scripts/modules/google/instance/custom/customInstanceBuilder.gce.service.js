@@ -7,9 +7,13 @@ module.exports = angular.module('spinnaker.serverGroup.customInstanceBuilder.gce
   require('../gceVCpuMaxByLocation.value.js'),
 ])
   .factory('gceCustomInstanceBuilderService', function(gceVCpuMaxByLocation, _) {
+    const defaultMax = 16;
 
     function vCpuCountForLocationIsValid(vCpuCount, location) {
-      return vCpuCount <= gceVCpuMaxByLocation[location];
+      let knownLocation = location in gceVCpuMaxByLocation;
+      return _.some([
+        !knownLocation && vCpuCount <= defaultMax,
+        knownLocation && vCpuCount <= gceVCpuMaxByLocation[location]]);
     }
 
     /*
@@ -23,7 +27,7 @@ module.exports = angular.module('spinnaker.serverGroup.customInstanceBuilder.gce
     }
 
     function generateValidVCpuListForLocation(location) {
-      let max = gceVCpuMaxByLocation[location];
+      let max = gceVCpuMaxByLocation[location] || defaultMax;
       return [ 1, ..._.range(2, max, 2), max ];
     }
 

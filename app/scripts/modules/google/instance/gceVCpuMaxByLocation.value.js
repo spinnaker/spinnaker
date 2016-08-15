@@ -19,6 +19,8 @@ module.exports = angular.module('spinnaker.gce.instance.vCpuMaxByLocation.value'
     'us-central1-b': 32,
     'us-central1-c': 32,
     'us-central1-f': 32,
+    'us-west1-a': 32,
+    'us-west1-b': 32,
     'europe-west1-b': 16,
     'europe-west1-c': 32,
     'europe-west1-d': 32,
@@ -27,6 +29,7 @@ module.exports = angular.module('spinnaker.gce.instance.vCpuMaxByLocation.value'
     'asia-east1-c': 32,
     'us-east1': 32,
     'us-central1': 32,
+    'us-west1': 32,
     'europe-west1': 16,
     'asia-east1': 32,
   });
