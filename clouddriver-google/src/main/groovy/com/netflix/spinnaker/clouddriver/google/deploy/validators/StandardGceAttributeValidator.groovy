@@ -269,6 +269,8 @@ class StandardGceAttributeValidator {
     'us-central1-b': 32,
     'us-central1-c': 32,
     'us-central1-f': 32,
+    'us-west1-a': 32,
+    'us-west1-b': 32,
     'europe-west1-b': 16,
     'europe-west1-c': 32,
     'europe-west1-d': 32,
@@ -277,6 +279,7 @@ class StandardGceAttributeValidator {
     'asia-east1-c': 32,
     'us-east1': 32,
     'us-central1': 32,
+    'us-west1': 32,
     'europe-west1': 16,
     'asia-east1': 32
   ]
@@ -319,11 +322,14 @@ class StandardGceAttributeValidator {
     }
 
     if (location) {
-      if (!(location in vCpuMaxByLocation)) {
+      def knownLocation = location in vCpuMaxByLocation
+
+      // since our list might be out of date, we'll assume a location can handle at least 16 vCpus per machine.
+      if (!knownLocation && vCpuCount > 16) {
         errors.rejectValue("instanceType", "${context}.instanceType.invalid", "${location} not found.")
       }
 
-      if (vCpuCount > vCpuMaxByLocation[location]) {
+      if (knownLocation && vCpuCount > vCpuMaxByLocation[location]) {
         errors.rejectValue("instanceType", "${context}.instanceType.invalid", "${location} does not support more than ${vCpuMaxByLocation[location]} vCPUs.")
       }
     }

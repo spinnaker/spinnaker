@@ -482,9 +482,14 @@ class StandardGceAttributeValidatorSpec extends Specification {
       1 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.invalid", "Total memory must be a multiple of 256MB.")
 
     when:
-      validator.validateInstanceType("custom-1-1024", "atlantis")
+      validator.validateInstanceType("custom-1-1024", "us-central1-q")
     then:
-      1 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.invalid", "atlantis not found.")
+      0 * errors._
+
+    when:
+      validator.validateInstanceType("custom-18-18432", "us-central1-q")
+    then:
+      1 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.invalid", "us-central1-q not found.")
 
     when:
       validator.validateInstanceType("custom-24-24576", "us-central1-a")
