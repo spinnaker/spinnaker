@@ -117,16 +117,13 @@
     </collapsible-section>
     <collapsible-section heading="Health Checks">
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
-        <dt>Target</dt>
-        <dd>{{loadBalancer.elb.healthCheck.target}}</dd>
-        <dt>Timeout</dt>
-        <dd>{{loadBalancer.elb.healthCheck.timeout}} seconds</dd>
-        <dt>Interval</dt>
-        <dd>{{loadBalancer.elb.healthCheck.interval}} seconds</dd>
-        <dt>Healthy Threshold</dt>
-        <dd>{{loadBalancer.elb.healthCheck.healthyThreshold}}</dd>
-        <dt>Unhealthy Threshold</dt>
-        <dd>{{loadBalancer.elb.healthCheck.unhealthyThreshold}}</dd>
+        <gce-health-check ng-if="!ctrl.isElSeven(loadBalancer)" health-check="loadBalancer.elb.healthCheck"></gce-health-check>
+        <div ng-if="ctrl.isElSeven(loadBalancer)" ng-repeat="(serviceName, healthCheck) in loadBalancer.elb.backendServiceHealthChecks">
+          <hr ng-if="$index > 0">
+          <dt>Backend Service Name</dt>
+          <dd>{{ serviceName }}</dd>
+          <gce-health-check health-check="healthCheck"></gce-health-check>
+        </div>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Logs">

@@ -265,13 +265,13 @@
         <dd ng-if="ctrl.serverGroup.buildInfo.jenkins"><a target=_blank href="{{ctrl.buildJenkinsLink()}}">{{ctrl.buildJenkinsLink()}}</a></dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Port Name Mapping">
+    <collapsible-section heading="Port Name Mapping" ng-if="ctrl.serverGroup.loadBalancingPolicy">
       <dl ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'"
           ng-if="ctrl.serverGroup.loadBalancingPolicy.listeningPort">
         <dd>http &rarr; {{ ctrl.serverGroup.loadBalancingPolicy.listeningPort }}</dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Capacity Metrics">
+    <collapsible-section heading="Capacity Metrics" ng-if="ctrl.serverGroup.loadBalancingPolicy">
       <dl ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'"
           ng-if="ctrl.serverGroup.loadBalancingPolicy.listeningPort">
         <dt>Balancing Mode</dt>
