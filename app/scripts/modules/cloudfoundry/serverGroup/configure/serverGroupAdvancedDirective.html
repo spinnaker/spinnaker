@@ -32,4 +32,18 @@
       </ui-select>
     </div>
   </div>
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right">
+      <b>Disk Limit</b>
+    </div>
+    <div class="col-md-7">
+      <ui-select ng-model="command.disk" class="form-control input-sm">
+        <ui-select-match placeholder="None">{{$select.selected.label}}</ui-select-match>
+        <ui-select-choices repeat="disk.key as disk in diskOptions | filter: $select.search">
+          <strong ng-bind-html="disk.label | highlight: $select.search"></strong>
+          <div ng-bind-html="disk.description"></div>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
 </ng-form>

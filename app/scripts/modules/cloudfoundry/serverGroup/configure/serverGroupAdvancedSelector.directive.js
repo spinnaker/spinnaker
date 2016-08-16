@@ -33,6 +33,16 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.advancedSele
 
       $scope.memoryOptions = [
         {
+          key: 8192,
+          label: '8GB',
+          description: ''
+        },
+        {
+          key: 4096,
+          label: '4GB',
+          description: ''
+        },
+        {
           key: 2048,
           label: '2GB',
           description: ''
@@ -48,5 +58,24 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.advancedSele
           description: 'Absolute minimum for Spring Boot apps'
         },
       ];
+
+      $scope.diskOptions = [
+        {
+          key: 2048,
+          label: '2GB',
+          description: 'Maximum available'
+        },
+        {
+          key: 1024,
+          label: '1GB',
+          description: 'Recommended minimum'
+        },
+        {
+          key: 512,
+          label: '512MB',
+          description: ''
+        },
+      ];
+
 
     });

@@ -69,6 +69,7 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
         password: '',
         buildpackUrl: '',
         memory: 1024,
+        disk: 1024,
         viewState: {
           instanceProfile: 'custom',
           allImageSelection: null,
@@ -132,6 +133,7 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
         password: serverGroup.password,
         buildpackUrl: serverGroup.buildpackUrl,
         memory: serverGroup.memory,
+        disk: serverGroup.disk,
         viewState: {
           allImageSelection: null,
           useAllImageSelection: false,

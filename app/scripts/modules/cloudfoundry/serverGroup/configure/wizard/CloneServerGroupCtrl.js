@@ -143,6 +143,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
 
       $scope.command.buildpackUrl = $scope.command.buildpackUrl;
       $scope.command.memory = $scope.command.memory;
+      $scope.command.disk = $scope.command.disk;
 
         if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
         return $uibModalInstance.close($scope.command);
