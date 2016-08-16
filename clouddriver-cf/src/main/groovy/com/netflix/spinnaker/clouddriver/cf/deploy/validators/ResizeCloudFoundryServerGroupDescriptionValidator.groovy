@@ -39,5 +39,7 @@ class ResizeCloudFoundryServerGroupDescriptionValidator extends DescriptionValid
     helper.validateServerGroupName(description.serverGroupName)
     helper.validateRegion(description.region)
     helper.validatePositiveInt(description.targetSize, "targetSize")
+    helper.validatePositiveInt(description.memory, "memory")
+    helper.validatePositiveInt(description.disk, "disk")
   }
 }

@@ -76,6 +76,8 @@ class ResizeCloudFoundryServerGroupAtomicOperationConverterSpec extends Specific
     description.serverGroupName == serverGroup
     description.targetSize == targetSize
     description.region == region
+    description.memory == 1024
+    description.disk == 1024
   }
 
   void "should handle capacity in lieu of targetSize"() {
@@ -95,6 +97,29 @@ class ResizeCloudFoundryServerGroupAtomicOperationConverterSpec extends Specific
     description.serverGroupName == serverGroup
     description.targetSize == capacity.desired
     description.region == region
+  }
+
+  void "should handle memory/disk settings"() {
+    setup:
+    def serverGroup = "demo-staging-v001"
+    def region = 'some-region'
+    def capacity = [min: 1, desired: 5, max: 10]
+    def input = [
+        serverGroupName: serverGroup,
+        region: region,
+        capacity: capacity,
+        memory: 2048,
+        disk: 4096,
+        credentials    : 'test']
+
+    when:
+    def description = converter.convertDescription(input)
+
+    then:
+    description.serverGroupName == serverGroup
+    description.region == region
+    description.memory == 2048
+    description.disk == 4096
   }
 
 }

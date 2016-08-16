@@ -30,6 +30,8 @@ class ResizeCloudFoundryServerGroupDescriptionValidatorSpec extends Specificatio
   private static final REGION = "some-region"
   private static final ACCOUNT_NAME = "auto"
   private static final TARGET_SIZE = 4
+  private static final TARGET_MEM = 2048
+  private static final TARGET_DISK = 2048
 
   @Shared
   ResizeCloudFoundryServerGroupDescriptionValidator validator
@@ -47,6 +49,8 @@ class ResizeCloudFoundryServerGroupDescriptionValidatorSpec extends Specificatio
     def description = new ResizeCloudFoundryServerGroupDescription(serverGroupName: SERVER_GROUP_NAME,
         region: REGION,
         targetSize: TARGET_SIZE,
+        memory: TARGET_MEM,
+        disk: TARGET_DISK,
         credentials: TestCredential.named(ACCOUNT_NAME))
     def errors = Mock(Errors)
 
@@ -69,6 +73,26 @@ class ResizeCloudFoundryServerGroupDescriptionValidatorSpec extends Specificatio
       1 * errors.rejectValue('credentials', _)
       1 * errors.rejectValue('serverGroupName', _)
       1 * errors.rejectValue('region', _)
-      1 * errors.rejectValue('targetSize', _)
+      0 * errors._
+  }
+
+  void "bad scale settings fails validation"() {
+    setup:
+    def description = new ResizeCloudFoundryServerGroupDescription(serverGroupName: SERVER_GROUP_NAME,
+        region: REGION,
+        targetSize: -1,
+        memory: -15,
+        disk: -28,
+        credentials: TestCredential.named(ACCOUNT_NAME))
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue('targetSize', _)
+    1 * errors.rejectValue('memory', _)
+    1 * errors.rejectValue('disk', _)
+    0 * errors._
   }
 }

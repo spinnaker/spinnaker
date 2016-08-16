@@ -20,7 +20,9 @@ import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredenti
 
 class ResizeCloudFoundryServerGroupDescription {
   String serverGroupName
-  int targetSize
+  int targetSize = 1
+  int memory = 1024
+  int disk = 1024
   String region
   String getAccountName() {
     credentials?.name
