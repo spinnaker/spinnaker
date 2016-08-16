@@ -127,7 +127,7 @@ class CacheUtils {
       loadBalancers.find { it.name == route }
     }
 
-    serverGroup.disabled = !serverGroup.nativeApplication.uris?.findResult { uri ->
+    serverGroup.disabled = !serverGroup.nativeApplication.uris?.findResults { uri ->
       def lbs = serverGroup.nativeLoadBalancers.collect { loadBalancer ->
         (loadBalancer?.nativeRoute?.name) ? loadBalancer.nativeRoute.name : ''
       }
