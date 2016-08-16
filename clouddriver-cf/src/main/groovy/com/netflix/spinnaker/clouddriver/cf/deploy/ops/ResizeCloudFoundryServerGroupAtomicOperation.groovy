@@ -47,7 +47,22 @@ class ResizeCloudFoundryServerGroupAtomicOperation implements AtomicOperation<Vo
 
     def client = cloudFoundryClientFactory.createCloudFoundryClient(description.credentials, true)
 
-    client.updateApplicationInstances(description.serverGroupName, description.targetSize)
+    def app = client.getApplication(description.serverGroupName)
+
+    if (app.instances != description.targetSize) {
+      task.updateStatus BASE_PHASE, "Changing ${description.serverGroupName} to ${description.targetSize} instances"
+      client.updateApplicationInstances(description.serverGroupName, description.targetSize)
+    }
+
+    if (app.memory != description.memory) {
+      task.updateStatus BASE_PHASE, "Changing ${description.serverGroupName} to ${description.memory}MB memory"
+      client.updateApplicationMemory(description.serverGroupName, description.memory)
+    }
+
+    if (app.diskQuota != description.disk) {
+      task.updateStatus BASE_PHASE, "Changing ${description.serverGroupName} to ${description.disk}MB disk limit"
+      client.updateApplicationDiskQuota(description.serverGroupName, description.disk)
+    }
 
     task.updateStatus BASE_PHASE, "Done resizing server group $description.serverGroupName in $description.region."
     null

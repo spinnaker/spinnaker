@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.cf.TestCredential
 import com.netflix.spinnaker.clouddriver.cf.deploy.description.ResizeCloudFoundryServerGroupDescription
 import com.netflix.spinnaker.clouddriver.cf.security.TestCloudFoundryClientFactory
 import org.cloudfoundry.client.lib.CloudFoundryOperations
+import org.cloudfoundry.client.lib.domain.CloudApplication
 import org.springframework.web.client.ResourceAccessException
 import spock.lang.Specification
 
@@ -40,7 +41,7 @@ class ResizeCloudFoundryServerGroupAtomicOperationSpec extends Specification {
 
   void "should not fail resize when server group does not exist"() {
     given:
-    1 * clientForNonExistentServerGroup.updateApplicationInstances("my-stack-v000", 10) >> { throw new ResourceAccessException("app doesn't exist") }
+    1 * clientForNonExistentServerGroup.getApplication("my-stack-v000") >> { throw new ResourceAccessException("app doesn't exist")}
     0 * clientForNonExistentServerGroup._
 
     def op = new ResizeCloudFoundryServerGroupAtomicOperation(
@@ -58,7 +59,7 @@ class ResizeCloudFoundryServerGroupAtomicOperationSpec extends Specification {
     thrown(Exception)
   }
 
-  void "should resize server group"() {
+  void "should resize server group (instances only)"() {
     setup:
     def op = new ResizeCloudFoundryServerGroupAtomicOperation(
         new ResizeCloudFoundryServerGroupDescription(
@@ -68,11 +69,68 @@ class ResizeCloudFoundryServerGroupAtomicOperationSpec extends Specification {
             credentials: TestCredential.named('baz')))
     op.cloudFoundryClientFactory = new TestCloudFoundryClientFactory(stubClient: client)
 
+    def mockApp = Mock(CloudApplication)
+    mockApp.instances >> { 1 }
+    mockApp.memory >> { 1024 }
+    mockApp.diskQuota >> { 1024}
+
+
     when:
     op.operate([])
 
     then:
+    1 * client.getApplication("my-stack-v000") >> { mockApp }
     1 * client.updateApplicationInstances("my-stack-v000", 10)
+    0 * client._
+  }
+
+  void "should resize server group (memory only)"() {
+    setup:
+    def op = new ResizeCloudFoundryServerGroupAtomicOperation(
+        new ResizeCloudFoundryServerGroupDescription(
+            serverGroupName: "my-stack-v000",
+            region: "staging",
+            targetSize: 1,
+            memory: 2048,
+            credentials: TestCredential.named('baz')))
+    op.cloudFoundryClientFactory = new TestCloudFoundryClientFactory(stubClient: client)
+
+    def mockApp = Mock(CloudApplication)
+    mockApp.instances >> { 1 }
+    mockApp.memory >> { 1024 }
+    mockApp.diskQuota >> { 1024}
+
+    when:
+    op.operate([])
+
+    then:
+    1 * client.getApplication("my-stack-v000") >> { mockApp }
+    1 * client.updateApplicationMemory("my-stack-v000", 2048)
+    0 * client._
+  }
+
+  void "should resize server group (disk only)"() {
+    setup:
+    def op = new ResizeCloudFoundryServerGroupAtomicOperation(
+        new ResizeCloudFoundryServerGroupDescription(
+            serverGroupName: "my-stack-v000",
+            region: "staging",
+            targetSize: 1,
+            disk: 2048,
+            credentials: TestCredential.named('baz')))
+    op.cloudFoundryClientFactory = new TestCloudFoundryClientFactory(stubClient: client)
+
+    def mockApp = Mock(CloudApplication)
+    mockApp.instances >> { 1 }
+    mockApp.memory >> { 1024 }
+    mockApp.diskQuota >> { 1024}
+
+    when:
+    op.operate([])
+
+    then:
+    1 * client.getApplication("my-stack-v000") >> { mockApp }
+    1 * client.updateApplicationDiskQuota("my-stack-v000", 2048)
     0 * client._
   }
 
