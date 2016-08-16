@@ -64,7 +64,7 @@ class AWSServerGroupNameResolver extends AbstractServerGroupNameResolver {
       return []
     }
 
-    def serverGroupsInRegion = cluster.serverGroups.findAll { it.region == region }
+    def serverGroupsInRegion = cluster.serverGroups.findAll { it.region == region && asgService.getAutoScalingGroup(it.name) }
     return serverGroupsInRegion.collect {
       new AbstractServerGroupNameResolver.TakenSlot(
         serverGroupName: it.name,

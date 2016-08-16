@@ -100,6 +100,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
         sG('myasg-v011', 0, 'us-east-1'), sG('myasg-v099', 1, 'us-west-1')
       ])
     }
+    1 * asgService.getAutoScalingGroup('myasg-v011') >> { new AutoScalingGroup() }
     1 * asgService.getAutoScalingGroup('myasg-v012') >> { new AutoScalingGroup() }
     1 * asgService.getAutoScalingGroup('myasg-v013') >> { null }
     0 * _

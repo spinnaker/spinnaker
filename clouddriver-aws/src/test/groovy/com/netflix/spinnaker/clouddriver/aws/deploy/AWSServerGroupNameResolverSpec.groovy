@@ -42,7 +42,7 @@ class AWSServerGroupNameResolverSpec extends Specification {
   }
 
 
-  void "should build TakenSlots based on cached cluster data"() {
+  void "should build TakenSlots based on cached cluster data and Amazon data"() {
     given:
     def clusterProviders = [amazonClusterProvider, googleClusterProvider]
     def resolver = new AWSServerGroupNameResolver(account, region, asgService, clusterProviders)
@@ -54,7 +54,8 @@ class AWSServerGroupNameResolverSpec extends Specification {
     1 * amazonClusterProvider.getCluster('application', account, 'application-stack-details') >> {
       // should only include server groups in the target region
       new Cluster.SimpleCluster(type: 'aws', serverGroups: [
-          sG('application-stack-details-v000', 0, region),
+          sG('application-stack-details-v000', 1, region),
+          sG('application-stack-details-v999', 0, region),
           sG('application-stack-details-v001', 0, 'us-east-1')
       ])
     }
@@ -64,10 +65,12 @@ class AWSServerGroupNameResolverSpec extends Specification {
         sG('application-stack-details-v001', 0, region)
       ])
     }
+    1 * asgService.getAutoScalingGroup('application-stack-details-v000') >> new AutoScalingGroup()
+    1 * asgService.getAutoScalingGroup('application-stack-details-v999') >> null
     0 * _
 
     takenSlots == [
-        new AbstractServerGroupNameResolver.TakenSlot('application-stack-details-v000', 0, new Date(0))
+        new AbstractServerGroupNameResolver.TakenSlot('application-stack-details-v000', 0, new Date(1))
     ]
   }
 
@@ -88,6 +91,7 @@ class AWSServerGroupNameResolverSpec extends Specification {
         sG("${clusterName}-v999", 0, region)
       ])
     }
+    1 * asgService.getAutoScalingGroup("${clusterName}-v999") >> new AutoScalingGroup()
     1 * asgService.getAutoScalingGroup("${clusterName}-v000") >> { null }
     0 * _
 
@@ -105,6 +109,7 @@ class AWSServerGroupNameResolverSpec extends Specification {
     (0..4).each {
       1 * asgService.getAutoScalingGroup(String.format("${clusterName}-v%03d", it)) >> { new AutoScalingGroup() }
     }
+    1 * asgService.getAutoScalingGroup("${clusterName}-v999") >> new AutoScalingGroup()
     1 * asgService.getAutoScalingGroup("${clusterName}-v005") >> { null }
     0 * _
 
