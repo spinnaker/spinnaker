@@ -137,20 +137,21 @@ class CloudFoundryDeployHandlerSpec extends Specification {
 
     results.serverGroupNames == ["spinnaker:${serverGroupName}"]
     results.serverGroupNameByRegion == [spinnaker: serverGroupName]
-    results.messages == [
+    results.messages.containsAll([
         'INIT : Creating task test',
         'DEPLOY : Initializing handler...',
         'DEPLOY : Found next sequence 000.',
-        "DEPLOY : Creating application ${serverGroupName}",
+        "DEPLOY : Creating application ${serverGroupName}".toString(),
         'DEPLOY : Memory set to 1024',
         'DEPLOY : Disk limit set to 1024',
-        "DEPLOY : Custom buildpack ${description.buildpackUrl}",
-        "DEPLOY : Successfully downloaded ${simulatedDownloadResponse.body.length} bytes",
-        "DEPLOY : Uploading ${simulatedDownloadResponse.body.length} bytes to ${serverGroupName}",
+        "DEPLOY : Custom buildpack ${description.buildpackUrl}".toString(),
+        "DEPLOY : Successfully downloaded ${simulatedDownloadResponse.body.length} bytes".toString(),
+        "DEPLOY : Uploading ${simulatedDownloadResponse.body.length} bytes to ${serverGroupName}".toString(),
         'DEPLOY : Setting environment variables...',
         'DEPLOY : Setting the number of instances to 2',
-        "DEPLOY : Starting ${serverGroupName}"
-    ]
+        "DEPLOY : Starting ${serverGroupName}".toString()
+    ])
+    results.messages.any { it.contains("DEPLOY : Deleted") }
   }
 
   void "handles username/password for http"() {
@@ -243,19 +244,20 @@ class CloudFoundryDeployHandlerSpec extends Specification {
 
     results.serverGroupNames == ["spinnaker:${serverGroupName}"]
     results.serverGroupNameByRegion == [spinnaker: serverGroupName]
-    results.messages == [
+    results.messages.containsAll([
         'INIT : Creating task test',
         'DEPLOY : Initializing handler...',
         'DEPLOY : Found next sequence 000.',
-        "DEPLOY : Creating application ${serverGroupName}",
+        "DEPLOY : Creating application ${serverGroupName}".toString(),
         'DEPLOY : Memory set to 1024',
         'DEPLOY : Disk limit set to 1024',
-        "DEPLOY : Downloading cool-app-0.1.0.jar from repo.example.com/releases...",
-        "DEPLOY : Successfully downloaded ${simulatedDownloadResponse.contentLength} bytes",
-        "DEPLOY : Uploading ${simulatedDownloadResponse.contentLength} bytes to ${serverGroupName}",
+        "DEPLOY : Downloading cool-app-0.1.0.jar from repo.example.com/releases...".toString(),
+        "DEPLOY : Successfully downloaded ${simulatedDownloadResponse.contentLength} bytes".toString(),
+        "DEPLOY : Uploading ${simulatedDownloadResponse.contentLength} bytes to ${serverGroupName}".toString(),
         'DEPLOY : Setting environment variables...',
-        "DEPLOY : Starting ${serverGroupName}"
-    ]
+        "DEPLOY : Starting ${serverGroupName}".toString()
+    ])
+    results.messages.any { it.contains("DEPLOY : Deleted") }
   }
 
   void "handles username/password for s3"() {
@@ -467,19 +469,20 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.getApplication(serverGroupName) >> { null }
     1 * client.getDefaultDomain() >> { new CloudDomain(null, "example.com", null) }
 
-    results.messages == [
+    results.messages.containsAll([
         'INIT : Creating task test',
         'DEPLOY : Initializing handler...',
         'DEPLOY : Found next sequence 000.',
-        "DEPLOY : Creating application ${serverGroupName}",
+        "DEPLOY : Creating application ${serverGroupName}".toString(),
         'DEPLOY : Memory set to 1024',
         'DEPLOY : Disk limit set to 1024',
-        "DEPLOY : Downloaded ${simulatedIncompleteDownload.body.length} bytes, but ${headers1.get(HttpHeaders.CONTENT_LENGTH).get(0)} expected! Retry...",
-        "DEPLOY : Successfully downloaded ${simulatedCompletedDownload.body.length} bytes",
-        "DEPLOY : Uploading ${simulatedCompletedDownload.body.length} bytes to ${serverGroupName}",
+        "DEPLOY : Downloaded ${simulatedIncompleteDownload.body.length} bytes, but ${headers1.get(HttpHeaders.CONTENT_LENGTH).get(0)} expected! Retry...".toString(),
+        "DEPLOY : Successfully downloaded ${simulatedCompletedDownload.body.length} bytes".toString(),
+        "DEPLOY : Uploading ${simulatedCompletedDownload.body.length} bytes to ${serverGroupName}".toString(),
         'DEPLOY : Setting environment variables...',
-        "DEPLOY : Starting ${serverGroupName}"
-    ]
+        "DEPLOY : Starting ${serverGroupName}".toString()
+    ])
+    results.messages.any { it.contains("DEPLOY : Deleted") }
   }
 
   void "handles failed download from s3"() {

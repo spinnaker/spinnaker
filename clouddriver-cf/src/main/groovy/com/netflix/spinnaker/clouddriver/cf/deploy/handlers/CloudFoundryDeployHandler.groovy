@@ -186,6 +186,13 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
 
       client.uploadApplication(description.serverGroupName, results.file.name, results.file.newInputStream())
 
+      try {
+        results?.file?.delete()
+        task.updateStatus BASE_PHASE, "Deleted ${results.file.canonicalPath}"
+      } catch (IOException e) {
+        task.updateStatus BASE_PHASE, "Unable to delete ${results.file.canonicalPath} => ${e.message}"
+      }
+
     } catch (IOException e) {
       throw new IllegalStateException("Error uploading application => ${e.message}.", e)
     }
