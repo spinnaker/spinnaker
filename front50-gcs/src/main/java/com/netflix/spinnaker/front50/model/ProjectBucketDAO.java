@@ -36,7 +36,7 @@ public class ProjectBucketDAO extends BucketDAO<Project> implements ProjectDAO {
 
     @Override
     public Project findByName(String name) throws NotFoundException {
-        return fetchAllItems(allItemsCache.get())
+        return all()
                 .stream()
                 .filter(project -> project.getName().equalsIgnoreCase(name))
                 .findFirst()
@@ -52,6 +52,11 @@ public class ProjectBucketDAO extends BucketDAO<Project> implements ProjectDAO {
 
         update(id, item);
         return findById(id);
+    }
+
+    @Override
+    public Collection<Project> all() {
+        return fetchAllItems(allItemsCache.get());
     }
 
     @Override

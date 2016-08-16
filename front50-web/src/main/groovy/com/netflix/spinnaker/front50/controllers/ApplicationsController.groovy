@@ -21,7 +21,11 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.front50.events.ApplicationEventListener
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
+import com.netflix.spinnaker.front50.model.notification.NotificationDAO
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
+import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
+import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
+import com.netflix.spinnaker.front50.model.project.ProjectDAO
 import com.netflix.spinnaker.front50.validator.ApplicationValidator
 import groovy.util.logging.Slf4j
 import io.swagger.annotations.Api
@@ -46,6 +50,18 @@ public class ApplicationsController {
 
   @Autowired
   ApplicationDAO applicationDAO
+
+  @Autowired
+  ProjectDAO projectDAO
+
+  @Autowired
+  NotificationDAO notificationDAO
+
+  @Autowired
+  PipelineDAO pipelineDAO
+
+  @Autowired
+  PipelineStrategyDAO pipelineStrategyDAO
 
   @Autowired
   List<ApplicationValidator> applicationValidators
@@ -128,6 +144,10 @@ public class ApplicationsController {
   private Application getApplication() {
     return new Application(
         dao: applicationDAO,
+        projectDao: projectDAO,
+        notificationDao: notificationDAO,
+        pipelineDao: pipelineDAO,
+        pipelineStrategyDao: pipelineStrategyDAO,
         validators: applicationValidators,
         applicationEventListeners: applicationEventListeners
     )

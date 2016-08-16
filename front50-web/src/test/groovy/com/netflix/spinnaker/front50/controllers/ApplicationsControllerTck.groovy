@@ -26,6 +26,10 @@ import com.netflix.spinnaker.front50.model.S3ApplicationDAO
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import com.netflix.spinnaker.front50.model.application.CassandraApplicationDAO
+import com.netflix.spinnaker.front50.model.notification.NotificationDAO
+import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
+import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
+import com.netflix.spinnaker.front50.model.project.ProjectDAO
 import com.netflix.spinnaker.front50.utils.CassandraTestHelper
 import com.netflix.spinnaker.front50.utils.S3TestHelper
 import com.netflix.spinnaker.front50.validator.HasEmailValidator
@@ -59,10 +63,26 @@ abstract class ApplicationsControllerTck extends Specification {
   @Subject
   ApplicationDAO dao
 
+  @Shared
+  ProjectDAO projectDAO = Stub(ProjectDAO)
+
+  @Shared
+  NotificationDAO notificationDAO = Stub(NotificationDAO)
+
+  @Shared
+  PipelineDAO pipelineDAO = Stub(PipelineDAO)
+
+  @Shared
+  PipelineStrategyDAO pipelineStrategyDAO = Stub(PipelineStrategyDAO)
+
   void setup() {
     this.dao = createApplicationDAO()
     this.controller = new ApplicationsController(
         applicationDAO: dao,
+        projectDAO: projectDAO,
+        notificationDAO: notificationDAO,
+        pipelineStrategyDAO: pipelineStrategyDAO,
+        pipelineDAO: pipelineDAO,
         applicationValidators: [new HasNameValidator(), new HasEmailValidator()],
         messageSource: new StaticMessageSource()
     )

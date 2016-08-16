@@ -103,6 +103,7 @@ class CassandraProjectDAO implements ProjectDAO {
     return findBy("id", id)
   }
 
+  @Override
   Set<Project> all() {
     return unmarshallResults(runQuery('SELECT * FROM project;'))
   }
