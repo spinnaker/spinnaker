@@ -48,9 +48,12 @@
           </a>
         </td>
         <td>
-          <a class="heavy" ng-if="application.build.buildNumber" href="{{application.build.url}}" target="_blank">
+          <a class="heavy" ng-if="application.build.buildNumber && !application.build.images" href="{{application.build.url}}" target="_blank">
             <span>#</span>{{application.build.buildNumber}}
           </a>
+          <ul class="list-unstyled" ng-if="application.build.images">
+            <li ng-repeat="image in application.build.images">{{ image }}</li>
+          </ul>
           <span ng-if="application.hasInconsistentBuilds"
                 class="glyphicon glyphicon-warning-sign text-warning"
                 uib-tooltip="Some server groups are deployed with an older build."></span>

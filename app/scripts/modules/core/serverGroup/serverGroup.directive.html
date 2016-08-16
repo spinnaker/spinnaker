@@ -17,12 +17,18 @@
             <input type="checkbox" ng-if="sortFilter.multiselect"
                    ng-checked="multiselectModel.serverGroupIsSelected(serverGroup)"/>
             <cloud-provider-logo provider="viewModel.serverGroup.type" height="16px" width="16px"></cloud-provider-logo>
-            <span class="server-group-sequence">{{ viewModel.serverGroupSequence }}</span><span ng-if="viewModel.jenkins">:</span>
+            <span class="server-group-sequence">{{ viewModel.serverGroupSequence }}</span><span ng-if="viewModel.jenkins || viewModel.images">:</span>
             <a ng-if="viewModel.jenkins"
                href="{{viewModel.jenkins.href}}"
                target="_blank">
               Build: #{{ viewModel.jenkins.number }}
             </a>
+            <span ng-if="viewModel.images">
+              Images:
+              <ul class="list-unstyled">
+                <li ng-repeat="image in viewModel.images">{{ image }}</li>
+              </ul>
+            </span>
             <span ng-if="!viewModel.hasBuildInfo">
               (No build info)
             </span>

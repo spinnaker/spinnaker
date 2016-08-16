@@ -62,6 +62,8 @@ module.exports = angular.module('spinnaker.core.serverGroup.serverGroup.directiv
             if (serverGroup.buildInfo.buildInfoUrl) {
               viewModel.jenkins.href = serverGroup.buildInfo.buildInfoUrl;
             }
+          } else if (_.has(serverGroup, 'buildInfo.images')) {
+            viewModel.images = serverGroup.buildInfo.images;
           }
 
           let modelStringVal = JSON.stringify(viewModel, serverGroupTransformer.jsonReplacer);
