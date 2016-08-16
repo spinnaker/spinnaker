@@ -151,7 +151,7 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
 
       def imageList = []
       for (def container : serverGroup.deployDescription.containers) {
-        imageList.add(KubernetesUtil.getImageId(container.imageDescription))
+        imageList.add(KubernetesUtil.getImageIdWithoutRegistry(container.imageDescription))
       }
       Map buildInfo = [images: imageList]
       serverGroup.buildInfo = buildInfo

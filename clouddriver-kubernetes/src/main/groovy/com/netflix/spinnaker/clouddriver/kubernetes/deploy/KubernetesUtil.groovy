@@ -108,6 +108,10 @@ class KubernetesUtil {
     "$registry/$repository:$tag".toString()
   }
 
+  static getImageIdWithoutRegistry(KubernetesImageDescription image) {
+    "$image.repository:$image.tag".toString()
+  }
+
   static String validateNamespace(KubernetesCredentials credentials, String namespace) {
     def resolvedNamespace = namespace ?: "default"
     if (!credentials.isRegisteredNamespace(resolvedNamespace)) {
