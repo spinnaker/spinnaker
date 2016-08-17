@@ -99,6 +99,9 @@ class CacheUtils {
 
     serverGroup.nativeApplication = (serverGroupEntry.attributes.nativeApplication instanceof CloudApplication) ? serverGroupEntry.attributes.nativeApplication : ProviderUtils.buildNativeApplication(serverGroupEntry.attributes.nativeApplication)
 
+    serverGroup.memory = serverGroup.nativeApplication.memory
+    serverGroup.disk = serverGroup.nativeApplication.diskQuota
+
     serverGroup.services = serverGroupEntry.attributes.services.collect {
       new CloudFoundryService([
           type: it.type,
