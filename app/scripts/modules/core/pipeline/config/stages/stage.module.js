@@ -118,6 +118,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
       if (lastStageScope) {
         lastStageScope.$destroy();
       }
+      $scope.extendedDescription = '';
       lastStageScope = stageScope;
       $scope.$on('$destroy', function() {
         stageScope.$destroy();
@@ -127,6 +128,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
         let config = getConfig(type);
         if (config) {
           $scope.description = config.description;
+          $scope.extendedDescription = config.extendedDescription;
           $scope.label = config.label;
           if (config.useBaseProvider || config.provides) {
             config.templateUrl = require('./baseProviderStage/baseProviderStage.html');
@@ -142,6 +144,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
       } else {
         $scope.label = null;
         $scope.description = null;
+        $scope.extendedDescription = null;
       }
     };
 

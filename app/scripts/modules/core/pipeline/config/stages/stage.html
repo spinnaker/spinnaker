@@ -2,6 +2,7 @@
   <div class="col-md-8">
     <h4 ng-bind="stage.name || '[new stage]'"></h4>
     <p class="small" ng-if="stage.type"><strong>Stage type:</strong> {{label}}<br/> {{description}}</p>
+    <p class="small" ng-if="extendedDescription" ng-bind-html="extendedDescription"></p>
     <p class="small" ng-if="!stage.type">No stage type selected</p>
   </div>
   <div class="col-md-2 col-md-offset-2 text-right">
@@ -23,7 +24,7 @@
           </ui-select-match>
           <ui-select-choices repeat="option.key as option in options.stageTypes | anyFieldFilter: {label: $select.search, description: $select.search}">
             <div><strong>{{option.label}}</strong></div>
-            <div>{{option.description}}</div>
+            <div ng-bind-html="option.description"></div>
           </ui-select-choices>
         </ui-select>
       </stage-config-field>

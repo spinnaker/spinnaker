@@ -13,6 +13,8 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.quickPatchAsgS
       pipelineConfigProvider.registerStage({
         label: 'Quick Patch Server Group',
         description: 'Quick Patches a server group',
+        extendedDescription: `<a target="_blank" href="https://confluence.netflix.com/display/ENGTOOLS/Quick+Patch+In+Spinnaker">
+          <span class="small glyphicon glyphicon-file"></span> Documentation</a>`,
         key: 'quickPatch',
         controller: 'QuickPatchAsgStageCtrl',
         controllerAs: 'QuickPatchAsgStageCtrl',
