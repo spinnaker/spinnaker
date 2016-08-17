@@ -87,6 +87,9 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
         }, {});
         $scope.accounts = Object.keys($scope.accountMap);
         $scope.organizationMap = images.reduce((map, image) => {
+          if (!image.repository) {
+            return map;
+          }
           let parts = image.repository.split('/');
           parts.pop();
           let key = `${image.account}/${parts.join('/')}`;
