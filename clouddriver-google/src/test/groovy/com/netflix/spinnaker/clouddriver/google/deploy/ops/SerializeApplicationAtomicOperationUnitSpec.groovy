@@ -61,8 +61,7 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
 
   private static final NETWORK_URL = "https://www.googleapis.com/compute/v1/projects/test-proj/networking/networks/details/default"
   private static final SUBNETWORK_URL = "https://www.googleapis.com/compute/v1/projects/test-proj/networking/subnetworks/details/us-central1/default"
-  //TODO(nwwebb) when I put an access config in this list, groovy still thinks list is empty
-  private static final NETWORK_ACCESS_CONFIG = [new AccessConfig()]
+  private static final NETWORK_ACCESS_CONFIG = []
 
   private static final AUTOSCALING_MAX_NUM_REPLICAS = 6
   private static final AUTOSCALING_MIN_NUM_REPLICAS = 3
@@ -170,7 +169,8 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
       def autoscalingMap = [name: SERVER_GROUP_NAME,
                             target: "\${google_compute_instance_group_manager.${SERVER_GROUP_NAME}.self_link}",
                             zone: SERVER_GROUP_ZONE,
-                            autoscaling_policy: autoscalingPolicyMap]
+                            autoscaling_policy: autoscalingPolicyMap,
+                            project: null]
       def metadataMap = [:]
       INSTANCE_TEMPLATE_METADATA.items.each {Metadata.Items item ->
         metadataMap[item.key] = item.value
@@ -182,6 +182,7 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
                                  instance_description: INSTANCE_TEMPLATE_INSTANCE_DESCRIPTION,
                                  tags: INSTANCE_TEMPLATE_TAGS,
                                  disk: [diskMap],
+                                 project: null,
                                  network_interface: [networkInterfaceMap],
                                  scheduling: schedulingMap,
                                  metadata: metadataMap]
@@ -233,14 +234,17 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
                                ip_protocol: LOAD_BALANCER_IP_PROTOCOL,
                                port_range: LOAD_BALANCER_PORT_RANGE,
                                region: LOAD_BALANCER_REGION,
+                               project: null,
                                target: "\${google_compute_target_pool.${LOAD_BALANCER_NAME}.self_link}"]
       def targetPoolMap = [name: LOAD_BALANCER_TARGET_POOL.split("/").last(),
                            region: LOAD_BALANCER_REGION,
+                           project: null,
                            health_checks: [HEALTH_CHECK_NAME]]
       def healthCheckMap = [name: HEALTH_CHECK_NAME,
                             check_interval_sec: HEALTH_CHECK_INTERVAL,
                             healthy_threshold: HEALTH_CHECK_HEALTHY_THRESHOLD,
                             port: HEALTH_CHECK_PORT,
+                            project: null,
                             request_path: HEALTH_CHECK_REQUEST_PATH,
                             timeout_sec: HEALTH_CHECK_TIMEOUT,
                             unhealthy_threshold: HEALTH_CHECK_UNHEALTHY_THRESHOLD]
@@ -270,9 +274,10 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
                                                   targetTags: SECURITY_GROUP_TARGET_TAGS)
       // Create a security group map
       def firewallMap = [name: SECURITY_GROUP_NAME,
-                          network: SECURITY_GROUP_NETWORK,
-                          allow: [[protocol: SECURITY_GROUP_RULE_PROTOCOL, ports: ["$SECURITY_GROUP_RULE_PORT"]]],
-                          target_tags: SECURITY_GROUP_TARGET_TAGS]
+                         network: SECURITY_GROUP_NETWORK,
+                         project: null,
+                         allow: [[protocol: SECURITY_GROUP_RULE_PROTOCOL, ports: ["$SECURITY_GROUP_RULE_PORT"]]],
+                         target_tags: SECURITY_GROUP_TARGET_TAGS]
       @Subject def operation = new SerializeApplicationAtomicOperation(new SerializeApplicationDescription())
     when:
       operation.initializeResourceMap(resourceMap)

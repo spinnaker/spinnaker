@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.core.services
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
+import retrofit.client.Response
 import retrofit.http.*
 
 interface Front50Service {
@@ -35,6 +36,9 @@ interface Front50Service {
 
   @GET('/v2/projects/search')
   HalList searchForProjects(@Query("q") String query)
+
+  @POST('/snapshots')
+  Response saveSnapshot(@Body Map snapshot)
 
   @JsonIgnoreProperties(ignoreUnknown = true)
   static class HalList {

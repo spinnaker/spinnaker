@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.SerializeApplicationAtomicOperation
 
 import com.google.api.services.compute.model.*
+import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.SerializeApplicationDescription.SerializeApplicationDescription
@@ -72,6 +73,9 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
   @Autowired
   AccountCredentialsRepository accountCredentialsRepository
 
+  @Autowired
+  Front50Service front50Service
+
   SerializeApplicationAtomicOperation(SerializeApplicationDescription description) {
     this.description = description
     this.applicationName = description.applicationName
@@ -80,16 +84,14 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
   }
 
 
-  /* curl -X POST -H "Content-Type: application/json" -d '[ { "serializeApplication": { "applicationName": "codelab", "credentials": "my-google-account" }} ]' localhost:7002/gce/ops */
+  /* curl -X POST -H "Content-Type: application/json" -d '[ { "serializeApplication": { "applicationName": "example", "credentials": "my-google-account" }} ]' localhost:7002/gce/ops */
   @Override
   Void operate(List priorOutputs) {
-    //TODO(nwwebb) add project to resources
     //TODO(nwwebb) static ip addresses
     this.credentials = accountCredentialsRepository.getOne(this.accountName) as GoogleNamedAccountCredentials
     this.project = credentials.project
 
     def resourceMap = [:]
-    def json = new JsonBuilder()
     initializeResourceMap(resourceMap)
 
     task.updateStatus BASE_PHASE, "Serializing server groups for the application ${this.applicationName} in account ${this.accountName}"
@@ -114,10 +116,12 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
     }
 
     cleanUpResourceMap(resourceMap)
-    json(resourceMap)
-    //TODO(nwwebb) this temporarily prints the serialization, in the future this will be exported to a GCS bucket
-    println json.toPrettyString()
-
+    def json = new JsonBuilder()
+    Map snapshot = [application: this.applicationName,
+                    account: this.accountName,
+                    infrastructure: json(resourceMap).toString(),
+                    configLang: "TERRAFORM"]
+    front50Service.saveSnapshot(snapshot)
     return null
   }
 
@@ -224,6 +228,7 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
     } else {
       throw new GoogleResourceIllegalStateException("Required machine type not found for instance template: $instanceTemplate.name")
     }
+    instanceTemplateMap.project = this.project
     if (instanceTemplate.properties.canIpForward != null) {
       instanceTemplateMap.can_ip_forward = instanceTemplate.properties.canIpForward
     }
@@ -290,10 +295,13 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
       if (networkInterface.subnetwork) {
         networkInterfaceMap.subnetwork = networkInterface.subnetwork.split("/").last()
       }
-      //TODO(nwwebb) deal with possible static ip here, empty map means ephemeral will be used
-      //TODO(nwwebb) check how the model differs when there is no external ip for an instance (empty list or null list)
-      if (networkInterface.accessConfigs instanceof List) {
+      if (networkInterface.accessConfigs != null) {
         networkInterfaceMap.access_configs = []
+        networkInterface.accessConfigs.each { AccessConfig accessConfig ->
+          def accessConfigMap = [:]
+          accessConfigMap["nat_ip"] = accessConfig.natIP
+          networkInterfaceMap.access_configs.add(accessConfigMap)
+        }
       }
       instanceTemplateMap.network_interface << networkInterfaceMap
     }
@@ -355,6 +363,7 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
     autoscalerMap.name = targetName
     autoscalerMap.target = "\${google_compute_instance_group_manager.${targetName}.self_link}"
     autoscalerMap.zone = targetZone
+    autoscalerMap.project = this.project
 
     // Autoscaling policy
     autoscalerMap.autoscaling_policy = [:]
@@ -425,6 +434,8 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
     } else {
       throw new GoogleResourceIllegalStateException("Required name not found for load balancer")
     }
+    forwardingRuleMap.project = this.project
+    targetPoolMap.project = this.project
     if (loadBalancer.ipProtocol) {
       forwardingRuleMap.ip_protocol = loadBalancer.ipProtocol
     }
@@ -469,10 +480,10 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
     } else {
       throw new GoogleResourceIllegalStateException("Required health check name not found")
     }
+    healthCheckMap.project = this.project
     if (healthCheck.interval) {
       healthCheckMap.check_interval_sec = healthCheck.interval
     }
-
     if (healthCheck.healthyThreshold) {
       healthCheckMap.healthy_threshold = healthCheck.healthyThreshold
     }
@@ -495,7 +506,6 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
   }
 
   private Void addSecurityGroupToResourceMap(GoogleSecurityGroup securityGroup, Map resourceMap) {
-
     def firewallMap = [:]
     if (securityGroup.name) {
       firewallMap.name = securityGroup.name
@@ -507,6 +517,7 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
     } else {
       throw new GoogleResourceIllegalStateException("Required network name not found for security group: ${securityGroup.network}")
     }
+    firewallMap.project = this.project
     if (securityGroup.inboundRules && !securityGroup.inboundRules.isEmpty()) {
       firewallMap.allow = []
       securityGroup.inboundRules.each { Rule rule ->
