@@ -231,9 +231,14 @@ public class GcsStorageService implements StorageService {
     try {
       obj_api.delete(bucketName, path).execute();
       writeLastModified(daoTypeName);
-    } catch (IOException e) {
-      log.error("Delete failed on path={}", path);
+    } catch (HttpResponseException e) {
+      if (e.getStatusCode() == 404) {
+          return;
+      }
       throw new IllegalStateException(e);
+    } catch (IOException ioex) {
+        log.error("Failed to delete path={}: {}", path, ioex);
+      throw new IllegalStateException(ioex);
     }
   }
 
@@ -362,7 +367,7 @@ public class GcsStorageService implements StorageService {
           .setName(timestamp_path)
           .setUpdated(new DateTime(System.currentTimeMillis()));
       try {
-          obj_api.update(bucketName, object.getName(), object).execute();
+          obj_api.patch(bucketName, object.getName(), object).execute();
       } catch (HttpResponseException e) {
           log.error("writeLastModified failed to update {}\n{}", timestamp_path, e.toString());
           if (e.getStatusCode() == 404 || e.getStatusCode() == 400) {
