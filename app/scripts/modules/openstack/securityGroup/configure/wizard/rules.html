@@ -5,8 +5,9 @@
         <thead>
         <tr>
           <th style="width: 15%">Protocol</th>
-          <th style="width: 15%">From Port</th>
-          <th style="width: 15%">To Port</th>
+          <th style="width: 12%" uib-tooltip="From Port is used for TCP and UDP, Type is used for ICMP.">From Port/Type</th>
+          <th style="width: 12%" uib-tooltip="To Port is used for TCP and UDP, Code is used for ICMP.">To Port/Code</th>
+          <th style="width: 20%" uib-tooltip="Remote value can either be a security group or a CIDR.">Remote</th>
           <th style="width: 15%">CIDR</th>
           <th></th>
         </tr>
@@ -15,14 +16,51 @@
           <tbody>
             <tr ng-repeat="rule in securityGroup.rules">
               <td><select class="form-control input-sm" ng-model="rule.ruleType"
-                          ng-options="protocol as protocol.toUpperCase() for protocol in ['tcp']" required></select></td>
-              <td><input class="form-control input-sm" name="fromPort_{{$index}}" type="number" min="1" max="{{rule.toPort}}" ng-model="rule.fromPort" required/></td>
-              <td><input class="form-control input-sm" name="toPort_{{$index}}" type="number" min="{{rule.fromPort}}" max="65535" ng-model="rule.toPort" required/></td>
-              <td><input class="form-control input-sm" type="text" ng-model="rule.cidr" required/></td>
+                          ng-options="protocol as protocol.toUpperCase() for protocol in ['TCP', 'UDP','ICMP']" required></select></td>
+
+              <!--If ruleType is equal to TCP or UDP-->
+              <td ng-if="rule.ruleType.toUpperCase() === 'TCP' || rule.ruleType.toUpperCase() === 'UDP' ">
+                  <input class="form-control input-sm" name="fromPort_{{$index}}" type="number" min="1" max="{{rule.toPort}}" ng-model="rule.fromPort" required/>
+              </td>
+              <td ng-if="rule.ruleType.toUpperCase() === 'TCP' || rule.ruleType.toUpperCase() === 'UDP' ">
+                  <input class="form-control input-sm" name="toPort_{{$index}}" type="number" min="{{rule.fromPort}}" max="65535" ng-model="rule.toPort" required/>
+              </td>
+
+              <!--If ruleType equal to ICMP-->
+              <td ng-if="rule.ruleType.toUpperCase() === 'ICMP' ">
+                  <input class="form-control input-sm" name="icmpType_{{$index}}"
+                         type="number" min="-1" max="255" ng-model="rule.icmpType" required
+                         validate-type="{{rule.icmpCode}}" icmp-index="{{$index}}"/>
+              </td>
+              <td ng-if="rule.ruleType.toUpperCase() === 'ICMP' ">
+                  <input class="form-control input-sm" name="icmpCode_{{$index}}"
+                         type="number" min="-1" max="255" ng-model="rule.icmpCode" required/>
+              </td>
+
+              <td>
+                  <ui-select ng-model="rule.remoteSecurityGroupId" class="form-control input-sm" required style="width: 100%" on-select="remoteSecurityGroupSelected($index, rule.remoteSecurityGroupId)">
+                      <ui-select-match>{{$select.selected.name}}</ui-select-match>
+                      <ui-select-choices repeat="securityGroup.id as securityGroup in availableSecurityGroups | filter: $select.search | limitTo: rulesController.infiniteScroll.currentItems"
+                                         infinite-scroll="rulesController.addMoreItems()"
+                                         infinite-scroll-distance="2">
+                          <span ng-bind-html="securityGroup.name | highlight: $select.search"></span>
+                      </ui-select-choices>
+                  </ui-select>
+              </td>
+
+              <td ng-if="rule.remoteSecurityGroupId.id === undefined && rule.remoteSecurityGroupId === 'CIDR'">
+                <input class="form-control input-sm" type="text" ng-model="rule.cidr" required ng-disabled="!(rule.remoteSecurityGroupId.id === undefined && rule.remoteSecurityGroupId === 'CIDR')" />
+              </td>
+              <td ng-if="rule.remoteSecurityGroupId.id === undefined && rule.remoteSecurityGroupId !== 'CIDR'">
+                <input class="form-control input-sm" type="text" ng-model="rule.cidr" ng-disabled="rule.remoteSecurityGroupId.id === undefined && rule.remoteSecurityGroupId !== 'CIDR'"/>
+              </td>
+
               <td><a class="sm-label"
                      ng-click="rulesController.removeRule($index)">
                 <span class="glyphicon glyphicon-trash"></span></a>
               </td>
+
+              <!--Validation-->
               <td>
                 <validation-error ng-if="rules['fromPort_'+$index].$error.min"
                                   message="Port should be greater than 0.">
@@ -35,6 +73,23 @@
                 </validation-error>
                 <validation-error ng-if="rules['toPort_'+$index].$error.max"
                                   message="Port should be less than or equal to 65535.">
+                </validation-error>
+
+                <validation-error ng-if="rules['icmpType_'+$index].$error.min"
+                                  message="ICMP Type should be greater than or equal to -1.">
+                </validation-error>
+                <validation-error ng-if="rules['icmpType_'+$index].$error.max"
+                                  message="ICMP Type should be less than or equal to 255.">
+                </validation-error>
+                <validation-error ng-if="rules['icmpType_'+$index].$error.validateType"
+                                  message="ICMP Type cannot be -1 when Code is greater that -1.">
+                </validation-error>
+
+                <validation-error ng-if="rules['icmpCode_'+$index].$error.min"
+                                  message="ICMP Code should be greater than or equal to -1.">
+                </validation-error>
+                <validation-error ng-if="rules['icmpCode_'+$index].$error.max"
+                                  message="ICMP Code should be less than or equal to 255.">
                 </validation-error>
               </td>
             </tr>
@@ -51,5 +106,18 @@
         </div>
       </table>
     </div>
+  <div class="col-md-12" style="margin-top: 20px">
+    <div class="col-md-12">
+        <p>
+            <span ng-if="state.refreshingSecurityGroups"><span class="small glyphicon glyphicon-refresh glyphicon-spinning"></span></span>
+            Security groups
+            <span ng-if="!state.refreshingSecurityGroups">last refreshed {{ rulesController.getSecurityGroupRefreshTime() | timestamp }}</span>
+            <span ng-if="state.refreshingSecurityGroups"> refreshing...</span>
+        </p>
+        <p>If you're not finding a security group that was recently added,
+            <a href ng-click="rulesController.refreshSecurityGroups()">click here</a> to refresh the list.
+        </p>
+    </div>
+  </div>
 </div>
 </ng-form>

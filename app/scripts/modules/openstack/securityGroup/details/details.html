@@ -44,18 +44,36 @@
         <dd>{{securityGroup.description}}</dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Rules ({{securityGroup.ipRangeRules.length || 0}})" expanded="{{!!(securityGroup.ipRangeRules && securityGroup.ipRangeRules.length)}}">
+    <collapsible-section heading="IP Range Rules ({{securityGroup.ipRangeRules.length || 0}})" expanded="{{!!(securityGroup.ipRangeRules && securityGroup.ipRangeRules.length)}}">
       <div ng-if="!securityGroup.ipRangeRules.length">None</div>
 
       <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
           ng-repeat="ipRangeRule in securityGroup.ipRangeRules | orderBy: 'range.ip'">
         <dt>IP Range</dt>
         <dd>{{ipRangeRule.range.ip}}{{ipRangeRule.range.cidr}}</dd>
-        <dt ng-if="ipRangeRule.portRanges && ipRangeRule.portRanges[0].startPort">Port Ranges</dt>
-        <dd ng-repeat="portRange in ipRangeRule.portRanges" ng-if="portRange.startPort && portRange.endPort">
+        <dt ng-if="ipRangeRule.portRanges && ipRangeRule.portRanges.length">Port Ranges</dt>
+        <dd ng-repeat="portRange in ipRangeRule.portRanges">
           {{ipRangeRule.protocol}}: {{portRange.startPort}} &rarr; {{portRange.endPort}}
         </dd>
       </dl>
+    </collapsible-section>
+    <collapsible-section heading="Security Group Rules ({{securityGroup.securityGroupRules.length || 0}})" expanded="{{!!securityGroup.securityGroupRules.length}}">
+          <div ng-if="!securityGroup.securityGroupRules.length">None</div>
+
+          <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
+              ng-repeat="rule in securityGroup.securityGroupRules | orderBy: 'securityGroup.name' ">
+            <dt>Security Group</dt>
+            <dd ng-if="rule.securityGroup.name">
+                  <a ui-sref="^.securityGroupDetails({name: rule.securityGroup.name, accountId: rule.securityGroup.accountName, region: rule.securityGroup.region, vpcId: rule.securityGroup.vpcId, provider: 'openstack'})">
+                      <account-tag account="rule.securityGroup.accountName || rule.securityGroup.accountId" ng-if="rule.securityGroup.accountName !== securityGroup.accountName"></account-tag>
+                    {{rule.securityGroup.name}} ({{rule.securityGroup.id}})
+                </a>
+            </dd>
+            <dt ng-if="rule.portRanges && rule.portRanges.length !== null">Port Ranges</dt>
+            <dd ng-repeat="portRange in rule.portRanges">
+                  {{rule.protocol}}: {{portRange.startPort}} &rarr; {{portRange.endPort}}
+              </dd>
+        </dl>
     </collapsible-section>
   </div>
 </div>

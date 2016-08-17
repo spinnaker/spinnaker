@@ -43,6 +43,20 @@
           </div>
       </div>
       <div class="form-group">
+          <div class="col-md-3 sm-label-right">Detail <help-field key="openstack.securitygroup.detail"></help-field></div>
+          <div class="col-md-7" ng-if="isNew">
+              <input type="text"
+                     class="form-control input-sm"
+                     ng-model="securityGroup.detail"
+                     name="detailName"
+                     ng-change="ctrl.updateName()"
+                     ng-pattern="/^[a-zA-Z0-9]*$/"/>
+          </div>
+          <div class="col-md-7" ng-if="!isNew">
+              <input type="text" class="form-control input-sm" ng-disabled="true" ng-model="securityGroup.detail" />
+          </div>
+      </div>
+      <div class="form-group">
         <div class="col-md-3 sm-label-right">Description <help-field key="openstack.securitygroup.description"></help-field></div>
         <div class="col-md-7">
           <input type="text"

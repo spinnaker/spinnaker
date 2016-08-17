@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.securityGroup.openstack.create.contro
   .controller('openstackUpsertSecurityGroupController', function($q, $scope, $uibModalInstance, $state,
                                                                  application, securityGroup,
                                                                  accountService, openstackSecurityGroupTransformer, securityGroupReader, loadBalancerReader,
-                                                                 _, searchService, v2modalWizardService, securityGroupWriter, taskMonitorService) {
+                                                                 _, searchService, v2modalWizardService, securityGroupWriter, taskMonitorService, namingService) {
     var ctrl = this;
     $scope.isNew = !securityGroup.edit;
     $scope.securityGroup = securityGroup;
@@ -133,16 +133,14 @@ module.exports = angular.module('spinnaker.securityGroup.openstack.create.contro
     }
     else {
       $scope.securityGroup = openstackSecurityGroupTransformer.prepareForEdit(securityGroup);
-      $scope.securityGroup.stack = extractStack($scope.securityGroup.name);
+
+      var result = namingService.parseServerGroupName($scope.securityGroup.name);
+      $scope.securityGroup.stack = result.stack;
+      $scope.securityGroup.detail = result.freeFormDetails;
       $scope.state.accountsLoaded = true;
     }
 
     initializeSecurityGroupNames();
-
-    function extractStack(securityGroupName) {
-      var n = securityGroupName.indexOf('-');
-      return securityGroupName.slice( n + 1 , securityGroupName.length);
-    }
 
     // Controller API
     this.updateName = function() {
@@ -152,7 +150,7 @@ module.exports = angular.module('spinnaker.securityGroup.openstack.create.contro
 
     this.getName = function() {
       var securityGroup = $scope.securityGroup;
-      var securityGroupName = [application.name, (securityGroup.stack || '')].join('-');
+      var securityGroupName = _.compact([application.name, (securityGroup.stack), (securityGroup.detail)]).join('-');
       return _.trimRight(securityGroupName, '-');
     };
 
@@ -172,7 +170,10 @@ module.exports = angular.module('spinnaker.securityGroup.openstack.create.contro
             cloudProvider: 'openstack',
           };
 
-          return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, descriptor, params);
+          var copyOfSG = angular.copy($scope.securityGroup);
+          copyOfSG = openstackSecurityGroupTransformer.prepareForSaving(copyOfSG);
+
+          return securityGroupWriter.upsertSecurityGroup(copyOfSG, application, descriptor, params);
         }
       );
     };

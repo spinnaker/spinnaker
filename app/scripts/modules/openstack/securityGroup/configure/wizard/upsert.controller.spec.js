@@ -33,12 +33,12 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
     };
 
     this.testEditData = {
-      account: undefined, region: 'region1', name: 'sc111', edit: true, rules: [ ], accountName: undefined, stack: 'sc111'
+      account: undefined, region: 'region1', name: 'sc111', edit: true, rules: [ ], accountName: undefined, description: undefined, detail: '', stack: ''
     };
 
 
     this.securityGroupDefaults = {
-      provider: 'openstack', region: '', stack: '', detail: '', account: 'account1', rules: []
+      provider: 'openstack', region: '', stack: '', description: '', detail: '', account: 'account1', rules: []
     };
 
     this.$scope = $rootScope.$new();
