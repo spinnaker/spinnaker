@@ -1,25 +1,36 @@
 <li class="feedback-nav"  ng-class="{open: state.showMenu}">
-  <a class="remove-border-top" ng-if="!state.isMac || !slackConfig" href ng-click="openFeedback()">
-    <span class="glyphicon glyphicon-comment"></span>
-    <span class="hidden-xs hidden-sm">Feedback</span>
+  <a href class="dropdown-toggle remove-border-top" ng-click="toggleMenu()">
+    <span class="glyphicon glyphicon-question-sign"></span>
+    <span class="hidden-xs hidden-sm">Help</span>
   </a>
 
-  <a ng-if="state.isMac && slackConfig" href class="dropdown-toggle remove-border-top" ng-click="toggleMenu()">
-    <span class="glyphicon glyphicon-comment"></span>
-    <span class="hidden-xs hidden-sm">Feedback</span>
-  </a>
-
-  <ul ng-if="state.isMac && slackConfig" class="dropdown-menu">
+  <ul class="dropdown-menu">
     <li>
       <a href ng-click="openFeedback(); toggleMenu();">
         <span class="glyphicon glyphicon-envelope"></span>
         Create an issue in JIRA
       </a>
     </li>
-    <li>
-      <a href="slack://channel?id={{slackConfig.helpChannel}}&team={{slackConfig.team}}" ng-click="toggleMenu()">
+    <li ng-if="slackConfig">
+      <a href="https://{{slackConfig.teamName}}.slack.com/messages/{{slackConfig.helpChannelName}}"
+         target="_blank"
+         ng-if="!state.isMac"
+         ng-click="toggleMenu()">
         <span class="icon"><span class="glyphicon icon-bubbles"></span></span>
         Talk to us on Slack
+      </a>
+      <a href="slack://channel?id={{slackConfig.helpChannel}}&team={{slackConfig.team}}"
+         ng-if="state.isMac"
+         ng-click="toggleMenu()">
+        <span class="icon"><span class="glyphicon icon-bubbles"></span></span>
+        Talk to us on Slack
+      </a>
+    </li>
+    <li>
+      <a href="https://confluence.netflix.com/display/ENGTOOLS/Spinnaker"
+         target="_blank"
+         ng-click="toggleMenu()">
+        <span class="glyphicon glyphicon-file"></span> Documentation
       </a>
     </li>
   </ul>
