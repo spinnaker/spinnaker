@@ -180,7 +180,7 @@ class GoogleStorageServiceSpec extends Specification {
 
   def "storeObject"() {
     given:
-      Storage.Objects.Update mockUpdateObject = Mock(Storage.Objects.Update)
+      Storage.Objects.Patch mockUpdateObject = Mock(Storage.Objects.Patch)
       Storage.Objects.Insert mockInsertObject = Mock(Storage.Objects.Insert)
       Storage.Objects.List mockListObjects = Mock(Storage.Objects.List)
       com.google.api.services.storage.model.Objects objects = new com.google.api.services.storage.model.Objects()
@@ -216,7 +216,7 @@ class GoogleStorageServiceSpec extends Specification {
       1 * mockInsertObject.execute()
 
     then:
-      1 * mockObjectApi.update(
+      1 * mockObjectApi.patch(
               BUCKET_NAME,
               timestampObject.getName(),
               { StorageObject obj -> obj.getBucket() == timestampObject.getBucket()
