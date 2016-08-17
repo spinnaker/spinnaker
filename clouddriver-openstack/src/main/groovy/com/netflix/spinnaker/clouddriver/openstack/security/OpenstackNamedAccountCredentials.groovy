@@ -18,7 +18,10 @@ package com.netflix.spinnaker.clouddriver.openstack.security
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
+import groovy.transform.Canonical
+import groovy.transform.ToString
 
+@ToString(includeNames = true, excludes = "password")
 class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCredentials> {
   static final String CLOUD_PROVIDER = "openstack"
   final String name
@@ -35,6 +38,7 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
   final OpenstackCredentials credentials
   List<String> regions
   final Boolean insecure
+  final String heatTemplateLocation
 
   OpenstackNamedAccountCredentials(String accountName,
                                    String environment,
@@ -46,8 +50,9 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
                                    String domainName,
                                    String endpoint,
                                    List<String> regions,
-                                   Boolean insecure) {
-    this(accountName, environment, accountType, master, username, password, null, tenantName, domainName, endpoint, regions, insecure)
+                                   Boolean insecure,
+                                   String heatTemplateLocation) {
+    this(accountName, environment, accountType, master, username, password, null, tenantName, domainName, endpoint, regions, insecure, heatTemplateLocation)
   }
 
   OpenstackNamedAccountCredentials(String accountName,
@@ -61,7 +66,8 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
                                    String domainName,
                                    String endpoint,
                                    List<String> regions,
-                                   Boolean insecure) {
+                                   Boolean insecure,
+                                   String heatTemplateLocation) {
     this.name = accountName
     this.environment = environment
     this.accountType = accountType
@@ -74,6 +80,7 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
     this.requiredGroupMembership = requiredGroupMembership
     this.regions = regions
     this.insecure = insecure
+    this.heatTemplateLocation = heatTemplateLocation
     this.credentials = buildCredentials()
   }
 

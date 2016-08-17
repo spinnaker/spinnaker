@@ -65,6 +65,7 @@ class OpenstackCredentialsInitializer implements CredentialsInitializerSynchroni
                                           openstackConfigurationProperties.accounts)
 
     accountsToAdd.each { OpenstackConfigurationProperties.ManagedAccount managedAccount ->
+      LOG.info("Found openstack managed account $managedAccount")
       try {
         def openstackAccount = new OpenstackNamedAccountCredentials(managedAccount.name,
                                                                     managedAccount.environment ?: managedAccount.name,
@@ -76,8 +77,10 @@ class OpenstackCredentialsInitializer implements CredentialsInitializerSynchroni
                                                                     managedAccount.domainName,
                                                                     managedAccount.endpoint,
                                                                     managedAccount.regions,
-                                                                    managedAccount.insecure
+                                                                    managedAccount.insecure,
+                                                                    managedAccount.heatTemplatePath
                                                                     )
+        LOG.info("Saving openstack account $openstackAccount")
         accountCredentialsRepository.save(managedAccount.name, openstackAccount)
       } catch (e) {
         LOG.info "Could not load account ${managedAccount.name} for Openstack.", e

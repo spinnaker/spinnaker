@@ -56,10 +56,12 @@ abstract class AbstractServergroupOpenstackAtomicOperationValidator<T extends Op
 
   def validateScaler(OpenstackAttributeValidator validator, int maxAdjustment, String type, Scaler scaler) {
     scaler?.with {
-      if (scaleupPrefix == type) validator.validatePositive(adjustment, "${prefix}.${type}.adjustment")
-      if (scaledownPrefix == type) validator.validateLessThanEqual(adjustment, -1, "${prefix}.${type}.adjustment")
+      if (adjustment) {
+        validator.validateLessThanEqual(Math.abs(adjustment), maxAdjustment, "${prefix}.${type}.adjustment")
+        if (scaleupPrefix == type) validator.validateGreaterThanEqual(adjustment, 0, "${prefix}.${type}.adjustment")
+        if (scaledownPrefix == type) validator.validateLessThanEqual(adjustment, 0, "${prefix}.${type}.adjustment")
+      }
       if (cooldown) validator.validatePositive(cooldown, "${prefix}.${type}.cooldown")
-      if (adjustment) validator.validateLessThanEqual(Math.abs(adjustment), maxAdjustment, "${prefix}.${type}.adjustment")
       if (period) validator.validatePositive(period, "${prefix}.${type}.period")
       if (threshold) validator.validatePositive(threshold, "${prefix}.${type}.threshold")
     }

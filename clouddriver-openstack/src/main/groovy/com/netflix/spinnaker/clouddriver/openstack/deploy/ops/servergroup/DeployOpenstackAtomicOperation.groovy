@@ -27,10 +27,13 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOpe
 import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.StackPoolMemberAware
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
+import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 import org.openstack4j.model.network.Subnet
 import org.openstack4j.model.network.ext.ListenerV2
 import org.openstack4j.model.network.ext.LoadBalancerV2
+
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * For now, we want to provide 'the standard' way of being able to configure an autoscaling group in much the same way
@@ -50,6 +53,8 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
   private final String BASE_PHASE = "DEPLOY"
 
   DeployOpenstackAtomicOperationDescription description
+
+  static final Map<String, String> templateMap = new ConcurrentHashMap<>()
 
   DeployOpenstackAtomicOperation(DeployOpenstackAtomicOperationDescription description) {
     this.description = description
@@ -71,7 +76,7 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
         "minSize": 3,
         "desiredSize": 4,
         "subnetId": "77bb3aeb-c1e2-4ce5-8d8f-b8e9128af651",
-        "loadBalancers": ["87077f97-83e7-4ea1-9ca9-40dc691846db"]
+        "loadBalancers": ["87077f97-83e7-4ea1-9ca9-40dc691846db"],
         "securityGroups": ["e56fa7eb-550d-42d4-8d3f-f658fbacd496"],
         "scaleup": {
           "cooldown": 60,
@@ -125,9 +130,15 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
       task.updateStatus BASE_PHASE, "Finished getting load balancer details for load balancers $description.serverGroupParameters.loadBalancers"
 
       task.updateStatus BASE_PHASE, "Loading templates"
-      String template = IOUtils.toString(this.class.classLoader.getResourceAsStream(ServerGroupConstants.TEMPLATE_FILE))
-      String subtemplate = IOUtils.toString(this.class.classLoader.getResourceAsStream(ServerGroupConstants.SUBTEMPLATE_FILE))
-      String memberTemplate = buildPoolMemberTemplate(memberDataList)
+      String template = getTemplateFile(ServerGroupConstants.TEMPLATE_FILE)
+      Map<String, String> subtemplates = [:]
+      if (template.contains(ServerGroupConstants.SUBTEMPLATE_FILE)) {
+        String subtemplate = getTemplateFile(ServerGroupConstants.SUBTEMPLATE_FILE)
+        subtemplates << [(ServerGroupConstants.SUBTEMPLATE_FILE): subtemplate]
+        if (subtemplate.contains(ServerGroupConstants.MEMBERTEMPLATE_FILE)) {
+          subtemplates << [(ServerGroupConstants.MEMBERTEMPLATE_FILE): buildPoolMemberTemplate(memberDataList)]
+        }
+      }
       task.updateStatus BASE_PHASE, "Finished loading templates"
 
       String subnetId = description.serverGroupParameters.subnetId
@@ -136,7 +147,7 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
       task.updateStatus BASE_PHASE, "Found network id $subnet.networkId from subnet $subnetId"
 
       task.updateStatus BASE_PHASE, "Creating heat stack $stackName"
-      provider.deploy(description.region, stackName, template, [(ServerGroupConstants.SUBTEMPLATE_FILE): subtemplate, (ServerGroupConstants.MEMBERTEMPLATE_FILE): memberTemplate], description.serverGroupParameters.identity {
+      provider.deploy(description.region, stackName, template, subtemplates, description.serverGroupParameters.identity {
         networkId = subnet.networkId
         it
       }, description.disableRollback, description.timeoutMins)
@@ -175,6 +186,25 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
       result << [externalProtocol: parts[0], externalPort: parts[1], internalProtocol: parts[2], internalPort: parts[3]]
     }
     result
+  }
+
+  /**
+   * Return the file contents of a template, either from the account config location or from the classpath.
+   * @param filename
+   * @return
+   */
+  String getTemplateFile(String filename) {
+    Optional.ofNullable(templateMap.get(filename)).orElseGet {
+      String template
+      String tmplDir = description.credentials.credentials.heatTemplateLocation
+      if (tmplDir && new File("$tmplDir/${filename}").exists()) {
+        template = FileUtils.readFileToString(new File("$tmplDir/${filename}"))
+      } else {
+        template = IOUtils.toString(this.class.classLoader.getResourceAsStream(filename))
+      }
+      templateMap.put(filename, template)
+      template ?: ""
+    }
   }
 
 }

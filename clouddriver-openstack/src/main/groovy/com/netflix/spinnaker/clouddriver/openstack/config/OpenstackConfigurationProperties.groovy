@@ -34,6 +34,7 @@ class OpenstackConfigurationProperties {
     String endpoint
     List<String> regions
     Boolean insecure
+    String heatTemplatePath
   }
 
   List<ManagedAccount> accounts = []

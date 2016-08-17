@@ -22,9 +22,11 @@ import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFacto
 public class OpenstackCredentials {
 
   final OpenstackClientProvider provider
+  final OpenstackNamedAccountCredentials credentials
 
   OpenstackCredentials(OpenstackNamedAccountCredentials accountCredentials) {
     this.provider = OpenstackProviderFactory.createProvider(accountCredentials)
+    this.credentials = accountCredentials
   }
 
 }

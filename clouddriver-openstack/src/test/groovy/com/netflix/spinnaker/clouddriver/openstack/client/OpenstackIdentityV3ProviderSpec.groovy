@@ -47,7 +47,7 @@ class OpenstackIdentityV3ProviderSpec extends Specification {
     String domainName = 'domain'
     String endpoint = 'http://fake.com'
     Boolean insecure = true
-    credentials = new OpenstackNamedAccountCredentials(accountName, environment, accountType, master, username, password, tenantName, domainName, endpoint, [], insecure)
+    credentials = new OpenstackNamedAccountCredentials(accountName, environment, accountType, master, username, password, tenantName, domainName, endpoint, [], insecure, "")
     mockClient = Mock(OSClient.OSClientV3) {
       getToken() >> { Mock(Token) }
     }

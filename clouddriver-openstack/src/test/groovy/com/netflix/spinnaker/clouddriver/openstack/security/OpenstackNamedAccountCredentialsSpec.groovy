@@ -37,7 +37,7 @@ class OpenstackNamedAccountCredentialsSpec extends Specification {
     IOSClientBuilder.V3.metaClass.authenticate = { mockClient }
 
     when:
-    def credentials = new OpenstackNamedAccountCredentials("name", "test", "main", "test", "user", "pw", "tenant", "domain", "endpoint", [], false)
+    def credentials = new OpenstackNamedAccountCredentials("name", "test", "main", "test", "user", "pw", "tenant", "domain", "endpoint", [], false, "")
     def client = credentials.credentials.provider.client
 
     then:
