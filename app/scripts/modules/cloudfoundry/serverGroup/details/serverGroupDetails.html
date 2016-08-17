@@ -114,24 +114,13 @@
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">
       <dl class="dl-horizontal"
-          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
-          ng-if="serverGroup.asg.minSize === serverGroup.asg.maxSize">
-        <dt>Min/Max</dt>
-        <dd>{{serverGroup.asg.desiredCapacity}}</dd>
-        <dt>Current</dt>
-        <dd>{{serverGroup.instances.length}}</dd>
-      </dl>
-      <dl class="dl-horizontal"
-          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
-          ng-if="serverGroup.asg.minSize !== serverGroup.asg.maxSize">
-        <dt>Min</dt>
-        <dd>{{serverGroup.asg.minSize}}</dd>
-        <dt>Desired</dt>
-        <dd>{{serverGroup.asg.desiredCapacity}}</dd>
-        <dt>Max</dt>
-        <dd>{{serverGroup.asg.maxSize}}</dd>
-        <dt>Current</dt>
-        <dd>{{serverGroup.instances.length}}</dd>
+          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+        <dt>Instances</dt>
+        <dd>{{serverGroup.nativeApplication.instances}}</dd>
+        <dt>Memory</dt>
+        <dd>{{serverGroup.memory}}</dd>
+        <dt>Disk Limit</dt>
+        <dd>{{serverGroup.disk}}</dd>
       </dl>
       <a href ng-click="ctrl.resizeServerGroup()">Resize Server Group</a>
     </collapsible-section>

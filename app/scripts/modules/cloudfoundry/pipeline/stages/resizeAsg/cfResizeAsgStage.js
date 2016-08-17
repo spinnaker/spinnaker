@@ -50,18 +50,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.resizeAsgStage
 
     $scope.scaleActions = [
       {
-        label: 'Scale Up',
-        val: 'scale_up',
-      },
-      {
-        label: 'Scale Down',
-        val: 'scale_down'
-      },
-      {
-        label: 'Scale to Cluster Size',
-        val: 'scale_to_cluster'
-      },
-      {
         label: 'Scale to Exact Size',
         val: 'scale_exact'
       },
@@ -83,9 +71,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.resizeAsgStage
     stage.target = stage.target || $scope.resizeTargets[0].val;
     stage.action = stage.action || $scope.scaleActions[0].val;
     stage.resizeType = stage.resizeType || $scope.resizeTypes[0].val;
-    if (stage.resizeType === 'exact') {
-      stage.action = 'scale_exact';
-    }
     stage.cloudProvider = 'cf';
 
     if (!stage.credentials && $scope.application.defaultCredentials) {

@@ -10,19 +10,16 @@ module.exports = angular.module('spinnaker.cf.serverGroup.details.resize.control
   .controller('cfResizeServerGroupCtrl', function($scope, $uibModalInstance, serverGroupWriter, taskMonitorService,
                                                    application, serverGroup) {
 
-    // TODO: Rip out min/max and just use desired capacity.
     $scope.serverGroup = serverGroup;
-    $scope.currentSize = {
-      min: serverGroup.asg.minSize,
-      max: serverGroup.asg.maxSize,
-      desired: serverGroup.asg.desiredCapacity,
-      newSize: null
-    };
 
     $scope.verification = {};
 
-    $scope.command = angular.copy($scope.currentSize);
-    $scope.command.advancedMode = serverGroup.asg.minSize !== serverGroup.asg.maxSize;
+    $scope.command = {
+      newSize: serverGroup.asg.desiredCapacity,
+      memory: serverGroup.memory,
+      disk: serverGroup.disk == 0 ? 1024 : serverGroup.disk,
+    };
+
 
     if (application && application.attributes) {
       if (application.attributes.platformHealthOnly) {
@@ -37,25 +34,24 @@ module.exports = angular.module('spinnaker.cf.serverGroup.details.resize.control
       if (!$scope.verification.verified) {
         return false;
       }
-      return command.advancedMode ?
-        command.min <= command.max && command.desired >= command.min && command.desired <= command.max :
-        command.newSize !== null;
+      return command.newSize !== null;
     };
 
     this.resize = function () {
       if (!this.isValid()) {
         return;
       }
-      var capacity = { min: $scope.command.min, max: $scope.command.max, desired: $scope.command.desired };
-      if (!$scope.command.advancedMode) {
-        capacity = { min: $scope.command.newSize, max: $scope.command.newSize, desired: $scope.command.newSize };
-      }
+      var newSize = $scope.command.newSize;
+      var memory = $scope.command.memory;
+      var disk = $scope.command.disk;
 
       var submitMethod = function() {
         return serverGroupWriter.resizeServerGroup(serverGroup, application, {
-          capacity: capacity,
+          capacity: { min: newSize, max: newSize, desired: newSize },
           serverGroupName: serverGroup.name,
-          targetSize: capacity.desired, // TODO(GLT): Unify on this or capacity
+          targetSize: newSize, // TODO(GLT): Unify on this or capacity
+          memory: memory,
+          disk: disk,
           region: serverGroup.region,
           interestingHealthProviderNames: $scope.command.interestingHealthProviderNames,
         });
