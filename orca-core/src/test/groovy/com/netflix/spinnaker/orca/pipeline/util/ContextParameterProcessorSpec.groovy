@@ -36,21 +36,22 @@ class ContextParameterProcessorSpec extends Specification {
     result.test == expectedValue
 
     where:
-    processAttributes                           | sourceValue                           | expectedValue
-    'leave strings alone'                       | 'just a string'                       | 'just a string'
-    'transform simple properties'               | '${replaceMe}'                        | 'newValue'
-    'transform properties with dots'            | '${h1.h1}'                            | 'h1Val'
-    'transform embedded properties'             | '${replaceMe} and ${replaceMe}'       | 'newValue and newValue'
-    'transform hierarchical values'             | '${hierarchy.h2}'                     | 'hierarchyValue'
-    'transform nested hierarchical values'      | '${hierarchy.h3.h4}'                  | 'h4Val'
-    'leave unresolvable values'                 | '${notResolvable}'                    | '${notResolvable}'
-    'get a value in an array'                   | '${testArray[0]}'                     | 'good'
-    'get a value in an map within an array'     | '${testArray[1].arrayVal}'            | 'bad'
-    'get a value in an array within an array'   | '${testArray[2][0].one}'              | 'two'
-    'support SPEL expression'                   | '${ h1.h1 == "h1Val" }'               | true
-    'support SPEL defaults'                     | '${ h1.h2  ?: 60 }'                   | 60
-    'support SPEL string methods'               | '${ replaceTest.replaceAll("-","") }' | 'stackwithhyphens'
-    'make any string alphanumerical for deploy' | '${ #alphanumerical(replaceTest) }'   | 'stackwithhyphens'
+    processAttributes                           | sourceValue                                                 | expectedValue
+    'leave strings alone'                       | 'just a string'                                             | 'just a string'
+    'transform simple properties'               | '${replaceMe}'                                              | 'newValue'
+    'transform properties with dots'            | '${h1.h1}'                                                  | 'h1Val'
+    'transform embedded properties'             | '${replaceMe} and ${replaceMe}'                             | 'newValue and newValue'
+    'transform hierarchical values'             | '${hierarchy.h2}'                                           | 'hierarchyValue'
+    'transform nested hierarchical values'      | '${hierarchy.h3.h4}'                                        | 'h4Val'
+    'leave unresolvable values'                 | '${notResolvable}'                                          | '${notResolvable}'
+    'get a value in an array'                   | '${testArray[0]}'                                           | 'good'
+    'get a value in an map within an array'     | '${testArray[1].arrayVal}'                                  | 'bad'
+    'get a value in an array within an array'   | '${testArray[2][0].one}'                                    | 'two'
+    'support SPEL expression'                   | '${ h1.h1 == "h1Val" }'                                     | true
+    'support SPEL defaults'                     | '${ h1.h2  ?: 60 }'                                         | 60
+    'support SPEL string methods'               | '${ replaceTest.replaceAll("-","") }'                       | 'stackwithhyphens'
+    'make any string alphanumerical for deploy' | '${ #alphanumerical(replaceTest) }'                         | 'stackwithhyphens'
+    'make any string alphanumerical for deploy' | '''${#readJson('{ "newValue":"two" }')[#root.replaceMe]}''' | 'two' // [#root.parameters.cluster]
   }
 
   @Unroll
