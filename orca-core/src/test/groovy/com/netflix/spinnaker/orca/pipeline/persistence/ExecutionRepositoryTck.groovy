@@ -32,7 +32,8 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.*
 @Unroll
 abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Specification {
 
-  @Subject T repository
+  @Subject
+  T repository
 
   void setup() {
     repository = createExecutionRepository()
@@ -266,7 +267,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     repository.store(execution)
 
     expect:
-    with (repository."retrieve$type"(execution.id)) {
+    with(repository."retrieve$type"(execution.id)) {
       startTime == null
     }
 
@@ -289,7 +290,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     repository.store(execution)
 
     expect:
-    with (repository."retrieve$type"(execution.id)) {
+    with(repository."retrieve$type"(execution.id)) {
       endTime == null
     }
 
@@ -437,22 +438,33 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
 class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecutionRepository> {
 
-  @Shared @AutoCleanup("destroy") EmbeddedRedis embeddedRedis
+  @Shared
+  @AutoCleanup("destroy")
+  EmbeddedRedis embeddedRedis
+
+  @Shared
+  @AutoCleanup("destroy")
+  EmbeddedRedis embeddedRedisPrevious
 
   def setupSpec() {
     embeddedRedis = EmbeddedRedis.embed()
+    embeddedRedisPrevious = EmbeddedRedis.embed()
   }
 
   def cleanup() {
     embeddedRedis.jedis.withCloseable { it.flushDB() }
+    embeddedRedisPrevious.jedis.withCloseable { it.flushDB() }
   }
 
   Pool<Jedis> jedisPool = embeddedRedis.pool
-  @AutoCleanup def jedis = jedisPool.resource
+  Pool<Jedis> jedisPoolPrevious = embeddedRedisPrevious.pool
+
+  @AutoCleanup
+  def jedis = jedisPool.resource
 
   @Override
   JedisExecutionRepository createExecutionRepository() {
-    new JedisExecutionRepository(new NoopRegistry(), jedisPool, 1, 50)
+    new JedisExecutionRepository(new NoopRegistry(), jedisPool, Optional.of(jedisPoolPrevious), 1, 50)
   }
 
   def "cleans up indexes of non-existent executions"() {
@@ -516,12 +528,112 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     retrieved.size() == actual
 
     where:
-    limit  || actual
-    0      || 0
-    1      || 1
-    2      || 2
-    4      || 4
-    100    || 4
-
+    limit || actual
+    0     || 0
+    1     || 1
+    2     || 2
+    4     || 4
+    100   || 4
   }
+
+  def "can retrieve orchestrations from multiple redis stores"() {
+    given:
+    repository.store(new Orchestration(application: "orca", executingInstance: "current"))
+    repository.store(new Orchestration(application: "orca", executingInstance: "current"))
+    repository.store(new Orchestration(application: "orca", executingInstance: "current"))
+
+    and:
+    def previousRepository = new JedisExecutionRepository(new NoopRegistry(), jedisPoolPrevious, Optional.empty(), 1, 50)
+    previousRepository.store(new Orchestration(application: "orca", executingInstance: "previous"))
+    previousRepository.store(new Orchestration(application: "orca", executingInstance: "previous"))
+    previousRepository.store(new Orchestration(application: "orca", executingInstance: "previous"))
+
+    when:
+    // TODO-AJ limits are current applied to each backing redis
+    def retrieved = repository.retrieveOrchestrationsForApplication("orca", new ExecutionCriteria(limit: 2))
+      .toList().toBlocking().first()
+
+    then:
+    // orchestrations are stored in an unsorted set and results are non-deterministic
+    retrieved.findAll { it.executingInstance == "current" }.size() == 2
+    retrieved.findAll { it.executingInstance == "previous" }.size() == 2
+  }
+
+  def "can delete orchestrations from multiple redis stores"() {
+    given:
+    def orchestration1 = new Orchestration(application: "orca")
+    repository.store(orchestration1)
+
+    and:
+    def previousRepository = new JedisExecutionRepository(new NoopRegistry(), jedisPoolPrevious, Optional.empty(), 1, 50)
+    def orchestration2 = new Orchestration(application: "orca")
+    previousRepository.store(orchestration2)
+
+    when:
+    repository.deleteOrchestration(orchestration1.id)
+    def retrieved = repository.retrieveOrchestrationsForApplication("orca", new ExecutionCriteria(limit: 2))
+      .toList().toBlocking().first()
+
+    then:
+    retrieved*.id == [orchestration2.id]
+
+    when:
+    repository.deleteOrchestration(orchestration2.id)
+    retrieved = repository.retrieveOrchestrationsForApplication("orca", new ExecutionCriteria(limit: 2))
+      .toList().toBlocking().first()
+
+    then:
+    retrieved.isEmpty()
+  }
+
+  def "can retrieve pipelines from multiple redis stores"() {
+    given:
+    repository.store(new Pipeline(application: "orca", pipelineConfigId: "pipeline-1", buildTime: 10))
+    repository.store(new Pipeline(application: "orca", pipelineConfigId: "pipeline-1", buildTime: 11))
+    repository.store(new Pipeline(application: "orca", pipelineConfigId: "pipeline-1", buildTime: 12))
+
+    and:
+    def previousRepository = new JedisExecutionRepository(new NoopRegistry(), jedisPoolPrevious, Optional.empty(), 1, 50)
+    previousRepository.store(new Pipeline(application: "orca", pipelineConfigId: "pipeline-1", buildTime: 7))
+    previousRepository.store(new Pipeline(application: "orca", pipelineConfigId: "pipeline-1", buildTime: 8))
+    previousRepository.store(new Pipeline(application: "orca", pipelineConfigId: "pipeline-1", buildTime: 9))
+
+    when:
+    // TODO-AJ limits are current applied to each backing redis
+    def retrieved = repository.retrievePipelinesForPipelineConfigId("pipeline-1", new ExecutionCriteria(limit: 2))
+      .toList().toBlocking().first()
+
+    then:
+    // pipelines are stored in a sorted sets and results should be reverse buildTime ordered
+    retrieved*.buildTime == [12L, 11L, 9L, 8L]
+  }
+
+  def "can delete pipelines from multiple redis stores"() {
+    given:
+    def pipeline1 = new Pipeline(application: "orca", pipelineConfigId: "pipeline-1", buildTime: 11)
+    repository.store(pipeline1)
+
+    and:
+    def previousRepository = new JedisExecutionRepository(new NoopRegistry(), jedisPoolPrevious, Optional.empty(), 1, 50)
+    def pipeline2 = new Pipeline(application: "orca", pipelineConfigId: "pipeline-1", buildTime: 10)
+    previousRepository.store(pipeline2)
+
+    when:
+    repository.deletePipeline(pipeline1.id)
+    def retrieved = repository.retrievePipelinesForPipelineConfigId("pipeline-1", new ExecutionCriteria(limit: 2))
+      .toList().toBlocking().first()
+
+    then:
+    retrieved*.id == [pipeline2.id]
+
+    when:
+    repository.deletePipeline(pipeline2.id)
+    retrieved = repository.retrievePipelinesForPipelineConfigId("pipeline-1", new ExecutionCriteria(limit: 2))
+      .toList().toBlocking().first()
+
+    then:
+    retrieved.isEmpty()
+  }
+
+
 }
