@@ -2,6 +2,10 @@ server:
   port: ${services.front50.port:8080}
   address: ${services.front50.host:localhost}
 
+hystrix:
+  command:
+    default.execution.isolation.thread.timeoutInMilliseconds: 15000
+
 cassandra:
   enabled: ${services.front50.cassandra.enabled:true}
   embedded: ${services.cassandra.embedded:false}
