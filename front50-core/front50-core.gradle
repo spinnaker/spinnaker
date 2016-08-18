@@ -17,4 +17,5 @@
 dependencies {
   spinnaker.group "bootWeb"
   compile spinnaker.dependency('kork')
+  compile spinnaker.dependency('korkHystrix')
 }
