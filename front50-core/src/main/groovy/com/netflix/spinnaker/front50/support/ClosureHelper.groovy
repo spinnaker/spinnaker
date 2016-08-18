@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,14 @@
  */
 
 
+package com.netflix.spinnaker.front50.support
 
-package com.netflix.spinnaker.front50.exception
+import java.util.function.Function
 
-import com.netflix.hystrix.exception.HystrixBadRequestException
-import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-@ResponseStatus(value = HttpStatus.NOT_FOUND)
-public class NotFoundException extends HystrixBadRequestException {
-  public NotFoundException(String message) {
-    super(message)
-  }
-
-  public NotFoundException(String message, Throwable cause) {
-    super(message, cause)
+class ClosureHelper {
+  static Closure toClosure(Function function) {
+    return { args ->
+      return function.apply(args)
+    }
   }
 }

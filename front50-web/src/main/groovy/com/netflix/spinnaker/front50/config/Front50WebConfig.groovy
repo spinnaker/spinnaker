@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.front50.config
 
+import com.netflix.hystrix.exception.HystrixRuntimeException
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
@@ -27,6 +28,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ControllerAdvice
+import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.ResponseBody
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
@@ -70,5 +76,28 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
   @Bean
   ItemDAOHealthIndicator pipelineStrategyDAOHealthIndicator(PipelineStrategyDAO pipelineStrategyDAO) {
     return new ItemDAOHealthIndicator(itemDAO: pipelineStrategyDAO)
+  }
+
+  @Bean
+  HystrixRuntimeExceptionHandler hystrixRuntimeExceptionHandler() {
+    return new HystrixRuntimeExceptionHandler()
+  }
+
+  @ControllerAdvice
+  static class HystrixRuntimeExceptionHandler {
+    @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
+    @ResponseBody
+    @ExceptionHandler(HystrixRuntimeException)
+    public Map handleHystrix(HystrixRuntimeException exception) {
+      return [
+          fallbackException: exception.fallbackException.toString(),
+          failureType: exception.failureType,
+          failureCause: exception.cause.toString(),
+          error: "Hystrix Failure",
+          message: exception.message,
+          status: HttpStatus.TOO_MANY_REQUESTS.value(),
+          timestamp: System.currentTimeMillis()
+      ]
+    }
   }
 }

@@ -21,6 +21,8 @@ import com.amazonaws.services.s3.model.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
+import com.netflix.spinnaker.front50.support.ClosureHelper;
+import com.netflix.spinnaker.hystrix.SimpleHystrixCommand;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
@@ -36,7 +38,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public abstract class S3Support<T extends Timestamped> {
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -103,20 +104,30 @@ public abstract class S3Support<T extends Timestamped> {
   }
 
   public T findById(String id) throws NotFoundException {
-    try {
-      S3Object s3Object = amazonS3.getObject(bucket, buildS3Key(id));
-      T item = deserialize(s3Object);
-      item.setLastModified(s3Object.getObjectMetadata().getLastModified().getTime());
-      return item;
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
-    } catch (AmazonS3Exception e) {
-      if (e.getStatusCode() == 404) {
-        throw new NotFoundException(String.format("No item found with id of %s", id.toLowerCase()));
-      }
+    return new SimpleHystrixCommand<T>(
+        getClass().getSimpleName(),
+        getClass().getSimpleName() + "-findById",
+        ClosureHelper.toClosure(args -> {
+          try {
+            S3Object s3Object = amazonS3.getObject(bucket, buildS3Key(id));
+            T item = deserialize(s3Object);
+            item.setLastModified(s3Object.getObjectMetadata().getLastModified().getTime());
+            return item;
+          } catch (IOException e) {
+            throw new IllegalStateException(e);
+          } catch (AmazonS3Exception e) {
+            if (e.getStatusCode() == 404) {
+              throw new NotFoundException(String.format("No item found with id of %s", id.toLowerCase()));
+            }
 
-      throw e;
-    }
+            throw e;
+          }
+        }),
+        ClosureHelper.toClosure(args -> allItemsCache.get().stream()
+            .filter(item -> item.getId().equalsIgnoreCase(id))
+            .findFirst()
+            .orElseThrow(() -> new NotFoundException(String.format("No item found in cache with id of %s", id.toLowerCase()))))
+    ).execute();
   }
 
   public Collection<T> allVersionsOf(String id, int limit) throws NotFoundException {

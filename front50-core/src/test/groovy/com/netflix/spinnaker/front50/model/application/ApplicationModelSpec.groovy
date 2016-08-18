@@ -198,7 +198,7 @@ class ApplicationModelSpec extends Specification {
     app.delete()
 
     then:
-    1 * dao.findByName("APP") >> { throw new NotFoundException() }
+    1 * dao.findByName("APP") >> { throw new NotFoundException("app does not exist") }
     notThrown(NotFoundException)
   }
 
@@ -231,7 +231,7 @@ class ApplicationModelSpec extends Specification {
 
   void 'should return empty collection if no apps exist'() {
     def dao = Mock(ApplicationDAO) {
-      1 * all() >> { throw new NotFoundException() }
+      1 * all() >> { throw new NotFoundException("no apps found") }
     }
 
     def apps = new Application(dao: dao).findAll()
@@ -242,7 +242,7 @@ class ApplicationModelSpec extends Specification {
 
   void 'should return empty collection if no apps match search criteria'() {
     def dao = Mock(ApplicationDAO) {
-      1 * search(_) >> { throw new NotFoundException() }
+      1 * search(_) >> { throw new NotFoundException("no apps found") }
     }
 
     def apps = new Application(dao: dao).search([:])
