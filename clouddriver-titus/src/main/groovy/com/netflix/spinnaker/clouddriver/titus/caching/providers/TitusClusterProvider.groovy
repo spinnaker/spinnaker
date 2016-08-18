@@ -21,20 +21,22 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonVpc
 import com.netflix.spinnaker.clouddriver.core.provider.agent.ExternalHealthProvider
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.titus.caching.Keys
 import com.netflix.spinnaker.clouddriver.titus.caching.TitusCachingProvider
+import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
+import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.model.TitusCluster
 import com.netflix.spinnaker.clouddriver.titus.model.TitusInstance
 import com.netflix.spinnaker.clouddriver.titus.model.TitusServerGroup
-import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.APPLICATIONS
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.CLUSTERS
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.SERVER_GROUPS
 
@@ -44,6 +46,9 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
   private final Cache cacheView
   private final TitusCachingProvider titusCachingProvider
   private final ObjectMapper objectMapper
+
+  @Autowired
+  AwsLookupUtil awsLookupUtil
 
   @Autowired
   TitusClusterProvider(TitusCachingProvider titusCachingProvider,
@@ -136,6 +141,9 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
    */
   @Override
   TitusServerGroup getServerGroup(String account, String region, String name) {
+
+    Set<AmazonVpc> amazonVpcs = amazonVpcProvider.all
+
     String serverGroupKey = Keys.getServerGroupKey(name, account, region)
     CacheData serverGroupData = cacheView.get(SERVER_GROUPS.ns, serverGroupKey)
     if (serverGroupData == null) {
@@ -146,7 +154,8 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
     TitusServerGroup serverGroup = new TitusServerGroup(job, serverGroupData.attributes.account, serverGroupData.attributes.region)
     serverGroup.placement.account = account
     serverGroup.placement.region = region
-    serverGroup.instances = translateInstances(resolveRelationshipData(serverGroupData, INSTANCES.ns)).values()
+    serverGroup.instances = translateInstances(resolveRelationshipData(serverGroupData, INSTANCES.ns), account, region).values()
+    resolveAwsDetails(serverGroup)
     serverGroup
   }
 
@@ -202,6 +211,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
       Job job = objectMapper.readValue(json, Job)
       TitusServerGroup serverGroup = new TitusServerGroup(job, serverGroupEntry.attributes.account, serverGroupEntry.attributes.region)
       serverGroup.instances = serverGroupEntry.relationships[INSTANCES.ns]?.findResults { instances.get(it) } as Set
+      resolveAwsDetails(serverGroup)
       [(serverGroupEntry.id): serverGroup]
     }
     serverGroups
@@ -253,6 +263,12 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
   private Collection<CacheData> resolveRelationshipData(CacheData source, String relationship, Closure<Boolean> relFilter) {
     Collection<String> filteredRelationships = source.relationships[relationship]?.findAll(relFilter)
     filteredRelationships ? cacheView.getAll(relationship, filteredRelationships) : []
+  }
+
+  private void resolveAwsDetails(TitusServerGroup serverGroup){
+    serverGroup.instances.each{
+      it.securityGroups = awsLookupUtil.lookupSecurityGroupNames(serverGroup.placement.account, serverGroup.placement.region, serverGroup.securityGroups)
+    }
   }
 
 }

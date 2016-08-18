@@ -97,6 +97,10 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
     getAllMatchingKeyPattern(Keys.getSecurityGroupKey(name, '*', region, account, vpcId), true)[0]
   }
 
+  AmazonSecurityGroup getById(String account, String region, String securityGroupId, String vpcId) {
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', securityGroupId, region, account, vpcId), true)[0]
+  }
+
   Set<AmazonSecurityGroup> getAllMatchingKeyPattern(String pattern, boolean includeRules) {
     loadResults(includeRules, cacheView.filterIdentifiers(SECURITY_GROUPS.ns, pattern))
   }
@@ -182,7 +186,7 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
         ingressGroupVpcId = parts.vpcId
       }
     }
-    return [ name: ingressGroupName, vpcId: ingressGroupVpcId ]
+    return [name: ingressGroupName, vpcId: ingressGroupVpcId]
   }
 
   private void addSecurityGroupRules(IpPermission permission, Map<GroupAndProtocol, Map> rules, String account, String region, String vpcId) {
