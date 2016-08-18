@@ -61,3 +61,44 @@ input.borderless {
 .button-input > .form-control:focus {
   box-shadow: none;
 }
+
+
+span.marker {
+  display: inline;
+  padding: .2em .6em .3em;
+  font-size: 75%;
+  font-weight: bold;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: .25em;
+}
+
+span.marker.param {
+  background-color: #FFAE4C;
+  color: #7F5726;
+}
+
+span.marker.stage{
+  background-color: #cbb4fa;
+  color: #302A3B
+}
+
+span.marker.function {
+  background-color: #a3b2e3;
+  color: #484e63
+};
+
+span.marker.param:before {
+  content: "p";
+}
+
+span.marker.stage:before {
+  content: "stage";
+}
+
+span.marker.function:before {
+  content: "fn";
+}

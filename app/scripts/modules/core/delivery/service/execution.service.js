@@ -260,6 +260,18 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       }
     }
 
+    function getLastExecutionForApplicationByConfigId(appName, configId) {
+      return getFilteredExecutions(appName, {}, 1 )
+        .then((executions) => {
+          return executions.filter((execution) => {
+            return execution.pipelineConfigId === configId;
+          });
+        })
+        .then((executionsByConfigId) => {
+          return executionsByConfigId[0];
+        });
+    }
+
     return {
       getExecutions: getExecutions,
       getExecution: getExecution,
@@ -276,5 +288,6 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       getProjectExecutions: getProjectExecutions,
       addExecutionsToApplication: addExecutionsToApplication,
       updateExecution: updateExecution,
+      getLastExecutionForApplicationByConfigId: getLastExecutionForApplicationByConfigId,
     };
   });
