@@ -50,4 +50,28 @@ class WaitTaskSpec extends Specification {
       result.status == ExecutionStatus.SUCCEEDED
 
   }
+
+  void "should skip waiting when marked in context"() {
+    setup:
+    def pipeline = new Pipeline()
+    def stage = new PipelineStage(pipeline, "wait", [waitTime: 1000000])
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.RUNNING
+    stage.context.putAll(result.outputs)
+
+    when:
+    timeProvider.millis = System.currentTimeMillis() + 10000
+    stage.context.skipRemainingWait = true
+
+    and:
+    result = task.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.SUCCEEDED
+
+  }
 }
