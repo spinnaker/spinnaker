@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup
 
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.model.IpPermission
+import com.amazonaws.services.ec2.model.UserIdGroupPair
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
@@ -88,8 +89,8 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
       }
     }
 
-    List<IpPermission> ipPermissionsToAdd = ipPermissionsFromDescription.converted - existingIpPermissions
-    List<IpPermission> ipPermissionsToRemove = existingIpPermissions - ipPermissionsFromDescription.converted
+    List<IpPermission> ipPermissionsToAdd = findMissing(ipPermissionsFromDescription.converted, existingIpPermissions)
+    List<IpPermission> ipPermissionsToRemove = findMissing(existingIpPermissions, ipPermissionsFromDescription.converted)
 
     if (ipPermissionsToAdd) {
       try {
@@ -110,6 +111,73 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
       }
     }
     null
+  }
+
+  static List<IpPermission> findMissing(List<IpPermission> src, List<IpPermission> expected) {
+    src.findResults { toCheck ->
+      expected.find {
+        it.fromPort == toCheck.fromPort &&
+          it.toPort == toCheck.toPort &&
+          it.ipProtocol == toCheck.ipProtocol &&
+          pairsEqual(it.userIdGroupPairs, toCheck.userIdGroupPairs) &&
+          rangesEqual(it.ipRanges, toCheck.ipRanges)
+      } ? null : toCheck
+    }
+  }
+
+  static boolean pairsEqual(Collection<UserIdGroupPair> pairsA, Collection<UserIdGroupPair> pairsB) {
+    if (pairsA) {
+      if (pairsA.size() != pairsB?.size()) {
+        false
+      } else {
+        Map matched = new IdentityHashMap()
+        pairsA.every { a ->
+          def match = pairsB.find { b ->
+            if (matched.containsKey(b)) {
+              return false
+            }
+
+            //Pairs are equal if
+            // - userIds and vpcIds match
+            // - both have a groupId and those match
+            //   or
+            //   both have a groupName and those match
+            //
+            // we support the case of one pair having a
+            // groupId present and the other not and falling
+            // back to matching on name because we may be
+            // dealing with cross-account permissions from
+            // an account that Spinnaker does not manage so
+            // can not go resolve the groupId from the name
+            if (a.userId != b.userId) {
+              return false
+            }
+            if (a.vpcId != b.vpcId) {
+              return false
+            }
+            if (a.groupId && b.groupId) {
+              return a.groupId == b.groupId
+            }
+            if (a.groupName && b.groupName) {
+              return a.groupName == b.groupName
+            }
+            return false
+          }
+          match && matched.put(match, Boolean.TRUE) == null
+        }
+        matched.keySet().size() == pairsB.size()
+      }
+    } else {
+      !pairsB
+    }
+  }
+
+  static boolean rangesEqual(Collection<String> rangesA, Collection<String> rangesB) {
+    if (rangesA) {
+      rangesA.sort() == rangesB?.sort()
+    } else {
+      !rangesB
+    }
   }
 
 }
