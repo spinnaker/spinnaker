@@ -15,6 +15,8 @@
  */
 
 package com.netflix.spinnaker.orca.config
+
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import org.apache.commons.pool2.impl.GenericObjectPool
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
@@ -26,6 +28,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
+import redis.clients.jedis.Protocol
 import redis.clients.util.Pool
 
 import java.lang.reflect.Field
@@ -42,13 +45,20 @@ class RedisConfiguration {
 
   @Bean
   Pool<Jedis> jedisPool(@Value('${redis.connection:redis://localhost:6379}') String connection,
-                      @Value('${redis.timeout:2000}') int timeout,
-                      GenericObjectPoolConfig redisPoolConfig) {
+                        @Value('${redis.timeout:2000}') int timeout,
+                        GenericObjectPoolConfig redisPoolConfig) {
+    return createPool(redisPoolConfig, connection, timeout)
+  }
 
-    RedisConnectionInfo connectionInfo = RedisConnectionInfo.parseConnectionUri(connection)
+  @Bean
+  JedisPool jedisPoolPrevious(@Value('${redis.connection:redis://localhost:6379}') String mainConnection,
+                              @Value('${redis.connectionPrevious:#{null}}') String previousConnection,
+                              @Value('${redis.timeout:2000}') int timeout) {
+    if (mainConnection == previousConnection || previousConnection == null) {
+      return null
+    }
 
-    new JedisPool(redisPoolConfig, connectionInfo.host, connectionInfo.port, timeout, connectionInfo.password,
-        connectionInfo.database, null)
+    return createPool(null, previousConnection, timeout)
   }
 
   @Bean
@@ -83,5 +93,19 @@ class RedisConfiguration {
         return health.build()
       }
     }
+  }
+
+  private static JedisPool createPool(GenericObjectPoolConfig redisPoolConfig, String connection, int timeout) {
+    URI redisConnection = URI.create(connection)
+
+    String host = redisConnection.host
+    int port = redisConnection.port == -1 ? Protocol.DEFAULT_PORT : redisConnection.port
+
+    String redisConnectionPath = redisConnection.path ?: "/${Protocol.DEFAULT_DATABASE}"
+    int database = Integer.parseInt(redisConnectionPath.split('/', 2)[1])
+
+    String password = redisConnection.userInfo ? redisConnection.userInfo.split(':', 2)[1] : null
+
+    return new JedisPool(redisPoolConfig ?: new GenericObjectPoolConfig(), host, port, timeout, password, database, null)
   }
 }
