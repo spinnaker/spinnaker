@@ -213,7 +213,6 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
       var command = {
         application: application.name,
-        autoscalingPolicy: {},
         credentials: defaultCredentials,
         region: defaultRegion,
         zone: defaultZone,
@@ -281,7 +280,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
       var command = {
         application: application.name,
-        autoscalingPolicy: serverGroup.autoscalingPolicy || {},
+        autoscalingPolicy: _.cloneDeep(serverGroup.autoscalingPolicy),
         strategy: '',
         stack: serverGroupName.stack,
         freeFormDetails: serverGroupName.freeFormDetails,
@@ -314,7 +313,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         viewState: {
           allImageSelection: null,
           useAllImageSelection: false,
-          useSimpleCapacity: true,
+          useSimpleCapacity: !serverGroup.autoscalingPolicy,
           usePreferredZones: false,
           listImplicitSecurityGroups: false,
           mode: mode,
@@ -374,7 +373,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         var viewState = {
           instanceProfile: asyncData.instanceProfile,
           disableImageSelection: true,
-          useSimpleCapacity: true,
+          useSimpleCapacity: !pipelineCluster.autoscalingPolicy,
           mode: 'editPipeline',
           submitButtonLabel: 'Done',
         };

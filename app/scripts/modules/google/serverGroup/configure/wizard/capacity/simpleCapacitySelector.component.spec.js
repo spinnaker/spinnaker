@@ -1,20 +1,20 @@
 'use strict';
 
 let angular = require('angular');
-require('./capacitySelector.directive.html');
+require('./simpleCapacitySelector.component.html');
 
 describe('Directive: GCE Server Group Capacity Selector', function() {
 
   beforeEach(
     window.module(
-      require('./capacitySelector.directive.js')
+      require('./simpleCapacitySelector.component.js')
     )
   );
 
   beforeEach(window.inject(function($rootScope, $compile) {
     this.scope = $rootScope.$new();
     this.scope.command = {capacity: {}};
-    this.elem = angular.element('<gce-server-group-capacity-selector command="command" />');
+    this.elem = angular.element('<gce-server-group-simple-capacity-selector command="command" />');
     this.element = $compile(this.elem)(this.scope);
     this.scope.$digest();
   }));

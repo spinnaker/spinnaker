@@ -2,7 +2,10 @@
   <div class="clearfix">
     <div class="row">
       <div class="col-md-12">
-        <gce-server-group-capacity-selector command="command"></gce-server-group-capacity-selector>
+        <gce-server-group-simple-capacity-selector ng-if="command.viewState.useSimpleCapacity"
+                                                   command="command"></gce-server-group-simple-capacity-selector>
+        <gce-server-group-advanced-capacity-selector  ng-if="!command.viewState.useSimpleCapacity"
+                                                      command="command"></gce-server-group-advanced-capacity-selector>
       </div>
     </div>
   </div>
