@@ -11,16 +11,17 @@
     <ui-select class="form-control input-sm"
                ng-model="vm.viewState.selectedTag"
                on-select="vm.updateSelectedTag($item)"
+               reset-search-input="false"
                ng-if="vm.tags.length">
       <ui-select-match placeholder="Select...">
         <span>
           <strong>{{$select.selected}}</strong>
         </span>
       </ui-select-match>
-      <ui-select-choices repeat="tag in vm.tags | filter: $select.search">
-        <span>
-          <strong>{{tag}}</strong>
-        </span>
+      <ui-select-choices repeat="tag in vm.tags | filter: $select.search"
+                         refresh-delay="0"
+                         refresh="vm.searchTags($select.search)">
+        <span ng-bind-html="tag | highlight: $select.search"></span>
       </ui-select-choices>
     </ui-select>
   </div>

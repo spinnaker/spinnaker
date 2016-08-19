@@ -6,6 +6,7 @@ module.exports = angular
   .module('spinnaker.core.pipeline.config.triggers.docker.options.directive', [
     require('../../../../../core/config/settings.js'),
     require('../../../../../docker/image/image.reader.js'),
+    require('../../../../../core/utils/rx.js'),
   ])
   .directive('dockerTriggerOptions', function () {
     return {
@@ -19,12 +20,12 @@ module.exports = angular
       scope: {}
     };
   })
-  .controller('dockerTriggerOptionsCtrl', function ($scope, dockerImageReader) {
+  .controller('dockerTriggerOptionsCtrl', function ($scope, dockerImageReader, rx) {
     // These fields will be added to the trigger when the form is submitted
     this.command.extraFields = {};
 
     this.viewState = {
-      tagsLoading: false,
+      tagsLoading: true,
       loadError: false,
       selectedTag: null,
     };
@@ -45,20 +46,40 @@ module.exports = angular
     };
 
     let initialize = () => {
-      let command = this.command;
-      // do not re-initialize if the trigger has changed to some other type
-      if (command.trigger.type !== 'docker') {
+      // cancel search stream if trigger has changed to some other type
+      if (this.command.trigger.type !== 'docker') {
+        subscription.dispose();
         return;
       }
-      this.viewState.tagsLoading = true;
+      this.searchTags();
+    };
 
-      dockerImageReader.findImages({ provider: 'dockerRegistry', account: command.trigger.account, q: command.trigger.repository }).then(tagLoadSuccess, tagLoadFailure);
+    let handleQuery = (q) => {
+      return rx.Observable.fromPromise(
+          dockerImageReader.findImages({
+            provider: 'dockerRegistry',
+            account: this.command.trigger.account,
+            q: q,
+            count: 50 }));
     };
 
     this.updateSelectedTag = (item) => {
       this.command.extraFields.tag = item;
     };
 
-    $scope.$watch(() => this.command.trigger, initialize);
+    let queryStream = new rx.Subject();
 
+    let subscription = queryStream
+      .debounce(250)
+      .flatMapLatest(handleQuery)
+      .subscribe((results) => $scope.$apply(() => tagLoadSuccess(results)), () => $scope.$apply(tagLoadFailure));
+
+    this.searchTags = (query = '') => {
+      this.tags = [`<span>Finding tags${query && ` matching ${query}`}...</span>`];
+      queryStream.onNext(formatQuery(query));
+    };
+
+    let formatQuery = (query) => `*${this.command.trigger.repository.split('/').pop()}:${query}*`;
+
+    $scope.$watch(() => this.command.trigger, initialize);
   });
