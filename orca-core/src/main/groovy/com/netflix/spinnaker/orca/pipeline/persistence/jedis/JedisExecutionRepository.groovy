@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
+import groovy.transform.CompileStatic
+
 import java.util.function.Function
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -29,7 +31,6 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import groovy.transform.CompileDynamic
-import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -55,6 +56,7 @@ class JedisExecutionRepository implements ExecutionRepository {
   private static final TypeReference<List<Task>> LIST_OF_TASKS = new TypeReference<List<Task>>() {}
   private static final TypeReference<Map<String, Object>> MAP_STRING_TO_OBJECT = new TypeReference<Map<String, Object>>() {}
   private final Pool<Jedis> jedisPool
+  private final Optional<Pool<Jedis>> jedisPoolPrevious
   private final ObjectMapper mapper = new OrcaObjectMapper()
   private final int chunkSize
   private final Scheduler queryAllScheduler
@@ -67,11 +69,28 @@ class JedisExecutionRepository implements ExecutionRepository {
   JedisExecutionRepository(
     Registry registry,
     Pool<Jedis> jedisPool,
+    Optional<Pool<Jedis>> jedisPoolPrevious,
     @Value('${threadPool.executionRepository:150}') int threadPoolSize,
     @Value('${chunkSize.executionRepository:75}') int threadPoolChunkSize
   ) {
     this(
       jedisPool,
+      jedisPoolPrevious,
+      Schedulers.from(newFixedThreadPool(registry, 10, "QueryAll")),
+      Schedulers.from(newFixedThreadPool(registry, threadPoolSize, "QueryByApp")),
+      threadPoolChunkSize
+    )
+  }
+
+  JedisExecutionRepository(
+    Registry registry,
+    Pool<Jedis> jedisPool,
+    int threadPoolSize,
+    int threadPoolChunkSize
+  ) {
+    this(
+      jedisPool,
+      Optional.empty(),
       Schedulers.from(newFixedThreadPool(registry, 10, "QueryAll")),
       Schedulers.from(newFixedThreadPool(registry, threadPoolSize, "QueryByApp")),
       threadPoolChunkSize
@@ -80,11 +99,13 @@ class JedisExecutionRepository implements ExecutionRepository {
 
   JedisExecutionRepository(
     Pool<Jedis> jedisPool,
+    Optional<Pool<Jedis>> jedisPoolPrevious,
     Scheduler queryAllScheduler,
     Scheduler queryByAppScheduler,
     int threadPoolChunkSize
   ) {
     this.jedisPool = jedisPool
+    this.jedisPoolPrevious = jedisPoolPrevious
     this.queryAllScheduler = queryAllScheduler
     this.queryByAppScheduler = queryByAppScheduler
     this.chunkSize = threadPoolChunkSize
@@ -92,14 +113,14 @@ class JedisExecutionRepository implements ExecutionRepository {
 
   @Override
   void store(Orchestration orchestration) {
-    withJedis { Jedis jedis ->
+    withJedis(getJedisPoolForId(orchestration.id)) { Jedis jedis ->
       storeExecutionInternal(jedis, orchestration)
     }
   }
 
   @Override
   void store(Pipeline pipeline) {
-    withJedis { Jedis jedis ->
+    withJedis(getJedisPoolForId(pipeline.id)) { Jedis jedis ->
       storeExecutionInternal(jedis, pipeline)
       jedis.zadd(executionsByPipelineKey(pipeline.pipelineConfigId), pipeline.buildTime, pipeline.id)
     }
@@ -108,7 +129,7 @@ class JedisExecutionRepository implements ExecutionRepository {
   @Override
   void storeExecutionContext(String id, Map<String, Object> context) {
     String key = fetchKey(id)
-    withJedis { Jedis jedis ->
+    withJedis(getJedisPoolForId(key)) { Jedis jedis ->
       jedis.hset(key, "context", mapper.writeValueAsString(context))
     }
   }
@@ -121,7 +142,7 @@ class JedisExecutionRepository implements ExecutionRepository {
   @Override
   void cancel(String id, String user) {
     String key = fetchKey(id)
-    withJedis { Jedis jedis ->
+    withJedis(getJedisPoolForId(key)) { Jedis jedis ->
       def data = [canceled: "true"]
       if (user) {
         data.canceledBy = user
@@ -137,7 +158,7 @@ class JedisExecutionRepository implements ExecutionRepository {
   @Override
   boolean isCanceled(String id) {
     String key = fetchKey(id)
-    withJedis { Jedis jedis ->
+    withJedis(getJedisPoolForId(key)) { Jedis jedis ->
       Boolean.valueOf(jedis.hget(key, "canceled"))
     }
   }
@@ -145,7 +166,7 @@ class JedisExecutionRepository implements ExecutionRepository {
   @Override
   void pause(String id, String user) {
     String key = fetchKey(id)
-    withJedis { Jedis jedis ->
+    withJedis(getJedisPoolForId(key)) { Jedis jedis ->
       def currentStatus = ExecutionStatus.valueOf(jedis.hget(key, "status"))
       if (currentStatus != ExecutionStatus.RUNNING) {
         throw new IllegalStateException("Unable to pause pipeline that is not RUNNING (executionId: ${id}, currentStatus: ${currentStatus})")
@@ -167,7 +188,7 @@ class JedisExecutionRepository implements ExecutionRepository {
   @Override
   void resume(String id, String user) {
     String key = fetchKey(id)
-    withJedis { Jedis jedis ->
+    withJedis(getJedisPoolForId(key)) { Jedis jedis ->
       def currentStatus = ExecutionStatus.valueOf(jedis.hget(key, "status"))
       if (currentStatus != ExecutionStatus.PAUSED) {
         throw new IllegalStateException("Unable to resume pipeline that is not PAUSED (executionId: ${id}, currentStatus: ${currentStatus})")
@@ -178,8 +199,8 @@ class JedisExecutionRepository implements ExecutionRepository {
       pausedDetails.resumeTime = currentTimeMillis()
 
       def data = [
-          paused: mapper.writeValueAsString(pausedDetails),
-          status: ExecutionStatus.RUNNING.toString()
+        paused: mapper.writeValueAsString(pausedDetails),
+        status: ExecutionStatus.RUNNING.toString()
       ]
       jedis.hmset(key, data)
     }
@@ -188,7 +209,7 @@ class JedisExecutionRepository implements ExecutionRepository {
   @Override
   void updateStatus(String id, ExecutionStatus status) {
     String key = fetchKey(id)
-    withJedis { Jedis jedis ->
+    withJedis(getJedisPoolForId(key)) { Jedis jedis ->
       Map<String, String> map = [status: status.name()]
       if (status == ExecutionStatus.RUNNING) {
         map.startTime = String.valueOf(currentTimeMillis())
@@ -201,7 +222,7 @@ class JedisExecutionRepository implements ExecutionRepository {
 
   @Override
   void storeStage(PipelineStage stage) {
-    withJedis { Jedis jedis ->
+    withJedis(getJedisPoolForId("pipeline:${stage.execution.id}" )) { Jedis jedis ->
       storeStageInternal(jedis, Pipeline, stage)
     }
   }
@@ -217,129 +238,209 @@ class JedisExecutionRepository implements ExecutionRepository {
 
   @Override
   void storeStage(OrchestrationStage stage) {
-    withJedis { Jedis jedis ->
+    withJedis(getJedisPoolForId("orchestration:${stage.execution.id}")) { Jedis jedis ->
       storeStageInternal(jedis, Orchestration, stage)
     }
   }
 
   @Override
   Pipeline retrievePipeline(String id) {
-    withJedis { Jedis jedis ->
+    withJedis(getJedisPoolForId("pipeline:${id}")) { Jedis jedis ->
       retrieveInternal(jedis, Pipeline, id)
     }
   }
 
   @Override
   void deletePipeline(String id) {
-    withJedis { Jedis jedis ->
+    withJedis(getJedisPoolForId("pipeline:${id}")) { Jedis jedis ->
       deleteInternal(jedis, Pipeline, id)
     }
   }
 
   @Override
   Observable<Pipeline> retrievePipelines() {
-    all(Pipeline)
+    return Observable.merge(allJedis().collect {all(Pipeline, it)})
   }
 
   @Override
   Observable<Pipeline> retrievePipelinesForApplication(String application) {
-    allForApplication(Pipeline, application)
+    return Observable.merge(allJedis().collect {allForApplication(Pipeline, application, it)})
   }
 
   @Override
   @CompileDynamic
   Observable<Pipeline> retrievePipelinesForPipelineConfigId(String pipelineConfigId,
                                                             ExecutionCriteria criteria) {
-    def filteredPipelineIds = null as List<String>
+    /**
+     * Fetch pipeline ids from the primary redis (and secondary if configured)
+     */
+    Map<Pool<Jedis>, List<String>> filteredPipelineIdsByJedis = [:].withDefault { [] }
     if (criteria.statuses) {
-      filteredPipelineIds = []
-      withJedis { Jedis jedis ->
-        def pipelineKeys = jedis.zrevrange(executionsByPipelineKey(pipelineConfigId), 0, -1)
-        def allowedExecutionStatuses = criteria.statuses*.toString() as Set<String>
+      allJedis().each { Pool<Jedis> jedisPool ->
+        withJedis(jedisPool) { Jedis jedis ->
+          def pipelineKeys = jedis.zrevrange(executionsByPipelineKey(pipelineConfigId), 0, -1)
+          def allowedExecutionStatuses = criteria.statuses*.toString() as Set<String>
 
-        def pipeline = jedis.pipelined()
-        def fetches = pipelineKeys.collect {
-          pipeline.hget("pipeline:${it}" as String, "status")
-        }
-        pipeline.sync()
+          def pipeline = jedis.pipelined()
+          def fetches = pipelineKeys.collect {
+            pipeline.hget("pipeline:${it}" as String, "status")
+          }
+          pipeline.sync()
 
-        fetches.eachWithIndex { Response<String> entry, int index ->
-          if (allowedExecutionStatuses.contains(entry.get())) {
-            filteredPipelineIds << pipelineKeys[index]
+          fetches.eachWithIndex { Response<String> entry, int index ->
+            if (allowedExecutionStatuses.contains(entry.get())) {
+              filteredPipelineIdsByJedis[jedisPool] << pipelineKeys[index]
+            }
           }
         }
       }
-
-      filteredPipelineIds = filteredPipelineIds.subList(0, Math.min(criteria.limit, filteredPipelineIds.size()))
     }
 
-    return retrieveObservable(Pipeline, executionsByPipelineKey(pipelineConfigId), new Func1<String, Iterable<String>>() {
-      @Override
-      Iterable<String> call(String key) {
-        withJedis { Jedis jedis ->
-          return filteredPipelineIds != null ? filteredPipelineIds : jedis.zrevrange(key, 0, (criteria.limit - 1))
+    def fnBuilder = { Pool<Jedis> targetPool, List<String> pipelineIds ->
+      new Func1<String, Iterable<String>>() {
+        @Override
+        Iterable<String> call(String key) {
+          withJedis(targetPool) { Jedis jedis ->
+            return criteria.statuses ? pipelineIds : jedis.zrevrange(key, 0, (criteria.limit - 1))
+          }
         }
       }
-    }, queryByAppScheduler)
+    }
+
+    /**
+     * Construct an observable that will retrieve pipelines from the primary redis
+     */
+    def currentPipelineIds = filteredPipelineIdsByJedis[jedisPool]
+    currentPipelineIds = currentPipelineIds.subList(0, Math.min(criteria.limit, currentPipelineIds.size()))
+
+    def currentObservable = retrieveObservable(
+      Pipeline,
+      executionsByPipelineKey(pipelineConfigId),
+      fnBuilder.call(jedisPool, currentPipelineIds),
+      queryByAppScheduler,
+      jedisPool
+    )
+
+    if (jedisPoolPrevious.present) {
+      /**
+       * If configured, construct an observable the will retrieve pipelines from the secondary redis
+       */
+      def previousPipelineIds = filteredPipelineIdsByJedis[jedisPoolPrevious.get()]
+      previousPipelineIds = previousPipelineIds.subList(0, Math.min(criteria.limit, previousPipelineIds.size()))
+
+      def previousObservable = retrieveObservable(
+        Pipeline,
+        executionsByPipelineKey(pipelineConfigId),
+        fnBuilder.call(jedisPoolPrevious.get(), previousPipelineIds),
+        queryByAppScheduler,
+        jedisPoolPrevious.get()
+      )
+
+      // merge primary + secondary observables
+      return Observable.merge(currentObservable, previousObservable)
+    }
+
+    return currentObservable
   }
 
   @Override
   Orchestration retrieveOrchestration(String id) {
-    withJedis { Jedis jedis ->
+    withJedis(getJedisPoolForId("orchestration:${id}")) { Jedis jedis ->
       retrieveInternal(jedis, Orchestration, id)
     }
   }
 
   @Override
   void deleteOrchestration(String id) {
-    withJedis { Jedis jedis ->
+    withJedis(getJedisPoolForId("orchestration:${id}")) { Jedis jedis ->
       deleteInternal(jedis, Orchestration, id)
     }
   }
 
   @Override
   Observable<Orchestration> retrieveOrchestrations() {
-    all(Orchestration)
+    return Observable.merge(allJedis().collect {all(Orchestration, it)})
   }
 
   @Override
   @CompileDynamic
   Observable<Orchestration> retrieveOrchestrationsForApplication(String application, ExecutionCriteria criteria) {
     def allOrchestrationsKey = appKey(Orchestration, application)
-    def filteredOrchestrationIds = null as List<String>
+
+    /**
+     * Fetch orchestration ids from the primary redis (and secondary if configured)
+     */
+    Map<Pool<Jedis>, List<String>> filteredOrchestrationIdsByJedis = [:].withDefault { [] }
     if (criteria.statuses) {
-      filteredOrchestrationIds = []
-      withJedis { Jedis jedis ->
-        def orchestrationKeys = jedis.smembers(allOrchestrationsKey) as List<String>
-        def allowedExecutionStatuses = criteria.statuses*.toString() as Set<String>
+      allJedis().each { Pool<Jedis> targetPool ->
+        withJedis(targetPool) { Jedis jedis ->
+          def orchestrationKeys = jedis.smembers(allOrchestrationsKey) as List<String>
+          def allowedExecutionStatuses = criteria.statuses*.toString() as Set<String>
 
-        def pipeline = jedis.pipelined()
-        def fetches = orchestrationKeys.collect {
-          pipeline.hget("orchestration:${it}" as String, "status")
-        }
-        pipeline.sync()
+          def pipeline = jedis.pipelined()
+          def fetches = orchestrationKeys.collect {
+            pipeline.hget("orchestration:${it}" as String, "status")
+          }
+          pipeline.sync()
 
-        fetches.eachWithIndex { Response<String> entry, int index ->
-          if (allowedExecutionStatuses.contains(entry.get())) {
-            filteredOrchestrationIds << orchestrationKeys[index]
+          fetches.eachWithIndex { Response<String> entry, int index ->
+            if (allowedExecutionStatuses.contains(entry.get())) {
+              filteredOrchestrationIdsByJedis[targetPool] << orchestrationKeys[index]
+            }
           }
         }
       }
-      filteredOrchestrationIds = filteredOrchestrationIds.subList(0, Math.min(criteria.limit, filteredOrchestrationIds.size()))
     }
 
-    return retrieveObservable(Orchestration, allOrchestrationsKey, new Func1<String, Iterable<String>>() {
-      @Override
-      Iterable<String> call(String key) {
-        withJedis { Jedis jedis ->
-          if (filteredOrchestrationIds != null) {
-            return filteredOrchestrationIds
+    def fnBuilder = { Pool<Jedis> targetPool, List<String> orchestrationIds ->
+      new Func1<String, Iterable<String>>() {
+        @Override
+        Iterable<String> call(String key) {
+          withJedis(targetPool) { Jedis jedis ->
+            if (criteria.statuses) {
+              return orchestrationIds
+            }
+            def unfiltered = jedis.smembers(key).toList()
+            return unfiltered.subList(0, Math.min(criteria.limit, unfiltered.size()))
           }
-          def unfiltered = jedis.smembers(key).toList()
-          return unfiltered.subList(0, Math.min(criteria.limit, unfiltered.size()))
         }
       }
-    }, queryByAppScheduler)
+    }
+
+    /**
+     * Construct an observable that will retrieve orchestrations from the primary redis
+     */
+    def currentOrchestrationIds = filteredOrchestrationIdsByJedis[jedisPool]
+    currentOrchestrationIds = currentOrchestrationIds.subList(0, Math.min(criteria.limit, currentOrchestrationIds.size()))
+
+    def currentObservable = retrieveObservable(
+      Orchestration,
+      allOrchestrationsKey,
+      fnBuilder.call(jedisPool, currentOrchestrationIds),
+      queryByAppScheduler,
+      jedisPool
+    )
+
+    if (jedisPoolPrevious.present) {
+      /**
+       * If configured, construct an observable the will retrieve orchestrations from the secondary redis
+       */
+      def previousOrchestrationIds = filteredOrchestrationIdsByJedis[jedisPoolPrevious.get()]
+      previousOrchestrationIds = previousOrchestrationIds.subList(0, Math.min(criteria.limit, previousOrchestrationIds.size()))
+
+      def previousObservable = retrieveObservable(
+        Orchestration,
+        allOrchestrationsKey,
+        fnBuilder.call(jedisPoolPrevious.get(), previousOrchestrationIds),
+        queryByAppScheduler,
+        jedisPoolPrevious.get()
+      )
+
+      // merge primary + secondary observables
+      return Observable.merge(currentObservable, previousObservable)
+    }
+
+    return currentObservable
   }
 
   private void storeExecutionInternal(JedisCommands jedis, Execution execution) {
@@ -496,28 +597,35 @@ class JedisExecutionRepository implements ExecutionRepository {
     }
   }
 
-  private <T extends Execution> Observable<T> all(Class<T> type) {
-    retrieveObservable(type, alljobsKey(type), queryAllScheduler)
+  private <T extends Execution> Observable<T> all(Class<T> type, Pool<Jedis> jedisPool) {
+    retrieveObservable(type, alljobsKey(type), queryAllScheduler, jedisPool)
   }
 
-  private <T extends Execution> Observable<T> allForApplication(Class<T> type, String application) {
-    retrieveObservable(type, appKey(type, application), queryByAppScheduler)
+  private <T extends Execution> Observable<T> allForApplication(Class<T> type, String application, Pool<Jedis> jedisPool) {
+    retrieveObservable(type, appKey(type, application), queryByAppScheduler, jedisPool)
   }
 
   @CompileDynamic
-  private <T extends Execution> Observable<T> retrieveObservable(Class<T> type, String lookupKey, Scheduler scheduler) {
+  private <T extends Execution> Observable<T> retrieveObservable(Class<T> type,
+                                                                 String lookupKey,
+                                                                 Scheduler scheduler,
+                                                                 Pool<Jedis> jedisPool) {
     return retrieveObservable(type, lookupKey, new Func1<String, Iterable<String>>() {
       @Override
       Iterable<String> call(String key) {
-        withJedis { Jedis jedis ->
+        withJedis(jedisPool) { Jedis jedis ->
           return jedis.smembers(key)
         }
       }
-    }, scheduler)
+    }, scheduler, jedisPool)
   }
 
   @CompileDynamic
-  private <T extends Execution> Observable<T> retrieveObservable(Class<T> type, String lookupKey, Func1<String, Iterable<String>> lookupKeyFetcher, Scheduler scheduler) {
+  private <T extends Execution> Observable<T> retrieveObservable(Class<T> type,
+                                                                 String lookupKey,
+                                                                 Func1<String, Iterable<String>> lookupKeyFetcher,
+                                                                 Scheduler scheduler,
+                                                                 Pool<Jedis> jedisPool) {
     Observable
       .just(lookupKey)
       .flatMapIterable(lookupKeyFetcher)
@@ -526,7 +634,7 @@ class JedisExecutionRepository implements ExecutionRepository {
       Observable
         .from(ids)
         .flatMap { String executionId ->
-        withJedis { Jedis jedis ->
+        withJedis(jedisPool) { Jedis jedis ->
           try {
             return Observable.just(retrieveInternal(jedis, type, executionId))
           } catch (ExecutionNotFoundException ignored) {
@@ -546,11 +654,11 @@ class JedisExecutionRepository implements ExecutionRepository {
     }
   }
 
-  private String alljobsKey(Class type) {
+  private static String alljobsKey(Class type) {
     "allJobs:${type.simpleName.toLowerCase()}"
   }
 
-  private String appKey(Class type, String app) {
+  private static String appKey(Class type, String app) {
     "${type.simpleName.toLowerCase()}:app:${app}"
   }
 
@@ -560,22 +668,62 @@ class JedisExecutionRepository implements ExecutionRepository {
   }
 
   private String fetchKey(String id) {
-    withJedis { Jedis jedis ->
-      String key
+    String key = withJedis(jedisPool) { Jedis jedis ->
       if (jedis.exists("pipeline:$id")) {
-        key = "pipeline:$id"
+        return "pipeline:$id"
       } else if (jedis.exists("orchestration:$id")) {
-        key = "orchestration:$id"
-      } else {
-        throw new ExecutionNotFoundException("No execution found with id $id")
+        return "orchestration:$id"
       }
-
-      return key
+      return null
     }
+
+    if (!key && jedisPoolPrevious.present) {
+      key = withJedis(jedisPoolPrevious.get()) { Jedis jedis ->
+        if (jedis.exists("pipeline:$id")) {
+          return "pipeline:$id"
+        } else if (jedis.exists("orchestration:$id")) {
+          return "orchestration:$id"
+        }
+        return null
+      }
+    }
+
+    if (!key) {
+      throw new ExecutionNotFoundException("No execution found with id $id")
+    }
+
+    return key
   }
 
-  private <T> T withJedis(Function<Jedis, T> action) {
+  private Pool<Jedis> getJedisPoolForId(String id) {
+    if (!id) {
+      return jedisPool
+    }
+
+    Pool<Jedis> jedisPoolForId = null
+    withJedis(jedisPool) { Jedis jedis ->
+      if (jedis.exists(id)) {
+        jedisPoolForId = jedisPool
+      }
+    }
+
+    if (!jedisPoolForId && jedisPoolPrevious.present) {
+      withJedis(jedisPoolPrevious.get()) { Jedis jedis ->
+        if (jedis.exists(id)) {
+          jedisPoolForId = jedisPoolPrevious.get()
+        }
+      }
+    }
+
+    return jedisPoolForId ?: jedisPool
+  }
+
+  private <T> T withJedis(Pool<Jedis> jedisPool, Function<Jedis, T> action) {
     jedisPool.resource.withCloseable(action.&apply)
+  }
+
+  private Collection<Pool<Jedis>> allJedis() {
+    return ([jedisPool] + (jedisPoolPrevious.present ? [jedisPoolPrevious.get()] : []))
   }
 
   private static ThreadPoolTaskExecutor newFixedThreadPool(Registry registry,
