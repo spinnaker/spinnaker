@@ -212,6 +212,6 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
       1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
       1 * imageNameFactoryMock.buildPackagesParameter(BakeRequest.PackageType.DEB, osPackages) >> PACKAGES_NAME
-      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/azure-linux.json")
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/azure-linux.json")
   }
 }

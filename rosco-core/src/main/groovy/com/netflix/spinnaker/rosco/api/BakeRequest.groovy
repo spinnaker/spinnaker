@@ -64,6 +64,8 @@ class BakeRequest {
   String template_file_name
   @ApiModelProperty("A map of key/value pairs to add to the packer command")
   Map extended_attributes
+  @ApiModelProperty("The name of a json file containing key/value pairs to add to the packer command (must be in the same location as the template file)")
+  String var_file_name
 
   static enum CloudProviderType {
     aws, azure, docker, gce, openstack

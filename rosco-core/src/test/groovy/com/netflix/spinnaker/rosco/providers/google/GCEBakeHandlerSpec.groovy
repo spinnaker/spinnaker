@@ -186,7 +186,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
       1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
-      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$gceBakeryDefaults.templateFile")
   }
 
   void 'produces packer command with all required parameters for centos'() {
@@ -226,7 +226,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
       1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
       1 * imageNameFactoryMock.buildPackagesParameter(RPM_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
-      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$gceBakeryDefaults.templateFile")
   }
 
   void 'produces packer command with all required parameters for ubuntu, and overriding base image'() {
@@ -267,7 +267,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
       1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
-      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$gceBakeryDefaults.templateFile")
   }
 
   void 'produces packer command with all required parameters for ubuntu, and overriding template filename'() {
@@ -308,7 +308,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
       1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
-      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/somePackerTemplate.json")
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/somePackerTemplate.json")
   }
 
   void 'produces packer command with all required parameters for ubuntu, and adding extended attributes'() {
@@ -351,7 +351,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
       1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
-      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$gceBakeryDefaults.templateFile")
   }
 
   void 'produces packer command with all required parameters for ubuntu, and overrides native attributes via extended attributes'() {
@@ -392,7 +392,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
       1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
-      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$gceBakeryDefaults.templateFile")
   }
 
   void 'produces packer command with all required parameters for trusty'() {
@@ -432,7 +432,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
       1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
-      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$gceBakeryDefaults.templateFile")
   }
 
   void 'produces packer command with all required parameters including appversion and build_host for trusty'() {
@@ -478,7 +478,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
       1 * imageNameFactoryMock.buildImageName(bakeRequest, [osPackage]) >> targetImageName
       1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, [osPackage]) >> appVersionStr
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, [osPackage]) >> fullyQualifiedPackageName
-      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$gceBakeryDefaults.templateFile")
   }
 
   void 'throws exception when virtualization settings are not found for specified operating system'() {

@@ -71,6 +71,8 @@ abstract class CloudProviderBakeHandler {
    * bake.
    */
   String produceBakeKey(String region, BakeRequest bakeRequest) {
+    // TODO(duftler): Consider whether template_file_name, extended_attributes and var_file_name should be
+    // taken into account when composing the bake key.
     bakeRequest.with {
       def bakeKey = "bake:$cloud_provider_type:$base_os"
 
@@ -194,9 +196,13 @@ abstract class CloudProviderBakeHandler {
               attributes.findAll { !it.equals('share_with') && !it.equals('copy_to') })
     }
 
-    def finalTemplateFileName = bakeRequest.template_file_name ?: templateFileName
+    def finalTemplateFileName = "$configDir/${bakeRequest.template_file_name ?: templateFileName}"
+    def finalVarFileName = bakeRequest.var_file_name ? "$configDir/$bakeRequest.var_file_name" : null
 
-    return packerCommandFactory.buildPackerCommand(baseCommand, parameterMap, "$configDir/$finalTemplateFileName")
+    return packerCommandFactory.buildPackerCommand(baseCommand,
+                                                   parameterMap,
+                                                   finalVarFileName,
+                                                   finalTemplateFileName)
   }
 
   private void unrollParameters(String prefix, String rolledParameter, Map parameterMap) {
