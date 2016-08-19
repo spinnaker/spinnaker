@@ -7,7 +7,16 @@
     </div>
     <div class="modal-body confirmation-modal">
       <div class="form-horizontal">
-        <gce-resize-capacity command="command" current-size="currentSize"></gce-resize-capacity>
+        <gce-resize-capacity ng-if="!serverGroup.autoscalingPolicy"
+                             server-group="serverGroup"
+                             form-methods="formMethods"
+                             application="application"
+                             command="command"></gce-resize-capacity>
+        <gce-resize-autoscaling-policy ng-if="serverGroup.autoscalingPolicy"
+                                       server-group="serverGroup"
+                                       form-methods="formMethods"
+                                       application="application"
+                                       command="command"></gce-resize-autoscaling-policy>
       </div>
       <div class="row" ng-if="command.platformHealthOnlyShowOverride">
         <div class="col-sm-10 col-sm-offset-1">

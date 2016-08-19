@@ -123,6 +123,10 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'gce.loadBalancer.advancedSettings.unhealthyThreshold': '<p>Configures the number of unhealthy observations before deservicing an instance from the load balancer.</p><p>Default: <b>2</b></p>',
     'gce.loadBalancer.healthCheck': '(Optional) <b>Health Checks</b> use HTTP requests to determine if a VM instance is healthy.',
     'gce.loadBalancer.portRange': '(Optional) Only packets addressed to ports in the specified <b>Port Range</b> will be forwarded. If left empty, all ports are forwarded. Must be a single port number or two port numbers separated by a dash. Each port number must be between 1 and 65535, inclusive. For example: 5000-5999.',
+    'gce.serverGroup.resizeWithAutoscalingPolicy': `
+      Setting the desired instance count for a server group with an autoscaler is not supported by Spinnaker;
+      if the desired instance count differs from the instance count that the autoscaler wants to maintain for its configured metrics,
+      it will quickly override the desired instance count.`,
     'gce.serverGroup.scalingPolicy.coolDownPeriodSec': 'How long to wait before collecting information from a new instance. This should be at least the time it takes to initialize the instance.',
     'gce.serverGroup.scalingPolicy.cpuUtilization' : 'Autoscaler adds or removes instances to maintain this CPU usage on each instance.',
     'gce.serverGroup.scalingPolicy.loadBalancingUtilization' : 'Autoscaler adds or removes instances to maintain this usage of load-balancing capacity.',

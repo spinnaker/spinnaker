@@ -8,20 +8,21 @@ module.exports = angular
   ])
   .factory('gceAutoscalingPolicyWriter', function(taskExecutor) {
 
-    function upsertAutoscalingPolicy(application, serverGroup, policy) {
+    function upsertAutoscalingPolicy(application, serverGroup, policy, params = {}) {
+      let job = {
+        type: 'upsertScalingPolicy',
+        cloudProvider: serverGroup.type,
+        credentials: serverGroup.account,
+        region: serverGroup.region,
+        serverGroupName: serverGroup.name,
+        autoscalingPolicy: policy
+      };
+      angular.extend(job, params);
+
       return taskExecutor.executeTask({
         application,
         description: 'Upsert scaling policy ' + serverGroup.name,
-        job: [
-          {
-            type: 'upsertScalingPolicy',
-            cloudProvider: serverGroup.type,
-            credentials: serverGroup.account,
-            region: serverGroup.region,
-            serverGroupName: serverGroup.name,
-            autoscalingPolicy: policy
-          }
-        ]
+        job: [job]
       });
     }
 
