@@ -207,6 +207,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.bake.enhancedNetworking': '<p>(Optional) Enable enhanced networking (sr-iov) support for image (requires hvm and trusty base_os).</p>',
     'pipeline.config.bake.amiName': '<p>(Optional) Default = $package-$arch-$ami_suffix-$store_type</p>',
     'pipeline.config.bake.templateFileName': '<p>(Optional) The explicit packer template to use, instead of resolving one from rosco\'s configuration.</p>',
+    'pipeline.config.bake.varFileName': '<p>(Optional) The name of a json file containing key/value pairs to add to the packer command.</p>',
     'pipeline.config.bake.extendedAttributes': '<p>(Optional) Any additional attributes that you want to pass onto rosco, which will be injected into your packer runtime variables.</p>',
     'pipeline.config.gce.bake.baseImage': '<p>(Optional) A GCE image name. For example: ubuntu-1204-precise-v20150910.</p>',
     'pipeline.config.manualJudgment.instructions': '<p>(Optional) Instructions are shown to the user when making a manual judgment.</p><p>May contain HTML.</p>',

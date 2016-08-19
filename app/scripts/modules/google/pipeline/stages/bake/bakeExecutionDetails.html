@@ -24,6 +24,8 @@
           <dd ng-if="roscoMode || stage.context.rebake">{{stage.context.rebake || false}}</dd>
           <dt ng-if="stage.context.templateFileName">Template</dt>
           <dd ng-if="stage.context.templateFileName">{{stage.context.templateFileName}}</dd>
+          <dt ng-if="stage.context.varFileName">Var File</dt>
+          <dd ng-if="stage.context.varFileName">{{stage.context.varFileName}}</dd>
         </dl>
       </div>
     </div>

@@ -99,6 +99,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.bakeStage', [
       return $scope.viewState.roscoMode || ($scope.stage.extendedAttributes && _.size($scope.stage.extendedAttributes) > 0);
     };
 
+    this.showVarFileName = function() {
+      return $scope.viewState.roscoMode || $scope.stage.varFileName;
+    };
+
     $scope.$watch('stage', deleteEmptyProperties, true);
 
     initialize();
