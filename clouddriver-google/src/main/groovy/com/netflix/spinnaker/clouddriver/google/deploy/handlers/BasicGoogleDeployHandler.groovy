@@ -30,7 +30,6 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
-import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
@@ -183,6 +182,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     List<BackendService> backendServicesToUpdate = []
     if (hasBackendServices) {
       List<String> backendServices = description.instanceMetadata[GoogleServerGroup.View.BACKEND_SERVICE_NAMES].split(",")
+      description.instanceMetadata[GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES] = GCEUtil.resolveHttpLoadBalancerNamesMetadata(backendServices, compute, project).join(",")
       String sourcePolicyJson = description.instanceMetadata[GoogleServerGroup.View.LOAD_BALANCING_POLICY]
       def loadBalancingPolicy = description.loadBalancingPolicy
 

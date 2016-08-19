@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.model.callbacks
 
-import com.google.api.services.compute.model.InstanceTemplate
-import com.google.api.services.compute.model.Metadata
+import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
@@ -141,6 +140,17 @@ class Utils {
       backendServices << pathMatcher.defaultService
       pathMatcher?.pathRules?.each { GooglePathRule googlePathRule ->
         backendServices << googlePathRule.backendService
+      }
+    }
+    return backendServices
+  }
+
+  static List<String> getBackendServicesFromUrlMap(UrlMap urlMap) {
+    List<String> backendServices = [GCEUtil.getLocalName(urlMap.defaultService)]
+    urlMap?.pathMatchers?.each { PathMatcher pathMatcher ->
+      backendServices << GCEUtil.getLocalName(pathMatcher.defaultService)
+      pathMatcher?.pathRules?.each { PathRule pathRule ->
+        backendServices << GCEUtil.getLocalName(pathRule.service)
       }
     }
     return backendServices

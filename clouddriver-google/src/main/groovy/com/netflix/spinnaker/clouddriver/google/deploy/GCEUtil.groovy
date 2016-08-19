@@ -822,6 +822,53 @@ class GCEUtil {
   }
 
   /**
+   * Resolve the L7 load balancer names that need added to the instance metadata.
+   *
+   * @param backendServiceNames - Backend service names explicitly included in the request.
+   * @param compute
+   * @param project
+   * @return List of L7 load balancer names to put into the instance metadata.
+   */
+  static List<String> resolveHttpLoadBalancerNamesMetadata(List<String> backendServiceNames, Compute compute, String project) {
+    def loadBalancerNames = []
+    def projectUrlMaps = compute.urlMaps().list(project).execute().getItems()
+    def servicesByUrlMap = [:]
+    projectUrlMaps.each { UrlMap urlMap ->
+      servicesByUrlMap.put(urlMap.name, Utils.getBackendServicesFromUrlMap(urlMap))
+    }
+
+    def urlMapsInUse = []
+    backendServiceNames.each { String backendServiceName ->
+      servicesByUrlMap.each { urlMapName, services ->
+        if (backendServiceName in services) {
+          urlMapsInUse << urlMapName
+        }
+      }
+    }
+
+    def globalForwardingRules = compute.globalForwardingRules().list(project).execute().getItems()
+    globalForwardingRules.each { ForwardingRule fr ->
+      String proxyType = Utils.getTargetProxyType(fr.target)
+      def proxy = null
+      switch (proxyType) {
+        case "targetHttpProxies":
+          proxy = compute.targetHttpProxies().get(project, getLocalName(fr.target)).execute()
+          break
+        case "targetHttpsProxies":
+          proxy = compute.targetHttpsProxies().get(project, getLocalName(fr.target)).execute()
+          break
+        default:
+          throw new GoogleOperationException("Illegal proxy type for ${fr.target}.")
+          break
+      }
+      if (getLocalName(proxy.urlMap) in urlMapsInUse) {
+        loadBalancerNames << fr.name
+      }
+    }
+    return loadBalancerNames
+  }
+
+  /**
    * Retry a GCP operation if it fails. Treat any error codes in successfulErrorCodes as success.
    *
    * @param operation - The GCP operation.
