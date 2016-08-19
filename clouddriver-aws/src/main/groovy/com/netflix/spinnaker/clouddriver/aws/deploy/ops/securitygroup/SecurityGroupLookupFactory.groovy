@@ -24,6 +24,7 @@ import com.amazonaws.services.ec2.model.Filter
 import com.amazonaws.services.ec2.model.IpPermission
 import com.amazonaws.services.ec2.model.RevokeSecurityGroupIngressRequest
 import com.amazonaws.services.ec2.model.SecurityGroup
+import com.amazonaws.services.ec2.model.UserIdGroupPair
 import com.google.common.collect.ImmutableSet
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -210,7 +211,7 @@ class SecurityGroupLookupFactory {
         groupId: securityGroup.groupId,
         ipPermissions: ipPermissionsToAdd
       ))
-      securityGroup.ipPermissions.addAll(ipPermissionsToAdd)
+      securityGroup.ipPermissions.addAll(ipPermissionsToAdd.findResults(SecurityGroupLookupFactory.&cleanPermissionForApi))
     }
 
     void removeIngress(List<IpPermission> ipPermissionsToRemove) {
@@ -218,9 +219,30 @@ class SecurityGroupLookupFactory {
         groupId: securityGroup.groupId,
         ipPermissions: ipPermissionsToRemove
       ))
-      securityGroup.ipPermissions.removeAll(ipPermissionsToRemove)
+      securityGroup.ipPermissions.removeAll(ipPermissionsToRemove.findResults(SecurityGroupLookupFactory.&cleanPermissionForApi))
     }
 
   }
 
+  static IpPermission cleanPermissionForApi(IpPermission perm) {
+    if (perm == null) {
+      return null
+    }
+    return new IpPermission(
+      fromPort: perm.fromPort,
+      toPort: perm.toPort,
+      ipProtocol: perm.ipProtocol,
+      ipRanges: perm.ipRanges ? new ArrayList<String>(perm.ipRanges) : null,
+      userIdGroupPairs: perm.userIdGroupPairs?.collect {
+        def pair = new UserIdGroupPair(userId: it.userId, vpcId: it.vpcId)
+        if (it.groupId) {
+          pair.setGroupId(it.groupId)
+        } else if (it.groupName) {
+          pair.setGroupName(it.groupName)
+        } else {
+          throw new IllegalStateException("one of groupName or groupId is required")
+        }
+        return pair
+      } ?: null)
+  }
 }
