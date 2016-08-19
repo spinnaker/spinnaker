@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.core.retry.service', [])
   .factory('retryService', function ($q, $timeout) {
-    
+
     // interval is in milliseconds
     function buildRetrySequence (fn, stopCondition, limit, interval) {
       let fnCall = fn();

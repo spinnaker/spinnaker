@@ -66,11 +66,11 @@ module.exports = angular.module('spinnaker.securityGroup.configure.openstack.por
           rule.cidr = '0.0.0.0/0';
           rule.prevcidr = '0.0.0.0/0';
         }
-        else  {
+        else {
           rule.cidr = rule.prevcidr;
         }
       }
-      else  {
+      else {
         rule.prevcidr = rule.cidr;
         rule.cidr = '';
       }
@@ -94,7 +94,7 @@ module.exports = angular.module('spinnaker.securityGroup.configure.openstack.por
     };
 
     $scope.loadSecurityGroups = function(account, region) {
-      if(account !== undefined && region !== undefined)  {
+      if(account !== undefined && region !== undefined) {
         $scope.initializeSecurityGroups();
       }
     };

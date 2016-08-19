@@ -311,7 +311,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
         var regionSecurityGroups = accountIndex[serverGroup.region] || {};
         $scope.securityGroups = _.map(serverGroup.launchConfig.securityGroups, (sgId) => {
           //TODO(jcwest): remove this once the back-end sends correctly formatted security group IDs
-          if( new RegExp('^\\[u\'').test(sgId) ){
+          if( new RegExp('^\\[u\'').test(sgId) ) {
             sgId = sgId.split('\'')[1];
           }
           return regionSecurityGroups[sgId] || {id: sgId, name: sgId};
