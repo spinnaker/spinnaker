@@ -832,9 +832,8 @@ class GCEUtil {
   static List<String> resolveHttpLoadBalancerNamesMetadata(List<String> backendServiceNames, Compute compute, String project) {
     def loadBalancerNames = []
     def projectUrlMaps = compute.urlMaps().list(project).execute().getItems()
-    def servicesByUrlMap = [:]
-    projectUrlMaps.each { UrlMap urlMap ->
-      servicesByUrlMap.put(urlMap.name, Utils.getBackendServicesFromUrlMap(urlMap))
+    def servicesByUrlMap = projectUrlMaps.collectEntries { UrlMap urlMap ->
+      [(urlMap.name): Utils.getBackendServicesFromUrlMap(urlMap)]
     }
 
     def urlMapsInUse = []
