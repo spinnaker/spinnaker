@@ -250,7 +250,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
       '<p>The <em>lowest</em> strategy means that the cluster with the lowest score is used as the rolled up score</p>' +
       '<p>The <em>average</em> strategy takes the average of all the canary scores</p>',
 
-    'pipeline.config.canary.delayBeforeAnalysis': '<p>The number of minutes to wait before generating an initial canary score.</p>',
+    'pipeline.config.canary.delayBeforeAnalysis': '<p>The number of minutes until the first ACA measurement interval begins.</p>',
 
     'pipeline.config.canary.notificationHours': '<p>Hours at which to send a notification (comma separated)</p>',
 
