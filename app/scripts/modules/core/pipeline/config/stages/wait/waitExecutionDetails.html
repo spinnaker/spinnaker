@@ -1,11 +1,24 @@
-<div ng-controller="WaitExecutionDetailsCtrl">
+<div ng-controller="WaitExecutionDetailsCtrl as ctrl">
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
   <div class="step-section-details" ng-if="detailsSection === 'waitConfig'">
     <div class="row">
-      <div class="col-md-9">
+      <div class="col-md-12">
         <dl class="dl-narrow dl-horizontal">
           <dt>Wait Time</dt>
-          <dd>{{stage.context.waitTime}} seconds</dd>
+          <dd>
+            {{stage.context.waitTime}} seconds
+            <span ng-if="stage.context.skipRemainingWait"> (skipped after {{stage.runningTimeInMs | duration}})</span>
+          </dd>
+          <dt ng-if="stage.isRunning">Remaining</dt>
+          <dd ng-if="stage.isRunning">
+            {{ctrl.getRemainingWait() | duration }}
+            <div>
+              <button class="btn btn-xs btn-primary" ng-click="ctrl.finishWaiting()">
+                <span style="margin-right: 5px" class="small glyphicon glyphicon-fast-forward"></span>
+                Skip remaining wait
+              </button>
+            </div>
+          </dd>
         </dl>
       </div>
     </div>
