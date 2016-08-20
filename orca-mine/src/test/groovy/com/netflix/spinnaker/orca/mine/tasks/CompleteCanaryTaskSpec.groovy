@@ -85,7 +85,33 @@ class CompleteCanaryTaskSpec extends Specification {
 
   }
 
-  def "Canaries NOT marked with continueOnUnhealthy and canary IS unhealthy then return throw exception"() {
+
+  @Unroll
+  def "Canary is marked with continueOnUnhealthy: #continueOnUnhealthy and canary has a status of #overallResult then return #expectedStatus"() {
+    given:
+    def stage = new PipelineStage(new Pipeline(), "ACATask", "ACATask", [
+      canary: [
+        canaryResult: [
+          overallResult: overallResult
+        ]
+      ],
+      continueOnUnhealthy: continueOnUnhealthy
+    ])
+
+    when:
+    def taskResult = task.execute(stage)
+
+    then:
+    taskResult.status == expectedStatus
+
+    where:
+    overallResult | continueOnUnhealthy | expectedStatus
+    "FAILURE"     | true                | ExecutionStatus.FAILED_CONTINUE
+    "FAILURE"     | false               | ExecutionStatus.TERMINAL
+
+  }
+
+  def "Canaries NOT marked with continueOnUnhealthy and canary IS unhealthy should be TERMINAL"() {
     given:
     def stage = new PipelineStage(new Pipeline(), "ACATask", "ACATask", [
       canary: [
@@ -97,14 +123,13 @@ class CompleteCanaryTaskSpec extends Specification {
     ])
 
     when:
-    task.execute(stage)
+    def result = task.execute(stage)
 
     then:
-    def error = thrown(IllegalStateException)
-    error.message == "Canary failed"
+    result.status == ExecutionStatus.TERMINAL
   }
 
-  def "Canary with NO continueOnUnhealthy on context and canary IS unhealthy then throw exception"() {
+  def "Canary with NO continueOnUnhealthy on context and canary IS unhealthy then should be terminal"() {
     given:
     def stage = new PipelineStage(new Pipeline(), "ACATask", "ACATask", [
       canary: [
@@ -115,12 +140,28 @@ class CompleteCanaryTaskSpec extends Specification {
     ])
 
     when:
+    def result = task.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.TERMINAL
+  }
+
+  def "Canary with is in an unhandeled state then throw and error"() {
+    given:
+    def stage = new PipelineStage(new Pipeline(), "ACATask", "ACATask", [
+      canary: [
+        status: [status: ""],
+        health: [
+          health: ""
+        ]
+      ]
+    ])
+    when:
     task.execute(stage)
 
     then:
     def error = thrown(IllegalStateException)
-    error.message == "Canary failed"
+    error.message == "Canary in unhandled state"
   }
-
 
 }
