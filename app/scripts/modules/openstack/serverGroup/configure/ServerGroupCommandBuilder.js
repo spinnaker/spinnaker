@@ -46,7 +46,8 @@ module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.s
     function buildServerGroupCommandFromExisting(application, serverGroup, mode = 'clone') {
       var subnetsLoader = subnetReader.listSubnets();
       var serverGroupName = namingService.parseServerGroupName(serverGroup.name);
-      var instanceType = serverGroup.launchConfig ? serverGroup.launchConfig.instanceType : null;
+      // TODO: unused variable
+      // var instanceType = serverGroup.launchConfig ? serverGroup.launchConfig.instanceType : null;
 
       var asyncLoader = $q.all({
         subnets: subnetsLoader,

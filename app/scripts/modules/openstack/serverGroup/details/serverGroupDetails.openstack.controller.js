@@ -258,7 +258,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
     };
 
     this.resizeServerGroup = () => {
-        alert('Not yet implemented.');
+      alert('Not yet implemented.');
     };
 
     this.cloneServerGroup = (serverGroup) => {
