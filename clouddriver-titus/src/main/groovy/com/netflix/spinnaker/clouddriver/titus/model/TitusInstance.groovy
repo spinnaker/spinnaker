@@ -39,6 +39,7 @@ class TitusInstance implements Instance {
   List<Map<String, String>> health
   TitusInstanceResources resources = new TitusInstanceResources()
   TitusInstancePlacement placement = new TitusInstancePlacement()
+  Set<TitusSecurityGroup> securityGroups
 
   TitusInstance(Job job, Job.TaskSummary task) {
     id = task.id

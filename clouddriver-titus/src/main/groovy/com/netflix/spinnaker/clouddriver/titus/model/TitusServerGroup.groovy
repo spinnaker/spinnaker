@@ -22,7 +22,6 @@ import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.titus.caching.Keys
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
-import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState
 
 /**
  * Equivalent of a Titus {@link com.netflix.spinnaker.clouddriver.titus.client.model.Job}
@@ -37,7 +36,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
   String type = TYPE
   String entryPoint
   String iamProfile
-  List<String> securityGroups
+  List securityGroups
   Map env
   Long submittedAt
   String application
@@ -96,7 +95,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
   }
 
   @Override
-  Set<String> getSecurityGroups() {
+  Set<Map> getSecurityGroups() {
     securityGroups as Set
   }
 
