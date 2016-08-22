@@ -22,6 +22,7 @@ import groovy.util.logging.Slf4j
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.extensions.Ingress
 import io.fabric8.kubernetes.api.model.extensions.Job
+import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClientException
@@ -148,15 +149,21 @@ class KubernetesApiAdaptor {
     }
   }
 
-  List<ReplicationController> getReplicationControllers(String namespace) {
-    atomicWrapper("Get Replication Controllers", namespace) { KubernetesClient client ->
-      client.replicationControllers().inNamespace(namespace).list().items
+  List<ReplicaSet> getReplicaSets(String namespace) {
+    atomicWrapper("Get Replica Sets", namespace) { KubernetesClient client ->
+      client.extensions().replicaSets().inNamespace(namespace).list().items
     }
   }
 
-  List<Pod> getReplicationControllerPods(String namespace, String replicationControllerName) {
-    atomicWrapper("Get Replication Controller Pods for $replicationControllerName", namespace) { KubernetesClient client ->
-      client.pods().inNamespace(namespace).withLabel(KubernetesUtil.REPLICATION_CONTROLLER_LABEL, replicationControllerName).list().items
+  List<Pod> getReplicaSetPods(String namespace, String replicaSetName) {
+    atomicWrapper("Get Replica Set Pods for $replicaSetName", namespace) { KubernetesClient client ->
+      client.pods().inNamespace(namespace).withLabel(KubernetesUtil.REPLICATION_CONTROLLER_LABEL, replicaSetName).list().items
+    }
+  }
+
+  ReplicaSet getReplicaSet(String namespace, String serverGroupName) {
+    atomicWrapper("Get Replica Set $serverGroupName", namespace) { KubernetesClient client ->
+      client.extensions().replicaSets().inNamespace(namespace).withName(serverGroupName).get()
     }
   }
 
@@ -187,6 +194,18 @@ class KubernetesApiAdaptor {
   List<Pod> getPods(String namespace) {
     atomicWrapper("Get Pods", namespace) { KubernetesClient client ->
       client.pods().inNamespace(namespace).list().items
+    }
+  }
+
+  List<ReplicationController> getReplicationControllers(String namespace) {
+    atomicWrapper("Get Replication Controllers", namespace) { KubernetesClient client ->
+      client.replicationControllers().inNamespace(namespace).list().items
+    }
+  }
+
+  List<Pod> getReplicationControllerPods(String namespace, String replicationControllerName) {
+    atomicWrapper("Get Replication Controller Pods for $replicationControllerName", namespace) { KubernetesClient client ->
+      client.pods().inNamespace(namespace).withLabel(KubernetesUtil.REPLICATION_CONTROLLER_LABEL, replicationControllerName).list().items
     }
   }
 

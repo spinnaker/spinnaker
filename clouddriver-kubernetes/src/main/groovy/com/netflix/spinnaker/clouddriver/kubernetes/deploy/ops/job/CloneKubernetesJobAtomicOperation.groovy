@@ -83,7 +83,7 @@ class CloneKubernetesJobAtomicOperation implements AtomicOperation<DeploymentRes
     newDescription.parallelism = description.parallelism ?: ancestorJob.spec?.parallelism
     newDescription.completions = description.completions ?: ancestorJob.spec?.completions
     newDescription.namespace = description.namespace ?: description.source.namespace
-    newDescription.loadBalancers = description.loadBalancers != null ? description.loadBalancers : KubernetesUtil.getJobLoadBalancers(ancestorJob)
+    newDescription.loadBalancers = description.loadBalancers != null ? description.loadBalancers : KubernetesUtil.getLoadBalancers(ancestorJob)
     newDescription.restartPolicy = description.restartPolicy ?: KubernetesJobRestartPolicy.fromString(ancestorJob.spec?.template?.spec?.restartPolicy)
     if (!description.containers) {
       newDescription.containers = ancestorJob.spec?.template?.spec?.containers?.collect { it ->

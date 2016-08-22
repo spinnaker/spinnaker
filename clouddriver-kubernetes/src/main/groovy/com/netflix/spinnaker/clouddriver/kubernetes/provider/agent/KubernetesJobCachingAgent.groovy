@@ -275,7 +275,7 @@ class KubernetesJobCachingAgent implements CachingAgent, OnDemandAgent, AccountA
         def applicationKey = Keys.getApplicationKey(applicationName)
         def clusterKey = Keys.getClusterKey(accountName, applicationName, category, clusterName)
         def processKeys = []
-        def loadBalancerKeys = KubernetesUtil.getJobLoadBalancers(job).collect({
+        def loadBalancerKeys = KubernetesUtil.getLoadBalancers(job).collect({
           Keys.getLoadBalancerKey(accountName, namespace, it)
         })
 

@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergro
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.extensions.Ingress
 import io.fabric8.kubernetes.api.model.extensions.Job
+import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 
 class KubernetesApiConverter {
   static KubernetesSecurityGroupDescription fromIngress(Ingress ingress) {
@@ -424,7 +425,7 @@ class KubernetesApiConverter {
     deployDescription.application = parsedName?.app
     deployDescription.stack = parsedName?.stack
     deployDescription.freeFormDetails = parsedName?.detail
-    deployDescription.loadBalancers = KubernetesUtil?.getJobLoadBalancers(job)
+    deployDescription.loadBalancers = KubernetesUtil?.getLoadBalancers(job)
     deployDescription.namespace = job?.metadata?.namespace
     deployDescription.completions = job?.spec?.completions
     deployDescription.parallelism = job?.spec?.parallelism
@@ -440,6 +441,29 @@ class KubernetesApiConverter {
     return deployDescription
   }
 
+  static DeployKubernetesAtomicOperationDescription fromReplicaSet(ReplicaSet replicaSet) {
+    def deployDescription = new DeployKubernetesAtomicOperationDescription()
+    def parsedName = Names.parseName(replicaSet?.metadata?.name)
+
+    deployDescription.application = parsedName?.app
+    deployDescription.stack = parsedName?.stack
+    deployDescription.freeFormDetails = parsedName?.detail
+    deployDescription.loadBalancers = KubernetesUtil?.getLoadBalancers(replicaSet)
+    deployDescription.namespace = replicaSet?.metadata?.namespace
+    deployDescription.targetSize = replicaSet?.spec?.replicas
+    deployDescription.securityGroups = []
+
+    deployDescription.volumeSources = replicaSet?.spec?.template?.spec?.volumes?.collect {
+      fromVolume(it)
+    } ?: []
+
+    deployDescription.containers = replicaSet?.spec?.template?.spec?.containers?.collect {
+      fromContainer(it)
+    } ?: []
+
+    return deployDescription
+  }
+
   static DeployKubernetesAtomicOperationDescription fromReplicationController(ReplicationController replicationController) {
     def deployDescription = new DeployKubernetesAtomicOperationDescription()
     def parsedName = Names.parseName(replicationController?.metadata?.name)
@@ -447,7 +471,7 @@ class KubernetesApiConverter {
     deployDescription.application = parsedName?.app
     deployDescription.stack = parsedName?.stack
     deployDescription.freeFormDetails = parsedName?.detail
-    deployDescription.loadBalancers = KubernetesUtil?.getDescriptionLoadBalancers(replicationController)
+    deployDescription.loadBalancers = KubernetesUtil?.getLoadBalancers(replicationController)
     deployDescription.namespace = replicationController?.metadata?.namespace
     deployDescription.targetSize = replicationController?.spec?.replicas
     deployDescription.securityGroups = []

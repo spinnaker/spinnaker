@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentia
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.extensions.Job
+import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 import org.springframework.beans.factory.annotation.Value
 
 class KubernetesUtil {
@@ -126,16 +127,6 @@ class KubernetesUtil {
     return resolvedNamespace
   }
 
-  static List<String> getPodLoadBalancers(Pod pod) {
-    def loadBalancers = []
-    pod.metadata?.labels?.each { key, val ->
-      if (isLoadBalancerLabel(key)) {
-        loadBalancers.push(key.substring(LOAD_BALANCER_LABEL_PREFIX_LENGTH, key.length()).toString())
-      }
-    }
-    return loadBalancers
-  }
-
   static Map<String, String> getPodLoadBalancerStates(Pod pod) {
     pod.metadata?.labels?.collectEntries { key, val ->
       if (isLoadBalancerLabel(key)) {
@@ -143,41 +134,37 @@ class KubernetesUtil {
       } else {
         return [:]
       }
+    } as Map<String, String> // Groovy resolves [:] as type ?CaptureOf, which is odd since key/val are clearly strings
+  }
+
+  static List<String> getLoadBalancers(Map<String, String> labels) {
+    labels.findResults { key, val ->
+      if (isLoadBalancerLabel(key)) {
+        return key.substring(LOAD_BALANCER_LABEL_PREFIX_LENGTH, key.length())
+      } else {
+        return null
+      }
     }
   }
 
-  static List<String> getDescriptionLoadBalancers(ReplicationController rc) {
-    def loadBalancers = []
-    rc.spec?.template?.metadata?.labels?.each { key, val ->
-      if (isLoadBalancerLabel(key)) {
-        loadBalancers.push(key.substring(LOAD_BALANCER_LABEL_PREFIX_LENGTH, key.length()))
-      }
-    }
-    return loadBalancers
+  static List<String> getLoadBalancers(Pod pod) {
+    return getLoadBalancers(pod.metadata?.labels ?: [:])
   }
 
-  static List<String> getJobLoadBalancers(Job job) {
-    def loadBalancers = []
-    job.spec?.template?.metadata?.labels?.each { key, val ->
-      if (isLoadBalancerLabel(key)) {
-        loadBalancers.push(key.substring(LOAD_BALANCER_LABEL_PREFIX_LENGTH, key.length()))
-      }
-    }
-    return loadBalancers
+  static List<String> getLoadBalancers(ReplicaSet rs) {
+    return getLoadBalancers(rs.spec?.template?.metadata?.labels ?: [:])
+  }
+
+  static List<String> getLoadBalancers(ReplicationController rc) {
+    return getLoadBalancers(rc.spec?.template?.metadata?.labels ?: [:])
+  }
+
+  static List<String> getLoadBalancers(Job job) {
+    return getLoadBalancers(job.spec?.template?.metadata?.labels ?: [:])
   }
 
   static Boolean isLoadBalancerLabel(String key) {
     key.startsWith(LOAD_BALANCER_LABEL_PREFIX)
-  }
-
-  static List<String> getDescriptionSecurityGroups(ReplicationController rc) {
-    def securityGroups = []
-    rc.spec?.template?.metadata?.labels?.each { key, val ->
-      if (key.startsWith(SECURITY_GROUP_LABEL_PREFIX)) {
-        securityGroups.push(key.substring(SECURITY_GROUP_LABEL_PREFIX_LENGTH, key.length()))
-      }
-    }
-    return securityGroups
   }
 
   static String loadBalancerKey(String loadBalancer) {

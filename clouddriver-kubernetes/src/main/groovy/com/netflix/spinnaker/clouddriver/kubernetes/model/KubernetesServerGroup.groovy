@@ -68,7 +68,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
     this.instances = instances
     this.securityGroups = []
     this.replicas = replicationController.spec?.replicas ?: 0
-    this.loadBalancers = KubernetesUtil.getDescriptionLoadBalancers(replicationController) as Set
+    this.loadBalancers = KubernetesUtil.getLoadBalancers(replicationController) as Set
     this.launchConfig = [:]
     this.labels = replicationController.spec?.template?.metadata?.labels
     this.deployDescription = KubernetesApiConverter.fromReplicationController(replicationController)

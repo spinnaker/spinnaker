@@ -52,7 +52,7 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
 
     task.updateStatus basePhase, "Getting list of attached services..."
 
-    List<String> replicationControllerServices = KubernetesUtil.getDescriptionLoadBalancers(replicationController)
+    List<String> replicationControllerServices = KubernetesUtil.getLoadBalancers(replicationController)
     replicationControllerServices = replicationControllerServices.collect {
       KubernetesUtil.loadBalancerKey(it)
     }
@@ -72,7 +72,7 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
     task.updateStatus basePhase, "Resetting service labels for each pod..."
 
     pods.forEach { pod ->
-      List<String> podServices = KubernetesUtil.getPodLoadBalancers(pod)
+      List<String> podServices = KubernetesUtil.getLoadBalancers(pod)
       podServices = podServices.collect {
         KubernetesUtil.loadBalancerKey(it)
       }

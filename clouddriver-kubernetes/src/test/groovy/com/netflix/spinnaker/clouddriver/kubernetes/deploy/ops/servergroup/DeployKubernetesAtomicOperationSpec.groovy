@@ -22,13 +22,7 @@ import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesHandler
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesHandlerType
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesProbe
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesResourceDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesTcpSocketAction
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.*
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
@@ -49,7 +43,6 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
   private static final TAG = 'latest'
   private static final REPOSITORY = 'library/nginx'
   private static final LOAD_BALANCER_NAMES = ["lb1", "lb2"]
-  private static final SECURITY_GROUP_NAMES = ["sg1", "sg2", "sg3"]
   private static final CONTAINER_NAMES = ["c1", "c2"]
   private static final REQUEST_CPU = ["100m", null]
   private static final REQUEST_MEMORY = ["100Mi", "200Mi"]
@@ -156,7 +149,6 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
         freeFormDetails: DETAILS,
         targetSize: TARGET_SIZE,
         loadBalancers: LOAD_BALANCER_NAMES,
-        securityGroups: SECURITY_GROUP_NAMES,
         containers: containers,
         credentials: namedAccountCredentials
       )

@@ -40,8 +40,7 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
   private static final SEQUENCE = "v000"
   private static final TARGET_SIZE = 2
   private static final LOAD_BALANCER_NAMES = ["lb1", "lb2"]
-  private static final SECURITY_GROUP_NAMES = ["sg1", "sg2"]
-  private static final LABELS = ["load-balancer-lb1": true, "load-balancer-lb2": true, "security-group-sg1": true, "security-group-sg2": true]
+  private static final LABELS = ["load-balancer-lb1": true, "load-balancer-lb2": true]
   private static final CONTAINER_NAMES = ["c1", "c2"]
   private static final REGISTRY = 'index.docker.io'
   private static final TAG = 'latest'
@@ -97,7 +96,6 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
       freeFormDetails: DETAIL,
       targetSize: TARGET_SIZE,
       loadBalancers: LOAD_BALANCER_NAMES,
-      securityGroups: SECURITY_GROUP_NAMES,
       containers: containers,
       namespace: NAMESPACE1
     )
@@ -167,7 +165,6 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
       resultDescription.freeFormDetails == expectedResultDescription.freeFormDetails
       resultDescription.targetSize == expectedResultDescription.targetSize
       resultDescription.loadBalancers == expectedResultDescription.loadBalancers
-      resultDescription.securityGroups == expectedResultDescription.securityGroups
       resultDescription.namespace == expectedResultDescription.namespace
       resultDescription.containers.eachWithIndex { c, idx ->
         c.imageDescription.registry == expectedResultDescription.containers[idx].imageDescription.registry
@@ -190,7 +187,6 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
         freeFormDetails: DETAIL,
         targetSize: TARGET_SIZE,
         loadBalancers: LOAD_BALANCER_NAMES,
-        securityGroups: SECURITY_GROUP_NAMES,
         containers: containers,
         credentials: namedAccountCredentials,
         source: [serverGroupName: ANCESTOR_SERVER_GROUP_NAME, namespace: NAMESPACE2]
@@ -209,7 +205,6 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
       resultDescription.freeFormDetails == expectedResultDescription.freeFormDetails
       resultDescription.targetSize == expectedResultDescription.targetSize
       resultDescription.loadBalancers == expectedResultDescription.loadBalancers
-      resultDescription.securityGroups == expectedResultDescription.securityGroups
       resultDescription.namespace == expectedResultDescription.namespace
       resultDescription.containers.eachWithIndex { c, idx ->
         c.imageDescription.registry == expectedResultDescription.containers[idx].imageDescription.registry

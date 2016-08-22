@@ -86,8 +86,7 @@ class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult
     newDescription.freeFormDetails = description.freeFormDetails ?: ancestorNames.detail
     newDescription.targetSize = description.targetSize ?: ancestorServerGroup.spec?.replicas
     newDescription.namespace = description.namespace ?: description.source.namespace
-    newDescription.loadBalancers = description.loadBalancers != null ? description.loadBalancers : KubernetesUtil.getDescriptionLoadBalancers(ancestorServerGroup)
-    newDescription.securityGroups = description.securityGroups != null ? description.securityGroups : KubernetesUtil.getDescriptionSecurityGroups(ancestorServerGroup)
+    newDescription.loadBalancers = description.loadBalancers != null ? description.loadBalancers : KubernetesUtil.getLoadBalancers(ancestorServerGroup)
     newDescription.restartPolicy = description.restartPolicy ?: ancestorServerGroup.spec?.template?.spec?.restartPolicy
     if (!description.containers) {
       newDescription.containers = ancestorServerGroup.spec?.template?.spec?.containers?.collect { it ->
