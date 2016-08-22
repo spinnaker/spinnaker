@@ -21,7 +21,6 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
-import com.netflix.spinnaker.clouddriver.aws.model.AmazonVpc
 import com.netflix.spinnaker.clouddriver.core.provider.agent.ExternalHealthProvider
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.titus.caching.Keys
@@ -141,9 +140,6 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
    */
   @Override
   TitusServerGroup getServerGroup(String account, String region, String name) {
-
-    Set<AmazonVpc> amazonVpcs = amazonVpcProvider.all
-
     String serverGroupKey = Keys.getServerGroupKey(name, account, region)
     CacheData serverGroupData = cacheView.get(SERVER_GROUPS.ns, serverGroupKey)
     if (serverGroupData == null) {
@@ -154,7 +150,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
     TitusServerGroup serverGroup = new TitusServerGroup(job, serverGroupData.attributes.account, serverGroupData.attributes.region)
     serverGroup.placement.account = account
     serverGroup.placement.region = region
-    serverGroup.instances = translateInstances(resolveRelationshipData(serverGroupData, INSTANCES.ns), account, region).values()
+    serverGroup.instances = translateInstances(resolveRelationshipData(serverGroupData, INSTANCES.ns)).values()
     resolveAwsDetails(serverGroup)
     serverGroup
   }
