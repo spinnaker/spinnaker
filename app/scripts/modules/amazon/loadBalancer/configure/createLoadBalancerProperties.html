@@ -82,6 +82,7 @@
       <div class="col-md-3 sm-label-right"><b>Internal</b></div>
       <div class="col-md-7 checkbox">
         <label><input type="checkbox"
+                      ng-change="ctrl.internalFlagChanged()"
                       ng-model="loadBalancer.isInternal"/>
           Create an internal load balancer
         </label>

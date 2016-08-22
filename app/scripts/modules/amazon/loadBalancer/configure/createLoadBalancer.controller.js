@@ -353,11 +353,18 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
         updateAvailableSecurityGroups(availableVpcIds);
       if (subnetPurpose) {
         $scope.loadBalancer.vpcId = availableVpcIds.length ? availableVpcIds[0] : null;
+        if (!$scope.state.hideInternalFlag && !$scope.state.internalFlagToggled) {
+          $scope.loadBalancer.isInternal = subnetPurpose.indexOf('internal') > -1;
+        }
         v2modalWizardService.includePage('Security Groups');
       } else {
         $scope.loadBalancer.vpcId = null;
         v2modalWizardService.excludePage('Security Groups');
       }
+    };
+
+    this.internalFlagChanged = () => {
+      $scope.state.internalFlagToggled = true;
     };
 
     this.removeListener = function(index) {

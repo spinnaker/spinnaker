@@ -108,6 +108,51 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
       expect(this.$scope.state.hideInternalFlag).toBe(true);
     });
 
+    it('should set the flag based on purpose when subnet is updated', function () {
+      this.initialize();
+
+      this.$scope.subnets = [
+        { purpose: 'internal/old', vpcIds: [] },
+        { purpose: 'internal/new', vpcIds: [] },
+        { purpose: 'external', vpcIds: [] }
+      ];
+      this.$scope.loadBalancer.subnetType = 'internal/old';
+      this.ctrl.subnetUpdated();
+      expect(this.$scope.loadBalancer.isInternal).toBe(true);
+
+      this.$scope.loadBalancer.subnetType = 'external';
+      this.ctrl.subnetUpdated();
+      expect(this.$scope.loadBalancer.isInternal).toBe(false);
+
+      this.$scope.loadBalancer.subnetType = 'internal/new';
+      this.ctrl.subnetUpdated();
+      expect(this.$scope.loadBalancer.isInternal).toBe(true);
+    });
+
+    it('should leave the flag once it has been toggled', function () {
+      this.initialize();
+
+      this.$scope.subnets = [
+        { purpose: 'internal/old', vpcIds: [] },
+        { purpose: 'internal/new', vpcIds: [] },
+        { purpose: 'external', vpcIds: [] }
+      ];
+      this.$scope.loadBalancer.isInternal = false;
+      this.$scope.state.internalFlagToggled = true;
+
+      this.$scope.loadBalancer.subnetType = 'internal/old';
+      this.ctrl.subnetUpdated();
+      expect(this.$scope.loadBalancer.isInternal).toBe(false);
+
+      this.$scope.loadBalancer.subnetType = 'external';
+      this.ctrl.subnetUpdated();
+      expect(this.$scope.loadBalancer.isInternal).toBe(false);
+
+      this.$scope.loadBalancer.subnetType = 'internal/new';
+      this.ctrl.subnetUpdated();
+      expect(this.$scope.loadBalancer.isInternal).toBe(false);
+    });
+
     it('should leave the flag and not set a state value if inferInternalFlagFromSubnet is false or not defined', function () {
       this.settings.providers = {
         aws: { loadBalancers: { inferInternalFlagFromSubnet: true }}
