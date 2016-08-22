@@ -31,6 +31,9 @@ interface Front50Service {
   @GET("/{account}/applications/name/{name}")
   Application get(@Path("account") String account, @Path("name") String name)
 
+  @GET("/default/applications")
+  Collection<Application> getAllApplications()
+
   @POST("/{account}/applications/name/{name}")
   Response create(@Path("account") String account, @Path("name") String name, @Body Application application)
 
@@ -51,6 +54,9 @@ interface Front50Service {
 
   @GET("/pipelines")
   List<Map<String, Object>> getAllPipelines()
+
+  @GET("/strategies")
+  List<Map<String, Object>> getAllStrategies()
 
   @POST("/v2/projects")
   Project createProject(@Body Map project)
