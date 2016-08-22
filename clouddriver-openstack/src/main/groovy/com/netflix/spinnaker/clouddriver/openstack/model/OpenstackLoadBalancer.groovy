@@ -21,10 +21,11 @@ import com.google.common.collect.Sets
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
+import com.netflix.spinnaker.clouddriver.openstack.domain.HealthMonitor
+import com.netflix.spinnaker.clouddriver.openstack.domain.HealthMonitor.HealthMonitorType
 import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerResolver
-import com.netflix.spinnaker.clouddriver.openstack.domain.PoolHealthMonitor
 import groovy.transform.Canonical
-import org.openstack4j.model.network.ext.HealthMonitor
+import org.openstack4j.model.network.ext.HealthMonitor as Openstack4jHealthMonitor
 import org.openstack4j.model.network.ext.LbPool
 
 @Canonical
@@ -46,7 +47,7 @@ class OpenstackLoadBalancer implements LoadBalancer, Serializable, LoadBalancerR
   String subnetName
   String networkId
   String networkName
-  Set<PoolHealthMonitor> healthChecks
+  Set<HealthMonitor> healthChecks
   Set<LoadBalancerServerGroup> serverGroups = Sets.newConcurrentHashSet()
 
   static OpenstackLoadBalancer from(LbPool pool, OpenstackVip vip, OpenstackSubnet subnet, OpenstackNetwork network, OpenstackFloatingIP ip,
@@ -58,7 +59,7 @@ class OpenstackLoadBalancer implements LoadBalancer, Serializable, LoadBalancerR
       status: pool.status, protocol: pool.protocol?.name(), method: pool.lbMethod?.name(),
       ip: ip?.floatingIpAddress, externalPort: vip?.port, subnetId: subnet?.id, subnetName: subnet?.name,
       networkId: network?.id, networkName: network?.name,
-      healthChecks: healthMonitors?.collect { h -> PoolHealthMonitor.from(h) }?.toSet())
+      healthChecks: healthMonitors?.collect(this.&buildHealthMonitor)?.toSet())
   }
 
   Integer getInternalPort() {
@@ -69,4 +70,14 @@ class OpenstackLoadBalancer implements LoadBalancer, Serializable, LoadBalancerR
     parseCreatedTime(description)
   }
 
+  static HealthMonitor buildHealthMonitor(Openstack4jHealthMonitor monitor) {
+    new HealthMonitor(id: monitor.id,
+      type: HealthMonitorType.forValue(monitor.type.name()),
+      delay : monitor.delay,
+      timeout: monitor.timeout,
+      maxRetries: monitor.maxRetries,
+      httpMethod: monitor.httpMethod,
+      url: monitor.urlPath,
+      expectedCodes: monitor.expectedCodes?.split(',')?.toList()?.collect { Integer.parseInt(it) })
+  }
 }

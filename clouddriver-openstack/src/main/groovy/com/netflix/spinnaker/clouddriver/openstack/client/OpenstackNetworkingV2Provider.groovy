@@ -17,26 +17,18 @@
 package com.netflix.spinnaker.clouddriver.openstack.client
 
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
-import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerPool
 import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerResolver
-import com.netflix.spinnaker.clouddriver.openstack.domain.PoolHealthMonitor
-import com.netflix.spinnaker.clouddriver.openstack.domain.VirtualIP
 import org.apache.commons.lang.StringUtils
 import org.openstack4j.api.Builders
-import org.openstack4j.api.networking.ext.LoadBalancerService
 import org.openstack4j.model.common.ActionResponse
 import org.openstack4j.model.network.NetFloatingIP
 import org.openstack4j.model.network.Network
 import org.openstack4j.model.network.Port
 import org.openstack4j.model.network.Subnet
+import org.openstack4j.model.network.builder.PortBuilder
 import org.openstack4j.model.network.ext.HealthMonitor
-import org.openstack4j.model.network.ext.HealthMonitorType
-import org.openstack4j.model.network.ext.LbMethod
 import org.openstack4j.model.network.ext.LbPool
-import org.openstack4j.model.network.ext.ListenerV2
-import org.openstack4j.model.network.ext.LoadBalancerV2
 import org.openstack4j.model.network.ext.Member
-import org.openstack4j.model.network.ext.Protocol
 import org.openstack4j.model.network.ext.Vip
 
 class OpenstackNetworkingV2Provider implements OpenstackNetworkingProvider, OpenstackRequestHandler, OpenstackIdentityAware, LoadBalancerResolver {
@@ -48,20 +40,6 @@ class OpenstackNetworkingV2Provider implements OpenstackNetworkingProvider, Open
 
   OpenstackNetworkingV2Provider(OpenstackIdentityProvider identityProvider) {
     this.identityProvider = identityProvider
-  }
-
-  @Override
-  LoadBalancerV2 getLoadBalancer(final String region, final String loadBalancerId) {
-    handleRequest {
-      getRegionClient(region).networking().lbaasV2().loadbalancer().get(loadBalancerId)
-    }
-  }
-
-  @Override
-  ListenerV2 getLoadBalancerListener(final String region, final String listenerId) {
-    handleRequest {
-      getRegionClient(region).networking().lbaasV2().listener().get(listenerId)
-    }
   }
 
   @Override
@@ -114,58 +92,6 @@ class OpenstackNetworkingV2Provider implements OpenstackNetworkingProvider, Open
   }
 
   @Override
-  LbPool createLoadBalancerPool(final String region, final LoadBalancerPool loadBalancerPool) {
-    handleRequest {
-      getRegionClient(region).networking().loadbalancers().lbPool().create(
-        Builders.lbPool()
-          .name(loadBalancerPool.name)
-          .protocol(Protocol.forValue(loadBalancerPool.protocol?.name()))
-          .lbMethod(LbMethod.forValue(loadBalancerPool.method?.name()))
-          .subnetId(loadBalancerPool.subnetId)
-          .description(loadBalancerPool.description)
-          .adminStateUp(Boolean.TRUE)
-          .build())
-    }
-  }
-
-  @Override
-  LbPool updateLoadBalancerPool(final String region, final LoadBalancerPool loadBalancerPool) {
-    handleRequest {
-      getRegionClient(region).networking().loadbalancers().lbPool().update(loadBalancerPool.id,
-        Builders.lbPoolUpdate()
-          .name(loadBalancerPool.name)
-          .lbMethod(LbMethod.forValue(loadBalancerPool.method?.name()))
-          .description(loadBalancerPool.description)
-          .adminStateUp(Boolean.TRUE)
-          .build())
-    }
-  }
-
-  @Override
-  Vip createVip(final String region, final VirtualIP virtualIP) {
-    handleRequest {
-      getRegionClient(region).networking().loadbalancers().vip().create(
-        Builders.vip()
-          .name(virtualIP.name)
-          .subnetId(virtualIP.subnetId)
-          .poolId(virtualIP.poolId)
-          .protocol(Protocol.forValue(virtualIP.protocol?.name()))
-          .protocolPort(virtualIP.port)
-          .adminStateUp(Boolean.TRUE)
-          .build())
-    }
-  }
-
-  @Override
-  Vip updateVip(final String region, final VirtualIP virtualIP) {
-    handleRequest {
-      // TODO - Currently only supporting updates to name ... Expanded to update SessionPersistence & connectionLimit
-      getRegionClient(region).networking().loadbalancers().vip().update(virtualIP.id,
-        Builders.vipUpdate().name(virtualIP.name).adminStateUp(Boolean.TRUE).build())
-    }
-  }
-
-  @Override
   HealthMonitor getHealthMonitor(final String region, final String healthMonitorId) {
     HealthMonitor result = handleRequest {
       getRegionClient(region).networking().loadbalancers().healthMonitor().get(healthMonitorId)
@@ -174,50 +100,6 @@ class OpenstackNetworkingV2Provider implements OpenstackNetworkingProvider, Open
       throw new OpenstackProviderException("Unable to find health monitor with ${healthMonitorId} in ${region}")
     }
     result
-  }
-
-  @Override
-  HealthMonitor createHealthCheckForPool(final String region, final String lbPoolId, final PoolHealthMonitor monitor) {
-    LoadBalancerService loadBalancerService = getRegionClient(region).networking().loadbalancers()
-    HealthMonitor result = handleRequest {
-      loadBalancerService.healthMonitor().create(
-        Builders.healthMonitor()
-          .type(HealthMonitorType.forValue(monitor.type?.name()))
-          .delay(monitor.delay)
-          .timeout(monitor.timeout)
-          .maxRetries(monitor.maxRetries)
-          .httpMethod(monitor.httpMethod)
-          .urlPath(monitor.url)
-          .expectedCodes(monitor.expectedHttpStatusCodes?.join(','))
-          .adminStateUp(Boolean.TRUE)
-          .build())
-    }
-
-    // Check that the health monitor was created successfully or throw exception
-    if (!result) {
-      throw new OpenstackProviderException("Unable to create health check for pool ${lbPoolId}")
-    } else {
-      result = handleRequest {
-        loadBalancerService.lbPool().associateHealthMonitor(lbPoolId, result.id)
-      }
-    }
-    result
-  }
-
-  @Override
-  HealthMonitor updateHealthMonitor(final String region, final PoolHealthMonitor monitor) {
-    handleRequest {
-      getRegionClient(region).networking().loadbalancers().healthMonitor().update(monitor.id,
-        Builders.healthMonitorUpdate()
-          .delay(monitor.delay)
-          .timeout(monitor.timeout)
-          .maxRetries(monitor.maxRetries)
-          .httpMethod(monitor.httpMethod)
-          .urlPath(monitor.url)
-          .expectedCodes(monitor.expectedHttpStatusCodes?.join(','))
-          .adminStateUp(Boolean.TRUE)
-          .build())
-    }
   }
 
   @Override
@@ -372,4 +254,36 @@ class OpenstackNetworkingV2Provider implements OpenstackNetworkingProvider, Open
     }
   }
 
+  @Override
+  Port getPort(final String region, final String portId) {
+    handleRequest {
+      getRegionClient(region).networking().port().get(portId)
+    }
+  }
+
+  @Override
+  Port updatePort(final String region, final String portId, final List<String> securityGroups) {
+    handleRequest {
+      // Builder doesn't take in list of security groups and doesn't allow you to set the ID so, adding some ugly code :)
+      PortBuilder portBuilder = Builders.port()
+      securityGroups.each { portBuilder = portBuilder.securityGroup(it) }
+      Port changedPort = portBuilder.build()
+      changedPort.setId(portId)
+      getRegionClient(region).networking().port().update(changedPort)
+    }
+  }
+
+  @Override
+  NetFloatingIP associateFloatingIpToPort(final String region, final String floatingIpId, final String portId) {
+    handleRequest {
+      getRegionClient(region).networking().floatingip().associateToPort(floatingIpId, portId)
+    }
+  }
+
+  @Override
+  NetFloatingIP disassociateFloatingIpFromPort(final String region, final String floatingIpId) {
+    handleRequest {
+      getRegionClient(region).networking().floatingip().disassociateFromPort(floatingIpId)
+    }
+  }
 }

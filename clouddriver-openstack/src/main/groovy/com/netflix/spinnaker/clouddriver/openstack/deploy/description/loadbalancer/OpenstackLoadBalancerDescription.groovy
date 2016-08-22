@@ -16,23 +16,34 @@
 package com.netflix.spinnaker.clouddriver.openstack.deploy.description.loadbalancer
 
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.OpenstackAtomicOperationDescription
-import com.netflix.spinnaker.clouddriver.openstack.domain.PoolHealthMonitor
-import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerMethod
-import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerProtocol
+import com.netflix.spinnaker.clouddriver.openstack.domain.HealthMonitor
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
 @AutoClone
 @Canonical
 class OpenstackLoadBalancerDescription extends OpenstackAtomicOperationDescription {
-  String region
   String id
   String name
-  String networkId
-  LoadBalancerProtocol protocol
-  LoadBalancerMethod method
   String subnetId
-  int externalPort
-  int internalPort
-  PoolHealthMonitor healthMonitor
+  Algorithm algorithm
+  String networkId
+  List<String> securityGroups
+  List<Listener> listeners
+  HealthMonitor healthMonitor
+
+  enum Algorithm {
+    ROUND_ROBIN, LEAST_CONNECTIONS, SOURCE_IP
+  }
+
+  static class Listener {
+    enum ListenerType {
+      HTTP, HTTPS, TCP
+    }
+
+    Integer externalPort
+    ListenerType externalProtocol
+    Integer internalPort
+    ListenerType internalProtocol
+  }
 }

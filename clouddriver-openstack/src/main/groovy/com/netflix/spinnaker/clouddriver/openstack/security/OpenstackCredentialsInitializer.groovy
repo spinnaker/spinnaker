@@ -78,7 +78,8 @@ class OpenstackCredentialsInitializer implements CredentialsInitializerSynchroni
                                                                     managedAccount.endpoint,
                                                                     managedAccount.regions,
                                                                     managedAccount.insecure,
-                                                                    managedAccount.heatTemplatePath
+                                                                    managedAccount.heatTemplatePath,
+                                                                    managedAccount.lbaas
                                                                     )
         LOG.info("Saving openstack account $openstackAccount")
         accountCredentialsRepository.save(managedAccount.name, openstackAccount)

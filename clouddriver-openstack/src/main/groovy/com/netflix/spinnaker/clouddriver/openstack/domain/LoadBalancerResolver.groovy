@@ -56,6 +56,27 @@ trait LoadBalancerResolver {
   }
 
   /**
+   * Generate key=value port string, e.g. internal_port=8100,internal_protocol=HTTP
+   * @param port
+   * @return
+   */
+  String getListenerKey(int externalPort, String externalProtocol, int port, String protocol) {
+    "${externalProtocol}:${externalPort}:${protocol}:${port}"
+  }
+
+  Map<String, String> parseListenerKey(String key) {
+    Map<String, String> result = [:]
+
+    String[] parts = key.split(':')
+
+    if (parts.length == 4) {
+      result << [externalProtocol: parts[0], externalPort: parts[1], internalProtocol: parts[2], internalPort: parts[3]]
+    }
+
+    result
+  }
+
+  /**
    * Parse the created time from a load balancer description in the following format.
    * <br><br>
    * {@code

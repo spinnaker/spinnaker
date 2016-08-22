@@ -18,8 +18,8 @@ package com.netflix.spinnaker.clouddriver.openstack.controllers
 
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
-import com.netflix.spinnaker.clouddriver.openstack.domain.PoolHealthMonitor
-import com.netflix.spinnaker.clouddriver.openstack.domain.PoolHealthMonitorType
+import com.netflix.spinnaker.clouddriver.openstack.domain.HealthMonitor
+import com.netflix.spinnaker.clouddriver.openstack.domain.HealthMonitor.HealthMonitorType
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLoadBalancer
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLoadBalancerSummary
 import com.netflix.spinnaker.clouddriver.openstack.provider.view.OpenstackLoadBalancerProvider
@@ -119,12 +119,11 @@ class OpenstackLoadBalancerControllerSpec extends Specification {
     String ip = '1.2.3.4'
     Integer externalPort = 80
     String subnet = "subnet$i"
-    def healthChecks = [new PoolHealthMonitor(id: 'id', type: PoolHealthMonitorType.HTTP)].toSet()
+    def healthChecks = [new HealthMonitor(id: 'id', type: HealthMonitorType.HTTP)].toSet()
     def serverGroups = [new LoadBalancerServerGroup(name: 'sg1', isDisabled: false,
       instances: [new LoadBalancerInstance(id: 'id', zone: "zone$i", health: [state:'up', zone: "zone$i"])])]
     new OpenstackLoadBalancer(account: account, region: region, id: id, name: name, description: description,
       status: status, protocol: protocol, method: method, ip: ip, externalPort: externalPort, subnetName: subnet,
       healthChecks: healthChecks, serverGroups: serverGroups)
   }
-
 }

@@ -16,6 +16,30 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.domain
 
-enum LoadBalancerProtocol {
-  HTTP, HTTPS, TCP
+import com.fasterxml.jackson.annotation.JsonCreator
+
+class HealthMonitor {
+  enum HealthMonitorType {
+    PING, TCP, HTTP, HTTPS
+
+    @JsonCreator
+    public static HealthMonitorType forValue(String value) {
+      HealthMonitorType result = null
+
+      if (value) {
+        result = values().find { it.name().equalsIgnoreCase(value) }
+      }
+
+      result ?: HTTP
+    }
+  }
+
+  String id
+  HealthMonitorType type
+  Integer delay
+  Integer timeout
+  Integer maxRetries
+  String httpMethod
+  String url
+  List<Integer> expectedCodes
 }

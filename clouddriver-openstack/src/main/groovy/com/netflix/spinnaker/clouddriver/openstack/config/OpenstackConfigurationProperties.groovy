@@ -35,6 +35,12 @@ class OpenstackConfigurationProperties {
     List<String> regions
     Boolean insecure
     String heatTemplatePath
+    LbaasConfig lbaas
+  }
+
+  static class LbaasConfig {
+    Integer pollTimeout
+    Integer pollInterval
   }
 
   List<ManagedAccount> accounts = []

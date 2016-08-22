@@ -42,7 +42,8 @@ class OpenstackClientProviderSpec extends Specification {
     OpenstackNetworkingProvider networkingProvider = new OpenstackNetworkingV2Provider(identityProvider)
     OpenstackOrchestrationProvider orchestrationProvider = new OpenstackOrchestrationV1Provider(identityProvider)
     OpenstackImageProvider imageProvider = new OpenstackImageV1Provider(identityProvider)
-    provider = new OpenstackClientProvider(identityProvider, computeProvider, networkingProvider, orchestrationProvider, imageProvider)
+    OpenstackLoadBalancerProvider loadBalancerProvider = new OpenstackLoadBalancerV2Provider(identityProvider)
+    provider = new OpenstackClientProvider(identityProvider, computeProvider, networkingProvider, orchestrationProvider, imageProvider, loadBalancerProvider)
   }
 
 }

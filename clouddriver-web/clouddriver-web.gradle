@@ -18,6 +18,7 @@ configurations.all {
 
 repositories {
   maven { url "http://adxsnapshots.azurewebsites.net" }
+  maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
 }
 
 dependencies {

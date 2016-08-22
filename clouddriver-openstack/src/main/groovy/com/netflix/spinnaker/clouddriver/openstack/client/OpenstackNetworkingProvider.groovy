@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.client
 
-import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerPool
-import com.netflix.spinnaker.clouddriver.openstack.domain.PoolHealthMonitor
-import com.netflix.spinnaker.clouddriver.openstack.domain.VirtualIP
 import org.openstack4j.model.common.ActionResponse
 import org.openstack4j.model.network.NetFloatingIP
 import org.openstack4j.model.network.Network
@@ -32,22 +29,6 @@ import org.openstack4j.model.network.ext.Member
 import org.openstack4j.model.network.ext.Vip
 
 interface OpenstackNetworkingProvider {
-
-  /**
-   * TODO reconcile once load balancer atomic ops / caching is implented
-   * @param region
-   * @param loadBalancerId
-   * @return
-   */
-  LoadBalancerV2 getLoadBalancer(final String region, final String loadBalancerId)
-
-  /**
-   * TODO reconcile once load balancer atomic ops / caching is implented
-   * @param region
-   * @param listenerId
-   * @return
-   */
-  ListenerV2 getLoadBalancerListener(final String region, final String listenerId)
 
   /**
    * Get all Load Balancer Pools for region
@@ -88,61 +69,12 @@ interface OpenstackNetworkingProvider {
   Vip getVip(final String region, final String vipId)
 
   /**
-   * Creates load balancer pool in provided region.
-   * @param region
-   * @param loadBalancerPool
-   * @return LbPool
-   */
-  LbPool createLoadBalancerPool(final String region, final LoadBalancerPool loadBalancerPool)
-
-  /**
-   * Updates existing load balancer pool's name or load balancer method.
-   * @param region
-   * @param loadBalancerPool
-   * @return
-   */
-  LbPool updateLoadBalancerPool(final String region, final LoadBalancerPool loadBalancerPool)
-
-  /**
-   * Creates VIP for given region and vip.
-   * @param region
-   * @param virtualIP
-   * @return
-   */
-  Vip createVip(final String region, final VirtualIP virtualIP)
-
-  /**
-   * Updates VIP in specified region.
-   * @param region
-   * @param virtualIP
-   * @return
-   */
-  Vip updateVip(final String region, final VirtualIP virtualIP)
-
-  /**
    * Gets HealthMonitor for given region and id.
    * @param region
    * @param healthMonitorId
    * @return
    */
   HealthMonitor getHealthMonitor(final String region, final String healthMonitorId)
-
-  /**
-   * Creates health check for given pool in specified region.
-   * @param region
-   * @param lbPoolId
-   * @param monitor
-   * @return
-   */
-  HealthMonitor createHealthCheckForPool(final String region, final String lbPoolId, final PoolHealthMonitor monitor)
-
-  /**
-   * Updates health monitor for a given region.
-   * @param region
-   * @param monitor
-   * @return
-   */
-  HealthMonitor updateHealthMonitor(final String region, final PoolHealthMonitor monitor)
 
   /**
    * Disassociates and removes health monitor from load balancer.
@@ -290,4 +222,38 @@ interface OpenstackNetworkingProvider {
    * @return
    */
   List<NetFloatingIP> listNetFloatingIps(final String region)
+
+  /**
+   * Retreives port by id.
+   * @param region
+   * @param portId
+   * @return
+   */
+  Port getPort(final String region, final String portId)
+
+  /**
+   * Updates port by id.
+   * @param region
+   * @param portId
+   * @param securityGroups
+   * @return
+   */
+  Port updatePort(final String region, final String portId, final List<String> securityGroups)
+
+  /**
+   * Associates floating ip address to port.
+   * @param region
+   * @param floatingIpId
+   * @param portId
+   * @return
+   */
+  NetFloatingIP associateFloatingIpToPort(final String region, final String floatingIpId, final String portId)
+
+  /**
+   * Disassociates floating ip address from port.
+   * @param region
+   * @param floatingIpId
+   * @return
+   */
+  NetFloatingIP disassociateFloatingIpFromPort(final String region, final String floatingIpId)
 }

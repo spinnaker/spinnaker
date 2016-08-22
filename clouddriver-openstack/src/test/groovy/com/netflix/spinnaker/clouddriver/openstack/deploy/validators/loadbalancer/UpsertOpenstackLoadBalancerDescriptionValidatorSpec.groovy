@@ -19,11 +19,11 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.validators.loadbalanc
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFactory
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.loadbalancer.OpenstackLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.openstack.domain.HealthMonitor.HealthMonitorType
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.loadbalancer.OpenstackLoadBalancerDescription.Listener
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.loadbalancer.OpenstackLoadBalancerDescription.Listener.ListenerType
 import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.OpenstackAttributeValidator
-import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerMethod
-import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerProtocol
-import com.netflix.spinnaker.clouddriver.openstack.domain.PoolHealthMonitor
-import com.netflix.spinnaker.clouddriver.openstack.domain.PoolHealthMonitorType
+import com.netflix.spinnaker.clouddriver.openstack.domain.HealthMonitor
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -31,7 +31,7 @@ import org.springframework.validation.Errors
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static UpsertOpenstackLoadBalancerAtomicOperationValidator.context
+
 
 @Unroll
 class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification {
@@ -65,11 +65,11 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
     OpenstackLoadBalancerDescription description = new OpenstackLoadBalancerDescription(account: 'foo'
       , region: 'r1'
       , name: 'name'
-      , internalPort: 80
-      , externalPort: 80
       , subnetId: UUID.randomUUID().toString()
-      , method: LoadBalancerMethod.ROUND_ROBIN
-      , protocol: LoadBalancerProtocol.HTTP
+      , algorithm: OpenstackLoadBalancerDescription.Algorithm.ROUND_ROBIN
+      , securityGroups: [UUID.randomUUID().toString()]
+      , listeners: [ new Listener(externalPort: 80, externalProtocol: ListenerType.HTTP, internalPort: 8080, internalProtocol: ListenerType.HTTP)]
+      , healthMonitor: new HealthMonitor(type: HealthMonitorType.PING, delay: 1, timeout: 1, maxRetries: 1)
       , credentials: credz)
 
     when:
@@ -84,10 +84,13 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
     validator = new UpsertOpenstackLoadBalancerAtomicOperationValidator(accountCredentialsProvider: provider)
     OpenstackLoadBalancerDescription description = new OpenstackLoadBalancerDescription(account: 'foo'
       , region: 'r1'
-      , id: UUID.randomUUID().toString()
+      , id : UUID.randomUUID().toString()
       , name: 'name'
-      , internalPort: 80
-      , method: LoadBalancerMethod.ROUND_ROBIN
+      , subnetId: UUID.randomUUID().toString()
+      , algorithm: OpenstackLoadBalancerDescription.Algorithm.ROUND_ROBIN
+      , securityGroups: [UUID.randomUUID().toString()]
+      , listeners: [ new Listener(externalPort: 80, externalProtocol: ListenerType.HTTP, internalPort: 8080, internalProtocol: ListenerType.HTTP)]
+      , healthMonitor: new HealthMonitor(type: HealthMonitorType.PING, delay: 1, timeout: 1, maxRetries: 1)
       , credentials: credz)
 
     when:
@@ -97,13 +100,17 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
     0 * errors.rejectValue(_, _)
   }
 
-  def "Validate create missing required field - #attribute"() {
+  def "Validate missing required field - #attribute"() {
     given:
     validator = new UpsertOpenstackLoadBalancerAtomicOperationValidator(accountCredentialsProvider: provider)
-    Map<String, ?> inputMap = ['account'       : 'foo', 'region': 'r1', 'internalPort': 80
-                               , 'externalPort': 80, 'subnetId': UUID.randomUUID().toString(), 'name': 'name'
-                               , 'method'      : LoadBalancerMethod.ROUND_ROBIN, 'protocol': LoadBalancerProtocol.HTTP
-                               , 'credentials': credz]
+    Map<String, ?> inputMap = [account : 'foo'
+                               , region: 'r1'
+                               , name: 'name'
+                               , subnetId: UUID.randomUUID().toString()
+                               , algorithm: OpenstackLoadBalancerDescription.Algorithm.ROUND_ROBIN
+                               , securityGroups: [UUID.randomUUID().toString()]
+                               , listeners: [ new Listener(externalPort: 80, externalProtocol: ListenerType.HTTP, internalPort: 8080, internalProtocol: ListenerType.HTTP)]
+                               , credentials: credz]
     inputMap.remove(attribute)
     OpenstackLoadBalancerDescription description = new OpenstackLoadBalancerDescription(inputMap)
 
@@ -114,34 +121,21 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
     1 * errors.rejectValue("${validator.context}.${attribute}", _)
 
     where:
-    attribute << ['name', 'region', 'internalPort', 'externalPort', 'subnetId', 'method', 'protocol']
+    attribute << ['name', 'region', 'subnetId', 'algorithm', 'securityGroups', 'listeners']
   }
 
-  def "Validate update missing required field - #attribute"() {
+  def "Validate invalid field - #attribute"() {
     given:
     validator = new UpsertOpenstackLoadBalancerAtomicOperationValidator(accountCredentialsProvider: provider)
-    Map<String, ?> inputMap = ['account': 'foo', 'region': 'r1', 'internalPort': 80, 'id': UUID.randomUUID().toString(),
-                               'name'   : 'name', 'method': LoadBalancerMethod.ROUND_ROBIN, 'credentials': credz]
-    inputMap.remove(attribute)
-    OpenstackLoadBalancerDescription description = new OpenstackLoadBalancerDescription(inputMap)
-
-    when:
-    validator.validate([], description, errors)
-
-    then:
-    1 * errors.rejectValue("${validator.context}.${attribute}", _)
-
-    where:
-    attribute << ['name', 'region', 'internalPort', 'method']
-  }
-
-  def "Validate create invalid field "() {
-    given:
-    validator = new UpsertOpenstackLoadBalancerAtomicOperationValidator(accountCredentialsProvider: provider)
-    Map<String, ?> inputMap = ['account'       : 'foo', 'region': 'r1', 'internalPort': 80
-                               , 'externalPort': 80, 'subnetId': UUID.randomUUID().toString(), 'name': 'name'
-                               , 'method'      : LoadBalancerMethod.ROUND_ROBIN, 'protocol': LoadBalancerProtocol.HTTP
-                               , 'credentials': credz]
+    Map<String, ?> inputMap = ['account'       : 'foo'
+                               , region: 'r1'
+                               , name: 'name'
+                               , id : UUID.randomUUID().toString()
+                               , subnetId: UUID.randomUUID().toString()
+                               , algorithm: OpenstackLoadBalancerDescription.Algorithm.ROUND_ROBIN
+                               , securityGroups: [UUID.randomUUID().toString()]
+                               , listeners: [ new Listener(externalPort: 80, externalProtocol: ListenerType.HTTP, internalPort: 8080, internalProtocol: ListenerType.HTTP)]
+                               , credentials: credz]
     inputMap.put(attribute.key, attribute.value)
     OpenstackLoadBalancerDescription description = new OpenstackLoadBalancerDescription(inputMap)
 
@@ -152,47 +146,29 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
     1 * errors.rejectValue("${validator.context}.${attribute.key}", _)
 
     where:
-    attribute << ['name': '', 'region': '', 'internalPort': -1, 'externalPort': -1, 'subnetId': 'abc', 'method': null, 'protocol': null]
+    attribute << [name: '', region: '', name : '', id : 'abc', subnetId : null, algorithm: null, securityGroups: [], listeners: []]
   }
 
-  def "Validate update invalid field"() {
-    given:
-    validator = new UpsertOpenstackLoadBalancerAtomicOperationValidator(accountCredentialsProvider: provider)
-    Map<String, ?> inputMap = ['account': 'foo', 'region': 'r1', 'internalPort': 80, 'id': UUID.randomUUID().toString(),
-                               'name'   : 'name', 'method': LoadBalancerMethod.ROUND_ROBIN, 'credentials': credz]
-    inputMap.put(attribute.key, attribute.value)
-    println(attribute.class)
-    OpenstackLoadBalancerDescription description = new OpenstackLoadBalancerDescription(inputMap)
-
-    when:
-    validator.validate([], description, errors)
-
-    then:
-    1 * errors.rejectValue("${validator.context}.${attribute.key}", _)
-
-    where:
-    attribute << ['name': '', 'region': '', 'internalPort': -1, 'method': null, 'id': 'abc']
-  }
-
-  def "Validate health monitor values"() {
+  def "Validate health monitor values - #attributes"() {
     given:
     validator = new UpsertOpenstackLoadBalancerAtomicOperationValidator(accountCredentialsProvider: provider)
     OpenstackAttributeValidator attributeValidator = new OpenstackAttributeValidator(validator.context, errors)
-    Map<String, ?> inputMap = ['type'        : PoolHealthMonitorType.HTTP, 'delay': 5, 'timeout': 5
-                               , 'maxRetries': 5, 'httpMethod': 'GET', 'expectedHttpStatusCodes': [200]
+    Map<String, ?> inputMap = ['delay': 5
+                               , 'timeout': 5
+                               , 'maxRetries': 5
+                               , 'httpMethod': 'GET'
+                               , 'expectedCodes': [200]
                                , 'url'       : 'http://www.google.com']
     inputMap.put(attribute.key, attribute.value)
-    PoolHealthMonitor poolHealthMonitor = new PoolHealthMonitor(inputMap)
 
     when:
-    println "key ${attribute.key} value: ${attribute.value}"
-    validator.validateHealthMonitor(attributeValidator, poolHealthMonitor)
+    validator.validateHealthMonitor(attributeValidator, new HealthMonitor(inputMap))
 
     then:
     1 * errors.rejectValue("${validator.context}.${attribute.key}", _)
 
     where:
-    attribute << [ 'type': null, 'delay': -1, 'timeout': -1, 'maxRetries': -1, 'httpMethod': 'test', 'expectedHttpStatusCodes': [20], 'url': '\\backslash']
+    attribute << [ 'type': null, 'delay': -1, 'timeout': -1, 'maxRetries': -1, 'httpMethod': 'test', 'expectedCodes': [20], 'url': '\\backslash']
   }
 
   def "Validate health monitor success"() {
@@ -203,24 +179,16 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
     String method = 'GET'
     validator = new UpsertOpenstackLoadBalancerAtomicOperationValidator()
     OpenstackAttributeValidator attributeValidator = Mock()
-    PoolHealthMonitor poolHealthMonitor = Mock()
 
     when:
-    validator.validateHealthMonitor(attributeValidator, poolHealthMonitor)
+    validator.validateHealthMonitor(attributeValidator, new HealthMonitor(delay: delay, timeout: timeout, maxRetries: maxRetries, httpMethod: method, url: URL, expectedCodes: expectedCodes))
 
     then:
-    1 * poolHealthMonitor.type >> PoolHealthMonitorType.HTTP
-    1 * poolHealthMonitor.delay >> delay
-    1 * poolHealthMonitor.timeout >> timeout
-    1 * poolHealthMonitor.maxRetries >> maxRetries
     1 * attributeValidator.validatePositive(delay, _)
     1 * attributeValidator.validatePositive(timeout, _)
     1 * attributeValidator.validatePositive(maxRetries, _)
-    2 * poolHealthMonitor.httpMethod >> method
     1 * attributeValidator.validateHttpMethod(method, _)
-    2 * poolHealthMonitor.expectedHttpStatusCodes >> expectedCodes
     expectedCodes.size() * attributeValidator.validateHttpStatusCode(_, _)
-    2 * poolHealthMonitor.url >> URL
     1 * attributeValidator.validateURI(URL, _)
   }
 
@@ -232,24 +200,16 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
     String method = null
     validator = new UpsertOpenstackLoadBalancerAtomicOperationValidator()
     OpenstackAttributeValidator attributeValidator = Mock()
-    PoolHealthMonitor poolHealthMonitor = Mock()
 
     when:
-    validator.validateHealthMonitor(attributeValidator, poolHealthMonitor)
+    validator.validateHealthMonitor(attributeValidator, new HealthMonitor(delay: delay, timeout: timeout, maxRetries: maxRetries, httpMethod: method, url: URL, expectedCodes: expectedCodes))
 
     then:
-    1 * poolHealthMonitor.type >> PoolHealthMonitorType.PING
-    1 * poolHealthMonitor.delay >> delay
-    1 * poolHealthMonitor.timeout >> timeout
-    1 * poolHealthMonitor.maxRetries >> maxRetries
     1 * attributeValidator.validatePositive(delay, _)
     1 * attributeValidator.validatePositive(timeout, _)
     1 * attributeValidator.validatePositive(maxRetries, _)
-    1 * poolHealthMonitor.httpMethod >> method
     0 * attributeValidator.validateHttpMethod(method, _)
-    1 * poolHealthMonitor.expectedHttpStatusCodes >> expectedCodes
     0 * attributeValidator.validateHttpStatusCode(_, _)
-    1 * poolHealthMonitor.url >> URL
     0 * attributeValidator.validateURI(URL, _)
   }
 

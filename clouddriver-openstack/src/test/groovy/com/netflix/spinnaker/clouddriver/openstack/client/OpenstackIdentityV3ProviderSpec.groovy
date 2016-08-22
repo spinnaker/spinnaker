@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.client
 
+import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties.LbaasConfig
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import org.openstack4j.api.OSClient
@@ -47,7 +48,8 @@ class OpenstackIdentityV3ProviderSpec extends Specification {
     String domainName = 'domain'
     String endpoint = 'http://fake.com'
     Boolean insecure = true
-    credentials = new OpenstackNamedAccountCredentials(accountName, environment, accountType, master, username, password, tenantName, domainName, endpoint, [], insecure, "")
+    LbaasConfig config = new LbaasConfig(pollInterval: 5, pollTimeout: 60)
+    credentials = new OpenstackNamedAccountCredentials(accountName, environment, accountType, master, username, password, tenantName, domainName, endpoint, [], insecure, "", config)
     mockClient = Mock(OSClient.OSClientV3) {
       getToken() >> { Mock(Token) }
     }

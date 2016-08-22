@@ -35,6 +35,8 @@ import static UpsertOpenstackSecurityGroupDescription.Rule
 class OpenstackAttributeValidator {
   static final namePattern = /^[a-z0-9]+([-a-z0-9]*[a-z0-9])?$/
   static final prefixPattern = /^[a-z0-9]+$/
+  static final int MIN_PORT = -1
+  static final int MAX_PORT = (1 << 16) - 1
 
   String context
   Errors errors
@@ -79,6 +81,10 @@ class OpenstackAttributeValidator {
       }
     }
     result
+  }
+
+  def validatePortRange(Integer value, String attribute) {
+    validateRange(value, MIN_PORT, MAX_PORT, attribute)
   }
 
   boolean validateNotNull(Object obj, String attribute) {

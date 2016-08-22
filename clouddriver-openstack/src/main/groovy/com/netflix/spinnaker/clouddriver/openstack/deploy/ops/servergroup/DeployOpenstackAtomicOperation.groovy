@@ -120,7 +120,7 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
         task.updateStatus BASE_PHASE, "Found load balancer details for load balancer $loadBalancerId"
         loadBalancer.listeners.collect { item ->
           task.updateStatus BASE_PHASE, "Looking up load balancer listener details for listener $item.id"
-          ListenerV2 listener = provider.getLoadBalancerListener(description.region, item.id)
+          ListenerV2 listener = provider.getListener(description.region, item.id)
           String internalPort = parseListenerKey(listener.description).internalPort
           String poolId = listener.defaultPoolId
           task.updateStatus BASE_PHASE, "Found load balancer listener details (poolId=$poolId, internalPort=$internalPort) for listener $item.id"

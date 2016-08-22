@@ -98,7 +98,7 @@ class DeployOpenstackAtomicOperationSpec extends Specification {
     then:
     1 * provider.listStacks(region) >> []
     1 * provider.getLoadBalancer(region, lbId) >> mockLb
-    1 * provider.getLoadBalancerListener(region, listenerId) >> mockListener
+    1 * provider.getListener(region, listenerId) >> mockListener
     1 * provider.getSubnet(region, subnetId) >> mockSubnet
     1 * provider.deploy(region, createdStackName, _ as String, _ as Map<String,String>, serverGroupParams, _ as Boolean, _ as Long)
     noExceptionThrown()
@@ -119,7 +119,7 @@ class DeployOpenstackAtomicOperationSpec extends Specification {
     then:
     1 * provider.listStacks(_) >> [stack]
     1 * provider.getLoadBalancer(region, lbId) >> mockLb
-    1 * provider.getLoadBalancerListener(region, listenerId) >> mockListener
+    1 * provider.getListener(region, listenerId) >> mockListener
     1 * provider.getSubnet(region, subnetId) >> mockSubnet
     1 * provider.deploy(region, newStackName, _ as String, _ as Map<String,String>, serverGroupParams, _ as Boolean, _ as Long)
     noExceptionThrown()
@@ -147,7 +147,7 @@ class DeployOpenstackAtomicOperationSpec extends Specification {
     then:
     1 * provider.listStacks(region) >> []
     1 * provider.getLoadBalancer(region, lbId) >> mockLb
-    1 * provider.getLoadBalancerListener(region, listenerId) >> mockListener
+    1 * provider.getListener(region, listenerId) >> mockListener
     1 * provider.getSubnet(region, subnetId) >> mockSubnet
     1 * provider.deploy(region, createdStackName, _ as String, _ as Map<String,String>, scaledServerGroupParams, _ as Boolean, _ as Long)
     noExceptionThrown()
@@ -165,7 +165,7 @@ class DeployOpenstackAtomicOperationSpec extends Specification {
     then:
     1 * provider.listStacks(region) >> []
     1 * provider.getLoadBalancer(region, lbId) >> mockLb
-    1 * provider.getLoadBalancerListener(region, listenerId) >> mockListener
+    1 * provider.getListener(region, listenerId) >> mockListener
     1 * provider.getSubnet(region, subnetId) >> mockSubnet
     1 * provider.deploy(region, createdStackName, _ as String, _ as Map<String,String>, serverGroupParams, _ as Boolean, _ as Long) >> { throw throwable }
     Throwable actual = thrown(OpenstackOperationException)

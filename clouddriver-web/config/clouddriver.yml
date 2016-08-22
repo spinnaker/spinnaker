@@ -268,6 +268,9 @@ openstack:
       regions: ${OS_REGIONS:''}
       insecure: ${OS_INSECURE:false}
       heatTemplatePath: /path/to/custom/heat/template(s)
+      lbaas:
+        pollTimeout: ${OS_LBAAS_POLL_TIMEOUT:60}
+        pollInterval: ${OS_LBAAS_POLL_INTERVAL:5}
 
 kubernetes:
   enabled: false
