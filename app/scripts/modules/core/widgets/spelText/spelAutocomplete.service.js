@@ -289,7 +289,7 @@ module.exports = angular
     };
 
     let addPipelineInfo = (pipelineConfig) => {
-      if(pipelineConfig) {
+      if(pipelineConfig && pipelineConfig.id) {
         return getLastExecutionByPipelineConfig(pipelineConfig)
           .then((lastExecution) => {
             return lastExecution || pipelineConfig;
