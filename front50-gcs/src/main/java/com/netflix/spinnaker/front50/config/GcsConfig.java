@@ -25,6 +25,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.web.client.RestTemplate;
 import rx.schedulers.Schedulers;
 
@@ -33,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 @Configuration
 @ConditionalOnExpression("${spinnaker.gcs.enabled:false}")
+@PropertySource(value = "classpath:META-INF/front50-core.properties", ignoreResourceNotFound = true)
 public class GcsConfig {
   // Refresh every 10 minutes. In practice this either doesnt matter because refreshes are fast enough,
   // or should be finer tuned. But it seems silly to refresh at a fast rate when changes are generally infrequent.
