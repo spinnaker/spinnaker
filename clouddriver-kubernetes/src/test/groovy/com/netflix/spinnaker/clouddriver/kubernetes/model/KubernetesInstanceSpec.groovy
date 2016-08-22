@@ -127,13 +127,13 @@ class KubernetesInstanceSpec extends Specification {
       instance.healthState == HealthState.Up
   }
 
-  void "Should report pod state as OOS"() {
+  void "Should report pod state as Unscheduled"() {
     when:
       podStatusMock.getPhase() >> "Pending"
       def instance = new KubernetesInstance(podMock, [])
 
     then:
-      instance.healthState == HealthState.OutOfService
+      instance.healthState == HealthState.Down
   }
 
   void "Should report pod state as Unknown"() {
