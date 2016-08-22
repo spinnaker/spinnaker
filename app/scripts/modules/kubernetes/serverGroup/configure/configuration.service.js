@@ -63,7 +63,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
     function mapImageToContainer(command) {
       return (image) => {
         return {
-          name: image.repository.replace(/_/g, '').toLowerCase(),
+          name: image.repository.replace(/_/g, '').replace(/\//g, '-').toLowerCase(),
           imageDescription: {
             repository: image.repository,
             tag: image.tag,
