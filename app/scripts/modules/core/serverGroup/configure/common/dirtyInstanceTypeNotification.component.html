@@ -1,0 +1,13 @@
+<div class="row" ng-if="$ctrl.command.viewState.dirty.instanceType">
+  <div class="col-md-12">
+    <div class="alert alert-warning">
+      <p><span class="glyphicon glyphicon-warning-sign"></span>
+        The previously selected instance type ({{$ctrl.command.viewState.dirty.instanceType}})
+        could not be deployed with the selected image or in the selected location.
+      </p>
+      <p class="text-right">
+        <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="$ctrl.command.viewState.dirty.instanceType = null">Okay</a>
+      </p>
+    </div>
+  </div>
+</div>

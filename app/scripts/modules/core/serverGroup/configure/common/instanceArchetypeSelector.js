@@ -5,6 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.serverGroup.configure.common.instanceArchetypeSelector', [
   require('./costFactor.js'),
   require('../../../presentation/isVisible/isVisible.directive.js'),
+  require('./dirtyInstanceTypeNotification.component.js')
 ])
   .directive('instanceArchetypeSelector', function() {
     return {

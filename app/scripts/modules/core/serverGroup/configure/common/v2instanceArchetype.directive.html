@@ -11,6 +11,7 @@
   </button>
 </div>
 <div class="clearfix" ng-if="command.viewState.instanceProfile === 'custom'">
+  <dirty-instance-type-notification command="command"></dirty-instance-type-notification>
   <div class="col-md-8">
     <select class="form-control input-sm"
             ng-model="command.instanceType"

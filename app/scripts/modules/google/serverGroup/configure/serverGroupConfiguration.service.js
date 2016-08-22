@@ -148,11 +148,15 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       let result = { dirty: {} };
       let locations = command.regional ? [ command.region ] : [ command.zone ];
       let filtered = gceInstanceTypeService.getAvailableTypesForLocations(command.backingData.instanceTypes, locations);
+      if (locations.every(l => !l)) {
+        return result;
+      }
+
       filtered = sortInstanceTypes(filtered);
       let instanceType = command.instanceType;
       if (_.every([ instanceType, !_.startsWith(instanceType, 'custom'), !_.contains(filtered, instanceType) ])) {
+        result.dirty.instanceType = command.instanceType;
         command.instanceType = null;
-        result.dirty.instanceType = true;
       }
       command.backingData.filtered.instanceTypes = filtered;
       return result;
@@ -164,6 +168,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         memory = _.get(command, 'viewState.customInstance.memory');
       let { zone, regional, region } = command;
       let location = regional ? region : zone;
+      if (!location) {
+        return result;
+      }
 
       if (zone || regional) {
         _.set(command,
@@ -190,7 +197,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
           'viewState.customInstance.memory',
           undefined
         );
-        result.dirty.instanceType = true;
+        result.dirty.instanceType = command.instanceType;
         command.instanceType = null;
       }
 
