@@ -1,0 +1,4 @@
+<p ng-if="cache.loading">{{refreshToolTipLabel}} list is <strong>refreshing</strong>.</p>
+<p ng-if="!cache.loading">Click <span class="small glyphicon glyphicon-refresh"></span> to refresh {{refreshToolTipLabel}} list.</p>
+<p>Last Updated:<br>{{cache.lastRefresh | timestamp }}<br>({{cache.lastRefresh | relativeTime }})</p>
+<p class='small'><strong>Note:</strong> Due to caching, data may be delayed up to 2 minutes</p>

@@ -27,7 +27,7 @@ module.exports = angular
 
     function convertServerGroupCommandToDeployConfiguration(base) {
       //avoid copying the backingData or viewState, which are expensive to copy over
-      var params = _.omit(base, 'backingData', 'viewState', 'selectedProvider', 'credentials', 'loadBalancers',
+      var params = _.omit(base, 'backingData', 'viewState', 'selectedProvider', 'credentials',
         'stack', 'region', 'account', 'cloudProvider', 'application', 'type', 'freeFormDetails');
       var command = {
         type: base.type,

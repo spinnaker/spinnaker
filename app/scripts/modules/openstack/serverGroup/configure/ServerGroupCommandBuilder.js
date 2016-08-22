@@ -58,9 +58,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.s
           stack: serverGroupName.stack,
           freeFormDetails: serverGroupName.freeFormDetails,
           credentials: serverGroup.account,
-          //TODO(jwest): update this when multiple load balancers are supported
-          poolId: serverGroup.launchConfig.loadBalancerId,
-          loadBalancers: [],
+          loadBalancers: serverGroup.launchConfig.loadBalancers,
           region: serverGroup.region,
           minSize: parseInt(serverGroup.scalingConfig.minSize),
           maxSize: parseInt(serverGroup.scalingConfig.maxSize),

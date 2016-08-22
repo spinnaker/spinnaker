@@ -16,24 +16,15 @@
       </div>
     </div>
 
-    <os-load-balancer-select-field model="command.poolId" filter="lbFilter"></os-load-balancer-select-field>
+    <os-app-cache-backed-multi-select-field label="Load Balancers"
+                                            cache-key="loadBalancers"
+                                            filter="filter"
+                                            model="command.loadBalancers"></os-app-cache-backed-multi-select-field>
 
-    <div class="form-group">
-      <div class="col-md-3 sm-label-left"><b>Security Groups</b></div>
-      <div class="col-md-7">
-        <ui-select multiple ng-model="command.securityGroups" class="form-control input-sm" on-select="accessCtrl.onSecurityGroupsChanged()">
-          <ui-select-match>{{$item.name}}</ui-select-match>
-          <ui-select-choices repeat="sg.id as sg in securityGroups | filter: $select.search">
-            <span ng-bind-html="sg.name | highlight: $select.search"></span>
-          </ui-select-choices>
-        </ui-select>
-      </div>
-      <div class="col-md-1 sm-label-left">
-        <a href="" ng-click="accessCtrl.refreshSecurityGroups()" uib-tooltip-template="accessCtrl.refreshTooltipTemplate">
-          <span class="glyphicon glyphicon-refresh" ng-class="{'glyphicon-spinning':refreshing}"></span>
-        </a>
-      </div>
-    </div>
+    <os-app-cache-backed-multi-select-field label="Security Groups"
+                                            cache-key="securityGroups"
+                                            filter="filter"
+                                            model="command.securityGroups"></os-app-cache-backed-multi-select-field>
 
     </ng-form>
   </div>

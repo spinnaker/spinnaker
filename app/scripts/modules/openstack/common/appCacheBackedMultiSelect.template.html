@@ -1,0 +1,17 @@
+<div class="form-group">
+  <div class="col-md-3 sm-label-left"><b>{{label}}</b></div>
+  <div class="col-md-7">
+    <ui-select multiple ng-model="state.selectedOptions" class="form-control input-sm"
+               on-select="onSelectionsChanged()" on-remove="onSelectionsChanged()">
+      <ui-select-match>{{$item.name}}</ui-select-match>
+      <ui-select-choices repeat="o.id as o in options | filter: $select.search">
+        <span ng-bind-html="o.name | highlight: $select.search"></span>
+      </ui-select-choices>
+    </ui-select>
+  </div>
+  <div class="col-md-1 sm-label-left">
+    <a href="" ng-click="cache.refresh()" uib-tooltip-template="refreshTooltipTemplate">
+      <span class="glyphicon glyphicon-refresh" ng-class="{'glyphicon-spinning':cache.loading}"></span>
+    </a>
+  </div>
+</div>
