@@ -49,8 +49,16 @@ class DestroyKubernetesAtomicOperation implements AtomicOperation<Void> {
 
     task.updateStatus BASE_PHASE, "Destroying replication controller..."
 
-    if (!credentials.apiAdaptor.hardDestroyReplicationController(namespace, description.serverGroupName)) {
-      throw new KubernetesOperationException("Failed to delete $description.serverGroupName in $namespace.")
+    if (credentials.apiAdaptor.getReplicationController(namespace, description.serverGroupName)) {
+      if (!credentials.apiAdaptor.hardDestroyReplicationController(namespace, description.serverGroupName)) {
+        throw new KubernetesOperationException("Failed to delete $description.serverGroupName in $namespace.")
+      }
+    } else if (credentials.apiAdaptor.getReplicaSet(namespace, description.serverGroupName)) {
+      if (!credentials.apiAdaptor.hardDestroyReplicaSet(namespace, description.serverGroupName)) {
+        throw new KubernetesOperationException("Failed to delete $description.serverGroupName in $namespace.")
+      }
+    } else {
+      throw new KubernetesOperationException("Failed to find replication controller or replica set $description in $namespace.")
     }
 
     task.updateStatus BASE_PHASE, "Successfully destroyed replication controller $description.serverGroupName."

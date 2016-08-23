@@ -152,6 +152,12 @@ class KubernetesApiAdaptor {
     }
   }
 
+  boolean hardDestroyReplicaSet(String namespace, String name) {
+    atomicWrapper("Hard Destroy Replica Set $name", namespace) { KubernetesClient client ->
+      client.extensions().replicaSets().inNamespace(namespace).withName(name).delete()
+    }
+  }
+
   List<Pod> getReplicaSetPods(String namespace, String replicaSetName) {
     atomicWrapper("Get Replica Set Pods for $replicaSetName", namespace) { KubernetesClient client ->
       client.pods().inNamespace(namespace).withLabel(KubernetesUtil.REPLICATION_CONTROLLER_LABEL, replicaSetName).list().items
