@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,40 +14,36 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.clouddriver
 
 import com.netflix.spinnaker.orca.clouddriver.model.Task
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 import retrofit.http.Body
-import retrofit.http.GET
-import retrofit.http.POST
-import retrofit.http.Path
 import rx.Observable
 
-/**
- * An interface to the Kato REST API for Amazon cloud. See {@link http://kato.test.netflix.net:7001/manual/index.html}.
- */
-interface KatoService {
+@Component
+class KatoService {
 
-  /**
-   * @deprecated Use {@code /{cloudProvider}/ops} instead
-   */
-  @Deprecated
-  @POST("/ops")
-  Observable<TaskId> requestOperations(@Body Collection<? extends Map<String, Map>> operations)
+  @Autowired
+  private KatoRestService katoRestService
 
-  @POST("/{cloudProvider}/ops")
-  Observable<TaskId> requestOperations(@Path("cloudProvider") String cloudProvider,
-                                       @Body Collection<? extends Map<String, Map>> operations)
+  Observable<TaskId> requestOperations(Collection<? extends Map<String, Map>> operations) {
+    String clientRequestId = UUID.randomUUID().toString()
+    katoRestService.requestOperations(clientRequestId, operations)
+  }
 
-  @GET("/task")
-  Observable<List<Task>> listTasks()
+  Observable<TaskId> requestOperations(String cloudProvider, @Body Collection<? extends Map<String, Map>> operations) {
+    String clientRequestId = UUID.randomUUID().toString()
+    katoRestService.requestOperations(clientRequestId, cloudProvider, operations)
+  }
 
-  @GET("/task/{id}")
-  Observable<Task> lookupTask(@Path("id") String id)
+  Observable<List<Task>> listTasks() {
+    katoRestService.listTasks()
+  }
 
+  Observable<Task> lookupTask(String id) {
+    katoRestService.lookupTask(id)
+  }
 }
