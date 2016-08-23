@@ -71,6 +71,9 @@ module.exports = {
       id: 'js',
       loaders: [ 'ng-annotate!angular!babel!envify!eslint' ],
       threadPool: happyThreadPool,
+      cacheContext: {
+        env: process.env,
+      },
     }),
     new HappyPack({
       id: 'html',
