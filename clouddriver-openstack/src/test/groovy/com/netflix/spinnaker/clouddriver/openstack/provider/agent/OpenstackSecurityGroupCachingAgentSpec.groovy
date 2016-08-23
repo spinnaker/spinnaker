@@ -18,8 +18,14 @@
 package com.netflix.spinnaker.clouddriver.openstack.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.cats.agent.CacheResult
+import com.netflix.spinnaker.cats.agent.DefaultCacheResult
+import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.model.AddressableRange
 import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
@@ -34,10 +40,12 @@ import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import org.openstack4j.model.compute.IPProtocol
 import org.openstack4j.openstack.compute.domain.NovaSecGroupExtension
-import spock.lang.Shared
+import redis.clients.jedis.exceptions.JedisException
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.ON_DEMAND
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SECURITY_GROUPS
 
 class OpenstackSecurityGroupCachingAgentSpec extends Specification {
@@ -60,7 +68,10 @@ class OpenstackSecurityGroupCachingAgentSpec extends Specification {
     namedAccountCredentials = Mock(OpenstackNamedAccountCredentials)
     namedAccountCredentials.credentials >> credentials
     objectMapper = Mock(ObjectMapper)
-    cachingAgent = Spy(OpenstackSecurityGroupCachingAgent, constructorArgs: [namedAccountCredentials, region, objectMapper])
+    Registry registry = Mock(Registry) {
+      _ * timer(*_) >> Mock(Timer)
+    }
+    cachingAgent = Spy(OpenstackSecurityGroupCachingAgent, constructorArgs: [namedAccountCredentials, region, objectMapper, registry])
     _ * cachingAgent.getAccountName() >> accountName
   }
 
@@ -299,5 +310,132 @@ class OpenstackSecurityGroupCachingAgentSpec extends Specification {
     1 * provider.getSecurityGroups(region) >> { throw exception }
     def ex = thrown(Exception)
     exception == ex
+  }
+
+  @Unroll
+  def "on demand caching with invalid data"() {
+    when:
+    def result = cachingAgent.handle(providerCache, data)
+
+    then:
+    result == null
+
+    where:
+    data << [
+      [account: 'os-account', region: 'east'],
+      [securityGroupName: 'sg', account: 'other-account', region: 'east'],
+      [securityGroupName: 'sg', account: 'os-account', region: 'west']
+    ]
+  }
+
+  def "handle on demand store"() {
+    given:
+    def id = UUID.randomUUID().toString()
+    def secGroupExt = new NovaSecGroupExtension(name: 'sg', id: id)
+    def data = [
+      securityGroupName: secGroupExt.name,
+      account: accountName,
+      region: region
+    ]
+    CacheData cacheData = new DefaultCacheData(UUID.randomUUID().toString(), [:], [:])
+    CacheResult cacheResult = new DefaultCacheResult([(SECURITY_GROUPS.ns): [cacheData]])
+
+    when:
+    def result = cachingAgent.handle(providerCache, data)
+
+    then:
+    1 * provider.getSecurityGroups(region) >> [secGroupExt]
+    1 * cachingAgent.buildCacheResult(_, [secGroupExt]) >> cacheResult
+    1 * providerCache.putCacheData(ON_DEMAND.ns, _)
+
+    and:
+    result.cacheResult.cacheResults[SECURITY_GROUPS.ns].size() == 1
+    result.cacheResult.cacheResults[SECURITY_GROUPS.ns].first() == cacheData
+  }
+
+  def "handle on demand unable to find security group"() {
+    given:
+    String unresolvedKey = Keys.getSecurityGroupKey('sg', '*', accountName, region)
+    String key = Keys.getSecurityGroupKey('sg', UUID.randomUUID().toString(), accountName, region)
+    def data = [securityGroupName: 'sg', account: accountName, region: region]
+
+    when:
+    def result = cachingAgent.handle(providerCache, data)
+
+    then:
+    1 * provider.getSecurityGroups(region) >> []
+    1 * providerCache.filterIdentifiers(SECURITY_GROUPS.ns, unresolvedKey) >> [key]
+
+    and:
+    result.cacheResult.cacheResults[ON_DEMAND.ns].isEmpty()
+    result.evictions[SECURITY_GROUPS.ns] == [key]
+  }
+
+  def "handle on demand no cache results built"() {
+    given:
+    String id = UUID.randomUUID().toString()
+    String name = 'sg'
+    String key = Keys.getSecurityGroupKey(name, id, accountName, region)
+    def data = [securityGroupName: name, account: accountName, region: region]
+    def securityGroup = new NovaSecGroupExtension(name: name, id: id)
+
+    when:
+    def result = cachingAgent.handle(providerCache, data)
+
+    then:
+    1 * provider.getSecurityGroups(region) >> [securityGroup]
+    1 * cachingAgent.buildCacheResult(_, [securityGroup]) >> { builder, groups -> builder.build() }
+    1 * providerCache.evictDeletedItems(ON_DEMAND.ns, [key])
+
+    and:
+    result.cacheResult.cacheResults[ON_DEMAND.ns].isEmpty()
+    result.evictions.isEmpty()
+  }
+
+  def "handles proper type - #testCase"() {
+    when:
+    def result = cachingAgent.handles(type, cloudProvider)
+
+    then:
+    result == expected
+
+    where:
+    testCase         | type                                     | cloudProvider             | expected
+    'wrong type'     | OnDemandAgent.OnDemandType.LoadBalancer  | OpenstackCloudProvider.ID | false
+    'wrong provider' | OnDemandAgent.OnDemandType.SecurityGroup | 'aws'                     | false
+    'success'        | OnDemandAgent.OnDemandType.SecurityGroup | OpenstackCloudProvider.ID | true
+  }
+
+  def "pending on demand requests"() {
+    given:
+    def id = UUID.randomUUID().toString()
+    def name = 'sg'
+    def key = Keys.getSecurityGroupKey(name, id, accountName, region)
+    def cacheData = new DefaultCacheData(key, [cacheTime: System.currentTimeMillis(), processedCount: 1, processedTime: System.currentTimeMillis()], [:])
+
+    when:
+    def result = cachingAgent.pendingOnDemandRequests(providerCache)
+
+    then:
+    1 * providerCache.getIdentifiers(ON_DEMAND.ns) >> [key]
+    1 * providerCache.getAll(ON_DEMAND.ns, [key]) >> [cacheData]
+
+    and:
+    result.first() == [details: Keys.parse(key), cacheTime: cacheData.attributes.cacheTime, processedCount: cacheData.attributes.processedCount, processedTime: cacheData.attributes.processedTime]
+  }
+
+  def "pending on demand requests with exception"() {
+    given:
+    Throwable throwable = new JedisException('test')
+
+    when:
+    cachingAgent.pendingOnDemandRequests(providerCache)
+
+    then:
+    1 * providerCache.getIdentifiers(ON_DEMAND.ns) >> { throw throwable }
+
+    and:
+    def exception = thrown(JedisException)
+    exception == throwable
   }
 }
