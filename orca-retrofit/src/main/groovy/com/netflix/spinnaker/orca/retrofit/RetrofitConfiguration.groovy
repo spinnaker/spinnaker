@@ -48,7 +48,7 @@ class RetrofitConfiguration {
    @Value('${okHttpClient.connectionPool.keepAliveDurationMs:300000}')
    int keepAliveDurationMs
 
-   @Value('${okHttpClient.retryOnConnectionFailure:true}')
+   @Value('${okHttpClient.retryOnConnectionFailure:false}')
    boolean retryOnConnectionFailure
 
    @Bean
