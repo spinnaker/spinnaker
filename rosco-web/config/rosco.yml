@@ -241,12 +241,14 @@ openstack:
     domainName: Default
     floatingIpPool: ext_network
     securityGroups: default
-    tenantName: tenant
-    insecure: true
+    tenantName: ${OS_TENANT_NAME:''}
+    insecure: ${OS_INSECURE:false}
     username: ${OS_USERNAME}
     password: ${OS_PASSWORD}
     templateFile: openstack.json
     baseImages:
+    # sourceImageId is the unique UUID of an openstack image in a repion, and can be found via horizon or the image api.
+    # It is immutable for the life of the image.
     - baseImage:
         id: vivid
         shortDescription: 15.04
@@ -255,11 +257,11 @@ openstack:
       virtualizationSettings:
       - region: r1
         instanceType: smem-2vcpu
-        sourceImageName: ubuntu-latest
+        sourceImageId: b12f2467-cfca-4a65-b29b-d11b8c46818d
         sshUserName: ubuntu
       - region: r2
         instanceType: smem-2vcpu
-        sourceImageName: ubuntu-latest
+        sourceImageId: b12f2467-cfca-4a65-b29b-d11b8c46818e
         sshUserName: ubuntu
 
 swagger:

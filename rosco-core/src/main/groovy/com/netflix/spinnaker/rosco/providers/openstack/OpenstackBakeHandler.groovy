@@ -79,7 +79,7 @@ public class OpenstackBakeHandler extends CloudProviderBakeHandler {
 
     if (bakeRequest.base_ami) {
       openstackVirtualizationSettings = openstackVirtualizationSettings.clone()
-      openstackVirtualizationSettings.sourceImageName = bakeRequest.base_ami
+      openstackVirtualizationSettings.sourceImageId = bakeRequest.base_ami
     }
 
     return openstackVirtualizationSettings
@@ -92,7 +92,7 @@ public class OpenstackBakeHandler extends CloudProviderBakeHandler {
       openstack_region: region,
       openstack_ssh_username: openstackVirtualizationSettings.sshUserName,
       openstack_instance_type: openstackVirtualizationSettings.instanceType,
-      openstack_source_image_name: openstackVirtualizationSettings.sourceImageName,
+      openstack_source_image_id: openstackVirtualizationSettings.sourceImageId,
       openstack_image_name: imageName
     ]
 

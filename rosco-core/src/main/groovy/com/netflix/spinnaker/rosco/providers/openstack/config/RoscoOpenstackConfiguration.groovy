@@ -70,7 +70,7 @@ class RoscoOpenstackConfiguration {
   static class OpenstackVirtualizationSettings {
     String region
     String instanceType
-    String sourceImageName
+    String sourceImageId
     String sshUserName
   }
 

@@ -67,13 +67,13 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
             [
               region: REGION,
               instanceType: "smem-2vcpu",
-              sourceImageName: SOURCE_UBUNTU_IMAGE_NAME,
+              sourceImageId: SOURCE_UBUNTU_IMAGE_NAME,
               sshUserName: "ubuntu"
             ],
             [
               region: REGION,
               instanceType: "mmem-6vcpu",
-              sourceImageName: SOURCE_UBUNTU_IMAGE_NAME,
+              sourceImageId: SOURCE_UBUNTU_IMAGE_NAME,
               sshUserName: "ubuntu"
             ]
           ]
@@ -87,7 +87,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
             [
               region: REGION,
               instanceType: "smem-2vcpu",
-              sourceImageName: SOURCE_TRUSTY_IMAGE_NAME,
+              sourceImageId: SOURCE_TRUSTY_IMAGE_NAME,
               sshUserName: "ubuntu"
             ]
           ]
@@ -101,7 +101,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
             [
               region: REGION,
               instanceType: "smem-2vcpu",
-              sourceImageName: SOURCE_OPENSTACK_IMAGE_NAME,
+              sourceImageId: SOURCE_OPENSTACK_IMAGE_NAME,
               sshUserName: "cloud-user"
             ]
           ]
@@ -261,7 +261,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         openstack_region: REGION,
         openstack_ssh_username: "ubuntu",
         openstack_instance_type: instanceType,
-        openstack_source_image_name: SOURCE_UBUNTU_IMAGE_NAME,
+        openstack_source_image_id: SOURCE_UBUNTU_IMAGE_NAME,
         openstack_image_name: targetImageName,
         openstack_username: openstackBakeryDefaults.username,
         openstack_password: openstackBakeryDefaults.password,
@@ -314,7 +314,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
             openstack_region: REGION,
             openstack_ssh_username: "ubuntu",
             openstack_instance_type: instanceType,
-            openstack_source_image_name: SOURCE_UBUNTU_IMAGE_NAME,
+            openstack_source_image_id: SOURCE_UBUNTU_IMAGE_NAME,
             openstack_image_name: targetImageName,
             openstack_username: openstackBakeryDefaults.username,
             openstack_password: openstackBakeryDefaults.password,
@@ -366,7 +366,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         openstack_region: REGION,
         openstack_ssh_username: "ubuntu",
         openstack_instance_type: instanceType,
-        openstack_source_image_name: "ubuntu-natty",
+        openstack_source_image_id: "ubuntu-natty",
         openstack_image_name: targetImageName,
         openstack_username: openstackBakeryDefaults.username,
         openstack_password: openstackBakeryDefaults.password,
@@ -416,7 +416,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         openstack_region: REGION,
         openstack_ssh_username: "ubuntu",
         openstack_instance_type: instanceType,
-        openstack_source_image_name: SOURCE_UBUNTU_IMAGE_NAME,
+        openstack_source_image_id: SOURCE_UBUNTU_IMAGE_NAME,
         openstack_image_name: targetImageName,
         openstack_username: openstackBakeryDefaults.username,
         openstack_password: openstackBakeryDefaults.password,
@@ -465,7 +465,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         openstack_region: REGION,
         openstack_ssh_username: "ubuntu",
         openstack_instance_type: instanceType,
-        openstack_source_image_name: SOURCE_UBUNTU_IMAGE_NAME,
+        openstack_source_image_id: SOURCE_UBUNTU_IMAGE_NAME,
         openstack_image_name: targetImageName,
         openstack_username: openstackBakeryDefaults.username,
         openstack_password: openstackBakeryDefaults.password,
@@ -516,7 +516,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         openstack_region: REGION,
         openstack_ssh_username: "ubuntu",
         openstack_instance_type: "mmem-6vcpu",
-        openstack_source_image_name: SOURCE_UBUNTU_IMAGE_NAME,
+        openstack_source_image_id: SOURCE_UBUNTU_IMAGE_NAME,
         openstack_image_name: targetImageName,
         openstack_username: openstackBakeryDefaults.username,
         openstack_password: openstackBakeryDefaults.password,
@@ -565,7 +565,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         openstack_region: REGION,
         openstack_ssh_username: "ubuntu",
         openstack_instance_type: instanceType,
-        openstack_source_image_name: SOURCE_UBUNTU_IMAGE_NAME,
+        openstack_source_image_id: SOURCE_UBUNTU_IMAGE_NAME,
         openstack_image_name: targetImageName,
         openstack_username: openstackBakeryDefaults.username,
         openstack_password: openstackBakeryDefaults.password,
