@@ -36,4 +36,12 @@ module.exports = angular
         this.command.onHostMaintenance = 'MIGRATE';
       }
     };
+
+    this.setAutoHealing = () => {
+      if (this.command.enableAutoHealing) {
+        this.command.autoHealingPolicy = {initialDelaySec: 300};
+      } else {
+        delete this.command.autoHealingPolicy;
+      }
+    };
   });

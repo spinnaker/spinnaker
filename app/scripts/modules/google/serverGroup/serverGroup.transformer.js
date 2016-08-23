@@ -34,6 +34,7 @@ module.exports = angular.module('spinnaker.gce.serverGroup.transformer', [
       delete command.localSSDCount;
       delete command.enableTraffic;
       delete command.providerType;
+      delete command.enableAutoHealing;
 
       return command;
     }

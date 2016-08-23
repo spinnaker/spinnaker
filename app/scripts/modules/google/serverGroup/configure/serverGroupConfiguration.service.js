@@ -13,11 +13,13 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
   require('../../instance/gceInstanceType.service.js'),
   require('./../../instance/custom/customInstanceBuilder.gce.service.js'),
   require('../../loadBalancer/elSevenUtils.service.js'),
+  require('../../httpHealthCheck/httpHealthCheck.reader.js'),
 ])
   .factory('gceServerGroupConfigurationService', function(gceImageReader, accountService, securityGroupReader,
                                                           gceInstanceTypeService, cacheInitializer,
                                                           $q, loadBalancerReader, networkReader, subnetReader,
-                                                          settings, _, gceCustomInstanceBuilderService, elSevenUtils) {
+                                                          settings, _, gceCustomInstanceBuilderService, elSevenUtils,
+                                                          gceHttpHealthCheckReader) {
 
     var persistentDiskTypes = [
       'pd-standard',
@@ -67,6 +69,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         instanceTypes: gceInstanceTypeService.getAllTypesByRegion(),
         persistentDiskTypes: $q.when(angular.copy(persistentDiskTypes)),
         authScopes: $q.when(angular.copy(authScopes)),
+        httpHealthChecks: gceHttpHealthCheckReader.listHttpHealthChecks(),
       }).then(function(backingData) {
         var loadBalancerReloader = $q.when(null);
         var securityGroupReloader = $q.when(null);
@@ -96,6 +99,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
           if (networkNames.indexOf(command.network) === -1) {
             networkReloader = refreshNetworks(command);
           }
+        }
+        if (command.autoHealingPolicy) {
+          command.enableAutoHealing = true;
         }
 
         return $q.all([loadBalancerReloader, securityGroupReloader, networkReloader]).then(function() {
@@ -260,6 +266,29 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
           result.dirty.zone = true;
         }
       }
+      return result;
+    }
+
+    function configureHttpHealthChecks(command) {
+      var result = { dirty: {} };
+      var filteredData = command.backingData.filtered;
+
+      if (command.credentials === null) {
+        return result;
+      }
+
+      filteredData.httpHealthChecks = _(command.backingData.httpHealthChecks[0].results)
+        .filter({provider: 'gce', account: command.credentials})
+        .pluck('name')
+        .valueOf();
+
+      if (_.has(command, 'autoHealingPolicy.healthCheck') && !_(filteredData.httpHealthChecks).contains(command.autoHealingPolicy.healthCheck)) {
+        delete command.autoHealingPolicy.healthCheck;
+        result.dirty.autoHealingPolicy = true;
+      } else {
+        result.dirty.autoHealingPolicy = null;
+      }
+
       return result;
     }
 
@@ -510,6 +539,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
           } else {
             angular.extend(result.dirty, command.networkChanged().dirty);
           }
+
+          angular.extend(result.dirty, configureHttpHealthChecks(command).dirty);
         } else {
           command.region = null;
         }
