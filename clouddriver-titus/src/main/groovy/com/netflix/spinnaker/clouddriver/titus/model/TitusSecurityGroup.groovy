@@ -21,9 +21,6 @@ class TitusSecurityGroup implements Serializable {
   String groupId
   String groupName
   String awsAccount
-
-  String toString(){
-    groupId
-  }
+  String awsVpcId
 
 }

@@ -23,8 +23,10 @@ import com.netflix.spinnaker.clouddriver.core.provider.agent.ExternalHealthProvi
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
 import com.netflix.spinnaker.clouddriver.titus.caching.Keys
+import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.model.TitusInstance
+import com.netflix.spinnaker.clouddriver.titus.model.TitusSecurityGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -40,6 +42,9 @@ class TitusInstanceProvider implements InstanceProvider<TitusInstance> {
 
   @Autowired(required = false)
   List<ExternalHealthProvider> externalHealthProviders
+
+  @Autowired
+  AwsLookupUtil awsLookupUtil
 
   @Autowired
   TitusInstanceProvider(Cache cacheView, TitusCloudProvider titusCloudProvider, ObjectMapper objectMapper) {
@@ -61,6 +66,7 @@ class TitusInstanceProvider implements InstanceProvider<TitusInstance> {
     if (instanceEntry.attributes[HEALTH.ns]) {
       instance.health.addAll(instanceEntry.attributes[HEALTH.ns])
     }
+    instance.securityGroups = awsLookupUtil.lookupSecurityGroupNames(account, region, job.securityGroups as LinkedHashSet)
     externalHealthProviders.each { externalHealthProvider ->
       def healthKeys = []
       externalHealthProvider.agents.each { externalHealthAgent ->

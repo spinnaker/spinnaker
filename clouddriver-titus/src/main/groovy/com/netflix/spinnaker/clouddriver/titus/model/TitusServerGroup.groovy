@@ -36,7 +36,8 @@ class TitusServerGroup implements ServerGroup, Serializable {
   String type = TYPE
   String entryPoint
   String iamProfile
-  List securityGroups
+  List<String> securityGroups
+  Set<TitusSecurityGroup> securityGroupDetails
   Map env
   Long submittedAt
   String application
