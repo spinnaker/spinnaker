@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.clouddriver.KatoRestService
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.clouddriver.OortService
@@ -95,7 +96,7 @@ class CloudDriverConfiguration {
   }
 
   @Bean
-  KatoService katoDeployService(
+  KatoRestService katoDeployService(
     @Value('${kato.baseUrl}') String katoBaseUrl, ObjectMapper mapper) {
     new RestAdapter.Builder()
       .setRequestInterceptor(spinnakerRequestInterceptor)
@@ -105,6 +106,6 @@ class CloudDriverConfiguration {
       .setLog(new RetrofitSlf4jLog(KatoService))
       .setConverter(new JacksonConverter(mapper))
       .build()
-      .create(KatoService)
+      .create(KatoRestService)
   }
 }

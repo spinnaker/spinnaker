@@ -28,13 +28,13 @@ import static java.net.HttpURLConnection.HTTP_ACCEPTED
 import static java.net.HttpURLConnection.HTTP_OK
 import static retrofit.RestAdapter.LogLevel.FULL
 
-class KatoServiceSpec extends Specification {
+class KatoRestServiceSpec extends Specification {
 
   @Rule
   HttpServerRule httpServer = new HttpServerRule()
 
   @Subject
-  KatoService service
+  KatoRestService service
 
   RequestInterceptor noopInterceptor = new RequestInterceptor() {
     @Override
@@ -62,7 +62,7 @@ class KatoServiceSpec extends Specification {
     def operation = [:]
 
     expect: "kato should return the details of the task it created"
-    with(service.requestOperations([operation]).toBlocking().first()) {
+    with(service.requestOperations(UUID.randomUUID().toString(), [operation]).toBlocking().first()) {
       it.id == taskId
     }
   }
