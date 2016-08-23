@@ -14,13 +14,8 @@
  * limitations under the License.
  */
 
-repositories {
-  maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
-}
-
 ext {
-  openstack4jCoreVersion = '3.0.2-20160822.115544-6'
-  openstack4jJerseyVersion = '3.0.2-20160822.115557-6'
+  openstack4jVersion = '3.0.2'
   commonsNetVersion = '3.5'
   commonsIOVersion = '1.3.2'
   jacksonVersion = '2.7.3'
@@ -33,8 +28,8 @@ dependencies {
   compile spinnaker.dependency('bootWeb')
 
   compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion"
-  compile "org.pacesys:openstack4j-core:$openstack4jCoreVersion"
-  compile "org.pacesys.openstack4j.connectors:openstack4j-jersey2:$openstack4jJerseyVersion"
+  compile "org.pacesys:openstack4j-core:$openstack4jVersion"
+  compile "org.pacesys.openstack4j.connectors:openstack4j-jersey2:$openstack4jVersion"
   compile "commons-net:commons-net:$commonsNetVersion"
   compile "org.apache.commons:commons-io:$commonsIOVersion"
 }
