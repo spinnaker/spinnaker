@@ -34,7 +34,6 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
-import groovy.json.JsonBuilder
 import org.springframework.beans.factory.annotation.Autowired
 
 class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
@@ -116,10 +115,9 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
     }
 
     cleanUpResourceMap(resourceMap)
-    def json = new JsonBuilder()
     Map snapshot = [application: this.applicationName,
                     account: this.accountName,
-                    infrastructure: json(resourceMap).toString(),
+                    infrastructure: resourceMap,
                     configLang: "TERRAFORM"]
     front50Service.saveSnapshot(snapshot)
     return null
@@ -202,7 +200,6 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
     }
     //TODO(nwwebb) see if you can get application scope security groups using serverGroup.securityGroups rather than tags
     // only one of these should be specified or they will conflict
-    serverGroup.autoscalingPolicy
     if (serverGroup.autoscalingPolicy) {
       addAutoscalerToResourceMap(serverGroup.name, serverGroup.zone, serverGroup.autoscalingPolicy, resourceMap)
     } else if (serverGroup.instanceCounts?.total) {
