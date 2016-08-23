@@ -92,7 +92,7 @@
     <collapsible-section heading="Titus Job Information" expanded="true">
       <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
         <dt>Job Id</dt>
-        <dd><a href="{{ serverGroup.apiEndpoint }}v2/jobs/{{serverGroup.id}}" target="_blank">{{serverGroup.id}}</a></dd>
+        <dd><a href="{{ serverGroup.apiEndpoint }}v2/jobs/{{serverGroup.id}}?taskState=ANY" target="_blank">{{serverGroup.id}}</a></dd>
         <dt>Created</dt>
         <dd>{{serverGroup.createdTime | timestamp}}</dd>
         <dt ng-if="serverGroup.iamProfile">IAM Profile</dt>

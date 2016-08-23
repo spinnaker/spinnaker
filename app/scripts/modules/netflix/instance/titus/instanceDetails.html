@@ -60,7 +60,7 @@
         <dt>Task Id</dt>
         <dd><a href="{{ ctrl.apiEndpoint }}v2/tasks/{{instance.id}}" target="_blank">{{instance.id}}</a></dd>
         <dt>Job Id</dt>
-        <dd><a href="{{ ctrl.apiEndpoint }}v2/jobs/{{instance.jobId}}" target="_blank">{{instance.jobId}}</a></dd>
+        <dd><a href="{{ ctrl.apiEndpoint }}v2/jobs/{{instance.jobId}}?taskState=ANY" target="_blank">{{instance.jobId}}</a></dd>
         <dt ng-if="instance.serverGroup">Job Name</dt>
         <dd ng-if="instance.serverGroup">{{instance.serverGroup}}</dd>
         <dt>Launched</dt>
