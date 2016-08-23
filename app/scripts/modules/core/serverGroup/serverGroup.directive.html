@@ -24,10 +24,7 @@
               Build: #{{ viewModel.jenkins.number }}
             </a>
             <span ng-if="viewModel.images">
-              Images:
-              <ul class="list-unstyled">
-                <li ng-repeat="image in viewModel.images">{{ image }}</li>
-              </ul>
+              {{ viewModel.images }}
             </span>
             <span ng-if="!viewModel.hasBuildInfo">
               (No build info)
