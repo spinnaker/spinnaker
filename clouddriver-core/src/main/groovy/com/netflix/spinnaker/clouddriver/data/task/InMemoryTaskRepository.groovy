@@ -20,11 +20,26 @@ import java.util.concurrent.ConcurrentHashMap
 
 class InMemoryTaskRepository implements TaskRepository {
   private final Map<String, Task> repository = new ConcurrentHashMap<>()
+  private final Map<String, Task> clientRequestRepository = new ConcurrentHashMap<>()
+
+  @Override
+  Task create(String phase, String status, String clientRequestId) {
+    if (clientRequestRepository.containsKey(clientRequestId)) {
+      return clientRequestRepository.get(clientRequestId)
+    }
+    def task = new DefaultTask(nextId, phase, status)
+    repository[task.id] = task
+    clientRequestRepository[clientRequestId] = task
+  }
 
   @Override
   Task create(String phase, String status) {
-    def task = new DefaultTask(nextId, phase, status)
-    repository[task.id] = task
+    create(phase, status, UUID.randomUUID().toString())
+  }
+
+  @Override
+  Task getByClientRequestId(String clientRequestId) {
+    clientRequestRepository[clientRequestId]
   }
 
   @Override

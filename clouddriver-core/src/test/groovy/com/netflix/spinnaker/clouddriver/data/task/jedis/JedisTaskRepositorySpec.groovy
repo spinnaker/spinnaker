@@ -189,6 +189,17 @@ class JedisTaskRepositorySpec extends Specification {
     taskRepository.getHistory(t1).size() == 5
   }
 
+  void "returns the previously-created object when passed the same key"() {
+    given:
+    JedisTask t1 = taskRepository.create "Test", "Test Status", "the-key"
+    JedisTask t2 = taskRepository.create "Test", "Test Status 2", "the-key"
+    JedisTask t3 = taskRepository.create "Test", "Test Status 3", "other-key"
+
+    expect:
+    t1.id == t2.id
+    t1.id != t3.id
+  }
+
   class TestObject{
     String name
     String value

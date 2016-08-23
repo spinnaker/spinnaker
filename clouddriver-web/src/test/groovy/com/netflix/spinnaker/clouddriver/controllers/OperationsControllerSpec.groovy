@@ -62,7 +62,7 @@ class OperationsControllerSpec extends Specification {
     "Operations were supplied IN ORDER to the orchestration processor."
     1 * orchestrationProcessor.process(*_) >> {
       // The need for this flatten is weird -- seems like a bug in spock.
-      assert it?.flatten()*.getClass() == [Op1, Op2]
+      assert it?.flatten()*.getClass() == [Op1, Op2, String]
       Mock(Task)
     }
   }
