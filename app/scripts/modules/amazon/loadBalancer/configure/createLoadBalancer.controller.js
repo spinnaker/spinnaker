@@ -279,10 +279,15 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
       $scope.existingSecurityGroupNames = [];
     }
 
-    function certificateIdAsARN(accountId, certificateId) {
-      if (certificateId && certificateId.indexOf('arn:aws:iam::') !== 0) {
+    function certificateIdAsARN(accountId, certificateId, region, certificateType) {
+      if (certificateId && (certificateId.indexOf('arn:aws:iam::') !== 0 || certificateId.indexOf('arn:aws:acm:') !== 0)) {
         // If they really want to enter the ARN...
-        return 'arn:aws:iam::' + accountId + ':server-certificate/' + certificateId;
+        if(certificateType === 'iam') {
+          return 'arn:aws:iam::' + accountId + ':server-certificate/' + certificateId;
+        }
+        if(certificateType === 'acm') {
+          return 'arn:aws:acm:' + region + ':' + accountId + ':certificate/' + certificateId;
+        }
       }
       return certificateId;
     }
@@ -290,7 +295,8 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     function formatListeners() {
       return accountService.getAccountDetails($scope.loadBalancer.credentials).then(function (account) {
         $scope.loadBalancer.listeners.forEach(function (listener) {
-          listener.sslCertificateId = certificateIdAsARN(account.accountId, listener.sslCertificateId);
+          listener.sslCertificateId = certificateIdAsARN(account.accountId, listener.sslCertificateId,
+            $scope.loadBalancer.region, listener.sslCertificateType);
         });
       });
     }

@@ -93,7 +93,6 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
 
       if (loadBalancer.elb) {
         var elb = loadBalancer.elb;
-
         toEdit.securityGroups = elb.securityGroups;
         toEdit.vpcId = elb.vpcid;
 
@@ -101,14 +100,17 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
           toEdit.listeners = elb.listenerDescriptions.map(function (description) {
             var listener = description.listener;
             if (listener.sslcertificateId) {
-              listener.sslcertificateId = listener.sslcertificateId.split('/')[1];
+              var splitCertificateId = listener.sslcertificateId.split('/');
+              listener.sslcertificateId = splitCertificateId[1];
+              listener.sslCertificateType = splitCertificateId[0].split(':')[2];
             }
             return {
               internalProtocol: listener.instanceProtocol,
               internalPort: listener.instancePort,
               externalProtocol: listener.protocol,
               externalPort: listener.loadBalancerPort,
-              sslCertificateId: listener.sslcertificateId
+              sslCertificateId: listener.sslcertificateId,
+              sslCertificateType: listener.sslCertificateType
             };
           });
         }
@@ -164,7 +166,8 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
             internalProtocol: 'HTTP',
             internalPort: 7001,
             externalProtocol: 'HTTP',
-            externalPort: 80
+            externalPort: 80,
+            sslCertificateType: 'iam'
           }
         ]
       };
