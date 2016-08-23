@@ -301,6 +301,8 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
       });
     }
 
+    this.certificateTypes = _.get(settings, 'providers.aws.loadBalancers.certificateTypes', ['iam', 'acm']);
+
     initializeController();
 
     // Controller API
