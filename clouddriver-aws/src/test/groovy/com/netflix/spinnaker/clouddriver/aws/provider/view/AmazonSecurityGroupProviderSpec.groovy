@@ -301,6 +301,45 @@ class AmazonSecurityGroupProviderSpec extends Specification {
     cachedValue.inboundRules[1].portRanges.endPort == [8000]
   }
 
+  void "should include range rules with the same ip range but different protocols"() {
+    given:
+    String account = 'test'
+    String region = 'us-east-1'
+    SecurityGroup group = new SecurityGroup(
+      groupId: 'id-a',
+      groupName: 'name-a',
+      description: 'a',
+      ipPermissions: [
+        new IpPermission(
+          ipProtocol: 'udp',
+          fromPort: 7001,
+          toPort: 8080,
+          ipRanges: ['0.0.0.0/32']
+        ),
+        new IpPermission(
+          ipProtocol: 'tcp',
+          fromPort: 7001,
+          toPort: 8080,
+          ipRanges: ['0.0.0.0/32', '0.0.0.1/31']
+        )
+      ])
+    def key = Keys.getSecurityGroupKey('name-a', 'id-a', region, account, null)
+    Map<String, Object> attributes = mapper.convertValue(group, AwsInfrastructureProvider.ATTRIBUTES)
+    def cacheData = new DefaultCacheData(key, attributes, [:])
+    cache.merge(Keys.Namespace.SECURITY_GROUPS.ns, cacheData)
+
+    when:
+    def cachedValue = provider.get(account, region, 'name-a', null)
+
+    then:
+    cachedValue.inboundRules.size() == 3
+    cachedValue.inboundRules.protocol == ['tcp', 'udp', 'tcp']
+    cachedValue.inboundRules.range.ip == ['0.0.0.0', '0.0.0.0', '0.0.0.1']
+    cachedValue.inboundRules.range.cidr == ['/32', '/32', '/31']
+    cachedValue.inboundRules.portRanges.startPort.flatten() == [7001, 7001, 7001]
+    cachedValue.inboundRules.portRanges.endPort.flatten() == [8080, 8080, 8080]
+  }
+
   void "should fetch and include groupName if not present in ingress rule"() {
     given:
     String vpcId = 'vpc-1234'
