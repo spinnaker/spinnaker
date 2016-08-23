@@ -25,6 +25,7 @@ class Keys {
   static enum Namespace {
     APPLICATIONS,
     CLUSTERS,
+    HTTP_HEALTH_CHECKS,
     IMAGES,
     INSTANCES,
     LOAD_BALANCERS,
@@ -74,6 +75,12 @@ class Keys {
             cluster    : parts[4],
             stack      : names.stack,
             detail     : names.detail
+        ]
+        break
+      case Namespace.HTTP_HEALTH_CHECKS.ns:
+        result << [
+            account: parts[2],
+            name   : parts[3],
         ]
         break
       case Namespace.IMAGES.ns:
@@ -158,6 +165,11 @@ class Keys {
                               String application,
                               String clusterName) {
     "$GoogleCloudProvider.GCE:${Namespace.CLUSTERS}:${account}:${application}:${clusterName}"
+  }
+
+  static String getHttpHealthCheckKey(String account,
+                                      String httpHealthCheckName) {
+    "$GoogleCloudProvider.GCE:${Namespace.HTTP_HEALTH_CHECKS}:${account}:${httpHealthCheckName}"
   }
 
   static String getImageKey(String account,

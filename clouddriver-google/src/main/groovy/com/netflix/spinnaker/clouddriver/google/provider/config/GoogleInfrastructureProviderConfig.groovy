@@ -105,6 +105,9 @@ class GoogleInfrastructureProviderConfig {
                                                            region)
         }
 
+        newlyAddedAgents << new GoogleHttpHealthCheckCachingAgent(googleConfiguration.googleApplicationName(),
+                                                                  credentials,
+                                                                  objectMapper)
         newlyAddedAgents << new GoogleInstanceCachingAgent(googleConfiguration.googleApplicationName(),
                                                            credentials,
                                                            objectMapper)
