@@ -6,16 +6,16 @@ module.exports = angular
   .module('spinnaker.serialize.write.service', [
     require('../task/taskExecutor.js'),
     require('../utils/lodash.js'),
-    require('../account/account.service.js')
+    require('../account/account.service.js'),
+    require('../cloudProvider/cloudProvider.registry.js'),
   ])
-  .factory('serializeWriter', function($q, taskExecutor, accountService, _) {
-
-    let serializationProviders = ['gce'];
+  .factory('snapshotWriter', function($q, taskExecutor, cloudProviderRegistry,
+                                      accountService, _) {
 
     function buildJobs(app, accountDetails) {
       let jobs = [];
       accountDetails.forEach((accountDetail) => {
-        if (serializationProviders.includes(accountDetail.cloudProvider)) {
+        if (cloudProviderRegistry.getValue(accountDetail.cloudProvider, 'snapshotsEnabled')) {
           jobs.push({
             type: 'serializeApplication',
             credentials: accountDetail.name,
@@ -33,7 +33,7 @@ module.exports = angular
       return $q.all(accountDetailPromises);
     }
 
-    function serializeApplication(app) {
+    function takeSnapshot(app) {
       return loadAccountDetails(app).then(function(accountDetails) {
         let jobs = buildJobs(app, accountDetails);
         return taskExecutor.executeTask({
@@ -44,8 +44,6 @@ module.exports = angular
       });
     }
 
-    return {
-      serializeApplication: serializeApplication,
-    };
+    return { takeSnapshot };
 
   });

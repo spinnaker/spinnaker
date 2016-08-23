@@ -4,14 +4,16 @@
     <div class="panel panel-default">
       <div class="panel-body">
         <p>
-          Serializing the application will save the current state of the infrastructure to a storage bucket <br>
+          Taking an application snapshot will save the current state of the infrastructure to a storage bucket <br>
           using <a href="https://www.terraform.io/docs/configuration/index.html">Terraform's config language</a>.
           Currently only GCE and GCS are supported.
         </p>
 
-        <button class="btn btn-link" ng-click="$ctrl.serializeApplication()"><span
-          class="glyphicon glyphicon-cloud-download"></span> Serialize Application
+        <button class="btn btn-link" ng-click="$ctrl.takeSnapshot()"><span
+          class="glyphicon glyphicon-cloud-download"></span> Take application snapshot
         </button>
+
+        <view-snapshot-diff-button application="$ctrl.application"></view-snapshot-diff-button>
       </div>
     </div>
   </div>

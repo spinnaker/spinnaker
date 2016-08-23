@@ -91,6 +91,7 @@ module.exports = angular.module('spinnaker.gce', [
       subnet: {
         renderer: 'gceSubnetRenderer',
       },
+      snapshotsEnabled: true
     });
   });
 

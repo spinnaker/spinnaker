@@ -98,6 +98,6 @@ window.spinnakerSettings = {
     // whether stages affecting infrastructure (like "Create Load Balancer") should be enabled or not
     infrastructureStages: process.env.INFRA_STAGES === 'enabled',
     jobs: false,
-    serialization: false,
+    snapshots: false,
   },
 };
