@@ -41,9 +41,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 @Configuration
 @Import(RetrofitConfiguration)
 @ComponentScan([
-  "com.netflix.spinnaker.orca.clouddriver.pipeline",
-  "com.netflix.spinnaker.orca.clouddriver.tasks",
-  "com.netflix.spinnaker.orca.clouddriver.utils",
+  "com.netflix.spinnaker.orca.clouddriver",
   "com.netflix.spinnaker.orca.oort.pipeline",
   "com.netflix.spinnaker.orca.oort.tasks",
   "com.netflix.spinnaker.orca.kato.pipeline",
