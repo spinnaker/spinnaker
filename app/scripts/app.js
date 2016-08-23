@@ -16,4 +16,5 @@ module.exports = angular.module('netflix.spinnaker', [
   require('./modules/azure/azure.module.js'),
   require('./modules/kubernetes/kubernetes.module.js'),
   require('./modules/openstack/openstack.module.js'),
+  require('./modules/docker/docker.module.js'),
 ]);
