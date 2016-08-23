@@ -28,8 +28,8 @@ public interface OrchestrationProcessor {
 
   /**
    * This is the invocation point of orchestration.
-   *
+   * @param key a unique key, used to de-dupe orchestration requests
    * @return a list of results
    */
-  Task process(List<AtomicOperation> atomicOperations)
+  Task process(List<AtomicOperation> atomicOperations, String key)
 }

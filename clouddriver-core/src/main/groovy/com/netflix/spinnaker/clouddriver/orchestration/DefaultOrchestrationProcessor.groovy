@@ -43,12 +43,17 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
   @Autowired
   Registry registry
 
-  Task process(List<AtomicOperation> atomicOperations) {
+  @Override
+  Task process(List<AtomicOperation> atomicOperations, String clientRequestId) {
 
     def orchestrationsId = registry.createId('orchestrations')
     def atomicOperationId = registry.createId('operations')
     def tasksId = registry.createId('tasks')
-    def task = taskRepository.create(TASK_PHASE, "Initializing Orchestration Task...")
+    def existingTask = taskRepository.getByClientRequestId(clientRequestId)
+    if (existingTask) {
+      return existingTask
+    }
+    def task = taskRepository.create(TASK_PHASE, "Initializing Orchestration Task...", clientRequestId)
     executorService.submit TimedCallable.forClosure(registry, orchestrationsId) {
       try {
         // Autowire the atomic operations

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.data.task
 
+import com.netflix.spinnaker.clouddriver.data.task.jedis.JedisTask
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -66,5 +67,16 @@ class InMemoryTaskRepositorySpec extends Specification {
 
     then:
     list.containsAll([t1, t2])
+  }
+
+  void "returns the previously-created object when passed the same key"() {
+    given:
+    def t1 = taskRepository.create "Test", "Test Status", "the-key"
+    def t2 = taskRepository.create "Test", "Test Status 2", "the-key"
+    def t3 = taskRepository.create "Test", "Test Status 3", "other-key"
+
+    expect:
+    t1.id == t2.id
+    t1.id != t3.id
   }
 }

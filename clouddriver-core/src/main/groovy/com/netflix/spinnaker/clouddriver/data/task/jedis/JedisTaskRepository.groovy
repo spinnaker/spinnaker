@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit
 
 class JedisTaskRepository implements TaskRepository {
   private static final String RUNNING_TASK_KEY = "kato:tasks"
+  private static final String TASK_KEY_MAP = "kato:taskmap"
   private static final TypeReference<Map<String, String>> HISTORY_TYPE = new TypeReference<Map<String, String>>() {}
 
   private static final int TASK_TTL = (int) TimeUnit.HOURS.toSeconds(12);
@@ -48,11 +49,33 @@ class JedisTaskRepository implements TaskRepository {
 
   @Override
   Task create(String phase, String status) {
+    create(phase, status, UUID.randomUUID().toString())
+  }
+
+  @Override
+  Task create(String phase, String status, String clientRequestId) {
+    String taskKey = getClientRequestKey(clientRequestId)
     String taskId = jedis { it.incr('taskCounter') }
     def task = new JedisTask(taskId, System.currentTimeMillis(), this, false)
     addToHistory(new DefaultTaskStatus(phase, status, TaskState.STARTED), task)
     set(taskId, task)
-    task
+    Long newTask = jedis { it.setnx(taskKey, taskId) }
+    if (newTask) {
+      return task
+    }
+    //there's an existing taskId for this key, clean up what we just created and get the existing task:
+    addToHistory(new DefaultTaskStatus(phase, "Duplicate of $clientRequestId", TaskState.FAILED), task)
+    return getByClientRequestId(clientRequestId)
+  }
+
+  @Override
+  Task getByClientRequestId(String clientRequestId) {
+    String existingTask = jedis { it.get(getClientRequestKey(clientRequestId)) }
+    return get(existingTask)
+  }
+
+  private String getClientRequestKey(String clientRequestId) {
+    TASK_KEY_MAP + ":" + clientRequestId
   }
 
   @Override

@@ -42,6 +42,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
@@ -67,9 +68,10 @@ class OperationsController {
    */
   @Deprecated
   @RequestMapping(value = "/ops", method = RequestMethod.POST)
-  Map<String, String> operations(@RequestBody List<Map<String, Map>> requestBody) {
+  Map<String, String> operations(@RequestParam(value = "clientRequestId", required = false) String clientRequestId,
+                                 @RequestBody List<Map<String, Map>> requestBody) {
     List<AtomicOperation> atomicOperations = collectAtomicOperations(requestBody)
-    start(atomicOperations)
+    start(atomicOperations, clientRequestId)
   }
 
   /**
@@ -77,24 +79,28 @@ class OperationsController {
    */
   @Deprecated
   @RequestMapping(value = "/ops/{name}", method = RequestMethod.POST)
-  Map<String, String> operation(@PathVariable("name") String name, @RequestBody Map requestBody) {
+  Map<String, String> operation(@PathVariable("name") String name,
+                                @RequestParam(value = "clientRequestId", required = false) String clientRequestId,
+                                @RequestBody Map requestBody) {
     List<AtomicOperation> atomicOperations = collectAtomicOperations([[(name): requestBody]])
-    start(atomicOperations)
+    start(atomicOperations, clientRequestId)
   }
 
   @RequestMapping(value = "/{cloudProvider}/ops", method = RequestMethod.POST)
   Map<String, String> cloudProviderOperations(@PathVariable("cloudProvider") String cloudProvider,
+                                              @RequestParam(value = "clientRequestId", required = false) String clientRequestId,
                                               @RequestBody List<Map<String, Map>> requestBody) {
     List<AtomicOperation> atomicOperations = collectAtomicOperations(cloudProvider, requestBody)
-    start(atomicOperations)
+    start(atomicOperations, clientRequestId)
   }
 
   @RequestMapping(value = "/{cloudProvider}/ops/{name}", method = RequestMethod.POST)
   Map<String, String> cloudProviderOperation(@PathVariable("cloudProvider") String cloudProvider,
                                              @PathVariable("name") String name,
+                                             @RequestParam(value = "clientRequestId", required = false) String clientRequestId,
                                              @RequestBody Map requestBody) {
     List<AtomicOperation> atomicOperations = collectAtomicOperations(cloudProvider, [[(name): requestBody]])
-    start(atomicOperations)
+    start(atomicOperations, clientRequestId)
   }
 
   /*
@@ -181,8 +187,9 @@ class OperationsController {
     }
   }
 
-  private Map<String, String> start(List<AtomicOperation> atomicOperations) {
-    Task task = orchestrationProcessor.process(atomicOperations)
+  private Map<String, String> start(List<AtomicOperation> atomicOperations, String key) {
+    key = key ?: UUID.randomUUID().toString()
+    Task task = orchestrationProcessor.process(atomicOperations, key)
     [id: task.id, resourceUri: "/task/${task.id}".toString()]
   }
 

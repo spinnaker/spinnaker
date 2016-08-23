@@ -38,12 +38,30 @@ public interface TaskRepository {
   Task create(String phase, String status)
 
   /**
+   * Creates a new task if a task has not already been created with that key
+   * and sets the initial status to the provided phase and status.
+   *
+   * @param phase
+   * @param status
+   * @param clientRequestId
+   * @return task the new task, or the previous task that was created with the supplied key
+   */
+  Task create(String phase, String status, String clientRequestId)
+
+  /**
    * Retrieves a task by the provided id
    *
    * @param id
    * @return task
    */
   Task get(String id)
+
+  /**
+   * Retrieves a task by the provided clientRequestId
+   * @param clientRequestId
+   * @return task, or null if no task has been started with the requestId
+   */
+  Task getByClientRequestId(String clientRequestId)
 
   /**
    * Lists all tasks currently in the repository

@@ -37,7 +37,10 @@ class DefaultOrchestrationProcessorSpec extends Specification {
 
   TaskRepository taskRepository
 
+  String taskKey
+
   def setup() {
+    taskKey = UUID.randomUUID().toString()
     processor = new DefaultOrchestrationProcessor()
     applicationContext = Mock(ApplicationContext)
     applicationContext.getAutowireCapableBeanFactory() >> Mock(AutowireCapableBeanFactory)
@@ -56,7 +59,7 @@ class DefaultOrchestrationProcessorSpec extends Specification {
     submitAndWait atomicOperation
 
     then:
-    1 * taskRepository.create(_, _) >> task
+    1 * taskRepository.create(_, _, taskKey) >> task
     task.status.isCompleted()
     !task.status.isFailed()
   }
@@ -70,7 +73,7 @@ class DefaultOrchestrationProcessorSpec extends Specification {
     submitAndWait atomicOperation
 
     then:
-    1 * taskRepository.create(_, _) >> task
+    1 * taskRepository.create(_, _, taskKey) >> task
     1 * atomicOperation.operate(_) >> { throw new RuntimeException() }
     task.status.isFailed()
   }
@@ -84,7 +87,7 @@ class DefaultOrchestrationProcessorSpec extends Specification {
     submitAndWait atomicOperation
 
     then:
-    1 * taskRepository.create(_, _) >> task
+    1 * taskRepository.create(_, _, taskKey) >> task
     1 * atomicOperation.operate(_) >> { throw new RuntimeException(message) }
     task.resultObjects.find { it.type == "EXCEPTION" }
     task.resultObjects.find { it.type == "EXCEPTION" }.message == message
@@ -93,8 +96,22 @@ class DefaultOrchestrationProcessorSpec extends Specification {
     message = "foo"
   }
 
+  void "does not re-run existing task based on clientRequestId"() {
+    def task = new DefaultTask("1")
+    def atomicOperation = Mock(AtomicOperation)
+
+    when:
+    submitAndWait atomicOperation
+
+    then:
+    taskRepository.getByClientRequestId(taskKey) >>> [null, task]
+    1 * taskRepository.create(_, _, taskKey) >> task
+    task.status.isCompleted()
+    !task.status.isFailed()
+  }
+
   private void submitAndWait(AtomicOperation atomicOp) {
-    processor.process([atomicOp])
+    processor.process([atomicOp], taskKey)
     processor.executorService.shutdown()
     processor.executorService.awaitTermination(5, TimeUnit.SECONDS)
   }
