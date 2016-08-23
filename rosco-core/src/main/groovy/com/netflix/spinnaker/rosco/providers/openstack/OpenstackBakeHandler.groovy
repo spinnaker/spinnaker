@@ -70,11 +70,11 @@ public class OpenstackBakeHandler extends CloudProviderBakeHandler {
     }
 
     def openstackVirtualizationSettings = openstackOperatingSystemVirtualizationSettings?.virtualizationSettings.find {
-      it.region == region && it.instanceType == bakeRequest.instance_type
+      it.region == region
     }
 
     if (!openstackVirtualizationSettings) {
-      throw new IllegalArgumentException("No virtualization settings found for region '$region', operating system '$bakeRequest.base_os', and instance_type '${bakeRequest.instance_type}'.")
+      throw new IllegalArgumentException("No virtualization settings found for region '$region' and operating system '$bakeRequest.base_os'.")
     }
 
     if (bakeRequest.base_ami) {

@@ -253,7 +253,6 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
         package_name: PACKAGES_NAME,
         base_os: "ubuntu",
-        instance_type: instanceType,
         cloud_provider_type: BakeRequest.CloudProviderType.openstack)
       def targetImageName = "1f28b46b-b36f-4b7c-bc34-40e2371886fa"
       def osPackages = parseDebOsPackageNames(PACKAGES_NAME)
@@ -305,7 +304,6 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
     def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
             package_name: PACKAGES_NAME,
             base_os: "ubuntu",
-            instance_type: instanceType,
             build_host: buildHost,
             build_info_url: buildInfoUrl,
             cloud_provider_type: BakeRequest.CloudProviderType.openstack)
@@ -360,7 +358,6 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         package_name: PACKAGES_NAME,
         base_os: "ubuntu",
         base_ami: "ubuntu-natty",
-        instance_type: instanceType,
         cloud_provider_type: BakeRequest.CloudProviderType.openstack)
       def osPackages = parseDebOsPackageNames(PACKAGES_NAME)
       def targetImageName = "1f28b46b-b36f-4b7c-bc34-40e2371886fa"
@@ -410,7 +407,6 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
         package_name: PACKAGES_NAME,
         base_os: "ubuntu",
-        instance_type: instanceType,
         cloud_provider_type: BakeRequest.CloudProviderType.openstack,
         template_file_name: template_file_name)
       def osPackages = parseDebOsPackageNames(PACKAGES_NAME)
@@ -460,7 +456,6 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
         package_name: PACKAGES_NAME,
         base_os: "ubuntu",
-        instance_type: instanceType,
         cloud_provider_type: BakeRequest.CloudProviderType.openstack,
         extended_attributes: [someAttr1: "someValue1", someAttr2: "someValue2"])
       def osPackages = parseDebOsPackageNames(PACKAGES_NAME)
@@ -512,7 +507,6 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
         package_name: PACKAGES_NAME,
         base_os: "ubuntu",
-        instance_type: instanceType,
         cloud_provider_type: BakeRequest.CloudProviderType.openstack,
         extended_attributes: [openstack_instance_type: "mmem-6vcpu", openstack_domain_name: "domain2"])
       def osPackages = parseDebOsPackageNames(PACKAGES_NAME)
@@ -562,7 +556,6 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
         package_name: PACKAGES_NAME,
         base_os: "ubuntu",
-        instance_type: instanceType,
         cloud_provider_type: BakeRequest.CloudProviderType.openstack,
         upgrade: true)
       def osPackages = parseDebOsPackageNames(PACKAGES_NAME)
@@ -635,8 +628,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
         package_name: PACKAGES_NAME,
         base_os: "trusty",
-        cloud_provider_type: BakeRequest.CloudProviderType.openstack,
-        instance_type: "smem-2vcpu")
+        cloud_provider_type: BakeRequest.CloudProviderType.openstack)
 
       @Subject
       OpenstackBakeHandler openstackBakeHandler = new OpenstackBakeHandler(openstackBakeryDefaults: openstackBakeryDefaults,
@@ -649,7 +641,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
 
     then:
       IllegalArgumentException e = thrown()
-      e.message == "No virtualization settings found for region 'TTEOSCORE1999', operating system 'trusty', and instance_type 'smem-2vcpu'."
+      e.message == "No virtualization settings found for region 'TTEOSCORE1999' and operating system 'trusty'."
   }
 
   void 'produce a default openstack bakeKey without base ami'() {
