@@ -2,12 +2,11 @@
 
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var CommonsChunkPlugin = require('webpack/lib/optimize/CommonsChunkPlugin');
-//var webpack = require('webpack');
-//var IgnorePlugin = require("webpack/lib/IgnorePlugin");
+var HappyPack = require('happypack');
+var happyThreadPool = HappyPack.ThreadPool({ size: 6 });
 var path = require('path');
 
 var nodeModulePath = path.join(__dirname, 'node_modules');
-//var bowerModulePath = path.join(__dirname, 'bower_components');
 
 module.exports = {
   debug: true,
@@ -22,13 +21,8 @@ module.exports = {
   output: {
     path: path.join(__dirname, 'build', 'webpack', process.env.SPINNAKER_ENV || ''),
     filename: '[name].js',
-
   },
   module: {
-
-    //noParse: [
-    //  /\.spec\.js$/,
-    //],
     loaders: [
       {
         test: /jquery\.js$/,
@@ -40,12 +34,12 @@ module.exports = {
       },
       {
         test: /\.js$/,
-        loader: 'ng-annotate!angular!babel!envify!eslint',
+        loader: 'happypack/loader?id=js',
         exclude: /node_modules(?!\/clipboard)/,
       },
       {
         test: /\.less$/,
-        loader: 'style!css!less',
+        loader: 'happypack/loader?id=less',
       },
       {
         test: /\.(woff|otf|ttf|eot|svg|png|gif|ico)(.*)?$/,
@@ -53,21 +47,13 @@ module.exports = {
       },
       {
         test: /\.html$/,
-        loader: 'ngtemplate?relativeTo=' + (path.resolve(__dirname))  + '/!html',
+        loader: 'happypack/loader?id=html',
       },
       {
         test: /\.json$/,
         loader: 'json-loader',
       }
     ],
-  },
-  resolve: {
-    //root: [nodeModulePath, bowerModulePath],
-    alias: {
-      //lodash: 'utils/lodash.js'
-      //angular: 'imports?window={}!exports?window.angular!angular/angular.js',
-      //uiselect: 'angular-ui-select/dist/select.js'
-    }
   },
   resolveLoader: {
     root: nodeModulePath
@@ -80,6 +66,21 @@ module.exports = {
       template: './app/index.html',
       favicon: 'app/favicon.ico',
       inject: true,
+    }),
+    new HappyPack({
+      id: 'js',
+      loaders: [ 'ng-annotate!angular!babel!envify!eslint' ],
+      threadPool: happyThreadPool,
+    }),
+    new HappyPack({
+      id: 'html',
+      loaders: [ 'ngtemplate?relativeTo=' + (path.resolve(__dirname))  + '/!html' ],
+      threadPool: happyThreadPool,
+    }),
+    new HappyPack({
+      id: 'less',
+      loaders: [ 'style!css!less' ],
+      threadPool: happyThreadPool,
     }),
   ],
   devServer: {

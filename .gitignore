@@ -9,6 +9,7 @@ npm-debug.log
 deck.iml
 .idea
 .gradle
+.happypack
 build
 *.swp
 *.DS_Store
