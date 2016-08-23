@@ -23,6 +23,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergro
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesOperationException
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.Pod
+import io.fabric8.kubernetes.api.model.ReplicationController
+import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 
 abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicOperation<Void> {
   abstract String getBasePhase() // Either 'ENABLE' or 'DISABLE'.
@@ -46,32 +48,53 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
     def credentials = description.credentials.credentials
     def namespace = KubernetesUtil.validateNamespace(credentials, description.namespace)
 
-    task.updateStatus basePhase, "Finding requisite replication controller..."
+    task.updateStatus basePhase, "Finding requisite server group..."
 
     def replicationController = credentials.apiAdaptor.getReplicationController(namespace, description.serverGroupName)
+    def replicaSet = credentials.apiAdaptor.getReplicaSet(namespace, description.serverGroupName)
 
     task.updateStatus basePhase, "Getting list of attached services..."
 
-    List<String> replicationControllerServices = KubernetesUtil.getLoadBalancers(replicationController)
-    replicationControllerServices = replicationControllerServices.collect {
+    List<String> services = KubernetesUtil.getLoadBalancers(replicationController ?: replicaSet)
+    services = services.collect {
       KubernetesUtil.loadBalancerKey(it)
     }
 
-    task.updateStatus basePhase, "Resetting replication controller service template labels and selectors..."
+    task.updateStatus basePhase, "Resetting server group service template labels and selectors..."
 
-    def desired = credentials.apiAdaptor.toggleReplicationControllerSpecLabels(namespace, description.serverGroupName, replicationControllerServices, action)
-
-    if (!credentials.apiAdaptor.blockUntilReplicationControllerConsistent(desired)) {
-      throw new KubernetesOperationException("Replication controller failed to reach a consistent state. This is likely a bug with Kubernetes itself.")
+    def getGeneration = null
+    def getResource = null
+    def desired = null
+    def pods = []
+    if (replicationController) {
+      desired = credentials.apiAdaptor.toggleReplicationControllerSpecLabels(namespace, description.serverGroupName, services, action)
+      getGeneration = { ReplicationController rc ->
+        return rc.metadata.generation
+      }
+      getResource = {
+        return credentials.apiAdaptor.getReplicationController(namespace, description.serverGroupName)
+      }
+      pods = credentials.apiAdaptor.getReplicationControllerPods(namespace, description.serverGroupName)
+    } else if (replicaSet) {
+      desired = credentials.apiAdaptor.toggleReplicaSetSpecLabels(namespace, description.serverGroupName, services, action)
+      getGeneration = { ReplicaSet rs ->
+        return rs.metadata.generation
+      }
+      getResource = {
+        return credentials.apiAdaptor.getReplicaSet(namespace, description.serverGroupName)
+      }
+      pods = credentials.apiAdaptor.getReplicaSetPods(namespace, description.serverGroupName)
+    } else {
+      throw new KubernetesOperationException("No replication controller or replica set $description.serverGroupName in $namespace.")
     }
 
-    task.updateStatus basePhase, "Finding affected pods..."
-
-    List<Pod> pods = credentials.apiAdaptor.getReplicationControllerPods(namespace, description.serverGroupName)
+    if (!credentials.apiAdaptor.blockUntilResourceConsistent(desired, getGeneration, getResource)) {
+      throw new KubernetesOperationException("Server group failed to reach a consistent state. This is likely a bug with Kubernetes itself.")
+    }
 
     task.updateStatus basePhase, "Resetting service labels for each pod..."
 
-    pods.forEach { pod ->
+    pods.forEach { Pod pod ->
       List<String> podServices = KubernetesUtil.getLoadBalancers(pod)
       podServices = podServices.collect {
         KubernetesUtil.loadBalancerKey(it)
@@ -79,7 +102,7 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
       credentials.apiAdaptor.togglePodLabels(namespace, pod.metadata.name, podServices, action)
     }
 
-    task.updateStatus basePhase, "Finished ${verb} replication controller."
+    task.updateStatus basePhase, "Finished ${verb} server group."
 
     null // Return nothing from void
   }

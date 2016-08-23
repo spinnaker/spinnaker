@@ -268,6 +268,19 @@ class KubernetesApiAdaptor {
     }
   }
 
+  ReplicaSet toggleReplicaSetSpecLabels(String namespace, String name, List<String> keys, String value) {
+    atomicWrapper("Toggle Replica Set Labels to $value for $name", namespace) { KubernetesClient client ->
+      def edit = client.extensions().replicaSets().inNamespace(namespace).withName(name).cascading(false).edit().editSpec().editTemplate().editMetadata()
+
+      keys.each {
+        edit.removeFromLabels(it.toString())
+        edit.addToLabels(it.toString(), value.toString())
+      }
+
+      edit.endMetadata().endTemplate().endSpec().done()
+    }
+  }
+
   Service getService(String namespace, String service) {
     atomicWrapper("Get Service $service", namespace) { KubernetesClient client ->
       client.services().inNamespace(namespace).withName(service).get()
