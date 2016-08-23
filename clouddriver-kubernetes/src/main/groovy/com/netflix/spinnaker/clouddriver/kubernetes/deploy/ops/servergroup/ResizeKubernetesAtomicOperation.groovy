@@ -22,6 +22,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.ResizeKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesOperationException
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import io.fabric8.kubernetes.api.model.ReplicationController
+import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 
 class ResizeKubernetesAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "RESIZE"
@@ -53,10 +55,31 @@ class ResizeKubernetesAtomicOperation implements AtomicOperation<Void> {
 
     task.updateStatus BASE_PHASE, "Setting size to $size..."
 
-    def desired = credentials.apiAdaptor.resizeReplicationController(namespace, name, size)
+    def desired = null
+    def getGeneration = null
+    def getResource = null
+    if (credentials.apiAdaptor.getReplicationController(namespace, name)) {
+      desired = credentials.apiAdaptor.resizeReplicationController(namespace, name, size)
+      getGeneration = { ReplicationController rc ->
+        return rc.metadata.generation
+      }
+      getResource = {
+        return credentials.apiAdaptor.getReplicationController(namespace, name)
+      }
+    } else if (credentials.apiAdaptor.getReplicaSet(namespace, name)) {
+      desired = credentials.apiAdaptor.resizeReplicaSet(namespace, name, size)
+      getGeneration = { ReplicaSet rs ->
+        return rs.metadata.generation
+      }
+      getResource = {
+        return credentials.apiAdaptor.getReplicaSet(namespace, name)
+      }
+    } else {
+      throw new KubernetesOperationException("Neither a replication controller nor a replica set could be found by that name.")
+    }
 
-    if (!credentials.apiAdaptor.blockUntilReplicationControllerConsistent(desired)) {
-      throw new KubernetesOperationException("Failed waiting for replication controller to acknowledge its new size. This is likely a bug within Kubernetes itself.")
+    if (!credentials.apiAdaptor.blockUntilResourceConsistent(desired, getGeneration, getResource)) {
+      throw new KubernetesOperationException("Failed waiting for server group to acknowledge its new size. This is likely a bug within Kubernetes itself.")
     }
 
     task.updateStatus BASE_PHASE, "Completed resize operation."

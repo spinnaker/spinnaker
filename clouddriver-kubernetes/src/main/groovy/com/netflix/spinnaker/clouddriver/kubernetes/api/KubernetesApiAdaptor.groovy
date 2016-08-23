@@ -56,15 +56,12 @@ class KubernetesApiAdaptor {
       new KubernetesOperationException("$operation", e)
   }
 
-  /*
-   * Exponential backoff strategy for waiting on changes to replication controllers
-   */
-  Boolean blockUntilReplicationControllerConsistent(ReplicationController desired) {
-    def current = getReplicationController(desired.metadata.namespace, desired.metadata.name)
+  Boolean blockUntilResourceConsistent(Object desired, Closure<Long> getGeneration, Closure getResource) {
+    def current = getResource()
 
     def wait = RETRY_INITIAL_WAIT_MILLIS
     def attempts = 0
-    while (current.status.observedGeneration < desired.status.observedGeneration) {
+    while (getGeneration(current) < getGeneration(desired)) {
       attempts += 1
       if (attempts > RETRY_COUNT) {
         return false
@@ -73,7 +70,7 @@ class KubernetesApiAdaptor {
       sleep(wait)
       wait = [wait * 2, RETRY_MAX_WAIT_MILLIS].min()
 
-      current = getReplicationController(desired.metadata.namespace, desired.metadata.name)
+      current = getResource()
     }
 
     return true
@@ -164,6 +161,12 @@ class KubernetesApiAdaptor {
   ReplicaSet getReplicaSet(String namespace, String serverGroupName) {
     atomicWrapper("Get Replica Set $serverGroupName", namespace) { KubernetesClient client ->
       client.extensions().replicaSets().inNamespace(namespace).withName(serverGroupName).get()
+    }
+  }
+
+  ReplicaSet resizeReplicaSet(String namespace, String name, int size) {
+    atomicWrapper("Resize Replica Set $name to $size", namespace) { KubernetesClient client ->
+      client.extensions().replicaSets().inNamespace(namespace).withName(name).scale(size)
     }
   }
 
