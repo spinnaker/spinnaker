@@ -51,6 +51,7 @@ class AwsLookupUtil {
         if (details) {
           sg.groupName = details.name
           sg.awsAccount = details.awsAccount
+          sg.awsVpcId = details.vpcId
         }
         expandedGroups << sg
       } catch (Exception e) {
@@ -80,7 +81,8 @@ class AwsLookupUtil {
       securityGroupId,
       awsDetails.vpcId
     )?.name,
-     awsAccount: awsDetails.awsAccount
+     awsAccount: awsDetails.awsAccount,
+     vpcId: awsDetails.vpcId
     ]
 
   }

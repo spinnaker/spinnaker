@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.model.TitusCluster
 import com.netflix.spinnaker.clouddriver.titus.model.TitusInstance
+import com.netflix.spinnaker.clouddriver.titus.model.TitusSecurityGroup
 import com.netflix.spinnaker.clouddriver.titus.model.TitusServerGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -262,9 +263,11 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
   }
 
   private void resolveAwsDetails(TitusServerGroup serverGroup){
+    Set<TitusSecurityGroup> securityGroups = awsLookupUtil.lookupSecurityGroupNames(serverGroup.placement.account, serverGroup.placement.region, serverGroup.securityGroups)
     serverGroup.instances.each{
-      it.securityGroups = awsLookupUtil.lookupSecurityGroupNames(serverGroup.placement.account, serverGroup.placement.region, serverGroup.securityGroups)
+      it.securityGroups = securityGroups
     }
+    serverGroup.securityGroupDetails = securityGroups
   }
 
 }
