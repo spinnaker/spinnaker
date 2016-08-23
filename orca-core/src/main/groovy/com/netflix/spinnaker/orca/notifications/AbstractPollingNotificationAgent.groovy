@@ -42,8 +42,8 @@ abstract class AbstractPollingNotificationAgent implements ApplicationListener<R
   protected final ObjectMapper objectMapper
   private final Client jesqueClient
 
-  private Scheduler scheduler = Schedulers.io()
-  private Subscription subscription
+  protected Scheduler scheduler = Schedulers.io()
+  protected Subscription subscription
 
   AbstractPollingNotificationAgent(ObjectMapper objectMapper, Client jesqueClient) {
     this.objectMapper = objectMapper

@@ -326,6 +326,7 @@ class JedisExecutionRepository implements ExecutionRepository {
        * If configured, construct an observable the will retrieve pipelines from the secondary redis
        */
       def previousPipelineIds = filteredPipelineIdsByJedis[jedisPoolPrevious.get()]
+      previousPipelineIds = previousPipelineIds - currentPipelineIds
       previousPipelineIds = previousPipelineIds.subList(0, Math.min(criteria.limit, previousPipelineIds.size()))
 
       def previousObservable = retrieveObservable(
@@ -426,6 +427,7 @@ class JedisExecutionRepository implements ExecutionRepository {
        * If configured, construct an observable the will retrieve orchestrations from the secondary redis
        */
       def previousOrchestrationIds = filteredOrchestrationIdsByJedis[jedisPoolPrevious.get()]
+      previousOrchestrationIds = previousOrchestrationIds - currentOrchestrationIds
       previousOrchestrationIds = previousOrchestrationIds.subList(0, Math.min(criteria.limit, previousOrchestrationIds.size()))
 
       def previousObservable = retrieveObservable(
@@ -449,8 +451,7 @@ class JedisExecutionRepository implements ExecutionRepository {
     if (!execution.id) {
       execution.id = UUID.randomUUID().toString()
       jedis.sadd(alljobsKey(execution.getClass()), execution.id)
-      def appKey = appKey(execution.getClass(), execution.application)
-      jedis.sadd(appKey, execution.id)
+      jedis.sadd(appKey(execution.getClass(), execution.application), execution.id)
     }
 
     String key = "${prefix}:$execution.id"
