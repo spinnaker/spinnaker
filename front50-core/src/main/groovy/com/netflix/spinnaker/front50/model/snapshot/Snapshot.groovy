@@ -35,7 +35,7 @@ class Snapshot implements Timestamped {
   String account
 
   // Describes the resources deployed in the cloud of the application and account
-  String infrastructure
+  Map infrastructure
 
   // Resources are described using this config language, used for deserialization
   Type configLang
