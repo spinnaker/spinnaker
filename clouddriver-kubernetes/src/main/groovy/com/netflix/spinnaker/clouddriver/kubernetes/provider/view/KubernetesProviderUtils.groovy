@@ -23,7 +23,10 @@ import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesInstance
+import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesServerGroup
 import io.fabric8.kubernetes.api.model.Pod
+import io.fabric8.kubernetes.api.model.ReplicationController
+import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 
 class KubernetesProviderUtils {
   static Set<CacheData> getAllMatchingKeyPattern(Cache cacheView, String namespace, String pattern) {
@@ -64,5 +67,30 @@ class KubernetesProviderUtils {
       instanceMap[instance.controllerName].add(instance)
     }
     return instanceMap
+  }
+
+  static KubernetesServerGroup serverGroupFromCacheData(ObjectMapper objectMapper, CacheData cacheData, Set<KubernetesInstance> instances) {
+    ReplicationController replicationController
+    ReplicaSet replicaSet
+    if (cacheData.attributes.replicationController) {
+      replicationController = objectMapper.convertValue(cacheData.attributes.replicationController, ReplicationController)
+    } else if (cacheData.attributes.replicaSet) {
+      replicaSet = objectMapper.convertValue(cacheData.attributes.replicaSet, ReplicaSet)
+    } else {
+      throw new IllegalStateException("Expected either a ReplicationController or ReplicaSet")
+    }
+
+    def parse = Keys.parse(cacheData.id)
+
+    def serverGroup
+    if (replicationController) {
+      serverGroup = new KubernetesServerGroup(replicationController, instances, parse.account)
+    } else if (replicaSet) {
+      serverGroup = new KubernetesServerGroup(replicaSet, instances, parse.account)
+    } else {
+      throw new IllegalStateException("Expected either a ReplicationController or ReplicaSet") // Placate the linter
+    }
+
+    return serverGroup
   }
 }
