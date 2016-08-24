@@ -48,7 +48,7 @@ import retrofit.client.OkClient
 @ConditionalOnProperty(value = 'jarDiffs.enabled', matchIfMissing = false)
 class JarDiffsTask implements DiffTask {
 
-  private static final int MAX_RETRIES = 18
+  private static final int MAX_RETRIES = 10
 
   long backoffPeriod = 10000
   long timeout = TimeUnit.MINUTES.toMillis(5) // always set this higher than retries * backoffPeriod would take
@@ -124,16 +124,23 @@ class JarDiffsTask implements DiffTask {
   List getJarList(Map instances) {
     List jarList = []
     Map jarMap = [:]
+
+    int numberOfInstancesChecked = 0;
     instances.find { String key, Map valueMap ->
-      String hostName = valueMap.hostName
-      log.info("attempting to get a jar list from : ${key}")
+      if (numberOfInstancesChecked++ >= 5) {
+        log.warn("Unable to check jar list after 5 attempts, giving up!")
+        return true
+      }
+
+      String hostName = valueMap.privateIpAddress ?: valueMap.hostName
+      log.info("attempting to get a jar list from : ${key} (${hostName}:${platformPort})")
       def instanceService = createInstanceService("http://${hostName}:${platformPort}")
       try {
         def instanceResponse = instanceService.getJars()
         jarMap = objectMapper.readValue(instanceResponse.body.in().text, Map)
         return true
       } catch(Exception e) {
-        log.error("could not get a jar list from : ${key}", e)
+        log.error("could not get a jar list from : ${key} (${hostName}:${platformPort})", e)
         // swallow it so we can try the next instance
         return false
       }

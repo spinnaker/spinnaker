@@ -157,7 +157,11 @@ class OortHelper {
         throw new RuntimeException("at least one instance is DOWN or in the STARTING state, exiting")
       }
 
-      Map instanceInfo = [hostName : hostName, healthCheckUrl : healthCheckUrl]
+      Map instanceInfo = [
+        hostName : hostName,
+        healthCheckUrl : healthCheckUrl,
+        privateIpAddress: instance.privateIpAddress
+      ]
       instanceMap.put(instance.instanceId, instanceInfo)
     }
 
