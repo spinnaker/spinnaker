@@ -16,7 +16,7 @@
 
 buildscript {
   ext {
-    springBootVersion = "1.2.5.RELEASE"
+    springBootVersion = "1.2.8.RELEASE"
   }
   repositories {
     jcenter()
@@ -33,9 +33,20 @@ allprojects {
   apply plugin: 'spinnaker.project'
   apply plugin: 'groovy'
 
-  spinnaker {
-    dependenciesVersion = "0.46.0"
+  ext {
+    spinnakerDependenciesVersion = "0.47.0"
   }
+
+  if (spinnakerDependenciesVersion.indexOf('-dev') != -1) {
+    repositories {
+      mavenLocal()
+    }
+  }
+
+  spinnaker {
+    dependenciesVersion = spinnakerDependenciesVersion
+  }
+
   test {
     testLogging {
       exceptionFormat = 'full'
