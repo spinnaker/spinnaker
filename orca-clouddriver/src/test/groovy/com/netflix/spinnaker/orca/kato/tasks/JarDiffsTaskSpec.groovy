@@ -114,6 +114,18 @@ class JarDiffsTaskSpec extends Specification {
     result == [ lib1, lib2, lib3 ]
   }
 
+  void "getJarList will short circuit after 5 attempts"() {
+    given:
+    5 * task.createInstanceService("http://bar:8077") >> instanceService
+
+    when:
+    5 * instanceService.getJars() >> {throw new RetrofitError(null, null, null, null, null, null, null)}
+    def result = task.getJarList((1..5).collectEntries { ["${it}": [hostName : "bar"]] })
+
+    then:
+    result.isEmpty()
+  }
+
   void "getJarList stops when finds a jar list"() {
     given:
     1 * task.createInstanceService("http://bar:8077") >> instanceService
