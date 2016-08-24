@@ -30,15 +30,15 @@ module.exports = angular
 
         let entry = isFinite(parseInt(key)) ? `${parent}[${parseInt(key)}]` : `${parent}['${key}']`;
 
-        if( !(angular.isObject(node[key]) || angular.isArray(node[key]) ) ) {
+        let value = node[key];
+        if( !(angular.isObject(value) || angular.isArray(value) ) ) {
 
 
           if ( !ignoreList.some( (ignoreItem) => {
               let testerString = `[\'${ignoreItem}`;
               return entry.substr(0, testerString.length) === testerString;
             })) {
-
-            array.push(entry);
+            array.push({leaf: entry, value: value});
 
           }
         }

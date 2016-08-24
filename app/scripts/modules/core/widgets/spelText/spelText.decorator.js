@@ -17,7 +17,11 @@ let decorateFn = function ($delegate, jsonListBuilder, spelAutocomplete) {
       // the textcomplete plugin needs input texts to marked as 'contenteditable'
       el.attr('contenteditable', true);
       spelAutocomplete.addPipelineInfo(scope.pipeline).then((textcompleteConfig) => {
-        el.textcomplete(textcompleteConfig, {maxCount: 50});
+        el.textcomplete(textcompleteConfig, {
+          maxCount: 1000,
+          zIndex: 5000,
+          dropdownClassName: 'dropdown-menu textcomplete-dropdown spel-dropdown'
+        });
       });
 
       function listener (evt) {

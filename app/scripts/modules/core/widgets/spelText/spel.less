@@ -91,6 +91,11 @@ span.marker.function {
   color: #484e63
 };
 
+span.marker.value{
+  background-color: #a3b2e3;
+  color: #484e63
+};
+
 span.marker.param:before {
   content: "p";
 }
@@ -101,4 +106,18 @@ span.marker.stage:before {
 
 span.marker.function:before {
   content: "fn";
+}
+
+.spel-dropdown {
+  max-height: 400px;
+  overflow-y: scroll;
+}
+
+.spel-value-separator {
+  font-size: 70%;
+  color: #484e63;
+}
+
+.textcomplete-item.active .spel-value-separator {
+  color: #fff;
 }
