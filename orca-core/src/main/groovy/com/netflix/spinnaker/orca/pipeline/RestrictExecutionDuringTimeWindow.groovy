@@ -55,7 +55,7 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
   @Component
   @VisibleForTesting
   private static class SuspendExecutionDuringTimeWindowTask implements RetryableTask {
-    long backoffPeriod = 60000
+    long backoffPeriod = 2000
     long timeout = TimeUnit.DAYS.toMillis(2)
 
     private static final int DAY_START_HOUR = 0
@@ -76,6 +76,8 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
         return new DefaultTaskResult(ExecutionStatus.TERMINAL, [failureReason: 'Exception occurred while calculating time window: ' + e.message])
       }
       if (now >= scheduledTime) {
+        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+      } else if (stage.context.skipRemainingWait) {
         return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
       } else {
         stage.scheduledTime = scheduledTime.time
