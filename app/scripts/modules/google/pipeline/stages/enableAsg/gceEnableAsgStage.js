@@ -41,10 +41,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.enableAsgStag
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'gce';
 
-    if (stage.isNew && $scope.application.attributes.platformHealthOnly) {
-      stage.interestingHealthProviderNames = ['Google'];
-    }
-
     if (!stage.credentials && $scope.application.defaultCredentials.gce) {
       stage.credentials = $scope.application.defaultCredentials.gce;
     }

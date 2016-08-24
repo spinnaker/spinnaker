@@ -40,10 +40,6 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
         }
       };
 
-      if (application && application.attributes && application.attributes.platformHealthOnly) {
-        command.interestingHealthProviderNames = ['Titus'];
-      }
-
       return $q.when(command);
   }
 
@@ -99,10 +95,6 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
           mode: mode,
         },
       };
-
-      if (application && application.attributes && application.attributes.platformHealthOnly) {
-        command.interestingHealthProviderNames = ['Titus'];
-      }
 
       if (mode !== 'editPipeline') {
         command.imageId = serverGroup.image.dockerImageName + ':' + serverGroup.image.dockerImageVersion;

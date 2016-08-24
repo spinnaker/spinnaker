@@ -212,10 +212,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         }
       };
 
-      if (app.attributes.platformHealthOnly) {
-        confirmationModalParams.interestingHealthProviderNames = ['Amazon'];
-      }
-
       confirmationModalService.confirm(confirmationModalParams);
 
     };
@@ -259,10 +255,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         askForReason: true
       };
 
-      if (app.attributes.platformHealthOnly) {
-        confirmationModalParams.interestingHealthProviderNames = ['Amazon'];
-      }
-
       confirmationModalService.confirm(confirmationModalParams);
     };
 
@@ -288,10 +280,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         submitMethod: submitMethod,
         askForReason: true
       };
-
-      if (app.attributes.platformHealthOnly) {
-        confirmationModalParams.interestingHealthProviderNames = ['Amazon'];
-      }
 
       confirmationModalService.confirm(confirmationModalParams);
     };

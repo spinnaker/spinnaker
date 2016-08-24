@@ -22,10 +22,6 @@ module.exports = angular.module('spinnaker.cf.serverGroup.details.resize.control
 
 
     if (application && application.attributes) {
-      if (application.attributes.platformHealthOnly) {
-        $scope.command.interestingHealthProviderNames = ['Cloud Foundry'];
-      }
-
       $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
     }
 

@@ -124,6 +124,7 @@ module.exports = angular
       params.zone = instance.placement.availabilityZone;
       params.credentials = instance.account;
       params.cloudProvider = instance.providerType;
+      params.application = application.name;
 
       return taskExecutor.executeTask({
         job: [params],

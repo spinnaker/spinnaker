@@ -41,10 +41,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.disableCluste
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'aws';
 
-    if (stage.isNew && $scope.application.attributes.platformHealthOnly) {
-      stage.interestingHealthProviderNames = ['Amazon'];
-    }
-
     if (!stage.credentials && $scope.application.defaultCredentials.aws) {
       stage.credentials = $scope.application.defaultCredentials.aws;
     }

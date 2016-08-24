@@ -169,10 +169,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
         }
       };
 
-      if (app.attributes.platformHealthOnly) {
-        confirmationModalParams.interestingHealthProviderNames = ['Openstack'];
-      }
-
       confirmationModalService.confirm(confirmationModalParams);
 
     };
@@ -216,10 +212,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
         askForReason: true
       };
 
-      if (app.attributes.platformHealthOnly) {
-        confirmationModalParams.interestingHealthProviderNames = ['Openstack'];
-      }
-
       confirmationModalService.confirm(confirmationModalParams);
     };
 
@@ -245,10 +237,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
         submitMethod: submitMethod,
         askForReason: true
       };
-
-      if (app.attributes.platformHealthOnly) {
-        confirmationModalParams.interestingHealthProviderNames = ['Openstack'];
-      }
 
       confirmationModalService.confirm(confirmationModalParams);
     };
