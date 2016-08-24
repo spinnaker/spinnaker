@@ -107,7 +107,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
             securityGroups << convertedSecurityGroup
           }
         }
-        submitJobRequest.withSecurityGroups(securityGroups)
+        submitJobRequest.withSecurityGroups(securityGroups.asList())
       }
 
       if (description.user) {
