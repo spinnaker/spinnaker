@@ -15,21 +15,27 @@
  */
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.handlers
+
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.deploy.DeployHandler
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
-import com.netflix.spinnaker.clouddriver.titus.model.DockerImage
-import com.netflix.spinnaker.clouddriver.titus.deploy.TitusServerGroupNameResolver
-import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription
+import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.model.SubmitJobRequest
+import com.netflix.spinnaker.clouddriver.titus.deploy.TitusServerGroupNameResolver
+import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription
+import com.netflix.spinnaker.clouddriver.titus.model.DockerImage
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 
 class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
+
+  @Autowired
+  AwsLookupUtil awsLookupUtil
 
   private final Logger logger = LoggerFactory.getLogger(TitusDeployHandler)
 
@@ -88,11 +94,23 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         .withLabels(description.labels)
         .withInService(description.inService)
 
-      if(description.securityGroups && !description.securityGroups.empty) {
-        submitJobRequest.withSecurityGroups(description.securityGroups)
+      if (description.securityGroups && !description.securityGroups.empty) {
+        Set<String> securityGroups = []
+        description.securityGroups.each { providedSecurityGroup ->
+          if (awsLookupUtil.securityGroupIdExists(account, region, providedSecurityGroup)) {
+            securityGroups << providedSecurityGroup
+          } else {
+            String convertedSecurityGroup = awsLookupUtil.convertSecurityGroupNameToId(account, region, providedSecurityGroup)
+            if (!convertedSecurityGroup) {
+              throw new RuntimeException("Security Group ${providedSecurityGroup} cannot be found")
+            }
+            securityGroups << convertedSecurityGroup
+          }
+        }
+        submitJobRequest.withSecurityGroups(securityGroups)
       }
 
-      if(description.user){
+      if (description.user) {
         submitJobRequest.withUser(description.user)
       }
 
