@@ -41,7 +41,7 @@ module.exports = angular
       if (this.command.enableAutoHealing) {
         this.command.autoHealingPolicy = {initialDelaySec: 300};
       } else {
-        delete this.command.autoHealingPolicy;
+        this.command.autoHealingPolicy = {};
       }
     };
   });
