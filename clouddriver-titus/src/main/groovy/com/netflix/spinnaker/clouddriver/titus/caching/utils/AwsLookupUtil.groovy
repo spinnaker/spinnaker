@@ -60,6 +60,17 @@ class AwsLookupUtil {
     expandedGroups
   }
 
+  Boolean securityGroupIdExists(String account, String region, String securityGroupId) {
+    getSecurityGroupDetails(account, region, securityGroupId)?.name != null
+  }
+
+  String convertSecurityGroupNameToId(account, region, providedSecurityGroup) {
+    Map awsDetails = awsAccountLookup.find {
+      it.titusAccount == account && it.region == region
+    }
+    awsSecurityGroupProvider.get(awsDetails.awsAccount, region, providedSecurityGroup, awsDetails.vpcId)?.id
+  }
+
   private String convertVpcNameToId(String awsAccount, String region, String name) {
     if (!amazonVpcs) {
       amazonVpcs = amazonVpcProvider.all
