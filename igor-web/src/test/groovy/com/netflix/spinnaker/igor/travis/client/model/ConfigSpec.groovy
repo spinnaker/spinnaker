@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.travis.client.model
 
 import com.netflix.spinnaker.igor.build.model.GenericParameterDefinition
 import spock.lang.Specification
+import spock.lang.Unroll
 
 
 class ConfigSpec extends Specification {
@@ -25,7 +26,7 @@ class ConfigSpec extends Specification {
     def "getGenericParameterDefinitionList extracts travis environment variables"() {
         given:
         Config config = new Config([:])
-        config.env = [ "FOO=bar", "BAR=foo"]
+        config.globalEnv = [ "FOO=bar", "BAR=foo" ]
 
         when:
         List<GenericParameterDefinition> genericParameterDefinitionList = config.getParameterDefinitionList()
@@ -39,7 +40,7 @@ class ConfigSpec extends Specification {
     def "getGenericParameterDefinitionList handles null"() {
         given:
         Config config = new Config([:])
-        config.env = null
+        config.globalEnv = null
 
         when:
         List<GenericParameterDefinition> genericParameterDefinitionList = config.getParameterDefinitionList()
@@ -63,7 +64,7 @@ class ConfigSpec extends Specification {
     def "getGenericParameterDefinitionList handles = in value"() {
         given:
         Config config = new Config([:])
-        config.env = [ 'FOO="foo=bar"']
+        config.globalEnv = ['FOO="foo=bar"']
 
         when:
         List<GenericParameterDefinition> genericParameterDefinitionList = config.getParameterDefinitionList()
@@ -71,6 +72,23 @@ class ConfigSpec extends Specification {
         then:
         genericParameterDefinitionList.size() == 1
         genericParameterDefinitionList.first().defaultValue == '"foo=bar"'
+    }
+
+    @Unroll
+    def "getSecrets returns secrets"(){
+        given:
+        Config config = new Config([:])
+        config.globalEnv = globalEnv
+
+        expect:
+        config.getSecrets() == secrets
+
+        where:
+        globalEnv                          || secrets
+        [ 'FOO=bar' ]                      || []
+        [ 'FOO=bar', ["secure":"xyz"] ]    || [ [secure:"xyz"] ]
+        [ [secure:"xyz"], [secure:"abc"] ] || [ [secure:"xyz"], [secure:"abc"] ]
+
     }
 
 }

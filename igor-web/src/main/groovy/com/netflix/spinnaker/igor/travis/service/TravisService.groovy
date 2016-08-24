@@ -98,7 +98,10 @@ class TravisService implements BuildService {
         Repo repo = getRepo(repoSlug)
         String branch = branchFromRepoSlug(inputRepoSlug)
         RepoRequest repoRequest = new RepoRequest(branch.empty? "master" : branch)
+        Build build = getBuilds(repo).first()
+
         repoRequest.config = new Config(queryParameters)
+        repoRequest.config.globalEnv = repoRequest.config.globalEnv.plus(build.config.secrets)
 
         TriggerResponse triggerResponse = travisClient.triggerBuild(getAccessToken(), repoSlug, repoRequest)
         if (triggerResponse.remainingRequests) {

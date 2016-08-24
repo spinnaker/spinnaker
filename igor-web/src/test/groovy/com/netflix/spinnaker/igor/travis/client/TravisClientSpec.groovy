@@ -297,7 +297,7 @@ class TravisClientSpec extends Specification {
                 "pull_request_number": null,
                 "config": {
                     "language": "python",
-                    "env": ["TARGET_ENV=test.environment"],
+                    "global_env": ["TARGET_ENV=test.environment"],
                     "script": "./travis.sh",
                     ".result": "configured",
                     "group": "stable",
@@ -330,8 +330,8 @@ class TravisClientSpec extends Specification {
         then:
         Build build = builds.builds.first()
         build.number == 3
-        build.config.env.size() == 1
-        build.config.env.first() == "TARGET_ENV=test.environment"
+        build.config.globalEnv.size() == 1
+        build.config.globalEnv.first() == "TARGET_ENV=test.environment"
     }
 
     def "getBuilds(accessToken, repoSlug, buildNumber) with no build found"() {

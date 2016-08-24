@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.travis.client.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.google.gson.annotations.SerializedName
 import com.netflix.spinnaker.igor.build.model.GenericParameterDefinition
 import groovy.transform.CompileStatic
 import org.simpleframework.xml.Default
@@ -26,18 +27,26 @@ import org.simpleframework.xml.Default
 @JsonInclude(JsonInclude.Include.NON_NULL)
 class Config {
 
-    List<String> env
+    @SerializedName("global_env")
+    List<Object> globalEnv
+
+    List<String> env = ["SPINNAKER_TRIGGERED=true"]
 
     Config(Map<String, String> environmentMap) {
-        env = environmentMap.collect { key, value ->
-            "${key}=${value}".toString()
+        globalEnv = environmentMap.collect { key, value ->
+            (Object) "${key}=${value}".toString()
         }
     }
 
     public List<GenericParameterDefinition> getParameterDefinitionList() {
-        env? env.collect {
-            def parts = it.tokenize('=')
+        globalEnv? globalEnv.findAll{it instanceof String}.collect {
+            String tmpGlobalEnv = (String) it
+            def parts = tmpGlobalEnv.tokenize('=')
             new GenericParameterDefinition(parts[0], parts.drop(1).join('='))
         } : []
+    }
+
+    public List<Object> getSecrets() {
+        globalEnv? globalEnv.findAll{!(it instanceof String)}.collect{it} : []
     }
 }
