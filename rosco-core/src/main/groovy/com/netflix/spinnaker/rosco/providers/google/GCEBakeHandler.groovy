@@ -71,7 +71,7 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
   }
 
   @Override
-  Map buildParameterMap(String region, def gceVirtualizationSettings, String imageName, BakeRequest bakeRequest) {
+  Map buildParameterMap(String region, def gceVirtualizationSettings, String imageName, BakeRequest bakeRequest, String appVersionStr) {
     RoscoGoogleConfiguration.ManagedGoogleAccount managedGoogleAccount = googleConfigurationProperties?.accounts?.getAt(0)
 
     if (!managedGoogleAccount) {
@@ -92,6 +92,10 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
 
     if (gceBakeryDefaults.useInternalIp != null) {
       parameterMap.gce_use_internal_ip = gceBakeryDefaults.useInternalIp
+    }
+
+    if (appVersionStr) {
+      parameterMap.appversion = appVersionStr
     }
 
     return parameterMap

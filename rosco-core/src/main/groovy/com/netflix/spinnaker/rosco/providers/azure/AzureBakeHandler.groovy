@@ -80,7 +80,7 @@ public class AzureBakeHandler extends CloudProviderBakeHandler{
   }
 
   @Override
-  Map buildParameterMap(String region, Object virtualizationSettings, String imageName, BakeRequest bakeRequest) {
+  Map buildParameterMap(String region, def virtualizationSettings, String imageName, BakeRequest bakeRequest, String appVersionStr) {
 
     def selectedImage = azureBakeryDefaults?.baseImages?.find { it.baseImage.id == bakeRequest.base_os }
 
@@ -100,6 +100,10 @@ public class AzureBakeHandler extends CloudProviderBakeHandler{
       azure_image_sku: selectedImage?.baseImage?.sku,
       azure_image_name: "$bakeRequest.build_number-$bakeRequest.base_name"
     ]
+
+    if (appVersionStr) {
+      parameterMap.appversion = appVersionStr
+    }
 
     return parameterMap
   }

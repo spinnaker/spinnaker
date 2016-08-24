@@ -59,6 +59,8 @@ class BakeRequest {
   String ami_suffix
   Boolean upgrade
   String instance_type
+  @ApiModelProperty("The image owner organization")
+  String organization
 
   @ApiModelProperty("The explicit packer template to use, instead of resolving one from rosco's configuration")
   String template_file_name

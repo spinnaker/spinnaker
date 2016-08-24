@@ -9,6 +9,7 @@ trait TestDefaults {
   static final String YUM_REPOSITORY = "http://some-yum-repository"
   static final BakeRequest.PackageType DEB_PACKAGE_TYPE = BakeRequest.PackageType.DEB
   static final BakeRequest.PackageType RPM_PACKAGE_TYPE = BakeRequest.PackageType.RPM
+  static final String SOME_MILLISECONDS = "1470391070464"
 
   def parseDebOsPackageNames(String packages) {
     PackageNameConverter.buildOsPackageNames(DEB_PACKAGE_TYPE, packages.tokenize(" "))

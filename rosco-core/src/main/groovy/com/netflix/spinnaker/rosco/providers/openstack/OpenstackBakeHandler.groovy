@@ -86,7 +86,7 @@ public class OpenstackBakeHandler extends CloudProviderBakeHandler {
   }
 
   @Override
-  Map buildParameterMap(String region, def openstackVirtualizationSettings, String imageName, BakeRequest bakeRequest) {
+  Map buildParameterMap(String region, def openstackVirtualizationSettings, String imageName, BakeRequest bakeRequest, String appVersionStr) {
     def parameterMap = [
       openstack_identity_endpoint: openstackBakeryDefaults.identityEndpoint,
       openstack_region: region,
@@ -123,6 +123,10 @@ public class OpenstackBakeHandler extends CloudProviderBakeHandler {
 
     if (bakeRequest.build_info_url) {
       parameterMap.build_info_url = bakeRequest.build_info_url
+    }
+
+    if (appVersionStr) {
+      parameterMap.appversion = appVersionStr
     }
 
     return parameterMap

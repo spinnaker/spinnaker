@@ -91,7 +91,7 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
   }
 
   @Override
-  Map buildParameterMap(String region, def awsVirtualizationSettings, String imageName, BakeRequest bakeRequest) {
+  Map buildParameterMap(String region, def awsVirtualizationSettings, String imageName, BakeRequest bakeRequest, String appVersionStr) {
     def parameterMap = [
       aws_region       : region,
       aws_ssh_username : awsVirtualizationSettings.sshUserName,
@@ -123,6 +123,10 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
 
     if (bakeRequest.build_info_url) {
       parameterMap.build_info_url = bakeRequest.build_info_url
+    }
+
+    if (appVersionStr) {
+      parameterMap.appversion = appVersionStr
     }
 
     return parameterMap

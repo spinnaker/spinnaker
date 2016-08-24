@@ -1,0 +1,24 @@
+package com.netflix.spinnaker.rosco.providers.docker
+
+import com.netflix.spinnaker.rosco.api.BakeRequest
+import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
+import com.netflix.spinnaker.rosco.providers.util.PackageNameConverter
+
+class DockerImageNameFactory extends ImageNameFactory {
+
+  @Override
+  def buildAppVersionStr(BakeRequest bakeRequest, List<PackageNameConverter.OsPackageName> osPackageNames) {
+    super.buildAppVersionStr(bakeRequest, osPackageNames) ?: clock.millis().toString()
+  }
+
+  @Override
+  def buildImageName(BakeRequest bakeRequest, List<PackageNameConverter.OsPackageName> osPackageNames) {
+
+    String imageName = bakeRequest.ami_name ?: osPackageNames.first()?.name
+    String imageNamePrefixed = [bakeRequest.organization, imageName].findAll({it}).join("/")
+    String imageNameSuffixed = [imageNamePrefixed, bakeRequest.ami_suffix].findAll({it}).join("-")
+
+    return imageNameSuffixed
+  }
+
+}
