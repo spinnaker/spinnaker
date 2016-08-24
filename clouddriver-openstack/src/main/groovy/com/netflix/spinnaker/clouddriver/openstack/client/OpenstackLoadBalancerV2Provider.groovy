@@ -37,6 +37,13 @@ class OpenstackLoadBalancerV2Provider implements OpenstackLoadBalancerProvider, 
   }
 
   @Override
+  List<? extends LoadBalancerV2> getLoadBalancers(final String region) {
+    handleRequest {
+      getRegionClient(region).networking().lbaasV2().loadbalancer().list()
+    }
+  }
+
+  @Override
   LoadBalancerV2 createLoadBalancer(final String region, final String name, final String description, final String subnetId) {
     handleRequest {
       getRegionClient(region).networking().lbaasV2().loadbalancer().create(Builders.loadbalancerV2()
@@ -57,6 +64,21 @@ class OpenstackLoadBalancerV2Provider implements OpenstackLoadBalancerProvider, 
       throw new OpenstackProviderException("Unable to find load balancer ${id} in ${region}")
     }
     result
+  }
+
+  @Override
+  LoadBalancerV2 getLoadBalancerByName(final String region, final String name) {
+    handleRequest {
+      List<? extends LoadBalancerV2> lbs = getRegionClient(region).networking().lbaasV2().loadbalancer().list(['name':name])
+      lbs.size() > 0 ? lbs.first() : null
+    }
+  }
+
+  @Override
+  List<? extends ListenerV2> getListeners(final String region) {
+    handleRequest {
+      getRegionClient(region).networking().lbaasV2().listener().list()
+    }
   }
 
   @Override
@@ -89,6 +111,13 @@ class OpenstackLoadBalancerV2Provider implements OpenstackLoadBalancerProvider, 
   ActionResponse deleteListener(final String region, final String id) {
     handleRequest {
       getRegionClient(region).networking().lbaasV2().listener().delete(id)
+    }
+  }
+
+  @Override
+  List<? extends LbPoolV2> getPools(final String region) {
+    handleRequest {
+      getRegionClient(region).networking().lbaasV2().lbPool().list()
     }
   }
 
@@ -131,6 +160,13 @@ class OpenstackLoadBalancerV2Provider implements OpenstackLoadBalancerProvider, 
   ActionResponse deletePool(final String region, final String id) {
     handleRequest {
       getRegionClient(region).networking().lbaasV2().lbPool().delete(id)
+    }
+  }
+
+  @Override
+  List<? extends HealthMonitorV2> getHealthMonitors(final String region) {
+    handleRequest {
+      getRegionClient(region).networking().lbaasV2().healthMonitor().list()
     }
   }
 

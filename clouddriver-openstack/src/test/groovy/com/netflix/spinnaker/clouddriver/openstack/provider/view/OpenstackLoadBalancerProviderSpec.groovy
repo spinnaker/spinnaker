@@ -23,12 +23,19 @@ import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
+import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackFloatingIP
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLoadBalancer
+import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackNetwork
+import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackSubnet
 import redis.clients.jedis.exceptions.JedisException
+import spock.lang.Ignore
 import spock.lang.Specification
 
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.FLOATING_IPS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.LOAD_BALANCERS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.NETWORKS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SERVER_GROUPS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SUBNETS
 
 class OpenstackLoadBalancerProviderSpec extends Specification {
 
@@ -62,19 +69,23 @@ class OpenstackLoadBalancerProviderSpec extends Specification {
       it.region >> { region }
       it.serverGroups >> { [new LoadBalancerServerGroup(name: name)] }
     }
+    OpenstackFloatingIP floatingIP = Stub(OpenstackFloatingIP)
+    OpenstackNetwork network = Stub(OpenstackNetwork)
+    OpenstackSubnet subnet = Stub(OpenstackSubnet)
+    OpenstackLoadBalancer.View view = buildLoadBalancerView(loadBalancer, floatingIP, network, subnet)
     OpenstackLoadBalancerProvider loadBalancerProvider = Spy(OpenstackLoadBalancerProvider, constructorArgs: [cache, objectMapper, clusterProvider]) {
-      fromCacheData(cacheData) >> { loadBalancer }
+      fromCacheData(cacheData) >> { view }
     }
 
     when:
-    Set<OpenstackLoadBalancer> result = loadBalancerProvider.getApplicationLoadBalancers(app)
+    Set<OpenstackLoadBalancer.View> result = loadBalancerProvider.getApplicationLoadBalancers(app)
 
     then:
     1 * cache.filterIdentifiers(LOAD_BALANCERS.ns, Keys.getLoadBalancerKey(app, '*', '*', '*')) >> [lbKey].toSet()
     1 * cache.filterIdentifiers(LOAD_BALANCERS.ns, Keys.getLoadBalancerKey("$app-*", '*', '*', '*')) >> [lbKey].toSet()
     1 * cache.getAll(LOAD_BALANCERS.ns, [lbKey].toSet(), _ as RelationshipCacheFilter) >> cacheDataList
     result.size() == 1
-    result[0] == loadBalancer
+    result[0] == view
     noExceptionThrown()
   }
 
@@ -111,8 +122,12 @@ class OpenstackLoadBalancerProviderSpec extends Specification {
       it.region >> { region }
       it.serverGroups >> { [new LoadBalancerServerGroup(name: name)] }
     }
+    OpenstackFloatingIP floatingIP = Stub(OpenstackFloatingIP)
+    OpenstackNetwork network = Stub(OpenstackNetwork)
+    OpenstackSubnet subnet = Stub(OpenstackSubnet)
+    OpenstackLoadBalancer.View view = buildLoadBalancerView(loadBalancer, floatingIP, network, subnet)
     OpenstackLoadBalancerProvider loadBalancerProvider = Spy(OpenstackLoadBalancerProvider, constructorArgs: [cache, objectMapper, clusterProvider]) {
-      fromCacheData(cacheData) >> { loadBalancer }
+      fromCacheData(cacheData) >> { view }
     }
     List<String> filter = ['filter']
 
@@ -123,7 +138,7 @@ class OpenstackLoadBalancerProviderSpec extends Specification {
     1 * cache.filterIdentifiers(LOAD_BALANCERS.ns, lbKey) >> filter
     1 * cache.getAll(LOAD_BALANCERS.ns, filter, _ as RelationshipCacheFilter) >> cacheDataList
     result.size() == 1
-    result[0] == loadBalancer
+    result[0] == view
     noExceptionThrown()
   }
 
@@ -151,60 +166,122 @@ class OpenstackLoadBalancerProviderSpec extends Specification {
     given:
     String lbid = 'lb1'
     String name = 'myapp-teststack-v002'
-    CacheData cacheData = Mock(CacheData)
     Map<String, Object> attributes = Mock(Map)
+    CacheData ipCacheData = Mock(CacheData)
+    ipCacheData.attributes >> Mock(Map)
+    CacheData networkCacheData = Mock(CacheData)
+    networkCacheData.attributes >> Mock(Map)
+    CacheData subnetCacheData = Mock(CacheData)
+    subnetCacheData.attributes >> Mock(Map)
     String sgKey = Keys.getServerGroupKey(name, account, region)
+    String ipId = UUID.randomUUID().toString()
+    String ipKey = Keys.getFloatingIPKey(ipId, account, region)
+    String subnetId = UUID.randomUUID().toString()
+    String subnetKey = Keys.getSubnetKey(subnetId, account, region)
+    String networkId = UUID.randomUUID().toString()
+    String networkKey = Keys.getNetworkKey(networkId, account, region)
+    CacheData cacheData = Mock(CacheData)
+    cacheData.relationships >> [(SERVER_GROUPS.ns): [sgKey], (FLOATING_IPS.ns): [ipKey], (SUBNETS.ns): [subnetKey], (NETWORKS.ns): [networkKey]]
+    cacheData.attributes >> attributes
+    OpenstackFloatingIP floatingIP = Stub(OpenstackFloatingIP)
+    OpenstackNetwork network = Stub(OpenstackNetwork)
+    OpenstackSubnet subnet = Stub(OpenstackSubnet)
     ServerGroup serverGroup = Mock(ServerGroup) {
       getName() >> { name }
       isDisabled() >> { false }
       getInstances() >> { [] }
     }
-    OpenstackLoadBalancer loadBalancer = Mock(OpenstackLoadBalancer) {
+    OpenstackLoadBalancer.View loadBalancer = Mock(OpenstackLoadBalancer.View) {
       it.id >> { lbid }
       it.account >> { account }
       it.region >> { region }
+      it.ip >> { floatingIP.id }
+      it.subnetId >> { subnet.id }
+      it.subnetName >> { subnet.name }
+      it.networkId >> { network.id }
+      it.networkName >> { network.name }
       it.serverGroups >> { [new LoadBalancerServerGroup(name: name)] }
     }
     OpenstackLoadBalancerProvider loadBalancerProvider = new OpenstackLoadBalancerProvider(cache, objectMapper, clusterProvider)
 
     when:
-    OpenstackLoadBalancer result = loadBalancerProvider.fromCacheData(cacheData)
+    OpenstackLoadBalancer.View result = loadBalancerProvider.fromCacheData(cacheData)
 
     then:
-    1 * cacheData.attributes >> attributes
+    1 * cache.getAll(FLOATING_IPS.ns, cacheData.relationships[(FLOATING_IPS.ns)] ?: []) >> [ipCacheData]
+    1 * objectMapper.convertValue(_ as Map, OpenstackFloatingIP) >> floatingIP
+    1 * cache.getAll(NETWORKS.ns, cacheData.relationships[(NETWORKS.ns)] ?: []) >> [networkCacheData]
+    1 * objectMapper.convertValue(_ as Map, OpenstackNetwork) >> network
+    1 * cache.getAll(SUBNETS.ns, cacheData.relationships[(SUBNETS.ns)] ?: []) >> [subnetCacheData]
+    1 * objectMapper.convertValue(_ as Map, OpenstackSubnet) >> subnet
     1 * objectMapper.convertValue(attributes, OpenstackLoadBalancer) >> loadBalancer
-    1 * cacheData.relationships >> [(SERVER_GROUPS.ns):[sgKey]]
     1 * clusterProvider.getServerGroup(account, region, name) >> serverGroup
-    result == loadBalancer
+    result == buildLoadBalancerView(loadBalancer, floatingIP, network, subnet)
     noExceptionThrown()
   }
 
   def "test convert cache data to load balancer - exception"() {
     given:
+    Throwable throwable = new JedisException('test')
     String lbid = 'lb1'
     String name = 'myapp-teststack-v002'
-    CacheData cacheData = Mock(CacheData)
     Map<String, Object> attributes = Mock(Map)
+    CacheData ipCacheData = Mock(CacheData)
+    ipCacheData.attributes >> Mock(Map)
+    CacheData networkCacheData = Mock(CacheData)
+    networkCacheData.attributes >> Mock(Map)
+    CacheData subnetCacheData = Mock(CacheData)
+    subnetCacheData.attributes >> Mock(Map)
     String sgKey = Keys.getServerGroupKey(name, account, region)
-    OpenstackLoadBalancer loadBalancer = Mock(OpenstackLoadBalancer) {
+    String ipId = UUID.randomUUID().toString()
+    String ipKey = Keys.getFloatingIPKey(ipId, account, region)
+    String subnetId = UUID.randomUUID().toString()
+    String subnetKey = Keys.getSubnetKey(subnetId, account, region)
+    String networkId = UUID.randomUUID().toString()
+    String networkKey = Keys.getNetworkKey(networkId, account, region)
+    CacheData cacheData = Mock(CacheData)
+    cacheData.relationships >> [(SERVER_GROUPS.ns): [sgKey], (FLOATING_IPS.ns): [ipKey], (SUBNETS.ns): [subnetKey], (NETWORKS.ns): [networkKey]]
+    cacheData.attributes >> attributes
+    OpenstackFloatingIP floatingIP = Stub(OpenstackFloatingIP)
+    OpenstackNetwork network = Stub(OpenstackNetwork)
+    OpenstackSubnet subnet = Stub(OpenstackSubnet)
+    OpenstackLoadBalancer.View loadBalancer = Mock(OpenstackLoadBalancer.View) {
       it.id >> { lbid }
       it.account >> { account }
       it.region >> { region }
+      it.ip >> { floatingIP.id }
+      it.subnetId >> { subnet.id }
+      it.subnetName >> { subnet.name }
+      it.networkId >> { network.id }
+      it.networkName >> { network.name }
       it.serverGroups >> { [new LoadBalancerServerGroup(name: name)] }
     }
-    Throwable throwable = new JedisException('test')
     OpenstackLoadBalancerProvider loadBalancerProvider = new OpenstackLoadBalancerProvider(cache, objectMapper, clusterProvider)
 
     when:
     loadBalancerProvider.fromCacheData(cacheData)
 
     then:
-    1 * cacheData.attributes >> attributes
+    1 * cache.getAll(FLOATING_IPS.ns, cacheData.relationships[(FLOATING_IPS.ns)] ?: []) >> [ipCacheData]
+    1 * objectMapper.convertValue(_ as Map, OpenstackFloatingIP) >> floatingIP
+    1 * cache.getAll(NETWORKS.ns, cacheData.relationships[(NETWORKS.ns)] ?: []) >> [networkCacheData]
+    1 * objectMapper.convertValue(_ as Map, OpenstackNetwork) >> network
+    1 * cache.getAll(SUBNETS.ns, cacheData.relationships[(SUBNETS.ns)] ?: []) >> [subnetCacheData]
+    1 * objectMapper.convertValue(_ as Map, OpenstackSubnet) >> subnet
     1 * objectMapper.convertValue(attributes, OpenstackLoadBalancer) >> loadBalancer
-    1 * cacheData.relationships >> [(SERVER_GROUPS.ns):[sgKey]]
     1 * clusterProvider.getServerGroup(account, region, name) >> { throw throwable }
     Throwable thrownException = thrown(JedisException)
     throwable == thrownException
+  }
+
+  @Ignore
+  OpenstackLoadBalancer.View buildLoadBalancerView(OpenstackLoadBalancer loadBalancer, OpenstackFloatingIP floatingIP, OpenstackNetwork network, OpenstackSubnet subnet) {
+    new OpenstackLoadBalancer.View(id: loadBalancer.id, name: loadBalancer.name, description: loadBalancer.description,
+      account: account, region: region,
+      ip: floatingIP.id, subnetId: subnet.id,
+      subnetName: subnet.name, networkId: network.id, networkName: network.name,
+      serverGroups: [new LoadBalancerServerGroup(name: 'myapp-teststack-v002')])
+
   }
 
 }

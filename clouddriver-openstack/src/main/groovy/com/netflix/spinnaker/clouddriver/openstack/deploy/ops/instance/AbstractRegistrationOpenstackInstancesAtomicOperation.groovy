@@ -25,6 +25,8 @@ import org.openstack4j.model.network.ext.LbPool
 
 /**
  * Base class that will handle both load balancer registration and deregistration.
+ *
+ * TODO upgrade for lbaas v2
  */
 abstract class AbstractRegistrationOpenstackInstancesAtomicOperation implements AtomicOperation<Void> {
 

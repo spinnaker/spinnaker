@@ -34,6 +34,7 @@ import org.openstack4j.model.network.Port
 import org.openstack4j.model.network.Subnet
 import org.openstack4j.model.network.ext.HealthMonitor
 import org.openstack4j.model.network.ext.LbPool
+import org.openstack4j.model.network.ext.ListenerV2
 import org.openstack4j.model.network.ext.Member
 import org.openstack4j.model.network.ext.Vip
 import org.openstack4j.openstack.networking.domain.NeutronPort
@@ -658,34 +659,6 @@ class OpenstackNetworkingV2ClientProviderSpec extends OpenstackClientProviderSpe
     and:
     OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
     openstackProviderException.cause == throwable
-  }
-
-  def "test get internal load balancer port succeeds"() {
-    setup:
-    LbPool pool = Mock(LbPool)
-    pool.description >> 'internal_port=1234'
-
-    when:
-    int port = provider.getInternalLoadBalancerPort(pool)
-
-    then:
-    port == 1234
-  }
-
-  def "test get internal load balancer port throws exception"() {
-    setup:
-    LbPool pool = Mock(LbPool)
-    pool.description >> "internal_port=$port"
-
-    when:
-    provider.getInternalLoadBalancerPort(pool)
-
-    then:
-    Exception e = thrown(OpenstackProviderException)
-    e.message == "Internal pool port $port is outside of the valid range.".toString()
-
-    where:
-    port << [0, 65536]
   }
 
   def "test get load balancer succeeds"() {

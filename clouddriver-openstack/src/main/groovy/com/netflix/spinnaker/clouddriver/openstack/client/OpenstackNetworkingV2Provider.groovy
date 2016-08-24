@@ -155,6 +155,7 @@ class OpenstackNetworkingV2Provider implements OpenstackNetworkingProvider, Open
     }
   }
 
+  //TODO upgrade for lbaasv2
   @Override
   Integer getInternalLoadBalancerPort(LbPool pool) {
     Integer internalPort = parseInternalPort(pool.description)

@@ -33,6 +33,8 @@ trait LoadBalancerResolver {
   final Pattern createdPattern = Pattern.compile(createdRegex)
 
   /**
+   * TODO remove when register/deregister ops for lbaasv2 is implemented
+   *
    * Parse the internal port from a load balancer description in the following format.
    * <br><br>
    * {@code
@@ -47,6 +49,8 @@ trait LoadBalancerResolver {
   }
 
   /**
+   * TODO remove when register/deregister ops for lbaasv2 is implemented
+   *
    * Generate key=value port string, e.g. internal_port=8100
    * @param port
    * @return
@@ -67,9 +71,9 @@ trait LoadBalancerResolver {
   Map<String, String> parseListenerKey(String key) {
     Map<String, String> result = [:]
 
-    String[] parts = key.split(':')
+    String[] parts = key?.split(':')
 
-    if (parts.length == 4) {
+    if (parts?.length == 4) {
       result << [externalProtocol: parts[0], externalPort: parts[1], internalProtocol: parts[2], internalPort: parts[3]]
     }
 

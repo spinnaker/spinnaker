@@ -59,7 +59,7 @@ class AbstractRegistrationOpenstackInstancesAtomicOperationUnitSpec extends Spec
     pool = Mock(LbPool)
   }
 
-  def "should perform registration oepration with load balancers"() {
+  def "should perform registration operation with load balancers"() {
     given:
     @Subject def operation = opClass.newInstance(description)
     OpenstackClientProvider provider = credentials.provider

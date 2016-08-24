@@ -27,6 +27,14 @@ import org.openstack4j.model.network.ext.LoadBalancerV2
  * Operations associated to load balancer and relevant building blocks.
  */
 interface OpenstackLoadBalancerProvider {
+
+  /**
+   * Get all load balancers in a region.
+   * @param region
+   * @return
+   */
+  List<? extends LoadBalancerV2> getLoadBalancers(final String region)
+
   /**
    * Creates new openstack load balancer.
    * @param region
@@ -44,6 +52,21 @@ interface OpenstackLoadBalancerProvider {
    * @return
    */
   LoadBalancerV2 getLoadBalancer(final String region, final String id)
+
+  /**
+   * Retreives load balancer by name.
+   * @param region
+   * @param id
+   * @return
+   */
+  LoadBalancerV2 getLoadBalancerByName(final String region, final String id)
+
+  /**
+   * Get all load balancer listeners in a region.
+   * @param region
+   * @return
+   */
+  List<? extends ListenerV2> getListeners(final String region)
 
   /**
    * Creates listener associated to an existing load balancer.
@@ -72,6 +95,13 @@ interface OpenstackLoadBalancerProvider {
    * @return
    */
   ActionResponse deleteListener(final String region, final String id)
+
+  /**
+   * Get a list of all load balancer pools in a region.
+   * @param region
+   * @return
+   */
+  List<? extends LbPoolV2> getPools(final String region)
 
   /**
    * Creates load balancer pool for a given listener.
@@ -108,6 +138,13 @@ interface OpenstackLoadBalancerProvider {
    * @return
    */
   ActionResponse deletePool(final String region, final String lbPoolId)
+
+  /**
+   * List all health monitors in a region.
+   * @param region
+   * @return
+   */
+  List<? extends HealthMonitorV2> getHealthMonitors(final String region)
 
   /**
    * Creates monitor for an existing pool.

@@ -107,7 +107,7 @@ class OpenstackLoadBalancerControllerSpec extends Specification {
     thrownException == throwable
   }
 
-  OpenstackLoadBalancer create(int i) {
+  OpenstackLoadBalancer.View create(int i) {
     String account = 'test'
     String region = 'r1'
     String id = "id$i"
@@ -119,11 +119,13 @@ class OpenstackLoadBalancerControllerSpec extends Specification {
     String ip = '1.2.3.4'
     Integer externalPort = 80
     String subnet = "subnet$i"
-    def healthChecks = [new HealthMonitor(id: 'id', type: HealthMonitorType.HTTP)].toSet()
+    String network = "network$i"
+    def healthMonitor = new OpenstackLoadBalancer.OpenstackHealthMonitor(id: "health$i", httpMethod: 'GET',
+      maxRetries: 5, adminStateUp: 'UP', delay: 5, expectedCodes: '200')
     def serverGroups = [new LoadBalancerServerGroup(name: 'sg1', isDisabled: false,
       instances: [new LoadBalancerInstance(id: 'id', zone: "zone$i", health: [state:'up', zone: "zone$i"])])]
-    new OpenstackLoadBalancer(account: account, region: region, id: id, name: name, description: description,
-      status: status, protocol: protocol, method: method, ip: ip, externalPort: externalPort, subnetName: subnet,
-      healthChecks: healthChecks, serverGroups: serverGroups)
+    new OpenstackLoadBalancer.View(account: account, region: region, id: id, name: name, description: description,
+      status: status, method: method, ip: ip, subnetId: subnet, subnetName: subnet, networkId: network, networkName: network,
+      healthMonitor: healthMonitor, serverGroups: serverGroups)
   }
 }

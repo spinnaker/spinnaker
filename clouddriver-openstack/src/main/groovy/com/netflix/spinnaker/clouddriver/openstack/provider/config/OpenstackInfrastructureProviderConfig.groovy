@@ -25,14 +25,12 @@ import com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastruct
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackFloatingIPCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackImageCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackInstanceCachingAgent
-import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackLoadBalancerCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackInstanceTypeCachingAgent
+import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackLoadBalancerCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackNetworkCachingAgent
-import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackPortCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackSecurityGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackServerGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackSubnetCachingAgent
-import com.netflix.spinnaker.clouddriver.openstack.provider.agent.OpenstackVipCachingAgent
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
@@ -94,9 +92,7 @@ class OpenstackInfrastructureProviderConfig {
           newlyAddedAgents << new OpenstackNetworkCachingAgent(credentials, region, objectMapper)
           newlyAddedAgents << new OpenstackImageCachingAgent(credentials, region, objectMapper)
           newlyAddedAgents << new OpenstackSecurityGroupCachingAgent(credentials, region, objectMapper, registry)
-          newlyAddedAgents << new OpenstackVipCachingAgent(credentials, region, objectMapper)
           newlyAddedAgents << new OpenstackFloatingIPCachingAgent(credentials, region, objectMapper)
-          newlyAddedAgents << new OpenstackPortCachingAgent(credentials, region, objectMapper)
           newlyAddedAgents << new OpenstackLoadBalancerCachingAgent(credentials, region, objectMapper, registry)
           newlyAddedAgents << new OpenstackInstanceTypeCachingAgent(credentials, region, objectMapper)
         }

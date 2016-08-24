@@ -136,6 +136,9 @@ interface OpenstackNetworkingProvider {
    * Get port from load balancer description. Openstack load balancers have no native concept of internal port,
    * so we store in the description field of the load balancer.
    * this may be changed in a future version.
+   *
+   * TODO upgrade for lbaasv2
+   *
    * @param pool
    * @return
    */

@@ -26,18 +26,16 @@ class LoadBalancerResolverSpec extends Specification {
 
   def "get internal port - #testCase"() {
     when:
-    Integer result = resolver.parseInternalPort(description)
+    Map<String, String> result = resolver.parseListenerKey(description)
 
     then:
-    result == expected
+    result.toString() == expected.toString()
 
     where:
     testCase    | description                        | expected
-    'not found' | 'test'                             | null
-    'found'     | 'internal_port=20'                 | 20
-    'found'     | 'created_time=42,internal_port=20' | 20
-    'found'     | 'internal_port=20,created_time=42' | 20
-    'null'      | null                               | null
+    'not found' | 'test'                             | [:]
+    'found'     | 'HTTP:80:HTTP:8080'                | [externalProtocol: 'HTTP', externalPort: '80', internalProtocol: 'HTTP', internalPort: 8080]
+    'null'      | null                               | [:]
   }
 
   def "get created time - #testCase"() {

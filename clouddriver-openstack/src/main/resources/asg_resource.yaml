@@ -1,4 +1,4 @@
-heat_template_version: 2016-04-08
+heat_template_version: 2015-10-15
 description: A load balanced server for Spinnaker
 parameters:
   flavor:
