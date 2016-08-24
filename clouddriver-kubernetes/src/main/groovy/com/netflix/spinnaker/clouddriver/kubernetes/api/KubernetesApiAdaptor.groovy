@@ -176,6 +176,12 @@ class KubernetesApiAdaptor {
     }
   }
 
+  ReplicaSet createReplicaSet(String namespace, ReplicaSet replicaSet) {
+    atomicWrapper("Create Replica Set ${replicaSet?.metadata?.name}", namespace) { KubernetesClient client ->
+      client.extensions().replicaSets().inNamespace(namespace).create(replicaSet)
+    }
+  }
+
   List<Pod> getJobPods(String namespace, String jobName) {
     atomicWrapper("Get Job Pods for $jobName", namespace) { KubernetesClient client ->
       client.pods().inNamespace(namespace).withLabel(KubernetesUtil.JOB_LABEL, jobName).list().items

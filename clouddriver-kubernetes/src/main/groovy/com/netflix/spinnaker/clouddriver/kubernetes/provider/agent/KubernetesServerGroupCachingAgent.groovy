@@ -118,8 +118,12 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
       loadReplicationController(serverGroupName)
     }
 
+    ReplicaSet replicaSet = metricsSupport.readData {
+      loadReplicaSet(serverGroupName)
+    }
+
     CacheResult result = metricsSupport.transformData {
-      buildCacheResult([new ReplicaSetOrController(replicationController: replicationController)], [:], [], Long.MAX_VALUE)
+      buildCacheResult([new ReplicaSetOrController(replicationController: replicationController, replicaSet: replicaSet)], [:], [], Long.MAX_VALUE)
     }
 
     def jsonResult = objectMapper.writeValueAsString(result.cacheResults)
@@ -146,7 +150,7 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
     }
 
     // Evict this server group if it no longer exists.
-    Map<String, Collection<String>> evictions = replicationController ? [:] : [
+    Map<String, Collection<String>> evictions = replicationController || replicaSet ? [:] : [
       (Keys.Namespace.SERVER_GROUPS.ns): [
         Keys.getServerGroupKey(accountName, namespace, serverGroupName)
       ]
@@ -194,6 +198,10 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
 
   List<ReplicaSet> loadReplicaSets() {
     credentials.apiAdaptor.getReplicaSets(namespace)
+  }
+
+  ReplicaSet loadReplicaSet(String name) {
+    credentials.apiAdaptor.getReplicaSet(namespace, name)
   }
 
   ReplicationController loadReplicationController(String name) {

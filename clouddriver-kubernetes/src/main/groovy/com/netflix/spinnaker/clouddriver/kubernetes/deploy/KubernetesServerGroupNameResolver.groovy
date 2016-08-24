@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.helpers.AbstractServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesModelUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import io.fabric8.kubernetes.api.model.ReplicationController
+import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 
 class KubernetesServerGroupNameResolver extends AbstractServerGroupNameResolver {
 
@@ -46,7 +47,8 @@ class KubernetesServerGroupNameResolver extends AbstractServerGroupNameResolver 
 
   @Override
   List<AbstractServerGroupNameResolver.TakenSlot> getTakenSlots(String clusterName) {
-    def replicationControllers = credentials.apiAdaptor.getReplicationControllers(namespace)
+    def replicationControllers = credentials.apiAdaptor.getReplicationControllers(namespace) ?: []
+    def replicaSets = credentials.apiAdaptor.getReplicaSets(namespace) ?: []
 
     return replicationControllers.findResults { ReplicationController replicationController ->
       def names = Names.parseName(replicationController.metadata.name)
@@ -60,6 +62,19 @@ class KubernetesServerGroupNameResolver extends AbstractServerGroupNameResolver 
       } else {
         return null
       }
+    } + replicaSets.findResults { ReplicaSet replicaSet ->
+      def names = Names.parseName(replicaSet.metadata.name)
+
+      if (names.cluster == clusterName) {
+        return new AbstractServerGroupNameResolver.TakenSlot(
+          serverGroupName: replicaSet.metadata.name,
+          sequence       : names.sequence,
+          createdTime    : new Date(KubernetesModelUtil.translateTime(replicaSet.metadata.creationTimestamp))
+        )
+      } else {
+        return null
+      }
+
     }
   }
 }

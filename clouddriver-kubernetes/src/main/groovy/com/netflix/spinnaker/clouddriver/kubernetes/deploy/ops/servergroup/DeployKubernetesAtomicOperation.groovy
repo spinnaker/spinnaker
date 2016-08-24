@@ -25,6 +25,10 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.*
+import io.fabric8.kubernetes.api.model.extensions.LabelSelectorRequirement
+import io.fabric8.kubernetes.api.model.extensions.LabelSelectorRequirementBuilder
+import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
+import io.fabric8.kubernetes.api.model.extensions.ReplicaSetBuilder
 
 class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResult> {
   private static final String BASE_PHASE = "DEPLOY"
@@ -48,15 +52,15 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
   @Override
   DeploymentResult operate(List priorOutputs) {
 
-    ReplicationController replicationController = deployDescription()
+    ReplicaSet replicaSet = deployDescription()
     DeploymentResult deploymentResult = new DeploymentResult()
-    deploymentResult.serverGroupNames = Arrays.asList("${replicationController.metadata.namespace}:${replicationController.metadata.name}".toString())
-    deploymentResult.serverGroupNameByRegion[replicationController.metadata.namespace] = replicationController.metadata.name
+    deploymentResult.serverGroupNames = Arrays.asList("${replicaSet.metadata.namespace}:${replicaSet.metadata.name}".toString())
+    deploymentResult.serverGroupNameByRegion[replicaSet.metadata.namespace] = replicaSet.metadata.name
     return deploymentResult
   }
 
-  ReplicationController deployDescription() {
-    task.updateStatus BASE_PHASE, "Initializing creation of replication controller."
+  ReplicaSet deployDescription() {
+    task.updateStatus BASE_PHASE, "Initializing creation of replica set."
     task.updateStatus BASE_PHASE, "Looking up provided namespace..."
 
     def credentials = description.credentials.credentials
@@ -66,38 +70,39 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     def clusterName = serverGroupNameResolver.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
 
     task.updateStatus BASE_PHASE, "Looking up next sequence index for cluster ${clusterName}..."
-    def replicationControllerName = serverGroupNameResolver.resolveNextServerGroupName(description.application, description.stack, description.freeFormDetails, false)
-    task.updateStatus BASE_PHASE, "Replication controller name chosen to be ${replicationControllerName}."
+    def replicaSetName = serverGroupNameResolver.resolveNextServerGroupName(description.application, description.stack, description.freeFormDetails, false)
+    task.updateStatus BASE_PHASE, "Replica set name chosen to be ${replicaSetName}."
 
-    def replicationControllerBuilder = new ReplicationControllerBuilder().withNewMetadata().withName(replicationControllerName).endMetadata()
+    def replicaSetBuilder = new ReplicaSetBuilder().withNewMetadata().withName(replicaSetName).endMetadata()
 
-    replicationControllerBuilder = replicationControllerBuilder.withNewSpec().addToSelector(KubernetesUtil.REPLICATION_CONTROLLER_LABEL, replicationControllerName)
+    replicaSetBuilder = replicaSetBuilder.withNewSpec().withNewSelector().withMatchLabels(
+      [(KubernetesUtil.REPLICATION_CONTROLLER_LABEL): replicaSetName]).endSelector()
 
     task.updateStatus BASE_PHASE, "Setting target size to ${description.targetSize}..."
 
-    replicationControllerBuilder = replicationControllerBuilder.withReplicas(description.targetSize)
+    replicaSetBuilder = replicaSetBuilder.withReplicas(description.targetSize)
         .withNewTemplate()
         .withNewMetadata()
 
-    task.updateStatus BASE_PHASE, "Setting replication controller spec labels..."
+    task.updateStatus BASE_PHASE, "Setting replica set spec labels..."
 
-    replicationControllerBuilder = replicationControllerBuilder.addToLabels(KubernetesUtil.REPLICATION_CONTROLLER_LABEL, replicationControllerName)
+    replicaSetBuilder = replicaSetBuilder.addToLabels(KubernetesUtil.REPLICATION_CONTROLLER_LABEL, replicaSetName)
 
     for (def loadBalancer : description.loadBalancers) {
-      replicationControllerBuilder = replicationControllerBuilder.addToLabels(KubernetesUtil.loadBalancerKey(loadBalancer), "true")
+      replicaSetBuilder = replicaSetBuilder.addToLabels(KubernetesUtil.loadBalancerKey(loadBalancer), "true")
     }
 
-    replicationControllerBuilder = replicationControllerBuilder.endMetadata().withNewSpec()
+    replicaSetBuilder = replicaSetBuilder.endMetadata().withNewSpec()
 
     if (description.restartPolicy) {
-      replicationControllerBuilder.withRestartPolicy(description.restartPolicy)
+      replicaSetBuilder.withRestartPolicy(description.restartPolicy)
     }
 
     task.updateStatus BASE_PHASE, "Adding image pull secrets... "
-    replicationControllerBuilder = replicationControllerBuilder.withImagePullSecrets()
+    replicaSetBuilder = replicaSetBuilder.withImagePullSecrets()
 
     for (def imagePullSecret : credentials.imagePullSecrets[namespace]) {
-      replicationControllerBuilder = replicationControllerBuilder.addNewImagePullSecret(imagePullSecret)
+      replicaSetBuilder = replicaSetBuilder.addNewImagePullSecret(imagePullSecret)
     }
 
     if (description.volumeSources) {
@@ -105,22 +110,22 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
         KubernetesApiConverter.toVolumeSource(volumeSource)
       }
 
-      replicationControllerBuilder = replicationControllerBuilder.withVolumes(volumeSources)
+      replicaSetBuilder = replicaSetBuilder.withVolumes(volumeSources)
     }
 
     def containers = description.containers.collect { container ->
       KubernetesApiConverter.toContainer(container)
     }
 
-    replicationControllerBuilder = replicationControllerBuilder.withContainers(containers)
+    replicaSetBuilder = replicaSetBuilder.withContainers(containers)
 
-    replicationControllerBuilder = replicationControllerBuilder.endSpec().endTemplate().endSpec()
+    replicaSetBuilder = replicaSetBuilder.endSpec().endTemplate().endSpec()
 
-    task.updateStatus BASE_PHASE, "Sending replication controller spec to the Kubernetes master."
-	  ReplicationController replicationController = credentials.apiAdaptor.createReplicationController(namespace, replicationControllerBuilder.build())
+    task.updateStatus BASE_PHASE, "Sending replica set spec to the Kubernetes master."
+	  ReplicaSet replicaSet = credentials.apiAdaptor.createReplicaSet(namespace, replicaSetBuilder.build())
 
-    task.updateStatus BASE_PHASE, "Finished creating replication controller ${replicationController.metadata.name}."
+    task.updateStatus BASE_PHASE, "Finished creating replica set ${replicaSet.metadata.name}."
 
-    return replicationController
+    return replicaSet
   }
 }

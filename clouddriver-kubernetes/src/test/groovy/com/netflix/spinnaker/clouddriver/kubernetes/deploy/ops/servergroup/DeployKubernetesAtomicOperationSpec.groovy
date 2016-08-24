@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentia
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import io.fabric8.kubernetes.api.model.*
+import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 import io.fabric8.kubernetes.client.dsl.internal.ReplicationControllerOperationsImpl
 import io.fabric8.kubernetes.client.dsl.internal.ServiceOperationsImpl
 import spock.lang.Specification
@@ -61,7 +62,7 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
   def description
   def replicationControllerOperationsMock
   def replicationControllerListMock
-  def replicationControllerMock
+  def replicaSetMock
 
   def serviceOperationsMock
   def serviceListMock
@@ -86,7 +87,7 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
     apiMock = Mock(KubernetesApiAdaptor)
     replicationControllerOperationsMock = Mock(ReplicationControllerOperationsImpl)
     replicationControllerListMock = Mock(ReplicationControllerList)
-    replicationControllerMock = Mock(ReplicationController)
+    replicaSetMock = Mock(ReplicaSet)
     serviceOperationsMock = Mock(ServiceOperationsImpl)
     serviceListMock = Mock(ServiceList)
     serviceMock = Mock(Service)
@@ -161,25 +162,26 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
     then:
 
       1 * apiMock.getReplicationControllers(NAMESPACE) >> []
-      5 * replicationControllerMock.getMetadata() >> metadataMock
+      1 * apiMock.getReplicaSets(NAMESPACE) >> []
+      5 * replicaSetMock.getMetadata() >> metadataMock
       3 * metadataMock.getName() >> replicationControllerName
-      1 * apiMock.createReplicationController(NAMESPACE, { ReplicationController rc ->
+      1 * apiMock.createReplicaSet(NAMESPACE, { ReplicaSet rs ->
         LOAD_BALANCER_NAMES.each { name ->
-          assert(rc.spec.template.metadata.labels[KubernetesUtil.loadBalancerKey(name)])
+          assert(rs.spec.template.metadata.labels[KubernetesUtil.loadBalancerKey(name)])
         }
 
-        assert(rc.spec.replicas == TARGET_SIZE)
+        assert(rs.spec.replicas == TARGET_SIZE)
 
         CONTAINER_NAMES.eachWithIndex { name, idx ->
-          assert(rc.spec.template.spec.containers[idx].name == name)
-          assert(rc.spec.template.spec.containers[idx].image == imageId)
-          assert(rc.spec.template.spec.containers[idx].resources.requests.cpu == REQUEST_CPU[idx])
-          assert(rc.spec.template.spec.containers[idx].resources.requests.memory == REQUEST_MEMORY[idx])
-          assert(rc.spec.template.spec.containers[idx].resources.limits.cpu == LIMIT_CPU[idx])
-          assert(rc.spec.template.spec.containers[idx].resources.limits.memory == LIMIT_MEMORY[idx])
-          assert(rc.spec.template.spec.containers[idx].livenessProbe.periodSeconds == PERIOD_SECONDS)
-          assert(rc.spec.template.spec.containers[idx].livenessProbe.tcpSocket.port.intVal == PORT)
+          assert(rs.spec.template.spec.containers[idx].name == name)
+          assert(rs.spec.template.spec.containers[idx].image == imageId)
+          assert(rs.spec.template.spec.containers[idx].resources.requests.cpu == REQUEST_CPU[idx])
+          assert(rs.spec.template.spec.containers[idx].resources.requests.memory == REQUEST_MEMORY[idx])
+          assert(rs.spec.template.spec.containers[idx].resources.limits.cpu == LIMIT_CPU[idx])
+          assert(rs.spec.template.spec.containers[idx].resources.limits.memory == LIMIT_MEMORY[idx])
+          assert(rs.spec.template.spec.containers[idx].livenessProbe.periodSeconds == PERIOD_SECONDS)
+          assert(rs.spec.template.spec.containers[idx].livenessProbe.tcpSocket.port.intVal == PORT)
         }
-      }) >> replicationControllerMock
+      }) >> replicaSetMock
   }
 }
