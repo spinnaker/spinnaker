@@ -41,4 +41,6 @@ class GitHubProperties {
         @NotEmpty
         String organization
 
+        @NotEmpty
+        int paginationValue = 30
 }

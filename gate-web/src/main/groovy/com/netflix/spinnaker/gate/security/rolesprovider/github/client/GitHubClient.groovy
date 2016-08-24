@@ -35,9 +35,10 @@ interface GitHubClient {
   @GET('/user/teams')
   List<GitHubMaster.Team> getUserTeams()
 
-  @GET('/orgs/{org}/teams')
+  @GET('/orgs/{org}/teams?per_page={paginationValue}')
   List<GitHubMaster.Team> getOrgTeams(
-    @Path('org') String org
+    @Path('org') String org,
+    @Path('paginationValue') int paginationValue
   )
 
   @GET('/teams/{idTeam}/memberships/{username}')

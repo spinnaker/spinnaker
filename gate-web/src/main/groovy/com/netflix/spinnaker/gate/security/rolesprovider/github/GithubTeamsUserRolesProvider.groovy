@@ -78,7 +78,7 @@ class GithubTeamsUserRolesProvider implements UserRolesProvider, InitializingBea
     // Get teams of the current user
     List<GitHubMaster.Team> teams
     try {
-      teams = master.gitHubClient.getOrgTeams(gitHubProperties.organization)
+      teams = master.gitHubClient.getOrgTeams(gitHubProperties.organization, gitHubProperties.paginationValue)
 
     } catch (RetrofitError e) {
       log.error("RetrofitError ${e.response.status} ${e.response.reason} ", e)
