@@ -28,7 +28,7 @@ class SecurityGroupForceCacheRefreshTaskSpec extends Specification {
   def config = [
     name       : "sg-12345a",
     region     : "us-west-1",
-    credentials: "fzlem"
+    accountName: "fzlem"
   ]
 
   def setup() {
@@ -49,7 +49,7 @@ class SecurityGroupForceCacheRefreshTaskSpec extends Specification {
       String cloudProvider, String type, Map<String, ? extends Object> body ->
 
       assert body.securityGroupName == config.name
-      assert body.account == config.credentials
+      assert body.account == config.accountName
       assert body.region == "us-west-1"
     }
   }

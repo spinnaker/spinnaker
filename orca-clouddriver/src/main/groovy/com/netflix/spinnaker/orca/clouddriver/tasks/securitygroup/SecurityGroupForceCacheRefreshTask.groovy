@@ -39,7 +39,7 @@ public class SecurityGroupForceCacheRefreshTask extends AbstractCloudProviderAwa
 
     stage.context.targets.each { Map target ->
       mort.forceCacheUpdate(
-        cloudProvider, REFRESH_TYPE, [account: target.credentials, securityGroupName: target.name, region: target.region]
+        cloudProvider, REFRESH_TYPE, [account: target.accountName, securityGroupName: target.name, region: target.region]
       )
     }
 
