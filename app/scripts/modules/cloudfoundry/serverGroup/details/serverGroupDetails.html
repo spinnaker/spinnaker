@@ -179,9 +179,8 @@
         </div>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Package">
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'"
-          ng-if="serverGroup.buildInfo">
+    <collapsible-section heading="Package" ng-if="serverGroup.buildInfo">
+      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
         <dt ng-if="serverGroup.buildInfo.jenkins">Job</dt>
         <dd ng-if="serverGroup.buildInfo.jenkins">{{serverGroup.buildInfo.jenkins.name}}</dd>
         <dt>Package</dt>

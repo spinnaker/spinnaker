@@ -165,10 +165,8 @@
         <dd ng-if="ctrl.serverGroup.image.properties.ramdisk_id">{{ctrl.serverGroup.image.properties.ramdisk_id}}</dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Package">
-      <div ng-if="!(ctrl.serverGroup.buildInfo && ctrl.serverGroup.buildInfo.jenkins)">None.</div>
-      <dl ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'"
-          ng-if="ctrl.serverGroup.buildInfo && ctrl.serverGroup.buildInfo.jenkins">
+    <collapsible-section heading="Package" ng-if="ctrl.serverGroup.buildInfo && ctrl.serverGroup.buildInfo.jenkins">
+      <dl ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
         <dt>Job</dt>
         <dd>{{ctrl.serverGroup.buildInfo.jenkins.name}}</dd>
         <dt>Package</dt>

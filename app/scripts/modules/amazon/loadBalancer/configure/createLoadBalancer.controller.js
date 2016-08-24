@@ -299,7 +299,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
             $scope.loadBalancer.region, listener.sslCertificateType || this.certificateTypes[0]);
         });
       });
-    }
+    };
 
     this.certificateTypes = _.get(settings, 'providers.aws.loadBalancers.certificateTypes', ['iam', 'acm']);
 
