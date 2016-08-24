@@ -282,21 +282,21 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     function certificateIdAsARN(accountId, certificateId, region, certificateType) {
       if (certificateId && (certificateId.indexOf('arn:aws:iam::') !== 0 || certificateId.indexOf('arn:aws:acm:') !== 0)) {
         // If they really want to enter the ARN...
-        if(certificateType === 'iam') {
+        if (certificateType === 'iam') {
           return 'arn:aws:iam::' + accountId + ':server-certificate/' + certificateId;
         }
-        if(certificateType === 'acm') {
+        if (certificateType === 'acm') {
           return 'arn:aws:acm:' + region + ':' + accountId + ':certificate/' + certificateId;
         }
       }
       return certificateId;
     }
 
-    function formatListeners() {
-      return accountService.getAccountDetails($scope.loadBalancer.credentials).then(function (account) {
-        $scope.loadBalancer.listeners.forEach(function (listener) {
+    let formatListeners = () => {
+      return accountService.getAccountDetails($scope.loadBalancer.credentials).then((account) => {
+        $scope.loadBalancer.listeners.forEach((listener) => {
           listener.sslCertificateId = certificateIdAsARN(account.accountId, listener.sslCertificateId,
-            $scope.loadBalancer.region, listener.sslCertificateType);
+            $scope.loadBalancer.region, listener.sslCertificateType || this.certificateTypes[0]);
         });
       });
     }
