@@ -54,6 +54,15 @@
       Properties
     </a>
   <li>
+  <li ng-if="feature.analytics">
+    <a ui-sref=".analytics"
+       analytics-on="click"
+       analytics-category="Application Nav"
+       analytics-event="Analytics"
+       ng-class="{active: $state.includes('**.analytics.**')}">
+      Analytics
+    </a>
+  <li>
   <li>
     <a ui-sref=".tasks"
        analytics-on="click"

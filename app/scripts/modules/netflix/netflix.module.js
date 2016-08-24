@@ -39,6 +39,8 @@ module.exports = angular
     require('./chaosMonkey/chaosMonkeyConfig.directive.js'),
 
     require('../core/config/settings.js'),
+
+    require('./tableau/states'),
   ])
   .run(function(cloudProviderRegistry, settings) {
     if (settings.feature && settings.feature.netflixMode) {

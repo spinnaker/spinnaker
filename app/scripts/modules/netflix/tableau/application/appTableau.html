@@ -1,0 +1,7 @@
+<div class="tableau-dashboard flex-fill">
+  <iframe ng-if="ctrl.srcUrl && !ctrl.error"
+          ng-src="{{ctrl.srcUrl}}"></iframe>
+  <h3 class="text-center" ng-if="ctrl.error">
+    There was an error loading the analytics dashboard. Please try again later.
+  </h3>
+</div>
