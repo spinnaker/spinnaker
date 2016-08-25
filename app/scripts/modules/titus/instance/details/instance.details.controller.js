@@ -84,7 +84,7 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
           $scope.instance.region = region;
           $scope.instance.vpcId = vpcId;
           $scope.instance.loadBalancers = loadBalancers;
-          $scope.baseIpAddress = $scope.instance.placement.host;
+          $scope.baseIpAddress = $scope.instance.placement.containerIp || $scope.instance.placement.host;
           $scope.instance.externalIpAddress = $scope.instance.placement.host;
           if (overrides.instanceDetailsLoaded) {
             overrides.instanceDetailsLoaded();
