@@ -18,12 +18,8 @@ package com.netflix.spinnaker.clouddriver.kubernetes.provider.view
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
-import com.netflix.spinnaker.cats.cache.CacheData
-import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
-import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesJob
 import com.netflix.spinnaker.clouddriver.model.JobProvider
-import io.fabric8.kubernetes.api.model.extensions.Job
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -37,48 +33,17 @@ class KubernetesJobProvider implements JobProvider<KubernetesJob> {
   KubernetesSecurityGroupProvider securityGroupProvider
 
   @Autowired
+  KubernetesInstanceProvider instanceProvider
+
+  @Autowired
   KubernetesJobProvider(Cache cacheView, ObjectMapper objectMapper) {
     this.cacheView = cacheView
     this.objectMapper = objectMapper
   }
 
-  private KubernetesJob translateJob(CacheData jobData) {
-    if (!jobData) {
-      return null
-    }
-
-    String account = jobData.attributes.account
-    String location = jobData.attributes.namespace
-
-    Collection<CacheData> allLoadBalancers = KubernetesClusterProvider.resolveRelationshipDataForCollection(cacheView, [jobData],
-                                                                                                            Keys.Namespace.LOAD_BALANCERS.ns,
-                                                                                                            RelationshipCacheFilter.include(Keys.Namespace.SECURITY_GROUPS.ns))
-
-    def securityGroups = KubernetesClusterProvider.loadBalancerToSecurityGroupMap(securityGroupProvider, cacheView, allLoadBalancers)
-
-    Set<CacheData> processes = KubernetesClusterProvider.resolveRelationshipDataForCollection(cacheView, [jobData],
-                                                                                              Keys.Namespace.INSTANCES.ns,
-                                                                                              RelationshipCacheFilter.none())
-
-    def job = objectMapper.convertValue(jobData.attributes.job, Job)
-    def res = new KubernetesJob(job, KubernetesProviderUtils.controllerToInstanceMap(objectMapper, processes)[(String)jobData.attributes.name], account)
-    res.loadBalancers?.each {
-      res.securityGroups.addAll(securityGroups[it])
-    }
-
-    return res
-  }
-
   @Override
   KubernetesJob getJob(String account, String location, String id) {
-    String jobKey = Keys.getJobKey(account, location, id)
-    return translateJob(cacheView.get(Keys.Namespace.JOBS.ns, jobKey))
-  }
-
-  @Override
-  List<KubernetesJob> getJobsByApp(String app) {
-    Set<CacheData> jobs = KubernetesProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.JOBS.ns, Keys.getJobKey("*", "*", "$app-*"))
-
-    return jobs?.collect { translateJob(it) } ?: []
+    def instance = instanceProvider.getInstance(account, location, id)
+    return new KubernetesJob(instance, account)
   }
 }

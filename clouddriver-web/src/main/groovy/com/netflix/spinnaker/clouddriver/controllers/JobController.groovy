@@ -51,19 +51,6 @@ class JobController {
     jobMatches.first()
   }
 
-  @ApiOperation(value = "Get all Jobs in given application", notes = "Composed of many running `Process` objects")
-  @RequestMapping(method = RequestMethod.GET)
-  List<Job> getJobsByApp(@ApiParam(value = "Application name", required = true) @PathVariable String application,
-                         @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand) {
-    Collection<Job> jobMatches = jobProviders.collect {
-      it.getJobsByApp(application)
-    }.flatten()
-    if (!jobMatches) {
-      jobMatches = []
-    }
-    return jobMatches
-  }
-
   static class JobNotFoundException extends RuntimeException {
     String name
   }

@@ -24,10 +24,8 @@ class Keys {
     CLUSTERS,
     SERVER_GROUPS,
     INSTANCES,
-    PROCESSES,
     LOAD_BALANCERS,
     SECURITY_GROUPS,
-    JOBS,
     ON_DEMAND,
 
     static String provider = "kubernetes"
@@ -76,21 +74,6 @@ class Keys {
             detail: names.detail,
         ]
         break
-      case Namespace.JOBS.ns:
-        def names = Names.parseName(parts[4])
-        result << [
-            application: names.app,
-            account: parts[2],
-            namespace: parts[3],
-            region: parts[3],
-            name: parts[4],
-            job: parts[4],
-            stack: names.stack,
-            cluster: names.cluster,
-            detail: names.detail,
-            sequence: names.sequence?.toString(),
-        ]
-        break
       case Namespace.SERVER_GROUPS.ns:
         def names = Names.parseName(parts[4])
         result << [
@@ -129,18 +112,6 @@ class Keys {
             application: names.app,
         ]
         break
-      case Namespace.PROCESSES.ns:
-        def names = Names.parseName(parts[4])
-        result << [
-            account: parts[2],
-            serverGroup: parts[4],
-            namespace: parts[3],
-            name: parts[5],
-            processId: parts[5],
-            region: parts[3],
-            application: names.app,
-        ]
-        break
       case Namespace.SECURITY_GROUPS.ns:
         def names = Names.parseName(parts[4])
         result << [
@@ -172,20 +143,12 @@ class Keys {
     "${Namespace.provider}:${Namespace.SERVER_GROUPS}:${account}:${namespace}:${replicationControllerName}"
   }
 
-  static String getJobKey(String account, String namespace, String jobName) {
-    "${Namespace.provider}:${Namespace.JOBS}:${account}:${namespace}:${jobName}"
-  }
-
   static String getLoadBalancerKey(String account, String namespace, String serviceName) {
     "${Namespace.provider}:${Namespace.LOAD_BALANCERS}:${account}:${namespace}:${serviceName}"
   }
 
   static String getInstanceKey(String account, String namespace, String name) {
     "${Namespace.provider}:${Namespace.INSTANCES}:${account}:${namespace}:${name}"
-  }
-
-  static String getProcessKey(String account, String namespace, String name) {
-    "${Namespace.provider}:${Namespace.PROCESSES}:${account}:${namespace}:${name}"
   }
 
   static String getSecurityGroupKey(String account, String namespace, String ingressName) {

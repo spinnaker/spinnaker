@@ -26,6 +26,7 @@ import io.fabric8.kubernetes.client.internal.SerializationUtils
 
 class KubernetesInstance implements Instance, Serializable {
   String name
+  String location
   String instanceId
   Long launchTime
   String zone
@@ -42,6 +43,7 @@ class KubernetesInstance implements Instance, Serializable {
 
   KubernetesInstance(Pod pod, List<String> loadBalancers) {
     this.name = pod.metadata?.name
+    this.location = pod.metadata?.namespace
     this.instanceId = this.name
     this.launchTime = KubernetesModelUtil.translateTime(pod.status?.startTime)
     this.zone = pod.metadata?.namespace

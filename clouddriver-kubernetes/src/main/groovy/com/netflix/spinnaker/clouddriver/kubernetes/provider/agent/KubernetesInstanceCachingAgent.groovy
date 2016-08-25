@@ -35,7 +35,6 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 class KubernetesInstanceCachingAgent implements  CachingAgent, AccountAware {
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
       AUTHORITATIVE.forType(Keys.Namespace.INSTANCES.ns),
-      AUTHORITATIVE.forType(Keys.Namespace.PROCESSES.ns),
   ] as Set)
 
   final KubernetesCloudProvider kubernetesCloudProvider
@@ -82,31 +81,23 @@ class KubernetesInstanceCachingAgent implements  CachingAgent, AccountAware {
     log.info("Describing items in ${agentType}")
 
     Map<String, MutableCacheData> cachedInstances = MutableCacheData.mutableCacheMap()
-    Map<String, MutableCacheData> cachedProcesses = MutableCacheData.mutableCacheMap()
 
     for (Pod pod : pods) {
       if (!pod) {
         continue
       }
 
-      def key = Keys.getProcessKey(accountName, namespace, pod.metadata.name)
-      cachedProcesses[key].with {
+      def key = Keys.getInstanceKey(accountName, namespace, pod.metadata.name)
+      cachedInstances[key].with {
         attributes.name = pod.metadata.name
         attributes.pod = pod
-        key = Keys.getInstanceKey(accountName, namespace, pod.metadata.name)
-        cachedInstances[key].with {
-          attributes.name = pod.metadata.name
-          attributes.pod = pod
-        }
       }
     }
 
     log.info("Caching ${cachedInstances.size()} instances in ${agentType}")
-    log.info("Caching ${cachedProcesses.size()} processes in ${agentType}")
 
     new DefaultCacheResult([
         (Keys.Namespace.INSTANCES.ns): cachedInstances.values(),
-        (Keys.Namespace.PROCESSES.ns): cachedProcesses.values()
     ], [:])
   }
 

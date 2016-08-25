@@ -37,33 +37,9 @@ interface Job {
 
   JobState getJobState()
 
-  Set<Instance> getInstances()
+  Instance getInstance()
 
   Long getCreatedTime()
 
   Long getFinishTime()
-
-  Set<String> getLoadBalancers()
-
-  Set<String> getSecurityGroups()
-
-  InstanceCounts getInstanceCounts()
-
-  static class InstanceCounts {
-    int down
-
-    int up
-
-    int starting
-
-    int outOfService
-
-    int failed
-
-    int succeeded
-
-    int unknown
-
-    int total
-  }
 }
