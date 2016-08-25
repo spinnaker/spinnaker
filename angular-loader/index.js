@@ -61,7 +61,6 @@ module.exports = function(source, inputSourceMap) {
     // TODO: generate a new source map using inputSourceMap.
     this.callback(null, output.code, inputSourceMap);
   } else {
-    this.emitWarning('No angular module found in ' + this.resource);
     this.callback(null, source, inputSourceMap);
   }
 };
