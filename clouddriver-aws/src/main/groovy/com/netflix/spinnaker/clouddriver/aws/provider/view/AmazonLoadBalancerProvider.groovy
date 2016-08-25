@@ -63,15 +63,19 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
     CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName))
 
     def applicationServerGroups = application ? resolveRelationshipData(application, SERVER_GROUPS.ns) : []
-    applicationServerGroups.each { CacheData serverGroup ->
-      keys.addAll(serverGroup.relationships[LOAD_BALANCERS.ns] ?: [])
-    }
+    def allLoadBalancerKeys = cacheView.getIdentifiers(LOAD_BALANCERS.ns)
 
-    def nameMatches = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, 'aws:*:' + applicationName + '-*')
-    // include non-VPC exact matches
-    nameMatches.addAll(cacheView.filterIdentifiers(LOAD_BALANCERS.ns, 'aws:*:' + applicationName));
-    // include VPC exact matches
-    nameMatches.addAll(cacheView.filterIdentifiers(LOAD_BALANCERS.ns, 'aws:*:' + applicationName + ':*'));
+    applicationServerGroups.each { CacheData serverGroup ->
+      Collection<String> serverGroupLoadBalancers = serverGroup.relationships[LOAD_BALANCERS.ns] ?: []
+      serverGroupLoadBalancers.each {
+          keys.add(it)
+          def vpcKey = it + ':vpc-'
+          keys.addAll(allLoadBalancerKeys.findAll { it.startsWith(vpcKey)})
+      }
+    }
+    def nameMatches = allLoadBalancerKeys.findAll {
+      it ==~ 'aws:.*:' + applicationName + '-.*' || it ==~ 'aws:.*:' + applicationName || it ==~ 'aws:.*:' + applicationName + ':.*'
+    }
 
     keys.addAll(nameMatches)
 
