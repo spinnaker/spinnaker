@@ -18,11 +18,11 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
+import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing as AmazonElasticLoadBalancingV2
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableAsgDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport
 import com.netflix.spinnaker.clouddriver.eureka.api.Eureka
-import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -55,23 +55,26 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
   @Shared
   AmazonElasticLoadBalancing loadBalancing
 
+  @Shared
+  AmazonElasticLoadBalancingV2 loadBalancingV2
+
   def setup() {
     task = Mock(Task)
     TaskRepository.threadLocalTask.set(task)
     eureka = Mock(Eureka)
     asgService = Mock(AsgService)
     loadBalancing = Mock(AmazonElasticLoadBalancing)
+    loadBalancingV2 = Mock(AmazonElasticLoadBalancingV2)
     wireOpMocks(op)
   }
 
   def wireOpMocks(AbstractEnableDisableAtomicOperation op) {
     def regionScopedProviderFactory = Stub(RegionScopedProviderFactory) {
-      getAmazonClientProvider() >> {
-        return Stub(AmazonClientProvider)
-      }
       forRegion(_, _) >> {
         return Stub(RegionScopedProviderFactory.RegionScopedProvider) {
           getAsgService() >> asgService
+          getAmazonElasticLoadBalancing() >> loadBalancing
+          getAmazonElasticLoadBalancingV2() >> loadBalancingV2
           getEureka() >> eureka
         }
       }
@@ -85,10 +88,5 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
     }
 
     op.regionScopedProviderFactory = regionScopedProviderFactory
-
-    def provider = Stub(AmazonClientProvider) {
-      getAmazonElasticLoadBalancing(_, _, true) >> loadBalancing
-    }
-    op.amazonClientProvider = provider
   }
 }

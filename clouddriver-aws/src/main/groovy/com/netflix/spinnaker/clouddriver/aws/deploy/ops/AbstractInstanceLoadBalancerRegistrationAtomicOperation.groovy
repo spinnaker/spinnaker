@@ -20,6 +20,10 @@ import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.Instance
 import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DeregisterTargetsRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.RegisterTargetsRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.TargetDescription
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -40,9 +44,6 @@ abstract class AbstractInstanceLoadBalancerRegistrationAtomicOperation implement
   }
 
   @Autowired
-  AmazonClientProvider amazonClientProvider
-
-  @Autowired
   RegionScopedProviderFactory regionScopedProviderFactory
 
   @Override
@@ -53,57 +54,74 @@ abstract class AbstractInstanceLoadBalancerRegistrationAtomicOperation implement
 
     task.updateStatus phaseName, "Initializing ${performingAction} of Instances (${description.instanceIds.join(", ")}) in Load Balancer Operation..."
 
+    def regionScopedProvider = regionScopedProviderFactory.forRegion(description.credentials, description.region)
     if (description.asgName) {
-      def asgService = regionScopedProviderFactory.forRegion(description.credentials, description.region).asgService
+      def asgService = regionScopedProvider.asgService
       asg = asgService.getAutoScalingGroup(description.asgName)
     }
 
-    def instances = getInstances(asg)
-    def loadBalancerNames = getLoadBalancerNames(asg)
+    def instances = getInstanceIds(asg)
+    def lookupHelper = new LoadBalancerLookupHelper()
+    def loadBalancers = asg ? lookupHelper.getLoadBalancersFromAsg(asg) : lookupHelper.getLoadBalancersByName(regionScopedProvider, description.loadBalancerNames)
+    if (loadBalancers.unknownLoadBalancers) {
+      throw new IllegalStateException("loadbalancers not found: $loadBalancers.unknownLoadBalancers")
+    }
 
-    if (!loadBalancerNames) {
+    if (!(loadBalancers.classicLoadBalancers || loadBalancers.targetGroupArns)) {
       // instances may exist there are no load balancers to act against
       task.updateStatus phaseName, "${performingAction} instances not required for Instances ${description.instanceIds.join(", ")}, no load balancers are found"
       return
     }
 
-    operateOnInstances(loadBalancerNames, instances, performingAction)
+    operateOnInstances(regionScopedProvider, loadBalancers, instances, performingAction)
 
     task.updateStatus phaseName, "${performingAction} completed."
     null
   }
 
-  private List<Instance> getInstances(AutoScalingGroup asg) {
+  private Collection<String> getInstanceIds(AutoScalingGroup asg) {
     if (asg) {
       def asgInstanceIds = asg.instances*.instanceId as Set<String>
       return description.instanceIds.findAll {
         asgInstanceIds.contains(it)
-      }.collect { new Instance(it)}
-    }
-    return description.instanceIds.collect { new Instance(it) }
-  }
-
-  private List<String> getLoadBalancerNames(AutoScalingGroup asg) {
-    return asg ? asg.loadBalancerNames : description.loadBalancerNames
-  }
-
-  private void operateOnInstances(List<String> loadBalancerNames, List<Instance> instances, String performingAction) {
-    def task = getTask()
-    def amazonELB = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, description.region, true)
-    loadBalancerNames.each {
-      task.updateStatus phaseName, "${performingAction} instances (${instances*.instanceId.join(", ")}) in ${it}."
-      if (isRegister()) {
-        amazonELB.registerInstancesWithLoadBalancer(new RegisterInstancesWithLoadBalancerRequest(
-            it,
-            instances
-        ))
-      } else {
-        amazonELB.deregisterInstancesFromLoadBalancer(new DeregisterInstancesFromLoadBalancerRequest(
-            it,
-            instances
-        ))
       }
-      task.updateStatus phaseName, "Finished ${performingAction.toLowerCase()} instances (${instances*.instanceId.join(", ")}) in ${it}."
+    }
+    return description.instanceIds ?: []
+  }
+
+  private void operateOnInstances(RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider, LoadBalancerLookupHelper.LoadBalancerLookupResult loadBalancers, Collection<String> instanceIds, String performingAction) {
+    def task = getTask()
+    if (loadBalancers.classicLoadBalancers) {
+      def instances = instanceIds.collect { new Instance(instanceId: it) }
+
+      def amazonELB = regionScopedProvider.getAmazonElasticLoadBalancing()
+      loadBalancers.classicLoadBalancers.each {
+        task.updateStatus phaseName, "${performingAction} instances ($instanceIds) in ${it}."
+        if (isRegister()) {
+          amazonELB.registerInstancesWithLoadBalancer(new RegisterInstancesWithLoadBalancerRequest(
+            it,
+            instances
+          ))
+        } else {
+          amazonELB.deregisterInstancesFromLoadBalancer(new DeregisterInstancesFromLoadBalancerRequest(
+            it,
+            instances
+          ))
+        }
+        task.updateStatus phaseName, "Finished ${performingAction.toLowerCase()} instances (${instances*.instanceId.join(", ")}) in ${it}."
+      }
+    }
+    if (loadBalancers.targetGroupArns) {
+      def targets = instanceIds.collect { new TargetDescription().withId(it) }
+      def elbv2 = regionScopedProvider.getAmazonElasticLoadBalancingV2()
+      loadBalancers.targetGroupArns.each {
+        task.updateStatus phaseName, "${performingAction} instances ($instanceIds) in target group $it"
+        if (isRegister()) {
+          elbv2.registerTargets(new RegisterTargetsRequest().withTargetGroupArn(it).withTargets(targets))
+        } else {
+          elbv2.deregisterTargets(new DeregisterTargetsRequest().withTargetGroupArn(it).withTargets(targets))
+        }
+      }
     }
   }
 

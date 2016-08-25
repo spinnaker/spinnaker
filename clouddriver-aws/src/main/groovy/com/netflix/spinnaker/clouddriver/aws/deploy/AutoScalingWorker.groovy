@@ -69,7 +69,8 @@ class AutoScalingWorker {
   private String ramdiskId
   private Boolean instanceMonitoring
   private Boolean ebsOptimized
-  private List<String> loadBalancers
+  private Collection<String> classicLoadBalancers
+  private Collection<String> targetGroupArns
   private List<String> securityGroups
   private List<String> availabilityZones
   private List<AmazonBlockDevice> blockDevices
@@ -185,7 +186,8 @@ class AutoScalingWorker {
       .withMinSize(0)
       .withMaxSize(0)
       .withDesiredCapacity(0)
-      .withLoadBalancerNames(loadBalancers)
+      .withLoadBalancerNames(classicLoadBalancers)
+      .withTargetGroupARNs(targetGroupArns)
       .withDefaultCooldown(cooldown)
       .withHealthCheckGracePeriod(healthCheckGracePeriod)
       .withHealthCheckType(healthCheckType)

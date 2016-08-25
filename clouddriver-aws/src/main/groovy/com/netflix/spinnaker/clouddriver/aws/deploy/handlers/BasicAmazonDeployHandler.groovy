@@ -24,6 +24,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -96,9 +97,15 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       if (!description.loadBalancers) {
         description.loadBalancers = []
       }
-      description.loadBalancers.addAll suppliedLoadBalancers?.name
+      description.loadBalancers.addAll (suppliedLoadBalancers?.name ?: [])
 
       def regionScopedProvider = regionScopedProviderFactory.forRegion(description.credentials, region)
+
+      def loadBalancers = new LoadBalancerLookupHelper().getLoadBalancersByName(regionScopedProvider, description.loadBalancers)
+      if (loadBalancers.unknownLoadBalancers) {
+        throw new IllegalStateException("Unable to find load balancers named $loadBalancers.unknownLoadBalancers")
+      }
+
       def amazonEC2 = regionScopedProvider.amazonEC2
 
       String classicLinkVpcId = null
@@ -230,7 +237,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         instanceType: description.instanceType,
         availabilityZones: availabilityZones,
         subnetType: subnetType,
-        loadBalancers: description.loadBalancers,
+        classicLoadBalancers: loadBalancers.classicLoadBalancers,
+        targetGroupArns: loadBalancers.targetGroupArns,
         cooldown: description.cooldown,
         healthCheckGracePeriod: description.healthCheckGracePeriod,
         healthCheckType: description.healthCheckType,
