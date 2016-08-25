@@ -185,7 +185,7 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
       def instanceTemplateMap = serverGroup.imageSummary.image
       InstanceTemplate instanceTemplate = convertMapToInstanceTemplate(instanceTemplateMap)
       addInstanceTemplateToResourceMap(instanceTemplate, resourceMap)
-      serverGroupMap.instance_template = "\${google_compute_instance_template.${instanceTemplate.name}.self_link}"
+      serverGroupMap.instance_template = "\${google_compute_instance_template.${instanceTemplate.name}.self_link}".toString()
     } else {
       throw new GoogleResourceIllegalStateException("Required instance template not found for server group: $serverGroup.name")
     }
@@ -195,7 +195,7 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
     if (serverGroup.loadBalancers && !serverGroup.loadBalancers.isEmpty()) {
       serverGroupMap.target_pools = []
       serverGroup.loadBalancers.each {String loadBalancer ->
-        serverGroupMap.target_pools.add("\${google_compute_target_pool.${loadBalancer}.self_link}")
+        serverGroupMap.target_pools.add("\${google_compute_target_pool.${loadBalancer}.self_link}".toString())
       }
     }
     //TODO(nwwebb) see if you can get application scope security groups using serverGroup.securityGroups rather than tags
@@ -358,7 +358,7 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
     def autoscalerMap = [:]
 
     autoscalerMap.name = targetName
-    autoscalerMap.target = "\${google_compute_instance_group_manager.${targetName}.self_link}"
+    autoscalerMap.target = "\${google_compute_instance_group_manager.${targetName}.self_link}".toString()
     autoscalerMap.zone = targetZone
     autoscalerMap.project = this.project
 
@@ -455,7 +455,7 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
       throw new GoogleResourceIllegalStateException("Required target pool name not found for load balancer: $loadBalancer.name")
     }
 
-    forwardingRuleMap.target = "\${google_compute_target_pool.${loadBalancer.name}.self_link}"
+    forwardingRuleMap.target = "\${google_compute_target_pool.${loadBalancer.name}.self_link}".toString()
 
     if (loadBalancer.healthCheck) {
       addHealthCheckToResourceMap(loadBalancer.healthCheck, resourceMap)
@@ -523,7 +523,7 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
         if (rule.portRanges && !rule.portRanges.isEmpty()) {
           allow.ports = []
           rule.portRanges.each {Rule.PortRange range ->
-            range.startPort == range.endPort ? allow.ports << "$range.startPort" : allow.ports << "$range.startPort-$range.endPort"
+            range.startPort == range.endPort ? allow.ports << "$range.startPort".toString() : allow.ports << "$range.startPort-$range.endPort".toString()
           }
         }
         firewallMap.allow << allow
