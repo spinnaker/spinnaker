@@ -68,7 +68,7 @@ class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
     when:
     SuspendExecutionDuringTimeWindowTask suspendExecutionDuringTimeWindowTask = new SuspendExecutionDuringTimeWindowTask()
     suspendExecutionDuringTimeWindowTask.timeZoneId = "America/Los_Angeles"
-    Date result = suspendExecutionDuringTimeWindowTask.calculateScheduledTime(scheduledTime, timeWindows)
+    Date result = suspendExecutionDuringTimeWindowTask.calculateScheduledTime(scheduledTime, timeWindows, [])
 
     then:
     result.equals(expectedTime)
@@ -116,6 +116,28 @@ class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
                                                          window(hourMinute("15:00"), hourMinute("16:00"))]
     date("02/13 16:01:00")  | date("02/14 10:00:00")  | [window(hourMinute("10:00"), hourMinute("11:00")), window(hourMinute("13:00"), hourMinute("14:00")),
                                                          window(hourMinute("15:00"), hourMinute("16:00"))]
+  }
+
+  @Unroll
+  void 'stage should consider whitelisted days when calculating scheduled time'() {
+    when:
+    SuspendExecutionDuringTimeWindowTask suspendExecutionDuringTimeWindowTask = new SuspendExecutionDuringTimeWindowTask()
+    suspendExecutionDuringTimeWindowTask.timeZoneId = "America/Los_Angeles"
+    Date result = suspendExecutionDuringTimeWindowTask.calculateScheduledTime(scheduledTime, timeWindows, days)
+
+    then:
+    result.equals(expectedTime)
+
+    where:
+    scheduledTime           | timeWindows                                        | days            || expectedTime
+
+    date("02/25 01:00:00")  | [window(hourMinute("22:00"), hourMinute("05:00"))] | [1,2,3,4,5,6,7] || date("02/25 01:00:00")
+    date("02/25 21:45:00")  | [window(hourMinute("06:00"), hourMinute("10:00"))] | []              || date("02/26 06:00:00")
+    date("02/25 21:45:00")  | [window(hourMinute("06:00"), hourMinute("10:00"))] | [4]             || date("02/26 06:00:00")
+    date("02/25 21:45:00")  | [window(hourMinute("06:00"), hourMinute("10:00"))] | [5]             || date("02/27 06:00:00")
+    date("02/25 21:45:00")  | [window(hourMinute("06:00"), hourMinute("10:00"))] | [3]             || date("03/04 06:00:00")
+    date("02/25 21:45:00")  | [window(hourMinute("06:00"), hourMinute("10:00"))] | [3,4,5]         || date("02/26 06:00:00")
+
   }
 
   void 'stage should be scheduled at #expectedTime when triggered at #scheduledTime with time windows #stage in stage context'() {
