@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
-import com.netflix.spinnaker.clouddriver.google.deploy.description.CreateGoogleHttpLoadBalancerDescription
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.google.deploy.converters.CreateGoogleHttpLoadBalancerAtomicOperationConverter
+import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
@@ -24,12 +26,19 @@ import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRep
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.CreateGoogleHttpLoadBalancerTestConstants.*
 
 class CreateGoogleHttpLoadBalancerDescriptionValidatorSpec extends Specification {
   @Shared
   CreateGoogleHttpLoadBalancerDescriptionValidator validator
+
+  @Shared
+  def converter
+
+  @Shared
+  GoogleHealthCheck hc
 
   void setupSpec() {
     validator = new CreateGoogleHttpLoadBalancerDescriptionValidator()
@@ -38,28 +47,65 @@ class CreateGoogleHttpLoadBalancerDescriptionValidatorSpec extends Specification
     def credentials = new GoogleNamedAccountCredentials.Builder().name(ACCOUNT_NAME).credentials(new FakeGoogleCredentials()).build()
     credentialsRepo.save(ACCOUNT_NAME, credentials)
     validator.accountCredentialsProvider = credentialsProvider
+    converter = new CreateGoogleHttpLoadBalancerAtomicOperationConverter(
+        accountCredentialsProvider: credentialsProvider,
+        objectMapper: new ObjectMapper()
+    )
+    hc = [
+        "name"              : "basic-check",
+        "requestPath"       : "/",
+        "port"              : 80,
+        "checkIntervalSec"  : 1,
+        "timeoutSec"        : 1,
+        "healthyThreshold"  : 1,
+        "unhealthyThreshold": 1
+    ]
   }
 
   void "pass validation with proper description inputs"() {
     setup:
-      def description = new CreateGoogleHttpLoadBalancerDescription([
-          loadBalancerName: LOAD_BALANCER_NAME,
+      def input = [
           accountName: ACCOUNT_NAME,
-          backendTimeoutSec: 30,
-          healthCheck: [
-            port: 8080,
-            checkIntervalSec: 5,
-            healthyThreshold: 2,
-            unhealthyThreshold: 2,
-            timeoutSec: 5,
-            requestPath: "/"
-          ],
-          backends: [[group: INSTANCE_GROUP, balancingMode: BALANCING_MODE]],
-          ipAddress: IP_ADDRESS,
-          portRange: PORT_RANGE,
-          hostRules: [[hosts: [HOST], pathMatcher: MATCHER]],
-          pathMatchers: [[name: MATCHER, defaultService: SERVICE, pathRules: [[paths: [PATH], service: SERVICE]]]]
-      ])
+          "googleHttpLoadBalancer": [
+              "name"          : LOAD_BALANCER_NAME,
+              "portRange"     : PORT_RANGE,
+              "defaultService": [
+                  "name"       : DEFAULT_SERVICE,
+                  "backends"   : [],
+                  "healthCheck": hc,
+              ],
+              "certificate"   : "",
+              "hostRules"     : [
+                  [
+                      "hostPatterns": [
+                          "host1.com",
+                          "host2.com"
+                      ],
+                      "pathMatcher" : [
+                          "pathRules"     : [
+                              [
+                                  "paths"         : [
+                                      "/path",
+                                      "/path2/more"
+                                  ],
+                                  "backendService": [
+                                      "name"       : PM_SERVICE,
+                                      "backends"   : [],
+                                      "healthCheck": hc,
+                                  ]
+                              ]
+                          ],
+                          "defaultService": [
+                              "name"       : DEFAULT_PM_SERVICE,
+                              "backends"   : [],
+                              "healthCheck": hc,
+                          ]
+                      ]
+                  ]
+              ]
+          ]
+      ]
+      def description = converter.convertDescription(input)
       def errors = Mock(Errors)
 
     when:
@@ -69,103 +115,23 @@ class CreateGoogleHttpLoadBalancerDescriptionValidatorSpec extends Specification
       0 * errors._
   }
 
-  void "fail validation with pathMatchers and no hostRules"() {
+  void "pass validation with no host rules description inputs"() {
     setup:
-    def description = new CreateGoogleHttpLoadBalancerDescription([
-        loadBalancerName: LOAD_BALANCER_NAME,
-        accountName: ACCOUNT_NAME,
-        backendTimeoutSec: 30,
-        backends: [[group: INSTANCE_GROUP, balancingMode: BALANCING_MODE]],
-        ipAddress: IP_ADDRESS,
-        portRange: PORT_RANGE,
-        pathMatchers: [[name: MATCHER, defaultService: SERVICE, pathRules: [[paths: [PATH], service: SERVICE]]]]
-    ])
-    def errors = Mock(Errors)
-
-    when:
-    validator.validate([], description, errors)
-
-    then:
-    1 * errors.rejectValue('hostRules', _)
-  }
-
-  void "fail validation with hostRules and no pathMatchers"() {
-    setup:
-    def description = new CreateGoogleHttpLoadBalancerDescription([
-        loadBalancerName: LOAD_BALANCER_NAME,
-        accountName: ACCOUNT_NAME,
-        backendTimeoutSec: 30,
-        backends: [[group: INSTANCE_GROUP, balancingMode: BALANCING_MODE]],
-        ipAddress: IP_ADDRESS,
-        portRange: PORT_RANGE,
-        hostRules: [[hosts: [HOST], pathMatcher: MATCHER]],
-    ])
-    def errors = Mock(Errors)
-
-    when:
-    validator.validate([], description, errors)
-
-    then:
-    1 * errors.rejectValue('pathMatchers', _)
-  }
-
-  void "fail validation with more pathMatchers than hostRules"() {
-    setup:
-    def description = new CreateGoogleHttpLoadBalancerDescription([
-        loadBalancerName: LOAD_BALANCER_NAME,
-        accountName: ACCOUNT_NAME,
-        backendTimeoutSec: 30,
-        backends: [[group: INSTANCE_GROUP, balancingMode: BALANCING_MODE]],
-        ipAddress: IP_ADDRESS,
-        portRange: PORT_RANGE,
-        hostRules: [[hosts: [HOST], pathMatcher: MATCHER]],
-        pathMatchers: [[name: MATCHER, defaultService: SERVICE, pathRules: [[paths: [PATH], service: SERVICE]]],
-                       [name: MATCHER, defaultService: SERVICE, pathRules: [[paths: [PATH], service: SERVICE]]]]
-    ])
-    def errors = Mock(Errors)
-
-    when:
-    validator.validate([], description, errors)
-
-    then:
-    1 * errors.rejectValue('pathMatchers', _)
-  }
-
-  void "fail validation with no name for pathMatcher and no pathMacher field in hostRule"() {
-    setup:
-    def description = new CreateGoogleHttpLoadBalancerDescription([
-        loadBalancerName: LOAD_BALANCER_NAME,
-        accountName: ACCOUNT_NAME,
-        backendTimeoutSec: 30,
-        healthCheck: [
-            port: 8080,
-            checkIntervalSec: 5,
-            healthyThreshold: 2,
-            unhealthyThreshold: 2,
-            timeoutSec: 5,
-            requestPath: "/"
-        ],
-        backends: [[group: INSTANCE_GROUP, balancingMode: BALANCING_MODE]],
-        ipAddress: IP_ADDRESS,
-        portRange: PORT_RANGE,
-        hostRules: [[hosts: [HOST]]],
-        pathMatchers: [[defaultService: SERVICE, pathRules: [[paths: [PATH], service: SERVICE]]]]
-    ])
-    def errors = Mock(Errors)
-
-    when:
-    validator.validate([], description, errors)
-
-    then:
-    1 * errors.rejectValue('pathMatchers', _)
-    1 * errors.rejectValue('hostRules', _)
-  }
-
-  void "pass validation with minimal description"() {
-    setup:
-      def description = new CreateGoogleHttpLoadBalancerDescription(
-          loadBalancerName: LOAD_BALANCER_NAME,
-          accountName: ACCOUNT_NAME)
+      def input = [
+          accountName: ACCOUNT_NAME,
+          "googleHttpLoadBalancer": [
+              "name"          : LOAD_BALANCER_NAME,
+              "portRange"     : PORT_RANGE,
+              "defaultService": [
+                  "name"       : DEFAULT_SERVICE,
+                  "backends"   : [],
+                  "healthCheck": hc,
+              ],
+              "certificate"   : "",
+              "hostRules"     : null,
+          ]
+      ]
+      def description = converter.convertDescription(input)
       def errors = Mock(Errors)
 
     when:
@@ -175,16 +141,116 @@ class CreateGoogleHttpLoadBalancerDescriptionValidatorSpec extends Specification
       0 * errors._
   }
 
-  void "null input fails validation"() {
+  void "fail with improperly formatted ports"() {
     setup:
-      def description = new CreateGoogleHttpLoadBalancerDescription()
+      def input = [
+          accountName: ACCOUNT_NAME,
+          "googleHttpLoadBalancer": [
+              "name"          : LOAD_BALANCER_NAME,
+              "portRange"     : "80-81",
+              "defaultService": [
+                  "name"       : DEFAULT_SERVICE,
+                  "backends"   : [],
+                  "healthCheck": hc,
+              ],
+              "certificate"   : "",
+              "hostRules"     : [
+                  [
+                      "hostPatterns": [
+                          "host1.com",
+                          "host2.com"
+                      ],
+                      "pathMatcher" : [
+                          "pathRules"     : [
+                              [
+                                  "paths"         : [
+                                      "/path",
+                                      "/path2/more"
+                                  ],
+                                  "backendService": [
+                                      "name"       : PM_SERVICE,
+                                      "backends"   : [],
+                                      "healthCheck": hc,
+                                  ]
+                              ]
+                          ],
+                          "defaultService": [
+                              "name"       : DEFAULT_PM_SERVICE,
+                              "backends"   : [],
+                              "healthCheck": hc,
+                          ]
+                      ]
+                  ]
+              ]
+          ]
+      ]
+      def description = converter.convertDescription(input)
       def errors = Mock(Errors)
 
     when:
       validator.validate([], description, errors)
 
     then:
-      1 * errors.rejectValue('credentials', _)
-      1 * errors.rejectValue('loadBalancerName', _)
+      1 * errors.rejectValue("googleLoadBalancer.portRange", _)
+  }
+
+  @Unroll
+  void "fail if a backend service does not have a health check"() {
+    setup:
+      def input = [
+          accountName: ACCOUNT_NAME,
+          "googleHttpLoadBalancer": [
+              "name"          : LOAD_BALANCER_NAME,
+              "portRange"     : "80-81",
+              "defaultService": [
+                  "name"       : DEFAULT_SERVICE,
+                  "backends"   : [],
+                  "healthCheck": hc1,
+              ],
+              "certificate"   : "",
+              "hostRules"     : [
+                  [
+                      "hostPatterns": [
+                          "host1.com",
+                          "host2.com"
+                      ],
+                      "pathMatcher" : [
+                          "pathRules"     : [
+                              [
+                                  "paths"         : [
+                                      "/path",
+                                      "/path2/more"
+                                  ],
+                                  "backendService": [
+                                      "name"       : PM_SERVICE,
+                                      "backends"   : [],
+                                      "healthCheck": hc3,
+                                  ]
+                              ]
+                          ],
+                          "defaultService": [
+                              "name"       : DEFAULT_PM_SERVICE,
+                              "backends"   : [],
+                              "healthCheck": hc2,
+                          ]
+                      ]
+                  ]
+              ]
+          ]
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue("googleLoadBalancer.defaultService OR googleLoadBalancer.hostRules.pathMatcher.defaultService OR googleLoadBalancer.hostRules.pathMatcher.pathRules.backendService", _)
+
+    where:
+      hc1    | hc2   | hc3
+      hc     | hc    | null
+      hc     | null  | hc
+      null   | hc    | hc
   }
 }

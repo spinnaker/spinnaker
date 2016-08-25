@@ -18,6 +18,8 @@ package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.google.deploy.description.CreateGoogleHttpLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -25,6 +27,7 @@ import org.springframework.validation.Errors
 
 @Component("createGoogleHttpLoadBalancerDescriptionValidator")
 class CreateGoogleHttpLoadBalancerDescriptionValidator extends DescriptionValidator<CreateGoogleHttpLoadBalancerDescription> {
+
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
@@ -33,46 +36,22 @@ class CreateGoogleHttpLoadBalancerDescriptionValidator extends DescriptionValida
     def helper = new StandardGceAttributeValidator("createGoogleHttpLoadBalancerDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
-    helper.validateName(description.loadBalancerName, "loadBalancerName")
+    helper.validateName(description.googleHttpLoadBalancer.name, "googleLoadBalancer.name")
 
-    // An HTTP load balancer must have a health check, but all needed health check fields have defaults. So, it
-    // is not necessary to specify one in the description. Thus, we don't enforce it here. Also, HTTP load
-    // balancers may be global, so we don't require a zone field.
-
-    // If we have hostRules we must have pathMatchers and vice versa. Also, hostRules must have pathMatcher fields
-    // that match the names of pathMatchers in the description.
-    // TODO(bklingher): Enforce these rules more strictly. The validation for this below is only very basic so far.
-
-    boolean havePathMatchers = false
-    if (description.pathMatchers && description.pathMatchers.size() > 0) {
-      havePathMatchers = true
-    }
-    boolean haveHostRules = false
-    if (description.hostRules && description.hostRules.size() > 0) {
-      haveHostRules = true
+    // portRange must be a single port.
+    try {
+      Integer.parseInt(description.googleHttpLoadBalancer.portRange)
+    } catch (NumberFormatException _) {
+      errors.rejectValue("googleLoadBalancer.portRange",
+          "googleLoadBalancer.portRange.requireSinglePort")
     }
 
-    if (havePathMatchers && !haveHostRules) {
-      errors.rejectValue "hostRules", "createGoogleHttpLoadBalancerDescription.hostRules.empty but createGoogleHttpLoadBalancerDescription.pathMatchers.size > 0"
-    }
-
-    if (!havePathMatchers && haveHostRules) {
-      errors.rejectValue "pathMatchers", "createGoogleHttpLoadBalancerDescription.pathMatchers.empty but createGoogleHttpLoadBalancerDescription.hostRules.size > 0"
-    }
-
-    if (havePathMatchers && haveHostRules && description.hostRules.size() < description.pathMatchers.size()) {
-      errors.rejectValue "pathMatchers", "createGoogleHttpLoadBalancerDescription.hostRules.size < createGoogleHttpLoadBalancerDescription.pathMatchers.size"
-    }
-
-    for (pathMatcher in description.pathMatchers) {
-      if (!pathMatcher.name) {
-        errors.rejectValue "pathMatchers", "createGoogleHttpLoadBalancerDescription.pathMatchers[i].name.empty"
-      }
-    }
-
-    for (hostRule in description.hostRules) {
-      if (!hostRule.pathMatcher) {
-        errors.rejectValue "hostRules", "createGoogleHttpLoadBalancerDescription.hostRule[i].pathMatcher.empty"
+    // Each backend service must have a health check.
+    List<GoogleBackendService> services = Utils.getBackendServicesFromHttpLoadBalancerView(description.googleHttpLoadBalancer.view)
+    services?.each { GoogleBackendService service ->
+      if (!service.healthCheck) {
+        errors.rejectValue("googleLoadBalancer.defaultService OR googleLoadBalancer.hostRules.pathMatcher.defaultService OR googleLoadBalancer.hostRules.pathMatcher.pathRules.backendService",
+            "createGoogleHttpLoadBalancerDescription.backendServices.healthCheckRequired")
       }
     }
   }

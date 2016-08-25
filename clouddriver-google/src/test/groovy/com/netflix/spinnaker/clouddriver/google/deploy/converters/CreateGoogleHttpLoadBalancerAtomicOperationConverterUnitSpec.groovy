@@ -19,6 +19,9 @@ package com.netflix.spinnaker.clouddriver.google.deploy.converters
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.google.deploy.description.CreateGoogleHttpLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.CreateGoogleHttpLoadBalancerAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import spock.lang.Shared
@@ -43,15 +46,55 @@ class CreateGoogleHttpLoadBalancerAtomicOperationConverterUnitSpec extends Speci
 
   void "createGoogleHttpLoadBalancerDescription type returns CreateGoogleHttpLoadBalancerDescription and CreateGoogleHttpLoadBalancerAtomicOperation"() {
     setup:
+      def hc = [
+          "name"              : "basic-check",
+          "requestPath"       : "/",
+          "port"              : 80,
+          "checkIntervalSec"  : 1,
+          "timeoutSec"        : 1,
+          "healthyThreshold"  : 1,
+          "unhealthyThreshold": 1
+      ]
       def input = [
-          loadBalancerName: LOAD_BALANCER_NAME,
-          accountName: ACCOUNT_NAME,
-          healthCheck: [checkIntervalSec: CHECK_INTERVAL_SEC],
-          backends: [[group: INSTANCE_GROUP, balancingMode: BALANCING_MODE]],
-          ipAddress: IP_ADDRESS,
-          portRange: PORT_RANGE,
-          hostRules: [[hosts: [HOST], pathMatcher: MATCHER]],
-          pathMatchers: [[name: MATCHER, defaultService: SERVICE, pathRules: [[paths: [PATH], service: SERVICE]]]]
+          "credentials"           : "my-google-account",
+          "googleHttpLoadBalancer": [
+              "name"          : LOAD_BALANCER_NAME,
+              "portRange"     : PORT_RANGE,
+              "defaultService": [
+                  "name"       : DEFAULT_SERVICE,
+                  "backends"   : [],
+                  "healthCheck": hc,
+              ],
+              "certificate"   : "",
+              "hostRules"     : [
+                  [
+                      "hostPatterns": [
+                          "host1.com",
+                          "host2.com"
+                      ],
+                      "pathMatcher" : [
+                          "pathRules"     : [
+                              [
+                                  "paths"         : [
+                                      "/path",
+                                      "/path2/more"
+                                  ],
+                                  "backendService": [
+                                      "name"       : PM_SERVICE,
+                                      "backends"   : [],
+                                      "healthCheck": hc,
+                                  ]
+                              ]
+                          ],
+                          "defaultService": [
+                              "name"       : DEFAULT_PM_SERVICE,
+                              "backends"   : [],
+                              "healthCheck": hc,
+                          ]
+                      ]
+                  ]
+              ]
+          ]
       ]
 
     when:
@@ -59,20 +102,14 @@ class CreateGoogleHttpLoadBalancerAtomicOperationConverterUnitSpec extends Speci
 
     then:
       description instanceof CreateGoogleHttpLoadBalancerDescription
-      description.loadBalancerName == LOAD_BALANCER_NAME
-      description.healthCheck.checkIntervalSec == 7
-      description.healthCheck.timeoutSec == null
-      description.backends.size() == 1
-      description.backends.get(0).group == INSTANCE_GROUP
-      description.backends.get(0).balancingMode == BALANCING_MODE
-      description.ipAddress == IP_ADDRESS
-      description.portRange == PORT_RANGE
-      description.pathMatchers.size() == 1
-      description.pathMatchers.get(0).defaultService == SERVICE
-      description.pathMatchers.get(0).pathRules.size() == 1
-      description.pathMatchers.get(0).pathRules.get(0).service == SERVICE
-      description.pathMatchers.get(0).pathRules.get(0).paths.size() == 1
-      description.pathMatchers.get(0).pathRules.get(0).paths.get(0) == PATH
+      description.googleHttpLoadBalancer.name == LOAD_BALANCER_NAME
+      description.googleHttpLoadBalancer.portRange == PORT_RANGE
+
+      List<GoogleBackendService> services = Utils.getBackendServicesFromHttpLoadBalancerView(description.googleHttpLoadBalancer.view)
+      services.findAll { it.healthCheck == (hc as GoogleHealthCheck) }.size == 3
+      description.googleHttpLoadBalancer.defaultService.name == DEFAULT_SERVICE
+      description.googleHttpLoadBalancer.hostRules[0].pathMatcher.defaultService.name == DEFAULT_PM_SERVICE
+      description.googleHttpLoadBalancer.hostRules[0].pathMatcher.pathRules[0].backendService.name == PM_SERVICE
 
     when:
       def operation = converter.convertOperation(input)

@@ -28,7 +28,10 @@ import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
-import com.netflix.spinnaker.clouddriver.google.deploy.description.*
+import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationTimedOutException
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
@@ -49,6 +52,7 @@ import java.util.concurrent.TimeUnit
 class GCEUtil {
   private static final String DISK_TYPE_PERSISTENT = "PERSISTENT"
   private static final String DISK_TYPE_SCRATCH = "SCRATCH"
+  private static final String GCE_API_PREFIX = "https://www.googleapis.com/compute/v1/projects/"
 
   public static final String TARGET_POOL_NAME_PREFIX = "tp"
 
@@ -171,6 +175,19 @@ class GCEUtil {
           throw e
         }
       }
+    }
+  }
+
+  static BackendService queryBackendService(Compute compute, String project, String serviceName, Task task, String phase) {
+    task.updateStatus phase, "Checking for existing backend service $serviceName..."
+
+    try {
+      return compute.backendServices().get(project, serviceName).execute()
+    } catch (GoogleJsonResponseException e) {
+      if (e.getStatusCode() != 404) {
+        throw e
+      }
+      return null
     }
   }
 
@@ -492,15 +509,27 @@ class GCEUtil {
   }
 
   static String buildDiskTypeUrl(String projectName, String zone, GoogleDiskType diskType) {
-    return "https://www.googleapis.com/compute/v1/projects/$projectName/zones/$zone/diskTypes/$diskType"
+    return GCE_API_PREFIX + "$projectName/zones/$zone/diskTypes/$diskType"
   }
 
   static String buildZonalServerGroupUrl(String projectName, String zone, String serverGroupName) {
-    return "https://www.googleapis.com/compute/v1/projects/$projectName/zones/$zone/instanceGroups/$serverGroupName"
+    return GCE_API_PREFIX + "$projectName/zones/$zone/instanceGroups/$serverGroupName"
+  }
+
+  static String buildCertificateUrl(String projectName, String certName) {
+    return GCE_API_PREFIX + "$projectName/global/sslCertificates/$certName"
+  }
+
+  static String buildHttpHealthCheckUrl(String projectName, String healthCheckName) {
+    return GCE_API_PREFIX + "$projectName/global/httpHealthChecks/$healthCheckName"
+  }
+
+  static String buildBackendServiceUrl(String projectName, String backendServiceName) {
+    return GCE_API_PREFIX + "$projectName/global/backendServices/$backendServiceName"
   }
 
   static String buildRegionalServerGroupUrl(String projectName, String region, String serverGroupName) {
-    return "https://www.googleapis.com/compute/v1/projects/$projectName/regions/$region/instanceGroups/$serverGroupName"
+    return GCE_API_PREFIX + "$projectName/regions/$region/instanceGroups/$serverGroupName"
   }
 
   static List<AttachedDisk> buildAttachedDisks(String projectName,
@@ -671,25 +700,6 @@ class GCEUtil {
         unhealthyThreshold: healthCheckDescription.unhealthyThreshold,
         port: healthCheckDescription.port,
         requestPath: healthCheckDescription.requestPath)
-  }
-
-  // I know this is painfully similar to the method above. I will soon make a cleanup change to remove this ugliness.
-  // TODO(bklingher): Clean this up.
-  static def makeHttpHealthCheck(String name, CreateGoogleHttpLoadBalancerDescription.HealthCheck healthCheckDescription) {
-    if (healthCheckDescription) {
-      return new HttpHealthCheck(
-          name: name,
-          checkIntervalSec: healthCheckDescription.checkIntervalSec,
-          timeoutSec: healthCheckDescription.timeoutSec,
-          healthyThreshold: healthCheckDescription.healthyThreshold,
-          unhealthyThreshold: healthCheckDescription.unhealthyThreshold,
-          port: healthCheckDescription.port,
-          requestPath: healthCheckDescription.requestPath)
-    } else {
-      return new HttpHealthCheck(
-          name: name
-      )
-    }
   }
 
   static void addHttpLoadBalancerBackends(Compute compute,

@@ -17,15 +17,10 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
 class CreateGoogleHttpLoadBalancerTestConstants {
-  static final LOAD_BALANCER_NAME = "spinnaker-test-v000"
+  static final LOAD_BALANCER_NAME = "http-create"
   static final ACCOUNT_NAME = "auto"
-  static final CHECK_INTERVAL_SEC = 7
-  static final INSTANCE_GROUP = "group"
-  static final IP_ADDRESS = "1.1.1.1"
-  static final PORT_RANGE = "80-82"
-  static final BALANCING_MODE = "super_balanced"
-  static final SERVICE = "service"
-  static final PATH = "/path"
-  static final HOST = "*"
-  static final MATCHER = "matcher"
+  static final PORT_RANGE = "80"
+  static final DEFAULT_SERVICE = "default-service"
+  static final DEFAULT_PM_SERVICE = "pm-default-service"
+  static final PM_SERVICE = "pm-service"
 }

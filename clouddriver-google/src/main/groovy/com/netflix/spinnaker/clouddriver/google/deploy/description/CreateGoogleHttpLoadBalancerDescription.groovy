@@ -16,64 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
+
 class CreateGoogleHttpLoadBalancerDescription extends AbstractGoogleCredentialsDescription {
-  // Really, this is the ForwardingRule name (but be aware that the UrlMap name will be the name of the
-  // load balancer in the Google Compute console).
-  String loadBalancerName
-
-  // For backend service.
-  List<Backend> backends
-  HealthCheck healthCheck
-  Integer backendPort
-  Integer backendTimeoutSec
-
-  // For URL Map.
-  List<HostRule> hostRules
-  List<PathMatcher> pathMatchers
-
-  // For forwarding rule.
-  String ipAddress
-  String portRange
-
   // For authorization.
   String accountName
 
-  // Note that in the classes below, wrapper types are used for all the fields instead of
-  // primitives. This is because many of these fields are optional and wrapper fields can
-  // simply be null when not present. This makes the optional fields easier to handle.
-
-  static class HealthCheck {
-    Integer checkIntervalSec
-    Integer healthyThreshold
-    Integer unhealthyThreshold
-    Integer port
-    Integer timeoutSec
-    String requestPath
-  }
-
-  static class Backend {
-    String group
-    String balancingMode
-    Float maxUtilization
-    Float capacityScaler
-  }
-
-  // It is not necessary to have pathMatchers to construct an HTTP load balancer. But it is
-  // one of the key features that distinguishes it from a network load balancer, so we add
-  // support for them even in this basic stage of development.
-  static class HostRule {
-    List<String> hosts
-    String pathMatcher
-  }
-
-  static class PathMatcher {
-    String name
-    String defaultService
-    List<PathRule> pathRules
-  }
-
-  static class PathRule {
-    List<String> paths
-    String service
-  }
+  GoogleHttpLoadBalancer googleHttpLoadBalancer
 }
