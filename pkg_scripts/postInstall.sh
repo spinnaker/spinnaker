@@ -26,6 +26,6 @@ service apache2 restart
 # We'll have spinnaker auto start, and start them as it does.
 for s in clouddriver orca front50 rosco echo gate igor; do
     if [ ! -e /etc/init/$s.override ]; then
-        echo -e "limit nofile 32768 32768\nmanual" | sudo tee /etc/init/$s.override;
+        /bin/echo -e "limit nofile 32768 32768\nmanual" | sudo tee /etc/init/$s.override;
     fi
 done

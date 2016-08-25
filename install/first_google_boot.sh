@@ -302,7 +302,7 @@ process_args
 # therefore we do not want it to become available until we've done so.
 # Otherwise it would be running with the wrong (old/default) configuration.
 echo "Stopping spinnaker while we configure it."
-stop spinnaker
+stop spinnaker || true
 
 echo "$STATUS_PREFIX  Configuring Default Values"
 write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
