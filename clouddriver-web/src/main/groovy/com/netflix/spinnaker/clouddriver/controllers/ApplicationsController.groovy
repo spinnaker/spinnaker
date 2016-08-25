@@ -102,6 +102,13 @@ class ApplicationsController {
           result.clusters[account].loadBalancers.addAll(cluster.loadBalancers*.name)
           result.clusters[account].serverGroups.addAll(cluster.serverGroups*.name)
         }
+        if (!attributes.cloudProviders) {
+          attributes.cloudProviders = cluster.type
+        } else {
+          if (!attributes.cloudProviders.split(',').contains(cluster.type)) {
+            attributes.cloudProviders += ",${cluster.type}"
+          }
+        }
       }
     }
     result.attributes = attributes
