@@ -24,6 +24,7 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.handlers.BasicGoogleDeployHandler
@@ -66,15 +67,23 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
   DeploymentResult operate(List priorOutputs) {
     BasicGoogleDeployDescription newDescription = cloneAndOverrideDescription()
 
-    task.updateStatus BASE_PHASE, "Initializing copy of server group for " +
-      "${newDescription.application}-${newDescription.stack} in $newDescription.zone..."
+
+    def credentials = newDescription.credentials
+    def compute = credentials.compute
+    def project = credentials.project
+    def isRegional = newDescription.regional
+    def zone = newDescription.zone
+    def region = newDescription.region ?: GCEUtil.getRegionFromZone(project, zone, compute)
+    def serverGroupNameResolver = new GCEServerGroupNameResolver(project, region, credentials)
+    def clusterName = serverGroupNameResolver.combineAppStackDetail(newDescription.application, newDescription.stack, newDescription.freeFormDetails)
+
+    task.updateStatus BASE_PHASE, "Initializing copy of server group for cluster $clusterName in ${isRegional ? region : zone}..."
 
     def result = basicGoogleDeployHandler.handle(newDescription, priorOutputs)
     def newServerGroupName = getServerGroupName(result?.serverGroupNames?.getAt(0))
 
-    task.updateStatus BASE_PHASE, "Finished copying server group for " +
-                                  "${newDescription.application}-${newDescription.stack}. " +
-                                  "New server group = $newServerGroupName in $newDescription.zone."
+    task.updateStatus BASE_PHASE, "Finished copying server group for cluster $clusterName. " +
+                                  "New server group = $newServerGroupName in ${isRegional ? region : zone}."
 
     result
   }

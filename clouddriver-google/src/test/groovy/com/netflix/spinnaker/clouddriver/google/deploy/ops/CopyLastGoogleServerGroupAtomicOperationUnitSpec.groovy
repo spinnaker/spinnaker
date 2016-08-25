@@ -149,6 +149,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          instanceType: "n1-standard-8",
                                                          disks: [new GoogleDisk(type: "pd-ssd", sizeGb: 250)],
                                                          regional: false,
+                                                         region: REGION,
                                                          zone: ZONE,
                                                          instanceMetadata: ["differentKey": "differentValue"],
                                                          tags: ["new-tag-1", "new-tag-2"],
@@ -204,6 +205,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     setup:
       def description = new BasicGoogleDeployDescription(source: [region: REGION,
                                                                   serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
+                                                         region: REGION,
                                                          accountName: ACCOUNT_NAME,
                                                          credentials: credentials)
       def googleClusterProviderMock = Mock(GoogleClusterProvider)
@@ -217,6 +219,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.instanceType = INSTANCE_TYPE
       newDescription.disks = [DISK_PD_STANDARD]
       newDescription.regional = false
+      newDescription.region = REGION
       newDescription.zone = ZONE
       newDescription.instanceMetadata = INSTANCE_METADATA
       newDescription.tags = TAGS
@@ -259,6 +262,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     setup:
       def description = new BasicGoogleDeployDescription(source: [region: REGION,
                                                                   serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
+                                                         region: REGION,
                                                          securityGroups: [SECURITY_GROUP_2],
                                                          accountName: ACCOUNT_NAME,
                                                          credentials: credentials)
@@ -293,6 +297,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     setup:
       def description = new BasicGoogleDeployDescription(source: [region: REGION,
                                                                   serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
+                                                         region: REGION,
                                                          securityGroups: [],
                                                          accountName: ACCOUNT_NAME,
                                                          credentials: credentials)
