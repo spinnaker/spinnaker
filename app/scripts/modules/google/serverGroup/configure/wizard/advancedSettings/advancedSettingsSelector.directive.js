@@ -5,6 +5,8 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.google.serverGroup.configure.wizard.advancedSettings.selector.directive', [
     require('exports?"ui.select"!ui-select'),
+    require('../../../../../core/cache/infrastructureCaches.js'),
+    require('../../serverGroupConfiguration.service.js'),
   ])
   .directive('gceServerGroupAdvancedSettingsSelector', function() {
     return {
@@ -18,7 +20,7 @@ module.exports = angular
       controller: 'gceServerGroupAdvancedSettingsSelectorCtrl',
     };
   })
-  .controller('gceServerGroupAdvancedSettingsSelectorCtrl', function() {
+  .controller('gceServerGroupAdvancedSettingsSelectorCtrl', function(gceServerGroupConfigurationService, infrastructureCaches) {
     this.addTag = () => {
       this.command.tags.push({});
     };
@@ -43,5 +45,16 @@ module.exports = angular
       } else {
         this.command.autoHealingPolicy = {};
       }
+    };
+
+    this.getHttpHealthCheckRefreshTime = () => {
+      return infrastructureCaches.httpHealthChecks.getStats().ageMax;
+    };
+
+    this.refreshHttpHealthChecks = () => {
+      this.refreshing = true;
+      gceServerGroupConfigurationService.refreshHttpHealthChecks(this.command).then(() => {
+        this.refreshing = false;
+      });
     };
   });

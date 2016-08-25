@@ -140,6 +140,21 @@
     </ui-select>
   </div>
 </div>
+<div class="form-group small" style="margin-top: 20px" ng-if="vm.command.enableAutoHealing">
+  <div class="col-md-5 sm-label-right">
+  </div>
+  <div class="col-md-6">
+    <p>
+      <span ng-if="vm.refreshing"><span class="small glyphicon glyphicon-refresh glyphicon-spinning"></span></span>
+      Http health checks
+      <span ng-if="!vm.refreshing">last refreshed {{ vm.getHttpHealthCheckRefreshTime() | timestamp }}</span>
+      <span ng-if="vm.refreshing"> refreshing...</span>
+    </p>
+    <p>If you're not finding a health check that was recently added,
+      <a href ng-click="vm.refreshHttpHealthChecks()">click here</a> to refresh the list.
+    </p>
+  </div>
+</div>
 <div class="form-group" ng-if="vm.command.enableAutoHealing">
   <div class="col-md-5 sm-label-right">
     <b>Initial Delay (sec)</b>
