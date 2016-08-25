@@ -23,8 +23,7 @@ import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonApplication
 import spock.lang.Shared
 import spock.lang.Specification
-
-import java.lang.Void as Should
+import spock.lang.Unroll
 
 class ApplicationControllerSpec extends Specification {
 
@@ -35,7 +34,7 @@ class ApplicationControllerSpec extends Specification {
     applicationsController = new ApplicationsController()
   }
 
-  Should "call all application providers on listing"() {
+  def "call all application providers on listing"() {
     setup:
     def appProvider1 = Mock(ApplicationProvider)
     def appProvider2 = Mock(ApplicationProvider)
@@ -49,7 +48,7 @@ class ApplicationControllerSpec extends Specification {
     1 * appProvider2.getApplications(false)
   }
 
-  Should "merge clusterNames and attributes when multiple apps are found"() {
+  def "merge clusterNames and attributes when multiple apps are found"() {
     setup:
     def appProvider1 = Mock(ApplicationProvider)
     def appProvider2 = Mock(ApplicationProvider)
@@ -62,6 +61,7 @@ class ApplicationControllerSpec extends Specification {
     cluster.getAccountName() >> "test"
     cluster.getName() >> "foo"
     cluster.getLoadBalancers() >> []
+    cluster.getType() >> "aws"
     def sg1 = Mock(ServerGroup)
     sg1.getName() >> "bar"
     def sg2 = Mock(ServerGroup)
@@ -77,10 +77,10 @@ class ApplicationControllerSpec extends Specification {
     1 * appProvider2.getApplication("foo") >> app2
     result.name == "foo"
     result.clusters.test*.serverGroups.flatten() == ["bar", "baz"]
-    result.attributes == [tag: "val"]
+    result.attributes == [tag: "val", cloudProviders: "aws"]
   }
 
-  Should "prune nulls when subset of application providers find app"() {
+  def "prune nulls when subset of application providers find app"() {
     setup:
     def appProvider1 = Mock(ApplicationProvider)
     def appProvider2 = Mock(ApplicationProvider)
@@ -91,6 +91,7 @@ class ApplicationControllerSpec extends Specification {
     def cluster = Mock(Cluster)
     cluster.getAccountName() >> "test"
     cluster.getName() >> "foo"
+    cluster.getType() >> "aws"
     cluster.getLoadBalancers() >> []
     def sg1 = Mock(ServerGroup)
     sg1.getName() >> "bar"
@@ -105,10 +106,10 @@ class ApplicationControllerSpec extends Specification {
     1 * appProvider2.getApplication("foo") >> null
     result.name == "foo"
     result.clusters.test*.serverGroups.flatten() == ["bar"]
-    result.attributes == [tag: "val"]
+    result.attributes == [tag: "val", cloudProviders: "aws"]
   }
 
-  Should "throw ApplicationNotFoundException when no apps are found"() {
+  def "throw ApplicationNotFoundException when no apps are found"() {
     setup:
     def appProvider1 = Mock(ApplicationProvider)
     def appProvider2 = Mock(ApplicationProvider)
@@ -122,5 +123,40 @@ class ApplicationControllerSpec extends Specification {
     1 * appProvider2.getApplication("foo") >> null
     ApplicationsController.ApplicationNotFoundException e = thrown()
     e.name == "foo"
+  }
+
+  @Unroll
+  def "provide cloudProviders field correctly based on clusters"() {
+    setup:
+    def appProvider = Mock(ApplicationProvider)
+    def cluProvider = Mock(ClusterProvider)
+    applicationsController.applicationProviders = [appProvider]
+    applicationsController.clusterProviders = [cluProvider]
+    def app1 = new AmazonApplication(name: "foo", clusterNames: [test: ["bar", "baz"] as Set], attributes: [tag: "val"])
+    def cluster = Mock(Cluster)
+    cluster.getAccountName() >> "test"
+    cluster.getName() >> "bar"
+    cluster.getType() >> cloudProvider1
+    cluster.getLoadBalancers() >> []
+    cluster.getServerGroups() >> []
+    def cluster1 = Mock(Cluster)
+    cluster1.getAccountName() >> "test"
+    cluster1.getName() >> "baz"
+    cluster1.getType() >> cloudProvider2
+    cluster1.getLoadBalancers() >> []
+    cluster1.getServerGroups() >> []
+
+    when:
+    def result = applicationsController.get("foo")
+
+    then:
+    1 * cluProvider.getClusterSummaries("foo") >> [test: [cluster, cluster1]]
+    1 * appProvider.getApplication("foo") >> app1
+    result.attributes.cloudProviders == expectedCloudProviders
+
+    where:
+    cloudProvider1 | cloudProvider2 || expectedCloudProviders
+    "aws"          | "titus"        || "aws,titus"
+    "aws"          | "aws"          || "aws"
   }
 }
