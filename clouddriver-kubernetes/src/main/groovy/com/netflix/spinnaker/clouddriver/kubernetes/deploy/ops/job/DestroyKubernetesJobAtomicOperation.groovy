@@ -37,7 +37,7 @@ class DestroyKubernetesJobAtomicOperation implements AtomicOperation<Void> {
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "destroyJob": { "jobName": "kub-test-v000", "namespace": "default", "credentials": "my-kubernetes-account" }} ]' localhost:7002/kubernetes/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "destroyJob": { "jobName": "kub-test-xy8813", "namespace": "default", "credentials": "my-kubernetes-account" }} ]' localhost:7002/kubernetes/ops
    */
   @Override
   Void operate(List priorOutputs) {
@@ -49,7 +49,7 @@ class DestroyKubernetesJobAtomicOperation implements AtomicOperation<Void> {
 
     task.updateStatus BASE_PHASE, "Destroying job..."
 
-    if (!credentials.apiAdaptor.hardDestroyJob(namespace, description.jobName)) {
+    if (!credentials.apiAdaptor.hardDestroyPod(namespace, description.jobName)) {
       throw new KubernetesOperationException("Failed to delete $description.jobName in $namespace.")
     }
 

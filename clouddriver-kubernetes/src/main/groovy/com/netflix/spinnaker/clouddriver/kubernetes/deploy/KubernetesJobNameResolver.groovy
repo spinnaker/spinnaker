@@ -16,51 +16,16 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy
 
-import com.netflix.frigga.Names
-import com.netflix.spinnaker.clouddriver.helpers.AbstractServerGroupNameResolver
-import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesModelUtil
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
-import io.fabric8.kubernetes.api.model.ReplicationController
-import io.fabric8.kubernetes.api.model.extensions.Job
+import com.netflix.frigga.NameBuilder
 
-class KubernetesJobNameResolver extends AbstractServerGroupNameResolver {
+class KubernetesJobNameResolver extends NameBuilder {
+  KubernetesJobNameResolver() {
 
-  private static final String PHASE = "START_JOB"
-
-  private final String namespace
-  private final KubernetesCredentials credentials
-
-  KubernetesJobNameResolver(String namespace, KubernetesCredentials credentials) {
-    this.namespace = namespace
-    this.credentials = credentials
   }
 
-  @Override
-  String getPhase() {
-    return PHASE
-  }
-
-  @Override
-  String getRegion() {
-    return namespace
-  }
-
-  @Override
-  List<AbstractServerGroupNameResolver.TakenSlot> getTakenSlots(String clusterName) {
-    def replicationControllers = credentials.apiAdaptor.getJobs(namespace)
-
-    return replicationControllers.findResults { Job job ->
-      def names = Names.parseName(job.metadata.name)
-
-      if (names.cluster == clusterName) {
-        return new AbstractServerGroupNameResolver.TakenSlot(
-          serverGroupName: job.metadata.name,
-          sequence       : names.sequence,
-          createdTime    : new Date(KubernetesModelUtil.translateTime(job.metadata.creationTimestamp))
-        )
-      } else {
-        return null
-      }
-    }
+  String createJobName(String app, String stack, String detail) {
+    def prefix = super.combineAppStackDetail(app, stack, detail).toString()
+    def randString = Long.toHexString(Double.doubleToLongBits(Math.random()));
+    return "$prefix-$randString"
   }
 }

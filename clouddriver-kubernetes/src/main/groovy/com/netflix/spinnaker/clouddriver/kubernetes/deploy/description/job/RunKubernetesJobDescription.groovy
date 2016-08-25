@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.job
 
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.KubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesImageDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesVolumeSource
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
@@ -29,27 +30,6 @@ class RunKubernetesJobDescription extends KubernetesAtomicOperationDescription {
   String stack
   String freeFormDetails
   String namespace
-  Integer parallelism
-  Integer completions
-  Integer activeDeadlineSeconds
-  KubernetesJobRestartPolicy restartPolicy
-  List<String> loadBalancers
-  List<KubernetesContainerDescription> containers
+  KubernetesContainerDescription container
   List<KubernetesVolumeSource> volumeSources
-}
-
-enum KubernetesJobRestartPolicy {
-  Never, OnFailure
-
-  static KubernetesJobRestartPolicy fromString(String policy) {
-    switch (policy) {
-      case "Never":
-        return Never
-      case null: // default policy is "OnFailure"
-      case "OnFailure":
-        return OnFailure
-      default:
-        throw new IllegalArgumentException("Unsupported restart policy ${policy}".toString())
-    }
-  }
 }

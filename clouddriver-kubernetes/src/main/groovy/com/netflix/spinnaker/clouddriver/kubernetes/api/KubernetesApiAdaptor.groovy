@@ -361,9 +361,9 @@ class KubernetesApiAdaptor {
     }
   }
 
-  Job createJob(String namespace, Job job) {
-    atomicWrapper("Create Job ${job?.metadata?.name}", namespace) { KubernetesClient client ->
-      client.extensions().jobs().inNamespace(namespace).create(job)
+  Pod createPod(String namespace, Pod pod) {
+    atomicWrapper("Create Pod ${pod?.metadata?.name}", namespace) { KubernetesClient client ->
+      client.pods().inNamespace(namespace).create(pod)
     }
   }
 
@@ -379,9 +379,9 @@ class KubernetesApiAdaptor {
     }
   }
 
-  boolean hardDestroyJob(String namespace, String name) {
-    atomicWrapper("Hard Destroy Job $name", namespace) { KubernetesClient client ->
-      client.extensions().jobs().inNamespace(namespace).withName(name).delete()
+  boolean hardDestroyPod(String namespace, String name) {
+    atomicWrapper("Hard Destroy Pod $name", namespace) { KubernetesClient client ->
+      client.pods().inNamespace(namespace).withName(name).delete()
     }
   }
 }

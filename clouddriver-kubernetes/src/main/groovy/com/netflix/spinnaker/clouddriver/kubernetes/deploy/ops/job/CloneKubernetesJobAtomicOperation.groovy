@@ -21,12 +21,10 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.job.CloneKubernetesJobAtomicOperationDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.job.KubernetesJobRestartPolicy
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import io.fabric8.kubernetes.api.model.extensions.Job
+import io.fabric8.kubernetes.api.model.Pod
 
 class CloneKubernetesJobAtomicOperation implements AtomicOperation<DeploymentResult> {
   private static final String BASE_PHASE = "CLONE_JOB"
@@ -42,7 +40,7 @@ class CloneKubernetesJobAtomicOperation implements AtomicOperation<DeploymentRes
   CloneKubernetesJobAtomicOperationDescription description
 
   /*
-   * curl -X POST -H "Content-Type: application/json" -d  '[ { "cloneJob": { "source": { "jobName": "kub-test-v000" }, "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ { "cloneJob": { "source": { "jobName": "kub-test-xdfasdf" }, "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
   */
   @Override
   DeploymentResult operate(List priorOutputs) {
@@ -68,9 +66,9 @@ class CloneKubernetesJobAtomicOperation implements AtomicOperation<DeploymentRes
     def credentials = newDescription.credentials.credentials
 
     newDescription.source.namespace = description.source.namespace ?: "default"
-    Job ancestorJob = credentials.apiAdaptor.getJob(newDescription.source.namespace, newDescription.source.jobName)
+    Pod ancestorPod = credentials.apiAdaptor.getPod(newDescription.source.namespace, newDescription.source.jobName)
 
-    if (!ancestorJob) {
+    if (!ancestorPod) {
       throw new KubernetesResourceNotFoundException("Source job $newDescription.source.jobName does not exist.")
     }
 
@@ -80,15 +78,9 @@ class CloneKubernetesJobAtomicOperation implements AtomicOperation<DeploymentRes
     newDescription.application = description.application ?: ancestorNames.app
     newDescription.stack = description.stack ?: ancestorNames.stack
     newDescription.freeFormDetails = description.freeFormDetails ?: ancestorNames.detail
-    newDescription.parallelism = description.parallelism ?: ancestorJob.spec?.parallelism
-    newDescription.completions = description.completions ?: ancestorJob.spec?.completions
     newDescription.namespace = description.namespace ?: description.source.namespace
-    newDescription.loadBalancers = description.loadBalancers != null ? description.loadBalancers : KubernetesUtil.getLoadBalancers(ancestorJob)
-    newDescription.restartPolicy = description.restartPolicy ?: KubernetesJobRestartPolicy.fromString(ancestorJob.spec?.template?.spec?.restartPolicy)
-    if (!description.containers) {
-      newDescription.containers = ancestorJob.spec?.template?.spec?.containers?.collect { it ->
-        KubernetesApiConverter.fromContainer(it)
-      }
+    if (!description.container) {
+      newDescription.container = KubernetesApiConverter.fromContainer(ancestorPod.spec?.containers?.get(0))
     }
 
     return newDescription

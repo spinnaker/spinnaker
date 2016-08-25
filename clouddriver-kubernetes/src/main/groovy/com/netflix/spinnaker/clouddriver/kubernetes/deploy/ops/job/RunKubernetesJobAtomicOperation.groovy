@@ -22,11 +22,11 @@ import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesJobNameResolver
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.job.KubernetesJobRestartPolicy
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.job.RunKubernetesJobDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import io.fabric8.kubernetes.api.model.extensions.Job
-import io.fabric8.kubernetes.api.model.extensions.JobBuilder
+import io.fabric8.kubernetes.api.model.Pod
+import io.fabric8.kubernetes.api.model.PodBuilder
+import io.fabric8.kubernetes.api.model.Volume
 
 class RunKubernetesJobAtomicOperation implements AtomicOperation<DeploymentResult> {
   private static final String BASE_PHASE = "RUN_JOB"
@@ -42,95 +42,48 @@ class RunKubernetesJobAtomicOperation implements AtomicOperation<DeploymentResul
   RunKubernetesJobDescription description
 
   /*
-   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "runJob": { "application": "kub", "stack": "test",  "parallelism": 1, "completions": 1, "loadBalancers":  [],  "containers": [ { "name": "librarynginx", "imageDescription": { "repository": "library/nginx" } } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "runJob": { "application": "kub", "stack": "test", "loadBalancers":  [],  "container": { "name": "librarynginx", "imageDescription": { "repository": "library/nginx" } }, "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
    */
   @Override
   DeploymentResult operate(List priorOutputs) {
-    Job job = jobDescription()
+    Pod pod = podDescription()
     return new DeploymentResult([
-        deployedNames: [job.metadata.name],
-        deployedNamesByLocation: [(job.metadata.namespace): [job.metadata.name]],
+        deployedNames: [pod.metadata.name],
+        deployedNamesByLocation: [(pod.metadata.namespace): [pod.metadata.name]],
     ])
   }
 
-  Job jobDescription() {
+  Pod podDescription() {
     task.updateStatus BASE_PHASE, "Initializing creation of job..."
     task.updateStatus BASE_PHASE, "Looking up provided namespace..."
 
     def credentials = description.credentials.credentials
     def namespace = KubernetesUtil.validateNamespace(credentials, description.namespace)
 
-    def jobNameResolver = new KubernetesJobNameResolver(namespace, credentials)
-    def clusterName = jobNameResolver.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
+    def podName = (new KubernetesJobNameResolver()).createJobName(description.application, description.stack, description.freeFormDetails)
+    task.updateStatus BASE_PHASE, "Job name chosen to be ${podName}."
 
-    task.updateStatus BASE_PHASE, "Looking up next sequence index for cluster ${clusterName}..."
-    def jobName = jobNameResolver.resolveNextServerGroupName(description.application, description.stack, description.freeFormDetails, false)
-    task.updateStatus BASE_PHASE, "Job name chosen to be ${jobName}."
-
-    def jobBuilder = new JobBuilder().withNewMetadata().withName(jobName).endMetadata()
-
-    jobBuilder = jobBuilder.withNewSpec().withNewSelector().withMatchLabels([(KubernetesUtil.JOB_LABEL): jobName]).endSelector()
-
-    task.updateStatus BASE_PHASE, "Setting completions and parallelism..."
-
-    jobBuilder = jobBuilder.withParallelism(description.parallelism ?: 1).withCompletions(description.completions ?: 1)
-
-    if (description.activeDeadlineSeconds) {
-      jobBuilder = jobBuilder.withActiveDeadlineSeconds(description.activeDeadlineSeconds)
-    }
-
-    jobBuilder = jobBuilder.withNewTemplate().withNewMetadata()
-
-    task.updateStatus BASE_PHASE, "Setting job spec labels..."
-
-    jobBuilder = jobBuilder.addToLabels(KubernetesUtil.JOB_LABEL, jobName)
-
-    for (def loadBalancer : description.loadBalancers) {
-      jobBuilder = jobBuilder.addToLabels(KubernetesUtil.loadBalancerKey(loadBalancer), "true")
-    }
-
-    jobBuilder = jobBuilder.endMetadata().withNewSpec()
-
-    switch (description.restartPolicy) {
-      case KubernetesJobRestartPolicy.Never:
-        jobBuilder = jobBuilder.withRestartPolicy("Never")
-        break
-
-      case KubernetesJobRestartPolicy.OnFailure:
-      default:
-        jobBuilder = jobBuilder.withRestartPolicy("OnFailure")
-    }
-
-
-    task.updateStatus BASE_PHASE, "Adding image pull secrets... "
-    jobBuilder = jobBuilder.withImagePullSecrets()
-
-    for (def imagePullSecret : credentials.imagePullSecrets[namespace]) {
-      jobBuilder = jobBuilder.addNewImagePullSecret(imagePullSecret)
-    }
-
-
+    def podBuilder = new PodBuilder().withNewMetadata().withNamespace(namespace).withName(podName).withLabels([:]).endMetadata().withNewSpec()
+    podBuilder.withRestartPolicy("Never")
     if (description.volumeSources) {
-      def volumeSources = description.volumeSources.findResults { volumeSource ->
+      List<Volume> volumeSources = description.volumeSources.findResults { volumeSource ->
         KubernetesApiConverter.toVolumeSource(volumeSource)
       }
 
-      jobBuilder = jobBuilder.withVolumes(volumeSources)
+      podBuilder = podBuilder.withVolumes(volumeSources)
     }
 
-    def containers = description.containers.collect { container ->
-      KubernetesApiConverter.toContainer(container)
-    }
+    def container = KubernetesApiConverter.toContainer(description.container)
 
-    jobBuilder = jobBuilder.withContainers(containers)
+    podBuilder = podBuilder.withContainers(container)
 
-    jobBuilder = jobBuilder.endSpec().endTemplate().endSpec()
+    podBuilder = podBuilder.endSpec()
 
-    task.updateStatus BASE_PHASE, "Sending job spec to the Kubernetes master."
-    Job job = credentials.apiAdaptor.createJob(namespace, jobBuilder.build())
+    task.updateStatus BASE_PHASE, "Sending pod spec to the Kubernetes master."
+    Pod pod = credentials.apiAdaptor.createPod(namespace, podBuilder.build())
 
-    task.updateStatus BASE_PHASE, "Finished creating job ${job.metadata.name}."
+    task.updateStatus BASE_PHASE, "Finished creating job ${pod.metadata.name}."
 
-    return job
+    return pod
   }
 }
