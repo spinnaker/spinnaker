@@ -6,10 +6,8 @@ module.exports = angular
   .module('cluster.filter.model', [
     require('../../filterModel/filter.model.service.js'),
     require('../../navigation/urlParser.service.js'),
-    require('../../utils/rx.js'),
-    require('../../utils/lodash'),
   ])
-  .factory('ClusterFilterModel', function($rootScope, filterModelService, urlParser, $state, rx, _) {
+  .factory('ClusterFilterModel', function($rootScope, filterModelService, urlParser) {
 
     var filterModel = this;
     var mostRecentParams = null;
@@ -33,70 +31,6 @@ module.exports = angular
     ];
 
     filterModelService.configureFilterModel(this, filterModelConfig);
-
-    let getSelectedField = (field) => {
-      return () => Object.keys(this.sortFilter[field] || {}).filter((key) => this.sortFilter[field][key]);
-    };
-
-    this.getSelectedRegions = getSelectedField('region');
-    this.getSelectedAvailabilityZones = getSelectedField('availabilityZone');
-    this.getSelectedAccounts = getSelectedField('account');
-
-    let removeZonesNotInsideRegions = (zones, regions) => {
-      zones
-        .filter( (az) => {
-          return regions.length && !_.any(regions, (region) => _.includes(az, region));
-        })
-        .forEach( (azKey) => {
-          delete this.sortFilter.availabilityZone[azKey];
-        });
-    };
-
-    this.removeCheckedAvailabilityZoneIfRegionIsNotChecked = (selectedZones, selectedRegions) => {
-      removeZonesNotInsideRegions(selectedZones, selectedRegions);
-    };
-
-    this.removeCheckedAvailabilityZoneIfAccountIsNotChecked = (selectedZones, regionsAvailableForAccounts) => {
-      removeZonesNotInsideRegions(selectedZones, regionsAvailableForAccounts);
-    };
-
-    this.removeCheckedRegionsIfAccountIsNotChecked = (selectedRegions, regionsAvailableForAccounts) => {
-      let availableRegionsHash = regionsAvailableForAccounts
-        .reduce((hash, r) => { // build hash so we don't have to keep looping through array.
-          hash[r] = true;
-          return hash;
-        }, {});
-
-      selectedRegions
-        .filter((region) => {
-          return !(region in availableRegionsHash);
-        })
-        .forEach((region) => {
-          delete this.sortFilter.region[region];
-        });
-    };
-
-    this.getRegionsAvailableForAccounts = (selectedAccounts, regionsKeyedByAccount) => {
-      if (selectedAccounts.length === 0) {
-        return _.reduce(regionsKeyedByAccount, (regions, r) => regions.concat(r), []);
-      } else {
-        return _(selectedAccounts)
-          .map(a => regionsKeyedByAccount[a])
-          .flatten()
-          .valueOf();
-      }
-    };
-
-    this.reconcileDependentFilters = (regionsKeyedByAccount) => {
-      let selectedAccounts = this.getSelectedAccounts();
-      let selectedRegions = this.getSelectedRegions();
-      let selectedZones = this.getSelectedAvailabilityZones();
-      let regionsAvailableForSelectedAccounts = this.getRegionsAvailableForAccounts(selectedAccounts, regionsKeyedByAccount);
-
-      this.removeCheckedRegionsIfAccountIsNotChecked(selectedRegions, regionsAvailableForSelectedAccounts);
-      this.removeCheckedAvailabilityZoneIfAccountIsNotChecked(selectedZones, regionsAvailableForSelectedAccounts);
-      this.removeCheckedAvailabilityZoneIfRegionIsNotChecked(selectedZones, selectedRegions);
-    };
 
     function isClusterState(stateName) {
       return stateName === 'home.applications.application.insight.clusters' ||

@@ -9,8 +9,12 @@ module.exports = angular.module('cluster', [
   require('./clusterFilter.service.js'),
   require('./clusterFilter.model.js'),
   require('../../utils/lodash.js'),
+  require('../../filterModel/dependentFilter/dependentFilter.service.js'),
+  require('./clusterDependentFilterHelper.service.js')
 ])
-  .controller('ClusterFilterCtrl', function ($scope, app, _, $log, clusterFilterService, ClusterFilterModel, $rootScope) {
+  .controller('ClusterFilterCtrl', function ($scope, app, _, $log, clusterFilterService,
+                                             ClusterFilterModel, $rootScope,
+                                             clusterDependentFilterHelper, dependentFilterService) {
 
     $scope.application = app;
     $scope.sortFilter = ClusterFilterModel.sortFilter;
@@ -18,77 +22,38 @@ module.exports = angular.module('cluster', [
     var ctrl = this;
 
     this.updateClusterGroups = () => {
-      ClusterFilterModel.reconcileDependentFilters(ctrl.regionsKeyedByAccount);
+      let { providerType, instanceType, account, availabilityZone, region } = dependentFilterService.digestDependentFilters({
+        sortFilter: ClusterFilterModel.sortFilter,
+        dependencyOrder: ['providerType', 'account', 'region', 'availabilityZone', 'instanceType'],
+        pool: clusterDependentFilterHelper.poolBuilder(app.serverGroups.data)
+      });
+
+      ctrl.providerTypeHeadings = providerType;
+      ctrl.accountHeadings = account;
+      ctrl.availabilityZoneHeadings = availabilityZone;
+      ctrl.regionHeadings = region;
+      ctrl.instanceTypeHeadings = instanceType;
+
       ClusterFilterModel.applyParamsToUrl();
       clusterFilterService.updateClusterGroups(app);
     };
-
-    ctrl.getAvailabilityZoneHeadings = () => {
-      let selectedRegions = ClusterFilterModel.getSelectedRegions();
-      let availableRegions = ctrl.getRegionHeadings();
-
-      return selectedRegions.length === 0 ?
-        ctrl.availabilityZoneHeadings.filter(zoneFilter(availableRegions)) :
-        ctrl.availabilityZoneHeadings.filter(zoneFilter(_.intersection(availableRegions, selectedRegions)));
-    };
-
-    function zoneFilter(regions) {
-      return function (azName) {
-        return regions.reduce((matches, region) => {
-          return matches ? matches : _.includes(azName, region);
-        }, false);
-      };
-    }
-
-    ctrl.getRegionHeadings = () => {
-      let selectedAccounts = ClusterFilterModel.sortFilter.account;
-
-      return Object.keys(_.pick(selectedAccounts, _.identity)).length === 0 ?
-        ctrl.regionHeadings :
-        _(ctrl.regionsKeyedByAccount)
-          .filter((regions, account) => account in selectedAccounts)
-          .flatten()
-          .uniq()
-          .valueOf();
-    };
-
 
     function getHeadingsForOption(option) {
       return _.compact(_.uniq(_.pluck(app.serverGroups.data, option))).sort();
     }
 
-    function getAvailabilityZones() {
-      return _(app.serverGroups.data)
-        .pluck('instances')
-        .flatten()
-        .pluck('availabilityZone')
-        .unique()
-        .valueOf();
-    }
-
     function clearFilters() {
       clusterFilterService.clearFilters();
       clusterFilterService.updateClusterGroups(app);
-    }
-
-    function getRegionsKeyedByAccount() {
-      return _(app.serverGroups.data)
-        .groupBy('account')
-        .mapValues((instances) => _(instances).pluck('region').uniq().valueOf())
-        .valueOf();
+      ctrl.updateClusterGroups();
     }
 
     this.initialize = function() {
-      ctrl.accountHeadings = getHeadingsForOption('account');
-      ctrl.regionsKeyedByAccount = getRegionsKeyedByAccount();
-      ctrl.regionHeadings = getHeadingsForOption('region');
-      ctrl.instanceTypeHeadings = getHeadingsForOption('instanceType');
-      ctrl.providerTypeHeadings = getHeadingsForOption('type');
       ctrl.stackHeadings = ['(none)'].concat(getHeadingsForOption('stack'));
-      ctrl.availabilityZoneHeadings = getAvailabilityZones();
       ctrl.categoryHeadings = getHeadingsForOption('category');
       ctrl.clearFilters = clearFilters;
       $scope.clusters = app.clusters;
+      ctrl.updateClusterGroups();
     };
 
 

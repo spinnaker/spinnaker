@@ -16,6 +16,17 @@
 </div>
 <div class="content" ng-if="application.serverGroups.loaded">
 
+  <filter-section heading="Provider" expanded="true" ng-if="clustersFilters.providerTypeHeadings.length > 1">
+    <div class="checkbox" ng-repeat="heading in clustersFilters.providerTypeHeadings | orderBy: 'toString()'">
+      <label>
+        <input type="checkbox" ng-model="sortFilter.providerType[heading]"
+               ng-change="clustersFilters.updateClusterGroups()"/>
+        <cloud-provider-logo provider="heading" height="14px" width="14px"></cloud-provider-logo>
+        <cloud-provider-label provider="heading"></cloud-provider-label>
+      </label>
+    </div>
+  </filter-section>
+
   <filter-section heading="Account" expanded="true">
     <div class="checkbox" ng-repeat="heading in clustersFilters.accountHeadings | orderBy:'toString()'  ">
       <label>
@@ -26,7 +37,7 @@
   </filter-section>
 
   <filter-section heading="Region" expanded="true">
-    <div class="checkbox" ng-repeat="heading in clustersFilters.getRegionHeadings() | orderBy: 'toString()' ">
+    <div class="checkbox" ng-repeat="heading in clustersFilters.regionHeadings | orderBy: 'toString()' ">
       <label>
         <input type="checkbox" ng-model="sortFilter.region[heading]" ng-change="clustersFilters.updateClusterGroups()"/>{{heading}}
       </label>
@@ -102,19 +113,8 @@
     </div>
   </filter-section>
 
-  <filter-section heading="Provider" expanded="true" ng-if="clustersFilters.providerTypeHeadings.length > 1">
-    <div class="checkbox" ng-repeat="heading in clustersFilters.providerTypeHeadings | orderBy: 'toString()'">
-      <label>
-        <input type="checkbox" ng-model="sortFilter.providerType[heading]"
-               ng-change="clustersFilters.updateClusterGroups()"/>
-        <cloud-provider-logo provider="heading" height="14px" width="14px"></cloud-provider-logo>
-        <cloud-provider-label provider="heading"></cloud-provider-label>
-      </label>
-    </div>
-  </filter-section>
-
   <filter-section heading="Availability Zones" expanded="true">
-    <div class="checkbox" ng-repeat="heading in clustersFilters.getAvailabilityZoneHeadings() | orderBy: 'toString()' ">
+    <div class="checkbox" ng-repeat="heading in clustersFilters.availabilityZoneHeadings | orderBy: 'toString()' ">
       <label>
         <input type="checkbox" ng-model="sortFilter.availabilityZone[heading]" ng-change="clustersFilters.updateClusterGroups()"/>{{heading}}
       </label>

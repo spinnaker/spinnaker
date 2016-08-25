@@ -16,6 +16,17 @@
 </div>
 <div class="content" ng-if="application.securityGroups.loaded">
 
+  <filter-section heading="Provider" expanded="true" ng-if="securityGroupFilters.providerTypeHeadings.length > 1">
+    <div class="checkbox" ng-repeat="heading in securityGroupFilters.providerTypeHeadings | orderBy: 'toString()'">
+      <label>
+        <input type="checkbox" ng-model="sortFilter.providerType[heading]"
+               ng-change="securityGroupFilters.updateSecurityGroups()"/>
+        <cloud-provider-logo provider="heading" height="14px" width="14px"></cloud-provider-logo>
+        <cloud-provider-label provider="heading"></cloud-provider-label>
+      </label>
+    </div>
+  </filter-section>
+
   <filter-section heading="Account" expanded="true">
     <div class="checkbox" ng-repeat="heading in securityGroupFilters.accountHeadings | orderBy:'toString()'  ">
       <label>
@@ -37,17 +48,6 @@
     <div class="checkbox" ng-repeat="heading in securityGroupFilters.stackHeadings | orderBy: 'toString()' ">
       <label>
         <input type="checkbox" ng-model="sortFilter.stack[heading]" ng-change="securityGroupFilters.updateSecurityGroups()"/>{{heading}}
-      </label>
-    </div>
-  </filter-section>
-
-  <filter-section heading="Provider" expanded="true" ng-if="securityGroupFilters.providerTypeHeadings.length > 1">
-    <div class="checkbox" ng-repeat="heading in securityGroupFilters.providerTypeHeadings | orderBy: 'toString()'">
-      <label>
-        <input type="checkbox" ng-model="sortFilter.providerType[heading]"
-               ng-change="securityGroupFilters.updateSecurityGroups()"/>
-        <cloud-provider-logo provider="heading" height="14px" width="14px"></cloud-provider-logo>
-        <cloud-provider-label provider="heading"></cloud-provider-label>
       </label>
     </div>
   </filter-section>

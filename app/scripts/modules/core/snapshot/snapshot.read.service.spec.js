@@ -20,15 +20,15 @@ describe('Service: SnapshotRead', function() {
         .expectGET(`${this.settings.gateUrl}/applications/snapshotReadTest/snapshots/my-google-account/history?limit=20`)
         .respond([]);
       this.snapshotReader.getSnapshotHistory(application, account, params);
-  
+
       this.$httpBackend.flush();
     });
-  
+
     it('returns what the endpoint returns', function () {
       this.$httpBackend
         .whenGET(`${this.settings.gateUrl}/applications/snapshotReadTest/snapshots/my-google-account/history?limit=20`)
         .respond([{ infrastructure: 'myInfrastructure' }]);
-  
+
       this.snapshotReader.getSnapshotHistory(application, account, params)
         .then((snapshots) => {
           expect(snapshots).toEqual([{ infrastructure: 'myInfrastructure' }]);
@@ -36,10 +36,10 @@ describe('Service: SnapshotRead', function() {
         .catch((error) => {
           expect(error).toBeUndefined();
         });
-  
+
       this.$httpBackend.flush();
     });
-  
+
     it('does not fail if not passed parameters', function () {
       this.$httpBackend
         .expectGET(`${this.settings.gateUrl}/applications/snapshotReadTest/snapshots/my-google-account/history`)
@@ -48,11 +48,11 @@ describe('Service: SnapshotRead', function() {
         this.snapshotReader.getSnapshotHistory(application, account)
           .catch((e) => {
             expect(e).toBeUndefined();
-          })
+          });
       } catch (e) {
         expect(e).toBeUndefined();
       }
-  
+
       this.$httpBackend.flush();
     });
   });

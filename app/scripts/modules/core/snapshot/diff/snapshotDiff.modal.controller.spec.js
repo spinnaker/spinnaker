@@ -56,7 +56,7 @@ describe('Controller: SnapshotDiffModalCtrl', function () {
         this.controller.version = version;
         this.controller.updateDiff();
         expect(this.jsonDiffService.diff)
-          .toHaveBeenCalledWith('third snapshot', ['third snapshot', 'second snapshot', 'first snapshot'][version])
+          .toHaveBeenCalledWith('third snapshot', ['third snapshot', 'second snapshot', 'first snapshot'][version]);
       });
     });
 
@@ -78,6 +78,6 @@ describe('Controller: SnapshotDiffModalCtrl', function () {
 
       expect(this.jsonDiffService.diff)
         .toHaveBeenCalledWith('first snapshot', 'first snapshot');
-    })
+    });
   });
 });
