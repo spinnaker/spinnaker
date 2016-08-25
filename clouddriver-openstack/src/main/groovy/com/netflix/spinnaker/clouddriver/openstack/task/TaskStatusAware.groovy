@@ -22,7 +22,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
  * TODO - Refeactor operations to use trait and remove boilerplate logic.
  */
 trait TaskStatusAware {
-  static final String UPSERT_LOADBALANCER_PHASE = "UPSERT_LOAD_BALANCER"
+  final String UPSERT_LOADBALANCER_PHASE = 'UPSERT_LOAD_BALANCER'
 
   Task getTask() {
     TaskRepository.threadLocalTask.get()

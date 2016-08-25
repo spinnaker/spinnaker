@@ -22,6 +22,7 @@ import org.openstack4j.model.network.ext.HealthMonitorV2
 import org.openstack4j.model.network.ext.LbPoolV2
 import org.openstack4j.model.network.ext.ListenerV2
 import org.openstack4j.model.network.ext.LoadBalancerV2
+import org.openstack4j.model.network.ext.LoadBalancerV2StatusTree
 
 /**
  * Operations associated to load balancer and relevant building blocks.
@@ -52,6 +53,14 @@ interface OpenstackLoadBalancerProvider {
    * @return
    */
   LoadBalancerV2 getLoadBalancer(final String region, final String id)
+
+  /**
+   * Removes load balancer by id.
+   * @param region
+   * @param id
+   * @return
+   */
+  ActionResponse deleteLoadBalancer(final String region, final String id)
 
   /**
    * Retreives load balancer by name.
@@ -179,4 +188,12 @@ interface OpenstackLoadBalancerProvider {
    * @return
    */
   ActionResponse deleteMonitor(final String region, final String id)
+
+  /**
+   * Returns current status of the entire load balancer tree (lb, listeners, pool, etc).
+   * @param region
+   * @param id
+   * @return
+   */
+  LoadBalancerV2StatusTree getLoadBalancerStatusTree(final String region, final String id)
 }

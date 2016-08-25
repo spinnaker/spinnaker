@@ -22,6 +22,7 @@ parameters:
   load_balancers:
     type: comma_delimited_list
     description: Comma-separated string of load balancers to associate to the stack. This is not used in the stack and is defined for auditing purposes.
+    default: []
   security_groups:
     type: comma_delimited_list
     description: Comma-separated string of security groups to use

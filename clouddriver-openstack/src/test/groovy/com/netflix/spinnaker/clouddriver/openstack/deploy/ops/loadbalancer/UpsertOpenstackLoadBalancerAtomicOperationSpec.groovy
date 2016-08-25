@@ -24,17 +24,18 @@ import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfiguration
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.loadbalancer.OpenstackLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.loadbalancer.OpenstackLoadBalancerDescription.Algorithm
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.loadbalancer.OpenstackLoadBalancerDescription.Listener
-import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.MemberData
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
+import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.openstack.domain.HealthMonitor
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
-import org.openstack4j.model.common.ActionResponse
+import com.netflix.spinnaker.clouddriver.openstack.task.TaskStatusAware
 import org.openstack4j.model.compute.FloatingIP
 import org.openstack4j.model.network.NetFloatingIP
 import org.openstack4j.model.network.Network
 import org.openstack4j.model.network.Port
+import org.openstack4j.model.network.Subnet
 import org.openstack4j.model.network.ext.HealthMonitorType
 import org.openstack4j.model.network.ext.HealthMonitorV2
 import org.openstack4j.model.network.ext.LbMethod
@@ -48,7 +49,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 @Unroll
-class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
+class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification implements TaskStatusAware {
   OpenstackClientProvider provider
   OpenstackCredentials credentials
   OpenstackLoadBalancerDescription description
@@ -57,6 +58,8 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
   String region = 'region'
   @Shared
   String account = 'test'
+  @Shared
+  String opName = UPSERT_LOADBALANCER_PHASE
   @Shared
   Throwable openstackProviderException = new OpenstackProviderException('foo')
   @Shared
@@ -95,12 +98,15 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     Map result = operation.operate([])
 
     then:
+    1 * operation.validatePeripherals(region, description.subnetId, description.networkId, description.securityGroups) >> {
+    }
     1 * operation.createLoadBalancer(region, description.name, description.subnetId) >> loadBalancer
     1 * operation.buildListenerMap(region, loadBalancer) >> [:]
-    1 * operation.addListenersAndPools(region, loadBalancer.id, description.name, description.algorithm, _, description.healthMonitor) >> {}
+    1 * operation.addListenersAndPools(region, loadBalancer.id, description.name, description.algorithm, _, description.healthMonitor) >> {
+    }
     1 * operation.updateFloatingIp(region, description.networkId, loadBalancer.vipPortId)
     1 * operation.updateSecurityGroups(region, loadBalancer.vipPortId, description.securityGroups)
-    0 * operation.updateStacks(region, loadBalancer.id)
+    0 * operation.updateServerGroup(opName, region, loadBalancer.id)
 
     and:
     result == [(description.region): [id: loadBalancer.id]]
@@ -128,13 +134,16 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     Map result = operation.operate([])
 
     then:
+    0 * operation.validatePeripherals(region, description.subnetId, description.networkId, description.securityGroups) >> {
+    }
     1 * provider.getLoadBalancer(region, description.id) >> loadBalancer
     1 * operation.buildListenerMap(region, loadBalancer) >> ['HTTPS:443:HTTPS:8181': listenerV2]
-    1 * operation.addListenersAndPools(region, loadBalancer.id, description.name, description.algorithm, _, description.healthMonitor) >> {}
-    1 * operation.removeListenersAndPools(region, loadBalancer.id, _) >> {}
+    1 * operation.addListenersAndPools(region, loadBalancer.id, description.name, description.algorithm, _, description.healthMonitor) >> {
+    }
+    1 * operation.deleteLoadBalancerPeripherals(opName, region, loadBalancer.id, _ as Collection) >> {}
     1 * operation.updateFloatingIp(region, description.networkId, loadBalancer.vipPortId)
     1 * operation.updateSecurityGroups(region, loadBalancer.vipPortId, description.securityGroups)
-    1 * operation.updateStacks(region, loadBalancer.id)
+    1 * operation.updateServerGroup(_ as String, region, loadBalancer.id)
 
     and:
     result == [(description.region): [id: loadBalancer.id]]
@@ -161,13 +170,15 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     Map result = operation.operate([])
 
     then:
+    0 * operation.validatePeripherals(region, description.subnetId, description.networkId, description.securityGroups) >> {
+    }
     1 * provider.getLoadBalancer(region, description.id) >> loadBalancer
     1 * operation.buildListenerMap(region, loadBalancer) >> ['HTTP:80:HTTP:8080': listenerV2]
     1 * operation.updateListenersAndPools(region, loadBalancer.id, description.algorithm, _, description.healthMonitor) >> {
     }
     1 * operation.updateFloatingIp(region, description.networkId, loadBalancer.vipPortId)
     1 * operation.updateSecurityGroups(region, loadBalancer.vipPortId, description.securityGroups)
-    0 * operation.updateStacks(region, loadBalancer.id)
+    0 * operation.updateServerGroup(opName, region, loadBalancer.id)
 
     and:
     result == [(description.region): [id: loadBalancer.id]]
@@ -215,13 +226,13 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     }
 
     and:
-    def operation = new UpsertOpenstackLoadBalancerAtomicOperation(description)
+    def operation = Spy(UpsertOpenstackLoadBalancerAtomicOperation, constructorArgs: [description])
 
     when:
     LoadBalancerV2 result = operation.createLoadBalancer(region, name, subnetId)
 
     then:
-    1 * provider.getLoadBalancer(region, loadBalancer.id) >> loadBalancer
+    1 * operation.createBlockingActiveStatusChecker(region) >> blockingClientAdapter
     1 * provider.createLoadBalancer(region, name, _, subnetId) >> loadBalancer
 
     and:
@@ -235,69 +246,18 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     LoadBalancerV2 loadBalancer = Mock(LoadBalancerV2)
 
     and:
-    def operation = new UpsertOpenstackLoadBalancerAtomicOperation(description)
+    def operation = Spy(UpsertOpenstackLoadBalancerAtomicOperation, constructorArgs: [description])
 
     when:
     operation.createLoadBalancer(region, name, subnetId)
 
     then:
-    0 * provider.getLoadBalancer(region, loadBalancer.id) >> loadBalancer
+    1 * operation.createBlockingActiveStatusChecker(region) >> blockingClientAdapter
     1 * provider.createLoadBalancer(region, name, _, subnetId) >> { throw openstackProviderException }
 
     and:
     thrown(OpenstackProviderException)
   }
-
-  def "build member data"() {
-    given:
-    String id = UUID.randomUUID()
-    String subnetId = UUID.randomUUID()
-    LoadBalancerV2 loadBalancer = Mock(LoadBalancerV2)
-    ListenerV2 listener = Mock(ListenerV2)
-    String poolId = UUID.randomUUID()
-
-    and:
-    def operation = new UpsertOpenstackLoadBalancerAtomicOperation(description)
-
-    when:
-    List<MemberData> result = operation.buildMemberData(region, [id], subnetId)
-
-    then:
-    1 * provider.getLoadBalancer(region, _) >> loadBalancer
-    1 * loadBalancer.listeners >> [listener]
-    1 * provider.getListener(region, listener.id) >> listener
-    1 * listener.description >> 'HTTP:80:HTTP:8080'
-    1 * listener.defaultPoolId >> poolId
-
-    and:
-    result == [new MemberData(poolId: poolId, internalPort: 8080, subnetId: subnetId)]
-  }
-
-  def "build member data - empty"() {
-    given:
-    String subnetId = UUID.randomUUID()
-    LoadBalancerV2 loadBalancer = Mock(LoadBalancerV2)
-    ListenerV2 listener = Mock(ListenerV2)
-    String poolId = UUID.randomUUID()
-
-    and:
-    def operation = new UpsertOpenstackLoadBalancerAtomicOperation(description)
-
-    when:
-    List<MemberData> result = operation.buildMemberData(region, [], subnetId)
-
-    then:
-    0 * provider.getLoadBalancer(region, _) >> loadBalancer
-    0 * loadBalancer.listeners >> [listener]
-    0 * provider.getListener(region, listener.id) >> listener
-    0 * listener.description >> 'HTTP:80:HTTP:8080'
-    0 * listener.defaultPoolId >> poolId
-
-    and:
-    result == []
-  }
-
-  //TODO - Add update stacks once finalized
 
   def "no update security groups - #testCase"() {
     given:
@@ -315,8 +275,8 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     1 * port.getSecurityGroups() >> [securityGroup]
 
     where:
-    testCase | groups  | securityGroup
-    'empty'  | []      | '123'
+    testCase | groups | securityGroup
+    'empty'  | [] | '123'
     'equal'  | ['123'] | '123'
   }
 
@@ -420,84 +380,6 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     1 * provider.associateFloatingIpToPort(region, floatingIp.id, portId)
   }
 
-  def "remove listeners and pools"() {
-    given:
-    String loadBalancerId = UUID.randomUUID()
-    ListenerV2 listener = Mock(ListenerV2) {
-      getId() >> '123'
-    }
-    String poolId = UUID.randomUUID()
-    String healthMonitorId = UUID.randomUUID()
-    LbPoolV2 lbPool = Mock(LbPoolV2)
-
-    and:
-    def operation = Spy(UpsertOpenstackLoadBalancerAtomicOperation, constructorArgs: [description])
-
-    when:
-    operation.removeListenersAndPools(region, loadBalancerId, [listener])
-
-    then:
-    1 * operation.createBlockingStatusChecker(region, loadBalancerId) >> blockingClientAdapter
-    _ * listener.defaultPoolId >> poolId
-    1 * provider.getPool(region, poolId) >> lbPool
-    _ * lbPool.healthMonitorId >> healthMonitorId
-    1 * operation.removeHealthMonitor(region, loadBalancerId, healthMonitorId) >> {}
-    1 * provider.deletePool(region, poolId) >> ActionResponse.actionSuccess()
-    1 * provider.deleteListener(region, listener.id) >> ActionResponse.actionSuccess()
-  }
-
-  def "remove listeners and pools - no health monitor"() {
-    given:
-    String loadBalancerId = UUID.randomUUID()
-    ListenerV2 listener = Mock(ListenerV2) {
-      getId() >> '123'
-    }
-    String poolId = UUID.randomUUID()
-    String healthMonitorId = null
-    LbPoolV2 lbPool = Mock(LbPoolV2)
-
-    and:
-    def operation = Spy(UpsertOpenstackLoadBalancerAtomicOperation, constructorArgs: [description])
-
-    when:
-    operation.removeListenersAndPools(region, loadBalancerId, [listener])
-
-    then:
-    1 * operation.createBlockingStatusChecker(region, loadBalancerId) >> blockingClientAdapter
-    _ * listener.defaultPoolId >> poolId
-    1 * provider.getPool(region, poolId) >> lbPool
-    _ * lbPool.healthMonitorId >> healthMonitorId
-    0 * operation.removeHealthMonitor(region, loadBalancerId, healthMonitorId) >> {}
-    1 * provider.deletePool(region, poolId) >> ActionResponse.actionSuccess()
-    1 * provider.deleteListener(region, listener.id) >> ActionResponse.actionSuccess()
-  }
-
-  def "remove listeners and pools - no pool"() {
-    given:
-    String loadBalancerId = UUID.randomUUID()
-    ListenerV2 listener = Mock(ListenerV2) {
-      getId() >> '123'
-    }
-    String poolId = null
-    String healthMonitorId = UUID.randomUUID()
-    LbPoolV2 lbPool = Mock(LbPoolV2)
-
-    and:
-    def operation = Spy(UpsertOpenstackLoadBalancerAtomicOperation, constructorArgs: [description])
-
-    when:
-    operation.removeListenersAndPools(region, loadBalancerId, [listener])
-
-    then:
-    1 * operation.createBlockingStatusChecker(region, loadBalancerId) >> blockingClientAdapter
-    _ * listener.defaultPoolId >> poolId
-    0 * provider.getPool(region, poolId) >> lbPool
-    _ * lbPool.healthMonitorId >> healthMonitorId
-    0 * operation.removeHealthMonitor(region, loadBalancerId, healthMonitorId) >> {}
-    0 * provider.deletePool(region, poolId) >> ActionResponse.actionSuccess()
-    1 * provider.deleteListener(region, listener.id) >> ActionResponse.actionSuccess()
-  }
-
   def "add listeners and pools"() {
     given:
     String name = 'name'
@@ -518,7 +400,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     operation.addListenersAndPools(region, loadBalancerId, name, algorithm, [(key): listener], healthMonitor)
 
     then:
-    1 * operation.createBlockingStatusChecker(region, loadBalancerId) >> blockingClientAdapter
+    1 * operation.createBlockingActiveStatusChecker(region, loadBalancerId) >> blockingClientAdapter
     1 * provider.createListener(region, name, listener.externalProtocol.name(), listener.externalPort, key, loadBalancerId) >> newListener
     1 * provider.createPool(region, name, listener.internalProtocol.name(), algorithm.name(), newListener.id) >> newLbPool
     1 * operation.updateHealthMonitor(region, loadBalancerId, newLbPool, healthMonitor) >> {}
@@ -542,7 +424,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     operation.updateListenersAndPools(region, loadBalancerId, algorithm, [listener], healthMonitor)
 
     then:
-    1 * operation.createBlockingStatusChecker(region, loadBalancerId) >> blockingClientAdapter
+    1 * operation.createBlockingActiveStatusChecker(region, loadBalancerId) >> blockingClientAdapter
     _ * listener.defaultPoolId >> poolId
     1 * provider.getPool(region, poolId) >> lbPool
     _ * lbPool.lbMethod >> LbMethod.LEAST_CONNECTIONS
@@ -568,7 +450,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     operation.updateListenersAndPools(region, loadBalancerId, algorithm, [listener], healthMonitor)
 
     then:
-    1 * operation.createBlockingStatusChecker(region, loadBalancerId) >> blockingClientAdapter
+    1 * operation.createBlockingActiveStatusChecker(region, loadBalancerId) >> blockingClientAdapter
     _ * listener.defaultPoolId >> poolId
     1 * provider.getPool(region, poolId) >> lbPool
     _ * lbPool.lbMethod >> LbMethod.ROUND_ROBIN
@@ -595,7 +477,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     operation.updateListenersAndPools(region, loadBalancerId, algorithm, [listener], healthMonitor)
 
     then:
-    1 * operation.createBlockingStatusChecker(region, loadBalancerId) >> blockingClientAdapter
+    1 * operation.createBlockingActiveStatusChecker(region, loadBalancerId) >> blockingClientAdapter
     _ * listener.defaultPoolId >> poolId
     0 * provider.getPool(region, poolId) >> lbPool
     _ * lbPool.lbMethod >> LbMethod.ROUND_ROBIN
@@ -619,7 +501,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     operation.updateHealthMonitor(region, loadBalancerId, lbPool, healthMonitor)
 
     then:
-    1 * operation.createBlockingStatusChecker(region, loadBalancerId) >> blockingClientAdapter
+    1 * operation.createBlockingActiveStatusChecker(region, loadBalancerId) >> blockingClientAdapter
     _ * lbPool.healthMonitorId >> healthMonitorId
     1 * provider.getMonitor(region, healthMonitorId) >> healthMonitorV2
     1 * healthMonitorV2.type >> HealthMonitorType.PING
@@ -642,7 +524,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     operation.updateHealthMonitor(region, loadBalancerId, lbPool, healthMonitor)
 
     then:
-    1 * operation.createBlockingStatusChecker(region, loadBalancerId) >> blockingClientAdapter
+    1 * operation.createBlockingActiveStatusChecker(region, loadBalancerId) >> blockingClientAdapter
     _ * lbPool.healthMonitorId >> healthMonitorId
     1 * provider.getMonitor(region, healthMonitorId) >> healthMonitorV2
     1 * healthMonitorV2.type >> HealthMonitorType.PING
@@ -666,9 +548,9 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     operation.updateHealthMonitor(region, loadBalancerId, lbPool, healthMonitor)
 
     then:
-    1 * operation.createBlockingStatusChecker(region, loadBalancerId) >> blockingClientAdapter
+    1 * operation.createBlockingActiveStatusChecker(region, loadBalancerId) >> blockingClientAdapter
     _ * lbPool.healthMonitorId >> healthMonitorId
-    1 * operation.removeHealthMonitor(region, loadBalancerId, healthMonitorId) >> {}
+    1 * operation.removeHealthMonitor(opName, region, loadBalancerId, healthMonitorId) >> {}
   }
 
   def "update health monitor - add monitor no existing"() {
@@ -685,7 +567,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     operation.updateHealthMonitor(region, loadBalancerId, lbPool, healthMonitor)
 
     then:
-    1 * operation.createBlockingStatusChecker(region, loadBalancerId) >> blockingClientAdapter
+    1 * operation.createBlockingActiveStatusChecker(region, loadBalancerId) >> blockingClientAdapter
     _ * lbPool.healthMonitorId >> healthMonitorId
     1 * provider.createMonitor(region, lbPool.id, healthMonitor)
   }
@@ -699,10 +581,10 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     def operation = Spy(UpsertOpenstackLoadBalancerAtomicOperation, constructorArgs: [description])
 
     when:
-    operation.removeHealthMonitor(region, loadBalancerId, id)
+    operation.removeHealthMonitor(opName, region, loadBalancerId, id)
 
     then:
-    1 * operation.createBlockingStatusChecker(region, loadBalancerId) >> blockingClientAdapter
+    1 * operation.createBlockingActiveStatusChecker(region, loadBalancerId) >> blockingClientAdapter
     1 * provider.deleteMonitor(region, id)
   }
 
@@ -714,7 +596,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     def operation = new UpsertOpenstackLoadBalancerAtomicOperation(description)
 
     when:
-    BlockingStatusChecker result = operation.createBlockingStatusChecker(region, loadBalancerId)
+    BlockingStatusChecker result = operation.createBlockingActiveStatusChecker(region, loadBalancerId)
 
     then:
     result.statusChecker != null
@@ -741,6 +623,80 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     1 * listener.description >> desc
 
     and:
-    result == [(desc):listener]
+    result == [(desc): listener]
+  }
+
+  def "validatePeripherals success"() {
+    given:
+    String subnetId = UUID.randomUUID()
+    String networkId = UUID.randomUUID()
+    String securityGroup = UUID.randomUUID()
+    def operation = new UpsertOpenstackLoadBalancerAtomicOperation(description)
+
+    when:
+    operation.validatePeripherals(region, subnetId, networkId, [securityGroup])
+
+    then:
+    1 * provider.getSubnet(region, subnetId) >> Mock(Subnet)
+    1 * provider.getNetwork(region, networkId) >> Mock(Network)
+    1 * provider.getSecurityGroup(region, securityGroup)
+    noExceptionThrown()
+  }
+
+  def "validatePeripherals subnet"() {
+    given:
+    String subnetId = UUID.randomUUID()
+    String networkId = UUID.randomUUID()
+    String securityGroup = UUID.randomUUID()
+    def operation = new UpsertOpenstackLoadBalancerAtomicOperation(description)
+
+    when:
+    operation.validatePeripherals(region, subnetId, networkId, [securityGroup])
+
+    then:
+    1 * provider.getSubnet(region, subnetId) >> null
+    0 * provider.getNetwork(region, networkId) >> Mock(Network)
+    0 * provider.getSecurityGroup(region, securityGroup)
+
+    and:
+    thrown(OpenstackResourceNotFoundException)
+  }
+
+  def "validatePeripherals network"() {
+    given:
+    String subnetId = UUID.randomUUID()
+    String networkId = UUID.randomUUID()
+    String securityGroup = UUID.randomUUID()
+    def operation = new UpsertOpenstackLoadBalancerAtomicOperation(description)
+
+    when:
+    operation.validatePeripherals(region, subnetId, networkId, [securityGroup])
+
+    then:
+    1 * provider.getSubnet(region, subnetId) >> Mock(Subnet)
+    1 * provider.getNetwork(region, networkId) >> null
+    0 * provider.getSecurityGroup(region, securityGroup)
+
+    and:
+    thrown(OpenstackResourceNotFoundException)
+  }
+
+  def "validatePeripherals security groups"() {
+    given:
+    String subnetId = UUID.randomUUID()
+    String networkId = UUID.randomUUID()
+    String securityGroup = UUID.randomUUID()
+    def operation = new UpsertOpenstackLoadBalancerAtomicOperation(description)
+
+    when:
+    operation.validatePeripherals(region, subnetId, networkId, [securityGroup])
+
+    then:
+    1 * provider.getSubnet(region, subnetId) >> Mock(Subnet)
+    1 * provider.getNetwork(region, networkId) >> Mock(Network)
+    1 * provider.getSecurityGroup(region, securityGroup) >> { throw new OpenstackResourceNotFoundException('test') }
+
+    and:
+    thrown(OpenstackResourceNotFoundException)
   }
 }

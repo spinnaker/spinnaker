@@ -31,8 +31,10 @@ interface OpenstackOrchestrationProvider {
    * @param parameters the parameters substituted into the heat template
    * @param disableRollback if true, resources are not removed upon stack create failure
    * @param timeoutMins stack create timeout, after which the operation will fail
+   * @param tags tags to pass to stack
    */
-  void deploy(String region, String stackName, String template, Map<String, String> subtemplate, ServerGroupParameters parameters, boolean disableRollback, Long timeoutMins)
+  void deploy(String region, String stackName, String template, Map<String, String> subtemplate,
+              ServerGroupParameters parameters, boolean disableRollback, Long timeoutMins, List<String> tags)
 
   /**
    * TODO: Handle heat autoscaling migration to senlin in versions > Mitaka
@@ -43,8 +45,10 @@ interface OpenstackOrchestrationProvider {
    * @param template the main heat template
    * @param subtemplate a map of subtemplate files references by the template
    * @param parameters the parameters substituted into the heat template
+   * @param tags the tags to pass to the stack. These replace existing tags.
    */
-  void updateStack(String region, String stackName, String stackId, String template, Map<String, String> subtemplate, ServerGroupParameters parameters)
+  void updateStack(String region, String stackName, String stackId, String template, Map<String, String> subtemplate,
+                   ServerGroupParameters parameters, List<String> tags)
 
   /**
    * Get a heat template from an existing Openstack Heat Stack
@@ -60,6 +64,14 @@ interface OpenstackOrchestrationProvider {
    * @return List < ? extends Stack >  stacks
    */
   List<? extends Stack> listStacks(String region)
+
+  /**
+   * List stack associated to these load balancers.
+   * @param region
+   * @param loadBalancerIds
+   * @return
+   */
+  List<? extends Stack> listStacksWithLoadBalancers(String region, List<String> loadBalancerIds)
 
   /**
    * Get a stack in a specific region.

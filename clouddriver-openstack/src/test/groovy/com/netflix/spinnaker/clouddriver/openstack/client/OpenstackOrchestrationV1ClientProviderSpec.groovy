@@ -82,10 +82,11 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
       scaledown_period    :600,
       scaledown_threshold :15
     ]
-    StackCreate stackCreate = Builders.stack().disableRollback(disableRollback).files(subtmpl).name(stackName).parameters(params).template(tmpl).timeoutMins(timeoutMins).build()
+    List<String> tags = loadBalancerIds.collect { "lb-${it}" }
+    StackCreate stackCreate = Builders.stack().disableRollback(disableRollback).files(subtmpl).name(stackName).parameters(params).template(tmpl).timeoutMins(timeoutMins).tags(tags.join(',')).build()
 
     when:
-    provider.deploy(region, stackName, tmpl, subtmpl, parameters, disableRollback, timeoutMins)
+    provider.deploy(region, stackName, tmpl, subtmpl, parameters, disableRollback, timeoutMins, tags)
 
     then:
     1 * stackApi.create(_ as StackCreate) >> { StackCreate sc ->
@@ -117,10 +118,11 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
     String networkId = '1234'
     List<String> loadBalancerIds = ['5678']
     List<String> securityGroups = ['sg1']
+    List<String> tags = loadBalancerIds.collect { "lb-${it}" }
     ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image, maxSize: maxSize, minSize: minSize, networkId: networkId, loadBalancers: loadBalancerIds, securityGroups: securityGroups)
 
     when:
-    provider.deploy(region, stackName, tmpl, subtmpl, parameters, disableRollback, timeoutMins)
+    provider.deploy(region, stackName, tmpl, subtmpl, parameters, disableRollback, timeoutMins, tags)
 
     then:
     1 * stackApi.create(_ as StackCreate) >> { throw new Exception('foobar') }
@@ -351,9 +353,10 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
     ]
     String template = "foo: bar"
     Map<String, String> subtmpl = [sub: "foo: bar"]
+    List<String> tags = loadBalancerIds.collect { "lb-${it}" }
 
     when:
-    provider.updateStack(region, stackName, stackId, template, subtmpl, parameters)
+    provider.updateStack(region, stackName, stackId, template, subtmpl, parameters, tags)
 
     then:
     1 * stackService.update(stackName, stackId, _ as StackUpdate) >> { String name, String id, StackUpdate su ->
@@ -388,9 +391,10 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
     ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image, maxSize: maxSize, minSize: minSize, networkId: networkId, loadBalancers: loadBalancerIds, securityGroups: securityGroups)
     String template = "foo: bar"
     Map<String, String> subtmpl = [sub: "foo: bar"]
+    List<String> tags = loadBalancerIds.collect { "lb-${it}" }
 
     when:
-    provider.updateStack(region, stackName, stackId, template, subtmpl, parameters)
+    provider.updateStack(region, stackName, stackId, template, subtmpl, parameters, tags)
 
     then:
     1 * stackService.update(stackName, stackId, _ as StackUpdate) >> { String name, String id, StackUpdate su ->
@@ -421,9 +425,10 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
     ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image, maxSize: maxSize, minSize: minSize, networkId: networkId, loadBalancers: loadBalancerIds, securityGroups: securityGroups)
     String template = "foo: bar"
     Map<String, String> subtmpl = [sub: "foo: bar"]
+    List<String> tags = loadBalancerIds.collect { "lb-${it}" }
 
     when:
-    provider.updateStack(region, stackName, stackId, template, subtmpl, parameters)
+    provider.updateStack(region, stackName, stackId, template, subtmpl, parameters, tags)
 
     then:
     1 * stackService.update(stackName, stackId, _ as StackUpdate) >> { throw new Exception('foo') }

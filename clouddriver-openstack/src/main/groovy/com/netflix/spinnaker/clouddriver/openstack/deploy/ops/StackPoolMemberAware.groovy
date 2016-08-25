@@ -32,7 +32,9 @@ trait StackPoolMemberAware {
     Map<String, Object> parameters = [address: [type: "string", description: "Server address for autoscaling group resource"]]
     Map<String, Object> resources = memberData.collectEntries {
       [
-        ("member$it.internalPort"): [
+        //unique per listener/app port pair. Behavior is unknown if multiple load balancers are attached to
+        //the asg and have the same port mapping. Don't do that.
+        ("member-$it.externalPort-$it.internalPort"): [
           type      : "OS::Neutron::LBaaS::PoolMember",
           properties: [
             address      : [get_param: "address"],
@@ -50,5 +52,4 @@ trait StackPoolMemberAware {
       resources            : resources]
     mapper.writeValueAsString(memberTemplate)
   }
-
 }

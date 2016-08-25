@@ -79,7 +79,7 @@ abstract class AbstractStackUpdateOpenstackAtomicOperation implements AtomicOper
 
       //update stack
       task.updateStatus phaseName, "Updating server group $stack.name"
-      provider.updateStack(description.region, stack.name, stack.id, template, [(ServerGroupConstants.SUBTEMPLATE_FILE): subtemplate, (ServerGroupConstants.MEMBERTEMPLATE_FILE): memberTemplate], buildServerGroupParameters(stack))
+      provider.updateStack(description.region, stack.name, stack.id, template, [(ServerGroupConstants.SUBTEMPLATE_FILE): subtemplate, (ServerGroupConstants.MEMBERTEMPLATE_FILE): memberTemplate], buildServerGroupParameters(stack), stack.tags)
       task.updateStatus phaseName, "Successfully updated server group $stack.name"
 
       task.updateStatus phaseName, "Successfully completed $operation."

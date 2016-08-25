@@ -62,6 +62,7 @@ class DeployOpenstackAtomicOperationSpec extends Specification {
   def mockListener
   def mockItem
   def mockSubnet
+  def tags
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -85,6 +86,7 @@ class DeployOpenstackAtomicOperationSpec extends Specification {
     mockListener.description >> { "HTTP:$externalPort:HTTP:$internalPort" }
     mockSubnet = Mock(Subnet)
     mockSubnet.networkId >> { '1234' }
+    tags = [lbId]
   }
 
   def "should deploy a heat stack"() {
@@ -100,7 +102,7 @@ class DeployOpenstackAtomicOperationSpec extends Specification {
     1 * provider.getLoadBalancer(region, lbId) >> mockLb
     1 * provider.getListener(region, listenerId) >> mockListener
     1 * provider.getSubnet(region, subnetId) >> mockSubnet
-    1 * provider.deploy(region, createdStackName, _ as String, _ as Map<String,String>, serverGroupParams, _ as Boolean, _ as Long)
+    1 * provider.deploy(region, createdStackName, _ as String, _ as Map<String,String>, serverGroupParams, _ as Boolean, _ as Long, tags)
     noExceptionThrown()
   }
 
@@ -121,7 +123,7 @@ class DeployOpenstackAtomicOperationSpec extends Specification {
     1 * provider.getLoadBalancer(region, lbId) >> mockLb
     1 * provider.getListener(region, listenerId) >> mockListener
     1 * provider.getSubnet(region, subnetId) >> mockSubnet
-    1 * provider.deploy(region, newStackName, _ as String, _ as Map<String,String>, serverGroupParams, _ as Boolean, _ as Long)
+    1 * provider.deploy(region, newStackName, _ as String, _ as Map<String,String>, serverGroupParams, _ as Boolean, _ as Long, tags)
     noExceptionThrown()
   }
 
@@ -149,7 +151,7 @@ class DeployOpenstackAtomicOperationSpec extends Specification {
     1 * provider.getLoadBalancer(region, lbId) >> mockLb
     1 * provider.getListener(region, listenerId) >> mockListener
     1 * provider.getSubnet(region, subnetId) >> mockSubnet
-    1 * provider.deploy(region, createdStackName, _ as String, _ as Map<String,String>, scaledServerGroupParams, _ as Boolean, _ as Long)
+    1 * provider.deploy(region, createdStackName, _ as String, _ as Map<String,String>, scaledServerGroupParams, _ as Boolean, _ as Long, tags)
     noExceptionThrown()
   }
 
@@ -167,7 +169,7 @@ class DeployOpenstackAtomicOperationSpec extends Specification {
     1 * provider.getLoadBalancer(region, lbId) >> mockLb
     1 * provider.getListener(region, listenerId) >> mockListener
     1 * provider.getSubnet(region, subnetId) >> mockSubnet
-    1 * provider.deploy(region, createdStackName, _ as String, _ as Map<String,String>, serverGroupParams, _ as Boolean, _ as Long) >> { throw throwable }
+    1 * provider.deploy(region, createdStackName, _ as String, _ as Map<String,String>, serverGroupParams, _ as Boolean, _ as Long, tags) >> { throw throwable }
     Throwable actual = thrown(OpenstackOperationException)
     actual.cause == throwable
   }

@@ -25,6 +25,7 @@ import groovy.transform.Canonical
 @Canonical
 class MemberData {
   String poolId
+  String externalPort
   String internalPort
   String subnetId
 }

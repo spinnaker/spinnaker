@@ -33,7 +33,8 @@ class OpenstackOrchestrationV1Provider implements OpenstackOrchestrationProvider
   }
 
   @Override
-  void deploy(String region, String stackName, String template, Map<String, String> subtemplate, ServerGroupParameters parameters, boolean disableRollback, Long timeoutMins) {
+  void deploy(String region, String stackName, String template, Map<String, String> subtemplate,
+              ServerGroupParameters parameters, boolean disableRollback, Long timeoutMins, List<String> tags) {
     handleRequest {
       Map<String, String> params = parameters.toParamsMap()
       StackCreate create = Builders.stack()
@@ -43,16 +44,23 @@ class OpenstackOrchestrationV1Provider implements OpenstackOrchestrationProvider
         .files(subtemplate)
         .disableRollback(disableRollback)
         .timeoutMins(timeoutMins)
+        .tags(tags.join(","))
         .build()
       getRegionClient(region).heat().stacks().create(create)
     }
   }
 
   @Override
-  void updateStack(String region, String stackName, String stackId, String template, Map<String, String> subtemplate, ServerGroupParameters parameters) {
+  void updateStack(String region, String stackName, String stackId, String template, Map<String, String> subtemplate,
+                   ServerGroupParameters parameters, List<String> tags) {
     handleRequest {
       Map<String, String> params = parameters.toParamsMap()
-      StackUpdate update = Builders.stackUpdate().template(template).files(subtemplate).parameters(params).build()
+      StackUpdate update = Builders.stackUpdate()
+        .template(template)
+        .files(subtemplate)
+        .parameters(params)
+        .tags(tags ? tags.join(",") : null)
+        .build()
       getRegionClient(region).heat().stacks().update(stackName, stackId, update)
     }
   }
@@ -68,6 +76,13 @@ class OpenstackOrchestrationV1Provider implements OpenstackOrchestrationProvider
   List<? extends Stack> listStacks(String region) {
     handleRequest {
       getRegionClient(region).heat().stacks().list()
+    }
+  }
+
+  @Override
+  List<? extends Stack> listStacksWithLoadBalancers(String region, List<String> loadBalancerIds) {
+    handleRequest {
+      getRegionClient(region).heat().stacks().list([tags:loadBalancerIds.join(',')])
     }
   }
 

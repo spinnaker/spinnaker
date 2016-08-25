@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.client
 
-import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
+import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.openstack.domain.HealthMonitor
 import org.openstack4j.api.Builders
 import org.openstack4j.model.common.ActionResponse
@@ -27,6 +27,7 @@ import org.openstack4j.model.network.ext.LbPoolV2
 import org.openstack4j.model.network.ext.ListenerProtocol
 import org.openstack4j.model.network.ext.ListenerV2
 import org.openstack4j.model.network.ext.LoadBalancerV2
+import org.openstack4j.model.network.ext.LoadBalancerV2StatusTree
 import org.openstack4j.model.network.ext.Protocol
 
 class OpenstackLoadBalancerV2Provider implements OpenstackLoadBalancerProvider, OpenstackRequestHandler, OpenstackIdentityAware {
@@ -61,9 +62,16 @@ class OpenstackLoadBalancerV2Provider implements OpenstackLoadBalancerProvider, 
     }
 
     if (!result) {
-      throw new OpenstackProviderException("Unable to find load balancer ${id} in ${region}")
+      throw new OpenstackResourceNotFoundException("Unable to find load balancer ${id} in ${region}")
     }
     result
+  }
+
+  @Override
+  ActionResponse deleteLoadBalancer(String region, String id) {
+    handleRequest {
+      getRegionClient(region).networking().lbaasV2().loadbalancer().delete(id)
+    }
   }
 
   @Override
@@ -102,7 +110,7 @@ class OpenstackLoadBalancerV2Provider implements OpenstackLoadBalancerProvider, 
     }
 
     if (!result) {
-      throw new OpenstackProviderException("Unable to find listener ${id} in ${region}")
+      throw new OpenstackResourceNotFoundException("Unable to find listener ${id} in ${region}")
     }
     result
   }
@@ -141,7 +149,7 @@ class OpenstackLoadBalancerV2Provider implements OpenstackLoadBalancerProvider, 
     }
 
     if (!result) {
-      throw new OpenstackProviderException("Unable to find pool ${id} in ${region}")
+      throw new OpenstackResourceNotFoundException("Unable to find pool ${id} in ${region}")
     }
     result
   }
@@ -213,6 +221,12 @@ class OpenstackLoadBalancerV2Provider implements OpenstackLoadBalancerProvider, 
         .urlPath(healthMonitor.url)
         .adminStateUp(Boolean.TRUE)
         .build())
+    }
+  }
+
+  LoadBalancerV2StatusTree getLoadBalancerStatusTree(final String region, final String id) {
+    handleRequest {
+      getRegionClient(region).networking().lbaasV2().loadbalancer().statusTree(id)
     }
   }
 }

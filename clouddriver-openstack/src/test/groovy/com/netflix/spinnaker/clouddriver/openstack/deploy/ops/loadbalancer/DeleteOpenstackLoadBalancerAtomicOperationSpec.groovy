@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.loadbalancer
 
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.openstack.client.BlockingStatusChecker
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFactory
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.loadbalancer.DeleteOpenstackLoadBalancerDescription
@@ -25,9 +26,9 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOpe
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
-import org.openstack4j.model.network.ext.LbPool
+import org.openstack4j.model.network.ext.LbProvisioningStatus
+import org.openstack4j.model.network.ext.LoadBalancerV2
 import spock.lang.Specification
-import spock.lang.Subject
 
 class DeleteOpenstackLoadBalancerAtomicOperationSpec extends Specification {
 
@@ -52,109 +53,116 @@ class DeleteOpenstackLoadBalancerAtomicOperationSpec extends Specification {
 
   def "should delete load balancer and all components"() {
     given:
-    String monitorId = UUID.randomUUID().toString()
-    String vipId = UUID.randomUUID().toString()
-    @Subject def operation = new DeleteOpenstackLoadBalancerAtomicOperation(description)
-    def lbPool = Mock(LbPool)
+    def operation = Spy(DeleteOpenstackLoadBalancerAtomicOperation, constructorArgs: [description])
+    LoadBalancerV2 loadBalancer = Mock(LoadBalancerV2)
 
     when:
     operation.operate([])
 
     then:
-    1 * provider.getLoadBalancerPool(description.region, description.id) >> lbPool
-    1 * lbPool.healthMonitors >> [monitorId]
-    1 * provider.disassociateAndRemoveHealthMonitor(description.region, description.id, monitorId)
-    4 * lbPool.vipId >> vipId
-    1 * provider.deleteVip(description.region, vipId)
-    1 * provider.deleteLoadBalancerPool(description.region, description.id)
-    noExceptionThrown()
-  }
-
-  def "should delete load balancer pool - no vip or montiors"() {
-    given:
-    @Subject def operation = new DeleteOpenstackLoadBalancerAtomicOperation(description)
-    def lbPool = Mock(LbPool)
-
-    when:
-    operation.operate([])
-
-    then:
-    1 * provider.getLoadBalancerPool(description.region, description.id) >> lbPool
-    1 * lbPool.healthMonitors >> []
-    0 * provider.disassociateAndRemoveHealthMonitor(description.region, description.id, _)
-    1 * lbPool.vipId >> null
-    0 * provider.deleteVip(description.region, _)
-    1 * provider.deleteLoadBalancerPool(description.region, description.id)
-    noExceptionThrown()
-  }
-
-  def "should delete load balancer pool and vip - no montiors"() {
-    given:
-    String vipId = UUID.randomUUID().toString()
-    @Subject def operation = new DeleteOpenstackLoadBalancerAtomicOperation(description)
-    def lbPool = Mock(LbPool)
-
-    when:
-    operation.operate([])
-
-    then:
-    1 * provider.getLoadBalancerPool(description.region, description.id) >> lbPool
-    1 * lbPool.healthMonitors >> []
-    0 * provider.disassociateAndRemoveHealthMonitor(description.region, description.id, _)
-    4 * lbPool.vipId >> vipId
-    1 * provider.deleteVip(description.region, vipId)
-    1 * provider.deleteLoadBalancerPool(description.region, description.id)
-    noExceptionThrown()
-  }
-
-  def "should delete load balancer pool and monitors - no vip"() {
-    given:
-    String monitorId = UUID.randomUUID().toString()
-    @Subject def operation = new DeleteOpenstackLoadBalancerAtomicOperation(description)
-    def lbPool = Mock(LbPool)
-
-    when:
-    operation.operate([])
-
-    then:
-    1 * provider.getLoadBalancerPool(description.region, description.id) >> lbPool
-    1 * lbPool.healthMonitors >> [monitorId]
-    1 * provider.disassociateAndRemoveHealthMonitor(description.region, description.id, monitorId)
-    1 * lbPool.vipId >> null
-    0 * provider.deleteVip(description.region, _)
-    1 * provider.deleteLoadBalancerPool(description.region, description.id)
+    1 * provider.getLoadBalancer(description.region, description.id) >> loadBalancer
+    1 * operation.checkPendingLoadBalancerState(loadBalancer) >> {}
+    1 * operation.deleteLoadBalancer(description.region, loadBalancer) >> {}
+    1 * operation.updateServerGroup(DeleteOpenstackLoadBalancerAtomicOperation.BASE_PHASE, description.region, description.id, [description.id]) >> {
+    }
     noExceptionThrown()
   }
 
   def "should not delete load balancer"() {
     given:
-    @Subject def operation = new DeleteOpenstackLoadBalancerAtomicOperation(description)
-    def lbPool = Mock(LbPool)
+    def operation = new DeleteOpenstackLoadBalancerAtomicOperation(description)
 
     when:
     operation.operate([])
 
     then:
-    1 * provider.getLoadBalancerPool(description.region, description.id) >> null
-    0 * lbPool.healthMonitors
-    0 * provider.disassociateAndRemoveHealthMonitor(description.region, description.id, _)
-    0 * lbPool.vipId
-    0 * provider.deleteVip(description.region, _)
-    0 * provider.deleteLoadBalancerPool(description.region, description.id)
+    1 * provider.getLoadBalancer(description.region, description.id) >> null
+    0 * operation.deleteLoadBalancer(description.region, _) >> {}
+    0 * operation.updateServerGroup(DeleteOpenstackLoadBalancerAtomicOperation.BASE_PHASE, description.region, description.id) >> {
+    }
     noExceptionThrown()
+
+  }
+
+  def "should not delete in pending state"() {
+    given:
+    def operation = new DeleteOpenstackLoadBalancerAtomicOperation(description)
+    LoadBalancerV2 loadBalancer = Mock(LoadBalancerV2)
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * provider.getLoadBalancer(description.region, description.id) >> loadBalancer
+    2 * loadBalancer.provisioningStatus >> LbProvisioningStatus.PENDING_UPDATE
+
+    and:
+    thrown(OpenstackOperationException)
   }
 
   def "should throw exception"() {
     given:
-    @Subject def operation = new DeleteOpenstackLoadBalancerAtomicOperation(description)
+    def operation = new DeleteOpenstackLoadBalancerAtomicOperation(description)
 
     when:
     operation.operate([])
 
     then:
-    1 * provider.getLoadBalancerPool(description.region, description.id) >> { throw new OpenstackProviderException('foobar') }
+    1 * provider.getLoadBalancer(description.region, description.id) >> {
+      throw new OpenstackProviderException('foobar')
+    }
     OpenstackOperationException ex = thrown(OpenstackOperationException)
     ex.message == 'deleteLoadBalancer failed: foobar'
   }
 
+  def "should delete load balancer"() {
+    given:
+    def operation = Spy(DeleteOpenstackLoadBalancerAtomicOperation, constructorArgs: [description])
+    LoadBalancerV2 loadBalancer = Mock(LoadBalancerV2) {
+      getId() >> UUID.randomUUID()
+    }
+    Map listenerMap = Mock(Map)
+    Collection values = Mock(Collection)
+
+    when:
+    operation.deleteLoadBalancer(description.region, loadBalancer)
+
+    then:
+    1 * operation.buildListenerMap(description.region, loadBalancer) >> listenerMap
+    1 * listenerMap.values() >> values
+    1 * operation.deleteLoadBalancerPeripherals(DeleteOpenstackLoadBalancerAtomicOperation.BASE_PHASE, description.region, loadBalancer.id, values) >> {
+    }
+    1 * operation.createBlockingDeletedStatusChecker(description.region, loadBalancer.id) >> {
+      BlockingStatusChecker.from(60, 5) { true }
+    }
+    1 * provider.deleteLoadBalancer(description.region, loadBalancer.id)
+    noExceptionThrown()
+  }
+
+  def "should delete load balancer exception"() {
+    given:
+    def operation = Spy(DeleteOpenstackLoadBalancerAtomicOperation, constructorArgs: [description])
+    LoadBalancerV2 loadBalancer = Mock(LoadBalancerV2) {
+      getId() >> UUID.randomUUID()
+    }
+    Map listenerMap = Mock(Map)
+    Collection values = Mock(Collection)
+
+    when:
+    operation.deleteLoadBalancer(description.region, loadBalancer)
+
+    then:
+    1 * operation.buildListenerMap(description.region, loadBalancer) >> listenerMap
+    1 * listenerMap.values() >> values
+    1 * operation.deleteLoadBalancerPeripherals(DeleteOpenstackLoadBalancerAtomicOperation.BASE_PHASE, description.region, loadBalancer.id, values) >> {
+      throw new OpenstackProviderException('test')
+    }
+    0 * operation.createBlockingDeletedStatusChecker(description.region, loadBalancer.id) >> {
+      BlockingStatusChecker.from(60, 5) { true }
+    }
+    0 * provider.deleteLoadBalancer(description.region, loadBalancer.id)
+
+    and:
+    thrown(OpenstackProviderException)
+  }
 }

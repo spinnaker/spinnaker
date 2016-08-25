@@ -16,74 +16,107 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.loadbalancer
 
-import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.openstack.client.BlockingStatusChecker
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
+import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties.LbaasConfig
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.loadbalancer.DeleteOpenstackLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
+import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.StackPoolMemberAware
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import groovy.util.logging.Slf4j
-import org.openstack4j.model.network.ext.LbPool
+import org.openstack4j.model.network.ext.LbProvisioningStatus
+import org.openstack4j.model.network.ext.ListenerV2
+import org.openstack4j.model.network.ext.LoadBalancerV2
 
 /**
  * Removes an openstack load balancer.
  */
 @Slf4j
-class DeleteOpenstackLoadBalancerAtomicOperation implements AtomicOperation<Void> {
+class DeleteOpenstackLoadBalancerAtomicOperation extends AbstractOpenstackLoadBalancerAtomicOperation implements AtomicOperation<Void>, StackPoolMemberAware {
 
-  private final String BASE_PHASE = 'DELETE_LOAD_BALANCER'
+  static final String BASE_PHASE = 'DELETE_LOAD_BALANCER'
   DeleteOpenstackLoadBalancerDescription description
 
   DeleteOpenstackLoadBalancerAtomicOperation(DeleteOpenstackLoadBalancerDescription description) {
+    super(description.credentials)
     this.description = description
   }
 
-  protected static Task getTask() {
-    TaskRepository.threadLocalTask.get()
-  }
-
   /*
-  * curl -X POST -H "Content-Type: application/json" -d  '[ {  "deleteLoadBalancer": { "id": "6adc02a8-7b01-4f90-9e6f-9a4c3411e7ad", "region": "default", "account":  "test" } } ]' localhost:7002/openstack/ops
-  */
+   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "deleteLoadBalancer": { "id": "6adc02a8-7b01-4f90-9e6f-9a4c3411e7ad", "region": "RegionOne", "account":  "test" } } ]' localhost:7002/openstack/ops
+   */
 
   @Override
   Void operate(List priorOutputs) {
     String region = description.region
     String loadBalancerId = description.id
-
-    task.updateStatus BASE_PHASE, "Deleting load balancer ${loadBalancerId} in region ${region}..."
+    OpenstackClientProvider provider = description.credentials.provider
 
     try {
-      OpenstackClientProvider clientProvider = description.credentials.provider
+      task.updateStatus BASE_PHASE, "Deleting load balancer ${loadBalancerId} in region ${region}..."
 
-      LbPool lbPool = clientProvider.getLoadBalancerPool(region, loadBalancerId)
+      task.updateStatus BASE_PHASE, "Fetching status tree..."
+      LoadBalancerV2 loadBalancer = provider.getLoadBalancer(region, loadBalancerId)
+      task.updateStatus BASE_PHASE, "Fetched status tree."
 
-      if (lbPool) {
-        lbPool.healthMonitors?.each { monitorId ->
-          task.updateStatus BASE_PHASE, "Deleting health monitor ${monitorId} ..."
-          clientProvider.disassociateAndRemoveHealthMonitor(region, loadBalancerId, monitorId)
-          task.updateStatus BASE_PHASE, "Deleted health monitor ${monitorId}."
-        }
+      if (loadBalancer) {
+        checkPendingLoadBalancerState(loadBalancer)
 
-        if (lbPool.vipId) {
-          //NOTE: Deleting a vip will disassociate it from assigned floating IP
-          task.updateStatus BASE_PHASE, "Deleting vip ${lbPool.vipId} ..."
-          clientProvider.deleteVip(region, lbPool.vipId)
-          task.updateStatus BASE_PHASE, "Deleted vip ${lbPool.vipId}."
-        }
+        //step 1 - delete load balancer
+        deleteLoadBalancer(region, loadBalancer)
 
-        //NOTE: Deleting a pool remove members
-        task.updateStatus BASE_PHASE, "Deleting load balancing pool ${loadBalancerId} ..."
-        clientProvider.deleteLoadBalancerPool(description.region, loadBalancerId)
-        task.updateStatus BASE_PHASE, "Deleted load balancing pool ${loadBalancerId}."
+        //step 2 - update stack(s) that reference load balancer
+        updateServerGroup(BASE_PHASE, region, loadBalancerId, [loadBalancerId])
       }
-    } catch (OpenstackProviderException ope) {
-      task.updateStatus BASE_PHASE, "Failed deleting load balancer ${ope.message}."
-      throw new OpenstackOperationException(AtomicOperations.DELETE_LOAD_BALANCER, ope)
+    } catch (OpenstackProviderException e) {
+      task.updateStatus BASE_PHASE, "Failed deleting load balancer ${e.message}."
+      throw new OpenstackOperationException(AtomicOperations.DELETE_LOAD_BALANCER, e)
     }
 
     task.updateStatus BASE_PHASE, "Finished deleting load balancer ${loadBalancerId}."
+  }
+
+  /**
+   * Delete the load balancer and all sub-elements.
+   * @param loadBalancerStatus
+   */
+  void deleteLoadBalancer(String region, LoadBalancerV2 loadBalancer) {
+    Map<String, ListenerV2> listenerMap = buildListenerMap(region, loadBalancer)
+
+    this.deleteLoadBalancerPeripherals(BASE_PHASE, region, loadBalancer.id, listenerMap.values())
+
+    //delete load balancer
+    task.updateStatus BASE_PHASE, "Deleting load balancer $loadBalancer.id in $region ..."
+    createBlockingDeletedStatusChecker(region, loadBalancer.id).execute {
+      provider.deleteLoadBalancer(region, loadBalancer.id)
+    }
+    task.updateStatus BASE_PHASE, "Deleted load balancer $loadBalancer.id in $region."
+  }
+
+  /**
+   * Creates and returns a new blocking deleted status checker.
+   * @param region
+   * @param loadBalancerId
+   * @return
+   */
+  BlockingStatusChecker createBlockingDeletedStatusChecker(String region, String loadBalancerId) {
+    LbaasConfig config = this.description.credentials.credentials.lbaasConfig
+    BlockingStatusChecker.from(config.pollTimeout, config.pollInterval) {
+      LoadBalancerV2 loadBalancer
+      try {
+        loadBalancer = provider.getLoadBalancer(region, loadBalancerId)
+      } catch (OpenstackProviderException e) {
+        // Get load balancer will throw an exception if the load balancer is not found
+      }
+
+      // Short circuit polling if openstack is unable to provision the load balancer
+      if (loadBalancer && LbProvisioningStatus.ERROR == loadBalancer.provisioningStatus) {
+        throw new OpenstackProviderException("Openstack was unable to provision load balancer ${loadBalancerId}")
+      }
+
+      loadBalancer == null
+    }
   }
 }

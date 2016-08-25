@@ -67,6 +67,7 @@ class ResizeOpenstackAtomicOperationSpec extends Specification {
     Stack stack = Mock(Stack)
     String template = "foo: bar"
     Map<String, String> sub = ['asg_resource.yaml':'foo: bar','asg_member.yaml':'foo: bar']
+    List<String> tags = ['lb123']
 
     when:
     operation.operate([])
@@ -78,7 +79,8 @@ class ResizeOpenstackAtomicOperationSpec extends Specification {
     1 * stack.getParameters() >> serverGroupParams.toParamsMap()
     _ * stack.getId() >> stackId
     _ * stack.getName() >> createdStackName
-    1 * provider.updateStack(region, createdStackName, stackId, template, sub, _ as ServerGroupParameters)
+    _ * stack.getTags() >> tags
+    1 * provider.updateStack(region, createdStackName, stackId, template, sub, _ as ServerGroupParameters, tags)
     noExceptionThrown()
   }
 
@@ -100,6 +102,7 @@ class ResizeOpenstackAtomicOperationSpec extends Specification {
     Stack stack = Mock(Stack)
     String template = "foo: bar"
     Map<String, String> sub = ['asg_resource.yaml':'foo: bar','asg_member.yaml':'foo: bar']
+    List<String> tags = ['lb123']
 
     when:
     operation.operate([])
@@ -111,7 +114,8 @@ class ResizeOpenstackAtomicOperationSpec extends Specification {
     1 * stack.getParameters() >> serverGroupParams.toParamsMap()
     _ * stack.getId() >> stackId
     _ * stack.getName() >> createdStackName
-    1 * provider.updateStack(region, createdStackName, stackId, template, sub, _ as ServerGroupParameters) >> { throw new OpenstackProviderException('foo') }
+    _ * stack.getTags() >> tags
+    1 * provider.updateStack(region, createdStackName, stackId, template, sub, _ as ServerGroupParameters, tags) >> { throw new OpenstackProviderException('foo') }
     thrown(OpenstackOperationException)
   }
 }
