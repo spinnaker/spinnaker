@@ -304,44 +304,51 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       instanceGroupManager.setNamedPorts([namedPort])
     }
 
+    def willUpdateBackendServices = !description.disableTraffic && hasBackendServices
+    def willCreateAutoscaler = autoscalerIsSpecified(description)
+
     if (isRegional) {
       migCreateOperation = compute.regionInstanceGroupManagers().insert(project, region, instanceGroupManager).execute()
 
-      if (autoscalerIsSpecified(description)) {
-        // Before creating the Autoscaler we must wait until the managed instance group is created.
+      if (willUpdateBackendServices || willCreateAutoscaler) {
+        // Before updating the Backend Services or creating the Autoscaler we must wait until the managed instance group is created.
         googleOperationPoller.waitForRegionalOperation(compute, project, region, migCreateOperation.getName(),
           null, task, "managed instance group $serverGroupName", BASE_PHASE)
 
-        task.updateStatus BASE_PHASE, "Creating regional autoscaler for $serverGroupName..."
+        if (willCreateAutoscaler) {
+          task.updateStatus BASE_PHASE, "Creating regional autoscaler for $serverGroupName..."
 
-        Autoscaler autoscaler = GCEUtil.buildAutoscaler(serverGroupName,
-                                                        migCreateOperation.targetLink,
-                                                        description.autoscalingPolicy)
+          Autoscaler autoscaler = GCEUtil.buildAutoscaler(serverGroupName,
+                                                          migCreateOperation.targetLink,
+                                                          description.autoscalingPolicy)
 
-        compute.regionAutoscalers().insert(project, region, autoscaler).execute()
+          compute.regionAutoscalers().insert(project, region, autoscaler).execute()
+        }
       }
     } else {
       migCreateOperation = compute.instanceGroupManagers().insert(project, zone, instanceGroupManager).execute()
 
-      if (autoscalerIsSpecified(description)) {
-        // Before creating the Autoscaler we must wait until the managed instance group is created.
+      if (willUpdateBackendServices || willCreateAutoscaler) {
+        // Before updating the Backend Services or creating the Autoscaler we must wait until the managed instance group is created.
         googleOperationPoller.waitForZonalOperation(compute, project, zone, migCreateOperation.getName(),
           null, task, "managed instance group $serverGroupName", BASE_PHASE)
 
-        task.updateStatus BASE_PHASE, "Creating zonal autoscaler for $serverGroupName..."
+        if (willCreateAutoscaler) {
+          task.updateStatus BASE_PHASE, "Creating zonal autoscaler for $serverGroupName..."
 
-        Autoscaler autoscaler = GCEUtil.buildAutoscaler(serverGroupName,
-                                                        migCreateOperation.targetLink,
-                                                        description.autoscalingPolicy)
+          Autoscaler autoscaler = GCEUtil.buildAutoscaler(serverGroupName,
+                                                          migCreateOperation.targetLink,
+                                                          description.autoscalingPolicy)
 
-        compute.autoscalers().insert(project, zone, autoscaler).execute()
+          compute.autoscalers().insert(project, zone, autoscaler).execute()
+        }
       }
     }
 
     task.updateStatus BASE_PHASE, "Done creating server group $serverGroupName in ${isRegional ? region : zone}."
 
     // Actually update the backend services.
-    if (!description.disableTraffic && hasBackendServices) {
+    if (willUpdateBackendServices) {
       backendServicesToUpdate.each { BackendService backendService ->
         compute.backendServices().update(project, backendService.name, backendService).execute()
         task.updateStatus BASE_PHASE, "Done associating server group $serverGroupName with backend service ${backendService.name}."
