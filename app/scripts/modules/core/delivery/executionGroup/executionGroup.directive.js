@@ -59,7 +59,6 @@ module.exports = angular
       poll: null,
       canTriggerPipelineManually: this.pipelineConfig,
       canConfigure: this.pipelineConfig,
-      isRetired: ExecutionFilterModel.sortFilter.groupBy === 'name' && !this.pipelineConfig,
       showPipelineName: ExecutionFilterModel.sortFilter.groupBy !== 'name',
     };
 

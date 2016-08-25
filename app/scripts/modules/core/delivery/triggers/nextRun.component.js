@@ -15,7 +15,7 @@ module.exports = angular
     },
     controller: function (momentService, settings) {
 
-      function setScheduled() {
+      this.updateSchedule = () => {
         if (!this.pipeline) {
           return;
         }
@@ -42,18 +42,21 @@ module.exports = angular
           }
         });
         if (nextTimes.length) {
+          this.hasNextScheduled = true;
           this.nextScheduled = Math.min(...nextTimes);
-          this.nextDuration = momentService(this.nextScheduled).fromNow();
         }
-      }
+      };
 
-      this.$onInit = setScheduled;
+      this.$onInit = this.updateSchedule;
+
+      this.getNextDuration = () => momentService(this.nextScheduled).fromNow();
     },
     template: `
-      <span is-visible="$ctrl.nextScheduled">
+      <span is-visible="$ctrl.hasNextScheduled">
         <span class="glyphicon glyphicon-time"
               popover-placement="left"
               popover-trigger="mouseenter"
-              uib-popover="Next run: {{$ctrl.nextScheduled | timestamp}} ({{$ctrl.nextDuration}})"></span>
+              ng-mouseenter="$ctrl.updateSchedule()"
+              uib-popover="Next run: {{$ctrl.nextScheduled | timestamp}} ({{$ctrl.getNextDuration()}})"></span>
       </span>`
   });

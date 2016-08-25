@@ -24,9 +24,8 @@
           </h4>
         </div>
         <div class="col-md-7 col-sm-7 text-right execution-group-actions" ng-if="vm.viewState.canConfigure">
-          <h4 ng-if="vm.viewState.isRetired"><span class="label-retired" uib-tooltip="The configuration for this pipeline has been renamed or deleted.">RETIRED</span></h4>
-          <triggers-tag pipeline="vm.pipelineConfig"></triggers-tag>
-          <next-run-tag pipeline="vm.pipelineConfig"></next-run-tag>
+          <triggers-tag is-visible="!vm.pipelineConfig.disabled" pipeline="vm.pipelineConfig"></triggers-tag>
+          <next-run-tag ng-if="!vm.pipelineConfig.disabled" pipeline="vm.pipelineConfig"></next-run-tag>
           <h4>
             <a href
                class="btn btn-xs btn-link link-inverse"
