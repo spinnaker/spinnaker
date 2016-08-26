@@ -9,19 +9,15 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
   require('../api/api.service'),
   require('../utils/lodash.js'),
   require('../serverGroup/serverGroup.transformer.js'),
-  require('../job/job.transformer.js'),
 ])
-  .factory('clusterService', function ($q, API, _, serverGroupTransformer,
-                                       jobTransformer, namingService) {
+  .factory('clusterService', function ($q, API, _, serverGroupTransformer, namingService) {
 
     function loadServerGroups(applicationName) {
       var serverGroupLoader = $q.all({
         serverGroups: API.one('applications').one(applicationName).all('serverGroups').getList().then(g => g, () => []),
-        jobs: API.one('applications').one(applicationName).all('jobs').getList().then(jobs => jobs, () => []),
       });
       return serverGroupLoader.then(function(results) {
         results.serverGroups = results.serverGroups || [];
-        results.jobs = results.jobs || [];
 
         results.serverGroups.forEach(addHealthStatusCheck);
         results.serverGroups.forEach(parseName);
@@ -29,14 +25,7 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
             serverGroup.category = 'serverGroup'
           );
 
-        results.jobs.forEach(addHealthStatusCheck);
-        results.jobs.forEach(parseName);
-        results.jobs.forEach((job) =>
-            job.category = 'job'
-          );
-
-        return $q.all(results.serverGroups.map(serverGroupTransformer.normalizeServerGroup)
-            .concat(results.jobs.map(jobTransformer.normalizeJob)));
+        return $q.all(results.serverGroups.map(serverGroupTransformer.normalizeServerGroup));
       });
     }
 
@@ -68,7 +57,7 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
         failed: 0,
         total: 0,
       };
-      var operand = cluster.serverGroups || cluster.jobs || [];
+      var operand = cluster.serverGroups || [];
       operand.forEach(function(serverGroup) {
         if (!serverGroup.instanceCounts) {
           return;

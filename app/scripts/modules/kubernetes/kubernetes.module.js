@@ -22,7 +22,6 @@ module.exports = angular.module('spinnaker.kubernetes', [
   require('./container/configurer.directive.js'),
   require('./container/probe.directive.js'),
   require('./instance/details/details.kubernetes.module.js'),
-  require('./job/job.module.js'),
   require('./loadBalancer/configure/configure.kubernetes.module.js'),
   require('./loadBalancer/details/details.kubernetes.module.js'),
   require('./loadBalancer/transformer.js'),
@@ -82,15 +81,6 @@ module.exports = angular.module('spinnaker.kubernetes', [
         cloneServerGroupTemplateUrl: require('./serverGroup/configure/wizard/wizard.html'),
         commandBuilder: 'kubernetesServerGroupCommandBuilder',
         configurationService: 'kubernetesServerGroupConfigurationService',
-      },
-      job: {
-        skipUpstreamStageCheck: true,
-        cloneJobController: 'kubernetesCloneJobController',
-        cloneJobTemplateUrl: require('./job/configure/wizard/wizard.html'),
-        commandBuilder: 'kubernetesJobCommandBuilder',
-        detailsTemplateUrl: require('./job/details/details.html'),
-        detailsController: 'kubernetesJobDetailsController',
-        transformer: 'kubernetesJobTransformer',
       },
     });
   });

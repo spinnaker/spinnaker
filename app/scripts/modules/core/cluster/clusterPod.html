@@ -30,15 +30,6 @@
         has-discovery="grouping.hasDiscovery"
         has-load-balancers="grouping.hasLoadBalancers"
         parent-heading="subgroup.heading"></server-group>
-      <job
-        ng-repeat="serverGroup in subgroup.serverGroups | orderBy:'-name'"
-        ng-if="grouping.cluster.category === 'job'"
-        job="serverGroup"
-        cluster="serverGroup.cluster"
-        application="application"
-        has-discovery="grouping.hasDiscovery"
-        has-load-balancers="grouping.hasLoadBalancers"
-        parent-heading="subgroup.heading"></job>
     </div>
     <div class="permalinks text-right">
       <a ng-href="{{permalink}}" target="_blank" analytics-on="click" analytics-category="Cluster Pod" analytics-event="Permalink clicked">Permalink</a>
