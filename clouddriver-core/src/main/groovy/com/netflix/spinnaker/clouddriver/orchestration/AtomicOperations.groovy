@@ -67,4 +67,5 @@ final class AtomicOperations {
 
   // Serialize operations
   public static final String SERIALIZE_APPLICATION = "serializeApplication"
+  public static final String RESTORE_SNAPSHOT = "restoreSnapshot"
 }

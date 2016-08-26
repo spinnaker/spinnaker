@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.deploy.config.DeployConfiguration
 import com.netflix.spinnaker.clouddriver.docker.registry.DockerRegistryConfiguration
 import com.netflix.spinnaker.clouddriver.eureka.EurekaProviderConfiguration
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
+import com.netflix.spinnaker.clouddriver.jobs.config.LocalJobConfig
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesConfiguration
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackConfiguration
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
@@ -59,7 +60,8 @@ import java.security.Security
   CloudFoundryConfig,
   AzureConfiguration,
   SecurityConfig,
-  EurekaProviderConfiguration
+  EurekaProviderConfiguration,
+  LocalJobConfig
 ])
 @ComponentScan([
   'com.netflix.spinnaker.config',
