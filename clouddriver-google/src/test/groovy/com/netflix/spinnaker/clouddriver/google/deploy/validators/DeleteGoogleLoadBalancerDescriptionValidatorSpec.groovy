@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
@@ -49,6 +50,7 @@ class DeleteGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
           deleteOperationTimeoutSeconds: TIMEOUT_SECONDS,
           loadBalancerName: LOAD_BALANCER_NAME,
           region: REGION,
+          loadBalancerType: GoogleLoadBalancerType.NETWORK,
           accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
 
@@ -64,6 +66,7 @@ class DeleteGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
       def description = new DeleteGoogleLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
           region: REGION,
+          loadBalancerType: GoogleLoadBalancerType.NETWORK,
           accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
 
@@ -72,6 +75,23 @@ class DeleteGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
 
     then:
       0 * errors._
+  }
+
+  void "fail validation with bad region"() {
+    setup:
+      def description = new DeleteGoogleLoadBalancerDescription(
+          deleteOperationTimeoutSeconds: TIMEOUT_SECONDS,
+          loadBalancerName: LOAD_BALANCER_NAME,
+          region: null,
+          loadBalancerType: GoogleLoadBalancerType.NETWORK,
+          accountName: ACCOUNT_NAME)
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue("region", _)
   }
 
   void "null input fails validation"() {
@@ -85,6 +105,5 @@ class DeleteGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
     then:
       1 * errors.rejectValue('credentials', _)
       1 * errors.rejectValue('loadBalancerName', _)
-      1 * errors.rejectValue('region', _)
   }
 }

@@ -16,16 +16,27 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHostRule
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
+
 class UpsertGoogleLoadBalancerDescription extends AbstractGoogleCredentialsDescription {
+  // Common attributes.
   String loadBalancerName
   HealthCheck healthCheck
-  // The local names of the instances.
-  List<String> instances
+  List<String> instances // The local names of the instances.
   String ipAddress
   String ipProtocol
   String portRange
   String region
   String accountName
+
+  // Http(s) attributes.
+  GoogleBackendService defaultService
+  List<GoogleHostRule> hostRules
+  String certificate
+
+  GoogleLoadBalancerType loadBalancerType
 
   static class HealthCheck {
     Integer checkIntervalSec

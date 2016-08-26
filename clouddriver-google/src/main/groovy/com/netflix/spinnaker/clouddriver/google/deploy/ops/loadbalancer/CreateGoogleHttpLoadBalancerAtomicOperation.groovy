@@ -22,17 +22,17 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
-import com.netflix.spinnaker.clouddriver.google.deploy.description.CreateGoogleHttpLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHostRule
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
-class CreateGoogleHttpLoadBalancerAtomicOperation implements AtomicOperation<Map> {
+class CreateGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalancerAtomicOperation {
   private static final String BASE_PHASE = "CREATE_HTTP_LOAD_BALANCER"
   private static final String HEALTH_CHECK_NAME_PREFIX = "hc"
   private static final String BACKEND_SERVICE_NAME_PREFIX = "bs"
@@ -47,18 +47,18 @@ class CreateGoogleHttpLoadBalancerAtomicOperation implements AtomicOperation<Map
   @Autowired
   private GoogleOperationPoller googleOperationPoller
 
-  private final CreateGoogleHttpLoadBalancerDescription description
+  private final UpsertGoogleLoadBalancerDescription description
 
-  CreateGoogleHttpLoadBalancerAtomicOperation(CreateGoogleHttpLoadBalancerDescription description) {
+  CreateGoogleHttpLoadBalancerAtomicOperation(UpsertGoogleLoadBalancerDescription description) {
     this.description = description
   }
 
   /**
    * minimal command:
-   * curl -v -X POST -H "Content-Type: application/json" -d '[{ "createGoogleHttpLoadBalancerDescription": {"credentials": "my-google-account", "googleHttpLoadBalancer": {"name": "http-create", "portRange": "80", "defaultService": {"name": "default-backend-service", "backends": [], "healthCheck": {"name": "basic-check", "requestPath": "/", "port": 80, "checkIntervalSec": 1, "timeoutSec": 1, "healthyThreshold": 1, "unhealthyThreshold": 1}}, "certificate": "", "hostRules": [] }}}]' localhost:7002/ops
+   * curl -v -X POST -H "Content-Type: application/json" -d '[{ "upsertLoadBalancer": {"credentials": "my-google-account", "loadBalancerType": "HTTP", "loadBalancerName": "http-create", "portRange": "80", "defaultService": {"name": "default-backend-service", "backends": [], "healthCheck": {"name": "basic-check", "requestPath": "/", "port": 80, "checkIntervalSec": 1, "timeoutSec": 1, "healthyThreshold": 1, "unhealthyThreshold": 1}}, "certificate": "", "hostRules": [] }}]' localhost:7002/gce/ops
    *
    * full command:
-   * curl -v -X POST -H "Content-Type: application/json" -d '[{ "createGoogleHttpLoadBalancerDescription": {"credentials": "my-google-account", "googleHttpLoadBalancer": {"name": "http-create", "portRange": "80", "defaultService": {"name": "default-backend-service", "backends": [], "healthCheck": {"name": "basic-check", "requestPath": "/", "port": 80, "checkIntervalSec": 1, "timeoutSec": 1, "healthyThreshold": 1, "unhealthyThreshold": 1}}, "certificate": "", "hostRules": [{"hostPatterns": ["host1.com", "host2.com"], "pathMatcher": {"pathRules": [{"paths": ["/path", "/path2/more"], "backendService": {"name": "backend-service", "backends": [], "healthCheck": {"name": "health-check", "requestPath": "/", "port": 80, "checkIntervalSec": 1, "timeoutSec": 1, "healthyThreshold": 1, "unhealthyThreshold": 1}}}], "defaultService": {"name": "pm-backend-service", "backends": [], "healthCheck": {"name": "derp-check", "requestPath": "/", "port": 80, "checkIntervalSec": 1, "timeoutSec": 1, "healthyThreshold": 1, "unhealthyThreshold": 1}}}}]}}}]' localhost:7002/ops
+   * curl -v -X POST -H "Content-Type: application/json" -d '[{ "upsertLoadBalancer": {"credentials": "my-google-account", "loadBalancerType": "HTTP", "loadBalancerName": "http-create", "portRange": "80", "defaultService": {"name": "default-backend-service", "backends": [], "healthCheck": {"name": "basic-check", "requestPath": "/", "port": 80, "checkIntervalSec": 1, "timeoutSec": 1, "healthyThreshold": 1, "unhealthyThreshold": 1}}, "certificate": "", "hostRules": [{"hostPatterns": ["host1.com", "host2.com"], "pathMatcher": {"pathRules": [{"paths": ["/path", "/path2/more"], "backendService": {"name": "backend-service", "backends": [], "healthCheck": {"name": "health-check", "requestPath": "/", "port": 80, "checkIntervalSec": 1, "timeoutSec": 1, "healthyThreshold": 1, "unhealthyThreshold": 1}}}], "defaultService": {"name": "pm-backend-service", "backends": [], "healthCheck": {"name": "derp-check", "requestPath": "/", "port": 80, "checkIntervalSec": 1, "timeoutSec": 1, "healthyThreshold": 1, "unhealthyThreshold": 1}}}}]}}]' localhost:7002/gce/ops
    *
    * @param description
    * @param priorOutputs
@@ -66,7 +66,15 @@ class CreateGoogleHttpLoadBalancerAtomicOperation implements AtomicOperation<Map
    */
   @Override
   Map operate(List priorOutputs) {
-    def httpLoadBalancer = description.googleHttpLoadBalancer
+    def httpLoadBalancer = new GoogleHttpLoadBalancer(
+        name: description.loadBalancerName,
+        defaultService: description.defaultService,
+        hostRules: description.hostRules,
+        certificate: description.certificate,
+        ipAddress: description.ipAddress,
+        ipProtocol: description.ipProtocol,
+        portRange: description.portRange
+    )
     def httpLoadBalancerName = httpLoadBalancer.name
 
     task.updateStatus BASE_PHASE, "Initializing creation of HTTP load balancer $httpLoadBalancerName..."

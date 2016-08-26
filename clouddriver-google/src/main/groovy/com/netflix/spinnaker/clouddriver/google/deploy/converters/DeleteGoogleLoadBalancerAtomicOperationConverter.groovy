@@ -18,7 +18,9 @@ package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.DeleteGoogleHttpLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.DeleteGoogleLoadBalancerAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
@@ -29,7 +31,19 @@ import org.springframework.stereotype.Component
 class DeleteGoogleLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Override
   AtomicOperation convertOperation(Map input) {
-    new DeleteGoogleLoadBalancerAtomicOperation(convertDescription(input))
+    DeleteGoogleLoadBalancerDescription description = convertDescription(input)
+    switch (description.loadBalancerType) {
+      case GoogleLoadBalancerType.NETWORK:
+        return new DeleteGoogleLoadBalancerAtomicOperation(description)
+        break
+      case GoogleLoadBalancerType.HTTP:
+        return new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
+        break
+      default:
+        // TODO(jacobkiefer): This is for backwards compatibility for L4 deletion.
+        return new DeleteGoogleLoadBalancerAtomicOperation(description)
+        break
+    }
   }
 
   @Override

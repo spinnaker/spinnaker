@@ -19,6 +19,10 @@ package com.netflix.spinnaker.clouddriver.google.deploy.validators
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,13 +43,49 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
     def helper = new StandardGceAttributeValidator("upsertGoogleLoadBalancerDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
-    helper.validateRegion(description.region)
     helper.validateName(description.loadBalancerName, "loadBalancerName")
 
-    // If the IP protocol is specified, it must be contained in the list of supported protocols.
-    if (description.ipProtocol && !SUPPORTED_IP_PROTOCOLS.contains(description.ipProtocol)) {
-      errors.rejectValue("ipProtocol",
-        "upsertGoogleLoadBalancerDescription.ipProtocol.notSupported")
+    switch (description.loadBalancerType) {
+      case GoogleLoadBalancerType.NETWORK:
+        helper.validateRegion(description.region)
+
+        // If the IP protocol is specified, it must be contained in the list of supported protocols.
+        if (description.ipProtocol && !SUPPORTED_IP_PROTOCOLS.contains(description.ipProtocol)) {
+          errors.rejectValue("ipProtocol",
+            "upsertGoogleLoadBalancerDescription.ipProtocol.notSupported")
+        }
+        break
+      case GoogleLoadBalancerType.HTTP:
+
+        // portRange must be a single port.
+        try {
+          Integer.parseInt(description.portRange)
+        } catch (NumberFormatException _) {
+          errors.rejectValue("portRange",
+            "portRange.requireSinglePort")
+        }
+
+        // Each backend service must have a health check.
+        def googleHttpLoadBalancer = new GoogleHttpLoadBalancer(
+          name: description.loadBalancerName,
+          defaultService: description.defaultService,
+          hostRules: description.hostRules,
+          certificate: description.certificate,
+          ipAddress: description.ipAddress,
+          ipProtocol: description.ipProtocol,
+          portRange: description.portRange
+        )
+        List<GoogleBackendService> services = Utils.getBackendServicesFromHttpLoadBalancerView(googleHttpLoadBalancer.view)
+        services?.each { GoogleBackendService service ->
+          if (!service.healthCheck) {
+            errors.rejectValue("defaultService OR hostRules.pathMatcher.defaultService OR hostRules.pathMatcher.pathRules.backendService",
+              "createGoogleHttpLoadBalancerDescription.backendServices.healthCheckRequired")
+          }
+        }
+        break
+      default:
+        errors.rejectValue("description.loadBalancerType", "upsertGoogleLoadBalancerDescription.loadBalancerType.illegalType")
+        break
     }
   }
 }

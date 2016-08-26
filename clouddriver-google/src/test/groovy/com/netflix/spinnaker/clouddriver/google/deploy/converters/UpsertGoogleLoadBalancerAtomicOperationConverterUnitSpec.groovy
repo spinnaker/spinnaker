@@ -18,11 +18,18 @@ package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.CreateGoogleHttpLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleLoadBalancerAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import spock.lang.Shared
 import spock.lang.Specification
+
+import static com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.CreateGoogleHttpLoadBalancerTestConstants.*
 
 class UpsertGoogleLoadBalancerAtomicOperationConverterUnitSpec extends Specification {
   private static final LOAD_BALANCER_NAME = "spinnaker-test-v000"
@@ -51,14 +58,15 @@ class UpsertGoogleLoadBalancerAtomicOperationConverterUnitSpec extends Specifica
   void "upsertGoogleLoadBalancerDescription type returns UpsertGoogleLoadBalancerDescription and UpsertGoogleLoadBalancerAtomicOperation"() {
     setup:
       def input = [
-          loadBalancerName: LOAD_BALANCER_NAME,
-          region: REGION,
-          accountName: ACCOUNT_NAME,
-          healthCheck: [checkIntervalSec: CHECK_INTERVAL_SEC],
-          instances: [INSTANCE],
-          ipAddress: IP_ADDRESS,
-          ipProtocol: IP_PROTOCOL,
-          portRange: PORT_RANGE
+        loadBalancerType: "HTTP",
+        loadBalancerName: LOAD_BALANCER_NAME,
+        region          : REGION,
+        accountName     : ACCOUNT_NAME,
+        healthCheck     : [checkIntervalSec: CHECK_INTERVAL_SEC],
+        instances       : [INSTANCE],
+        ipAddress       : IP_ADDRESS,
+        ipProtocol      : IP_PROTOCOL,
+        portRange       : PORT_RANGE
       ]
 
     when:
@@ -80,5 +88,87 @@ class UpsertGoogleLoadBalancerAtomicOperationConverterUnitSpec extends Specifica
 
     then:
       operation instanceof UpsertGoogleLoadBalancerAtomicOperation
+  }
+
+  void "createGoogleHttpLoadBalancerDescription type returns UpsertGoogleLoadBalancerDescription and CreateGoogleHttpLoadBalancerAtomicOperation"() {
+    setup:
+      def hc = [
+        "name"              : "basic-check",
+        "requestPath"       : "/",
+        "port"              : 80,
+        "checkIntervalSec"  : 1,
+        "timeoutSec"        : 1,
+        "healthyThreshold"  : 1,
+        "unhealthyThreshold": 1
+      ]
+      def input = [
+        "loadBalancerType": "HTTP",
+        "credentials"     : "my-google-account",
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+        "certificate"     : "",
+        "hostRules"       : [
+          [
+            "hostPatterns": [
+              "host1.com",
+              "host2.com"
+            ],
+            "pathMatcher" : [
+              "pathRules"     : [
+                [
+                  "paths"         : [
+                    "/path",
+                    "/path2/more"
+                  ],
+                  "backendService": [
+                    "name"       : PM_SERVICE,
+                    "backends"   : [],
+                    "healthCheck": hc,
+                  ]
+                ]
+              ],
+              "defaultService": [
+                "name"       : DEFAULT_PM_SERVICE,
+                "backends"   : [],
+                "healthCheck": hc,
+              ]
+            ]
+          ]
+        ]
+      ]
+
+    when:
+      def description = converter.convertDescription(input)
+
+    then:
+      description instanceof UpsertGoogleLoadBalancerDescription
+      description.loadBalancerName == LOAD_BALANCER_NAME
+      description.portRange == PORT_RANGE
+
+      def httpLoadBalancer = new GoogleHttpLoadBalancer(
+        name: description.loadBalancerName,
+        defaultService: description.defaultService,
+        hostRules: description.hostRules,
+        certificate: description.certificate,
+        ipAddress: description.ipAddress,
+        ipProtocol: description.ipProtocol,
+        portRange: description.portRange
+      )
+      List<GoogleBackendService> services = Utils.getBackendServicesFromHttpLoadBalancerView(httpLoadBalancer.view)
+      services.findAll { it.healthCheck == (hc as GoogleHealthCheck) }.size == 3
+      description.defaultService.name == DEFAULT_SERVICE
+      description.hostRules[0].pathMatcher.defaultService.name == DEFAULT_PM_SERVICE
+      description.hostRules[0].pathMatcher.pathRules[0].backendService.name == PM_SERVICE
+
+    when:
+      def operation = converter.convertOperation(input)
+
+    then:
+      operation instanceof CreateGoogleHttpLoadBalancerAtomicOperation
   }
 }

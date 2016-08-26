@@ -48,12 +48,14 @@ class UpsertGoogleLoadBalancerAtomicOperation implements AtomicOperation<Map> {
 
   private final UpsertGoogleLoadBalancerDescription description
 
+  UpsertGoogleLoadBalancerAtomicOperation() {}
+
   UpsertGoogleLoadBalancerAtomicOperation(UpsertGoogleLoadBalancerDescription description) {
     this.description = description
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertLoadBalancer": { "region": "us-central1", "credentials" : "my-account-name", "loadBalancerName" : "testlb" }} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertLoadBalancer": { "region": "us-central1", "credentials" : "my-account-name", "loadBalancerName" : "testlb", "loadBalancerType": "NETWORK"}} ]' localhost:7002/gce/ops
    *
    * @param priorOutputs
    * @return

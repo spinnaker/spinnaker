@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.validators
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,7 +38,9 @@ class DeleteGoogleLoadBalancerDescriptionValidator extends
     def helper = new StandardGceAttributeValidator("deleteGoogleLoadBalancerDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
-    helper.validateRegion(description.region)
     helper.validateName(description.loadBalancerName, "loadBalancerName")
+    if (description.loadBalancerType == GoogleLoadBalancerType.NETWORK) {
+      helper.validateRegion(description.region)
+    }
   }
 }

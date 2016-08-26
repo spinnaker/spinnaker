@@ -18,7 +18,9 @@ package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.CreateGoogleHttpLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleLoadBalancerAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
@@ -28,7 +30,19 @@ import org.springframework.stereotype.Component
 @Component("upsertGoogleLoadBalancerDescription")
 class UpsertGoogleLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   AtomicOperation convertOperation(Map input) {
-    new UpsertGoogleLoadBalancerAtomicOperation(convertDescription(input))
+    UpsertGoogleLoadBalancerDescription description = convertDescription(input)
+    switch (description.loadBalancerType) {
+      case GoogleLoadBalancerType.NETWORK:
+        return new UpsertGoogleLoadBalancerAtomicOperation(description)
+        break
+      case GoogleLoadBalancerType.HTTP:
+        return new CreateGoogleHttpLoadBalancerAtomicOperation(description)
+        break
+      default:
+        // TODO(jacobkiefer): This is for backwards compatibility for L4 Upsert.
+        return new UpsertGoogleLoadBalancerAtomicOperation(description)
+        break
+    }
   }
 
   UpsertGoogleLoadBalancerDescription convertDescription(Map input) {

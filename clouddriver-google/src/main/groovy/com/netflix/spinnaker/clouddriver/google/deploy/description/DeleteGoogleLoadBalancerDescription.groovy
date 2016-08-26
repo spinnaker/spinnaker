@@ -16,10 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
+
 class DeleteGoogleLoadBalancerDescription extends AbstractGoogleCredentialsDescription {
   Long deleteOperationTimeoutSeconds
   String loadBalancerName
   String region
   String accountName
   Boolean deleteHealthChecks = true
+  GoogleLoadBalancerType loadBalancerType
 }

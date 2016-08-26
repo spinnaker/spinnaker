@@ -21,15 +21,14 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
-import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleHttpLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
 @Slf4j
-class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Void> {
-  private static final String BASE_PHASE = "DELETE_HTTP_LOAD_BALANCER"
+class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalancerAtomicOperation {
+  private static final String BASE_PHASE = "DELETE_LOAD_BALANCER"
 
   static class HealthCheckAsyncDeleteOperation {
     String healthCheckName
@@ -58,14 +57,14 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
   @Autowired
   private GoogleOperationPoller googleOperationPoller
 
-  private final DeleteGoogleHttpLoadBalancerDescription description
+  private DeleteGoogleLoadBalancerDescription description
 
-  DeleteGoogleHttpLoadBalancerAtomicOperation(DeleteGoogleHttpLoadBalancerDescription description) {
+  DeleteGoogleHttpLoadBalancerAtomicOperation(DeleteGoogleLoadBalancerDescription description) {
     this.description = description
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteGoogleHttpLoadBalancerDescription": { "credentials": "my-account-name", "loadBalancerName": "spin-lb", "deleteHealthChecks": false }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteLoadBalancer": { "credentials": "my-account-name", "loadBalancerName": "spin-lb", "deleteHealthChecks": false "loadBalancerType": "HTTP"}} ]' localhost:7002/gce/ops
    */
   @Override
   Void operate(List priorOutputs) {

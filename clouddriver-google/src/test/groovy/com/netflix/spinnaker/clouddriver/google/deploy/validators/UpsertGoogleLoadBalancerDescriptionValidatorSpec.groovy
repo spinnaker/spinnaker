@@ -16,7 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.google.deploy.converters.UpsertGoogleLoadBalancerAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
@@ -24,6 +28,9 @@ import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRep
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
+
+import static com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.CreateGoogleHttpLoadBalancerTestConstants.*
 
 class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
   private static final LOAD_BALANCER_NAME = "spinnaker-test-v000"
@@ -34,6 +41,12 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
   @Shared
   UpsertGoogleLoadBalancerDescriptionValidator validator
 
+  @Shared
+  def converter
+
+  @Shared
+  GoogleHealthCheck hc
+
   void setupSpec() {
     validator = new UpsertGoogleLoadBalancerDescriptionValidator()
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
@@ -41,11 +54,25 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
     def credentials = new GoogleNamedAccountCredentials.Builder().name(ACCOUNT_NAME).credentials(new FakeGoogleCredentials()).build()
     credentialsRepo.save(ACCOUNT_NAME, credentials)
     validator.accountCredentialsProvider = credentialsProvider
+    converter = new UpsertGoogleLoadBalancerAtomicOperationConverter(
+      accountCredentialsProvider: credentialsProvider,
+      objectMapper: new ObjectMapper()
+    )
+    hc = [
+      "name"              : "basic-check",
+      "requestPath"       : "/",
+      "port"              : 80,
+      "checkIntervalSec"  : 1,
+      "timeoutSec"        : 1,
+      "healthyThreshold"  : 1,
+      "unhealthyThreshold": 1
+    ]
   }
 
   void "pass validation with proper description inputs"() {
     setup:
       def description = new UpsertGoogleLoadBalancerDescription(
+          loadBalancerType: GoogleLoadBalancerType.NETWORK,
           loadBalancerName: LOAD_BALANCER_NAME,
           region: REGION,
           accountName: ACCOUNT_NAME,
@@ -73,6 +100,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
   void "pass validation without health checks and without IP protocol"() {
     setup:
       def description = new UpsertGoogleLoadBalancerDescription(
+          loadBalancerType: GoogleLoadBalancerType.NETWORK,
           loadBalancerName: LOAD_BALANCER_NAME,
           region: REGION,
           accountName: ACCOUNT_NAME,
@@ -90,6 +118,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
     setup:
       def description = new UpsertGoogleLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
+          loadBalancerType: GoogleLoadBalancerType.NETWORK,
           region: REGION,
           accountName: ACCOUNT_NAME,
           instances: [INSTANCE],
@@ -115,7 +144,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
 
   void "null input fails validation"() {
     setup:
-      def description = new UpsertGoogleLoadBalancerDescription()
+      def description = new UpsertGoogleLoadBalancerDescription(loadBalancerType: GoogleLoadBalancerType.NETWORK)
       def errors = Mock(Errors)
 
     when:
@@ -125,5 +154,193 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
       1 * errors.rejectValue('credentials', _)
       1 * errors.rejectValue('loadBalancerName', _)
       1 * errors.rejectValue('region', _)
+  }
+
+  void "pass validation with proper http description inputs"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.HTTP,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+        "certificate"     : "",
+        "hostRules"       : [
+          [
+            "hostPatterns": [
+              "host1.com",
+              "host2.com"
+            ],
+            "pathMatcher" : [
+              "pathRules"     : [
+                [
+                  "paths"         : [
+                    "/path",
+                    "/path2/more"
+                  ],
+                  "backendService": [
+                    "name"       : PM_SERVICE,
+                    "backends"   : [],
+                    "healthCheck": hc,
+                  ]
+                ]
+              ],
+              "defaultService": [
+                "name"       : DEFAULT_PM_SERVICE,
+                "backends"   : [],
+                "healthCheck": hc,
+              ]
+            ]
+          ]
+        ]
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      0 * errors._
+  }
+
+  void "pass validation with no host rules description inputs"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.HTTP,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+        "certificate"     : "",
+        "hostRules"       : null,
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      0 * errors._
+  }
+
+  void "fail with improperly formatted ports"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.HTTP,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : "80-81",
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+        "certificate"     : "",
+        "hostRules"       : [
+          [
+            "hostPatterns": [
+              "host1.com",
+              "host2.com"
+            ],
+            "pathMatcher" : [
+              "pathRules"     : [
+                [
+                  "paths"         : [
+                    "/path",
+                    "/path2/more"
+                  ],
+                  "backendService": [
+                    "name"       : PM_SERVICE,
+                    "backends"   : [],
+                    "healthCheck": hc,
+                  ]
+                ]
+              ],
+              "defaultService": [
+                "name"       : DEFAULT_PM_SERVICE,
+                "backends"   : [],
+                "healthCheck": hc,
+              ]
+            ]
+          ]
+        ]
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue("portRange", _)
+  }
+
+  @Unroll
+  void "fail if a backend service does not have a health check"() {
+    setup:
+      def input = [
+        loadBalancerType  : GoogleLoadBalancerType.HTTP,
+        accountName       : ACCOUNT_NAME,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : "80-81",
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc1,
+        ],
+        "certificate"     : "",
+        "hostRules"       : [
+          [
+            "hostPatterns": [
+              "host1.com",
+              "host2.com"
+            ],
+            "pathMatcher" : [
+              "pathRules"     : [
+                [
+                  "paths"         : [
+                    "/path",
+                    "/path2/more"
+                  ],
+                  "backendService": [
+                    "name"       : PM_SERVICE,
+                    "backends"   : [],
+                    "healthCheck": hc3,
+                  ]
+                ]
+              ],
+              "defaultService": [
+                "name"       : DEFAULT_PM_SERVICE,
+                "backends"   : [],
+                "healthCheck": hc2,
+              ]
+            ]
+          ]
+        ]
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue("defaultService OR hostRules.pathMatcher.defaultService OR hostRules.pathMatcher.pathRules.backendService", _)
+
+    where:
+      hc1    | hc2   | hc3
+      hc     | hc    | null
+      hc     | null  | hc
+      null   | hc    | hc
   }
 }

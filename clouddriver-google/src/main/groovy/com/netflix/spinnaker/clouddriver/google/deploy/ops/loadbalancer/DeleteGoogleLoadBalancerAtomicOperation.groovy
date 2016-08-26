@@ -46,16 +46,18 @@ class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
   @Autowired
   private GoogleOperationPoller googleOperationPoller
 
-  private final DeleteGoogleLoadBalancerDescription description
+  private DeleteGoogleLoadBalancerDescription description
 
   ThreadSleeper threadSleeper = new ThreadSleeper()
+
+  DeleteGoogleLoadBalancerAtomicOperation() {}
 
   DeleteGoogleLoadBalancerAtomicOperation(DeleteGoogleLoadBalancerDescription description) {
     this.description = description
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteLoadBalancer": { "region": "us-central1", "credentials": "my-account-name", "loadBalancerName": "testlb" }} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteLoadBalancer": { "region": "us-central1", "credentials": "my-account-name", "loadBalancerName": "testlb", "loadBalancerType": "NETWORK"}} ]' localhost:7002/gce/ops
    */
   @Override
   Void operate(List priorOutputs) {
