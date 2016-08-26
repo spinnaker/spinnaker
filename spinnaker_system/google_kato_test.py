@@ -615,10 +615,10 @@ class GoogleKatoIntegrationTest(st.AgentTestCase):
   def test_c_register_load_balancer_instances(self):
     self.run_test_case(self.scenario.register_load_balancer_instances())
 
-  def test_d_create_http_load_balancer(self):
+  def Xtest_d_create_http_load_balancer(self):
     self.run_test_case(self.scenario.create_http_load_balancer())
 
-  def test_v_delete_http_load_balancer(self):
+  def Xtest_v_delete_http_load_balancer(self):
     self.run_test_case(
         self.scenario.delete_http_load_balancer(), timeout_ok=True,
         retry_interval_secs=10, max_retries=9)
