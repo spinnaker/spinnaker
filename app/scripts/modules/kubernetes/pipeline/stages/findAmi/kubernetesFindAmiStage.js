@@ -17,7 +17,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.findAm
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'selectionStrategy', fieldLabel: 'Server Group Selection'},
         { type: 'requiredField', fieldName: 'namespaces' },
-        { type: 'requiredField', fieldName: 'imageNamePattern' },
         { type: 'requiredField', fieldName: 'credentials' }
       ]
     });
