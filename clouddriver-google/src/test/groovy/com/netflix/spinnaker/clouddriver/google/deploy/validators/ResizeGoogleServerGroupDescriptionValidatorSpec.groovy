@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.google.deploy.description.ResizeGoogleServerGroupDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
@@ -101,24 +102,38 @@ class ResizeGoogleServerGroupDescriptionValidatorSpec extends Specification {
       1 * errors.rejectValue("targetSize", "resizeGoogleServerGroupDescription.targetSize.empty")
 
     when:
-      description.capacity =  new ResizeGoogleServerGroupDescription.Capacity(desired: 10)
+      description.capacity = new ResizeGoogleServerGroupDescription.Capacity(desired: 10)
       validator.validate([], description, errors)
 
     then:
       0 * errors._
 
     when:
-      description.capacity =  new ResizeGoogleServerGroupDescription.Capacity(desired: -10)
+      description.capacity = new ResizeGoogleServerGroupDescription.Capacity(desired: -10)
       validator.validate([], description, errors)
 
     then:
       1 * errors.rejectValue("targetSize", "resizeGoogleServerGroupDescription.targetSize.negative")
 
     when:
-      description.capacity =  new ResizeGoogleServerGroupDescription.Capacity()
+      description.capacity = new ResizeGoogleServerGroupDescription.Capacity()
       validator.validate([], description, errors)
 
     then:
       1 * errors.rejectValue("targetSize", "resizeGoogleServerGroupDescription.targetSize.empty")
+  }
+
+  void "UpsertGoogleAutoscalingPolicyDescription is validated by UpsertGoogleAutoscalingPolicyDescriptionValidator"() {
+    setup:
+      def description = new UpsertGoogleAutoscalingPolicyDescription(serverGroupName: SERVER_GROUP_NAME,
+                                                                     region: REGION,
+                                                                     accountName: ACCOUNT_NAME)
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue('autoscalingPolicy', 'upsertGoogleScalingPolicyDescription.autoscalingPolicy.empty')
   }
 }

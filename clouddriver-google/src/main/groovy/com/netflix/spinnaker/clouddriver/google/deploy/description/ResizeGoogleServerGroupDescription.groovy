@@ -34,6 +34,8 @@ class ResizeGoogleServerGroupDescription extends AbstractGoogleCredentialsDescri
    * Reuse Spinnaker's notion of capacity in an effort to make Orca more generic.
    */
   static class Capacity {
+    Integer min
+    Integer max
     Integer desired
   }
 }

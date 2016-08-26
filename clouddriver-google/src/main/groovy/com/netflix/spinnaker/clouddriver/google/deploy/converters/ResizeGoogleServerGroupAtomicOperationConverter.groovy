@@ -16,25 +16,72 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
+import com.google.api.services.compute.model.AutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.ResizeGoogleServerGroupDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.ResizeGoogleServerGroupAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.UpsertGoogleAutoscalingPolicyAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @GoogleOperation(AtomicOperations.RESIZE_SERVER_GROUP)
 @Component("resizeGoogleServerGroupDescription")
 class ResizeGoogleServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
+  @Autowired
+  GoogleClusterProvider googleClusterProvider
+
   @Override
   AtomicOperation convertOperation(Map input) {
-    new ResizeGoogleServerGroupAtomicOperation(convertDescription(input))
+    // If the target server group has an Autoscaler configured we need to modify that policy as opposed to the
+    // target size of the managed instance group itself.
+    AutoscalingPolicy autoscalingPolicy = resolveServerGroup(input)?.autoscalingPolicy
+    def convertedDescription = convertDescription(input, autoscalingPolicy)
+
+    if (autoscalingPolicy) {
+      new UpsertGoogleAutoscalingPolicyAtomicOperation(convertedDescription)
+    } else {
+      new ResizeGoogleServerGroupAtomicOperation(convertedDescription)
+    }
+  }
+
+  def convertDescription(Map input, AutoscalingPolicy autoscalingPolicy) {
+    if (autoscalingPolicy) {
+      UpsertGoogleAutoscalingPolicyDescription upsertGoogleAutoscalingPolicyDescription =
+        GoogleAtomicOperationConverterHelper.convertDescription(input, this, UpsertGoogleAutoscalingPolicyDescription)
+
+      // Retrieve the existing autoscaling policy and overwrite the min/max settings.
+      GoogleAutoscalingPolicy googleAutoscalingPolicy =
+        GCEUtil.buildAutoscalingPolicyDescriptionFromAutoscalingPolicy(autoscalingPolicy)
+
+      upsertGoogleAutoscalingPolicyDescription.autoscalingPolicy = googleAutoscalingPolicy
+      upsertGoogleAutoscalingPolicyDescription.autoscalingPolicy.minNumReplicas = input.capacity?.min
+      upsertGoogleAutoscalingPolicyDescription.autoscalingPolicy.maxNumReplicas = input.capacity?.max
+
+      return upsertGoogleAutoscalingPolicyDescription
+    } else {
+      return GoogleAtomicOperationConverterHelper.convertDescription(input, this, ResizeGoogleServerGroupDescription)
+    }
   }
 
   @Override
-  ResizeGoogleServerGroupDescription convertDescription(Map input) {
-    GoogleAtomicOperationConverterHelper.convertDescription(input, this, ResizeGoogleServerGroupDescription)
+  def convertDescription(Map input) {
+    return convertDescription(input, resolveServerGroup(input)?.autoscalingPolicy)
+  }
+
+  private GoogleServerGroup.View resolveServerGroup(Map input) {
+    def accountName = input.accountName ?: input.credentials
+    def region = input.region
+    def serverGroupName = input.serverGroupName
+
+    return GCEUtil.queryServerGroup(googleClusterProvider, accountName, region, serverGroupName)
   }
 }
