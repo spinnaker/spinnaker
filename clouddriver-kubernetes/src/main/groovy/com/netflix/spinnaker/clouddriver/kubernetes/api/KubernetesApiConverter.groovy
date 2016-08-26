@@ -310,12 +310,26 @@ class KubernetesApiConverter {
 
     if (container.envVars) {
       def envVars = container.envVars.collect { envVar ->
-        def res = new EnvVarBuilder()
-
-        return res.withName(envVar.name)
-            .withValue(envVar.value)
-            .build()
-      }
+        def res = (new EnvVarBuilder()).withName(envVar.name)
+        if (envVar.value) {
+          res = res.withValue(envVar.value)
+        } else if (envVar.envSource) {
+          res = res.withNewValueFrom()
+          if (envVar.envSource.configMapSource) {
+            def configMap = envVar.envSource.configMapSource
+            res = res.withNewConfigMapKeyRef(configMap.key, configMap.configMapName)
+          } else if (envVar.envSource.secretSource) {
+            def secret = envVar.envSource.secretSource
+            res = res.withNewSecretKeyRef(secret.key, secret.secretName)
+          } else {
+            return null
+          }
+          res = res.endValueFrom()
+        } else {
+          return null
+        }
+        return res.build()
+      } - null
 
       containerBuilder = containerBuilder.withEnv(envVars)
     }
@@ -373,8 +387,26 @@ class KubernetesApiConverter {
     containerDescription.readinessProbe = fromProbe(container?.readinessProbe)
 
     containerDescription.envVars = container?.env?.collect { envVar ->
-      new KubernetesEnvVar(name: envVar.name, value: envVar.value)
-    }
+      def result = new KubernetesEnvVar(name: envVar.name)
+      if (envVar.value) {
+        result.value = envVar.value
+      } else if (envVar.valueFrom) {
+        def source = new KubernetesEnvVarSource()
+        if (envVar.valueFrom.configMapKeyRef) {
+          def configMap = envVar.valueFrom.configMapKeyRef
+          source.configMapSource = new KubernetesConfigMapSource(key: configMap.key, configMapName: configMap.name)
+        } else if (envVar.valueFrom.secretKeyRef) {
+          def secret = envVar.valueFrom.secretKeyRef
+          source.secretSource = new KubernetesSecretSource(key: secret.key, secretName: secret.name)
+        } else {
+          return null
+        }
+        result.envSource = source
+      } else {
+        return null
+      }
+      return result
+    } - null
 
     containerDescription.volumeMounts = container?.volumeMounts?.collect { volumeMount ->
       new KubernetesVolumeMount(name: volumeMount.name, readOnly: volumeMount.readOnly, mountPath: volumeMount.mountPath)

@@ -80,7 +80,28 @@ class KubernetesContainerDescription {
 class KubernetesEnvVar {
   String name
   String value
-  // TODO(lwander) Q2 2016 add EnvVarSource for selecting secrets.
+  KubernetesEnvVarSource envSource
+}
+
+@AutoClone
+@Canonical
+class KubernetesEnvVarSource {
+  KubernetesSecretSource secretSource
+  KubernetesConfigMapSource configMapSource
+}
+
+@AutoClone
+@Canonical
+class KubernetesSecretSource {
+  String secretName
+  String key
+}
+
+@AutoClone
+@Canonical
+class KubernetesConfigMapSource {
+  String configMapName
+  String key
 }
 
 @AutoClone
