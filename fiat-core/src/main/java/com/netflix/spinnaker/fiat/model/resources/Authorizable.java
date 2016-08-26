@@ -16,24 +16,10 @@
 
 package com.netflix.spinnaker.fiat.model.resources;
 
-import lombok.NonNull;
-import org.apache.commons.lang3.StringUtils;
+import com.netflix.spinnaker.fiat.model.Authorization;
 
-public enum Resource {
-  ACCOUNT,
-  APPLICATION,
-  SERVICE_ACCOUNT; // Fiat service account.
+import java.util.Set;
 
-  // TODO(ttomsu): This is Redis-specific, so it probably shouldn't go here.
-  public static Resource parse(@NonNull String pluralOrKey) {
-    if (pluralOrKey.contains(":")) {
-      pluralOrKey = StringUtils.substringAfterLast(pluralOrKey, ":");
-    }
-    String singular = StringUtils.removeEnd(pluralOrKey, "s");
-    return Resource.valueOf(singular.toUpperCase());
-  }
-
-  public String keySuffix() {
-    return this.toString().toLowerCase() + "s";
-  }
+public interface Authorizable extends Named {
+  Set<Authorization> getAuthorizations();
 }

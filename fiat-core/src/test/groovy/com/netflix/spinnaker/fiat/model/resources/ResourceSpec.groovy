@@ -30,6 +30,9 @@ class ResourceSpec extends Specification {
     "abc:accounts"     || Resource.ACCOUNT
     "abc:def:accounts" || Resource.ACCOUNT
     ":applications"    || Resource.APPLICATION
+    "account"          || Resource.ACCOUNT
+    "accounts"         || Resource.ACCOUNT
+    "aCCoUnTs"         || Resource.ACCOUNT
   }
 
   def "should throw exception on invalid parse input"() {
@@ -43,7 +46,6 @@ class ResourceSpec extends Specification {
     input       || e
     null        || IllegalArgumentException.class
     ""          || IllegalArgumentException.class
-    "account"   || IllegalArgumentException.class
     "account:"  || IllegalArgumentException.class
     "account:s" || IllegalArgumentException.class
   }
