@@ -58,11 +58,12 @@ interface OortService {
                                             @Path("summaryType") String summaryType,
                                             @Query("onlyEnabled") String onlyEnabled)
 
-  @GET("/applications/{app}/jobs/{account}/{region}/{id}")
-  Response getJob(@Path("app") String app,
-                  @Path("account") String account,
-                  @Path("region") String region,
-                  @Path("id") String id)
+  @POST("/applications/{app}/jobs/{account}/{region}/{id}")
+  Response collectJob(@Path("app") String app,
+                      @Path("account") String account,
+                      @Path("region") String region,
+                      @Path("id") String id,
+                      @Body String details)
 
   @GET("/search")
   Response getSearchResults(@Query("q") String searchTerm,

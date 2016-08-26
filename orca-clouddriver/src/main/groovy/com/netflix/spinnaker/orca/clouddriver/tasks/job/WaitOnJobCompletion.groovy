@@ -54,24 +54,26 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
       throw new IllegalStateException("No jobs in stage context.")
     }
 
+    Map<String, Object> outputs = [:]
     jobs.each { location, names ->
       if (!names) {
         return
       }
 
-      Map job = objectMapper.readValue(oortService.getJob("*", account, location, names[0]).body.in(), new TypeReference<Map>() {})
-
+      Map job = objectMapper.readValue(oortService.collectJob("*", account, location, names[0], "delete").body.in(), new TypeReference<Map>() {})
       switch ((String)job.jobState) {
         case "Succeeded":
           status = ExecutionStatus.SUCCEEDED
+          outputs = job.completionDetails
           return
 
         case "Failed":
           status = ExecutionStatus.TERMINAL
+          outputs = job.completionDetails
           return
       }
     }
 
-    new DefaultTaskResult(status)
+    new DefaultTaskResult(status, outputs)
   }
 }

@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.job
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.job.RunJobForceCacheRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.RunJobTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.WaitOnJobCompletion
 import com.netflix.spinnaker.orca.pipeline.LinearStage
@@ -36,10 +35,9 @@ class RunJobStage extends LinearStage {
   @Override
   List<Step> buildSteps(Stage stage) {
     [
-        buildStep(stage, "runJob", RunJobTask),
-        buildStep(stage, "monitorDeploy", MonitorKatoTask),
-        buildStep(stage, "forceCacheRefresh", RunJobForceCacheRefreshTask),
-        buildStep(stage, "waitOnJobCompletion", WaitOnJobCompletion),
+      buildStep(stage, "runJob", RunJobTask),
+      buildStep(stage, "monitorDeploy", MonitorKatoTask),
+      buildStep(stage, "waitOnJobCompletion", WaitOnJobCompletion),
     ]
   }
 }

@@ -26,6 +26,10 @@ class KubernetesContainerFinder {
 
     def containers = (List<Map<String, Object>>) operation.containers
 
+    if (!containers) {
+      containers = [operation.container]
+    }
+
     containers.forEach { container ->
       if (container.imageDescription.fromContext) {
         def image = deploymentDetails.find {
