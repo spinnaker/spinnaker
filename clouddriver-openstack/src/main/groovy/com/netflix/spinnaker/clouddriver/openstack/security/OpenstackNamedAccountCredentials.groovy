@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.openstack.security
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties.LbaasConfig
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
-import groovy.transform.Canonical
 import groovy.transform.ToString
 
 @ToString(includeNames = true, excludes = "password")
@@ -28,13 +27,12 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
   final String name
   final String environment
   final String accountType
-  final String master
   final String username
   @JsonIgnore
   final String password
-  final String tenantName
+  final String projectName
   final String domainName
-  final String endpoint
+  final String authUrl
   final List<String> requiredGroupMembership
   final OpenstackCredentials credentials
   List<String> regions
@@ -45,29 +43,27 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
   OpenstackNamedAccountCredentials(String accountName,
                                    String environment,
                                    String accountType,
-                                   String master,
                                    String username,
                                    String password,
-                                   String tenantName,
+                                   String projectName,
                                    String domainName,
-                                   String endpoint,
+                                   String authUrl,
                                    List<String> regions,
                                    Boolean insecure,
                                    String heatTemplateLocation,
                                    LbaasConfig lbaasConfig) {
-    this(accountName, environment, accountType, master, username, password, null, tenantName, domainName, endpoint, regions, insecure, heatTemplateLocation, lbaasConfig)
+    this(accountName, environment, accountType, username, password, null, projectName, domainName, authUrl, regions, insecure, heatTemplateLocation, lbaasConfig)
   }
 
   OpenstackNamedAccountCredentials(String accountName,
                                    String environment,
                                    String accountType,
-                                   String master,
                                    String username,
                                    String password,
                                    List<String> requiredGroupMembership,
-                                   String tenantName,
+                                   String projectName,
                                    String domainName,
-                                   String endpoint,
+                                   String authUrl,
                                    List<String> regions,
                                    Boolean insecure,
                                    String heatTemplateLocation,
@@ -75,12 +71,11 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
     this.name = accountName
     this.environment = environment
     this.accountType = accountType
-    this.master = master
     this.username = username
     this.password = password
-    this.tenantName = tenantName
+    this.projectName = projectName
     this.domainName = domainName
-    this.endpoint = endpoint
+    this.authUrl = authUrl
     this.requiredGroupMembership = requiredGroupMembership
     this.regions = regions
     this.insecure = insecure

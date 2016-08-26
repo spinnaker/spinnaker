@@ -38,9 +38,9 @@ class OpenstackIdentityV3Provider implements OpenstackIdentityProvider, Openstac
       Config config = credentials.insecure ? Config.newConfig().withSSLVerificationDisabled() : Config.newConfig()
       OSFactory.builderV3()
         .withConfig(config)
-        .endpoint(credentials.endpoint)
+        .endpoint(credentials.authUrl)
         .credentials(credentials.username, credentials.password, Identifier.byName(credentials.domainName))
-        .scopeToProject(Identifier.byName(credentials.tenantName), Identifier.byName(credentials.domainName))
+        .scopeToProject(Identifier.byName(credentials.projectName), Identifier.byName(credentials.domainName))
         .authenticate()
     }
   }

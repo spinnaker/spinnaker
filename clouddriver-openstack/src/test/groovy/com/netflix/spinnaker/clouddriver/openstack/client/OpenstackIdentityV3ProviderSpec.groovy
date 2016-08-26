@@ -20,7 +20,6 @@ import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfiguration
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import org.openstack4j.api.OSClient
-import org.openstack4j.api.client.IOSClientBuilder
 import org.openstack4j.api.exceptions.ServerResponseException
 import org.openstack4j.api.identity.v3.IdentityService
 import org.openstack4j.api.identity.v3.RegionService
@@ -41,15 +40,14 @@ class OpenstackIdentityV3ProviderSpec extends Specification {
     String accountName = 'test'
     String environment = 'env'
     String accountType = 'main'
-    String master = 'master'
     String username = 'foo'
     String password = 'bar'
-    String tenantName = 'tenant'
+    String projectName = 'demo'
     String domainName = 'domain'
-    String endpoint = 'http://fake.com'
+    String authUrl = 'http://fake.com'
     Boolean insecure = true
     LbaasConfig config = new LbaasConfig(pollInterval: 5, pollTimeout: 60)
-    credentials = new OpenstackNamedAccountCredentials(accountName, environment, accountType, master, username, password, tenantName, domainName, endpoint, [], insecure, "", config)
+    credentials = new OpenstackNamedAccountCredentials(accountName, environment, accountType, username, password, projectName, domainName, authUrl, [], insecure, "", config)
     mockClient = Mock(OSClient.OSClientV3) {
       getToken() >> { Mock(Token) }
     }

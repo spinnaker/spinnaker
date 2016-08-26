@@ -72,7 +72,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
   def setup() {
     provider = Mock(OpenstackClientProvider)
     GroovyMock(OpenstackProviderFactory, global: true)
-    OpenstackNamedAccountCredentials credz = new OpenstackNamedAccountCredentials("name", "test", "main", "test", "user", "pw", "tenant", "domain", "endpoint", [], false, "", new LbaasConfig(pollTimeout: 60, pollInterval: 5))
+    OpenstackNamedAccountCredentials credz = new OpenstackNamedAccountCredentials("name", "test", "main", "user", "pw", "tenant", "domain", "endpoint", [], false, "", new LbaasConfig(pollTimeout: 60, pollInterval: 5))
     OpenstackProviderFactory.createProvider(credz) >> { provider }
     credentials = new OpenstackCredentials(credz)
     description = new OpenstackLoadBalancerDescription(credentials: credentials, region: region, account: account)

@@ -26,12 +26,11 @@ class OpenstackConfigurationProperties {
     String name
     String environment
     String accountType
-    String master
     String username
     String password
-    String tenantName
+    String projectName
     String domainName
-    String endpoint
+    String authUrl
     List<String> regions
     Boolean insecure
     String heatTemplatePath
