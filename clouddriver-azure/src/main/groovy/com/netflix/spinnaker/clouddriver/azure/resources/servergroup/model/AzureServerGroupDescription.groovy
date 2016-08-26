@@ -98,6 +98,16 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
   }
 
   @Override
+  Set<String> getLoadBalancers() {
+    return [this.appGatewayName]
+  }
+
+  @Override
+  Set<String> getSecurityGroups() {
+    return [this.securityGroupName]
+  }
+
+  @Override
   Boolean isDisabled() {
     this.isDisabled
   }

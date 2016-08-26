@@ -85,7 +85,45 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
       it.attributes.processedCount = (it.attributes.processedCount ?: 0) + 1
     }
 
-    result
+    if (result.cacheResults[AZURE_SERVER_GROUPS.ns]) {
+      result
+    } else {
+      // run the cache cleanup routine on an empty server group list only for now
+      removeDeadCacheEntries(result, providerCache)
+    }
+  }
+
+  CacheResult removeDeadCacheEntries(CacheResult cacheResult, ProviderCache providerCache) {
+    def sgIdentifiers = providerCache.filterIdentifiers(AZURE_SERVER_GROUPS.ns, Keys.getServerGroupKey(AzureCloudProvider.AZURE, "*", region, accountName))
+    def sgCacheResults = providerCache.getAll((AZURE_SERVER_GROUPS.ns), sgIdentifiers, RelationshipCacheFilter.none())
+    def evictedSGList = sgCacheResults.collect{ cached ->
+      if (!cacheResult.cacheResults[AZURE_SERVER_GROUPS.ns].find {it.id == cached.id}) {
+        cached.id
+      } else {
+        null
+      }
+    }
+    if (evictedSGList) {
+      cacheResult.evictions[AZURE_SERVER_GROUPS.ns] = evictedSGList
+    }
+
+    def instanceIdentifiers = providerCache.filterIdentifiers(AZURE_INSTANCES.ns, Keys.getInstanceKey(AzureCloudProvider.AZURE, "*", "*", region, accountName))
+    def instanceCacheResults = providerCache.getAll((AZURE_INSTANCES.ns), instanceIdentifiers, RelationshipCacheFilter.none())
+    def evictedInstanceList = instanceCacheResults.collect{ cached ->
+      if (!cacheResult.cacheResults[AZURE_INSTANCES.ns].find {it.id == cached.id}) {
+        cached.id
+      } else {
+        null
+      }
+    }
+    if (evictedInstanceList) {
+      cacheResult.evictions[AZURE_INSTANCES.ns] = evictedInstanceList
+    }
+
+    // TODO: evict dead cluster cache entries
+    // Since the cluster is not region base (unlike the cache agent) we need to make sure that we don't remove "live" entries
+
+    cacheResult
   }
 
   @Override
@@ -215,7 +253,7 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
 
           def clusterKey = Keys.getClusterKey(azureCloudProvider, serverGroup.appName, serverGroup.clusterName, accountName)
           def appKey = Keys.getApplicationKey(azureCloudProvider, serverGroup.appName)
-          def loadBalancerKey = Keys.getLoadBalancerKey(azureCloudProvider, serverGroup.loadBalancerName, serverGroup.loadBalancerName,
+          def loadBalancerKey = Keys.getLoadBalancerKey(azureCloudProvider, serverGroup.appGatewayName, serverGroup.appGatewayName,
             serverGroup.application, serverGroup.clusterName, region, accountName)
 
           cachedApplications[appKey].with {
@@ -252,13 +290,13 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
       }
 
     new DefaultCacheResult([
-      (AZURE_APPLICATIONS.ns) : cachedApplications.values(),
-      (AZURE_CLUSTERS.ns) : cachedClusters.values(),
-      (AZURE_SERVER_GROUPS.ns) : cachedServerGroups.values(),
-      (AZURE_INSTANCES.ns) : cachedInstances.values(),
-      (AZURE_ON_DEMAND.ns) : onDemandCacheResults.values()
+      (AZURE_APPLICATIONS.ns) : cachedApplications?.values() ?: [],
+      (AZURE_CLUSTERS.ns) : cachedClusters?.values() ?: [],
+      (AZURE_SERVER_GROUPS.ns) : cachedServerGroups?.values() ?: [],
+      (AZURE_INSTANCES.ns) : cachedInstances?.values() ?: [],
+      (AZURE_ON_DEMAND.ns) : onDemandCacheResults?.values() ?: []
     ], [
-      (AZURE_ON_DEMAND.ns): evictions as List<String>
+      (AZURE_ON_DEMAND.ns): evictions as List<String> ?: []
     ])
 
   }
