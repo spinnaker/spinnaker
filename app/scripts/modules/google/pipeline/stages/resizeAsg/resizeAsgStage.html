@@ -84,8 +84,10 @@
       </div>
     </div>
 
-    <div class="col-md-9 col-md-offset-3">
-      <em class="subinput-note">This is the exact amount to which the target server group will be scaled</em>
+    <div class="col-md-6 col-md-offset-3">
+      <em class="subinput-note">If the targeted server group has an Autoscaler configured, the min/max values will
+        be used to update the scaling policy. If not, the desired size will be used to update the server group's
+        target size.</em>
     </div>
   </div>
   <stage-platform-health-override application="application"
