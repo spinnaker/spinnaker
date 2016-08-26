@@ -268,9 +268,9 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
         application=self.TEST_APP)
 
     builder = kube.KubeContractBuilder(self.kube_observer)
-    (builder.new_clause_builder('Replication Controller Added',
+    (builder.new_clause_builder('Replica Set Added',
                                 retryable_for_secs=15)
-     .get_resources('rc', extra_args=[group_name])
+     .get_resources('rs', extra_args=[group_name])
      .contains_path_eq('spec/replicas', 1))
 
     return st.OperationContract(
@@ -414,8 +414,8 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
         description='Destroy Server Group: ' + group_name)
 
     builder = kube.KubeContractBuilder(self.kube_observer)
-    (builder.new_clause_builder('Replication Controller Removed')
-     .get_resources('rc', extra_args=[group_name],
+    (builder.new_clause_builder('Replica Set Removed')
+     .get_resources('rs', extra_args=[group_name],
                     no_resource_ok=True)
      .contains_path_eq('targetSize', 0))
 
@@ -437,9 +437,9 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
         user='[anonymous]')
 
     builder = kube.KubeContractBuilder(self.kube_observer)
-    (builder.new_clause_builder('Replication Controller Added',
+    (builder.new_clause_builder('Replica Set Added',
                                 retryable_for_secs=15)
-     .get_resources('rc', extra_args=[group_name])
+     .get_resources('rs', extra_args=[group_name])
      .contains_path_eq(
          'spec/template/spec/containers/image', 
          self.__desired_image_id))
