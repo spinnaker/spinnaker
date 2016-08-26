@@ -19,6 +19,12 @@ import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFrom
 import com.amazonaws.services.elasticloadbalancing.model.Instance
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
 import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DeregisterTargetsRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.InvalidTargetException
+import com.amazonaws.services.elasticloadbalancingv2.model.RegisterTargetsRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.TargetDescription
+import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroupNotFoundException
+import com.google.common.util.concurrent.RateLimiter
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -45,9 +51,6 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
   @Autowired
   AwsEurekaSupport discoverySupport
-
-  @Autowired
-  AmazonClientProvider amazonClientProvider
 
   EnableDisableAsgDescription description
 
@@ -77,7 +80,8 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     def credentials = description.credentials
     try {
       def regionScopedProvider = regionScopedProviderFactory.forRegion(credentials, region)
-      def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(credentials, region, true)
+      def loadBalancing = regionScopedProvider.amazonElasticLoadBalancing
+      def lbv2 = regionScopedProvider.getAmazonElasticLoadBalancingV2()
 
       def asgService = regionScopedProvider.asgService
       def asg = asgService.getAutoScalingGroup(serverGroupName)
@@ -99,8 +103,9 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         asgService.resumeProcesses(serverGroupName, AutoScalingProcessType.getDisableProcesses())
       }
 
+      def instanceIds = asg.instances*.instanceId
       if (disable) {
-        changeRegistrationOfInstancesWithLoadBalancer(asg.loadBalancerNames, asg.instances*.instanceId) { String loadBalancerName, List<Instance> instances ->
+        changeRegistrationOfInstancesWithLoadBalancer(asg.loadBalancerNames, instanceIds) { String loadBalancerName, List<Instance> instances ->
           try {
             task.updateStatus phaseName, "Deregistering instances from Load Balancers..."
             loadBalancing.deregisterInstancesFromLoadBalancer(new DeregisterInstancesFromLoadBalancerRequest(loadBalancerName, instances))
@@ -108,14 +113,26 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
             task.updateStatus phaseName, "Unable to deregister instances, ${loadBalancerName} does not exist (${e.message})"
           }
         }
+        changeRegistrationOfInstancesWithTargetGroups(asg.targetGroupARNs, instanceIds) { String targetGroupArn, List<TargetDescription> instances ->
+          try {
+            task.updateStatus phaseName, "Deregistering instances from Target Groups..."
+            lbv2.deregisterTargets(new DeregisterTargetsRequest().withTargetGroupArn(targetGroupArn).withTargets(instances))
+          } catch (TargetGroupNotFoundException | InvalidTargetException ex) {
+            task.updateStatus phaseName, "Unable to deregister targets, $targetGroupArn invalid ($ex.message)"
+          }
+        }
       } else {
-        changeRegistrationOfInstancesWithLoadBalancer(asg.loadBalancerNames, asg.instances*.instanceId) { String loadBalancerName, List<Instance> instances ->
+        changeRegistrationOfInstancesWithLoadBalancer(asg.loadBalancerNames, instanceIds) { String loadBalancerName, List<Instance> instances ->
           task.updateStatus phaseName, "Registering instances with Load Balancers..."
           loadBalancing.registerInstancesWithLoadBalancer(new RegisterInstancesWithLoadBalancerRequest(loadBalancerName, instances))
         }
+        changeRegistrationOfInstancesWithTargetGroups(asg.targetGroupARNs, instanceIds) { String targetGroupArn, List<TargetDescription> targets ->
+          task.updateStatus phaseName, "Registering instances with Target Groups..."
+          lbv2.registerTargets(new RegisterTargetsRequest().withTargetGroupArn(targetGroupArn).withTargets(targets))
+        }
       }
 
-      if (credentials.discoveryEnabled && asg.instances) {
+      if (credentials.discoveryEnabled && instanceIds) {
         def status = disable ? AbstractEurekaSupport.DiscoveryStatus.Disable : AbstractEurekaSupport.DiscoveryStatus.Enable
         task.updateStatus phaseName, "Marking ASG $serverGroupName as $status with Discovery"
 
@@ -123,10 +140,10 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
             credentials: credentials,
             region: region,
             asgName: serverGroupName,
-            instanceIds: asg.instances*.instanceId
+            instanceIds: instanceIds
         )
         discoverySupport.updateDiscoveryStatusForInstances(
-            enableDisableInstanceDiscoveryDescription, task, phaseName, status, asg.instances*.instanceId
+            enableDisableInstanceDiscoveryDescription, task, phaseName, status, instanceIds
         )
       }
       task.updateStatus phaseName, "Finished ${presentParticipling} ASG $serverGroupName."
@@ -141,17 +158,25 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     }
   }
 
+  private static void changeRegistrationOfInstancesWithTargetGroups(Collection<String> targetGroupArns, Collection<String> instanceIds, Closure actOnInstancesAndTargetGroup) {
+    handleInstancesWithLoadBalancing(targetGroupArns, instanceIds, { new TargetDescription().withId(it) }, actOnInstancesAndTargetGroup)
+  }
+
   private static void changeRegistrationOfInstancesWithLoadBalancer(Collection<String> loadBalancerNames, Collection<String> instanceIds, Closure actOnInstancesAndLoadBalancer) {
-    if (instanceIds && loadBalancerNames) {
-      def instances = instanceIds.collect { new Instance(instanceId: it) }
-      loadBalancerNames.eachWithIndex { String loadBalancerName, int index ->
-        if (index > 0) {
-          sleep THROTTLE_MS
-        }
-        actOnInstancesAndLoadBalancer(loadBalancerName, instances)
+    handleInstancesWithLoadBalancing(loadBalancerNames, instanceIds, { new Instance(instanceId: it)}, actOnInstancesAndLoadBalancer)
+  }
+
+  private static void handleInstancesWithLoadBalancing(Collection<String> lbIdentifiers, Collection<String> instanceIds, Closure instanceIdTransform, Closure actOnInstancesAndLoadBalancer) {
+    if (instanceIds && lbIdentifiers) {
+      RateLimiter rateLimiter = RateLimiter.create(5)
+      def instances = instanceIds.collect(instanceIdTransform)
+      for (String lbId : lbIdentifiers) {
+        rateLimiter.acquire()
+        actOnInstancesAndLoadBalancer(lbId, instances)
       }
     }
   }
+
 
   Task getTask() {
     TaskRepository.threadLocalTask.get()

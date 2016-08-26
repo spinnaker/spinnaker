@@ -284,6 +284,18 @@ public class AmazonClientProvider {
     return getClient(AmazonElasticLoadBalancingClient.class, awsCredentialsProvider, region);
   }
 
+  public com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing getAmazonElasticLoadBalancingV2(NetflixAmazonCredentials amazonCredentials, String region) {
+    return getAmazonElasticLoadBalancingV2(amazonCredentials, region, false);
+  }
+
+  public com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing getAmazonElasticLoadBalancingV2(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
+    return getProxyHandler(com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing.class, com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClient.class, amazonCredentials, region, skipEdda);
+  }
+
+  public com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing getAmazonElasticLoadBalancingV2(AWSCredentialsProvider awsCredentialsProvider, String region) {
+    return getClient(com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClient.class, awsCredentialsProvider, region);
+  }
+
   public AmazonSimpleWorkflow getAmazonSimpleWorkflow(NetflixAmazonCredentials amazonCredentials, String region) {
     return getAmazonSimpleWorkflow(amazonCredentials, region, false);
   }

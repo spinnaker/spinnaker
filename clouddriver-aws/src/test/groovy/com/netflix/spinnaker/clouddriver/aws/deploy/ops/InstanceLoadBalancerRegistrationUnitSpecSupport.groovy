@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
-import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing as AmazonElasticLoadBalancingV2
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.InstanceLoadBalancerRegistrationDescription
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
@@ -42,23 +42,24 @@ class InstanceLoadBalancerRegistrationUnitSpecSupport extends Specification {
   @Shared
   AmazonElasticLoadBalancing loadBalancing
 
+  @Shared
+  AmazonElasticLoadBalancingV2 loadBalancingV2
+
   def setup() {
     asgService = Mock(AsgService)
     loadBalancing = Mock(AmazonElasticLoadBalancing)
+    loadBalancingV2 = Mock(AmazonElasticLoadBalancingV2)
     wireOpMocks(op)
   }
 
   def wireOpMocks(AbstractInstanceLoadBalancerRegistrationAtomicOperation op) {
-    def rsp = Mock(RegionScopedProviderFactory.RegionScopedProvider)
+    def rsp = Stub(RegionScopedProviderFactory.RegionScopedProvider)
     rsp.getAsgService() >> asgService
+    rsp.getAmazonElasticLoadBalancingV2() >> loadBalancingV2
+    rsp.getAmazonElasticLoadBalancing() >> loadBalancing
 
     def rspf = Mock(RegionScopedProviderFactory)
     rspf.forRegion(_, _) >> rsp
     op.regionScopedProviderFactory = rspf
-
-    def provider = Mock(AmazonClientProvider) {
-      getAmazonElasticLoadBalancing(_, _, true) >> loadBalancing
-    }
-    op.amazonClientProvider = provider
   }
 }

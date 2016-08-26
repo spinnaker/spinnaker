@@ -79,6 +79,14 @@ class RegionScopedProviderFactory {
       amazonClientProvider.getAutoScaling(amazonCredentials, region, true)
     }
 
+    com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing getAmazonElasticLoadBalancingV2() {
+      amazonClientProvider.getAmazonElasticLoadBalancingV2(amazonCredentials, region, true)
+    }
+
+    com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing getAmazonElasticLoadBalancing() {
+      amazonClientProvider.getAmazonElasticLoadBalancing(amazonCredentials, region, true)
+    }
+
     SubnetAnalyzer getSubnetAnalyzer() {
       SubnetAnalyzer.from(amazonEC2.describeSubnets().subnets)
     }
