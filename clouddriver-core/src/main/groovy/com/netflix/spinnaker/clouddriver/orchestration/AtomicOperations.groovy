@@ -57,7 +57,7 @@ final class AtomicOperations {
   public static final String UPSERT_SECURITY_GROUP = "upsertSecurityGroup"
   public static final String MIGRATE_SECURITY_GROUP = "migrateSecurityGroup"
 
-  // Job operations
+  // JobStatus operations
   public static final String RUN_JOB = "runJob"
   public static final String DESTROY_JOB = "destroyJob"
   public static final String CLONE_JOB = "cloneJob"

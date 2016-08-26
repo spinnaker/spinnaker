@@ -183,7 +183,7 @@ class KubernetesApiAdaptor {
   }
 
   List<Pod> getJobPods(String namespace, String jobName) {
-    atomicWrapper("Get Job Pods for $jobName", namespace) { KubernetesClient client ->
+    atomicWrapper("Get JobStatus Pods for $jobName", namespace) { KubernetesClient client ->
       client.pods().inNamespace(namespace).withLabel(KubernetesUtil.JOB_LABEL, jobName).list().items
     }
   }
@@ -374,7 +374,7 @@ class KubernetesApiAdaptor {
   }
 
   Job getJob(String namespace, String name) {
-    atomicWrapper("Get Job $name", namespace) { KubernetesClient client ->
+    atomicWrapper("Get JobStatus $name", namespace) { KubernetesClient client ->
       client.extensions().jobs().inNamespace(namespace).withName(name).get()
     }
   }

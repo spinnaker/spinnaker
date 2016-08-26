@@ -17,15 +17,10 @@
 package com.netflix.spinnaker.clouddriver.model
 
 /**
- * A Job is a collection of Processes. The Job defines how many processes may run, and the failure/success conditions
- * leading to a terminal status.
- *
- * See Process.groovy for an overview of Processes.
+ * A JobStatus reflects the state of a running or completed job.
  */
-interface Job {
+interface JobStatus {
   String getName()
-
-  String getCluster()
 
   String getAccount()
 
@@ -37,9 +32,9 @@ interface Job {
 
   JobState getJobState()
 
-  Instance getInstance()
-
   Long getCreatedTime()
 
-  Long getFinishTime()
+  Long getCompletedTime()
+
+  Map<String, ? extends Serializable> getCompletionDetails()
 }

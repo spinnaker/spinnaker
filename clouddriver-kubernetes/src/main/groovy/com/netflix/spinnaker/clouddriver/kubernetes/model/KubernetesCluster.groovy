@@ -29,6 +29,5 @@ class KubernetesCluster implements Cluster, Serializable {
   String accountName
   Set<KubernetesServerGroup> serverGroups = Collections.synchronizedSet(new HashSet<KubernetesServerGroup>())
   Set<KubernetesLoadBalancer> loadBalancers = Collections.synchronizedSet(new HashSet<KubernetesLoadBalancer>())
-  Set<KubernetesJob> jobs = Collections.synchronizedSet(new HashSet<KubernetesJob>())
 }
 

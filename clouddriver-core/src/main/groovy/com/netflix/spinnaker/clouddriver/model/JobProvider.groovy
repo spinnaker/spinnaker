@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.model
 
-public interface JobProvider<T extends Job> {
+public interface JobProvider<T extends JobStatus> {
   String getPlatform()
 
-  T getJob(String account, String location, String id)
+  T collectJob(String account, String location, String id)
 }

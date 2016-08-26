@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.model
 
+/**
+ * A JobState defines the set of possible states a job can be in.
+ */
 enum JobState {
   Starting, Running, Failed, Succeeded, Unknown
 }

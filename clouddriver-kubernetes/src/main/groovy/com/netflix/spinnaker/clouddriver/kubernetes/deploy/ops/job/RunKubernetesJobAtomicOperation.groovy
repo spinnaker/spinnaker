@@ -61,7 +61,7 @@ class RunKubernetesJobAtomicOperation implements AtomicOperation<DeploymentResul
     def namespace = KubernetesUtil.validateNamespace(credentials, description.namespace)
 
     def podName = (new KubernetesJobNameResolver()).createJobName(description.application, description.stack, description.freeFormDetails)
-    task.updateStatus BASE_PHASE, "Job name chosen to be ${podName}."
+    task.updateStatus BASE_PHASE, "JobStatus name chosen to be ${podName}."
 
     def podBuilder = new PodBuilder().withNewMetadata().withNamespace(namespace).withName(podName).withLabels([:]).endMetadata().withNewSpec()
     podBuilder.withRestartPolicy("Never")

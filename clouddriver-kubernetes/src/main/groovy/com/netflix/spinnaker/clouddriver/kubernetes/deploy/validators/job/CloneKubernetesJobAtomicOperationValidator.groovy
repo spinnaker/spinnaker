@@ -56,28 +56,12 @@ class CloneKubernetesJobAtomicOperationValidator extends DescriptionValidator<Cl
       helper.validateDetails(description.freeFormDetails, "details")
     }
 
-    if (description.completions != null) {
-      helper.validateNonNegative(description.completions , "completions")
-    }
-
-    if (description.parallelism != null) {
-      helper.validateNonNegative(description.parallelism , "parallelism")
-    }
-
     if (description.namespace) {
       helper.validateNamespace(credentials, description.namespace, "namespace")
     }
 
-    if (description.loadBalancers) {
-      description.loadBalancers.eachWithIndex { name, idx ->
-        helper.validateName(name, "loadBalancers[${idx}]")
-      }
-    }
-
-    if (description.containers) {
-      description.containers.eachWithIndex { container, idx ->
-        KubernetesContainerValidator.validate(container, helper, "container[${idx}]")
-      }
+    if (description.container) {
+      KubernetesContainerValidator.validate(description.container, helper, "container")
     }
   }
 }

@@ -16,34 +16,29 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.provider.view
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.cats.cache.Cache
-import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesJob
+import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesJobStatus
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.model.JobProvider
+import com.netflix.spinnaker.clouddriver.model.JobState
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class KubernetesJobProvider implements JobProvider<KubernetesJob> {
+class KubernetesJobProvider implements JobProvider<KubernetesJobStatus> {
   String platform = "kubernetes"
-  private final Cache cacheView
-  private final ObjectMapper objectMapper
-
   @Autowired
-  KubernetesSecurityGroupProvider securityGroupProvider
+  AccountCredentialsProvider accountCredentialsProvider
 
-  @Autowired
-  KubernetesInstanceProvider instanceProvider
-
-  @Autowired
-  KubernetesJobProvider(Cache cacheView, ObjectMapper objectMapper) {
-    this.cacheView = cacheView
-    this.objectMapper = objectMapper
-  }
+  KubernetesJobProvider() { }
 
   @Override
-  KubernetesJob getJob(String account, String location, String id) {
-    def instance = instanceProvider.getInstance(account, location, id)
-    return new KubernetesJob(instance, account)
+  KubernetesJobStatus collectJob(String account, String location, String id) {
+    def credentials = ((KubernetesNamedAccountCredentials) accountCredentialsProvider.getCredentials(account)).credentials
+    def status = new KubernetesJobStatus(credentials.apiAdaptor.getPod(location, id), account)
+    if (status.jobState in [JobState.Failed, JobState.Succeeded]) {
+      credentials.apiAdaptor.deletePod(location, id)
+    }
+    return status
   }
 }
