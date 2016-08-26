@@ -67,13 +67,13 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
 
         // Each backend service must have a health check.
         def googleHttpLoadBalancer = new GoogleHttpLoadBalancer(
-          name: description.loadBalancerName,
-          defaultService: description.defaultService,
-          hostRules: description.hostRules,
-          certificate: description.certificate,
-          ipAddress: description.ipAddress,
-          ipProtocol: description.ipProtocol,
-          portRange: description.portRange
+            name: description.loadBalancerName,
+            defaultService: description.defaultService,
+            hostRules: description.hostRules,
+            certificate: description.certificate,
+            ipAddress: description.ipAddress,
+            ipProtocol: description.ipProtocol,
+            portRange: description.portRange
         )
         List<GoogleBackendService> services = Utils.getBackendServicesFromHttpLoadBalancerView(googleHttpLoadBalancer.view)
         services?.each { GoogleBackendService service ->
@@ -84,7 +84,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         }
         break
       default:
-        errors.rejectValue("description.loadBalancerType", "upsertGoogleLoadBalancerDescription.loadBalancerType.illegalType")
+        // TODO(jacobkiefer): Fail here once frontend calls are modified.
         break
     }
   }
