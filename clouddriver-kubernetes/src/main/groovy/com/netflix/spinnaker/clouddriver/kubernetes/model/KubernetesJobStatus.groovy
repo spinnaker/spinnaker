@@ -53,10 +53,10 @@ class KubernetesJobStatus implements JobStatus, Serializable {
   @Override
   Map<String, String> getCompletionDetails() {
     [
-      exitCode: exitCode.toString(),
-      signal: signal.toString(),
-      message: message.toString(),
-      reason: reason.toString(),
+      exitCode: exitCode?.toString(),
+      signal: signal?.toString(),
+      message: message?.toString(),
+      reason: reason?.toString(),
     ]
   }
 
