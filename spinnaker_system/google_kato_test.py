@@ -533,7 +533,7 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     # error is usually helpful for development.
     builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Instances not in Target Pool',
-                                retryable_for_secs=5)
+                                retryable_for_secs=30)
        .list_resource(
           'targetPools', region=self.bindings['TEST_GCE_REGION'])
        .excludes_pred_list(
