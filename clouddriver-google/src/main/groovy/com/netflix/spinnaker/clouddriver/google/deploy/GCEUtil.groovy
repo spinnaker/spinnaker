@@ -867,10 +867,9 @@ class GCEUtil {
           proxy = compute.targetHttpsProxies().get(project, getLocalName(fr.target)).execute()
           break
         default:
-          throw new GoogleOperationException("Illegal proxy type for ${fr.target}.")
           break
       }
-      if (getLocalName(proxy.urlMap) in urlMapsInUse) {
+      if (proxy && getLocalName(proxy.urlMap) in urlMapsInUse) {
         loadBalancerNames << fr.name
       }
     }
