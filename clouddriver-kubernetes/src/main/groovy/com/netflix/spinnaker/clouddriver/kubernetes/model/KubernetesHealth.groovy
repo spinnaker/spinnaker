@@ -66,10 +66,12 @@ class KubernetesHealth implements Health {
       if (containerStatus.ready) {
         state = HealthState.Up
       } else {
+        description = "Readiness probe hasn't passed"
         state = HealthState.Down
       }
     } else if (containerStatus.state.terminated) {
       if (containerStatus.state.terminated.reason == "Completed") {
+        description = "Container terminated with code $containerStatus.state.terminated.exitCode"
         if (containerStatus.state.terminated.exitCode == 0) {
           state = HealthState.Succeeded
         } else {
