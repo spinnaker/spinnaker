@@ -139,19 +139,10 @@ class CreateBakeTask implements RetryableTask {
 
     Map requestMap = packageInfo.findTargetPackage(allowMissingPackageInstallation)
 
+    def request = mapper.convertValue(requestMap, BakeRequest)
     if (!roscoApisEnabled) {
-      requestMap.remove("ami")
-      requestMap.remove("ctime")
-      requestMap.remove("mtime")
-      requestMap.remove("history")
-      requestMap.remove("id")
-      requestMap.remove("log")
-      requestMap.remove("status")
-      requestMap.remove("statusId")
-      requestMap.remove("statusUri")
-      requestMap.remove("uri")
+      request.other.clear()
     }
-
-    return mapper.convertValue(requestMap, BakeRequest)
+    return request
   }
 }
