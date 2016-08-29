@@ -16,8 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.client
 
+import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.openstack.domain.HealthMonitor
+import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerResolver
+import org.apache.commons.lang.StringUtils
 import org.openstack4j.api.Builders
 import org.openstack4j.model.common.ActionResponse
 import org.openstack4j.model.network.ext.HealthMonitorType
@@ -28,9 +31,14 @@ import org.openstack4j.model.network.ext.ListenerProtocol
 import org.openstack4j.model.network.ext.ListenerV2
 import org.openstack4j.model.network.ext.LoadBalancerV2
 import org.openstack4j.model.network.ext.LoadBalancerV2StatusTree
+import org.openstack4j.model.network.ext.MemberV2
 import org.openstack4j.model.network.ext.Protocol
 
-class OpenstackLoadBalancerV2Provider implements OpenstackLoadBalancerProvider, OpenstackRequestHandler, OpenstackIdentityAware {
+class OpenstackLoadBalancerV2Provider implements OpenstackLoadBalancerProvider, OpenstackRequestHandler, OpenstackIdentityAware, LoadBalancerResolver {
+
+  final int minPort = 1
+  final int maxPort = (1 << 16) - 1
+
   OpenstackIdentityProvider identityProvider
 
   OpenstackLoadBalancerV2Provider(OpenstackIdentityProvider identityProvider) {
@@ -223,6 +231,52 @@ class OpenstackLoadBalancerV2Provider implements OpenstackLoadBalancerProvider, 
         .build())
     }
   }
+
+  @Override
+  Integer getInternalLoadBalancerPort(String region, String listenerId) {
+    handleRequest {
+      ListenerV2 listener = getListener(region, listenerId)
+      Integer internalPort = parseListenerKey(listener.description)?.get('internalPort')?.toInteger()
+      if (!internalPort || internalPort < minPort || internalPort > maxPort) {
+        throw new OpenstackProviderException("Internal pool port $internalPort is outside of the valid range.")
+      }
+      internalPort
+    }
+  }
+
+  @Override
+  String getMemberIdForInstance(String region, String ip, String lbPoolId) {
+    String memberId = handleRequest {
+      client.useRegion(region).networking().lbaasV2().lbPool().listMembers(lbPoolId)?.find { m -> m.address == ip }?.id
+    }
+    if (StringUtils.isEmpty(memberId)) {
+      throw new OpenstackProviderException("Instance with ip ${ip} is not associated with any load balancer memberships")
+    }
+    memberId
+  }
+
+  @Override
+  MemberV2 addMemberToLoadBalancerPool(String region, String ip, String lbPoolId, String subnetId, Integer internalPort, int weight) {
+    MemberV2 member = handleRequest {
+      client.useRegion(region).networking().lbaasV2().lbPool().createMember(
+        lbPoolId,
+        Builders.memberV2().address(ip).subnetId(subnetId).protocolPort(internalPort).weight(weight).build()
+      )
+    }
+    if (!member) {
+      throw new OpenstackProviderException("Unable to add ip $ip to load balancer ${lbPoolId}")
+    }
+    member
+  }
+
+  @Override
+  ActionResponse removeMemberFromLoadBalancerPool(String region, String lbPoolId, String memberId) {
+    handleRequest {
+      client.useRegion(region).networking().lbaasV2().lbPool().deleteMember(lbPoolId, memberId)
+    }
+  }
+
+
 
   LoadBalancerV2StatusTree getLoadBalancerStatusTree(final String region, final String id) {
     handleRequest {

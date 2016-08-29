@@ -19,8 +19,8 @@ package com.netflix.spinnaker.clouddriver.openstack.client
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.loadbalancer.OpenstackLoadBalancerDescription.Algorithm
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.loadbalancer.OpenstackLoadBalancerDescription.Listener
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.loadbalancer.OpenstackLoadBalancerDescription.Listener.ListenerType
-import com.netflix.spinnaker.clouddriver.openstack.domain.HealthMonitor
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
+import com.netflix.spinnaker.clouddriver.openstack.domain.HealthMonitor
 import org.openstack4j.api.exceptions.ServerResponseException
 import org.openstack4j.api.networking.NetworkingService
 import org.openstack4j.api.networking.ext.HealthMonitorV2Service
@@ -36,6 +36,8 @@ import org.openstack4j.model.network.ext.LbPoolV2
 import org.openstack4j.model.network.ext.LbPoolV2Update
 import org.openstack4j.model.network.ext.ListenerV2
 import org.openstack4j.model.network.ext.LoadBalancerV2
+import org.openstack4j.model.network.ext.Member
+import org.openstack4j.model.network.ext.MemberV2
 import org.springframework.http.HttpStatus
 import spock.lang.Shared
 
@@ -740,4 +742,183 @@ class OpenstackLoadbalancerV2ClientProviderSpec extends OpenstackClientProviderS
     Exception e = thrown(OpenstackProviderException)
     [String.valueOf(expected.code), expected.fault].every { e.message.contains(it) }
   }
+
+  def "test add member to load balancer pool succeeds"() {
+    setup:
+    String ip = '1.2.3.4'
+    int port = 8100
+    int weight = 1
+    String lbPoolId = UUID.randomUUID().toString()
+    String subnetId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock(NetworkingService)
+    mockClient.networking() >> networkingService
+    LbaasV2Service lbService = Mock(LbaasV2Service)
+    networkingService.lbaasV2() >> lbService
+    LbPoolV2Service poolService = Mock(LbPoolV2Service)
+    lbService.lbPool() >> poolService
+    MemberV2 mockMember = Mock(MemberV2)
+
+    when:
+    MemberV2 actual = provider.addMemberToLoadBalancerPool(region, ip, lbPoolId, subnetId, port, weight)
+
+    then:
+    1 * poolService.createMember(lbPoolId, _ as MemberV2) >> mockMember
+    mockMember == actual
+  }
+
+  def "test add member to load balancer pool throws exception"() {
+    setup:
+    String ip = '1.2.3.4'
+    int port = 8100
+    int weight = 1
+    String lbPoolId = UUID.randomUUID().toString()
+    String subnetId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock(NetworkingService)
+    mockClient.networking() >> networkingService
+    LbaasV2Service lbService = Mock(LbaasV2Service)
+    networkingService.lbaasV2() >> lbService
+    LbPoolV2Service poolService = Mock(LbPoolV2Service)
+    lbService.lbPool() >> poolService
+
+    when:
+    provider.addMemberToLoadBalancerPool(region, ip, lbPoolId, subnetId, port, weight)
+
+    then:
+    1 * poolService.createMember(lbPoolId, _ as MemberV2) >> { throw new Exception("foobar") }
+    Exception e = thrown(OpenstackProviderException)
+    e.message == "Unable to process request"
+  }
+
+  def "test remove member from load balancer pool succeeds"() {
+    setup:
+    def success = ActionResponse.actionSuccess()
+    String lbPoolId = UUID.randomUUID().toString()
+    String memberId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock(NetworkingService)
+    mockClient.networking() >> networkingService
+    LbaasV2Service lbService = Mock(LbaasV2Service)
+    networkingService.lbaasV2() >> lbService
+    LbPoolV2Service poolService = Mock(LbPoolV2Service)
+    lbService.lbPool() >> poolService
+
+    when:
+    ActionResponse response = provider.removeMemberFromLoadBalancerPool(region, lbPoolId, memberId)
+
+    then:
+    1 * poolService.deleteMember(lbPoolId, memberId) >> success
+    response != null
+    response.code == 200
+    response.success
+    response == success
+  }
+
+  def "test remove member from load balancer pool fails"() {
+    setup:
+    def failure = ActionResponse.actionFailed('failed', 404)
+    String lbPoolId = UUID.randomUUID().toString()
+    String memberId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock(NetworkingService)
+    mockClient.networking() >> networkingService
+    LbaasV2Service lbService = Mock(LbaasV2Service)
+    networkingService.lbaasV2() >> lbService
+    LbPoolV2Service poolService = Mock(LbPoolV2Service)
+    lbService.lbPool() >> poolService
+
+    when:
+    provider.removeMemberFromLoadBalancerPool(region, lbPoolId, memberId)
+
+    then:
+    1 * poolService.deleteMember(lbPoolId, memberId) >> failure
+    Exception e = thrown(OpenstackProviderException)
+    e.message.contains('failed')
+    e.message.contains('404')
+  }
+
+  def "test remove member from load balancer pool throws exception"() {
+    setup:
+    String lbPoolId = UUID.randomUUID().toString()
+    String memberId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock(NetworkingService)
+    mockClient.networking() >> networkingService
+    LbaasV2Service lbService = Mock(LbaasV2Service)
+    networkingService.lbaasV2() >> lbService
+    LbPoolV2Service poolService = Mock(LbPoolV2Service)
+    lbService.lbPool() >> poolService
+
+    when:
+    provider.removeMemberFromLoadBalancerPool(region, lbPoolId, memberId)
+
+    then:
+    1 * poolService.deleteMember(lbPoolId, memberId) >> { throw new Exception('foobar') }
+    Exception e = thrown(OpenstackProviderException)
+    e.message == "Unable to process request"
+  }
+
+  def "test get member id for instance succeeds"() {
+    setup:
+    String lbPoolId = UUID.randomUUID().toString()
+    String ip = '1.2.3.4'
+    String memberId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock(NetworkingService)
+    mockClient.networking() >> networkingService
+    LbaasV2Service lbService = Mock(LbaasV2Service)
+    networkingService.lbaasV2() >> lbService
+    LbPoolV2Service poolService = Mock(LbPoolV2Service)
+    lbService.lbPool() >> poolService
+    Member member = Mock(Member)
+    member.id >> memberId
+    member.address >> ip
+
+    when:
+    String actual = provider.getMemberIdForInstance(region, ip, lbPoolId)
+
+    then:
+    1 * poolService.listMembers(lbPoolId) >> [member]
+    actual == memberId
+  }
+
+  def "test get member id for instance, member not found, throws exception"() {
+    setup:
+    String lbPoolId = UUID.randomUUID().toString()
+    String ip = '1.2.3.4'
+    String memberId = UUID.randomUUID().toString()
+    NetworkingService networkingService = Mock(NetworkingService)
+    mockClient.networking() >> networkingService
+    LbaasV2Service lbService = Mock(LbaasV2Service)
+    networkingService.lbaasV2() >> lbService
+    LbPoolV2Service poolService = Mock(LbPoolV2Service)
+    lbService.lbPool() >> poolService
+    Member member = Mock(Member)
+    member.id >> memberId
+    member.address >> ip
+
+    when:
+    provider.getMemberIdForInstance(region, ip, lbPoolId)
+
+    then:
+    1 * poolService.listMembers(lbPoolId) >> []
+    Exception e = thrown(OpenstackProviderException)
+    e.message == "Instance with ip ${ip} is not associated with any load balancer memberships".toString()
+  }
+
+  def "test get member id for instance throws exception"() {
+    setup:
+    String lbPoolId = UUID.randomUUID().toString()
+    String ip = '1.2.3.4'
+    NetworkingService networkingService = Mock(NetworkingService)
+    mockClient.networking() >> networkingService
+    LbaasV2Service lbService = Mock(LbaasV2Service)
+    networkingService.lbaasV2() >> lbService
+    LbPoolV2Service poolService = Mock(LbPoolV2Service)
+    lbService.lbPool() >> poolService
+
+    when:
+    provider.getMemberIdForInstance(region, ip, lbPoolId)
+
+    then:
+    1 * poolService.listMembers(lbPoolId) >> { throw new Exception('foobar') }
+    Exception e = thrown(OpenstackProviderException)
+    e.message == "Unable to process request"
+  }
+
 }

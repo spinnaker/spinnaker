@@ -23,6 +23,7 @@ import org.openstack4j.model.network.ext.LbPoolV2
 import org.openstack4j.model.network.ext.ListenerV2
 import org.openstack4j.model.network.ext.LoadBalancerV2
 import org.openstack4j.model.network.ext.LoadBalancerV2StatusTree
+import org.openstack4j.model.network.ext.MemberV2
 
 /**
  * Operations associated to load balancer and relevant building blocks.
@@ -188,6 +189,47 @@ interface OpenstackLoadBalancerProvider {
    * @return
    */
   ActionResponse deleteMonitor(final String region, final String id)
+
+  /**
+   * Get port from load balancer listener description. Openstack load balancers have no native concept of internal port,
+   * so we store in the description field of the load balancer.
+   *
+   * This may be changed in a future version.
+   *
+   * @param region
+   * @param listenerId
+   * @return
+   */
+  Integer getInternalLoadBalancerPort(String region, String listenerId)
+
+  /**
+   * Get the member id for instance
+   * @param region
+   * @param ip
+   * @param lbPoolId
+   */
+  String getMemberIdForInstance(String region, String ip, String lbPoolId)
+
+  /**
+   * Add a member to a pool.
+   * @param region
+   * @param ip
+   * @param lbPoolId
+   * @param subnetId
+   * @param internalPort
+   * @param weight
+   */
+  MemberV2 addMemberToLoadBalancerPool(String region, String ip, String lbPoolId, String subnetId, Integer internalPort, int weight)
+
+  /**
+   * Remove a member from a pool.
+   * @param region
+   * @param lbPoolId
+   * @param memberId
+   * @return
+   */
+  ActionResponse removeMemberFromLoadBalancerPool(String region, String lbPoolId, String memberId)
+
 
   /**
    * Returns current status of the entire load balancer tree (lb, listeners, pool, etc).

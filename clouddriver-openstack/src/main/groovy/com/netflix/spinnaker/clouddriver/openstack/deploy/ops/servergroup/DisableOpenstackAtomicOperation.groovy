@@ -17,8 +17,9 @@
 package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup
 
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.OpenstackServerGroupAtomicOperationDescription
-import org.openstack4j.model.network.ext.LbPool
+import org.openstack4j.model.network.ext.LoadBalancerV2StatusTree
 
+//TODO this needs to be tested and functionally verified
 /**
  * curl -X POST -H "Content-Type: application/json" -d '[ { "disableServerGroup": { "serverGroupName": "myapp-teststack-v006", "region": "RegionOne", "account": "test" }} ]' localhost:7002/openstack/ops
  */
@@ -35,15 +36,23 @@ class DisableOpenstackAtomicOperation extends AbstractEnableDisableOpenstackAtom
   }
 
   @Override
-  Void addOrRemoveInstancesFromLoadBalancer(List<String> instanceIds, List<? extends LbPool> poolsForRegion) {
+  Void addOrRemoveInstancesFromLoadBalancer(List<String> instanceIds, List<String> loadBalancers) {
     task.updateStatus phaseName, "Deregistering instances from load balancers..."
-
     for (String id : instanceIds) {
-      String ip = description.credentials.provider.getIpForInstance(description.region, id)
-      for (LbPool pool : poolsForRegion) {
-        String memberId = description.credentials.provider.getMemberIdForInstance(description.region, ip, pool)
-        description.credentials.provider.removeMemberFromLoadBalancerPool(description.region, memberId)
+      String ip = provider.getIpForInstance(description.region, id)
+      loadBalancers.each { lbId ->
+        LoadBalancerV2StatusTree status = provider.getLoadBalancerStatusTree(description.region, lbId)
+        status.loadBalancerV2Status?.listenerStatuses?.each { listenerStatus ->
+          listenerStatus.lbPoolV2Statuses?.each { poolStatus ->
+            poolStatus.memberStatuses?.each { memberStatus ->
+              if (ip && memberStatus.address && ip == memberStatus.address) {
+                provider.removeMemberFromLoadBalancerPool(description.region, poolStatus.id, memberStatus.id)
+              }
+            }
+          }
+        }
       }
     }
   }
+
 }

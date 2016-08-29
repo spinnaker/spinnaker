@@ -22,16 +22,13 @@ import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
 import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerResolver
 import groovy.transform.Canonical
-import groovy.transform.EqualsAndHashCode
-import groovy.transform.ToString
 import org.openstack4j.model.network.ext.HealthMonitorV2
 import org.openstack4j.model.network.ext.LbPoolV2
 import org.openstack4j.model.network.ext.ListenerV2
 import org.openstack4j.model.network.ext.LoadBalancerV2
 
-//TODO portRegex and portPattern can be removed once the corresponding resolver methods are removed
 @Canonical
-@JsonIgnoreProperties(['portRegex','portPattern','createdRegex','createdPattern'])
+@JsonIgnoreProperties(['createdRegex','createdPattern'])
 class OpenstackLoadBalancer implements LoadBalancerResolver {
 
   String type = OpenstackCloudProvider.ID
@@ -67,9 +64,8 @@ class OpenstackLoadBalancer implements LoadBalancerResolver {
     parseCreatedTime(description)
   }
 
-  //TODO portRegex and portPattern can be removed once the corresponding resolver methods are removed
   @Canonical
-  @JsonIgnoreProperties(['portRegex','portPattern','createdRegex','createdPattern'])
+  @JsonIgnoreProperties(['createdRegex','createdPattern'])
   static class OpenstackLoadBalancerListener implements LoadBalancerResolver {
     String description
     String externalProtocol
@@ -95,9 +91,8 @@ class OpenstackLoadBalancer implements LoadBalancerResolver {
     String httpMethod
   }
 
-  //TODO portRegex and portPattern can be removed once the corresponding resolver methods are removed
   @Canonical
-  @JsonIgnoreProperties(['portRegex','portPattern','createdRegex','createdPattern'])
+  @JsonIgnoreProperties(['createdRegex','createdPattern'])
   static class View extends OpenstackLoadBalancer implements LoadBalancer {
     String ip = ""
     String subnetId = ""

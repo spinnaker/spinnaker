@@ -25,7 +25,9 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOpe
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
-import org.openstack4j.model.network.ext.LbPool
+import org.openstack4j.model.network.ext.ListenerV2
+import org.openstack4j.model.network.ext.LoadBalancerV2
+import org.openstack4j.openstack.networking.domain.ext.ListItem
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -39,9 +41,12 @@ class AbstractRegistrationOpenstackInstancesAtomicOperationUnitSpec extends Spec
 
   def credentials
   def description
-  LbPool pool
+  LoadBalancerV2 loadBalancer
+  Map<String, ListenerV2> listenerMap
+  List<ListItem> listeners = [new ListItem(id: UUID.randomUUID().toString()), new ListItem(id: UUID.randomUUID().toString())]
   String ip = '1.2.3.4'
-  int port = 8100
+  Integer port = 8100
+  String subnetId = UUID.randomUUID().toString()
   String memberId = UUID.randomUUID().toString()
   String region = 'region1'
 
@@ -56,10 +61,18 @@ class AbstractRegistrationOpenstackInstancesAtomicOperationUnitSpec extends Spec
     OpenstackProviderFactory.createProvider(credz) >> { provider }
     credentials = new OpenstackCredentials(credz)
     description = new OpenstackInstancesRegistrationDescription(region: region, loadBalancerIds: LB_IDS, instanceIds: INSTANCE_IDS, weight: 1, account: ACCOUNT_NAME, credentials: credentials)
-    pool = Mock(LbPool)
+    loadBalancer = Mock(LoadBalancerV2) {
+      it.listeners >> { listeners }
+      it.vipSubnetId >> { subnetId }
+    }
+    listenerMap = (0..1).collectEntries { i ->
+      [(listeners[i].id):Mock(ListenerV2) {
+        it.defaultPoolId >> { 'poo' }
+      }]
+    }
   }
 
-  def "should perform registration operation with load balancers"() {
+  def "should perform #method"() {
     given:
     @Subject def operation = opClass.newInstance(description)
     OpenstackClientProvider provider = credentials.provider
@@ -69,15 +82,18 @@ class AbstractRegistrationOpenstackInstancesAtomicOperationUnitSpec extends Spec
 
     then:
     LB_IDS.each { lbid ->
+      1 * provider.getLoadBalancer(region, lbid) >> loadBalancer
       INSTANCE_IDS.each { id ->
-        1 * provider.getLoadBalancerPool(region, lbid) >> pool
         1 * provider.getIpForInstance(region, id) >> ip
-        if (method == 'registerInstancesWithLoadBalancer') {
-          1 * provider.getInternalLoadBalancerPort(pool) >> port
-          1 * provider.addMemberToLoadBalancerPool(region, ip, lbid, port, description.weight)
-        } else {
-          1 * provider.getMemberIdForInstance(region, ip, pool) >> memberId
-          1 * provider.removeMemberFromLoadBalancerPool(region, memberId)
+        loadBalancer.listeners.each { listItem ->
+          1 * provider.getListener(region, listItem.id) >> listenerMap[listItem.id]
+          if (method == 'registerInstancesWithLoadBalancer') {
+            1 * provider.getInternalLoadBalancerPort(region, listItem.id) >> port
+            1 * provider.addMemberToLoadBalancerPool(region, ip, listenerMap[listItem.id].defaultPoolId, subnetId, port, description.weight)
+          } else {
+            1 * provider.getMemberIdForInstance(region, ip, listenerMap[listItem.id].defaultPoolId) >> memberId
+            1 * provider.removeMemberFromLoadBalancerPool(region, listenerMap[listItem.id].defaultPoolId, memberId)
+          }
         }
       }
     }
@@ -98,12 +114,10 @@ class AbstractRegistrationOpenstackInstancesAtomicOperationUnitSpec extends Spec
 
     then:
     LB_IDS.each { lbid ->
-      INSTANCE_IDS.each { id ->
-        provider.getLoadBalancerPool(region, lbid) >> { throw new OpenstackProviderException("foobar") }
-      }
+      provider.getLoadBalancer(region, lbid) >> { throw new OpenstackProviderException("foobar") }
     }
-    Exception ex = thrown(OpenstackProviderException)
-    ex.message == "foobar"
+    Exception ex = thrown(OpenstackOperationException)
+    ex.cause.message == "foobar"
 
     where:
     opClass << [RegisterOpenstackInstancesAtomicOperation, DeregisterOpenstackInstancesAtomicOperation]
@@ -119,13 +133,13 @@ class AbstractRegistrationOpenstackInstancesAtomicOperationUnitSpec extends Spec
 
     then:
     LB_IDS.each { lbid ->
+      provider.getLoadBalancer(region, lbid) >> loadBalancer
       INSTANCE_IDS.each { id ->
-        _ * provider.getLoadBalancerPool(region, lbid) >> pool
         provider.getIpForInstance(region, id) >> { throw new OpenstackProviderException("foobar") }
       }
     }
-    Exception ex = thrown(OpenstackProviderException)
-    ex.message == "foobar"
+    Exception ex = thrown(OpenstackOperationException)
+    ex.cause.message == "foobar"
 
     where:
     opClass << [RegisterOpenstackInstancesAtomicOperation, DeregisterOpenstackInstancesAtomicOperation]
@@ -141,14 +155,16 @@ class AbstractRegistrationOpenstackInstancesAtomicOperationUnitSpec extends Spec
 
     then:
     LB_IDS.each { lbid ->
+      provider.getLoadBalancer(region, lbid) >> loadBalancer
       INSTANCE_IDS.each { id ->
-        _ * provider.getLoadBalancerPool(region, lbid) >> pool
-        _ * provider.getIpForInstance(region, id) >> ip
-        provider.getInternalLoadBalancerPort(pool) >> { throw new OpenstackProviderException("foobar") }
+        provider.getIpForInstance(region, id) >> ip
+        loadBalancer.listeners.each { listItem ->
+          provider.getInternalLoadBalancerPort(region, listItem.id) >> { throw new OpenstackProviderException("foobar") }
+        }
       }
     }
-    Exception ex = thrown(OpenstackProviderException)
-    ex.message == "foobar"
+    Exception ex = thrown(OpenstackOperationException)
+    ex.cause.message == "foobar"
 
     where:
     opClass << [RegisterOpenstackInstancesAtomicOperation]
@@ -164,15 +180,18 @@ class AbstractRegistrationOpenstackInstancesAtomicOperationUnitSpec extends Spec
 
     then:
     LB_IDS.each { lbid ->
+      provider.getLoadBalancer(region, lbid) >> loadBalancer
       INSTANCE_IDS.each { id ->
-        _ * provider.getLoadBalancerPool(region, lbid) >> pool
-        _ * provider.getIpForInstance(region, id) >> ip
-        _ * provider.getInternalLoadBalancerPort(pool) >> port
-        provider.addMemberToLoadBalancerPool(region, ip, lbid, port, description.weight) >> { throw new OpenstackProviderException("foobar") }
+        provider.getIpForInstance(region, id) >> ip
+        loadBalancer.listeners.each { listItem ->
+          provider.getListener(region, listItem.id) >> listenerMap[listItem.id]
+          provider.getInternalLoadBalancerPort(region, listItem.id) >> port
+          provider.addMemberToLoadBalancerPool(region, ip, listenerMap[listItem.id].defaultPoolId, subnetId, port, description.weight) >> { throw new OpenstackProviderException("foobar") }
+        }
       }
     }
-    Exception ex = thrown(OpenstackProviderException)
-    ex.message == "foobar"
+    Exception ex = thrown(OpenstackOperationException)
+    ex.cause.message == "foobar"
 
     where:
     opClass << [RegisterOpenstackInstancesAtomicOperation]
@@ -188,14 +207,19 @@ class AbstractRegistrationOpenstackInstancesAtomicOperationUnitSpec extends Spec
 
     then:
     LB_IDS.each { lbid ->
+      provider.getLoadBalancer(region, lbid) >> loadBalancer
       INSTANCE_IDS.each { id ->
-        _ * provider.getLoadBalancerPool(region, lbid) >> pool
-        _ * provider.getIpForInstance(region, id) >> ip
-        provider.getMemberIdForInstance(region, ip, pool) >> { throw new OpenstackProviderException("foobar") }
+        provider.getIpForInstance(region, id) >> ip
+        loadBalancer.listeners.each { listItem ->
+          provider.getListener(region, listItem.id) >> listenerMap[listItem.id]
+          provider.getMemberIdForInstance(region, ip, listenerMap[listItem.id].defaultPoolId) >> {
+            throw new OpenstackProviderException("foobar")
+          }
+        }
       }
     }
-    Exception ex = thrown(OpenstackProviderException)
-    ex.message == "foobar"
+    Exception ex = thrown(OpenstackOperationException)
+    ex.cause.message == "foobar"
 
     where:
     opClass << [DeregisterOpenstackInstancesAtomicOperation]
@@ -211,15 +235,18 @@ class AbstractRegistrationOpenstackInstancesAtomicOperationUnitSpec extends Spec
 
     then:
     LB_IDS.each { lbid ->
+      provider.getLoadBalancer(region, lbid) >> loadBalancer
       INSTANCE_IDS.each { id ->
-        _ * provider.getLoadBalancerPool(region, lbid) >> pool
-        _ * provider.getIpForInstance(region, id) >> ip
-        _ * provider.getMemberIdForInstance(region, ip, pool) >> memberId
-        provider.removeMemberFromLoadBalancerPool(region, memberId) >> { throw new OpenstackProviderException("foobar") }
+        provider.getIpForInstance(region, id) >> ip
+        loadBalancer.listeners.each { listItem ->
+          provider.getListener(region, listItem.id) >> listenerMap[listItem.id]
+          provider.getMemberIdForInstance(region, ip, listenerMap[listItem.id].defaultPoolId) >> memberId
+          provider.removeMemberFromLoadBalancerPool(region, listenerMap[listItem.id].defaultPoolId, memberId) >> { throw new OpenstackProviderException("foobar") }
+        }
       }
     }
-    Exception ex = thrown(OpenstackProviderException)
-    ex.message == "foobar"
+    Exception ex = thrown(OpenstackOperationException)
+    ex.cause.message == "foobar"
 
     where:
     opClass << [DeregisterOpenstackInstancesAtomicOperation]

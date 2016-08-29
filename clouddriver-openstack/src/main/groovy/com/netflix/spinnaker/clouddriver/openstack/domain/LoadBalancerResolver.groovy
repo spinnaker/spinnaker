@@ -20,44 +20,24 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 /**
- * Load balancer description is a comma-deliminated set
- * of key-value pairs.
+ * Load balancer descriptions are used to store the created_time for a load balancer.
  *
- * Usually this will be in the form of "internal_port=8100,created_time=12345678", for example.
+ * It is a key value pair.
+ *
+ * For example:
+ *
+ * {@code created_time=12345678}
+ *
+ * Load balancer listener descriptions are used to store external and internal protocols and ports.
+ *
+ * For example:
+ *
+ * {@code HTTP:80:HTTP:8080}
  */
 trait LoadBalancerResolver {
 
-  final String portRegex = ".*internal_port=([0-9]+).*"
-  final Pattern portPattern = Pattern.compile(portRegex)
   final String createdRegex = ".*created_time=([0-9]+).*"
   final Pattern createdPattern = Pattern.compile(createdRegex)
-
-  /**
-   * TODO remove when register/deregister ops for lbaasv2 is implemented
-   *
-   * Parse the internal port from a load balancer description in the following format.
-   * <br><br>
-   * {@code
-   *  ...,internal_port=8100,...
-   * }
-   * @param description
-   * @return the port value
-   */
-  Integer parseInternalPort(final String description) {
-    String s = match(description, portPattern)
-    s ? s.toInteger() : null
-  }
-
-  /**
-   * TODO remove when register/deregister ops for lbaasv2 is implemented
-   *
-   * Generate key=value port string, e.g. internal_port=8100
-   * @param port
-   * @return
-   */
-  String generateInternalPort(int port) {
-    "internal_port=${port}"
-  }
 
   /**
    * Generate key=value port string, e.g. internal_port=8100,internal_protocol=HTTP
