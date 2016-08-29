@@ -27,7 +27,7 @@ class ConsulProviderUtils {
   static List<ConsulHealth> getHealths(ConsulConfig config, String agent) {
     try {
       new ConsulAgent(config, agent).api.checks()?.collect { String name, CheckResult result ->
-        new ConsulHealth(result: result, source: result.checkId)
+        return new ConsulHealth(result: result, source: result.checkID)
       } ?: []
     } catch (RetrofitError e) {
       return []

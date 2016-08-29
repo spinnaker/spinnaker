@@ -23,6 +23,8 @@ import groovy.transform.Canonical
 
 @Canonical
 class ConsulHealth extends DiscoveryHealth {
+  String description
+
   @Override
   public String getDiscoveryType() {
     return "Consul"
@@ -34,10 +36,16 @@ class ConsulHealth extends DiscoveryHealth {
 
   @Override
   HealthState getState() {
+    description = result.notes
     switch (result.status) {
       case CheckResult.Status.passing:
         return HealthState.Up
       case CheckResult.Status.critical:
+        if (result.checkID == "_node_maintenance") {
+          return HealthState.OutOfService
+        } else {
+          return HealthState.Down
+        }
       case CheckResult.Status.warning:
         return HealthState.Down
       default:

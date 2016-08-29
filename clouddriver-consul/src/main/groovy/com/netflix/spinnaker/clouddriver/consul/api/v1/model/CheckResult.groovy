@@ -18,30 +18,32 @@ package com.netflix.spinnaker.clouddriver.consul.api.v1.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
+// JsonProperty seems to misbehave here. The field names are capitalized, but their json counterparts are lower-case
+// because Consul returns field names with Go-naming conventions.
 class CheckResult {
-  @JsonProperty("Node")
-  String node
+  @JsonProperty("node")
+  String Node
 
-  @JsonProperty("CheckID")
-  String checkId
+  @JsonProperty("checkID")
+  String CheckID
 
-  @JsonProperty("Name")
-  String name
+  @JsonProperty("name")
+  String Name
 
-  @JsonProperty("Status")
-  Status status
+  @JsonProperty("status")
+  Status Status
 
-  @JsonProperty("Notes")
-  String notes
+  @JsonProperty("notes")
+  String Notes
 
-  @JsonProperty("Output")
-  String output
+  @JsonProperty("output")
+  String Output
 
-  @JsonProperty("ServiceID")
-  String serviceId
+  @JsonProperty("serviceID")
+  String ServiceID
 
-  @JsonProperty("ServiceName")
-  String serviceName
+  @JsonProperty("serviceName")
+  String ServiceName
 
   enum Status {
     passing,
