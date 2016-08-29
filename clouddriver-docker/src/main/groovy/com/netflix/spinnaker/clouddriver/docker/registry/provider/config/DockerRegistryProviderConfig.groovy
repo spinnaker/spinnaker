@@ -78,7 +78,7 @@ class DockerRegistryProviderConfig {
         def newlyAddedAgents = []
 
         credentials.cacheThreads.times { i ->
-          newlyAddedAgents << new DockerRegistryImageCachingAgent(dockerRegistryCloudProvider, credentials.accountName, credentials.credentials, i, credentials.cacheThreads)
+          newlyAddedAgents << new DockerRegistryImageCachingAgent(dockerRegistryCloudProvider, credentials.accountName, credentials.credentials, i, credentials.cacheThreads, credentials.registry)
         }
 
         // If there is an agent scheduler, then this provider has been through the AgentController in the past.

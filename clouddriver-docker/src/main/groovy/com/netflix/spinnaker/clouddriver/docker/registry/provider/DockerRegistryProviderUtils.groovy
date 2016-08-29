@@ -25,7 +25,11 @@ class DockerRegistryProviderUtils {
     loadResults(cacheView, namespace, cacheView.filterIdentifiers(namespace, pattern))
   }
 
-  private static Set<CacheData> loadResults(Cache cacheView, String namespace, Collection<String> identifiers) {
+  static Set<CacheData> loadResults(Cache cacheView, String namespace, Collection<String> identifiers) {
     cacheView.getAll(namespace, identifiers, RelationshipCacheFilter.none())
+  }
+
+  static imageId(String registry, String repository, String tag) {
+    "$registry/$repository:$tag"
   }
 }

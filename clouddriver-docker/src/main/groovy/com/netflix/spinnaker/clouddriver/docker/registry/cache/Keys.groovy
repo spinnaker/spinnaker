@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.docker.registry.cache
 class Keys {
   static enum Namespace {
     TAGGED_IMAGE,
+    IMAGE_ID,
 
     static String provider = "dockerRegistry"
 
@@ -52,6 +53,9 @@ class Keys {
       case Namespace.TAGGED_IMAGE.ns:
         result << [account: parts[2], repository: parts[3], tag: parts[4]]
         break
+      case Namespace.IMAGE_ID.ns:
+        result << [imageId: parts[2]]
+        break
       default:
         return null
         break
@@ -62,5 +66,9 @@ class Keys {
 
   static String getTaggedImageKey(String account, String repository, String tag) {
     "${Namespace.provider}:${Namespace.TAGGED_IMAGE}:${account}:${repository}:${tag}"
+  }
+
+  static String getImageIdKey(String imageId) {
+    "${Namespace.provider}:${Namespace.IMAGE_ID}:${imageId}"
   }
 }

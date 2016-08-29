@@ -42,6 +42,10 @@ class DockerRegistryCredentials {
     return client
   }
 
+  String getRegistry() {
+    return client
+  }
+
   boolean getTrackDigests() {
     return trackDigests
   }

@@ -39,30 +39,26 @@ class DockerRegistryImageLookupController {
   @RequestMapping(value = '/find', method = RequestMethod.GET)
   List<Map> find(LookupOptions lookupOptions) {
     def account = ""
-    def image = ""
-    def tag = ""
 
     if (lookupOptions.account) {
       account = lookupOptions.account
     }
-
+    Set<CacheData> images
     if (lookupOptions.q) {
-      def lastColon = lookupOptions.q.lastIndexOf(':')
-      if (lastColon != -1) {
-        image = lookupOptions.q.substring(0, lastColon)
-        tag = lookupOptions.q.substring(lastColon + 1)
-      } else {
-        image = lookupOptions.q
-      }
+      def key = Keys.getImageIdKey("*${lookupOptions.q}*")
+      def keys = DockerRegistryProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.IMAGE_ID.ns, key).collect {
+        it.attributes.tagKey
+      } as Collection<String>
+      images = DockerRegistryProviderUtils.loadResults(cacheView, Keys.Namespace.TAGGED_IMAGE.ns, keys)
+    } else {
+      def image = '*'
+      def tag = '*'
+      account = account ?: '*'
+
+      def key = Keys.getTaggedImageKey(account, image, tag)
+
+      images = DockerRegistryProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.TAGGED_IMAGE.ns, key)
     }
-
-    image = image ?: '*'
-    account = account ?: '*'
-    tag = tag ?: '*'
-
-    def key = Keys.getTaggedImageKey(account, image, tag)
-
-    Set<CacheData> images = DockerRegistryProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.TAGGED_IMAGE.ns, key)
 
     if (lookupOptions.count) {
       images = images.take(lookupOptions.count)
