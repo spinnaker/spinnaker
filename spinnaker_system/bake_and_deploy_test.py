@@ -132,7 +132,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
 
     defaults = defaults or {}
     parser.add_argument(
-      '--jenkins_master', default='jenkins1',
+      '--jenkins_master', default='jenkins',
       help='The name of the jenkins master as configured in igor.')
     parser.add_argument(
       '--jenkins_job', default='TestTriggerProject',
