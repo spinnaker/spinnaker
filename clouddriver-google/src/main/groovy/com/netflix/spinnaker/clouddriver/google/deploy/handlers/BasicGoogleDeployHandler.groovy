@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.handlers
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -350,7 +351,15 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     // Actually update the backend services.
     if (willUpdateBackendServices) {
       backendServicesToUpdate.each { BackendService backendService ->
-        compute.backendServices().update(project, backendService.name, backendService).execute()
+        GCEUtil.safeRetry(
+            updateBackendServices(compute, project, backendService.name, backendService),
+            "update",
+            "Http load balancer backend service",
+            task,
+            BASE_PHASE,
+            [400, 412],
+            []
+        )
         task.updateStatus BASE_PHASE, "Done associating server group $serverGroupName with backend service ${backendService.name}."
       }
     }
@@ -364,6 +373,19 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
   private boolean autoscalerIsSpecified(BasicGoogleDeployDescription description) {
     return description.autoscalingPolicy?.with {
       cpuUtilization || loadBalancingUtilization || customMetricUtilizations
+    }
+  }
+
+  private Closure updateBackendServices(Compute compute, String project, String backendServiceName, BackendService backendService) {
+    return {
+      BackendService serviceToUpdate = compute.backendServices().get(project, backendServiceName).execute()
+      if (serviceToUpdate.backends == null) {
+        serviceToUpdate.backends = new ArrayList<Backend>()
+      }
+      backendService?.backends?.each { serviceToUpdate.backends << it }
+      serviceToUpdate.getBackends().unique { backend -> backend.group }
+      compute.backendServices().update(project, backendServiceName, serviceToUpdate).execute()
+      null
     }
   }
 }
