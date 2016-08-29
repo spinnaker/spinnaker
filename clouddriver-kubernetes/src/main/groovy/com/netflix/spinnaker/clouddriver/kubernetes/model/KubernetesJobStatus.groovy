@@ -62,12 +62,12 @@ class KubernetesJobStatus implements JobStatus, Serializable {
 
   @Override
   JobState getJobState() {
-    def state = pod.status?.containerStatuses?.get(0)?.state
-    if (state.getRunning()) {
+    def state = pod?.status?.containerStatuses?.getAt(0)?.state
+    if (state?.getRunning()) {
       return JobState.Running
-    } else if (state.getWaiting()) {
+    } else if (state?.getWaiting()) {
       return JobState.Starting
-    } else if (state.getTerminated()) {
+    } else if (state?.getTerminated()) {
       def terminated = state.getTerminated()
       completedTime = KubernetesModelUtil.translateTime(terminated.getFinishedAt())
       signal = terminated.getSignal()
