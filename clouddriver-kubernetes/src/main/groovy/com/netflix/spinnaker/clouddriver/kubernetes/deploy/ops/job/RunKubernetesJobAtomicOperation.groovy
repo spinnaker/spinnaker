@@ -73,6 +73,7 @@ class RunKubernetesJobAtomicOperation implements AtomicOperation<DeploymentResul
       podBuilder = podBuilder.withVolumes(volumeSources)
     }
 
+    description.container.name = description.container.name ?: "job"
     def container = KubernetesApiConverter.toContainer(description.container)
 
     podBuilder = podBuilder.withContainers(container)

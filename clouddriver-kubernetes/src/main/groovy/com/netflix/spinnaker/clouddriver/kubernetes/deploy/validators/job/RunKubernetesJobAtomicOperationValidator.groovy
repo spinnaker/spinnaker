@@ -55,6 +55,7 @@ class RunKubernetesJobAtomicOperationValidator extends DescriptionValidator<RunK
     }
 
     helper.validateNotEmpty(description.container, "containers")
+    description.container.name = description.container.name ?: "job"
     KubernetesContainerValidator.validate(description.container, helper, "container")
   }
 }
