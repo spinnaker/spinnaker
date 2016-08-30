@@ -115,7 +115,7 @@ class OpenstackLoadBalancerControllerSpec extends Specification {
     String description = 'internal_port=8100'
     String status = 'up'
     String protocol = 'http'
-    String method = 'round_robin'
+    String algorithm = 'round_robin'
     String ip = '1.2.3.4'
     Integer externalPort = 80
     String subnet = "subnet$i"
@@ -125,7 +125,7 @@ class OpenstackLoadBalancerControllerSpec extends Specification {
     def serverGroups = [new LoadBalancerServerGroup(name: 'sg1', isDisabled: false,
       instances: [new LoadBalancerInstance(id: 'id', zone: "zone$i", health: [state:'up', zone: "zone$i"])])]
     new OpenstackLoadBalancer.View(account: account, region: region, id: id, name: name, description: description,
-      status: status, method: method, ip: ip, subnetId: subnet, subnetName: subnet, networkId: network, networkName: network,
+      status: status, algorithm: algorithm, ip: ip, subnetId: subnet, subnetName: subnet, networkId: network, networkName: network,
       healthMonitor: healthMonitor, serverGroups: serverGroups)
   }
 }

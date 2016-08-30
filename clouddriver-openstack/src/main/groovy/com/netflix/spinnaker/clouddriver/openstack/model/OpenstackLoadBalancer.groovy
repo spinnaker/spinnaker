@@ -38,7 +38,7 @@ class OpenstackLoadBalancer implements LoadBalancerResolver {
   String name
   String description
   String status
-  String method
+  String algorithm
   Set<OpenstackLoadBalancerListener> listeners
   OpenstackHealthMonitor healthMonitor
 
@@ -57,7 +57,7 @@ class OpenstackLoadBalancer implements LoadBalancerResolver {
       expectedCodes: healthMonitor.expectedCodes, httpMethod: healthMonitor.httpMethod) : null
     new OpenstackLoadBalancer(account: account, region: region, id: loadBalancer.id, name: loadBalancer.name,
       description: loadBalancer.description, status: loadBalancer.operatingStatus,
-      method: pool?.lbMethod?.toString(), listeners: openstackListeners, healthMonitor: openstackHealthMonitor)
+      algorithm: pool?.lbMethod?.toString(), listeners: openstackListeners, healthMonitor: openstackHealthMonitor)
   }
 
   Long getCreatedTime() {

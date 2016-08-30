@@ -111,7 +111,7 @@ class OpenstackLoadBalancerProvider implements LoadBalancerProvider<OpenstackLoa
 
     //construct view
     new OpenstackLoadBalancer.View(account: loadBalancer.account, region: loadBalancer.region, id: loadBalancer.id, name: loadBalancer.name,
-      description: loadBalancer.description, status: loadBalancer.status, method: loadBalancer.status,
+      description: loadBalancer.description, status: loadBalancer.status, algorithm: loadBalancer.algorithm,
       listeners: loadBalancer.listeners, healthMonitor: loadBalancer.healthMonitor, ip: ip?.floatingIpAddress,
       subnetId: subnet?.id, subnetName: subnet?.name,
       networkId: network?.id, networkName: network?.name, serverGroups: serverGroups ?: [].toSet())
