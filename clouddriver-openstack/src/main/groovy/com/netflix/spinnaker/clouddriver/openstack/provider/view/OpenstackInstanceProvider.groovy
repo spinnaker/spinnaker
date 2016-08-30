@@ -49,7 +49,7 @@ class OpenstackInstanceProvider implements InstanceProvider<OpenstackInstance> {
   }
 
   Set<OpenstackInstance> getInstances(Collection<String> cacheKeys) {
-    cacheKeys.collect(this.&getInstanceInternal).toSet()
+    cacheKeys.findResults(this.&getInstanceInternal).toSet()
   }
 
   @Override
