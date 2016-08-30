@@ -86,12 +86,14 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
     }
 
     function groupByRegistry(container) {
-      if (container.imageDescription.fromContext) {
-        return 'Find Image Result(s)';
-      } else if (container.imageDescription.fromTrigger) {
-        return 'Images from Trigger(s)';
-      } else {
-        return container.imageDescription.registry;
+      if (container.imageDescription) {
+        if (container.imageDescription.fromContext) {
+          return 'Find Image Result(s)';
+        } else if (container.imageDescription.fromTrigger) {
+          return 'Images from Trigger(s)';
+        } else {
+          return container.imageDescription.registry;
+        }
       }
     }
 

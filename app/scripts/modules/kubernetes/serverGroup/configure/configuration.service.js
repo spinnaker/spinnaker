@@ -17,14 +17,21 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
       let queries = command.containers
         .map(c => grabImageAndTag(c.imageDescription.imageId));
 
-      queries.push(query);
+      if (query) {
+        queries.push(query);
+      }
 
-      let imagesPromise = $q.all(queries
-        .map(q => kubernetesImageReader.findImages({
-          provider: 'dockerRegistry',
-          count: 50,
-          q: q })))
-        .then(_.flatten);
+      let imagesPromise;
+      if (queries.length) {
+        imagesPromise = $q.all(queries
+          .map(q => kubernetesImageReader.findImages({
+            provider: 'dockerRegistry',
+            count: 50,
+            q: q })))
+          .then(_.flatten);
+      } else {
+        imagesPromise = $q.when([{ message: 'Please type your search...' }]);
+      }
 
       return $q.all({
         accounts: accountService.listAccounts('kubernetes'),
@@ -58,6 +65,10 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
 
     function mapImageToContainer(command) {
       return (image) => {
+        if (image.message) {
+          return image;
+        }
+
         return {
           name: image.repository.replace(/_/g, '').replace(/[\/ ]/g, '-').toLowerCase(),
           imageDescription: {
@@ -203,7 +214,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
           return registry.accountName;
         });
         command.backingData.filtered.images = _.filter(command.backingData.allImages, function(image) {
-          return image.fromContext || image.fromTrigger || _.contains(accounts, image.account);
+          return image.fromContext || image.fromTrigger || _.contains(accounts, image.account) || image.message;
         });
       }
       return result;

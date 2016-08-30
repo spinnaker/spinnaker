@@ -1,0 +1,31 @@
+<table class="table table-condensed" style="border-top: 2px solid white; margin-bottom: 0px;">
+  <thead ng-if="$ctrl.envVars.length">
+  <tr>
+    <th>Name</th>
+    <th>Value</th>
+    <th></th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr ng-repeat="pair in $ctrl.envVars">
+    <td><input class="form-control input input-sm" type="text" ng-model="pair.name"></td>
+    <td><input class="form-control input input-sm" type="text" ng-model="pair.value"></td>
+    <td>
+      <div class="form-control-static">
+        <a href ng-click="$ctrl.removeEnvVar($index)">
+          <span class="glyphicon glyphicon-trash"></span>
+        </a>
+      </div>
+    </td>
+  </tr>
+  </tbody>
+  <tfoot>
+  <tr>
+    <td colspan="3">
+      <button class="add-new col-md-12" ng-click="$ctrl.addEnvVar()" style="margin-bottom: 0px;"><span
+        class="glyphicon glyphicon-plus-sign"></span> Add Environment Variable
+      </button>
+    </td>
+  </tr>
+  </tfoot>
+</table>

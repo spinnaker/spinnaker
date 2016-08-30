@@ -11,8 +11,10 @@ module.exports = angular.module('spinnaker.kubernetes.namespace.selectField.dire
         namespaces: '=',
         component: '=',
         field: '@',
+        columns: '@',
         account: '=',
         onChange: '&',
+        hideLabel: '=',
       }
     };
   });

@@ -30,7 +30,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.basi
     var imageSearchResultsStream = new rx.Subject();
 
     imageSearchResultsStream
-      .throttle(250)
+      .debounce(250)
       .flatMapLatest(searchImages)
       .subscribe();
 

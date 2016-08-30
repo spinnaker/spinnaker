@@ -62,9 +62,12 @@
       <ui-select multiple name="containerSelect" ng-model="command.containers" class="form-control input-sm" required>
         <ui-select-match>{{$item.imageDescription.imageId}}</ui-select-match>
         <ui-select-choices
-          repeat="container in command.backingData.filtered.containers | filter: { imageDescription: { imageId: $select.search } } | orderBy:'imageDescription.imageId'"
+          repeat="container in command.backingData.filtered.containers | orderBy:'imageDescription.imageId'"
           group-by="command.groupByRegistry"
+          refresh-delay="0"
+          ui-disable-choice="container.message"
           refresh="basicSettingsController.searchImages($select.search)">
+          <span ng-bind-html="container.message"></span>
           <span ng-bind-html="container.imageDescription.imageId | highlight: $select.search"></span>
         </ui-select-choices>
       </ui-select>

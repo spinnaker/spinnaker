@@ -88,9 +88,16 @@ module.exports = angular.module('spinnaker.core.pipeline.config.configProvider',
       });
       if (matches.length > 1) {
         var provider = stage.cloudProvider || stage.cloudProviderType || 'aws';
-        matches = matches.filter((stageType) => {
+        var matchesForStageCloudProvider = matches.filter((stageType) => {
           return stageType.cloudProvider === provider;
         });
+
+        if (!matchesForStageCloudProvider.length) {
+          return matches.find((stageType) => {
+            return stageType.cloudProvider || stageType.cloudProviderType;
+          }) || null;
+        }
+        return matchesForStageCloudProvider[0];
       }
       return matches.length ? matches[0] : null;
     }, (stage) => [stage ? stage.type : '', stage ? stage.cloudProvider || stage.cloudProviderType || 'aws' : ''].join(':'));

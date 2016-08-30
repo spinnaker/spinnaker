@@ -17,6 +17,7 @@ module.exports = angular.module('spinnaker.kubernetes', [
   require('./pipeline/stages/disableCluster/kubernetesDisableClusterStage.js'),
   require('./pipeline/stages/enableAsg/kubernetesEnableAsgStage.js'),
   require('./pipeline/stages/resizeAsg/resizeStage.js'),
+  require('./pipeline/stages/runJob/runJobStage.js'),
   require('./cache/configurer.service.js'),
   require('./cluster/cluster.kubernetes.module.js'),
   require('./container/configurer.directive.js'),

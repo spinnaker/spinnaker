@@ -1,8 +1,10 @@
 <div class="form-group">
-  <div class="col-md-3 sm-label-right">Namespace
-  <help-field key="kubernetes.namespace"></help-field></div>
-  <div class="col-md-7" ng-if="!account">(Select an account)</div>
-  <div class="col-md-7">
+  <div ng-hide="hideLabel">
+    <div class="col-md-3 sm-label-right">Namespace
+    <help-field key="kubernetes.namespace"></help-field></div>
+  </div>
+  <div class="col-md-{{ columns || 7 }}" ng-if="!account">(Select an account)</div>
+  <div class="col-md-{{ columns || 7 }}">
     <select class="form-control input-sm"
             ng-if="account"
             ng-model="component.namespace"
