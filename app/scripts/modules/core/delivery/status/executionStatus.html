@@ -41,8 +41,8 @@
       <li ng-switch-when="pipeline">
         {{ ::vm.execution | executionUser }}
       </li>
-      <li>
-        {{ ::vm.execution.startTime | timestamp }}
+      <li title="{{ ::vm.execution.startTime | timestamp }}">
+        {{ ::vm.execution.startTime | relativeTime }}
       </li>
     </span>
     <li ng-repeat="parameter in ::vm.parameters">
