@@ -47,8 +47,31 @@ class KeysSpec extends Specification {
     Keys.parse(Keys.getImageKey('image', 'account', 'region')) == [provider: 'aws', type: Namespace.IMAGES.ns, imageId: 'image', region: 'region', account: 'account']
     Keys.parse(Keys.getInstanceHealthKey('instanceId', 'account', 'region', 'provider')) == [provider: 'aws', type: Namespace.HEALTH.ns, instanceId: 'instanceId', account: 'account', region: 'region', provider: 'provider']
     Keys.parse(Keys.getLaunchConfigKey('kato-main-v056-10062014221307', 'account', 'region')) == [provider: 'aws', type: Namespace.LAUNCH_CONFIGS.ns, launchConfig: 'kato-main-v056-10062014221307', region: 'region', account: 'account', application: 'kato', stack: 'main']
-    Keys.parse(Keys.getLoadBalancerKey('loadBalancer', 'account', 'region', 'vpc-12345')) == [provider: 'aws', type: Namespace.LOAD_BALANCERS.ns, loadBalancer: 'loadBalancer', account: 'account', region: 'region', vpcId: 'vpc-12345', application: 'loadbalancer', stack: null, detail: null]
-    Keys.parse(Keys.getLoadBalancerKey('kato-main-frontend', 'account', 'region', null)) == [provider: 'aws', type: Namespace.LOAD_BALANCERS.ns, loadBalancer: 'kato-main-frontend', account: 'account', region: 'region', vpcId: null, stack: 'main', detail: 'frontend', application: 'kato']
+    Keys.parse(Keys.getLoadBalancerKey('loadBalancer', 'account', 'region', 'vpc-12345', 'classic')) == [provider: 'aws', type: Namespace.LOAD_BALANCERS.ns, loadBalancer: 'loadBalancer', account: 'account', region: 'region', vpcId: 'vpc-12345', loadBalancerType: 'classic', application: 'loadbalancer', stack: null, detail: null]
+    Keys.parse(Keys.getLoadBalancerKey('kato-main-frontend', 'account', 'region', null, 'classic')) == [provider: 'aws', type: Namespace.LOAD_BALANCERS.ns, loadBalancer: 'kato-main-frontend', account: 'account', region: 'region', vpcId: null, loadBalancerType: 'classic', stack: 'main', detail: 'frontend', application: 'kato']
+    Keys.parse(Keys.getLoadBalancerKey('kato-main-frontend', 'account', 'region', null, null)) == [provider: 'aws', type: Namespace.LOAD_BALANCERS.ns, loadBalancer: 'kato-main-frontend', account: 'account', region: 'region', vpcId: null, loadBalancerType: 'classic', stack: 'main', detail: 'frontend', application: 'kato']
+    Keys.parse(Keys.getLoadBalancerKey('loadBalancer', 'account', 'region', 'vpc-12345', 'application')) == [provider: 'aws', type: Namespace.LOAD_BALANCERS.ns, loadBalancer: 'loadBalancer', account: 'account', region: 'region', vpcId: 'vpc-12345', loadBalancerType: 'application', application: 'loadbalancer', stack: null, detail: null]
+  }
+
+  def 'load balancer key backwards compatibility'() {
+    expect:
+    Keys.getLoadBalancerKey('lbname', 'account', 'region', null, 'classic') == 'aws:loadBalancers:account:region:lbname'
+    Keys.getLoadBalancerKey('lbname', 'account', 'region', null, null) == 'aws:loadBalancers:account:region:lbname'
+    Keys.getLoadBalancerKey('lbname', 'account', 'region', 'vpc', 'classic') == 'aws:loadBalancers:account:region:lbname:vpc'
+    Keys.getLoadBalancerKey('lbname', 'account', 'region', 'vpc', null) == 'aws:loadBalancers:account:region:lbname:vpc'
+
+    Keys.getLoadBalancerKey('lbname', 'account', 'region', 'vpc', 'application') == 'aws:loadBalancers:account:region:lbname:vpc:application'
+
+    Keys.parse('aws:loadBalancers:account:region:lbname') == [provider: 'aws', type: 'loadBalancers', loadBalancer: 'lbname', account: 'account', region: 'region', vpcId: null, loadBalancerType: 'classic', stack: null, detail: null, application: 'lbname']
+    Keys.parse('aws:loadBalancers:account:region:lbname:vpc') == [provider: 'aws', type: 'loadBalancers', loadBalancer: 'lbname', account: 'account', region: 'region', vpcId: 'vpc', loadBalancerType: 'classic', stack: null, detail: null, application: 'lbname']
+    Keys.parse('aws:loadBalancers:account:region:lbname:vpc:application') == [provider: 'aws', type: 'loadBalancers', loadBalancer: 'lbname', account: 'account', region: 'region', vpcId: 'vpc', loadBalancerType: 'application', stack: null, detail: null, application: 'lbname']
+  }
+
+  def 'typed loadbalancers require a vpcId'() {
+    //both will ignore the loadBalancerType of the LHS because there is no vpcId so it must be 'classic' type
+    Keys.getLoadBalancerKey('lbname', 'account', 'region', null, 'application') == 'aws:loadBalancers:account:region:lbname'
+    Keys.parse('aws:loadBalancers:account:region:lbname::application') == [provider: 'aws', type: 'loadBalancers', loadBalancer: 'lbname', account: 'account', region: 'region', vpcId: null, loadBalancerType: 'classic', stack: null, detail: null, application: 'lbname']
+
   }
 
 }

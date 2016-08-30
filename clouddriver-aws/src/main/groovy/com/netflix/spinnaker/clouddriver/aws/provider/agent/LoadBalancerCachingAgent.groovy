@@ -165,7 +165,7 @@ class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAw
     def cacheResult = metricsSupport.transformData { buildCacheResult(loadBalancers, [:], System.currentTimeMillis(), []) }
     metricsSupport.onDemandStore {
       def cacheData = new DefaultCacheData(
-        Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, loadBalancers ? loadBalancers[0].getVPCId() : null),
+        Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, loadBalancers ? loadBalancers[0].getVPCId() : null, null),
         10 * 60,
         [
           cacheTime   : new Date(),
@@ -177,7 +177,7 @@ class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAw
     }
     Map<String, Collection<String>> evictions = loadBalancers ? [:] : [
       (LOAD_BALANCERS.ns): [
-        Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, data.vpcId as String)
+        Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, data.vpcId as String, null)
       ]
     ]
 
@@ -222,7 +222,7 @@ class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAw
 
     def evictableOnDemandCacheDatas = []
     def usableOnDemandCacheDatas = []
-    providerCache.getAll(ON_DEMAND.ns, allLoadBalancers.collect { Keys.getLoadBalancerKey(it.loadBalancerName, account.name, region, it.getVPCId()) }).each {
+    providerCache.getAll(ON_DEMAND.ns, allLoadBalancers.collect { Keys.getLoadBalancerKey(it.loadBalancerName, account.name, region, it.getVPCId(), null) }).each {
       if (it.attributes.cacheTime < start) {
         evictableOnDemandCacheDatas << it
       } else {
@@ -244,7 +244,7 @@ class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAw
     Map<String, CacheData> loadBalancers = cache()
 
     for (LoadBalancerDescription lb : allLoadBalancers) {
-      def onDemandCacheData = onDemandCacheDataByLb ? onDemandCacheDataByLb[Keys.getLoadBalancerKey(lb.loadBalancerName, account.name, region, lb.getVPCId())] : null
+      def onDemandCacheData = onDemandCacheDataByLb ? onDemandCacheDataByLb[Keys.getLoadBalancerKey(lb.loadBalancerName, account.name, region, lb.getVPCId(), null)] : null
       if (onDemandCacheData) {
         log.info("Using onDemand cache value (${onDemandCacheData.id})")
 
@@ -254,7 +254,7 @@ class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAw
       } else {
         Collection<String> instanceIds = lb.instances.collect { Keys.getInstanceKey(it.instanceId, account.name, region) }
         Map<String, Object> lbAttributes = objectMapper.convertValue(lb, ATTRIBUTES)
-        String loadBalancerId = Keys.getLoadBalancerKey(lb.loadBalancerName, account.name, region, lb.getVPCId())
+        String loadBalancerId = Keys.getLoadBalancerKey(lb.loadBalancerName, account.name, region, lb.getVPCId(), null)
         loadBalancers[loadBalancerId].with {
           attributes.putAll(lbAttributes)
           relationships[INSTANCES.ns].addAll(instanceIds)
