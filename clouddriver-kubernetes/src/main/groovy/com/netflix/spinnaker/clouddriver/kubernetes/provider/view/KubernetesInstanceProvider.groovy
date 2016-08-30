@@ -22,6 +22,7 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesInstance
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider
+import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.Pod
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -57,8 +58,13 @@ class KubernetesInstanceProvider implements InstanceProvider<KubernetesInstance>
     }
 
     def pod = objectMapper.convertValue(instanceData.attributes.pod, Pod)
+    def events = objectMapper.convertValue(instanceData.attributes.events, List)
 
-    return new KubernetesInstance(pod, loadBalancers)
+    events = events.collect { event ->
+      objectMapper.convertValue(event, Event)
+    }
+
+    return new KubernetesInstance(pod, loadBalancers, events)
   }
 
   @Override

@@ -22,7 +22,6 @@ import com.netflix.spinnaker.cats.agent.*
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.provider.KubernetesProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.provider.view.MutableCacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
@@ -32,7 +31,7 @@ import io.fabric8.kubernetes.api.model.Pod
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 
 @Slf4j
-class KubernetesInstanceCachingAgent implements  CachingAgent, AccountAware {
+class KubernetesInstanceCachingAgent implements CachingAgent, AccountAware {
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
       AUTHORITATIVE.forType(Keys.Namespace.INSTANCES.ns),
   ] as Set)
@@ -87,10 +86,18 @@ class KubernetesInstanceCachingAgent implements  CachingAgent, AccountAware {
         continue
       }
 
+      def events = []
+      try {
+        events = credentials.apiAdaptor.getEvents(namespace, pod)
+      } catch (Exception e) {
+        log.warn "Failure fetching events for $pod.metadata.name in $namespace", e
+      }
+
       def key = Keys.getInstanceKey(accountName, namespace, pod.metadata.name)
       cachedInstances[key].with {
         attributes.name = pod.metadata.name
         attributes.pod = pod
+        attributes.events = events
       }
     }
 

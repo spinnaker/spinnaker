@@ -26,6 +26,7 @@ class Keys {
     INSTANCES,
     LOAD_BALANCERS,
     SECURITY_GROUPS,
+    EVENTS,
     ON_DEMAND,
 
     static String provider = "kubernetes"
