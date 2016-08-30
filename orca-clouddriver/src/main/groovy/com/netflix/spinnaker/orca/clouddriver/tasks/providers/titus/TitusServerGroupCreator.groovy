@@ -38,4 +38,8 @@ class TitusServerGroupCreator implements ServerGroupCreator {
   String getCloudProvider() {
     return cloudProvider
   }
+
+  Optional<String> getHealthProviderName() {
+    return Optional.of("Titus")
+  }
 }

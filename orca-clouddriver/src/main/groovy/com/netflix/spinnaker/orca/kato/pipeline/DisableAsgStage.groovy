@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceLinearStageSupport
@@ -44,11 +45,12 @@ class DisableAsgStage extends TargetReferenceLinearStageSupport {
   public List<Step> buildSteps(Stage stage) {
     composeTargets(stage)
 
+    def step0 = buildStep(stage, "determineHealthProviders", DetermineHealthProvidersTask)
     def step1 = buildStep(stage, "disableAsg", DisableAsgTask)
     def step2 = buildStep(stage, "monitorAsg", MonitorKatoTask)
     def step3 = buildStep(stage, "waitForDownInstances", waitForAllInstancesDownOnDisableTaskType)
     def step4 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    [step1, step2, step3, step4]
+    [step0, step1, step2, step3, step4]
   }
 
 }

@@ -58,4 +58,9 @@ class GoogleServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
 
     return [[(ServerGroupCreator.OPERATION): operation]]
   }
+
+  @Override
+  Optional<String> getHealthProviderName() {
+    return Optional.of("Google")
+  }
 }

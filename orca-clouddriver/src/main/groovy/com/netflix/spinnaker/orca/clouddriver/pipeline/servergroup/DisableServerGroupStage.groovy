@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupLinearStageSupport
+import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.DisableServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
@@ -37,6 +38,7 @@ class DisableServerGroupStage extends TargetServerGroupLinearStageSupport {
   public List<Step> buildSteps(Stage stage) {
     composeTargets(stage)
     [
+      buildStep(stage, "determineHealthProviders", DetermineHealthProvidersTask),
       buildStep(stage, "disableServerGroup", DisableServerGroupTask),
       buildStep(stage, "monitorServerGroup", MonitorKatoTask),
       buildStep(stage, "waitForDownInstances", WaitForAllInstancesDownTask),

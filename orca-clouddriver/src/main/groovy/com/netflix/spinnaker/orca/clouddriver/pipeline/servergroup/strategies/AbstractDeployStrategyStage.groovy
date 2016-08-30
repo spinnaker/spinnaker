@@ -17,10 +17,9 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.AbstractCloudProviderAwareStage
-import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ApplySourceServerGroupCapacityStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
-import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.DetermineSourceServerGroupTask
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.kato.tasks.DiffTask
@@ -64,7 +63,10 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
     strategy.composeFlow(stage)
 
     // TODO(ttomsu): This is currently an AWS-only stage. I need to add and support the "useSourceCapacity" option.
-    List<Step> steps = [buildStep(stage, "determineSourceServerGroup", DetermineSourceServerGroupTask)]
+    List<Step> steps = [
+      buildStep(stage, "determineSourceServerGroup", DetermineSourceServerGroupTask),
+      buildStep(stage, "determineHealthProviders", DetermineHealthProvidersTask)
+    ]
 
     def stageData = stage.mapTo(StageData)
     deployStagePreProcessors.findAll { it.supports(stage) }.each {

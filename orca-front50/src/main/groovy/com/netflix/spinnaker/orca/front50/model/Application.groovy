@@ -22,24 +22,26 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
 
-class Application {
-  String name
-  String description
-  String email
-  String accounts
-  String updateTs
-  String createTs
+public class Application {
+  public String name
+  public String description
+  public String email
+  public String accounts
+  public String updateTs
+  public String createTs
+  public Boolean platformHealthOnly
+  public Boolean platformHealthOnlyShowOverride
 
   private Map<String, Object> details = new HashMap<String, Object>()
 
   @JsonAnyGetter
   public Map<String,Object> details() {
-    return details;
+    return details
   }
 
   @JsonAnySetter
   public void set(String name, Object value) {
-    details.put(name, value);
+    details.put(name, value)
   }
 
   @JsonIgnore

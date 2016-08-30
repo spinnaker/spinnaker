@@ -43,4 +43,9 @@ class KubernetesServerGroupCreator implements ServerGroupCreator {
 
     return [[(OPERATION): operation]]
   }
+
+  @Override
+  Optional<String> getHealthProviderName() {
+    return Optional.empty()
+  }
 }
