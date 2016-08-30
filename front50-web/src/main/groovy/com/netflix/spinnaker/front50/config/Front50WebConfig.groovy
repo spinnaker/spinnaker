@@ -25,9 +25,11 @@ import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
 import com.netflix.spinnaker.front50.model.project.ProjectDAO
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.context.embedded.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.Ordered
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -35,8 +37,6 @@ import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
-
-import javax.servlet.Filter
 
 @Configuration
 @ComponentScan
@@ -54,8 +54,10 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
   }
 
   @Bean
-  Filter authenticatedRequestFilter() {
-    new AuthenticatedRequestFilter(true)
+  FilterRegistrationBean authenticatedRequestFilter() {
+    def frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(true))
+    frb.order = Ordered.HIGHEST_PRECEDENCE
+    return frb
   }
 
   @Bean
@@ -91,12 +93,12 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
     public Map handleHystrix(HystrixRuntimeException exception) {
       return [
           fallbackException: exception.fallbackException.toString(),
-          failureType: exception.failureType,
-          failureCause: exception.cause.toString(),
-          error: "Hystrix Failure",
-          message: exception.message,
-          status: HttpStatus.TOO_MANY_REQUESTS.value(),
-          timestamp: System.currentTimeMillis()
+          failureType      : exception.failureType,
+          failureCause     : exception.cause.toString(),
+          error            : "Hystrix Failure",
+          message          : exception.message,
+          status           : HttpStatus.TOO_MANY_REQUESTS.value(),
+          timestamp        : System.currentTimeMillis()
       ]
     }
   }

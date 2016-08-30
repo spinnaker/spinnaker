@@ -35,7 +35,7 @@ allprojects { project ->
   group = "com.netflix.spinnaker.front50"
 
   spinnaker {
-    dependenciesVersion = "0.42.0"
+    dependenciesVersion = "0.48.0"
   }
   test {
     testLogging {

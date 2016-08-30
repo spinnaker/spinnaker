@@ -54,6 +54,17 @@ dependencies {
   compile project(":front50-migrations")
 
   spinnaker.group "bootWeb"
+
+// Replace below with this line when fiat becomes stable.
+//  spinnaker.group "fiat"
+  compile "com.netflix.spinnaker.fiat:fiat-api:0.3.0"
+  compile "org.springframework.boot:spring-boot-starter-actuator:1.2.8.RELEASE"
+  compile "org.springframework.boot:spring-boot-starter-web:1.2.8.RELEASE"
+  compile "org.springframework.boot:spring-boot-starter-data-rest:1.2.8.RELEASE"
+  compile "org.springframework.security:spring-security-config:3.2.9.RELEASE"
+  compile "org.springframework.security:spring-security-core:3.2.9.RELEASE"
+  compile "org.springframework.security:spring-security-web:3.2.9.RELEASE"
+
   compile spinnaker.dependency("korkWeb")
   compile spinnaker.dependency("korkSwagger")
   compile spinnaker.dependency("kork")
