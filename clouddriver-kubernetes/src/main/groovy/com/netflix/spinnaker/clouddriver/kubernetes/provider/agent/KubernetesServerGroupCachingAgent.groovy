@@ -53,7 +53,7 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
   final OnDemandMetricsSupport metricsSupport
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
-    INFORMATIVE.forType(Keys.Namespace.APPLICATIONS.ns),
+    AUTHORITATIVE.forType(Keys.Namespace.APPLICATIONS.ns),
     AUTHORITATIVE.forType(Keys.Namespace.CLUSTERS.ns),
     INFORMATIVE.forType(Keys.Namespace.LOAD_BALANCERS.ns),
     AUTHORITATIVE.forType(Keys.Namespace.SERVER_GROUPS.ns),
