@@ -3,7 +3,13 @@ Spinnaker Auth Service
 
 [![Build Status](https://api.travis-ci.org/spinnaker/fiat.svg?branch=master)](https://travis-ci.org/spinnaker/fiat)
 
-Fix it again, Travis
+```
+   ____ _         ____ __    ___               _            ______                  _    
+  / __/(_)__ __  /  _// /_  / _ | ___ _ ___ _ (_)___       /_  __/____ ___ _ _  __ (_)___
+ / _/ / / \ \ / _/ / / __/ / __ |/ _ `// _ `// // _ \ _     / /  / __// _ `/| |/ // /(_-<
+/_/  /_/ /_\_\ /___/ \__/ /_/ |_|\_, / \_,_//_//_//_/( )   /_/  /_/   \_,_/ |___//_//___/
+                                /___/                |/                                  
+```
 
 Roadmap/Implementation Punch list:
 ---
