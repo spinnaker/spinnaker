@@ -87,13 +87,13 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware {
       if(credentials.skip?.contains(it)) {
           return [:]
       }
-      DockerRegistryTags tags
+      DockerRegistryTags tags = null
       try {
         tags = credentials.client.getTags(it)
       } catch (e) {
         log.error("Could not load tags for ${it}")
       }
-      tags ? [(tags.name): tags.tags ?: []] : [:]
+      tags?.tags && tags?.name ? [(tags.name): tags.tags] : [:]
     }
   }
 
@@ -124,9 +124,9 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware {
               log.warn("Image manifest for $tagKey no longer available; tag will not be cached: $e.message")
               return
             } else {
-              // Could be intermittent error, not caching the tag here will cause spurious tag creation/deletion events
-              // when the error is resolved.
-              log.warn("Error retrieving manifest for $tagKey; digest will not be cached: $e.message")
+              // It is safe to not cache the tag here because igor now persists all the tags it has seen.
+              log.warn("Error retrieving manifest for $tagKey; digest and tag will not be cached: $e.message")
+              return
             }
           }
         }

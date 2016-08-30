@@ -64,10 +64,10 @@ class DockerRegistryImageLookupController {
       images = images.take(lookupOptions.count)
     }
 
-    return images.collect({
+    return images.collect {
       def credentials = (DockerRegistryNamedAccountCredentials) accountCredentialsProvider.getCredentials((String) it.attributes.account)
       if (!credentials) {
-        return [:]
+        return null
       } else {
         def parse = Keys.parse(it.id)
         return [
@@ -78,7 +78,7 @@ class DockerRegistryImageLookupController {
             digest    : it.attributes.digest,
         ]
       }
-    })
+    } - null
   }
 
   private static class LookupOptions {
