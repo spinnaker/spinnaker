@@ -124,6 +124,25 @@ class MigrateClusterConfigurationStrategySpec extends Specification {
     0 * _
   }
 
+  void 'handles missing loadBalancers key'() {
+    given:
+    ClusterConfigurationTarget target = new ClusterConfigurationTarget(credentials: prodCredentials, vpcId: 'vpc-2', region: 'eu-west-1', availabilityZones: ['eu-west-1b'])
+    Map cluster = [
+      securityGroups: [],
+      region: 'us-east-1',
+      availabilityZones: [ 'us-east-1': ['us-east-1c']]
+    ]
+    ClusterConfiguration source = new ClusterConfiguration(credentials: testCredentials, cluster: cluster)
+
+    when:
+    def results = strategy.generateResults(source, target, sourceLookup, targetLookup,
+      migrateLoadBalancerStrategy, migrateSecurityGroupStrategy, null, null, null, null, [:], false, true)
+
+    then:
+    results.loadBalancerMigrations.size() == 0
+    results.cluster.loadBalancers == []
+  }
+
   void 'generates security groups from config, omitting skipped ones'() {
     given:
     ClusterConfigurationTarget target = new ClusterConfigurationTarget(credentials: prodCredentials, vpcId: 'vpc-2', region: 'eu-west-1', availabilityZones: ['eu-west-1b'])

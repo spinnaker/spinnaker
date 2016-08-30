@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 
 import java.util.List;
 import java.util.Map;
+import static java.util.Collections.emptyList;
 
 public class ClusterConfigurationMigrator {
 
@@ -106,7 +107,7 @@ public class ClusterConfigurationMigrator {
     }
 
     public List<String> getLoadBalancerNames() {
-      return (List<String>) cluster.get("loadBalancers");
+      return (List<String>) cluster.getOrDefault("loadBalancers", emptyList());
     }
 
     public String getRegion() {
