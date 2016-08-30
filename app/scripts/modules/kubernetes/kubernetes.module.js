@@ -22,6 +22,7 @@ module.exports = angular.module('spinnaker.kubernetes', [
   require('./cluster/cluster.kubernetes.module.js'),
   require('./container/configurer.directive.js'),
   require('./container/probe.directive.js'),
+  require('./event/event.directive.js'),
   require('./instance/details/details.kubernetes.module.js'),
   require('./loadBalancer/configure/configure.kubernetes.module.js'),
   require('./loadBalancer/details/details.kubernetes.module.js'),

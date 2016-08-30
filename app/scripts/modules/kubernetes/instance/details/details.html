@@ -189,8 +189,16 @@
           <p>Exit Code: {{instance.containerStatuses[$index].state.terminated.exitCode}}</p>
           <p>Signal: {{instance.containerStatuses[$index].state.terminated.signal}}</p>
           </dd>
-        </collapsible-section>
+        </div>
       </div>
-    </div>
+    </collapsible-section>
+    <collapsible-section heading="Events">
+      <div ng-if="instance.events && instance.events.length > 0">
+        <kubernetes-event ng-repeat="event in instance.events" event="event"/>
+      </div>
+      <div ng-if="!(instance.events && instance.events.length > 0)">
+        No events.
+      </div>
+    </collapsible-section>
   </div>
 </div>

@@ -1,0 +1,24 @@
+<div ng-controller="kubernetesEventController as ctrl" ng-class="dl-wide">
+  <div ng-if="ctrl.displayMessage">
+    <span uib-tooltip="{{ctrl.first | timestamp}} &rarr; {{ctrl.last | timestamp }}">
+      <span ng-if="ctrl.type === 'Warning'">
+        <span class="glyphicon glyphicon-Warn"></span>
+      </span>
+      <span ng-if="ctrl.type === 'Normal'">
+        <span class="glyphicon glyphicon-Normal"></span>
+      </span>
+      <span ng-if="ctrl.type === 'Unknown'">
+        ?
+      </span>
+      &times; {{ctrl.count}}
+    </span>
+    <div>
+      {{ctrl.reason}}:
+      {{ctrl.displayMessage}}
+      <a href ng-click="ctrl.showMessage()">...</a>
+    </div>
+  </div>
+  <div ng-if="!ctrl.displayMessage">
+    No message.
+  </div>
+</div>
