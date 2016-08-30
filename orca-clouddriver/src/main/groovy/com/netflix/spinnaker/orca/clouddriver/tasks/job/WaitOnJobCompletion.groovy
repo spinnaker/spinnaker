@@ -64,12 +64,12 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
       switch ((String)job.jobState) {
         case "Succeeded":
           status = ExecutionStatus.SUCCEEDED
-          outputs = job.completionDetails
+          outputs.completionDetails = job.completionDetails
           return
 
         case "Failed":
           status = ExecutionStatus.TERMINAL
-          outputs = job.completionDetails
+          outputs.completionDetails = job.completionDetails
           return
       }
     }
