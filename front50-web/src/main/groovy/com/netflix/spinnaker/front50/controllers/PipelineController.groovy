@@ -19,6 +19,12 @@ package com.netflix.spinnaker.front50.controllers
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.security.access.AccessDeniedException
+import org.springframework.security.access.prepost.PostAuthorize
+import org.springframework.security.access.prepost.PostFilter
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.access.prepost.PreFilter
 import org.springframework.web.bind.annotation.*
 import static org.springframework.http.HttpStatus.BAD_REQUEST
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY
@@ -33,23 +39,28 @@ class PipelineController {
   @Autowired
   PipelineDAO pipelineDAO
 
+  @PostFilter("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = '', method = RequestMethod.GET)
   List<Pipeline> list() {
     pipelineDAO.all()
   }
 
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = '{application:.+}', method = RequestMethod.GET)
   List<Pipeline> listByApplication(
     @PathVariable(value = 'application') String application) {
     pipelineDAO.getPipelinesByApplication(application)
   }
 
+  // TODO(ttomsu): Horribly inefficient for large histories.
+  @PostAuthorize("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = '{id:.+}/history', method = RequestMethod.GET)
   Collection<Pipeline> getHistory(@PathVariable String id,
                                   @RequestParam(value = "limit", defaultValue = "20") int limit) {
     return pipelineDAO.getPipelineHistory(id, limit)
   }
 
+  @PreAuthorize("hasPermission(#pipeline.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = '', method = RequestMethod.POST)
   void save(@RequestBody Pipeline pipeline) {
     if (!pipeline.application || !pipeline.name) {
@@ -68,11 +79,14 @@ class PipelineController {
     pipelineDAO.create(pipeline.id as String, pipeline)
   }
 
+  // TODO(ttomsu): Bulk authorize capability needed.
+  // @PreFilter("hasPermission(#filterTarget.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = 'batchUpdate', method = RequestMethod.POST)
   void batchUpdate(@RequestBody List<Pipeline> pipelines) {
     pipelineDAO.bulkImport(pipelines)
   }
 
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = '{application}/{pipeline:.+}', method = RequestMethod.DELETE)
   void delete(@PathVariable String application, @PathVariable String pipeline) {
     pipelineDAO.delete(
@@ -80,11 +94,13 @@ class PipelineController {
     )
   }
 
+  // TODO(ttomsu): How to secure this endpoint?
   @RequestMapping(value = 'deleteById/{id:.+}', method = RequestMethod.DELETE)
   void delete(@PathVariable String id) {
     pipelineDAO.delete(id)
   }
 
+  @PreAuthorize("hasPermission(#command.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = 'move', method = RequestMethod.POST)
   void rename(@RequestBody RenameCommand command) {
     checkForDuplicatePipeline(command.application, command.to)
@@ -119,6 +135,12 @@ class PipelineController {
   @ResponseStatus(UNPROCESSABLE_ENTITY)
   Map handleInvalidPipelineDefinition() {
     return [error: "A pipeline requires name and application fields", status: UNPROCESSABLE_ENTITY]
+  }
+
+  @ExceptionHandler(AccessDeniedException)
+  @ResponseStatus(HttpStatus.FORBIDDEN)
+  Map handleAccessDeniedException(AccessDeniedException ade) {
+    return [error: "Access is denied", status: HttpStatus.FORBIDDEN.value()]
   }
 
   static class DuplicatePipelineNameException extends Exception {}

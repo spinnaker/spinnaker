@@ -20,6 +20,11 @@ import com.netflix.spinnaker.front50.model.snapshot.Snapshot
 import com.netflix.spinnaker.front50.model.snapshot.SnapshotDAO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.http.HttpStatus
+import org.springframework.security.access.AccessDeniedException
+import org.springframework.security.access.prepost.PostAuthorize
+import org.springframework.security.access.prepost.PostFilter
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
@@ -39,17 +44,20 @@ class SnapshotsController {
     @Autowired
     SnapshotDAO snapshotDAO
 
+    @PostFilter("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
     @RequestMapping(value = "/{id:.+}/history", method = RequestMethod.GET)
     Collection<Snapshot> getHistory(@PathVariable String id,
                                     @RequestParam(value = "limit", defaultValue = "10") int limit) {
         return snapshotDAO.getHistory(id, limit)
     }
 
+    @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
     @RequestMapping(value = "/{id:.+}", method = RequestMethod.GET)
     Snapshot getCurrent(@PathVariable String id) {
         return snapshotDAO.findById(id)
     }
 
+    @PreAuthorize("hasPermission(#snapshot.application, 'APPLICATION', 'WRITE')")
     @RequestMapping(value = "", method = RequestMethod.POST)
     void save(@RequestBody Snapshot snapshot) {
         if (!snapshot.application || !snapshot.account) {
@@ -63,6 +71,12 @@ class SnapshotsController {
     @ResponseStatus(UNPROCESSABLE_ENTITY)
     Map handleInvalidSnapshotDefinition() {
         return [error: "A snapshot requires application and account fields", status: UNPROCESSABLE_ENTITY]
+    }
+
+    @ExceptionHandler(AccessDeniedException)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    Map handleAccessDeniedException(AccessDeniedException ade) {
+        return [error: "Access is denied", status: HttpStatus.FORBIDDEN.value()]
     }
 
     static class InvalidSnapshotDefinition extends Exception {}
