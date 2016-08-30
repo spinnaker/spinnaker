@@ -7,6 +7,7 @@ dependencies {
   compile spinnaker.dependency("springContext")
   compile spinnaker.dependency("guava")
   compile spinnaker.dependency("bootActuator")
+  compile spinnaker.dependency('korkWeb')
 
   compile "org.apache.commons:commons-lang3:3.4"
   compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.7.4"

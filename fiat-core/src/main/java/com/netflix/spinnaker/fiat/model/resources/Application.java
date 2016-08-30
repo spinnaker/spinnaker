@@ -20,26 +20,32 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 @Data
-public class Application implements Named {
+public class Application implements Named, Viewable {
   private String name;
   private List<String> requiredGroupMembership = new ArrayList<>();
 
   @JsonIgnore
   public View getView() {
-    return new View();
+    return new View(this);
   }
 
   @Data
-  public class View {
-    String name = Application.this.name;
+  @NoArgsConstructor
+  public static class View extends BaseView implements Authorizable {
+    String name;
     Set<Authorization> authorizations = ImmutableSet.of(Authorization.CREATE,
                                                         Authorization.READ,
                                                         Authorization.WRITE);
+
+    public View(Application application) {
+      this.name = application.name;
+    }
   }
 }

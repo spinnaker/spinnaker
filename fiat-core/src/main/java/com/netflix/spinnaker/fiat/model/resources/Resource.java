@@ -25,10 +25,12 @@ public enum Resource {
   SERVICE_ACCOUNT; // Fiat service account.
 
   // TODO(ttomsu): This is Redis-specific, so it probably shouldn't go here.
-  public static Resource parse(@NonNull String key) {
-    String resources = StringUtils.substringAfterLast(key, ":");
-    String resource = StringUtils.removeEnd(resources, "s");
-    return Resource.valueOf(resource.toUpperCase());
+  public static Resource parse(@NonNull String pluralOrKey) {
+    if (pluralOrKey.contains(":")) {
+      pluralOrKey = StringUtils.substringAfterLast(pluralOrKey, ":");
+    }
+    String singular = StringUtils.removeEnd(pluralOrKey, "s");
+    return Resource.valueOf(singular.toUpperCase());
   }
 
   public String keySuffix() {

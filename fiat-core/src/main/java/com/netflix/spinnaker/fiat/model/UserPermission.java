@@ -17,18 +17,20 @@
 package com.netflix.spinnaker.fiat.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
+import com.netflix.spinnaker.fiat.model.resources.Named;
+import com.netflix.spinnaker.fiat.model.resources.Viewable;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Data
-public class UserPermission {
+public class UserPermission implements Viewable {
   private String id;
   private Set<Account> accounts = new HashSet<>();
   private Set<Application> applications = new HashSet<>();
@@ -48,26 +50,29 @@ public class UserPermission {
 
   @JsonIgnore
   public View getView() {
-    return new View();
+    return new View(this);
   }
 
   @Data
-  public class View {
-    String name = UserPermission.this.id;
-    Set<ServiceAccount.View> serviceAccounts = UserPermission.this.serviceAccounts
-        .stream()
-        .map(ServiceAccount::getView)
-        .collect(Collectors.toSet());
-    Map<String, Object> cloudResources = ImmutableMap.of(
-        "accounts",
-        UserPermission.this.accounts
-            .stream()
-            .map(Account::getView)
-            .collect(Collectors.toSet()),
-        "applications",
-        UserPermission.this.applications
-            .stream()
-            .map(Application::getView)
-            .collect(Collectors.toSet()));
+  @NoArgsConstructor
+  @SuppressWarnings("unchecked")
+  public static class View extends BaseView implements Named {
+    String name;
+    Set<Account.View> accounts;
+    Set<Application.View> applications;
+    Set<ServiceAccount.View> serviceAccounts;
+
+    public View(UserPermission permission) {
+      this.name = permission.id;
+
+      Function<Set<? extends Viewable>, Set<? extends BaseView>> toViews = sourceSet ->
+          sourceSet.stream()
+                   .map(Viewable::getView)
+                   .collect(Collectors.toSet());
+
+      this.accounts = (Set<Account.View>) toViews.apply(permission.getAccounts());
+      this.applications = (Set<Application.View>) toViews.apply(permission.getApplications());
+      this.serviceAccounts = (Set<ServiceAccount.View>) toViews.apply(permission.getServiceAccounts());
+    }
   }
 }

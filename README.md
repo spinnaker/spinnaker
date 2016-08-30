@@ -15,15 +15,11 @@ Roadmap/Implementation Punch list:
 * ☐ Compile "to secure" list of endpoints. (In progress)
 * ☐ **Component integration** - wire it all together throughout the other microservices.
   * ☑ Gate
-  * ☐ Front50 (in progress)
-    * ☐ GET /default/applications
-    * ☐ PUT /default/applications
-    * ☐ POST /default/applications/batchUpdate
-    * ☐ DELETE /default/applications/name/{application}
-    * ☐ GET /default/applications/name/{application}
-    * ☐ POST /default/applications/name/{application}
-    * ☐ GET /default/applications/search
-    * ☐ GET /default/applications/{application}/history
+  * ☑ Front50 (in progress)
+    * Troublesome:
+      * DELETE /pipelines/deleteById
+      * DELETE /strategies/deleteById
+      * NotificationsController
   * ☐ Orca
   * ☐ Clouddriver
   * ☐ Echo

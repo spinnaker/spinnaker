@@ -18,11 +18,13 @@ package com.netflix.spinnaker.fiat.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.fiat.model.resources.Named;
+import com.netflix.spinnaker.fiat.model.resources.Viewable;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 @Data
-public class ServiceAccount implements Named {
+public class ServiceAccount implements Named, Viewable {
   private String name;
 
   @JsonIgnore
@@ -32,11 +34,16 @@ public class ServiceAccount implements Named {
 
   @JsonIgnore
   public View getView() {
-    return new View();
+    return new View(this);
   }
 
   @Data
-  public class View {
-    String name = ServiceAccount.this.name;
+  @NoArgsConstructor
+  public static class View extends BaseView implements Named {
+    String name;
+
+    public View(ServiceAccount serviceAccount) {
+      this.name = serviceAccount.name;
+    }
   }
 }
