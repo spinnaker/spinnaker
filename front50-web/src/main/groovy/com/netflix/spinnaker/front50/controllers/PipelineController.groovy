@@ -53,7 +53,7 @@ class PipelineController {
   }
 
   // TODO(ttomsu): Horribly inefficient for large histories.
-  @PostAuthorize("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
+  @PostFilter("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = '{id:.+}/history', method = RequestMethod.GET)
   Collection<Pipeline> getHistory(@PathVariable String id,
                                   @RequestParam(value = "limit", defaultValue = "20") int limit) {
