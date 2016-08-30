@@ -42,14 +42,14 @@ class AmazonLoadBalancerController {
 
   @RequestMapping(method = RequestMethod.GET)
   List<AmazonLoadBalancerSummary> list() {
-    def searchKey = Keys.getLoadBalancerKey('*', '*', '*', null) + '*'
+    def searchKey = Keys.getLoadBalancerKey('*', '*', '*', null, null) + '*'
     Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey)
     getSummaryForLoadBalancers(identifiers).values() as List
   }
 
   @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)
   AmazonLoadBalancerSummary get(@PathVariable String name) {
-    def searchKey = Keys.getLoadBalancerKey(name, '*', '*', null)  + "*"
+    def searchKey = Keys.getLoadBalancerKey(name, '*', '*', null, null)  + "*"
     Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey).findAll {
       def key = Keys.parse(it)
       key.loadBalancer == name
@@ -59,16 +59,17 @@ class AmazonLoadBalancerController {
 
   @RequestMapping(value = "/{account}/{region}", method = RequestMethod.GET)
   List<AmazonLoadBalancerSummary> getInAccountAndRegion(@PathVariable String account, @PathVariable String region) {
-    def searchKey = Keys.getLoadBalancerKey('*', account, region, null)
+    def searchKey = Keys.getLoadBalancerKey('*', account, region, null, null)
     Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey)
     getSummaryForLoadBalancers(identifiers).values() as List
   }
 
   @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
   List<Map> getDetailsInAccountAndRegionByName(@PathVariable String account, @PathVariable String region, @PathVariable String name) {
-    def searchKey = Keys.getLoadBalancerKey(name, account, region, null) + '*'
+    def searchKey = Keys.getLoadBalancerKey(name, account, region, null, null) + '*'
     Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey).findAll {
-      Keys.parse(it).loadBalancer == name
+      def key = Keys.parse(it)
+      key.loadBalancer == name
     }
 
     cacheView.getAll(LOAD_BALANCERS.ns, identifiers).attributes
@@ -76,7 +77,7 @@ class AmazonLoadBalancerController {
 
   @RequestMapping(value = "/{account}/{region}/{name}/{vpcId}", method = RequestMethod.GET)
   Map getDetailsInAccountAndRegionByName(@PathVariable String account, @PathVariable String region, @PathVariable String name, @PathVariable String vpcId) {
-    def key = Keys.getLoadBalancerKey(name, account, region, vpcId)
+    def key = Keys.getLoadBalancerKey(name, account, region, vpcId, null)
     cacheView.get(LOAD_BALANCERS.ns, key)?.attributes
   }
 
@@ -100,6 +101,7 @@ class AmazonLoadBalancerController {
         loadBalancer.region = parts.region
         loadBalancer.name = parts.loadBalancer
         loadBalancer.vpcId = parts.vpcId
+        loadBalancer.loadBalancerType = parts.loadBalancerType
         loadBalancer.securityGroups = loadBalancerFromCache.attributes.securityGroups
 
         summary.getOrCreateAccount(account).getOrCreateRegion(region).loadBalancers << loadBalancer
@@ -155,6 +157,7 @@ class AmazonLoadBalancerController {
     String name
     String vpcId
     String type = 'aws'
+    String loadBalancerType
     List<String> securityGroups = []
   }
 }

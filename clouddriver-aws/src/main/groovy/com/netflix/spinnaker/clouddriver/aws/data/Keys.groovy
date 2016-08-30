@@ -57,7 +57,9 @@ class Keys {
         break
       case Namespace.LOAD_BALANCERS.ns:
         def names = Names.parseName(parts[4])
-        result << [account: parts[2], region: parts[3], loadBalancer: parts[4], vpcId: parts.length > 5 ? parts[5] : null, application: names.app?.toLowerCase(), stack: names.stack, detail: names.detail]
+        String vpcId = parts.length > 5 ? (parts[5] ?: null) : null
+        String loadBalancerType = vpcId && parts.length > 6 ? parts[6] : 'classic'
+        result << [account: parts[2], region: parts[3], loadBalancer: parts[4], vpcId: vpcId, application: names.app?.toLowerCase(), stack: names.stack, detail: names.detail, loadBalancerType: loadBalancerType]
         break
       case Namespace.CLUSTERS.ns:
         def names = Names.parseName(parts[4])
@@ -98,8 +100,15 @@ class Keys {
     "${AWS}:${Namespace.LAUNCH_CONFIGS}:${account}:${region}:${launchConfigName}"
   }
 
-  static String getLoadBalancerKey(String loadBalancerName, String account, String region, String vpcId) {
-    "${AWS}:${Namespace.LOAD_BALANCERS}:${account}:${region}:${loadBalancerName}${vpcId ? ':' + vpcId : ''}"
+  static String getLoadBalancerKey(String loadBalancerName, String account, String region, String vpcId, String loadBalancerType) {
+    String key = "${AWS}:${Namespace.LOAD_BALANCERS}:${account}:${region}:${loadBalancerName}"
+    if (vpcId) {
+      key += ":${vpcId}"
+      if (loadBalancerType && loadBalancerType != 'classic') {
+        key += ":${loadBalancerType}"
+      }
+    }
+    return key
   }
 
   static String getClusterKey(String clusterName, String application, String account) {

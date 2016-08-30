@@ -665,7 +665,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
       launchConfig = Keys.getLaunchConfigKey(asg.launchConfigurationName, account, region)
 
       loadBalancerNames = (asg.loadBalancerNames.collect {
-        Keys.getLoadBalancerKey(it, account, region, vpcId)
+        Keys.getLoadBalancerKey(it, account, region, vpcId, null)
       } as Set).asImmutable()
       instanceIds = (asg.instances.instanceId.collect { Keys.getInstanceKey(it, account, region) } as Set).asImmutable()
     }
