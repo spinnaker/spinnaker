@@ -47,7 +47,7 @@ class SnapshotsController {
     @PostFilter("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
     @RequestMapping(value = "/{id:.+}/history", method = RequestMethod.GET)
     Collection<Snapshot> getHistory(@PathVariable String id,
-                                    @RequestParam(value = "limit", defaultValue = "10") int limit) {
+                                    @RequestParam(value = "limit", defaultValue = "20") int limit) {
         return snapshotDAO.getHistory(id, limit)
     }
 
@@ -55,6 +55,17 @@ class SnapshotsController {
     @RequestMapping(value = "/{id:.+}", method = RequestMethod.GET)
     Snapshot getCurrent(@PathVariable String id) {
         return snapshotDAO.findById(id)
+    }
+
+    @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
+    @RequestMapping(value = "/{id:.+}/{timestamp:.+}", method = RequestMethod.GET)
+    Snapshot getVersionByTimestamp(@PathVariable String id,
+                                   @PathVariable String timestamp,
+                                   @RequestParam(value = "limit", defaultValue = "20") int limit) {
+        def creationTime = timestamp.toLong()
+        snapshotDAO.getHistory(id, limit).find { Snapshot snapshot ->
+            snapshot.timestamp == creationTime
+        }
     }
 
     @PreAuthorize("hasPermission(#snapshot.application, 'APPLICATION', 'WRITE')")

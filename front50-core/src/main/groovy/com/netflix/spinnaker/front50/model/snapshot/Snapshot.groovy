@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.front50.model.snapshot
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.front50.model.Timestamped
 
 /*
@@ -37,7 +36,7 @@ class Snapshot implements Timestamped {
   // Describes the resources deployed in the cloud of the application and account
   Map infrastructure
 
-  // Resources are described using this config language, used for deserialization
+  // Resources are described using this config language, used for restoring the snapshot
   Type configLang
 
   Long lastModified
