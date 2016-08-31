@@ -49,4 +49,9 @@ class AzureServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAw
 
     return [[(ServerGroupCreator.OPERATION): operation]]
   }
+
+  @Override
+  Optional<String> getHealthProviderName() {
+    return Optional.empty()
+  }
 }

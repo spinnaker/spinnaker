@@ -41,6 +41,7 @@ class AbstractDeployStrategyStageSpec extends Specification {
     given:
       // Step mocks
       Step mockDSSGStep = Stub(Step) { getName() >> "determineSourceServerGroup" }
+      Step mockDHPStep = Stub(Step) { getName() >> "determineHealthProviders" }
       Step mockSupportStep = Stub(Step) { getName() >> "testSupportStep" }
 
       AbstractDeployStrategyStage testStage = Spy(AbstractDeployStrategyStage)
@@ -57,11 +58,13 @@ class AbstractDeployStrategyStageSpec extends Specification {
     then:
       // The actual goings on in the buildStep method are not relevant here, so just replace it.
       1 * testStage.buildStep(*_) >> mockDSSGStep
+      1 * testStage.buildStep(*_) >> mockDHPStep
       1 * testStage.basicSteps(*_) >> [mockSupportStep]
       steps
-      steps.size() == 2
+      steps.size() == 3
       steps[0] == mockDSSGStep
-      steps[1] == mockSupportStep
+      steps[1] == mockDHPStep
+      steps[2] == mockSupportStep
 
     where:
       specifiedStrategy | strategyObject

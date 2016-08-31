@@ -40,4 +40,9 @@ interface ServerGroupCreator {
    * @return The cloud provider type that this object supports.
    */
   String getCloudProvider()
+
+  /**
+   * @return The platform health provider name for this cloud provider
+   */
+  Optional<String> getHealthProviderName()
 }

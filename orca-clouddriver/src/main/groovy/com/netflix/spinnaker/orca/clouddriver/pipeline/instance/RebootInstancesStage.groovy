@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.instance
 
+import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.RebootInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForDownInstanceHealthTask
@@ -37,10 +38,11 @@ class RebootInstancesStage extends LinearStage {
 
   @Override
   public List<Step> buildSteps(Stage stage) {
+    def step0 = buildStep(stage, "determineHealthProviders", DetermineHealthProvidersTask)
     def step1 = buildStep(stage, "rebootInstances", RebootInstancesTask)
     def step2 = buildStep(stage, "monitorReboot", MonitorKatoTask)
     def step3 = buildStep(stage, "waitForDownInstances", WaitForDownInstanceHealthTask)
     def step4 = buildStep(stage, "waitForUpInstances", WaitForUpInstanceHealthTask)
-    [step1, step2, step3, step4]
+    [step0, step1, step2, step3, step4]
   }
 }

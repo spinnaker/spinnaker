@@ -62,6 +62,11 @@ class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
     return ops
   }
 
+  @Override
+  Optional<String> getHealthProviderName() {
+    return Optional.of("Amazon")
+  }
+
   def createServerGroupOperation(Stage stage) {
     def operation = [:]
     def context = stage.context

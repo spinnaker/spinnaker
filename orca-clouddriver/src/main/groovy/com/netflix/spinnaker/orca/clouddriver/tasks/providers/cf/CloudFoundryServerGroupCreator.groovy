@@ -78,4 +78,9 @@ class CloudFoundryServerGroupCreator implements ServerGroupCreator {
 
     return [[(ServerGroupCreator.OPERATION): operation]]
   }
+
+  @Override
+  Optional<String> getHealthProviderName() {
+    return Optional.empty()
+  }
 }

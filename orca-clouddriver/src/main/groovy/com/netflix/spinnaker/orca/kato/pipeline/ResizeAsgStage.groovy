@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForCapacityMatchTask
@@ -67,11 +68,12 @@ class ResizeAsgStage extends LinearStage {
       stage.status = ExecutionStatus.SUCCEEDED
       return []
     } else {
+      def step0 = buildStep(stage, "determineHealthProviders", DetermineHealthProvidersTask)
       def step1 = buildStep(stage, "resizeAsg", ResizeAsgTask)
       def step2 = buildStep(stage, "monitorAsg", MonitorKatoTask)
       def step3 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
       def step4 = buildStep(stage, "waitForCapacityMatch", WaitForCapacityMatchTask)
-      return [step1, step2, step3, step4]
+      return [step0, step1, step2, step3, step4]
     }
   }
 

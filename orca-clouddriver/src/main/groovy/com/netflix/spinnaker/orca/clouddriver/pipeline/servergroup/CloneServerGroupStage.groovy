@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.AbstractDeployStrategyStage
+import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CloneServerGroupTask
@@ -43,11 +44,12 @@ class CloneServerGroupStage extends AbstractDeployStrategyStage {
   @Override
   List<Step> basicSteps(Stage stage) {
     [
-        buildStep(stage, "cloneServerGroup", CloneServerGroupTask),
-        buildStep(stage, "monitorDeploy", MonitorKatoTask),
-        buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
-        buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask),
-        buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
+      buildStep(stage, "determineHealthProviders", DetermineHealthProvidersTask),
+      buildStep(stage, "cloneServerGroup", CloneServerGroupTask),
+      buildStep(stage, "monitorDeploy", MonitorKatoTask),
+      buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
+      buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask),
+      buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
     ]
   }
 }

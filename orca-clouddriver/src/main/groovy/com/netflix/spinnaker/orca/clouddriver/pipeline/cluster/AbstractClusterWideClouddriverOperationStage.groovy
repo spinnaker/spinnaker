@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.cluster
 
+import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideClouddriverTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractWaitForClusterWideClouddriverTask
@@ -51,11 +52,13 @@ abstract class AbstractClusterWideClouddriverOperationStage extends LinearStage 
     String opName = Introspector.decapitalize(name)
     def waitTask = waitForTask
     String waitName = Introspector.decapitalize(getStepName(waitTask.simpleName))
-    [buildStep(stage, opName, operationTask),
-     buildStep(stage, "monitor${name}", MonitorKatoTask),
-     buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
-     buildStep(stage, waitName, waitTask),
-     buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
+    [
+      buildStep(stage, "determineHealthProviders", DetermineHealthProvidersTask),
+      buildStep(stage, opName, operationTask),
+      buildStep(stage, "monitor${name}", MonitorKatoTask),
+      buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
+      buildStep(stage, waitName, waitTask),
+      buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
     ]
   }
 }

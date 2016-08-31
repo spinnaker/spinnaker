@@ -61,4 +61,9 @@ class OpenstackServerGroupCreator implements ServerGroupCreator, DeploymentDetai
 
     return [[(OPERATION): operation]]
   }
+
+  @Override
+  Optional<String> getHealthProviderName() {
+    return Optional.of("Openstack")
+  }
 }
