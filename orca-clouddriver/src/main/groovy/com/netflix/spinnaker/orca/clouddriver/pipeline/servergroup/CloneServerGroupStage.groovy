@@ -44,7 +44,6 @@ class CloneServerGroupStage extends AbstractDeployStrategyStage {
   @Override
   List<Step> basicSteps(Stage stage) {
     [
-      buildStep(stage, "determineHealthProviders", DetermineHealthProvidersTask),
       buildStep(stage, "cloneServerGroup", CloneServerGroupTask),
       buildStep(stage, "monitorDeploy", MonitorKatoTask),
       buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
