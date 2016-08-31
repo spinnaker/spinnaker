@@ -101,7 +101,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
       def regionScopedProvider = regionScopedProviderFactory.forRegion(description.credentials, region)
 
-      def loadBalancers = new LoadBalancerLookupHelper().getLoadBalancersByName(regionScopedProvider, description.loadBalancers)
+      def loadBalancers = lookupHelper().getLoadBalancersByName(regionScopedProvider, description.loadBalancers)
       if (loadBalancers.unknownLoadBalancers) {
         throw new IllegalStateException("Unable to find load balancers named $loadBalancers.unknownLoadBalancers")
       }
@@ -265,6 +265,12 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     }
 
     return deploymentResult
+  }
+
+  @VisibleForTesting
+  @PackageScope
+  LoadBalancerLookupHelper lookupHelper() {
+    return new LoadBalancerLookupHelper()
   }
 
   @VisibleForTesting

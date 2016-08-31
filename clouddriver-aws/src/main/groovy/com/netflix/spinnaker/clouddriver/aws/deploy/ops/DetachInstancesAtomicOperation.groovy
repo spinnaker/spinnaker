@@ -24,6 +24,7 @@ import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.amazonaws.services.ec2.model.CreateTagsRequest
 import com.amazonaws.services.ec2.model.Tag
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest
+import com.google.common.util.concurrent.RateLimiter
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -35,7 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired
 @Slf4j
 class DetachInstancesAtomicOperation implements AtomicOperation<Void> {
   private static final int MAX_DETACH = 20
-  private static final int SLEEP_MS_BETWEEN_DETACH = 5000
   private static final Set<String> ALLOWED_LIFECYCLE_STATES = [
     LifecycleState.InService.toString(), LifecycleState.Standby.toString()
   ]
@@ -106,8 +106,11 @@ class DetachInstancesAtomicOperation implements AtomicOperation<Void> {
       amazonEC2.createTags(new CreateTagsRequest().withResources(validInstanceIds).withTags(tags))
       task.updateStatus BASE_PHASE, "Tagged instances (${validInstanceIds.join(", ")})."
 
+      RateLimiter limiter = RateLimiter.create(0.2)
+
       validInstanceIds.collate(MAX_DETACH).each {
         // AWS has a restriction on the # of instances that can be detached at any one time, hence batching is required.
+        limiter.acquire()
         task.updateStatus BASE_PHASE, "Detaching instances (${it.join(", ")}) from ASG (${description.asgName})."
         amazonAutoScaling.detachInstances(
           new DetachInstancesRequest()
@@ -116,7 +119,6 @@ class DetachInstancesAtomicOperation implements AtomicOperation<Void> {
             .withShouldDecrementDesiredCapacity(description.decrementDesiredCapacity)
         )
         task.updateStatus BASE_PHASE, "Detached instances (${it.join(", ")}) from ASG (${description.asgName})."
-        Thread.sleep(SLEEP_MS_BETWEEN_DETACH)
       }
 
       if (description.terminateDetachedInstances) {
