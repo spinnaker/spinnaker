@@ -23,10 +23,6 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.rollback.c
       };
 
       if (application && application.attributes) {
-        if (application.attributes.platformHealthOnly) {
-          $scope.command.interestingHealthProviderNames = ['Amazon'];
-        }
-
         $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
       }
 

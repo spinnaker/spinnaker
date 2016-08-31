@@ -27,10 +27,6 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.con
     $scope.command.advancedMode = serverGroup.asg.minSize !== serverGroup.asg.maxSize;
 
     if (application && application.attributes) {
-      if (application.attributes.platformHealthOnly) {
-        $scope.command.interestingHealthProviderNames = ['Amazon'];
-      }
-
       $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
     }
 

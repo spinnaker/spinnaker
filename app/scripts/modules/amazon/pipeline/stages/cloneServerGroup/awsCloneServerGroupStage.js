@@ -41,10 +41,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.cloneServerGr
     stage.cloudProvider = 'aws';
     stage.cloudProviderType = 'aws';
 
-    if (stage.isNew && $scope.application.attributes.platformHealthOnly) {
-      stage.interestingHealthProviderNames = ['Amazon'];
-    }
-
     if (!stage.credentials && $scope.application.defaultCredentials.aws) {
       stage.credentials = $scope.application.defaultCredentials.aws;
     }

@@ -71,10 +71,6 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
             },
           };
 
-          if (application && application.attributes && application.attributes.platformHealthOnly) {
-            command.interestingHealthProviderNames = ['Amazon'];
-          }
-
           return command;
         });
     }
@@ -212,10 +208,6 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
             dirty: {},
           },
         };
-
-        if (application && application.attributes && application.attributes.platformHealthOnly) {
-          command.interestingHealthProviderNames = ['Amazon'];
-        }
 
         if (mode === 'clone') {
           command.useSourceCapacity = true;

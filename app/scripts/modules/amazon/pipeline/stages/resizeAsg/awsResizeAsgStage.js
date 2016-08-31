@@ -84,10 +84,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.resizeAsgStag
     }
     stage.cloudProvider = 'aws';
 
-    if (stage.isNew && $scope.application.attributes.platformHealthOnly) {
-      stage.interestingHealthProviderNames = ['Amazon'];
-    }
-
     if (!stage.credentials && $scope.application.defaultCredentials.aws) {
       stage.credentials = $scope.application.defaultCredentials.aws;
     }

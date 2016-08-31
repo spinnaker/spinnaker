@@ -256,10 +256,6 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         }
       };
 
-      if (application && application.attributes && application.attributes.platformHealthOnly) {
-        command.interestingHealthProviderNames = ['Google'];
-      }
-
       attemptToSetValidCredentials(application, defaultCredentials, command);
 
       return $q.when(command);
@@ -323,10 +319,6 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       if (!command.regional) {
         command.zone = serverGroup.zones[0];
         command.source.zone = serverGroup.zones[0];
-      }
-
-      if (application && application.attributes && application.attributes.platformHealthOnly) {
-        command.interestingHealthProviderNames = ['Google'];
       }
 
       populateAutoHealingPolicy(serverGroup, command);

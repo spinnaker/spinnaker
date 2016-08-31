@@ -22,10 +22,6 @@ module.exports = angular.module('spinnaker.titus.serverGroup.details.resize.cont
     $scope.command.advancedMode = serverGroup.capacity.min !== serverGroup.capacity.max;
 
     if (application && application.attributes) {
-      if (application.attributes.platformHealthOnly) {
-        $scope.command.interestingHealthProviderNames = ['Titus'];
-      }
-
       $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
     }
 
