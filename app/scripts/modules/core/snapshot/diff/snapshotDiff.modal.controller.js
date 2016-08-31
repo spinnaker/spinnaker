@@ -7,12 +7,14 @@ require('./snapshotDiff.modal.less');
 module.exports = angular.module('spinnaker.deck.core.snapshot.diff.modal.controller', [
     require('../../utils/lodash.js'),
     require('../snapshot.read.service.js'),
+    require('../snapshot.write.service.js'),
+    require('../../confirmationModal/confirmationModal.service.js'),
     require('../../pipeline/config/actions/history/jsonDiff.service.js'),
     require('../../pipeline/config/actions/history/diffSummary.component.js'),
     require('../../pipeline/config/actions/history/diffView.component.js'),
   ])
   .controller('SnapshotDiffModalCtrl', function (availableAccounts, application, _, $filter, $uibModalInstance,
-                                                 snapshotReader, jsonDiffService) {
+                                                 snapshotReader, snapshotWriter, jsonDiffService, confirmationModalService) {
     this.availableAccounts = availableAccounts;
     this.selectedAccount = _.first(availableAccounts);
     this.compareOptions = ['most recent', 'previous version'];
@@ -43,14 +45,15 @@ module.exports = angular.module('spinnaker.deck.core.snapshot.diff.modal.control
         .sort((a, b) => a.timestamp < b.timestamp)
         .map((s, index) => {
           return {
-            timestamp: $filter('timestamp')(s.timestamp),
+            formattedTimestamp: $filter('timestamp')(s.timestamp),
+            timestamp: s.timestamp,
             contents: JSON.stringify(s.infrastructure, null, 2),
             json: s.infrastructure,
             index: index
           };
         });
 
-      _.first(formatted).timestamp += ' (most recent)';
+      _.first(formatted).formattedTimestamp += ' (most recent)';
       return formatted;
     };
 
@@ -73,6 +76,27 @@ module.exports = angular.module('spinnaker.deck.core.snapshot.diff.modal.control
       resetView();
       snapshotReader.getSnapshotHistory(application.name, account, { limit: 20 })
         .then(loadSuccess, loadError);
+    };
+
+    this.restoreSnapshot = () => {
+      let submitMethod = () => {
+        return snapshotWriter.restoreSnapshot(application, this.selectedAccount, this.snapshots[this.version].timestamp);
+      };
+
+      let taskMonitor = {
+        application: application,
+        title: 'Restoring snapshot of ' + application.name,
+        hasKatoTask: true,
+      };
+
+      confirmationModalService.confirm({
+        header: `Are you sure you want to restore snapshot of: ${application.name}?`,
+        buttonText: 'Restore snapshot',
+        provider: 'gce',
+        body: '<p>This will change your infrastructure to the state specified in the snapshot selected</p>',
+        taskMonitorConfig: taskMonitor,
+        submitMethod: submitMethod
+      });
     };
 
     this.updateDiff = () => {
