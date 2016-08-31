@@ -34,6 +34,16 @@ class LoadBalancerLookupHelper {
     Set<String> unknownLoadBalancers = []
   }
 
+  private final RateLimiter limiter
+
+  public LoadBalancerLookupHelper() {
+    this(RateLimiter.create(1))
+  }
+
+  public LoadBalancerLookupHelper(RateLimiter limiter) {
+    this.limiter = Objects.requireNonNull(limiter)
+  }
+
   LoadBalancerLookupResult getLoadBalancersFromAsg(AutoScalingGroup asg) {
     def result = new LoadBalancerLookupResult()
     result.classicLoadBalancers.addAll(asg.loadBalancerNames ?: [])
@@ -49,17 +59,19 @@ class LoadBalancerLookupHelper {
     }
     def lbv2 = rsp.getAmazonElasticLoadBalancingV2()
     def lbv1 = rsp.getAmazonElasticLoadBalancing()
-    def limiter = RateLimiter.create(1);
     Set<String> v2LoadBalancers = []
     for (String lbName : allLoadBalancers) {
-      try {
-        limiter.acquire()
-        def lb = lbv2.describeLoadBalancers(new DescribeLoadBalancersRequest().withNames(lbName)).loadBalancers.first()
-        v2LoadBalancers.add(lbName)
-        limiter.acquire()
-        result.targetGroupArns.addAll(lbv2.describeTargetGroups(new DescribeTargetGroupsRequest().withLoadBalancerArn(lb.loadBalancerArn)).targetGroups*.targetGroupArn)
-      } catch (LoadBalancerNotFoundException lbnfe) {
-        //ignore
+      //at the moment, '--' is not allowed in lbv2 load balancer names, and asking for it throws a ValidationError not a LoadBalancerNotFoundException
+      if (!lbName.contains("--")) {
+        try {
+          limiter.acquire()
+          def lb = lbv2.describeLoadBalancers(new DescribeLoadBalancersRequest().withNames(lbName)).loadBalancers.first()
+          v2LoadBalancers.add(lbName)
+          limiter.acquire()
+          result.targetGroupArns.addAll(lbv2.describeTargetGroups(new DescribeTargetGroupsRequest().withLoadBalancerArn(lb.loadBalancerArn)).targetGroups*.targetGroupArn)
+        } catch (LoadBalancerNotFoundException lbnfe) {
+          //ignore
+        }
       }
 
       try {

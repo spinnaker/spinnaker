@@ -23,6 +23,8 @@ import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRe
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancerNotFoundException
+import com.google.common.util.concurrent.RateLimiter
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
@@ -31,7 +33,11 @@ class RegisterInstancesWithLoadBalancerAtomicOperationUnitSpec extends InstanceL
   def setupSpec() {
     description.credentials = TestCredential.named('test')
     description.instanceIds = ["i-123456"]
-    op = new RegisterInstancesWithLoadBalancerAtomicOperation(description)
+    op = new RegisterInstancesWithLoadBalancerAtomicOperation(description) {
+      @Override LoadBalancerLookupHelper lookupHelper() {
+        return new LoadBalancerLookupHelper(RateLimiter.create(100000))
+      }
+    }
   }
 
   void 'should register instances with load balancers'() {

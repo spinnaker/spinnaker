@@ -39,7 +39,9 @@ import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsR
 import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancer
 import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancerNotFoundException
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup
+import com.google.common.util.concurrent.RateLimiter
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -91,7 +93,12 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     def defaults = new AwsConfiguration.DeployDefaults(iamRole: 'IamRole')
     def credsRepo = new MapBackedAccountCredentialsRepository()
     credsRepo.save('baz', TestCredential.named('baz'))
-    this.handler = new BasicAmazonDeployHandler(rspf, credsRepo, defaults)
+    this.handler = new BasicAmazonDeployHandler(rspf, credsRepo, defaults) {
+      @Override LoadBalancerLookupHelper lookupHelper() {
+        return new LoadBalancerLookupHelper(RateLimiter.create(1000000))
+      }
+    }
+
     Task task = Stub(Task) {
       getResultObjects() >> []
     }

@@ -23,13 +23,14 @@ import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLo
 import com.amazonaws.services.elasticloadbalancingv2.model.DeregisterTargetsRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.RegisterTargetsRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetDescription
+import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
-import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.InstanceLoadBalancerRegistrationDescription
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
+import groovy.transform.PackageScope
 import org.springframework.beans.factory.annotation.Autowired
 
 abstract class AbstractInstanceLoadBalancerRegistrationAtomicOperation implements AtomicOperation<Void> {
@@ -61,8 +62,7 @@ abstract class AbstractInstanceLoadBalancerRegistrationAtomicOperation implement
     }
 
     def instances = getInstanceIds(asg)
-    def lookupHelper = new LoadBalancerLookupHelper()
-    def loadBalancers = asg ? lookupHelper.getLoadBalancersFromAsg(asg) : lookupHelper.getLoadBalancersByName(regionScopedProvider, description.loadBalancerNames)
+    def loadBalancers = asg ? lookupHelper().getLoadBalancersFromAsg(asg) : lookupHelper().getLoadBalancersByName(regionScopedProvider, description.loadBalancerNames)
     if (loadBalancers.unknownLoadBalancers) {
       throw new IllegalStateException("loadbalancers not found: $loadBalancers.unknownLoadBalancers")
     }
@@ -123,6 +123,12 @@ abstract class AbstractInstanceLoadBalancerRegistrationAtomicOperation implement
         }
       }
     }
+  }
+
+  @PackageScope
+  @VisibleForTesting
+  LoadBalancerLookupHelper lookupHelper() {
+    return new LoadBalancerLookupHelper()
   }
 
   private Task getTask() {
