@@ -24,6 +24,7 @@ import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesInstance
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesServerGroup
+import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
@@ -82,11 +83,15 @@ class KubernetesProviderUtils {
 
     def parse = Keys.parse(cacheData.id)
 
+    List<Event> events = objectMapper.convertValue(cacheData.attributes.events, List)?.collect { event ->
+      objectMapper.convertValue(event, Event)
+    } ?: []
+
     def serverGroup
     if (replicationController) {
-      serverGroup = new KubernetesServerGroup(replicationController, instances, parse.account)
+      serverGroup = new KubernetesServerGroup(replicationController, instances, parse.account, events)
     } else if (replicaSet) {
-      serverGroup = new KubernetesServerGroup(replicaSet, instances, parse.account)
+      serverGroup = new KubernetesServerGroup(replicaSet, instances, parse.account, events)
     } else {
       throw new IllegalStateException("Expected either a ReplicationController or ReplicaSet") // Placate the linter
     }

@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
+import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 import io.fabric8.kubernetes.client.internal.SerializationUtils
@@ -48,6 +49,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
   String kind // Kubernetes resource-type
   String yaml
   Map buildInfo
+  List<KubernetesEvent> events
 
   Boolean isDisabled() {
     this.labels ? !(this.labels.any { key, value -> KubernetesUtil.isLoadBalancerLabel(key) && value == "true" }) : false
@@ -59,7 +61,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
     this.namespace = namespace
   }
 
-  KubernetesServerGroup(ReplicaSet replicaSet, Set<KubernetesInstance> instances, String account) {
+  KubernetesServerGroup(ReplicaSet replicaSet, Set<KubernetesInstance> instances, String account, List<Event> events) {
     this.name = replicaSet.metadata?.name
     this.account = account
     this.region = replicaSet.metadata?.namespace
@@ -75,9 +77,12 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
     this.deployDescription = KubernetesApiConverter.fromReplicaSet(replicaSet)
     this.yaml = SerializationUtils.dumpWithoutRuntimeStateAsYaml(replicaSet)
     this.kind = replicaSet.kind
+    this.events = events.collect {
+      new KubernetesEvent(it)
+    }
   }
 
-  KubernetesServerGroup(ReplicationController replicationController, Set<KubernetesInstance> instances, String account) {
+  KubernetesServerGroup(ReplicationController replicationController, Set<KubernetesInstance> instances, String account, List<Event> events) {
     this.name = replicationController.metadata?.name
     this.account = account
     this.region = replicationController.metadata?.namespace
@@ -93,6 +98,9 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
     this.deployDescription = KubernetesApiConverter.fromReplicationController(replicationController)
     this.yaml = SerializationUtils.dumpWithoutRuntimeStateAsYaml(replicationController)
     this.kind = replicationController.kind
+    this.events = events.collect {
+      new KubernetesEvent(it)
+    }
   }
 
   @Override

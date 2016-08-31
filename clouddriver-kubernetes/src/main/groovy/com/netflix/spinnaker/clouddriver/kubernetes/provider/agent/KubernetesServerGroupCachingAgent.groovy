@@ -336,6 +336,7 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
           attributes.name = serverGroupName
           attributes.replicationController = serverGroup.replicationController
           attributes.replicaSet = serverGroup.replicaSet
+          attributes.events = credentials.apiAdaptor.getEvents(namespace, serverGroup.replicationController ?: serverGroup.replicaSet)
           relationships[Keys.Namespace.APPLICATIONS.ns].add(applicationKey)
           relationships[Keys.Namespace.CLUSTERS.ns].add(clusterKey)
           relationships[Keys.Namespace.LOAD_BALANCERS.ns].addAll(loadBalancerKeys)

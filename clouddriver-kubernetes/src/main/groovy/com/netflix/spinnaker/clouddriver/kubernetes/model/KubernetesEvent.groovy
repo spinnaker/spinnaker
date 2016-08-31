@@ -22,7 +22,7 @@ import io.fabric8.kubernetes.api.model.Event
 @Slf4j
 class KubernetesEvent {
   String message
-  Reason reason
+  String reason
   Severity type
   Integer count
   Long firstOccurrence
@@ -31,24 +31,7 @@ class KubernetesEvent {
   KubernetesEvent(Event event) {
     this.message = event.message
     this.count = event.count
-    switch (event.reason) {
-      case "FailedScheduling":
-        this.reason = Reason.Scheduling
-        break
-      case "Unhealthy":
-        this.reason = Reason.Unhealthy
-        break
-      case "Mount":
-        this.reason = Reason.Mount
-        break
-      case "Sync":
-        this.reason = Reason.Sync
-        break
-      default:
-        this.reason = Reason.Unknown
-        log.info "Unknown event reason: ${event.reason}"
-        break
-    }
+    this.reason = event.reason
 
     switch (event.type) {
       case "Warning":
@@ -66,14 +49,6 @@ class KubernetesEvent {
     this.firstOccurrence = KubernetesModelUtil.translateTime(event.firstTimestamp)
     this.lastOccurrence = KubernetesModelUtil.translateTime(event.lastTimestamp)
   }
-}
-
-enum Reason {
-  Scheduling,
-  Unhealthy,
-  Mount,
-  Sync,
-  Unknown,
 }
 
 enum Severity {
