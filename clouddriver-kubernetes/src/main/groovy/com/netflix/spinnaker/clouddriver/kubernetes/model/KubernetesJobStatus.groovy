@@ -66,6 +66,12 @@ class KubernetesJobStatus implements JobStatus, Serializable {
     if (state?.getRunning()) {
       return JobState.Running
     } else if (state?.getWaiting()) {
+      def waiting = state.getWaiting()
+      if (waiting.reason in ["ImagePullBackoff", "RegistryUnavailable"] || waiting.reason.contains("Err")) {
+        message = waiting.getMessage()
+        reason = waiting.getReason()
+        return JobState.Failed
+      }
       return JobState.Starting
     } else if (state?.getTerminated()) {
       def terminated = state.getTerminated()
