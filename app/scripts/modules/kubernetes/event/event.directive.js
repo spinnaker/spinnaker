@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.kubernetes.event.event.directive', []
     };
   }).controller('kubernetesEventController', function ($scope, $uibModal) {
     if ($scope.event.message) {
-      this.displayMessage = $scope.event.message.substring(0, 25);
+      this.displayMessage = $scope.event.message.substring(0, 40);
     }
 
     this.type = $scope.event.type;

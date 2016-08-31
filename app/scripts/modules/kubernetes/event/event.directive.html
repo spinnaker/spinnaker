@@ -1,6 +1,6 @@
 <div ng-controller="kubernetesEventController as ctrl" ng-class="dl-wide">
   <div ng-if="ctrl.displayMessage">
-    <span uib-tooltip="{{ctrl.first | timestamp}} &rarr; {{ctrl.last | timestamp }}">
+    <span uib-tooltip="{{ctrl.first | relativeTime}} &rarr; {{ctrl.last | relativeTime}}">
       <span ng-if="ctrl.type === 'Warning'">
         <span class="glyphicon glyphicon-Warn"></span>
       </span>
@@ -10,10 +10,9 @@
       <span ng-if="ctrl.type === 'Unknown'">
         ?
       </span>
-      &times; {{ctrl.count}}
+      &times; {{ctrl.count}}: <b>{{ctrl.reason}}</b>
     </span>
     <div>
-      {{ctrl.reason}}:
       {{ctrl.displayMessage}}
       <a href ng-click="ctrl.showMessage()">...</a>
     </div>
