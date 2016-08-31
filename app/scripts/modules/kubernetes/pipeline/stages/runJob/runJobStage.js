@@ -17,6 +17,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.runJob
       cloudProvider: 'kubernetes',
       templateUrl: require('./runJobStage.html'),
       executionDetailsUrl: require('./runJobExecutionDetails.html'),
+      validators: [
+        { type: 'requiredField', fieldName: 'account' },
+        { type: 'requiredField', fieldName: 'namespace' },
+        { type: 'requiredField', fieldName: 'container.imageDescription.tag', fieldLabel: 'tag' },
+      ]
     });
   }).controller('kubernetesRunJobStageCtrl', function($scope, accountService, _) {
     this.stage = $scope.stage;

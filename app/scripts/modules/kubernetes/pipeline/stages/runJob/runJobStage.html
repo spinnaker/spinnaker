@@ -18,18 +18,6 @@
     </namespace-select-field>
   </stage-config-field>
 
-  <stage-config-field label="Stack" help-key="kubernetes.serverGroup.stack">
-    <input class="form-control input-sm"
-           ng-model="ctrl.stage.stack">
-    </input>
-  </stage-config-field>
-
-  <stage-config-field label="Detail" help-key="kubernetes.serverGroup.detail">
-    <input class="form-control input-sm"
-           ng-model="ctrl.stage.freeFormDetails">
-    </input>
-  </stage-config-field>
-
   <stage-config-field label="Image">
     <docker-image-and-tag-selector
       specify-tag-by-regex="false"
