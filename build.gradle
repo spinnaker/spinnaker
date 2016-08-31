@@ -51,6 +51,19 @@ allprojects {
     testLogging {
       exceptionFormat = 'full'
     }
+    if (project.hasProperty('slowTest')) {
+      long slow = 250
+      try {
+        slow = Long.parseLong(project.property('slowTest'))
+      } catch (Exception ex) {
+      }
+      afterTest { desc, result ->
+        long duration = result.getEndTime() - result.getStartTime()
+        if (duration > slow) {
+          logger.warn("test exceeded $slow ms: $desc.className :: $desc.name ($duration milliseconds)")
+        }
+      }
+    }
     minHeapSize = "512m"
     maxHeapSize = "512m"
   }
