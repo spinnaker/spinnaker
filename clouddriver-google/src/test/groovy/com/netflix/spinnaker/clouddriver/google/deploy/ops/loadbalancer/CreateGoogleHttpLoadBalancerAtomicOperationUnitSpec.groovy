@@ -46,6 +46,9 @@ class CreateGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
 
   @Shared GoogleHealthCheck hc
 
+  @Shared
+  def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
+
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
     hc = [
@@ -157,7 +160,8 @@ class CreateGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def description = converter.convertDescription(input)
       @Subject def operation = new CreateGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                  threadSleeper: threadSleeperMock)
 
     when:
      operation.operate([])
@@ -270,7 +274,8 @@ class CreateGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def description = converter.convertDescription(input)
       @Subject def operation = new CreateGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                    threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -383,7 +388,8 @@ class CreateGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def description = converter.convertDescription(input)
       @Subject def operation = new CreateGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                    threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -457,7 +463,8 @@ class CreateGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def description = converter.convertDescription(input)
       @Subject def operation = new CreateGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                    threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -512,7 +519,8 @@ class CreateGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def description = converter.convertDescription(input)
       @Subject def operation = new CreateGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                    threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -587,7 +595,8 @@ class CreateGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def description = converter.convertDescription(input)
       @Subject def operation = new CreateGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                    threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])

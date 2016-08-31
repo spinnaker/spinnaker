@@ -37,6 +37,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -68,6 +69,9 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
   private static final REMOVE_HEALTH_CHECK_OP_NAME = "remove-health-check-op"
   private static final DELETE_FORWARDING_RULE_OP_NAME = "delete-forwarding-rule-op"
   private static final DONE = "DONE"
+
+  @Shared
+  def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -117,7 +121,8 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                  threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -202,7 +207,8 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                  threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -268,7 +274,8 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                  threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -324,7 +331,8 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                  threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -664,7 +672,8 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                  threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -752,7 +761,8 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                  threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -847,7 +857,8 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                  threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])

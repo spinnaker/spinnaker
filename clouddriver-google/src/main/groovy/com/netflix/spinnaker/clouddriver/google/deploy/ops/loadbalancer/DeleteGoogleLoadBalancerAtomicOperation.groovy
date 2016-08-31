@@ -20,6 +20,7 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.Operation
 import com.google.api.services.compute.model.TargetPool
+import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -48,7 +49,8 @@ class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
 
   private DeleteGoogleLoadBalancerDescription description
 
-  ThreadSleeper threadSleeper = new ThreadSleeper()
+  @VisibleForTesting
+  GoogleOperationPoller.ThreadSleeper threadSleeper = new GoogleOperationPoller.ThreadSleeper()
 
   DeleteGoogleLoadBalancerAtomicOperation() {}
 
@@ -163,12 +165,5 @@ class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
 
     task.updateStatus BASE_PHASE, "Done deleting load balancer $description.loadBalancerName in $region."
     null
-  }
-
-  // This only exists to facilitate testing.
-  static class ThreadSleeper {
-    void sleep(long seconds) {
-      Thread.currentThread().sleep(seconds * 1000)
-    }
   }
 }

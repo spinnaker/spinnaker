@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationTimedOutException
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -49,6 +50,9 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
   private static final HEALTH_CHECK_DELETE_OP_NAME = "delete-health-check"
   private static final PENDING = "PENDING"
   private static final DONE = "DONE"
+
+  @Shared
+  def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -106,7 +110,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           credentials: credentials)
       @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                  threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -229,7 +234,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           credentials: credentials)
       @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                  threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -370,7 +376,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           credentials: credentials)
       @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                  threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -447,7 +454,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           credentials: credentials)
       @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                  threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -529,7 +537,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           credentials: credentials)
       @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                  threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -597,7 +606,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           credentials: credentials)
       @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                    threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -640,7 +650,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           credentials: credentials)
       @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                    threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])

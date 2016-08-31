@@ -33,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationTimedOutException
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -51,6 +52,9 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
   private static final HEALTH_CHECK_URL = "project/health-check"
   private static final HEALTH_CHECK_NAME = "health-check"
   private static final HEALTH_CHECK_DELETE_OP_NAME = "delete-health-check"
+
+  @Shared
+  def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -91,7 +95,8 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           credentials: credentials)
       @Subject def operation = new DeleteGoogleLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                  threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -148,7 +153,8 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           credentials: credentials)
       @Subject def operation = new DeleteGoogleLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                  threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -222,7 +228,8 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           credentials: credentials)
       @Subject def operation = new DeleteGoogleLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                  threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -266,7 +273,8 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           credentials: credentials)
       @Subject def operation = new DeleteGoogleLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                  threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -317,7 +325,8 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           credentials: credentials)
       @Subject def operation = new DeleteGoogleLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                  threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -389,11 +398,12 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           "Bad Request",
           new HttpHeaders()).setMessage("400 Bad Request")
       def googleJsonResponseException = new GoogleJsonResponseException(httpResponseExceptionBuilder, details)
-      def threadSleeperMock = Mock(DeleteGoogleLoadBalancerAtomicOperation.ThreadSleeper)
+      def operationRetryThreadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
       @Subject def operation = new DeleteGoogleLoadBalancerAtomicOperation(description)
-      operation.threadSleeper = threadSleeperMock
+      operation.threadSleeper = operationRetryThreadSleeperMock
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                  threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -416,7 +426,7 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       4 * computeMock.targetPools() >> targetPools
       4 * targetPools.delete(PROJECT_NAME, REGION, TARGET_POOL_NAME) >> targetPoolsDelete
       4 * targetPoolsDelete.execute() >> { throw googleJsonResponseException }
-      4 * threadSleeperMock.sleep(TARGET_POOL_RETRY_INTERVAL_SECONDS)
+      4 * operationRetryThreadSleeperMock.sleep(TARGET_POOL_RETRY_INTERVAL_SECONDS)
 
     then:
       // Now succeed.
@@ -472,11 +482,12 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           "Bad Request",
           new HttpHeaders()).setMessage("400 Bad Request")
       def googleJsonResponseException = new GoogleJsonResponseException(httpResponseExceptionBuilder, details)
-      def threadSleeperMock = Mock(DeleteGoogleLoadBalancerAtomicOperation.ThreadSleeper)
+      def operationRetryThreadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
       @Subject def operation = new DeleteGoogleLoadBalancerAtomicOperation(description)
-      operation.threadSleeper = threadSleeperMock
+      operation.threadSleeper = operationRetryThreadSleeperMock
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                  threadSleeper: threadSleeperMock)
 
     when:
       operation.operate([])
@@ -499,7 +510,7 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       MAX_NUM_TARGET_POOL_RETRIES * computeMock.targetPools() >> targetPools
       MAX_NUM_TARGET_POOL_RETRIES * targetPools.delete(PROJECT_NAME, REGION, TARGET_POOL_NAME) >> targetPoolsDelete
       MAX_NUM_TARGET_POOL_RETRIES * targetPoolsDelete.execute() >> { throw googleJsonResponseException }
-      (MAX_NUM_TARGET_POOL_RETRIES - 1) * threadSleeperMock.sleep(TARGET_POOL_RETRY_INTERVAL_SECONDS)
+      (MAX_NUM_TARGET_POOL_RETRIES - 1) * operationRetryThreadSleeperMock.sleep(TARGET_POOL_RETRY_INTERVAL_SECONDS)
 
     then:
       // Then give up and propagate the final exception.

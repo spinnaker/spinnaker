@@ -33,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleS
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -58,6 +59,9 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
   private static final DONE = "DONE"
   private static final INSTANCES_SET_TAGS_1_OP_NAME = "instances-set-tags-1-op"
   private static final INSTANCES_SET_TAGS_2_OP_NAME = "instances-set-tags-2-op"
+
+  @Shared
+  def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -120,7 +124,8 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
                                                                    credentials: credentials)
       @Subject def operation = new UpsertGoogleServerGroupTagsAtomicOperation(description)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                    threadSleeper: threadSleeperMock)
       operation.googleClusterProvider = googleClusterProviderMock
 
     when:
@@ -228,7 +233,8 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
                                                                    credentials: credentials)
       @Subject def operation = new UpsertGoogleServerGroupTagsAtomicOperation(description)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                    threadSleeper: threadSleeperMock)
       operation.googleClusterProvider = googleClusterProviderMock
 
     when:

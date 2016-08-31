@@ -34,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLo
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -50,8 +51,14 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final ZONE = "us-central1-b"
   private static final DONE = "DONE"
 
+  @Shared
+  def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
+
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
+
+    // Yes this can affect other tests; but only in a good way.
+    GCEUtil.SAFE_RETRY_INTERVAL_MILLIS = 1
   }
 
   void "should delete managed instance group"() {
@@ -78,7 +85,8 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                                 credentials: credentials)
       @Subject def operation = new DestroyGoogleServerGroupAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                  threadSleeper: threadSleeperMock)
       operation.googleClusterProvider = googleClusterProviderMock
       operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
 
@@ -139,7 +147,8 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       googleLoadBalancerProviderMock.getApplicationLoadBalancers(APPLICATION_NAME) >> []
       @Subject def operation = new DestroyGoogleServerGroupAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                  threadSleeper: threadSleeperMock)
       operation.googleClusterProvider = googleClusterProviderMock
       operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
 
@@ -244,7 +253,8 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                                 credentials: credentials)
       @Subject def operation = new DestroyGoogleServerGroupAtomicOperation(description)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+                                    threadSleeper: threadSleeperMock)
       operation.googleClusterProvider = googleClusterProviderMock
       operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
 

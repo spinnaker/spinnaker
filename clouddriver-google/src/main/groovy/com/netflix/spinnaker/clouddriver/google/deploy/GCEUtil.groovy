@@ -26,6 +26,7 @@ import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
+import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
@@ -55,6 +56,9 @@ class GCEUtil {
   private static final String GCE_API_PREFIX = "https://www.googleapis.com/compute/v1/projects/"
 
   public static final String TARGET_POOL_NAME_PREFIX = "tp"
+
+  @VisibleForTesting
+  static long SAFE_RETRY_INTERVAL_MILLIS = TimeUnit.SECONDS.toMillis(10)
 
   static MachineType queryMachineType(String projectName, String machineTypeName, Compute compute, Task task, String phase) {
     task.updateStatus phase, "Looking up machine type $machineTypeName..."
@@ -904,7 +908,7 @@ class GCEUtil {
       while (tries < 10) { // Retry 10 times.
         try {
           tries++
-          sleep(TimeUnit.SECONDS.toMillis(10)) // With 10 seconds between tries.
+          sleep(SAFE_RETRY_INTERVAL_MILLIS) // Sleep for some interval between attempts.
           log.warn "$action $resource attempt #$tries..."
           operation()
           log.warn "$action $resource attempt #$tries succeeded"

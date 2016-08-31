@@ -25,8 +25,6 @@ import com.google.api.services.compute.model.Network
 import com.google.api.services.compute.model.NetworkList
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
-import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
@@ -77,8 +75,6 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
           credentials: credentials
       )
       @Subject def operation = new UpsertGoogleSecurityGroupAtomicOperation(description)
-      operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -132,8 +128,6 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new UpsertGoogleSecurityGroupAtomicOperation(description)
-      operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -183,8 +177,6 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new UpsertGoogleSecurityGroupAtomicOperation(description)
-      operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -235,8 +227,6 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
         accountName: ACCOUNT_NAME,
         credentials: credentials)
       @Subject def operation = new UpsertGoogleSecurityGroupAtomicOperation(description)
-      operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -287,8 +277,6 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
         accountName: ACCOUNT_NAME,
         credentials: credentials)
       @Subject def operation = new UpsertGoogleSecurityGroupAtomicOperation(description)
-      operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
     when:
       operation.operate([])

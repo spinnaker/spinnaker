@@ -18,15 +18,17 @@ package com.netflix.spinnaker.clouddriver.google.deploy
 
 import com.google.api.services.compute.model.Operation
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
-import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import spock.lang.Specification
 
 class GoogleOperationPollerSpec extends Specification {
 
   void "waitForOperation should query the operation at least once"() {
     setup:
+      def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
       def googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(
+            googleConfigurationProperties: new GoogleConfigurationProperties(),
+            threadSleeper: threadSleeperMock)
 
     expect:
       googleOperationPoller.waitForOperation({return new Operation(status: "DONE")}, 0) == new Operation(status: "DONE")
@@ -34,8 +36,11 @@ class GoogleOperationPollerSpec extends Specification {
 
   void "waitForOperation should return null on timeout"() {
     setup:
+      def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
       def googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(
+            googleConfigurationProperties: new GoogleConfigurationProperties(),
+            threadSleeper: threadSleeperMock)
 
     expect:
       googleOperationPoller.waitForOperation({return new Operation(status: "PENDING")}, 0) == null

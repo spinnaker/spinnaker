@@ -34,9 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired
 class UpsertGoogleSecurityGroupAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "UPSERT_SECURITY_GROUP"
 
-  @Autowired
-  private GoogleOperationPoller googleOperationPoller
-
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
