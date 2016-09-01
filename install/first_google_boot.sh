@@ -216,23 +216,18 @@ function extract_spinnaker_kube_credentials() {
   mkdir -p $(dirname $config_path)
   chown -R spinnaker:spinnaker $(dirname $config_path)
 
-  if clear_metadata_to_file "kube_config" $config_path; then
-    # This is a workaround for difficulties using the Google Deployment Manager
-    # to express no value. We'll use the value "None". But we don't want
-    # to officially support this, so we'll just strip it out of this first
-    # time boot if we happen to see it, and assume the Google Deployment Manager
-    # got in the way.
-    sed -i s/^None$//g $config_path
-    if [[ -s $config_path ]]; then
-      chmod 400 $config_path
-      chown spinnaker:spinnaker $config_path
-      echo "Extracted Kubernetes config to $config_path"
-    else
-       rm $config_path
-    fi
+  local cluster=$(get_instance_metadata "kubernetes_cluster")
+  local zone=$(get_instance_metadata "kubernetes_cluster_zone")
+
+  if [[ $cluster != "" ]]
+    gcloud container clusters get-credentials $cluster --zone $zone
+    mv ~/.kube/config $config_path
+
+    chmod 400 $config_path
+    chown spinnaker:spinnaker $config_path
+    echo "Extracted Kubernetes config to $config_path"
+
     write_default_value "SPINNAKER_KUBERNETES_ENABLED" "true"
-  else
-    clear_instance_metadata "kube_config"
   fi
 }
 
@@ -241,28 +236,20 @@ function extract_spinnaker_gcr_credentials() {
   mkdir -p $(dirname $config_path)
   chown -R spinnaker:spinnaker $(dirname $config_path)
 
-  if clear_metadata_to_file "gcr_json" $config_path; then
-    # This is a workaround for difficulties using the Google Deployment Manager
-    # to express no value. We'll use the value "None". But we don't want
-    # to officially support this, so we'll just strip it out of this first
-    # time boot if we happen to see it, and assume the Google Deployment Manager
-    # got in the way.
-    sed -i s/^None$//g $config_path
-    if [[ -s $config_path ]]; then
-      chmod 400 $config_path
-      chown spinnaker:spinnaker $config_path
-      echo "Extracted GCR credentials to $config_path"
-    else
-       rm $config_path
-    fi
+  local service_account=$(get_instance_metadata "gcr_service_account")
+
+  if [[ $service_account != "" ]]
+    gcloud iam service-accounts keys create $config_path --iam-account $service_account
+    chmod 400 $config_path
+    chown spinnaker:spinnaker $config_path
+    echo "Extracted GCR credentials to $config_path"
+
     write_default_value "SPINNAKER_DOCKER_PASSWORD_FILE" $config_path
     write_default_value "SPINNAKER_DOCKER_USERNAME" "_json_key"
     write_default_value "SPINNAKER_DOCKER_REGISTRY" "https://gcr.io"
 
     local repository=$(get_instance_metadata_attribute "docker_repository")
     write_default_value "SPINNAKER_DOCKER_REPOSITORY" $repository
-  else
-    clear_instance_metadata "gcr_json"
   fi
 }
 
@@ -285,6 +272,13 @@ function process_args() {
   done
 }
 
+function update_gcloud() {
+  export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
+  echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list
+  curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+  sudo apt-get update && sudo apt-get install google-cloud-sdk
+}
+
 MY_ZONE=""
 if full_zone=$(curl -s -H "Metadata-Flavor: Google" "$INSTANCE_METADATA_URL/zone"); then
   MY_ZONE=$(basename $full_zone)
@@ -296,6 +290,8 @@ fi
 
 process_args
 
+echo "Updating gcloud to newest version."
+update_gcloud
 
 # Spinnaker automatically starts up in the image.
 # In this script we are going to reconfigure it,
