@@ -583,6 +583,24 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     "c3.xlarge"        | "c4.xlarge"        | [new AmazonBlockDevice(deviceName: "/dev/xxx")] | null                    || [new AmazonBlockDevice(deviceName: "/dev/xxx")] // custom block devices should be preserved
   }
 
+  @Unroll
+  void "should substitute {{application}} in iamRole"() {
+    given:
+    def description = new BasicAmazonDeployDescription(application: application, iamRole: iamRole)
+    def deployDefaults = new AwsConfiguration.DeployDefaults(iamRole: defaultIamRole)
+
+    expect:
+    BasicAmazonDeployHandler.iamRole(description, deployDefaults) == expectedIamRole
+
+    where:
+    application | iamRole                  | defaultIamRole           || expectedIamRole
+    "app"       | "iamRole"                | "defaultIamRole"         || "iamRole"
+    "app"       | null                     | "defaultIamRole"         || "defaultIamRole"
+    "app"       | "{{application}}IamRole" | null                     || "appIamRole"
+    "app"       | null                     | "{{application}}IamRole" || "appIamRole"
+    null        | null                     | "{{application}}IamRole" || "{{application}}IamRole"
+  }
+
   private Collection<AmazonBlockDevice> bD(String instanceType) {
     return blockDevicesByInstanceType[instanceType]
   }
