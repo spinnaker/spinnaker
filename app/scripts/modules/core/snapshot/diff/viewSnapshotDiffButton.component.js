@@ -17,35 +17,24 @@ module.exports = angular.module('spinnaker.deck.core.viewSnapshotDiff.component'
                </button>`,
     controller: function ($q, accountService, cloudProviderRegistry, $uibModal, _) {
 
-      function getSnapshotEnabledCloudProviders (application) {
-        let cloudProviders = _.get(application, 'attributes.cloudProviders');
-        if (_.isString(cloudProviders)) {
-          return cloudProviders
-            .split(',')
-            .filter(provider => cloudProviderRegistry.getValue(provider, 'snapshotsEnabled'));
-        }
-        return [];
+      function getSnapshotEnabledAccounts (application) {
+        return accountService.listProviders(application)
+          .then((providers) => providers.filter(provider => cloudProviderRegistry.getValue(provider, 'snapshotsEnabled')))
+          .then((snapshotEnabledProviders) => $q.all(snapshotEnabledProviders.map(provider => accountService.listAccounts(provider))))
+          .then((accounts) => _(accounts)
+            .flatten()
+            .pluck('name')
+            .valueOf());
       }
 
       this.viewSnapshotDiffs = () => {
-        let cloudProviders = getSnapshotEnabledCloudProviders(this.application);
-        let accountsForApplication = this.application.attributes.accounts.split(',');
-        let availableAccountsPromise = $q.all(cloudProviders.map(provider => accountService.listAccounts(provider)))
-          .then((results) => {
-            return _(results)
-              .flatten()
-              .pluck('name')
-              .intersection(accountsForApplication)
-              .valueOf();
-          });
-
         $uibModal.open({
           templateUrl: require('./snapshotDiff.modal.html'),
           controller: 'SnapshotDiffModalCtrl',
           controllerAs: 'ctrl',
           size: 'lg modal-fullscreen',
           resolve: {
-            availableAccounts: () => availableAccountsPromise,
+            availableAccounts: () => getSnapshotEnabledAccounts(this.application),
             application: () => this.application
           }
         });

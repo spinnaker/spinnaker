@@ -42,7 +42,7 @@ module.exports = angular.module('spinnaker.deck.core.snapshot.diff.modal.control
 
     let formatSnapshots = (snapshots) => {
       let formatted = snapshots
-        .sort((a, b) => a.timestamp < b.timestamp)
+        .sort((a, b) => b.timestamp - a.timestamp)
         .map((s, index) => {
           return {
             formattedTimestamp: $filter('timestamp')(s.timestamp),
@@ -74,8 +74,12 @@ module.exports = angular.module('spinnaker.deck.core.snapshot.diff.modal.control
 
     this.getSnapshotHistoryForAccount = (account) => {
       resetView();
-      snapshotReader.getSnapshotHistory(application.name, account, { limit: 20 })
-        .then(loadSuccess, loadError);
+      if (account) {
+        snapshotReader.getSnapshotHistory(application.name, account)
+          .then(loadSuccess, loadError);
+      } else {
+        loadSuccess([]);
+      }
     };
 
     this.restoreSnapshot = () => {
