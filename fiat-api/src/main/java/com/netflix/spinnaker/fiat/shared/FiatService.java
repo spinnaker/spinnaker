@@ -16,11 +16,15 @@
 
 package com.netflix.spinnaker.fiat.shared;
 
+import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.squareup.okhttp.Response;
 import retrofit.http.GET;
 import retrofit.http.Path;
 
 public interface FiatService {
+
+  @GET("/authorize/{userId}")
+  UserPermission.View getUserPermission(@Path("userId") String userId);
 
   @GET("/authorize/{userId}/{resourceType}/{resourceName}/{authorization}")
   Response hasAuthorization(@Path("userId") String userId,
