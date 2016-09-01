@@ -34,6 +34,9 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
           var keyPair = credentials ? credentials.defaultKeyPair : null;
           var applicationAwsSettings = _.get(application, 'attributes.providerSettings.aws', {});
 
+          var defaultIamRole = settings.providers.aws.defaults.iamRole || 'BaseIAMRole';
+          defaultIamRole = defaultIamRole.replace('{{application}}', application.name);
+
           var command = {
             application: application.name,
             credentials: defaultCredentials,
@@ -51,7 +54,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
             instanceMonitoring: false,
             ebsOptimized: false,
             selectedProvider: 'aws',
-            iamRole: 'BaseIAMRole', // TODO: should not be hard coded here
+            iamRole: defaultIamRole,
             terminationPolicies: ['Default'],
             vpcId: null,
             availabilityZones: availabilityZones,
