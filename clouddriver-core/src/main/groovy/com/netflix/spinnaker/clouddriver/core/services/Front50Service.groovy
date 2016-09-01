@@ -40,6 +40,9 @@ interface Front50Service {
   @POST('/snapshots')
   Response saveSnapshot(@Body Map snapshot)
 
+  @GET('/snapshots/{id}/{timestamp}')
+  Map getSnapshotVersion(@Path('id') String id, @Path('timestamp') String timestamp)
+
   @JsonIgnoreProperties(ignoreUnknown = true)
   static class HalList {
     @JsonProperty("_embedded")

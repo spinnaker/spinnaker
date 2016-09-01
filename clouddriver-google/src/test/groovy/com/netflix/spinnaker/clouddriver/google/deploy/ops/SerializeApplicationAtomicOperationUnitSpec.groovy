@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.model.securitygroups.HttpRule
+import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
 import spock.lang.Specification
 import spock.lang.Subject
@@ -154,7 +155,7 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
 
       def networkInterfaceMap = [network: NETWORK_URL.split("/").last(),
                                  subnetwork: SUBNETWORK_URL.split("/").last(),
-                                 access_configs: []]
+                                 access_config: [[nat_ip: ""]]]
       def schedulingMap = [automatic_restart: SCHEDULING_AUTOMATIC_RESTART,
                            on_host_maintenance: SCHEDULING_ON_HOST_MAINTENANCE,
                            preemptible: SCHEDULING_PREEMPTIBLE]
@@ -266,8 +267,8 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
       def portRanges = new TreeSet()
       portRanges.add(new Rule.PortRange(startPort: SECURITY_GROUP_RULE_PORT,
                                         endPort: SECURITY_GROUP_RULE_PORT))
-      def rule = new HttpRule(protocol: SECURITY_GROUP_RULE_PROTOCOL,
-                              portRanges: portRanges)
+      def rule = new IpRangeRule(protocol: SECURITY_GROUP_RULE_PROTOCOL,
+                                 portRanges: portRanges)
       def securityGroup = new GoogleSecurityGroup(name: SECURITY_GROUP_NAME,
                                                   network: SECURITY_GROUP_NETWORK,
                                                   inboundRules: [rule],
@@ -277,6 +278,7 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
                          network: SECURITY_GROUP_NETWORK,
                          project: null,
                          allow: [[protocol: SECURITY_GROUP_RULE_PROTOCOL, ports: ["$SECURITY_GROUP_RULE_PORT"]]],
+                         source_ranges: [],
                          target_tags: SECURITY_GROUP_TARGET_TAGS]
       @Subject def operation = new SerializeApplicationAtomicOperation(new SerializeApplicationDescription())
     when:

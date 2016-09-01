@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvi
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
@@ -191,11 +192,11 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
     }
 
     serverGroupMap.project = this.project
-
+    serverGroupMap.target_pools = []
     if (serverGroup.loadBalancers && !serverGroup.loadBalancers.isEmpty()) {
-      serverGroupMap.target_pools = []
       serverGroup.loadBalancers.each {String loadBalancer ->
-        serverGroupMap.target_pools.add("\${google_compute_target_pool.${loadBalancer}.self_link}".toString())
+        def target_pool = "\${google_compute_target_pool." + loadBalancer + ".self_link}"
+        serverGroupMap.target_pools.add(target_pool)
       }
     }
     //TODO(nwwebb) see if you can get application scope security groups using serverGroup.securityGroups rather than tags
@@ -292,13 +293,19 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
       if (networkInterface.subnetwork) {
         networkInterfaceMap.subnetwork = networkInterface.subnetwork.split("/").last()
       }
-      if (networkInterface.accessConfigs != null) {
-        networkInterfaceMap.access_configs = []
+
+      if (networkInterface.accessConfigs != null && !networkInterface.accessConfigs.isEmpty()) {
+        networkInterfaceMap.access_config = []
         networkInterface.accessConfigs.each { AccessConfig accessConfig ->
           def accessConfigMap = [:]
           accessConfigMap["nat_ip"] = accessConfig.natIP
-          networkInterfaceMap.access_configs.add(accessConfigMap)
+          networkInterfaceMap.access_config.add(accessConfigMap)
         }
+      } else if (networkInterface.accessConfigs.isEmpty()) {
+        networkInterfaceMap.access_config = []
+        def accessConfigMap = [:]
+        accessConfigMap["nat_ip"] = ""
+        networkInterfaceMap.access_config.add(accessConfigMap)
       }
       instanceTemplateMap.network_interface << networkInterfaceMap
     }
@@ -328,7 +335,7 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
         diskMap.name = disk.initializeParams.diskName
       }
       if (disk.initializeParams?.sourceImage) {
-        diskMap.source_image = disk.initializeParams.sourceImage
+        diskMap.source_image = disk.initializeParams.sourceImage.split("/").last()
       }
       if (disk.source) {
         diskMap.source = disk.source
@@ -515,10 +522,14 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
       throw new GoogleResourceIllegalStateException("Required network name not found for security group: ${securityGroup.network}")
     }
     firewallMap.project = this.project
+    firewallMap.allow = []
+    firewallMap.source_ranges = []
     if (securityGroup.inboundRules && !securityGroup.inboundRules.isEmpty()) {
-      firewallMap.allow = []
-      securityGroup.inboundRules.each { Rule rule ->
+      securityGroup.inboundRules.each { IpRangeRule rule ->
         def allow = [:]
+        if (rule.range) {
+          firewallMap.source_ranges << rule.range.ip + rule.range.cidr
+        }
         allow.protocol = rule.protocol
         if (rule.portRanges && !rule.portRanges.isEmpty()) {
           allow.ports = []
@@ -531,9 +542,6 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
     } else {
       throw new GoogleResourceIllegalStateException("At least one rule is required for security group: ${securityGroup.network}")
     }
-    //TODO(nwwebb) does spinnaker let you create outbound rules for a security group
-    //TODO(nwwebb) source_ranges not surfaced in model
-    //TODO(nwwebb) source_tags not surfaced in model
     if (securityGroup.targetTags && !securityGroup.targetTags.isEmpty()) {
       firewallMap.target_tags = securityGroup.targetTags
     }

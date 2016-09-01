@@ -38,7 +38,7 @@ class JobExecutorLocal implements JobExecutor {
   Map<String, Map> jobIdToHandlerMap = new ConcurrentHashMap<String, Map>()
 
   @Override
-  String startJob(JobRequest jobRequest) {
+  String startJob(JobRequest jobRequest, Map<String, String> environment, InputStream inputStream) {
     log.info("Starting job: $jobRequest.tokenizedCommand...")
 
     String jobId = UUID.randomUUID().toString()
@@ -47,8 +47,9 @@ class JobExecutorLocal implements JobExecutor {
       new Action0() {
         @Override
         public void call() {
-          ByteArrayOutputStream stdOutAndErr = new ByteArrayOutputStream()
-          PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(stdOutAndErr)
+          ByteArrayOutputStream stdOut = new ByteArrayOutputStream()
+          ByteArrayOutputStream stdErr = new ByteArrayOutputStream()
+          PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(stdOut, stdErr, inputStream)
           CommandLine commandLine
 
           if (jobRequest.tokenizedCommand) {
@@ -73,7 +74,6 @@ class JobExecutorLocal implements JobExecutor {
               // the result of calling watchdog.destroyProcess().
               if (w) {
                 log.warn("Job $jobId timed-out (after $timeoutMinutes minutes).")
-
                 cancelJob(jobId)
               }
 
@@ -83,7 +83,7 @@ class JobExecutorLocal implements JobExecutor {
           Executor executor = new DefaultExecutor()
           executor.setStreamHandler(pumpStreamHandler)
           executor.setWatchdog(watchdog)
-          executor.execute(commandLine, resultHandler)
+          executor.execute(commandLine, environment, resultHandler)
 
           // Give the job some time to spin up.
           sleep(500)
@@ -91,7 +91,8 @@ class JobExecutorLocal implements JobExecutor {
           jobIdToHandlerMap.put(jobId, [
             handler: resultHandler,
             watchdog: watchdog,
-            stdOutAndErr: stdOutAndErr
+            stdOut: stdOut,
+            stdErr: stdErr
           ])
         }
       }
@@ -109,20 +110,23 @@ class JobExecutorLocal implements JobExecutor {
         JobStatus jobStatus = new JobStatus(id: jobId)
 
         DefaultExecuteResultHandler resultHandler
-        ByteArrayOutputStream stdOutAndErr
+        ByteArrayOutputStream stdOut
+        ByteArrayOutputStream stdErr
 
         jobIdToHandlerMap[jobId].with {
           resultHandler = it.handler
-          stdOutAndErr = it.stdOutAndErr
+          stdOut = it.stdOut
+          stdErr = it.stdErr
         }
 
-        String logsContent = new String(stdOutAndErr.toByteArray())
+        String output = new String(stdOut.toByteArray())
+        String errors = new String(stdErr.toByteArray())
 
         if (resultHandler.hasResult()) {
           log.info("State for $jobId changed with exit code $resultHandler.exitValue.")
 
-          if (!logsContent) {
-            logsContent = resultHandler.exception ? resultHandler.exception.message : "No output from command."
+          if (!output) {
+            output = resultHandler.exception ? resultHandler.exception.message : "No output from command."
           }
 
           if (resultHandler.exitValue == 0) {
@@ -137,11 +141,8 @@ class JobExecutorLocal implements JobExecutor {
         } else {
           jobStatus.state = JobStatus.State.RUNNING
         }
-
-        if (logsContent) {
-          jobStatus.logsContent = logsContent
-        }
-
+        jobStatus.stdOut = output
+        jobStatus.stdErr = errors
         return jobStatus
       } else {
         // This instance is not managing the job
