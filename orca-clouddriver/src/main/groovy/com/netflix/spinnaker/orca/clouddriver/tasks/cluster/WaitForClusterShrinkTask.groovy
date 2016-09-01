@@ -35,7 +35,7 @@ class WaitForClusterShrinkTask extends AbstractWaitForClusterWideClouddriverTask
   }
 
   @Override
-  boolean isServerGroupOperationInProgress(List<Map> interestingHealthProviderNames, Optional<TargetServerGroup> currentServerGroup) {
+  boolean isServerGroupOperationInProgress(Stage stage, List<Map> interestingHealthProviderNames, Optional<TargetServerGroup> currentServerGroup) {
     currentServerGroup.isPresent()
   }
 }

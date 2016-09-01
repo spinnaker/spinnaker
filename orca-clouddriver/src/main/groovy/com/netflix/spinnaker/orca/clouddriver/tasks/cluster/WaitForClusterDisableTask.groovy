@@ -20,15 +20,29 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import java.util.function.Function
 
 @Component
-class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTask {
+class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTask implements CloudProviderAware {
   private static final int MINIMUM_WAIT_TIME_MS = 90000
+
+  private final Map<String, String> healthProviderNamesByPlatform
+
+  @Autowired
+  public WaitForClusterDisableTask(Collection<ServerGroupCreator> serverGroupCreators) {
+    healthProviderNamesByPlatform = serverGroupCreators.findAll { serverGroupCreator ->
+      serverGroupCreator.healthProviderName.isPresent()
+    }.collectEntries { serverGroupCreator ->
+      return [(serverGroupCreator.cloudProvider): serverGroupCreator.healthProviderName.orElse(null)]
+    }
+  }
 
   @Override
   TaskResult execute(Stage stage) {
@@ -44,7 +58,8 @@ class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTas
   }
 
   @Override
-  boolean isServerGroupOperationInProgress(List<Map> interestingHealthProviderNames,
+  boolean isServerGroupOperationInProgress(Stage stage,
+                                           List<Map> interestingHealthProviderNames,
                                            Optional<TargetServerGroup> serverGroup) {
     if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
       return false
@@ -63,6 +78,10 @@ class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTas
       }?.find {
         it.type
       }?.type
+
+      if (!platformHealthType) {
+        platformHealthType = healthProviderNamesByPlatform[getCloudProvider(stage)]
+      }
 
       return !(platformHealthType && interestingHealthProviderNames == [platformHealthType])
     }

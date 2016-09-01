@@ -52,7 +52,8 @@ abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudPr
     throw new IllegalStateException("No ServerGroups found in cluster $clusterSelection")
   }
 
-  boolean isServerGroupOperationInProgress(List<TargetServerGroup> currentServerGroups,
+  boolean isServerGroupOperationInProgress(Stage stage,
+                                           List<TargetServerGroup> currentServerGroups,
                                            List<Map> interestingHealthProviderNames,
                                            DeployServerGroup deployServerGroup) {
     def matchingServerGroups = Optional.ofNullable(currentServerGroups.find {
@@ -66,10 +67,11 @@ abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudPr
       isMatch
     })
     log.info "Server groups matching $deployServerGroup : $matchingServerGroups"
-    isServerGroupOperationInProgress(interestingHealthProviderNames, matchingServerGroups)
+    isServerGroupOperationInProgress(stage, interestingHealthProviderNames, matchingServerGroups)
   }
 
-  abstract boolean isServerGroupOperationInProgress(List<Map> interestingHealthProviderNames,
+  abstract boolean isServerGroupOperationInProgress(Stage stage,
+                                                    List<Map> interestingHealthProviderNames,
                                                     Optional<TargetServerGroup> serverGroup)
 
   @Canonical
@@ -116,7 +118,7 @@ abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudPr
     }
 
     List<String> healthProviderTypesToCheck = stage.context.interestingHealthProviderNames as List<String>
-    List<DeployServerGroup> stillRemaining = remainingDeployServerGroups.findAll(this.&isServerGroupOperationInProgress.curry(serverGroups, healthProviderTypesToCheck))
+    List<DeployServerGroup> stillRemaining = remainingDeployServerGroups.findAll(this.&isServerGroupOperationInProgress.curry(stage, serverGroups, healthProviderTypesToCheck))
 
     if (stillRemaining) {
       log.info "Pipeline ${stage.execution?.id} still has ${stillRemaining.collect { it.region + "->" + it.name }}"
