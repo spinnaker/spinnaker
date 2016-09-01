@@ -11,25 +11,29 @@ Spinnaker Auth Service
                                 /___/                |/                                  
 ```
 
-Roadmap/Implementation Punch list:
+Fiat is the authorization server for the Spinnaker system. 
+
+It exposes a RESTful interface for querying the access permissions for a particular user. It currently supports three kinds of resources:
+* Accounts
+* Applications
+* Service Accounts
+ 
 ---
-* ☑ **Redis-backed** - so that we can scale out to multiple Fiat instances.
-* ☑ **Service accounts** - configuration file based definition of "users" that can be specified to "run as" during automated/triggered pipelines.
-* ☑ **Account config from Clouddriver** - Instead of duplicating account config, get it from the source of truth.
-* ☑ **Application config persistence** - ~~Accounts can be set in config files~~ because they're mostly static, but applications should be able to be dynamically created/destroyed, as well as their role settings persisted across reboots, rollouts, and  replicas. 
-  * New Plan: Read application configs from Front50
-* ☐ Compile "to secure" list of endpoints. (In progress)
-* ☐ **Component integration** - wire it all together throughout the other microservices.
-  * ☑ Gate
-  * ☑ Front50 (in progress)
-    * Troublesome:
-      * DELETE /pipelines/deleteById
-      * DELETE /strategies/deleteById
-      * NotificationsController
-  * ☐ Orca
-  * ☐ Clouddriver
-  * ☐ Echo
-* ☐ **Deck**
-  * ☐ Add ability to specify group membership from application creation dialog
-  * ☐ Generate warning if no application config is found, warning users that their application may be exposed.
-* ☐ **Scaffolding** - Installation scripts, startup scripts, config files, etc.
+
+### Accounts
+Accounts are setup within Clouddriver and queried by Fiat for its configured `requiredGroupMembership` restrictions.
+
+### Applications
+Applications are the combination of config metadata pulled from Front50 and server group names (e.g., application-stack-details). Application permissions sit beside application configuration in S3/Google Cloud Storage.
+
+### Service Accounts
+Fiat Service Accounts are groups that act as a user during automated triggers (say, from a GitHub push or Jenkins build). Authorization is built in by making the service account a member of a group specified in `requiredGroupMembership`.
+
+---
+
+### User Role/Authorization Providers
+There are currently two user role providers: Google Groups (through a Google Apps for Work organization) and GitHub Teams. If you would like to see additional providers, see [this issue](https://github.com/spinnaker/fiat/issues/30). 
+
+---
+
+Roadmap/Implementation Punch list has been moved to [Milestone 1 Issues](https://github.com/spinnaker/fiat/milestone/1)
