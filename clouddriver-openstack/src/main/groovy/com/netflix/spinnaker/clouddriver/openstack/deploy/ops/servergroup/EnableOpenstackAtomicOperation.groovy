@@ -17,10 +17,14 @@
 package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup
 
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.OpenstackServerGroupAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import org.openstack4j.model.network.ext.LoadBalancerV2
 import org.openstack4j.model.network.ext.LoadBalancerV2StatusTree
 
-//TODO this needs to be tested and functionally verified
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Future
+import java.util.function.Supplier
+
 /**
  * curl -X POST -H "Content-Type: application/json" -d '[ { "enableServerGroup": { "serverGroupName": "myapp-test-v000", "region": "RegionOne", "account": "test" }} ]' localhost:7002/openstack/ops
  */
@@ -37,21 +41,47 @@ class EnableOpenstackAtomicOperation extends AbstractEnableDisableOpenstackAtomi
   }
 
   @Override
-  Void addOrRemoveInstancesFromLoadBalancer(List<String> instanceIds, List<String> loadBalancers) {
+  Void addOrRemoveInstancesFromLoadBalancer(List<String> instanceIds, List<String> loadBalancerIds) {
     task.updateStatus phaseName, "Registering instances with load balancers..."
+    Map<String, Future<LoadBalancerV2>> loadBalancers = [:]
+    Map<String, Future<LoadBalancerV2StatusTree>> statusTrees = [:]
+    Map<String, Future> ips = instanceIds.collectEntries { instanceId ->
+      task.updateStatus phaseName, "Getting ip for instance $instanceId..."
+      [(instanceId): CompletableFuture.supplyAsync({
+        provider.getIpForInstance(description.region, instanceId)
+      } as Supplier<String>).exceptionally { t ->
+        null
+      }]
+    }
+    loadBalancerIds.each { lbId ->
+      task.updateStatus phaseName, "Getting load balancer details for $lbId..."
+      loadBalancers << [(lbId): CompletableFuture.supplyAsync({
+        provider.getLoadBalancer(description.region, lbId)
+      } as Supplier<LoadBalancerV2>)]
+      task.updateStatus phaseName, "Getting load balancer tree for $lbId..."
+      statusTrees << [(lbId): CompletableFuture.supplyAsync({
+        provider.getLoadBalancerStatusTree(description.region, lbId)
+      } as Supplier<LoadBalancerV2StatusTree>)]
+    }
+    CompletableFuture.allOf([loadBalancers.values(), statusTrees.values(), ips.values()].flatten() as CompletableFuture[]).join()
     for (String id : instanceIds) {
-      String ip = description.credentials.provider.getIpForInstance(description.region, id)
-      loadBalancers.each { lbId ->
-        LoadBalancerV2 loadBalancer = provider.getLoadBalancer(description.region, lbId)
-        LoadBalancerV2StatusTree status = provider.getLoadBalancerStatusTree(description.region, lbId)
-        status.loadBalancerV2Status.listenerStatuses?.each { listenerStatus ->
-          listenerStatus.lbPoolV2Statuses?.each { poolStatus ->
-            Integer internalPort = provider.getInternalLoadBalancerPort(description.region, listenerStatus.id)
-            provider.addMemberToLoadBalancerPool(description.region, ip, poolStatus.id, loadBalancer.vipSubnetId, internalPort.toInteger(), DEFAULT_WEIGHT)
+      String ip = ips[(id)].get()
+      if (!ip) {
+        task.updateStatus phaseName, "Could not find floating ip for instance $id, continuing with next instance"
+      } else {
+        loadBalancers.values().each { loadBalancer ->
+          LoadBalancerV2StatusTree status = statusTrees[(loadBalancer.get().id)].get()
+          status.loadBalancerV2Status.listenerStatuses?.each { listenerStatus ->
+            listenerStatus.lbPoolV2Statuses?.each { poolStatus ->
+              Integer internalPort = provider.getInternalLoadBalancerPort(description.region, listenerStatus.id)
+              task.updateStatus phaseName, "Adding member instance $id with ip $ip to load balancer ${loadBalancer.get().id} with listener ${listenerStatus.id} and pool ${poolStatus.id}..."
+              provider.addMemberToLoadBalancerPool(description.region, ip, poolStatus.id, loadBalancer.get().vipSubnetId, internalPort.toInteger(), DEFAULT_WEIGHT)
+            }
           }
         }
       }
     }
+    task.updateStatus phaseName, "Finished registering instances with load balancers."
   }
 
 }

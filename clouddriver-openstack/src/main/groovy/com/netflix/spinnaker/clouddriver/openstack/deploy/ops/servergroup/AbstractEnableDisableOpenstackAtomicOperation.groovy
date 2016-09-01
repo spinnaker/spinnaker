@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.OpenstackServerGroupAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.openstack4j.model.heat.Stack
 
@@ -46,16 +47,24 @@ abstract class AbstractEnableDisableOpenstackAtomicOperation implements AtomicOp
   Void operate(List priorOutputs) {
     String verb = disable ? 'disable' : 'enable'
     String presentParticipling = disable ? 'Disabling' : 'Enabling'
-
     task.updateStatus phaseName, "Initializing $verb server group operation for $description.serverGroupName in $description.region..."
-    List<String> instanceIds = provider.getInstanceIdsForStack(description.region, description.serverGroupName)
-
-    task.updateStatus phaseName, "Getting stack details for $description.serverGroupName..."
-    Stack stack = provider.getStack(description.region, description.serverGroupName)
-
-    addOrRemoveInstancesFromLoadBalancer(instanceIds, stack.tags)
-
-    task.updateStatus phaseName, "Done ${presentParticipling.toLowerCase()} server group $description.serverGroupName in $description.region."
+    try {
+      task.updateStatus phaseName, "Getting stack details for $description.serverGroupName..."
+      List<String> instanceIds = provider.getInstanceIdsForStack(description.region, description.serverGroupName)
+      if (instanceIds?.size() > 0) {
+        Stack stack = provider.getStack(description.region, description.serverGroupName)
+        if (stack.tags?.size() > 0) {
+          addOrRemoveInstancesFromLoadBalancer(instanceIds, stack.tags)
+          task.updateStatus phaseName, "Done ${presentParticipling.toLowerCase()} server group $description.serverGroupName in $description.region."
+        } else {
+          task.updateStatus phaseName, "Did not find any load balancers associated with $description.serverGroupName, nothing to do."
+        }
+      } else {
+        task.updateStatus phaseName, "Did not find any instances for $description.serverGroupName, nothing to do."
+      }
+    } catch (Exception e) {
+      throw new OpenstackOperationException(e)
+    }
   }
 
   OpenstackClientProvider getProvider() {

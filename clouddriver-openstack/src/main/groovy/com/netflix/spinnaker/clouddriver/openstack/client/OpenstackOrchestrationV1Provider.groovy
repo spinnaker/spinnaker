@@ -107,12 +107,13 @@ class OpenstackOrchestrationV1Provider implements OpenstackOrchestrationProvider
   @Override
   List<String> getInstanceIdsForStack(String region, String stackName) {
     List<? extends Resource> resources = handleRequest {
-      getRegionClient(region).heat().resources().list(stackName)
+      //this means it has the ability to list resources 10 levels deep in the heat template hierarchy.
+      //provide a depth of 10 for insurance - the default template has a depth of 4.
+      getRegionClient(region).heat().resources().list(stackName, 10)
     }
-    List<String> ids = resources.findResults {
+    resources?.findResults {
       it.type == "OS::Nova::Server" ? it.physicalResourceId : null
     }
-    ids
   }
 
 }

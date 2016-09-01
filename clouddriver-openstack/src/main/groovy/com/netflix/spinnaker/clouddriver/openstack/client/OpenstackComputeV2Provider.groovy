@@ -200,13 +200,13 @@ public class OpenstackComputeV2Provider implements OpenstackComputeProvider, Ope
   String getIpForInstance(String region, String instanceId) {
     Server server = getServerInstance(region, instanceId)
     /* TODO
-      For now just get the first address found. Openstack does not associate an instance id
+      For now just get the first ipv4 address found. Openstack does not associate an instance id
       with load balancer membership, just an ip address. An instance can have multiple IP addresses.
       perhaps we just look for the first 192.* address found. It would also help to know the network name
       from which to choose the IP list. I am not sure if we will have that. We can certainly add that into
       the api later on when we know what data deck will have access to.
     */
-    String ip = server.addresses?.addresses?.collect { n -> n.value }?.find()?.find()?.addr
+    String ip = server.addresses?.addresses?.collect { n -> n.value }?.find()?.find { it.version == 4 }?.addr
     if (StringUtils.isEmpty(ip)) {
       throw new OpenstackProviderException("Instance ${instanceId} has no IP address")
     }

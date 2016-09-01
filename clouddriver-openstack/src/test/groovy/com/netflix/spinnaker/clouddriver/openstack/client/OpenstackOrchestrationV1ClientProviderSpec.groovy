@@ -153,7 +153,7 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
     then:
     1 * mockClient.heat() >> heat
     1 * heat.resources() >> resourcesService
-    1 * resourcesService.list("mystack") >> resources
+    1 * resourcesService.list("mystack", 10) >> resources
     result == [id1]
     noExceptionThrown()
   }
@@ -170,7 +170,7 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
     then:
     1 * mockClient.heat() >> heat
     1 * heat.resources() >> resourcesService
-    1 * resourcesService.list("mystack") >> { throw throwable }
+    1 * resourcesService.list("mystack", 10) >> { throw throwable }
 
     and:
     OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)

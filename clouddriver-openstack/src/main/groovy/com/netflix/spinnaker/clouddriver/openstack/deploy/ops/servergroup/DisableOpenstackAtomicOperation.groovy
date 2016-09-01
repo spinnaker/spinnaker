@@ -19,7 +19,10 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.OpenstackServerGroupAtomicOperationDescription
 import org.openstack4j.model.network.ext.LoadBalancerV2StatusTree
 
-//TODO this needs to be tested and functionally verified
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Future
+import java.util.function.Supplier
+
 /**
  * curl -X POST -H "Content-Type: application/json" -d '[ { "disableServerGroup": { "serverGroupName": "myapp-teststack-v006", "region": "RegionOne", "account": "test" }} ]' localhost:7002/openstack/ops
  */
@@ -36,23 +39,45 @@ class DisableOpenstackAtomicOperation extends AbstractEnableDisableOpenstackAtom
   }
 
   @Override
-  Void addOrRemoveInstancesFromLoadBalancer(List<String> instanceIds, List<String> loadBalancers) {
+  Void addOrRemoveInstancesFromLoadBalancer(List<String> instanceIds, List<String> loadBalancerIds) {
     task.updateStatus phaseName, "Deregistering instances from load balancers..."
+    Map<String, Future<LoadBalancerV2StatusTree>> statusTrees = [:]
+    Map<String, Future<String>> ips = instanceIds.collectEntries { instanceId ->
+      task.updateStatus phaseName, "Getting ip for instance $instanceId..."
+      [(instanceId): CompletableFuture.supplyAsync({
+        provider.getIpForInstance(description.region, instanceId)
+      } as Supplier<String>).exceptionally { t ->
+        null
+      }]
+    }
+    loadBalancerIds.each { lbId ->
+      task.updateStatus phaseName, "Getting load balancer tree for $lbId..."
+      statusTrees << [(lbId): CompletableFuture.supplyAsync({
+        provider.getLoadBalancerStatusTree(description.region, lbId)
+      } as Supplier<LoadBalancerV2StatusTree>)]
+    }
+    CompletableFuture.allOf([statusTrees.values(), ips.values()].flatten() as CompletableFuture[]).join()
     for (String id : instanceIds) {
-      String ip = provider.getIpForInstance(description.region, id)
-      loadBalancers.each { lbId ->
-        LoadBalancerV2StatusTree status = provider.getLoadBalancerStatusTree(description.region, lbId)
-        status.loadBalancerV2Status?.listenerStatuses?.each { listenerStatus ->
-          listenerStatus.lbPoolV2Statuses?.each { poolStatus ->
-            poolStatus.memberStatuses?.each { memberStatus ->
-              if (ip && memberStatus.address && ip == memberStatus.address) {
-                provider.removeMemberFromLoadBalancerPool(description.region, poolStatus.id, memberStatus.id)
+      String ip = ips[(id)].get()
+      if (!ip) {
+        task.updateStatus phaseName, "Could not find floating ip for instance $id, continuing with next instance"
+      } else {
+        loadBalancerIds.each { lbId ->
+          LoadBalancerV2StatusTree status = statusTrees[(lbId)].get()
+          status.loadBalancerV2Status?.listenerStatuses?.each { listenerStatus ->
+            listenerStatus.lbPoolV2Statuses?.each { poolStatus ->
+              poolStatus.memberStatuses?.each { memberStatus ->
+                if (ip && memberStatus.address && ip == memberStatus.address) {
+                  task.updateStatus phaseName, "Removing member instance $id with ip $ip from load balancer $lbId with listener ${listenerStatus.id} and pool ${poolStatus.id}..."
+                  provider.removeMemberFromLoadBalancerPool(description.region, poolStatus.id, memberStatus.id)
+                }
               }
             }
           }
         }
       }
     }
+    task.updateStatus phaseName, "Finished deregistering instances from load balancers."
   }
 
 }

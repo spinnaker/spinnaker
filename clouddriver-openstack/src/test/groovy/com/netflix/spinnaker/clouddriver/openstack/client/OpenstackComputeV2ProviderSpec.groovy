@@ -392,6 +392,7 @@ class OpenstackComputeV2ProviderSpec extends OpenstackClientProviderSpec {
     server.addresses >> addresses
     Address address = Mock(Address)
     addresses.addresses >> ['test': [address]]
+    address.version >> 4
     address.addr >> '1.2.3.4'
 
     when:
