@@ -82,6 +82,7 @@ public class ApplicationsController {
   @Autowired
   Registry registry
 
+  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
   @PostFilter("hasPermission(filterObject.name, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/search", method = RequestMethod.GET)
   @ApiOperation(value = "", notes = """Search for applications within a specific `account` given one or more attributes.
@@ -93,6 +94,7 @@ public class ApplicationsController {
     return getApplication().search(params)
   }
 
+  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
   @PostFilter("hasPermission(filterObject.name, 'APPLICATION', 'READ')")
   @ApiOperation(value = "", notes = "Fetch all applications within a specific `account`")
   @RequestMapping(method = RequestMethod.GET)
@@ -139,8 +141,7 @@ public class ApplicationsController {
     return applicationDAO.getApplicationHistory(application, limit)
   }
 
-  // TODO(ttomsu): Make custom bean for hasPermissionToAll(Collection...)
-  // @PreFilter("hasPermission(filterTarget.name, 'APPLICATION', 'WRITE')")
+  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
   @RequestMapping(method = RequestMethod.POST, value = "/batchUpdate")
   void batchUpdate(@RequestBody final Collection<Application> applications) {
     applicationDAO.bulkImport(applications)

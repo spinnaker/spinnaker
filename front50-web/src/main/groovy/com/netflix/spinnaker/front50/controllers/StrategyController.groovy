@@ -43,6 +43,7 @@ class StrategyController {
     @Autowired
     PipelineStrategyDAO pipelineStrategyDAO
 
+    @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
     @PostFilter("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
     @RequestMapping(value = '', method = RequestMethod.GET)
     List<Pipeline> list() {
@@ -55,7 +56,7 @@ class StrategyController {
         pipelineStrategyDAO.getPipelinesByApplication(application)
     }
 
-    @PostAuthorize("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
+    @PostFilter("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
     @RequestMapping(value = '{id:.+}/history', method = RequestMethod.GET)
     Collection<Pipeline> getHistory(@PathVariable String id,
                                     @RequestParam(value = "limit", defaultValue = "20") int limit) {
@@ -77,8 +78,7 @@ class StrategyController {
         pipelineStrategyDAO.create(strategy.getId(), strategy)
     }
 
-    // TODO(ttomsu): Bulk authorize capability needed.
-    // @PreFilter("hasPermission(#filterTarget.application, 'APPLICATION', 'WRITE')")
+    @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
     @RequestMapping(value = 'batchUpdate', method = RequestMethod.POST)
     void batchUpdate(@RequestBody List<Pipeline> strategies) {
         pipelineStrategyDAO.bulkImport(strategies)
@@ -92,8 +92,6 @@ class StrategyController {
         )
     }
 
-    // TODO(ttomsu): How to secure this endpoint?
-    @RequestMapping(value = 'deleteById/{id:.+}', method = RequestMethod.DELETE)
     void delete(@PathVariable String id) {
         pipelineStrategyDAO.delete(id)
     }

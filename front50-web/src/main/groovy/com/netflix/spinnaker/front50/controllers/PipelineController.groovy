@@ -21,11 +21,17 @@ import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.AccessDeniedException
-import org.springframework.security.access.prepost.PostAuthorize
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.security.access.prepost.PreFilter
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
+
 import static org.springframework.http.HttpStatus.BAD_REQUEST
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY
 
@@ -39,6 +45,7 @@ class PipelineController {
   @Autowired
   PipelineDAO pipelineDAO
 
+  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
   @PostFilter("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = '', method = RequestMethod.GET)
   List<Pipeline> list() {
@@ -47,12 +54,11 @@ class PipelineController {
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = '{application:.+}', method = RequestMethod.GET)
-  List<Pipeline> listByApplication(
-    @PathVariable(value = 'application') String application) {
+  List<Pipeline> listByApplication(@PathVariable(value = 'application') String application) {
     pipelineDAO.getPipelinesByApplication(application)
   }
 
-  // TODO(ttomsu): Horribly inefficient for large histories.
+  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
   @PostFilter("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = '{id:.+}/history', method = RequestMethod.GET)
   Collection<Pipeline> getHistory(@PathVariable String id,
@@ -79,8 +85,7 @@ class PipelineController {
     pipelineDAO.create(pipeline.id as String, pipeline)
   }
 
-  // TODO(ttomsu): Bulk authorize capability needed.
-  // @PreFilter("hasPermission(#filterTarget.application, 'APPLICATION', 'WRITE')")
+  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
   @RequestMapping(value = 'batchUpdate', method = RequestMethod.POST)
   void batchUpdate(@RequestBody List<Pipeline> pipelines) {
     pipelineDAO.bulkImport(pipelines)
@@ -94,8 +99,6 @@ class PipelineController {
     )
   }
 
-  // TODO(ttomsu): How to secure this endpoint?
-  @RequestMapping(value = 'deleteById/{id:.+}', method = RequestMethod.DELETE)
   void delete(@PathVariable String id) {
     pipelineDAO.delete(id)
   }
