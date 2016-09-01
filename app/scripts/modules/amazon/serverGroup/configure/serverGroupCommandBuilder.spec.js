@@ -9,11 +9,12 @@ describe('awsServerGroupCommandBuilder', function() {
     )
   );
 
-  beforeEach(window.inject(function(awsServerGroupCommandBuilder, accountService, $q, $rootScope, subnetReader, instanceTypeService) {
+  beforeEach(window.inject(function(awsServerGroupCommandBuilder, accountService, $q, $rootScope, subnetReader, instanceTypeService, _settings_) {
     this.awsServerGroupCommandBuilder = awsServerGroupCommandBuilder;
     this.$scope = $rootScope;
     this.instanceTypeService = instanceTypeService;
     this.$q = $q;
+    this.settings = _settings_;
     spyOn(accountService, 'getPreferredZonesByAccount').and.returnValue($q.when(AccountServiceFixture.preferredZonesByAccount));
     spyOn(accountService, 'getCredentialsKeyedByAccount').and.returnValue($q.when(AccountServiceFixture.credentialsKeyedByAccount));
     spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([]));
@@ -26,6 +27,7 @@ describe('awsServerGroupCommandBuilder', function() {
 
     it('initializes to default values, setting usePreferredZone flag to true', function () {
       var command = null;
+      this.settings.providers.aws.defaults.iamRole = '{{application}}IAMRole';
       this.awsServerGroupCommandBuilder.buildNewServerGroupCommand({name: 'appo', defaultCredentials: {}, defaultRegions: {}}, 'aws').then(function(result) {
         command = result;
       });
@@ -34,6 +36,7 @@ describe('awsServerGroupCommandBuilder', function() {
 
       expect(command.viewState.usePreferredZones).toBe(true);
       expect(command.availabilityZones).toEqual(['a', 'b', 'c']);
+      expect(command.iamRole).toBe('appoIAMRole');
     });
 
 
