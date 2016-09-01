@@ -23,6 +23,7 @@ import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
+import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -40,6 +41,8 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.UpsertAmazo
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import groovy.transform.PackageScope
+
+import java.util.regex.Pattern
 
 class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescription> {
   private static final String BASE_PHASE = "DEPLOY"
@@ -227,7 +230,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         maxInstances: description.capacity.max != null ? description.capacity.max : 0,
         desiredInstances: description.capacity.desired != null ? description.capacity.desired : 0,
         securityGroups: description.securityGroups,
-        iamRole: description.iamRole ?: deployDefaults.iamRole,
+        iamRole: iamRole(description, deployDefaults),
         keyPair: description.keyPair ?: account?.defaultKeyPair,
         sequence: description.sequence,
         ignoreSequence: description.ignoreSequence,
@@ -347,6 +350,11 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       }
       device
     }
+  }
+
+  static String iamRole(BasicAmazonDeployDescription description, DeployDefaults deployDefaults) {
+    def iamRole = description.iamRole ?: deployDefaults.iamRole
+    return description.application ? iamRole.replaceAll(Pattern.quote('{{application}}'), description.application) : iamRole
   }
 
   private RegionScopedProviderFactory.RegionScopedProvider buildSourceRegionScopedProvider(Task task,
