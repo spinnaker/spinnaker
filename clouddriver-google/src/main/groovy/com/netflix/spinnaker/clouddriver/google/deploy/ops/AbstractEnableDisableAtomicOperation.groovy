@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.model.*
+import com.netflix.spinnaker.clouddriver.consul.deploy.ops.EnableDisableConsulInstance
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -26,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvi
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
+import retrofit.RetrofitError
 
 abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<Void> {
   private static final List<Integer> RETRY_ERROR_CODES = [400, 412]
@@ -74,6 +76,33 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
       : GCEUtil.queryZonalManagedInstanceGroup(project, zone, serverGroupName, credentials)
     def currentTargetPoolUrls = managedInstanceGroup.getTargetPools()
     def newTargetPoolUrls = []
+
+
+    if (credentials.consulConfig?.enabled) {
+      task.updateStatus phaseName, "$presentParticipling server group in Consul..."
+      currentTargetPoolUrls.each { targetPoolUrl ->
+        def targetPoolLocalName = GCEUtil.getLocalName(targetPoolUrl)
+
+        task.updateStatus phaseName, "$presentParticipling instances with target pool $targetPoolLocalName in Consul..."
+
+        def targetPool = compute.targetPools().get(project, region, targetPoolLocalName).execute()
+        def instanceNames = targetPool.getInstances()?.collect { url ->
+          GCEUtil.getLocalName(url)
+        } ?: []
+
+        instanceNames.each { name ->
+          try {
+            EnableDisableConsulInstance.operate(credentials.consulConfig,
+                                                name,
+                                                disable
+                                                ? EnableDisableConsulInstance.State.disable
+                                                : EnableDisableConsulInstance.State.enable)
+          } catch (RetrofitError e) {
+            // Consul isn't running
+          }
+        }
+      }
+    }
 
     if (disable) {
       task.updateStatus phaseName, "Deregistering server group from Http(s) load balancers..."
