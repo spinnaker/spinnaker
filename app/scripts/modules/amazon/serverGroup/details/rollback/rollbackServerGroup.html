@@ -31,6 +31,30 @@
       </div>
 
       <task-reason command="command"></task-reason>
+
+      <div class="row">
+        <div class="col-sm-4 sm-label-right">
+          Rollback Operations
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-11 col-sm-offset-1">
+          <ol>
+            <li>Enable <em>{{ command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em></li>
+            <li>Resize <em>{{ command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em> to [
+              <strong>min</strong>: {{serverGroup.capacity.min}},
+              <strong>max</strong>: {{ serverGroup.capacity.max }},
+              <strong>desired</strong>: {{ serverGroup.capacity.desired }}
+            ]</li>
+            <li>Disable {{ serverGroup.name }}</li>
+          </ol>
+
+          <p>
+            This rollback will affect server groups in {{ serverGroup.account }} ({{ serverGroup.region }}).
+          </p>
+        </div>
+      </div>
+
     </div>
     <aws-footer action="ctrl.rollback()"
                 cancel="ctrl.cancel()"
