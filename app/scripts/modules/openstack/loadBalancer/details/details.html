@@ -54,10 +54,8 @@
         <dd>{{loadBalancer.subnetName}}</dd>
         <dt>Network</dt>
         <dd>{{loadBalancer.networkName}}</dd>
-        <dt>Port</dt>
-        <dd>{{loadBalancer.externalPort}}</dd>
-        <dt ng-if="lbLink">Link</dt>
-        <dd ng-if="lbLink">
+        <dt ng-if="lbLinks">Links</dt>
+        <dd ng-repeat="lbLink in lbLinks track by $index">
           <a href="{{lbLink}}" target="_blank">{{lbLink}}</a>
           <copy-to-clipboard
             class="copy-to-clipboard copy-to-clipboard-sm"
@@ -65,24 +63,20 @@
             tool-tip="Copy Link to clipboard">
           </copy-to-clipboard>
         </dd>
+        <dt>Distribution</dt>
+        <dd>{{loadBalancer.algorithm}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">
       <health-counts class="pull-left" container="loadBalancer.instanceCounts"></health-counts>
     </collapsible-section>
-    <collapsible-section heading="Traffic Destinations" expanded="true">
-      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
-        <dt>Port</dt>
-        <dd>{{loadBalancer.internalPort}}</dd>
-        <dt>Distribution</dt>
-        <dd>{{loadBalancer.method}}</dd>
-      </dl>
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'" ng-if="loadBalancer.serverGroups">
-        <dt>Server Groups</dt>
-        <dd>
-          <ul ng-style="{'margin-left': InsightFilterStateModel.filtersExpanded ? '30px' : 0}">
-            <li ng-repeat="serverGroup in loadBalancer.serverGroups">{{serverGroup.name}}</li>
-          </ul>
+    <collapsible-section heading="Listeners">
+      <dl>
+        <dt>Load Balancer &rarr; Instance</dt>
+        <dd ng-repeat="listener in loadBalancer.listeners">
+          {{listener.externalProtocol}}:<span ng-if="listener.externalProtocol == 'HTTPS'">{{listener.sslCertificateId}}:</span>{{listener.externalPort}}
+          &rarr;
+          {{listener.internalProtocol}}:{{listener.internalPort}}
         </dd>
       </dl>
     </collapsible-section>
@@ -104,7 +98,7 @@
         <dt>URL</dt>
         <dd>{{loadBalancer.healthMonitor.url}}</dd>
         <dt>Status Codes</dt>
-        <dd><div class="status-code" ng-repeat="statusCode in loadBalancer.healthMonitor.expectedHttpStatusCodes">{{statusCode}}</div></dd>
+        <dd><div class="status-code" ng-repeat="statusCode in loadBalancer.healthMonitor.expectedCodes">{{statusCode}}</div></dd>
       </dl>
     </collapsible-section>
   </div>

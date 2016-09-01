@@ -1,30 +1,10 @@
 <ng-form class="container-fluid form-horizontal" name="interfaceForm">
   <div class="modal-body">
-    <div class="form-group">
-      <div class="col-md-3 sm-label-right">
-        Protocol
-        <help-field key="openstack.loadBalancer.protocol"></help-field>
-      </div>
-      <div class="col-md-2">
-        <p class="form-control-static" ng-if="!isNew">{{loadBalancer.protocol}}</p>
-        <select class="form-control input-sm"
-                ng-model="loadBalancer.protocol"
-                ng-options="protocol for protocol in protocols"
-                ng-if="isNew">
-        </select>
-      </div>
-    </div>
     <network-select-field model="loadBalancer.networkId" help-key="openstack.loadBalancer.network" read-only="!isNew"></network-select-field>
-    <div class="form-group">
-      <div class="col-md-3 sm-label-right">
-        Port
-        <help-field key="openstack.loadBalancer.port"></help-field>
-      </div>
-      <div class="col-md-2">
-        <p class="form-control-static" ng-if="!isNew">{{loadBalancer.externalPort}}</p>
-        <input type="number" class="form-control input-sm" name="details" ng-model="loadBalancer.externalPort" ng-if="isNew"
-               min="1" max="{{maxPort}}" />
-      </div>
-    </div>
+
+    <os-app-cache-backed-multi-select-field label="Security Groups"
+                                            cache-key="securityGroups"
+                                            filter="filter"
+                                            model="loadBalancer.securityGroups"></os-app-cache-backed-multi-select-field>
   </div>
 </ng-form>
