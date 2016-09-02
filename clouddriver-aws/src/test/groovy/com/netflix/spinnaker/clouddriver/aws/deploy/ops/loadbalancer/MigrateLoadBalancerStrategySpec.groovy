@@ -41,6 +41,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.DefaultMigrateLoadB
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.MigrateLoadBalancerStrategy
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.MigrateSecurityGroupStrategy
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerMigrator.LoadBalancerLocation
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerMigrator.TargetLoadBalancerLocation
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.MigrateSecurityGroupReference
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.MigrateSecurityGroupResult
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupLookup
@@ -105,10 +106,10 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     targetLookup.accountIdExists(prodCredentials.accountId) >> true
   }
 
-  void 'throws exception if no availability zones are specified'() {
+  void 'throws exception if no availability zones are supplied'() {
     given:
     LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: 'app-elb')
-    LoadBalancerLocation target = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1')
+    TargetLoadBalancerLocation target = new TargetLoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1', useZonesFromSource: false)
 
     when:
     strategy.generateResults(sourceLookup, sourceLookup, securityGroupStrategy, source, target, 'internal', 'app', true, false)
@@ -118,12 +119,30 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     0 * _
   }
 
+  void 'resolves zones from source load balancer if requested'() {
+    given:
+    LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: 'app-elb')
+    TargetLoadBalancerLocation target = new TargetLoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1', useZonesFromSource: true)
+    AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
+
+    when:
+    strategy.generateResults(sourceLookup, sourceLookup, securityGroupStrategy, source, target, 'internal', 'app', true, false)
+
+    then:
+    1 * amazonClientProvider.getAmazonElasticLoadBalancing(testCredentials, 'us-east-1', true) >> loadBalancing
+    1 * loadBalancing.describeLoadBalancers(_) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(
+      new LoadBalancerDescription().withLoadBalancerName('app-elb').withAvailabilityZones([])
+    )
+    thrown(IllegalStateException)
+    0 * _
+  }
+
   void 'throws exception when migrating to VPC and load balancer name (not changed) already exists in Classic'() {
     given:
     def loadBalancerName = '12345678901234567890123456789012'
     LoadBalancerDescription sourceDescription = new LoadBalancerDescription().withLoadBalancerName(loadBalancerName)
     LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: loadBalancerName)
-    LoadBalancerLocation target = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1', availabilityZones: ['us-east-1a'])
+    TargetLoadBalancerLocation target = new TargetLoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1', availabilityZones: ['us-east-1a'])
     strategy.source = source
     strategy.target = target
     strategy.dryRun = false
@@ -149,7 +168,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     def newLoadBalancerName = 'app-elb-vpc1'
     LoadBalancerDescription sourceDescription = new LoadBalancerDescription().withLoadBalancerName(loadBalancerName)
     LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: 'app-elb')
-    LoadBalancerLocation target = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1', availabilityZones: ['us-east-1a'])
+    TargetLoadBalancerLocation target = new TargetLoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1', availabilityZones: ['us-east-1a'])
 
     AmazonEC2 amazonEC2 = Mock(AmazonEC2)
     AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
@@ -183,7 +202,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     LoadBalancerDescription sourceDescription = new LoadBalancerDescription().withLoadBalancerName(loadBalancerName)
     LoadBalancerDescription targetDescription = new LoadBalancerDescription().withLoadBalancerName(newLoadBalancerName)
     LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: loadBalancerName)
-    LoadBalancerLocation target = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1', name: newLoadBalancerName, availabilityZones: ['us-east-1a'])
+    TargetLoadBalancerLocation target = new TargetLoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', vpcId: 'vpc-1', name: newLoadBalancerName, availabilityZones: ['us-east-1a'])
     strategy.source = source
     strategy.target = target
     strategy.dryRun = false
@@ -208,7 +227,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     given:
     LoadBalancerDescription sourceDescription = new LoadBalancerDescription().withSecurityGroups('sg-1', 'sg-2')
     LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, vpcId: 'vpc-1', region: 'us-east-1')
-    LoadBalancerLocation target = new LoadBalancerLocation(credentials: prodCredentials, vpcId: 'vpc-2', region: 'eu-west-1')
+    TargetLoadBalancerLocation target = new TargetLoadBalancerLocation(credentials: prodCredentials, vpcId: 'vpc-2', region: 'eu-west-1')
     strategy.source = source
     strategy.target = target
     strategy.dryRun = true
@@ -249,7 +268,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
       ]
     )
     LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: 'app-elb')
-    LoadBalancerLocation target = new LoadBalancerLocation(credentials: prodCredentials, region: 'eu-west-1', availabilityZones: ['eu-west-1a'])
+    TargetLoadBalancerLocation target = new TargetLoadBalancerLocation(credentials: prodCredentials, region: 'eu-west-1', availabilityZones: ['eu-west-1a'])
 
     AmazonEC2 amazonEC2 = Mock(AmazonEC2)
     AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
@@ -281,7 +300,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
     LoadBalancerDescription sourceDescription = new LoadBalancerDescription(healthCheck: new HealthCheck(),
       listenerDescriptions: []).withSecurityGroups('sg-1', 'sg-2')
     LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, vpcId: 'vpc-1', region: 'us-east-1')
-    LoadBalancerLocation target = new LoadBalancerLocation(credentials: prodCredentials, vpcId: 'vpc-2', region: 'eu-west-1', name: 'new-elb', availabilityZones: ['eu-west-1a'])
+    TargetLoadBalancerLocation target = new TargetLoadBalancerLocation(credentials: prodCredentials, vpcId: 'vpc-2', region: 'eu-west-1', name: 'new-elb', availabilityZones: ['eu-west-1a'])
     strategy.source = source
     strategy.target = target
     strategy.dryRun = true
@@ -347,7 +366,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
       ]
     )
     LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: 'app-elb')
-    LoadBalancerLocation target = new LoadBalancerLocation(credentials: prodCredentials, vpcId: 'vpc-2', region: 'eu-west-1', availabilityZones: ['eu-west-1a'])
+    TargetLoadBalancerLocation target = new TargetLoadBalancerLocation(credentials: prodCredentials, vpcId: 'vpc-2', region: 'eu-west-1', availabilityZones: ['eu-west-1a'])
 
     AmazonEC2 amazonEC2 = Mock(AmazonEC2)
     AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
@@ -437,7 +456,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
       listenerDescriptions: []
     )
     LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: 'app-elb')
-    LoadBalancerLocation target = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', availabilityZones: ['us-east-1a'], name: 'newapp-elb')
+    TargetLoadBalancerLocation target = new TargetLoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', availabilityZones: ['us-east-1a'], name: 'newapp-elb')
 
     AmazonEC2 amazonEC2 = Mock(AmazonEC2)
     AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
@@ -466,7 +485,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
       listenerDescriptions: []
     )
     LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: 'app-elb-frontend')
-    LoadBalancerLocation target = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', availabilityZones: ['us-east-1a'])
+    TargetLoadBalancerLocation target = new TargetLoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', availabilityZones: ['us-east-1a'])
 
     AmazonEC2 amazonEC2 = Mock(AmazonEC2)
     AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
@@ -495,7 +514,7 @@ class MigrateLoadBalancerStrategySpec extends Specification {
       listenerDescriptions: []
     )
     LoadBalancerLocation source = new LoadBalancerLocation(credentials: testCredentials, region: 'us-east-1', name: 'app-elb')
-    LoadBalancerLocation target = new LoadBalancerLocation(credentials: testCredentials, region: 'us-west-1', availabilityZones: ['us-east-1a'])
+    TargetLoadBalancerLocation target = new TargetLoadBalancerLocation(credentials: testCredentials, region: 'us-west-1', availabilityZones: ['us-east-1a'])
 
     AmazonEC2 amazonEC2 = Mock(AmazonEC2)
     AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)

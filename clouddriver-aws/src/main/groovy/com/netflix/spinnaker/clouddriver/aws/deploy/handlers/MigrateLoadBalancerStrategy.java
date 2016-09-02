@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerMigrator;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerMigrator.LoadBalancerLocation;
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerMigrator.TargetLoadBalancerLocation;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.MigrateLoadBalancerResult;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.MigrateSecurityGroupReference;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.MigrateSecurityGroupResult;
@@ -50,7 +51,7 @@ public abstract class MigrateLoadBalancerStrategy implements MigrateStrategySupp
   protected MigrateSecurityGroupStrategy migrateSecurityGroupStrategy;
 
   protected LoadBalancerLocation source;
-  protected LoadBalancerLocation target;
+  protected TargetLoadBalancerLocation target;
   protected String subnetType;
   protected String applicationName;
   protected boolean allowIngressFromClassic;
@@ -81,7 +82,7 @@ public abstract class MigrateLoadBalancerStrategy implements MigrateStrategySupp
    */
   public synchronized MigrateLoadBalancerResult generateResults(SecurityGroupLookup sourceLookup, SecurityGroupLookup targetLookup,
                                                                 MigrateSecurityGroupStrategy migrateSecurityGroupStrategy,
-                                                                LoadBalancerLocation source, LoadBalancerLocation target,
+                                                                LoadBalancerLocation source, TargetLoadBalancerLocation target,
                                                                 String subnetType, String applicationName,
                                                                 boolean allowIngressFromClassic, boolean dryRun) {
 
@@ -95,13 +96,24 @@ public abstract class MigrateLoadBalancerStrategy implements MigrateStrategySupp
     this.allowIngressFromClassic = allowIngressFromClassic;
     this.dryRun = dryRun;
 
-    if (target.getAvailabilityZones() == null || target.getAvailabilityZones().isEmpty()) {
+    if (!target.isUseZonesFromSource() && (target.getAvailabilityZones() == null || target.getAvailabilityZones().isEmpty())) {
       throw new IllegalStateException("No availability zones specified for load balancer migration");
     }
 
     final MigrateLoadBalancerResult result = new MigrateLoadBalancerResult();
 
     LoadBalancerDescription sourceLoadBalancer = getLoadBalancer(source.getCredentials(), source.getRegion(), source.getName());
+    if (sourceLoadBalancer == null) {
+      throw new IllegalStateException("Source load balancer not found: " + source);
+    }
+
+    if (target.isUseZonesFromSource()) {
+      target.setAvailabilityZones(sourceLoadBalancer.getAvailabilityZones());
+      if (target.getAvailabilityZones() == null || target.getAvailabilityZones().isEmpty()) {
+        throw new IllegalStateException("No availability zones specified for load balancer migration");
+      }
+    }
+
     Vpc sourceVpc = getVpc(source);
     Vpc targetVpc = getVpc(target);
 

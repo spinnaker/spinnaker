@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeplo
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription.Source;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerMigrator;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerMigrator.LoadBalancerLocation;
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerMigrator.TargetLoadBalancerLocation;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.MigrateLoadBalancerResult;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.MigrateSecurityGroupResult;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupLookup;
@@ -303,7 +304,7 @@ public abstract class MigrateServerGroupStrategy implements MigrateStrategySuppo
     sourceLocation.setRegion(source.getRegion());
     sourceLocation.setVpcId(source.getVpcId());
     sourceLocation.setCredentials(source.getCredentials());
-    LoadBalancerLocation loadBalancerTarget = new LoadBalancerLocation(target);
+    TargetLoadBalancerLocation loadBalancerTarget = new TargetLoadBalancerLocation(sourceLocation, target);
     if (loadBalancerNameMapping.containsKey(lbName)) {
       loadBalancerTarget.setName(loadBalancerNameMapping.get(lbName));
     }

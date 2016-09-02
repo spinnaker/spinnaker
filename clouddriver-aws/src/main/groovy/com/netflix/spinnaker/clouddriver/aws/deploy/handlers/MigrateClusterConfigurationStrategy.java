@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.ops.servergroup.MigrateClust
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -211,7 +212,7 @@ public abstract class MigrateClusterConfigurationStrategy implements MigrateStra
     sourceLocation.setRegion(source.getRegion());
     sourceLocation.setVpcId(source.getVpcId());
     sourceLocation.setCredentials(source.getCredentials());
-    LoadBalancerMigrator.LoadBalancerLocation targetLocation = new LoadBalancerMigrator.LoadBalancerLocation(target);
+    LoadBalancerMigrator.TargetLoadBalancerLocation targetLocation = new LoadBalancerMigrator.TargetLoadBalancerLocation(sourceLocation, target);
     if (loadBalancerNameMapping.containsKey(lbName)) {
       targetLocation.setName(loadBalancerNameMapping.get(lbName));
     }
