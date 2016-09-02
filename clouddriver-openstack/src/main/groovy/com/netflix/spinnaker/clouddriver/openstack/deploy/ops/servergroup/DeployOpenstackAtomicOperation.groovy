@@ -92,6 +92,7 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
           "threshold": 15
         }
       },
+      "userData": "http://foobar.com"
       "region": "REGION1",
       "disableRollback": false,
       "timeoutMins": 5,
@@ -147,9 +148,22 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
       Subnet subnet = provider.getSubnet(description.region, subnetId)
       task.updateStatus BASE_PHASE, "Found network id $subnet.networkId from subnet $subnetId."
 
+      String userData
+      if (description.userData) {
+        if (description.userData.startsWith("http")) {
+          task.updateStatus BASE_PHASE, "Resolving user data from url $description.userData..."
+          userData = description.userData.toURL()?.text
+        } else {
+          userData = description.userData
+        }
+        userData = Base64.encoder.encodeToString(userData.bytes)
+        task.updateStatus BASE_PHASE, "Resolved user data."
+      }
+
       task.updateStatus BASE_PHASE, "Creating heat stack $stackName..."
       provider.deploy(description.region, stackName, template, subtemplates, description.serverGroupParameters.identity {
         networkId = subnet.networkId
+        rawUserData = userData
         it
       }, description.disableRollback, description.timeoutMins, description.serverGroupParameters.loadBalancers)
       task.updateStatus BASE_PHASE, "Finished creating heat stack $stackName."

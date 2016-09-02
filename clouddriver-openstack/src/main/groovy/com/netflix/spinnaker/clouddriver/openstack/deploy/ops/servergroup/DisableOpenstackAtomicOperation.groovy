@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup
 
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.OpenstackServerGroupAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.openstack4j.model.network.ext.LoadBalancerV2StatusTree
 
 import java.util.concurrent.CompletableFuture
@@ -28,7 +29,7 @@ import java.util.function.Supplier
  */
 class DisableOpenstackAtomicOperation extends AbstractEnableDisableOpenstackAtomicOperation {
   final String phaseName = "DISABLE_SERVER_GROUP"
-
+  final String operation = AtomicOperations.DISABLE_SERVER_GROUP
   DisableOpenstackAtomicOperation(OpenstackServerGroupAtomicOperationDescription description) {
     super(description)
   }

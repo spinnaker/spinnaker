@@ -29,6 +29,8 @@ abstract class AbstractEnableDisableOpenstackAtomicOperation implements AtomicOp
 
   abstract String getPhaseName()
 
+  abstract String getOperation()
+
   abstract Void addOrRemoveInstancesFromLoadBalancer(List<String> instanceIds, List<String> loadBalancers)
 
   static final int DEFAULT_WEIGHT = 1
@@ -63,7 +65,7 @@ abstract class AbstractEnableDisableOpenstackAtomicOperation implements AtomicOp
         task.updateStatus phaseName, "Did not find any instances for $description.serverGroupName, nothing to do."
       }
     } catch (Exception e) {
-      throw new OpenstackOperationException(e)
+      throw new OpenstackOperationException(operation, e)
     }
   }
 

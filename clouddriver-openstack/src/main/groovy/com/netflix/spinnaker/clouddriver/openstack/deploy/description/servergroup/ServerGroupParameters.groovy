@@ -41,6 +41,7 @@ class ServerGroupParameters {
   AutoscalingType autoscalingType
   Scaler scaleup
   Scaler scaledown
+  String rawUserData
 
   Map<String, String> toParamsMap() {
     [
@@ -62,6 +63,7 @@ class ServerGroupParameters {
       scaledown_adjustment: scaledown?.adjustment ? scaledown.adjustment.toString() : null,
       scaledown_period    : scaledown?.period ? scaledown.period.toString() : null,
       scaledown_threshold : scaledown?.threshold ? scaledown.threshold.toString() : null,
+      user_data           : rawUserData ?: null
     ]
   }
 
@@ -88,7 +90,8 @@ class ServerGroupParameters {
         adjustment: params.get('scaledown_adjustment')?.toInteger(),
         period: params.get('scaledown_period')?.toInteger(),
         threshold: params.get('scaledown_threshold')?.toInteger()
-      )
+      ),
+      rawUserData: params.get('user_data')
     )
   }
 

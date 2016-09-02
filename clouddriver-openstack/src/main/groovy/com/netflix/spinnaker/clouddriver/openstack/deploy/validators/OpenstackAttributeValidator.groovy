@@ -323,7 +323,7 @@ class OpenstackAttributeValidator {
     boolean result = validateNotEmpty(value, attribute)
 
     try {
-      URI.create(value)
+      new URI(value)
     } catch (MalformedURLException | URISyntaxException | IllegalArgumentException e) {
       result = false
       reject(attribute, 'invalid URL')

@@ -72,7 +72,7 @@ class ServerGroupParametersSpec extends Specification {
       networkId: "net", subnetId: "sub", loadBalancers: ["poop"],
       securityGroups: ["sg1"],
       autoscalingType: ServerGroupParameters.AutoscalingType.CPU,
-      scaleup: scaleup, scaledown: scaledown)
+      scaleup: scaleup, scaledown: scaledown, rawUserData: "echo foobar")
   }
 
   @Ignore
@@ -80,7 +80,7 @@ class ServerGroupParametersSpec extends Specification {
     [flavor:'m1.medium', image:'image', max_size:5, min_size:3, desired_size:4,
      network_id:'net', subnet_id:'sub', load_balancers:'poop', security_groups:'sg1', autoscaling_type:'cpu_util',
      scaleup_cooldown:60, scaleup_adjustment:1, scaleup_period:60, scaleup_threshold:50,
-     scaledown_cooldown:60, scaledown_adjustment:-1, scaledown_period:600, scaledown_threshold:15]
+     scaledown_cooldown:60, scaledown_adjustment:-1, scaledown_period:600, scaledown_threshold:15, user_data:"echo foobar"]
   }
 
 }

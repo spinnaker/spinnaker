@@ -161,4 +161,24 @@ class DeployOpenstackAtomicOperationValidatorSpec extends Specification {
     5 * errors.rejectValue(_,_)
   }
 
+  @Unroll
+  def "validate userData parameter"() {
+    given:
+    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, desiredSize: desiredSize, subnetId: subnetId, loadBalancers: loadBalancerIds, securityGroups: securityGroups)
+    DeployOpenstackAtomicOperationDescription description = new DeployOpenstackAtomicOperationDescription(account: account, application: application, region: region, stack: stack, freeFormDetails: freeFormDetails, disableRollback: disableRollback, timeoutMins: timeoutMins, serverGroupParameters: params, userData: userData, credentials: credz)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    times * errors.rejectValue(_,_)
+
+    where:
+    userData            | times
+    'http://foobar.com' | 0
+    '#!/bin/bash'       | 0
+    'http$$$asdfdfadf'  | 0
+    null                | 0
+  }
+
 }

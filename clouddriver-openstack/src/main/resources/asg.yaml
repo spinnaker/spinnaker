@@ -65,6 +65,10 @@ parameters:
     type: number
     description: Threshold that causes the scaledown action to occur, if held for scaledown_period seconds
     default: 15
+  user_data:
+    type: string
+    description: raw base64-encoded string that will execute upon server boot, if cloud-init is installed
+    default: ""
 resources:
   asg:
     type: OS::Heat::AutoScalingGroup
@@ -82,6 +86,7 @@ resources:
           network_id: {get_param: network_id}
           security_groups: {get_param: security_groups}
           subnet_id: {get_param: subnet_id}
+          user_data: {get_param: user_data}
   web_server_scaleup_policy:
     type: OS::Heat::ScalingPolicy
     properties:

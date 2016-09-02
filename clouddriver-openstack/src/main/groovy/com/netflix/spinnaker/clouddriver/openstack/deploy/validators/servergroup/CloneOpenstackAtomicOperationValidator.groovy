@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.validators.servergrou
 
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackOperation
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.CloneOpenstackAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.UserDataType
 import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.OpenstackAttributeValidator
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.springframework.stereotype.Component
@@ -46,6 +47,9 @@ class CloneOpenstackAtomicOperationValidator extends AbstractServergroupOpenstac
     }
     if (description.timeoutMins) {
       validator.validateNonNegative(description.timeoutMins, "timeoutMins")
+    }
+    if (description.userData?.startsWith("http")) {
+      validator.validateURI(description.userData, "userData")
     }
   }
 
