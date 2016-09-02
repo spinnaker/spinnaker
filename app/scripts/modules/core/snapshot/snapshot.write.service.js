@@ -17,7 +17,7 @@ module.exports = angular
       accountDetails.forEach((accountDetail) => {
         if (cloudProviderRegistry.getValue(accountDetail.cloudProvider, 'snapshotsEnabled')) {
           jobs.push({
-            type: 'serializeApplication',
+            type: 'saveSnapshot',
             credentials: accountDetail.name,
             applicationName: app.name,
             cloudProvider: accountDetail.cloudProvider,
@@ -53,7 +53,7 @@ module.exports = angular
         return taskExecutor.executeTask({
           job: jobs,
           application: app,
-          description: 'Serialize Application: ' + app.name
+          description: 'Take Snapshot of ' + app.name
         });
       });
     }
