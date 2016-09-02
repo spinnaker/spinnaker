@@ -18,9 +18,11 @@
 import json
 import logging
 import sys
+import urllib
 
 from citest.base import ExecutionContext
 
+import citest.base
 import citest.gcp_testing as gcp
 import citest.json_contract as jc
 import citest.service_testing as st
@@ -28,7 +30,6 @@ import citest.service_testing as st
 # Spinnaker modules.
 import spinnaker_testing as sk
 import spinnaker_testing.front50 as front50
-import citest.base
 
 
 class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
@@ -62,6 +63,8 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     self.BUCKET = config['spinnaker.gcs.bucket']
     self.BASE_PATH = config['spinnaker.gcs.rootFolder']
     self.TEST_APP = self.bindings['TEST_APP']
+    self.TEST_PIPELINE_NAME = 'My {app} Pipeline'.format(app=self.TEST_APP)
+    self.TEST_PIPELINE_ID = '{app}-pipeline-id'.format(app=self.TEST_APP)
     self.gcs_observer = gcp.GcpStorageAgent.make_agent(
         credentials_path=self.bindings['GCE_CREDENTIALS_PATH'],
         scopes=gcp.gcp_storage_agent.STORAGE_FULL_SCOPE)
@@ -83,6 +86,8 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     """
     self.logger = logging.getLogger(__name__)
     super(GoogleFront50TestScenario, self).__init__(bindings, agent)
+    self.app_history = []
+    self.pipeline_history = []
 
     self.initial_app_spec = {
         "name" : self.TEST_APP,
@@ -93,6 +98,19 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
         "createTs" : "1463666817476",
         "platformHealthOnly" : False,
         "cloudProviders" : "gce,aws"
+    }
+
+    self.initial_pipeline_spec = {
+        "keepWaitingPipelines": False,
+        "limitConcurrent": True,
+        "application": self.TEST_APP,
+        "parallel": True,
+        "lastModifiedBy": "anonymous",
+        "name": self.TEST_PIPELINE_NAME,
+        "stages": [],
+        "index": 0,
+        "id": self.TEST_PIPELINE_ID,
+        "triggers": []
     }
 
 
@@ -115,7 +133,7 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
      .retrieve_content(self.BUCKET,
                        '/'.join([self.BASE_PATH, 'applications', self.TEST_APP,
                                  'specification.json']),
-               transform=json.JSONDecoder().decode)
+                       transform=json.JSONDecoder().decode)
      .contains_path_eq('', expect))
     for clause in gcs_builder.build().clauses:
       contract.add_clause(clause)
@@ -125,6 +143,7 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     # and assume the unit tests verify it is properly updated.
     expect = dict(expect)
     del expect['updateTs']
+    self.app_history.insert(0, expect)
     f50_builder = st.http_observer.HttpContractBuilder(self.agent)
 
     # These clauses are querying the Front50 http server directly
@@ -136,7 +155,7 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
      .contains_path_value('name', self.TEST_APP.upper()))
     (f50_builder.new_clause_builder('Returns Application')
      .get_url_path('/'.join(['/default/applications/name', self.TEST_APP]))
-     .contains_path_value('', expect))
+     .contains_path_value('', self.app_history[0]))
     for clause in f50_builder.build().clauses:
       contract.add_clause(clause)
 
@@ -144,9 +163,11 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     return st.OperationContract(
         self.new_post_operation(
             title='create_app', data=payload, path=path),
-        contract=contract)#builder.build())
+        contract=contract)
 
   def update_app(self):
+    contract = jc.Contract()
+
     spec = {}
     for name, value in self.initial_app_spec.items():
       if name == 'name':
@@ -158,32 +179,46 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
       elif isinstance(value, basestring):
         spec[name] = 'NEW_' + value
     payload = self.agent.make_json_payload_from_object(spec)
-    expect = dict(spec)
+    expectUpdate = dict(spec)
 
     # The actual update is determined by front50.
     # The createTs we gave ignored.
     # As before, the name is upper-cased.
-    del expect['updateTs']
-    expect['createTs'] = self.initial_app_spec['createTs']
-    expect['name'] = self.initial_app_spec['name'].upper()
+    del expectUpdate['updateTs']
+    expectUpdate['createTs'] = self.initial_app_spec['createTs']
+    expectUpdate['name'] = self.initial_app_spec['name'].upper()
+    self.app_history.insert(0, expectUpdate)
 
     # TODO(ewiseblatt) 20160524:
     # Add clauses that observe Front50 to verify the history method works
     # and that the get method is the current version.
     num_versions = 2 if self.versioning_enabled else 1
-    builder = gcp.GcpStorageContractBuilder(self.gcs_observer)
-    (builder.new_clause_builder('Google Cloud Storage Contains File')
+    gcs_builder = gcp.GcpStorageContractBuilder(self.gcs_observer)
+    (gcs_builder.new_clause_builder('Google Cloud Storage Contains File')
      .list_bucket(self.BUCKET,
                   '/'.join([self.BASE_PATH, 'applications', self.TEST_APP]),
                   with_versions=True)
      .contains_path_value('name', self.TEST_APP,
                           min=num_versions, max=num_versions))
-    (builder.new_clause_builder('Updated File Content')
+    (gcs_builder.new_clause_builder('Updated File Content')
      .retrieve_content(self.BUCKET,
                        '/'.join([self.BASE_PATH, 'applications', self.TEST_APP,
                                  'specification.json']),
                        transform=json.JSONDecoder().decode)
-     .contains_path_value('', expect))
+     .contains_path_value('', expectUpdate))
+
+    for clause in gcs_builder.build().clauses:
+      contract.add_clause(clause)
+
+    f50_builder = st.http_observer.HttpContractBuilder(self.agent)
+    (f50_builder.new_clause_builder('History Records Changes')
+     .get_url_path('/default/applications/{app}/history'
+                   .format(app=self.TEST_APP))
+     .contains_path_value('[0]', self.app_history[0])
+     .contains_path_value('[1]', self.app_history[1]))
+
+    for clause in f50_builder.build().clauses:
+      contract.add_clause(clause)
 
     # TODO(ewiseblatt): 20160524
     # Add a mechanism here to check the previous version
@@ -192,9 +227,9 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     return st.OperationContract(
         self.new_put_operation(
             title='update_app', data=payload, path=path),
-        contract=builder.build())
+        contract=contract)
 
-  def destroy_app(self):
+  def delete_app(self):
     contract = jc.Contract()
 
     app_url_path = '/'.join(['/default/applications/name', self.TEST_APP])
@@ -205,8 +240,14 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
      .excludes_path_value('name', self.TEST_APP.upper()))
     (f50_builder.new_clause_builder('Deletes Application')
      .get_url_path(app_url_path, allow_http_error_status=404))
+    (f50_builder.new_clause_builder('History Retains Application')
+     .get_url_path('/default/applications/{app}/history'
+                   .format(app=self.TEST_APP))
+     .contains_path_value('[0]', self.app_history[0])
+     .contains_path_value('[1]', self.app_history[1]))
     for clause in f50_builder.build().clauses:
       contract.add_clause(clause)
+
 
     gcs_builder = gcp.GcpStorageContractBuilder(self.gcs_observer)
     (gcs_builder.new_clause_builder('Deleted File')
@@ -220,13 +261,90 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
             title='delete_app', data=None, path=app_url_path),
         contract=contract)
 
+  def create_pipeline(self):
+    payload = self.agent.make_json_payload_from_object(
+        self.initial_pipeline_spec)
+    expect = dict(self.initial_pipeline_spec)
+    expect['lastModifiedBy'] = 'anonymous'
+    self.pipeline_history.insert(0, expect)
+
+    contract = jc.Contract()
+
+    gcs_builder = gcp.GcpStorageContractBuilder(self.gcs_observer)
+    (gcs_builder.new_clause_builder('Created Google Cloud Storage File',
+                                    retryable_for_secs=5)
+     .list_bucket(self.BUCKET, '/'.join([self.BASE_PATH, 'pipelines']))
+     .contains_path_value('name',
+                          'pipelines/{id}/specification.json'
+                          .format(id=self.TEST_PIPELINE_ID)))
+    (gcs_builder.new_clause_builder('Wrote File Content')
+     .retrieve_content(self.BUCKET,
+                       '/'.join([self.BASE_PATH, 'pipelines',
+                                 self.TEST_PIPELINE_ID, 'specification.json']),
+                       transform=json.JSONDecoder().decode)
+     .contains_path_eq('', expect))
+    for clause in gcs_builder.build().clauses:
+      contract.add_clause(clause)
+
+    f50_builder = st.http_observer.HttpContractBuilder(self.agent)
+
+    # These clauses are querying the Front50 http server directly
+    # to verify that it returns the application we added.
+    # We already verified the data was stored on GCS, but while we
+    # are here we will verify that it is also being returned when queried.
+    (f50_builder.new_clause_builder('Global Lists Pipeline')
+     .get_url_path('/pipelines')
+     .contains_path_value('name', self.TEST_PIPELINE_NAME))
+    (f50_builder.new_clause_builder('Application Lists Pipeline')
+     .get_url_path('/pipelines/{app}'.format(app=self.TEST_APP))
+     .contains_path_value('name', self.TEST_PIPELINE_NAME))
+    (f50_builder.new_clause_builder('Returns Pipeline')
+     .get_url_path('/pipelines/{id}/history'.format(id=self.TEST_PIPELINE_ID))
+     .contains_path_value('[0]', self.pipeline_history[0]))
+    for clause in f50_builder.build().clauses:
+      contract.add_clause(clause)
+
+    path = '/pipelines'
+    return st.OperationContract(
+        self.new_post_operation(
+            title='create_pipeline', data=payload, path=path),
+        contract=contract)
+
+  def delete_pipeline(self):
+    contract = jc.Contract()
+
+    app_url_path = 'pipelines/{app}/{pipeline}'.format(
+        app=self.TEST_APP,
+        pipeline=urllib.quote(self.TEST_PIPELINE_NAME))
+
+    f50_builder = st.http_observer.HttpContractBuilder(self.agent)
+    (f50_builder.new_clause_builder('Global Unlists Pipeline')
+     .get_url_path('/pipelines')
+     .excludes_path_value('name', self.TEST_PIPELINE_NAME))
+    (f50_builder.new_clause_builder('Application Unlists Pipeline')
+     .get_url_path('/pipelines/{app}'.format(app=self.TEST_APP))
+     .excludes_path_value('id', self.TEST_PIPELINE_ID))
+
+    (f50_builder.new_clause_builder('History Retains Pipeline')
+     .get_url_path('/pipelines/{id}/history'.format(id=self.TEST_PIPELINE_ID))
+     .contains_path_value('[0]', self.pipeline_history[0]))
+    for clause in f50_builder.build().clauses:
+      contract.add_clause(clause)
+
+    gcs_builder = gcp.GcpStorageContractBuilder(self.gcs_observer)
+    (gcs_builder.new_clause_builder('Deleted File')
+     .list_bucket(self.BUCKET, '/'.join([self.BASE_PATH, 'pipelines']))
+     .excludes_path_value('name', self.TEST_PIPELINE_ID))
+    for clause in gcs_builder.build().clauses:
+      contract.add_clause(clause)
+
+    return st.OperationContract(
+        self.new_delete_operation(
+            title='delete_pipeline', data=None, path=app_url_path),
+        contract=contract)
+
 
 class GoogleFront50Test(st.AgentTestCase):
-  @staticmethod
-  def setUpClass():
-    runner = citest.base.TestRunner.global_runner()
-    scenario = runner.get_shared_data(GoogleFront50TestScenario)
-
   @property
   def scenario(self):
     return citest.base.TestRunner.global_runner().get_shared_data(
@@ -238,8 +356,14 @@ class GoogleFront50Test(st.AgentTestCase):
   def test_b_update_app(self):
     self.run_test_case(self.scenario.update_app())
 
-  def test_z_destroy_app(self):
-    self.run_test_case(self.scenario.destroy_app())
+  def test_c_create_pipeline(self):
+    self.run_test_case(self.scenario.create_pipeline())
+
+  def test_y_delete_pipeline(self):
+    self.run_test_case(self.scenario.delete_pipeline())
+
+  def test_z_delete_app(self):
+    self.run_test_case(self.scenario.delete_app())
 
 
 def main():
