@@ -35,8 +35,8 @@ import static java.lang.String.format;
 public class LinearToParallelMigration implements Migration {
   private static final Logger log = LoggerFactory.getLogger(LinearToParallelMigration.class);
 
-  // Only valid until September 1st, 2016
-  private static final Date VALID_UNTIL = new GregorianCalendar(2016, 8, 1).getTime();
+  // Only valid until Novemeber 1st, 2016
+  private static final Date VALID_UNTIL = new GregorianCalendar(2016, 10, 1).getTime();
 
   private Clock clock = Clock.systemDefaultZone();
 
