@@ -48,6 +48,7 @@ module.exports = angular.module('spinnaker.netflix.instance.titus.controller', [
       return accountService.getAccountDetails(account).then((details) => {
         this.bastionHost = details.bastionHost || 'unknown';
         this.apiEndpoint = _.where(details.regions, {name: region})[0].endpoint;
+        this.titusUiEndpoint = this.apiEndpoint.replace('titusapi', 'titus-ui').replace('http', 'https').replace('7101', '7001');
       });
     };
 
