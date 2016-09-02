@@ -437,4 +437,37 @@ class OperationsControllerSpec extends Specification {
     ]]
   }
 
+  @Unroll
+  def "should only convert to parallel if pipeline is not already parallel"() {
+    given:
+    def pipelineConfig = [
+      parallel   : isParallel,
+      stages     : [
+        [id: "stage1"],
+        [id: "stage2"]
+      ]
+    ]
+
+    when:
+    controller.orchestrate(pipelineConfig)
+
+    then:
+    1 * pipelineStarter.start(_) >> { String json ->
+      if (shouldConvert) {
+        def cfg = mapper.readValue(json, Map)
+        assert cfg.parallel == true
+        assert cfg.stages == [
+          [id: "stage1", refId: "0", requisiteStageRefIds: []],
+          [id: "stage2", refId: "1", requisiteStageRefIds: ["0"]]
+        ]
+      }
+      return new Pipeline()
+    }
+
+    where:
+    isParallel || shouldConvert
+    false      || true
+    null       || true
+    true       || false
+  }
 }
