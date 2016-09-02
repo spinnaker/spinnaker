@@ -102,6 +102,7 @@ buildDeb {
   requires('spinnaker-clouddriver')
   requires('spinnaker-deck')
   requires('spinnaker-echo')
+  requires('spinnaker-fiat')
   requires('spinnaker-front50')
   requires('spinnaker-gate')
   requires('spinnaker-igor')
