@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.consul.provider.ConsulProviderUtils
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.*
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
@@ -180,21 +181,43 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
       }
     }
 
-    // We have to calculate the L7 disabled state with respect to this server group since it's not
-    // set on the way to the cache.
+    // Time to aggregate health states that can't be computed during the server group fetch operation.
+
+    // Health states for L7 load balancer.
     def httpLoadBalancers = loadBalancers.findAll { it.type == GoogleLoadBalancerType.HTTP }
     def httpDisabledStates = httpLoadBalancers.collect { loadBalancer ->
         Utils.determineHttpLoadBalancerDisabledState(loadBalancer, serverGroup)
     }
 
-    if (httpDisabledStates && httpDisabledStates.size == loadBalancers.size) {
+    // Health states for Consul.
+    def consulNodes = serverGroup.instances?.collect { it.consulNode } ?: []
+    def consulRunning = ConsulProviderUtils.consulServerGroup(consulNodes)
+    def consulDisabled = false
+    if (consulRunning) {
+      consulDisabled = ConsulProviderUtils.serverGroupDisabled(consulNodes)
+    }
+
+    if (httpDisabledStates && httpDisabledStates.size() == loadBalancers.size()) {
       // We have only L7.
       serverGroup.disabled = httpDisabledStates.every { it }
     } else if (httpDisabledStates) {
       // We have a mix of L4 and L7.
-      serverGroup.disabled = serverGroup.disabled && httpDisabledStates.every { it }
+      serverGroup.disabled &= httpDisabledStates.every { it }
     }
-    // Otherwise, we just have L4 and disabled state is correct.
+
+    // Now that disabled is set based on L7 & L4 state, we need to take Consul into account.
+    if (consulRunning) {
+      // If there are no load balancers to determine enable/disabled status we rely on Consul exclusively.
+      if (loadBalancers.size() == 0) {
+          serverGroup.disabled = true
+      }
+      // If the server group is disabled, but Consul isn't, we say the server group is discoverable.
+      // If the server group isn't disabled, but Consul is, we say the server group can be reached via load balancer.
+      // If the server group and Consul are both disabled, the server group remains disabled.
+      // If the server group and Consul are both not disabled, the server group is not disabled.
+      serverGroup.disabled &= consulDisabled
+      serverGroup.discovery = true
+    }
 
     serverGroup
   }

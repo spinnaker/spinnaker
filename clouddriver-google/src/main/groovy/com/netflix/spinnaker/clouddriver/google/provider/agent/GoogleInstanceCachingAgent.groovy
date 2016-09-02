@@ -93,9 +93,9 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
     instanceAggregatedList?.items?.each { String zone, InstancesScopedList instancesScopedList ->
       def localZoneName = Utils.getLocalName(zone)
       instancesScopedList?.instances?.each { Instance instance ->
-        List<ConsulHealth> consulHealths = credentials.consulConfig?.enabled ?
+        def consulNode = credentials.consulConfig?.enabled ?
           ConsulProviderUtils.getHealths(credentials.consulConfig, instance.getName())
-          : []
+          : null
         long instanceTimestamp = instance.creationTimestamp ?
             Utils.getTimeFromTimestamp(instance.creationTimestamp) :
             Long.MAX_VALUE
@@ -112,7 +112,7 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
             serviceAccounts: instance.serviceAccounts,
             selfLink: instance.selfLink,
             tags: instance.tags,
-            consulHealths: consulHealths,
+            consulNode: consulNode,
             instanceHealth: new GoogleInstanceHealth(
                 status: GoogleInstanceHealth.Status.valueOf(instance.getStatus())
             ))

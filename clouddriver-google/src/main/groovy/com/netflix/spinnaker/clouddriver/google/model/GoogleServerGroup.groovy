@@ -23,8 +23,6 @@ import com.google.api.services.compute.model.AutoscalingPolicy
 import com.google.api.services.compute.model.InstanceGroupManagerActionsSummary
 import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
-import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
-import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
@@ -47,6 +45,7 @@ class GoogleServerGroup {
   Set<String> securityGroups = []
   Map buildInfo
   Boolean disabled = false
+  Boolean discovery = false
   String networkName
   Set<String> instanceTemplateTags = []
   String selfLink
@@ -91,6 +90,7 @@ class GoogleServerGroup {
     String networkName = GoogleServerGroup.this.networkName
     Set<String> instanceTemplateTags = GoogleServerGroup.this.instanceTemplateTags
     String selfLink = GoogleServerGroup.this.selfLink
+    Boolean discovery = GoogleServerGroup.this.discovery
     InstanceGroupManagerActionsSummary currentActions = GoogleServerGroup.this.currentActions
     AutoscalingPolicy autoscalingPolicy = GoogleServerGroup.this.autoscalingPolicy
     InstanceGroupManagerAutoHealingPolicy autoHealingPolicy = GoogleServerGroup.this.autoHealingPolicy
