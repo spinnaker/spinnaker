@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.clouddriver.google.deploy.converters.SerializeApplicationAtomicOperationConverter.SerializeApplicationAtomicOperationConverter
-import com.netflix.spinnaker.clouddriver.google.deploy.description.SerializeApplicationDescription.SerializeApplicationDescription
-import com.netflix.spinnaker.clouddriver.google.deploy.ops.SerializeApplicationAtomicOperation.SerializeApplicationAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.deploy.converters.snapshot.SaveSnapshotAtomicOperationConverter
+import com.netflix.spinnaker.clouddriver.google.deploy.description.snapshot.SaveSnapshotDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.snapshot.SaveSnapshotAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import spock.lang.Shared
@@ -34,10 +34,10 @@ class SerializeApplicationAtomicOperationConverterUnitSpec extends Specification
   ObjectMapper mapper = new ObjectMapper()
 
   @Shared
-  SerializeApplicationAtomicOperationConverter converter
+  SaveSnapshotAtomicOperationConverter converter
 
   def setupSpec() {
-    this.converter = new SerializeApplicationAtomicOperationConverter(objectMapper: mapper)
+    this.converter = new SaveSnapshotAtomicOperationConverter(objectMapper: mapper)
     def accountCredentialsProvider = Mock(AccountCredentialsProvider)
     def mockCredentials = Mock(GoogleNamedAccountCredentials)
     accountCredentialsProvider.getCredentials(_) >> mockCredentials
@@ -53,12 +53,12 @@ class SerializeApplicationAtomicOperationConverterUnitSpec extends Specification
     def description = converter.convertDescription(input)
 
     then:
-    description instanceof SerializeApplicationDescription
+    description instanceof SaveSnapshotDescription
 
     when:
     def operation = converter.convertOperation(input)
 
     then:
-    operation instanceof SerializeApplicationAtomicOperation
+    operation instanceof SaveSnapshotAtomicOperation
   }
 }

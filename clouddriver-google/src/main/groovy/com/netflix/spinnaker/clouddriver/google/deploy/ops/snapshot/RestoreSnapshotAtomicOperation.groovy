@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.google.deploy.ops.SerializeApplicationAtomicOperation
+package com.netflix.spinnaker.clouddriver.google.deploy.ops.snapshot
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -22,7 +22,7 @@ import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
-import com.netflix.spinnaker.clouddriver.google.deploy.description.SerializeApplicationDescription.RestoreSnapshotDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.description.snapshot.RestoreSnapshotDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleCluster
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup

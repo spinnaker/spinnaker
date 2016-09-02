@@ -65,7 +65,7 @@ final class AtomicOperations {
   // Image operations
   public static final String UPSERT_IMAGE_TAGS = "upsertImageTags"
 
-  // Serialize operations
-  public static final String SERIALIZE_APPLICATION = "serializeApplication"
+  // Snapshot operations
+  public static final String SAVE_SNAPSHOT = "saveSnapshot"
   public static final String RESTORE_SNAPSHOT = "restoreSnapshot"
 }

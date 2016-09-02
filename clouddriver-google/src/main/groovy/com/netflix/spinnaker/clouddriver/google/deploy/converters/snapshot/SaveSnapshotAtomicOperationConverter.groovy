@@ -14,30 +14,29 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.google.deploy.converters.SerializeApplicationAtomicOperationConverter
+package com.netflix.spinnaker.clouddriver.google.deploy.converters.snapshot
 
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.converters.GoogleAtomicOperationConverterHelper
-import com.netflix.spinnaker.clouddriver.google.deploy.description.ResizeGoogleServerGroupDescription
-import com.netflix.spinnaker.clouddriver.google.deploy.description.SerializeApplicationDescription.SerializeApplicationDescription
-import com.netflix.spinnaker.clouddriver.google.deploy.ops.SerializeApplicationAtomicOperation.SerializeApplicationAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.deploy.description.snapshot.SaveSnapshotDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.snapshot.SaveSnapshotAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
-@GoogleOperation(AtomicOperations.SERIALIZE_APPLICATION)
-@Component("serializeApplicationDescription")
-class SerializeApplicationAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+@GoogleOperation(AtomicOperations.SAVE_SNAPSHOT)
+@Component("saveSnapshotDescription")
+class SaveSnapshotAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
   @Override
   AtomicOperation convertOperation(Map input) {
-    new SerializeApplicationAtomicOperation(convertDescription(input))
+    new SaveSnapshotAtomicOperation(convertDescription(input))
   }
 
   @Override
-  SerializeApplicationDescription convertDescription(Map input) {
-    GoogleAtomicOperationConverterHelper.convertDescription(input, this, SerializeApplicationDescription)
+  SaveSnapshotDescription convertDescription(Map input) {
+    GoogleAtomicOperationConverterHelper.convertDescription(input, this, SaveSnapshotDescription)
   }
 
 }

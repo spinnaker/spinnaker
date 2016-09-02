@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.google.deploy.description.SerializeApplicationDescription
+package com.netflix.spinnaker.clouddriver.google.deploy.description.snapshot
 
 import com.netflix.spinnaker.clouddriver.google.deploy.description.AbstractGoogleCredentialsDescription
 
-class RestoreSnapshotDescription extends AbstractGoogleCredentialsDescription {
+class SaveSnapshotDescription extends AbstractGoogleCredentialsDescription {
   String applicationName
   String accountName
-  Long snapshotTimestamp
 }

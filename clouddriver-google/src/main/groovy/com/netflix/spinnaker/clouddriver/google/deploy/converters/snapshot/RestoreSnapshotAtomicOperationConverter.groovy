@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.google.deploy.converters.SerializeApplicationAtomicOperationConverter
+package com.netflix.spinnaker.clouddriver.google.deploy.converters.snapshot
 
 import com.netflix.spinnaker.clouddriver.google.deploy.converters.GoogleAtomicOperationConverterHelper
-import com.netflix.spinnaker.clouddriver.google.deploy.description.SerializeApplicationDescription.RestoreSnapshotDescription
-import com.netflix.spinnaker.clouddriver.google.deploy.ops.SerializeApplicationAtomicOperation.RestoreSnapshotAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.deploy.description.snapshot.RestoreSnapshotDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.snapshot.RestoreSnapshotAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations

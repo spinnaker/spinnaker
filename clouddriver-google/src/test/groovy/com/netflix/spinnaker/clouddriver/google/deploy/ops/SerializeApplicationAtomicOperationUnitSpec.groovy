@@ -17,14 +17,13 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.model.*
-import com.netflix.spinnaker.clouddriver.google.deploy.description.SerializeApplicationDescription.SerializeApplicationDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.description.snapshot.SaveSnapshotDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceIllegalStateException
-import com.netflix.spinnaker.clouddriver.google.deploy.ops.SerializeApplicationAtomicOperation.SerializeApplicationAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.snapshot.SaveSnapshotAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
-import com.netflix.spinnaker.clouddriver.model.securitygroups.HttpRule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
 import spock.lang.Specification
@@ -198,7 +197,7 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
                             instance_template: "\${google_compute_instance_template.${INSTANCE_TEMPLATE_NAME}.self_link}",
                             target_pools: targetPools]
 
-      @Subject def operation = new SerializeApplicationAtomicOperation(new SerializeApplicationDescription())
+      @Subject def operation = new SaveSnapshotAtomicOperation(new SaveSnapshotDescription())
 
     when:
       operation.initializeResourceMap(resourceMap)
@@ -240,7 +239,7 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
       def targetPoolMap = [name: LOAD_BALANCER_TARGET_POOL.split("/").last(),
                            region: LOAD_BALANCER_REGION,
                            project: null,
-                           health_checks: [HEALTH_CHECK_NAME]]
+                           health_checks: ["\${google_compute_http_health_check.${HEALTH_CHECK_NAME}.name}"]]
       def healthCheckMap = [name: HEALTH_CHECK_NAME,
                             check_interval_sec: HEALTH_CHECK_INTERVAL,
                             healthy_threshold: HEALTH_CHECK_HEALTHY_THRESHOLD,
@@ -249,7 +248,7 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
                             request_path: HEALTH_CHECK_REQUEST_PATH,
                             timeout_sec: HEALTH_CHECK_TIMEOUT,
                             unhealthy_threshold: HEALTH_CHECK_UNHEALTHY_THRESHOLD]
-      @Subject def operation = new SerializeApplicationAtomicOperation(new SerializeApplicationDescription())
+      @Subject def operation = new SaveSnapshotAtomicOperation(new SaveSnapshotDescription())
     when:
       operation.initializeResourceMap(resourceMap)
       operation.addLoadBalancerToResourceMap(loadBalancer.view, resourceMap)
@@ -280,7 +279,7 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
                          allow: [[protocol: SECURITY_GROUP_RULE_PROTOCOL, ports: ["$SECURITY_GROUP_RULE_PORT"]]],
                          source_ranges: [],
                          target_tags: SECURITY_GROUP_TARGET_TAGS]
-      @Subject def operation = new SerializeApplicationAtomicOperation(new SerializeApplicationDescription())
+      @Subject def operation = new SaveSnapshotAtomicOperation(new SaveSnapshotDescription())
     when:
       operation.initializeResourceMap(resourceMap)
       operation.addSecurityGroupToResourceMap(securityGroup, resourceMap)
@@ -297,7 +296,7 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
         zone: SERVER_GROUP_ZONE,
         asg: [(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES): SERVER_GROUP_LOAD_BALANCERS],
         launchConfig: ["instanceTemplate": null])
-      @Subject def operation = new SerializeApplicationAtomicOperation(new SerializeApplicationDescription())
+      @Subject def operation = new SaveSnapshotAtomicOperation(new SaveSnapshotDescription())
 
     when:
       operation.initializeResourceMap(resourceMap)

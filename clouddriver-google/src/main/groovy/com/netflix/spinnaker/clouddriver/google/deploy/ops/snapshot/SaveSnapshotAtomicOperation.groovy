@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.google.deploy.ops.SerializeApplicationAtomicOperation
+package com.netflix.spinnaker.clouddriver.google.deploy.ops.snapshot
 
 import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.google.deploy.description.SerializeApplicationDescription.SerializeApplicationDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.description.snapshot.SaveSnapshotDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceIllegalStateException
 import com.netflix.spinnaker.clouddriver.google.model.GoogleCluster
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
@@ -37,15 +37,15 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import org.springframework.beans.factory.annotation.Autowired
 
-class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
+class SaveSnapshotAtomicOperation implements AtomicOperation<Void> {
 
-  private static final String BASE_PHASE = "SERIALIZE_APPLICATION"
+  private static final String BASE_PHASE = "SAVE_SNAPSHOT"
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
 
-  private final SerializeApplicationDescription description
+  private final SaveSnapshotDescription description
   private GoogleNamedAccountCredentials credentials
   private final String applicationName
   private final String accountName
@@ -76,7 +76,7 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
   @Autowired
   Front50Service front50Service
 
-  SerializeApplicationAtomicOperation(SerializeApplicationDescription description) {
+  SaveSnapshotAtomicOperation(SaveSnapshotDescription description) {
     this.description = description
     this.applicationName = description.applicationName
     this.accountName = description.accountName
@@ -84,7 +84,7 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
   }
 
 
-  /* curl -X POST -H "Content-Type: application/json" -d '[ { "serializeApplication": { "applicationName": "example", "credentials": "my-google-account" }} ]' localhost:7002/gce/ops */
+  /* curl -X POST -H "Content-Type: application/json" -d '[ { "saveSnapshot": { "applicationName": "example", "credentials": "my-google-account" }} ]' localhost:7002/gce/ops */
   @Override
   Void operate(List priorOutputs) {
     //TODO(nwwebb) static ip addresses
@@ -466,7 +466,7 @@ class SerializeApplicationAtomicOperation implements AtomicOperation<Void> {
 
     if (loadBalancer.healthCheck) {
       addHealthCheckToResourceMap(loadBalancer.healthCheck, resourceMap)
-      targetPoolMap.health_checks = [loadBalancer.healthCheck.name]
+      targetPoolMap.health_checks = ["\${google_compute_http_health_check.${loadBalancer.healthCheck.name}.name}".toString()]
     }
     numTargetPools++
     numForwardingRules++
