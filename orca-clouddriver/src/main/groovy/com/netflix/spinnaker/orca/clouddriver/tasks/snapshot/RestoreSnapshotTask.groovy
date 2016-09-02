@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.clouddriver.tasks.serialize
+package com.netflix.spinnaker.orca.clouddriver.tasks.snapshot
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -27,7 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class SerializeApplicationTask extends AbstractCloudProviderAwareTask implements Task {
+class RestoreSnapshotTask extends AbstractCloudProviderAwareTask implements Task {
 
   @Autowired
   KatoService kato
@@ -36,14 +36,16 @@ class SerializeApplicationTask extends AbstractCloudProviderAwareTask implements
   TaskResult execute(Stage stage) {
     String cloudProvider = getCloudProvider(stage)
     String account = getCredentials(stage)
-    def taskId = kato.requestOperations(cloudProvider, [[serializeApplication: stage.context]])
+    //TODO(nwwebb) emit events to echo for every resource that is being restored or destroyed
+    def taskId = kato.requestOperations(cloudProvider, [[restoreSnapshot: stage.context]])
       .toBlocking()
       .first()
     Map outputs = [
-      "notification.type"     : "serializeapplication",
-      "kato.last.task.id"     : taskId,
-      "serialize.application" : stage.context.applicationName,
-      "serialize.account.name": account
+      "notification.type"       : "restoresnapshot",
+      "kato.last.task.id"       : taskId,
+      "restore.application" : stage.context.applicationName,
+      "restore.snapshot"    : stage.context.snapshotTimestamp,
+      "restore.account.name": account
     ]
     return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }

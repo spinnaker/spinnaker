@@ -14,29 +14,29 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.clouddriver.pipeline.serialize
+package com.netflix.spinnaker.orca.clouddriver.pipeline.snapshot
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.serialize.RestoreSnapshotTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.snapshot.SaveSnapshotTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.apache.commons.jxpath.ri.compiler.Step
 import org.springframework.stereotype.Component
 
 @Component
-class RestoreSnapshotStage extends LinearStage {
+class SaveSnapshotStage extends LinearStage {
 
-  public static final String PIPELINE_CONFIG_TYPE = "restoreSnapshot"
+  public static final String PIPELINE_CONFIG_TYPE = "saveSnapshot"
 
-  RestoreSnapshotStage() {
+  SaveSnapshotStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override
   public List<Step> buildSteps(Stage stage) {
     [
-      buildStep(stage, "restoreSnapshot", RestoreSnapshotTask),
-      buildStep(stage, "monitorRestore", MonitorKatoTask)
+      buildStep(stage, "saveSnapshot", SaveSnapshotTask),
+      buildStep(stage, "monitorSnapshot", MonitorKatoTask)
     ]
   }
 }
