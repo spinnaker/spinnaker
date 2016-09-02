@@ -92,5 +92,4 @@ interface OpenstackOrchestrationProvider {
    * @param stackName
    */
   List<String> getInstanceIdsForStack(String region, String stackName)
-
 }

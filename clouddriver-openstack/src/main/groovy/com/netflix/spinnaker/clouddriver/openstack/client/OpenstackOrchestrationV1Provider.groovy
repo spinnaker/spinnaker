@@ -115,5 +115,4 @@ class OpenstackOrchestrationV1Provider implements OpenstackOrchestrationProvider
       it.type == "OS::Nova::Server" ? it.physicalResourceId : null
     }
   }
-
 }

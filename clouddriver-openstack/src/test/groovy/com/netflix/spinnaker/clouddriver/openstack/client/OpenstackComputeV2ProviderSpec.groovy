@@ -424,48 +424,6 @@ class OpenstackComputeV2ProviderSpec extends OpenstackClientProviderSpec {
     e.message == "Instance ${id} has no IP address".toString()
   }
 
-  def "get instances by server group"() {
-    setup:
-    ComputeService computeService = Mock(ComputeService)
-    ServerService serverService = Mock(ServerService)
-    Server server = Mock(Server)
-    List<Server> servers = [server]
-    String stackId = UUID.randomUUID().toString()
-    Map<String, String> metadata = ['metering.stack': stackId]
-
-    when:
-    Map<String, List<Server>> result = provider.getInstancesByServerGroup(region)
-
-    then:
-    1 * mockClient.compute() >> computeService
-    1 * computeService.servers() >> serverService
-    1 * serverService.list() >> servers
-    1 * server.metadata >> metadata
-
-    and:
-    result == [(stackId): servers]
-    noExceptionThrown()
-  }
-
-  def "get instances by server group exception"() {
-    setup:
-    ComputeService computeService = Mock(ComputeService)
-    ServerService serverService = Mock(ServerService)
-    Throwable throwable = new ServerResponseException('foo', HttpStatus.INTERNAL_SERVER_ERROR.value())
-
-    when:
-    provider.getInstancesByServerGroup(region)
-
-    then:
-    1 * mockClient.compute() >> computeService
-    1 * computeService.servers() >> serverService
-    1 * serverService.list() >> { throw throwable }
-
-    and:
-    OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
-    openstackProviderException.cause == throwable
-  }
-
   def "list floating ips success"() {
     setup:
     ComputeService computeService = Mock()

@@ -43,11 +43,6 @@ public class OpenstackComputeV2Provider implements OpenstackComputeProvider, Ope
   }
 
   @Override
-  Map<String, List<? extends Server>> getInstancesByServerGroup(String region) {
-    getInstances(region)?.groupBy { server -> server?.metadata['metering.stack'] ?: 'unknown' }
-  }
-
-  @Override
   String getConsoleOutput(String region, String serverId) {
     handleRequest {
       getRegionClient(region).compute().servers().getConsoleOutput(serverId, -1)

@@ -36,13 +36,6 @@ interface OpenstackComputeProvider {
   List<? extends Server> getInstances(String region)
 
   /**
-   * Returns a map of instances grouped by server group UUID.  Matches not found are added into an unknown bucket.
-   * @param region
-   * @return
-   */
-  Map<String, List<? extends Server>> getInstancesByServerGroup(String region)
-
-  /**
    * Returns all of the console output for a given server and region.
    * @param region
    * @param serverId
@@ -175,5 +168,4 @@ interface OpenstackComputeProvider {
    * @return
    */
   String getIpForInstance(String region, String instanceId)
-
 }

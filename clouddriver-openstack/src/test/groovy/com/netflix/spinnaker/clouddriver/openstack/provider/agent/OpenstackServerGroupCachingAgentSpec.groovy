@@ -35,9 +35,7 @@ import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackServerGroup
 import com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import org.openstack4j.model.common.ActionResponse
-import org.openstack4j.model.compute.Server
 import org.openstack4j.model.heat.Stack
-import org.openstack4j.model.network.ext.LbPool
 import org.openstack4j.model.network.ext.LoadBalancerV2
 import redis.clients.jedis.exceptions.JedisException
 import spock.lang.Ignore
@@ -196,9 +194,6 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     String loadBalancerName = "$appName-lb"
 
     and:
-    Server server = Mock(Server) {
-      getId() >> { serverId }
-    }
     Stack stack = Mock(Stack) {
       getId() >> { stackId }
       getName() >> { serverGroupName }
@@ -218,12 +213,13 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     String serverGroupKey = Keys.getServerGroupKey(serverGroupName, account, region)
     String loadBalancerKey = Keys.getLoadBalancerKey(loadBalancerName, loadBalancerId, account, region)
     String instanceKey = Keys.getInstanceKey(serverId, account, region)
+    List<Stack> stacks = [stack]
 
     when:
-    cachingAgent.buildCacheResult(providerCache, cacheResultBuilder, [stack])
+    cachingAgent.buildCacheResult(providerCache, cacheResultBuilder, stacks)
 
     then:
-    1 * provider.getInstancesByServerGroup(region) >> [(stackId): [server]]
+    1 * cachingAgent.getInstanceIdsByStack(region, stacks) >> [(stackId): [serverId]]
     1 * provider.getStack(region, stack.name) >> stackDetail
     1 * provider.getLoadBalancer(region, loadBalancerId) >> lb
     1 * cachingAgent.buildServerGroup(providerCache, stackDetail, _) >> openstackServerGroup
@@ -259,12 +255,12 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     given:
     ProviderCache providerCache = Mock(ProviderCache)
     Throwable throwable = new OpenstackProviderException(ActionResponse.actionFailed('test', 1))
-
+    List<Stack> stacks = [Mock(Stack)]
     when:
-    cachingAgent.buildCacheResult(providerCache, Mock(CacheResultBuilder), [Mock(Stack)])
+    cachingAgent.buildCacheResult(providerCache, Mock(CacheResultBuilder), stacks)
 
     then:
-    1 * provider.getInstancesByServerGroup(region) >> { throw throwable }
+    1 * cachingAgent.getInstanceIdsByStack(region, stacks) >> { throw throwable }
 
     and:
     OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
@@ -552,8 +548,6 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     Throwable exception = thrown(JedisException)
     exception == throwable
   }
-
-
 
   @Ignore
   protected Stack buildStack(Integer minSize = null, Integer maxSize = null, Integer desiredSize = null) {

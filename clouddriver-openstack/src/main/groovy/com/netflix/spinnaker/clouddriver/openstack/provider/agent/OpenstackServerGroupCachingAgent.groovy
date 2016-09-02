@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.openstack.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.Maps
-import com.google.common.collect.Sets
 import com.netflix.frigga.Names
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spectator.api.Registry
@@ -38,12 +37,12 @@ import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackServerGroup
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.openstack.utils.DateUtils
 import groovy.util.logging.Slf4j
-import org.openstack4j.model.compute.Server
 import org.openstack4j.model.heat.Stack
-import org.openstack4j.model.network.ext.LbPool
 import org.openstack4j.model.network.ext.LoadBalancerV2
 
 import java.time.ZonedDateTime
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Future
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
@@ -92,7 +91,7 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
 
   protected CacheResult buildCacheResult(ProviderCache providerCache, CacheResultBuilder cacheResultBuilder, List<Stack> stacks) {
     // Lookup all instances and group by stack Id
-    Map<String, List<? extends Server>> instancesByStackId = clientProvider.getInstancesByServerGroup(region)
+    Map<String, List<String>> instancesByStackId = getInstanceIdsByStack(region, stacks)
 
     stacks?.each { Stack stack ->
       String serverGroupName = stack.name
@@ -140,8 +139,8 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
         }
 
         List<String> instanceKeys = []
-        instancesByStackId[stack.id]?.each { Server server ->
-          String instanceKey = Keys.getInstanceKey(server.id, accountName, region)
+        instancesByStackId[stack.id]?.each { String id ->
+          String instanceKey = Keys.getInstanceKey(id, accountName, region)
           cacheResultBuilder.namespace(INSTANCES.ns).keep(instanceKey).relationships[SERVER_GROUPS.ns].add(serverGroupKey)
           instanceKeys.add(instanceKey)
         }
@@ -170,6 +169,25 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
     log.info("Evicting ${cacheResultBuilder.onDemand.toEvict.size()} onDemand entries in ${agentType}")
 
     cacheResultBuilder.build()
+  }
+
+  /**
+   * Transform stacks into a map of stacks by instance ids.
+   * @param stacks
+   * @return
+   */
+  Map<String, List<String>> getInstanceIdsByStack(String region, List<Stack> stacks) {
+    Map<String, Future<List<String>>> resourceMap = stacks.collectEntries {
+      String name = it.name
+      String id = it.id
+      [(id) : CompletableFuture.supplyAsync {
+        clientProvider.getInstanceIdsForStack(region, name)
+      }.exceptionally { t -> [] } ]
+    }
+
+    CompletableFuture.allOf(resourceMap.values().flatten() as CompletableFuture[]).join()
+
+    resourceMap.collectEntries([:]) { [it.key, it.value.get()] }
   }
 
   /**
