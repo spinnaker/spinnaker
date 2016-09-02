@@ -135,15 +135,9 @@
         <p>Could not find the instance. No other details provided.</p>
       </div>
     </div>
-    <!--<collapsible-section heading="SSH" ng-if="!instance.notFound">-->
-    <!--<dl>-->
-    <!--<dt ng-if="instance.sshLink">SSH into this docker container</dt>-->
-    <!--<dd ng-if="instance.sshLink"><a href="{{instance.sshLink}}" target="_blank">SSH</a></dd>-->
-    <!--</dl>-->
-    <!--</collapsible-section>-->
-    <collapsible-section heading="Logs">
+    <collapsible-section heading="Task Logs">
       <ul>
-        <li><a href="{{instance.stdoutLive}}" target="_blank">Console Output</a></li>
+        <li><a href="{{ctrl.titusUiEndpoint}}tasklogs.html?tid={{instance.id}}" target="_blank">Task Logs</a></li>
       </ul>
     </collapsible-section>
     <instance-links address="baseIpAddress" application="application" instance="instance"></instance-links>
