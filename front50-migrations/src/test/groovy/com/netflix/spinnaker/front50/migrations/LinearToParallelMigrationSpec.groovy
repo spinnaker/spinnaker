@@ -87,7 +87,7 @@ class LinearToParallelMigrationSpec extends Specification {
   }
 
   @Unroll
-  def "should only be valid until Sept 1st 2016"() {
+  def "should only be valid until November 1st 2016"() {
     given:
     _ * clock.instant() >> { Instant.ofEpochMilli(Date.parse("yyyy-MM-dd", now).getTime()) }
 
@@ -96,8 +96,8 @@ class LinearToParallelMigrationSpec extends Specification {
 
     where:
     now          || isValid
-    "2016-08-31" || true
-    "2016-09-01" || false
-    "2016-09-02" || false
+    "2016-10-31" || true
+    "2016-11-01" || false
+    "2016-11-02" || false
   }
 }
