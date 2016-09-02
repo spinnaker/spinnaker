@@ -1,10 +1,12 @@
 'use strict';
 
-var feedbackUrl = process.env.FEEDBACK_URL || 'https://hootch.test.netflix.net/submit';
-var gateHost = process.env.API_HOST || 'https://spinnaker-api-prestaging.mgmttest.netflix.net';
-var bakeryDetailUrl = process.env.BAKERY_DETAIL_URL || 'http://bakery.test.netflix.net/#/?region={{context.region}}&package={{context.package}}&detail=bake:{{context.status.resourceId}}';
-var authEndpoint = process.env.AUTH_ENDPOINT || 'https://spinnaker-api-prestaging.mgmttest.netflix.net/auth/user';
+var feedbackUrl = process.env.FEEDBACK_URL;
+var gateHost = process.env.API_HOST || 'http://localhost:8084';
+var bakeryHost = process.env.BAKERY_HOST || 'http://localhost:8087';
+var bakeryDetailUrl = process.env.BAKERY_DETAIL_URL || (bakeryHost + '/#/?region={{context.region}}&package={{context.package}}&detail=bake:{{context.status.resourceId}}');
+var authEndpoint = process.env.AUTH_ENDPOINT || (gateHost + '/auth/user');
 var authEnabled = process.env.AUTH_ENABLED === 'false' ? false : true;
+var netflixMode = process.env.NETFLIX_MODE === 'true' ? true : false;
 
 window.spinnakerSettings = {
   checkForUpdates: true,
@@ -95,7 +97,7 @@ window.spinnakerSettings = {
     vpcMigrator: true,
     clusterDiff: false,
     roscoMode: false,
-    netflixMode: false,
+    netflixMode: netflixMode,
     // whether stages affecting infrastructure (like "Create Load Balancer") should be enabled or not
     infrastructureStages: process.env.INFRA_STAGES === 'enabled',
     jobs: false,
