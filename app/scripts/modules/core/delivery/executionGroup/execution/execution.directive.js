@@ -94,6 +94,13 @@ module.exports = angular
       });
     };
 
+    let restartedStage = this.execution.stages.find(stage => stage.context.restartDetails);
+    if (restartedStage) {
+      this.restartDetails = restartedStage.context.restartDetails;
+    } else {
+      this.restartDetails = null;
+    }
+
     this.cancelExecution = () => {
       let hasDeployStage = this.execution.stages && this.execution.stages.some(stage => stage.type === 'deploy');
       confirmationModalService.confirm({

@@ -22,6 +22,7 @@
     </div>
   </h5>
   <h6 class="duration">Duration: {{stageSummary.runningTimeInMs | duration}}</h6>
+  <h6 ng-if="stage.context.restartDetails">Restarted by {{stage.context.restartDetails.restartedBy}} &mdash; {{stage.context.restartDetails.restartTime | timestamp}}</h6>
 
   <table class="table">
     <thead>
