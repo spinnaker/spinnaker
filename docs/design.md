@@ -1,13 +1,23 @@
 # Haylard
 
+```
+  _           _                     _
+ | |__   __ _| |_   _  __ _ _ __ __| |
+ | '_ \ / _` | | | | |/ _` | '__/ _` |
+ | | | | (_| | | |_| | (_| | | | (_| |
+ |_| |_|\__,_|_|\__, |\__,_|_|  \__,_|
+                |___/
+
+```
+
 ## Goals
 
-The goal of Halyard is to make 
-[Spinnaker](https://github.com/spinnaker/spinnaker) easier to setup and operate 
+The goal of Halyard is to make
+[Spinnaker](https://github.com/spinnaker/spinnaker) easier to setup and operate
 for non-trivial installations. Depending on the setup, there are more than ten
 services to manage, all of which with their own configuration files. There is
 no clear documentation of which services can be scaled horizontally, or which
-service to scale for best performance. Updating stateful services such as 
+service to scale for best performance. Updating stateful services such as
 [Orca](https://github.com/spinnaker/orca) has its own set of challenges which
 aren't documented and require hand-work to do correctly. Running Spinnaker on
 multiple machines has no proper documentation, and isn't easy to do either. To
