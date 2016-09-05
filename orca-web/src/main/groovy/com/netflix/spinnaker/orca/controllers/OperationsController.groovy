@@ -66,6 +66,11 @@ class OperationsController {
       throw new DisabledPipelineException("Pipeline is disabled and cannot be started.")
     }
 
+    def parallel = pipeline.parallel as Boolean
+    if (!parallel) {
+      convertLinearToParallel(pipeline)
+    }
+
     if (!(pipeline.trigger instanceof Map)) {
       pipeline.trigger = [:]
     }
@@ -140,6 +145,20 @@ class OperationsController {
   @RequestMapping(value = "/health", method = RequestMethod.GET)
   Boolean health() {
     true
+  }
+
+  private void convertLinearToParallel(Map<String, Serializable> pipelineConfig) {
+    def stages = (List<Map<String, Object>>) pipelineConfig.stages
+    stages.eachWithIndex { Map<String, Object> stage, int index ->
+      stage.put("refId", String.valueOf(index));
+      if (index > 0) {
+        stage.put("requisiteStageRefIds", Collections.singletonList(String.valueOf(index - 1)));
+      } else {
+        stage.put("requisiteStageRefIds", Collections.emptyList());
+      }
+    }
+
+    pipelineConfig.parallel = Boolean.TRUE
   }
 
   private Map<String, String> startPipeline(Map config) {
