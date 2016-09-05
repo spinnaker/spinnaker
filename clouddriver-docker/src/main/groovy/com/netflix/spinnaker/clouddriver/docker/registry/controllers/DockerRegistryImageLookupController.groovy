@@ -38,17 +38,23 @@ class DockerRegistryImageLookupController {
 
   @RequestMapping(value = '/find', method = RequestMethod.GET)
   List<Map> find(LookupOptions lookupOptions) {
-    def account = ""
+    def account = lookupOptions.account ?: ""
 
-    if (lookupOptions.account) {
-      account = lookupOptions.account
-    }
     Set<CacheData> images
     if (lookupOptions.q) {
       def key = Keys.getImageIdKey("*${lookupOptions.q}*")
-      def keys = DockerRegistryProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.IMAGE_ID.ns, key).collect {
-        it.attributes.tagKey
+      def keyData = DockerRegistryProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.IMAGE_ID.ns, key)
+
+      if (account) {
+        keyData = keyData.findAll { CacheData data ->
+          data.attributes.account == account
+        }
+      }
+
+      def keys = keyData.collect { CacheData data ->
+        data.attributes.tagKey
       } as Collection<String>
+
       images = DockerRegistryProviderUtils.loadResults(cacheView, Keys.Namespace.TAGGED_IMAGE.ns, keys)
     } else {
       def image = '*'

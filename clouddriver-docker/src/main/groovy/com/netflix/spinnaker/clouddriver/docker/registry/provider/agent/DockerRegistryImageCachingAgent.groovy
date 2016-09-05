@@ -139,6 +139,7 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware {
 
         cachedIds[imageIdKey].with {
           attributes.tagKey = tagKey
+          attributes.account = accountName
         }
       }
 
