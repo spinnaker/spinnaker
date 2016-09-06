@@ -35,16 +35,23 @@ class BlockDeviceConfig {
     ]
   }
 
+  static def sizedBlockDevicesForEbs(int capacity) {
+    [
+      new AmazonBlockDevice(deviceName: "/dev/sdb", size: capacity)
+    ]
+  }
+
   static final def blockDevicesByInstanceType = [
     "t2.micro" : [],
     "t2.small" : [],
     "t2.medium" : [],
     "t2.large" : [],
-    "m4.large" : defaultBlockDevicesForEbsOnly(),
-    "m4.xlarge" : defaultBlockDevicesForEbsOnly(),
-    "m4.2xlarge" : defaultBlockDevicesForEbsOnly(),
-    "m4.4xlarge" : defaultBlockDevicesForEbsOnly(),
-    "m4.10xlarge" : defaultBlockDevicesForEbsOnly(),
+    "m4.large" : sizedBlockDevicesForEbs(40),
+    "m4.xlarge" : sizedBlockDevicesForEbs(80),
+    "m4.2xlarge" : sizedBlockDevicesForEbs(80),
+    "m4.4xlarge" : sizedBlockDevicesForEbs(120),
+    "m4.10xlarge" : sizedBlockDevicesForEbs(120),
+    "m4.16xlarge" : sizedBlockDevicesForEbs(120),
     "c4.large" : defaultBlockDevicesForEbsOnly(),
     "c4.xlarge" : defaultBlockDevicesForEbsOnly(),
     "c4.2xlarge" : defaultBlockDevicesForEbsOnly(),
