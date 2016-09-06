@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Netflix, Inc.
+ * Copyright 2016 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,9 @@ class EnableDisableConsulInstance {
   }
 
   static void operate(ConsulConfig config, String agentEndpoint, State state) {
-    def agent = new ConsulAgent("${agentEndpoint}:${config.agentPort}")
+    def agent = new ConsulAgent(config, agentEndpoint)
 
     // Enabling maintenance mode means the instance is removed from discovery & DNS lookups
-    agent.api.maintenance(state == State.disable, "Spinnaker ${state} Operation")
+    agent.api.maintenance(state == State.disable, "Spinnaker ${state} Operation", "")
   }
 }

@@ -18,19 +18,22 @@ package com.netflix.spinnaker.clouddriver.consul.api.v1.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
+// JsonProperty seems to misbehave here. The field names are capitalized, but their json counterparts are lower-case
+// because Consul returns field names with Go-naming conventions. This seems to be the only combination that allows
+// field names to be read as well as surfaced correctly in Deck.
 class ServiceResult {
-  @JsonProperty("ID")
-  String iD
+  @JsonProperty("id")
+  String ID
 
-  @JsonProperty("Service")
-  String service
+  @JsonProperty("service")
+  String Service
 
-  @JsonProperty("Tags")
-  List<String> tags
+  @JsonProperty("tags")
+  List<String> Tags
 
-  @JsonProperty("Address")
-  String address
+  @JsonProperty("address")
+  String Address
 
-  @JsonProperty("Port")
-  Integer port
+  @JsonProperty("port")
+  Integer Port
 }

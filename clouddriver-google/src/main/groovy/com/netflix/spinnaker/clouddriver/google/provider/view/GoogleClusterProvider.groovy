@@ -191,9 +191,9 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
 
     // Health states for Consul.
     def consulNodes = serverGroup.instances?.collect { it.consulNode } ?: []
-    def consulRunning = ConsulProviderUtils.consulServerGroup(consulNodes)
+    def consulDiscoverable = ConsulProviderUtils.consulServerGroupDiscoverable(consulNodes)
     def consulDisabled = false
-    if (consulRunning) {
+    if (consulDiscoverable) {
       consulDisabled = ConsulProviderUtils.serverGroupDisabled(consulNodes)
     }
 
@@ -206,7 +206,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
     }
 
     // Now that disabled is set based on L7 & L4 state, we need to take Consul into account.
-    if (consulRunning) {
+    if (consulDiscoverable) {
       // If there are no load balancers to determine enable/disabled status we rely on Consul exclusively.
       if (loadBalancers.size() == 0) {
           serverGroup.disabled = true

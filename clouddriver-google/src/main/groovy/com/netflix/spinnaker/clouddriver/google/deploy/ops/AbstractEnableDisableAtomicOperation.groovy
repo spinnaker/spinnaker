@@ -77,29 +77,22 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     def currentTargetPoolUrls = managedInstanceGroup.getTargetPools()
     def newTargetPoolUrls = []
 
-
     if (credentials.consulConfig?.enabled) {
       task.updateStatus phaseName, "$presentParticipling server group in Consul..."
-      currentTargetPoolUrls.each { targetPoolUrl ->
-        def targetPoolLocalName = GCEUtil.getLocalName(targetPoolUrl)
+      def instances =
+        isRegional
+        ? compute.regionInstanceGroupManagers().listManagedInstances(project, region, serverGroupName).execute().getManagedInstances()
+        : compute.instanceGroupManagers().listManagedInstances(project, zone, serverGroupName).execute().getManagedInstances()
 
-        task.updateStatus phaseName, "$presentParticipling instances with target pool $targetPoolLocalName in Consul..."
-
-        def targetPool = compute.targetPools().get(project, region, targetPoolLocalName).execute()
-        def instanceNames = targetPool.getInstances()?.collect { url ->
-          GCEUtil.getLocalName(url)
-        } ?: []
-
-        instanceNames.each { name ->
-          try {
-            EnableDisableConsulInstance.operate(credentials.consulConfig,
-                                                name,
-                                                disable
-                                                ? EnableDisableConsulInstance.State.disable
-                                                : EnableDisableConsulInstance.State.enable)
-          } catch (RetrofitError e) {
-            // Consul isn't running
-          }
+      instances.each { ManagedInstance instance ->
+        try {
+          EnableDisableConsulInstance.operate(credentials.consulConfig,
+                                              GCEUtil.getLocalName(instance.getInstance()),
+                                              disable
+                                              ? EnableDisableConsulInstance.State.disable
+                                              : EnableDisableConsulInstance.State.enable)
+        } catch (RetrofitError e) {
+          // Consul isn't running
         }
       }
     }

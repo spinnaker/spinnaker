@@ -49,5 +49,5 @@ interface AgentApi {
   Response maintenance(@Path("serviceId") String serviceId, @Query("enable") boolean enable, @Query("reason") String reason)
 
   @PUT("/v1/agent/maintenance")
-  Response maintenance(@Query("enable") boolean enable, @Query("reason") String reason)
+  Response maintenance(@Query("enable") boolean enable, @Query("reason") String reason, @Body String _empty /* Retrofit requires a body, even if it's empty... */)
 }

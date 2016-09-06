@@ -34,6 +34,10 @@ class ConsulHealth extends DiscoveryHealth {
 
   String source
 
+  def boolean isSystemHealth() {
+    return result.checkID == "_node_maintenance"
+  }
+
   @Override
   HealthState getState() {
     description = result.notes
@@ -41,11 +45,6 @@ class ConsulHealth extends DiscoveryHealth {
       case CheckResult.Status.passing:
         return HealthState.Up
       case CheckResult.Status.critical:
-        if (result.checkID == "_node_maintenance") {
-          return HealthState.OutOfService
-        } else {
-          return HealthState.Down
-        }
       case CheckResult.Status.warning:
         return HealthState.Down
       default:
