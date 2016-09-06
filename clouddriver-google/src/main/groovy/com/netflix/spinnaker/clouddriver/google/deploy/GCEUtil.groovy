@@ -24,6 +24,7 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpHeaders
 import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
+import com.google.api.client.http.HttpResponseException
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
 import com.google.common.annotations.VisibleForTesting
@@ -944,6 +945,7 @@ class GCEUtil {
       log.warn "Initial $action of $resource failed, retrying..."
 
       int tries = 1
+      Exception lastSeenException = null
       while (tries < 10) { // Retry 10 times.
         try {
           tries++
@@ -961,11 +963,30 @@ class GCEUtil {
           } else {
             throw jsonException
           }
-        } catch (GoogleOperationTimedOutException __) {
+          lastSeenException = jsonException
+        } catch (GoogleOperationTimedOutException toEx) {
           log.warn "Retry $action timed out again, trying again..."
+          lastSeenException = toEx
         }
       }
-      throw new GoogleOperationException("Failed to $action $resource after #$tries.")
+
+      if (lastSeenException && lastSeenException instanceof GoogleJsonResponseException) {
+        def lastSeenError = lastSeenException?.getDetails()?.getErrors()[0] ?: null
+        if (lastSeenError) {
+          throw new GoogleOperationException("Failed to $action $resource after #$tries."
+            + " Last seen exception has status code ${lastSeenException.getStatusCode()} with error message ${lastSeenError.getMessage()}"
+            + " and reason ${lastSeenError.getReason()}.")
+        } else {
+          throw new GoogleOperationException("Failed to $action $resource after #$tries."
+            + " Last seen exception has status code ${lastSeenException.getStatusCode()} with message ${lastSeenException.getMessage()}.")
+        }
+      } else if (lastSeenException && lastSeenException instanceof GoogleOperationTimedOutException) {
+        throw new GoogleOperationException("Failed to $action $resource after #$tries."
+          + " Last operation timed out.")
+      } else {
+        throw new IllegalStateException("Caught exception is neither a JsonResponseException nor a OperationTimedOutException."
+          + " Caught exception: ${lastSeenException}")
+      }
     }
   }
 
