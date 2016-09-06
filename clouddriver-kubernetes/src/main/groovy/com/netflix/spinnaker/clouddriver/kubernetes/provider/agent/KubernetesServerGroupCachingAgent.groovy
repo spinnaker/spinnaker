@@ -271,6 +271,15 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
     Map<String, MutableCacheData> cachedInstances = MutableCacheData.mutableCacheMap()
     Map<String, MutableCacheData> cachedLoadBalancers = MutableCacheData.mutableCacheMap()
 
+    def rcEvents = [:]
+    def rsEvents = [:]
+    try {
+      rcEvents = credentials.apiAdaptor.getEvents(namespace, "ReplicationController")
+      rsEvents = credentials.apiAdaptor.getEvents(namespace, "ReplicaSet")
+    } catch (Exception e) {
+      log.warn "Failure fetching events for all server groups in $namespace", e
+    }
+
     for (ReplicaSetOrController serverGroup: serverGroups) {
       if (!serverGroup.exists()) {
         continue
@@ -336,7 +345,7 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
           attributes.name = serverGroupName
           attributes.replicationController = serverGroup.replicationController
           attributes.replicaSet = serverGroup.replicaSet
-          attributes.events = credentials.apiAdaptor.getEvents(namespace, serverGroup.replicationController ?: serverGroup.replicaSet)
+          attributes.events = serverGroup.replicationController ? rcEvents[serverGroupName] : rsEvents[serverGroupName]
           relationships[Keys.Namespace.APPLICATIONS.ns].add(applicationKey)
           relationships[Keys.Namespace.CLUSTERS.ns].add(clusterKey)
           relationships[Keys.Namespace.LOAD_BALANCERS.ns].addAll(loadBalancerKeys)

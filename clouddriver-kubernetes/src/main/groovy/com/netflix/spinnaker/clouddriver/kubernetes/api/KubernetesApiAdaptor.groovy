@@ -122,6 +122,17 @@ class KubernetesApiAdaptor {
     }
   }
 
+  Map<String, List<Event>> getEvents(String namespace, String type) {
+    atomicWrapper("Get Events", namespace) { KubernetesClient client ->
+      def events = client.events().inNamespace(namespace).withField("involvedObject.kind", type).list().items
+      def eventMap = [:].withDefault { _ -> [] }
+      events.each { Event event ->
+        eventMap[event.involvedObject.name] += [event]
+      }
+      return eventMap
+    }
+  }
+
   Ingress createIngress(String namespace, Ingress ingress) {
     atomicWrapper("Create Ingress ${ingress?.metadata?.name}", namespace) { KubernetesClient client ->
       client.extensions().ingresses().inNamespace(namespace).create(ingress)

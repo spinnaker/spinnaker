@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.provider.KubernetesProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.provider.view.MutableCacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import groovy.util.logging.Slf4j
+import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.Pod
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
@@ -81,17 +82,19 @@ class KubernetesInstanceCachingAgent implements CachingAgent, AccountAware {
 
     Map<String, MutableCacheData> cachedInstances = MutableCacheData.mutableCacheMap()
 
+    def podEvents = [:]
+    try {
+      podEvents = credentials.apiAdaptor.getEvents(namespace, "Pod")
+    } catch (Exception e) {
+      log.warn "Failure fetching events for all pods in $namespace", e
+    }
+
     for (Pod pod : pods) {
       if (!pod) {
         continue
       }
 
-      def events = []
-      try {
-        events = credentials.apiAdaptor.getEvents(namespace, pod)
-      } catch (Exception e) {
-        log.warn "Failure fetching events for $pod.metadata.name in $namespace", e
-      }
+      def events = podEvents[pod.metadata.name] ?: []
 
       def key = Keys.getInstanceKey(accountName, namespace, pod.metadata.name)
       cachedInstances[key].with {
