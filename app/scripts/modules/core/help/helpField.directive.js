@@ -22,8 +22,9 @@ module.exports = angular
   .module('spinnaker.core.help.helpField.directive', [
     require('./helpContents.js'),
     require('./helpContents.registry.js'),
+    require('angulartics'),
   ])
-  .directive('helpField', function (helpContents, helpContentsRegistry) {
+  .directive('helpField', function (helpContents, helpContentsRegistry, $analytics) {
     return {
       restrict: 'E',
       templateUrl: require('./helpField.directive.html'),
@@ -50,6 +51,22 @@ module.exports = angular
           scope.$watch('key', applyContents);
           scope.$watch('fallback', applyContents);
           scope.$watch('content', applyContents);
+
+          let tooltipShownStart = null;
+
+          scope.tooltipShown = () => {
+            tooltipShownStart = new Date().getTime();
+          };
+
+          scope.tooltipHidden = () => {
+            let end = new Date().getTime();
+            // only track the event if the tooltip was on the screen for a little while, i.e. it wasn't accidentally
+            // moused over
+            if (end - tooltipShownStart > 500) {
+              $analytics.eventTrack('Help contents viewed', {category: 'Help', label: scope.key || scope.content});
+            }
+            tooltipShownStart = null;
+          };
         }
       }
     };
