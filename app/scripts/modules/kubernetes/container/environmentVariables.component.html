@@ -1,25 +1,80 @@
 <table class="table table-condensed" style="border-top: 2px solid white; margin-bottom: 0px;">
-  <thead ng-if="$ctrl.envVars.length">
-  <tr>
-    <th>Name</th>
-    <th>Value</th>
-    <th></th>
-  </tr>
-  </thead>
   <tbody>
-  <tr ng-repeat="pair in $ctrl.envVars">
-    <td><input class="form-control input input-sm" type="text" ng-model="pair.name"></td>
-    <td><input class="form-control input input-sm" type="text" ng-model="pair.value"></td>
+  <tr ng-repeat="envVar in $ctrl.envVars">
     <td>
-      <div class="form-control-static">
-        <a href ng-click="$ctrl.removeEnvVar($index)">
-          <span class="glyphicon glyphicon-trash"></span>
-        </a>
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">
+          Name
+        </div>
+        <div class="col-md-3">
+          <input class="form-control input input-sm" type="text" ng-model="envVar.name">
+        </div>
+        <div class="col-md-2 col-md-offset-1">
+          <button class="btn btn-sm btn-default" ng-click="$ctrl.removeEnvVar($index)">
+            <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
+            <span>Remove</span>
+          </button>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">
+          Source
+        </div>
+        <div class="col-md-3">
+          <select class="form-control input-sm"
+                  ng-model="$ctrl.envVarsSourceTypes[$index]"
+                  ng-change="$ctrl.updateEnvVar($index)"
+                  ng-options="sourceType for sourceType in $ctrl.sourceTypes"></select>
+        </div>
+      </div>
+      <div ng-switch on="$ctrl.envVarsSourceTypes[$index]">
+        <div class="form-group" ng-switch-when="Explicit">
+          <div class="col-md-3 sm-label-right">
+            Value
+          </div>
+          <div class="col-md-3">
+            <input class="form-control input input-sm" type="text" ng-model="envVar.value">
+          </div>
+        </div>
+        <div class="form-group" ng-switch-when="Config Map">
+          <div class="col-md-3 sm-label-right">
+            Map Name
+          </div>
+          <div class="col-md-3">
+            <input class="form-control input input-sm"
+                   type="text"
+                   ng-model="envVar.envSource.configMapSource.configMapName">
+          </div>
+          <div class="col-md-1 sm-label-right">
+            Key
+          </div>
+          <div class="col-md-3">
+            <input class="form-control input input-sm"
+                   type="text"
+                   ng-model="envVar.envSource.configMapSource.key">
+          </div>
+        </div>
+        <div class="form-group" ng-switch-when="Secret">
+          <div class="col-md-3 sm-label-right">
+            Secret Name
+          </div>
+          <div class="col-md-3">
+            <input class="form-control input input-sm"
+                   type="text"
+                   ng-model="envVar.envSource.secretSource.secretName">
+          </div>
+          <div class="col-md-1 sm-label-right">
+            Key
+          </div>
+          <div class="col-md-3">
+            <input class="form-control input input-sm"
+                   type="text"
+                   ng-model="envVar.envSource.secretSource.key">
+          </div>
+        </div>
       </div>
     </td>
   </tr>
-  </tbody>
-  <tfoot>
   <tr>
     <td colspan="3">
       <button class="add-new col-md-12" ng-click="$ctrl.addEnvVar()" style="margin-bottom: 0px;"><span
@@ -27,5 +82,5 @@
       </button>
     </td>
   </tr>
-  </tfoot>
+  </tbody>
 </table>

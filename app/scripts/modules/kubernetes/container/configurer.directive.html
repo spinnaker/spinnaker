@@ -100,37 +100,8 @@
       <div class="sm-label-left">
         <b>Environment Variables</b>
       </div>
-      <table class="table table-condensed">
-        <thead>
-        <tr>
-          <th>Name</th>
-          <th>Value</th>
-          <th></th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr ng-repeat="pair in container.envVars">
-          <td><input class="form-control input input-sm" type="text" ng-model="pair.name"></td>
-          <td><input class="form-control input input-sm" type="text" ng-model="pair.value"></td>
-          <td>
-            <div class="form-control-static">
-              <a href ng-click="containerController.removeEnvVar($index)">
-                <span class="glyphicon glyphicon-trash"></span>
-              </a>
-            </div>
-          </td>
-        </tr>
-        </tbody>
-        <tfoot>
-        <tr>
-          <td colspan="3">
-            <button class="add-new col-md-12" ng-click="containerController.addEnvVar()"><span
-              class="glyphicon glyphicon-plus-sign"></span> Add Environment Variable
-            </button>
-          </td>
-        </tr>
-        </tfoot>
-      </table>
+      <kubernetes-container-environment-variables env-vars="container.envVars">
+      </kubernetes-container-environment-variables>
     </div>
   </collapsible-section>
 

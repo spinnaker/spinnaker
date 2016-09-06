@@ -35,14 +35,6 @@ module.exports = angular.module('spinnaker.kubernetes.container.configurer.direc
       $scope.container.volumeMounts.push({ name: '', readOnly: false, mountPath: '/', });
     };
 
-    this.removeEnvVar = function(index) {
-      $scope.container.envVars.splice(index, 1);
-    };
-
-    this.addEnvVar = function() {
-      $scope.container.envVars.push({ name: '', value: '', });
-    };
-
     this.removeCommand = function(index) {
       $scope.container.command.splice(index, 1);
     };
