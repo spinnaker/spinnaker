@@ -30,7 +30,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.CreateGoogleHttpLoadBalancerTestConstants.*
+import static com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleHttpLoadBalancerTestConstants.*
 
 class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
   private static final LOAD_BALANCER_NAME = "spinnaker-test-v000"

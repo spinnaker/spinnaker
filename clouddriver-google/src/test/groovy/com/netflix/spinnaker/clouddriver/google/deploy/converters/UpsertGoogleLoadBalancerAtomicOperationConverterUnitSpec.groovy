@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.CreateGoogleHttpLoadBalancerAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleHttpLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
@@ -29,7 +29,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import spock.lang.Shared
 import spock.lang.Specification
 
-import static com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.CreateGoogleHttpLoadBalancerTestConstants.*
+import static com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleHttpLoadBalancerTestConstants.*
 
 class UpsertGoogleLoadBalancerAtomicOperationConverterUnitSpec extends Specification {
   private static final LOAD_BALANCER_NAME = "spinnaker-test-v000"
@@ -169,6 +169,6 @@ class UpsertGoogleLoadBalancerAtomicOperationConverterUnitSpec extends Specifica
       def operation = converter.convertOperation(input)
 
     then:
-      operation instanceof CreateGoogleHttpLoadBalancerAtomicOperation
+      operation instanceof UpsertGoogleHttpLoadBalancerAtomicOperation
   }
 }

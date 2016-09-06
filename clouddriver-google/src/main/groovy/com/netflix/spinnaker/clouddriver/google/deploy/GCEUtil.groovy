@@ -36,11 +36,10 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleS
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationTimedOutException
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleHttpLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.model.*
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerView
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
@@ -391,6 +390,46 @@ class GCEUtil {
 
   static List<String> mergeDescriptionAndSecurityGroupTags(List<String> tags, Set<String> securityGroupTags) {
     return ((tags ?: []) + securityGroupTags).unique()
+  }
+
+  static boolean shouldUpdateUrlMap(UrlMap urlMap, UpsertGoogleLoadBalancerDescription description) {
+    if (!urlMap) {
+      return false
+    }
+    def defaultServiceName = "${description.loadBalancerName}-${UpsertGoogleHttpLoadBalancerAtomicOperation.BACKEND_SERVICE_NAME_PREFIX}-${description.defaultService.name}"
+    if (getLocalName(urlMap.getDefaultService()) != defaultServiceName) {
+      return true
+    }
+
+    Map<List<String>, Map> existingHostRuleMap = [:] // Nested: [sorted host pattern list -> [sorted url pattern list -> local backend service name]]
+
+    urlMap?.getHostRules()?.each { HostRule hostRule ->
+      urlMap?.getPathMatchers()?.each { PathMatcher pathMatcher ->
+        if (pathMatcher.getName() == hostRule.getPathMatcher()) {
+          Map pathRuleMap = [:]
+          List<PathRule> pathRules = pathMatcher.getPathRules()
+          pathRules?.each { PathRule pathRule ->
+            pathRuleMap.put(pathRule.getPaths().sort(), getLocalName(pathRule.getService()))
+          }
+          existingHostRuleMap.put(hostRule.getHosts().sort(), pathRuleMap)
+        }
+      }
+    }
+
+    Boolean mapServicesDiffer = false
+    description?.hostRules?.each { GoogleHostRule googleHostRule ->
+      def hostPatterns = googleHostRule.hostPatterns.sort()
+      googleHostRule?.pathMatcher?.pathRules?.each { GooglePathRule googlePathRule ->
+        def urlPatterns = googlePathRule?.paths?.sort()
+        def serviceName = "${description.loadBalancerName}-${UpsertGoogleHttpLoadBalancerAtomicOperation.BACKEND_SERVICE_NAME_PREFIX}-${getLocalName(googlePathRule.backendService.name)}"
+        Map urlPatternMap = existingHostRuleMap.get(hostPatterns)
+        if (!urlPatternMap || !urlPatternMap.containsKey(urlPatterns) || urlPatternMap.get(urlPatterns) != serviceName) {
+          mapServicesDiffer = true // Groovy, baby.
+          return
+        }
+      }
+    }
+    return mapServicesDiffer
   }
 
   static String getRegionFromZone(String projectName, String zone, Compute compute) {

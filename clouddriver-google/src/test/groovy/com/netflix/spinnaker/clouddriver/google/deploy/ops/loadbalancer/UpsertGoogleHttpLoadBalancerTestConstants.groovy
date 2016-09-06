@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
-class CreateGoogleHttpLoadBalancerTestConstants {
+class UpsertGoogleHttpLoadBalancerTestConstants {
   static final LOAD_BALANCER_NAME = "http-create"
   static final ACCOUNT_NAME = "auto"
   static final PORT_RANGE = "80"
