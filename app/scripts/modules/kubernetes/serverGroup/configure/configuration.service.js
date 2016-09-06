@@ -83,6 +83,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
             pattern: image.pattern,
             stageId: image.stageId,
           },
+          imagePullPolicy: 'IFNOTPRESENT',
           account: image.accountName,
           requests: {
             memory: null,

@@ -17,6 +17,7 @@ module.exports = angular.module('spinnaker.kubernetes.container.configurer.direc
   .controller('kubernetesContainerConfigurerController', function($scope) {
     this.cpuPattern = /^\d+(m)?$/;
     this.memoryPattern = /^\d+(Mi|Gi)?$/;
+    this.pullPolicies = ['IFNOTPRESENT', 'ALWAYS', 'NEVER'];
 
     this.removePort = function(index) {
       $scope.container.ports.splice(index, 1);

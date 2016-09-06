@@ -338,6 +338,12 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'kubernetes.containers.registry': 'The registry the selected image will be pulled from.',
     'kubernetes.containers.command': 'The list of commands which to overwrite the docker ENTRYPOINT array.',
     'kubernetes.containers.name': '(Required) The name of the container associated with the above image. Used for resource identification',
+    'kubernetes.containers.pullpolicy': '<p>Sets the policy used to determine when to pull (download) the selected container image.</p>' +
+      '<p><i><b>Warning</b> - This shouldn\'t be modified for most production pipelines as it encourages aliasing tags, ' +
+      'preventing proper rollbacks and determining an image\'s source.</i></p>' +
+      '<p><b>IFNOTPRESENT</b>: (Default) Pulls the image only when it is not present on the host machine.</p>' +
+      '<p><b>ALWAYS</b>: Always pulls the image, regardless of if it is present or not.</p>' +
+      '<p><b>NEVER</b>: Never pulls the image, regardless of if it is present or not.</p>',
     'kubernetes.containers.cpu': '(Optional) The relative CPU shares to allocate this container. If set, it is multiplied by 1024, then ' +
       'passed to Docker as the --cpu-shares flag. Otherwise the default of 1 (1024) is used',
     'kubernetes.containers.memory': '(Optional) The relative memory in megabytes to allocate this container. If set, it is converted to an integer ' +

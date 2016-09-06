@@ -32,6 +32,19 @@
     </div>
   </div>
 
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right">
+      Pull Policy
+      <help-field key="kubernetes.containers.pullpolicy"></help-field>
+    </div>
+    <div class="col-md-6">
+      <select class="form-control input-sm" ng-model="container.imagePullPolicy">
+        <option ng-repeat="type in containerController.pullPolicies" value="{{type}}"
+                ng-selected="container.imagePullPolicy === type">{{type}}</option>
+      </select>
+    </div>
+  </div>
+
   <collapsible-section heading="Basic Settings" expanded="false" subsection="true">
     <div class="form-group">
       <div class="sm-label-left">
