@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.fiat.providers;
 
-import com.netflix.spinnaker.fiat.model.resources.Account;
+import com.netflix.spinnaker.fiat.model.resources.GroupAccessControlled;
 
-public interface AccountProvider extends GroupAccessControlledResourceProvider<Account> {
+public interface GroupAccessControlledResourceProvider<G extends GroupAccessControlled> extends ResourceProvider<G> {
 }

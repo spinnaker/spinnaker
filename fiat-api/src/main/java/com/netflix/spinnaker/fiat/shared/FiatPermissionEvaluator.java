@@ -19,7 +19,7 @@ package com.netflix.spinnaker.fiat.shared;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Authorizable;
-import com.netflix.spinnaker.fiat.model.resources.Resource;
+import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +60,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     }
 
     String username = getUsername(authentication);
-    Resource r = Resource.parse(resourceType);
+    ResourceType r = ResourceType.parse(resourceType);
     Authorization a = Authorization.valueOf(authorization.toString());
 
     return isWholePermissionStored(authentication) ?
@@ -79,12 +79,12 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     return username;
   }
 
-  private boolean isAuthorized(String username, Resource resource, String resourceName, Authorization a) {
+  private boolean isAuthorized(String username, ResourceType resourceType, String resourceName, Authorization a) {
     try {
-      fiatService.hasAuthorization(username, resource.toString(), resourceName, a.toString());
+      fiatService.hasAuthorization(username, resourceType.toString(), resourceName, a.toString());
     } catch (RetrofitError re) {
       String message = String.format("Fiat authorization failed for user '%s' '%s'-ing '%s' " +
-                                         "resource named '%s'. Cause: %s", username, a, resource, resourceName, re.getMessage());
+                                         "resourceType named '%s'. Cause: %s", username, a, resourceType, resourceName, re.getMessage());
       log.debug(message);
       log.trace(message, re);
       return false;
@@ -127,7 +127,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
 
   private boolean permissionContains(Authentication authentication,
                                      String resourceName,
-                                     Resource resource,
+                                     ResourceType resourceType,
                                      Authorization authorization) {
     UserPermission.View permission = (UserPermission.View) authentication.getDetails();
 
@@ -138,7 +138,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
                 view.getAuthorizations().contains(authorization));
 
 
-    switch (resource) {
+    switch (resourceType) {
       case ACCOUNT:
         return containsAuth.apply(permission.getAccounts());
       case APPLICATION:

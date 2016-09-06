@@ -85,7 +85,7 @@ class UserRolesSyncerSpec extends Specification {
       resolve("xyz@domain.com") >> Optional.of(xyzPermission)
     }
     def serviceAccountProvider = Mock(ServiceAccountProvider) {
-      getAccounts() >> [ new ServiceAccount().setName("abc"),
+      getAll() >> [ new ServiceAccount().setName("abc"),
                          new ServiceAccount().setName("xyz@domain.com") ]
     }
 

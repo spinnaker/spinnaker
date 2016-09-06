@@ -19,7 +19,7 @@ package com.netflix.spinnaker.fiat.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
-import com.netflix.spinnaker.fiat.model.resources.Named;
+import com.netflix.spinnaker.fiat.model.resources.Resource;
 import com.netflix.spinnaker.fiat.model.resources.Viewable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -56,7 +56,7 @@ public class UserPermission implements Viewable {
   @Data
   @NoArgsConstructor
   @SuppressWarnings("unchecked")
-  public static class View extends BaseView implements Named {
+  public static class View extends BaseView implements Resource {
     String name;
     Set<Account.View> accounts;
     Set<Application.View> applications;

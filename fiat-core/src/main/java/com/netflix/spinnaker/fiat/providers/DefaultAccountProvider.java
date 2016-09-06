@@ -37,20 +37,25 @@ public class DefaultAccountProvider extends BaseProvider implements AccountProvi
   @Setter
   private ClouddriverService clouddriverService;
 
-  public Set<Account> getAccounts(@NonNull Collection<String> groups) {
+  @Override
+  public Set<Account> getAll() throws ProviderException {
     try {
-      val returnVal = clouddriverService
-          .getAccounts()
-          .stream()
-          .filter(account ->
-                      account.getRequiredGroupMembership().isEmpty() ||
-                          !Collections.disjoint(account.getRequiredGroupMembership(), groups))
-          .collect(Collectors.toSet());
+      val returnVal = clouddriverService.getAccounts().stream().collect(Collectors.toSet());
       success();
       return returnVal;
     } catch (RetrofitError re) {
       failure();
       throw new ProviderException(re);
     }
+  }
+
+  @Override
+  public Set<Account> getAll(@NonNull Collection<String> groups) throws ProviderException {
+    return getAll()
+        .stream()
+        .filter(account ->
+                    account.getRequiredGroupMembership().isEmpty() ||
+                        !Collections.disjoint(account.getRequiredGroupMembership(), groups))
+        .collect(Collectors.toSet());
   }
 }

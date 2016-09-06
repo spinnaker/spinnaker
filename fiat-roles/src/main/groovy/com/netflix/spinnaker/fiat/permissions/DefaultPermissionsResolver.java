@@ -110,20 +110,20 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
     UserPermission permission = new UserPermission().setId(userId);
 
     try {
-      permission.setAccounts(accountProvider.getAccounts(groups));
+      permission.setAccounts(accountProvider.getAll(groups));
     } catch (ProviderException pe) {
       permission.setPartialPermission(true);
     }
 
     try {
-      permission.setApplications(applicationProvider.getApplications(groups));
+      permission.setApplications(applicationProvider.getAll(groups));
     } catch (ProviderException pe) {
       permission.setPartialPermission(true);
     }
 
     if (!AnonymousUserConfig.ANONYMOUS_USERNAME.equalsIgnoreCase(userId)) {
       try {
-        permission.setServiceAccounts(serviceAccountProvider.getAccounts(groups));
+        permission.setServiceAccounts(serviceAccountProvider.getAll(groups));
       } catch (ProviderException pe) {
         permission.setPartialPermission(true);
       }

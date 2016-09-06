@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.fiat.model.resources;
 
-public interface Named {
-  String getName();
+import java.util.List;
+
+public interface GroupAccessControlled extends Resource {
+
+  List<String> getRequiredGroupMembership();
 }

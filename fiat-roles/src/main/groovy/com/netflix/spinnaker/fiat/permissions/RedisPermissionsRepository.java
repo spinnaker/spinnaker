@@ -26,8 +26,8 @@ import com.netflix.spinnaker.fiat.model.ServiceAccount;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
-import com.netflix.spinnaker.fiat.model.resources.Named;
 import com.netflix.spinnaker.fiat.model.resources.Resource;
+import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import com.netflix.spinnaker.fiat.redis.JedisSource;
 import lombok.NonNull;
 import lombok.Setter;
@@ -89,10 +89,10 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   @Override
   public RedisPermissionsRepository forcePut(@NonNull UserPermission permission) {
     try (Jedis jedis = jedisSource.getJedis()) {
-      for (Resource r : Resource.values()) {
+      for (ResourceType r : ResourceType.values()) {
         Map<String, String> resourceValues = new HashMap<>();
 
-        Consumer<Named> putInValuesMap = namedResource -> {
+        Consumer<Resource> putInValuesMap = namedResource -> {
           try {
             resourceValues.put(namedResource.getName(),
                                objectMapper.writeValueAsString(namedResource));
@@ -132,7 +132,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   public Optional<UserPermission> get(@NonNull String id) {
     UserPermission userPermission = new UserPermission().setId(id);
     try (Jedis jedis = jedisSource.getJedis()) {
-      for (Resource r : Resource.values()) {
+      for (ResourceType r : ResourceType.values()) {
         Map<String, String> resourceMap = jedis.hgetAll(userKey(id, r));
 
         switch (r) {
@@ -155,16 +155,16 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
   @Override
   public Map<String, UserPermission> getAllById() {
-    Table<String, Resource, Response<Map<String, String>>> responseTable = getAllFromRedis();
+    Table<String, ResourceType, Response<Map<String, String>>> responseTable = getAllFromRedis();
     if (responseTable == null) {
       return new HashMap<>(0);
     }
     Map<String, UserPermission> allById = new HashMap<>(responseTable.rowKeySet().size());
 
-    for (Map.Entry<String, Map<Resource, Response<Map<String, String>>>> entry1 : responseTable.rowMap().entrySet()) {
+    for (Map.Entry<String, Map<ResourceType, Response<Map<String, String>>>> entry1 : responseTable.rowMap().entrySet()) {
       String userId = entry1.getKey();
-      for (Map.Entry<Resource, Response<Map<String, String>>> entry2 : entry1.getValue().entrySet()) {
-        Resource r = entry2.getKey();
+      for (Map.Entry<ResourceType, Response<Map<String, String>>> entry2 : entry1.getValue().entrySet()) {
+        ResourceType r = entry2.getKey();
         Map<String /*resourceName*/, String /*resource json*/> resourceMap = entry2.getValue().get();
 
         Function<String, UserPermission> newUser = id -> new UserPermission().setId(id);
@@ -191,19 +191,19 @@ public class RedisPermissionsRepository implements PermissionsRepository {
     return allById;
   }
 
-  private Table<String, Resource, Response<Map<String, String>>> getAllFromRedis() {
+  private Table<String, ResourceType, Response<Map<String, String>>> getAllFromRedis() {
     try (Jedis jedis = jedisSource.getJedis()) {
       Set<String> allUserIds = jedis.smembers(allUsersKey());
 
       if (allUserIds.size() == 0) {
         return HashBasedTable.create();
       }
-      Table<String, Resource, Response<Map<String, String>>> responseTable =
-          ArrayTable.create(allUserIds, new ArrayIterator<>(Resource.values()));
+      Table<String, ResourceType, Response<Map<String, String>>> responseTable =
+          ArrayTable.create(allUserIds, new ArrayIterator<>(ResourceType.values()));
 
       Pipeline p = jedis.pipelined();
       for (String userId : allUserIds) {
-        for (Resource r : Resource.values()) {
+        for (ResourceType r : ResourceType.values()) {
           responseTable.put(userId, r, p.hgetAll(userKey(userId, r)));
         }
       }
@@ -220,7 +220,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
     UserPermission userPermission = new UserPermission().setId(id);
     try (Jedis jedis = jedisSource.getJedis()) {
       jedis.srem(allUsersKey(), id);
-      for (Resource r : Resource.values()) {
+      for (ResourceType r : ResourceType.values()) {
         jedis.del(userKey(id, r));
       }
     } catch (Exception e) {
@@ -232,7 +232,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
     return String.format("%s:%s", prefix, KEY_ALL_USERS);
   }
 
-  String userKey(String userId, Resource r) {
+  String userKey(String userId, ResourceType r) {
     return String.format("%s:%s:%s:%s", prefix, KEY_PERMISSIONS, userId, r.keySuffix());
   }
 

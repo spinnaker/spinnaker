@@ -38,13 +38,13 @@ class DefaultAccountProviderSpec extends Specification {
     )
 
     when:
-    def result = accountProvider.getAccounts(input)
+    def result = accountProvider.getAll(input)
 
     then:
     result*.name.containsAll(values)
 
     when:
-    accountProvider.getAccounts(null)
+    accountProvider.getAll(null)
 
     then:
     thrown IllegalArgumentException

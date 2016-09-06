@@ -18,12 +18,5 @@ package com.netflix.spinnaker.fiat.providers;
 
 import com.netflix.spinnaker.fiat.model.ServiceAccount;
 
-import java.util.Collection;
-import java.util.Set;
-
-public interface ServiceAccountProvider {
-
-  Set<ServiceAccount> getAccounts() throws ProviderException;
-
-  Set<ServiceAccount> getAccounts(Collection<String> groups) throws ProviderException;
+public interface ServiceAccountProvider extends ResourceProvider<ServiceAccount> {
 }

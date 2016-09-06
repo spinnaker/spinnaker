@@ -38,13 +38,13 @@ class DefaultApplicationProviderSpec extends Specification {
     provider = new DefaultApplicationProvider(front50Service: front50Service)
 
     when:
-    def result = provider.getApplications(input)
+    def result = provider.getAll(input)
 
     then:
     result*.name.containsAll(values)
 
     when:
-    provider.getApplications(null)
+    provider.getAll(null)
 
     then:
     thrown IllegalArgumentException

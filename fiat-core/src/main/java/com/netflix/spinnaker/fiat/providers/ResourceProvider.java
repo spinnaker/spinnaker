@@ -16,7 +16,14 @@
 
 package com.netflix.spinnaker.fiat.providers;
 
-import com.netflix.spinnaker.fiat.model.resources.Account;
+import com.netflix.spinnaker.fiat.model.resources.Resource;
 
-public interface AccountProvider extends GroupAccessControlledResourceProvider<Account> {
+import java.util.Collection;
+import java.util.Set;
+
+public interface ResourceProvider<R extends Resource> {
+
+  Set<R> getAll() throws ProviderException;
+
+  Set<R> getAll(Collection<String> groups) throws ProviderException;
 }

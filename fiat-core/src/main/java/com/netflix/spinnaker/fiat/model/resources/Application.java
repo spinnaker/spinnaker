@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Set;
 
 @Data
-public class Application implements Named, Viewable {
+public class Application implements GroupAccessControlled, Resource, Viewable {
   private String name;
   private List<String> requiredGroupMembership = new ArrayList<>();
 

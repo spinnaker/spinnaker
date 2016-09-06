@@ -36,20 +36,26 @@ public class DefaultApplicationProvider extends BaseProvider implements Applicat
   private Front50Service front50Service;
 
   @Override
-  public Set<Application> getApplications(@NonNull Collection<String> groups) {
+  public Set<Application> getAll() throws ProviderException {
     try {
-      val returnVal = front50Service
-          .getAllApplicationPermissions()
-          .stream()
-          .filter(application ->
-                      application.getRequiredGroupMembership().isEmpty() ||
-                          !Collections.disjoint(application.getRequiredGroupMembership(), groups))
-          .collect(Collectors.toSet());
+      val returnVal = front50Service.getAllApplicationPermissions()
+                                    .stream()
+                                    .collect(Collectors.toSet());
       success();
       return returnVal;
     } catch (RetrofitError re) {
       failure();
       throw new ProviderException(re);
     }
+  }
+
+  @Override
+  public Set<Application> getAll(@NonNull Collection<String> groups) throws ProviderException {
+    return getAll()
+        .stream()
+        .filter(application ->
+                    application.getRequiredGroupMembership().isEmpty() ||
+                        !Collections.disjoint(application.getRequiredGroupMembership(), groups))
+        .collect(Collectors.toSet());
   }
 }

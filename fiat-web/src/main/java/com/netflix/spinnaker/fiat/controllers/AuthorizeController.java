@@ -20,7 +20,7 @@ import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
-import com.netflix.spinnaker.fiat.model.resources.Resource;
+import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import io.swagger.annotations.ApiOperation;
 import lombok.Setter;
@@ -100,7 +100,7 @@ public class AuthorizeController {
                                    @PathVariable String authorization,
                                    HttpServletResponse response) throws IOException {
     Authorization a = Authorization.valueOf(authorization.toUpperCase());
-    Resource r = Resource.parse(resourceType);
+    ResourceType r = ResourceType.parse(resourceType);
     Set<Authorization> authorizations = new HashSet<>(0);
 
     try {

@@ -60,7 +60,7 @@ class DefaultPermissionsResolverSpec extends Specification {
 
   @Shared
   ApplicationProvider applicationProvider = Mock(ApplicationProvider) {
-    getApplications(*_) >> []
+    getAll(*_) >> []
   }
 
   def "should resolve the anonymous user permission, when enabled"() {

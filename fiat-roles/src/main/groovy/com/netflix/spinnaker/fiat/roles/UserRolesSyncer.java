@@ -70,8 +70,7 @@ public class UserRolesSyncer {
     while(true) {
       try {
         serviceAccountProvider
-            .getAccounts()
-            .stream()
+            .getAll()
             .forEach(serviceAccount -> permissionsResolver
                 .resolve(serviceAccount.getName())
                 .ifPresent(permission -> {

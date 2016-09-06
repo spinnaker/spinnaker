@@ -22,22 +22,22 @@ class ResourceSpec extends Specification {
 
   def "should parse resource type from Redis key"() {
     expect:
-    Resource.parse(input) == output
+    ResourceType.parse(input) == output
 
     where:
     input              || output
-    ":accounts"        || Resource.ACCOUNT
-    "abc:accounts"     || Resource.ACCOUNT
-    "abc:def:accounts" || Resource.ACCOUNT
-    ":applications"    || Resource.APPLICATION
-    "account"          || Resource.ACCOUNT
-    "accounts"         || Resource.ACCOUNT
-    "aCCoUnTs"         || Resource.ACCOUNT
+    ":accounts"        || ResourceType.ACCOUNT
+    "abc:accounts"     || ResourceType.ACCOUNT
+    "abc:def:accounts" || ResourceType.ACCOUNT
+    ":applications"    || ResourceType.APPLICATION
+    "account"          || ResourceType.ACCOUNT
+    "accounts"         || ResourceType.ACCOUNT
+    "aCCoUnTs"         || ResourceType.ACCOUNT
   }
 
   def "should throw exception on invalid parse input"() {
     when:
-    Resource.parse(input)
+    ResourceType.parse(input)
 
     then:
     thrown e

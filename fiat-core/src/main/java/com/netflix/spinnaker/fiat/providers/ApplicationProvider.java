@@ -18,10 +18,5 @@ package com.netflix.spinnaker.fiat.providers;
 
 import com.netflix.spinnaker.fiat.model.resources.Application;
 
-import java.util.Collection;
-import java.util.Set;
-
-public interface ApplicationProvider {
-
-  Set<Application> getApplications(Collection<String> groups) throws ProviderException;
+public interface ApplicationProvider extends GroupAccessControlledResourceProvider<Application> {
 }

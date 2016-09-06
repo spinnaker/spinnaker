@@ -39,7 +39,7 @@ public class DefaultServiceAccountProvider extends BaseProvider implements Servi
   private Front50Service front50Service;
 
   @Override
-  public Set<ServiceAccount> getAccounts() throws ProviderException {
+  public Set<ServiceAccount> getAll() throws ProviderException {
     try {
       val returnVal = front50Service
           .getAllServiceAccounts()
@@ -61,24 +61,17 @@ public class DefaultServiceAccountProvider extends BaseProvider implements Servi
    * after the "@" symbol for the purposes of service account/group matching.
    */
   @Override
-  public Set<ServiceAccount> getAccounts(@NonNull Collection<String> groups) {
+  public Set<ServiceAccount> getAll(@NonNull Collection<String> groups) {
     // There is a potential here for a naming collision where service account
     // "my-svc-account@abc.com" and "my-svc-account@xyz.com" each allow one another's users to use
     // their service account. In practice, though, I don't think this will be an issue.
-    try {
-      Map<String, ServiceAccount> serviceAccountsByName = front50Service
-          .getAllServiceAccounts()
-          .stream()
-          .collect(Collectors.toMap(ServiceAccount::getNameWithoutDomain, Function.identity()));
-      success();
-      return groups
-          .stream()
-          .filter(serviceAccountsByName::containsKey)
-          .map(serviceAccountsByName::get)
-          .collect(Collectors.toSet());
-    } catch (RetrofitError re) {
-      failure();
-      throw new ProviderException(re);
-    }
+    Map<String, ServiceAccount> serviceAccountsByName = getAll()
+        .stream()
+        .collect(Collectors.toMap(ServiceAccount::getNameWithoutDomain, Function.identity()));
+    return groups
+        .stream()
+        .filter(serviceAccountsByName::containsKey)
+        .map(serviceAccountsByName::get)
+        .collect(Collectors.toSet());
   }
 }
