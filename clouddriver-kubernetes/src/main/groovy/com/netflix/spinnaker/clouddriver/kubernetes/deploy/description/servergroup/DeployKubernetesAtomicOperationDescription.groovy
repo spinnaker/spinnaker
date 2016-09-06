@@ -59,6 +59,7 @@ class KubernetesImageDescription {
 class KubernetesContainerDescription {
   String name
   KubernetesImageDescription imageDescription
+  KubernetesPullPolicy imagePullPolicy
 
   KubernetesResourceDescription requests
   KubernetesResourceDescription limits
@@ -81,6 +82,10 @@ class KubernetesEnvVar {
   String name
   String value
   KubernetesEnvVarSource envSource
+}
+
+enum KubernetesPullPolicy {
+  NEVER, IFNOTPRESENT, ALWAYS
 }
 
 @AutoClone

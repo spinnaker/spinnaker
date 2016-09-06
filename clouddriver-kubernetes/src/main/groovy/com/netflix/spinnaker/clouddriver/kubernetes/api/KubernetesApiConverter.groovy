@@ -158,6 +158,24 @@ class KubernetesApiConverter {
     def imageId = KubernetesUtil.getImageId(container.imageDescription)
     def containerBuilder = new ContainerBuilder().withName(container.name).withImage(imageId)
 
+    if (container.imagePullPolicy) {
+      switch (container.imagePullPolicy) {
+        case (KubernetesPullPolicy.NEVER):
+          containerBuilder.withImagePullPolicy("Never")
+          break
+        case (KubernetesPullPolicy.ALWAYS):
+          containerBuilder.withImagePullPolicy("Always")
+          break
+        case (KubernetesPullPolicy.IFNOTPRESENT):
+          containerBuilder.withImagePullPolicy("IfNotPresent")
+          break
+        default:
+          throw new IllegalArgumentException("Unknown image pull policy: $container.imagePullPolicy\n")
+      }
+    } else {
+      containerBuilder.withImagePullPolicy("IfNotPresent")
+    }
+
     if (container.ports) {
       container.ports.forEach {
         containerBuilder = containerBuilder.addNewPort()
@@ -353,6 +371,21 @@ class KubernetesApiConverter {
     def containerDescription = new KubernetesContainerDescription()
     containerDescription.name = container.name
     containerDescription.imageDescription = KubernetesUtil.buildImageDescription(container.image)
+
+    switch (container.imagePullPolicy) {
+      case ("Never"):
+        containerDescription.imagePullPolicy = KubernetesPullPolicy.NEVER
+        break
+      case ("Always"):
+        containerDescription.imagePullPolicy = KubernetesPullPolicy.ALWAYS
+        break
+      case ("IfNotPresent"):
+        containerDescription.imagePullPolicy = KubernetesPullPolicy.IFNOTPRESENT
+        break
+      default:
+        containerDescription.imagePullPolicy = KubernetesPullPolicy.IFNOTPRESENT
+        break
+    }
 
     container.resources?.with {
       containerDescription.limits = limits?.cpu?.amount || limits?.memory?.amount ?
