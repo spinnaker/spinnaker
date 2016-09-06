@@ -31,7 +31,7 @@ public class AnonymousUserConfig {
   @Bean
   String addAnonymousUser(PermissionsRepository permissionsRepository,
                           PermissionsResolver permissionsResolver) {
-    permissionsResolver.resolveAnonymous().ifPresent(permissionsRepository::forcePut);
+    permissionsResolver.resolveAnonymous().ifPresent(permissionsRepository::put);
     return ANONYMOUS_USERNAME;
   }
 }

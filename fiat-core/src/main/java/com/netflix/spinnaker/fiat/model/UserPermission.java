@@ -24,6 +24,8 @@ import com.netflix.spinnaker.fiat.model.resources.Viewable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
@@ -46,6 +48,24 @@ public class UserPermission implements Viewable {
   @JsonIgnore
   public boolean isEmpty() {
     return accounts.isEmpty() && applications.isEmpty();
+  }
+
+  public void addResource(Resource resource) {
+    addResources(Collections.singleton(resource));
+  }
+
+  public void addResources(Collection<Resource> resources) {
+    resources.forEach(resource -> {
+      if (resource instanceof Account) {
+        accounts.add((Account) resource);
+      } else if (resource instanceof Application) {
+        applications.add((Application) resource);
+      } else if (resource instanceof ServiceAccount) {
+        serviceAccounts.add((ServiceAccount) resource);
+      } else {
+        throw new IllegalArgumentException("Cannot add unknown resource " + resource);
+      }
+    });
   }
 
   @JsonIgnore

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.providers.ApplicationProvider
 import com.netflix.spinnaker.fiat.providers.DefaultAccountProvider
 import com.netflix.spinnaker.fiat.providers.DefaultServiceAccountProvider
+import com.netflix.spinnaker.fiat.providers.ResourceProvider
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider
@@ -63,12 +64,15 @@ class DefaultPermissionsResolverSpec extends Specification {
     getAll(*_) >> []
   }
 
+  @Shared
+  List<ResourceProvider> resourceProviders = [accountProvider,
+                                              applicationProvider,
+                                              serviceAccountProvider]
+
   def "should resolve the anonymous user permission, when enabled"() {
     setup:
     @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver()
-        .setAccountProvider(accountProvider)
-        .setApplicationProvider(applicationProvider)
-        .setServiceAccountProvider(serviceAccountProvider)
+        .setResourceProviders(resourceProviders)
         .setAnonymousEnabled(false)
 
     when:
@@ -93,9 +97,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
     @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver()
         .setUserRolesProvider(userRolesProvider)
-        .setAccountProvider(accountProvider)
-        .setApplicationProvider(applicationProvider)
-        .setServiceAccountProvider(serviceAccountProvider)
+        .setResourceProviders(resourceProviders)
 
     when:
     resolver.resolve(null as String)
@@ -152,9 +154,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
     @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver()
         .setUserRolesProvider(userRolesProvider)
-        .setAccountProvider(accountProvider)
-        .setApplicationProvider(applicationProvider)
-        .setServiceAccountProvider(serviceAccountProvider)
+        .setResourceProviders(resourceProviders)
 
     when:
     resolver.resolve(null as Collection)

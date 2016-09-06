@@ -28,14 +28,6 @@ public class InMemoryPermissionsRepository implements PermissionsRepository {
 
   @Override
   public InMemoryPermissionsRepository put(UserPermission permission) {
-    if (!permission.isPartialPermission()) {
-      forcePut(permission);
-    }
-    return this;
-  }
-
-  @Override
-  public InMemoryPermissionsRepository forcePut(UserPermission permission) {
     this.permissions.put(permission.getId(), permission);
     return this;
   }

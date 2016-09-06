@@ -80,14 +80,6 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
   @Override
   public RedisPermissionsRepository put(@NonNull UserPermission permission) {
-    if (!permission.isPartialPermission()) {
-      forcePut(permission);
-    }
-    return this;
-  }
-
-  @Override
-  public RedisPermissionsRepository forcePut(@NonNull UserPermission permission) {
     try (Jedis jedis = jedisSource.getJedis()) {
       for (ResourceType r : ResourceType.values()) {
         Map<String, String> resourceValues = new HashMap<>();

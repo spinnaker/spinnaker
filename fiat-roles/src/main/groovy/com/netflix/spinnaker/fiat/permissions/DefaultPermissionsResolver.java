@@ -18,10 +18,8 @@ package com.netflix.spinnaker.fiat.permissions;
 
 import com.netflix.spinnaker.fiat.config.AnonymousUserConfig;
 import com.netflix.spinnaker.fiat.model.UserPermission;
-import com.netflix.spinnaker.fiat.providers.AccountProvider;
-import com.netflix.spinnaker.fiat.providers.ApplicationProvider;
 import com.netflix.spinnaker.fiat.providers.ProviderException;
-import com.netflix.spinnaker.fiat.providers.ServiceAccountProvider;
+import com.netflix.spinnaker.fiat.providers.ResourceProvider;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -48,15 +46,7 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
 
   @Autowired
   @Setter
-  private AccountProvider accountProvider;
-
-  @Autowired
-  @Setter
-  private ApplicationProvider applicationProvider;
-
-  @Autowired
-  @Setter
-  private ServiceAccountProvider serviceAccountProvider;
+  private List<ResourceProvider> resourceProviders;
 
   @Value("${auth.anonymous.enabled}")
   @Setter
@@ -67,8 +57,8 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
     if (!anonymousEnabled) {
       return Optional.empty();
     }
-    return Optional.of(getUserPermission(AnonymousUserConfig.ANONYMOUS_USERNAME,
-                                         new ArrayList<>(0) /* groups */));
+    return getUserPermission(AnonymousUserConfig.ANONYMOUS_USERNAME,
+                             new ArrayList<>(0) /* groups */);
   }
 
   @Override
@@ -92,7 +82,7 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
                       .map(String::toLowerCase)
                       .collect(Collectors.toSet());
 
-    return Optional.of(getUserPermission(userId, combo));
+    return getUserPermission(userId, combo);
   }
 
   @Override
@@ -103,32 +93,27 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
     return roles.entrySet()
                 .stream()
                 .map(entry -> getUserPermission(entry.getKey(), entry.getValue()))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .collect(Collectors.toMap(UserPermission::getId, Function.identity()));
   }
 
-  private UserPermission getUserPermission(String userId, Collection<String> groups) {
+  @SuppressWarnings("unchecked")
+  private Optional<UserPermission> getUserPermission(String userId, Collection<String> groups) {
     UserPermission permission = new UserPermission().setId(userId);
 
-    try {
-      permission.setAccounts(accountProvider.getAll(groups));
-    } catch (ProviderException pe) {
-      permission.setPartialPermission(true);
-    }
-
-    try {
-      permission.setApplications(applicationProvider.getAll(groups));
-    } catch (ProviderException pe) {
-      permission.setPartialPermission(true);
-    }
-
-    if (!AnonymousUserConfig.ANONYMOUS_USERNAME.equalsIgnoreCase(userId)) {
+    for (ResourceProvider provider : resourceProviders) {
       try {
-        permission.setServiceAccounts(serviceAccountProvider.getAll(groups));
+        permission.addResources(provider.getAll(groups));
       } catch (ProviderException pe) {
-        permission.setPartialPermission(true);
+        log.warn("Can't resolve permission for '{}' due to error with '{}': {}",
+                 userId,
+                 provider.getClass().getSimpleName(),
+                 pe.getMessage());
+        log.debug("Error resolving UserPermission", pe);
+        return Optional.empty();
       }
     }
-
-    return permission;
+    return Optional.of(permission);
   }
 }

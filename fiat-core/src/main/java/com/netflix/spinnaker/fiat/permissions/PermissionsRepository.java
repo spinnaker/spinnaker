@@ -31,19 +31,10 @@ public interface PermissionsRepository {
 
   /**
    * Adds the specified permission to the repository, overwriting anything under the same id.
-   * Will have no effect if the specified permission is partial. See
-   * {@link #forcePut(UserPermission)}.
    * @param permission
    * @return This PermissionRepository
    */
   PermissionsRepository put(UserPermission permission);
-
-  /**
-   * Adds the specified permission to the repository, even if it is only a partial permission.
-   * @param permission
-   * @return
-   */
-  PermissionsRepository forcePut(UserPermission permission);
 
   /**
    * Gets the UserPermission from the repository, if available. Returns an empty Optional if not
