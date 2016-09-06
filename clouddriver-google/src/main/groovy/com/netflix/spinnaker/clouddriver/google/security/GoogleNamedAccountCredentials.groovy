@@ -32,7 +32,6 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
 
   final String name // aka accountName
   final String environment
-  boolean httpLoadBalancingEnabled // TODO(jacobkiefer): Feature flag for L7 development.
   final String accountType
   final String cloudProvider = GoogleCloudProvider.GCE // duh.
   final List<String> requiredGroupMembership
@@ -49,7 +48,6 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
   static class Builder {
     String name
     String environment
-    boolean httpLoadBalancingEnabled // TODO(jacobkiefer): Feature flag for L7 development.
     String accountType
     List<String> requiredGroupMembership = []
     String project
@@ -74,12 +72,6 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
 
     Builder environment(String environment) {
       this.environment = environment
-      return this
-    }
-
-    // TODO(jacobkiefer): Feature flag for L7 development.
-    Builder httpLoadBalancingEnabled(boolean httpLoadBalancingEnabled) {
-      this.httpLoadBalancingEnabled = httpLoadBalancingEnabled
       return this
     }
 
@@ -169,7 +161,6 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
 
       new GoogleNamedAccountCredentials(name,
                                         environment,
-                                        httpLoadBalancingEnabled,
                                         accountType,
                                         GoogleCloudProvider.GCE,
                                         requiredGroupMembership,

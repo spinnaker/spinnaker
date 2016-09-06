@@ -30,7 +30,6 @@ class GoogleConfigurationProperties {
     String accountType
     String project
     boolean alphaListed
-    boolean httpLoadBalancingEnabled // TODO(jacobkiefer): Feature flag for L7 development.
     String jsonPath
     List<String> imageProjects
     List<String> requiredGroupMembership

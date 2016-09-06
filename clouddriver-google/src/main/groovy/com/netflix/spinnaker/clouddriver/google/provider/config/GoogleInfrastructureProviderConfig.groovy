@@ -116,12 +116,10 @@ class GoogleInfrastructureProviderConfig {
                                                         objectMapper,
                                                         credentials.imageProjects,
                                                         googleConfiguration.googleConfigurationProperties().baseImageProjects)
-        if (credentials.httpLoadBalancingEnabled) {
-          newlyAddedAgents << new GoogleHttpLoadBalancerCachingAgent(googleConfiguration.googleApplicationName(),
-                                                                     credentials,
-                                                                     objectMapper,
-                                                                     registry)
-        }
+        newlyAddedAgents << new GoogleHttpLoadBalancerCachingAgent(googleConfiguration.googleApplicationName(),
+                                                                   credentials,
+                                                                   objectMapper,
+                                                                   registry)
         regions.each { String region ->
           newlyAddedAgents << new GoogleLoadBalancerCachingAgent(googleConfiguration.googleApplicationName(),
                                                                  credentials,
