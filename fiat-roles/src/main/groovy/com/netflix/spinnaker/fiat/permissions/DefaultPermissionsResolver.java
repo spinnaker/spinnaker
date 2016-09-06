@@ -16,8 +16,13 @@
 
 package com.netflix.spinnaker.fiat.permissions;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.netflix.spinnaker.fiat.config.AnonymousUserConfig;
+import com.netflix.spinnaker.fiat.model.ServiceAccount;
 import com.netflix.spinnaker.fiat.model.UserPermission;
+import com.netflix.spinnaker.fiat.model.resources.GroupAccessControlled;
+import com.netflix.spinnaker.fiat.model.resources.Resource;
 import com.netflix.spinnaker.fiat.providers.ProviderException;
 import com.netflix.spinnaker.fiat.providers.ResourceProvider;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
@@ -31,6 +36,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -85,19 +91,6 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
     return getUserPermission(userId, combo);
   }
 
-  @Override
-  public Map<String, UserPermission> resolve(@NonNull Collection<String> userIds) {
-    // TODO(ttomsu): Make bulk version of getUserPermission. Current impl will crush the resource
-    // provider when there are a lot of users.
-    val roles = userRolesProvider.multiLoadRoles(userIds);
-    return roles.entrySet()
-                .stream()
-                .map(entry -> getUserPermission(entry.getKey(), entry.getValue()))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toMap(UserPermission::getId, Function.identity()));
-  }
-
   @SuppressWarnings("unchecked")
   private Optional<UserPermission> getUserPermission(String userId, Collection<String> groups) {
     UserPermission permission = new UserPermission().setId(userId);
@@ -115,5 +108,60 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
       }
     }
     return Optional.of(permission);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public Map<String, UserPermission> resolve(@NonNull Collection<String> userIds) {
+    val userToRoles = userRolesProvider.multiLoadRoles(userIds);
+
+    String noRolesNeeded = "__NO_ROLES_NEEDED__";
+
+    // This is the reverse index of each resourceProvider's getAll() call.
+    Multimap<String, Resource> roleToResource = ArrayListMultimap.create();
+
+    for (ResourceProvider provider : resourceProviders) {
+      try {
+        provider
+            .getAll()
+            .forEach(resource -> {
+              if (resource instanceof GroupAccessControlled) {
+                GroupAccessControlled gacResource = (GroupAccessControlled) resource;
+
+                List<String> reqGroups = Collections.singletonList(noRolesNeeded);
+                if (!gacResource.getRequiredGroupMembership().isEmpty()) {
+                  reqGroups = gacResource.getRequiredGroupMembership();
+                }
+
+                reqGroups.forEach(group -> roleToResource.put(group, gacResource));
+              } else if (resource instanceof ServiceAccount) {
+                ServiceAccount serviceAccount = (ServiceAccount) resource;
+                roleToResource.put(serviceAccount.getNameWithoutDomain(), serviceAccount);
+              }
+            });
+      } catch (ProviderException pe) {
+        log.warn("Can't getAll '{}' resources: {}",
+                 provider.getClass().getSimpleName(),
+                 pe.getMessage());
+        log.debug("Error resolving UserPermission", pe);
+        return Collections.emptyMap();
+      }
+    }
+
+    return userToRoles
+        .entrySet()
+        .stream()
+        .map(entry -> {
+          String username = entry.getKey();
+          Collection<String> userRoles = entry.getValue();
+
+          UserPermission permission = new UserPermission().setId(username);
+
+          permission.addResources(roleToResource.get(noRolesNeeded));
+          userRoles.forEach(userRole -> permission.addResources(roleToResource.get(userRole)));
+
+          return permission;
+        })
+        .collect(Collectors.toMap(UserPermission::getId, Function.identity()));
   }
 }

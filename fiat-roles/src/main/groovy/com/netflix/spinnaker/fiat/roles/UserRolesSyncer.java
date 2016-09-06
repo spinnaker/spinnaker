@@ -56,8 +56,12 @@ public class UserRolesSyncer {
   // TODO(ttomsu): Acquire a lock in order to make this scale to multiple instances.
   @Scheduled(fixedDelayString = "${auth.userSync.intervalMs:600000}")
   public void sync() {
+    syncAndReturn();
+  }
+
+  public long syncAndReturn() {
     updateServiceAccounts();
-    updateUserPermissions();
+    return updateUserPermissions();
   }
 
   private void updateServiceAccounts() {
@@ -67,7 +71,7 @@ public class UserRolesSyncer {
     backoff.setInterval(retryIntervalMs);
     BackOffExecution backOffExec = backoff.start();
 
-    while(true) {
+    while (true) {
       try {
         serviceAccountProvider
             .getAll()
@@ -87,7 +91,7 @@ public class UserRolesSyncer {
         }
         log.warn("Service account resolution failed. Trying again in " + waitTime + "ms.", pe);
 
-        try{
+        try {
           Thread.sleep(waitTime);
         } catch (InterruptedException ignored) {
           return;
@@ -96,7 +100,7 @@ public class UserRolesSyncer {
     }
   }
 
-  private void updateUserPermissions() {
+  private long updateUserPermissions() {
     val permissionMap = permissionsRepository.getAllById();
 
     if (permissionMap.remove(AnonymousUserConfig.ANONYMOUS_USERNAME) != null) {
@@ -106,9 +110,12 @@ public class UserRolesSyncer {
       });
     }
 
-    permissionsResolver.resolve(permissionMap.keySet())
-                       .values()
-                       .forEach(permission -> permissionsRepository.put(permission));
-    log.info("Synced " + permissionMap.keySet().size() + " non-anonymous user roles.");
+    long count = permissionsResolver.resolve(permissionMap.keySet())
+                                   .values()
+                                   .stream()
+                                   .map(permission -> permissionsRepository.put(permission))
+                                   .count();
+    log.info("Synced {} non-anonymous user roles.", count);
+    return count;
   }
 }
