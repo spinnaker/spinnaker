@@ -141,6 +141,11 @@ function extract_spinnaker_local_yaml() {
       chmod 600 $AWS_DIR/credentials
   fi
 
+  local consul_enabled=$(get_instance_metadata_attribute "consul_enabled")
+  if [ -n "$consul_enabled" ]; then
+      write_default_value "SPINNAKER_GOOGLE_CONSUL_ENABLED" "$consul_enabled"
+  fi
+
   clear_instance_metadata "spinnaker_local"
   return 0
 }
@@ -310,6 +315,7 @@ write_default_value "SPINNAKER_GOOGLE_PROJECT_ID" "$MY_PROJECT"
 write_default_value "SPINNAKER_GOOGLE_DEFAULT_ZONE" "$MY_ZONE"
 write_default_value "SPINNAKER_GOOGLE_DEFAULT_REGION" "${MY_ZONE%-*}"
 write_default_value "SPINNAKER_DEFAULT_STORAGE_BUCKET" "spinnaker-${MY_PROJECT}"
+write_default_value "SPINNAKER_GOOGLE_CONSUL_ENABLED" "false"
 echo "$STATUS_PREFIX  Extracting Configuration Info"
 extract_spinnaker_local_yaml
 

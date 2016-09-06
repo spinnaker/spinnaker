@@ -47,6 +47,8 @@ google:
     - name: ${providers.google.primaryCredentials.name}
       project: ${providers.google.primaryCredentials.project}
       jsonPath: ${providers.google.primaryCredentials.jsonPath}
+      consul:
+        enabled: ${providers.google.primaryCredentials.consul.enabled:false}
 
 cf:
   enabled: ${providers.cf.enabled:false}

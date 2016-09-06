@@ -70,6 +70,8 @@ providers:
       # from the Google Developer's Console.
       project: ${SPINNAKER_GOOGLE_PROJECT_ID:}
       jsonPath: ${SPINNAKER_GOOGLE_PROJECT_CREDENTIALS_PATH:}
+      consul: 
+        enabled: ${SPINNAKER_GOOGLE_CONSUL_ENABLED:false}
 
   cf:
     # For more information on configuring Cloud Foundry (cf) support, see
