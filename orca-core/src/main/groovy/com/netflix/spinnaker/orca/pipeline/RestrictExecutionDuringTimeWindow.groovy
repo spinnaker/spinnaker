@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
 
 import static java.util.Calendar.DAY_OF_MONTH
+import static java.util.Calendar.DAY_OF_WEEK
 import static java.util.Calendar.HOUR_OF_DAY
 import static java.util.Calendar.MINUTE
 import static java.util.Calendar.SECOND
@@ -97,6 +98,7 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
         Map restrictedExecutionWindow = stage.context.restrictedExecutionWindow as Map
         List whitelist = restrictedExecutionWindow.whitelist as List<Map>
         List whitelistWindows = [] as List<TimeWindow>
+        List whitelistDays = (restrictedExecutionWindow.days ?: []) as List<Integer>
 
         for (Map timeWindow : whitelist) {
           HourMinute start = new HourMinute(timeWindow.startHour as Integer, timeWindow.startMin as Integer)
@@ -104,7 +106,7 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
 
           whitelistWindows.add(new TimeWindow(start, end))
         }
-        return calculateScheduledTime(scheduledTime, whitelistWindows)
+        return calculateScheduledTime(scheduledTime, whitelistWindows, whitelistDays)
 
       } catch (IncorrectTimeWindowsException ite) {
         throw new RuntimeException("Incorrect time windows specified", ite)
@@ -112,11 +114,11 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
     }
 
     @VisibleForTesting
-    private Date calculateScheduledTime(Date scheduledTime, List<TimeWindow> whitelistWindows) throws IncorrectTimeWindowsException {
-      return calculateScheduledTime(scheduledTime, whitelistWindows, false)
+    private Date calculateScheduledTime(Date scheduledTime, List<TimeWindow> whitelistWindows, List<Integer> whitelistDays) throws IncorrectTimeWindowsException {
+      return calculateScheduledTime(scheduledTime, whitelistWindows, whitelistDays, false)
     }
 
-    private Date calculateScheduledTime(Date scheduledTime, List<TimeWindow> whitelistWindows, boolean dayIncremented) throws IncorrectTimeWindowsException {
+    private Date calculateScheduledTime(Date scheduledTime, List<TimeWindow> whitelistWindows, List<Integer> whitelistDays, boolean dayIncremented) throws IncorrectTimeWindowsException {
 
       boolean inWindow = false
       Collections.sort(whitelistWindows)
@@ -124,28 +126,45 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
       Calendar calendar = Calendar.instance
       calendar.setTimeZone(TimeZone.getTimeZone(timeZoneId))
       calendar.setTime(scheduledTime)
+      boolean todayIsValid = true
 
-      for (TimeWindow timeWindow : normalized) {
-        HourMinute hourMin = new HourMinute(calendar[HOUR_OF_DAY], calendar[MINUTE])
-        int index = timeWindow.indexOf(hourMin)
-        if (index == -1) {
-          calendar[HOUR_OF_DAY] = timeWindow.start.hour
-          calendar[MINUTE] = timeWindow.start.min
-          calendar[SECOND] = 0
-          inWindow = true
-          break
-        } else if (index == 0) {
-          inWindow = true
-          break
+      if (!whitelistDays.empty) {
+        int daysIncremented = 0
+        while (daysIncremented < 7) {
+          boolean nextDayFound = false
+          if (whitelistDays.contains(calendar.get(DAY_OF_WEEK))) {
+            nextDayFound = true
+            todayIsValid = daysIncremented == 0
+          }
+          if (nextDayFound) {
+            break
+          }
+          calendar.add(DAY_OF_MONTH, 1)
+          resetToTomorrow(calendar)
+          daysIncremented++
+        }
+      }
+      if (todayIsValid) {
+        for (TimeWindow timeWindow : normalized) {
+          HourMinute hourMin = new HourMinute(calendar[HOUR_OF_DAY], calendar[MINUTE])
+          int index = timeWindow.indexOf(hourMin)
+          if (index == -1) {
+            calendar[HOUR_OF_DAY] = timeWindow.start.hour
+            calendar[MINUTE] = timeWindow.start.min
+            calendar[SECOND] = 0
+            inWindow = true
+            break
+          } else if (index == 0) {
+            inWindow = true
+            break
+          }
         }
       }
 
       if (!inWindow) {
         if (!dayIncremented) {
-          calendar[HOUR_OF_DAY] = DAY_START_HOUR
-          calendar[MINUTE] = DAY_START_MIN
-          calendar[SECOND] = 0
-          return calculateScheduledTime(calendar.time, whitelistWindows, true)
+          resetToTomorrow(calendar)
+          return calculateScheduledTime(calendar.time, whitelistWindows, whitelistDays, true)
         } else {
           throw new IncorrectTimeWindowsException("Couldn't calculate a suitable time within given time windows")
         }
@@ -155,6 +174,12 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
         calendar.add(DAY_OF_MONTH, 1)
       }
       return calendar.time
+    }
+
+    private static void resetToTomorrow(Calendar calendar) {
+      calendar[HOUR_OF_DAY] = DAY_START_HOUR
+      calendar[MINUTE] = DAY_START_MIN
+      calendar[SECOND] = 0
     }
 
     private static List<TimeWindow> normalizeTimeWindows(List<TimeWindow> timeWindows) {
