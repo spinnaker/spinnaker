@@ -113,11 +113,11 @@ class KubernetesApiConverter {
     Volume volume = new Volume(name: volumeSource.name)
 
     switch (volumeSource.type) {
-      case KubernetesVolumeSourceType.EMPTYDIR:
+      case KubernetesVolumeSourceType.EmptyDir:
         def res = new EmptyDirVolumeSourceBuilder()
 
         switch (volumeSource.emptyDir.medium) {
-          case KubernetesStorageMediumType.MEMORY:
+          case KubernetesStorageMediumType.Memory:
             res = res.withMedium("Memory")
             break
 
@@ -128,19 +128,19 @@ class KubernetesApiConverter {
         volume.emptyDir = res.build()
         break
 
-      case KubernetesVolumeSourceType.HOSTPATH:
+      case KubernetesVolumeSourceType.HostPath:
         def res = new HostPathVolumeSourceBuilder().withPath(volumeSource.hostPath.path)
         volume.hostPath = res.build()
         break
 
-      case KubernetesVolumeSourceType.PERSISTENTVOLUMECLAIM:
+      case KubernetesVolumeSourceType.PersistentVolumeClaim:
         def res = new PersistentVolumeClaimVolumeSourceBuilder()
             .withClaimName(volumeSource.persistentVolumeClaim.claimName)
             .withReadOnly(volumeSource.persistentVolumeClaim.readOnly)
         volume.persistentVolumeClaim = res.build()
         break
 
-      case KubernetesVolumeSourceType.SECRET:
+      case KubernetesVolumeSourceType.Secret:
         def res = new SecretVolumeSourceBuilder()
             .withSecretName(volumeSource.secret.secretName)
         volume.secret = res.build()
@@ -159,19 +159,7 @@ class KubernetesApiConverter {
     def containerBuilder = new ContainerBuilder().withName(container.name).withImage(imageId)
 
     if (container.imagePullPolicy) {
-      switch (container.imagePullPolicy) {
-        case (KubernetesPullPolicy.NEVER):
-          containerBuilder.withImagePullPolicy("Never")
-          break
-        case (KubernetesPullPolicy.ALWAYS):
-          containerBuilder.withImagePullPolicy("Always")
-          break
-        case (KubernetesPullPolicy.IFNOTPRESENT):
-          containerBuilder.withImagePullPolicy("IfNotPresent")
-          break
-        default:
-          throw new IllegalArgumentException("Unknown image pull policy: $container.imagePullPolicy\n")
-      }
+      containerBuilder.withImagePullPolicy(container.imagePullPolicy.toString())
     } else {
       containerBuilder.withImagePullPolicy("IfNotPresent")
     }
@@ -372,19 +360,8 @@ class KubernetesApiConverter {
     containerDescription.name = container.name
     containerDescription.imageDescription = KubernetesUtil.buildImageDescription(container.image)
 
-    switch (container.imagePullPolicy) {
-      case ("Never"):
-        containerDescription.imagePullPolicy = KubernetesPullPolicy.NEVER
-        break
-      case ("Always"):
-        containerDescription.imagePullPolicy = KubernetesPullPolicy.ALWAYS
-        break
-      case ("IfNotPresent"):
-        containerDescription.imagePullPolicy = KubernetesPullPolicy.IFNOTPRESENT
-        break
-      default:
-        containerDescription.imagePullPolicy = KubernetesPullPolicy.IFNOTPRESENT
-        break
+    if (container.imagePullPolicy) {
+      containerDescription.imagePullPolicy = KubernetesPullPolicy.valueOf(container.imagePullPolicy)
     }
 
     container.resources?.with {
@@ -455,55 +432,32 @@ class KubernetesApiConverter {
     def res = new KubernetesVolumeSource(name: volume.name)
 
     if (volume.emptyDir) {
-      res.type = KubernetesVolumeSourceType.EMPTYDIR
+      res.type = KubernetesVolumeSourceType.EmptyDir
       def medium = volume.emptyDir.medium
       def mediumType
 
       if (medium == "Memory") {
-        mediumType = KubernetesStorageMediumType.MEMORY
+        mediumType = KubernetesStorageMediumType.Memory
       } else {
-        mediumType = KubernetesStorageMediumType.DEFAULT
+        mediumType = KubernetesStorageMediumType.Default
       }
 
       res.emptyDir = new KubernetesEmptyDir(medium: mediumType)
     } else if (volume.hostPath) {
-      res.type = KubernetesVolumeSourceType.HOSTPATH
+      res.type = KubernetesVolumeSourceType.HostPath
       res.hostPath = new KubernetesHostPath(path: volume.hostPath.path)
     } else if (volume.persistentVolumeClaim) {
-      res.type = KubernetesVolumeSourceType.PERSISTENTVOLUMECLAIM
+      res.type = KubernetesVolumeSourceType.PersistentVolumeClaim
       res.persistentVolumeClaim = new KubernetesPersistentVolumeClaim(claimName: volume.persistentVolumeClaim.claimName,
         readOnly: volume.persistentVolumeClaim.readOnly)
     } else if (volume.secret) {
-      res.type = KubernetesVolumeSourceType.SECRET
+      res.type = KubernetesVolumeSourceType.Secret
       res.secret = new KubernetesSecretVolumeSource(secretName: volume.secret.secretName)
     } else {
-      res.type = KubernetesVolumeSourceType.UNSUPPORTED
+      res.type = KubernetesVolumeSourceType.Unsupported
     }
 
     return res
-  }
-
-  static RunKubernetesJobDescription fromJob(Job job) {
-    def deployDescription = new RunKubernetesJobDescription()
-    def parsedName = Names.parseName(job?.metadata?.name)
-
-    deployDescription.application = parsedName?.app
-    deployDescription.stack = parsedName?.stack
-    deployDescription.freeFormDetails = parsedName?.detail
-    deployDescription.loadBalancers = KubernetesUtil?.getLoadBalancers(job)
-    deployDescription.namespace = job?.metadata?.namespace
-    deployDescription.completions = job?.spec?.completions
-    deployDescription.parallelism = job?.spec?.parallelism
-
-    deployDescription.volumeSources = job?.spec?.template?.spec?.volumes?.collect {
-      fromVolume(it)
-    } ?: []
-
-    deployDescription.containers = job?.spec?.template?.spec?.containers?.collect {
-      fromContainer(it)
-    } ?: []
-
-    return deployDescription
   }
 
   static DeployKubernetesAtomicOperationDescription fromReplicaSet(ReplicaSet replicaSet) {

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.KubernetesAtomicOperationDescription
 import groovy.transform.AutoClone
@@ -85,7 +86,14 @@ class KubernetesEnvVar {
 }
 
 enum KubernetesPullPolicy {
-  NEVER, IFNOTPRESENT, ALWAYS
+  @JsonProperty("IFNOTPRESENT")
+  IfNotPresent,
+
+  @JsonProperty("ALWAYS")
+  Always,
+
+  @JsonProperty("NEVER")
+  Never,
 }
 
 @AutoClone
@@ -118,11 +126,28 @@ class KubernetesVolumeMount {
 }
 
 enum KubernetesVolumeSourceType {
-  HOSTPATH, EMPTYDIR, PERSISTENTVOLUMECLAIM, SECRET, UNSUPPORTED
+  @JsonProperty("HOSTPATH")
+  HostPath,
+
+  @JsonProperty("EMPTYDIR")
+  EmptyDir,
+
+  @JsonProperty("PERSISTENTVOLUMECLAIM")
+  PersistentVolumeClaim,
+
+  @JsonProperty("SECRET")
+  Secret,
+
+  @JsonProperty("UNSUPPORTED")
+  Unsupported,
 }
 
 enum KubernetesStorageMediumType {
-  DEFAULT, MEMORY
+  @JsonProperty("DEFAULT")
+  Default,
+
+  @JsonProperty("MEMORY")
+  Memory,
 }
 
 @AutoClone

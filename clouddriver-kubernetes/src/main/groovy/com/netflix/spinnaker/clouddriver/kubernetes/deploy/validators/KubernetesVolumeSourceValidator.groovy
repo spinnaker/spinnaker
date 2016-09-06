@@ -26,12 +26,12 @@ class KubernetesVolumeSourceValidator {
   static void validate(KubernetesVolumeSource source, StandardKubernetesAttributeValidator helper, String prefix) {
     helper.validateName(source.name, "${prefix}.name")
     switch (source.type) {
-      case KubernetesVolumeSourceType.EMPTYDIR:
+      case KubernetesVolumeSourceType.EmptyDir:
         helper.validateNotEmpty(source.emptyDir, "${prefix}.emptyDir")
 
         break // Nothing else to validate, only property is an enum which is implicitly validated during deserialization
 
-      case KubernetesVolumeSourceType.HOSTPATH:
+      case KubernetesVolumeSourceType.HostPath:
         if (!helper.validateNotEmpty(source.hostPath, "${prefix}.hostPath")) {
           break
         }
@@ -39,7 +39,7 @@ class KubernetesVolumeSourceValidator {
 
         break
 
-      case KubernetesVolumeSourceType.PERSISTENTVOLUMECLAIM:
+      case KubernetesVolumeSourceType.PersistentVolumeClaim:
         if (!helper.validateNotEmpty(source.persistentVolumeClaim, "${prefix}.persistentVolumeClaim")) {
           break
         }
@@ -47,7 +47,7 @@ class KubernetesVolumeSourceValidator {
 
         break
 
-      case KubernetesVolumeSourceType.SECRET:
+      case KubernetesVolumeSourceType.Secret:
         if (!helper.validateNotEmpty(source.secret, "${prefix}.secret")) {
           break
         }
