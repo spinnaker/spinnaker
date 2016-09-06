@@ -38,7 +38,7 @@
             <li role="presentation" class="divider" ng-if="!ctrl.serverGroup.isDisabled"></li>
             <li><a href ng-click="ctrl.resizeServerGroup()">Resize</a></li>
             <li><a href ng-if="!ctrl.serverGroup.isDisabled" ng-click="ctrl.disableServerGroup()">Disable</a></li>
-            <li><a href ng-if="ctrl.serverGroup.isDisabled && ctrl.serverGroup.loadBalancers.length" ng-click="ctrl.enableServerGroup()">Enable</a></li>
+            <li><a href ng-if="ctrl.serverGroup.isDisabled && (ctrl.serverGroup.loadBalancers.length || ctrl.serverGroup.discovery)" ng-click="ctrl.enableServerGroup()">Enable</a></li>
             <li><a href ng-click="ctrl.destroyServerGroup()">Destroy</a></li>
             <li><a href ng-click="ctrl.cloneServerGroup(ctrl.serverGroup)">Clone</a></li>
           </ul>
