@@ -14,6 +14,11 @@ let decorateFn = function ($delegate, jsonListBuilder, spelAutocomplete) {
 
       link.apply(this, arguments);
 
+      let type = el.attr('type');
+      if (type === 'checkbox' || type === 'radio') {
+        return;
+      }
+
       // the textcomplete plugin needs input texts to marked as 'contenteditable'
       el.attr('contenteditable', true);
       spelAutocomplete.addPipelineInfo(scope.pipeline).then((textcompleteConfig) => {
