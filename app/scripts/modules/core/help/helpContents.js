@@ -227,11 +227,11 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
       '<p>For example, if the user selects "rollback" from this list of options, that branch can be activated by using the ' +
       'expression: ' +
       '<samp class="small">execution.stages[n].context.judgmentInput=="rollback"</samp></p>',
-    'pipeline.config.jenkins.haltPipelineOnFailure': '' +
+    'pipeline.config.haltPipelineOnFailure': '' +
     'Immediately halts execution of all running stages and fails the entire execution.',
-    'pipeline.config.jenkins.haltBranchOnFailure': '' +
+    'pipeline.config.haltBranchOnFailure': '' +
     'Prevents any stages that depend on this stage from running, but allows other branches of the pipeline to run.',
-    'pipeline.config.jenkins.ignoreFailure': '' +
+    'pipeline.config.ignoreFailure': '' +
     'Continues execution of dowstream stages, marking this stages as failed/continuing.',
     'pipeline.config.jenkins.markUnstableAsSuccessful.true': 'If Jenkins reports the build status as UNSTABLE, ' +
       'Spinnaker will mark the stage as SUCCEEDED and continue execution of the pipeline.',
