@@ -89,6 +89,7 @@ module.exports = angular
       return executeMultiInstanceTask(instanceGroups, application, 'detachInstances', 'Terminate', 'and shrink server groups', {
         'terminateDetachedInstances': true,
         'decrementDesiredCapacity': true,
+        'adjustMinIfNecessary': true,
       });
     }
 
