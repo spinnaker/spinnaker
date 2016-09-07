@@ -21,7 +21,12 @@ package com.netflix.spinnaker.orca.front50.model
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonSetter
+import groovy.transform.Canonical
+import groovy.transform.EqualsAndHashCode
+import groovy.transform.ToString
 
+@Canonical
 public class Application {
   public String name
   public String description
@@ -32,7 +37,22 @@ public class Application {
   public Boolean platformHealthOnly
   public Boolean platformHealthOnlyShowOverride
 
+  @JsonIgnore
+  String user
+  @JsonIgnore
+  List<String> requiredGroupMembership
+
   private Map<String, Object> details = new HashMap<String, Object>()
+
+  @JsonSetter
+  void setUser(String user) {
+    this.user = user
+  }
+
+  @JsonSetter
+  void setRequiredGroupMembership(List<String> requiredGroupMembership) {
+    this.requiredGroupMembership = requiredGroupMembership
+  }
 
   @JsonAnyGetter
   public Map<String,Object> details() {
@@ -55,5 +75,19 @@ public class Application {
   @JsonIgnore
   void updateAccounts(Set<String> accounts) {
     this.accounts = accounts ? accounts.collect { it.trim().toLowerCase() }.join(",") : null
+  }
+
+  @JsonIgnore
+  Permission getPermission() {
+    return new Permission()
+  }
+
+  @EqualsAndHashCode(excludes = 'lastModified')
+  @ToString
+  class Permission {
+    String name = Application.this.name
+    Long lastModified = System.currentTimeMillis()
+    String lastModifiedBy = Application.this.user ?: "unknown"
+    List<String> requiredGroupMembership = Application.this.requiredGroupMembership
   }
 }

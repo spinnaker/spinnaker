@@ -27,6 +27,8 @@ class DeleteApplicationTask extends AbstractFront50Task {
   Map<String, Object> performRequest(String account, Application application) {
     Map<String, Object> outputs = [:]
 
+    boolean deletePermission
+
     front50Service.credentials.findAll { it.global }.collect {
       it.name
     }.each { String globalAccountName ->
@@ -42,6 +44,7 @@ class DeleteApplicationTask extends AbstractFront50Task {
           } else {
             // application is not associated with any accounts, delete.
             front50Service.delete(globalAccountName, application.name)
+            deletePermission = true
           }
         }
       } catch (RetrofitError e) {
@@ -49,6 +52,17 @@ class DeleteApplicationTask extends AbstractFront50Task {
           return
         }
         throw e
+      }
+    }
+
+    if (deletePermission) {
+      try {
+        front50Service.deletePermission(application.name)
+      } catch (RetrofitError re) {
+        if (re.response.status == 404) {
+          return
+        }
+        throw re
       }
     }
 

@@ -41,6 +41,9 @@ abstract class AbstractFront50Task implements Task {
   @Override
   TaskResult execute(Stage stage) {
     def application = mapper.convertValue(stage.context.application, Application)
+    if (stage.context.user){
+      application.user = stage.context.user
+    }
     def account = (stage.context.account as String)?.toLowerCase()
 
     def missingInputs = []
