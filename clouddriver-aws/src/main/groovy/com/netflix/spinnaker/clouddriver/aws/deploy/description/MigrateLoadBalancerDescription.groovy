@@ -17,14 +17,15 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerMigrator.LoadBalancerLocation
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerMigrator.TargetLoadBalancerLocation
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 
-import static com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerMigrator.LoadBalancerLocation
 
 class MigrateLoadBalancerDescription {
 
   LoadBalancerLocation source
-  LoadBalancerLocation target
+  TargetLoadBalancerLocation target
   String subnetType
   String application
   boolean allowIngressFromClassic

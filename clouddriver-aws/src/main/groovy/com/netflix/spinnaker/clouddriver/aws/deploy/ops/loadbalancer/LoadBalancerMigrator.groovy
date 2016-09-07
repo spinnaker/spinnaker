@@ -44,7 +44,7 @@ class LoadBalancerMigrator {
 
   MigrateLoadBalancerStrategy migrationStrategy
   LoadBalancerLocation source
-  LoadBalancerLocation target
+  TargetLoadBalancerLocation target
   SecurityGroupLookup sourceLookup
   SecurityGroupLookup targetLookup
   String applicationName
@@ -59,7 +59,7 @@ class LoadBalancerMigrator {
                        DeployDefaults deployDefaults,
                        MigrateLoadBalancerStrategy migrationStrategy,
                        LoadBalancerLocation source,
-                       LoadBalancerLocation target,
+                       TargetLoadBalancerLocation target,
                        String subnetType,
                        String applicationName,
                        boolean allowIngressFromClassic) {
@@ -92,27 +92,40 @@ class LoadBalancerMigrator {
     String name
     String region
     String vpcId
-    List<String> availabilityZones
-
-    LoadBalancerLocation() {}
-
-    LoadBalancerLocation(ServerGroupLocation serverGroupLocation) {
-      this.credentials = serverGroupLocation.credentials
-      this.availabilityZones = serverGroupLocation.availabilityZones
-      this.region = serverGroupLocation.region
-      this.vpcId = serverGroupLocation.vpcId
-    }
-
-    LoadBalancerLocation(ClusterConfigurationTarget clusterConfigurationTarget) {
-      this.credentials = clusterConfigurationTarget.credentials
-      this.availabilityZones = clusterConfigurationTarget.availabilityZones
-      this.region = clusterConfigurationTarget.region
-      this.vpcId = clusterConfigurationTarget.vpcId
-    }
 
     @Override
     String toString() {
       "$name in $credentialAccount/$region" + (vpcId ? "/$vpcId" : "")
     }
+  }
+
+  public static class TargetLoadBalancerLocation extends LoadBalancerLocation {
+    List<String> availabilityZones
+    boolean useZonesFromSource
+
+    TargetLoadBalancerLocation() {}
+
+    TargetLoadBalancerLocation(LoadBalancerLocation sourceLocation, ServerGroupLocation serverGroupLocation) {
+      this.credentials = serverGroupLocation.credentials
+      this.region = serverGroupLocation.region
+      this.vpcId = serverGroupLocation.vpcId
+      this.useZonesFromSource = isSameRegion(sourceLocation)
+      this.availabilityZones = useZonesFromSource ? [] : serverGroupLocation.availabilityZones
+    }
+
+    TargetLoadBalancerLocation(LoadBalancerLocation sourceLocation, ClusterConfigurationTarget clusterConfigurationTarget) {
+      this.credentials = clusterConfigurationTarget.credentials
+      this.region = clusterConfigurationTarget.region
+      this.vpcId = clusterConfigurationTarget.vpcId
+      this.useZonesFromSource = isSameRegion(sourceLocation)
+      this.availabilityZones = useZonesFromSource ? [] : clusterConfigurationTarget.availabilityZones
+    }
+
+
+    private boolean isSameRegion(LoadBalancerLocation sourceLocation) {
+      return credentialAccount == sourceLocation?.credentialAccount && region == sourceLocation?.region
+    }
+
+
   }
 }
