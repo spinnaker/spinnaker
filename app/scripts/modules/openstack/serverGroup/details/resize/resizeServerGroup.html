@@ -1,0 +1,113 @@
+<div modal-page>
+  <task-monitor monitor="taskMonitor"></task-monitor>
+  <form role="form" name="resizeForm">
+    <modal-close></modal-close>
+    <div class="modal-header">
+      <h3>Resize {{serverGroup.name}}</h3>
+    </div>
+    <div class="modal-body container-fluid form-horizontal">
+      <div ng-if="command.advancedMode">
+        <div class="form-group">
+          <div class="col-md-12">
+            <p>Sets up auto-scaling for this server group.</p>
+            <p>To disable auto-scaling, use the <a href ng-click="command.advancedMode = false">Simple Mode</a>.</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-md-2 col-md-offset-3"><b>Min</b></div>
+          <div class="col-md-2"><b>Max</b></div>
+          <div class="col-md-2"><b>Desired</b></div>
+        </div>
+        <div class="form-group">
+          <div class="col-md-3 text-right"><b>Current</b></div>
+          <div class="col-md-2"><b>{{currentSize.min}}</b></div>
+          <div class="col-md-2"><b>{{currentSize.max}}</b></div>
+          <div class="col-md-2"><b>{{currentSize.desired}}</b></div>
+        </div>
+        <div class="form-group">
+          <div class="col-md-3 text-right"><b>New</b></div>
+          <div class="col-md-2"><input type="number"
+                                       class="form-control input-sm"
+                                       ng-model="command.capacity.min"
+                                       min="0"
+                                       required
+                                       max="{{command.capacity.max}}"/></div>
+          <div class="col-md-2"><input type="number"
+                                       class="form-control input-sm"
+                                       ng-model="command.capacity.max"
+                                       required
+                                       min="{{command.capacity.min}}"/></div>
+          <div class="col-md-2"><input type="number"
+                                       class="form-control input-sm"
+                                       ng-model="command.capacity.desired"
+                                       required
+                                       min="{{command.capacity.min}}"
+                                       max="{{command.capacity.max}}"/></div>
+        </div>
+
+      </div>
+      <div ng-if="!command.advancedMode">
+        <div class="form-group">
+          <div class="col-md-12">
+            <p>Sets min, max, and desired instance counts to the same value.</p>
+            <p> To allow true auto-scaling, use the <a href ng-click="command.advancedMode = true">Advanced Mode</a>.</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-md-12">
+            <h4>Current size:</h4>
+          </div>
+        </div>
+        <div class="form-group form-inline">
+          <div class="col-md-11 col-md-offset-1">
+            <label>
+              <input type="number"
+                     class="form-control input-sm"
+                     ng-model="currentSize.desired"
+                     style="width: 60px"
+                     readonly/>
+              instance<span ng-if="currentSize.desired > 1">s</span>
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-md-12">
+            <h4>Resize to:</h4>
+          </div>
+        </div>
+        <div class="form-group form-inline">
+          <div class="col-md-11 col-md-offset-1">
+            <label>
+              <input type="number"
+                     class="form-control input-sm highlight-pristine"
+                     ng-model="command.capacity.desired"
+                     min="1"
+                     required
+                     style="width: 60px"/>
+              instances
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="row" ng-if="command.platformHealthOnlyShowOverride">
+        <div class="col-sm-10 col-sm-offset-1">
+          <platform-health-override command="command"
+                                    platform-health-type="'OpenStack'"
+                                    show-help-details="true">
+          </platform-health-override>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <user-verification account="serverGroup.account" verification="verification"></user-verification>
+      <button ng-disabled="resizeForm.$invalid" type="submit" ng-click="ctrl.resize()" style="display:none"></button> <!-- Allows form submission via enter keypress-->
+      <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+      <button type="submit"
+              ng-disabled="resizeForm.$invalid"
+              class="btn btn-primary"
+              ng-click="ctrl.resize()">
+        Submit
+      </button>
+    </div>
+  </form>
+</div>
