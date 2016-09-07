@@ -426,16 +426,20 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
           name: 'application',
           url: `${relativeUrl}/:application`,
           resolve: {
-            app: ['$stateParams', 'applicationReader', function($stateParams, applicationReader) {
-              return applicationReader.getApplication($stateParams.application)
-                .then(
-                function(app) {
-                  return app || { notFound: true, name: $stateParams.application };
-                },
-                function() {
-                  return { notFound: true, name: $stateParams.application };
-                }
-              );
+            app: ['$stateParams', 'applicationReader', 'inferredApplicationWarning',
+              function($stateParams, applicationReader, inferredApplicationWarning) {
+                return applicationReader.getApplication($stateParams.application)
+                  .then(
+                  function(app) {
+                    if (settings.feature.fiatEnabled) {
+                      inferredApplicationWarning.checkIfInferredAndWarn(app);
+                    }
+                    return app || { notFound: true, name: $stateParams.application };
+                  },
+                  function() {
+                    return { notFound: true, name: $stateParams.application };
+                  }
+                );
             }]
           },
           data: {
