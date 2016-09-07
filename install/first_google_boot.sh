@@ -24,6 +24,7 @@ set -u
 # We're running as root, but HOME might not be defined.
 AWS_DIR=/home/spinnaker/.aws
 KUBE_DIR=/home/spinnaker/.kube
+KUBE_VERSION=v1.3.4
 # Google Container Registry (GCR) password file directory.
 GCR_DIR=/home/spinnaker/.gcr
 SPINNAKER_INSTALL_DIR=/opt/spinnaker
@@ -218,26 +219,32 @@ function extract_spinnaker_aws_credentials() {
 
 function extract_spinnaker_kube_credentials() {
   local config_path="$KUBE_DIR/config"
-  mkdir -p $(dirname $config_path)
   chown -R spinnaker:spinnaker $(dirname $config_path)
 
-  if clear_metadata_to_file "kube_config" $config_path; then
-    # This is a workaround for difficulties using the Google Deployment Manager
-    # to express no value. We'll use the value "None". But we don't want
-    # to officially support this, so we'll just strip it out of this first
-    # time boot if we happen to see it, and assume the Google Deployment Manager
-    # got in the way.
-    sed -i s/^None$//g $config_path
+  local kube_cluster=$(get_instance_metadata_attribute "kube_cluster")
+  if [ -n "$kube_cluster" ]; then
+    # This is a workaround gcloud's package manager (which normally installs
+    # kubectl) conflicting with apt-get.
+    echo "Installing kubectl..."
+    curl -O https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/amd64/kubectl
+    chmod +x kubectl
+    mv kubectl /usr/local/bin/kubectl
+
+    echo "Downloading credentials..."
+    gcloud config set container/use_client_certificate true
+    gcloud container clusters get-credentials $kube_cluster $MY_ZONE
+
     if [[ -s $config_path ]]; then
+      echo "Kubernetes credentials successfully extracted to $config_path" 
       chmod 400 $config_path
       chown spinnaker:spinnaker $config_path
-      echo "Extracted Kubernetes config to $config_path"
     else
-       rm $config_path
+      echo "Failed to extract kubernetes credentials to $config_path"  
+      rm $config_path
     fi
     write_default_value "SPINNAKER_KUBERNETES_ENABLED" "true"
   else
-    clear_instance_metadata "kube_config"
+    clear_instance_metadata "kube_cluster"
   fi
 }
 
@@ -246,28 +253,26 @@ function extract_spinnaker_gcr_credentials() {
   mkdir -p $(dirname $config_path)
   chown -R spinnaker:spinnaker $(dirname $config_path)
 
-  if clear_metadata_to_file "gcr_json" $config_path; then
-    # This is a workaround for difficulties using the Google Deployment Manager
-    # to express no value. We'll use the value "None". But we don't want
-    # to officially support this, so we'll just strip it out of this first
-    # time boot if we happen to see it, and assume the Google Deployment Manager
-    # got in the way.
-    sed -i s/^None$//g $config_path
+  local gcr_account=$(get_instance_metadata_attribute "gcr_account")
+  if [ -n "$gcr_account" ]; then
+    # This downloads the JSON key for the specified service account
+    gcloud iam service-accounts keys create $config_path --iam-account=$gcr_account
+
     if [[ -s $config_path ]]; then
+      echo "Extracted GCR credentials to $config_path"
+
       chmod 400 $config_path
       chown spinnaker:spinnaker $config_path
-      echo "Extracted GCR credentials to $config_path"
-    else
-       rm $config_path
-    fi
-    write_default_value "SPINNAKER_DOCKER_PASSWORD_FILE" $config_path
-    write_default_value "SPINNAKER_DOCKER_USERNAME" "_json_key"
-    write_default_value "SPINNAKER_DOCKER_REGISTRY" "https://gcr.io"
 
-    local repository=$(get_instance_metadata_attribute "docker_repository")
-    write_default_value "SPINNAKER_DOCKER_REPOSITORY" $repository
+      write_default_value "SPINNAKER_DOCKER_PASSWORD_FILE" $config_path
+      write_default_value "SPINNAKER_DOCKER_USERNAME" "_json_key"
+      write_default_value "SPINNAKER_DOCKER_REGISTRY" "https://gcr.io"
+    else
+      rm $config_path
+      echo "Failed to extract GCR credentials to $config_path"
+    fi
   else
-    clear_instance_metadata "gcr_json"
+    clear_instance_metadata "gcr_account"
   fi
 }
 
