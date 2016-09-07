@@ -55,4 +55,9 @@ public class PermissionsController {
     applicationPermissionDAO.update(appName, permission)
     return applicationPermissionDAO.findById(appName);
   }
+
+  @RequestMapping(method = RequestMethod.DELETE, value = "/applications/{appName:.+}")
+  void deleteApplicationPermission(@PathVariable String appName) {
+    applicationPermissionDAO.delete(appName);
+  }
 }
