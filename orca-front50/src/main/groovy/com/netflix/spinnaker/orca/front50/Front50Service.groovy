@@ -43,6 +43,12 @@ interface Front50Service {
   @PUT("/{account}/applications")
   Response update(@Path("account") String account, @Body Application application)
 
+  @DELETE("/permissions/applications/{name}")
+  Response deletePermission(@Path("name") String name)
+
+  @PUT("/permissions/applications/{name}")
+  Response updatePermission(@Path("name") String name, @Body Application.Permission permission)
+
   @GET("/pipelines/{application}")
   List<Map<String, Object>> getPipelines(@Path("application") String application)
 

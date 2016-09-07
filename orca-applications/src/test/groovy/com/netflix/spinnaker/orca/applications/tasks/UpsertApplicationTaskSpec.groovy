@@ -20,10 +20,10 @@ package com.netflix.spinnaker.orca.applications.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.front50.model.Front50Credential
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import com.netflix.spinnaker.orca.front50.model.Application
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -42,7 +42,8 @@ class UpsertApplicationTaskSpec extends Specification {
       "repoProjectKey" : "project-key",
       "repoSlug" : "repo-slug",
       "repoType" : "github"
-    ]
+    ],
+    user: "testUser"
   ]
 
   @Shared
@@ -50,12 +51,12 @@ class UpsertApplicationTaskSpec extends Specification {
 
   void "should create an application in global registries"() {
     given:
+    def app = new Application(config.application + [accounts: config.account, user: config.user])
     task.front50Service = Mock(Front50Service) {
       1 * get(globalAccount, config.application.name) >> null
       1 * getCredentials() >> [new Front50Credential(name: globalAccount, global: true)]
-      1 * create(globalAccount, config.application.name, {
-        it.properties == new Application(config.application + [accounts: config.account]).properties
-      })
+      1 * create(globalAccount, config.application.name, app)
+      1 * updatePermission(app.name, app.permission)
       0 * _._
     }
 
@@ -68,15 +69,16 @@ class UpsertApplicationTaskSpec extends Specification {
 
   void "should update existing application (global)"() {
     given:
+    def app = new Application(config.application + [
+        accounts: [existingGlobalApplicationAccount, config.account].join(","),
+        user    : config.user
+    ])
     task.front50Service = Mock(Front50Service) {
       1 * get(globalAccount, config.application.name) >> existingGlobalApplication
       1 * getCredentials() >> [new Front50Credential(name: globalAccount, global: true)]
-      1 * update(globalAccount, {
-        // assert that the global application is updated w/ new application attributes and merged accounts
-        it.properties == new Application(
-          config.application + [accounts: [existingGlobalApplicationAccount, config.account].join(",")]
-        ).properties
-      })
+      // assert that the global application is updated w/ new application attributes and merged accounts
+      1 * update(globalAccount, app)
+      1 * updatePermission(app.name, app.permission)
       0 * _._
     }
 
@@ -98,11 +100,13 @@ class UpsertApplicationTaskSpec extends Specification {
     given:
     Application application = new Application(config.application)
     application.accounts = config.account
+    application.user = config.user
 
     task.front50Service = Mock(Front50Service) {
       1 * get(globalAccount, config.application.name) >> initialState
       1 * getCredentials() >> [new Front50Credential(name: globalAccount, global: true)]
       1 * "${operation}"(*_)
+      1 * updatePermission(*_)
       0 * _._
     }
 
@@ -111,7 +115,7 @@ class UpsertApplicationTaskSpec extends Specification {
 
     then:
     result.stageOutputs.previousState == (initialState ?: [:])
-    result.stageOutputs.newState.properties == application.properties
+    result.stageOutputs.newState == application
 
     where:
     initialState      | operation

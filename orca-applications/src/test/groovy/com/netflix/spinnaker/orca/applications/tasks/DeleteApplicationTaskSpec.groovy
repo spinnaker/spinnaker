@@ -44,6 +44,7 @@ class DeleteApplicationTaskSpec extends Specification {
       1 * getCredentials() >> [new Front50Credential(name: "global", global: true)]
       1 * get("global", config.application.name) >> new Application(accounts: "test")
       1 * delete("global", config.application.name)
+      1 * deletePermission(config.application.name)
       0 * _._
     }
 
@@ -76,6 +77,7 @@ class DeleteApplicationTaskSpec extends Specification {
     task.front50Service = Mock(Front50Service) {
       1 * get("default", config.application.name) >> application
       1 * delete("default", config.application.name)
+      1 * deletePermission(config.application.name)
       1 * getCredentials() >> [new Front50Credential(name: "default", global: true)]
       0 * _._
     }

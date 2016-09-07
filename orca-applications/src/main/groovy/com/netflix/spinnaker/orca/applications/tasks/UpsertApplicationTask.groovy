@@ -53,6 +53,12 @@ class UpsertApplicationTask extends AbstractFront50Task {
       }
     }.find { it }
 
+    try {
+      front50Service.updatePermission(application.name, application.permission)
+    } catch (RetrofitError re) {
+      log.error("Could not create or update application permission", re)
+    }
+
     outputs.newState = application ?: [:]
     outputs
   }
