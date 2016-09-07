@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.build.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.netflix.spinnaker.igor.jenkins.client.model.TestResults
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 class GenericBuild {
@@ -28,7 +29,8 @@ class GenericBuild {
     Integer duration
     String timestamp
     Result result
-    List<GenericArtifact> artifacts;
+    List<GenericArtifact> artifacts
+    List<TestResults> testResults
     String url
     @JsonProperty("scm")
     List<GenericGitRevision> genericGitRevisions
