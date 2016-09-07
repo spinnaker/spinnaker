@@ -31,9 +31,7 @@ module.exports = angular
     };
 
     let tagLoadSuccess = (tags) => {
-      this.tags =
-        tags.filter((val) => val.account === this.command.trigger.account)
-          .map((val) => val.tag ).sort();
+      this.tags = tags.map((val) => val.tag ).sort();
       if (this.tags.length) {
         let defaultSelection = this.tags[0];
         this.viewState.selectedTag = defaultSelection;
