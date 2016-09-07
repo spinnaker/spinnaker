@@ -17,12 +17,17 @@
 package com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.base.Splitter
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
 /**
  * This class is a wrapper for parameters that are passed to an openstack heat template
  * when auto scaling groups are created.
+ *
+ * This class only contains values that are directly sent to the heat templates as parameters.
  */
 @AutoClone
 @Canonical
@@ -42,6 +47,9 @@ class ServerGroupParameters {
   Scaler scaleup
   Scaler scaledown
   String rawUserData
+  Map<String, String> tags
+
+  static final ObjectMapper objectMapper = new ObjectMapper()
 
   Map<String, String> toParamsMap() {
     [
@@ -63,6 +71,7 @@ class ServerGroupParameters {
       scaledown_adjustment: scaledown?.adjustment ? scaledown.adjustment.toString() : null,
       scaledown_period    : scaledown?.period ? scaledown.period.toString() : null,
       scaledown_threshold : scaledown?.threshold ? scaledown.threshold.toString() : null,
+      tags                : objectMapper.writeValueAsString(tags ?: [:]) ?: null,
       user_data           : rawUserData ?: null
     ]
   }
@@ -91,26 +100,36 @@ class ServerGroupParameters {
         period: params.get('scaledown_period')?.toInteger(),
         threshold: params.get('scaledown_threshold')?.toInteger()
       ),
-      rawUserData: params.get('user_data')
+      rawUserData: params.get('user_data'),
+      tags: unescapePythonUnicodeJsonMap(params.get('tags') ?: null)
     )
   }
 
   /**
    * Stack parameters of type 'comma_delimited_list' come back as a unicode json string. We need to split that up.
    *
-   * I need a shower.
+   * TODO See https://bugs.launchpad.net/heat/+bug/1613415
    *
    * @param string
    * @return
    */
   static List<String> unescapePythonUnicodeJsonList(String string) {
     string?.split(",")?.collect { s ->
-      s.replace("u'", "")
-        .replace("'","")
-        .replace("[","")
-        .replace("]","")
-        .replaceAll("([ ][ ]*)","")
+      s.replace("u'", "").replace("'","").replace("[","").replace("]","").replaceAll("([ ][ ]*)","")
     } ?: []
+  }
+
+  /**
+   * Stack parameters of type 'comma_delimited_list' come back as a unicode json string. We need to split that up.
+   *
+   * TODO See https://bugs.launchpad.net/heat/+bug/1613415
+   *
+   * @param string
+   * @return
+   */
+  static Map<String, String> unescapePythonUnicodeJsonMap(String string) {
+    String parsed = string?.replace("u'", "")?.replace("'","")?.replace("{","")?.replace("}","")?.replace("\"","")?.replaceAll("([ ][ ]*)","")
+    parsed ? Splitter.on(",").withKeyValueSeparator(":").split(parsed) : [:]
   }
 
   /**

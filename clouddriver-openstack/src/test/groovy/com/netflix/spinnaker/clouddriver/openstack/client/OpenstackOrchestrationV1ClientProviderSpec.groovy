@@ -61,7 +61,8 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
       autoscalingType: ServerGroupParameters.AutoscalingType.CPU,
       scaleup: new ServerGroupParameters.Scaler(cooldown: 60, period: 60, adjustment: 1, threshold: 50),
       scaledown: new ServerGroupParameters.Scaler(cooldown: 60, period: 600, adjustment: -1, threshold: 15),
-      rawUserData: 'echo foobar'
+      rawUserData: 'echo foobar',
+      tags: ['foo':'bar']
     )
     Map<String, String> params = [
       flavor              : parameters.instanceType,
@@ -82,6 +83,7 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
       scaledown_adjustment: -1,
       scaledown_period    : 600,
       scaledown_threshold : 15,
+      tags                : '{"foo":"bar"}',
       user_data           : parameters.rawUserData
     ]
     List<String> tags = loadBalancerIds.collect { "lb-${it}" }
@@ -334,7 +336,7 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
     List<String> securityGroups = ['sg1']
     ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image,
       maxSize: maxSize, minSize: minSize, desiredSize: desiredSize, networkId: networkId, subnetId: subnetId,
-      loadBalancers: loadBalancerIds, securityGroups: securityGroups, rawUserData: 'echo foobar')
+      loadBalancers: loadBalancerIds, securityGroups: securityGroups, rawUserData: 'echo foobar', tags: ['foo':'bar'])
     Map<String, String> params = [
       flavor              : parameters.instanceType,
       image               : parameters.image,
@@ -354,6 +356,7 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
       scaledown_adjustment: null,
       scaledown_period    : null,
       scaledown_threshold : null,
+      tags                : '{"foo":"bar"}',
       user_data           : parameters.rawUserData
     ]
     String template = "foo: bar"

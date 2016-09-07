@@ -89,7 +89,8 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
       securityGroups: SECURITY_GROUPS,
       autoscalingType: ServerGroupParameters.AutoscalingType.CPU,
       scaleup: scaleup,
-      scaledown: scaledown
+      scaledown: scaledown,
+      tags: ['foo':'bar']
     )
     new DeployOpenstackAtomicOperationDescription(
       stack: STACK,
@@ -100,7 +101,8 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
       timeoutMins: TIMEOUT_MINS,
       disableRollback: DISABLE_ROLLBACK,
       account: ACCOUNT_NAME,
-      credentials: credentials
+      credentials: credentials,
+      userData: 'foo'
     )
   }
 
@@ -117,7 +119,8 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
       securityGroups: SECURITY_GROUPS_N,
       autoscalingType: ServerGroupParameters.AutoscalingType.NETWORK_INCOMING,
       scaleup: scaleup,
-      scaledown: scaledown
+      scaledown: scaledown,
+      tags: ["foo":"barbar"]
     )
     new DeployOpenstackAtomicOperationDescription(
       stack: STACK_N,
@@ -128,7 +131,8 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
       timeoutMins: TIMEOUT_MINS_N,
       disableRollback: DISABLE_ROLLBACK_N,
       account: ACCOUNT_NAME,
-      credentials: credentials
+      credentials: credentials,
+      userData: 'foo'
     )
   }
 
@@ -193,7 +197,8 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
       securityGroups: SECURITY_GROUPS_N,
       autoscalingType: ServerGroupParameters.AutoscalingType.NETWORK_INCOMING,
       scaleup: scaleup,
-      scaledown: scaledown
+      scaledown: scaledown,
+      tags: ["foo":"barbar"]
     )
     def inputDescription = new CloneOpenstackAtomicOperationDescription(
       stack: STACK_N,

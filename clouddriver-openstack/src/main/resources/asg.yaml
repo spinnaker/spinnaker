@@ -1,4 +1,4 @@
-heat_template_version: 2015-10-15
+heat_template_version: 2016-04-08
 description: Auto scaling group for Spinnaker
 parameters:
   flavor:
@@ -67,8 +67,12 @@ parameters:
     default: 15
   user_data:
     type: string
-    description: raw base64-encoded string that will execute upon server boot, if cloud-init is installed
+    description: Raw base64-encoded string that will execute upon server boot, if cloud-init is installed
     default: ""
+  tags:
+    type: json
+    description: Map of key-value pairs to store in instance metadata
+    default: {}
 resources:
   asg:
     type: OS::Heat::AutoScalingGroup
@@ -81,8 +85,12 @@ resources:
         properties:
           flavor: {get_param: flavor}
           image: {get_param: image}
-          # This is used by ceilometer to autoscale against instances that are part of this stack
-          metadata: {"metering.stack": {get_param: "OS::stack_id"}}
+          # metering.stack is used by ceilometer to autoscale against instances that are part of this stack
+          # the others are user-specified
+          metadata:
+            map_merge:
+              - {"metering.stack": {get_param: "OS::stack_id"}}
+              - {get_param: tags}
           network_id: {get_param: network_id}
           security_groups: {get_param: security_groups}
           subnet_id: {get_param: subnet_id}

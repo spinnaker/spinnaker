@@ -46,7 +46,7 @@ trait StackPoolMemberAware {
       ]
     }
     Map<String, Object> memberTemplate = [
-      heat_template_version: "2015-10-15",
+      heat_template_version: "2016-04-08",
       description          : "Pool members for autoscaling group resource",
       parameters           : parameters,
       resources            : resources]
