@@ -64,6 +64,9 @@ class Build {
         if (artifacts) {
             genericBuild.artifacts = artifacts*.getGenericArtifact()
         }
+        if (testResults) {
+            genericBuild.testResults = testResults
+        }
         return genericBuild
     }
 
