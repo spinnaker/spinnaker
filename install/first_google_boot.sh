@@ -226,7 +226,7 @@ function extract_spinnaker_kube_credentials() {
   local kube_cluster=$(get_instance_metadata_attribute "kube_cluster")
   if [ -n "$kube_cluster" ]; then
     echo "Downloading credentials..."
-    HOME=/home/spinnaker
+    export KUBECONFIG=$config_path
     gcloud config set container/use_client_certificate true
     gcloud container clusters get-credentials $kube_cluster --zone $MY_ZONE
 
