@@ -219,6 +219,7 @@ function extract_spinnaker_aws_credentials() {
 
 function extract_spinnaker_kube_credentials() {
   local config_path="$KUBE_DIR/config"
+  mkdir -p $(dirname $config_path)
   chown -R spinnaker:spinnaker $(dirname $config_path)
 
   local kube_cluster=$(get_instance_metadata_attribute "kube_cluster")
@@ -232,7 +233,8 @@ function extract_spinnaker_kube_credentials() {
 
     echo "Downloading credentials..."
     gcloud config set container/use_client_certificate true
-    gcloud container clusters get-credentials $kube_cluster $MY_ZONE
+    gcloud container clusters get-credentials $kube_cluster --zone $MY_ZONE
+    cp ~/.kube/config $config_path
 
     if [[ -s $config_path ]]; then
       echo "Kubernetes credentials successfully extracted to $config_path" 
