@@ -17,12 +17,10 @@
 
 package com.netflix.spinnaker.front50.controllers.exception
 
+import groovy.transform.InheritConstructors
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 
+@InheritConstructors
 @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Application not found")
-class ApplicationNotFoundException extends RuntimeException {
-  public ApplicationNotFoundException(Throwable cause) {
-    super(cause)
-  }
-}
+class ApplicationNotFoundException extends RuntimeException {}

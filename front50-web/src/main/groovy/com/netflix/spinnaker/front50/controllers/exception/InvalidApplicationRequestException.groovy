@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,11 @@
 
 package com.netflix.spinnaker.front50.controllers.exception
 
+import com.netflix.hystrix.exception.HystrixBadRequestException
 import groovy.transform.InheritConstructors
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 @InheritConstructors
-@ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE, reason = "Exception, baby")
-class ApplicationException extends RuntimeException {}
+@ResponseStatus(value = HttpStatus.BAD_REQUEST)
+public class InvalidApplicationRequestException extends HystrixBadRequestException {}
