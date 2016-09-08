@@ -224,13 +224,6 @@ function extract_spinnaker_kube_credentials() {
 
   local kube_cluster=$(get_instance_metadata_attribute "kube_cluster")
   if [ -n "$kube_cluster" ]; then
-    # This is a workaround gcloud's package manager (which normally installs
-    # kubectl) conflicting with apt-get.
-    echo "Installing kubectl..."
-    curl -O https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/amd64/kubectl
-    chmod +x kubectl
-    mv kubectl /usr/local/bin/kubectl
-
     echo "Downloading credentials..."
     gcloud config set container/use_client_certificate true
     gcloud container clusters get-credentials $kube_cluster --zone $MY_ZONE
@@ -315,6 +308,9 @@ process_args
 # Otherwise it would be running with the wrong (old/default) configuration.
 echo "Stopping spinnaker while we configure it."
 stop spinnaker || true
+
+# Update gcloud to latest version
+echo y | gcloud components update 
 
 echo "$STATUS_PREFIX  Configuring Default Values"
 write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
