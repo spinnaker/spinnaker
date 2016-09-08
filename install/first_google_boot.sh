@@ -25,6 +25,7 @@ set -u
 AWS_DIR=/home/spinnaker/.aws
 KUBE_DIR=/home/spinnaker/.kube
 KUBE_VERSION=v1.3.4
+GCLOUD_VERSION=125.0.0
 # Google Container Registry (GCR) password file directory.
 GCR_DIR=/home/spinnaker/.gcr
 SPINNAKER_INSTALL_DIR=/opt/spinnaker
@@ -225,9 +226,9 @@ function extract_spinnaker_kube_credentials() {
   local kube_cluster=$(get_instance_metadata_attribute "kube_cluster")
   if [ -n "$kube_cluster" ]; then
     echo "Downloading credentials..."
+    HOME=/home/spinnaker
     gcloud config set container/use_client_certificate true
     gcloud container clusters get-credentials $kube_cluster --zone $MY_ZONE
-    cp ~/.kube/config $config_path
 
     if [[ -s $config_path ]]; then
       echo "Kubernetes credentials successfully extracted to $config_path" 
@@ -309,8 +310,8 @@ process_args
 echo "Stopping spinnaker while we configure it."
 stop spinnaker || true
 
-# Update gcloud to latest version
-echo y | gcloud components update 
+# Update gcloud to chosen version, piping stdout to /dev/null since it's noisy
+echo y | gcloud components update --version $GCLOUD_VERSION > /dev/null 
 
 echo "$STATUS_PREFIX  Configuring Default Values"
 write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
