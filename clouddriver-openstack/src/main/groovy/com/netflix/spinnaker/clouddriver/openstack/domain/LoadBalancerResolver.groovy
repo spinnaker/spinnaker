@@ -28,11 +28,11 @@ import java.util.regex.Pattern
  *
  * {@code created_time=12345678}
  *
- * Load balancer listener descriptions are used to store external and internal protocols and ports.
+ * Load balancer listener descriptions are used to store external protocol and ports.
  *
  * For example:
  *
- * {@code HTTP:80:HTTP:8080}
+ * {@code HTTP:80:8080}
  */
 trait LoadBalancerResolver {
 
@@ -40,12 +40,12 @@ trait LoadBalancerResolver {
   final Pattern createdPattern = Pattern.compile(createdRegex)
 
   /**
-   * Generate key=value port string, e.g. internal_port=8100,internal_protocol=HTTP
+   * Generate key=value port string, e.g. internal_port
    * @param port
    * @return
    */
-  String getListenerKey(int externalPort, String externalProtocol, int port, String protocol) {
-    "${externalProtocol}:${externalPort}:${protocol}:${port}"
+  String getListenerKey(String externalProtocol, int externalPort, int port) {
+    "${externalProtocol}:${externalPort}:${port}"
   }
 
   Map<String, String> parseListenerKey(String key) {
@@ -53,12 +53,14 @@ trait LoadBalancerResolver {
 
     String[] parts = key?.split(':')
 
-    if (parts?.length == 4) {
-      result << [externalProtocol: parts[0], externalPort: parts[1], internalProtocol: parts[2], internalPort: parts[3]]
+    if (parts?.length == 3) {
+      result << [externalProtocol: parts[0], externalPort: parts[1], internalPort: parts[2]]
     }
 
     result
   }
+
+
 
   /**
    * Parse the created time from a load balancer description in the following format.

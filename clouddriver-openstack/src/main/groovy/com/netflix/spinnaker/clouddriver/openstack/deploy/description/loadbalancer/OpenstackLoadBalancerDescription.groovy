@@ -38,12 +38,20 @@ class OpenstackLoadBalancerDescription extends OpenstackAtomicOperationDescripti
 
   static class Listener {
     enum ListenerType {
-      HTTP, HTTPS, TCP
+      HTTP('HTTP'),
+      TERMINATED_HTTPS('HTTP'),
+      TCP('TCP')
+
+      String internalProtocol
+
+      ListenerType(String protocol) {
+        this.internalProtocol = protocol
+      }
     }
 
     Integer externalPort
     ListenerType externalProtocol
     Integer internalPort
-    ListenerType internalProtocol
   }
+
 }

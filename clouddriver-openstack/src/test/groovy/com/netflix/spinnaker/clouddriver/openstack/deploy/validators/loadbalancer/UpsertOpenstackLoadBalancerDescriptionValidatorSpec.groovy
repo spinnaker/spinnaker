@@ -68,7 +68,7 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
       , subnetId: UUID.randomUUID().toString()
       , algorithm: OpenstackLoadBalancerDescription.Algorithm.ROUND_ROBIN
       , securityGroups: [UUID.randomUUID().toString()]
-      , listeners: [ new Listener(externalPort: 80, externalProtocol: ListenerType.HTTP, internalPort: 8080, internalProtocol: ListenerType.HTTP)]
+      , listeners: [ new Listener(externalPort: 80, externalProtocol: ListenerType.HTTP, internalPort: 8080)]
       , healthMonitor: new HealthMonitor(type: HealthMonitorType.PING, delay: 1, timeout: 1, maxRetries: 1)
       , credentials: credz)
 
@@ -89,7 +89,7 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
       , subnetId: UUID.randomUUID().toString()
       , algorithm: OpenstackLoadBalancerDescription.Algorithm.ROUND_ROBIN
       , securityGroups: [UUID.randomUUID().toString()]
-      , listeners: [ new Listener(externalPort: 80, externalProtocol: ListenerType.HTTP, internalPort: 8080, internalProtocol: ListenerType.HTTP)]
+      , listeners: [ new Listener(externalPort: 80, externalProtocol: ListenerType.HTTP, internalPort: 8080)]
       , healthMonitor: new HealthMonitor(type: HealthMonitorType.PING, delay: 1, timeout: 1, maxRetries: 1)
       , credentials: credz)
 
@@ -109,7 +109,7 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
                                , subnetId: UUID.randomUUID().toString()
                                , algorithm: OpenstackLoadBalancerDescription.Algorithm.ROUND_ROBIN
                                , securityGroups: [UUID.randomUUID().toString()]
-                               , listeners: [ new Listener(externalPort: 80, externalProtocol: ListenerType.HTTP, internalPort: 8080, internalProtocol: ListenerType.HTTP)]
+                               , listeners: [ new Listener(externalPort: 80, externalProtocol: ListenerType.HTTP, internalPort: 8080)]
                                , credentials: credz]
     inputMap.remove(attribute)
     OpenstackLoadBalancerDescription description = new OpenstackLoadBalancerDescription(inputMap)
@@ -134,7 +134,7 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
                                , subnetId: UUID.randomUUID().toString()
                                , algorithm: OpenstackLoadBalancerDescription.Algorithm.ROUND_ROBIN
                                , securityGroups: [UUID.randomUUID().toString()]
-                               , listeners: [ new Listener(externalPort: 80, externalProtocol: ListenerType.HTTP, internalPort: 8080, internalProtocol: ListenerType.HTTP)]
+                               , listeners: [ new Listener(externalPort: 80, externalProtocol: ListenerType.HTTP, internalPort: 8080)]
                                , credentials: credz]
     inputMap.put(attribute.key, attribute.value)
     OpenstackLoadBalancerDescription description = new OpenstackLoadBalancerDescription(inputMap)

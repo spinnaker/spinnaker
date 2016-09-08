@@ -56,10 +56,6 @@ class UpsertOpenstackLoadBalancerAtomicOperationValidator extends AbstractOpenst
       validator.validatePortRange(it.externalPort, 'externalPort')
       validator.validatePortRange(it.internalPort, 'internalPort')
       validator.validateNotNull(it.externalProtocol, 'externalProtocol')
-      validator.validateNotNull(it.internalProtocol, 'internalProtocol')
-      if (it.externalProtocol != it.internalProtocol) {
-        validator.reject('externalProtocol', 'Internal and external protocols must match.')
-      }
     }
 
     validateHealthMonitor(validator, description.healthMonitor)

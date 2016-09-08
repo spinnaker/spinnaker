@@ -70,11 +70,6 @@ class OpenstackLoadBalancer implements LoadBalancerResolver {
     String description
     String externalProtocol
     String externalPort
-    String internalProtocol
-
-    String getInternalProtocol() {
-      parseListenerKey(description)?.get('internalProtocol')
-    }
 
     String getInternalPort() {
       parseListenerKey(description)?.get('internalPort')

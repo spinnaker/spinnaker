@@ -84,7 +84,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
       name = 'name'
       subnetId = UUID.randomUUID()
       algorithm = Algorithm.ROUND_ROBIN
-      listeners = [new Listener(externalPort: 80, externalProtocol: 'HTTP', internalPort: 8080, internalProtocol: 'HTTP')]
+      listeners = [new Listener(externalPort: 80, externalProtocol: 'HTTP', internalPort: 8080)]
     }
 
     and:
@@ -119,7 +119,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
       id = UUID.randomUUID()
       subnetId = UUID.randomUUID()
       algorithm = Algorithm.ROUND_ROBIN
-      listeners = [new Listener(externalPort: 80, externalProtocol: 'HTTP', internalPort: 8080, internalProtocol: 'HTTP')]
+      listeners = [new Listener(externalPort: 80, externalProtocol: 'HTTP', internalPort: 8080)]
     }
 
     and:
@@ -155,7 +155,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
       name = 'name'
       id = UUID.randomUUID()
       subnetId = UUID.randomUUID()
-      listeners = [new Listener(externalPort: 80, externalProtocol: 'HTTP', internalPort: 8080, internalProtocol: 'HTTP')]
+      listeners = [new Listener(externalPort: 80, externalProtocol: 'HTTP', internalPort: 8080)]
     }
 
     and:
@@ -173,7 +173,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     0 * operation.validatePeripherals(region, description.subnetId, description.networkId, description.securityGroups) >> {
     }
     1 * provider.getLoadBalancer(region, description.id) >> loadBalancer
-    1 * operation.buildListenerMap(region, loadBalancer) >> ['HTTP:80:HTTP:8080': listenerV2]
+    1 * operation.buildListenerMap(region, loadBalancer) >> ['HTTP:80:8080': listenerV2]
     1 * operation.updateListenersAndPools(region, loadBalancer.id, description.algorithm, _, description.healthMonitor) >> {
     }
     1 * operation.updateFloatingIp(region, description.networkId, loadBalancer.vipPortId)
@@ -190,7 +190,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
       name = 'name'
       id = UUID.randomUUID()
       subnetId = UUID.randomUUID()
-      listeners = [new Listener(externalPort: 80, externalProtocol: 'HTTP', internalPort: 8080, internalProtocol: 'HTTP')]
+      listeners = [new Listener(externalPort: 80, externalProtocol: 'HTTP', internalPort: 8080)]
     }
 
     and:
@@ -206,7 +206,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
 
     then:
     1 * provider.getLoadBalancer(region, description.id) >> loadBalancer
-    1 * operation.buildListenerMap(region, loadBalancer) >> ['HTTP:80:HTTP:8080': listenerV2]
+    1 * operation.buildListenerMap(region, loadBalancer) >> ['HTTP:80:8080': listenerV2]
     1 * operation.updateListenersAndPools(region, loadBalancer.id, description.algorithm, _, description.healthMonitor) >> {
       throw openstackProviderException
     }
@@ -385,10 +385,10 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     String name = 'name'
     Algorithm algorithm = Algorithm.ROUND_ROBIN
     String loadBalancerId = UUID.randomUUID()
-    String key = 'HTTP:80:HTTP:8080'
+    String key = 'HTTP:80:8080'
 
     and:
-    Listener listener = new Listener(externalProtocol: 'HTTP', externalPort: 80, internalProtocol: 'HTTP', internalPort: 8080)
+    Listener listener = new Listener(externalProtocol: 'HTTP', externalPort: 80, internalPort: 8080)
     ListenerV2 newListener = Mock(ListenerV2)
     LbPoolV2 newLbPool = Mock(LbPoolV2)
     HealthMonitor healthMonitor = Mock(HealthMonitor)
@@ -402,7 +402,8 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     then:
     1 * operation.createBlockingActiveStatusChecker(region, loadBalancerId) >> blockingClientAdapter
     1 * provider.createListener(region, name, listener.externalProtocol.name(), listener.externalPort, key, loadBalancerId) >> newListener
-    1 * provider.createPool(region, name, listener.internalProtocol.name(), algorithm.name(), newListener.id) >> newLbPool
+    //todo: is this right? just doing listener.externalProtocol.name()
+    1 * provider.createPool(region, name, listener.externalProtocol.name(), algorithm.name(), newListener.id) >> newLbPool
     1 * operation.updateHealthMonitor(region, loadBalancerId, newLbPool, healthMonitor) >> {}
   }
 
@@ -455,34 +456,6 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     1 * provider.getPool(region, poolId) >> lbPool
     _ * lbPool.lbMethod >> LbMethod.ROUND_ROBIN
     0 * provider.updatePool(region, lbPool.id, algorithm.name()) >> lbPool
-    1 * operation.updateHealthMonitor(region, loadBalancerId, lbPool, healthMonitor) >> {}
-  }
-
-  def "update listeners and pools - create pool"() {
-    given:
-    Algorithm algorithm = Algorithm.ROUND_ROBIN
-    String loadBalancerId = UUID.randomUUID()
-    ListenerV2 listener = Mock(ListenerV2) {
-      getId() >> '123'
-      getDescription() >> 'HTTP:80:HTTP:8080'
-    }
-    HealthMonitor healthMonitor = Mock(HealthMonitor)
-    String poolId = null
-    LbPoolV2 lbPool = Mock(LbPoolV2)
-
-    and:
-    def operation = Spy(UpsertOpenstackLoadBalancerAtomicOperation, constructorArgs: [description])
-
-    when:
-    operation.updateListenersAndPools(region, loadBalancerId, algorithm, [listener], healthMonitor)
-
-    then:
-    1 * operation.createBlockingActiveStatusChecker(region, loadBalancerId) >> blockingClientAdapter
-    _ * listener.defaultPoolId >> poolId
-    0 * provider.getPool(region, poolId) >> lbPool
-    _ * lbPool.lbMethod >> LbMethod.ROUND_ROBIN
-    0 * provider.updatePool(region, lbPool.id, algorithm.name()) >> lbPool
-    1 * provider.createPool(region, listener.name, 'HTTP', algorithm.name(), listener.id) >> lbPool
     1 * operation.updateHealthMonitor(region, loadBalancerId, lbPool, healthMonitor) >> {}
   }
 

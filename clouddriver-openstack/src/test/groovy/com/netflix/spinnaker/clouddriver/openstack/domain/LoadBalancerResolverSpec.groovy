@@ -34,9 +34,10 @@ class LoadBalancerResolverSpec extends Specification {
     where:
     testCase    | description                        | expected
     'not found' | 'test'                             | [:]
-    'found'     | 'HTTP:80:HTTP:8080'                | [externalProtocol: 'HTTP', externalPort: '80', internalProtocol: 'HTTP', internalPort: 8080]
+    'found'     | 'HTTP:80:8080'                     | [externalProtocol: 'HTTP', externalPort: '80', internalPort: 8080]
     'null'      | null                               | [:]
   }
+
 
   def "get created time - #testCase"() {
     when:

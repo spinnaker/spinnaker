@@ -47,10 +47,10 @@ class UpsertOpenstackLoadBalancerAtomicOperation extends AbstractOpenstackLoadBa
 
   /*
    * Create:
-   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "upsertLoadBalancer": { "region": "RegionOne", "account": "test", "name": "stack-test", "subnetId": "8802895b-c46f-4074-b494-0a992b38e8c5", "networkId": "bcfdcd2f-57ec-4153-b145-139c81fa698e", "algorithm": "ROUND_ROBIN", "securityGroups": ["3c213029-f4f1-46ad-823b-d27dead4bf3f"], "healthMonitor": { "type": "PING", "delay": 10, "timeout": 10, "maxRetries": 10 }, "listeners": [ { "externalPort": 80, "externalProtocol":"HTTP", "internalPort": 8181, "internalProtocol": "HTTP" }] } } ]' localhost:7002/openstack/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "upsertLoadBalancer": { "region": "RegionOne", "account": "test", "name": "stack-test", "subnetId": "8802895b-c46f-4074-b494-0a992b38e8c5", "networkId": "bcfdcd2f-57ec-4153-b145-139c81fa698e", "algorithm": "ROUND_ROBIN", "securityGroups": ["3c213029-f4f1-46ad-823b-d27dead4bf3f"], "healthMonitor": { "type": "PING", "delay": 10, "timeout": 10, "maxRetries": 10 }, "listeners": [ { "externalPort": 80, "externalProtocol":"HTTP", "internalPort": 8181 }] } } ]' localhost:7002/openstack/ops
    *
    * Update:
-   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "upsertLoadBalancer": { "region": "RegionOne", "account": "test", "id": "413910e0-ec00-448a-9427-228450c78bf0", "name": "stack-test", "subnetId": "8802895b-c46f-4074-b494-0a992b38e8c5", "networkId": "bcfdcd2f-57ec-4153-b145-139c81fa698e", "algorithm": "ROUND_ROBIN", "securityGroups": ["3c213029-f4f1-46ad-823b-d27dead4bf3f"], "healthMonitor": { "type": "PING", "delay": 10, "timeout": 10, "maxRetries": 10 }, "listeners": [ { "externalPort": 80, "externalProtocol":"HTTP", "internalPort": 8282, "internalProtocol": "HTTP" }] } } ]' localhost:7002/openstack/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "upsertLoadBalancer": { "region": "RegionOne", "account": "test", "id": "413910e0-ec00-448a-9427-228450c78bf0", "name": "stack-test", "subnetId": "8802895b-c46f-4074-b494-0a992b38e8c5", "networkId": "bcfdcd2f-57ec-4153-b145-139c81fa698e", "algorithm": "ROUND_ROBIN", "securityGroups": ["3c213029-f4f1-46ad-823b-d27dead4bf3f"], "healthMonitor": { "type": "PING", "delay": 10, "timeout": 10, "maxRetries": 10 }, "listeners": [ { "externalPort": 80, "externalProtocol":"HTTP", "internalPort": 8282 }] } } ]' localhost:7002/openstack/ops
    */
 
   @Override
@@ -71,7 +71,7 @@ class UpsertOpenstackLoadBalancerAtomicOperation extends AbstractOpenstackLoadBa
 
       Map<String, ListenerV2> existingListenerMap = buildListenerMap(region, resultLoadBalancer)
       Map<String, Listener> listenerMap = description.listeners.collectEntries([:]) { Listener current ->
-        [(getListenerKey(current.externalPort, current.externalProtocol.name(), current.internalPort, current.internalProtocol.name())): current]
+        [(getListenerKey(current.externalProtocol.name(), current.externalPort, current.internalPort)): current]
       }
       Map<String, ListenerV2> listenersToUpdate = [:]
       Map<String, Listener> listenersToAdd = [:]
@@ -219,7 +219,7 @@ class UpsertOpenstackLoadBalancerAtomicOperation extends AbstractOpenstackLoadBa
       task.updateStatus UPSERT_LOADBALANCER_PHASE, "Created listener $name in ${region}"
       task.updateStatus UPSERT_LOADBALANCER_PHASE, "Creating pool $name in ${region}"
       LbPoolV2 lbPool = blockingStatusChecker.execute {
-        provider.createPool(region, name, currentListener.internalProtocol.name(), algorithm.name(), listener.id)
+        provider.createPool(region, name, currentListener.externalProtocol.internalProtocol, algorithm.name(), listener.id)
       }
       task.updateStatus UPSERT_LOADBALANCER_PHASE, "Created pool $name in ${region}"
       updateHealthMonitor(region, loadBalancerId, lbPool, healthMonitor)
@@ -235,26 +235,13 @@ class UpsertOpenstackLoadBalancerAtomicOperation extends AbstractOpenstackLoadBa
    */
   protected void updateListenersAndPools(String region, String loadBalancerId, Algorithm algorithm, Collection<ListenerV2> listeners, HealthMonitor healthMonitor) {
     BlockingStatusChecker blockingStatusChecker = createBlockingActiveStatusChecker(region, loadBalancerId)
-    listeners?.each { ListenerV2 currentListener ->
-      LbPoolV2 lbPool = null
 
-      if (currentListener.defaultPoolId) {
-        lbPool = provider.getPool(region, currentListener.defaultPoolId)
-        if (lbPool.lbMethod.name() != algorithm.name()) {
-          task.updateStatus UPSERT_LOADBALANCER_PHASE, "Updating pool $lbPool.name in ${region} ..."
-          blockingStatusChecker.execute { provider.updatePool(region, lbPool.id, algorithm.name()) }
-          task.updateStatus UPSERT_LOADBALANCER_PHASE, "Updated pool $lbPool.name in ${region}."
-        }
-      } else {
-        Map<String, String> listenerMap = parseListenerKey(currentListener.description)
-        if (!listenerMap?.isEmpty()) {
-          // Create a pool
-          task.updateStatus UPSERT_LOADBALANCER_PHASE, "Creating pool $currentListener.name in ${region} ..."
-          lbPool = blockingStatusChecker.execute {
-            provider.createPool(region, currentListener.name, listenerMap.internalProtocol, algorithm.name(), currentListener.id)
-          }
-          task.updateStatus UPSERT_LOADBALANCER_PHASE, "Created pool $currentListener.name in ${region}."
-        }
+    listeners?.each { ListenerV2 currentListener ->
+      LbPoolV2 lbPool = provider.getPool(region, currentListener.defaultPoolId)
+      if (lbPool.lbMethod.name() != algorithm.name()) {
+        task.updateStatus UPSERT_LOADBALANCER_PHASE, "Updating pool $lbPool.name in ${region} ..."
+        blockingStatusChecker.execute { provider.updatePool(region, lbPool.id, algorithm.name()) }
+        task.updateStatus UPSERT_LOADBALANCER_PHASE, "Updated pool $lbPool.name in ${region}."
       }
 
       updateHealthMonitor(region, loadBalancerId, lbPool, healthMonitor)
