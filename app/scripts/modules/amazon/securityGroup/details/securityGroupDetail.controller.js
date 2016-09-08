@@ -74,7 +74,7 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
       let rules = [];
       groupedRangeRules[addr].forEach(rule => {
         (rule.portRanges || []).forEach(range => {
-          if (range.startPort && range.endPort) {
+          if (range.startPort !== undefined && range.endPort !== undefined) {
             rules.push({startPort: range.startPort, endPort: range.endPort, protocol: rule.protocol});
           }
         });
