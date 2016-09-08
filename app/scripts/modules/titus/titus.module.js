@@ -21,6 +21,7 @@ module.exports = angular.module('spinnaker.titus', [
   require('./instance/details/instance.details.controller.js'),
   require('./validation/applicationName.validator.js'),
   require('./pipeline/stages/findAmi/titusFindAmiStage.js'),
+  require('./pipeline/stages/runJob/titusRunJobStage.js'),
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('titus', {
