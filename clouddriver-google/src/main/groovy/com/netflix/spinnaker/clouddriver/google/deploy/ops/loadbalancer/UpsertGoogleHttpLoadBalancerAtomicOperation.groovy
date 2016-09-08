@@ -38,7 +38,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
   private static final String BASE_PHASE = "UPSERT_HTTP_LOAD_BALANCER"
   public static final String HEALTH_CHECK_NAME_PREFIX = "hc"
   public static final String BACKEND_SERVICE_NAME_PREFIX = "bs"
-  private static final String PATH_MATCHER_PREFIX = "path-matcher"
+  private static final String PATH_MATCHER_PREFIX = "pm"
   public static final String TARGET_HTTP_PROXY_NAME_PREFIX = "target-http-proxy"
   public static final String TARGET_HTTPS_PROXY_NAME_PREFIX = "target-https-proxy"
 
@@ -287,7 +287,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
       UrlMap newUrlMap = new UrlMap(name: urlMapName, hostRules: [], pathMatchers: [])
       newUrlMap.defaultService = serviceUrl(project, httpLoadBalancerName, httpLoadBalancer.defaultService.name)
       httpLoadBalancer?.hostRules?.each { GoogleHostRule hostRule ->
-        String pathMatcherName = "$httpLoadBalancerName-$PATH_MATCHER_PREFIX-${System.currentTimeMillis()}"
+        String pathMatcherName = "$PATH_MATCHER_PREFIX-${UUID.randomUUID().toString()}"
         def pathMatcher = hostRule.pathMatcher
         PathMatcher newPathMatcher = new PathMatcher(
           name: pathMatcherName,
@@ -313,7 +313,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
       existingUrlMap.hostRules = []
 
       httpLoadBalancer?.hostRules?.each { GoogleHostRule hostRule ->
-        String pathMatcherName = "$httpLoadBalancerName-$PATH_MATCHER_PREFIX-${System.currentTimeMillis()}"
+        String pathMatcherName = "$PATH_MATCHER_PREFIX-${UUID.randomUUID().toString()}"
         def pathMatcher = hostRule.pathMatcher
         PathMatcher newPathMatcher = new PathMatcher(
           name: pathMatcherName,
