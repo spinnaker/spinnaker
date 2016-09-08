@@ -114,6 +114,10 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         submitJobRequest.withUser(description.user)
       }
 
+      if (description.jobType) {
+        submitJobRequest.withJobType(description.jobType)
+      }
+
       task.updateStatus BASE_PHASE, "Submitting job request to Titus..."
       String jobUri = titusClient.submitJob(submitJobRequest)
 
@@ -121,6 +125,14 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
 
       deploymentResult.serverGroupNames = ["${region}:${nextServerGroupName}".toString()]
       deploymentResult.serverGroupNameByRegion = [(description.region): nextServerGroupName]
+
+      if (description.jobType == 'batch') {
+        deploymentResult = new DeploymentResult([
+          deployedNames          : [jobUri],
+          deployedNamesByLocation: [(description.region): [jobUri]]
+        ])
+      }
+
       deploymentResult.messages = task.history.collect { "${it.phase} : ${it.status}".toString() }
 
       return deploymentResult
