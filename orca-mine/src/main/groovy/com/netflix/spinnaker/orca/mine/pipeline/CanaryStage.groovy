@@ -44,7 +44,11 @@ class CanaryStage extends LinearStage implements CancellableStage {
 
   @Override
   List<Step> buildSteps(Stage stage) {
-    Map canaryStageId = [canaryStageId: stage.id]
+    Map canaryStageId = [
+      canaryStageId: stage.id,
+      failPipeline: stage.context.failPipeline,
+      continuePipeline: stage.context.continuePipeline
+    ]
 
     Map deployContext = canaryStageId + stage.context
     Map monitorContext = canaryStageId + [scaleUp: stage.context.scaleUp ?: [:]]
