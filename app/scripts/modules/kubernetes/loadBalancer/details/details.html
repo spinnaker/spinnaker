@@ -97,6 +97,17 @@
           </copy-to-clipboard>
         </dd>
       </dl>
+      <dl ng-if="loadBalancer.service.status.loadBalancer.ingress.length">
+        <dt>Ingress IPs</dt>
+        <dd ng-repeat="ingress in loadBalancer.service.status.loadBalancer.ingress">
+          {{ingress.ip}}
+          <copy-to-clipboard
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="{{ingress.ip}}"
+            tool-tip="Copy Ingress IP to clipboard">
+          </copy-to-clipboard>
+        </dd>
+      </dl>
       <dl ng-if="loadBalancer.service.spec.loadBalancerIP">
         <dt>Load Balancer IP</dt>
         <dd>

@@ -30,6 +30,10 @@ module.exports = angular.module('spinnaker.deck.core.loadBalancer.dependentFilte
             .flatten()
             .map((instance) => {
               let poolUnit = _.cloneDeep(poolUnitTemplate);
+              if (!instance) {
+                return poolUnit;
+              }
+
               return _(poolValueCoordinates)
                 .filter({ on: 'instance' })
                 .reduce((poolUnit, coordinate) => {
