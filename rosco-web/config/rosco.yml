@@ -86,7 +86,7 @@ aws:
 #      - region: us-west-2
 #        virtualizationType: pv
 #        instanceType: m3.medium
-#        sourceAmi: 
+#        sourceAmi:
 #        sshUserName: ubuntu
     - baseImage:
         id: trusty
@@ -237,17 +237,18 @@ openstack:
   # value to true.
   enabled: ${OS_ENABLED:false}
   bakeryDefaults:
-    identityEndpoint: ${OS_AUTH_URL:}
+    authUrl: ${OS_AUTH_URL:}
     domainName: Default
+    networkId: default
     floatingIpPool: ext_network
     securityGroups: default
-    tenantName: ${OS_TENANT_NAME:''}
+    projectName: ${OS_PROJECT_NAME:''}
     insecure: ${OS_INSECURE:false}
     username: ${OS_USERNAME}
     password: ${OS_PASSWORD}
     templateFile: openstack.json
     baseImages:
-    # sourceImageId is the unique UUID of an openstack image in a repion, and can be found via horizon or the image api.
+    # sourceImageId is the unique UUID of an openstack image in a region, and can be found via horizon or the image api.
     # It is immutable for the life of the image.
     - baseImage:
         id: vivid

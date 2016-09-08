@@ -49,11 +49,12 @@ class RoscoOpenstackConfiguration {
   }
 
   static class OpenstackBakeryDefaults {
-    String identityEndpoint
+    String authUrl
     String domainName
     String floatingIpPool
+    String networkId
     String securityGroups
-    String tenantName
+    String projectName
     String templateFile
     Boolean insecure
     String username

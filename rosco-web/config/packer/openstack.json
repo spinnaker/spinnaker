@@ -2,9 +2,10 @@
   "variables": {
     "openstack_domain_name": null,
     "openstack_instance_type": null,
+    "openstack_network_id": null,
     "openstack_floating_ip_pool": null,
     "openstack_image_name": null,
-    "openstack_identity_endpoint": null,
+    "openstack_auth_url": null,
     "openstack_insecure": "false",
     "openstack_source_image_id": null,
     "openstack_ssh_username": null,
@@ -12,7 +13,7 @@
     "openstack_password": "{{env `OS_PASSWORD`}}",
     "openstack_region": null,
     "openstack_security_groups": null,
-    "openstack_tenant_name": null,
+    "openstack_project_name": null,
     "appversion": "",
     "build_host": "",
     "build_info_url": "",
@@ -27,9 +28,10 @@
       "type": "openstack",
       "domain_name": "{{user `openstack_domain_name`}}",
       "flavor": "{{user `openstack_instance_type`}}",
+      "networks": [ "{{user `openstack_network_id`}}" ],
       "floating_ip_pool": "{{user `openstack_floating_ip_pool`}}",
       "image_name": "{{user `openstack_image_name`}}",
-      "identity_endpoint": "{{user `openstack_identity_endpoint`}}",
+      "identity_endpoint": "{{user `openstack_auth_url`}}",
       "insecure": "{{user `openstack_insecure`}}",
       "metadata": {"appversion": "{{user `appversion`}}", "build_host": "{{user `build_host`}}", "build_info_url": "{{user `build_info_url`}}"},
       "region": "{{user `openstack_region`}}",
@@ -38,7 +40,7 @@
       "username": "{{user `openstack_username`}}",
       "password": "{{user `openstack_password`}}",
       "security_groups": "{{user `openstack_security_groups`}}",
-      "tenant_name": "{{user `openstack_tenant_name`}}"
+      "tenant_name": "{{user `openstack_project_name`}}"
     }
   ],
   "provisioners": [

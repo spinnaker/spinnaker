@@ -88,7 +88,7 @@ public class OpenstackBakeHandler extends CloudProviderBakeHandler {
   @Override
   Map buildParameterMap(String region, def openstackVirtualizationSettings, String imageName, BakeRequest bakeRequest, String appVersionStr) {
     def parameterMap = [
-      openstack_identity_endpoint: openstackBakeryDefaults.identityEndpoint,
+      openstack_auth_url: openstackBakeryDefaults.authUrl,
       openstack_region: region,
       openstack_ssh_username: openstackVirtualizationSettings.sshUserName,
       openstack_instance_type: openstackVirtualizationSettings.instanceType,
@@ -109,16 +109,20 @@ public class OpenstackBakeHandler extends CloudProviderBakeHandler {
       parameterMap.openstack_floating_ip_pool = openstackBakeryDefaults.floatingIpPool
     }
 
+    if (openstackBakeryDefaults.networkId) {
+      parameterMap.openstack_network_id = openstackBakeryDefaults.networkId
+    }
+
     if (openstackBakeryDefaults.insecure != null) {
       parameterMap.openstack_insecure = openstackBakeryDefaults.insecure
     }
 
-    if (openstackBakeryDefaults.securityGroups != null) {
+    if (openstackBakeryDefaults.securityGroups) {
       parameterMap.openstack_security_groups = openstackBakeryDefaults.securityGroups
     }
 
-    if (openstackBakeryDefaults.tenantName != null) {
-      parameterMap.openstack_tenant_name = openstackBakeryDefaults.tenantName
+    if (openstackBakeryDefaults.projectName) {
+      parameterMap.openstack_project_name = openstackBakeryDefaults.projectName
     }
 
     if (bakeRequest.build_info_url) {

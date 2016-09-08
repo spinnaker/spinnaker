@@ -31,11 +31,11 @@ import spock.lang.Unroll
 
 class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
 
-  private static final String REGION = "TTEOSCORE1"
+  private static final String REGION = "RegionOne"
   private static final String SOURCE_UBUNTU_IMAGE_NAME = "ubuntu-latest"
   private static final String SOURCE_TRUSTY_IMAGE_NAME = "ubuntu-trusty"
   private static final String SOURCE_OPENSTACK_IMAGE_NAME = "rhel7-latest"
-  private static final String OPENSTACK_ENDPOINT = "http://my.openstack.com:5000/v3"
+  private static final String AUTH_URL = "http://my.openstack.com:5000/v3"
 
   @Shared
   String configDir = "/some/path"
@@ -48,14 +48,15 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
 
   void setupSpec() {
     def openstackBakeryDefaultsJson = [
-      identityEndpoint: OPENSTACK_ENDPOINT,
+      authUrl: AUTH_URL,
       username: 'foo',
       password: 'bar',
       domainName: 'Default',
       insecure: 'false',
+      networkId: '6d0b4799-8784-4f0a-bc16-9b7e783cd803',
       floatingIpPool: 'ippool',
       securityGroups: 'default',
-      tenantName: 'tenant1',
+      projectName: 'project1',
       templateFile: "openstack_template.json",
       baseImages: [
         [
@@ -250,16 +251,16 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
       String instanceType = openstackBakeryDefaults.baseImages[0].virtualizationSettings[0].instanceType
       def imageNameFactoryMock = Mock(ImageNameFactory)
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
-      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+      def bakeRequest = new BakeRequest(user: 'someuser@gmail.com',
         package_name: PACKAGES_NAME,
-        base_os: "ubuntu",
+        base_os: 'ubuntu',
         cloud_provider_type: BakeRequest.CloudProviderType.openstack)
-      def targetImageName = "1f28b46b-b36f-4b7c-bc34-40e2371886fa"
+      def targetImageName = '1f28b46b-b36f-4b7c-bc34-40e2371886fa'
       def osPackages = parseDebOsPackageNames(PACKAGES_NAME)
       def parameterMap = [
-        openstack_identity_endpoint: OPENSTACK_ENDPOINT,
+        openstack_auth_url: AUTH_URL,
         openstack_region: REGION,
-        openstack_ssh_username: "ubuntu",
+        openstack_ssh_username: 'ubuntu',
         openstack_instance_type: instanceType,
         openstack_source_image_id: SOURCE_UBUNTU_IMAGE_NAME,
         openstack_image_name: targetImageName,
@@ -267,9 +268,10 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         openstack_password: openstackBakeryDefaults.password,
         openstack_domain_name: openstackBakeryDefaults.domainName,
         openstack_insecure: openstackBakeryDefaults.insecure,
+        openstack_network_id: openstackBakeryDefaults.networkId,
         openstack_floating_ip_pool: openstackBakeryDefaults.floatingIpPool,
         openstack_security_groups: openstackBakeryDefaults.securityGroups,
-        openstack_tenant_name: openstackBakeryDefaults.tenantName,
+        openstack_project_name: openstackBakeryDefaults.projectName,
         repository: DEBIAN_REPOSITORY,
         package_type: DEB_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
@@ -310,7 +312,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
     def targetImageName = "1f28b46b-b36f-4b7c-bc34-40e2371886fa"
     def osPackages = parseDebOsPackageNames(PACKAGES_NAME)
     def parameterMap = [
-            openstack_identity_endpoint: OPENSTACK_ENDPOINT,
+            openstack_auth_url: AUTH_URL,
             openstack_region: REGION,
             openstack_ssh_username: "ubuntu",
             openstack_instance_type: instanceType,
@@ -321,8 +323,9 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
             openstack_domain_name: openstackBakeryDefaults.domainName,
             openstack_insecure: openstackBakeryDefaults.insecure,
             openstack_floating_ip_pool: openstackBakeryDefaults.floatingIpPool,
+            openstack_network_id: openstackBakeryDefaults.networkId,
             openstack_security_groups: openstackBakeryDefaults.securityGroups,
-            openstack_tenant_name: openstackBakeryDefaults.tenantName,
+            openstack_project_name: openstackBakeryDefaults.projectName,
             repository: DEBIAN_REPOSITORY,
             package_type: BakeRequest.PackageType.DEB.packageType,
             packages: PACKAGES_NAME,
@@ -362,7 +365,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
       def osPackages = parseDebOsPackageNames(PACKAGES_NAME)
       def targetImageName = "1f28b46b-b36f-4b7c-bc34-40e2371886fa"
       def parameterMap = [
-        openstack_identity_endpoint: OPENSTACK_ENDPOINT,
+        openstack_auth_url: AUTH_URL,
         openstack_region: REGION,
         openstack_ssh_username: "ubuntu",
         openstack_instance_type: instanceType,
@@ -373,8 +376,9 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         openstack_domain_name: openstackBakeryDefaults.domainName,
         openstack_insecure: openstackBakeryDefaults.insecure,
         openstack_floating_ip_pool: openstackBakeryDefaults.floatingIpPool,
+        openstack_network_id: openstackBakeryDefaults.networkId,
         openstack_security_groups: openstackBakeryDefaults.securityGroups,
-        openstack_tenant_name: openstackBakeryDefaults.tenantName,
+        openstack_project_name: openstackBakeryDefaults.projectName,
         repository: DEBIAN_REPOSITORY,
         package_type: DEB_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
@@ -412,7 +416,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
       def osPackages = parseDebOsPackageNames(PACKAGES_NAME)
       def targetImageName = "1f28b46b-b36f-4b7c-bc34-40e2371886fa"
       def parameterMap = [
-        openstack_identity_endpoint: OPENSTACK_ENDPOINT,
+        openstack_auth_url: AUTH_URL,
         openstack_region: REGION,
         openstack_ssh_username: "ubuntu",
         openstack_instance_type: instanceType,
@@ -423,8 +427,9 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         openstack_domain_name: openstackBakeryDefaults.domainName,
         openstack_insecure: openstackBakeryDefaults.insecure,
         openstack_floating_ip_pool: openstackBakeryDefaults.floatingIpPool,
+        openstack_network_id: openstackBakeryDefaults.networkId,
         openstack_security_groups: openstackBakeryDefaults.securityGroups,
-        openstack_tenant_name: openstackBakeryDefaults.tenantName,
+        openstack_project_name: openstackBakeryDefaults.projectName,
         repository: DEBIAN_REPOSITORY,
         package_type: DEB_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
@@ -461,7 +466,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
       def osPackages = parseDebOsPackageNames(PACKAGES_NAME)
       def targetImageName = "1f28b46b-b36f-4b7c-bc34-40e2371886fa"
       def parameterMap = [
-        openstack_identity_endpoint: OPENSTACK_ENDPOINT,
+        openstack_auth_url: AUTH_URL,
         openstack_region: REGION,
         openstack_ssh_username: "ubuntu",
         openstack_instance_type: instanceType,
@@ -472,8 +477,9 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         openstack_domain_name: openstackBakeryDefaults.domainName,
         openstack_insecure: openstackBakeryDefaults.insecure,
         openstack_floating_ip_pool: openstackBakeryDefaults.floatingIpPool,
+        openstack_network_id: openstackBakeryDefaults.networkId,
         openstack_security_groups: openstackBakeryDefaults.securityGroups,
-        openstack_tenant_name: openstackBakeryDefaults.tenantName,
+        openstack_project_name: openstackBakeryDefaults.projectName,
         repository: DEBIAN_REPOSITORY,
         package_type: DEB_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
@@ -512,7 +518,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
       def osPackages = parseDebOsPackageNames(PACKAGES_NAME)
       def targetImageName = "1f28b46b-b36f-4b7c-bc34-40e2371886fa"
       def parameterMap = [
-        openstack_identity_endpoint: OPENSTACK_ENDPOINT,
+        openstack_auth_url: AUTH_URL,
         openstack_region: REGION,
         openstack_ssh_username: "ubuntu",
         openstack_instance_type: "mmem-6vcpu",
@@ -523,8 +529,9 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         openstack_domain_name: 'domain2',
         openstack_insecure: openstackBakeryDefaults.insecure,
         openstack_floating_ip_pool: openstackBakeryDefaults.floatingIpPool,
+        openstack_network_id: openstackBakeryDefaults.networkId,
         openstack_security_groups: openstackBakeryDefaults.securityGroups,
-        openstack_tenant_name: openstackBakeryDefaults.tenantName,
+        openstack_project_name: openstackBakeryDefaults.projectName,
         repository: DEBIAN_REPOSITORY,
         package_type: DEB_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
@@ -561,7 +568,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
       def osPackages = parseDebOsPackageNames(PACKAGES_NAME)
       def targetImageName = "1f28b46b-b36f-4b7c-bc34-40e2371886fa"
       def parameterMap = [
-        openstack_identity_endpoint: OPENSTACK_ENDPOINT,
+        openstack_auth_url: AUTH_URL,
         openstack_region: REGION,
         openstack_ssh_username: "ubuntu",
         openstack_instance_type: instanceType,
@@ -572,8 +579,9 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         openstack_domain_name: openstackBakeryDefaults.domainName,
         openstack_insecure: openstackBakeryDefaults.insecure,
         openstack_floating_ip_pool: openstackBakeryDefaults.floatingIpPool,
+        openstack_network_id: openstackBakeryDefaults.networkId,
         openstack_security_groups: openstackBakeryDefaults.securityGroups,
-        openstack_tenant_name: openstackBakeryDefaults.tenantName,
+        openstack_project_name: openstackBakeryDefaults.projectName,
         repository: DEBIAN_REPOSITORY,
         package_type: DEB_PACKAGE_TYPE.packageType,
         packages: PACKAGES_NAME,
@@ -641,7 +649,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
 
     then:
       IllegalArgumentException e = thrown()
-      e.message == "No virtualization settings found for region 'TTEOSCORE1999' and operating system 'trusty'."
+      e.message == "No virtualization settings found for region 'RegionOne999' and operating system 'trusty'."
   }
 
   void 'produce a default openstack bakeKey without base ami'() {
@@ -658,7 +666,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
       String bakeKey = openstackBakeHandler.produceBakeKey(REGION, bakeRequest)
 
     then:
-      bakeKey == "bake:openstack:centos:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb:TTEOSCORE1"
+      bakeKey == "bake:openstack:centos:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb:RegionOne"
   }
 
   @Unroll
@@ -676,7 +684,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
       String bakeKey = openstackBakeHandler.produceBakeKey(REGION, bakeRequest)
 
     then:
-      bakeKey == "bake:openstack:centos::TTEOSCORE1"
+      bakeKey == "bake:openstack:centos::RegionOne"
 
     where:
       packageName << [null, ""]
@@ -697,7 +705,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
       String bakeKey = openstackBakeHandler.produceBakeKey(REGION, bakeRequest)
 
     then:
-      bakeKey == "bake:openstack:centos:foobar:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb:TTEOSCORE1"
+      bakeKey == "bake:openstack:centos:foobar:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb:RegionOne"
   }
 
   void 'produce a default openstack bakeKey with ami name'() {
@@ -714,7 +722,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
       String bakeKey = openstackBakeHandler.produceBakeKey(REGION, bakeRequest)
 
     then:
-      bakeKey == "bake:openstack:centos:kato-app:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb:TTEOSCORE1"
+      bakeKey == "bake:openstack:centos:kato-app:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb:RegionOne"
   }
 
   void 'do not consider ami suffix when composing bake key'() {
@@ -738,7 +746,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
       String bakeKey2 = openstackBakeHandler.produceBakeKey(REGION, bakeRequest2)
 
     then:
-      bakeKey1 == "bake:openstack:centos:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb:TTEOSCORE1"
+      bakeKey1 == "bake:openstack:centos:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb:RegionOne"
       bakeKey2 == bakeKey1
   }
 }
