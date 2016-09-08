@@ -78,42 +78,6 @@
   </div>
 
   <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-right">If build fails</label>
-    <div class="col-md-9">
-      <div class="radio">
-        <label>
-          <input type="radio"
-                 name="failureOption"
-                 ng-model="viewState.failureOption"
-                 ng-change="jenkinsStageCtrl.failureOptionChanged()"
-                 value="fail"/> halt the entire pipeline
-          <help-field key="pipeline.config.jenkins.haltPipelineOnFailure"/>
-        </label>
-      </div>
-      <div class="radio">
-        <label>
-          <input type="radio"
-                 name="failureOption"
-                 ng-model="viewState.failureOption"
-                 ng-change="jenkinsStageCtrl.failureOptionChanged()"
-                 value="stop"/> halt this branch of the pipeline
-          <help-field key="pipeline.config.jenkins.haltBranchOnFailure"/>
-        </label>
-      </div>
-      <div class="radio">
-        <label>
-          <input type="radio"
-                 name="failureOption"
-                 ng-model="viewState.failureOption"
-                 ng-change="jenkinsStageCtrl.failureOptionChanged()"
-                 value="ignore"/> ignore the failure
-          <help-field key="pipeline.config.jenkins.ignoreFailure"/>
-        </label>
-      </div>
-    </div>
-  </div>
-
-  <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-right">If build is unstable</label>
     <div class="col-md-9">
       <div class="radio">
