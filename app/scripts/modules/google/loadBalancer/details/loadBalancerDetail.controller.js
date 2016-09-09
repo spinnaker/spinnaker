@@ -16,10 +16,12 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   require('./loadBalancerType/loadBalancerType.component.js'),
   require('../elSevenUtils.service.js'),
   require('./healthCheck/healthCheck.component.js'),
+  require('../configure/choice/loadBalancerTypeToWizardMap.constant.js')
 ])
   .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, loadBalancer, app, InsightFilterStateModel,
                                                       _, confirmationModalService, accountService, elSevenUtils,
-                                                      loadBalancerWriter, loadBalancerReader, $q) {
+                                                      loadBalancerWriter, loadBalancerReader,
+                                                      $q, loadBalancerTypeToWizardMap) {
 
     let application = app;
 
@@ -85,9 +87,12 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
     });
 
     this.editLoadBalancer = function editLoadBalancer() {
+      let lbType = elSevenUtils.isElSeven($scope.loadBalancer) ? 'HTTP(S)' : 'Network';
+      let wizard = loadBalancerTypeToWizardMap[lbType];
+
       $uibModal.open({
-        templateUrl: require('../configure/editLoadBalancer.html'),
-        controller: 'gceCreateLoadBalancerCtrl as ctrl',
+        templateUrl: wizard.editTemplateUrl,
+        controller: `${wizard.controller} as ctrl`,
         size: 'lg',
         resolve: {
           application: function() { return application; },
@@ -114,6 +119,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
         return loadBalancerWriter.deleteLoadBalancer(loadBalancer, application, {
           loadBalancerName: loadBalancer.name,
           region: $scope.loadBalancer.region,
+          loadBalancerType: $scope.loadBalancer.loadBalancerType || 'NETWORK',
         });
       };
 

@@ -1,0 +1,59 @@
+<hr ng-if="$ctrl.index > 0">
+<div class="container-fluid form-horizontal">
+  <div class="form-group">
+    <div class="col-md-4 sm-label-right">Host Patterns
+      <help-field key="gce.httpLoadBalancer.hostRule.hostPattern">
+      </help-field>
+    </div>
+    <div class="col-md-3">
+      <ui-select multiple tagging
+                 tagging-label=""
+                 ng-model="$ctrl.hostRule.hostPatterns"
+                 class="form-control input-sm"
+                 sortable="true"
+                 style="width: 150px;">
+        <ui-select-match>{{$item}}</ui-select-match>
+        <ui-select-choices repeat="hostPattern in []">
+          {{hostPattern}}
+        </ui-select-choices>
+      </ui-select>
+    </div>
+    <div class="col-md-1">
+      <button class="btn btn-sm btn-default" ng-click="$ctrl.deleteHostRule()">
+        <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
+        <span>Delete</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-4 sm-label-right">
+      <b>Default Service</b>
+    </div>
+    <div class="col-md-3 small text-center" ng-if="!$ctrl.oneBackendServiceIsConfigured()">
+      Configure at least one backend service
+    </div>
+    <div class="col-md-3" ng-if="$ctrl.oneBackendServiceIsConfigured()">
+      <select class="form-control input-sm" required
+              ng-model="$ctrl.hostRule.pathMatcher.defaultService"
+              ng-options="backendService.name for backendService in $ctrl.backendServices | filter:$ctrl.isNameDefined">
+      </select>
+    </div>
+  </div>
+  <collapsible-section heading="Path Rules" expanded="true" subsection="true">
+    <gce-path-rule path-rule="pathRule"
+                   index="$index"
+                   backend-services="$ctrl.backendServices"
+                   delete-path-rule="$ctrl.deletePathRule($index)"
+                   ng-repeat="pathRule in $ctrl.hostRule.pathMatcher.pathRules">
+    </gce-path-rule>
+  </collapsible-section>
+  <div class="row">
+    <div class="col-md-12">
+      <button class="add-new btn btn-block"
+              ng-click="$ctrl.addPathRule()">
+        <span class="glyphicon glyphicon-plus-sign"></span> Add path rule
+      </button>
+    </div>
+  </div>
+</div>

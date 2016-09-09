@@ -1,0 +1,35 @@
+<div modal-page>
+  <modal-close></modal-close>
+  <div class="modal-header">
+    <h3>Load Balancer Type Selection</h3>
+  </div>
+  <div class="modal-body">
+    <form class="form-horizontal">
+      <div class="form-group">
+        <div class="col-md-4 col-md-offset-1 sm-label-left">
+          <b>Choose load balancer type:</b>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-6 col-md-offset-1">
+          <ui-select ng-model="ctrl.choice"
+                     class="form-control input-sm">
+            <ui-select-match placeholder="Select...">
+              <span>{{$select.selected}}</span>
+            </ui-select-match>
+            <ui-select-choices repeat="choice in ctrl.choices">
+              <span>{{choice}}</span>
+            </ui-select-choices>
+          </ui-select>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary"
+            ng-click="ctrl.choose(ctrl.choice)">
+      <span>Create {{ ctrl.choice }} load balancer</span>
+      <span class="glyphicon glyphicon-chevron-right"></span>
+    </button>
+  </div>
+</div>

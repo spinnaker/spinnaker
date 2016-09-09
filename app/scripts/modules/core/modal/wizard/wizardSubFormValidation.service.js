@@ -46,17 +46,21 @@ module.exports = angular.module('spinnaker.core.modalWizard.subFormValidation.se
     };
 
     class Validator {
-      constructor({ watchString, validator }, scope, page, state = { valid: false }) {
+      constructor({ watchString, validator, collection }, scope, page, state = { valid: false }) {
         this.state = state;
         this.page = page;
 
-        scope.$watch(watchString, (value) => {
+        let watchType = collection ? '$watchCollection' : '$watch';
+
+        scope[watchType](watchString, (value) => {
           this.state.valid = validator(value);
 
-          if (this.state.valid) {
-            this.emitValid();
-          } else {
-            this.emitInvalid();
+          if (v2modalWizardService.getPage(this.page)) {
+            if (this.state.valid) {
+              this.emitValid();
+            } else {
+              this.emitInvalid();
+            }
           }
         });
       }

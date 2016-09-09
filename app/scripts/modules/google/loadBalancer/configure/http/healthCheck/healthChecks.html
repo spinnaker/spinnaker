@@ -1,0 +1,14 @@
+<ng-form name="healthChecks">
+  <gce-http-load-balancer-health-check ng-repeat="healthCheck in ctrl.backingData.healthChecks"
+                                       index="$index"
+                                       delete-health-check="ctrl.remove('healthChecks', $index)"
+                                       health-check="healthCheck"></gce-http-load-balancer-health-check>
+  <div class="row">
+    <div class="col-md-12">
+      <button class="add-new btn btn-block"
+              ng-click="ctrl.add('healthChecks')">
+        <span class="glyphicon glyphicon-plus-sign"></span> Add health check
+      </button>
+    </div>
+  </div>
+</ng-form>

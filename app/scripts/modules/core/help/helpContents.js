@@ -123,6 +123,11 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'gce.loadBalancer.advancedSettings.unhealthyThreshold': '<p>Configures the number of unhealthy observations before deservicing an instance from the load balancer.</p><p>Default: <b>2</b></p>',
     'gce.loadBalancer.healthCheck': '(Optional) <b>Health Checks</b> use HTTP requests to determine if a VM instance is healthy.',
     'gce.loadBalancer.portRange': '(Optional) Only packets addressed to ports in the specified <b>Port Range</b> will be forwarded. If left empty, all ports are forwarded. Must be a single port number or two port numbers separated by a dash. Each port number must be between 1 and 65535, inclusive. For example: 5000-5999.',
+    'gce.httpLoadBalancer.backendService.default': 'A default service handles any requests that do not match a specified host rule or path matching rule.',
+    'gce.httpLoadBalancer.hostRule.hostPattern': 'For example, <b>example.com</b>.',
+    'gce.httpLoadBalancer.pathRule.paths': 'For example, <b>/path</b> in <b>example.com/path</b>',
+    'gce.httpLoadBalancer.port': 'HTTP requests can be load balanced based on port 80 or port 8080. HTTPS requests can be load balanced on port 443.',
+    'gce.httpLoadBalancer.certificate': 'The name of an SSL certificate. If specified, Spinnaker will create an HTTPS load balancer.',
     'gce.serverGroup.resizeWithAutoscalingPolicy': `
       Setting the desired instance count for a server group with an autoscaler is not supported by Spinnaker;
       if the desired instance count differs from the instance count that the autoscaler wants to maintain for its configured metrics,

@@ -3,7 +3,7 @@
 describe('Service: wizardSubFormValidation', function () {
 
   let angular = require('angular');
-  let wizardSubFormValidation, v2modalWizardService, $rootScope, formDirective, $controller, $compile;
+  let wizardSubFormValidation, v2modalWizardService, $rootScope, $compile;
 
   beforeEach(
     window.module(
@@ -14,13 +14,13 @@ describe('Service: wizardSubFormValidation', function () {
 
   beforeEach(
     window.inject(function (_wizardSubFormValidation_,
-                            _v2modalWizardService_, _$rootScope_, _formDirective_, _$controller_, _$compile_) {
+                            _v2modalWizardService_, _$rootScope_, _$compile_) {
       wizardSubFormValidation = _wizardSubFormValidation_;
       v2modalWizardService = _v2modalWizardService_;
       $rootScope = _$rootScope_;
-      formDirective = _formDirective_;
-      $controller = _$controller_;
       $compile = _$compile_;
+
+      spyOn(v2modalWizardService, 'getPage').and.returnValue(true);
     })
   );
 

@@ -1,0 +1,82 @@
+<div class="container-fluid form-horizontal">
+  <ng-form name="basicSettings">
+    <div class="modal-body">
+      <div class="form-group">
+        <div class="col-md-12 well" ng-class="{'alert-danger': basicSettings.loadBalancerName.$error.validateUnique, 'alert-info': !basicSettings.loadBalancerName.$error.validateUnique}">
+          <strong>Your load balancer will be named:</strong>
+          <span>{{$ctrl.getName($ctrl.loadBalancer, $ctrl.application.name)}}</span>
+          <!-- Angular does not seem to run length validation on hidden inputs, hence the text + display:none -->
+          <input type="text"
+                 style="display: none"
+                 ng-maxlength="63"
+                 class="form-control input-sm"
+                 ng-model="$ctrl.loadBalancer.name"
+                 validate-unique="$ctrl.existingLoadBalancerNames"
+                 validate-ignore-case="true"
+                 name="loadBalancerName"/>
+          <validation-error ng-if="basicSettings.loadBalancerName.$error.validateUnique" message="There is already a load balancer in {{$ctrl.loadBalancer.credentials}} with that name."></validation-error>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">Account</div>
+        <div class="col-md-7">
+          <account-select-field component="$ctrl.loadBalancer"
+                                field="credentials"
+                                accounts="$ctrl.accounts"
+                                provider="'gce'"
+                                on-change="$ctrl.updateExistingLoadBalancerNames($ctrl.loadBalancer.credentials)">
+          </account-select-field>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">Region</div>
+        <div class="col-md-3">
+          <input ng-readonly="true" class="form-control input-sm" ng-model="$ctrl.loadBalancer.region"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">Stack <help-field key="aws.loadBalancer.stack"></help-field></div>
+        <div class="col-md-3">
+          <input type="text"
+                 class="form-control input-sm"
+                 ng-model="$ctrl.loadBalancer.stack"
+                 name="stackName"
+                 ng-change="$ctrl.updateName($ctrl.loadBalancer, $ctrl.application.name)"
+                 ng-pattern="/^[a-z0-9]*$/"/>
+        </div>
+        <div class="col-md-6 form-inline">
+          <label class="sm-label-right">
+            Detail <help-field key="gce.loadBalancer.detail"></help-field>
+          </label>
+          <input type="text"
+                 class="form-control input-sm"
+                 ng-model="$ctrl.loadBalancer.detail"
+                 name="detailName"
+                 ng-change="$ctrl.updateName($ctrl.loadBalancer, $ctrl.application.name)"
+                 ng-pattern="/^[a-z0-9-]*$/"/>
+        </div>
+        <div class="col-md-7 col-md-offset-3" ng-if="basicSettings.stackName.$error.pattern">
+          <validation-error message="Stack can only contain lowercase letters and numbers."></validation-error>
+        </div>
+        <div class="col-md-7 col-md-offset-3" ng-if="basicSettings.detailName.$error.pattern">
+          <validation-error message="Detail can only contain lowercase letters, numbers, and dashes(-)."></validation-error>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">Certificate
+          <help-field key="gce.httpLoadBalancer.certificate"></help-field>
+        </div>
+        <div class="col-md-3">
+          <input type="text"
+                 class="form-control input-sm"
+                 ng-model="$ctrl.loadBalancer.certificate"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-9 col-md-offset-3" ng-if="basicSettings.loadBalancerName.$error.maxlength">
+          <validation-error message="Load Balancer name can only be 63 characters."></validation-error>
+        </div>
+      </div>
+    </div>
+  </ng-form>
+</div>

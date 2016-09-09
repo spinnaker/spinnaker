@@ -1,0 +1,49 @@
+<hr ng-if="$ctrl.index > 0">
+<ng-form name="backendService">
+  <div class="container-fluid form-horizontal">
+    <div class="form-group">
+      <div class="col-md-4 sm-label-right">Name</div>
+      <div class="col-md-3">
+        <input class="form-control input-sm"
+               required
+               name="serviceName"
+               ng-pattern="/^[a-z0-9]*$/"
+               ng-model="$ctrl.backendService.name"/>
+      </div>
+      <div class="col-md-1">
+        <button class="btn btn-sm btn-default" ng-click="$ctrl.deleteService()">
+          <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
+          <span>Delete</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-md-4 sm-label-right">
+        <b>Health Check</b>
+      </div>
+      <div class="col-md-3 small text-center" ng-if="!$ctrl.oneHealthCheckIsConfigured()">
+        Configure at least one health check
+      </div>
+      <div class="col-md-3" ng-if="$ctrl.oneHealthCheckIsConfigured()">
+        <select class="form-control input-sm"
+                required
+                ng-model="$ctrl.backendService.healthCheck"
+                ng-options="healthCheck.name for healthCheck in $ctrl.healthChecks | filter:$ctrl.isNameDefined">
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="sm-label-right">Default service
+          <help-field key="gce.httpLoadBalancer.backendService.default"></help-field>
+        </label>
+        <input type="checkbox" ng-model="$ctrl.backendService.useAsDefault" ng-change="$ctrl.defaultServiceManager()"/>
+      </div>
+    </div>
+    <div>
+      <div class="col-md-10 col-md-offset-2" ng-if="backendService.serviceName.$error.pattern">
+        <validation-error message="Backend service name can only contain lowercase letters and numbers.">
+        </validation-error>
+      </div>
+    </div>
+  </div>
+</ng-form>

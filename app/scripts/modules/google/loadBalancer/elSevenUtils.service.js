@@ -4,9 +4,19 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.gce.elSevenUtils.service', [])
   .factory('elSevenUtils', function () {
-    function isElSeven (loadBalancer) {
-      return loadBalancer.loadBalancerType === 'HTTP';
+    const region = 'global';
+
+    function isElSeven (lb) {
+      return lb.loadBalancerType === 'HTTP';
     }
 
-    return { isElSeven };
+    function isHttps (lb) {
+      return lb.certificate;
+    }
+
+    function getElSevenRegion () {
+      return region;
+    }
+
+    return { isElSeven, getElSevenRegion, isHttps };
   });

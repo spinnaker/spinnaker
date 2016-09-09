@@ -1,0 +1,15 @@
+<ng-form name="hostRules">
+  <gce-host-rule ng-repeat="hostRule in ctrl.backingData.hostRules"
+                 host-rule="hostRule"
+                 index="$index"
+                 backend-services="ctrl.backingData.backendServices"
+                 delete-host-rule="ctrl.remove('hostRules', $index)"></gce-host-rule>
+  <div class="row">
+    <div class="col-md-12">
+      <button class="add-new btn btn-block"
+              ng-click="ctrl.add('hostRules')">
+        <span class="glyphicon glyphicon-plus-sign"></span> Add host rule
+      </button>
+    </div>
+  </div>
+</ng-form>

@@ -1,0 +1,16 @@
+<ng-form name="backendServices">
+  <gce-backend-service ng-repeat="backendService in ctrl.backingData.backendServices"
+                       backend-service="backendService"
+                       index="$index"
+                       health-checks="ctrl.backingData.healthChecks"
+                       default-service-manager="ctrl.defaultServiceManager(backendService)"
+                       delete-service="ctrl.remove('backendServices', $index)"></gce-backend-service>
+  <div class="row">
+    <div class="col-md-12">
+      <button class="add-new btn btn-block"
+              ng-click="ctrl.add('backendServices')">
+        <span class="glyphicon glyphicon-plus-sign"></span> Add backend service
+      </button>
+    </div>
+  </div>
+</ng-form>

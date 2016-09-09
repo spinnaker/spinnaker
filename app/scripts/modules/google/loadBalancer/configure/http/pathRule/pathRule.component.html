@@ -1,0 +1,43 @@
+<hr ng-if="$ctrl.index > 0">
+<div class="container-fluid form-horizontal">
+  <div class="form-group">
+    <div class="col-md-4 sm-label-right">Paths
+      <help-field key="gce.httpLoadBalancer.pathRule.paths">
+      </help-field>
+    </div>
+    <div class="col-md-3">
+      <ui-select multiple tagging
+                 tagging-label=""
+                 ng-model="$ctrl.pathRule.paths"
+                 sortable="true"
+                 class="form-control input-sm"
+                 style="width: 150px;">
+        <ui-select-match>{{$item}}</ui-select-match>
+        <ui-select-choices repeat="path in []">
+          {{path}}
+        </ui-select-choices>
+      </ui-select>
+    </div>
+    <div class="col-md-1">
+      <button class="btn btn-sm btn-default" ng-click="$ctrl.deletePathRule()">
+        <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
+        <span>Delete</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-4 sm-label-right">
+      <b>Backend Service</b>
+    </div>
+    <div class="col-md-3 small text-center" ng-if="!$ctrl.oneBackendServiceIsConfigured()">
+      Configure at least one backend service
+    </div>
+    <div class="col-md-3" ng-if="$ctrl.oneBackendServiceIsConfigured()">
+      <select class="form-control input-sm" required
+              ng-model="$ctrl.pathRule.backendService"
+              ng-options="backendService.name for backendService in $ctrl.backendServices | filter:$ctrl.isNameDefined">
+      </select>
+    </div>
+  </div>
+</div>
