@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup
 
+import com.netflix.spinnaker.clouddriver.openstack.client.BlockingStatusChecker
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.OpenstackServerGroupAtomicOperationDescription
-import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
+import org.openstack4j.model.compute.Address
 import org.openstack4j.model.network.ext.LoadBalancerV2
 import org.openstack4j.model.network.ext.LoadBalancerV2StatusTree
 
@@ -46,10 +47,10 @@ class EnableOpenstackAtomicOperation extends AbstractEnableDisableOpenstackAtomi
     task.updateStatus phaseName, "Registering instances with load balancers..."
     Map<String, Future<LoadBalancerV2>> loadBalancers = [:]
     Map<String, Future<LoadBalancerV2StatusTree>> statusTrees = [:]
-    Map<String, Future> ips = instanceIds.collectEntries { instanceId ->
+    Map<String, Future<List<Address>>> ips = instanceIds.collectEntries { instanceId ->
       task.updateStatus phaseName, "Getting ip for instance $instanceId..."
       [(instanceId): CompletableFuture.supplyAsync({
-        provider.getIpForInstance(description.region, instanceId)
+        provider.getIpsForInstance(description.region, instanceId)
       } as Supplier<String>).exceptionally { t ->
         null
       }]
@@ -65,8 +66,10 @@ class EnableOpenstackAtomicOperation extends AbstractEnableDisableOpenstackAtomi
       } as Supplier<LoadBalancerV2StatusTree>)]
     }
     CompletableFuture.allOf([loadBalancers.values(), statusTrees.values(), ips.values()].flatten() as CompletableFuture[]).join()
+    Map<String, BlockingStatusChecker> checkers = loadBalancerIds.collectEntries { [(it):createBlockingActiveStatusChecker(description.credentials, description.region, it)] }
     for (String id : instanceIds) {
-      String ip = ips[(id)].get()
+      //default to use the first ipv6 address found, as heat seems to store it before the ipv4 address during automated server group actions
+      String ip = ips[(id)].get().find { it.version == 6 }.addr
       if (!ip) {
         task.updateStatus phaseName, "Could not find floating ip for instance $id, continuing with next instance"
       } else {
@@ -76,7 +79,9 @@ class EnableOpenstackAtomicOperation extends AbstractEnableDisableOpenstackAtomi
             listenerStatus.lbPoolV2Statuses?.each { poolStatus ->
               Integer internalPort = provider.getInternalLoadBalancerPort(description.region, listenerStatus.id)
               task.updateStatus phaseName, "Adding member instance $id with ip $ip to load balancer ${loadBalancer.get().id} with listener ${listenerStatus.id} and pool ${poolStatus.id}..."
-              provider.addMemberToLoadBalancerPool(description.region, ip, poolStatus.id, loadBalancer.get().vipSubnetId, internalPort.toInteger(), DEFAULT_WEIGHT)
+              checkers[loadBalancer.get().id].execute {
+                provider.addMemberToLoadBalancerPool(description.region, ip, poolStatus.id, loadBalancer.get().vipSubnetId, internalPort.toInteger(), DEFAULT_WEIGHT)
+              }
             }
           }
         }

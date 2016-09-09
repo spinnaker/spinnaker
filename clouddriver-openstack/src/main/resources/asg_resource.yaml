@@ -12,7 +12,7 @@ parameters:
     description: server instance metadata
   network_id:
     type: string
-    description: Network used by each server
+    description: Network used by each server. Retained for auditing purposes.
   security_groups:
     type: comma_delimited_list
     description: security groups associate to each server
@@ -30,7 +30,6 @@ resources:
       image: {get_param: image}
       metadata: {get_param: metadata}
       networks:
-        - network: {get_param: network_id}
         - subnet: {get_param: subnet_id}
       security_groups: {get_param: security_groups}
       user_data: {get_param: user_data}

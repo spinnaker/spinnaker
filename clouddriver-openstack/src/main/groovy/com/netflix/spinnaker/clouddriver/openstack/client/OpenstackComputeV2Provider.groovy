@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackPro
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackResourceNotFoundException
 import org.apache.commons.lang.StringUtils
 import org.openstack4j.api.Builders
+import org.openstack4j.model.compute.Address
 import org.openstack4j.model.compute.Flavor
 import org.openstack4j.model.compute.FloatingIP
 import org.openstack4j.model.compute.IPProtocol
@@ -206,6 +207,12 @@ public class OpenstackComputeV2Provider implements OpenstackComputeProvider, Ope
       throw new OpenstackProviderException("Instance ${instanceId} has no IP address")
     }
     ip
+  }
+
+  @Override
+  List<? extends Address> getIpsForInstance(String region, String instanceId) {
+    Server server = getServerInstance(region, instanceId)
+    server.addresses?.addresses?.collect { n -> n.value }?.flatten()
   }
 
 }

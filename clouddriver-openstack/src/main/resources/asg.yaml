@@ -18,7 +18,7 @@ parameters:
     description: Desired cluster size
   network_id:
     type: string
-    description: Network used by the servers
+    description: Network used by the servers. Retained for auditing purposes.
   load_balancers:
     type: comma_delimited_list
     description: Comma-separated string of load balancers to associate to the stack. This is not used in the stack and is defined for auditing purposes.

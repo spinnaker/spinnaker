@@ -18,10 +18,12 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.instance
 
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.openstack.client.BlockingStatusChecker
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.instance.OpenstackInstancesRegistrationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
+import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.LoadBalancerStatusAware
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.openstack4j.model.network.ext.ListenerV2
 import org.openstack4j.model.network.ext.LoadBalancerV2
@@ -29,7 +31,7 @@ import org.openstack4j.model.network.ext.LoadBalancerV2
 /**
  * Base class that will handle both load balancer registration and deregistration.
  */
-abstract class AbstractRegistrationOpenstackInstancesAtomicOperation implements AtomicOperation<Void> {
+abstract class AbstractRegistrationOpenstackInstancesAtomicOperation implements AtomicOperation<Void>, LoadBalancerStatusAware {
 
   abstract String getBasePhase() // Either 'REGISTER' or 'DEREGISTER'.
   abstract Boolean getAction() // Either 'true' or 'false', for Register and Deregister respectively.
@@ -46,12 +48,15 @@ abstract class AbstractRegistrationOpenstackInstancesAtomicOperation implements 
     TaskRepository.threadLocalTask.get()
   }
 
+  //TODO we should be able to get all the instance ips once, instead of refetching for each load balancer
+  //TODO we should also not refetch listeners for each instance, that should only happen once per balancer
   @Override
   Void operate(List priorOutputs) {
     try {
       task.updateStatus basePhase, "Start $verb all instances $preposition load balancers..."
       OpenstackClientProvider provider = description.credentials.provider
       description.loadBalancerIds.each { lb ->
+        BlockingStatusChecker checker = createBlockingActiveStatusChecker(description.credentials, description.region, lb)
         task.updateStatus basePhase, "Getting details for load balancer $lb..."
         LoadBalancerV2 loadBalancer = provider.getLoadBalancer(description.region, lb)
         description.instanceIds.each { id ->
@@ -64,12 +69,16 @@ abstract class AbstractRegistrationOpenstackInstancesAtomicOperation implements 
               task.updateStatus basePhase, "Getting internal port from load balancer $loadBalancer.name for listener $listenerItem.id..."
               int internalPort = provider.getInternalLoadBalancerPort(description.region, listenerItem.id)
               task.updateStatus basePhase, "Adding member with ip $ip to load balancer $loadBalancer.name on internal port $internalPort with weight $description.weight..."
-              provider.addMemberToLoadBalancerPool(description.region, ip, listener.defaultPoolId, loadBalancer.vipSubnetId, internalPort, description.weight)
+              checker.execute {
+                provider.addMemberToLoadBalancerPool(description.region, ip, listener.defaultPoolId, loadBalancer.vipSubnetId, internalPort, description.weight)
+              }
             } else {
               task.updateStatus basePhase, "Getting member id for server instance $id and ip $ip on load balancer $loadBalancer.name..."
               String memberId = provider.getMemberIdForInstance(description.region, ip, listener.defaultPoolId)
               task.updateStatus basePhase, "Removing member with ip $ip from load balancer $loadBalancer.name..."
-              provider.removeMemberFromLoadBalancerPool(description.region, listener.defaultPoolId, memberId)
+              checker.execute {
+                provider.removeMemberFromLoadBalancerPool(description.region, listener.defaultPoolId, memberId)
+              }
             }
           }
           task.updateStatus basePhase, "Completed $verb instance $id $preposition load balancer $lb."

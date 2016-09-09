@@ -20,11 +20,13 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFactory
+import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.instance.OpenstackInstancesRegistrationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
+import org.openstack4j.model.network.ext.LbProvisioningStatus
 import org.openstack4j.model.network.ext.ListenerV2
 import org.openstack4j.model.network.ext.LoadBalancerV2
 import org.openstack4j.openstack.networking.domain.ext.ListItem
@@ -42,6 +44,7 @@ class AbstractRegistrationOpenstackInstancesAtomicOperationUnitSpec extends Spec
   def credentials
   def description
   LoadBalancerV2 loadBalancer
+  LoadBalancerV2 mockLB
   Map<String, ListenerV2> listenerMap
   List<ListItem> listeners = [new ListItem(id: UUID.randomUUID().toString()), new ListItem(id: UUID.randomUUID().toString())]
   String ip = '1.2.3.4'
@@ -57,13 +60,17 @@ class AbstractRegistrationOpenstackInstancesAtomicOperationUnitSpec extends Spec
   def setup() {
     OpenstackClientProvider provider = Mock(OpenstackClientProvider)
     GroovyMock(OpenstackProviderFactory, global: true)
-    OpenstackNamedAccountCredentials credz = Mock(OpenstackNamedAccountCredentials)
+    OpenstackNamedAccountCredentials credz = new OpenstackNamedAccountCredentials("name", "test", "main", "user", "pw", "tenant", "domain", "endpoint", [], false, "", new OpenstackConfigurationProperties.LbaasConfig(pollTimeout: 60, pollInterval: 5))
     OpenstackProviderFactory.createProvider(credz) >> { provider }
     credentials = new OpenstackCredentials(credz)
     description = new OpenstackInstancesRegistrationDescription(region: region, loadBalancerIds: LB_IDS, instanceIds: INSTANCE_IDS, weight: 1, account: ACCOUNT_NAME, credentials: credentials)
     loadBalancer = Mock(LoadBalancerV2) {
       it.listeners >> { listeners }
       it.vipSubnetId >> { subnetId }
+    }
+    mockLB = Mock(LoadBalancerV2) {
+      it.id >> { _ }
+      it.provisioningStatus >> { LbProvisioningStatus.ACTIVE }
     }
     listenerMap = (0..1).collectEntries { i ->
       [(listeners[i].id):Mock(ListenerV2) {
@@ -90,9 +97,11 @@ class AbstractRegistrationOpenstackInstancesAtomicOperationUnitSpec extends Spec
           if (method == 'registerInstancesWithLoadBalancer') {
             1 * provider.getInternalLoadBalancerPort(region, listItem.id) >> port
             1 * provider.addMemberToLoadBalancerPool(region, ip, listenerMap[listItem.id].defaultPoolId, subnetId, port, description.weight)
+            _ * provider.getLoadBalancer(region, lbid) >> mockLB
           } else {
             1 * provider.getMemberIdForInstance(region, ip, listenerMap[listItem.id].defaultPoolId) >> memberId
             1 * provider.removeMemberFromLoadBalancerPool(region, listenerMap[listItem.id].defaultPoolId, memberId)
+            _ * provider.getLoadBalancer(region, lbid) >> mockLB
           }
         }
       }

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.client
 
+import org.openstack4j.model.compute.Address
 import org.openstack4j.model.compute.Flavor
 import org.openstack4j.model.compute.FloatingIP
 import org.openstack4j.model.compute.IPProtocol
@@ -163,9 +164,17 @@ interface OpenstackComputeProvider {
   List<? extends Flavor> listFlavors(String region)
 
   /**
-   * Get an IP address from a server.
+   * Get the first v4 IP address from a server.
    * @param server
    * @return
    */
   String getIpForInstance(String region, String instanceId)
+
+  /**
+   * Get all addresses for a server instance.
+   * @param region
+   * @param instanceId
+   * @return
+   */
+  List<? extends Address> getIpsForInstance(String region, String instanceId)
 }
