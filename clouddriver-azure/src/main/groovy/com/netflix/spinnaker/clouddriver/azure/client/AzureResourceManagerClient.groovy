@@ -87,9 +87,6 @@ class AzureResourceManagerClient extends AzureBaseClient {
                                                 String resourceType,
                                                 Map<String, String> templateParams = [:]) {
 
-    // TODO validate that all callers invoke this themselves, then remove this call
-    initializeResourceGroupAndVNet(credentials, resourceGroupName, null, region)
-
     String deploymentName = [resourceName, resourceType, "deployment"].join(AzureUtilities.NAME_SEPARATOR)
     if (!templateParams['location']) {
       templateParams['location'] = region
@@ -143,7 +140,9 @@ class AzureResourceManagerClient extends AzureBaseClient {
       resourceGroup = resourceGroupOperations.get(resourceGroupName)?.body
     }
 
-    initializeResourceGroupVNet(creds, resourceGroupName, virtualNetworkName, region)
+    if (virtualNetworkName) {
+      initializeResourceGroupVNet(creds, resourceGroupName, virtualNetworkName, region)
+    }
 
     resourceGroup
   }
@@ -199,18 +198,16 @@ class AzureResourceManagerClient extends AzureBaseClient {
    * @param virtualNetworkName - name of the virtual network to lookup/create
    * @param region - Azure region to lookup/create virtual network resource in
    */
-  private static void initializeResourceGroupVNet(AzureCredentials creds, String resourceGroupName, String virtualNetworkName = null, String region) {
-    def vNetName = virtualNetworkName ?
-      virtualNetworkName : AzureUtilities.getVirtualNetworkName(resourceGroupName)
+  private static void initializeResourceGroupVNet(AzureCredentials creds, String resourceGroupName, String virtualNetworkName, String region) {
     VirtualNetwork vNet = null
 
     try {
-      vNet = creds.networkClient.getVirtualNetwork(resourceGroupName, vNetName)
+      vNet = creds.networkClient.getVirtualNetwork(resourceGroupName, virtualNetworkName)
     } catch (CloudException ignore) {
       // Assumes that a cloud exception means that the rest call failed to locate the vNet
       log.warn("Failed to locate Azure Virtual Network ${virtualNetworkName}")
     }
-    if (!vNet) vNet = creds.networkClient.createVirtualNetwork(resourceGroupName, vNetName, region)
+    if (!vNet) vNet = creds.networkClient.createVirtualNetwork(resourceGroupName, virtualNetworkName, region)
   }
 
   /**

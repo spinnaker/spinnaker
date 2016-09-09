@@ -149,6 +149,7 @@ class AzureVirtualNetworkDescriptionSpec extends Specification {
     "resourceId" : null,
     "ipConfigurations" : [ ],
     "networkSecurityGroup" : null,
+    "connectedDevices" : [ ],
     "vnet" : "vnet-test-westus",
     "ipv4" : 167772416,
     "addressPrefixLength" : 24
@@ -170,6 +171,7 @@ class AzureVirtualNetworkDescriptionSpec extends Specification {
     "resourceId" : null,
     "ipConfigurations" : [ ],
     "networkSecurityGroup" : null,
+    "connectedDevices" : [ ],
     "vnet" : "vnet-test-westus",
     "ipv4" : 167772672,
     "addressPrefixLength" : 24
@@ -191,6 +193,7 @@ class AzureVirtualNetworkDescriptionSpec extends Specification {
     "resourceId" : null,
     "ipConfigurations" : [ ],
     "networkSecurityGroup" : null,
+    "connectedDevices" : [ ],
     "vnet" : "vnet-test-westus",
     "ipv4" : 167779840,
     "addressPrefixLength" : 24

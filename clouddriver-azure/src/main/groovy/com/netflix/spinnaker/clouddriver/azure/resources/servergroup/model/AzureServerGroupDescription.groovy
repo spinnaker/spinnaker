@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model
 
 import com.microsoft.azure.management.compute.models.VirtualMachineScaleSet
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.model.AzureSecurityGroup
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureNamedImage
@@ -47,7 +48,6 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
   String loadBalancerName
   String appGatewayName
   String appGatewayBapId
-  AzureSecurityGroup securityGroup
   AzureNamedImage image
   AzureScaleSetSku sku
   AzureOperatingSystemConfig osConfig
@@ -55,10 +55,14 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
   String application // TODO standardize between this and appName
   String clusterName
   String securityGroupName
-  String subnetId
+  String subnetId /*Azure resource ID*/
   List<String> storageAccountNames
   Boolean isDisabled = false
   List<AzureInboundPortConfig> inboundPortConfigs = []
+  String vnet
+  String subnet
+  Boolean hasNewSubnet
+  Boolean createNewSubnet = false
 
   static class AzureScaleSetSku {
     String name
@@ -152,6 +156,10 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     azureSG.appGatewayBapId = scaleSet.tags?.appGatewayBapId
     // TODO: appGatewayBapId can be retrieved via scaleSet->networkProfile->networkInterfaceConfigurations->ipConfigurations->ApplicationGatewayBackendAddressPools
     azureSG.subnetId = scaleSet.tags?.subnetId
+    azureSG.subnet = AzureUtilities.getNameFromResourceId(azureSG.subnetId)
+    azureSG.vnet = azureSG.subnetId? AzureUtilities.getNameFromResourceId(azureSG.subnetId) : scaleSet.tags?.vnet
+    azureSG.hasNewSubnet = scaleSet.tags?.hasNewSubnet
+
     azureSG.createdTime = scaleSet.tags?.createdTime?.toLong()
     azureSG.image = new AzureNamedImage( isCustom:  scaleSet.tags?.customImage, imageName: scaleSet.tags?.imageName)
     if (!azureSG.image.isCustom) {

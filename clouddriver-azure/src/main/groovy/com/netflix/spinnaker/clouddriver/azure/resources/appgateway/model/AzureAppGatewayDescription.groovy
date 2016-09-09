@@ -26,6 +26,8 @@ class AzureAppGatewayDescription extends AzureResourceOpsDescription {
   String loadBalancerName
   String vnet
   String subnet
+  Boolean hasNewSubnet // used for tracking the subnets that are automatically created and are not selected by the user
+  Boolean useDefaultVnet = false // default is for the user to provide us with an existing vnet and subnet
   String securityGroup
   String dnsName
   String cluster
@@ -94,10 +96,11 @@ class AzureAppGatewayDescription extends AzureResourceOpsDescription {
 
     // We only support one subnet so we can just retrieve the first one
     def subnetId = appGateway?.gatewayIPConfigurations?.first()?.subnet?.id
-    description.subnet = appGateway.tags?.subnet ?: AzureUtilities.getNameFromResourceId(subnetId)
+    description.subnet = AzureUtilities.getNameFromResourceId(subnetId)
+    description.vnet = AzureUtilities.getResourceNameFromId(subnetId)
+    description.hasNewSubnet = appGateway.tags?.hasNewSubnet
 
-    description.publicIpName = AzureUtilities.getResourceNameFromID(appGateway?.frontendIPConfigurations?.first()?.getPublicIPAddress()?.id)
-    description.vnet = appGateway.tags?.vnet
+    description.publicIpName = AzureUtilities.getNameFromResourceId(appGateway?.frontendIPConfigurations?.first()?.getPublicIPAddress()?.id)
     description.createdTime = appGateway.tags?.createdTime?.toLong()
     description.tags = appGateway.tags ?: [:]
     description.region = appGateway.location

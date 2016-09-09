@@ -114,6 +114,7 @@ class AzureAppGatewayCachingAgent extends AzureCachingAgent {
 
     def cacheResult = metricsSupport.transformData {
       if (updatedAppGateway) {
+        updatedAppGateway.accountName = accountName
         return buildCacheResult(providerCache, null, 0, updatedAppGateway, null)
       } else {
         evictedAppGateway = new AzureAppGatewayDescription(
@@ -197,6 +198,7 @@ class AzureAppGatewayCachingAgent extends AzureCachingAgent {
         }
 
         if (appGateway) {
+          appGateway.accountName = accountName
           data.add(buildCacheData(appGateway))
         }
       }

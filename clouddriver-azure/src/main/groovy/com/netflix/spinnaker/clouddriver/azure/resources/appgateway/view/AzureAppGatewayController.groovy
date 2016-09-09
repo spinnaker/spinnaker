@@ -70,6 +70,11 @@ class AzureAppGatewayController {
         name: description.loadBalancerName
       ]
 
+      lbDetail.account = account
+      lbDetail.region = region
+      lbDetail.application = appName
+      lbDetail.stack = description.stack
+      lbDetail.detail = description.detail
       lbDetail.createdTime = description.createdTime
       lbDetail.cluster = description.cluster ?: "unassigned"
       lbDetail.serverGroups = description.serverGroups?.join(" ") ?: "unassigned"

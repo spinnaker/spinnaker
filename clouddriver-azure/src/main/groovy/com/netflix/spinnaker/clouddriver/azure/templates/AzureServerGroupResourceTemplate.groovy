@@ -292,6 +292,7 @@ class AzureServerGroupResourceTemplate {
       tags.cluster = description.clusterName
       tags.createdTime = currentTime.toString()
       tags.loadBalancerName = LB_NAME
+      tags.hasNewSubnet = description.hasNewSubnet
 
       // debug only; can be removed as part of the tags cleanup
       if (description.appGatewayName) tags.appGatewayName = description.appGatewayName

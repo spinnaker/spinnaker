@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys
 import com.netflix.spinnaker.clouddriver.azure.resources.network.model.AzureNetwork
 import com.netflix.spinnaker.clouddriver.azure.resources.network.model.AzureVirtualNetworkDescription
+import com.netflix.spinnaker.clouddriver.azure.resources.subnet.model.AzureSubnet
 import com.netflix.spinnaker.clouddriver.model.NetworkProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -71,12 +72,29 @@ class AzureNetworkProvider implements NetworkProvider<AzureNetwork> {
     AzureVirtualNetworkDescription vnet = objectMapper.convertValue(cacheData.attributes['network'], AzureVirtualNetworkDescription)
     def parts = Keys.parse(azureCloudProvider, cacheData.id)
 
+    List<AzureSubnet> subnets = []
+    vnet?.subnets?.each { subnet ->
+      subnets += new AzureSubnet(
+        name: subnet.name,
+        id: subnet.resourceId,
+        type: "azure",
+        account: parts.account?: "none",
+        region: subnet.region,
+        vnet: vnet.name,
+        addressPrefix: subnet.addressPrefix,
+        networkSecurityGroup: subnet.networkSecurityGroup,
+        purpose: "TBD",
+        devices: subnet.connectedDevices
+      )
+    }
+
     new AzureNetwork(
       cloudProvider: "azure",
       id: vnet.name,
       name: vnet.name,
       account: parts.account?: "none",
-      region: vnet.region
+      region: vnet.region,
+      subnets: subnets
     )
   }
 }

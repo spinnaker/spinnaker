@@ -166,4 +166,32 @@ class AzureUtilitiesSpec extends Specification {
     '255.255.0.0/16'      | 16
   }
 
+  def "getResourceNameFromId"() {
+    expect:
+    AzureUtilities.getResourceNameFromId(resourceId) == val
+
+    where:
+    resourceId            | val
+    null                  | null
+    ''                    | null
+    '/'                   | null
+    'someText'            | null
+    '/subscriptions/***-***-***/resourceGroups/***/providers/Microsoft.Network/networkInterfaces/nic1/ipConfigurations/ipconfig1'          | 'nic1'
+    '/subscriptions/***-***-***/resourceGroups/***/providers/Microsoft.Compute/virtualMachineScaleSets/vmss000/virtualMachines/0/networkInterfaces/nic1/ipConfigurations/ipc1'   | 'vmss000'
+  }
+
+  def "getResourceTypeFromId"() {
+    expect:
+    AzureUtilities.getResourceTypeFromId(resourceId) == val
+
+    where:
+    resourceId            | val
+    null                  | null
+    ''                    | null
+    '/'                   | null
+    'someText'            | null
+    '/subscriptions/***-***-***/resourceGroups/***/providers/Microsoft.Network/networkInterfaces/nic1/ipConfigurations/ipconfig1'                                              | 'networkInterfaces'
+    '/subscriptions/***-***-***/resourceGroups/***/providers/Microsoft.Compute/virtualMachineScaleSets/vmss000/virtualMachines/0/networkInterfaces/nic1/ipConfigurations/ipc1' | 'virtualMachineScaleSets'
+  }
+
 }

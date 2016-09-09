@@ -29,6 +29,7 @@ class AzureSecurityGroup implements SecurityGroup {
   final String type = "azure"
   final String id
   final String name
+  final String provider
   final String application
   final String accountName
   final String region

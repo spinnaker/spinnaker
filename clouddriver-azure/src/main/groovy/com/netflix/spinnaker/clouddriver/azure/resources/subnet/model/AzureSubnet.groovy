@@ -22,13 +22,13 @@ import groovy.transform.Canonical
 @Canonical
 class AzureSubnet implements Subnet {
   String name
-  String id
+  String id /*Azure resource ID*/
   String type
   String account
   String region
   String vnet
   String addressPrefix
   String networkSecurityGroup
-  String tag
+  List<AzureSubnetDescription.SubnetConnectedDevices> devices = []
   String purpose
 }

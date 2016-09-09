@@ -46,7 +46,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[{"createServerGroup":{"name":"a4-s2-d1","cloudProvider":"azure","application":"azure1","stack":"s2","detail":"d1","credentials":"azure-account","region":"westus","user":"[anonymous]","upgradePolicy":"Manual","image":{"publisher":"Canonical","offer":"UbuntuServer","sku":"15.04","version":"latest"},"sku":{"name":"Standard_A1","tier":"Standard","capacity":2},"osConfig":{"adminUsername":"spinnakeruser","adminPassword":"!Qnti**234"},"type":"createServerGroup"}}]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[{"createServerGroup":{"name":"taz-st1-d1","cloudProvider":"azure","application":"taz","stack":"st1","detail":"d1","vnet":"vnet-select","subnet":"subnet1","account":"azure-cred1","selectedProvider":"azure","capacity":{"useSourceCapacity":false,"min":1,"max":1},"credentials":"azure-cred1","region":"westus","loadBalancerName":"taz-ag1-d1","securityGroupName":"taz-secg1","user":"[anonymous]","upgradePolicy":"Manual","image":{"account":"azure-cred1","imageName":"UbuntuServer-14.04.3-LTS(Recommended)","isCustom":false,"offer":"UbuntuServer","ostype":null,"publisher":"Canonical","region":null,"sku":"14.04.3-LTS","uri":null,"version":"14.04.201602171"},"sku":{"name":"Standard_DS1_v2","tier":"Standard","capacity":1},"osConfig":{"adminUserName":"spinnakeruser","adminPassword":"!Qnti**234"},"type":"createServerGroup"}}]' localhost:7002/ops
    *
    * @param priorOutputs
    * @return
@@ -60,6 +60,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
     String resourceGroupName = null
     String virtualNetworkName = null
     String subnetName = null
+    String subnetId
     String serverGroupName = null
     String appGatewayPoolID = null
 
@@ -68,45 +69,80 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
       task.updateStatus(BASE_PHASE, "Beginning server group deployment")
 
       resourceGroupName = AzureUtilities.getResourceGroupName(description.application, description.region)
-      virtualNetworkName = AzureUtilities.getVirtualNetworkName(resourceGroupName)
 
-      description.credentials.resourceManagerClient.initializeResourceGroupAndVNet(description.credentials, resourceGroupName, virtualNetworkName, description.region)
+      // TODO: replace appGatewayName with loadBalancerName
+      if (!description.appGatewayName) {
+        description.appGatewayName = description.loadBalancerName
+      }
+      def appGatewayDescription = description.credentials.networkClient.getAppGateway(resourceGroupName, description.appGatewayName)
 
-      task.updateStatus(BASE_PHASE, "Creating subnet for server group")
-
-      // Compute the next subnet address prefix using the cached vnet and a random generated seed
-      def vnetDescription = networkProvider.get(description.accountName, description.region, virtualNetworkName)
-      Random rand = new Random()
-      def nextSubnetAddressPrefix = AzureVirtualNetworkDescription.getNextSubnetAddressPrefix(vnetDescription, rand.nextInt(vnetDescription?.maxSubnets ?: 1))
-      subnetName = AzureUtilities.getSubnetName(virtualNetworkName, nextSubnetAddressPrefix)
-
-      // we'll do a final check to make sure that the subnet can be created before we pass it in the deployment template
-      def vnet = description.credentials.networkClient.getVirtualNetwork(resourceGroupName, virtualNetworkName)
-
-      if (!subnetName || vnet?.subnets?.find {it.name == subnetName}) {
-        // virtualNetworkName is not yet in the cache or the subnet we try to create already exists; we'll use the current vnet
-        //   we just got to re-compute the next subnet
-        vnetDescription = AzureVirtualNetworkDescription.getDescriptionForVirtualNetwork(vnet)
-        nextSubnetAddressPrefix = AzureVirtualNetworkDescription.getNextSubnetAddressPrefix(vnetDescription, rand.nextInt(vnetDescription?.maxSubnets ?: 1))
-        subnetName = AzureUtilities.getSubnetName(virtualNetworkName, nextSubnetAddressPrefix)
+      if (!appGatewayDescription) {
+        throw new RuntimeException("Invalid load balancer was selected; $description.appGatewayName does not exist")
       }
 
-      String subnetId = description.credentials.networkClient.createSubnet(resourceGroupName,
-        virtualNetworkName,
-        subnetName,
-        nextSubnetAddressPrefix,
-        description.securityGroup?.name)
+      virtualNetworkName = appGatewayDescription.vnet
+      if (description.vnet && description.vnet != virtualNetworkName) {
+        throw new RuntimeException("Invalid load balancer was selected; $description.appGatewayName does not exist")
+      }
+
+      def vnetDescription = networkProvider.get(description.accountName, description.region, virtualNetworkName)
+
+      if (!vnetDescription) {
+        throw new RuntimeException("Selected virtual network $virtualNetworkName does not exist")
+      }
+
+      if (!description.createNewSubnet) {
+        task.updateStatus(BASE_PHASE, "Using virtual network $virtualNetworkName and subnet $description.subnet for server group $description.name")
+
+        // we will try to associate the server group with the selected virtual network and subnet
+        description.hasNewSubnet = false
+
+        // subnet is valid only if it exists within the selected vnet and it's unassigned or all the associations are NOT application gateways
+        subnetId = vnetDescription.subnets?.find { subnet ->
+          (subnet.name == description.subnet) && (!subnet.connectedDevices || !subnet.connectedDevices.find {it.type == "applicationGateways"})
+        }?.resourceId
+
+        if (!subnetId) {
+          throw new RuntimeException("Selected subnet $description.subnet in virtual network $description.vnet is not valid")
+        }
+      } else {
+        task.updateStatus(BASE_PHASE, "Creating subnet for server group")
+
+        // Compute the next subnet address prefix using the cached vnet and a random generated seed
+        Random rand = new Random()
+        def nextSubnetAddressPrefix = AzureVirtualNetworkDescription.getNextSubnetAddressPrefix(vnetDescription, rand.nextInt(vnetDescription?.maxSubnets ?: 1))
+        subnetName = AzureUtilities.getSubnetName(virtualNetworkName, nextSubnetAddressPrefix)
+
+        // we'll do a final check to make sure that the subnet can be created before we pass it in the deployment template
+        def vnet = description.credentials.networkClient.getVirtualNetwork(resourceGroupName, virtualNetworkName)
+
+        if (!subnetName || vnet?.subnets?.find { it.name == subnetName }) {
+          // virtualNetworkName is not yet in the cache or the subnet we try to create already exists; we'll use the current vnet
+          //   we just got to re-compute the next subnet
+          vnetDescription = AzureVirtualNetworkDescription.getDescriptionForVirtualNetwork(vnet)
+          nextSubnetAddressPrefix = AzureVirtualNetworkDescription.getNextSubnetAddressPrefix(vnetDescription, rand.nextInt(vnetDescription?.maxSubnets ?: 1))
+          subnetName = AzureUtilities.getSubnetName(virtualNetworkName, nextSubnetAddressPrefix)
+        }
+
+        subnetId = description.credentials.networkClient.createSubnet(resourceGroupName,
+          virtualNetworkName,
+          subnetName,
+          nextSubnetAddressPrefix,
+          description.securityGroupName)
+
+        if (!subnetId) {
+          throw new RuntimeException("Could not create subnet $subnetName in virtual network $virtualNetworkName")
+        }
+
+        description.hasNewSubnet = true
+      }
 
       AzureServerGroupNameResolver nameResolver = new AzureServerGroupNameResolver(description.accountName, description.region, description.credentials)
       description.name = nameResolver.resolveNextServerGroupName(description.application, description.stack, description.detail, false)
       description.clusterName = description.getClusterName()
       description.appName = description.application
 
-      // get the app gateway. Verify that it can be used for this server group/cluster. add an app pool if it doesn't already exist
-      // TODO: replace appGatewayName with loadBalancerName
-      if (!description.appGatewayName) {
-        description.appGatewayName = description.loadBalancerName
-      }
+      // Verify that it can be used for this server group/cluster. create a backend address pool entry if it doesn't already exist
       task.updateStatus(BASE_PHASE, "Create new backend address pool in $description.appGatewayName")
       appGatewayPoolID = description.credentials
         .networkClient
@@ -133,7 +169,6 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
       description.addInboundPortConfig(AzureUtilities.INBOUND_NATPOOL_PREFIX + description.name, 50000, 50099, "tcp", backendPort)
 
       if (errList.isEmpty()) {
-        description.securityGroupName = description.securityGroup?.name
         description.subnetId = subnetId
         task.updateStatus(BASE_PHASE, "Deploying server group")
         DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(description.credentials,
@@ -151,7 +186,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
         serverGroupName = errList.isEmpty() ? description.name : null
       }
     } catch (Exception e) {
-      task.updateStatus(BASE_PHASE, "Deployment of server group ${description.name} failed: ${e.message}")
+      task.updateStatus(BASE_PHASE, "Unexpected exception: Deployment of server group ${description.name} failed: ${e.message}")
       errList.add(e.message)
     }
     if (errList.isEmpty()) {
@@ -180,7 +215,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
             }
           }
         }
-        if (subnetName) {
+        if (description.hasNewSubnet) {
           description.credentials
             .networkClient
             .deleteSubnet(resourceGroupName, virtualNetworkName, subnetName)

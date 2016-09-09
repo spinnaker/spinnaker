@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.network.model
 
+import com.netflix.spinnaker.clouddriver.azure.resources.subnet.model.AzureSubnet
 import com.netflix.spinnaker.clouddriver.model.Network
 
 class AzureNetwork implements Network {
@@ -24,4 +25,5 @@ class AzureNetwork implements Network {
   String name
   String account
   String region
+  List<AzureSubnet> subnets = []
 }

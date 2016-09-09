@@ -57,14 +57,14 @@ class AzureSubnetProvider implements SubnetProvider<AzureSubnet> {
 
     new AzureSubnet(
       type: "azure",
-      id: subnet.id,
+      id: subnet.resourceId,
       name: subnet.name,
-      account: parts.account?: "azure-cred1",
+      account: parts.account?: "unknown",
       region: subnet.region,
       addressPrefix: subnet.addressPrefix,
       networkSecurityGroup: subnet.networkSecurityGroup,
       vnet: subnet.vnet,
-      tag: subnet.etag,
+      devices: subnet.connectedDevices,
       purpose: "TBD"
     )
   }

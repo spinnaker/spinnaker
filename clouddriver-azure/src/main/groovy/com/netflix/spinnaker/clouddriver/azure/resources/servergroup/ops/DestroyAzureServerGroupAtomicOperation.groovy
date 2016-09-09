@@ -118,7 +118,7 @@ class DestroyAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
           }
 
           // Delete subnet attached to server group
-          if (serverGroupDescription.subnetId) {
+          if (serverGroupDescription.hasNewSubnet && serverGroupDescription.subnetId) {
             String subnetName = AzureUtilities.getNameFromResourceId(serverGroupDescription.subnetId)
             String virtualNetworkName = AzureUtilities.getVirtualNetworkName(resourceGroupName)
             task.updateStatus(BASE_PHASE, "Deleting subnet ${subnetName} " + "in ${region}...")
