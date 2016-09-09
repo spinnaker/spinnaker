@@ -25,7 +25,7 @@ module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.servi
           region: defaultRegion,
           images: backingData.images,
           loadBalancers: [],
-          securityGroups: [],
+          selectedVnetSubnets: [],
           strategy: '',
           sku: {
             capacity: 1,
@@ -40,6 +40,7 @@ module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.servi
             mode: defaults.mode || 'create',
             disableStrategySelection: true,
             loadBalancersConfigured: false,
+            networkSettingsConfigured: false,
             securityGroupsConfigured: false,
           },
         };
@@ -67,12 +68,13 @@ module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.servi
         freeFormDetails: serverGroupName.freeFormDetails,
         credentials: serverGroup.account,
         loadBalancers: serverGroup.loadBalancers,
+        selectedSubnets: serverGroup.selectedVnetSubnets,
         securityGroups: serverGroup.securityGroups,
         loadBalancerName: serverGroup.appGatewayName,
-        securityGroup: {
-          id: serverGroup.securityGroupName,
-        },
+        securityGroupName: serverGroup.securityGroupName,
         region: serverGroup.region,
+        vnet: serverGroup.vnet,
+        subnet: serverGroup.subnet,
         sku: serverGroup.sku,
         capacity: {
           min: serverGroup.capacity.min,

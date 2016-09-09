@@ -26,6 +26,31 @@
       </div>
     </div>
     <region-select-field required label-columns="3" component="loadBalancer" field="region" account="loadBalancer.credentials" provider="'azure'" on-change="ctrl.regionUpdated()" regions="regions"></region-select-field>
+    
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">Virtual Network</div>
+      <div class="col-md-7">
+          <ui-select class="form-control input-sm" required ng-model="loadBalancer.selectedVnet" on-select="ctrl.selectedVnetChanged($item)">
+            <ui-select-match placeholder="Select from existing virtual networks">{{$select.selected.name}}</ui-select-match>
+            <ui-select-choices repeat="selectVnet in ctrl.selectedVnets | filter: $select.search">
+              <span ng-bind-html="selectVnet.name | highlight: $select.search"></span>
+            </ui-select-choices>
+          </ui-select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">Subnet</div>
+      <div class="col-md-7">
+          <ui-select class="form-control input-sm" required ng-model="loadBalancer.selectedSubnet" on-select="ctrl.selectedSubnetChanged($item)">
+            <ui-select-match placeholder="Select from existing subnets">{{$select.selected.name}}</ui-select-match>
+            <ui-select-choices repeat="selectSubnet in ctrl.selectedSubnets | filter: $select.search">
+              <span ng-bind-html="selectSubnet.name | highlight: $select.search"></span>
+            </ui-select-choices>
+          </ui-select>
+      </div>
+    </div>
+
     <div class="form-group">
       <div class="col-md-3 sm-label-right">Stack <help-field key="azure.loadBalancer.stack"></help-field></div>
       <div class="col-md-3">

@@ -49,6 +49,10 @@
         <dd>{{loadBalancer.elb.createdTime | timestamp}}</dd>
         <dt>In</dt>
         <dd><account-tag account="loadBalancer.account" pad="right" provider="loadBalancer.type"></account-tag> {{loadBalancer.region}}</dd>
+        <dt>VNet</dt>
+        <dd>{{loadBalancer.elb.vnet}}</dd>
+        <dt>Subnet</dt>
+        <dd>{{loadBalancer.elb.subnet}}</dd>
       </dl>
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
         <dt ng-if="loadBalancer.serverGroups">Server Groups</dt>

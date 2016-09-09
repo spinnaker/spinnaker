@@ -41,11 +41,13 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
         editMode: true,
         region: loadBalancer.region,
         credentials: loadBalancer.account,
-        loadBalancingRules: [],
         name: loadBalancer.name,
         stack: loadBalancer.stack,
         detail: loadBalancer.detail,
-        probes: []
+        vnet: loadBalancer.vnet,
+        subnet: loadBalancer.subnet,
+        probes: [],
+        loadBalancingRules: [],
       };
 
       if (loadBalancer.elb) {
@@ -73,6 +75,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
         region: defaultRegion,
         cloudProvider: 'azure',
         vnet: null,
+        subnet: null,
         probes: [
           {
             probeName: '',

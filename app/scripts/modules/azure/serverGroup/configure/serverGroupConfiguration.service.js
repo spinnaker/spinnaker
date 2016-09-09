@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.service',
   .factory('azureServerGroupConfigurationService', function($q, azureImageReader, accountService, securityGroupReader,
                                                           cacheInitializer,
                                                           diffService, namingService,
-                                                          loadBalancerReader, _) {
+                                                          loadBalancerReader, networkReader, _) {
 
 
     var healthCheckTypes = ['EC2', 'ELB'],
@@ -181,6 +181,15 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.service',
           angular.extend(result.dirty, configureLoadBalancers(command).dirty);
           angular.extend(result.dirty, configureSecurityGroupOptions(command).dirty);
         }
+        // reset previous set values
+        command.loadBalancerName = null;
+        command.vnet = null;
+        command.subnet = null;
+        command.selectedSubnet = null;
+        command.selectedVnet = null;
+        command.selectedVnetSubnets = [];
+        command.viewState.networkSettingsConfigured = false;
+        command.securityGroup = null;
 
         return result;
       };

@@ -45,7 +45,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.transformer', [
         },
         credentials: command.credentials,
         region: command.region,
-        securityGroup: command.securityGroup,
+        securityGroupName: command.securityGroupName,
         loadBalancerName: command.loadBalancerName,
         user: '[anonymous]',
         upgradePolicy: 'Manual',

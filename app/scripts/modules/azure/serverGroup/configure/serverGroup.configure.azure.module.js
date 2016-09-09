@@ -18,5 +18,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure', [
   require('../serverGroup.transformer.js'),
   require('./serverGroupAdvancedSettingsSelector.directive.js'),
   require('../../../core/serverGroup/configure/common/instanceArchetypeSelector.js'),
-  require('../../../core/serverGroup/configure/common/instanceTypeSelector.js')
+  require('../../../core/serverGroup/configure/common/instanceTypeSelector.js'),
+  require('./wizard/networkSettings/ServerGroupNetworkSettings.controller.js'),
+  require('./wizard/networkSettings/ServerGroupNetworkSettingsSelector.directive.js')
 ]);
