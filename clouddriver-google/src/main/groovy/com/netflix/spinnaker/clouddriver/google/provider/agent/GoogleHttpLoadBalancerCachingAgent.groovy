@@ -337,7 +337,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
                   paths: pathRule.paths,
                   backendService: new GoogleBackendService(name: Utils.getLocalName(pathRule.service)),
               )
-            }
+            } ?: []
             googleLoadBalancer.hostRules << gHostRule
           }
         }
