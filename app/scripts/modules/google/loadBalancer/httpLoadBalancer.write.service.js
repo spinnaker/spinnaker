@@ -19,7 +19,7 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.write.servi
       return taskExecutor.executeTask({
         job: [lb],
         application: application,
-        description: `${descriptor}  Load Balancer: ${lb.name}`
+        description: `${descriptor} Load Balancer: ${lb.name}`
       });
     }
 

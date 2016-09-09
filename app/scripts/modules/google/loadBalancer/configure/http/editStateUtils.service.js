@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.editStateUt
 
       reconcileObjectReferences(lb, backendServices, healthChecks);
       normalizeNames(backendServices, healthChecks);
-      lb.portRange = parseComponentName(lb.portRange);
+      normalizeLoadBalancer(lb);
 
       return { backendServices, healthChecks, hostRules };
     }
@@ -98,6 +98,11 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.editStateUt
     function normalizeNames (backendServices, healthChecks) {
       let components = [...backendServices, ...healthChecks];
       components.forEach((c) => c.name = parseComponentName(c.name));
+    }
+
+    function normalizeLoadBalancer (lb) {
+      lb.portRange = parseComponentName(lb.portRange);
+      delete lb.instances;
     }
 
     function parseComponentName (name) {
