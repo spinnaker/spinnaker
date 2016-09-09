@@ -175,7 +175,7 @@ class ServerGroupController {
         }
         if (health.type == InstanceLoadBalancers.HEALTH_TYPE && health.containsKey("loadBalancers")) {
           healthMetric.loadBalancers = health.loadBalancers.collect {
-            [name : it.loadBalancerName, state : it.state, description: it.description ]
+            [name : it.loadBalancerName, state : it.state, description: it.description, healthState: it.healthState, loadBalancerType: it.loadBalancerType ]
           }
         }
         healthMetric
