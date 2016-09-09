@@ -1,0 +1,76 @@
+<div ng-controller="titusRunJobStageCtrl as runJobCtrl" class="form-horizontal">
+  <stage-config-field label="Account">
+    <account-select-field component="stage" field="credentials" accounts="backingData.credentials"
+                          provider="'titus'"></account-select-field>
+  </stage-config-field>
+
+  <region-select-field label-columns="3"
+                       component="stage.cluster"
+                       field="region"
+                       account="stage.credentials"
+                       regions="regions"
+                       provider="'titus'"></region-select-field>
+
+  <stage-config-field label="Image">
+    <input type="text" class="form-control input-sm" name="image" ng-model="stage.cluster.imageId" required/>
+  </stage-config-field>
+
+  <stage-config-field label="CPU(s)">
+    <input type="number" class="form-control input-sm" name="cpu" ng-model="stage.cluster.resources.cpu" required/>
+  </stage-config-field>
+
+  <stage-config-field label="Memory (MB)">
+    <input type="number" class="form-control input-sm" name="memory" ng-model="stage.cluster.resources.memory"
+           required/>
+  </stage-config-field>
+
+  <stage-config-field label="Disk (MB)">
+    <input type="number" class="form-control input-sm" name="disk" ng-model="stage.cluster.resources.disk" required/>
+  </stage-config-field>
+
+  <stage-config-field label="Command">
+    <input type="text" class="form-control input-sm" name="command" ng-model="stage.cluster.entryPoint"
+           required/>
+  </stage-config-field>
+
+  <div class="form-group">
+    <div class="col-md-9 col-md-offset-1">
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" ng-model="stage.showAdvancedOptions">
+          <strong>Show Advanced Options</strong>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div ng-class="{collapse: stage.showAdvancedOptions !== true, 'collapse.in': stage.showAdvancedOptions === true}">
+
+    <stage-config-field label="Allocate IP">
+      <input type="checkbox" class="form-control input-sm" name="allocateIpAddress"
+             ng-model="stage.cluster.resources.allocateIpAddress"/>
+    </stage-config-field>
+
+    <stage-config-field label="Ports" ng-if="!stage.cluster.resources.allocateIpAddress">
+      <input type="text" class="form-control input-sm" name="cpu" ng-model="stage.cluster.resources.ports"/>
+      (Comma separated)
+    </stage-config-field>
+
+    <stage-config-field label="IAM Instance Profile (optional)">
+      <input type="text"
+             class="form-control input-sm"
+             ng-model="stage.cluster.iamProfile"/>
+    </stage-config-field>
+
+    <stage-config-field label="Security Groups">
+      <input type="text" class="form-control input-sm" name="cpu" ng-model="stage.cluster.securityGroups"/>
+      (Comma separated list of ids)
+    </stage-config-field>
+
+    <stage-config-field label="Environment (optional)">
+      <map-editor model="stage.cluster.env" allow-empty="true"></map-editor>
+    </stage-config-field>
+
+  </div>
+
+</div>
