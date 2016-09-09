@@ -35,17 +35,21 @@
         <input ng-if="!useDefaultParameters[parameter.name] && !parameter.hasOptions" type="text"
                class="form-control input-sm"
                ng-model="userSuppliedParameters[parameter.name]" ng-change="updateParam(parameter.name)"/>
-        <ui-select ng-if="!useDefaultParameters[parameter.name] && parameter.hasOptions"
-                   ng-model="userSuppliedParameters[parameter.name]" ng-change="updateParam(parameter.name)"
-                   style="width: 100%"
-                   class="form-control input-sm">
-          <ui-select-match>
-            <strong>{{$select.selected.value}}</strong>
-          </ui-select-match>
-          <ui-select-choices repeat="option.value as option in parameter.options">
-            <div><strong>{{option.value}}</strong></div>
-          </ui-select-choices>
-        </ui-select>
+
+        <spel-select ng-if="!useDefaultParameters[parameter.name] && parameter.hasOptions"
+                     model="userSuppliedParameters[parameter.name]">
+          <ui-select ng-model="userSuppliedParameters[parameter.name]"
+                     ng-change="updateParam(parameter.name)"
+                     style="width: 100%"
+                     class="form-control input-sm">
+            <ui-select-match>
+              <strong>{{$select.selected.value}}</strong>
+            </ui-select-match>
+            <ui-select-choices repeat="option.value as option in parameter.options">
+              <div><strong>{{option.value}}</strong></div>
+            </ui-select-choices>
+          </ui-select>
+        </spel-select>
       </div>
       <div class="checkbox col-md-4" ng-if="parameter.default!==null">
         <label>
