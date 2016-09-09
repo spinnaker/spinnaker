@@ -18,8 +18,10 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.ec2.model.DescribeSubnetsRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
 import com.netflix.frigga.Names
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProperties
 import com.netflix.spinnaker.clouddriver.aws.deploy.validators.BasicAmazonDeployDescriptionValidator
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -38,7 +40,10 @@ import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.validation.Errors
 
+import java.util.regex.Pattern
+
 class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
+  private static final Pattern ALB_ARN_PATTERN = Pattern.compile(/^arn:aws:elasticloadbalancing:[^:]+:[^:]+:loadbalancer\/app\/([^\/]+)\/.+$/)
   private static final String BASE_PHASE = "COPY_LAST_ASG"
 
   private static Task getTask() {
@@ -144,6 +149,15 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
         newDescription.availabilityZones = [(targetRegion): description.availabilityZones[targetRegion] ?: ancestorAsg.availabilityZones]
         newDescription.instanceType = description.instanceType ?: ancestorLaunchConfiguration.instanceType
         newDescription.loadBalancers = description.loadBalancers != null ? description.loadBalancers : ancestorAsg.loadBalancerNames
+        if (ancestorAsg.targetGroupARNs && sourceIsTarget) {
+          def targetGroups = sourceRegionScopedProvider.amazonElasticLoadBalancingV2.describeTargetGroups(new DescribeTargetGroupsRequest().withTargetGroupArns(ancestorAsg.targetGroupARNs)).targetGroups
+          def v2lbnames = targetGroups.collect { it.loadBalancerArns.findResults {
+            def matcher = ALB_ARN_PATTERN.matcher(it)
+            matcher.matches() ? matcher.group(1) : null
+          } ?: []}.flatten()
+          newDescription.loadBalancers = (newDescription.loadBalancers ?: []) + v2lbnames
+        }
+
         newDescription.securityGroups = description.securityGroups != null ? description.securityGroups : translateSecurityGroupIds(ancestorLaunchConfiguration.securityGroups)
         newDescription.capacity.min = description.capacity?.min != null ? description.capacity.min : ancestorAsg.minSize
         newDescription.capacity.max = description.capacity?.max != null ? description.capacity.max : ancestorAsg.maxSize
