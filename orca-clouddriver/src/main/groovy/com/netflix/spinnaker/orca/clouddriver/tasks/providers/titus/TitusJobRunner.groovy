@@ -34,6 +34,7 @@ class TitusJobRunner implements JobRunner {
 
     if (stage.context.containsKey("cluster")) {
       operation.putAll(stage.context.cluster as Map)
+      operation.put('credentials', stage.context.credentials)
     } else {
       operation.putAll(stage.context)
     }
