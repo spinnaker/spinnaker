@@ -19,8 +19,9 @@
   <table class="table canary-summary">
     <thead>
     <tr>
-      <th width="60%">Deployment</th>
-      <th width="40%">Running Time</th>
+      <th width="40%">Deployment</th>
+      <th>Started</th>
+      <th>Running Time</th>
     </tr>
     </thead>
     <tbody>
@@ -31,6 +32,7 @@
         <status-glyph item="{isFailed: true}" ng-if="stageSummary.masterStage.exceptions.length"></status-glyph>
         <strong>Canary Summary</strong>
       </td>
+      <td>{{stageSummary.startTime | timestamp}}</td>
       <td>{{stageSummary.runningTimeInMs | duration}}</td>
     </tr>
     <tr class="clickable canary-deployment-row"
@@ -39,7 +41,8 @@
         ng-if="stage.type === 'monitorAcaTask'"
         ng-click="ctrl.toggleDetails($index)">
 
-      <td>{{ stage.name }}</td>
+      <td>{{stage.name}}</td>
+      <td>{{stage.startTime | timestamp}}</td>
       <td>{{stage.runningTimeInMs | duration}}</td>
     </tr>
     </tbody>
