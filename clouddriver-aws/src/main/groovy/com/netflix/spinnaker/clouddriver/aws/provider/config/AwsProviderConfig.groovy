@@ -22,6 +22,7 @@ import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonLoadBalancerV2InstanceStateCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.ReservedInstancesCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
@@ -136,6 +137,7 @@ class AwsProviderConfig {
               amazonClientProvider, credentials, region.name, objectMapper, ctx
             )
           }
+          newlyAddedAgents << new AmazonLoadBalancerV2InstanceStateCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
         }
       }
     }

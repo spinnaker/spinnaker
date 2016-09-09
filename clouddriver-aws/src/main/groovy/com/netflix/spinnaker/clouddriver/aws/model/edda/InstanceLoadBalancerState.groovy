@@ -16,21 +16,59 @@
 
 package com.netflix.spinnaker.clouddriver.aws.model.edda
 
+import com.netflix.spinnaker.clouddriver.model.HealthState
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
-import groovy.transform.Immutable
 
-@Immutable
 @CompileStatic
 @EqualsAndHashCode(cache = true)
 class InstanceLoadBalancerState {
-  String instanceId
-  String loadBalancerName
-  String state
-  String reasonCode
-  String description
+  final String instanceId
+  final String loadBalancerType
+  final String loadBalancerName
+  final String state
+  final String reasonCode
+  final String description
+
+  final HealthState healthState
+
+  InstanceLoadBalancerState(String instanceId, String loadBalancerType, String loadBalancerName, String state, String reasonCode, String description) {
+    this.instanceId = instanceId
+    this.loadBalancerType = loadBalancerType
+    this.loadBalancerName = loadBalancerName
+    this.state = state
+    this.reasonCode = reasonCode
+    this.description = description
+    this.healthState = deriveHealthState()
+  }
 
   static List<InstanceLoadBalancerState> fromLoadBalancerInstanceState(LoadBalancerInstanceState lbis) {
-    lbis.instances.collect { new InstanceLoadBalancerState(loadBalancerName: lbis.name, instanceId: it.instanceId, state: it.state, reasonCode: it.reasonCode, description: it.description)}
+    lbis.instances.collect { new InstanceLoadBalancerState(it.instanceId, lbis.loadBalancerType, lbis.name, it.state, it.reasonCode, it.description)}
+  }
+
+  private HealthState deriveHealthState() {
+    //ELBv2 has concrete states: unused -> initial -> healthy    -> draining
+    //                                            \-> unhealthy -/
+    /* for ELBv1 we derive state from descriptions:
+        * Instance registration is still in progress
+        * Instance has not passed the configured HealthyThreshold number of health checks consecutively.
+        * Instance has failed at least the UnhealthyThreshold number of health checks consecutively.
+        * Instance is in the EC2 Availability Zone for which LoadBalancer is not configured to route traffic to.
+        * Instance is not currently registered with the LoadBalancer.
+     */
+    if (state == 'InService' || state == 'healthy') {
+      return HealthState.Up
+    }
+
+    if (state == 'initial' || description == 'Instance registration is still in progress') {
+      return HealthState.Starting
+    }
+    if (state == 'unused' || state == 'draining' || description == 'Instance is not currently registered with the LoadBalancer.') {
+      return HealthState.OutOfService
+    }
+    if (description == 'Instance is in the EC2 Availability Zone for which LoadBalancer is not configured to route traffic to.') {
+      return HealthState.Down
+    }
+    return HealthState.Down
   }
 }

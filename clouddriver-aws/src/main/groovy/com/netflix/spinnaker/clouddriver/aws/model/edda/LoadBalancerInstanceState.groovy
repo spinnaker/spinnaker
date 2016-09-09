@@ -21,5 +21,6 @@ import groovy.transform.Canonical
 @Canonical
 class LoadBalancerInstanceState {
   String name
+  String loadBalancerType = 'classic'
   List<LoadBalancerInstance> instances
 }
