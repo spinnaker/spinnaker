@@ -66,7 +66,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
           let row = '<td>';
           loadBalancers.forEach(function (loadBalancer) {
             var tooltip = loadBalancer.state === 'OutOfService' ? loadBalancer.description.replace(/"/g, '&quot;') : null;
-            var icon = loadBalancer.state === 'InService' ? 'Up' : 'Down';
+            var icon = (loadBalancer.healthState === 'Up' || loadBalancer.state === 'InService') ? 'Up' : 'Down';
 
             if (tooltip) {
               tooltipEnabled = true;
