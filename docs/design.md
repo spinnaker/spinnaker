@@ -41,10 +41,10 @@ need to pin specific versions of Spinnaker microservices, as well as the
 dependencies they require. We propose that the schema looks as follows:
 
 ```yaml
-version: 1.x.x
+version: 1.4.0
 services:                   # one entry for every service
   clouddriver:
-    version: 1.x.x          # corresponds to travis-ci spinnaker release
+    version: 1.320.0        # corresponds to travis-ci spinnaker release
     dependencies:           # list of name/version pairs
       - name: redis
         version: >2.0       # it is worth exploring version ranges here
@@ -103,6 +103,43 @@ Before exploring the semantics of the individual Halyard commands, let's look
 at the `~/.hal` directory.
 
 #### `~/.hal` Contents
+
+The directory structure will look something like this:
+
+```
+.hal/
+  config                    # all halyard spinnaker entries
+  my-spinnaker-1/           # optional directory with per-install overrides
+    clouddriver-local.yml   # optional -local.yml files with config changes
+  my-spinnaker-2/
+    igor-local.yml
+    echo-local.yml
+```
+
+The takeaway for the above diagram is that only `~/.hal/config` is required,
+and that for each installation of Spinnaker installed you can optionally
+provide your own `*-local.yml` files.
+
+The contents of `~/.hal/config` will look like this:
+
+```yaml
+current-deployment: my-spinnaker-1     # which deployment to operate on
+deployment-configuration:
+  - name: my-spinnaker-1
+    accounts:
+      kubernetes:                      # provider-specific details
+        - name: my-kubernetes-account
+          context: ...
+        - name: my-other-kubernetes-account
+      google:
+        - name: ...
+    webhooks:                          # not the best name, TODO
+      jenkins:                         # CI-specific details
+        - name: ci-server
+          endpoint: ...
+  - name: my-spinnaker-2
+    accounts: ...
+```
 
 ## Deploying and Updating Spinnaker
 
