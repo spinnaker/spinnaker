@@ -6,6 +6,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.cloneServerGr
   require('../../../../core/application/modal/platformHealthOverride.directive.js'),
   require('../../../../core/account/account.service.js'),
   require('../../../../core/naming/naming.service.js'),
+  require('../../../../core/utils/lodash.js'),
   require('./cloneServerGroupExecutionDetails.controller.js'),
 ])
   .config(function(pipelineConfigProvider) {
@@ -22,7 +23,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.cloneServerGr
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'}
       ],
     });
-  }).controller('gceCloneServerGroupStageCtrl', function($scope, accountService, namingService, stageConstants) {
+  }).controller('gceCloneServerGroupStageCtrl', function($scope, _, accountService, namingService, stageConstants) {
 
     let stage = $scope.stage;
 
@@ -57,6 +58,14 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.cloneServerGr
     };
 
     $scope.$watch('stage.targetCluster', this.targetClusterUpdated);
+
+    this.removeCapacity = () => {
+      delete stage.capacity;
+    };
+
+    if (!_.has(stage, 'useSourceCapacity')) {
+      stage.useSourceCapacity = true;
+    }
 
     this.toggleDisableTraffic = () => {
       stage.disableTraffic = !stage.disableTraffic;

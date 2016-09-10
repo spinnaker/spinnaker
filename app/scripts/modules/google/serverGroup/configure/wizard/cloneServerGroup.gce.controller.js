@@ -273,9 +273,13 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
 
       $scope.command.targetSize = $scope.command.capacity.desired;
 
-      // We want min/max set to the same value as desired.
-      $scope.command.capacity.min = $scope.command.capacity.desired;
-      $scope.command.capacity.max = $scope.command.capacity.desired;
+      if ($scope.command.autoscalingPolicy) {
+        $scope.command.capacity.min = $scope.command.autoscalingPolicy.minNumReplicas;
+        $scope.command.capacity.max = $scope.command.autoscalingPolicy.maxNumReplicas;
+      } else {
+        $scope.command.capacity.min = $scope.command.capacity.desired;
+        $scope.command.capacity.max = $scope.command.capacity.desired;
+      }
 
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
         return $uibModalInstance.close($scope.command);

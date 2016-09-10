@@ -6,6 +6,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.cloneServerGr
   require('../../../../core/application/modal/platformHealthOverride.directive.js'),
   require('../../../../core/account/account.service.js'),
   require('../../../../core/naming/naming.service.js'),
+  require('../../../../core/utils/lodash.js'),
   require('./cloneServerGroupExecutionDetails.controller.js'),
 ])
   .config(function(pipelineConfigProvider) {
@@ -22,7 +23,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.cloneServerGr
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'}
       ],
     });
-  }).controller('awsCloneServerGroupStageCtrl', function($scope, accountService, namingService, stageConstants) {
+  }).controller('awsCloneServerGroupStageCtrl', function($scope, _, accountService, namingService, stageConstants) {
 
     let stage = $scope.stage;
 
@@ -57,6 +58,14 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.cloneServerGr
     };
 
     $scope.$watch('stage.targetCluster', this.targetClusterUpdated);
+
+    this.removeCapacity = () => {
+      delete stage.capacity;
+    };
+
+    if (!_.has(stage, 'useSourceCapacity')) {
+      stage.useSourceCapacity = true;
+    }
 
     this.toggleSuspendedProcess = (process) => {
       stage.suspendedProcesses = stage.suspendedProcesses || [];

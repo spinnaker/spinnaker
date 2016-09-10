@@ -48,8 +48,8 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.details.resize.
       }
 
       if (!$scope.command.advancedMode) {
-        $scope.command.capacity.min= $scope.command.capacity.desired;
-        $scope.command.capacity.max= $scope.command.capacity.desired;
+        $scope.command.capacity.min = $scope.command.capacity.desired;
+        $scope.command.capacity.max = $scope.command.capacity.desired;
       }
 
       var submitMethod = function() {

@@ -12,6 +12,8 @@
           <dd>{{stage.context.targetCluster}}</dd>
           <dt>Server Group</dt>
           <dd>{{stage.context.source.serverGroupName}}</dd>
+          <dt ng-if="!stage.context.useSourceCapacity && stage.context.capacity">Capacity</dt>
+          <dd ng-if="!stage.context.useSourceCapacity && stage.context.capacity">Min: {{stage.context.capacity.min}} / Desired: {{stage.context.capacity.desired}} / Max: {{stage.context.capacity.max}}</dd>
         </dl>
       </div>
     </div>
