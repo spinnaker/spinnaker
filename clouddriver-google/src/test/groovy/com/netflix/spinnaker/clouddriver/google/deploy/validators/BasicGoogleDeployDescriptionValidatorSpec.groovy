@@ -134,6 +134,26 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
       0 * errors._
   }
 
+  void "pass validation with proper description inputs, capacity override, and tags"() {
+    setup:
+      def description = new BasicGoogleDeployDescription(application: APPLICATION,
+                                                         stack: STACK,
+                                                         freeFormDetails: FREE_FORM_DETAILS,
+                                                         capacity: [min: TARGET_SIZE, max: TARGET_SIZE, desired: TARGET_SIZE],
+                                                         image: IMAGE,
+                                                         instanceType: INSTANCE_TYPE,
+                                                         zone: ZONE,
+                                                         tags: TAGS,
+                                                         accountName: ACCOUNT_NAME)
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      0 * errors._
+  }
+
   void "invalid targetSize fails validation"() {
     setup:
       def description = new BasicGoogleDeployDescription(targetSize: -1)
@@ -144,6 +164,32 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
 
     then:
       1 * errors.rejectValue("targetSize", "basicGoogleDeployDescription.targetSize.negative")
+  }
+
+  @Unroll
+  void "invalid capacity (min: #min, max: #max, desired: #desired) fails validation"() {
+    setup:
+      def description = new BasicGoogleDeployDescription(capacity: [min: min, max: max, desired: desired])
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      numErrors * errors.rejectValue(
+        { return it.startsWith("capacity.") },
+        { return it.startsWith("basicGoogleDeployDescription.capacity") })
+
+    where:
+      min  | max  | desired | numErrors
+      -1   | 0    | 0       | 1
+      0    | -1   | 0       | 1
+      0    | 0    | -1      | 1
+      -1   | -1   | -1      | 3
+      null | 0    | 0       | 1
+      0    | null | 0       | 1
+      0    | 0    | null    | 1
+      null | null | null    | 3
   }
 
   void "invalid disk sizeGb fails validation"() {

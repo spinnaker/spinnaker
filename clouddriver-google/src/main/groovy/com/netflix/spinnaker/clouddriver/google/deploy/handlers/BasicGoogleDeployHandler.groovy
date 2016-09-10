@@ -252,8 +252,17 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     googleOperationPoller.waitForGlobalOperation(compute, project, instanceTemplateCreateOperation.getName(),
         null, task, "instance template " + GCEUtil.getLocalName(instanceTemplateUrl), BASE_PHASE)
 
+    if (description.capacity) {
+      description.targetSize = description.capacity.desired
+    }
+
     if (autoscalerIsSpecified(description)) {
       GCEUtil.calibrateTargetSizeWithAutoscaler(description)
+
+      if (description.capacity) {
+        description.autoscalingPolicy.minNumReplicas = description.capacity.min
+        description.autoscalingPolicy.maxNumReplicas = description.capacity.max
+      }
     }
 
     def autoHealingPolicy =

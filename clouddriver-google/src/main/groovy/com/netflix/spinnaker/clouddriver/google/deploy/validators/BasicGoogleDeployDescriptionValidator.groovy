@@ -54,8 +54,19 @@ class BasicGoogleDeployDescriptionValidator extends DescriptionValidator<BasicGo
     }
 
     helper.validateName(description.application, "application")
-    helper.validateNotEmpty(description.targetSize, "targetSize")
-    helper.validateNonNegativeLong(description.targetSize ?: 0, "targetSize")
+
+    if (description.capacity) {
+      helper.validateNotEmpty(description.capacity.min, "capacity.min")
+      helper.validateNonNegativeLong(description.capacity.min ?: 0, "capacity.min")
+      helper.validateNotEmpty(description.capacity.max, "capacity.max")
+      helper.validateNonNegativeLong(description.capacity.max ?: 0, "capacity.max")
+      helper.validateNotEmpty(description.capacity.desired, "capacity.desired")
+      helper.validateNonNegativeLong(description.capacity.desired ?: 0, "capacity.desired")
+    } else {
+      helper.validateNotEmpty(description.targetSize, "targetSize")
+      helper.validateNonNegativeLong(description.targetSize ?: 0, "targetSize")
+    }
+
     helper.validateAutoscalingPolicy(description.autoscalingPolicy)
 
     description.autoHealingPolicy?.with {

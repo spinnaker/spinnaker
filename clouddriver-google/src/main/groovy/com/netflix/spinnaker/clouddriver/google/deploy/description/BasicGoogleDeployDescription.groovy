@@ -40,6 +40,10 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
   GoogleAutoscalingPolicy autoscalingPolicy
   GoogleHttpLoadBalancingPolicy loadBalancingPolicy
   AutoHealingPolicy autoHealingPolicy
+  // Capacity is optional. If it is specified, capacity.desired takes precedence over targetSize.
+  // If autoscalingPolicy is also specified, capacity.min and capacity.max take precedence over
+  // autoscalingPolicy.minNumReplicas and autoscalingPolicy.maxNumReplicas.
+  Capacity capacity
   Source source = new Source()
 
   @Canonical
@@ -47,6 +51,13 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
   static class AutoHealingPolicy {
     String healthCheck
     int initialDelaySec = 300
+  }
+
+  @Canonical
+  static class Capacity {
+    Integer min
+    Integer max
+    Integer desired
   }
 
   @Canonical
