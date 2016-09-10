@@ -17,24 +17,24 @@ is to provide a solution for all of this. To understand what Halyard will
 become, and how it will address these problems, we will separate the 
 concerns of Halyard into three stages.
 
-1. [Configuring Spinnaker](#configuring-spinnaker)
+   1) [Configuring Spinnaker](#1-configuring-spinnaker)
 
-2. [Deploying and Updating Spinnaker](#deploying-and-updating-spinnaker)
+   2) [Deploying and Updating Spinnaker](#2-deploying-and-updating-spinnaker)
 
-3. [Operating the Spinnaker API](#operating-the-spinnaker-api)
+   3) [Operating the Spinnaker API](#3-operating-the-spinnaker-api)
 
-## Configuring Spinnaker
+## 1) Configuring Spinnaker
 
 The first stage in Halyards development will involve three parts.
 
-A. [Versioning Spinnaker](#a-versioning-spinnaker)
+1.1) [Versioning Spinnaker](#1-1-versioning-spinnaker)
 
-B. [Distributing Authoritative
-   Configuration](#distributing-authoritative-configuration)
+1.2) [Distributing Authoritative
+   Configuration](#1-2-distributing-authoritative-configuration)
 
-C. [Generating User Configuration](#generating-user-configuration)
+1.3) [Generating User Configuration](#1-3-generating-user-configuration)
 
-### A. Versioning Spinnaker
+### 1.1) Versioning Spinnaker
 
 In order to have confidence in the Spinnaker installation being deployed, we
 need to pin specific versions of Spinnaker microservices, as well as the
@@ -63,7 +63,7 @@ readable web endpoint. However, the HVN itself will be present on whatever
 machine is running Halyard to inform it of what configuration to read and what
 to deploy.
 
-### Distributing Authoritative Configuration
+## 1.2) Distributing Authoritative Configuration
 
 The idea is to have a single place that shared, authoritative Spinnaker
 configuration can be downloaded from. This will ultimately replace the
@@ -75,19 +75,19 @@ correct configuration. The actual set of configuration will never need to be
 stored on the maching running Halyard, only staged there during distribution
 of the configuration.
 
-### Generating User Configuration
+### 1.3) Generating User Configuration
 
 This will be the most challenging part of Halyard's first phase of development.
 In order to do this correctly, let's first list some goals:
 
-1. The user should never have to open a text editor to write or edit Spinnaker
+   a) The user should never have to open a text editor to write or edit Spinnaker
    configuration.
 
-2. If the user does want to hand-edit configuration, Halyard should not
+   b) If the user does want to hand-edit configuration, Halyard should not
    interfere with that (but it will be an advanced use-case, and shall be
    treated as such).
 
-3. Halyard should enable a user to configure multiple instances of Spinnaker
+   c) Halyard should enable a user to configure multiple instances of Spinnaker
    all from the same machine.
 
 To achieve these goals, Halyard will take a two-step approach to generating
@@ -147,6 +147,6 @@ deployment-configuration:
 Now that we know what will be stored in the `~/.hal` directory, we need to
 explain how to print
 
-## Deploying and Updating Spinnaker
+## 2. Deploying and Updating Spinnaker
 
-## Operating the Spinnaker API
+## 3. Operating the Spinnaker API
