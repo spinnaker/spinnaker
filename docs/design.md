@@ -1,5 +1,3 @@
-# Haylard
-
 ```
  _           _                     _
 | |__   __ _| |_   _  __ _ _ __ __| |
@@ -9,39 +7,27 @@
                 |___/
 ```
 
-## Goals
+## Problem
 
-The goal of Halyard is to make
-[Spinnaker](https://github.com/spinnaker/spinnaker) easier to setup and operate
-for non-trivial installations. Depending on the setup, there are more than ten
-services to manage, all of which with their own configuration files. There is
-no clear documentation of which services can be scaled horizontally, or which
-service to scale for best performance. Updating stateful services such as
-[Orca](https://github.com/spinnaker/orca) has its own set of challenges which
-aren't documented and require hand-work to do correctly. Running Spinnaker on
-multiple machines has no proper documentation, and isn't easy to do either. To
-begin to address this, I want to list some goals:
+Currently, it is not easy to setup and operate non-trivial installations of
+[Spinnaker](https://github.com/spinnaker/spinnaker). It requires knowledge of
+the behavior and operation of many independently configured services. Even with
+that knowledge, there is no existing solution for distributing or valdating
+configuration, updating Spinnaker's stateful services, or interacting with
+Spinnaker's API endpoint outside of the prebuilt UI. The goal of Halyard is to
+fix all of this. To understand what Halyard will become, and how it will
+address these problems, we will separate the concerns of Halyard into three
+pieces.
 
-1. Halyard should be able to create an instance of Spinnaker able to deploy to
-   any number of providers without having the user edit any `.yaml` files.
+1. [Configuring Spinnaker](#configuring-spinnaker)
 
-2. If the user does want to make custom Spinnaker config changes, Halyard
-   should enable by never overwriting their config.
+2. [Deploying and Updating Spinnaker](#deploying-and-updating-spinnaker)
 
-3. A developer should be able to add a new config option to Halyard without
-   having to modify the Halyard source code, barring special circumstances
-   (more on this later). Ultimately, Halyard will be the place all Spinnaker
-   config is stored.
+3. [Interacting with a Deployed Spinnaker
+   Installation](#interacting-with-a-deployed-spinnaker-installation)
 
-4. Halyard should be able to deploy/monitor Spinnaker in a number of
-   environments, e.g. Kubernetes, EC2, GCE, etc...
+## Configuring Spinnaker
 
-5. Halyard should update Spinnaker components seamlessly as long as the
-   environment Spinnaker is installed to supports it.
+## Deploying and Updating Spinnaker
 
-6. Versions of the different Spinnaker services should be pinned by Halyard,
-   and updated in Halyard.
-
-## Design
-
-## Interface
+## Interacting with a Deployed Spinnaker Installation
