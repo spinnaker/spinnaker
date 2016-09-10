@@ -4,7 +4,7 @@
 | '_ \ / _` | | | | |/ _` | '__/ _` |
 | | | | (_| | | |_| | (_| | | | (_| |
 |_| |_|\__,_|_|\__, |\__,_|_|  \__,_|
-                |___/
+               |___/
 ```
 
 Currently, it is not easy to setup and operate non-trivial installations of
@@ -30,7 +30,7 @@ The first stage in Halyards development will involve three parts.
 1. [Versioning Spinnaker](#versioning-spinnaker)
 
 2. [Distributing Authoritative
-   Configuration](#distributing-authoritatvie-configuration)
+   Configuration](#distributing-authoritative-configuration)
 
 3. [Generating User Configuration](#generating-user-configuration)
 
@@ -47,7 +47,7 @@ services:                   # one entry for every service
     version: 1.x.x          # corresponds to travis-ci spinnaker release
     dependencies:           # list of name/version pairs
       - name: redis
-        version: >2.0
+        version: >2.0       # it is worth exploring version ranges here
   orca: ...
 ```
 
@@ -68,11 +68,41 @@ to deploy.
 The idea is to have a single place that shared, authoritative Spinnaker config 
 can be downloaded from. This will ultimately replace the configuration in
 [spinnaker/config](https://github.com/spinnaker/spinnaker/tree/master/config)
-by storing each `*.yaml` in a versioned bucket. The bucket version will be
-mapped to Spinnaker HVNs to make it simple for Halyard to fetch the correct
+by storing each `*.yaml` in a single versioned bucket. The bucket version will 
+be mapped to Spinnaker HVNs to make it simple for Halyard to fetch the correct
+configuration. The actual set of configuration will never need to be stored on
+the maching running Halyard, only staged there during distribution of the
 configuration.
 
 ### Generating User Configuration
+
+This will be the most challenging part of Halyard's first phase of development.
+In order to do this correctly, let's first list some goals:
+
+1. The user should never have to open a text editor to write or edit Spinnaker
+   configuration.
+
+2. If the user does want to hand-edit configuration, Halyard should not
+   interfere with that (but it will be an advanced use-case, and shall be
+   treated as such).
+
+3. Halyard should enable a user to configure multiple instances of Spinnaker
+   all from the same machine.
+
+To achieve these goals, Halyard will take a two-step approach to generating
+Spinnaker configuration:
+
+1. Receive a number of user commands (add an account, add a trigger, etc...)
+   and store the resulting output in the `~/.hal/config` file.
+
+2. Reading configuration from `~/.hal/config` and from the specified HVN, write
+   out all Spinnaker configuration to `~/.spinnaker` (the default
+   configuration directory).
+
+Before exploring the semantics of the individual Halyard commands, let's look
+at the `~/.hal` directory.
+
+#### `~/.hal` Contents
 
 ## Deploying and Updating Spinnaker
 
