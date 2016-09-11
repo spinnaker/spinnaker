@@ -13,8 +13,8 @@ the behavior and operation of many independently configured services - and even
 with that knowledge - there is no existing solution for distributing or
 valdating configuration, updating Spinnaker's stateful services, or interacting
 with Spinnaker's API outside of the prebuilt UI. The goal of Halyard
-is to provide a solution for all of this. To understand what Halyard will 
-become, and how it will address these problems, we will separate the 
+is to provide a solution for all of this. To understand what Halyard will
+become, and how it will address these problems, we will separate the
 concerns of Halyard into three stages.
 
 - 1) [Configuring Spinnaker](#1-configuring-spinnaker)
@@ -27,12 +27,16 @@ concerns of Halyard into three stages.
 
 The first stage in Halyards development will involve three parts.
 
-- 1.1) [Versioning Spinnaker](#1-1-versioning-spinnaker)
+- 1.1) [Versioning Spinnaker](#11-versioning-spinnaker)
 
 - 1.2) [Distributing Authoritative
-   Configuration](#1-2-distributing-authoritative-configuration)
+   Configuration](#12-distributing-authoritative-configuration)
 
-- 1.3) [Generating User Configuration](#1-3-generating-user-configuration)
+- 1.3) [Generating User Configuration](#13-generating-user-configuration)
+  
+  - [`~/.hal` Contents](#hal-contents)
+
+  - [`~/.hal` Semantics](#hal-semantics)
 
 ### 1.1) Versioning Spinnaker
 
@@ -90,14 +94,16 @@ In order to do this correctly, let's first list some goals:
 - c) Halyard should enable a user to configure multiple instances of Spinnaker
   all from the same machine.
 
+- d) It should be easy to extend Halyard to accept new config options.
+
 To achieve these goals, Halyard will take a two-step approach to generating
 Spinnaker configuration:
 
 - a) Receive a number of user commands (add an account, add a trigger, etc...)
   and store the resulting output in the `~/.hal/config` file.
 
-- b) Reading configuration from `~/.hal/config` and from the specified HVN, write
-  out all Spinnaker configuration to `~/.spinnaker` (the default
+- b) Reading configuration from `~/.hal/config` and from the specified HVN,
+  write out all Spinnaker configuration to `~/.spinnaker` (the default
   configuration directory).
 
 Before exploring the semantics of the individual Halyard commands, let's look
@@ -109,43 +115,80 @@ The directory structure will look something like this:
 
 ```
 .hal/
-  config                    # all halyard spinnaker entries
-  my-spinnaker-1/           # optional directory with per-install overrides
-    clouddriver-local.yml   # optional -local.yml files with config changes
+  config                     # all halyard spinnaker entries
+  my-spinnaker-1/            # optional directory with per-install overrides
+    clouddriver-local.yaml   # optional -<profile>.yaml files with overrides
   my-spinnaker-2/
-    igor-local.yml
-    echo-local.yml
+    igor-local.yaml
+    echo-local.yaml
 ```
 
 The takeaway for the above diagram is that only `~/.hal/config` is required,
-and that for each installation of Spinnaker installed you can optionally
-provide your own `*-local.yml` files.
+and that for each installation of Spinnaker you can optionally
+provide your own `*-<profile>.yaml` files for further configuration.
 
 The contents of `~/.hal/config` will look like this:
 
 ```yaml
+halyard-version: 1.0.0
 current-deployment: my-spinnaker-1     # which deployment to operate on
 deployment-configuration:
   - name: my-spinnaker-1
-    accounts:
+    version: 1.4.0                     # HVN
+    providers:
       kubernetes:                      # provider-specific details
-        - name: my-kubernetes-account
-          context: ...
-        - name: my-other-kubernetes-account
+        enabled: true
+        accounts: 
+          - name: my-kubernetes-account
+            context: ...
+          - name: my-other-kubernetes-account
       google:
-        - name: ...
+        enabled: false
+        accounts:
+          - name: ...
     webhooks:                          # not the best name, TODO
       jenkins:                         # CI-specific details
-        - name: ci-server
-          endpoint: ...
+        - name: cloudbees
+          address: ...
   - name: my-spinnaker-2
     accounts: ...
+```
+
+These fields will map to entries in each service's config by means of a global
+key-value map, read by Halyard at start time. The purpose of this is to allow
+non-Halyard developers to add parseable entries to `~/.hal/config` without
+searching through code. For example, the above entries would be mapped like so:
+
+```yaml
+providers.kubernetes:
+  services:
+    - name: clouddriver
+      entries:
+        - kubernetes       # notice this substitutes a whole nested dictionary
+providers.google:
+  services:
+    - name: clouddriver
+      entries:
+        - kubernetes
+webhooks.jenkins:
+  services:
+    - name: igor
+      entries:
+        - jenkins
 ```
 
 #### `~/.hal` Semantics
 
 Now that we know what will be stored in the `~/.hal` directory, we need to
-explain how to print
+explain how to generate the contents of the `~/.spinnaker` directory.
+
+- i) For the current deployment, Halyard will download all configuration for
+  the given version number.
+
+- ii) Halyard will parse the specified entry in `~/.hal/config` as well as all
+  `*-<profile>.yaml` files in the directory of the given entry. Any values
+  specified in a `*-<profile>.yaml` file will override the corresponding entry
+  in `~/.hal/config`.
 
 ## 2. Deploying and Updating Spinnaker
 
