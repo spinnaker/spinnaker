@@ -210,17 +210,17 @@ no more than 5 lines of YAML.
 Now that we know what will be stored in the `~/.hal` directory, we need to
 explain how to generate the contents of the `~/.spinnaker` directory.
 
-- i) For the current deployment, Halyard will download all configuration for
+- a) For the current deployment, Halyard will download all configuration for
   the given version number.
 
-- ii) Halyard will parse the specified entry in `~/.hal/config` as well as all
+- b) Halyard will parse the specified entry in `~/.hal/config` as well as all
   `*-<profile>.yaml` files in the directory of the given entry. Any values
   specified in a `*-<profile>.yaml` file will override the corresponding entry
   in `~/.hal/config`, but only at the level of key/literal value pairs. This
   means duplicate dictionaries will be merged, overwriting entries only when
   they map to a string, integer, or boolean.
 
-- iii) Once all substitutions have occured, all configuration (downloaded and
+- c) Once all substitutions have occured, all configuration (downloaded and
   overwritten) is dumped into `~/.spinnaker`. It is important to note that
   Halyard treats a missing `-local` profile as an empty `-local` profile, so
   ultimately all the contents of `~/.hal/config` are written somewhere.
