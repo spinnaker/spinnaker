@@ -57,7 +57,7 @@ The first stage in Halyards development will involve three parts.
 
   - [`~/.hal` Semantics](#hal-semantics)
 
-  - [`~/.hal` Updates](#hal-updates)
+  - [Halyard Interface](#halyard-interface)
 
 ### 1.1) Versioning Spinnaker
 
@@ -232,7 +232,7 @@ which alone is not interesting. However, this allows us to make the full set of
 config changes available to Spinnaker, which are also interesting and useful to
 a user of Spinnaker.
 
-#### `~/.hal` Updates
+#### Halyard Interface
 
 Halyard will only ever make changes to `~/.hal/config`, leaving it up to the
 user to make optional changes to `~/.hal/<spinnaker-deployment>/*`. This should
@@ -241,14 +241,20 @@ against the Halyard daemon by a client.
 
 | ACTION   | PATH (`/<version>/<deployment>/<provider>`) | BODY | DESCRIPTION |
 |----------|---------------------------------------------|------|-------------|
-| `POST`   | `/accounts`| account description | create new account |
-| `POST`   | `/webhooks`| webhook description | create new webhook |
-| `PUT`    | `/enabled`| boolean | enable/disable account |
-| `PUT`    | `/accounts/<account>`| JSONPath & value | edit field in account |
-| `PUT`    | `/enabled`| boolean | enable/disable webhook |
-| `PUT`    | `/webhooks/<webhook>`| JSONPath & value | edit field in webhook |
-| `DELETE` | `/accounts/<account>`| | delete account |
-| `DELETE` | `/webhooks/<webhook>`| | delete webhook |
+| `POST`   | `/accounts` | account description | create new account |
+| `POST`   | `/webhooks` | webhook description | create new webhook |
+| `PUT`    | `/enabled` | boolean | enable/disable account |
+| `PUT`    | `/enabled` | boolean | enable/disable webhook |
+| `PUT`    | `/accounts/<account>` | JSONPath & value | edit field in account |
+| `PUT`    | `/webhooks/<webhook>` | JSONPath & value | edit field in webhook |
+| `DELETE` | `/accounts/<account>` | | delete account |
+| `DELETE` | `/webhooks/<webhook>` | | delete webhook |
+
+Once an incoming change has been processed, the resulting config will always be
+run through a validator to ensure that Spinnaker can still deploy what's been
+provided. If the validator passes, the configuration is written out to
+`~/.spinnaker`, as described above. If it fails, the operation will be rejected
+with an error message describing why.
 
 ## 2. Deploying and Updating Spinnaker
 
