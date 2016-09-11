@@ -251,8 +251,11 @@ against the Halyard daemon by a client.
 | `DELETE` | `/webhooks/<webhook>` | | delete webhook |
 
 > `<version>`: Halyard version.
+>
 > `<deployment>`: Name of the spinnaker deployment.
+>
 > `<type>`: (`provider`|`webhook`|`git`).
+>
 > `<name>`: name of `provider`, `webhook`, or `git` entry.
 
 Once an incoming change has been processed, the resulting config will always be
