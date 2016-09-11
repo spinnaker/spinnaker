@@ -27,12 +27,12 @@ concerns of Halyard into three stages.
 
 The first stage in Halyards development will involve three parts.
 
-1.1) [Versioning Spinnaker](#1-1-versioning-spinnaker)
+- 1.1) [Versioning Spinnaker](#1-1-versioning-spinnaker)
 
-1.2) [Distributing Authoritative
+- 1.2) [Distributing Authoritative
    Configuration](#1-2-distributing-authoritative-configuration)
 
-1.3) [Generating User Configuration](#1-3-generating-user-configuration)
+- 1.3) [Generating User Configuration](#1-3-generating-user-configuration)
 
 ### 1.1) Versioning Spinnaker
 
@@ -80,25 +80,25 @@ of the configuration.
 This will be the most challenging part of Halyard's first phase of development.
 In order to do this correctly, let's first list some goals:
 
-   a) The user should never have to open a text editor to write or edit Spinnaker
-   configuration.
+- a) The user should never have to open a text editor to write or edit
+  Spinnaker confiuration
 
-   b) If the user does want to hand-edit configuration, Halyard should not
-   interfere with that (but it will be an advanced use-case, and shall be
-   treated as such).
+- b) If the user does want to hand-edit configuration, Halyard should not
+  interfere with that (but it will be an advanced use-case, and shall be
+  treated as such).
 
-   c) Halyard should enable a user to configure multiple instances of Spinnaker
-   all from the same machine.
+- c) Halyard should enable a user to configure multiple instances of Spinnaker
+  all from the same machine.
 
 To achieve these goals, Halyard will take a two-step approach to generating
 Spinnaker configuration:
 
-1. Receive a number of user commands (add an account, add a trigger, etc...)
-   and store the resulting output in the `~/.hal/config` file.
+- a) Receive a number of user commands (add an account, add a trigger, etc...)
+  and store the resulting output in the `~/.hal/config` file.
 
-2. Reading configuration from `~/.hal/config` and from the specified HVN, write
-   out all Spinnaker configuration to `~/.spinnaker` (the default
-   configuration directory).
+- b) Reading configuration from `~/.hal/config` and from the specified HVN, write
+  out all Spinnaker configuration to `~/.spinnaker` (the default
+  configuration directory).
 
 Before exploring the semantics of the individual Halyard commands, let's look
 at the `~/.hal` directory.
