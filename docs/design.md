@@ -88,7 +88,7 @@ readable web endpoint. However, the HVN itself will be present on whatever
 machine is running Halyard to inform it of what configuration to read and what
 to deploy.
 
-## 1.2) Distributing Authoritative Configuration
+### 1.2) Distributing Authoritative Configuration
 
 The idea is to have a single place that shared, authoritative Spinnaker
 configuration can be downloaded from. This will ultimately replace the
@@ -239,7 +239,7 @@ user to make optional changes to `~/.hal/<spinnaker-deployment>/*`. This should
 be clear from the above reading. Below is a list of HTTP actions to be taken
 against the Halyard daemon by a client.
 
-| ACTION   | PATH (`/<version>/<deployment>/<provider>`) | BODY | DESCRIPTION |
+| ACTION   | PATH `/<version>/<deployment>/<type>/<name>` | BODY | DESCRIPTION |
 |----------|---------------------------------------------|------|-------------|
 | `POST`   | `/accounts` | account description | create new account |
 | `POST`   | `/webhooks` | webhook description | create new webhook |
@@ -249,6 +249,11 @@ against the Halyard daemon by a client.
 | `PUT`    | `/webhooks/<webhook>` | JSONPath & value | edit field in webhook |
 | `DELETE` | `/accounts/<account>` | | delete account |
 | `DELETE` | `/webhooks/<webhook>` | | delete webhook |
+
+> `<version>`: Halyard version.
+> `<deployment>`: Name of the spinnaker deployment.
+> `<type>`: (`provider`|`webhook`|`git`).
+> `<name>`: name of `provider`, `webhook`, or `git` entry.
 
 Once an incoming change has been processed, the resulting config will always be
 run through a validator to ensure that Spinnaker can still deploy what's been
