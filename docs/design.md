@@ -188,7 +188,14 @@ explain how to generate the contents of the `~/.spinnaker` directory.
 - ii) Halyard will parse the specified entry in `~/.hal/config` as well as all
   `*-<profile>.yaml` files in the directory of the given entry. Any values
   specified in a `*-<profile>.yaml` file will override the corresponding entry
-  in `~/.hal/config`.
+  in `~/.hal/config`, but only at the level of key/literal value pairs. This
+  means duplicate dictionaries will be merged, overwriting entries only when
+  they map to a string, integer, or boolean.
+
+- iii) Once all substitutions have occured, all configuration (downloaded and
+  overwritten) is dumped into `~/.spinnaker`. It is important to note that
+  Halyard treats a missing `-local` profile as an empty `-local` profile, so
+  ultimately all the contents of `~/.hal/config` are written somewhere.
 
 ## 2. Deploying and Updating Spinnaker
 
