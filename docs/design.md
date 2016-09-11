@@ -17,11 +17,11 @@ is to provide a solution for all of this. To understand what Halyard will
 become, and how it will address these problems, we will separate the 
 concerns of Halyard into three stages.
 
-   1) [Configuring Spinnaker](#1-configuring-spinnaker)
+- 1) [Configuring Spinnaker](#1-configuring-spinnaker)
 
-   2) [Deploying and Updating Spinnaker](#2-deploying-and-updating-spinnaker)
+- 2) [Deploying and Updating Spinnaker](#2-deploying-and-updating-spinnaker)
 
-   3) [Operating the Spinnaker API](#3-operating-the-spinnaker-api)
+- 3) [Operating the Spinnaker API](#3-operating-the-spinnaker-api)
 
 ## 1) Configuring Spinnaker
 
