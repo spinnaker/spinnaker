@@ -242,13 +242,13 @@ against the Halyard daemon by a client.
 | ACTION   | PATH (`/<version>/<deployment>/<provider>`) | BODY | DESCRIPTION |
 |----------|---------------------------------------------|------|-------------|
 | `POST`   | `/accounts`| account description | create new account |
+| `POST`   | `/webhooks`| webhook description | create new webhook |
 | `PUT`    | `/enabled`| boolean | enable/disable account |
 | `PUT`    | `/accounts/<account>`| JSONPath & value | edit field in account |
-| `DELETE` | `/accounts/<account>`| n/a | delete account |
-| `POST`   | `/webhooks`| webhook description | create new webhook |
 | `PUT`    | `/enabled`| boolean | enable/disable webhook |
 | `PUT`    | `/webhooks/<webhook>`| JSONPath & value | edit field in webhook |
-| `DELETE` | `/webhooks/<webhook>`| n/a | delete webhook |
+| `DELETE` | `/accounts/<account>`| | delete account |
+| `DELETE` | `/webhooks/<webhook>`| | delete webhook |
 
 ## 2. Deploying and Updating Spinnaker
 
