@@ -20,6 +20,7 @@ package com.netflix.spinnaker.gate.security.rolesprovider.github.client
 import retrofit.client.Response
 import retrofit.http.GET
 import retrofit.http.Path
+import retrofit.http.Query
 
 /**
  * Interface for interacting with a GitHub REST API
@@ -35,10 +36,10 @@ interface GitHubClient {
   @GET('/user/teams')
   List<GitHubMaster.Team> getUserTeams()
 
-  @GET('/orgs/{org}/teams?per_page={paginationValue}')
+  @GET('/orgs/{org}/teams')
   List<GitHubMaster.Team> getOrgTeams(
     @Path('org') String org,
-    @Path('paginationValue') int paginationValue
+    @Query('per_page') int paginationValue
   )
 
   @GET('/teams/{idTeam}/memberships/{username}')

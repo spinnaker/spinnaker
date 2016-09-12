@@ -22,6 +22,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Configuration
 
+import javax.validation.constraints.Max
+import javax.validation.constraints.Min
 import javax.validation.constraints.NotNull
 
 /**
@@ -41,5 +43,8 @@ class GitHubProperties {
         @NotEmpty
         String organization
 
-        int paginationValue = 100
+        @NotNull
+        @Max(100L)
+        @Min(1L)
+        Integer paginationValue = 100
 }
