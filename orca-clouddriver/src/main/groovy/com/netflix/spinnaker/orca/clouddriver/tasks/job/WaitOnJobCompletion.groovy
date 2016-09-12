@@ -61,6 +61,8 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
       }
 
       Map job = objectMapper.readValue(oortService.collectJob("*", account, location, names[0], "delete").body.in(), new TypeReference<Map>() {})
+      outputs.jobStatus = job
+
       switch ((String)job.jobState) {
         case "Succeeded":
           status = ExecutionStatus.SUCCEEDED
