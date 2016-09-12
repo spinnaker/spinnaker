@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.widgets.numberInput.component', [])
+  .module('spinnaker.widgets.spelSelect.component', [])
   .component('spelSelect', {
     template:`
       <div class="navbar-form" style="padding: 0 ;">

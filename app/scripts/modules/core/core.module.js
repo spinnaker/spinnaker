@@ -132,6 +132,7 @@ module.exports = angular
 
     require('./utils/utils.module.js'),
 
+    require('./widgets'),
     require('./validation/validation.module.js'),
   ])
   .run(function($rootScope, $log, $state, settings) {
