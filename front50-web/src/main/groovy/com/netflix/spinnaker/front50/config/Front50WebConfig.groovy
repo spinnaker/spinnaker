@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 @Configuration
@@ -51,6 +52,11 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
             this.registry, "controller.invocations", ["account", "application"], ["BasicErrorController"]
         )
     )
+  }
+
+  @Override
+  void configurePathMatch(PathMatchConfigurer configurer) {
+    configurer.setUseRegisteredSuffixPatternMatch(false)
   }
 
   @Bean
