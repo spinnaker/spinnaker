@@ -35,9 +35,8 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
       securityGroups: [],
       listeners: [
         {
-          internalProtocol: 'HTTPS',
           internalPort: 443,
-          externalProtocol: 'HTTPS',
+          externalProtocol: 'TERMINATED_HTTPS',
           externalPort: 443
         }
       ]

@@ -74,9 +74,7 @@
       <dl>
         <dt>Load Balancer &rarr; Instance</dt>
         <dd ng-repeat="listener in loadBalancer.listeners">
-          {{listener.externalProtocol}}:<span ng-if="listener.externalProtocol == 'HTTPS'">{{listener.sslCertificateId}}:</span>{{listener.externalPort}}
-          &rarr;
-          {{listener.internalProtocol}}:{{listener.internalPort}}
+          {{listener.externalProtocol}}:<span ng-if="listener.externalProtocol == 'TERMINATED_HTTPS'">{{listener.sslCertificateId}}:</span>{{listener.externalPort}}:{{listener.internalPort}}
         </dd>
       </dl>
     </collapsible-section>

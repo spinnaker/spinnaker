@@ -24,9 +24,8 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', 
       securityGroups: [],
       listeners: [
         {
-          internalProtocol: 'HTTPS',
           internalPort: 443,
-          externalProtocol: 'HTTPS',
+          externalProtocol: 'TERMINATED_HTTPS',
           externalPort: 443
         }
       ]

@@ -5,10 +5,9 @@
       <table class="table table-condensed packed">
         <thead>
         <tr>
-          <th>External Protocol</th>
+          <th>Protocol</th>
           <th>External Port</th>
           <th></th>
-          <th>Internal Protocol</th>
           <th>Internal Port</th>
           <th ng-if="ctrl.showSslCertificateIdField()" width="30%">SSL Certificate Name</th>
           <th></th>
@@ -18,16 +17,14 @@
         <tr ng-repeat="listener in loadBalancer.listeners">
           <td><select class="form-control input-sm" ng-model="listener.externalProtocol"
                       ng-change="ctrl.listenerProtocolChanged(listener)"
-                      ng-options="protocol for protocol in ['HTTP','HTTPS','TCP','SSL']"></select></td>
+                      ng-options="protocol for protocol in ['HTTP','TERMINATED_HTTPS','TCP']"></select></td>
           <td><input class="form-control input-sm" type="number" min="0" ng-model="listener.externalPort"
                      required/></td>
           <td class="small" style="padding-top: 10px;">&rarr;</td>
-          <td><select class="form-control input-sm" ng-model="listener.internalProtocol"
-                      ng-options="protocol for protocol in ['HTTP','HTTPS','TCP','SSL']"></select></td>
           <td><input class="form-control input-sm" type="number" min="0" ng-model="listener.internalPort"
                      required/></td>
-          <td ng-if="ctrl.showSslCertificateIdField() && listener.externalProtocol !== 'HTTPS' && listener.externalProtocol !== 'SSL'"></td>
-          <td ng-if="listener.externalProtocol === 'HTTPS' || listener.externalProtocol === 'SSL'">
+          <td ng-if="ctrl.showSslCertificateIdField() && listener.externalProtocol !== 'TERMINATED_HTTPS'"></td>
+          <td ng-if="listener.externalProtocol === 'TERMINATED_HTTPS'">
             <input class="form-control input-sm" type="text" ng-model="listener.sslCertificateId"
                    required/></td>
           </td>
