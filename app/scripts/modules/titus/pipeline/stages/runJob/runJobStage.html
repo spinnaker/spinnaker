@@ -4,12 +4,16 @@
                           provider="'titus'"></account-select-field>
   </stage-config-field>
 
-  <region-select-field label-columns="3"
-                       component="stage.cluster"
-                       field="region"
-                       account="stage.credentials"
-                       regions="regions"
-                       provider="'titus'"></region-select-field>
+  <div class="form-group">
+    <div class="col-md-6 col-md-offset-2">
+      <region-select-field label-columns="2"
+                           component="stage.cluster"
+                           field="region"
+                           account="stage.credentials"
+                           regions="regions"
+                           provider="'titus'"></region-select-field>
+    </div>
+  </div>
 
   <stage-config-field label="Image">
     <input type="text" class="form-control input-sm" name="image" ng-model="stage.cluster.imageId" required/>
