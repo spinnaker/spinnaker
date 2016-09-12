@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DestroyGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
@@ -58,7 +59,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     TaskRepository.threadLocalTask.set(Mock(Task))
 
     // Yes this can affect other tests; but only in a good way.
-    GCEUtil.SAFE_RETRY_INTERVAL_MILLIS = 1
+    SafeRetry.SAFE_RETRY_INTERVAL_MILLIS = 1
   }
 
   void "should delete managed instance group"() {
@@ -281,8 +282,8 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   }
 
   @Unroll
-  void "should retry http backend deletion on 400, 412, succeed on 404"() {
-    // Note: Implicitly tests GCEUtil.safeRetry
+  void "should retry http backend deletion on 400, 412, socket timeout, succeed on 404"() {
+    // Note: Implicitly tests SafeRetry.doRetry
     setup:
       def computeMock = Mock(Compute)
       def backendServicesMock = Mock(Compute.BackendServices)
@@ -361,6 +362,8 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
           new HttpHeaders()).setMessage("404 Not Found")
       def notFoundException = new GoogleJsonResponseException(httpResponseExceptionBuilder, details)
 
+      def socketTimeoutException = new SocketTimeoutException("Read timed out")
+
       def bs = isRegional ?
           new BackendService(backends: lbNames.collect { new Backend(group: GCEUtil.buildZonalServerGroupUrl(PROJECT_NAME, ZONE, serverGroup.name)) }) :
           new BackendService(backends: lbNames.collect { new Backend(group: GCEUtil.buildRegionalServerGroupUrl(PROJECT_NAME, REGION, serverGroup.name)) })
@@ -380,6 +383,13 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
     then:
       1 * backendUpdateMock.execute() >> { throw fingerPrintException }
+      2 * computeMock.backendServices() >> backendServicesMock
+      1 * backendServicesMock.get(PROJECT_NAME, 'backend-service') >> backendSvcGetMock
+      1 * backendSvcGetMock.execute() >> bs
+      1 * backendServicesMock.update(PROJECT_NAME, 'backend-service', bs) >> backendUpdateMock
+
+    then:
+      1 * backendUpdateMock.execute() >> { throw socketTimeoutException }
       2 * computeMock.backendServices() >> backendServicesMock
       1 * backendServicesMock.get(PROJECT_NAME, 'backend-service') >> backendSvcGetMock
       1 * backendSvcGetMock.execute() >> bs

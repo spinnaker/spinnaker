@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.consul.deploy.ops.EnableDisableConsulIn
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.EnableDisableGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
@@ -97,10 +98,12 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
       }
     }
 
+    def retry = new SafeRetry<Void>()
+
     if (disable) {
       task.updateStatus phaseName, "Deregistering server group from Http(s) load balancers..."
 
-      GCEUtil.safeRetry(
+      retry.doRetry(
           destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
           "destroy",
           "Http load balancer backends",
@@ -135,7 +138,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     } else {
       task.updateStatus phaseName, "Registering server group with Http(s) load balancers..."
 
-      GCEUtil.safeRetry(
+      retry.doRetry(
           addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
           "add",
           "Http load balancer backends",

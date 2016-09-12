@@ -105,4 +105,30 @@ class GoogleOperationPollerSpec extends Specification {
     then:
       1 * threadSleeperMock.sleep(3)
   }
+
+  void "waitForOperation should retry on SocketTimeoutException"() {
+    setup:
+      SafeRetry.SAFE_RETRY_INTERVAL_MILLIS = 1
+      def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
+      def closure = Mock(Closure)
+      def googleOperationPoller =
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(
+            asyncOperationMaxPollingIntervalSeconds: 3),
+          threadSleeper: threadSleeperMock)
+
+    when:
+      googleOperationPoller.waitForOperation(closure, 10)
+
+    then:
+      1 * closure() >> {throw new SocketTimeoutException("Read timed out")}
+      1 * threadSleeperMock.sleep(1)
+
+    then:
+      1 * closure() >> {return new Operation(status: "PENDING")}
+      1 * threadSleeperMock.sleep(1)
+
+    then:
+      1 * closure() >> {return new Operation(status: "DONE")}
+  }
 }

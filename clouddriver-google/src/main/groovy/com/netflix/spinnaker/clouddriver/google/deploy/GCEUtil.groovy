@@ -24,7 +24,6 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpHeaders
 import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
-import com.google.api.client.http.HttpResponseException
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
 import com.google.common.annotations.VisibleForTesting
@@ -35,7 +34,6 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDe
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
-import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationTimedOutException
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleHttpLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.model.*
@@ -56,9 +54,6 @@ class GCEUtil {
   private static final String GCE_API_PREFIX = "https://www.googleapis.com/compute/v1/projects/"
 
   public static final String TARGET_POOL_NAME_PREFIX = "tp"
-
-  @VisibleForTesting
-  static long SAFE_RETRY_INTERVAL_MILLIS = TimeUnit.SECONDS.toMillis(10)
 
   static MachineType queryMachineType(String projectName, String machineTypeName, Compute compute, Task task, String phase) {
     task.updateStatus phase, "Looking up machine type $machineTypeName..."
@@ -918,76 +913,6 @@ class GCEUtil {
       }
     }
     return loadBalancerNames
-  }
-
-  /**
-   * Retry a GCP operation if it fails. Treat any error codes in successfulErrorCodes as success.
-   *
-   * @param operation - The GCP operation.
-   * @param action - String describing the GCP operation.
-   * @param resource - Resource we are operating on.
-   * @param task
-   * @param phase
-   * @param retryCodes - GoogleJsonResponseException codes we retry on.
-   * @param successfulErrorCodes - GoogleJsonException codes we treat as success.
-   */
-  static void safeRetry(Closure operation,
-                        String action,
-                        String resource,
-                        Task task,
-                        String phase,
-                        List<Integer> retryCodes,
-                        List<Integer> successfulErrorCodes) {
-    try {
-      task.updateStatus phase, "Attempting $action of $resource..."
-      operation()
-    } catch (GoogleJsonResponseException | GoogleOperationTimedOutException _) {
-      log.warn "Initial $action of $resource failed, retrying..."
-
-      int tries = 1
-      Exception lastSeenException = null
-      while (tries < 10) { // Retry 10 times.
-        try {
-          tries++
-          sleep(SAFE_RETRY_INTERVAL_MILLIS) // Sleep for some interval between attempts.
-          log.warn "$action $resource attempt #$tries..."
-          operation()
-          log.warn "$action $resource attempt #$tries succeeded"
-          return
-        } catch (GoogleJsonResponseException jsonException) {
-          if (jsonException.statusCode in successfulErrorCodes) {
-            log.warn "Retry $action of $resource encountered ${jsonException.statusCode}, treating as success..."
-            return
-          } else if (jsonException.statusCode in retryCodes) {
-            log.warn "Retry $action of $resource encountered ${jsonException.statusCode} with error message: ${jsonException.message}. Trying again..."
-          } else {
-            throw jsonException
-          }
-          lastSeenException = jsonException
-        } catch (GoogleOperationTimedOutException toEx) {
-          log.warn "Retry $action timed out again, trying again..."
-          lastSeenException = toEx
-        }
-      }
-
-      if (lastSeenException && lastSeenException instanceof GoogleJsonResponseException) {
-        def lastSeenError = lastSeenException?.getDetails()?.getErrors()[0] ?: null
-        if (lastSeenError) {
-          throw new GoogleOperationException("Failed to $action $resource after #$tries."
-            + " Last seen exception has status code ${lastSeenException.getStatusCode()} with error message ${lastSeenError.getMessage()}"
-            + " and reason ${lastSeenError.getReason()}.")
-        } else {
-          throw new GoogleOperationException("Failed to $action $resource after #$tries."
-            + " Last seen exception has status code ${lastSeenException.getStatusCode()} with message ${lastSeenException.getMessage()}.")
-        }
-      } else if (lastSeenException && lastSeenException instanceof GoogleOperationTimedOutException) {
-        throw new GoogleOperationException("Failed to $action $resource after #$tries."
-          + " Last operation timed out.")
-      } else {
-        throw new IllegalStateException("Caught exception is neither a JsonResponseException nor a OperationTimedOutException."
-          + " Caught exception: ${lastSeenException}")
-      }
-    }
   }
 
   static Firewall buildFirewallRule(String projectName,

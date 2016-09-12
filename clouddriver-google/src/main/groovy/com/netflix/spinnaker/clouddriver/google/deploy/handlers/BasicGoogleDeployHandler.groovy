@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProper
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
@@ -358,16 +359,17 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     task.updateStatus BASE_PHASE, "Done creating server group $serverGroupName in ${isRegional ? region : zone}."
 
     // Actually update the backend services.
+    def retry = new SafeRetry<Void>()
     if (willUpdateBackendServices) {
       backendServicesToUpdate.each { BackendService backendService ->
-        GCEUtil.safeRetry(
-            updateBackendServices(compute, project, backendService.name, backendService),
-            "update",
-            "Http load balancer backend service",
-            task,
-            BASE_PHASE,
-            [400, 412],
-            []
+        retry.doRetry(
+          updateBackendServices(compute, project, backendService.name, backendService),
+          "update",
+          "Http load balancer backend service",
+          task,
+          BASE_PHASE,
+          [400, 412],
+          []
         )
         task.updateStatus BASE_PHASE, "Done associating server group $serverGroupName with backend service ${backendService.name}."
       }

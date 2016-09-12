@@ -92,7 +92,7 @@ class GoogleOperationPoller {
     The timeoutSeconds parameter is really treated as a lower-bound. We will poll until the operation reaches a DONE
     state or until <em>at least</em> that many seconds have passed.
    */
-  private Operation waitForOperation(Closure getOperation, long timeoutSeconds) {
+  private Operation waitForOperation(Closure<Operation> getOperation, long timeoutSeconds) {
     int totalTimePollingSeconds = 0
     boolean timeoutExceeded = false
 
@@ -105,7 +105,8 @@ class GoogleOperationPoller {
 
       totalTimePollingSeconds += pollInterval
 
-      Operation operation = getOperation()
+      def retry = new SafeRetry<Operation>()
+      Operation operation = retry.doRetry(getOperation, "wait", "operation", null, null, [], [])
 
       if (operation.getStatus() == "DONE") {
         return operation

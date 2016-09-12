@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DestroyGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
@@ -102,7 +103,8 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
   }
 
   static void destroy(Closure operation, String resource) {
-    GCEUtil.safeRetry(operation, "destroy", resource, task, BASE_PHASE, RETRY_ERROR_CODES, SUCCESSFUL_ERROR_CODES)
+    def retry = new SafeRetry<Void>()
+    retry.doRetry(operation, "destroy", resource, task, BASE_PHASE, RETRY_ERROR_CODES, SUCCESSFUL_ERROR_CODES)
   }
 
   Closure destroyInstanceTemplate(Compute compute, String instanceTemplateName, String project) {
