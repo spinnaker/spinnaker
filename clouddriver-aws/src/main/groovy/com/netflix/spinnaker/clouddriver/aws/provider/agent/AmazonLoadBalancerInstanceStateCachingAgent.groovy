@@ -110,7 +110,7 @@ class AmazonLoadBalancerInstanceStateCachingAgent implements CachingAgent,Health
           def loadBalancerInstance = new LoadBalancerInstance(instanceState.instanceId, instanceState.state, instanceState.reasonCode, instanceState.description)
           loadBalancerInstances << loadBalancerInstance
         }
-        def loadBalancerInstanceState = new LoadBalancerInstanceState(lbName, loadBalancerInstances)
+        def loadBalancerInstanceState = new LoadBalancerInstanceState(name: lbName, instances: loadBalancerInstances)
         def ilbs = InstanceLoadBalancers.fromLoadBalancerInstanceState([loadBalancerInstanceState])
 
         for (InstanceLoadBalancers ilb in ilbs) {

@@ -93,7 +93,9 @@ class AmazonLoadBalancerV2InstanceStateCachingAgent implements CachingAgent, Hea
     while (true) {
       limiter.acquire()
       def resp = lbv2.describeTargetGroups(req)
-      targetGroups.addAll(resp.targetGroups)
+      if (resp.targetGroups) {
+        targetGroups.addAll(resp.targetGroups)
+      }
       if (!resp.nextMarker) {
         break
       }
