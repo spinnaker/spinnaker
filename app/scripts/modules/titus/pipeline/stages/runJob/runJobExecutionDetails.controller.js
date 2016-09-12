@@ -24,8 +24,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.runJob.titus.exec
     accountService.getAccountDetails($scope.stage.context.credentials).then((details) => {
       $scope.apiEndpoint = _.where(details.regions, {name: $scope.stage.context.cluster.region})[0].endpoint;
       $scope.titusUiEndpoint = $scope.apiEndpoint.replace('titusapi', 'titus-ui').replace('http', 'https').replace('7101', '7001');
-      if ($scope.stage.context.completionDetails) {
-        $scope.task = $scope.stage.context.completionDetails.taskId;
+      if ($scope.stage.context.jobStatus.completionDetails) {
+        $scope.task = $scope.stage.context.jobStatus.completionDetails.taskId;
       }
     });
   });
