@@ -104,7 +104,7 @@ public class ApplicationsController {
     return app
   }
 
-  @PreAuthorize("hasPermission(#app.name, 'APPLICATION', 'CREATE')")
+  // TODO(ttomsu): Think through application creation permissions.
   @ApiOperation(value = "", notes = "Create an application within a specific `account`")
   @RequestMapping(method = RequestMethod.POST, value = "/name/{application:.+}")
   Application post(@RequestBody final Application app) {

@@ -74,7 +74,7 @@ public class ApplicationsController {
     return applicationDAO.search(params)
   }
 
-  @PreAuthorize("hasPermission(#app.name, 'APPLICATION', 'CREATE')")
+  // TODO(ttomsu): Think through application creation permissions.
   @ApiOperation(value = "", notes = "Create an application")
   @RequestMapping(method = RequestMethod.POST)
   Application create(@RequestBody final Application app) {
