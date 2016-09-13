@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit
 @Component
 @Slf4j
 class MonitorCanaryTask extends AbstractCloudProviderAwareTask implements RetryableTask {
-  long backoffPeriod = 10000
+  long backoffPeriod = TimeUnit.MINUTES.toMillis(1)
   long timeout = TimeUnit.DAYS.toMillis(2)
 
   @Autowired

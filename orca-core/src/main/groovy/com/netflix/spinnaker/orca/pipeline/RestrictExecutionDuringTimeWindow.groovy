@@ -56,7 +56,7 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
   @Component
   @VisibleForTesting
   private static class SuspendExecutionDuringTimeWindowTask implements RetryableTask {
-    long backoffPeriod = 2000
+    long backoffPeriod = TimeUnit.MINUTES.toMillis(2)
     long timeout = TimeUnit.DAYS.toMillis(2)
 
     private static final int DAY_START_HOUR = 0
