@@ -73,6 +73,10 @@ class RunKubernetesJobAtomicOperation implements AtomicOperation<DeploymentResul
       podBuilder = podBuilder.withVolumes(volumeSources)
     }
 
+    for (def imagePullSecret : credentials.imagePullSecrets[namespace]) {
+      podBuilder = podBuilder.addNewImagePullSecret(imagePullSecret)
+    }
+
     description.container.name = description.container.name ?: "job"
     def container = KubernetesApiConverter.toContainer(description.container)
 
