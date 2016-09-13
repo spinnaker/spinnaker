@@ -88,6 +88,7 @@ module.exports = {
   ],
   devServer: {
     port: process.env.DECK_PORT || 9000,
-    host: process.env.DECK_HOST || 'localhost'
+    host: process.env.DECK_HOST || 'localhost',
+    https: process.env.DECK_HTTPS === 'true'
   }
 };
