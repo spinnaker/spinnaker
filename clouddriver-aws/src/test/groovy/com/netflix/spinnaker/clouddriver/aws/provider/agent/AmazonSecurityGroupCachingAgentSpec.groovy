@@ -22,13 +22,17 @@ import com.amazonaws.services.ec2.model.SecurityGroup
 import com.netflix.awsobjectmapper.AmazonObjectMapper
 import com.netflix.spectator.api.Spectator
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import spock.lang.Specification
 import spock.lang.Subject
+
+import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.ON_DEMAND
+import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.SECURITY_GROUPS
 
 class AmazonSecurityGroupCachingAgentSpec extends Specification {
 
@@ -37,7 +41,10 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
 
   AmazonEC2 ec2 = Mock(AmazonEC2)
   NetflixAmazonCredentials creds = Stub(NetflixAmazonCredentials) { getName() >> account }
-  AmazonClientProvider amazonClientProvider = Stub(AmazonClientProvider) { getAmazonEC2(creds, region) >> ec2 }
+  AmazonClientProvider amazonClientProvider = Stub(AmazonClientProvider) {
+    getAmazonEC2(_, _) >> ec2
+    getLastModified() >> 12345L
+  }
   ProviderCache providerCache = Mock(ProviderCache)
   AmazonObjectMapper mapper = new AmazonObjectMapper()
 
@@ -59,10 +66,33 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
 
     then:
     1 * ec2.describeSecurityGroups() >> result
-    with (cache.cacheResults.get(Keys.Namespace.SECURITY_GROUPS.ns)) { List<CacheData> cd ->
+    with (cache.cacheResults.get(SECURITY_GROUPS.ns)) { List<CacheData> cd ->
       cd.size() == 2
       cd.id.containsAll([keyGroupA, keyGroupB])
     }
     0 * _
+  }
+
+  void "should prefer security groups from cache when on_demand record present"() {
+    given:
+    DescribeSecurityGroupsResult result = new DescribeSecurityGroupsResult(
+      securityGroups: [securityGroupA, securityGroupB])
+    def cred = TestCredential.named("test", [edda: "http://foo", eddaEnabled: true])
+    def agent = new AmazonSecurityGroupCachingAgent(
+      amazonClientProvider, cred, region, mapper, Spectator.registry())
+    CacheData onDemandResult = new DefaultCacheData(agent.lastModifiedKey, [lastModified: '12346'], [:])
+    def existingIds = ['sg1', 'sg2']
+    List<CacheData> existingCacheData = []
+
+    when:
+    def cache = agent.loadData(providerCache)
+
+    then:
+    1 * ec2.describeSecurityGroups() >> result
+    1 * providerCache.get(ON_DEMAND.ns, agent.lastModifiedKey) >> onDemandResult
+    1 * providerCache.filterIdentifiers(SECURITY_GROUPS.ns, Keys.getSecurityGroupKey('*', '*', region, 'test', '*')) >> existingIds
+    1 * providerCache.getAll(SECURITY_GROUPS.ns, existingIds) >> existingCacheData
+    cache.cacheResults[SECURITY_GROUPS.ns] == existingCacheData
+
   }
 }

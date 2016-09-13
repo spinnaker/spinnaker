@@ -26,7 +26,8 @@ class Keys {
     VPCS,
     KEY_PAIRS,
     INSTANCE_TYPES,
-    ELASTIC_IPS
+    ELASTIC_IPS,
+    ON_DEMAND
 
     final String ns
 
