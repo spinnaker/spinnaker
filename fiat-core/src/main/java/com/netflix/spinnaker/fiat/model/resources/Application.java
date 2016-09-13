@@ -40,8 +40,7 @@ public class Application implements GroupAccessControlled, Resource, Viewable {
   @NoArgsConstructor
   public static class View extends BaseView implements Authorizable {
     String name;
-    Set<Authorization> authorizations = ImmutableSet.of(Authorization.CREATE,
-                                                        Authorization.READ,
+    Set<Authorization> authorizations = ImmutableSet.of(Authorization.READ,
                                                         Authorization.WRITE);
 
     public View(Application application) {
