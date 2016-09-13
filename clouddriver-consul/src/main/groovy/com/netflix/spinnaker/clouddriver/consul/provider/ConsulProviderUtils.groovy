@@ -23,15 +23,13 @@ import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.consul.model.ConsulHealth
 import com.netflix.spinnaker.clouddriver.consul.model.ConsulNode
 import com.netflix.spinnaker.clouddriver.consul.model.ConsulService
-import com.netflix.spinnaker.clouddriver.model.DiscoveryHealth
-import com.netflix.spinnaker.clouddriver.model.HealthState
 import retrofit.RetrofitError
 
 class ConsulProviderUtils {
   static ConsulNode getHealths(ConsulConfig config, String agent) {
     def healths = []
     def services = []
-    def enabled = false
+    def running = false
     try {
       healths = new ConsulAgent(config, agent).api.checks()?.collect { String name, CheckResult result ->
         return new ConsulHealth(result: result, source: result.checkID)
@@ -39,25 +37,23 @@ class ConsulProviderUtils {
       services = new ConsulAgent(config, agent).api.services()?.collect { String name, ServiceResult result ->
         return new ConsulService(result)
       } ?: []
-      enabled = true
+      running = true
     } catch (RetrofitError e) {
     }
-    return new ConsulNode(healths: healths, enabled: enabled, services: services)
+    return new ConsulNode(healths: healths, running: running, services: services)
   }
 
   // Returns true i.f.f. this "server group" of nodes is running consul.
   static boolean consulServerGroupDiscoverable(List<ConsulNode> nodes) {
     nodes?.any { node -> // If any nodes have consul running, we see if they have registered any services or checks.
-      node?.enabled && (node?.services || node?.healths)
+      node?.running && (node?.services || node?.healths)
     } ?: false
   }
 
   // The return value of this function is non-sensical when `!consulServerGroup(nodes)` holds. (It will also possibly NPE).
   static boolean serverGroupDisabled(List<ConsulNode> nodes) {
     nodes.every { node -> // If every node isn't discoverable through consul, we say it's disabled.
-      node.healths.any { health -> // If a check is registered as "_node_maintanence" by consul it's been disabled.
-        health.isSystemHealth()
-      }
+      node.isDisabled()
     }
   }
 }

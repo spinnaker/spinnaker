@@ -17,7 +17,23 @@
 package com.netflix.spinnaker.clouddriver.consul.model
 
 class ConsulNode {
-  boolean enabled
+  boolean running
   List<ConsulHealth> healths
   List<ConsulService> services
+
+  boolean isDisabled() {
+    healths.any { health -> // If a check is registered as "_node_maintanence" by consul, it's been disabled.
+      health.isSystemHealth()
+    }
+  }
+
+  List<ConsulHealth> getHealths() {
+    if (isDisabled()) { // If the node is disabled, we only return the system health to properly report to Spinnaker that the node should be treated as disabled.
+      return healths.findAll { health ->
+        health.isSystemHealth()
+      }
+    } else {
+      return healths
+    }
+  }
 }

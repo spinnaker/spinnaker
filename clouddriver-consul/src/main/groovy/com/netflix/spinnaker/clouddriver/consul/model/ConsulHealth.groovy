@@ -45,6 +45,14 @@ class ConsulHealth extends DiscoveryHealth {
       case CheckResult.Status.passing:
         return HealthState.Up
       case CheckResult.Status.critical:
+        if (isSystemHealth()) {
+          // Consul registers a check as "_node_maintenance" that permanently fails when we disable a node.
+          // Since we don't want to confuse health checks created by Spinnaker's use of the consul API with health
+          // checks that fail due to legitimate reasons on the deployed application side, we make this distinction here.
+          return HealthState.OutOfService
+        } else {
+          return HealthState.Down
+        }
       case CheckResult.Status.warning:
         return HealthState.Down
       default:
