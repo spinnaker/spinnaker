@@ -72,7 +72,7 @@ describe('Controller: ApplicationProviderFieldsCtrl', function () {
       let templates = controller.getRelevantProviderFieldsTemplates();
       expect(templates.length).toEqual(1);
 
-      let [ hasValueSpy, getValueSpy ] = [ cloudProviderRegistry.hasValue, cloudProviderRegistry.getValue];
+      let [ hasValueSpy, getValueSpy ] = [ cloudProviderRegistry.hasValue, cloudProviderRegistry.getValue ];
 
       [ hasValueSpy, getValueSpy ]
         .forEach(spy => {
@@ -80,6 +80,15 @@ describe('Controller: ApplicationProviderFieldsCtrl', function () {
           expect(spy).not.toHaveBeenCalledWith('aws', 'applicationProviderFields.templateUrl');
         });
 
+    });
+
+    it('accommodates typeof application.cloudProviders === \'string\'', function () {
+      spyOn(controller, 'getRelevantProviderFieldsTemplates').and.callThrough();
+
+      controller.application.cloudProviders = 'gce,aws';
+      let templates = controller.getRelevantProviderFieldsTemplates();
+      expect(templates.length).toEqual(2);
+      expect(controller.getRelevantProviderFieldsTemplates).not.toThrow();
     });
 
   });

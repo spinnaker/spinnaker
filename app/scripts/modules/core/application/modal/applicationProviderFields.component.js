@@ -29,12 +29,15 @@ module.exports = angular
     };
 
     this.getRelevantProviderFieldsTemplates = () => {
-      let candidateProvidersToShow;
+      let candidateProvidersToShow,
+        appCloudProviders = this.application.cloudProviders;
 
-      if (this.application.cloudProviders.length === 0) {
+      if (appCloudProviders.length === 0) {
         candidateProvidersToShow = this.cloudProviders;
       } else {
-        candidateProvidersToShow = this.application.cloudProviders;
+        candidateProvidersToShow = _.isString(appCloudProviders)
+          ? appCloudProviders.split(',')
+          : appCloudProviders;
       }
 
       return candidateProvidersToShow
