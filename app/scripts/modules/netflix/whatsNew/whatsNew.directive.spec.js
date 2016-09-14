@@ -39,7 +39,7 @@ describe('Directives: whatsNew', function () {
   describe('with content', function() {
 
     beforeEach(function() {
-      var lastUpdated = new Date().toString();
+      var lastUpdated = new Date().getTime();
       var expectedDate = this.$filter('timestamp')(lastUpdated);
 
       spyOn(this.whatsNewReader, 'getWhatsNewContents').and.returnValue(this.$q.when({
