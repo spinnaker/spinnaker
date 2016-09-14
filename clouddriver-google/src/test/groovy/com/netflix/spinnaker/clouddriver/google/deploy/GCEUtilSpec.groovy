@@ -553,10 +553,8 @@ class GCEUtilSpec extends Specification {
           )
         ]
       )
-      def oldDefaultName = "${LOAD_BALANCER_NAME}-${UpsertGoogleHttpLoadBalancerAtomicOperation.BACKEND_SERVICE_NAME_PREFIX}-${oldDefault}"
-      def oldServiceName = "${LOAD_BALANCER_NAME}-${UpsertGoogleHttpLoadBalancerAtomicOperation.BACKEND_SERVICE_NAME_PREFIX}-${oldService}"
       def urlMap = new UrlMap(
-        defaultService: oldDefaultName,
+        defaultService: oldDefault,
         hostRules: [
             new HostRule(
               pathMatcher: "pmName",
@@ -569,7 +567,7 @@ class GCEUtilSpec extends Specification {
             pathRules: [
                 new PathRule(
                   paths: oldPaths,
-                  service: oldServiceName,
+                  service: oldService,
                 )
             ]
           )

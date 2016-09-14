@@ -36,8 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired
 @Slf4j
 class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalancerAtomicOperation {
   private static final String BASE_PHASE = "UPSERT_HTTP_LOAD_BALANCER"
-  public static final String HEALTH_CHECK_NAME_PREFIX = "hc"
-  public static final String BACKEND_SERVICE_NAME_PREFIX = "bs"
   private static final String PATH_MATCHER_PREFIX = "pm"
   public static final String TARGET_HTTP_PROXY_NAME_PREFIX = "target-http-proxy"
   public static final String TARGET_HTTPS_PROXY_NAME_PREFIX = "target-https-proxy"
@@ -175,7 +173,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
     }
 
     healthChecksFromDescription.each { GoogleHealthCheck healthCheck ->
-      String healthCheckName = "$httpLoadBalancerName-$HEALTH_CHECK_NAME_PREFIX-$healthCheck.name"
+      String healthCheckName = healthCheck.name
 
       def existingHealthCheck = existingHealthChecks.find { it.name == healthCheckName }
       if (existingHealthCheck) {
@@ -198,13 +196,13 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
     }
 
     backendServicesFromDescription.each { GoogleBackendService backendService ->
-      String backendServiceName = "$httpLoadBalancerName-$BACKEND_SERVICE_NAME_PREFIX-$backendService.name"
+      String backendServiceName = backendService.name
 
       def existingService = existingServices.find { it.name == backendServiceName }
       if (existingService) {
         serviceExistsSet.add(backendService.name)
         if (existingService.getHealthChecks().collect { GCEUtil.getLocalName(it) } !=
-            ["$httpLoadBalancerName-$HEALTH_CHECK_NAME_PREFIX-${backendService.healthCheck.name}"]) {
+            [backendService.healthCheck.name]) {
           serviceNeedsUpdatedSet.add(backendService.name)
         }
       }
@@ -215,7 +213,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
 
     // HealthChecks
     healthChecksFromDescription.each { GoogleHealthCheck healthCheck ->
-      String healthCheckName = "$httpLoadBalancerName-$HEALTH_CHECK_NAME_PREFIX-$healthCheck.name"
+      String healthCheckName = healthCheck.name
 
       if (!healthCheckExistsSet.contains(healthCheck.name)) {
         task.updateStatus BASE_PHASE, "Creating health check $healthCheckName..."
@@ -252,14 +250,14 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
 
     // BackendServices
     backendServicesFromDescription.each { GoogleBackendService backendService ->
-      String backendServiceName = "$httpLoadBalancerName-$BACKEND_SERVICE_NAME_PREFIX-$backendService.name"
+      String backendServiceName = backendService.name
 
       if (!serviceExistsSet.contains(backendService.name)) {
         task.updateStatus BASE_PHASE, "Creating backend service $backendServiceName..."
         BackendService bs = new BackendService(
           name: backendServiceName,
           portName: GoogleHttpLoadBalancingPolicy.HTTP_PORT_NAME,
-          healthChecks: [GCEUtil.buildHttpHealthCheckUrl(project, "$httpLoadBalancerName-$HEALTH_CHECK_NAME_PREFIX-${backendService.healthCheck.name}")]
+          healthChecks: [GCEUtil.buildHttpHealthCheckUrl(project, backendService.healthCheck.name)]
         )
         def insertBackendServiceOperation = compute.backendServices().insert(project, bs).execute()
         googleOperationPoller.waitForGlobalOperation(compute, project, insertBackendServiceOperation.getName(),
@@ -268,7 +266,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
                  serviceNeedsUpdatedSet.contains(backendService.name)) {
         task.updateStatus BASE_PHASE, "Updating backend service $backendServiceName..."
         def bsToUpdate = existingServices.find { it.name == backendServiceName }
-        def hcName = "$httpLoadBalancerName-$HEALTH_CHECK_NAME_PREFIX-${backendService.healthCheck.name}"
+        def hcName = backendService.healthCheck.name
         bsToUpdate.with {
           portName = GoogleHttpLoadBalancingPolicy.HTTP_PORT_NAME
           healthChecks = [GCEUtil.buildHttpHealthCheckUrl(project, hcName)]
@@ -285,17 +283,17 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
     if (!urlMapExists) {
       task.updateStatus BASE_PHASE, "Creating URL map $urlMapName..."
       UrlMap newUrlMap = new UrlMap(name: urlMapName, hostRules: [], pathMatchers: [])
-      newUrlMap.defaultService = serviceUrl(project, httpLoadBalancerName, httpLoadBalancer.defaultService.name)
+      newUrlMap.defaultService = GCEUtil.buildBackendServiceUrl(project, httpLoadBalancer.defaultService.name)
       httpLoadBalancer?.hostRules?.each { GoogleHostRule hostRule ->
         String pathMatcherName = "$PATH_MATCHER_PREFIX-${UUID.randomUUID().toString()}"
         def pathMatcher = hostRule.pathMatcher
         PathMatcher newPathMatcher = new PathMatcher(
           name: pathMatcherName,
-          defaultService: serviceUrl(project, httpLoadBalancerName, pathMatcher.defaultService.name),
+          defaultService: GCEUtil.buildBackendServiceUrl(project, pathMatcher.defaultService.name),
           pathRules: pathMatcher.pathRules.collect {
             new PathRule(
               paths: it.paths,
-              service: serviceUrl(project, httpLoadBalancerName, it.backendService.name)
+              service: GCEUtil.buildBackendServiceUrl(project, it.backendService.name)
             )
           }
         )
@@ -308,7 +306,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
       urlMapUrl = insertUrlMapOperation.getTargetLink()
     } else if (urlMapExists && urlMapNeedsUpdated) {
       task.updateStatus BASE_PHASE, "Updating URL map $urlMapName..."
-      existingUrlMap.defaultService = serviceUrl(project, httpLoadBalancerName, httpLoadBalancer.defaultService.name)
+      existingUrlMap.defaultService = GCEUtil.buildBackendServiceUrl(project, httpLoadBalancer.defaultService.name)
       existingUrlMap.pathMatchers = []
       existingUrlMap.hostRules = []
 
@@ -317,11 +315,11 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
         def pathMatcher = hostRule.pathMatcher
         PathMatcher newPathMatcher = new PathMatcher(
           name: pathMatcherName,
-          defaultService: serviceUrl(project, httpLoadBalancerName, pathMatcher.defaultService.name),
+          defaultService: GCEUtil.buildBackendServiceUrl(project, pathMatcher.defaultService.name),
           pathRules: pathMatcher.pathRules.collect {
             new PathRule(
               paths: it.paths,
-              service: serviceUrl(project, httpLoadBalancerName, it.backendService.name)
+              service: GCEUtil.buildBackendServiceUrl(project, it.backendService.name)
             )
           }
         )
@@ -436,9 +434,5 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
 
     task.updateStatus BASE_PHASE, "Done upserting HTTP load balancer $httpLoadBalancerName"
     [loadBalancers: [("global"): [name: httpLoadBalancerName]]]
-  }
-
-  private static String serviceUrl(String project, String loadBalancerName, String serviceName) {
-    GCEUtil.buildBackendServiceUrl(project, "$loadBalancerName-$BACKEND_SERVICE_NAME_PREFIX-$serviceName")
   }
 }

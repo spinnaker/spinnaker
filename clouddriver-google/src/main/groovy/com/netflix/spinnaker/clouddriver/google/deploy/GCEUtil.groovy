@@ -392,8 +392,7 @@ class GCEUtil {
     if (!urlMap) {
       return false
     }
-    def defaultServiceName = "${description.loadBalancerName}-${UpsertGoogleHttpLoadBalancerAtomicOperation.BACKEND_SERVICE_NAME_PREFIX}-${description.defaultService.name}"
-    if (getLocalName(urlMap.getDefaultService()) != defaultServiceName) {
+    if (getLocalName(urlMap.getDefaultService()) != description.defaultService.name) {
       return true
     }
 
@@ -417,9 +416,8 @@ class GCEUtil {
       def hostPatterns = googleHostRule.hostPatterns.sort()
       googleHostRule?.pathMatcher?.pathRules?.each { GooglePathRule googlePathRule ->
         def urlPatterns = googlePathRule?.paths?.sort()
-        def serviceName = "${description.loadBalancerName}-${UpsertGoogleHttpLoadBalancerAtomicOperation.BACKEND_SERVICE_NAME_PREFIX}-${getLocalName(googlePathRule.backendService.name)}"
         Map urlPatternMap = existingHostRuleMap.get(hostPatterns)
-        if (!urlPatternMap || !urlPatternMap.containsKey(urlPatterns) || urlPatternMap.get(urlPatterns) != serviceName) {
+        if (!urlPatternMap || !urlPatternMap.containsKey(urlPatterns) || urlPatternMap.get(urlPatterns) != getLocalName(googlePathRule.backendService.name)) {
           mapServicesDiffer = true // Groovy, baby.
           return
         }
