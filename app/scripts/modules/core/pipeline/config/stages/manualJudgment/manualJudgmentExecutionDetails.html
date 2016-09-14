@@ -18,7 +18,7 @@
           <dd ng-bind-html="stage.context.instructions"></dd>
         </dl>
       </div>
-      <div class="col-md-9" ng-if="!stage.context.judgmentStatus && stage.status === 'RUNNING'">
+      <div class="col-md-9" ng-if="!stage.context.judgmentStatus || stage.status === 'RUNNING'">
         <div class="form-group" ng-if="!!stage.context.judgmentInputs.length">
           <p><b>Judgment Input</b></p>
           <ui-select ng-model="viewState.judgmentInput" class="form-control input-sm">
@@ -30,12 +30,16 @@
         </div>
         <button class="btn btn-primary"
                 style="margin: 0 15px"
-                ng-click="manualCtrl.provideJudgment('continue', viewState.judgmentInput.value)" ng-disabled="viewState.submitting">
-          <button-busy-indicator ng-if="viewState.submitting && viewState.judgmentDecision === 'continue'"></button-busy-indicator>
+                ng-click="manualCtrl.provideJudgment('continue', viewState.judgmentInput.value)"
+                ng-disabled="viewState.submitting || stage.context.judgmentStatus">
+          <button-busy-indicator
+            ng-if="(viewState.submitting && viewState.judgmentDecision === 'continue') || stage.context.judgmentStatus === 'continue'"></button-busy-indicator>
           Continue
         </button>
-        <button class="btn btn-danger" ng-click="manualCtrl.provideJudgment('stop')" ng-disabled="viewState.submitting">
-          <button-busy-indicator ng-if="viewState.submitting && viewState.judgmentDecision === 'stop'"></button-busy-indicator>
+        <button class="btn btn-danger" ng-click="manualCtrl.provideJudgment('stop')"
+                ng-disabled="viewState.submitting || stage.context.judgmentStatus">
+          <button-busy-indicator
+            ng-if="(viewState.submitting && viewState.judgmentDecision === 'stop') || stage.context.judgmentStatus === 'stop'"></button-busy-indicator>
           Stop
         </button>
       </div>
