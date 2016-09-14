@@ -196,7 +196,7 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
 
     this.showSslCertificateIdField = function() {
       return $scope.loadBalancer.listeners.some(function(listener) {
-        return listener.externalProtocol === 'TERMINATED_HTTPS' || listener.externalProtocol === 'SSL';
+        return listener.externalProtocol === 'TERMINATED_HTTPS';
       });
     };
 
