@@ -24,7 +24,7 @@ aws:
   # info on setting environment variables.
   enabled: ${providers.aws.enabled:false}
   defaults:
-    iamRole: ${provider.aws.defaultIAMRole:BaseIAMRole}
+    iamRole: ${providers.aws.defaultIAMRole:BaseIAMRole}
   defaultRegions:
     - name: ${providers.aws.defaultRegion:us-east-1}
   defaultFront50Template: ${services.front50.baseUrl}
