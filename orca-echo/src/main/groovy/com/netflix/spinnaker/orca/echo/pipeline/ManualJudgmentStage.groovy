@@ -74,7 +74,7 @@ class ManualJudgmentStage extends LinearStage implements RestartableStage, Authe
   @Component
   @VisibleForTesting
   public static class WaitForManualJudgmentTask implements RetryableTask {
-    long backoffPeriod = 1000
+    long backoffPeriod = 15000
     long timeout = TimeUnit.DAYS.toMillis(3)
 
     @Autowired(required = false)
