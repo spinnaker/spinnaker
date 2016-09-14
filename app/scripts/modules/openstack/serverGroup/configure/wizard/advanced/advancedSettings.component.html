@@ -1,8 +1,27 @@
 <div class="container-fluid form-horizontal">
   <div class="form-group">
+    <div class="col-md-3 sm-label-right"><b>User Data Type</b></div>
+    <div class="col-md-7">
+      <ui-select ng-model="$ctrl.command.userDataType" class="form-control input-sm">
+        <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
+        <ui-select-choices repeat="userDataType in $ctrl.command.backingData.userDataTypes | filter: $select.search">
+          <span ng-bind-html="userDataType | highlight: $select.search"></span>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
+  <div class="form-group">
     <div class="col-md-3 sm-label-right">User Data</div>
-    <div class="col-md-7 no-spel">
-      <textarea class="form-control" ng-model="$ctrl.command.userData" rows="3"
+    <div class="col-md-7 no-spel" ng-switch on="$ctrl.command.userDataType">
+      <input type="text"
+             class="form-control"
+             ng-model="$ctrl.command.userData"
+             ng-if="$ctrl.command.userDataType == 'Swift' || $ctrl.command.userDataType == 'URL' || !$ctrl.command.userDataType">
+      </input>
+      <textarea class="form-control nospel"
+                ng-model="$ctrl.command.userData"
+                ng-if="$ctrl.command.userDataType=='Text'"
+                rows="3"
                 placeholder="(Optional) A raw plaintext script or url that points to a plaintext script. It will run on each instance when booted.">
       </textarea>
     </div>

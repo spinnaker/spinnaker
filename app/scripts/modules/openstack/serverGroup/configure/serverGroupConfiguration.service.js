@@ -19,12 +19,14 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.confi
 
 
     var healthCheckTypes = [],
-      terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
+      terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'],
+      userDataTypes = ['Text', 'Swift', 'URL'];
 
     function configureUpdateCommand(command) {
       command.backingData = {
         healthCheckTypes: angular.copy(healthCheckTypes),
-        terminationPolicies: angular.copy(terminationPolicies)
+        terminationPolicies: angular.copy(terminationPolicies),
+        userDataTypes: angular.copy(userDataTypes)
       };
     }
 
@@ -33,6 +35,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.confi
         credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('openstack'),
         securityGroups: securityGroupReader.loadSecurityGroups(),
         loadBalancers: loadBalancerReader.loadLoadBalancers(application.name),
+        userDataTypes: $q.when(angular.copy(userDataTypes))
       }).then(function(backingData) {
         var loadBalancerReloader = $q.when(null);
         backingData.accounts = _.keys(backingData.credentialsKeyedByAccount);
