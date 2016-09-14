@@ -6,8 +6,10 @@
       <div class="col-md-3">
         <input class="form-control input-sm"
                required
+               type="text"
                name="serviceName"
-               ng-pattern="/^[a-z0-9]*$/"
+               ng-pattern="/^[a-z]([-a-z0-9]*[a-z0-9])?$/"
+               max="63"
                ng-model="$ctrl.backendService.name"/>
       </div>
       <div class="col-md-1">
@@ -40,8 +42,10 @@
       </div>
     </div>
     <div>
-      <div class="col-md-10 col-md-offset-2" ng-if="backendService.serviceName.$error.pattern">
-        <validation-error message="Backend service name can only contain lowercase letters and numbers.">
+      <div class="col-md-10 col-md-offset-2"
+           ng-if="backendService.serviceName.$error.pattern || backendService.serviceName.$error.max">
+        <validation-error 
+          message="Name must start with a lowercase letter followed by up to 62 lowercase letters, numbers, or hyphens, and cannot end with a hyphen.">
         </validation-error>
       </div>
     </div>

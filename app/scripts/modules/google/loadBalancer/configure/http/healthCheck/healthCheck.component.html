@@ -5,8 +5,10 @@
       <div class="col-md-4 sm-label-right">Name</div>
       <div class="col-md-3">
         <input class="form-control input-sm"
-               ng-pattern="/^[a-z0-9]*$/"
+               type="text"
+               ng-pattern="/^[a-z]([-a-z0-9]*[a-z0-9])?$/"
                name="healthCheckName"
+               max="63"
                required ng-model="$ctrl.healthCheck.name"/>
       </div>
       <div class="col-md-1">
@@ -92,8 +94,10 @@
       </div>
     </div>
     <div class="form-group">
-      <div class="col-md-10 col-md-offset-2" ng-if="healthCheck.healthCheckName.$error.pattern">
-        <validation-error message="Health check name can only contain lowercase numbers and letters">
+      <div class="col-md-10 col-md-offset-2"
+           ng-if="healthCheck.healthCheckName.$error.pattern || healthCheck.healthCheckName.$error.max">
+        <validation-error
+          message="Name must start with a lowercase letter followed by up to 62 lowercase letters, numbers, or hyphens, and cannot end with a hyphen.">
         </validation-error>
       </div>
     </div>
