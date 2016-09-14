@@ -15,7 +15,7 @@ let decorateFn = function ($delegate, jsonListBuilder, spelAutocomplete) {
       link.apply(this, arguments);
 
       let type = el.attr('type');
-      if (type === 'checkbox' || type === 'radio') {
+      if (type === 'checkbox' || type === 'radio' || el.closest('.no-spel').size()) {
         return;
       }
 
@@ -34,16 +34,15 @@ let decorateFn = function ($delegate, jsonListBuilder, spelAutocomplete) {
         let hasSpelPrefix = evt.target.value.indexOf('$') > -1;
         let hasLink = el.parent().nextAll('.spelLink');
 
-
         if (hasSpelPrefix) {
           if (hasLink.length < 1) {
             // Add the link to the docs under the input/textarea
             el.parent().after('<a class="spelLink" href="http://www.spinnaker.io/docs/pipeline-expressions-guide" target="_blank">Expression Docs</a>');
-
-
           }
         } else {
-          hasLink.fadeOut( 500, function() { this.remove(); });
+          hasLink.fadeOut(500, function () {
+            this.remove();
+          });
         }
       }
 

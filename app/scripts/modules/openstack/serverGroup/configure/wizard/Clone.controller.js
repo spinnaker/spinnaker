@@ -20,6 +20,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.clone
       instanceSettings: require('./instance/instanceSettings.html'),
       clusterSettings: require('./clusterSettings.html'),
       accessSettings: require('./access/accessSettings.html'),
+      advancedSettings: require('./advanced/advancedSettings.html')
     };
 
     $scope.title = title;

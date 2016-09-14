@@ -20,6 +20,9 @@
         <v2-wizard-page key="access-settings" label="Access" mark-complete-on-view="false">
           <ng-include src="pages.accessSettings"></ng-include>
         </v2-wizard-page>
+        <v2-wizard-page key="advanced-settings" label="Advanced Settings" mark-complete-on-view="false" done="true">
+            <ng-include src="pages.advancedSettings"></ng-include>
+        </v2-wizard-page>
       </v2-modal-wizard>
       <div class="modal-footer" ng-if="state.loaded">
         <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
