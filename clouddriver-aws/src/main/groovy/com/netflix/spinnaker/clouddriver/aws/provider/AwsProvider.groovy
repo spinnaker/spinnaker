@@ -111,19 +111,30 @@ class AwsProvider extends AgentSchedulerAware implements SearchableProvider, Eur
 
   @Override
   String getInstanceKey(Map<String, Object> attributes, String region) {
-    if (getCredentialName(attributes.accountId) == null) {
+    def credentialName = getCredentialName(attributes.accountId, attributes.allowMultipleEurekaPerAccount, attributes.eurekaAccountName)
+    if (credentialName == null) {
       return null
     }
-    Keys.getInstanceKey(attributes.instanceId, getCredentialName(attributes.accountId), region)
+    Keys.getInstanceKey(attributes.instanceId, credentialName, region)
   }
 
   @Override
   String getInstanceHealthKey(Map<String, Object> attributes, String region, String healthId) {
-    Keys.getInstanceHealthKey(attributes.instanceId, getCredentialName(attributes.accountId), region, healthId)
+    Keys.getInstanceHealthKey(attributes.instanceId, getCredentialName(attributes.accountId, attributes.allowMultipleEurekaPerAccount, attributes.eurekaAccountName), region, healthId)
   }
 
-  private String getCredentialName(String accountId) {
-    accountCredentialsRepository.all.find { it instanceof NetflixAmazonCredentials && it.accountId == accountId }?.name
+  private String getCredentialName(String accountId, boolean allowMultipleEurekaPerAccount, String eurekaAccountName) {
+    if (allowMultipleEurekaPerAccount) {
+      def credentialName = accountCredentialsRepository.all.find {
+        it instanceof NetflixAmazonCredentials && it.accountId == accountId && it.name == eurekaAccountName
+      }?.name
+      if (credentialName) {
+        return credentialName
+      }
+    }
+    return accountCredentialsRepository.all.find {
+      it instanceof NetflixAmazonCredentials && it.accountId == accountId
+    }?.name
   }
 
 }

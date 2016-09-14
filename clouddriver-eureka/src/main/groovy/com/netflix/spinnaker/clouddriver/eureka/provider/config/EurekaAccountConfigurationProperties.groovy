@@ -28,4 +28,5 @@ class EurekaAccountConfigurationProperties {
     String url
   }
   List<EurekaAccount> accounts = []
+  boolean allowMultipleEurekaPerAccount
 }
