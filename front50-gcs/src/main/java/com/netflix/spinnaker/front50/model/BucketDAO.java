@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.front50.model;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
+import com.netflix.spinnaker.front50.support.ClosureHelper;
+import com.netflix.spinnaker.hystrix.SimpleHystrixCommand;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,8 +109,21 @@ public abstract class BucketDAO<T extends Timestamped> {
 
 
   public T findById(String id) throws NotFoundException {
-      return service.loadCurrentObject(buildObjectKey(id), daoTypeName,
-                                       serializedClass);
+    return new SimpleHystrixCommand<T>(
+        getClass().getSimpleName(),
+        getClass().getSimpleName() + "-findById",
+        ClosureHelper.toClosure(args -> {
+            return service.loadCurrentObject(
+                buildObjectKey(id), daoTypeName, serializedClass);
+        }),
+        ClosureHelper.toClosure(
+            args -> allItemsCache.get().stream()
+            .filter(item -> item.getId().equalsIgnoreCase(id))
+            .findFirst()
+            .orElseThrow(() -> new NotFoundException(
+                String.format(
+                   "No item found in cache with id of %s", id.toLowerCase()))))
+    ).execute();
   }
 
   public Collection<T> allVersionsOf(String id, int limit)
