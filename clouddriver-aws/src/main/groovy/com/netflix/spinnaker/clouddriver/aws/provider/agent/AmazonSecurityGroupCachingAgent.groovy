@@ -38,6 +38,7 @@ import com.netflix.spinnaker.clouddriver.aws.provider.AwsInfrastructureProvider
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
+import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.ON_DEMAND
 import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.SECURITY_GROUPS
 
 @Slf4j
@@ -50,6 +51,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
   final Registry registry
 
   final OnDemandMetricsSupport metricsSupport
+  final String lastModifiedKey
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
     AUTHORITATIVE.forType(SECURITY_GROUPS.ns)
@@ -66,6 +68,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
     this.objectMapper = objectMapper
     this.registry = registry
     this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${AmazonCloudProvider.AWS}:${OnDemandAgent.OnDemandType.SecurityGroup}")
+    this.lastModifiedKey = Keys.getSecurityGroupKey('LAST_MODIFIED', 'LAST_MODIFIED', region, account.name, null)
   }
 
   @Override
@@ -103,12 +106,16 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
       return null
     }
 
+    Long startTime = null
     def securityGroups = metricsSupport.readData {
       def ec2 = amazonClientProvider.getAmazonEC2(account, region, true)
+      if (account.eddaEnabled) {
+        startTime = System.currentTimeMillis()
+      }
       return getSecurityGroups(ec2)
     }
 
-    CacheResult result = metricsSupport.transformData { buildCacheResult(providerCache, securityGroups) }
+    CacheResult result = metricsSupport.transformData { buildCacheResult(providerCache, securityGroups, [:], startTime) }
 
     new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), authoritativeTypes: [SECURITY_GROUPS.ns], cacheResult: result)
   }
@@ -121,7 +128,26 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
   @Override
   CacheResult loadData(ProviderCache providerCache) {
     def ec2 = amazonClientProvider.getAmazonEC2(account, region)
-    buildCacheResult(providerCache, getSecurityGroups(ec2))
+    List<SecurityGroup> securityGroups = getSecurityGroups(ec2)
+    def evictions = [:]
+    if (account.eddaEnabled) {
+      Long startTime = amazonClientProvider.lastModified
+      if (startTime) {
+        def lastModifiedRecord = providerCache.get(ON_DEMAND.ns, lastModifiedKey)
+        if (lastModifiedRecord) {
+          long lastModifiedTime = Long.parseLong(lastModifiedRecord.attributes?.lastModified?.toString() ?: '0')
+          if (lastModifiedTime > startTime) {
+            def sgIds = providerCache.filterIdentifiers(SECURITY_GROUPS.ns, Keys.getSecurityGroupKey('*', '*', region, account.name, '*'))
+            return new DefaultCacheResult([(SECURITY_GROUPS.ns): providerCache.getAll(SECURITY_GROUPS.ns, sgIds)])
+          }
+        }
+      } else {
+        log.warn("${agentType} did not receive lastModified value in response metadata")
+      }
+      evictions[ON_DEMAND.ns] = [lastModifiedKey]
+    }
+
+    buildCacheResult(providerCache, securityGroups, evictions, null)
   }
 
   @Override
@@ -134,14 +160,18 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
     amazonEC2.describeSecurityGroups().securityGroups
   }
 
-  private CacheResult buildCacheResult(ProviderCache providerCache, List<SecurityGroup> securityGroups) {
+  private CacheResult buildCacheResult(ProviderCache providerCache, List<SecurityGroup> securityGroups, Map<String, List<String>> evictions, Long lastModified) {
     List<CacheData> data = securityGroups.collect { SecurityGroup securityGroup ->
       Map<String, Object> attributes = objectMapper.convertValue(securityGroup, AwsInfrastructureProvider.ATTRIBUTES)
       new DefaultCacheData(Keys.getSecurityGroupKey(securityGroup.groupName, securityGroup.groupId, region, account.name, securityGroup.vpcId),
         attributes,
         [:])
     }
+    def cacheData = [(SECURITY_GROUPS.ns): data]
+    if (lastModified) {
+      cacheData[ON_DEMAND.ns] = [new DefaultCacheData(lastModifiedKey, [lastModified: Long.toString(lastModified)], [:])]
+    }
     log.info("Caching ${data.size()} items in ${agentType}")
-    new DefaultCacheResult([(SECURITY_GROUPS.ns): data])
+    new DefaultCacheResult(cacheData, evictions)
   }
 }
