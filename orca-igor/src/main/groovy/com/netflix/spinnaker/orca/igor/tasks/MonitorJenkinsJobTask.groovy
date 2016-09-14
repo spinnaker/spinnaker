@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit
 @Component
 class MonitorJenkinsJobTask implements RetryableTask {
 
-  long backoffPeriod = 1000
+  long backoffPeriod = 10000
   long timeout = TimeUnit.HOURS.toMillis(2)
 
   @Autowired
