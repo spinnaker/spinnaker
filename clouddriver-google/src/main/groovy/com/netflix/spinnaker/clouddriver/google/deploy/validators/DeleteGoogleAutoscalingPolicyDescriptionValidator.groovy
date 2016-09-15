@@ -37,6 +37,6 @@ class DeleteGoogleAutoscalingPolicyDescriptionValidator extends DescriptionValid
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
     helper.validateName(description.serverGroupName, "serverGroupName")
-    helper.validateRegion(description.region)
+    helper.validateRegion(description.region, description.credentials)
   }
 }

@@ -39,10 +39,10 @@ class CreateGoogleInstanceDescriptionValidator extends DescriptionValidator<Crea
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
     helper.validateInstanceName(description.instanceName)
     helper.validateImage(description.image)
-    helper.validateInstanceType(description.instanceType, description.zone)
+    helper.validateInstanceType(description.instanceType, description.zone, description.credentials)
     helper.validateInstanceTypeDisks(googleDeployDefaults.determineInstanceTypeDisk(description.instanceType),
                                      description.disks)
     helper.validateAuthScopes(description.authScopes)
-    helper.validateZone(description.zone)
+    helper.validateZone(description.zone, description.credentials)
   }
 }

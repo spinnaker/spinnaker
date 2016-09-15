@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.security
 
 import com.google.api.services.compute.Compute
+import com.google.api.services.compute.model.MachineTypeAggregatedList
 import com.google.api.services.compute.model.Region
 import com.google.api.services.compute.model.RegionList
 import com.google.common.annotations.VisibleForTesting
@@ -42,6 +43,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
   final List<String> imageProjects
   final ComputeVersion computeVersion
   final Map<String, List<String>> regionToZonesMap
+  final Map<String, Map> locationToInstanceTypesMap
   final ConsulConfig consulConfig
   final Compute compute
 
@@ -55,15 +57,16 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
     List<String> imageProjects = []
     ComputeVersion computeVersion = ComputeVersion.DEFAULT
     Map<String, List<String>> regionToZonesMap = [:]
+    Map<String, Map> locationToInstanceTypesMap = [:]
     String jsonKey
     GoogleCredentials credentials
     Compute compute
     ConsulConfig consulConfig
 
     /**
-     * If true, overwrites any value in regionToZoneMap with values from the platform.
+     * If true, overwrites any value in regionToZoneMap and locationToInstanceTypesMap with values from the platform.
      */
-    boolean regionLookupEnabled = true
+    boolean liveLookupsEnabled = true
 
     Builder name(String name) {
       this.name = name
@@ -110,13 +113,20 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
       return this
     }
 
+    @VisibleForTesting
     Builder regionToZonesMap(Map<String, List<String>> regionToZonesMap) {
       this.regionToZonesMap = regionToZonesMap
       return this
     }
 
-    Builder regionLookupEnabled(boolean enabled) {
-      this.regionLookupEnabled = enabled
+    @VisibleForTesting
+    Builder locationToInstanceTypesMap(Map<String, Map> locationToInstanceTypesMap) {
+      this.locationToInstanceTypesMap = locationToInstanceTypesMap
+      return this
+    }
+
+    Builder liveLookupsEnabled(boolean enabled) {
+      this.liveLookupsEnabled = enabled
       return this
     }
 
@@ -131,14 +141,14 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
     @VisibleForTesting
     Builder credentials(GoogleCredentials credentials) {
       this.credentials = credentials
-      this.regionLookupEnabled = false
+      this.liveLookupsEnabled = false
       return this
     }
 
     @VisibleForTesting
     Builder compute(Compute compute) {
       this.compute = compute
-      this.regionLookupEnabled = false
+      this.liveLookupsEnabled = false
       return this
     }
 
@@ -155,8 +165,9 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
         compute = credentials.getCompute(applicationName)
       }
 
-      if (regionLookupEnabled) {
+      if (liveLookupsEnabled) {
         regionToZonesMap = queryRegions(compute, project)
+        locationToInstanceTypesMap = queryInstanceTypes(compute, project, regionToZonesMap)
       }
 
       new GoogleNamedAccountCredentials(name,
@@ -170,6 +181,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
                                         imageProjects,
                                         computeVersion,
                                         regionToZonesMap,
+                                        locationToInstanceTypesMap,
                                         consulConfig,
                                         compute)
 
@@ -189,6 +201,10 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
   }
 
   public String regionFromZone(String zone) {
+    return regionFromZone(zone, regionToZonesMap)
+  }
+
+  public static String regionFromZone(String zone, Map<String, List<String>> regionToZonesMap) {
     if (zone == null || regionToZonesMap == null) {
       return null
     }
@@ -207,12 +223,12 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
 
   private static Map<String, List<String>> queryRegions(Compute compute, String project) {
     RegionList regionList = fetchRegions(compute, project)
-    return convertToMap(regionList)
+    return convertRegionListToMap(regionList)
   }
 
   @VisibleForTesting
-  static Map<String, List<String>> convertToMap(RegionList regionList) {
-    regionList.items.collectEntries { Region region ->
+  static Map<String, List<String>> convertRegionListToMap(RegionList regionList) {
+    return regionList.items.collectEntries { Region region ->
       [(region.name): region.zones.collect { String zone -> GCEUtil.getLocalName(zone) }]
     }
   }
@@ -222,6 +238,65 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
       return compute.regions().list(project).execute()
     } catch (IOException ioe) {
       throw new RuntimeException("Failed loading regions for " + project, ioe)
+    }
+  }
+
+  private static Map<String, Map> queryInstanceTypes(Compute compute,
+                                                     String project,
+                                                     Map<String, List<String>> regionToZonesMap) {
+    MachineTypeAggregatedList instanceTypeList = fetchInstanceTypes(compute, project)
+    return convertInstanceTypeListToMap(instanceTypeList, regionToZonesMap)
+  }
+
+  @VisibleForTesting
+  static Map<String, Map> convertInstanceTypeListToMap(MachineTypeAggregatedList instanceTypeList,
+                                                       Map<String, List<String>> regionToZonesMap) {
+    // Populate zone to instance types mappings.
+    def locationToInstanceTypesMap = instanceTypeList.items.collectEntries { zone, machineTypesScopedList ->
+      zone = GCEUtil.getLocalName(zone)
+
+      return [(zone): [
+        instanceTypes: machineTypesScopedList.machineTypes.collect { it.name },
+        vCpuMax: machineTypesScopedList.machineTypes.max { it.guestCpus }.guestCpus
+      ]]
+    }
+
+    // Populate region to instance types mappings.
+    regionToZonesMap.each { region, zoneNames ->
+      // The RMIG will deploy to the last 3 zones (after sorting by zone name).
+      if (zoneNames.size() > 3) {
+        zoneNames = zoneNames.sort().drop(zoneNames.size() - 3)
+      }
+
+      def matchingInstanceTypesDescriptors = locationToInstanceTypesMap.findAll { zone, instanceTypesDescriptor ->
+        zone in zoneNames
+      }.values()
+
+      if (matchingInstanceTypesDescriptors) {
+        def matchingInstanceTypes = matchingInstanceTypesDescriptors.collect { it.instanceTypes }
+        def firstZoneInstanceTypes = matchingInstanceTypes[0]
+        def remainingZoneInstanceTypes = matchingInstanceTypes.drop(1)
+        // Determine what instance types are present in all zones in this region.
+        def commonInstanceTypes = remainingZoneInstanceTypes.inject(firstZoneInstanceTypes) { acc, el -> acc.intersect(el) }
+
+        // Determine the maximum vCpu count for this region by identifying the smallest zonal vCpuMax.
+        def vCpuMaxInRegion = matchingInstanceTypesDescriptors.min { it.vCpuMax }.vCpuMax
+
+        locationToInstanceTypesMap[region] = [
+          instanceTypes: commonInstanceTypes,
+          vCpuMax: vCpuMaxInRegion
+        ]
+      }
+    }
+
+    return locationToInstanceTypesMap
+  }
+
+  private static MachineTypeAggregatedList fetchInstanceTypes(Compute compute, String project) {
+    try {
+      return compute.machineTypes().aggregatedList(project).execute()
+    } catch (IOException ioe) {
+      throw new RuntimeException("Failed loading instance types for " + project, ioe)
     }
   }
 }

@@ -31,7 +31,7 @@ abstract class AbstractEnableDisableGoogleServerGroupDescriptionValidator extend
     def helper = new StandardGceAttributeValidator("enableDisableGoogleServerGroupDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
+    helper.validateRegion(description.region, description.credentials)
     helper.validateServerGroupName(description.serverGroupName)
-    helper.validateRegion(description.region)
   }
 }

@@ -40,7 +40,7 @@ class DeleteGoogleLoadBalancerDescriptionValidator extends
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
     helper.validateName(description.loadBalancerName, "loadBalancerName")
     if (description.loadBalancerType == GoogleLoadBalancerType.NETWORK) {
-      helper.validateRegion(description.region)
+      helper.validateRegion(description.region, description.credentials)
     }
   }
 }

@@ -42,15 +42,16 @@ class BasicGoogleDeployDescriptionValidator extends DescriptionValidator<BasicGo
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
     helper.validateImage(description.image)
     helper.validateInstanceType(description.instanceType,
-                                description.regional ? description.region : description.zone)
+                                description.regional ? description.region : description.zone,
+                                description.credentials)
     helper.validateInstanceTypeDisks(googleDeployDefaults.determineInstanceTypeDisk(description.instanceType),
                                      description.disks)
     helper.validateAuthScopes(description.authScopes)
 
     if (description.regional) {
-      helper.validateRegion(description.region)
+      helper.validateRegion(description.region, description.credentials)
     } else {
-      helper.validateZone(description.zone)
+      helper.validateZone(description.zone, description.credentials)
     }
 
     helper.validateName(description.application, "application")

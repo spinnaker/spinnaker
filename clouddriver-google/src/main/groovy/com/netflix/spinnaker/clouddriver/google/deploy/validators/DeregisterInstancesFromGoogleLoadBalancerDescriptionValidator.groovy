@@ -39,7 +39,7 @@ class DeregisterInstancesFromGoogleLoadBalancerDescriptionValidator
 
     helper.validateNameList(description.loadBalancerNames, "loadBalancerName")
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
-    helper.validateRegion(description.region)
+    helper.validateRegion(description.region, description.credentials)
     helper.validateInstanceIds(description.instanceIds)
   }
 }

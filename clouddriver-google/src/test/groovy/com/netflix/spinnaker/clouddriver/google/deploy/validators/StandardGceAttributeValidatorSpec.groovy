@@ -39,20 +39,58 @@ class StandardGceAttributeValidatorSpec extends Specification {
     "us-central1-a", "us-central1-b", "us-central1-c", "us-central1-f",
   ]
   private static final EURO_ZONES = [
-    "europe-west1-a", "europe-west1-b", "europe-west1-c", "europe-west1-d",
+    "europe-west1-b", "europe-west1-c", "europe-west1-d",
   ]
   private static final ASIA_ZONES = [
     "asia-east1-a", "asia-east1-b", "asia-east1-c",
   ]
   private static final ALL_ZONES = US_ZONES + EURO_ZONES + ASIA_ZONES
+  private static final VCPU_MAX_BY_LOCATION = [
+    'us-east1-b': [vCpuMax: 32],
+    'us-east1-c': [vCpuMax: 32],
+    'us-east1-d': [vCpuMax: 32],
+    'us-central1-a': [vCpuMax: 16],
+    'us-central1-b': [vCpuMax: 32],
+    'us-central1-c': [vCpuMax: 32],
+    'us-central1-f': [vCpuMax: 32],
+    'us-west1-a': [vCpuMax: 32],
+    'us-west1-b': [vCpuMax: 32],
+    'europe-west1-b': [vCpuMax: 16],
+    'europe-west1-c': [vCpuMax: 32],
+    'europe-west1-d': [vCpuMax: 32],
+    'asia-east1-a': [vCpuMax: 32],
+    'asia-east1-b': [vCpuMax: 32],
+    'asia-east1-c': [vCpuMax: 32],
+    'us-east1': [vCpuMax: 32],
+    'us-central1': [vCpuMax: 32],
+    'us-west1': [vCpuMax: 32],
+    'europe-west1': [vCpuMax: 16],
+    'asia-east1': [vCpuMax: 32]
+  ]
+  private static final REGION_TO_ZONES = [
+    'us-east1': ['us-east1-b', 'us-east1-c', 'us-east1-d'],
+    'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c', 'us-central1-f'],
+    'us-west1': ['us-west1-a', 'us-west1-b'],
+    'europe-west1': ['europe-west1-b', 'europe-west1-c', 'europe-west1-d'],
+    'asia-east1': ['asia-east1-a', 'asia-east1-b', 'asia-east1-c'],
+  ]
 
   @Shared
   DefaultAccountCredentialsProvider accountCredentialsProvider
 
+  @Shared
+  GoogleNamedAccountCredentials credentials
+
   void setupSpec() {
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
     accountCredentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
-    def credentials = new GoogleNamedAccountCredentials.Builder().name(ACCOUNT_NAME).credentials(new FakeGoogleCredentials()).build()
+    credentials =
+      new GoogleNamedAccountCredentials.Builder()
+        .name(ACCOUNT_NAME)
+        .credentials(new FakeGoogleCredentials())
+        .locationToInstanceTypesMap(VCPU_MAX_BY_LOCATION)
+        .regionToZonesMap(REGION_TO_ZONES)
+        .build()
     credentialsRepo.save(ACCOUNT_NAME, credentials)
   }
 
@@ -260,17 +298,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
-      ALL_REGIONS.each { validator.validateRegion(it) }
-    then:
-      0 * errors._
-
-    when:
-      validator.validateRegion("Unchecked")
-    then:
-      0 * errors._
-
-    when:
-      validator.validateRegion(" ")
+      ALL_REGIONS.each { validator.validateRegion(it, credentials) }
     then:
       0 * errors._
   }
@@ -281,9 +309,21 @@ class StandardGceAttributeValidatorSpec extends Specification {
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
-      validator.validateRegion("")
+      validator.validateRegion("", credentials)
     then:
       1 * errors.rejectValue("region", "${DECORATOR}.region.empty")
+      0 * errors._
+
+    when:
+      validator.validateRegion("Unchecked", credentials)
+    then:
+      1 * errors.rejectValue("region", "${DECORATOR}.region.invalid")
+      0 * errors._
+
+    when:
+      validator.validateRegion(" ", credentials)
+    then:
+      1 * errors.rejectValue("region", "${DECORATOR}.region.invalid")
       0 * errors._
   }
 
@@ -293,17 +333,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
-      ALL_ZONES.each { validator.validateZone(it) }
-    then:
-      0 * errors._
-
-    when:
-      validator.validateZone("Unchecked")
-    then:
-      0 * errors._
-
-    when:
-      validator.validateZone(" ")
+      ALL_ZONES.each { validator.validateZone(it, credentials) }
     then:
       0 * errors._
   }
@@ -314,9 +344,21 @@ class StandardGceAttributeValidatorSpec extends Specification {
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
-      validator.validateZone("")
+      validator.validateZone("", credentials)
     then:
       1 * errors.rejectValue("zone", "${DECORATOR}.zone.empty")
+      0 * errors._
+
+    when:
+      validator.validateZone("Unchecked", credentials)
+    then:
+      1 * errors.rejectValue("zone", "${DECORATOR}.zone.invalid")
+      0 * errors._
+
+    when:
+      validator.validateZone(" ", credentials)
+    then:
+      1 * errors.rejectValue("zone", "${DECORATOR}.zone.invalid")
       0 * errors._
   }
 
@@ -410,12 +452,12 @@ class StandardGceAttributeValidatorSpec extends Specification {
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
-      validator.validateInstanceType("Unchecked", ZONE)
+      validator.validateInstanceType("Unchecked", ZONE, credentials)
     then:
       0 * errors._
 
     when:
-      validator.validateInstanceType(" ", ZONE)
+      validator.validateInstanceType(" ", ZONE, credentials)
     then:
       0 * errors._
   }
@@ -426,7 +468,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
-      validator.validateInstanceType("", ZONE)
+      validator.validateInstanceType("", ZONE, credentials)
     then:
       1 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.empty")
       0 * errors._
@@ -438,17 +480,17 @@ class StandardGceAttributeValidatorSpec extends Specification {
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
-      validator.validateInstanceType("custom-2-2048", ZONE)
+      validator.validateInstanceType("custom-2-2048", ZONE, credentials)
     then:
       0 * errors._
 
     when:
-      validator.validateInstanceType("custom-24-29696", ZONE)
+      validator.validateInstanceType("custom-24-29696", ZONE, credentials)
     then:
       0 * errors._
 
     when:
-      validator.validateInstanceType("custom-24-29696", REGION)
+      validator.validateInstanceType("custom-24-29696", REGION, credentials)
     then:
       0 * errors._
   }
@@ -459,50 +501,45 @@ class StandardGceAttributeValidatorSpec extends Specification {
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
-      validator.validateInstanceType("custom1-6912", ZONE)
-      validator.validateInstanceType("customs-12-3456", ZONE)
-      validator.validateInstanceType("custom--1234", ZONE)
-      validator.validateInstanceType("custom-1-2345678", ZONE)
+      validator.validateInstanceType("custom1-6912", ZONE, credentials)
+      validator.validateInstanceType("customs-12-3456", ZONE, credentials)
+      validator.validateInstanceType("custom--1234", ZONE, credentials)
+      validator.validateInstanceType("custom-1-2345678", ZONE, credentials)
     then:
       4 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.invalid", "Custom instance string must match pattern /custom-\\d{1,2}-\\d{4,6}/.")
 
     when:
-      validator.validateInstanceType("custom-1-6912", ZONE)
+      validator.validateInstanceType("custom-1-6912", ZONE, credentials)
     then:
       1 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.invalid", "Memory per vCPU must be less than 6.5GB.")
 
     when:
-      validator.validateInstanceType("custom-2-1024", ZONE)
+      validator.validateInstanceType("custom-2-1024", ZONE, credentials)
     then:
       1 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.invalid", "Memory per vCPU must be greater than 0.9GB.")
 
     when:
-      validator.validateInstanceType("custom-1-1000", ZONE)
+      validator.validateInstanceType("custom-1-1000", ZONE, credentials)
     then:
       1 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.invalid", "Total memory must be a multiple of 256MB.")
 
     when:
-      validator.validateInstanceType("custom-1-1024", "us-central1-q")
-    then:
-      0 * errors._
-
-    when:
-      validator.validateInstanceType("custom-18-18432", "us-central1-q")
+      validator.validateInstanceType("custom-18-18432", "us-central1-q", credentials)
     then:
       1 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.invalid", "us-central1-q not found.")
 
     when:
-      validator.validateInstanceType("custom-24-24576", "us-central1-a")
+      validator.validateInstanceType("custom-24-24576", "us-central1-a", credentials)
     then:
       1 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.invalid", "us-central1-a does not support more than 16 vCPUs.")
 
     when:
-      validator.validateInstanceType("custom-0-1024", ZONE)
+      validator.validateInstanceType("custom-0-1024", ZONE, credentials)
     then:
       1 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.invalid", "vCPU count must be greater than or equal to 1.")
 
     when:
-      validator.validateInstanceType("custom-3-3072", ZONE)
+      validator.validateInstanceType("custom-3-3072", ZONE, credentials)
     then:
       1 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.invalid", "Above 1, vCPU count must be even.")
   }

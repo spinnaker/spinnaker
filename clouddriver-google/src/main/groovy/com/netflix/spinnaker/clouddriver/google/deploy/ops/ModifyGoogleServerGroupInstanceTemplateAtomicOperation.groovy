@@ -87,6 +87,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
     def isRegional = serverGroup.regional
     // Will return null if this is a regional server group.
     def zone = serverGroup.zone
+    def location = isRegional ? region : zone
 
     def instanceGroupManagers = isRegional ? compute.regionInstanceGroupManagers() : compute.instanceGroupManagers()
     def instanceTemplates = compute.instanceTemplates()
@@ -168,7 +169,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
         if (description.instanceType.startsWith('custom')) {
           machineTypeName = description.instanceType
         } else {
-          machineTypeName = GCEUtil.queryMachineType(project, description.instanceType, compute, task, BASE_PHASE).name
+          machineTypeName = GCEUtil.queryMachineType(description.instanceType, location, credentials, task, BASE_PHASE)
         }
 
         instanceTemplateProperties.setMachineType(machineTypeName)

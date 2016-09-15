@@ -50,7 +50,8 @@ class CopyLastGoogleServerGroupDescriptionValidator extends DescriptionValidator
 
     if (description.instanceType) {
       helper.validateInstanceType(description.instanceType,
-                                  description.regional ? description.region : description.zone)
+                                  description.regional ? description.region : description.zone,
+                                  description.credentials)
     }
   }
 }

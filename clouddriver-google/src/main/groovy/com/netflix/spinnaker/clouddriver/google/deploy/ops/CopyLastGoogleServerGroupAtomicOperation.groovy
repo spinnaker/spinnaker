@@ -69,11 +69,10 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
 
 
     def credentials = newDescription.credentials
-    def compute = credentials.compute
     def project = credentials.project
     def isRegional = newDescription.regional
     def zone = newDescription.zone
-    def region = newDescription.region ?: GCEUtil.getRegionFromZone(project, zone, compute)
+    def region = newDescription.region ?: credentials.regionFromZone(zone)
     def serverGroupNameResolver = new GCEServerGroupNameResolver(project, region, credentials)
     def clusterName = serverGroupNameResolver.combineAppStackDetail(newDescription.application, newDescription.stack, newDescription.freeFormDetails)
 

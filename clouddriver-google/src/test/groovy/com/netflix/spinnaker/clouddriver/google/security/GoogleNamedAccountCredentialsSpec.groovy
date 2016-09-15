@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.google.security
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.services.compute.model.MachineTypeAggregatedList
 import com.google.api.services.compute.model.Region
 import com.google.api.services.compute.model.RegionList
 import spock.lang.Specification
 
-class GoogleNamedAccountCredentialsSpec extends Specification {
+class GoogleNamedAccountCredentialsSpec extends Specification implements TestDefaults {
 
   def 'regionlist should convert to map'() {
     setup:
@@ -36,11 +38,122 @@ class GoogleNamedAccountCredentialsSpec extends Specification {
       rl.setItems([r1, r2])
 
     when:
-      def map = GoogleNamedAccountCredentials.convertToMap(rl)
+      def map = GoogleNamedAccountCredentials.convertRegionListToMap(rl)
 
     then:
       map.size() == 2
       map.region1 == ['z1', 'z2', 'z3']
       map.region2 == ['z4', 'z5', 'z6']
+  }
+
+  def 'instanceTypeList should convert to map'() {
+    setup:
+      MachineTypeAggregatedList instanceTypeList = new ObjectMapper().convertValue(INSTANCE_TYPE_LIST, MachineTypeAggregatedList)
+
+    when:
+      def map = GoogleNamedAccountCredentials.convertInstanceTypeListToMap(instanceTypeList, REGION_TO_ZONES)
+
+    then:
+      'us-central1-a' in map
+      map['us-central1-a'].instanceTypes?.size() == 15
+      map['us-central1-a'].vCpuMax == 16
+      'us-central1-b' in map
+      map['us-central1-b'].instanceTypes?.size() == 18
+      map['us-central1-b'].vCpuMax == 32
+      // This proves that zone us-central1-a is not being considered when calculating regional capabilities.
+      'us-central1' in map
+      map['us-central1'].instanceTypes?.size() == 18
+      map['us-central1'].vCpuMax == 32
+
+      'us-east1-b' in map
+      map['us-east1-b'].instanceTypes?.size() == 18
+      map['us-east1-b'].vCpuMax == 32
+      'us-east1' in map
+      map['us-east1'].instanceTypes?.size() == 18
+      map['us-east1'].vCpuMax == 32
+
+      'europe-west1-b' in map
+      map['europe-west1-b'].instanceTypes?.size() == 15
+      map['europe-west1-b'].vCpuMax == 16
+      'europe-west1-c' in map
+      map['europe-west1-c'].instanceTypes?.size() == 18
+      map['europe-west1-c'].vCpuMax == 32
+      'europe-west1' in map
+      map['europe-west1'].instanceTypes?.size() == 15
+      map['europe-west1'].vCpuMax == 16
+
+    when:
+      // Do a deep copy of just the path we intend to modify.
+      def instanceTypeListCopy = INSTANCE_TYPE_LIST + [:]
+      instanceTypeListCopy.items = instanceTypeListCopy.items + [:]
+      instanceTypeListCopy.items['zones/europe-west1-b'] = instanceTypeListCopy.items['zones/europe-west1-b'] + [:]
+
+      // Let's make europe-west1-b support up to 32 guest cpus now.
+      instanceTypeListCopy.items['zones/europe-west1-b'].machineTypes = INSTANCE_TYPES_WITH_32
+
+      // Rebuild the map.
+      instanceTypeList = new ObjectMapper().convertValue(instanceTypeListCopy, MachineTypeAggregatedList)
+      map = GoogleNamedAccountCredentials.convertInstanceTypeListToMap(instanceTypeList, REGION_TO_ZONES)
+
+    then:
+      'europe-west1-b' in map
+      map['europe-west1-b'].instanceTypes?.size() == 18
+      map['europe-west1-b'].vCpuMax == 32
+      'europe-west1' in map
+      map['europe-west1'].instanceTypes?.size() == 18
+      map['europe-west1'].vCpuMax == 32
+
+    when:
+      // Do a deep copy of just the path we intend to modify.
+      instanceTypeListCopy = INSTANCE_TYPE_LIST + [:]
+      instanceTypeListCopy.items = instanceTypeListCopy.items + [:]
+      instanceTypeListCopy.items['zones/europe-west1-b'] = instanceTypeListCopy.items['zones/europe-west1-b'] + [:]
+
+      // Let's make europe-west1-b support up to 64 guest cpus now.
+      instanceTypeListCopy.items['zones/europe-west1-b'].machineTypes = INSTANCE_TYPES_WITH_64
+
+      // Rebuild the map.
+      instanceTypeList = new ObjectMapper().convertValue(instanceTypeListCopy, MachineTypeAggregatedList)
+      map = GoogleNamedAccountCredentials.convertInstanceTypeListToMap(instanceTypeList, REGION_TO_ZONES)
+
+    then:
+      'europe-west1-b' in map
+      map['europe-west1-b'].instanceTypes?.size() == 21
+      map['europe-west1-b'].vCpuMax == 64
+      'europe-west1' in map
+      // Adding the 64 guest cpu types to just one zone is not enough to increase the max for the entire region.
+      map['europe-west1'].instanceTypes?.size() == 18
+      map['europe-west1'].vCpuMax == 32
+
+    when:
+      // Do a deep copy of just the paths we intend to modify.
+      instanceTypeListCopy = INSTANCE_TYPE_LIST + [:]
+      instanceTypeListCopy.items = instanceTypeListCopy.items + [:]
+      instanceTypeListCopy.items['zones/europe-west1-b'] = instanceTypeListCopy.items['zones/europe-west1-b'] + [:]
+      instanceTypeListCopy.items['zones/europe-west1-c'] = instanceTypeListCopy.items['zones/europe-west1-c'] + [:]
+      instanceTypeListCopy.items['zones/europe-west1-d'] = instanceTypeListCopy.items['zones/europe-west1-d'] + [:]
+
+      // Let's make all 3 zones in europe-west1 support up to 64 guest cpus now.
+      instanceTypeListCopy.items['zones/europe-west1-b'].machineTypes = INSTANCE_TYPES_WITH_64
+      instanceTypeListCopy.items['zones/europe-west1-c'].machineTypes = INSTANCE_TYPES_WITH_64
+      instanceTypeListCopy.items['zones/europe-west1-d'].machineTypes = INSTANCE_TYPES_WITH_64
+
+      // Rebuild the map.
+      instanceTypeList = new ObjectMapper().convertValue(instanceTypeListCopy, MachineTypeAggregatedList)
+      map = GoogleNamedAccountCredentials.convertInstanceTypeListToMap(instanceTypeList, REGION_TO_ZONES)
+
+    then:
+      'europe-west1-b' in map
+      map['europe-west1-b'].instanceTypes?.size() == 21
+      map['europe-west1-b'].vCpuMax == 64
+      'europe-west1-c' in map
+      map['europe-west1-c'].instanceTypes?.size() == 21
+      map['europe-west1-c'].vCpuMax == 64
+      'europe-west1-d' in map
+      map['europe-west1-d'].instanceTypes?.size() == 21
+      map['europe-west1-d'].vCpuMax == 64
+      'europe-west1' in map
+      map['europe-west1'].instanceTypes?.size() == 21
+      map['europe-west1'].vCpuMax == 64
   }
 }

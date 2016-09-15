@@ -26,7 +26,6 @@ import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
-import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
@@ -35,7 +34,6 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleL
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
-import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleHttpLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.model.*
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
@@ -45,8 +43,6 @@ import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGrou
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
 
-import java.util.concurrent.TimeUnit
-
 @Slf4j
 class GCEUtil {
   private static final String DISK_TYPE_PERSISTENT = "PERSISTENT"
@@ -55,21 +51,13 @@ class GCEUtil {
 
   public static final String TARGET_POOL_NAME_PREFIX = "tp"
 
-  static MachineType queryMachineType(String projectName, String machineTypeName, Compute compute, Task task, String phase) {
-    task.updateStatus phase, "Looking up machine type $machineTypeName..."
+  static String queryMachineType(String instanceType, String location, GoogleNamedAccountCredentials credentials, Task task, String phase) {
+    task.updateStatus phase, "Looking up machine type $instanceType..."
 
-    Map<String, MachineTypesScopedList> zoneToMachineTypesMap = compute.machineTypes().aggregatedList(projectName).execute().items
-
-    def machineType = zoneToMachineTypesMap.collect { _, machineTypesScopedList ->
-      machineTypesScopedList.machineTypes
-    }.flatten().find { machineType ->
-      machineType.name == machineTypeName
-    }
-
-    if (machineType) {
-      return machineType
+    if (instanceType in credentials.locationToInstanceTypesMap[location]?.instanceTypes) {
+      return instanceType
     } else {
-      updateStatusAndThrowNotFoundException("Machine type $machineTypeName not found.", task, phase)
+      updateStatusAndThrowNotFoundException("Machine type $instanceType not found.", task, phase)
     }
   }
 
@@ -321,12 +309,9 @@ class GCEUtil {
                                                                     String region,
                                                                     GoogleNamedAccountCredentials credentials) {
     def compute = credentials.compute
-    def zones = getZonesFromRegion(projectName, region, compute)
-
-    def allMIGSInRegion = zones.findResults {
-      def localZoneName = getLocalName(it)
-
-      compute.instanceGroupManagers().list(projectName, localZoneName).execute().getItems()
+    def zones = credentials.getZonesFromRegion(region)
+    def allMIGSInRegion = zones.findResults { zone ->
+      compute.instanceGroupManagers().list(projectName, zone).execute().getItems()
     }.flatten()
 
     return allMIGSInRegion
@@ -424,17 +409,6 @@ class GCEUtil {
       }
     }
     return mapServicesDiffer
-  }
-
-  static String getRegionFromZone(String projectName, String zone, Compute compute) {
-    // Zone.getRegion() returns a full URL reference.
-    def fullRegion = compute.zones().get(projectName, zone).execute().getRegion()
-    // Even if getRegion() is changed to return just the unqualified region name, this will still work.
-    getLocalName(fullRegion)
-  }
-
-  static List<String> getZonesFromRegion(String projectName, String region, Compute compute) {
-    return compute.regions().get(projectName, region).execute().getZones()
   }
 
   static BaseGoogleInstanceDescription buildInstanceDescriptionFromTemplate(InstanceTemplate instanceTemplate) {

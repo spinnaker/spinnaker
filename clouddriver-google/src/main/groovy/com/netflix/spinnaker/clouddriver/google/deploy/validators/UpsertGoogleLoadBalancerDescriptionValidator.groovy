@@ -47,7 +47,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
 
     switch (description.loadBalancerType) {
       case GoogleLoadBalancerType.NETWORK:
-        helper.validateRegion(description.region)
+        helper.validateRegion(description.region, description.credentials)
 
         // If the IP protocol is specified, it must be contained in the list of supported protocols.
         if (description.ipProtocol && !SUPPORTED_IP_PROTOCOLS.contains(description.ipProtocol)) {

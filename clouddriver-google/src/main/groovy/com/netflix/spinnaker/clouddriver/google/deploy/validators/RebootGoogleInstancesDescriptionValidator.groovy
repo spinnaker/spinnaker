@@ -36,7 +36,7 @@ class RebootGoogleInstancesDescriptionValidator extends DescriptionValidator<Reb
     StandardGceAttributeValidator helper = new StandardGceAttributeValidator("rebootGoogleInstancesDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
-    helper.validateZone(description.zone)
+    helper.validateZone(description.zone, description.credentials)
     helper.validateInstanceIds(description.instanceIds)
   }
 }

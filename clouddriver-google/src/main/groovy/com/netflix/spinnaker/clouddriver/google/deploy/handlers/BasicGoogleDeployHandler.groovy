@@ -104,12 +104,13 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     def project = credentials.project
     def isRegional = description.regional
     def zone = description.zone
-    def region = description.region ?: GCEUtil.getRegionFromZone(project, zone, compute)
+    def region = description.region ?: credentials.regionFromZone(zone)
+    def location = isRegional ? region : zone
 
     def serverGroupNameResolver = new GCEServerGroupNameResolver(project, region, credentials)
     def clusterName = serverGroupNameResolver.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
 
-    task.updateStatus BASE_PHASE, "Initializing creation of server group for cluster $clusterName in ${isRegional ? region : zone}..."
+    task.updateStatus BASE_PHASE, "Initializing creation of server group for cluster $clusterName in $location..."
 
     task.updateStatus BASE_PHASE, "Looking up next sequence..."
 
@@ -121,9 +122,8 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     if (description.instanceType.startsWith('custom')) {
       machineTypeName = description.instanceType
     } else {
-      machineTypeName = GCEUtil.queryMachineType(project, description.instanceType, compute, task, BASE_PHASE).name
+      machineTypeName = GCEUtil.queryMachineType(description.instanceType, location, credentials, task, BASE_PHASE)
     }
-
 
     def sourceImage = GCEUtil.querySourceImage(project,
                                                description,
@@ -356,7 +356,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       }
     }
 
-    task.updateStatus BASE_PHASE, "Done creating server group $serverGroupName in ${isRegional ? region : zone}."
+    task.updateStatus BASE_PHASE, "Done creating server group $serverGroupName in $location."
 
     // Actually update the backend services.
     def retry = new SafeRetry<Void>()

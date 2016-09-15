@@ -65,16 +65,17 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
       throw new IllegalArgumentException("Unable to resolve credentials for Google account '${description.accountName}'.")
     }
 
+    def credentials = description.credentials
     def compute = description.credentials.compute
     def project = description.credentials.project
     def zone = description.zone
-    def region = GCEUtil.getRegionFromZone(project, zone, compute)
+    def region = credentials.regionFromZone(zone)
 
     def machineTypeName
     if (description.instanceType.startsWith('custom')) {
       machineTypeName = description.instanceType
     } else {
-      machineTypeName = GCEUtil.queryMachineType(project, description.instanceType, compute, task, BASE_PHASE).name
+      machineTypeName = GCEUtil.queryMachineType(description.instanceType, zone, credentials, task, BASE_PHASE)
     }
 
     def sourceImage = GCEUtil.querySourceImage(project,

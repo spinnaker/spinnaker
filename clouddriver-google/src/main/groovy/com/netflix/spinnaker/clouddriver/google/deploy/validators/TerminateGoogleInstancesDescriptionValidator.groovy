@@ -38,9 +38,9 @@ class TerminateGoogleInstancesDescriptionValidator extends DescriptionValidator<
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
 
     if (description.serverGroupName) {
-      helper.validateRegion(description.region)
+      helper.validateRegion(description.region, description.credentials)
     } else {
-      helper.validateZone(description.zone)
+      helper.validateZone(description.zone, description.credentials)
     }
 
     helper.validateInstanceIds(description.instanceIds)

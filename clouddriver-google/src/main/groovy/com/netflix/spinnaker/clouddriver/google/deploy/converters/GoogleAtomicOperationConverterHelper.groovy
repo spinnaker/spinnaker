@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 
 class GoogleAtomicOperationConverterHelper {
@@ -40,7 +41,7 @@ class GoogleAtomicOperationConverterHelper {
       .convertValue(input, targetDescriptionType)
 
     // Re-assign the credentials.
-    converted.credentials = credentials
+    converted.credentials = credentials in GoogleNamedAccountCredentials ? credentials : null
     converted
   }
 }

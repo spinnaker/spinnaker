@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDiskType
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceTypeDisk
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.validation.Errors
 
@@ -169,14 +170,20 @@ class StandardGceAttributeValidator {
     return result
   }
 
-  // TODO(duftler): Also validate against set of supported GCE regions.
-  def validateRegion(String region) {
-    validateNotEmpty(region, "region")
+  def validateRegion(String region, GoogleNamedAccountCredentials credentials) {
+    if (validateNotEmpty(region, "region") && credentials) {
+      if (!(region in credentials.regionToZonesMap)) {
+        errors.rejectValue("region", "${context}.region.invalid")
+      }
+    }
   }
 
-  // TODO(duftler): Also validate against set of supported GCE zones.
-  def validateZone(String zone) {
-    validateNotEmpty(zone, "zone")
+  def validateZone(String zone, GoogleNamedAccountCredentials credentials) {
+    if (validateNotEmpty(zone, "zone") && credentials) {
+      if (!credentials.regionFromZone(zone)) {
+        errors.rejectValue("zone", "${context}.zone.invalid")
+      }
+    }
   }
 
   def validateNetwork(String network) {
@@ -249,45 +256,16 @@ class StandardGceAttributeValidator {
     validateName(instanceName, "instanceName")
   }
 
-  // TODO(duftler): Also validate against set of supported GCE types.
-  def validateInstanceType(String instanceType, String location) {
+  def validateInstanceType(String instanceType, String location, GoogleNamedAccountCredentials credentials) {
     validateNotEmpty(instanceType, "instanceType")
     if (instanceType?.startsWith('custom')) {
-      validateCustomInstanceType(instanceType, location)
+      validateCustomInstanceType(instanceType, location, credentials)
     }
   }
 
-  /**
-   * This list should be kept in sync with the corresponding list in deck:
-   * @link { https://github.com/spinnaker/deck/tree/master/app/scripts/modules/google/instance/gceVCpuMaxByLocation.value.js }
-   */
-  def vCpuMaxByLocation = [
-    'us-east1-b': 32,
-    'us-east1-c': 32,
-    'us-east1-d': 32,
-    'us-central1-a': 16,
-    'us-central1-b': 32,
-    'us-central1-c': 32,
-    'us-central1-f': 32,
-    'us-west1-a': 32,
-    'us-west1-b': 32,
-    'europe-west1-b': 16,
-    'europe-west1-c': 32,
-    'europe-west1-d': 32,
-    'asia-east1-a': 32,
-    'asia-east1-b': 32,
-    'asia-east1-c': 32,
-    'us-east1': 32,
-    'us-central1': 32,
-    'us-west1': 32,
-    'europe-west1': 16,
-    'asia-east1': 32
-  ]
-
   def customInstanceRegExp = /custom-\d{1,2}-\d{4,6}/
 
-  def validateCustomInstanceType(String instanceType, String location) {
-
+  def validateCustomInstanceType(String instanceType, String location, GoogleNamedAccountCredentials credentials) {
     if (!(instanceType ==~ customInstanceRegExp)) {
       errors.rejectValue("instanceType", "${context}.instanceType.invalid", "Custom instance string must match pattern /custom-\\d{1,2}-\\d{4,6}/.")
       return false
@@ -322,15 +300,14 @@ class StandardGceAttributeValidator {
     }
 
     if (location) {
-      def knownLocation = location in vCpuMaxByLocation
+      if (location in credentials.locationToInstanceTypesMap) {
+        def vCpuMaxForLocation = credentials.locationToInstanceTypesMap[location]?.vCpuMax
 
-      // since our list might be out of date, we'll assume a location can handle at least 16 vCpus per machine.
-      if (!knownLocation && vCpuCount > 16) {
+        if (vCpuCount > vCpuMaxForLocation) {
+          errors.rejectValue("instanceType", "${context}.instanceType.invalid", "${location} does not support more than ${vCpuMaxForLocation} vCPUs.")
+        }
+      } else {
         errors.rejectValue("instanceType", "${context}.instanceType.invalid", "${location} not found.")
-      }
-
-      if (knownLocation && vCpuCount > vCpuMaxByLocation[location]) {
-        errors.rejectValue("instanceType", "${context}.instanceType.invalid", "${location} does not support more than ${vCpuMaxByLocation[location]} vCPUs.")
       }
     }
   }

@@ -38,7 +38,7 @@ class UpsertGoogleAutoscalingPolicyDescriptionValidator extends
     def helper = new StandardGceAttributeValidator("upsertGoogleScalingPolicyDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
-    helper.validateRegion(description.region)
+    helper.validateRegion(description.region, description.credentials)
     helper.validateServerGroupName(description.serverGroupName)
     helper.validateNotEmpty(description.autoscalingPolicy, "autoscalingPolicy")
     helper.validateAutoscalingPolicy(description.autoscalingPolicy)
