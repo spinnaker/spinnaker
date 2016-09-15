@@ -1,5 +1,8 @@
 'use strict';
 
+var HappyPack = require('happypack');
+var happyThreadPool = HappyPack.ThreadPool({ size: 6 });
+
 module.exports = function(config) {
   config.set({
     autoWatch: true,
@@ -39,7 +42,7 @@ module.exports = function(config) {
           },
           {
             test: /\.js$/,
-            loader: 'ng-annotate!angular!babel!envify!eslint',
+            loader: 'happypack/loader?id=jstest',
             exclude: /node_modules(?!\/clipboard)/,
           },
           {
@@ -67,6 +70,16 @@ module.exports = function(config) {
           }
         ]
       },
+      plugins: [
+        new HappyPack({
+          id: 'jstest',
+          loaders: [ 'ng-annotate!angular!babel!envify!eslint' ],
+          threadPool: happyThreadPool,
+          cacheContext: {
+            env: process.env,
+          },
+        }),
+      ],
       watch: true,
     },
 
