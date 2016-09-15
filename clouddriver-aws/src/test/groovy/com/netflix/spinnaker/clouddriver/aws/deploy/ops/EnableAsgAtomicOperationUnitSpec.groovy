@@ -37,7 +37,7 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
     asg.getLoadBalancerNames() >> ["lb1"]
-    asg.getInstances() >> [new Instance().withInstanceId("i1")]
+    asg.getInstances() >> [new Instance().withInstanceId("i1").withLifecycleState("InService")]
 
     when:
     op.operate([])
@@ -55,7 +55,10 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
     setup:
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
-    asg.getInstances() >> [new Instance().withInstanceId("i1")]
+    asg.getInstances() >> [
+      new Instance().withInstanceId("i1").withLifecycleState("InService"),
+      new Instance().withInstanceId("i2").withLifecycleState("Terminating") // should be skipped
+    ]
 
     when:
     op.operate([])

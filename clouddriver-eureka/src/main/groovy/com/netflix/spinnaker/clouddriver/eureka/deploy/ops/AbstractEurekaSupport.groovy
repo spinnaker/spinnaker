@@ -127,9 +127,13 @@ abstract class AbstractEurekaSupport {
         errors[instanceId] = ex
       }
       if (errors) {
-        task.updateStatus phaseName, "Failed marking instances '${discoveryStatus.value}' in discovery for instances ${errors.keySet()}"
-        task.fail()
-        AbstractEurekaSupport.log.info("Failed marking discovery $discoveryStatus.value for instances ${errors}")
+        if (verifyInstanceAndAsgExist(description.credentials, description.region, instanceId, description.asgName)) {
+          task.updateStatus phaseName, "Failed marking instances '${discoveryStatus.value}' in discovery for instances ${errors.keySet()}"
+          task.fail()
+          AbstractEurekaSupport.log.info("Failed marking discovery $discoveryStatus.value for instances ${errors}")
+        } else {
+          task.updateStatus phaseName, "Instance '${instanceId}' does not exist and will not be marked as '${discoveryStatus.value}'"
+        }
       }
 
       index++

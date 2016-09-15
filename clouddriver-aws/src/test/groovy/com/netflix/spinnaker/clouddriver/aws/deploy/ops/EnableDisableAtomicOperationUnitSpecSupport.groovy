@@ -80,13 +80,13 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
       }
     }
 
-    op.discoverySupport = new AwsEurekaSupport(
-      regionScopedProviderFactory: regionScopedProviderFactory
-    )
-    op.discoverySupport.metaClass.verifyInstanceAndAsgExist = {
-      AmazonEC2 amazonEC2, AsgService asgService, String instanceId, String asgName -> true
+    op.discoverySupport = new AwsEurekaSupport() {
+      @Override
+      boolean verifyInstanceAndAsgExist(Object credentials, String region, String instanceId, String asgName) {
+        true
+      }
     }
-
+    op.discoverySupport.regionScopedProviderFactory = regionScopedProviderFactory
     op.regionScopedProviderFactory = regionScopedProviderFactory
   }
 }
