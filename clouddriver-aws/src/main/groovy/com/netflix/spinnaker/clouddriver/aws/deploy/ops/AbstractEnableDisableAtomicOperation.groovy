@@ -103,7 +103,10 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         asgService.resumeProcesses(serverGroupName, AutoScalingProcessType.getDisableProcesses())
       }
 
-      def instanceIds = asg.instances*.instanceId
+      def instanceIds = asg.instances.findAll {
+        it.lifecycleState == "InService" || it.lifecycleState.startsWith("Pending")
+      }*.instanceId
+
       if (disable) {
         changeRegistrationOfInstancesWithLoadBalancer(asg.loadBalancerNames, instanceIds) { String loadBalancerName, List<Instance> instances ->
           try {

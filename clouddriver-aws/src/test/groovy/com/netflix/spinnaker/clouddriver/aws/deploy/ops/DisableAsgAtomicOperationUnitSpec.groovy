@@ -39,13 +39,13 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
     asg.getLoadBalancerNames() >> ["lb1"]
-    asg.getInstances() >> [new Instance().withInstanceId("i1")]
+    asg.getInstances() >> [new Instance().withInstanceId("i1").withLifecycleState("InService")]
 
     when:
     op.operate([])
 
     then:
-    2 * asgService.getAutoScalingGroup(_) >> asg
+    1 * asgService.getAutoScalingGroup(_) >> asg
     1 * asgService.suspendProcesses(_, AutoScalingProcessType.getDisableProcesses())
     1 * loadBalancing.deregisterInstancesFromLoadBalancer(_) >> { DeregisterInstancesFromLoadBalancerRequest req ->
       assert req.instances[0].instanceId == "i1"
@@ -58,7 +58,7 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
     asg.getLoadBalancerNames() >> ["lb1"]
-    asg.getInstances() >> [new Instance().withInstanceId("i1")]
+    asg.getInstances() >> [new Instance().withInstanceId("i1").withLifecycleState("InService")]
 
     when:
     op.operate([])
@@ -81,7 +81,7 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
   void 'should disable instances for asg in discovery'() {
     setup:
     def asg = Mock(AutoScalingGroup)
-    asg.getInstances() >> [new Instance().withInstanceId("i1")]
+    asg.getInstances() >> [new Instance().withInstanceId("i1").withLifecycleState("InService")]
 
     when:
     op.operate([])
