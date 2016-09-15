@@ -64,7 +64,7 @@ class ApplicationsController {
         return transform(apps)
       }
     } catch (e) {
-      log.error("Unable to fetch application (${name})", e)
+      log.error("Unable to fetch application (${name})")
       throw new ApplicationNotFoundException(name: name)
     }
   }
