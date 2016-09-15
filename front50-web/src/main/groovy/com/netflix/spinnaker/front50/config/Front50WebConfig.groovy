@@ -56,7 +56,7 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
 
   @Override
   void configurePathMatch(PathMatchConfigurer configurer) {
-    configurer.setUseRegisteredSuffixPatternMatch(false)
+    configurer.setUseSuffixPatternMatch(false)
   }
 
   @Bean
