@@ -79,16 +79,14 @@ class AzureSubnetDescription extends AzureResourceOpsDescription {
     if (vnet.subnets && appGateways) {
       appGateways.each { appGateway ->
         // Iterate through the gatewayIPConfigurations and extract the subnet id which will be compared with the subnets within the vnet
-        appGateways?.gatewayIPConfigurations?.each { gatewayConfigs ->
-          gatewayConfigs.each { gatewayConfig ->
-            def subnetDescription = vnet.subnets.find { it.resourceId == gatewayConfig?.subnet?.id }
-            if (subnetDescription) {
-              subnetDescription.connectedDevices += new SubnetConnectedDevices(
-                name: appGateway.name,
-                resourceId: gatewayConfig.id,
-                type: "applicationGateways",
-              )
-            }
+        appGateway?.gatewayIPConfigurations?.each { gatewayConfig ->
+          def subnetDescription = vnet.subnets.find { it.resourceId == gatewayConfig?.subnet?.id }
+          if (subnetDescription) {
+            subnetDescription.connectedDevices += new SubnetConnectedDevices(
+              name: appGateway.name,
+              resourceId: gatewayConfig?.id,
+              type: "applicationGateways",
+            )
           }
         }
       }

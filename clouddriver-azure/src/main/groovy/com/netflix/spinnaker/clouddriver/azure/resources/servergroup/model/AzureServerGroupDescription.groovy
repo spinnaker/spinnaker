@@ -61,7 +61,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
   List<AzureInboundPortConfig> inboundPortConfigs = []
   String vnet
   String subnet
-  Boolean hasNewSubnet
+  Boolean hasNewSubnet = false
   Boolean createNewSubnet = false
 
   static class AzureScaleSetSku {

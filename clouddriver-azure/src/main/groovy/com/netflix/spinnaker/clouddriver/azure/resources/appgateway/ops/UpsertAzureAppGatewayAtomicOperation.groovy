@@ -156,11 +156,11 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
             throw new RuntimeException("Could not create subnet $subnetName in virtual network $virtualNetworkName")
           }
 
+          description.vnet = virtualNetworkName
+          description.subnet = subnetName
+
           description.hasNewSubnet = true
         }
-
-        description.vnet = virtualNetworkName
-        description.subnet = AzureUtilities.getNameFromResourceId(subnetId)
 
         task.updateStatus(BASE_PHASE, "Create new application gateway ${description.loadBalancerName} in ${description.region}...")
         DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(description.credentials,

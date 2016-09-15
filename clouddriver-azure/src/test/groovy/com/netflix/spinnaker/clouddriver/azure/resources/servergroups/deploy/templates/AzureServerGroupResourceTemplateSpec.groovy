@@ -212,7 +212,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "cluster" : "azureMASM-st1-d11",
       "createdTime" : "1234567890",
       "loadBalancerName" : "lb-azureMASM-st1-d11",
-      "hasNewSubnet" : null,
+      "hasNewSubnet" : "false",
       "imageIsCustom" : "false",
       "storageAccountNames" : "[concat(uniqueString(concat(resourceGroup().id, subscription().id, 'azuremasmst1d11', '0')), 'sa')]"
     },
@@ -369,7 +369,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "cluster" : "azureMASM-st1-d11",
       "createdTime" : "1234567890",
       "loadBalancerName" : "lb-azureMASM-st1-d11",
-      "hasNewSubnet" : null,
+      "hasNewSubnet" : "false",
       "imageIsCustom" : "true"
     },
     "dependsOn" : [ "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]" ],

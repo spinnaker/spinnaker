@@ -134,6 +134,9 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
           throw new RuntimeException("Could not create subnet $subnetName in virtual network $virtualNetworkName")
         }
 
+        description.vnet = virtualNetworkName
+        description.subnet = subnetName
+
         description.hasNewSubnet = true
       }
 
