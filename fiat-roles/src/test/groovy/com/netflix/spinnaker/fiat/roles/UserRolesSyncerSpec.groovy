@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.fiat.roles
 
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig
-import com.netflix.spinnaker.fiat.model.ServiceAccount
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
+import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.fiat.permissions.InMemoryPermissionsRepository
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver
 import com.netflix.spinnaker.fiat.providers.ServiceAccountProvider

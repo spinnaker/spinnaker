@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.fiat.model.resources;
 
-import com.netflix.spinnaker.fiat.model.ServiceAccount;
 import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 

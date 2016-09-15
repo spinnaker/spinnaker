@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.fiat.providers;
 
-import com.netflix.spinnaker.fiat.model.ServiceAccount;
+import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;

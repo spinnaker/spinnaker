@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.fiat.providers.internal;
 
-import com.netflix.spinnaker.fiat.model.ServiceAccount;
 import com.netflix.spinnaker.fiat.model.resources.Application;
+import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import retrofit.http.GET;
 
 import java.util.List;

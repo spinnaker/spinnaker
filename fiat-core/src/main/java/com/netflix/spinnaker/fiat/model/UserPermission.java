@@ -17,14 +17,9 @@
 package com.netflix.spinnaker.fiat.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.collect.ImmutableSet;
-import com.netflix.spinnaker.fiat.model.resources.Account;
-import com.netflix.spinnaker.fiat.model.resources.Application;
-import com.netflix.spinnaker.fiat.model.resources.Resource;
-import com.netflix.spinnaker.fiat.model.resources.Viewable;
+import com.netflix.spinnaker.fiat.model.resources.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.val;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -32,7 +27,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Data
 public class UserPermission implements Viewable {
