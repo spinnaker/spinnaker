@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.fiat.config.RetrofitConfig;
 import com.netflix.spinnaker.fiat.shared.FiatAuthenticationFilter;
 import com.netflix.spinnaker.fiat.shared.FiatService;
 import lombok.Setter;
@@ -29,7 +28,6 @@ import org.springframework.boot.context.embedded.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.Ordered;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -43,13 +41,12 @@ import retrofit.converter.JacksonConverter;
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @Configuration
-@Import(RetrofitConfig.class)
 @ComponentScan("com.netflix.spinnaker.fiat.shared")
 public class FiatAuthenticationConfig {
 
-  @Autowired
+  @Autowired(required = false)
   @Setter
-  private RestAdapter.LogLevel retrofitLogLevel;
+  private RestAdapter.LogLevel retrofitLogLevel = RestAdapter.LogLevel.NONE;
 
   @Autowired
   @Setter
