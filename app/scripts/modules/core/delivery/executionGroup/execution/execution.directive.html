@@ -79,10 +79,10 @@
   </div>
 
   <div ng-if="vm.showDetails()" class="execution-graph">
-    <pipeline-graph ng-if="::vm.execution.parallel"
-                    execution="::vm.execution"
-                    on-node-click="::vm.toggleDetails"
-                    view-state="::vm.viewState">
+    <pipeline-graph ng-if="vm.execution.parallel"
+                    execution="vm.execution"
+                    on-node-click="vm.toggleDetails"
+                    view-state="vm.viewState">
 
     </pipeline-graph>
   </div>

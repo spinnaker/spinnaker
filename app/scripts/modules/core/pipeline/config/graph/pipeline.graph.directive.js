@@ -346,6 +346,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
 
         scope.$watch('pipeline', updateGraph, true);
         scope.$watch('viewState', updateGraph, true);
+        scope.$watch('execution', updateGraph, true);
         $($window).bind('resize.pipelineGraph-' + graphId, handleWindowResize);
 
         scope.$on('$destroy', function() {
