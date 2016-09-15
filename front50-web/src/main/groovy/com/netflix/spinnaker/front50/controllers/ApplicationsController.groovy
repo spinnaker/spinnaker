@@ -34,6 +34,7 @@ import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.AccessDeniedException
+import org.springframework.security.access.prepost.PostAuthorize
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.Errors
@@ -119,7 +120,9 @@ public class ApplicationsController {
     response.setStatus(HttpStatus.ACCEPTED.value())
   }
 
-  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
+  // This method uses @PostAuthorize in order to throw 404s if the application doesn't exist,
+  // vs. 403s if the app exists, but the user doesn't have access to it.
+  @PostAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @ApiOperation(value = "", notes = "Fetch a single application by name within a specific `account`")
   @RequestMapping(method = RequestMethod.GET, value = "/name/{application:.+}")
   Application getByName(@PathVariable final String application) {
