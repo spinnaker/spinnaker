@@ -29,30 +29,26 @@ class DeleteApplicationTask extends AbstractFront50Task {
 
     boolean deletePermission
 
-    front50Service.credentials.findAll { it.global }.collect {
-      it.name
-    }.each { String globalAccountName ->
-      try {
-        def existingGlobalApplication = front50Service.get(globalAccountName, application.name)
-        if (existingGlobalApplication) {
-          outputs.previousState = existingGlobalApplication
+    try {
+      def existingApplication = front50Service.get(application.name)
+      if (existingApplication) {
+        outputs.previousState = existingApplication
 
-          existingGlobalApplication.updateAccounts(existingGlobalApplication.listAccounts() - account)
-          if (existingGlobalApplication.listAccounts()) {
-            // application still exists in at least one other account, do not delete.
-            front50Service.update(globalAccountName, existingGlobalApplication)
-          } else {
-            // application is not associated with any accounts, delete.
-            front50Service.delete(globalAccountName, application.name)
-            deletePermission = true
-          }
+        existingApplication.updateAccounts(existingApplication.listAccounts() - account)
+        if (existingApplication.listAccounts()) {
+          // application still exists in at least one other account, do not delete.
+          front50Service.update(application.name, existingApplication)
+        } else {
+          // application is not associated with any accounts, delete.
+          front50Service.delete(application.name)
+          deletePermission = true
         }
-      } catch (RetrofitError e) {
-        if (e.response.status == 404) {
-          return
-        }
-        throw e
       }
+    } catch (RetrofitError e) {
+      if (e.response.status == 404) {
+        return
+      }
+      throw e
     }
 
     if (deletePermission) {

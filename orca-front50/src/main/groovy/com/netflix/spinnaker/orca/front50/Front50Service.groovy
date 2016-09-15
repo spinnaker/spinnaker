@@ -28,20 +28,20 @@ interface Front50Service {
   @GET("/credentials")
   List<Front50Credential> getCredentials()
 
-  @GET("/{account}/applications/name/{name}")
-  Application get(@Path("account") String account, @Path("name") String name)
+  @GET("/v2/applications/{applicationName}")
+  Application get(@Path("applicationName") String applicationName)
 
-  @GET("/default/applications")
+  @GET("/v2/applications")
   Collection<Application> getAllApplications()
 
-  @POST("/{account}/applications/name/{name}")
-  Response create(@Path("account") String account, @Path("name") String name, @Body Application application)
+  @POST("/v2/applications")
+  Response create(@Body Application application)
 
-  @DELETE("/{account}/applications/name/{name}")
-  Response delete(@Path("account") String account, @Path("name") String name)
+  @DELETE("/v2/applications/{applicationName}")
+  Response delete(@Path("applicationName") String applicationName)
 
-  @PUT("/{account}/applications")
-  Response update(@Path("account") String account, @Body Application application)
+  @PATCH("/v2/applications/{applicationName}")
+  Response update(@Path("applicationName") String applicationName, @Body Application application)
 
   @DELETE("/permissions/applications/{name}")
   Response deletePermission(@Path("name") String name)

@@ -190,7 +190,7 @@ class GetCommitsTask implements DiffTask {
   Map getRepoInfo(String account, String application) {
     def globalAccount = front50Service.credentials.find { it.global }
     def applicationAccount = globalAccount?.name ?: account
-    Application app = front50Service.get(applicationAccount, application)
+    Application app = front50Service.get(application)
     return [repoType : app?.details().repoType, projectKey : app?.details().repoProjectKey, repositorySlug : app?.details().repoSlug]
   }
 }

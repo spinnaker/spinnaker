@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks;
 
-import com.google.common.collect.ImmutableMap;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.orca.DefaultTaskResult;
 import com.netflix.spinnaker.orca.ExecutionStatus;
@@ -36,7 +35,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
@@ -84,7 +82,7 @@ public class DetermineHealthProvidersTask implements RetryableTask, CloudProvide
         applicationName = Names.parseName((String) stage.getContext().get("cluster")).getApp();
       }
 
-      Application application = front50Service.get("default", applicationName);
+      Application application = front50Service.get(applicationName);
       if (application.platformHealthOnly == Boolean.TRUE && application.platformHealthOnlyShowOverride != Boolean.TRUE) {
         // if `platformHealthOnlyShowOverride` is true, the expectation is that `interestingHealthProviderNames` will
         // be included in the request if it's desired ... and that it should NOT be automatically added.

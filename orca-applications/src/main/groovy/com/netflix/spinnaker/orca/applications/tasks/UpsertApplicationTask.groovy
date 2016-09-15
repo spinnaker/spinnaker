@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.applications.tasks
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.front50.tasks.AbstractFront50Task
 import groovy.transform.CompileStatic
-import groovy.transform.TypeCheckingMode
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
@@ -36,22 +35,21 @@ class UpsertApplicationTask extends AbstractFront50Task {
     /*
      * Upsert application to all global registries.
      */
-    front50Service.credentials.findAll { it.global }.each {
-      def existingGlobalApplication = fetchApplication(it.name, application.name)
-      if (existingGlobalApplication) {
-        outputs.previousState = existingGlobalApplication
 
-        application.updateAccounts((existingGlobalApplication.listAccounts() << account) as Set)
+    def existingApplication = fetchApplication(application.name)
+    if (existingApplication) {
+      outputs.previousState = existingApplication
 
-        log.info("Updating application (name: ${application.name}, account: ${it.name})")
-        front50Service.update(it.name, application)
-      } else {
-        application.updateAccounts((application.listAccounts() << account) as Set)
+      application.updateAccounts((existingApplication.listAccounts() << account) as Set)
 
-        log.info("Creating application (name: ${application.name}, account: ${it.name})")
-        front50Service.create(it.name, application.name, application)
-      }
-    }.find { it }
+      log.info("Updating application (name: ${application.name})")
+      front50Service.update(application.name, application)
+    } else {
+      application.updateAccounts((application.listAccounts() << account) as Set)
+
+      log.info("Creating application (name: ${application.name})")
+      front50Service.create(application)
+    }
 
     try {
       front50Service.updatePermission(application.name, application.permission)

@@ -44,7 +44,7 @@ class DetermineHealthProvidersTaskSpec extends Specification {
     def stage = new PipelineStage(new Pipeline(), "", stageContext)
 
     if (application) {
-      1 * front50Service.get("default", application.name) >> application
+      1 * front50Service.get(application.name) >> application
     }
 
     when:
