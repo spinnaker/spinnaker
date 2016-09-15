@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.fiat.permissions
 
-import com.netflix.spinnaker.fiat.model.ServiceAccount
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
+import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.fiat.providers.ApplicationProvider
 import com.netflix.spinnaker.fiat.providers.DefaultAccountProvider
 import com.netflix.spinnaker.fiat.providers.DefaultServiceAccountProvider

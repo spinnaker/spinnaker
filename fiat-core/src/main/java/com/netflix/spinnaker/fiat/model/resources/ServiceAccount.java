@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.fiat.model;
+package com.netflix.spinnaker.fiat.model.resources;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.netflix.spinnaker.fiat.model.resources.Resource;
-import com.netflix.spinnaker.fiat.model.resources.ResourceType;
-import com.netflix.spinnaker.fiat.model.resources.Viewable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;

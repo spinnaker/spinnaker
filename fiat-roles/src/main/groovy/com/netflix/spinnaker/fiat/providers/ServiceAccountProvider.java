@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.fiat.providers;
 
-import com.netflix.spinnaker.fiat.model.ServiceAccount;
+import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 
 public interface ServiceAccountProvider extends ResourceProvider<ServiceAccount> {
 }
