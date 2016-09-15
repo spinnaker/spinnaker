@@ -38,6 +38,8 @@ module.exports = angular.module('spinnaker.azure.serverGroup.transformer', [
         freeFormDetails: command.freeFormDetails,
         account: command.credentials,
         selectedProvider: 'azure',
+        vnet: command.vnet,
+        subnet: command.subnet,
         capacity: {
           useSourceCapacity: false,
           min: command.sku.capacity,
