@@ -65,14 +65,22 @@ parameters:
     type: number
     description: Threshold that causes the scaledown action to occur, if held for scaledown_period seconds
     default: 15
-  user_data:
+  source_user_data_type:
     type: string
-    description: Raw base64-encoded string that will execute upon server boot, if cloud-init is installed
+    description: The source user data type (Swift, URL, Text), retained for auditing purposes
+    default: ""
+  source_user_data:
+    type: string
+    description: The unencoded source user data, retained for auditing purposes
     default: ""
   tags:
     type: json
     description: Map of key-value pairs to store in instance metadata
     default: {}
+  user_data:
+    type: string
+    description: Raw base64-encoded string that will execute upon server boot, if cloud-init is installed
+    default: ""
 resources:
   asg:
     type: OS::Heat::AutoScalingGroup

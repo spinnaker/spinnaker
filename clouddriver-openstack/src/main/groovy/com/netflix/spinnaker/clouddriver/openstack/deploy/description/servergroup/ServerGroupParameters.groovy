@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup
 
 import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.base.Splitter
 import groovy.transform.AutoClone
@@ -47,32 +46,36 @@ class ServerGroupParameters {
   Scaler scaleup
   Scaler scaledown
   String rawUserData
+  String sourceUserDataType
+  String sourceUserData
   Map<String, String> tags
 
   static final ObjectMapper objectMapper = new ObjectMapper()
 
   Map<String, String> toParamsMap() {
     [
-      flavor              : instanceType,
-      image               : image,
-      max_size            : maxSize ? maxSize.toString() : null,
-      min_size            : minSize ? minSize.toString() : null,
-      desired_size        : desiredSize ? desiredSize.toString() : null,
-      network_id          : networkId,
-      subnet_id           : subnetId,
-      load_balancers      : loadBalancers ? loadBalancers.join(',') : null,
-      security_groups     : securityGroups ? securityGroups.join(',') : null,
-      autoscaling_type    : autoscalingType ? autoscalingType.toString() : null,
-      scaleup_cooldown    : scaleup?.cooldown ? scaleup.cooldown.toString() : null,
-      scaleup_adjustment  : scaleup?.adjustment ? scaleup.adjustment.toString() : null,
-      scaleup_period      : scaleup?.period ? scaleup.period.toString() : null,
-      scaleup_threshold   : scaleup?.threshold ? scaleup.threshold.toString() : null,
-      scaledown_cooldown  : scaledown?.cooldown ? scaledown.cooldown.toString() : null,
-      scaledown_adjustment: scaledown?.adjustment ? scaledown.adjustment.toString() : null,
-      scaledown_period    : scaledown?.period ? scaledown.period.toString() : null,
-      scaledown_threshold : scaledown?.threshold ? scaledown.threshold.toString() : null,
-      tags                : objectMapper.writeValueAsString(tags ?: [:]) ?: null,
-      user_data           : rawUserData ?: null
+      flavor               : instanceType,
+      image                : image,
+      max_size             : maxSize?.toString() ?: null,
+      min_size             : minSize?.toString() ?: null,
+      desired_size         : desiredSize?.toString() ?: null,
+      network_id           : networkId,
+      subnet_id            : subnetId,
+      load_balancers       : loadBalancers?.join(',') ?: null,
+      security_groups      : securityGroups?.join(',') ?: null,
+      autoscaling_type     : autoscalingType?.toString() ?: null,
+      scaleup_cooldown     : scaleup?.cooldown?.toString() ?: null,
+      scaleup_adjustment   : scaleup?.adjustment?.toString() ?: null,
+      scaleup_period       : scaleup?.period?.toString() ?: null,
+      scaleup_threshold    : scaleup?.threshold?.toString() ?: null,
+      scaledown_cooldown   : scaledown?.cooldown?.toString() ?: null,
+      scaledown_adjustment : scaledown?.adjustment?.toString() ?: null,
+      scaledown_period     : scaledown?.period?.toString() ?: null,
+      scaledown_threshold  : scaledown?.threshold?.toString() ?: null,
+      source_user_data_type: sourceUserDataType ?: null,
+      source_user_data     : sourceUserData ?: null,
+      tags                 : objectMapper.writeValueAsString(tags ?: [:]) ?: null,
+      user_data            : rawUserData ?: null
     ]
   }
 
@@ -101,7 +104,9 @@ class ServerGroupParameters {
         threshold: params.get('scaledown_threshold')?.toInteger()
       ),
       rawUserData: params.get('user_data'),
-      tags: unescapePythonUnicodeJsonMap(params.get('tags') ?: null)
+      tags: unescapePythonUnicodeJsonMap(params.get('tags') ?: null),
+      sourceUserDataType: params.get('source_user_data_type'),
+      sourceUserData: params.get('source_user_data')
     )
   }
 

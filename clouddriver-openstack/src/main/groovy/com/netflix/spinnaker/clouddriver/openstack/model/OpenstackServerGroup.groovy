@@ -45,6 +45,7 @@ class OpenstackServerGroup implements ServerGroup, Serializable {
   Boolean disabled
   String type = OpenstackCloudProvider.ID
   String subnetId
+  Map<String, Object> advancedConfig = [:]
 
   @Override
   Boolean isDisabled() { // Because groovy isn't smart enough to generate this method :-(

@@ -92,7 +92,8 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
           "threshold": 15
         }
       },
-      "userData": "http://foobar.com"
+      "userDataType": "URL",
+      "userData": "http://foobar.com",
       "region": "REGION1",
       "disableRollback": false,
       "timeoutMins": 5,
@@ -150,6 +151,7 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
 
       String userData
       if (description.userData) {
+        //TODO this will change to resolve based on userDataType
         if (description.userData.startsWith("http")) {
           task.updateStatus BASE_PHASE, "Resolving user data from url $description.userData..."
           userData = description.userData.toURL()?.text
@@ -164,6 +166,8 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
       provider.deploy(description.region, stackName, template, subtemplates, description.serverGroupParameters.identity {
         networkId = subnet.networkId
         rawUserData = userData
+        sourceUserDataType = description.userDataType
+        sourceUserData = description.userData
         it
       }, description.disableRollback, description.timeoutMins, description.serverGroupParameters.loadBalancers)
       task.updateStatus BASE_PHASE, "Finished creating heat stack $stackName."

@@ -280,6 +280,7 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     Map<String, Object> openstackImage = Mock(Map)
     Map<String, Object> scalingConfig = Mock(Map)
     Map<String, Object> buildInfo = Mock(Map)
+    Map<String, Object> advancedConfig = Mock(Map)
 
     and:
     OpenstackServerGroup expected = OpenstackServerGroup.builder()
@@ -289,6 +290,7 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
       .createdTime(createdTime.toInstant().toEpochMilli())
       .scalingConfig(scalingConfig)
       .launchConfig(launchConfig)
+      .advancedConfig(advancedConfig)
       .loadBalancers(loadBalancerIds)
       .image(openstackImage)
       .buildInfo(buildInfo)
@@ -306,6 +308,7 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     1 * cachingAgent.buildImage(providerCache, launchConfig.image) >> openstackImage
     1 * cachingAgent.buildScalingConfig(stack) >> scalingConfig
     1 * cachingAgent.buildInfo(openstackImage.properties) >> buildInfo
+    1 * cachingAgent.buildAdvancedConfig(stack.parameters) >> advancedConfig
 
     and:
     expected == result
@@ -411,6 +414,20 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     'appversion only'                 | ['appversion': 'helloworld-1.4.0-1140443.h420/build-huxtable/420']                                          | [packageName: 'helloworld', version: '1.4.0', commit: '1140443', jenkins: [name: 'build-huxtable', number: '420']]
     'appversion and host'             | [appversion: 'helloworld-1.4.0-1140443.h420/build-huxtable/420', build_host: 'host']                        | [packageName: 'helloworld', version: '1.4.0', commit: '1140443', jenkins: [name: 'build-huxtable', number: '420', host: 'host']]
     'appversion, host, and buildinfo' | [appversion: 'helloworld-1.4.0-1140443.h420/build-huxtable/420', build_host: 'host', build_info_url: 'url'] | [packageName: 'helloworld', version: '1.4.0', commit: '1140443', buildInfoUrl: 'url', jenkins: [name: 'build-huxtable', number: '420', host: 'host']]
+  }
+
+  void "test build advanced config - #testCase"() {
+    when:
+    Map<String, Object> result = cachingAgent.buildAdvancedConfig(parameters)
+
+    then:
+    result == expected
+    noExceptionThrown()
+
+    where:
+    testCase | parameters                                                       | expected
+    'empty'  | [:]                                                              | [:]
+    'normal' | [source_user_data_type: 'Text', source_user_data: 'echo foobar'] | [userDataType: 'Text', userData: 'echo foobar']
   }
 
   void "test handle on demand no result - #testCase"() {

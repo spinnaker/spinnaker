@@ -200,6 +200,7 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
   OpenstackServerGroup buildServerGroup(ProviderCache providerCache, Stack stack, Set<String> loadbalancerIds) {
     Map<String, Object> launchConfig = buildLaunchConfig(stack.parameters)
     Map<String, Object> openstackImage = buildImage(providerCache, (String) launchConfig?.image)
+    Map<String, Object> advancedConfig = buildAdvancedConfig(stack.parameters)
 
     //TODO this check will change once we have a config that indicates the openstack version, e.g. kilo, liberty, mitaka
     //kilo stack create times have a 'Z' on the end. It was removed in liberty and mitaka.
@@ -217,6 +218,7 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
       .buildInfo(buildInfo((Map<String, String>) openstackImage?.properties))
       .disabled(loadbalancerIds.isEmpty()) //TODO - Determine if we need to check to see if the stack is suspended
       .subnetId(stack.parameters.get('subnet_id'))
+      .advancedConfig(advancedConfig)
       .build()
   }
 
@@ -305,6 +307,22 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
     }
 
     result
+  }
+
+  /**
+   * Builds advanced config from the advanced server group inputs.
+   * @param parameters
+   * @return
+   */
+  Map<String, Object> buildAdvancedConfig(Map<String, String> parameters) {
+    Map<String, Object> params = [:]
+    if (parameters.get('source_user_data_type')) {
+      params << [userDataType:parameters.get('source_user_data_type')]
+    }
+    if (parameters.get('source_user_data')) {
+      params << [userData:parameters.get('source_user_data')]
+    }
+    params
   }
 
   /**

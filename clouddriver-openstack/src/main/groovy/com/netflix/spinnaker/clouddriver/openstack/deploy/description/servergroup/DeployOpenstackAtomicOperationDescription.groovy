@@ -30,6 +30,7 @@ class DeployOpenstackAtomicOperationDescription extends OpenstackAtomicOperation
   ServerGroupParameters serverGroupParameters
   Boolean disableRollback = false
   Integer timeoutMins = 5
+  String userDataType
   String userData
 }
 

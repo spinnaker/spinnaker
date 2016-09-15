@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.client
 
-import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ServerGroupParameters
+import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import org.openstack4j.api.Builders
 import org.openstack4j.api.exceptions.ServerResponseException
 import org.openstack4j.api.heat.HeatService
@@ -62,29 +62,33 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
       scaleup: new ServerGroupParameters.Scaler(cooldown: 60, period: 60, adjustment: 1, threshold: 50),
       scaledown: new ServerGroupParameters.Scaler(cooldown: 60, period: 600, adjustment: -1, threshold: 15),
       rawUserData: 'echo foobar',
-      tags: ['foo':'bar']
+      tags: ['foo':'bar'],
+      sourceUserDataType: 'Text',
+      sourceUserData: 'echo foobar'
     )
     Map<String, String> params = [
-      flavor              : parameters.instanceType,
-      image               : parameters.image,
-      max_size            : "$parameters.maxSize".toString(),
-      min_size            : "$parameters.minSize".toString(),
-      desired_size        : "$parameters.desiredSize".toString(),
-      network_id          : parameters.networkId,
-      subnet_id           : "$parameters.subnetId".toString(),
-      load_balancers      : parameters.loadBalancers.join(','),
-      security_groups     : parameters.securityGroups.join(','),
-      autoscaling_type    : 'cpu_util',
-      scaleup_cooldown    : 60,
-      scaleup_adjustment  : 1,
-      scaleup_period      : 60,
-      scaleup_threshold   : 50,
-      scaledown_cooldown  : 60,
-      scaledown_adjustment: -1,
-      scaledown_period    : 600,
-      scaledown_threshold : 15,
-      tags                : '{"foo":"bar"}',
-      user_data           : parameters.rawUserData
+      flavor               : parameters.instanceType,
+      image                : parameters.image,
+      max_size             : "$parameters.maxSize".toString(),
+      min_size             : "$parameters.minSize".toString(),
+      desired_size         : "$parameters.desiredSize".toString(),
+      network_id           : parameters.networkId,
+      subnet_id            : "$parameters.subnetId".toString(),
+      load_balancers       : parameters.loadBalancers.join(','),
+      security_groups      : parameters.securityGroups.join(','),
+      autoscaling_type     : 'cpu_util',
+      scaleup_cooldown     : 60,
+      scaleup_adjustment   : 1,
+      scaleup_period       : 60,
+      scaleup_threshold    : 50,
+      scaledown_cooldown   : 60,
+      scaledown_adjustment : -1,
+      scaledown_period     : 600,
+      scaledown_threshold  : 15,
+      source_user_data_type: 'Text',
+      source_user_data     : 'echo foobar',
+      tags                 : '{"foo":"bar"}',
+      user_data            : parameters.rawUserData
     ]
     List<String> tags = loadBalancerIds.collect { "lb-${it}" }
     StackCreate stackCreate = Builders.stack().disableRollback(disableRollback).files(subtmpl).name(stackName).parameters(params).template(tmpl).timeoutMins(timeoutMins).tags(tags.join(',')).build()
@@ -336,28 +340,32 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
     List<String> securityGroups = ['sg1']
     ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image,
       maxSize: maxSize, minSize: minSize, desiredSize: desiredSize, networkId: networkId, subnetId: subnetId,
-      loadBalancers: loadBalancerIds, securityGroups: securityGroups, rawUserData: 'echo foobar', tags: ['foo':'bar'])
+      loadBalancers: loadBalancerIds, securityGroups: securityGroups, rawUserData: 'echo foobar', tags: ['foo':'bar'],
+      sourceUserDataType: 'Text',
+      sourceUserData: 'echo foobar')
     Map<String, String> params = [
-      flavor              : parameters.instanceType,
-      image               : parameters.image,
-      max_size            : "$parameters.maxSize".toString(),
-      min_size            : "$parameters.minSize".toString(),
-      desired_size        : "$parameters.desiredSize".toString(),
-      network_id          : parameters.networkId,
-      subnet_id           : parameters.subnetId,
-      load_balancers      : parameters.loadBalancers.join(','),
-      security_groups     : parameters.securityGroups.join(','),
-      autoscaling_type    : null,
-      scaleup_cooldown    : null,
-      scaleup_adjustment  : null,
-      scaleup_period      : null,
-      scaleup_threshold   : null,
-      scaledown_cooldown  : null,
-      scaledown_adjustment: null,
-      scaledown_period    : null,
-      scaledown_threshold : null,
-      tags                : '{"foo":"bar"}',
-      user_data           : parameters.rawUserData
+      flavor               : parameters.instanceType,
+      image                : parameters.image,
+      max_size             : "$parameters.maxSize".toString(),
+      min_size             : "$parameters.minSize".toString(),
+      desired_size         : "$parameters.desiredSize".toString(),
+      network_id           : parameters.networkId,
+      subnet_id            : parameters.subnetId,
+      load_balancers       : parameters.loadBalancers.join(','),
+      security_groups      : parameters.securityGroups.join(','),
+      autoscaling_type     : null,
+      scaleup_cooldown     : null,
+      scaleup_adjustment   : null,
+      scaleup_period       : null,
+      scaleup_threshold    : null,
+      scaledown_cooldown   : null,
+      scaledown_adjustment : null,
+      scaledown_period     : null,
+      scaledown_threshold  : null,
+      source_user_data_type: 'Text',
+      source_user_data     : 'echo foobar',
+      tags                 : '{"foo":"bar"}',
+      user_data            : parameters.rawUserData
     ]
     String template = "foo: bar"
     Map<String, String> subtmpl = [sub: "foo: bar"]

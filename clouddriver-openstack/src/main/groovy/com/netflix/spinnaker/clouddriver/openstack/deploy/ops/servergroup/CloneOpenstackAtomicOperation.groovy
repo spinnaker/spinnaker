@@ -97,7 +97,8 @@ class CloneOpenstackAtomicOperation implements AtomicOperation<DeploymentResult>
       scaledown = description.serverGroupParameters?.scaledown ?: ancestorParams.scaledown
       tags = description.serverGroupParameters?.tags ?: ancestorParams.tags
     }
-    deployDescription.userData = description.userData ?: new String(Base64.decoder.decode(ancestorParams.rawUserData.toString())) //groovy
+    deployDescription.userDataType = description.userDataType ?: ancestorParams.sourceUserDataType
+    deployDescription.userData = description.userData ?: ancestorParams.sourceUserData
     deployDescription.disableRollback = description.disableRollback ?: false
     deployDescription.timeoutMins = description.timeoutMins ?: ancestorStack.timeoutMins
     deployDescription.region = description.region
