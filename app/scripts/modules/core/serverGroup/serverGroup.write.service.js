@@ -118,7 +118,8 @@ module.exports = angular
         credentials: serverGroup.account,
         region: serverGroup.region,
         amiName: serverGroup.launchConfig.imageId,
-        type: 'updateSecurityGroupsForServerGroup'
+        type: 'updateSecurityGroupsForServerGroup',
+        cloudProvider: serverGroup.type || serverGroup.provider
       };
       return taskExecutor.executeTask({
         job: [job],

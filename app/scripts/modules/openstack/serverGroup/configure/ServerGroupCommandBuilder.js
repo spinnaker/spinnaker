@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.service', [
   require('../../image/image.reader.js'),
 ])
-  .factory('openstackServerGroupCommandBuilder', function ($q, openstackImageReader, subnetReader, settings, namingService) {
+  .factory('openstackServerGroupCommandBuilder', function ($q, openstackImageReader, subnetReader, loadBalancerReader, settings, namingService) {
 
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
@@ -51,15 +51,21 @@ module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.s
 
       var asyncLoader = $q.all({
         subnets: subnetsLoader,
+        loadBalancers: loadBalancerReader.listLoadBalancers('openstack')
       });
 
       return asyncLoader.then(function(asyncData) {
+        var loadBalancers = {};
+        _.forEach(asyncData.loadBalancers, lb => {
+            loadBalancers[lb.name] = lb.id;
+        });
+
         var command = {
           application: application.name,
           stack: serverGroupName.stack,
           freeFormDetails: serverGroupName.freeFormDetails,
           credentials: serverGroup.account,
-          loadBalancers: serverGroup.launchConfig.loadBalancers,
+          loadBalancers: serverGroup.loadBalancers.map((lbName) => loadBalancers[lbName]),
           region: serverGroup.region,
           minSize: parseInt(serverGroup.scalingConfig.minSize),
           maxSize: parseInt(serverGroup.scalingConfig.maxSize),

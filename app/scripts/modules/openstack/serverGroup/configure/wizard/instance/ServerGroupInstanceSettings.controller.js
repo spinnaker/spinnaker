@@ -10,12 +10,10 @@ module.exports = angular.module('spinnaker.serverGroup.configure.openstack.insta
   require('../../../../../core/utils/rx.js'),
   require('../../../../../core/image/image.reader.js'),
   require('../../../../../core/naming/naming.service.js'),
-  require('../../../../../core/serverGroup/configure/common/v2instanceArchetypeSelector.directive.js'),
-  require('../../../../../core/serverGroup/configure/common/v2InstanceTypeSelector.directive.js'),
   require('../../../../instance/osInstanceTypeSelectField.directive.js'),
 ])
   .controller('openstackServerGroupInstanceSettingsCtrl', function($scope, $controller, $uibModalStack, $state,
-                                                          v2modalWizardService, rx, imageReader, namingService, instanceTypeService) {
+                                                          v2modalWizardService, rx, imageReader) {
 
     function searchImages(q) {
       $scope.command.backingData.filtered.images = [
@@ -27,7 +25,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.openstack.insta
         imageReader.findImages({
           provider: $scope.command.selectedProvider,
           q: q,
-          region: $scope.command.region
+          region: $scope.command.region,
+          account: $scope.command.credentials
         })
       );
     }
@@ -45,17 +44,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.openstack.insta
     this.searchImages = function(q) {
       imageSearchResultsStream.onNext(q);
     };
-
-    function updateImageTypeOptions() {
-      instanceTypeService.getAllTypesByRegion('openstack').then(function(result) {
-        $scope.instanceTypes = _.map(result[$scope.command.region] || [], function(t) { return t.name; });
-        if( $scope.command.instanceType === undefined && $scope.instanceTypes.length ) {
-          $scope.command.instanceType = $scope.instanceTypes[0];
-        }
-      });
-    }
-
-    $scope.$watch('command.region', updateImageTypeOptions);
 
     $scope.$watch('instanceSettings.$valid', function(newVal) {
       if (newVal) {

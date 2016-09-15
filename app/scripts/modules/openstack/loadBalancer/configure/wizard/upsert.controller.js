@@ -23,6 +23,7 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
                                                                 _, loadBalancerWriter, taskMonitorService) {
     var ctrl = this;
     $scope.isNew = isNew;
+    $scope.application = application;
 
     $scope.application = application;
 

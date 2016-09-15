@@ -12,6 +12,7 @@ module.exports = angular.module('spinnaker.openstack.instance.instanceTypeSelect
       restrict: 'E',
       templateUrl: require('../common/cacheBackedSelectField.template.html'),
       scope: {
+        account: '<',
         region: '<',
         readOnly: '=',
         labelColumnSize: '@',
@@ -29,12 +30,13 @@ module.exports = angular.module('spinnaker.openstack.instance.instanceTypeSelect
           label: 'Instance Type',
           labelColumnSize: 3,
           valueColumnSize: 7,
-          options: [],
+          options: [{label: scope.model, value: scope.model}],
           backingCache: 'instanceTypes',
 
           updateOptions: function() {
             return instanceTypeService.getAllTypesByRegion('openstack').then(function(result) {
               scope.options = _(result[scope.region] || [])
+                  .filter(t => t.account === scope.account)
                   .map(function(t) { return {label: t.name, value: t.name}; })
                   .sortBy(function(o) { return o.label; })
                   .valueOf();
@@ -50,6 +52,7 @@ module.exports = angular.module('spinnaker.openstack.instance.instanceTypeSelect
         });
 
         scope.$watch('region', function() { scope.$broadcast('updateOptions'); });
+        scope.$watch('account', function() { scope.$broadcast('updateOptions'); });
       }
     };
 });

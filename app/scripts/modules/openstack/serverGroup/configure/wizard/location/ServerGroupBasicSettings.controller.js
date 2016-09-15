@@ -21,9 +21,19 @@ module.exports = angular.module('spinnaker.serverGroup.configure.openstack.basic
       $state: $state,
     }));
 
+    $scope.subnetFilter = {
+      account: $scope.command.account,
+      region: $scope.command.region
+    };
+
     this.onRegionChanged = function(region) {
       $scope.command.region = region;
+      $scope.subnetFilter.region = region;
     };
+
+    $scope.$watch('command.credentials', function(account) {
+      $scope.subnetFilter.account = account;
+    });
 
     $scope.$watch('basicSettings.$valid', function(newVal) {
       if (newVal) {

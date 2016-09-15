@@ -1,6 +1,6 @@
 <div class="container-fluid form-horizontal" ng-controller="openstackServerGroupInstanceSettingsCtrl as instanceSettingsCtrl">
   <ng-form name="instanceSettings">
-    <os-instance-type-select-field help-key="openstack.serverGroup.instanceType" model="command.instanceType" region="command.region"></os-instance-type-select-field>
+    <os-instance-type-select-field help-key="openstack.serverGroup.instanceType" model="command.instanceType" account="command.credentials" region="command.region"></os-instance-type-select-field>
 
     <div class="form-group" ng-if="!command.viewState.disableImageSelection">
       <div class="col-md-3 sm-label-right">

@@ -269,14 +269,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
       });
     };
 
-    this.updateSecurityGroups = () => {
-      alert('Not yet implemented.');
-    };
-
-    this.updateLoadBalancers = () => {
-      alert('Not yet implemented.');
-    };
-
     this.buildJenkinsLink = () => {
       if (this.serverGroup && this.serverGroup.buildInfo && this.serverGroup.buildInfo.buildInfoUrl) {
         return this.serverGroup.buildInfo.buildInfoUrl;
@@ -317,9 +309,9 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
     this.applyLoadBalancerDetails = (serverGroup) => {
       return loadBalancerReader.loadLoadBalancers(app.name).then( (allLoadBalancers) => {
         var lbIndex = {};
-        _.forEach(allLoadBalancers, (lb) => { lbIndex[lb.id] = lb; } );
-        $scope.loadBalancers = _([serverGroup.launchConfig.loadBalancerId])
-            .map( (lbId) => { return lbIndex[lbId]; } )
+        _.forEach(allLoadBalancers, (lb) => { lbIndex[lb.name] = lb; } );
+        $scope.loadBalancers = _(serverGroup.loadBalancers)
+            .map( (lbName) => { return lbIndex[lbName]; } )
             .compact()
             .valueOf();
       });

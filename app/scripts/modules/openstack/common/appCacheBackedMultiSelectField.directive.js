@@ -15,6 +15,7 @@ module.exports = angular.module('spinnaker.openstack.appCacheBackedMultiSelectFi
         label: '@',
         model: '=',
         onChange: '&',
+        required: '<?'
       },
       link: function(scope) {
         var app = scope.$parent.application;
@@ -28,6 +29,7 @@ module.exports = angular.module('spinnaker.openstack.appCacheBackedMultiSelectFi
           refreshTooltipTemplate: require('./cacheRefresh.tooltip.html'),
           filter: {},
           cache: cache,
+          required: false,
 
           onSelectionsChanged: function() {
             //Hack to work around bug in ui-select where selected values re-appear in the drop-down
