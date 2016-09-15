@@ -16,6 +16,11 @@
 
 package com.netflix.spinnaker.fiat.model.resources;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public interface Resource {
   String getName();
+
+  @JsonIgnore
+  ResourceType getResourceType();
 }

@@ -50,12 +50,18 @@ public class DefaultAccountProvider extends BaseProvider implements AccountProvi
   }
 
   @Override
-  public Set<Account> getAll(@NonNull Collection<String> groups) throws ProviderException {
+  public Set<Account> getAllRestricted(@NonNull Collection<String> groups) throws ProviderException {
     return getAll()
         .stream()
-        .filter(account ->
-                    account.getRequiredGroupMembership().isEmpty() ||
-                        !Collections.disjoint(account.getRequiredGroupMembership(), groups))
+        .filter(account -> !Collections.disjoint(account.getRequiredGroupMembership(), groups))
+        .collect(Collectors.toSet());
+  }
+
+  @Override
+  public Set<Account> getAllUnrestricted() throws ProviderException {
+    return getAll()
+        .stream()
+        .filter(account -> account.getRequiredGroupMembership().isEmpty())
         .collect(Collectors.toSet());
   }
 }

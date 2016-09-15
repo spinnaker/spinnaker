@@ -16,13 +16,20 @@
 
 package com.netflix.spinnaker.fiat.model.resources;
 
+import com.netflix.spinnaker.fiat.model.ServiceAccount;
 import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 
 public enum ResourceType {
-  ACCOUNT,
-  APPLICATION,
-  SERVICE_ACCOUNT; // Fiat service account.
+  ACCOUNT(Account.class),
+  APPLICATION(Application.class),
+  SERVICE_ACCOUNT(ServiceAccount.class); // Fiat service account.
+
+  public Class<? extends Resource> modelClass;
+
+  ResourceType(Class<? extends Resource> modelClass) {
+    this.modelClass = modelClass;
+  }
 
   // TODO(ttomsu): This is Redis-specific, so it probably shouldn't go here.
   public static ResourceType parse(@NonNull String pluralOrKey) {

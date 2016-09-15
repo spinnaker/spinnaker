@@ -124,10 +124,10 @@ class RedisPermissionsRepositorySpec extends Specification {
     jedis.sadd("unittest:users", "testUser");
     jedis.hset("unittests:permissions:testUser:accounts",
                "account",
-               '{"name":"account","requiredGroupMembership":[]}')
+               '{"name":"account","requiredGroupMembership":["abc"]}')
     jedis.hset("unittests:permissions:testUser:applications",
                "app",
-               '{"name":"app","requiredGroupMembership":[]}')
+               '{"name":"app","requiredGroupMembership":["abc"]}')
     jedis.hset("unittests:permissions:testUser:service_accounts",
                "serviceAccount",
                '{"name":"serviceAccount"}')
@@ -136,10 +136,24 @@ class RedisPermissionsRepositorySpec extends Specification {
     def result = repo.get("testUser").get()
 
     then:
-    result
-    result.id == "testUser"
-    result.accounts == [new Account().setName("account")] as Set
-    result.applications == [new Application().setName("app")] as Set
+    def expected = new UserPermission()
+        .setId("testUser")
+        .setAccounts([new Account().setName("account")
+                                   .setRequiredGroupMembership(["abc"])] as Set)
+        .setApplications([new Application().setName("app")
+                                           .setRequiredGroupMembership(["abc"])] as Set)
+        .setServiceAccounts([new ServiceAccount().setName("serviceAccount")] as Set)
+    result == expected
+
+    when:
+    jedis.hset("unittests:permissions:__unrestricted_user__:accounts",
+               "account",
+               '{"name":"unrestrictedAccount","requiredGroupMembership":[]}')
+    result = repo.get("testUser").get()
+
+    then:
+    expected.addResource(new Account().setName("unrestrictedAccount"))
+    result == expected
   }
 
   def "should get all users from redis"() {
@@ -178,16 +192,15 @@ class RedisPermissionsRepositorySpec extends Specification {
     def result = repo.getAllById();
 
     then:
-    result
-    result.size() == 2
-    result["testUser1"] == new UserPermission().setId("testUser1")
-                                               .setAccounts([account1] as Set)
-                                               .setApplications([app1] as Set)
-                                               .setServiceAccounts([serviceAccount1] as Set)
-    result["testUser2"] == new UserPermission().setId("testUser2")
-                                               .setAccounts([account2] as Set)
-                                               .setApplications([app2] as Set)
-                                               .setServiceAccounts([serviceAccount2] as Set)
+    def testUser1 = new UserPermission().setId("testUser1")
+                                        .setAccounts([account1] as Set)
+                                        .setApplications([app1] as Set)
+                                        .setServiceAccounts([serviceAccount1] as Set)
+    def testUser2 = new UserPermission().setId("testUser2")
+                                        .setAccounts([account2] as Set)
+                                        .setApplications([app2] as Set)
+                                        .setServiceAccounts([serviceAccount2] as Set)
+    result == ["testUser1": testUser1, "testUser2": testUser2]
   }
 
   def "should delete the specified user"() {

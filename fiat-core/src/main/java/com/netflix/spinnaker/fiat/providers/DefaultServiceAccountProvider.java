@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -61,7 +62,7 @@ public class DefaultServiceAccountProvider extends BaseProvider implements Servi
    * after the "@" symbol for the purposes of service account/group matching.
    */
   @Override
-  public Set<ServiceAccount> getAll(@NonNull Collection<String> groups) {
+  public Set<ServiceAccount> getAllRestricted(@NonNull Collection<String> groups) {
     // There is a potential here for a naming collision where service account
     // "my-svc-account@abc.com" and "my-svc-account@xyz.com" each allow one another's users to use
     // their service account. In practice, though, I don't think this will be an issue.
@@ -73,5 +74,10 @@ public class DefaultServiceAccountProvider extends BaseProvider implements Servi
         .filter(serviceAccountsByName::containsKey)
         .map(serviceAccountsByName::get)
         .collect(Collectors.toSet());
+  }
+
+  @Override
+  public Set<ServiceAccount> getAllUnrestricted() throws ProviderException {
+    return Collections.emptySet();
   }
 }

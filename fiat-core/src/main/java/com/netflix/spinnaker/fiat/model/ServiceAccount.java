@@ -18,6 +18,7 @@ package com.netflix.spinnaker.fiat.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.fiat.model.resources.Resource;
+import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import com.netflix.spinnaker.fiat.model.resources.Viewable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,6 +26,8 @@ import org.apache.commons.lang3.StringUtils;
 
 @Data
 public class ServiceAccount implements Resource, Viewable {
+  final ResourceType resourceType = ResourceType.SERVICE_ACCOUNT;
+
   private String name;
 
   @JsonIgnore

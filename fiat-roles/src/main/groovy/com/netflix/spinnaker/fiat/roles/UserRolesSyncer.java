@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.fiat.roles;
 
-import com.netflix.spinnaker.fiat.config.AnonymousUserConfig;
+import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
 import com.netflix.spinnaker.fiat.providers.ProviderException;
@@ -103,8 +103,8 @@ public class UserRolesSyncer {
   private long updateUserPermissions() {
     val permissionMap = permissionsRepository.getAllById();
 
-    if (permissionMap.remove(AnonymousUserConfig.ANONYMOUS_USERNAME) != null) {
-      permissionsResolver.resolveAnonymous().ifPresent(permission -> {
+    if (permissionMap.remove(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME) != null) {
+      permissionsResolver.resolveUnrestrictedUser().ifPresent(permission -> {
         permissionsRepository.put(permission);
         log.info("Synced anonymous user role.");
       });

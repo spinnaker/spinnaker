@@ -17,12 +17,14 @@
 package com.netflix.spinnaker.fiat.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.model.resources.Resource;
 import com.netflix.spinnaker.fiat.model.resources.Viewable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.val;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -30,6 +32,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Data
 public class UserPermission implements Viewable {
@@ -37,13 +40,6 @@ public class UserPermission implements Viewable {
   private Set<Account> accounts = new HashSet<>();
   private Set<Application> applications = new HashSet<>();
   private Set<ServiceAccount> serviceAccounts = new HashSet<>();
-
-  /**
-   * True if any of the resources listed above are incomplete for whatever reason - usually because
-   * an external provider was down.
-   */
-  @JsonIgnore
-  private boolean isPartialPermission = false;
 
   @JsonIgnore
   public boolean isEmpty() {
@@ -55,6 +51,10 @@ public class UserPermission implements Viewable {
   }
 
   public void addResources(Collection<Resource> resources) {
+    if (resources == null) {
+      return;
+    }
+
     resources.forEach(resource -> {
       if (resource instanceof Account) {
         accounts.add((Account) resource);
@@ -69,6 +69,24 @@ public class UserPermission implements Viewable {
   }
 
   @JsonIgnore
+  public Set<Resource> getAllResources() {
+    Set<Resource> retVal = new HashSet<>();
+    retVal.addAll(accounts);
+    retVal.addAll(applications);
+    retVal.addAll(serviceAccounts);
+    return retVal;
+  }
+
+  /**
+   * This method adds all of other's resources to this one.
+   * @param other
+   */
+  public UserPermission merge(UserPermission other) {
+    this.addResources(other.getAllResources());
+    return this;
+  }
+
+  @JsonIgnore
   public View getView() {
     return new View(this);
   }
@@ -76,7 +94,7 @@ public class UserPermission implements Viewable {
   @Data
   @NoArgsConstructor
   @SuppressWarnings("unchecked")
-  public static class View extends BaseView implements Resource {
+  public static class View extends BaseView {
     String name;
     Set<Account.View> accounts;
     Set<Application.View> applications;

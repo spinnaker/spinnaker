@@ -20,9 +20,11 @@ import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class DefaultAccountProviderSpec extends Specification {
 
+  @Unroll
   def "should get all accounts based on supplied roles"() {
     setup:
     ClouddriverService clouddriverService = Mock(ClouddriverService) {
@@ -38,24 +40,24 @@ class DefaultAccountProviderSpec extends Specification {
     )
 
     when:
-    def result = accountProvider.getAll(input)
+    def result = accountProvider.getAllRestricted(input)
 
     then:
     result*.name.containsAll(values)
 
     when:
-    accountProvider.getAll(null)
+    accountProvider.getAllRestricted(null)
 
     then:
     thrown IllegalArgumentException
 
     where:
     input                || values
-    []                   || ["noReqGroups"]
-    ["group1"]           || ["noReqGroups", "reqGroup1", "reqGroup1and2"]
-    ["group2"]           || ["noReqGroups", "reqGroup1and2"]
-    ["group1", "group2"] || ["noReqGroups", "reqGroup1", "reqGroup1and2"]
-    ["group3"]           || ["noReqGroups"]
-    ["group2", "group3"] || ["noReqGroups", "reqGroup1and2"]
+    []                   || []
+    ["group1"]           || ["reqGroup1", "reqGroup1and2"]
+    ["group2"]           || ["reqGroup1and2"]
+    ["group1", "group2"] || ["reqGroup1", "reqGroup1and2"]
+    ["group3"]           || []
+    ["group2", "group3"] || ["reqGroup1and2"]
   }
 }

@@ -28,6 +28,8 @@ import java.util.Set;
 
 @Data
 public class Account implements GroupAccessControlled, Resource, Viewable {
+  final ResourceType resourceType = ResourceType.ACCOUNT;
+
   private String name;
   private String cloudProvider;
   private List<String> requiredGroupMembership = new ArrayList<>();

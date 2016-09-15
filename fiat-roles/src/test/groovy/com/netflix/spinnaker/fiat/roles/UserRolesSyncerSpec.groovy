@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.fiat.roles
 
-import com.netflix.spinnaker.fiat.config.AnonymousUserConfig
+import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig
 import com.netflix.spinnaker.fiat.model.ServiceAccount
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
@@ -38,13 +38,13 @@ class UserRolesSyncerSpec extends Specification {
     def user2 = new UserPermission()
         .setId("user2")
         .setAccounts([new Account().setName("account2")] as Set)
-    def anonUser = new UserPermission()
-        .setId(AnonymousUserConfig.ANONYMOUS_USERNAME)
-        .setAccounts([new Account().setName("anonAccount")] as Set)
+    def unrestrictedUser = new UserPermission()
+        .setId(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME)
+        .setAccounts([new Account().setName("unrestrictedAccount")] as Set)
 
     permissionsRepo.put(user1)
     permissionsRepo.put(user2)
-    permissionsRepo.put(anonUser)
+    permissionsRepo.put(unrestrictedUser)
 
     def newUser2 = new UserPermission()
         .setId("user2")
@@ -59,19 +59,19 @@ class UserRolesSyncerSpec extends Specification {
     expect:
     permissionsRepo.get("user1").get() == user1
     permissionsRepo.get("user2").get() == user2
-    permissionsRepo.get(AnonymousUserConfig.ANONYMOUS_USERNAME).get() == anonUser
+    permissionsRepo.get(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME).get() == unrestrictedUser
 
     when:
     syncer.updateUserPermissions()
 
     then:
     permissionsResolver.resolve(_ as Set) >> ["user1": user1, "user2": newUser2]
-    permissionsResolver.resolveAnonymous() >> Optional.of(anonUser)
+    permissionsResolver.resolveUnrestrictedUser() >> Optional.of(unrestrictedUser)
 
     expect:
     permissionsRepo.get("user1").get() == user1
     permissionsRepo.get("user2").get() == newUser2
-    permissionsRepo.get(AnonymousUserConfig.ANONYMOUS_USERNAME).get() == anonUser
+    permissionsRepo.get(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME).get() == unrestrictedUser
   }
 
 

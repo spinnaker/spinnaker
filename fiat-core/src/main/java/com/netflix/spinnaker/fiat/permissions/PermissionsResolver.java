@@ -28,7 +28,7 @@ public interface PermissionsResolver {
    * @return The UserPermission for an anonymous user. May return empty if anonymous users are
    * disabled.
    */
-  Optional<UserPermission> resolveAnonymous();
+  Optional<UserPermission> resolveUnrestrictedUser();
 
   /**
    * Resolves a single user's permissions.

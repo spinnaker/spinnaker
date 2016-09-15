@@ -20,6 +20,8 @@ import com.netflix.spinnaker.fiat.model.Authorization;
 
 import java.util.Set;
 
-public interface Authorizable extends Resource {
+public interface Authorizable {
+  String getName();
+
   Set<Authorization> getAuthorizations();
 }

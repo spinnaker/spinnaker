@@ -18,20 +18,18 @@ package com.netflix.spinnaker.fiat.config;
 
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty("auth.anonymous.enabled")
-public class AnonymousUserConfig {
+public class UnrestrictedResourceConfig {
 
-  public static String ANONYMOUS_USERNAME = "anonymous";
+  public static String UNRESTRICTED_USERNAME = "__unrestricted_user__";
 
   @Bean
-  String addAnonymousUser(PermissionsRepository permissionsRepository,
-                          PermissionsResolver permissionsResolver) {
-    permissionsResolver.resolveAnonymous().ifPresent(permissionsRepository::put);
-    return ANONYMOUS_USERNAME;
+  String addUnrestrictedUser(PermissionsRepository permissionsRepository,
+                             PermissionsResolver permissionsResolver) {
+    permissionsResolver.resolveUnrestrictedUser().ifPresent(permissionsRepository::put);
+    return UNRESTRICTED_USERNAME;
   }
 }

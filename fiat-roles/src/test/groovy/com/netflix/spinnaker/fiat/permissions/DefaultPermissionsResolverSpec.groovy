@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.fiat.permissions
 
-import com.netflix.spinnaker.fiat.config.AnonymousUserConfig
 import com.netflix.spinnaker.fiat.model.ServiceAccount
+import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.providers.ApplicationProvider
 import com.netflix.spinnaker.fiat.providers.DefaultAccountProvider
@@ -33,12 +33,17 @@ import spock.lang.Subject
 class DefaultPermissionsResolverSpec extends Specification {
 
   @Shared
+  Account noReqGroupsAcct = new Account().setName("noReqGroups")
+  @Shared
+  Account reqGroup1Acct = new Account().setName("reqGroup1")
+                                       .setRequiredGroupMembership(["group1"])
+  @Shared
+  Account reqGroup1and2Acct = new Account().setName("reqGroup1and2")
+                                           .setRequiredGroupMembership(["group1", "group2"])
+
+  @Shared
   ClouddriverService clouddriverService = Mock(ClouddriverService) {
-    getAccounts() >> [
-        new Account().setName("noReqGroups"),
-        new Account().setName("reqGroup1").setRequiredGroupMembership(["group1"]),
-        new Account().setName("reqGroup1and2").setRequiredGroupMembership(["group1", "group2"]),
-    ]
+    getAccounts() >> [noReqGroupsAcct, reqGroup1Acct, reqGroup1and2Acct]
   }
 
   @Shared
@@ -46,12 +51,12 @@ class DefaultPermissionsResolverSpec extends Specification {
       clouddriverService: clouddriverService
   )
 
+  @Shared ServiceAccount group1SvcAcct = new ServiceAccount().setName("group1")
+  @Shared ServiceAccount group2SvcAcct = new ServiceAccount().setName("group2@domain.com")
+
   @Shared
   Front50Service front50Service = Mock(Front50Service) {
-    getAllServiceAccounts() >> [
-        new ServiceAccount().setName("group1"),
-        new ServiceAccount().setName("group2@domain.com"),
-    ]
+    getAllServiceAccounts() >> [group1SvcAcct, group2SvcAcct]
   }
 
   @Shared
@@ -73,22 +78,13 @@ class DefaultPermissionsResolverSpec extends Specification {
     setup:
     @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver()
         .setResourceProviders(resourceProviders)
-        .setAnonymousEnabled(false)
 
     when:
-    def result = resolver.resolveAnonymous()
+    def result = resolver.resolveUnrestrictedUser().get()
 
     then:
-    !result.isPresent()
-
-    when:
-    resolver.setAnonymousEnabled(true)
-    result = resolver.resolveAnonymous().get()
-
-    then:
-    result.getId() == AnonymousUserConfig.ANONYMOUS_USERNAME
-    result.getAccounts()?.size() == 1
-    result.getAccounts()*.name.containsAll(["noReqGroups"])
+    result == new UserPermission().setId("__unrestricted_user__")
+                                  .setAccounts([noReqGroupsAcct] as Set)
   }
 
   def "should resolve a single user's permissions"() {
@@ -110,47 +106,37 @@ class DefaultPermissionsResolverSpec extends Specification {
 
     then:
     1 * userRolesProvider.loadRoles(testUserId) >> []
-    result.getId() == testUserId
-    result.getAccounts()?.size() == 1
-    result.getAccounts()*.name.containsAll(["noReqGroups"])
-    result.getApplications() == [] as Set
-    result.getServiceAccounts()?.size() == 0
+    def expected = new UserPermission().setId(testUserId)
+    result == expected
 
     when:
     result = resolver.resolve(testUserId).get()
 
     then:
     1 * userRolesProvider.loadRoles(testUserId) >> ["group2"]
-    result.getAccounts()?.size() == 2
-    result.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1and2"])
-    result.getServiceAccounts()?.size() == 1
-    result.getServiceAccounts()*.name.containsAll(["group2@domain.com"])
+    expected.setAccounts([reqGroup1and2Acct] as Set)
+            .setServiceAccounts([group2SvcAcct] as Set)
+    result == expected
 
     when: "different capitalization"
     result = resolver.resolve(testUserId).get()
 
     then:
     1 * userRolesProvider.loadRoles(testUserId) >> ["gRoUp2"]
-    result.getAccounts()?.size() == 2
-    result.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1and2"])
-    result.getServiceAccounts()?.size() == 1
-    result.getServiceAccounts()*.name.containsAll(["group2@domain.com"])
+    result == expected
 
     when: "merge externally provided roles"
     result = resolver.resolveAndMerge(testUserId, ["group1"]).get()
 
     then:
     1 * userRolesProvider.loadRoles(testUserId) >> ["group2"]
-    result.getAccounts()?.size() == 3
-    result.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1", "reqGroup1and2"])
-    result.getServiceAccounts()?.size() == 2
-    result.getServiceAccounts()*.name.containsAll(["group1", "group2@domain.com"])
+    expected.setAccounts([reqGroup1Acct, reqGroup1and2Acct] as Set)
+            .setServiceAccounts([group1SvcAcct, group2SvcAcct] as Set)
+    result == expected
   }
 
   def "should resolve all user's permissions"() {
     setup:
-    def user1 = "user1"
-    def user2 = "user2"
     UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
     @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver()
         .setUserRolesProvider(userRolesProvider)
@@ -167,17 +153,15 @@ class DefaultPermissionsResolverSpec extends Specification {
         user1: ["group1"],
         user2: ["group2"],
     ]
-    def result = resolver.resolve([user1, user2])
+    def result = resolver.resolve(["user1", "user2"])
 
     then:
-    result.size() == 2
-    result["user1"]?.id == "user1"
-    result["user1"]?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1", "reqGroup1and2"])
-    result["user1"]?.getApplications() == [] as Set
-    result["user1"]?.getServiceAccounts()*.name.containsAll(["group1"])
-    result["user2"]?.id == "user2"
-    result["user2"]?.getAccounts()*.name.containsAll(["noReqGroups", "reqGroup1and2"])
-    result["user2"]?.getApplications() == [] as Set
-    result["user2"]?.getServiceAccounts()*.name.containsAll(["group2@domain.com"])
+    def user1 = new UserPermission().setId("user1")
+                                    .setAccounts([reqGroup1Acct, reqGroup1and2Acct] as Set)
+                                    .setServiceAccounts([group1SvcAcct] as Set)
+    def user2 = new UserPermission().setId("user2")
+                                    .setAccounts([reqGroup1and2Acct] as Set)
+                                    .setServiceAccounts([group2SvcAcct] as Set)
+    result == ["user1": user1, "user2": user2]
   }
 }

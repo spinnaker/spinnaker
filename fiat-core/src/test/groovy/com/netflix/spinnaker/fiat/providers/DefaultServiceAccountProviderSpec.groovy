@@ -42,13 +42,13 @@ class DefaultServiceAccountProviderSpec extends Specification {
 
   def "should return all accounts the specified groups has access to"() {
     when:
-    def result = provider.getAll(input)
+    def result = provider.getAllRestricted(input)
 
     then:
     result.containsAll(values)
 
     when:
-    provider.getAll(null)
+    provider.getAllRestricted(null)
 
     then:
     thrown IllegalArgumentException

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.fiat.permissions;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import com.netflix.spinnaker.fiat.config.AnonymousUserConfig;
+import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.ServiceAccount;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.GroupAccessControlled;
@@ -32,11 +32,9 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -54,16 +52,9 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
   @Setter
   private List<ResourceProvider> resourceProviders;
 
-  @Value("${auth.anonymous.enabled}")
-  @Setter
-  private boolean anonymousEnabled;
-
   @Override
-  public Optional<UserPermission> resolveAnonymous() {
-    if (!anonymousEnabled) {
-      return Optional.empty();
-    }
-    return getUserPermission(AnonymousUserConfig.ANONYMOUS_USERNAME,
+  public Optional<UserPermission> resolveUnrestrictedUser() {
+    return getUserPermission(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME,
                              new ArrayList<>(0) /* groups */);
   }
 
@@ -78,9 +69,6 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
     try {
       roles = userRolesProvider.loadRoles(userId);
     } catch (ProviderException e) {
-      // Roles are cornerstone to UserPermission resolution, so don't continue if we can't get
-      // roles. This is different than a partial UserPermission, where we can't access other
-      // Spinnaker components.
       log.warn("Failed to resolve user permission for user " + userId, e);
       return Optional.empty();
     }
@@ -97,7 +85,11 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
 
     for (ResourceProvider provider : resourceProviders) {
       try {
-        permission.addResources(provider.getAll(groups));
+        if (!groups.isEmpty()) {
+          permission.addResources(provider.getAllRestricted(groups));
+        } else if (UnrestrictedResourceConfig.UNRESTRICTED_USERNAME.equalsIgnoreCase(userId)) {
+          permission.addResources(provider.getAllUnrestricted());
+        }
       } catch (ProviderException pe) {
         log.warn("Can't resolve permission for '{}' due to error with '{}': {}",
                  userId,
@@ -115,9 +107,7 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
   public Map<String, UserPermission> resolve(@NonNull Collection<String> userIds) {
     val userToRoles = userRolesProvider.multiLoadRoles(userIds);
 
-    String noRolesNeeded = "__NO_ROLES_NEEDED__";
-
-    // This is the reverse index of each resourceProvider's getAll() call.
+    // This is the reverse index of each resourceProvider's getAllRestricted() call.
     Multimap<String, Resource> roleToResource = ArrayListMultimap.create();
 
     for (ResourceProvider provider : resourceProviders) {
@@ -127,20 +117,19 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
             .forEach(resource -> {
               if (resource instanceof GroupAccessControlled) {
                 GroupAccessControlled gacResource = (GroupAccessControlled) resource;
-
-                List<String> reqGroups = Collections.singletonList(noRolesNeeded);
-                if (!gacResource.getRequiredGroupMembership().isEmpty()) {
-                  reqGroups = gacResource.getRequiredGroupMembership();
+                if (gacResource.getRequiredGroupMembership().isEmpty()) {
+                  return; // Unrestricted resources are added later.
                 }
 
-                reqGroups.forEach(group -> roleToResource.put(group, gacResource));
+                gacResource.getRequiredGroupMembership()
+                           .forEach(group -> roleToResource.put(group, gacResource));
               } else if (resource instanceof ServiceAccount) {
                 ServiceAccount serviceAccount = (ServiceAccount) resource;
                 roleToResource.put(serviceAccount.getNameWithoutDomain(), serviceAccount);
               }
             });
       } catch (ProviderException pe) {
-        log.warn("Can't getAll '{}' resources: {}",
+        log.warn("Can't getAllRestricted '{}' resources: {}",
                  provider.getClass().getSimpleName(),
                  pe.getMessage());
         log.debug("Error resolving UserPermission", pe);
@@ -156,10 +145,7 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
           Collection<String> userRoles = entry.getValue();
 
           UserPermission permission = new UserPermission().setId(username);
-
-          permission.addResources(roleToResource.get(noRolesNeeded));
           userRoles.forEach(userRole -> permission.addResources(roleToResource.get(userRole)));
-
           return permission;
         })
         .collect(Collectors.toMap(UserPermission::getId, Function.identity()));

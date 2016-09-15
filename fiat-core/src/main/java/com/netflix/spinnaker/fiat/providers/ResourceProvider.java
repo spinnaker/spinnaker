@@ -25,5 +25,7 @@ public interface ResourceProvider<R extends Resource> {
 
   Set<R> getAll() throws ProviderException;
 
-  Set<R> getAll(Collection<String> groups) throws ProviderException;
+  Set<R> getAllRestricted(Collection<String> groups) throws ProviderException;
+
+  Set<R> getAllUnrestricted() throws ProviderException;
 }

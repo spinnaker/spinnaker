@@ -28,6 +28,8 @@ import java.util.Set;
 
 @Data
 public class Application implements GroupAccessControlled, Resource, Viewable {
+  final ResourceType resourceType = ResourceType.APPLICATION;
+
   private String name;
   private List<String> requiredGroupMembership = new ArrayList<>();
 

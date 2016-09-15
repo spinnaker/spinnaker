@@ -50,12 +50,18 @@ public class DefaultApplicationProvider extends BaseProvider implements Applicat
   }
 
   @Override
-  public Set<Application> getAll(@NonNull Collection<String> groups) throws ProviderException {
+  public Set<Application> getAllRestricted(@NonNull Collection<String> groups) throws ProviderException {
     return getAll()
         .stream()
-        .filter(application ->
-                    application.getRequiredGroupMembership().isEmpty() ||
-                        !Collections.disjoint(application.getRequiredGroupMembership(), groups))
+        .filter(application -> !Collections.disjoint(application.getRequiredGroupMembership(), groups))
+        .collect(Collectors.toSet());
+  }
+
+  @Override
+  public Set<Application> getAllUnrestricted() throws ProviderException {
+    return getAll()
+        .stream()
+        .filter(application -> application.getRequiredGroupMembership().isEmpty())
         .collect(Collectors.toSet());
   }
 }
