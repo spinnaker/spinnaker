@@ -178,7 +178,7 @@ public class RegionScopedTitusClient implements TitusClient {
         if (jobDescription.getUser() == null) {
             jobDescription.setUser("spinnaker");
         }
-        if (jobDescription.getJobGroupSequence() == null) {
+        if (jobDescription.getJobGroupSequence() == null && jobDescription.getType()!="batch") {
            try {
               int sequence = Names.parseName(jobDescription.getName()).getSequence();
               jobDescription.setJobGroupSequence(String.format("v%03d", sequence));
