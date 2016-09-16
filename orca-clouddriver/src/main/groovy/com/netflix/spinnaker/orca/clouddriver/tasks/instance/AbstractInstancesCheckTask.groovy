@@ -32,10 +32,14 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RetrofitError
 
+import java.util.concurrent.TimeUnit
+
 @Slf4j
 abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask implements RetryableTask {
-  long backoffPeriod = 10000
-  long timeout = 7200000
+  long backoffPeriod = TimeUnit.SECONDS.toMillis(10)
+  long timeout = TimeUnit.HOURS.toMillis(2)
+  long serverGroupWaitTime = TimeUnit.MINUTES.toMillis(10)
+  Long serverGroupReportedMissing = null
 
   @Autowired
   OortService oortService
@@ -58,6 +62,13 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
   abstract protected Map<String, List<String>> getServerGroups(Stage stage)
 
   abstract protected boolean hasSucceeded(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames)
+
+  // When waiting for up instances during a "Deploy" stage, it is OK for the server group to not exist coming into this
+  // task. Instead of failing on a missing server group, we retry the stage until it either succeeds, fails, or times out.
+  // For the other uses of this task, we will fail if the server group doesn't exist.
+  boolean waitForUpServerGroup() {
+    return false
+  }
 
   @Override
   TaskResult execute(Stage stage) {
@@ -119,7 +130,23 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
         }
       }
 
-      verifyServerGroupsExist(stage)
+      try {
+        verifyServerGroupsExist(stage)
+      } catch (MissingServerGroupException e) {
+        if (waitForUpServerGroup()) {
+          def now = System.currentTimeMillis()
+          if (serverGroupReportedMissing == null) {
+            serverGroupReportedMissing = now
+          } else if (now - serverGroupReportedMissing > serverGroupWaitTime) {
+            log.info "Waited over ${TimeUnit.MILLISECONDS.toMinutes(serverGroupWaitTime)} minutes for the server group to appear."
+            throw e
+          }
+          log.info "Waiting for server group to show up, ignoring error: $e.message"
+          return new DefaultTaskResult(ExecutionStatus.RUNNING)
+        } else {
+          throw e
+        }
+      }
 
       if (seenServerGroup.values().contains(false)) {
         new DefaultTaskResult(ExecutionStatus.RUNNING)
@@ -154,9 +181,15 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
       serverGroupNames.each {
         if (!oortHelper.getTargetServerGroup(account, it, region, getCloudProvider(stage)).isPresent()) {
           log.error("Server group '${region}:${it}' does not exist (forceCacheRefreshResult: ${forceCacheRefreshResult.stageOutputs}")
-          throw new IllegalStateException("Server group '${region}:${it}' does not exist")
+          throw new MissingServerGroupException("Server group '${region}:${it}' does not exist")
         }
       }
+    }
+  }
+
+  class MissingServerGroupException extends IllegalStateException {
+    MissingServerGroupException(String message) {
+      super(message)
     }
   }
 }

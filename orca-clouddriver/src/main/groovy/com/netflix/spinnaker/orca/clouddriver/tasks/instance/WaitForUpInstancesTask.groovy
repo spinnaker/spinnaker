@@ -27,6 +27,11 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
 
   static final int MIN_ZERO_INSTANCE_RETRY_COUNT = 12
 
+  // We do not want to fail before the server group has been created.
+  boolean waitForUpServerGroup() {
+    return true
+  }
+
   static boolean allInstancesMatch(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
     if (!(serverGroup?.capacity)) {
       return false
@@ -90,5 +95,4 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
   protected boolean hasSucceeded(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
     allInstancesMatch(stage, serverGroup, instances, interestingHealthProviderNames)
   }
-
 }
