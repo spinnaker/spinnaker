@@ -68,7 +68,7 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
         assert dir.filters.first().name == 'name'
         assert dir.filters.first().values == ['super-awesome-ami']
 
-        new DescribeImagesResult().withImages(new Image().withImageId('ami-12345'))
+        new DescribeImagesResult().withImages(new Image().withImageId('ami-12345').withOwnerId('67890'))
     }
     1 * ec2.modifyImageAttribute(_)
   }
@@ -77,12 +77,15 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     setup:
     def ec2 = Mock(AmazonEC2) {
       describeTags(_) >> new DescribeTagsResult()
-      describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId('ami-123456'))
+      describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId('ami-123456').withOwnerId('5678'))
     }
     def provider = Stub(AmazonClientProvider) {
       getAmazonEC2(_, _, true) >> ec2
     }
-    def description = new AllowLaunchDescription(account: "prod", amiName: "ami-123456", region: "us-west-1", credentials: Stub(NetflixAmazonCredentials))
+    def source = Stub(NetflixAmazonCredentials) {
+      getAccountId() >> '5678'
+    }
+    def description = new AllowLaunchDescription(account: "prod", amiName: "ami-123456", region: "us-west-1", credentials: source)
     def op = new AllowLaunchAtomicOperation(description)
     op.amazonClientProvider = provider
     def accountHolder = Mock(AccountCredentialsProvider)
@@ -127,7 +130,7 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
       1 * getAmazonEC2(prodCredentials, _, true) >> targetAmazonEc2
     }
     with(sourceAmazonEc2) {
-      1 * describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId("ami-123456"))
+      1 * describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId("ami-123456").withOwnerId(testCredentials.accountId))
       1 * modifyImageAttribute(_)
       1 * describeTags(_) >> constructDescribeTagsResult([a:"1", b: "2"])
     }
@@ -162,11 +165,55 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
       1 * getAmazonEC2(testCredentials, _, true) >> targetAmazonEc2
     }
     with(sourceAmazonEc2) {
-      1 * describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId("ami-123456"))
+      1 * describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId("ami-123456").withOwnerId(testCredentials.accountId))
       1 * modifyImageAttribute(_)
     }
 
     0 * _
+  }
+
+  void "should lookup owner account of resolved ami"() {
+    setup:
+    def ownerCredentials = TestCredential.named('owner')
+    def sourceCredentials = TestCredential.named('source')
+    def targetCredentials = TestCredential.named('target')
+
+    def ownerAmazonEc2 = Mock(AmazonEC2)
+    def sourceAmazonEc2 = Mock(AmazonEC2)
+    def targetAmazonEc2 = Mock(AmazonEC2)
+
+    def description = new AllowLaunchDescription(account: 'target', amiName: 'ami-123456', region: 'us-west-1', credentials: sourceCredentials)
+    def op = new AllowLaunchAtomicOperation(description)
+    op.amazonClientProvider = Mock(AmazonClientProvider)
+    op.accountCredentialsProvider = Mock(AccountCredentialsProvider)
+
+    when:
+    op.operate([])
+
+    then:
+    with(op.accountCredentialsProvider) {
+      1 * getCredentials('target') >> targetCredentials
+      1 * getAll() >> [sourceCredentials, targetCredentials, ownerCredentials]
+    }
+
+    with(op.amazonClientProvider) {
+      1 * getAmazonEC2(sourceCredentials, _, true) >> sourceAmazonEc2
+      1 * getAmazonEC2(targetCredentials, _, true) >> targetAmazonEc2
+      1 * getAmazonEC2(ownerCredentials, _, true) >> ownerAmazonEc2
+    }
+    with(sourceAmazonEc2) {
+      1 * describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId("ami-123456").withOwnerId(ownerCredentials.accountId))
+    }
+    with(ownerAmazonEc2) {
+      1 * modifyImageAttribute(_)
+      1 * describeTags(_) >> constructDescribeTagsResult([a:"1", b: "2"])
+    }
+    with(targetAmazonEc2) {
+      1 * describeTags(_) >> constructDescribeTagsResult([a:"1", b:"1", c: "2"])
+      1 * deleteTags(new DeleteTagsRequest(resources: ["ami-123456"], tags: [new Tag(key: "b", value: "1"), new Tag(key: "c", value: "2")]))
+      1 * createTags(new CreateTagsRequest(resources: ["ami-123456"], tags: [new Tag(key: "b", value: "2")]))
+    }
+
   }
 
   Closure<DescribeTagsResult> constructDescribeTagsResult = { Map tags ->

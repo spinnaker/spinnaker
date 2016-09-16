@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.*
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -56,6 +57,7 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
   ResolvedAmiResult operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing Allow Launch Operation..."
 
+    def sourceCredentials = description.credentials
     def targetCredentials = accountCredentialsProvider.getCredentials(description.account) as NetflixAmazonCredentials
     def sourceAmazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region, true)
     def targetAmazonEC2 = amazonClientProvider.getAmazonEC2(targetCredentials, description.region, true)
@@ -65,11 +67,24 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
       throw new IllegalArgumentException("unable to resolve AMI imageId from $description.amiName")
     }
 
-    task.updateStatus BASE_PHASE, "Allowing launch of $description.amiName from $description.account"
-    sourceAmazonEC2.modifyImageAttribute(new ModifyImageAttributeRequest().withImageId(resolvedAmi.amiId).withLaunchPermission(new LaunchPermissionModifications()
-        .withAdd(new LaunchPermission().withUserId(targetCredentials.accountId))))
+    // If the AMI was created/owned by a different account, switch to using that for modifying the image
+    if (resolvedAmi.ownerId != sourceCredentials.accountId) {
+      sourceCredentials = accountCredentialsProvider.all.find { accountCredentials ->
+        accountCredentials instanceof NetflixAmazonCredentials &&
+          ((AmazonCredentials) accountCredentials).accountId == resolvedAmi.ownerId
+      } as NetflixAmazonCredentials
+      if (!sourceCredentials) {
+        throw new IllegalArgumentException("Unable to find owner of resolved AMI $resolvedAmi")
+      }
+      sourceAmazonEC2 = amazonClientProvider.getAmazonEC2(sourceCredentials, description.region, true)
+    }
 
-    if (description.credentials == targetCredentials) {
+    task.updateStatus BASE_PHASE, "Allowing launch of $description.amiName from $description.account"
+
+    sourceAmazonEC2.modifyImageAttribute(new ModifyImageAttributeRequest().withImageId(resolvedAmi.amiId).withLaunchPermission(
+            new LaunchPermissionModifications().withAdd(new LaunchPermission().withUserId(targetCredentials.accountId))))
+
+    if (sourceCredentials == targetCredentials) {
       task.updateStatus BASE_PHASE, "Tag replication not required"
     } else {
       def request = new DescribeTagsRequest().withFilters(new Filter("resource-id").withValues(resolvedAmi.amiId))

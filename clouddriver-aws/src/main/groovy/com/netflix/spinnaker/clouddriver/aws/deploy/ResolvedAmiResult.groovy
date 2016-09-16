@@ -28,5 +28,6 @@ class ResolvedAmiResult {
   String region
   String amiId
   String virtualizationType
+  String ownerId
   List<BlockDeviceMapping> blockDeviceMappings
 }
