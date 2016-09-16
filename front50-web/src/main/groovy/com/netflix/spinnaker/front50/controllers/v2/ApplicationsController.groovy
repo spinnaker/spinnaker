@@ -84,7 +84,7 @@ public class ApplicationsController {
 
   @PreAuthorize("hasPermission(#applicationName, 'APPLICATION', 'WRITE')")
   @ApiOperation(value = "", notes = "Delete an application")
-  @RequestMapping(method = RequestMethod.DELETE, value = "/{applicationName}")
+  @RequestMapping(method = RequestMethod.DELETE, value = "/{applicationName:.+}")
   void delete(@PathVariable String applicationName, HttpServletResponse response) {
     getApplication().initialize(new Application().withName(applicationName)).delete()
     response.setStatus(HttpStatus.NO_CONTENT.value())
@@ -92,7 +92,7 @@ public class ApplicationsController {
 
   @PreAuthorize("hasPermission(#app.name, 'APPLICATION', 'WRITE')")
   @ApiOperation(value = "", notes = "Update an existing application")
-  @RequestMapping(method = RequestMethod.PATCH, value = "/{applicationName}")
+  @RequestMapping(method = RequestMethod.PATCH, value = "/{applicationName:.+}")
   Application update(@PathVariable String applicationName, @RequestBody final Application app) {
     if (!applicationName.trim().equalsIgnoreCase(app.getName())) {
       throw new InvalidApplicationRequestException("Application name '${app.getName()}' does not match path parameter '${applicationName}'")
@@ -108,13 +108,13 @@ public class ApplicationsController {
   // vs. 403s if the app exists, but the user doesn't have access to it.
   @PostAuthorize("hasPermission(#applicationName, 'APPLICATION', 'READ')")
   @ApiOperation(value = "", notes = "Fetch a single application by name")
-  @RequestMapping(method = RequestMethod.GET, value = "/{applicationName}")
+  @RequestMapping(method = RequestMethod.GET, value = "/{applicationName:.+}")
   Application get(@PathVariable final String applicationName) {
     return applicationDAO.findByName(applicationName.toUpperCase())
   }
 
   @PreAuthorize("hasPermission(#applicationName, 'APPLICATION', 'READ')")
-  @RequestMapping(value = '{applicationName}/history', method = RequestMethod.GET)
+  @RequestMapping(value = '{applicationName:.+}/history', method = RequestMethod.GET)
   Collection<Application> getHistory(@PathVariable String applicationName,
                                      @RequestParam(value = "limit", defaultValue = "20") int limit) {
     return applicationDAO.getApplicationHistory(applicationName, limit)
