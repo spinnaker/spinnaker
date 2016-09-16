@@ -72,7 +72,11 @@ class Keys {
         result << [application: names.app, name: parts[2], id: parts[3], region: parts[4], account: parts[5]]
         break
       case Namespace.AZURE_NETWORKS.ns:
-        result << [id: parts[2], account: parts[3], region: parts[4]]
+        result << [
+          id:            parts[2],
+          account:       parts[3],
+          resourceGroup: parts[4],
+          region:        parts[5]]
         break
       case Namespace.AZURE_SUBNETS.ns:
         result << [id: parts[2], account: parts[3], region: parts[4]]
@@ -176,17 +180,19 @@ class Keys {
 
   static String getNetworkKey(AzureCloudProvider azureCloudProvider,
                               String networkId,
+                              String resourceGroup,
                               String region,
                               String account) {
-    //"$azureCloudProvider.id:${Namespace.AZURE_NETWORKS}:${networkId}:${account}:${region}"
-    getNetworkKey(azureCloudProvider.id, networkId, region, account)
+    //"$azureCloudProvider.id:${Namespace.AZURE_NETWORKS}:${networkId}:${account}:${resourceGroup}:${region}"
+    getNetworkKey(azureCloudProvider.id, networkId, resourceGroup, region, account)
   }
 
   static String getNetworkKey(String azureCloudProviderId,
                               String networkId,
+                              String resourceGroup,
                               String region,
                               String account) {
-    "${azureCloudProviderId}:${Namespace.AZURE_NETWORKS}:${networkId}:${account}:${region}"
+    "${azureCloudProviderId}:${Namespace.AZURE_NETWORKS}:${networkId}:${account}:${resourceGroup}:${region}"
   }
 
   static String getVMImageKey(AzureCloudProvider azureCloudProvider,

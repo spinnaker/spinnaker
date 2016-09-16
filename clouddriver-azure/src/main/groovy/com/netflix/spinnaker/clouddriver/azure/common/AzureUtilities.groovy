@@ -77,13 +77,12 @@ class AzureUtilities {
 
     def parts = resourceId.split(PATH_SEPARATOR)
     def idx = parts.findIndexOf {it == "resourceGroups"}
-    def resourceGroupName = "unknown"
 
     if (idx > 0) {
-      resourceGroupName = parts[idx + 1]
+      return parts[idx + 1]
+    } else {
+      return null
     }
-
-    resourceGroupName.toLowerCase()
   }
 
   static String getAppNameFromAzureResourceName(String azureResourceName) {

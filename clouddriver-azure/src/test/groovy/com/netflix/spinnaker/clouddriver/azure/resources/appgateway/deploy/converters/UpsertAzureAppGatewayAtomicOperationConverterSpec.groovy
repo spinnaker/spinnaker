@@ -103,6 +103,8 @@ class UpsertAzureAppGatewayAtomicOperationConverterSpec extends  Specification{
   "loadBalancerName" : "testappgw-lb1-d1",
   "vnet" : null,
   "subnet" : null,
+  "subnetResourceId" : null,
+  "vnetResourceGroup" : null,
   "hasNewSubnet" : null,
   "useDefaultVnet" : false,
   "securityGroup" : null,

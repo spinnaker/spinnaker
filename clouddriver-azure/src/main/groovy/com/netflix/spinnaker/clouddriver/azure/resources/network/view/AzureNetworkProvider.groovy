@@ -58,9 +58,9 @@ class AzureNetworkProvider implements NetworkProvider<AzureNetwork> {
     cacheView.getAll(Keys.Namespace.AZURE_NETWORKS.ns, RelationshipCacheFilter.none()).collect(this.&fromCacheData)
   }
 
-  AzureVirtualNetworkDescription get(String account, String region, String name) {
+  AzureVirtualNetworkDescription get(String account, String region, String resourceGroup, String name) {
     AzureVirtualNetworkDescription vnet = null
-    def cacheData = cacheView.get(Keys.Namespace.AZURE_NETWORKS.ns, Keys.getNetworkKey(azureCloudProvider, name, region, account))
+    def cacheData = cacheView.get(Keys.Namespace.AZURE_NETWORKS.ns, Keys.getNetworkKey(azureCloudProvider, name, resourceGroup, region, account))
     if (cacheData) {
       vnet = objectMapper.convertValue(cacheData.attributes['network'], AzureVirtualNetworkDescription)
     }
@@ -94,6 +94,7 @@ class AzureNetworkProvider implements NetworkProvider<AzureNetwork> {
       name: vnet.name,
       account: parts.account?: "none",
       region: vnet.region,
+      resourceGroup: vnet.resourceGroup,
       subnets: subnets
     )
   }

@@ -94,6 +94,7 @@ class AzureAppGatewayResourceTemplateSpec extends Specification {
     description.loadBalancerName = description.name
     description.vnet = 'vnet-testappgw-westus'
     description.subnet = 'subnet-testappgw-lb1-d1'
+    description.subnetResourceId = 'subnet-testappgw-lb1-d1'
     description.cluster = 'testappgw-sg1-d1'
     description.serverGroups = ['testappgw-sg1-d1-v000', 'testappgw-sg1-d1-v001']
     description.tags = ["key1":"val1", "key2":"val2"]
@@ -139,15 +140,12 @@ class AzureAppGatewayResourceTemplateSpec extends Specification {
   "variables" : {
     "apiVersion" : "2015-06-15",
     "appGwName" : "testappgw-lb1-d1",
-    "virtualNetworkName" : "vnet-testappgw-westus",
     "publicIPAddressName" : "pip-testappgw-lb1-d1",
     "dnsNameForLBIP" : "[concat('dns-', uniqueString(concat(resourceGroup().id, subscription().id, 'testappgwlb1d1')))]",
-    "appGwSubnetName" : "subnet-testappgw-lb1-d1",
-    "virtualNetworkID" : "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
+    "appGwSubnetID" : "subnet-testappgw-lb1-d1",
     "publicIPAddressType" : "Dynamic",
     "publicIPAddressID" : "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]",
     "appGwID" : "[resourceId('Microsoft.Network/applicationGateways',variables('appGwName'))]",
-    "appGwSubnetID" : "[concat(variables('virtualNetworkID'),'/subnets/',variables('appGwSubnetName'))]",
     "appGwBeAddrPoolName" : "default_BAP0"
   },
   "resources" : [ {
@@ -174,7 +172,8 @@ class AzureAppGatewayResourceTemplateSpec extends Specification {
       "cluster" : "testappgw-sg1-d1",
       "serverGroups" : "testappgw-sg1-d1-v000 testappgw-sg1-d1-v001",
       "vnet" : "vnet-testappgw-westus",
-      "subnet" : "subnet-testappgw-lb1-d1"
+      "subnet" : "subnet-testappgw-lb1-d1",
+      "vnetResourceGroup" : null
     },
     "dependsOn" : [ "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]" ],
     "properties" : {
@@ -315,15 +314,12 @@ class AzureAppGatewayResourceTemplateSpec extends Specification {
   "variables" : {
     "apiVersion" : "2015-06-15",
     "appGwName" : "testappgw-lb1-d1",
-    "virtualNetworkName" : "vnet-testappgw-westus",
     "publicIPAddressName" : "pip-testappgw-lb1-d1",
     "dnsNameForLBIP" : "[concat('dns-', uniqueString(concat(resourceGroup().id, subscription().id, 'testappgwlb1d1')))]",
-    "appGwSubnetName" : "subnet-testappgw-lb1-d1",
-    "virtualNetworkID" : "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
+    "appGwSubnetID" : null,
     "publicIPAddressType" : "Dynamic",
     "publicIPAddressID" : "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]",
     "appGwID" : "[resourceId('Microsoft.Network/applicationGateways',variables('appGwName'))]",
-    "appGwSubnetID" : "[concat(variables('virtualNetworkID'),'/subnets/',variables('appGwSubnetName'))]",
     "appGwBeAddrPoolName" : "default_BAP0"
   },
   "resources" : [ {
@@ -343,7 +339,8 @@ class AzureAppGatewayResourceTemplateSpec extends Specification {
     "tags" : {
       "createdTime" : "1234567890",
       "vnet" : "vnet-testappgw-westus",
-      "subnet" : "subnet-testappgw-lb1-d1"
+      "subnet" : "subnet-testappgw-lb1-d1",
+      "vnetResourceGroup" : null
     },
     "dependsOn" : [ "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]" ],
     "properties" : {

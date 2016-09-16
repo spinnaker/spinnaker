@@ -63,7 +63,6 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
     String resourceGroupName = null
     String virtualNetworkName = null
     String subnetName = null
-    String subnetId = null
     String loadBalancerName = null
 
     try {
@@ -83,7 +82,7 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
 
         // We need to retain some of the settings from the current application gateway
         description.publicIpName = appGatewayDescription.publicIpName
-        description.subnet = appGatewayDescription.subnet
+        description.subnetResourceId = appGatewayDescription.subnetResourceId
         description.serverGroups = appGatewayDescription.serverGroups
         description.trafficEnabledSG = appGatewayDescription.trafficEnabledSG
 
@@ -106,18 +105,18 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
           // We will try to associate the server group with the selected virtual network and subnet
           description.hasNewSubnet = false
 
-          def vnetDescription = networkProvider.get(description.accountName, description.region, description.vnet)
+          def vnetDescription = networkProvider.get(description.accountName, description.region, description.vnetResourceGroup, description.vnet)
 
           if (!vnetDescription) {
             throw new RuntimeException("Selected virtual network $description.vnet does not exist")
           }
 
           // subnet is valid only if it exists within the selected vnet and it's unassigned or all the associations are ALSO application gateways
-          subnetId = vnetDescription.subnets?.find { subnet ->
+          description.subnetResourceId = vnetDescription.subnets?.find { subnet ->
             (subnet.name == description.subnet) && (!subnet.connectedDevices || !subnet.connectedDevices.find {it.type != "applicationGateways"})
           }?.resourceId
 
-          if (!subnetId) {
+          if (!description.subnetResourceId) {
             task.updateStatus(BASE_PHASE, "Failed to select subnet for Application Gateway ${description.name}")
             throw new RuntimeException("Selected subnet $description.subnet in virtual network $description.vnet is not valid")
           }
@@ -128,7 +127,7 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
           task.updateStatus(BASE_PHASE, "Creating subnet for application gateway")
 
           // Compute the next subnet address prefix using the cached vnet and a random generated seed
-          def vnetDescription = networkProvider.get(description.accountName, description.region, virtualNetworkName)
+          def vnetDescription = networkProvider.get(description.accountName, description.region, description.vnetResourceGroup, virtualNetworkName)
           Random rand = new Random()
           def nextSubnetAddressPrefix = AzureVirtualNetworkDescription.getNextSubnetAddressPrefix(vnetDescription, rand.nextInt(vnetDescription?.maxSubnets ?: 1))
           subnetName = AzureUtilities.getSubnetName(virtualNetworkName, nextSubnetAddressPrefix)
@@ -145,19 +144,20 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
           }
 
           task.updateStatus(BASE_PHASE, "Creating new subnet ${subnetName} for ${description.loadBalancerName}")
-          subnetId = description.credentials.networkClient.createSubnet(resourceGroupName,
+          description.subnetResourceId = description.credentials.networkClient.createSubnet(resourceGroupName,
             virtualNetworkName,
             subnetName,
             nextSubnetAddressPrefix,
             description.securityGroup)
 
-          if (!subnetId) {
+          if (!description.subnetResourceId) {
             task.updateStatus(BASE_PHASE, "Failed to create new subnet for Application Gateway ${description.name}")
             throw new RuntimeException("Could not create subnet $subnetName in virtual network $virtualNetworkName")
           }
 
           description.vnet = virtualNetworkName
           description.subnet = subnetName
+          description.vnetResourceGroup = resourceGroupName
 
           description.hasNewSubnet = true
         }

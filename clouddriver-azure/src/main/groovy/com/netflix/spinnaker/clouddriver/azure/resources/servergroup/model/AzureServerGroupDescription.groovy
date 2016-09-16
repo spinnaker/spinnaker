@@ -61,6 +61,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
   List<AzureInboundPortConfig> inboundPortConfigs = []
   String vnet
   String subnet
+  String vnetResourceGroup
   Boolean hasNewSubnet = false
   Boolean createNewSubnet = false
 
@@ -158,6 +159,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     azureSG.subnetId = scaleSet.tags?.subnetId
     azureSG.subnet = AzureUtilities.getNameFromResourceId(azureSG.subnetId)
     azureSG.vnet = azureSG.subnetId? AzureUtilities.getNameFromResourceId(azureSG.subnetId) : scaleSet.tags?.vnet
+    azureSG.vnetResourceGroup = azureSG.subnetId? AzureUtilities.getResourceGroupNameFromResourceId(azureSG.subnetId) : scaleSet.tags?.vnetResourceGroup
     azureSG.hasNewSubnet = scaleSet.tags?.hasNewSubnet
 
     azureSG.createdTime = scaleSet.tags?.createdTime?.toLong()

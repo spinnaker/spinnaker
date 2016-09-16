@@ -109,6 +109,7 @@ class AzureVirtualNetworkDescriptionSpec extends Specification {
   "type" : null,
   "addressSpace" : null,
   "resourceId" : "vnet-test-westus-id",
+  "resourceGroup" : null,
   "subnets" : null,
   "maxSubnets" : 0,
   "subnetAddressPrefixLength" : 24
@@ -131,6 +132,7 @@ class AzureVirtualNetworkDescriptionSpec extends Specification {
   "type" : null,
   "addressSpace" : [ "10.0.0.0/8" ],
   "resourceId" : "vnet-test-westus-id",
+  "resourceGroup" : null,
   "subnets" : [ {
     "name" : "vnet-test-westus-subnet-10_0_1_0_24",
     "cloudProvider" : "azure",

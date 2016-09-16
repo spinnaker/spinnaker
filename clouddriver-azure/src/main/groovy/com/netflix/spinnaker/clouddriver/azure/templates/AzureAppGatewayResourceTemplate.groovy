@@ -80,21 +80,17 @@ class AzureAppGatewayResourceTemplate {
   static class AppGatewayTemplateVariables {
     final String apiVersion = "2015-06-15"
     String appGwName
-    String virtualNetworkName
     String publicIPAddressName
     String dnsNameForLBIP
-    String appGwSubnetName
+    String appGwSubnetID
 
-    final String virtualNetworkID = "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]"
     final String publicIPAddressType = "Dynamic"
     final String publicIPAddressID = "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
     final String appGwID = "[resourceId('Microsoft.Network/applicationGateways',variables('appGwName'))]"
-    final String appGwSubnetID = "[concat(variables('virtualNetworkID'),'/subnets/',variables('appGwSubnetName'))]"
     String appGwBeAddrPoolName = defaultAppGatewayBeAddrPoolName
 
     AppGatewayTemplateVariables(AzureAppGatewayDescription description) {
       appGwName = description.name
-      virtualNetworkName = description.vnet.toLowerCase()
       if (description.publicIpName) {
         // reuse the existing public IP (this is an edit operation)
         publicIPAddressName = description.publicIpName
@@ -102,7 +98,7 @@ class AzureAppGatewayResourceTemplate {
         publicIPAddressName = AzureUtilities.PUBLICIP_NAME_PREFIX + description.name.toLowerCase()
       }
       dnsNameForLBIP = DnsSettings.getUniqueDNSName(description.name)
-      appGwSubnetName = description.subnet.toLowerCase()
+      appGwSubnetID = description.subnetResourceId
       if (description.trafficEnabledSG) {
         // This is an edit operation; preserve the current backend address pool as the active rule
         appGwBeAddrPoolName = description.trafficEnabledSG
@@ -132,6 +128,7 @@ class AzureAppGatewayResourceTemplate {
       if (description.securityGroup) tags.securityGroup = description.securityGroup
       if (description.vnet) tags.vnet = description.vnet
       if (description.subnet) tags.subnet = description.subnet
+      if (description.vnet) tags.vnetResourceGroup = description.vnetResourceGroup
       if (!description.publicIpName) {
         this.dependsOn.add("[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]")
       }

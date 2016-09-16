@@ -25,5 +25,6 @@ class AzureNetwork implements Network {
   String name
   String account
   String region
+  String resourceGroup
   List<AzureSubnet> subnets = []
 }

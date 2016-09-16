@@ -89,7 +89,7 @@ class AzureNetworkCachingAgent implements CachingAgent, AccountAware {
 
     List<CacheData> data = networks.collect() { AzureVirtualNetworkDescription network ->
       Map<String, Object> attributes = [network: network]
-      new DefaultCacheData(Keys.getNetworkKey(azureCloudProvider, network.id, region, accountName),
+      new DefaultCacheData(Keys.getNetworkKey(azureCloudProvider, network.id, network.resourceGroup, region, accountName),
         attributes,
         [:])
     }

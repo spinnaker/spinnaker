@@ -85,7 +85,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
         throw new RuntimeException("Invalid load balancer was selected; $description.appGatewayName does not exist")
       }
 
-      def vnetDescription = networkProvider.get(description.accountName, description.region, virtualNetworkName)
+      def vnetDescription = networkProvider.get(description.accountName, description.region, appGatewayDescription.vnetResourceGroup, virtualNetworkName)
 
       if (!vnetDescription) {
         throw new RuntimeException("Selected virtual network $virtualNetworkName does not exist")
@@ -134,9 +134,6 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
           throw new RuntimeException("Could not create subnet $subnetName in virtual network $virtualNetworkName")
         }
 
-        description.vnet = virtualNetworkName
-        description.subnet = subnetName
-
         description.hasNewSubnet = true
       }
 
@@ -144,6 +141,9 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
       description.name = nameResolver.resolveNextServerGroupName(description.application, description.stack, description.detail, false)
       description.clusterName = description.getClusterName()
       description.appName = description.application
+      description.vnet = virtualNetworkName
+      description.subnet = subnetName
+      description.vnetResourceGroup = appGatewayDescription.vnetResourceGroup
 
       // Verify that it can be used for this server group/cluster. create a backend address pool entry if it doesn't already exist
       task.updateStatus(BASE_PHASE, "Create new backend address pool in $description.appGatewayName")
