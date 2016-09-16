@@ -22,6 +22,7 @@ import com.netflix.spinnaker.cats.agent.*
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
+import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesInstance
 import com.netflix.spinnaker.clouddriver.kubernetes.provider.KubernetesProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.provider.view.MutableCacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
@@ -99,8 +100,7 @@ class KubernetesInstanceCachingAgent implements CachingAgent, AccountAware {
       def key = Keys.getInstanceKey(accountName, namespace, pod.metadata.name)
       cachedInstances[key].with {
         attributes.name = pod.metadata.name
-        attributes.pod = pod
-        attributes.events = events
+        attributes.instance = new KubernetesInstance(pod, events)
       }
     }
 

@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
+import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesServerGroup
 import com.netflix.spinnaker.clouddriver.kubernetes.provider.KubernetesProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.provider.view.MutableCacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
@@ -342,10 +343,9 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
         }
 
         cachedServerGroups[serverGroupKey].with {
+          def events = serverGroup.replicationController ? rcEvents[serverGroupName] : rsEvents[serverGroupName]
           attributes.name = serverGroupName
-          attributes.replicationController = serverGroup.replicationController
-          attributes.replicaSet = serverGroup.replicaSet
-          attributes.events = serverGroup.replicationController ? rcEvents[serverGroupName] : rsEvents[serverGroupName]
+          attributes.serverGroup = new KubernetesServerGroup(serverGroup.replicaSet ?: serverGroup.replicationController, accountName, events)
           relationships[Keys.Namespace.APPLICATIONS.ns].add(applicationKey)
           relationships[Keys.Namespace.CLUSTERS.ns].add(clusterKey)
           relationships[Keys.Namespace.LOAD_BALANCERS.ns].addAll(loadBalancerKeys)

@@ -52,13 +52,14 @@ class KubernetesProviderUtils {
     relationships ? cacheView.getAll(relationship, relationships, cacheFilter) : []
   }
 
-  static KubernetesInstance convertInstance(ObjectMapper objectMapper, CacheData instance) {
-    def pod = objectMapper.convertValue(instance.attributes.pod, Pod)
-    def loadBalancers = instance.relationships[Keys.Namespace.LOAD_BALANCERS.ns].collect {
+  static KubernetesInstance convertInstance(ObjectMapper objectMapper, CacheData instanceData) {
+    def instance = objectMapper.convertValue(instanceData.attributes.instance, KubernetesInstance)
+    def loadBalancers = instanceData.relationships[Keys.Namespace.LOAD_BALANCERS.ns].collect {
       Keys.parse(it).name
     }
+    instance.loadBalancers = loadBalancers
 
-    return new KubernetesInstance(pod, loadBalancers)
+    return instance
   }
 
   static Map<String, Set<KubernetesInstance>> controllerToInstanceMap(ObjectMapper objectMapper, Collection<CacheData> instances) {
@@ -71,31 +72,8 @@ class KubernetesProviderUtils {
   }
 
   static KubernetesServerGroup serverGroupFromCacheData(ObjectMapper objectMapper, CacheData cacheData, Set<KubernetesInstance> instances) {
-    ReplicationController replicationController
-    ReplicaSet replicaSet
-    if (cacheData.attributes.replicationController) {
-      replicationController = objectMapper.convertValue(cacheData.attributes.replicationController, ReplicationController)
-    } else if (cacheData.attributes.replicaSet) {
-      replicaSet = objectMapper.convertValue(cacheData.attributes.replicaSet, ReplicaSet)
-    } else {
-      throw new IllegalStateException("Expected either a ReplicationController or ReplicaSet")
-    }
-
-    def parse = Keys.parse(cacheData.id)
-
-    List<Event> events = objectMapper.convertValue(cacheData.attributes.events, List)?.collect { event ->
-      objectMapper.convertValue(event, Event)
-    } ?: []
-
-    def serverGroup
-    if (replicationController) {
-      serverGroup = new KubernetesServerGroup(replicationController, instances, parse.account, events)
-    } else if (replicaSet) {
-      serverGroup = new KubernetesServerGroup(replicaSet, instances, parse.account, events)
-    } else {
-      throw new IllegalStateException("Expected either a ReplicationController or ReplicaSet") // Placate the linter
-    }
-
+    KubernetesServerGroup serverGroup = objectMapper.convertValue(cacheData.attributes.serverGroup, KubernetesServerGroup)
+    serverGroup.instances = instances
     return serverGroup
   }
 }

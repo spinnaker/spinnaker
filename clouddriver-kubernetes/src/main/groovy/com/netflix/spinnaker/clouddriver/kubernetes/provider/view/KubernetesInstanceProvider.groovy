@@ -51,20 +51,20 @@ class KubernetesInstanceProvider implements InstanceProvider<KubernetesInstance>
       throw new IllegalStateException("Multiple kubernetes pods with name $name in namespace $namespace exist.")
     }
 
-    CacheData instanceData = instances.toArray()[0]
+    CacheData instanceData = (CacheData) instances.toArray()[0]
+
+    if (!instanceData) {
+      return null
+    }
 
     def loadBalancers = instanceData.relationships[Keys.Namespace.LOAD_BALANCERS.ns].collect {
       Keys.parse(it).name
     }
 
-    def pod = objectMapper.convertValue(instanceData.attributes.pod, Pod)
-    def events = objectMapper.convertValue(instanceData.attributes.events, List)
+    KubernetesInstance instance = objectMapper.convertValue(instanceData.attributes.instance, KubernetesInstance)
+    instance.loadBalancers = loadBalancers
 
-    events = events.collect { event ->
-      objectMapper.convertValue(event, Event)
-    }
-
-    return new KubernetesInstance(pod, loadBalancers, events)
+    return instance
   }
 
   @Override

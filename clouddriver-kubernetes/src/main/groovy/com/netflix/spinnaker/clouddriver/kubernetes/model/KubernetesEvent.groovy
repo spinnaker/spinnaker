@@ -28,6 +28,8 @@ class KubernetesEvent {
   Long firstOccurrence
   Long lastOccurrence
 
+  KubernetesEvent() { }
+
   KubernetesEvent(Event event) {
     this.message = event.message
     this.count = event.count

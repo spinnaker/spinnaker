@@ -55,20 +55,21 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
     this.labels ? !(this.labels.any { key, value -> KubernetesUtil.isLoadBalancerLabel(key) && value == "true" }) : false
   }
 
+  KubernetesServerGroup() { }
+
   KubernetesServerGroup(String name, String namespace) {
     this.name = name
     this.region = namespace
     this.namespace = namespace
   }
 
-  KubernetesServerGroup(ReplicaSet replicaSet, Set<KubernetesInstance> instances, String account, List<Event> events) {
+  KubernetesServerGroup(ReplicaSet replicaSet, String account, List<Event> events) {
     this.name = replicaSet.metadata?.name
     this.account = account
     this.region = replicaSet.metadata?.namespace
     this.namespace = this.region
     this.createdTime = KubernetesModelUtil.translateTime(replicaSet.metadata?.creationTimestamp)
     this.zones = [this.region] as Set
-    this.instances = instances
     this.securityGroups = []
     this.replicas = replicaSet.spec?.replicas ?: 0
     this.loadBalancers = KubernetesUtil.getLoadBalancers(replicaSet) as Set
@@ -82,14 +83,13 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
     }
   }
 
-  KubernetesServerGroup(ReplicationController replicationController, Set<KubernetesInstance> instances, String account, List<Event> events) {
+  KubernetesServerGroup(ReplicationController replicationController, String account, List<Event> events) {
     this.name = replicationController.metadata?.name
     this.account = account
     this.region = replicationController.metadata?.namespace
     this.namespace = this.region
     this.createdTime = KubernetesModelUtil.translateTime(replicationController.metadata?.creationTimestamp)
     this.zones = [this.region] as Set
-    this.instances = instances
     this.securityGroups = []
     this.replicas = replicationController.spec?.replicas ?: 0
     this.loadBalancers = KubernetesUtil.getLoadBalancers(replicationController) as Set

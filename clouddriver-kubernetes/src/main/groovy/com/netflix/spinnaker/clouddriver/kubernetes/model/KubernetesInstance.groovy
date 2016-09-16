@@ -43,11 +43,13 @@ class KubernetesInstance implements Instance, Serializable {
     KubernetesUtil.getPodLoadBalancerStates(pod)?.get(KubernetesUtil.loadBalancerKey(serviceName)) == "true"
   }
 
-  KubernetesInstance(Pod pod, List<String> loadBalancers) {
-    this(pod, loadBalancers, [])
+  KubernetesInstance() { }
+
+  KubernetesInstance(Pod pod) {
+    this(pod, [])
   }
 
-  KubernetesInstance(Pod pod, List<String> loadBalancers, List<Event> events) {
+  KubernetesInstance(Pod pod, List<Event> events) {
     this.name = pod.metadata?.name
     this.location = pod.metadata?.namespace
     this.instanceId = this.name
@@ -55,7 +57,6 @@ class KubernetesInstance implements Instance, Serializable {
     this.zone = pod.metadata?.namespace
     this.pod = pod
     this.yaml = SerializationUtils.dumpWithoutRuntimeStateAsYaml(pod)
-    this.loadBalancers = loadBalancers
     this.events = events?.collect { event ->
       new KubernetesEvent(event)
     } - null
