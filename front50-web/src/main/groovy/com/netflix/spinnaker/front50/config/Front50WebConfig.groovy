@@ -54,11 +54,6 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
     )
   }
 
-  @Override
-  void configurePathMatch(PathMatchConfigurer configurer) {
-    configurer.setUseSuffixPatternMatch(false)
-  }
-
   @Bean
   FilterRegistrationBean authenticatedRequestFilter() {
     def frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(true))
