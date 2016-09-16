@@ -1,6 +1,7 @@
 {
   "ecmaFeatures": {
     "jsx": false,
+    "modules": true,
   },
   "extends": "eslint:recommended",
   "rules": {
