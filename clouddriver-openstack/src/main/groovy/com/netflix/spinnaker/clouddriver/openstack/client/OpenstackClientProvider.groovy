@@ -39,18 +39,23 @@ class OpenstackClientProvider {
   @Delegate
   OpenstackLoadBalancerProvider loadBalancerProvider
 
+  @Delegate
+  OpenstackSwiftProvider swiftProvider
+
   public OpenstackClientProvider(OpenstackIdentityProvider identityProvider,
                                  OpenstackComputeV2Provider computeProvider,
                                  OpenstackNetworkingProvider networkingProvider,
                                  OpenstackOrchestrationProvider orchestrationProvider,
                                  OpenstackImageProvider imageProvider,
-                                 OpenstackLoadBalancerProvider loadBalancerProvider) {
+                                 OpenstackLoadBalancerProvider loadBalancerProvider,
+                                 OpenstackSwiftProvider swiftProvider) {
     this.identityProvider = identityProvider
     this.computeProvider = computeProvider
     this.networkingProvider = networkingProvider
     this.orchestrationProvider = orchestrationProvider
     this.imageProvider = imageProvider
     this.loadBalancerProvider = loadBalancerProvider
+    this.swiftProvider = swiftProvider
   }
 
 }

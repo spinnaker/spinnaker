@@ -385,7 +385,7 @@ class OpenstackAttributeValidatorSpec extends Specification {
     given:
     String region = 'region1'
     def v3 = Mock(OpenstackIdentityV3Provider)
-    def v3provider = new OpenstackClientProvider(v3, null, null, null, null, null)
+    def v3provider = new OpenstackClientProvider(v3, null, null, null, null, null, null)
 
     when:
     boolean actual = validator.validateRegion(region, v3provider)

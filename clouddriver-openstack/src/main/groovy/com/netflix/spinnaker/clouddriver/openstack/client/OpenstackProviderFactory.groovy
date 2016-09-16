@@ -30,7 +30,8 @@ class OpenstackProviderFactory {
     OpenstackOrchestrationProvider orchestrationProvider = new OpenstackOrchestrationV1Provider(identityProvider)
     OpenstackImageProvider imageProvider = new OpenstackImageV1Provider(identityProvider)
     OpenstackLoadBalancerProvider loadBalancerProvider = new OpenstackLoadBalancerV2Provider(identityProvider)
-    new OpenstackClientProvider(identityProvider, computeProvider, networkingProvider, orchestrationProvider, imageProvider, loadBalancerProvider)
+    OpenstackSwiftProvider swiftProvider = new OpenstackSwiftV1Provider(identityProvider)
+    new OpenstackClientProvider(identityProvider, computeProvider, networkingProvider, orchestrationProvider, imageProvider, loadBalancerProvider, swiftProvider)
   }
 
 }
