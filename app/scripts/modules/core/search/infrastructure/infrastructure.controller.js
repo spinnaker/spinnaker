@@ -59,9 +59,14 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
     }
 
     $scope.pageSize = searchService.defaultPageSize;
+    var autoNavigate = false;
 
     if (angular.isDefined($location.search().q)) {
       $scope.query = $location.search().q;
+      autoNavigate = !!$location.search().route;
+      // clear the parameter - it only comes from shortcut links, and if there are more than one result,
+      // we don't want to automatically route the user or have them copy this as a link
+      $location.search('route', null);
     }
     $scope.$watch('query', function(query) {
       $scope.categories = [];
@@ -73,6 +78,14 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
       }
       $scope.viewState.searching = true;
       search.query(query).then(function(result) {
+        let allResults = _.flatten(result.map(r => r.results));
+        if (allResults.length === 1 && autoNavigate) {
+          $location.url(allResults[0].href.substring(1));
+        } else {
+          // clear auto-navigation so, if the user does another search, and that returns a single result, we don't
+          // surprise them by navigating to it
+          autoNavigate = false;
+        }
         $scope.categories = result.filter((category) => category.category !== 'Projects' && category.results.length);
         $scope.projects = result.filter((category) => category.category === 'Projects' && category.results.length);
         $scope.moreResults = _.sum(result, function(resultSet) {
