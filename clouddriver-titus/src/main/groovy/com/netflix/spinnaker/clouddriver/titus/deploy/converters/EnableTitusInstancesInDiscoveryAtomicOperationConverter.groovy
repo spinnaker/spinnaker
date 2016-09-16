@@ -27,7 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-@TitusOperation(AtomicOperations.ENABLE_INSTANCES_IN_EUREKA)
+@TitusOperation(AtomicOperations.ENABLE_INSTANCES_IN_DISCOVERY)
 class EnableTitusInstancesInDiscoveryAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
   private final TitusClientProvider titusClientProvider

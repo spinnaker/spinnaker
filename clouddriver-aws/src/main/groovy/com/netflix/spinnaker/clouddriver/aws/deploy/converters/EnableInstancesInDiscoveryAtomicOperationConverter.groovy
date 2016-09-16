@@ -24,7 +24,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableIns
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.EnableInstancesInDiscoveryAtomicOperation
 import org.springframework.stereotype.Component
 
-@AmazonOperation(AtomicOperations.ENABLE_INSTANCES_IN_EUREKA)
+@AmazonOperation(AtomicOperations.ENABLE_INSTANCES_IN_DISCOVERY)
 @Component("enableInstancesInDiscoveryDescription")
 class EnableInstancesInDiscoveryAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Override

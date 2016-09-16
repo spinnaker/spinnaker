@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
 @Component
-@TitusOperation(AtomicOperations.DISABLE_INSTANCES_IN_EUREKA)
+@TitusOperation(AtomicOperations.DISABLE_INSTANCES_IN_DISCOVERY)
 class DisableTitusInstancesInDiscoveryDescriptionValidator
     extends AbstractTitusDescriptionValidatorSupport<EnableDisableInstanceDiscoveryDescription> {
 
