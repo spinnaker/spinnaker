@@ -198,7 +198,8 @@ module.exports = angular
             credentials: instance.account,
             providerType: instance.providerType,
             cloudProvider: instance.provider,
-            asgName: instance.serverGroup
+            asgName: instance.serverGroup,
+            serverGroupName: instance.serverGroup
           }
         ],
         application: application,
@@ -220,7 +221,8 @@ module.exports = angular
             credentials: instance.account,
             providerType: instance.providerType,
             cloudProvider: instance.provider,
-            asgName: instance.serverGroup
+            asgName: instance.serverGroup,
+            serverGroupName: instance.serverGroup
           }
         ],
         application: application,
