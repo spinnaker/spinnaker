@@ -145,8 +145,8 @@ class DeployOpenstackAtomicOperationValidatorSpec extends Specification {
     times * errors.rejectValue(_,_)
 
     where:
-    attribute << ['instanceType', 'image', 'maxSize', 'minSize', 'desiredSize', 'subnetId', 'loadBalancers', 'securityGroups']
-    times << [1,1,2,3,2,1,1,1]
+    attribute << ['instanceType', 'image', 'maxSize', 'minSize', 'desiredSize', 'subnetId', 'securityGroups']
+    times << [1,1,2,3,2,1,1]
   }
 
   def "Validate sizing - error"() {

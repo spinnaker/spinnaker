@@ -115,34 +115,46 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
       def stackName = serverGroupNameResolver.resolveNextServerGroupName(description.application, description.stack, description.freeFormDetails, false)
       task.updateStatus BASE_PHASE, "Heat stack name chosen to be ${stackName}."
 
-      //look up all load balancer listeners -> pool ids and internal ports
-      task.updateStatus BASE_PHASE, "Getting load balancer details for load balancers $description.serverGroupParameters.loadBalancers..."
-      List<MemberData> memberDataList = description.serverGroupParameters.loadBalancers.collectMany { loadBalancerId ->
-        task.updateStatus BASE_PHASE, "Looking up load balancer details for load balancer $loadBalancerId..."
-        LoadBalancerV2 loadBalancer = provider.getLoadBalancer(description.region, loadBalancerId)
-        task.updateStatus BASE_PHASE, "Found load balancer details for load balancer $loadBalancerId."
-        loadBalancer.listeners.collect { item ->
-          task.updateStatus BASE_PHASE, "Looking up load balancer listener details for listener $item.id"
-          ListenerV2 listener = provider.getListener(description.region, item.id)
-          String internalPort = parseListenerKey(listener.description).internalPort
-          String poolId = listener.defaultPoolId
-          task.updateStatus BASE_PHASE, "Found load balancer listener details (poolId=$poolId, internalPort=$internalPort) for listener $item.id."
-          new MemberData(subnetId: description.serverGroupParameters.subnetId, externalPort: listener.protocolPort.toString(), internalPort: internalPort, poolId: poolId)
-        }
-      }
-      task.updateStatus BASE_PHASE, "Finished getting load balancer details for load balancers $description.serverGroupParameters.loadBalancers."
-
-      task.updateStatus BASE_PHASE, "Loading templates..."
-      String template = getTemplateFile(ServerGroupConstants.TEMPLATE_FILE)
       Map<String, String> subtemplates = [:]
-      if (template.contains(ServerGroupConstants.SUBTEMPLATE_FILE)) {
-        String subtemplate = getTemplateFile(ServerGroupConstants.SUBTEMPLATE_FILE)
-        subtemplates << [(ServerGroupConstants.SUBTEMPLATE_FILE): subtemplate]
-        if (subtemplate.contains(ServerGroupConstants.MEMBERTEMPLATE_FILE)) {
-          subtemplates << [(ServerGroupConstants.MEMBERTEMPLATE_FILE): buildPoolMemberTemplate(memberDataList)]
+      String template = getTemplateFile(ServerGroupConstants.TEMPLATE_FILE)
+      String resourceFilename = ServerGroupConstants.SUBTEMPLATE_FILE
+
+      if (description.serverGroupParameters.loadBalancers && !description.serverGroupParameters.loadBalancers.isEmpty()) {
+        //look up all load balancer listeners -> pool ids and internal ports
+        task.updateStatus BASE_PHASE, "Getting load balancer details for load balancers $description.serverGroupParameters.loadBalancers..."
+        List<MemberData> memberDataList = description.serverGroupParameters.loadBalancers.collectMany { loadBalancerId ->
+          task.updateStatus BASE_PHASE, "Looking up load balancer details for load balancer $loadBalancerId..."
+          LoadBalancerV2 loadBalancer = provider.getLoadBalancer(description.region, loadBalancerId)
+          task.updateStatus BASE_PHASE, "Found load balancer details for load balancer $loadBalancerId."
+          loadBalancer.listeners.collect { item ->
+            task.updateStatus BASE_PHASE, "Looking up load balancer listener details for listener $item.id"
+            ListenerV2 listener = provider.getListener(description.region, item.id)
+            String internalPort = parseListenerKey(listener.description).internalPort
+            String poolId = listener.defaultPoolId
+            task.updateStatus BASE_PHASE, "Found load balancer listener details (poolId=$poolId, internalPort=$internalPort) for listener $item.id."
+            new MemberData(subnetId: description.serverGroupParameters.subnetId, externalPort: listener.protocolPort.toString(), internalPort: internalPort, poolId: poolId)
+          }
         }
+        task.updateStatus BASE_PHASE, "Finished getting load balancer details for load balancers $description.serverGroupParameters.loadBalancers."
+
+        task.updateStatus BASE_PHASE, "Loading lbaas subtemplates..."
+        String subtemplate = getTemplateFile(resourceFilename)
+        if (subtemplate) {
+          subtemplates << [(resourceFilename): subtemplate]
+          if (subtemplate.contains(ServerGroupConstants.MEMBERTEMPLATE_FILE)) {
+            subtemplates << [(ServerGroupConstants.MEMBERTEMPLATE_FILE): buildPoolMemberTemplate(memberDataList)]
+          }
+        }
+        task.updateStatus BASE_PHASE, "Finished loading lbaas templates."
+      } else {
+        task.updateStatus BASE_PHASE, "Loading subtemplates..."
+        resourceFilename = ServerGroupConstants.SUBTEMPLATE_SERVER_FILE
+        String subtemplate = getTemplateFile(resourceFilename)
+        if (subtemplate) {
+          subtemplates << [(resourceFilename): subtemplate]
+        }
+        task.updateStatus BASE_PHASE, "Finished loading templates."
       }
-      task.updateStatus BASE_PHASE, "Finished loading templates."
 
       String subnetId = description.serverGroupParameters.subnetId
       task.updateStatus BASE_PHASE, "Getting network id from subnet $subnetId..."
@@ -168,6 +180,7 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
         rawUserData = userData
         sourceUserDataType = description.userDataType
         sourceUserData = description.userData
+        asgResourceFilename = resourceFilename
         it
       }, description.disableRollback, description.timeoutMins, description.serverGroupParameters.loadBalancers)
       task.updateStatus BASE_PHASE, "Finished creating heat stack $stackName."

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergro
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.base.Splitter
+import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup.ServerGroupConstants
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
@@ -49,6 +50,7 @@ class ServerGroupParameters {
   String sourceUserDataType
   String sourceUserData
   Map<String, String> tags
+  String asgResourceFilename
 
   static final ObjectMapper objectMapper = new ObjectMapper()
 
@@ -75,7 +77,8 @@ class ServerGroupParameters {
       source_user_data_type: sourceUserDataType ?: null,
       source_user_data     : sourceUserData ?: null,
       tags                 : objectMapper.writeValueAsString(tags ?: [:]) ?: null,
-      user_data            : rawUserData ?: null
+      user_data            : rawUserData ?: null,
+      asg_resource_filename: asgResourceFilename ?: ServerGroupConstants.SUBTEMPLATE_FILE
     ]
   }
 
@@ -106,7 +109,8 @@ class ServerGroupParameters {
       rawUserData: params.get('user_data'),
       tags: unescapePythonUnicodeJsonMap(params.get('tags') ?: null),
       sourceUserDataType: params.get('source_user_data_type'),
-      sourceUserData: params.get('source_user_data')
+      sourceUserData: params.get('source_user_data'),
+      asgResourceFilename: params.get('asg_resource_filename')
     )
   }
 
@@ -120,7 +124,7 @@ class ServerGroupParameters {
    */
   static List<String> unescapePythonUnicodeJsonList(String string) {
     string?.split(",")?.collect { s ->
-      s.replace("u'", "").replace("'","").replace("[","").replace("]","").replaceAll("([ ][ ]*)","")
+      s.replace("u'", "").replace("'", "").replace("[", "").replace("]", "").replaceAll("([ ][ ]*)", "")
     } ?: []
   }
 
@@ -133,7 +137,7 @@ class ServerGroupParameters {
    * @return
    */
   static Map<String, String> unescapePythonUnicodeJsonMap(String string) {
-    String parsed = string?.replace("u'", "")?.replace("'","")?.replace("{","")?.replace("}","")?.replace("\"","")?.replaceAll("([ ][ ]*)","")
+    String parsed = string?.replace("u'", "")?.replace("'", "")?.replace("{", "")?.replace("}", "")?.replace("\"", "")?.replaceAll("([ ][ ]*)", "")
     parsed ? Splitter.on(",").withKeyValueSeparator(":").split(parsed) : [:]
   }
 

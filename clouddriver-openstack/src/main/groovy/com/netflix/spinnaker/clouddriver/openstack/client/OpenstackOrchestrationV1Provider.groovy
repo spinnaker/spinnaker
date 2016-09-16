@@ -44,7 +44,7 @@ class OpenstackOrchestrationV1Provider implements OpenstackOrchestrationProvider
         .files(subtemplate)
         .disableRollback(disableRollback)
         .timeoutMins(timeoutMins)
-        .tags(tags.join(","))
+        .tags(tags ? tags.join(",") : null)
         .build()
       getRegionClient(region).heat().stacks().create(create)
     }

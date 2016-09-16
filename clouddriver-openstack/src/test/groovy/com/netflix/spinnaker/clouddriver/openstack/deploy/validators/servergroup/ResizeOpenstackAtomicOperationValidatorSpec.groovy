@@ -123,7 +123,6 @@ class ResizeOpenstackAtomicOperationValidatorSpec extends Specification {
     'minSize'        | 3
     'desiredSize'    | 2
     'subnetId'       | 1
-    'loadBalancers'  | 1
     'securityGroups' | 1
   }
 

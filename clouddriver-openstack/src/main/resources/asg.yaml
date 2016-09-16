@@ -81,6 +81,9 @@ parameters:
     type: string
     description: Raw base64-encoded string that will execute upon server boot, if cloud-init is installed
     default: ""
+  asg_resource_filename:
+    type: string
+    description: Member resource file name (i.e. asg_resource.yaml)
 resources:
   asg:
     type: OS::Heat::AutoScalingGroup
@@ -89,7 +92,7 @@ resources:
       max_size: {get_param: max_size}
       desired_capacity: {get_param: desired_size}
       resource:
-        type: asg_resource.yaml
+        type: {get_param: asg_resource_filename}
         properties:
           flavor: {get_param: flavor}
           image: {get_param: image}
@@ -149,8 +152,8 @@ outputs:
   # we need to store subtemplate in asg output from create, as it is required to do an update and there is no native way
   # of obtaining it from a stack
   asg_resource:
-    description: asg_resource.yaml template value
-    value: {get_file: asg_resource.yaml}
+    description: asg_resource_filename template value
+    value: {get_file: {get_param: asg_resource_filename} }
   # we need to store subtemplate in asg output from create, as it is required to do an update and there is no native way
   # of obtaining it from a stack
   asg_member:

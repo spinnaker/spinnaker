@@ -55,6 +55,7 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
     String networkId = '1234'
     List<String> loadBalancerIds = ['5678']
     List<String> securityGroups = ['sg1']
+    String asgResourceFileName = 'asg_resource'
     ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image,
       maxSize: maxSize, minSize: minSize, desiredSize: desiredSize,
       subnetId: subnetId, networkId: networkId, loadBalancers: loadBalancerIds, securityGroups: securityGroups,
@@ -64,7 +65,8 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
       rawUserData: 'echo foobar',
       tags: ['foo':'bar'],
       sourceUserDataType: 'Text',
-      sourceUserData: 'echo foobar'
+      sourceUserData: 'echo foobar',
+      asgResourceFilename: asgResourceFileName
     )
     Map<String, String> params = [
       flavor               : parameters.instanceType,
@@ -88,7 +90,8 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
       source_user_data_type: 'Text',
       source_user_data     : 'echo foobar',
       tags                 : '{"foo":"bar"}',
-      user_data            : parameters.rawUserData
+      user_data            : parameters.rawUserData,
+      asg_resource_filename: asgResourceFileName
     ]
     List<String> tags = loadBalancerIds.collect { "lb-${it}" }
     StackCreate stackCreate = Builders.stack().disableRollback(disableRollback).files(subtmpl).name(stackName).parameters(params).template(tmpl).timeoutMins(timeoutMins).tags(tags.join(',')).build()
@@ -338,11 +341,11 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
     String subnetId = '9999'
     List<String> loadBalancerIds = ['5678']
     List<String> securityGroups = ['sg1']
+    String asgResourceFileName = 'asg_resource'
     ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image,
       maxSize: maxSize, minSize: minSize, desiredSize: desiredSize, networkId: networkId, subnetId: subnetId,
       loadBalancers: loadBalancerIds, securityGroups: securityGroups, rawUserData: 'echo foobar', tags: ['foo':'bar'],
-      sourceUserDataType: 'Text',
-      sourceUserData: 'echo foobar')
+      sourceUserDataType: 'Text', sourceUserData: 'echo foobar', asgResourceFilename: asgResourceFileName)
     Map<String, String> params = [
       flavor               : parameters.instanceType,
       image                : parameters.image,
@@ -365,7 +368,8 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
       source_user_data_type: 'Text',
       source_user_data     : 'echo foobar',
       tags                 : '{"foo":"bar"}',
-      user_data            : parameters.rawUserData
+      user_data            : parameters.rawUserData,
+      asg_resource_filename: asgResourceFileName
     ]
     String template = "foo: bar"
     Map<String, String> subtmpl = [sub: "foo: bar"]

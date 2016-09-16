@@ -90,7 +90,8 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
       autoscalingType: ServerGroupParameters.AutoscalingType.CPU,
       scaleup: scaleup,
       scaledown: scaledown,
-      tags: ['foo':'bar']
+      tags: ['foo':'bar'],
+      asgResourceFilename: 'asg_resource'
     )
     new DeployOpenstackAtomicOperationDescription(
       stack: STACK,
@@ -120,7 +121,8 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
       autoscalingType: ServerGroupParameters.AutoscalingType.NETWORK_INCOMING,
       scaleup: scaleup,
       scaledown: scaledown,
-      tags: ["foo":"barbar"]
+      tags: ["foo":"barbar"],
+      asgResourceFilename: 'asg_resource'
     )
     new DeployOpenstackAtomicOperationDescription(
       stack: STACK_N,
