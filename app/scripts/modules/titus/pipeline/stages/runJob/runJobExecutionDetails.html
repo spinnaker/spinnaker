@@ -10,6 +10,8 @@
           </dd>
           <dt>Image</dt>
           <dd>{{stage.context.cluster.imageId}}</dd>
+          <dt ng-if="stage.context.cluster.entryPoint">Command</dt>
+          <dd ng-if="stage.context.cluster.entryPoint">{{stage.context.cluster.entryPoint}}</dd>
           <dt>Titus Job Id</dt>
           <dd>
             <a target="_blank" href="{{apiEndpoint}}v2/jobs/{{job}}?taskState=ANY">{{job}}</a></dd>
@@ -20,7 +22,6 @@
         </dl>
       </div>
     </div>
-
     <stage-failure-message is-failed="stage.isFailed"
                            message="stage.context.completionDetails.message"></stage-failure-message>
 
