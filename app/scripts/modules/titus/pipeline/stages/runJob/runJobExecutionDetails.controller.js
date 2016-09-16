@@ -15,20 +15,21 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.runJob.titus.exec
     function initialize() {
       executionDetailsSectionService.synchronizeSection($scope.configSections);
       $scope.detailsSection = $stateParams.details;
+
+      let [job] = _.get($scope.stage.context['deploy.jobs'], $scope.stage.context.cluster.region, []);
+      $scope.job = job;
+
+      if (_.has($scope.stage.context, 'jobStatus.completionDetails')) {
+        $scope.task = $scope.stage.context.jobStatus.completionDetails.taskId;
+      }
+
+      accountService.getAccountDetails($scope.stage.context.credentials).then((details) => {
+        $scope.apiEndpoint = _.where(details.regions, {name: $scope.stage.context.cluster.region})[0].endpoint;
+        $scope.titusUiEndpoint = $scope.apiEndpoint.replace('titusapi', 'titus-ui').replace('http', 'https').replace('7101', '7001');
+      });
     }
 
     initialize();
     $scope.$on('$stateChangeSuccess', initialize, true);
 
-    let [job] = _.get($scope.stage.context['deploy.jobs'], $scope.stage.context.cluster.region, []);
-
-    $scope.job = job;
-
-    accountService.getAccountDetails($scope.stage.context.credentials).then((details) => {
-      $scope.apiEndpoint = _.where(details.regions, {name: $scope.stage.context.cluster.region})[0].endpoint;
-      $scope.titusUiEndpoint = $scope.apiEndpoint.replace('titusapi', 'titus-ui').replace('http', 'https').replace('7101', '7001');
-      if (_.has($scope.stage.context, 'jobStatus.completionDetails')) {
-        $scope.task = $scope.stage.context.jobStatus.completionDetails.taskId;
-      }
-    });
   });
