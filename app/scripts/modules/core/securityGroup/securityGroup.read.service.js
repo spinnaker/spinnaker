@@ -68,22 +68,24 @@ module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
     }
 
     function addNameBasedSecurityGroups(application, nameBasedSecurityGroups) {
-      var notFoundCaught = false;
+      var notFoundCaught = false,
+          securityGroups = [];
       nameBasedSecurityGroups.forEach(function(securityGroup) {
         try {
           var match = resolve(application.securityGroupsIndex, securityGroup, securityGroup.id);
           attachUsageFields(match);
-          application.securityGroups.data.push(match);
+          securityGroups.push(match);
         } catch(e) {
           $log.warn('could not initialize application security group:', securityGroup);
           notFoundCaught = true;
         }
       });
-      return notFoundCaught;
+      return {notFoundCaught, securityGroups};
     }
 
     function addLoadBalancersSecurityGroups(application) {
-      var notFoundCaught = false;
+      var notFoundCaught = false,
+          securityGroups = [];
       application.loadBalancers.data.forEach(function(loadBalancer) {
         if (loadBalancer.securityGroups) {
           loadBalancer.securityGroups.forEach(function(securityGroupId) {
@@ -93,9 +95,7 @@ module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
               if (!securityGroup.usages.loadBalancers.some(lb => lb.name === loadBalancer.name)) {
                 securityGroup.usages.loadBalancers.push({name: loadBalancer.name});
               }
-              if (application.securityGroups.data.indexOf(securityGroup) < 0) {
-                application.securityGroups.data.push(securityGroup);
-              }
+              securityGroups.push(securityGroup);
             } catch (e) {
               $log.warn('could not attach security group to load balancer:', loadBalancer.name, securityGroupId, e);
               notFoundCaught = true;
@@ -103,11 +103,12 @@ module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
           });
         }
       });
-      return notFoundCaught;
+      return {notFoundCaught, securityGroups};
     }
 
     function addServerGroupSecurityGroups(application) {
-      var notFoundCaught = false;
+      var notFoundCaught = false,
+          securityGroups = [];
       application.serverGroups.data.forEach(function(serverGroup) {
         if (serverGroup.securityGroups) {
           serverGroup.securityGroups.forEach(function (securityGroupId) {
@@ -117,9 +118,7 @@ module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
               if (!securityGroup.usages.serverGroups.some(sg => sg.name === serverGroup.name)) {
                 securityGroup.usages.serverGroups.push({name: serverGroup.name, isDisabled: serverGroup.isDisabled});
               }
-              if (application.securityGroups.data.indexOf(securityGroup) < 0) {
-                application.securityGroups.data.push(securityGroup);
-              }
+              securityGroups.push(securityGroup);
             } catch (e) {
               $log.warn('could not attach security group to server group:', serverGroup.name, securityGroupId);
               notFoundCaught = true;
@@ -127,37 +126,53 @@ module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
           });
         }
       });
-      return notFoundCaught;
+      return {notFoundCaught, securityGroups};
     }
 
+    let getApplicationSecurityGroups = (application, nameBasedSecurityGroups) => {
+      return loadSecurityGroups()
+        .then(allSecurityGroups => application.securityGroupsIndex = allSecurityGroups)
+        .then(() => $q.all([application.serverGroups.ready(), application.loadBalancers.ready()])
+          .then(() => attachSecurityGroups(application, nameBasedSecurityGroups, true)));
+    };
+
     function attachSecurityGroups(application, nameBasedSecurityGroups, retryIfNotFound) {
-      if (!application.securityGroupsIndex) {
-        // security groups have not yet been indexed; bail
-        return $q.when(null);
-      }
+      let data = [];
       let notFoundCaught = false;
       if (nameBasedSecurityGroups) {
         // reset everything
         application.securityGroups.data = [];
-        notFoundCaught = addNameBasedSecurityGroups(application, nameBasedSecurityGroups);
+        let nameBasedGroups = addNameBasedSecurityGroups(application, nameBasedSecurityGroups);
+        notFoundCaught = nameBasedGroups.notFoundCaught;
+        if (!nameBasedGroups.notFoundCaught) {
+          data = nameBasedGroups.securityGroups;
+        }
       } else {
-        nameBasedSecurityGroups = [];
         // filter down to empty (name-based only) security groups - we will repopulate usages
-        application.securityGroups.data = application.securityGroups.data.filter(
+        data = application.securityGroups.data.filter(
           (group) => !group.usages.serverGroups.length && !group.usages.loadBalancers.length);
       }
 
-      notFoundCaught = notFoundCaught ||
-        addLoadBalancersSecurityGroups(application) || addServerGroupSecurityGroups(application);
+      if (!notFoundCaught) {
+        let loadBalancerSecurityGroups = addLoadBalancersSecurityGroups(application);
+        notFoundCaught = loadBalancerSecurityGroups.notFoundCaught;
+        if (!notFoundCaught) {
+          data = data.concat(loadBalancerSecurityGroups.securityGroups.filter(sg => !data.includes(sg)));
+          let serverGroupSecurityGroups = addServerGroupSecurityGroups(application);
+          notFoundCaught = serverGroupSecurityGroups.notFoundCaught;
+          if (!notFoundCaught) {
+            data = data.concat(serverGroupSecurityGroups.securityGroups.filter(sg => !data.includes(sg)));
+          }
+        }
+      }
 
       if (notFoundCaught && retryIfNotFound) {
         $log.warn('Clearing security group cache and trying again...');
         return clearCacheAndRetryAttachingSecurityGroups(application, nameBasedSecurityGroups);
       } else {
-        application.securityGroups.data = _.uniq(application.securityGroups.data);
-        application.securityGroups.data.forEach(addStackToSecurityGroup);
+        data.forEach(addStackToSecurityGroup);
 
-        return $q.all(application.securityGroups.data.map(securityGroupTransformer.normalizeSecurityGroup));
+        return $q.all(data.map(securityGroupTransformer.normalizeSecurityGroup)).then(() => $q.all(data));
       }
 
     }
@@ -220,9 +235,8 @@ module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
     return {
       loadSecurityGroups: loadSecurityGroups,
       loadSecurityGroupsByApplicationName: loadSecurityGroupsByApplicationName,
-      attachSecurityGroups: attachSecurityGroups,
-      indexSecurityGroups: indexSecurityGroups,
       getSecurityGroupDetails: getSecurityGroupDetails,
+      getApplicationSecurityGroups: getApplicationSecurityGroups,
       getApplicationSecurityGroup: getApplicationSecurityGroup,
       getAllSecurityGroups: getAllSecurityGroups
     };

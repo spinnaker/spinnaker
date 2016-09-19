@@ -1,4 +1,4 @@
-'use strict';
+import modelBuilderModule from '../application/applicationModel.builder.ts';
 
 describe('Controller: AllClustersCtrl', function () {
 
@@ -8,15 +8,14 @@ describe('Controller: AllClustersCtrl', function () {
   beforeEach(
     window.module(
       require('./allClusters.controller.js'),
-      require('../application/service/applications.read.service')
+      modelBuilderModule
     )
   );
 
   beforeEach(
-    window.inject(function ($rootScope, $controller, applicationReader) {
+    window.inject(function ($rootScope, $controller, applicationModelBuilder) {
       scope = $rootScope.$new();
-      let application = {};
-      applicationReader.addSectionToApplication({key: 'serverGroups', lazy: true}, application);
+      let application = applicationModelBuilder.createApplication({key: 'serverGroups', lazy: true});
       controller = $controller('AllClustersCtrl', {
         $scope: scope,
         app: application,

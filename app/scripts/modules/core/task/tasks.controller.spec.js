@@ -1,4 +1,4 @@
-'use strict';
+import modelBuilderModule from '../application/applicationModel.builder.ts';
 
 describe('Controller: tasks', function () {
   var controller;
@@ -9,22 +9,21 @@ describe('Controller: tasks', function () {
   beforeEach(
     window.module(
       require('./tasks.controller.js'),
-      require('../application/service/applications.read.service.js')
+      modelBuilderModule
     )
   );
 
   beforeEach(
-    window.inject(function($controller, $rootScope, _$q_, _taskWriter_, applicationReader) {
+    window.inject(function($controller, $rootScope, _$q_, _taskWriter_, applicationModelBuilder) {
       $q = _$q_;
       taskWriter = _taskWriter_;
 
       this.initializeController = (tasks) => {
-        let application = {};
-        applicationReader.addSectionToApplication({key: 'tasks', lazy: true}, application);
+        let application = applicationModelBuilder.createApplication({key: 'tasks', lazy: true});
         application.tasks.activate = angular.noop;
         application.tasks.data = tasks || [];
         application.tasks.loaded = true;
-        application.tasks.refreshStream.onNext();
+        application.tasks.dataUpdated();
 
         let confirmationModalService = {
           confirm: function(params) {
@@ -64,7 +63,7 @@ describe('Controller: tasks', function () {
       expect(controller.sortedTasks.length).toBe(0);
 
       controller.application.tasks.data.push({status: 'RUNNING', startTime:20, name: 'a'});
-      controller.application.tasks.refreshStream.onNext();
+      controller.application.tasks.dataUpdated();
       scope.$digest();
 
       expect(controller.sortedTasks.length).toBe(1);

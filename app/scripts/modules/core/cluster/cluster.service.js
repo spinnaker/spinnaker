@@ -161,7 +161,7 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
     }
 
     function addTasksToServerGroups(application) {
-      let runningTasks = application.runningTasks.data || [];
+      let runningTasks = _.get(application, 'runningTasks.data', []);
       if (!application.serverGroups.data) {
         return; // still run if there are no running tasks, since they may have all finished and we need to clear them.
       }
@@ -196,7 +196,7 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
     }
 
     function addExecutionsToServerGroups(application) {
-      let executions = application.runningExecutions.data || [];
+      let executions = _.get(application, 'runningExecutions.data', []);
 
       if(!application.serverGroups.data) {
         return; // still run if there are no running tasks, since they may have all finished and we need to clear them.
@@ -282,9 +282,10 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
 
     function addServerGroupsToApplication(application, serverGroups = []) {
       if (application.serverGroups.data) {
+        let data = application.serverGroups.data;
         // remove any that have dropped off, update any that have changed
         let toRemove = [];
-        application.serverGroups.data.forEach((serverGroup, idx) => {
+        data.forEach((serverGroup, idx) => {
           let matches = serverGroups.filter((test) =>
             test.name === serverGroup.name &&
             test.account === serverGroup.account &&
@@ -295,12 +296,12 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
             toRemove.push(idx);
           } else {
             if (serverGroup.stringVal && matches[0].stringVal && serverGroup.stringVal !== matches[0].stringVal) {
-              application.serverGroups.data[idx] = matches[0];
+              data[idx] = matches[0];
             }
           }
         });
 
-        toRemove.forEach((idx) => application.serverGroups.data.splice(idx, 1));
+        toRemove.forEach((idx) => data.splice(idx, 1));
 
         // add any new ones
         serverGroups.forEach((serverGroup) => {
@@ -310,11 +311,12 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
               test.region === serverGroup.region &&
               test.category === serverGroup.category
             ).length) {
-            application.serverGroups.data.push(serverGroup);
+            data.push(serverGroup);
           }
         });
+        return data;
       } else {
-        application.serverGroups.data = serverGroups;
+        return serverGroups;
       }
     }
 

@@ -1,10 +1,9 @@
-'use strict';
-
 describe('Service: securityGroupReader', function () {
 
   var securityGroupReader,
     $http,
     $scope,
+    $q,
     API;
 
   beforeEach(
@@ -16,10 +15,11 @@ describe('Service: securityGroupReader', function () {
 
   beforeEach(
     window.inject(function (_securityGroupReader_, $httpBackend, _API_,
-                            $rootScope, $q, securityGroupTransformer, _serviceDelegate_) {
+                            $rootScope, _$q_, securityGroupTransformer, _serviceDelegate_) {
       securityGroupReader = _securityGroupReader_;
       $http = $httpBackend;
       API = _API_;
+      $q = _$q_;
       $scope = $rootScope.$new();
       spyOn(securityGroupTransformer, 'normalizeSecurityGroup').and.callFake((securityGroup) => {
         return $q.when(securityGroup);
@@ -34,49 +34,33 @@ describe('Service: securityGroupReader', function () {
     })
   );
 
-  it('does nothing when index not in place', function () {
-    var application = {
-      accounts: [ 'test' ],
-      securityGroups: { data: [] },
-      serverGroups: {data: []},
-      loadBalancers: {data: [
-        {
-          name: 'my-elb',
-          account: 'test',
-          region: 'us-east-1',
-          securityGroups: [
-            'not-cached',
-          ]
-        }
-      ]}
-    };
-
-    securityGroupReader.attachSecurityGroups(application);
-    $scope.$digest();
-    expect(application.securityGroups.data.length).toBe(0);
-  });
-
   it('attaches load balancer to security group usages', function() {
+    let data = null;
     var application = {
       accounts: [ 'test' ],
-      securityGroupsIndex: { test: { 'us-east-1': { 'not-cached': { name: 'not-cached' }}}},
       securityGroups: { data: [] },
-      serverGroups: {data: []},
-      loadBalancers: {data: [
-        {
-          name: 'my-elb',
-          account: 'test',
-          region: 'us-east-1',
-          securityGroups: [
-            'not-cached',
-          ]
-        }
-      ]}
+      serverGroups: {data: [], ready: () => $q.when(null), loaded: true},
+      loadBalancers: {
+        data: [
+          {
+            name: 'my-elb',
+            account: 'test',
+            region: 'us-east-1',
+            securityGroups: [
+              'not-cached',
+            ]
+          }
+        ],
+        ready: () => $q.when(null),
+        loaded: true
+      }
     };
-
-    securityGroupReader.attachSecurityGroups(application);
+    $http.expectGET(API.baseUrl + '/securityGroups').respond(200,
+    { test: { aws: { 'us-east-1': [{ name: 'not-cached' }]}}});
+    securityGroupReader.getApplicationSecurityGroups(application).then(results => data = results);
+    $http.flush();
     $scope.$digest();
-    var group = application.securityGroups.data[0];
+    var group = data[0];
     expect(group.name).toBe('not-cached');
     expect(group.usages.loadBalancers[0]).toEqual({name: application.loadBalancers.data[0].name});
   });
@@ -110,21 +94,26 @@ describe('Service: securityGroupReader', function () {
   });
 
   it('should clear cache, then reload security groups and try again if a security group is not found', function () {
+    let data = null;
     var application = {
       accounts: [ 'test' ],
       securityGroups: { data: [] },
-      serverGroups: {data: []},
+      serverGroups: {data: [], ready: () => $q.when(null), loaded: true},
       securityGroupsIndex: {},
-      loadBalancers: {data: [
-        {
-          name: 'my-elb',
-          account: 'test',
-          region: 'us-east-1',
-          securityGroups: [
-            'not-cached',
-          ]
-        }
-      ]}
+      loadBalancers: {
+        data: [
+          {
+            name: 'my-elb',
+            account: 'test',
+            region: 'us-east-1',
+            securityGroups: [
+              'not-cached',
+            ]
+          }
+        ],
+        ready: () => $q.when(null),
+        loaded: true
+      }
     };
 
     $http.expectGET(API.baseUrl + '/securityGroups').respond(200, {
@@ -137,9 +126,9 @@ describe('Service: securityGroupReader', function () {
       }
     });
 
-    securityGroupReader.attachSecurityGroups(application, [], true);
+    securityGroupReader.getApplicationSecurityGroups(application, []).then(results => data = results);
     $http.flush();
-    var group = application.securityGroups.data[0];
+    var group = data[0];
     expect(group.name).toBe('not-cached');
     expect(group.usages.loadBalancers[0]).toEqual({name:application.loadBalancers.data[0].name});
 

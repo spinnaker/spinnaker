@@ -1,4 +1,4 @@
-'use strict';
+import modelBuilderModule from '../../../../application/applicationModel.builder.ts';
 
 describe('Controller: renamePipelineModal', function() {
   const angular = require('angular');
@@ -6,26 +6,32 @@ describe('Controller: renamePipelineModal', function() {
   beforeEach(
     window.module(
       require('./rename.module.js'),
-      require('../../../../application/service/applications.read.service.js')
+      modelBuilderModule
     )
   );
 
-  beforeEach(window.inject(function($controller, $rootScope, _, $log, $q, pipelineConfigService, applicationReader) {
+  beforeEach(window.inject(function($controller, $rootScope, _, $log, $q, pipelineConfigService, applicationModelBuilder) {
     this.$q = $q;
-    this.addSection = applicationReader.addSectionToApplication;
-    this.initializeController = function(application, pipeline) {
+    this.application = applicationModelBuilder.createApplication({
+      key: 'pipelineConfigs',
+      lazy: true,
+      loader: () => this.$q.when(null),
+      onLoad: () => this.$q.when(null),
+    });
+    this.initializeController = function(pipeline) {
       this.$scope = $rootScope.$new();
       this.pipelineConfigService = pipelineConfigService;
       this.$uibModalInstance = { close: angular.noop };
       this.controller = $controller('RenamePipelineModalCtrl', {
         $scope: this.$scope,
-        application: application,
+        application: this.application,
         pipeline: pipeline,
         pipelineConfigService: this.pipelineConfigService,
         $uibModalInstance: this.$uibModalInstance,
         $log: $log,
         _: _,
       });
+      this.$scope.$digest();
     };
   }));
 
@@ -36,16 +42,9 @@ describe('Controller: renamePipelineModal', function() {
       {name: 'c'}
     ];
 
-    this.application = { name: 'the_app' };
-    this.addSection({
-      key: 'pipelineConfigs',
-      lazy: true,
-      loader: () => this.$q.when(null),
-      onLoad: () => this.$q.when(null),
-    }, this.application);
     this.application.pipelineConfigs.activate();
     this.application.pipelineConfigs.data = [this.pipelines[0], this.pipelines[1], this.pipelines[2]];
-    this.initializeController(this.application, this.pipelines[1]);
+    this.initializeController(this.pipelines[1]);
 
   });
 
@@ -80,7 +79,7 @@ describe('Controller: renamePipelineModal', function() {
 
       expect(submittedNewName).toBe('d');
       expect(submittedCurrentName).toBe('b');
-      expect(submittedApplication).toBe('the_app');
+      expect(submittedApplication).toBe('app');
       expect(this.application.pipelineConfigs.data[1].name).toEqual('d');
     });
 

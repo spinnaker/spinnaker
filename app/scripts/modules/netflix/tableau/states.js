@@ -6,7 +6,8 @@ module.exports = angular
   .module('spinnaker.netflix.tableau.states', [
     require('../../core/navigation/states.provider'),
     require('./application/appTableau.controller'),
-    require('./summary/summaryTableau.controller')
+    require('./summary/summaryTableau.controller'),
+    require('./tableau.dataSource'),
   ])
   .config(function(statesProvider) {
     var appTableau = {

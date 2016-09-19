@@ -1,4 +1,4 @@
-'use strict';
+import dataSourceRegistryModule from '../core/application/service/applicationDataSource.registry.ts';
 
 let angular = require('angular');
 
@@ -41,8 +41,10 @@ module.exports = angular
     require('../core/config/settings.js'),
 
     require('./tableau/states'),
+
+    dataSourceRegistryModule,
   ])
-  .run(function(cloudProviderRegistry, settings) {
+  .run(function(cloudProviderRegistry, applicationDataSourceRegistry, settings) {
     if (settings.feature && settings.feature.netflixMode) {
       cloudProviderRegistry.overrideValue(
         'aws',
@@ -69,5 +71,8 @@ module.exports = angular
         'instance.detailsController',
         'netflixTitusInstanceDetailsCtrl'
       );
+      applicationDataSourceRegistry.setDataSourceOrder([
+        'executions', 'serverGroups', 'loadBalancers', 'securityGroups', 'properties', 'analytics', 'tasks', 'config',
+      ]);
     }
   });

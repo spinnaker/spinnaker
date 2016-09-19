@@ -1,4 +1,4 @@
-'use strict';
+import modelBuilderModule from '../../application/applicationModel.builder.ts';
 
 describe('Controller: pipelineExecutions', function () {
 
@@ -8,26 +8,27 @@ describe('Controller: pipelineExecutions', function () {
   var $stateParams;
   var $timeout;
   var scrollToService;
+  var application;
 
   beforeEach(
     window.module(
       require('./executions.controller'),
-      require('../../application/service/applications.read.service.js')
+      modelBuilderModule
     )
   );
 
   beforeEach(
-    window.inject(function ($rootScope, $controller, _$timeout_, _scrollToService_, applicationReader) {
+    window.inject(function ($rootScope, $controller, _$timeout_, _scrollToService_, applicationModelBuilder) {
       scope = $rootScope.$new();
       $state = {go: angular.noop};
       $stateParams = {};
       $timeout = _$timeout_;
       scrollToService = _scrollToService_;
 
-      this.initializeController = function (application, data) {
+      application = applicationModelBuilder.createApplication({key: 'executions', lazy: true}, {key: 'pipelineConfigs', lazy: true});
+
+      this.initializeController = function (data) {
         scope.application = application;
-        applicationReader.addSectionToApplication({key: 'executions', lazy: true}, application);
-        applicationReader.addSectionToApplication({key: 'pipelineConfigs', lazy: true}, application);
         application.executions.activate = angular.noop;
         application.pipelineConfigs.activate = angular.noop;
         if (data && data.executions) {
@@ -50,24 +51,18 @@ describe('Controller: pipelineExecutions', function () {
   );
 
   it('should not set loading flag to false until executions and pipeline configs have been loaded', function () {
-    var application = {
-      name: 'foo',
-    };
-    this.initializeController(application);
+    this.initializeController();
 
     expect(controller.viewState.loading).toBe(true);
 
-    application.executions.refreshStream.onNext();
-    application.pipelineConfigs.refreshStream.onNext();
+    application.executions.dataUpdated();
+    application.pipelineConfigs.dataUpdated();
     scope.$digest();
     $timeout.flush();
     expect(controller.viewState.loading).toBe(false);
   });
 
   it('should update execution name when pipelineConfigId is present and name differs in config', function () {
-    var application = {
-      name: 'foo'
-    };
     var pipelineConfigs = [
       {
         id: 'a1',
@@ -96,7 +91,7 @@ describe('Controller: pipelineExecutions', function () {
       }
     ];
 
-    this.initializeController(application, {pipelineConfigs: pipelineConfigs, executions: executions});
+    this.initializeController({pipelineConfigs: pipelineConfigs, executions: executions});
     scope.$digest();
     $timeout.flush();
 
@@ -107,33 +102,28 @@ describe('Controller: pipelineExecutions', function () {
 
   describe('auto-scrolling behavior', function () {
 
-    var application;
-
     beforeEach(function () {
       spyOn(scrollToService, 'scrollTo');
-      application = {
-        name: 'foo',
-      };
     });
 
     it('should scroll execution into view on initialization if an execution is present in state params', function () {
       $stateParams.executionId = 'a';
 
-      this.initializeController(application, { pipelineConfigs: [], executions: []});
+      this.initializeController({ pipelineConfigs: [], executions: []});
       scope.$digest();
 
       expect(scrollToService.scrollTo.calls.count()).toBe(1);
     });
 
     it('should NOT scroll execution into view on initialization if none present in state params', function () {
-      this.initializeController(application);
+      this.initializeController();
       scope.$digest();
 
       expect(scrollToService.scrollTo.calls.count()).toBe(0);
     });
 
     it('should scroll execution into view on state change success if no execution id in state params', function () {
-      this.initializeController(application);
+      this.initializeController();
       scope.$digest();
 
       expect(scrollToService.scrollTo.calls.count()).toBe(0);
@@ -143,7 +133,7 @@ describe('Controller: pipelineExecutions', function () {
     });
 
     it('should scroll execution into view on state change success if execution id changes', function () {
-      this.initializeController(application);
+      this.initializeController();
       scope.$digest();
 
       expect(scrollToService.scrollTo.calls.count()).toBe(0);
@@ -155,7 +145,7 @@ describe('Controller: pipelineExecutions', function () {
     it('should scroll into view if no params change, because the user clicked on a link somewhere else in the page', function () {
       let params = {executionId: 'a', step: 'b', stage: 'c', details: 'd'};
 
-      this.initializeController(application);
+      this.initializeController();
       scope.$digest();
 
       expect(scrollToService.scrollTo.calls.count()).toBe(0);
@@ -168,7 +158,7 @@ describe('Controller: pipelineExecutions', function () {
       let toParams = {executionId: 'a', step: 'b', stage: 'c', details: 'd'},
           fromParams = {executionId: 'a', step: 'c', stage: 'c', details: 'd'};
 
-      this.initializeController(application);
+      this.initializeController();
       scope.$digest();
       scope.$broadcast('$stateChangeSuccess', {name: 'executions'}, toParams, {name: 'executions'}, fromParams);
       expect(scrollToService.scrollTo.calls.count()).toBe(0);
@@ -178,7 +168,7 @@ describe('Controller: pipelineExecutions', function () {
       let toParams = {executionId: 'a', step: 'b', stage: 'c', details: 'd'},
           fromParams = {executionId: 'a', step: 'b', stage: 'e', details: 'd'};
 
-      this.initializeController(application);
+      this.initializeController();
       scope.$digest();
       scope.$broadcast('$stateChangeSuccess', {name: 'executions'}, toParams, {name: 'executions'}, fromParams);
       expect(scrollToService.scrollTo.calls.count()).toBe(0);
@@ -188,7 +178,7 @@ describe('Controller: pipelineExecutions', function () {
       let toParams = {executionId: 'a', step: 'b', stage: 'c', details: 'd'},
           fromParams = {executionId: 'a', step: 'b', stage: 'c', details: 'e'};
 
-      this.initializeController(application);
+      this.initializeController();
       scope.$digest();
       scope.$broadcast('$stateChangeSuccess', {name: 'executions'}, toParams, {name: 'executions'}, fromParams);
       expect(scrollToService.scrollTo.calls.count()).toBe(0);

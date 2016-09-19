@@ -218,30 +218,31 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       // but that is much less likely at this point than orca falling over under load,
       // resulting in an empty list of executions coming back
       if (application.executions.data && application.executions.data.length && executions.length) {
-
+        let existingData = application.executions.data;
         // remove any that have dropped off, update any that have changed
         let toRemove = [];
-        application.executions.data.forEach((execution, idx) => {
+        existingData.forEach((execution, idx) => {
           let matches = executions.filter((test) => test.id === execution.id);
           if (!matches.length) {
             toRemove.push(idx);
           } else {
             if (execution.stringVal && matches[0].stringVal && execution.stringVal !== matches[0].stringVal) {
-              application.executions.data[idx] = matches[0];
+              existingData[idx] = matches[0];
             }
           }
         });
 
-        toRemove.reverse().forEach((idx) => application.executions.data.splice(idx, 1));
+        toRemove.reverse().forEach((idx) => existingData.splice(idx, 1));
 
         // add any new ones
         executions.forEach((execution) => {
-          if (!application.executions.data.filter((test) => test.id === execution.id).length) {
-            application.executions.data.push(execution);
+          if (!existingData.filter((test) => test.id === execution.id).length) {
+            existingData.push(execution);
           }
         });
+        return existingData;
       } else {
-        application.executions.data = executions;
+        return executions;
       }
     }
 
@@ -253,7 +254,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
             if (t.stringVal !== execution.stringVal) {
               transformExecution(application, execution);
               application.executions.data[idx] = execution;
-              application.executions.refreshStream.onNext();
+              application.executions.dataUpdated();
             }
           }
         });

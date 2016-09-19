@@ -1,30 +1,33 @@
-'use strict';
+import modelBuilderModule from '../../application/applicationModel.builder.ts';
 
 describe('Controller: createPipelineModal', function() {
   const angular = require('angular');
+  var application;
 
   beforeEach(
     window.module(
       require('./createPipelineModal.controller'),
-      require('../../application/service/applications.read.service')
+      modelBuilderModule
     )
   );
 
-  beforeEach(window.inject(function($controller, $rootScope, _, $log, $q, pipelineConfigService, applicationReader) {
+  beforeEach(window.inject(function($controller, $rootScope, _, $log, $q, pipelineConfigService, applicationModelBuilder) {
     this.$q = $q;
-    this.initializeController = function(application, configs = []) {
-      applicationReader.addSectionToApplication({
-        key: 'pipelineConfigs',
-        lazy: true,
-        loader: () => this.$q.when(null),
-        onLoad: () => this.$q.when(null),
-      }, application);
-      applicationReader.addSectionToApplication({
-        key: 'strategyConfigs',
-        lazy: true,
-        loader: () => this.$q.when(null),
-        onLoad: () => this.$q.when(null),
-      }, application);
+    this.initializeController = function(configs = []) {
+      application = applicationModelBuilder.createApplication(
+        {
+          key: 'pipelineConfigs',
+          lazy: true,
+          loader: () => this.$q.when(null),
+          onLoad: () => this.$q.when(null),
+        },
+        {
+          key: 'strategyConfigs',
+          lazy: true,
+          loader: () => this.$q.when(null),
+          onLoad: () => this.$q.when(null),
+        }
+      );
       application.pipelineConfigs.data = configs;
       this.$scope = $rootScope.$new();
       this.pipelineConfigService = pipelineConfigService;
@@ -44,24 +47,24 @@ describe('Controller: createPipelineModal', function() {
   describe('template instantiation', function() {
 
     it('provides a default value when no templates exist', function() {
-      this.initializeController({name: 'the-app'});
+      this.initializeController();
       var template = this.$scope.templates[0];
       expect(this.$scope.templates.length).toBe(1);
       expect(template.name).toBe('None');
-      expect(template.application).toBe('the-app');
+      expect(template.application).toBe('app');
       expect(template.triggers).toEqual([]);
       expect(template.stages).toEqual([]);
     });
 
     it('includes the default value when templates exist', function() {
-      this.initializeController({}, [ { name: 'some pipeline' } ]);
+      this.initializeController([ { name: 'some pipeline' } ]);
       expect(this.$scope.templates.length).toBe(2);
       expect(this.$scope.templates[0].name).toBe('None');
       expect(this.$scope.templates[1].name).toBe('some pipeline');
     });
 
     it('initializes command with the default template', function() {
-      this.initializeController({}, [ { name: 'some pipeline' } ]);
+      this.initializeController([ { name: 'some pipeline' } ]);
       expect(this.$scope.templates.length).toBe(2);
       expect(this.$scope.templates[0].name).toBe('None');
       expect(this.$scope.templates[1].name).toBe('some pipeline');
@@ -69,7 +72,7 @@ describe('Controller: createPipelineModal', function() {
     });
 
     it('sets all pipeline names on the scope to be used by unique validator', function() {
-      this.initializeController({}, [ { name: 'a' }, { name: 'b' } ]);
+      this.initializeController([ { name: 'a' }, { name: 'b' } ]);
       expect(this.$scope.templates.length).toBe(3);
       expect(this.$scope.existingNames).toEqual(['None', 'a', 'b']);
     });
@@ -80,10 +83,7 @@ describe('Controller: createPipelineModal', function() {
     it('saves pipeline, adds it to application, and closes modal', function () {
       var $q = this.$q;
       var submitted = null;
-      var application = {
-        name: 'the_app'
-      };
-      this.initializeController(application);
+      this.initializeController();
       spyOn(application.pipelineConfigs, 'refresh').and.callFake(() => {
         application.pipelineConfigs.data = [
           {name: 'new pipeline', id: '1234-5678'}
@@ -102,7 +102,7 @@ describe('Controller: createPipelineModal', function() {
       this.$scope.$digest();
 
       expect(submitted.name).toBe('new pipeline');
-      expect(submitted.application).toBe('the_app');
+      expect(submitted.application).toBe('app');
       expect(submitted.stages).toEqual([]);
       expect(submitted.triggers).toEqual([]);
       expect(this.$uibModalInstance.close).toHaveBeenCalledWith('1234-5678');
@@ -119,10 +119,7 @@ describe('Controller: createPipelineModal', function() {
         stages: [{name: 'the_stage'}],
         triggers: [{name: 'the_trigger'}]
       };
-      var application = {};
-
-      this.initializeController(application);
-      application.pipelineConfigs.data = [toCopy];
+      this.initializeController([toCopy]);
       spyOn(application.pipelineConfigs, 'refresh').and.callFake(() => {
         application.pipelineConfigs.data = [{name: 'new pipeline', id: '1234-5678'}];
         return $q.when(null);
@@ -148,9 +145,7 @@ describe('Controller: createPipelineModal', function() {
     it('should insert new pipeline as last one in application and set its index', function () {
       var $q = this.$q;
       var submitted = null;
-      var application = {};
-
-      this.initializeController(application, [{name: 'x'}]);
+      this.initializeController([{name: 'x'}]);
       spyOn(application.pipelineConfigs, 'refresh').and.callFake(() => {
         application.pipelineConfigs.data = [{name: 'new pipeline', id: '1234-5678'}];
         return $q.when(null);
@@ -171,7 +166,7 @@ describe('Controller: createPipelineModal', function() {
 
     it('sets error flag, message when save is rejected', function () {
       var $q = this.$q;
-      this.initializeController({name: 'the_app'});
+      this.initializeController();
       spyOn(this.pipelineConfigService, 'savePipeline').and.callFake(function () {
         return $q.reject({data: {message: 'something went wrong'}});
       });
@@ -185,7 +180,7 @@ describe('Controller: createPipelineModal', function() {
 
     it('provides default error message when none provided on failed save', function () {
       var $q = this.$q;
-      this.initializeController({name: 'the_app'});
+      this.initializeController();
       spyOn(this.pipelineConfigService, 'savePipeline').and.callFake(function () {
         return $q.reject({});
       });

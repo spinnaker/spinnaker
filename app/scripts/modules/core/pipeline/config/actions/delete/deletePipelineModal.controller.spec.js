@@ -1,4 +1,4 @@
-'use strict';
+import modelBuilderModule from '../../../../application/applicationModel.builder.ts';
 
 describe('Controller: deletePipelineModal', function() {
   const angular = require('angular');
@@ -6,27 +6,33 @@ describe('Controller: deletePipelineModal', function() {
   beforeEach(
     window.module(
       require('./delete.module.js'),
-      require('../../../../application/service/applications.read.service.js')
+      modelBuilderModule
     )
   );
 
-  beforeEach(window.inject(function($controller, $rootScope, $log, $q, pipelineConfigService, $state, applicationReader) {
+  beforeEach(window.inject(function($controller, $rootScope, $log, $q, pipelineConfigService, $state, applicationModelBuilder) {
     this.$q = $q;
-    this.addSection = applicationReader.addSectionToApplication;
-    this.initializeController = function(application, pipeline) {
+    this.application = applicationModelBuilder.createApplication({
+      key: 'pipelineConfigs',
+      lazy: true,
+      loader: () => this.$q.when(null),
+      onLoad: () => this.$q.when(null),
+    });
+    this.initializeController = function(pipeline) {
       this.$state = $state;
       this.$scope = $rootScope.$new();
       this.pipelineConfigService = pipelineConfigService;
       this.$uibModalInstance = { close: angular.noop };
       this.controller = $controller('DeletePipelineModalCtrl', {
         $scope: this.$scope,
-        application: application,
+        application: this.application,
         pipeline: pipeline,
         pipelineConfigService: this.pipelineConfigService,
         $uibModalInstance: this.$uibModalInstance,
         $log: $log,
         $state: $state,
       });
+      this.$scope.$digest();
     };
   }));
 
@@ -39,16 +45,9 @@ describe('Controller: deletePipelineModal', function() {
         {name: 'c', index: 2}
       ];
 
-      this.application = { name: 'the_app' };
-      this.addSection({
-        key: 'pipelineConfigs',
-        lazy: true,
-        loader: () => this.$q.when(null),
-        onLoad: () => this.$q.when(null),
-      }, this.application);
       this.application.pipelineConfigs.activate();
       this.application.pipelineConfigs.data = [this.pipelines[0], this.pipelines[1], this.pipelines[2]];
-      this.initializeController(this.application, this.pipelines[1]);
+      this.initializeController(this.pipelines[1]);
 
     });
 
@@ -75,7 +74,7 @@ describe('Controller: deletePipelineModal', function() {
       this.$scope.$digest();
 
       expect(submittedPipeline).toBe('b');
-      expect(submittedApplication).toBe('the_app');
+      expect(submittedApplication).toBe('app');
       expect(this.application.pipelineConfigs.data).toEqual([this.pipelines[0], this.pipelines[2]]);
       expect(this.pipelineConfigService.savePipeline).toHaveBeenCalledWith(this.pipelines[2]);
       expect(this.pipelineConfigService.savePipeline.calls.count()).toEqual(1);

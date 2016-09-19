@@ -1,4 +1,4 @@
-'use strict';
+import modelBuilderModule from '../../../core/application/applicationModel.builder.ts';
 
 describe('Controller: LoadBalancerDetailsCtrl', function () {
   var controller;
@@ -16,17 +16,16 @@ describe('Controller: LoadBalancerDetailsCtrl', function () {
   beforeEach(
     window.module(
       require('./LoadBalancerDetailsCtrl'),
-      require('../../../core/application/service/applications.read.service')
+      modelBuilderModule
     )
   );
 
   beforeEach(
     window.inject(
-      function($controller, $rootScope, _$state_, applicationReader) {
+      function($controller, $rootScope, _$state_, applicationModelBuilder) {
         $scope = $rootScope.$new();
         $state = _$state_;
-        let app = {};
-        applicationReader.addSectionToApplication({key: 'loadBalancers', lazy: true}, app);
+        let app = applicationModelBuilder.createApplication({key: 'loadBalancers', lazy: true});
         app.loadBalancers.data.push(loadBalancer);
         controller = $controller('cfLoadBalancerDetailsCtrl', {
           $scope: $scope,

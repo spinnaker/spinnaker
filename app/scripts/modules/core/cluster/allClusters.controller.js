@@ -17,9 +17,15 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
   require('../utils/waypoints/waypointContainer.directive'),
   require('angular-ui-bootstrap'),
   require('../cloudProvider/cloudProvider.registry'),
+  require('angular-ui-router'),
 ])
-  .controller('AllClustersCtrl', function($scope, app, $uibModal, $timeout, providerSelectionService, _, clusterFilterService,
+  .controller('AllClustersCtrl', function($scope, app, $uibModal, $timeout, providerSelectionService, _, clusterFilterService, $state,
                                           ClusterFilterModel, MultiselectModel, serverGroupCommandBuilder, cloudProviderRegistry) {
+
+    if (app.serverGroups.disabled) {
+      $state.go('^.^' + app.dataSources.find(ds => ds.sref && !ds.disabled).sref, {}, {location: 'replace'});
+      return;
+    }
 
     ClusterFilterModel.activate();
     this.initialized = false;

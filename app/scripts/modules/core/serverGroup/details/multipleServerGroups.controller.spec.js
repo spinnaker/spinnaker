@@ -1,4 +1,4 @@
-'use strict';
+import modelBuilderModule from '../../application/applicationModel.builder.ts';
 
 describe('Controller: MultipleServerGroups', function () {
 
@@ -9,19 +9,19 @@ describe('Controller: MultipleServerGroups', function () {
   beforeEach(
     window.module(
       require('./multipleServerGroups.controller'),
-      require('../../application/service/applications.read.service')
+      require('../../application/service/applications.read.service'),
+      modelBuilderModule
     )
   );
 
   beforeEach(
-    window.inject(function ($rootScope, $controller, _$q_, _MultiselectModel_, applicationReader, ClusterFilterModel) {
+    window.inject(function ($rootScope, $controller, _$q_, _MultiselectModel_, applicationReader, ClusterFilterModel, applicationModelBuilder) {
       scope = $rootScope.$new();
       MultiselectModel = _MultiselectModel_;
       ClusterFilterModel.sortFilter.multiselect = true;
 
       this.createController = function (serverGroups) {
-        let application = {};
-        applicationReader.addSectionToApplication({key: 'serverGroups', lazy: true}, application);
+        let application = applicationModelBuilder.createApplication({key: 'serverGroups', lazy: true});
         application.serverGroups.data = serverGroups;
         this.application = application;
 
@@ -79,7 +79,7 @@ describe('Controller: MultipleServerGroups', function () {
 
       this.serverGroupA.isDisabled = true;
       this.serverGroupB.instanceCounts.d = 3;
-      this.application.serverGroups.refreshStream.onNext();
+      this.application.serverGroups.dataUpdated();
 
       expect(controller.serverGroups[0].disabled).toBe(true);
       expect(controller.serverGroups[1].instanceCounts.d).toBe(3);
@@ -95,7 +95,7 @@ describe('Controller: MultipleServerGroups', function () {
       expect(controller.canDisable()).toBe(false);
 
       this.serverGroupB.isDisabled = false;
-      this.application.serverGroups.refreshStream.onNext();
+      this.application.serverGroups.dataUpdated();
       expect(controller.canDisable()).toBe(true);
     });
 
@@ -106,7 +106,7 @@ describe('Controller: MultipleServerGroups', function () {
       expect(controller.canEnable()).toBe(false);
 
       this.serverGroupA.isDisabled = true;
-      this.application.serverGroups.refreshStream.onNext();
+      this.application.serverGroups.dataUpdated();
       expect(controller.canEnable()).toBe(true);
     });
   });

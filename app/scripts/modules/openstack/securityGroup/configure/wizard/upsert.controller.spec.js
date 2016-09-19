@@ -1,19 +1,21 @@
-'use strict';
+import modelBuilderModule from '../../../../core/application/applicationModel.builder.ts';
 
 describe('Controller: openstackCreateSecurityGroupCtrl', function() {
 
   // load the controller's module
   beforeEach(
     window.module(
-      require('./upsert.controller')
+      require('./upsert.controller'),
+      modelBuilderModule
     )
   );
 
   // Initialize the controller and a mock scope
   var testSuite;
-  beforeEach(window.inject(function ($controller, $rootScope, $q, settings) {
+  beforeEach(window.inject(function ($controller, $rootScope, $q, settings, applicationModelBuilder) {
     testSuite = this;
     this.settings = settings;
+    this.settings.providers.openstack.defaults.account = 'account1';
 
     this.testData = {
       securityGroupList: [
@@ -53,15 +55,12 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
       dismiss: jasmine.createSpy(),
       close: jasmine.createSpy()
     };
-    this.mockApplication = {
-      name: 'app',
-      securityGroups: {
-        refresh: jasmine.createSpy(),
-        onNextRefresh: jasmine.createSpy().and.callFake(function (scope, callback) {
-          testSuite.applicationRefreshCallback = callback;
-        })
-      }
-    };
+    let application = applicationModelBuilder.createApplication({key: 'securityGroups', onLoad: angular.noop, loader: angular.noop});
+    application.securityGroups.refresh = jasmine.createSpy();
+    application.securityGroups.onNextRefresh = jasmine.createSpy().and.callFake(function (scope, callback) {
+      testSuite.applicationRefreshCallback = callback;
+    });
+    this.mockApplication = application;
 
     function addDeferredMock(obj, method) {
       obj[method] = jasmine.createSpy().and.callFake(function () {

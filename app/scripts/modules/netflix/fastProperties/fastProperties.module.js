@@ -26,5 +26,6 @@ module.exports = angular
     require('./stackSelector.component'),
     require('./clusterSelector.component'),
     require('./asgSelector.component'),
-    require('./fastPropertyPod.component')
+    require('./fastPropertyPod.component'),
+    require('./fastProperty.dataSource'),
   ]);

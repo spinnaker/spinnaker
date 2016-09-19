@@ -1,4 +1,4 @@
-'use strict';
+import modelBuilderModule from '../../../core/application/applicationModel.builder.ts';
 
 describe('Controller: cfServerGroupDetailsCtrl', function () {
   var controller;
@@ -7,16 +7,14 @@ describe('Controller: cfServerGroupDetailsCtrl', function () {
   beforeEach(
     window.module(
       require('./serverGroupDetails.cf.controller'),
-      require('../../../core/application/service/applications.read.service')
+      modelBuilderModule
     )
   );
 
   beforeEach(
-    window.inject(function ($rootScope, $controller, applicationReader) {
+    window.inject(function ($rootScope, $controller, applicationModelBuilder) {
       scope = $rootScope.$new();
-      let app = {};
-      applicationReader.addSectionToApplication({key: 'serverGroups', lazy: true}, app);
-      applicationReader.addSectionToApplication({key: 'loadBalancers', lazy: true}, app);
+      let app = applicationModelBuilder.createApplication({key: 'serverGroups', lazy: true}, {key: 'loadBalancers', lazy: true});
       controller = $controller('cfServerGroupDetailsCtrl', {
         $scope: scope,
         app: app,

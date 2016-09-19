@@ -1,29 +1,28 @@
-'use strict';
+import modelBuilderModule from '../../application/applicationModel.builder.ts';
 
 describe('Controller: PipelineConfigCtrl', function () {
 
   var controller;
   var scope;
-  var applicationReader;
+  var applicationModelBuilder;
 
   beforeEach(
     window.module(
       require('./pipelineConfig.controller.js'),
-      require('../../application/service/applications.read.service.js')
+      modelBuilderModule
     )
   );
 
   beforeEach(
-    window.inject(function ($rootScope, $controller, _applicationReader_) {
+    window.inject(function ($rootScope, $controller, _applicationModelBuilder_) {
       scope = $rootScope.$new();
       controller = $controller;
-      applicationReader = _applicationReader_;
+      applicationModelBuilder = _applicationModelBuilder_;
     })
   );
 
   it('should initialize immediately if pipeline configs are already present', function () {
-    scope.application = {};
-    applicationReader.addSectionToApplication({key: 'pipelineConfigs', lazy: true}, scope.application);
+    scope.application = applicationModelBuilder.createApplication({key: 'pipelineConfigs', lazy: true});
     scope.application.pipelineConfigs.data = [ { id: 'a' } ];
     scope.application.pipelineConfigs.loaded = true;
 
@@ -38,8 +37,7 @@ describe('Controller: PipelineConfigCtrl', function () {
   });
 
   it('should wait until pipeline configs are loaded before initializing', function () {
-    scope.application = {};
-    applicationReader.addSectionToApplication({key: 'pipelineConfigs', lazy: true, loader: angular.noop}, scope.application);
+    scope.application = applicationModelBuilder.createApplication({key: 'pipelineConfigs', lazy: true});
     spyOn(scope.application.pipelineConfigs, 'activate').and.callFake(angular.noop);
     let vm = controller('PipelineConfigCtrl', {
       $scope: scope,
@@ -49,7 +47,7 @@ describe('Controller: PipelineConfigCtrl', function () {
     });
 
     scope.application.pipelineConfigs.data.push({id: 'a'});
-    scope.application.pipelineConfigs.refreshStream.onNext();
+    scope.application.pipelineConfigs.dataUpdated();
     scope.$digest();
 
     expect(vm.state.pipelinesLoaded).toBe(true);

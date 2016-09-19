@@ -9,4 +9,5 @@ module.exports = angular
     require('./configure/common/serverGroup.configure.common.module.js'),
     require('./pod/runningTasksTag.directive.js'),
     require('./details/multipleServerGroups.controller.js'),
+    require('./serverGroup.dataSource')
   ]);

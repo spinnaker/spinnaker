@@ -36,7 +36,7 @@ module.exports = angular
           if (result) {
             $scope.fileContents = result.contents;
             $scope.fileLastUpdated = result.lastUpdated;
-            $scope.lastUpdatedDate = new Date(result.lastUpdated);
+            $scope.lastUpdatedDate = new Date(result.lastUpdated).getTime();
           }
         });
 

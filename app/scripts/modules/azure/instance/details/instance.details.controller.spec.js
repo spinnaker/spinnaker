@@ -1,4 +1,4 @@
-'use strict';
+import modelBuilderModule from '../../../core/application/applicationModel.builder.ts';
 
 describe('Controller: azureInstanceDetailsCtrl', function () {
 
@@ -6,22 +6,23 @@ describe('Controller: azureInstanceDetailsCtrl', function () {
   var scope;
   var instanceReader;
   var $q;
-  var applicationReader;
+  var application;
 
   beforeEach(
     window.module(
       require('./instance.details.controller'),
       require('../../../core/utils/rx'),
-      require('../../../core/application/service/applications.read.service')
+      modelBuilderModule
     )
   );
 
   beforeEach(
-    window.inject(function ($rootScope, $controller, _instanceReader_, _$q_, _applicationReader_) {
+    window.inject(function ($rootScope, $controller, _instanceReader_, _$q_, applicationModelBuilder) {
       scope = $rootScope.$new();
       instanceReader = _instanceReader_;
       $q = _$q_;
-      applicationReader = _applicationReader_;
+
+      application = applicationModelBuilder.createApplication({key: 'loadBalancers', lazy: true}, {key: 'serverGroups', lazy: true});
 
       this.createController = function(application, instance) {
         controller = $controller('azureInstanceDetailsCtrl', {
@@ -33,6 +34,7 @@ describe('Controller: azureInstanceDetailsCtrl', function () {
           },
         });
       };
+
     })
   );
 
@@ -50,13 +52,9 @@ describe('Controller: azureInstanceDetailsCtrl', function () {
       spyOn(instanceReader, 'getInstanceDetails').and.returnValue(
         $q.when(details)
       );
-      var application = {};
 
-      applicationReader.addSectionToApplication({key: 'loadBalancers', lazy: true}, application);
-      application.loadBalancers.data = [];
       application.loadBalancers.loaded = true;
 
-      applicationReader.addSectionToApplication({key: 'serverGroups', lazy: true}, application);
       application.serverGroups.data = [
         {
           account: 'test',
@@ -98,13 +96,7 @@ describe('Controller: azureInstanceDetailsCtrl', function () {
         })
       );
 
-      var application = {};
-
-      applicationReader.addSectionToApplication({key: 'loadBalancers', lazy: true}, application);
-      application.loadBalancers.data = [];
       application.loadBalancers.loaded = true;
-
-      applicationReader.addSectionToApplication({key: 'serverGroups', lazy: true}, application);
       application.serverGroups.data = [
         {
           account: 'test',

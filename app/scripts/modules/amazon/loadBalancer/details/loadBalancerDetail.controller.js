@@ -65,6 +65,8 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
         },
           autoClose
         );
+      } else {
+        autoClose();
       }
       if (!$scope.loadBalancer) {
         autoClose();

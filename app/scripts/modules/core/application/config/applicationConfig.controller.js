@@ -1,4 +1,4 @@
-'use strict';
+import applicationDataSourceEditor from './dataSources/applicationDataSourceEditor.component.ts';
 
 let angular = require('angular');
 
@@ -10,6 +10,7 @@ module.exports = angular
     require('./applicationCacheManagement.directive.js'),
     require('./deleteApplicationSection.directive.js'),
     require('./applicationSnapshotSection.component.js'),
+    applicationDataSourceEditor,
     require('./links/applicationLinks.component.js'),
     require('../../config/settings.js')
   ])

@@ -1,7 +1,7 @@
 'use strict';
 
 var HappyPack = require('happypack');
-var happyThreadPool = HappyPack.ThreadPool({ size: 6 });
+var happyThreadPool = HappyPack.ThreadPool({ size: 3 });
 
 module.exports = function(config) {
   config.set({
@@ -25,6 +25,7 @@ module.exports = function(config) {
 
     preprocessors: {
       './**/*.spec.js': ['webpack'],
+      './**/*.spec.ts': ['webpack'],
       'settings.js': ['webpack'],
       'test/**/*.js': ['webpack'],
     },
@@ -35,6 +36,10 @@ module.exports = function(config) {
           {
             test: /jquery\.js$/,
             loader: 'expose?jQuery',
+          },
+          {
+            test: /\.ts$/,
+            loader: 'ts'
           },
           {
             test: /\.css$/,

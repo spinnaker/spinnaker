@@ -417,9 +417,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
       function application(mainView, relativeUrl = '') {
         let children = [insight, tasks, config];
         if (settings.feature && settings.feature.pipelines !== false) {
-          children.push(deliveryStates.executions);
-          children.push(deliveryStates.configure);
-          children.push(deliveryStates.executionDetails);
+          children.push(deliveryStates.pipelines);
         }
 
         let applicationConfig = {

@@ -278,10 +278,9 @@ describe('Service: executionService', function () {
     });
     it('should add all executions if there are none on application', function () {
       let execs = [{a:1}];
+      let data = executionService.addExecutionsToApplication(application, execs);
 
-      executionService.addExecutionsToApplication(application, execs);
-
-      expect(application.executions.data).toBe(execs);
+      expect(data).toBe(execs);
     });
 
     it('should add new executions', function () {
@@ -333,9 +332,9 @@ describe('Service: executionService', function () {
       let execs = [];
       application.executions.data = [{a:1}];
 
-      executionService.addExecutionsToApplication(application, execs);
+      let data = executionService.addExecutionsToApplication(application, execs);
 
-      expect(application.executions.data).toEqual([]);
+      expect(data).toEqual([]);
     });
 
   });

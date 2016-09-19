@@ -10,4 +10,6 @@ module.exports = angular
     require('./modal/createApplication.modal.controller.js'),
     require('./modal/pageApplicationOwner.modal.controller.js'),
     require('./inferredApplicationWarning.service.js'),
+    require('./config/appConfig.dataSource'),
+    require('./nav/applicationNav.component'),
   ]);

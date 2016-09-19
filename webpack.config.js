@@ -29,6 +29,10 @@ module.exports = {
         loader: 'expose?jQuery',
       },
       {
+        test: /\.ts$/,
+        loader: 'ts'
+      },
+      {
         test: /\.css$/,
         loader: 'style!css',
       },

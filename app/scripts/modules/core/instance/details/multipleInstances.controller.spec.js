@@ -1,4 +1,4 @@
-'use strict';
+import modelBuilderModule from '../../application/applicationModel.builder.ts';
 
 describe('Controller: MultipleInstances', function () {
 
@@ -9,18 +9,17 @@ describe('Controller: MultipleInstances', function () {
   beforeEach(
     window.module(
       require('./multipleInstances.controller'),
-      require('../../application/service/applications.read.service')
+      modelBuilderModule
     )
   );
 
   beforeEach(
-    window.inject(function ($rootScope, $controller, _$q_, _MultiselectModel_, applicationReader) {
+    window.inject(function ($rootScope, $controller, _$q_, _MultiselectModel_, applicationModelBuilder) {
       scope = $rootScope.$new();
       MultiselectModel = _MultiselectModel_;
 
       this.createController = function (serverGroups) {
-        let application = {};
-        applicationReader.addSectionToApplication({key: 'serverGroups', lazy: true}, application);
+        let application = applicationModelBuilder.createApplication({key: 'serverGroups', lazy: true});
         application.serverGroups.data = serverGroups;
         this.application = application;
 
@@ -87,7 +86,7 @@ describe('Controller: MultipleInstances', function () {
       expect(controller.selectedGroups[0].instances[0].healthState).toBe('Up');
 
       this.serverGroupA.instances[1].healthState = 'Down';
-      this.application.serverGroups.refreshStream.onNext();
+      this.application.serverGroups.dataUpdated();
 
       expect(controller.selectedGroups[0].instances[0].healthState).toBe('Down');
     });

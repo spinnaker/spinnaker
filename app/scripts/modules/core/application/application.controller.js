@@ -14,8 +14,6 @@ module.exports = angular.module('spinnaker.application.controller', [
 ])
   .controller('ApplicationCtrl', function($scope, $state, hotkeys, app, recentHistoryService, overrideRegistry,
                                           $uibModal) {
-    this.applicationNavTemplate = overrideRegistry.getTemplate('applicationNavHeader', require('./applicationNav.html'));
-
     $scope.application = app;
     $scope.insightTarget = app;
     $scope.refreshTooltipTemplate = require('./applicationRefresh.tooltip.html');

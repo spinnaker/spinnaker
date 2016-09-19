@@ -239,7 +239,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
 
       $scope.viewState.saving = true;
       pipelineConfigService.savePipeline(pipeline)
-        .then($scope.application.pipelineConfigs.refresh)
+        .then(() => $scope.application.pipelineConfigs.refresh())
         .then(
           function() {
             viewState.original = angular.toJson(getPlain(pipeline));

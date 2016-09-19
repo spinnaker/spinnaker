@@ -1,0 +1,13 @@
+{
+  "globalDependencies": {
+    "angular": "registry:dt/angular#1.5.0+20160909133806",
+    "angular-mocks": "registry:dt/angular-mocks#1.5.0+20160608104721",
+    "core-js": "registry:dt/core-js#0.0.0+20160914114559",
+    "jasmine": "registry:dt/jasmine#2.2.0+20160621224255",
+    "jquery": "registry:dt/jquery#1.10.0+20160908203239",
+    "lodash": "registry:dt/lodash#4.14.0+20160830145422",
+    "require": "registry:dt/require#2.1.20+20160316155526",
+    "rx": "registry:dt/rx#0.0.0+20160317120654",
+    "rx-lite": "registry:dt/rx-lite#0.0.0+20160628114230"
+  }
+}
