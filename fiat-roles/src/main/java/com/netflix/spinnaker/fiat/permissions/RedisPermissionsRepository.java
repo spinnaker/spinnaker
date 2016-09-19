@@ -26,6 +26,7 @@ import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Resource;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
+import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.redis.JedisSource;
 import lombok.NonNull;
 import lombok.Setter;
@@ -65,6 +66,7 @@ import java.util.stream.Collectors;
 public class RedisPermissionsRepository implements PermissionsRepository {
 
   private static final String KEY_PERMISSIONS = "permissions";
+  private static final String KEY_ROLES = "roles";
   private static final String KEY_ALL_USERS = "users";
 
   private static final String UNRESTRICTED = UnrestrictedResourceConfig.UNRESTRICTED_USERNAME;
@@ -104,6 +106,8 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
       String userId = permission.getId();
       insertNewValuesPipeline.sadd(allUsersKey(), userId);
+
+      permission.getRoles().forEach(role -> insertNewValuesPipeline.sadd(roleKey(role), userId));
 
       for (ResourceType r : ResourceType.values()) {
         String userResourceKey = userKey(userId, r);
@@ -208,10 +212,19 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   @Override
   public void remove(@NonNull String id) {
     try (Jedis jedis = jedisSource.getJedis()) {
-      jedis.srem(allUsersKey(), id);
-      for (ResourceType r : ResourceType.values()) {
-        jedis.del(userKey(id, r));
+      Map<String, String> userRolesById = jedis.hgetAll(userKey(id, ResourceType.ROLE));
+
+      Pipeline p = jedis.pipelined();
+
+      p.srem(allUsersKey(), id);
+      for (String roleName : userRolesById.keySet()) {
+        p.srem(roleKey(roleName), id);
       }
+
+      for (ResourceType r : ResourceType.values()) {
+        p.del(userKey(id, r));
+      }
+      p.sync();
     } catch (Exception e) {
       log.error("Storage exception reading " + id + " entry.", e);
     }
@@ -227,6 +240,14 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
   private String userKey(String userId, ResourceType r) {
     return String.format("%s:%s:%s:%s", prefix, KEY_PERMISSIONS, userId, r.keySuffix());
+  }
+
+  private String roleKey(Role role) {
+    return roleKey(role.getName());
+  }
+
+  private String roleKey(String role) {
+    return String.format("%s:%s:%s", prefix, KEY_ROLES, role);
   }
 
   private Set<Resource> extractResources(ResourceType r, Map<String, String> resourceMap) {

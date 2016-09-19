@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.providers;
 
 import com.netflix.spinnaker.fiat.model.resources.Resource;
+import com.netflix.spinnaker.fiat.model.resources.Role;
 
 import java.util.Collection;
 import java.util.Set;
@@ -25,7 +26,7 @@ public interface ResourceProvider<R extends Resource> {
 
   Set<R> getAll() throws ProviderException;
 
-  Set<R> getAllRestricted(Collection<String> groups) throws ProviderException;
+  Set<R> getAllRestricted(Collection<Role> roles) throws ProviderException;
 
   Set<R> getAllUnrestricted() throws ProviderException;
 }

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
@@ -39,6 +40,7 @@ public class Application implements GroupAccessControlled, Resource, Viewable {
   }
 
   @Data
+  @EqualsAndHashCode(callSuper = false)
   @NoArgsConstructor
   public static class View extends BaseView implements Authorizable {
     String name;

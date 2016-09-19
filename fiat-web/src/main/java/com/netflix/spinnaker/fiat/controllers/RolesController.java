@@ -16,17 +16,21 @@
 
 package com.netflix.spinnaker.fiat.controllers;
 
+import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
 import com.netflix.spinnaker.fiat.roles.UserRolesSyncer;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/roles")
@@ -55,8 +59,12 @@ public class RolesController {
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.PUT)
   public void putUserPermission(@PathVariable String userId,
                                 @RequestBody @NonNull List<String> externalRoles) {
+    Set<Role> convertedRoles = externalRoles
+        .stream()
+        .map(extRole -> new Role().setSource(Role.Source.EXTERNAL).setName(extRole))
+        .collect(Collectors.toSet());
     permissionsRepository.put(
-        permissionsResolver.resolveAndMerge(ControllerSupport.decode(userId), externalRoles)
+        permissionsResolver.resolveAndMerge(ControllerSupport.decode(userId), convertedRoles)
                            .orElseThrow(UserPermissionModificationException::new)
     );
   }

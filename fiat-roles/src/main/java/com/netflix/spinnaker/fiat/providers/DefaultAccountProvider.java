@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.providers;
 
 import com.netflix.spinnaker.fiat.model.resources.Account;
+import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService;
 import lombok.NonNull;
 import lombok.Setter;
@@ -50,10 +51,11 @@ public class DefaultAccountProvider extends BaseProvider implements AccountProvi
   }
 
   @Override
-  public Set<Account> getAllRestricted(@NonNull Collection<String> groups) throws ProviderException {
+  public Set<Account> getAllRestricted(@NonNull Collection<Role> roles) throws ProviderException {
+    val groupNames = roles.stream().map(Role::getName).collect(Collectors.toList());
     return getAll()
         .stream()
-        .filter(account -> !Collections.disjoint(account.getRequiredGroupMembership(), groups))
+        .filter(account -> !Collections.disjoint(account.getRequiredGroupMembership(), groupNames))
         .collect(Collectors.toSet());
   }
 

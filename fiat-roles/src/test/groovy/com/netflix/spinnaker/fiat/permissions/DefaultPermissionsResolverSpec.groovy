@@ -18,6 +18,7 @@ package com.netflix.spinnaker.fiat.permissions
 
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
+import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.fiat.providers.ApplicationProvider
 import com.netflix.spinnaker.fiat.providers.DefaultAccountProvider
@@ -95,6 +96,9 @@ class DefaultPermissionsResolverSpec extends Specification {
         .setUserRolesProvider(userRolesProvider)
         .setResourceProviders(resourceProviders)
 
+    def role1 = new Role("group1")
+    def role2 = new Role("group2")
+
     when:
     resolver.resolve(null as String)
 
@@ -113,25 +117,20 @@ class DefaultPermissionsResolverSpec extends Specification {
     result = resolver.resolve(testUserId).get()
 
     then:
-    1 * userRolesProvider.loadRoles(testUserId) >> ["group2"]
+    1 * userRolesProvider.loadRoles(testUserId) >> [role2]
     expected.setAccounts([reqGroup1and2Acct] as Set)
             .setServiceAccounts([group2SvcAcct] as Set)
-    result == expected
-
-    when: "different capitalization"
-    result = resolver.resolve(testUserId).get()
-
-    then:
-    1 * userRolesProvider.loadRoles(testUserId) >> ["gRoUp2"]
+            .setRoles([role2] as Set)
     result == expected
 
     when: "merge externally provided roles"
-    result = resolver.resolveAndMerge(testUserId, ["group1"]).get()
+    result = resolver.resolveAndMerge(testUserId, [role1]).get()
 
     then:
-    1 * userRolesProvider.loadRoles(testUserId) >> ["group2"]
+    1 * userRolesProvider.loadRoles(testUserId) >> [role2]
     expected.setAccounts([reqGroup1Acct, reqGroup1and2Acct] as Set)
             .setServiceAccounts([group1SvcAcct, group2SvcAcct] as Set)
+            .setRoles([role1, role2] as Set)
     result == expected
   }
 
@@ -142,6 +141,9 @@ class DefaultPermissionsResolverSpec extends Specification {
         .setUserRolesProvider(userRolesProvider)
         .setResourceProviders(resourceProviders)
 
+    def role1 = new Role("group1")
+    def role2 = new Role("group2")
+
     when:
     resolver.resolve(null as Collection)
 
@@ -150,8 +152,8 @@ class DefaultPermissionsResolverSpec extends Specification {
 
     when:
     1 * userRolesProvider.multiLoadRoles(_) >> [
-        user1: ["group1"],
-        user2: ["group2"],
+        user1: [role1],
+        user2: [role2],
     ]
     def result = resolver.resolve(["user1", "user2"])
 
@@ -159,9 +161,11 @@ class DefaultPermissionsResolverSpec extends Specification {
     def user1 = new UserPermission().setId("user1")
                                     .setAccounts([reqGroup1Acct, reqGroup1and2Acct] as Set)
                                     .setServiceAccounts([group1SvcAcct] as Set)
+                                    .setRoles([role1] as Set)
     def user2 = new UserPermission().setId("user2")
                                     .setAccounts([reqGroup1and2Acct] as Set)
                                     .setServiceAccounts([group2SvcAcct] as Set)
+                                    .setRoles([role2] as Set)
     result == ["user1": user1, "user2": user2]
   }
 }

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.model.resources.Application
+import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.fiat.redis.JedisSource
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
@@ -75,27 +76,34 @@ class RedisPermissionsRepositorySpec extends Specification {
     Account account1 = new Account().setName("account")
     Application app1 = new Application().setName("app")
     ServiceAccount serviceAccount1 = new ServiceAccount().setName("serviceAccount")
+    Role role1 = new Role("role1")
 
     when:
     repo.put(new UserPermission()
                  .setId("testUser")
                  .setAccounts([account1] as Set)
                  .setApplications([app1] as Set)
-                 .setServiceAccounts([serviceAccount1] as Set))
+                 .setServiceAccounts([serviceAccount1] as Set)
+                 .setRoles([role1] as Set))
 
     then:
     jedis.smembers("unittests:users") == ["testUser"] as Set
+    jedis.smembers("unittests:roles:role1") == ["testUser"] as Set
+
     jedis.hgetAll("unittests:permissions:testUser:accounts") ==
         ['account': '{"name":"account","requiredGroupMembership":[]}']
     jedis.hgetAll("unittests:permissions:testUser:applications") ==
         ['app': '{"name":"app","requiredGroupMembership":[]}']
     jedis.hgetAll("unittests:permissions:testUser:service_accounts") ==
         ['serviceAccount': '{"name":"serviceAccount"}']
+    jedis.hgetAll("unittests:permissions:testUser:roles") ==
+        ['role1': '{"name":"role1"}']
   }
 
   def "should remove permission that has been revoked"() {
     setup:
     jedis.sadd("unittest:users", "testUser");
+    jedis.sadd("unittest:roles:role1", "testUser")
     jedis.hset("unittests:permissions:testUser:accounts",
                "account",
                '{"name":"account","requiredGroupMembership":[]}')
@@ -111,12 +119,15 @@ class RedisPermissionsRepositorySpec extends Specification {
                  .setId("testUser")
                  .setAccounts([] as Set)
                  .setApplications([] as Set)
-                 .setServiceAccounts([] as Set))
+                 .setServiceAccounts([] as Set)
+                 .setRoles([] as Set))
 
     then:
     jedis.hgetAll("unittests:permissions:testUser:accounts") == [:]
     jedis.hgetAll("unittests:permissions:testUser:applications") == [:]
     jedis.hgetAll("unittests:permissions:testUser:service_accounts") == [:]
+    jedis.hgetAll("unittests:permissions:testUser:roles") == [:]
+    jedis.smembers("unittests:roles:role1") == [] as Set
   }
 
   def "should get the permission out of redis"() {
@@ -209,15 +220,17 @@ class RedisPermissionsRepositorySpec extends Specification {
 
     Account account1 = new Account().setName("account")
     Application app1 = new Application().setName("app")
+    Role role1 = new Role("role1")
 
     when:
     repo.put(new UserPermission()
                  .setId("testUser")
                  .setAccounts([account1] as Set)
-                 .setApplications([app1] as Set))
+                 .setApplications([app1] as Set)
+                 .setRoles([role1] as Set))
 
     then:
-    jedis.keys("*").size() == 3 // users, accounts, and applications.
+    jedis.keys("*").size() == 5 // users, accounts, applications, roles, and reverse-index roles.
 
     when:
     repo.remove("testUser")

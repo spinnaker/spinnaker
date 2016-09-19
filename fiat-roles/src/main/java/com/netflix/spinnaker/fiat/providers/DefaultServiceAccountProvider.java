@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.fiat.providers;
 
+import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
 import lombok.NonNull;
@@ -27,9 +28,7 @@ import retrofit.RetrofitError;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
@@ -60,19 +59,14 @@ public class DefaultServiceAccountProvider extends BaseProvider implements Servi
    * Service accounts are usually defined using a full email address, but the specified groups are
    * normally just the first part before the "@" symbol. This implementation strips everything
    * after the "@" symbol for the purposes of service account/group matching.
+   * @param roles
    */
   @Override
-  public Set<ServiceAccount> getAllRestricted(@NonNull Collection<String> groups) {
-    // There is a potential here for a naming collision where service account
-    // "my-svc-account@abc.com" and "my-svc-account@xyz.com" each allow one another's users to use
-    // their service account. In practice, though, I don't think this will be an issue.
-    Map<String, ServiceAccount> serviceAccountsByName = getAll()
+  public Set<ServiceAccount> getAllRestricted(@NonNull Collection<Role> roles) {
+    val groupNames = roles.stream().map(Role::getName).collect(Collectors.toList());
+    return getAll()
         .stream()
-        .collect(Collectors.toMap(ServiceAccount::getNameWithoutDomain, Function.identity()));
-    return groups
-        .stream()
-        .filter(serviceAccountsByName::containsKey)
-        .map(serviceAccountsByName::get)
+        .filter(svcAcct -> !Collections.disjoint(svcAcct.getRequiredGroupMembership(), groupNames))
         .collect(Collectors.toSet());
   }
 

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.fiat.providers
 
+import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service
 import spock.lang.Shared
@@ -42,7 +43,7 @@ class DefaultServiceAccountProviderSpec extends Specification {
 
   def "should return all accounts the specified groups has access to"() {
     when:
-    def result = provider.getAllRestricted(input)
+    def result = provider.getAllRestricted(input.collect {new Role(it)})
 
     then:
     result.containsAll(values)

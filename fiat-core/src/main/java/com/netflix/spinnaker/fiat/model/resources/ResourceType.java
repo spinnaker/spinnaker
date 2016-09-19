@@ -22,7 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 public enum ResourceType {
   ACCOUNT(Account.class),
   APPLICATION(Application.class),
-  SERVICE_ACCOUNT(ServiceAccount.class); // Fiat service account.
+  SERVICE_ACCOUNT(ServiceAccount.class), // Fiat service account.
+  ROLE(Role.class);
 
   public Class<? extends Resource> modelClass;
 

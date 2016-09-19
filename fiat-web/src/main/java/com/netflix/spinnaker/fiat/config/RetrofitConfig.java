@@ -19,6 +19,7 @@ package com.netflix.spinnaker.fiat.config;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.config.OkHttpClientConfiguration;
 import com.squareup.okhttp.ConnectionPool;
@@ -75,6 +76,7 @@ public class RetrofitConfig {
   ObjectMapper objectMapper() {
     return new ObjectMapper()
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        .configure(SerializationFeature.INDENT_OUTPUT, true)
         .setSerializationInclusion(JsonInclude.Include.NON_NULL);
   }
 

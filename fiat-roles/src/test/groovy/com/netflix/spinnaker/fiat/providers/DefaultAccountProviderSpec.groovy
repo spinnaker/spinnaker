@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.providers
 
 import com.netflix.spinnaker.fiat.model.resources.Account
+import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
 import spock.lang.Specification
 import spock.lang.Subject
@@ -40,7 +41,7 @@ class DefaultAccountProviderSpec extends Specification {
     )
 
     when:
-    def result = accountProvider.getAllRestricted(input)
+    def result = accountProvider.getAllRestricted(input.collect {new Role(it)})
 
     then:
     result*.name.containsAll(values)

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.GroupAccessControlled;
 import com.netflix.spinnaker.fiat.model.resources.Resource;
+import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.fiat.providers.ProviderException;
 import com.netflix.spinnaker.fiat.providers.ResourceProvider;
@@ -55,38 +56,37 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
   @Override
   public Optional<UserPermission> resolveUnrestrictedUser() {
     return getUserPermission(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME,
-                             new ArrayList<>(0) /* groups */);
+                             Collections.emptySet() /* groups */);
   }
 
   @Override
   public Optional<UserPermission> resolve(@NonNull String userId) {
-    return resolveAndMerge(userId, Collections.emptyList());
+    return resolveAndMerge(userId, Collections.emptySet());
   }
 
   @Override
-  public Optional<UserPermission> resolveAndMerge(@NonNull String userId, Collection<String> externalRoles) {
-    List<String> roles;
+  public Optional<UserPermission> resolveAndMerge(@NonNull String userId, Collection<Role> externalRoles) {
+    List<Role> roles;
     try {
       roles = userRolesProvider.loadRoles(userId);
     } catch (ProviderException e) {
       log.warn("Failed to resolve user permission for user " + userId, e);
       return Optional.empty();
     }
-    val combo = Stream.concat(roles.stream(), externalRoles.stream())
-                      .map(String::toLowerCase)
+    Set<Role> combo = Stream.concat(roles.stream(), externalRoles.stream())
                       .collect(Collectors.toSet());
 
     return getUserPermission(userId, combo);
   }
 
   @SuppressWarnings("unchecked")
-  private Optional<UserPermission> getUserPermission(String userId, Collection<String> groups) {
-    UserPermission permission = new UserPermission().setId(userId);
+  private Optional<UserPermission> getUserPermission(String userId, Set<Role> roles) {
+    UserPermission permission = new UserPermission().setId(userId).setRoles(roles);
 
     for (ResourceProvider provider : resourceProviders) {
       try {
-        if (!groups.isEmpty()) {
-          permission.addResources(provider.getAllRestricted(groups));
+        if (!roles.isEmpty()) {
+          permission.addResources(provider.getAllRestricted(roles));
         } else if (UnrestrictedResourceConfig.UNRESTRICTED_USERNAME.equalsIgnoreCase(userId)) {
           permission.addResources(provider.getAllUnrestricted());
         }
@@ -123,9 +123,6 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
 
                 gacResource.getRequiredGroupMembership()
                            .forEach(group -> roleToResource.put(group, gacResource));
-              } else if (resource instanceof ServiceAccount) {
-                ServiceAccount serviceAccount = (ServiceAccount) resource;
-                roleToResource.put(serviceAccount.getNameWithoutDomain(), serviceAccount);
               }
             });
       } catch (ProviderException pe) {
@@ -142,10 +139,10 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
         .stream()
         .map(entry -> {
           String username = entry.getKey();
-          Collection<String> userRoles = entry.getValue();
+          Set<Role> userRoles = new HashSet<>(entry.getValue());
 
-          UserPermission permission = new UserPermission().setId(username);
-          userRoles.forEach(userRole -> permission.addResources(roleToResource.get(userRole)));
+          UserPermission permission = new UserPermission().setId(username).setRoles(userRoles);
+          userRoles.forEach(userRole -> permission.addResources(roleToResource.get(userRole.getName())));
           return permission;
         })
         .collect(Collectors.toMap(UserPermission::getId, Function.identity()));

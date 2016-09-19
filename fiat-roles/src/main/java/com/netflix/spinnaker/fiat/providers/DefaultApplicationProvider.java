@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.providers;
 
 import com.netflix.spinnaker.fiat.model.resources.Application;
+import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
 import lombok.NonNull;
 import lombok.val;
@@ -50,10 +51,11 @@ public class DefaultApplicationProvider extends BaseProvider implements Applicat
   }
 
   @Override
-  public Set<Application> getAllRestricted(@NonNull Collection<String> groups) throws ProviderException {
+  public Set<Application> getAllRestricted(@NonNull Collection<Role> roles) throws ProviderException {
+    val groupNames = roles.stream().map(Role::getName).collect(Collectors.toList());
     return getAll()
         .stream()
-        .filter(application -> !Collections.disjoint(application.getRequiredGroupMembership(), groups))
+        .filter(application -> !Collections.disjoint(application.getRequiredGroupMembership(), groupNames))
         .collect(Collectors.toSet());
   }
 

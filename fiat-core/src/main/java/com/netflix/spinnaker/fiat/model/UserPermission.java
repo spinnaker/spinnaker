@@ -19,6 +19,7 @@ package com.netflix.spinnaker.fiat.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.fiat.model.resources.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.Collection;
@@ -31,14 +32,11 @@ import java.util.stream.Collectors;
 @Data
 public class UserPermission implements Viewable {
   private String id;
+
   private Set<Account> accounts = new HashSet<>();
   private Set<Application> applications = new HashSet<>();
   private Set<ServiceAccount> serviceAccounts = new HashSet<>();
-
-  @JsonIgnore
-  public boolean isEmpty() {
-    return accounts.isEmpty() && applications.isEmpty();
-  }
+  private Set<Role> roles = new HashSet<>();
 
   public void addResource(Resource resource) {
     addResources(Collections.singleton(resource));
@@ -56,6 +54,8 @@ public class UserPermission implements Viewable {
         applications.add((Application) resource);
       } else if (resource instanceof ServiceAccount) {
         serviceAccounts.add((ServiceAccount) resource);
+      } else if (resource instanceof Role) {
+        roles.add((Role) resource);
       } else {
         throw new IllegalArgumentException("Cannot add unknown resource " + resource);
       }
@@ -68,6 +68,7 @@ public class UserPermission implements Viewable {
     retVal.addAll(accounts);
     retVal.addAll(applications);
     retVal.addAll(serviceAccounts);
+    retVal.addAll(roles);
     return retVal;
   }
 
@@ -86,6 +87,7 @@ public class UserPermission implements Viewable {
   }
 
   @Data
+  @EqualsAndHashCode(callSuper = false)
   @NoArgsConstructor
   @SuppressWarnings("unchecked")
   public static class View extends BaseView {
@@ -93,6 +95,7 @@ public class UserPermission implements Viewable {
     Set<Account.View> accounts;
     Set<Application.View> applications;
     Set<ServiceAccount.View> serviceAccounts;
+    Set<Role.View> roles;
 
     public View(UserPermission permission) {
       this.name = permission.id;
@@ -105,6 +108,7 @@ public class UserPermission implements Viewable {
       this.accounts = (Set<Account.View>) toViews.apply(permission.getAccounts());
       this.applications = (Set<Application.View>) toViews.apply(permission.getApplications());
       this.serviceAccounts = (Set<ServiceAccount.View>) toViews.apply(permission.getServiceAccounts());
+      this.roles = (Set<Role.View>) toViews.apply((permission.getRoles()));
     }
   }
 }

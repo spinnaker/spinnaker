@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.permissions;
 
 import com.netflix.spinnaker.fiat.model.UserPermission;
+import com.netflix.spinnaker.fiat.model.resources.Role;
 
 import java.util.Collection;
 import java.util.Map;
@@ -39,7 +40,7 @@ public interface PermissionsResolver {
    * Resolves a single user's permissions, taking into account externally
    * provided list of roles.
    */
-  Optional<UserPermission> resolveAndMerge(String userId, Collection<String> externalRoles);
+  Optional<UserPermission> resolveAndMerge(String userId, Collection<Role> externalRoles);
 
   /**
    * Resolves multiple user's permissions. Returned map is keyed by userId.

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.fiat.roles.github;
 
+import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
 import com.netflix.spinnaker.fiat.roles.github.client.GitHubMaster;
 import lombok.Setter;
@@ -51,7 +52,7 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
   GitHubProperties gitHubProperties;
 
   @Override
-  public List<String> loadRoles(String userName) {
+  public List<Role> loadRoles(String userName) {
     if (StringUtils.isEmpty(userName)|| StringUtils.isEmpty(gitHubProperties.getOrganization())) {
       return Collections.emptyList();
     }
@@ -88,8 +89,8 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
       return Collections.emptyList();
     }
 
-    List<String> result = new ArrayList<>();
-    result.add(gitHubProperties.getOrganization());
+    List<Role> result = new ArrayList<>();
+    result.add(toRole(gitHubProperties.getOrganization()));
 
     // Get teams of the current user
     List<GitHubMaster.Team> teams = new ArrayList<>();
@@ -115,7 +116,7 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
 
     teams.forEach(t -> {
       if (isMemberOfTeam(t, userName)) {
-        result.add(t.getSlug());
+        result.add(toRole(t.getSlug()));
       }
     });
 
@@ -146,13 +147,17 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
     Assert.state(gitHubProperties.getOrganization ()!= null, "Supply an organization");
   }
 
+  private static Role toRole(String name) {
+    return new Role().setName(name.toLowerCase()).setSource(Role.Source.GITHUB_TEAMS);
+  }
+
   @Override
-  public Map<String, Collection<String>> multiLoadRoles(Collection<String> userEmails) {
+  public Map<String, Collection<Role>> multiLoadRoles(Collection<String> userEmails) {
     if (userEmails == null || userEmails.isEmpty()) {
       return Collections.emptyMap();
     }
 
-    val emailGroupsMap = new HashMap<String, Collection<String>>();
+    val emailGroupsMap = new HashMap<String, Collection<Role>>();
     userEmails.forEach(email -> emailGroupsMap.put(email, loadRoles(email)));
 
     return emailGroupsMap;

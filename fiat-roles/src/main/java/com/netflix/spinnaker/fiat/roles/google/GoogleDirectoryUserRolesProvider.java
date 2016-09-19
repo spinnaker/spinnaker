@@ -28,6 +28,7 @@ import com.google.api.services.admin.directory.Directory;
 import com.google.api.services.admin.directory.DirectoryScopes;
 import com.google.api.services.admin.directory.model.Group;
 import com.google.api.services.admin.directory.model.Groups;
+import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -54,6 +55,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.codehaus.groovy.runtime.DefaultGroovyMethods.collect;
+
 @Slf4j
 @Component
 @ConditionalOnProperty(value = "auth.groupMembership.service", havingValue = "google")
@@ -76,7 +79,7 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
   @EqualsAndHashCode(callSuper = true)
   private class GroupBatchCallback extends JsonBatchCallback<Groups> {
 
-    Map<String, Collection<String>> emailGroupsMap;
+    Map<String, Collection<Role>> emailGroupsMap;
 
     String email;
 
@@ -87,20 +90,20 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
 
     @Override
     public void onSuccess(Groups groups, HttpHeaders responseHeaders) throws IOException {
-      Set<String> groupSet = groups.getGroups()
+      Set<Role> groupSet = groups.getGroups()
                                    .stream()
-                                   .map(Group::getName)
+                                   .map(GoogleDirectoryUserRolesProvider::toRole)
                                    .collect(Collectors.toSet());
       emailGroupsMap.put(email, groupSet);
     }
   }
 
   @Override
-  public Map<String, Collection<String>> multiLoadRoles(Collection<String> userEmails) {
+  public Map<String, Collection<Role>> multiLoadRoles(Collection<String> userEmails) {
     if (userEmails == null || userEmails.isEmpty()) {
       return new HashMap<>();
     }
-    HashMap<String, Collection<String>> emailGroupsMap = new HashMap<>();
+    HashMap<String, Collection<Role>> emailGroupsMap = new HashMap<>();
     Directory service = getDirectoryService();
     BatchRequest batch = service.batch();
     userEmails.forEach(email -> {
@@ -127,7 +130,7 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
   }
 
   @Override
-  public List<String> loadRoles(String userEmail) {
+  public List<Role> loadRoles(String userEmail) {
     if (userEmail == null || userEmail.isEmpty()) {
       return Collections.emptyList();
     }
@@ -135,7 +138,11 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
     Directory service = getDirectoryService();
     try {
       Groups groups = service.groups().list().setDomain(config.getDomain()).setUserKey(userEmail).execute();
-      return groups.getGroups().stream().map(Group::getName).collect(Collectors.toList());
+      return groups
+          .getGroups()
+          .stream()
+          .map(GoogleDirectoryUserRolesProvider::toRole)
+          .collect(Collectors.toList());
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
     }
@@ -165,6 +172,10 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
     return new Directory.Builder(httpTransport, jacksonFactory, credential)
         .setApplicationName("Spinnaker-Gate")
         .build();
+  }
+
+  private static Role toRole(Group g) {
+    return new Role().setName(g.getName().toLowerCase()).setSource(Role.Source.GOOGLE_GROUPS);
   }
 
   @Data
