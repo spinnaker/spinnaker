@@ -39,7 +39,7 @@ class GetCommitsTask implements DiffTask {
   private static final int MAX_RETRIES = 3
 
   long backoffPeriod = 3000
-  long timeout = TimeUnit.SECONDS.toMillis(60) // always set this higher than retries * backoffPeriod would take
+  long timeout = TimeUnit.MINUTES.toMillis(5) // always set this higher than retries * backoffPeriod would take
 
   @Autowired
   OortService oortService
