@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentia
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import org.springframework.validation.Errors
 
 @Component
 @TitusOperation(AtomicOperations.CREATE_SERVER_GROUP)
@@ -55,8 +56,20 @@ class TitusDeployDescriptionValidator extends AbstractTitusDescriptionValidatorS
       errors.rejectValue "imageId", "titusDeployDescription.imageId.empty"
     }
 
-    if (!description.capacity || description.capacity.desired <= 0) {
-      errors.rejectValue "capacity", "titusDeployDescription.capacity.desired.invalid"
+    if (!description.capacity) {
+      errors.rejectValue "capacity", "titusDeployDescription.capacity.invalid"
+    } else {
+      if (description.capacity.min < 0) {
+        errors.rejectValue "capacity", "titusDeployDescription.capacity.min.invalid"
+      }
+
+      if (description.capacity.max < 0) {
+        errors.rejectValue "capacity", "titusDeployDescription.capacity.max.invalid"
+      }
+
+      if (description.capacity.desired < 0) {
+        errors.rejectValue "capacity", "titusDeployDescription.capacity.desired.invalid"
+      }
     }
 
     if (description.resources) {
@@ -72,13 +85,6 @@ class TitusDeployDescriptionValidator extends AbstractTitusDescriptionValidatorS
         errors.rejectValue "resources.disk", "titusDeployDescription.resources.disk.invalid"
       }
 
-      if (description.resources.ports) {
-        description.resources.ports.each {
-          if (it <= 0) {
-            errors.rejectValue "resources.port", "titusDeployDescription.resources.port.invalid", it, "Invalid port specified"
-          }
-        }
-      }
     } else {
       errors.rejectValue "resources", "titusDeployDescription.resources.empty"
     }
@@ -86,4 +92,3 @@ class TitusDeployDescriptionValidator extends AbstractTitusDescriptionValidatorS
   }
 
 }
-import org.springframework.validation.Errors
