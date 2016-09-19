@@ -181,7 +181,7 @@ class Application implements Timestamped {
       }.each {
         it.config.applications.remove(application.toLowerCase())
         it.config.clusters.each { cluster ->
-          cluster.applications.remove(application.toLowerCase())
+          cluster.applications?.remove(application.toLowerCase())
         }
         if (it.config.applications.empty) {
           projectDao.delete(it.id)
