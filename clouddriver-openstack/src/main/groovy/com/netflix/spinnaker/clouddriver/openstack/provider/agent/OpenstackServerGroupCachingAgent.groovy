@@ -40,7 +40,10 @@ import groovy.util.logging.Slf4j
 import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.network.ext.LoadBalancerV2
 
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 
@@ -202,15 +205,11 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
     Map<String, Object> openstackImage = buildImage(providerCache, (String) launchConfig?.image)
     Map<String, Object> advancedConfig = buildAdvancedConfig(stack.parameters)
 
-    //TODO this check will change once we have a config that indicates the openstack version, e.g. kilo, liberty, mitaka
-    //kilo stack create times have a 'Z' on the end. It was removed in liberty and mitaka.
-    ZonedDateTime zonedDateTime = DateUtils.cascadingParseDateTime(stack.creationTime)
-
     OpenstackServerGroup.builder()
       .account(accountName)
       .region(region)
       .name(stack.name)
-      .createdTime(stack.creationTime ? zonedDateTime.toInstant().toEpochMilli() : ZonedDateTime.now().toInstant().toEpochMilli())
+      .createdTime(DateUtils.parseZonedDateTime(stack.creationTime).toInstant().toEpochMilli())
       .scalingConfig(buildScalingConfig(stack))
       .launchConfig(launchConfig)
       .loadBalancers(loadbalancerIds)

@@ -37,12 +37,14 @@ import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccoun
 import org.openstack4j.model.common.ActionResponse
 import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.network.ext.LoadBalancerV2
+import org.springframework.format.datetime.joda.DateTimeParser
 import redis.clients.jedis.exceptions.JedisException
 import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -272,7 +274,7 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     ProviderCache providerCache = Mock(ProviderCache)
     Stack stack = Mock(Stack)
     Set<String> loadBalancerIds = Sets.newHashSet('loadBalancerId')
-    ZonedDateTime createdTime = ZonedDateTime.now()
+    LocalDateTime createdTime = LocalDateTime.now()
     String subnetId = UUID.randomUUID().toString()
 
     and:
@@ -287,7 +289,7 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
       .account(account)
       .region(region)
       .name(stack.name)
-      .createdTime(createdTime.toInstant().toEpochMilli())
+      .createdTime(createdTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
       .scalingConfig(scalingConfig)
       .launchConfig(launchConfig)
       .advancedConfig(advancedConfig)
@@ -302,7 +304,7 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     OpenstackServerGroup result = cachingAgent.buildServerGroup(providerCache, stack, loadBalancerIds)
 
     then:
-    _ * stack.creationTime >> DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.systemDefault()).format(createdTime.toInstant())
+    _ * stack.creationTime >> DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(createdTime)
     _ * stack.parameters >> [subnet_id: subnetId]
     1 * cachingAgent.buildLaunchConfig(stack.parameters) >> launchConfig
     1 * cachingAgent.buildImage(providerCache, launchConfig.image) >> openstackImage

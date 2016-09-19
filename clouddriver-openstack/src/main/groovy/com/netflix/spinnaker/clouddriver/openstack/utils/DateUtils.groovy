@@ -2,7 +2,6 @@
  * Copyright 2016 Target, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
@@ -20,20 +19,26 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 
 class DateUtils {
 
   /**
-   * Method is intended to abstract out parsing zoned date times and local date times.
-   * @param dateTime
-   * @return
-     */
-  static ZonedDateTime cascadingParseDateTime(String dateTime) {
-    try {
-      return ZonedDateTime.parse(dateTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-    } catch (DateTimeParseException e) {
-      return LocalDateTime.parse(dateTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME)?.atZone(ZoneId.systemDefault())
+   * Parses a date time string in ISO_LOCAL_DATE_TIME format.
+   *
+   * It is assumed the date time string does not include a timezone offset, as is the norm for Openstack starting with
+   * Liberty and later.
+   * @param time the date time string to parse
+   * @param defaultTime a default time to use if the given date time is null, defaults to Now
+   * @return a parsed date time object
+   */
+  static ZonedDateTime parseZonedDateTime(String time, ZonedDateTime defaultTime = null) {
+    ZonedDateTime result
+    if (time) {
+      result = LocalDateTime.parse(time, DateTimeFormatter.ISO_LOCAL_DATE_TIME).atZone(ZoneId.systemDefault())
+    } else {
+      result = defaultTime ?: ZonedDateTime.now()
     }
+    result
   }
 }
+

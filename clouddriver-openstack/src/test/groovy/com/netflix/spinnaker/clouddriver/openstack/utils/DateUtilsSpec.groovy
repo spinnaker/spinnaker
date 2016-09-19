@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.openstack.utils
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -27,24 +26,48 @@ import java.time.format.DateTimeParseException
 
 class DateUtilsSpec extends Specification {
 
-  @Unroll
-  void 'test cascading parse - #testCase'() {
+
+  def 'parse local date time'() {
+    given:
+    def dateTime = '2011-12-03T10:15:30'
+    def expected = LocalDateTime.parse(dateTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME)?.atZone(ZoneId.systemDefault())
+
     when:
-    ZonedDateTime result = DateUtils.cascadingParseDateTime(dateTime)
+    ZonedDateTime result = DateUtils.parseZonedDateTime(dateTime)
 
     then:
     result == expected
     noExceptionThrown()
-
-    where:
-    testCase          | dateTime                    | expected
-    'zoned date time' | '2011-12-03T10:15:30+01:00' | ZonedDateTime.parse('2011-12-03T10:15:30+01:00', DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-    'local date time' | '2011-12-03T10:15:30'       | LocalDateTime.parse('2011-12-03T10:15:30', DateTimeFormatter.ISO_LOCAL_DATE_TIME)?.atZone(ZoneId.systemDefault())
   }
 
-  void 'test cascading parse exception'() {
+  def 'default date time'() {
+    given:
+    def defaultDateTime = ZonedDateTime.now()
+
     when:
-    DateUtils.cascadingParseDateTime('2011-12-03T101530')
+    ZonedDateTime result = DateUtils.parseZonedDateTime(null, defaultDateTime)
+
+    then:
+    result == defaultDateTime
+    noExceptionThrown()
+  }
+
+  def 'the default has a default'() {
+    when:
+    ZonedDateTime result = DateUtils.parseZonedDateTime(null)
+
+    then:
+    /*
+     * Can't really verify the actual time of the default's default which is Now, you know, with off by a second,
+     * or an hour on with daylight savings and what not. Lets just ensure we got back an object without any exceptions.
+     */
+    result
+    noExceptionThrown()
+  }
+
+  def 'exception when invalid date time format'() {
+    when:
+    DateUtils.parseZonedDateTime('2011-12-03T10:15:30+01:00')
 
     then:
     thrown(DateTimeParseException)
