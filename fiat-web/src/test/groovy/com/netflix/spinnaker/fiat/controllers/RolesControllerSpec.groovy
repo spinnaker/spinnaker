@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.fiat.controllers
 
 import com.netflix.spinnaker.fiat.model.UserPermission
-import com.netflix.spinnaker.fiat.permissions.InMemoryPermissionsRepository
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver
 import spock.lang.Specification
@@ -28,7 +27,7 @@ class RolesControllerSpec extends Specification {
   def "should put user in repo or throw error"() {
     setup:
     def user = new UserPermission().setId("user")
-    PermissionsRepository repo = new InMemoryPermissionsRepository()
+    PermissionsRepository repo = Mock(PermissionsRepository)
     PermissionsResolver resolver = Mock(PermissionsResolver) {
       resolve("empty") >> Optional.empty()
       resolve("user") >> Optional.of(user)
@@ -46,6 +45,6 @@ class RolesControllerSpec extends Specification {
     controller.putUserPermission("user")
 
     then:
-    repo.get("user").get() == user
+    1 * repo.put(user)
   }
 }

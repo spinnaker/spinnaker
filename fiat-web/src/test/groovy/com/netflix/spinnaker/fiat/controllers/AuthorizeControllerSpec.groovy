@@ -18,7 +18,6 @@ package com.netflix.spinnaker.fiat.controllers
 
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
-import com.netflix.spinnaker.fiat.permissions.InMemoryPermissionsRepository
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository
 import spock.lang.Specification
 
@@ -26,63 +25,51 @@ class AuthorizeControllerSpec extends Specification {
 
   def "should get user from repo"() {
     setup:
-    PermissionsRepository repository = new InMemoryPermissionsRepository()
+    PermissionsRepository repository = Mock(PermissionsRepository)
     AuthorizeController controller = new AuthorizeController(permissionsRepository: repository)
+    def foo = new UserPermission().setId("foo@batman.com")
 
     when:
     controller.getUserPermission("foo%40batman.com")
 
     then:
+    1 * repository.get("foo@batman.com") >> Optional.empty()
     thrown NotFoundException
 
     when:
-    def foo = new UserPermission().setId("foo@batman.com")
-    repository.put(foo)
     def result = controller.getUserPermission("foo%40batman.com")
 
     then:
+    1 * repository.get("foo@batman.com") >> Optional.of(foo)
     result == foo.view
   }
 
   def "should get user's accounts from repo"() {
     setup:
-    PermissionsRepository repository = new InMemoryPermissionsRepository()
+    PermissionsRepository repository = Mock(PermissionsRepository)
     AuthorizeController controller = new AuthorizeController(permissionsRepository: repository)
+    def bar = new Account().setName("bar")
+    def foo = new UserPermission().setId("foo").setAccounts([bar] as Set)
 
     when:
     controller.getUserAccounts("foo")
 
     then:
+    1 * repository.get("foo") >> Optional.empty()
     thrown NotFoundException
 
     when:
-    def bar = new Account().setName("bar")
-    def foo = new UserPermission().setId("foo").setAccounts([bar] as Set)
-    repository.put(foo)
     def result = controller.getUserAccounts("foo")
 
     then:
+    1 * repository.get("foo") >> Optional.of(foo)
     result == [bar.view] as Set
-  }
-
-  def "should get user's accounts by name from repo"() {
-    setup:
-    PermissionsRepository repository = new InMemoryPermissionsRepository()
-    AuthorizeController controller = new AuthorizeController(permissionsRepository: repository)
 
     when:
-    controller.getUserAccount("foo", "bar")
+    result = controller.getUserAccount("foo", "bar")
 
     then:
-    thrown NotFoundException
-
-    when:
-    def bar = new Account().setName("bar")
-    def foo = new UserPermission().setId("foo").setAccounts([bar] as Set)
-    repository.put(foo)
-    def result = controller.getUserAccount("foo", "bar")
-
-    then:
+    1 * repository.get("foo") >> Optional.of(foo)
     result == bar.view
   }
 }

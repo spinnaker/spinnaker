@@ -100,7 +100,7 @@ public class UserRolesSyncer {
     }
   }
 
-  private long updateUserPermissions() {
+  public long updateUserPermissions() {
     val permissionMap = permissionsRepository.getAllById();
 
     if (permissionMap.remove(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME) != null) {

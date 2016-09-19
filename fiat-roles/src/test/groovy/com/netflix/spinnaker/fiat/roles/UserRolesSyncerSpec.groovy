@@ -16,22 +16,62 @@
 
 package com.netflix.spinnaker.fiat.roles
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
-import com.netflix.spinnaker.fiat.permissions.InMemoryPermissionsRepository
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver
+import com.netflix.spinnaker.fiat.permissions.RedisPermissionsRepository
 import com.netflix.spinnaker.fiat.providers.ServiceAccountProvider
+import com.netflix.spinnaker.fiat.redis.JedisSource
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import redis.clients.jedis.Jedis
+import spock.lang.AutoCleanup
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
 class UserRolesSyncerSpec extends Specification {
 
+  @Shared
+  @AutoCleanup("destroy")
+  EmbeddedRedis embeddedRedis
+
+  @Shared
+  ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
+
+  @Shared
+  Jedis jedis
+
+  @Shared
+  RedisPermissionsRepository repo
+
+  def setupSpec() {
+    embeddedRedis = EmbeddedRedis.embed()
+    jedis = embeddedRedis.jedis
+    jedis.flushDB()
+  }
+
+  def setup() {
+    JedisSource js = new JedisSource() {
+      @Override
+      Jedis getJedis() {
+        return embeddedRedis.jedis
+      }
+    }
+    repo = new RedisPermissionsRepository()
+        .setObjectMapper(objectMapper)
+        .setJedisSource(js)
+  }
+
+  def cleanup() {
+    jedis.flushDB()
+  }
+
   def "should sync all user roles"() {
     setup:
-    def permissionsRepo = new InMemoryPermissionsRepository();
-
     def user1 = new UserPermission()
         .setId("user1")
         .setAccounts([new Account().setName("account1")] as Set)
@@ -42,9 +82,9 @@ class UserRolesSyncerSpec extends Specification {
         .setId(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME)
         .setAccounts([new Account().setName("unrestrictedAccount")] as Set)
 
-    permissionsRepo.put(user1)
-    permissionsRepo.put(user2)
-    permissionsRepo.put(unrestrictedUser)
+    repo.put(user1)
+    repo.put(user2)
+    repo.put(unrestrictedUser)
 
     def newUser2 = new UserPermission()
         .setId("user2")
@@ -53,13 +93,13 @@ class UserRolesSyncerSpec extends Specification {
 
     def permissionsResolver = Mock(PermissionsResolver)
     @Subject syncer = new UserRolesSyncer()
-        .setPermissionsRepository(permissionsRepo)
+        .setPermissionsRepository(repo)
         .setPermissionsResolver(permissionsResolver)
 
     expect:
-    permissionsRepo.get("user1").get() == user1
-    permissionsRepo.get("user2").get() == user2
-    permissionsRepo.get(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME).get() == unrestrictedUser
+    repo.get("user1").get() == user1.merge(unrestrictedUser)
+    repo.get("user2").get() == user2.merge(unrestrictedUser)
+    repo.get(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME).get() == unrestrictedUser
 
     when:
     syncer.updateUserPermissions()
@@ -69,9 +109,9 @@ class UserRolesSyncerSpec extends Specification {
     permissionsResolver.resolveUnrestrictedUser() >> Optional.of(unrestrictedUser)
 
     expect:
-    permissionsRepo.get("user1").get() == user1
-    permissionsRepo.get("user2").get() == newUser2
-    permissionsRepo.get(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME).get() == unrestrictedUser
+    repo.get("user1").get() == user1.merge(unrestrictedUser)
+    repo.get("user2").get() == newUser2.merge(unrestrictedUser)
+    repo.get(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME).get() == unrestrictedUser
   }
 
 
@@ -79,7 +119,6 @@ class UserRolesSyncerSpec extends Specification {
     setup:
     def abcPermission = new UserPermission().setId("abc")
     def xyzPermission = new UserPermission().setId("xyz@domain.com")
-    def permissionsRepo = new InMemoryPermissionsRepository()
     def permissionsResolver = Mock(PermissionsResolver) {
       resolve("abc") >> Optional.of(abcPermission)
       resolve("xyz@domain.com") >> Optional.of(xyzPermission)
@@ -90,7 +129,7 @@ class UserRolesSyncerSpec extends Specification {
     }
 
     @Subject syncer = new UserRolesSyncer()
-        .setPermissionsRepository(permissionsRepo)
+        .setPermissionsRepository(repo)
         .setPermissionsResolver(permissionsResolver)
         .setServiceAccountProvider(serviceAccountProvider)
 
@@ -98,7 +137,7 @@ class UserRolesSyncerSpec extends Specification {
     syncer.updateServiceAccounts()
 
     then:
-    permissionsRepo.get("abc").get() == abcPermission
-    permissionsRepo.get("xyz@domain.com").get() == xyzPermission
+    repo.get("abc").get() == abcPermission
+    repo.get("xyz@domain.com").get() == xyzPermission
   }
 }
