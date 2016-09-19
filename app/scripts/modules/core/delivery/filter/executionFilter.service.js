@@ -191,6 +191,7 @@ module.exports = angular
           groupsToRemove.push(idx);
         } else {
           oldGroup.runningExecutions = newGroup.runningExecutions;
+          oldGroup.config = newGroup.config;
           diffExecutions(oldGroup, newGroup);
         }
       });
