@@ -41,7 +41,7 @@ class TitusInstanceSpec extends Specification {
     submittedAt: launchDate,
     region: 'us-east-1',
     host: 'ec2-1-2-3-4.compute-1.amazonaws.com',
-    data: [ipAddresses: [nfvpc: '4.5.6.7']]
+    data: [ipAddresses: [nfvpc: '4.5.6.7'], NetworkConfiguration: [EniIPAddress: '1.2.3.4']]
   )
 
   void 'valid titus instance is created from a titus task'() {
@@ -61,7 +61,7 @@ class TitusInstanceSpec extends Specification {
     titusInstance.placement?.account == job.environment.account
     titusInstance.placement?.region == task.region
     titusInstance.placement?.zone == task.zone
-    titusInstance.placement?.host == task.host
+    titusInstance.placement?.host == task.data.NetworkConfiguration.EniIPAddress
     titusInstance.placement?.containerIp == task.data.ipAddresses.nfvpc
     titusInstance.resources?.cpu == job.cpu
     titusInstance.resources?.memory == job.memory
