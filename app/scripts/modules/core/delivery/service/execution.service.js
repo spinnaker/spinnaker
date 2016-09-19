@@ -84,7 +84,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
 
     function waitUntilPipelineIsCancelled(application, executionId) {
       return waitUntilExecutionMatches(executionId, (execution) => execution.status === 'CANCELED')
-        .then(application.executions.refresh);
+        .then(() => application.executions.refresh());
     }
 
     function waitUntilPipelineIsDeleted(application, executionId) {
@@ -93,7 +93,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
         () => $timeout(() => waitUntilPipelineIsDeleted(application, executionId).then(deferred.resolve), 1000),
         deferred.resolve
       );
-      deferred.promise.then(application.executions.refresh);
+      deferred.promise.then(() => application.executions.refresh());
       return deferred.promise;
     }
 
@@ -131,7 +131,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
           'pause',
         ].join('/')
       }).then(
-        () => waitUntilExecutionMatches(executionId, matcher).then(application.executions.refresh).then(deferred.resolve),
+        () => waitUntilExecutionMatches(executionId, matcher).then(() => application.executions.refresh()).then(deferred.resolve),
         (exception) => deferred.reject(exception && exception.data ? exception.message : null)
     );
       return deferred.promise;
@@ -152,7 +152,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
           'resume',
         ].join('/')
       }).then(
-        () => waitUntilExecutionMatches(executionId, matcher).then(application.executions.refresh).then(deferred.resolve),
+        () => waitUntilExecutionMatches(executionId, matcher).then(() => application.executions.refresh()).then(deferred.resolve),
         (exception) => deferred.reject(exception && exception.data ? exception.message : null)
     );
       return deferred.promise;

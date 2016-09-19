@@ -106,7 +106,7 @@ module.exports = angular.module('spinnaker.core.task.controller', [
     controller.cancelTask = function(taskId) {
       var task = application.tasks.data.filter(function(task) { return task.id === taskId; })[0];
       var submitMethod = function () {
-        return taskWriter.cancelTask(application.name, taskId).then(application.tasks.refresh);
+        return taskWriter.cancelTask(application.name, taskId).then(() => application.tasks.refresh());
       };
 
       confirmationModalService.confirm({
@@ -120,7 +120,7 @@ module.exports = angular.module('spinnaker.core.task.controller', [
     controller.deleteTask = function(taskId) {
       var task = application.tasks.data.filter(function(task) { return task.id === taskId; })[0];
       var submitMethod = function () {
-        return taskWriter.deleteTask(taskId).then(application.tasks.refresh);
+        return taskWriter.deleteTask(taskId).then(() => application.tasks.refresh());
       };
 
       confirmationModalService.confirm({
