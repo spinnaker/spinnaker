@@ -15,4 +15,4 @@ build
 *.DS_Store
 coverage/
 *~
-
+test/google/node_modules

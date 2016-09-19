@@ -1,0 +1,16 @@
+{
+  "name": "deck-google-int",
+  "version": "1.0.0",
+  "description": "",
+  "main": "protractor.conf.js",
+  "scripts": {
+    "test": "sh ./google_int.sh"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "protractor": "^4.0.7",
+    "request": "^2.74.0",
+    "request-promise": "^4.1.1"
+  }
+}
