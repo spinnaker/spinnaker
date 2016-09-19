@@ -14,33 +14,35 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.fiat.roles.github.client
+package com.netflix.spinnaker.fiat.roles.github.client;
 
 
-import retrofit.client.Response
-import retrofit.http.GET
-import retrofit.http.Path
+import retrofit.client.Response;
+import retrofit.http.GET;
+import retrofit.http.Path;
+
+import java.util.List;
 
 /**
  * Retrofit interface for interacting with a GitHub REST API.
  */
-interface GitHubClient {
+public interface GitHubClient {
 
-  @GET('/orgs/{org}/members/{username}')
-  Response isMemberOfOrganization(@Path('org') String org,
-                                  @Path('username') String username)
+  @GET("/orgs/{org}/members/{username}")
+  Response isMemberOfOrganization(@Path("org") String org,
+                                  @Path("username") String username);
 
   /**
    * This one should use the Current User credentials
    */
-  @GET('/user/teams')
-  List<GitHubMaster.Team> getUserTeams()
+  @GET("/user/teams")
+  List<GitHubMaster.Team> getUserTeams();
 
-  @GET('/orgs/{org}/teams')
-  List<GitHubMaster.Team> getOrgTeams(@Path('org') String org)
+  @GET("/orgs/{org}/teams")
+  List<GitHubMaster.Team> getOrgTeams(@Path("org") String org);
 
-  @GET('/teams/{idTeam}/memberships/{username}')
-  GitHubMaster.TeamMembership isMemberOfTeam(@Path('idTeam') Long idTeam,
-                                             @Path('username') String username)
+  @GET("/teams/{idTeam}/memberships/{username}")
+  GitHubMaster.TeamMembership isMemberOfTeam(@Path("idTeam") Long idTeam,
+                                             @Path("username") String username);
 }
 

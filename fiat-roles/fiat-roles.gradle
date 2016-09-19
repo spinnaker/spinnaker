@@ -21,7 +21,6 @@ dependencies {
 
   compile spinnaker.dependency("bootActuator")
   compile spinnaker.dependency("bootWeb")
-  compile spinnaker.dependency("groovy")
 
   compile "redis.clients:jedis:2.6.2"
   compile "com.google.api-client:google-api-client:1.21.0"

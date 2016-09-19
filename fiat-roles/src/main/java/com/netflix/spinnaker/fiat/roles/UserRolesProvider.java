@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.fiat.roles
+package com.netflix.spinnaker.fiat.roles;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 public interface UserRolesProvider {
 
@@ -24,7 +28,7 @@ public interface UserRolesProvider {
    * @param userId identify a user. Can be email or username.
    * @return Roles assigned to the {@link com.netflix.spinnaker.security.User User} with the given userEmail.
    */
-  public List<String> loadRoles(String userId)
+  List<String> loadRoles(String userId);
 
   /**
    * Load the roles assigned to each {@link com.netflix.spinnaker.security.User User's} email in userEmails.
@@ -33,5 +37,5 @@ public interface UserRolesProvider {
    * @return Map whose keys are the {@link com.netflix.spinnaker.security.User User's} email and values are their
    * assigned roles.
    */
-  public Map<String, Collection<String>> multiLoadRoles(Collection<String> userIds)
+  Map<String, Collection<String>> multiLoadRoles(Collection<String> userIds);
 }
