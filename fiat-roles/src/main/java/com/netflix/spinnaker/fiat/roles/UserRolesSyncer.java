@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.roles;
 
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
+import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
 import com.netflix.spinnaker.fiat.providers.ProviderException;
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.backoff.BackOffExecution;
 import org.springframework.util.backoff.FixedBackOff;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
@@ -102,19 +104,22 @@ public class UserRolesSyncer {
 
   public long updateUserPermissions() {
     val permissionMap = permissionsRepository.getAllById();
+    return updateUserPermissions(permissionMap);
+  }
 
-    if (permissionMap.remove(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME) != null) {
+  public long updateUserPermissions(Map<String, UserPermission> permissionsById) {
+    if (permissionsById.remove(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME) != null) {
       permissionsResolver.resolveUnrestrictedUser().ifPresent(permission -> {
         permissionsRepository.put(permission);
         log.info("Synced anonymous user role.");
       });
     }
 
-    long count = permissionsResolver.resolve(permissionMap.keySet())
-                                   .values()
-                                   .stream()
-                                   .map(permission -> permissionsRepository.put(permission))
-                                   .count();
+    long count = permissionsResolver.resolve(permissionsById.keySet())
+                                    .values()
+                                    .stream()
+                                    .map(permission -> permissionsRepository.put(permission))
+                                    .count();
     log.info("Synced {} non-anonymous user roles.", count);
     return count;
   }

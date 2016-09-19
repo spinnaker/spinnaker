@@ -21,6 +21,8 @@ import com.netflix.spinnaker.fiat.shared.FiatAuthenticationFilter;
 import com.netflix.spinnaker.fiat.shared.FiatService;
 import lombok.Setter;
 import lombok.val;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -46,7 +48,7 @@ public class FiatAuthenticationConfig {
 
   @Autowired(required = false)
   @Setter
-  private RestAdapter.LogLevel retrofitLogLevel = RestAdapter.LogLevel.NONE;
+  private RestAdapter.LogLevel retrofitLogLevel = RestAdapter.LogLevel.BASIC;
 
   @Autowired
   @Setter
@@ -67,6 +69,7 @@ public class FiatAuthenticationConfig {
         .setClient(okClient)
         .setConverter(new JacksonConverter(objectMapper))
         .setLogLevel(retrofitLogLevel)
+        .setLog(new Slf4jRetrofitLogger(FiatService.class))
         .build()
         .create(FiatService.class);
   }
@@ -89,6 +92,23 @@ public class FiatAuthenticationConfig {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
       http.authorizeRequests().anyRequest().permitAll().and().csrf().disable();
+    }
+  }
+
+  private static class Slf4jRetrofitLogger implements RestAdapter.Log {
+    private final Logger logger;
+
+    Slf4jRetrofitLogger(Class type) {
+      this(LoggerFactory.getLogger(type));
+    }
+
+    Slf4jRetrofitLogger(Logger logger) {
+      this.logger = logger;
+    }
+
+    @Override
+    public void log(String message) {
+      logger.info(message);
     }
   }
 }

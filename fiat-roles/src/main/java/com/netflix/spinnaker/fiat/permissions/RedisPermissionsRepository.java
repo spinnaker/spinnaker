@@ -31,6 +31,7 @@ import com.netflix.spinnaker.fiat.redis.JedisSource;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -38,7 +39,9 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -171,6 +174,55 @@ public class RedisPermissionsRepository implements PermissionsRepository {
     return allById;
   }
 
+  @Override
+  public Map<String, UserPermission> getAllByRoles(List<String> anyRoles) {
+    if (anyRoles == null) {
+      return getAllById();
+    } else if (anyRoles.isEmpty()) {
+      val unrestricted = get(UNRESTRICTED);
+      if (unrestricted.isPresent()) {
+        val map = new HashMap<String, UserPermission>();
+        map.put(UNRESTRICTED, unrestricted.get());
+        return map;
+      }
+      return Collections.emptyMap();
+    }
+
+    try (Jedis jedis = jedisSource.getJedis()) {
+      Pipeline p = jedis.pipelined();
+      List<Response<Set<String>>> responses = anyRoles
+          .stream()
+          .map(role -> p.smembers(roleKey(role)))
+          .collect(Collectors.toList());
+      p.sync();
+
+      Set<String> dedupedUsernames = responses
+          .stream()
+          .flatMap(response -> response.get().stream())
+          .collect(Collectors.toSet());
+      dedupedUsernames.add(UNRESTRICTED);
+
+      Table<String, ResourceType, Response<Map<String, String>>> responseTable =
+          getAllFromRedis(dedupedUsernames);
+      if (responseTable == null) {
+        return new HashMap<>(0);
+      }
+
+      RawUserPermission rawUnrestricted = new RawUserPermission(responseTable.row(UNRESTRICTED));
+      UserPermission unrestrictedUser = getUserPermission(UNRESTRICTED, rawUnrestricted);
+      dedupedUsernames.remove(UNRESTRICTED);
+
+      return dedupedUsernames
+          .stream()
+          .map(userId -> {
+            RawUserPermission rawUser = new RawUserPermission(responseTable.row(userId));
+            return getUserPermission(userId, rawUser);
+          })
+          .collect(Collectors.toMap(UserPermission::getId,
+                                    permission -> permission.merge(unrestrictedUser)));
+    }
+  }
+
   private UserPermission getUserPermission(String userId, RawUserPermission raw) {
 
     UserPermission permission = new UserPermission().setId(userId);
@@ -186,17 +238,27 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   }
 
   private Table<String, ResourceType, Response<Map<String, String>>> getAllFromRedis() {
+    Set<String> allUserIds;
     try (Jedis jedis = jedisSource.getJedis()) {
-      Set<String> allUserIds = jedis.smembers(allUsersKey());
+      allUserIds = jedis.smembers(allUsersKey());
+    } catch (Exception e) {
+      log.error("Storage exception reading all entries.", e);
+      return null;
+    }
 
-      if (allUserIds.size() == 0) {
-        return HashBasedTable.create();
-      }
+    return getAllFromRedis(allUserIds);
+  }
+
+  private Table<String, ResourceType, Response<Map<String, String>>> getAllFromRedis(Set<String> userIds) {
+    if (userIds.size() == 0) {
+      return HashBasedTable.create();
+    }
+    try (Jedis jedis = jedisSource.getJedis()) {
       Table<String, ResourceType, Response<Map<String, String>>> responseTable =
-          ArrayTable.create(allUserIds, new ArrayIterator<>(ResourceType.values()));
+          ArrayTable.create(userIds, new ArrayIterator<>(ResourceType.values()));
 
       Pipeline p = jedis.pipelined();
-      for (String userId : allUserIds) {
+      for (String userId : userIds) {
         for (ResourceType r : ResourceType.values()) {
           responseTable.put(userId, r, p.hgetAll(userKey(userId, r)));
         }

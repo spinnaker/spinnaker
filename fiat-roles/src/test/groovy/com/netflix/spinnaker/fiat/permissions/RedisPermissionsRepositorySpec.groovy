@@ -18,6 +18,7 @@ package com.netflix.spinnaker.fiat.permissions
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.model.resources.Application
@@ -32,6 +33,8 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class RedisPermissionsRepositorySpec extends Specification {
+
+  private static final String UNRESTRICTED = UnrestrictedResourceConfig.UNRESTRICTED_USERNAME
 
   static String prefix = "unittests"
 
@@ -237,5 +240,66 @@ class RedisPermissionsRepositorySpec extends Specification {
 
     then:
     jedis.keys("*").size() == 0
+  }
+
+  def "should get all by roles"() {
+    setup:
+    def role1 = new Role("role1")
+    def role2 = new Role("role2")
+    def role3 = new Role("role3")
+    def role4 = new Role("role4")
+
+    def acct1 = new Account().setName("acct1")
+
+    def user1 = new UserPermission().setId("user1").setRoles([role1, role2] as Set)
+    def user2 = new UserPermission().setId("user2").setRoles([role1, role3] as Set)
+    def user3 = new UserPermission().setId("user3") // no roles.
+    def user4 = new UserPermission().setId("user4").setRoles([role4] as Set)
+    def unrestricted = new UserPermission().setId(UNRESTRICTED).setAccounts([acct1] as Set);
+
+    jedis.hset("unittests:permissions:user1:roles", "role1", '{"name":"role1"}')
+    jedis.hset("unittests:permissions:user1:roles", "role2", '{"name":"role2"}')
+    jedis.hset("unittests:permissions:user2:roles", "role1", '{"name":"role1"}')
+    jedis.hset("unittests:permissions:user2:roles", "role3", '{"name":"role3"}')
+    jedis.hset("unittests:permissions:user4:roles", "role4", '{"name":"role4"}')
+
+    jedis.hset("unittests:permissions:__unrestricted_user__:accounts", "acct1", '{"name":"acct1"}')
+
+    jedis.sadd("unittests:roles:role1", "user1", "user2")
+    jedis.sadd("unittests:roles:role2", "user1")
+    jedis.sadd("unittests:roles:role3", "user2")
+    jedis.sadd("unittests:roles:role4", "user4")
+
+    jedis.sadd("unittests:users", "user1", "user2", "user3", "user4", "__unrestricted_user__")
+
+    when:
+    def result = repo.getAllByRoles(["role1"])
+
+    then:
+    result == ["user1": user1.merge(unrestricted),
+               "user2": user2.merge(unrestricted)]
+
+    when:
+    result = repo.getAllByRoles(["role3", "role4"])
+
+    then:
+    result == ["user2": user2.merge(unrestricted),
+               "user4": user4.merge(unrestricted)];
+
+    when:
+    result = repo.getAllByRoles(null);
+
+    then:
+    result == ["user1": user1.merge(unrestricted),
+               "user2": user2.merge(unrestricted),
+               "user3": user3.merge(unrestricted),
+               "user4": user4.merge(unrestricted),
+               (UNRESTRICTED): unrestricted]
+
+    when:
+    result = repo.getAllByRoles([])
+
+    then:
+    result == [(UNRESTRICTED): unrestricted]
   }
 }

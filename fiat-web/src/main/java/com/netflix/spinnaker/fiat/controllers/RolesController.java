@@ -16,22 +16,29 @@
 
 package com.netflix.spinnaker.fiat.controllers;
 
+import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
 import com.netflix.spinnaker.fiat.roles.UserRolesSyncer;
 import lombok.NonNull;
 import lombok.Setter;
-import lombok.val;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/roles")
 public class RolesController {
@@ -75,10 +82,21 @@ public class RolesController {
   }
 
   @RequestMapping(value = "/sync", method = RequestMethod.POST)
-  public void sync(HttpServletResponse response) throws IOException {
-    if (syncer.syncAndReturn() == 0) {
-      response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE,
-                         "Error occurred syncing permissions. See Fiat Logs.");
+  public long sync(HttpServletResponse response,
+                   @RequestBody List<String> specificRoles) throws IOException {
+    if (specificRoles == null) {
+      long count = syncer.syncAndReturn();
+      if (count == 0) {
+        response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE,
+                           "Error occurred syncing permissions. See Fiat Logs.");
+      }
+      return count;
     }
+
+    Map<String, UserPermission> affectedUsers = permissionsRepository.getAllByRoles(specificRoles);
+    if (affectedUsers.size() == 0) {
+      return 0;
+    }
+    return syncer.updateUserPermissions(affectedUsers);
   }
 }

@@ -18,8 +18,12 @@ package com.netflix.spinnaker.fiat.shared;
 
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.squareup.okhttp.Response;
+import retrofit.http.Body;
 import retrofit.http.GET;
+import retrofit.http.POST;
 import retrofit.http.Path;
+
+import java.util.List;
 
 public interface FiatService {
 
@@ -31,4 +35,12 @@ public interface FiatService {
                             @Path("resourceType") String resourceType,
                             @Path("resourceName") String resourceName,
                             @Path("authorization") String authorization);
+
+  /**
+   * Use to update a subset of users. An empty list will update the anonymous/unrestricted user.
+   *
+   * @return The number of non-anonymous users synced.
+   */
+  @POST("/roles/sync")
+  long sync(@Body List<String> roles);
 }

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.fiat.permissions;
 
 import com.netflix.spinnaker.fiat.model.UserPermission;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -48,6 +49,17 @@ public interface PermissionsRepository {
    * Gets all UserPermissions in the repository keyed by user ID.
    */
   Map<String, UserPermission> getAllById();
+
+  /**
+   * Gets all UserPermissions in the repository that has at least 1 of the specified roles, keyed
+   * by user ID. The returned map will not contain the unrestricted user. If anyRoles is null,
+   * returns the same result as getAllById() (which includes the unrestricted user). If anyRoles is
+   * empty, this is an indication to sync the anonymous/unrestricted user. When this is the case,
+   * this method returns a map with a single entry for the unrestricted user.
+   * @param anyRoles
+   * @return
+   */
+  Map<String, UserPermission> getAllByRoles(List<String> anyRoles);
 
   /**
    * Delete the specified user permission.
