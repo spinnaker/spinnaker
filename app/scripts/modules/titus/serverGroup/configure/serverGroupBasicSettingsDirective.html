@@ -21,7 +21,7 @@
       <help-field key="aws.serverGroup.stack"></help-field>
     </div>
     <div class="col-md-3"><input type="text"
-                                 class="form-control input-sm"
+                                 class="form-control input-sm no-spel"
                                  ng-pattern="basicSettingsCtrl.stackPattern"
                                  name="stack"
                                  ng-model="command.stack"/></div>
@@ -31,7 +31,7 @@
       <help-field key="aws.serverGroup.detail"></help-field>
     </div>
     <div class="col-md-3"><input type="text"
-                                 class="form-control input-sm"
+                                 class="form-control input-sm no-spel"
                                  ng-pattern="basicSettingsCtrl.detailPattern"
                                  name="details"
                                  ng-model="command.freeFormDetails"/></div>
@@ -49,13 +49,13 @@
   <div class="form-group" ng-if="!command.viewState.disableImageSelection">
     <div class="col-md-2 sm-label-right"><b>Image</b></div>
     <div class="col-md-7">
-      <input type="text" class="form-control input-sm" name="image" ng-model="command.imageId" required/>
+      <input type="text" class="form-control input-sm no-spel" name="image" ng-model="command.imageId" required/>
     </div>
   </div>
   <div class="form-group">
     <div class="col-md-2 sm-label-right"><b>Command</b></div>
     <div class="col-md-7">
-      <input type="text" class="form-control input-sm" name="command" ng-model="command.entryPoint" required/>
+      <input type="text" class="form-control input-sm no-spel" name="command" ng-model="command.entryPoint" required/>
     </div>
   </div>
   <div class="form-group">

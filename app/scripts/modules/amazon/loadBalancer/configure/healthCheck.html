@@ -15,7 +15,7 @@
         <td><input class="form-control input-sm" type="number" ng-model="loadBalancer.healthCheckPort"
                    required min="0"/></td>
         <td><input ng-if="ctrl.requiresHealthCheckPath()"
-                   class="form-control input-sm"
+                   class="form-control input-sm no-spel"
                    type="text"
                    ng-change="loadBalancer.healthCheckPath = ctrl.prependForwardSlash(loadBalancer.healthCheckPath)"
                    ng-model="loadBalancer.healthCheckPath"

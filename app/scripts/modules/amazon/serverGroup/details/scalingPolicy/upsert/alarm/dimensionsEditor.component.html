@@ -5,7 +5,7 @@
 </div>
 <div ng-repeat="dimension in $ctrl.alarm.dimensions" class="row dimensions-row">
   <div class="col-md-4" style="padding-right: 0">
-    <input type="text" class="form-control input-sm" style="width: 100%"
+    <input type="text" class="form-control input-sm no-spel" style="width: 100%"
            required
            uib-typeahead="option for option in $ctrl.dimensionOptions | filter: $viewValue"
            typeahead-show-hint="true"
@@ -17,7 +17,7 @@
            ng-model="dimension.name" placeholder="name"/>
   </div>
   <div class="col-md-6" style="padding-left: 10px">
-    <input type="text" class="form-control input-sm" style="width: 100%"
+    <input type="text" class="form-control input-sm no-spel" style="width: 100%"
            required
            ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
            ng-change="$ctrl.updateAvailableMetrics()"

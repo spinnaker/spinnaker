@@ -22,7 +22,7 @@
             </thead>
             <tbody>
             <tr ng-repeat="action in command.scheduledActions">
-              <td><input class="form-control input-sm" type="text" ng-model="action.recurrence" name="recurrence-{{$index}}"
+              <td><input class="form-control input-sm no-spel" type="text" ng-model="action.recurrence" name="recurrence-{{$index}}"
                          required/>
                 <!-- TODO: Add cron-validator when endpoint is fixed -->
                 <div class="form-group row slide-in animated" ng-if="form['recurrence-' + $index].$error.cronExpression">

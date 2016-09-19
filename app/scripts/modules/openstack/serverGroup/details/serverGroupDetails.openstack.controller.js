@@ -242,7 +242,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
     };
 
     this.rollbackServerGroup = () => {
-      alert('Not yet implemented.');
+      alert('Not yet implemented.'); // eslint-disable-line no-alert
     };
 
     this.resizeServerGroup = () => {

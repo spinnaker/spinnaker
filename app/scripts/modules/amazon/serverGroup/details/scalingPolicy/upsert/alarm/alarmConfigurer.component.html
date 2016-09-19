@@ -47,7 +47,7 @@
       </select>
       <div style="display: inline-block; width: 300px; position: relative; top: -3px"
            ng-if="$ctrl.viewState.advancedMode">
-        <input type="text" class="form-control input-sm" style="width: 100%"
+        <input type="text" class="form-control input-sm no-spel" style="width: 100%"
                required
                uib-typeahead="option.name as option.name for option in $ctrl.metrics | filter: $viewValue"
                typeahead-show-hint="true"

@@ -11,7 +11,7 @@
         <input type="text"
                style="display: none"
                ng-maxlength="32"
-               class="form-control input-sm"
+               class="form-control input-sm no-spel"
                ng-model="loadBalancer.name"
                validate-unique="existingLoadBalancerNames"
                validate-ignore-case="true"
@@ -30,7 +30,7 @@
       <div class="col-md-3 sm-label-right">Stack <help-field key="aws.loadBalancer.stack"></help-field></div>
       <div class="col-md-3">
         <input type="text"
-               class="form-control input-sm"
+               class="form-control input-sm no-spel"
                ng-model="loadBalancer.stack"
                name="stackName"
                ng-change="ctrl.updateName()"
@@ -41,7 +41,7 @@
           Detail <help-field key="aws.loadBalancer.detail"></help-field>
         </label>
         <input type="text"
-               class="form-control input-sm"
+               class="form-control input-sm no-spel"
                ng-model="loadBalancer.detail"
                name="detailName"
                ng-change="ctrl.updateName()"
