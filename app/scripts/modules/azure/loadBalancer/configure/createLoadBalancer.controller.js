@@ -169,14 +169,17 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
           region = $scope.loadBalancer.region;
       $scope.loadBalancer.selectedVnet = null;
       $scope.loadBalancer.vnet = null;
+      $scope.loadBalancer.vnetResourceGroup = null;
       ctrl.selectedVnets = [ ];
 
-      networkReader.listNetworksByProvider('azure').then(function(vnets) {
-        vnets.map(function(vnet) {
-          if (vnet.account === account && vnet.region === region) {
-            ctrl.selectedVnets.push(vnet);
-          }
-        });
+      networkReader.listNetworks().then(function(vnets) {
+        if (vnets.azure) {
+          vnets.azure.forEach((vnet) => {
+            if (vnet.account === account && vnet.region === region) {
+              ctrl.selectedVnets.push(vnet);
+            }
+          });
+        }
       });
 
       ctrl.subnetUpdated();
@@ -190,6 +193,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
 
     this.selectedVnetChanged = function(item) {
       $scope.loadBalancer.vnet = item.name;
+      $scope.loadBalancer.vnetResourceGroup = item.resourceGroup;
       $scope.loadBalancer.selectedSubnet = null;
       $scope.loadBalancer.subnet = null;
       ctrl.selectedSubnets = [ ];
@@ -230,6 +234,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
 
           if($scope.loadBalancer.selectedVnet) {
             $scope.loadBalancer.vnet = $scope.loadBalancer.selectedVnet.name;
+            $scope.loadBalancer.vnetResourceGroup = $scope.loadBalancer.selectedVnet.resourceGroup;
           }
 
           if($scope.loadBalancer.selectedSubnet) {

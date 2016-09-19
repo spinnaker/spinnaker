@@ -18,26 +18,28 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.loadBalan
       loadBalancerReader.getLoadBalancerDetails('azure', $scope.command.credentials, $scope.command.region, item).then (function (LBs) {
         if (LBs && LBs.length === 1) {
           var selectedLoadBalancer = LBs[0];
-          networkReader.listNetworksByProvider('azure').then(function(vnets) {
-            vnets.map(function(selectedVnet) {
-              if (selectedVnet.account === $scope.command.credentials && selectedVnet.region === $scope.command.region && selectedVnet.name == selectedLoadBalancer.vnet) {
-                $scope.command.selectedVnet = selectedVnet;
-                selectedVnet.subnets.map(function(subnet) {
-                  var addSubnet = true;
-                  if (subnet.devices) {
-                    subnet.devices.map(function(device) {
-                      // only add subnets that are not assigned to an ApplicationGateway
-                      if (device && device.type === 'applicationGateways') {
-                        addSubnet = false;
-                      }
-                    });
-                  }
-                  if (addSubnet) {
-                    $scope.command.selectedVnetSubnets.push(subnet.name);
-                  }
-                });
-              }
-            });
+          networkReader.listNetworks().then(function(vnets) {
+            if (vnets.azure) {
+              vnets.azure.forEach((selectedVnet) => {
+                if (selectedVnet.account === $scope.command.credentials && selectedVnet.region === $scope.command.region && selectedVnet.name == selectedLoadBalancer.vnet) {
+                  $scope.command.selectedVnet = selectedVnet;
+                  selectedVnet.subnets.map(function(subnet) {
+                    var addSubnet = true;
+                    if (subnet.devices) {
+                      subnet.devices.map(function(device) {
+                        // only add subnets that are not assigned to an ApplicationGateway
+                        if (device && device.type === 'applicationGateways') {
+                          addSubnet = false;
+                        }
+                      });
+                    }
+                    if (addSubnet) {
+                      $scope.command.selectedVnetSubnets.push(subnet.name);
+                    }
+                  });
+                }
+              });
+            }
           });
         }
       });

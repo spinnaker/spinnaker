@@ -101,6 +101,7 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
       if (mode === 'clone' || mode === 'editPipeline') {
         v2modalWizardService.markComplete('basic-settings');
         v2modalWizardService.markComplete('load-balancers');
+        v2modalWizardService.markComplete('network-settings');
         v2modalWizardService.markComplete('security-groups');
       }
     }
@@ -124,6 +125,7 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
     function processCommandUpdateResult(result) {
       if (result.dirty.loadBalancers) {
         v2modalWizardService.markDirty('load-balancers');
+        v2modalWizardService.markDirty('network-settings');
       }
       if (result.dirty.securityGroups) {
         v2modalWizardService.markDirty('security-groups');

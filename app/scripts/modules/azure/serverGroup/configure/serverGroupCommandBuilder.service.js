@@ -74,6 +74,7 @@ module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.servi
         securityGroupName: serverGroup.securityGroupName,
         region: serverGroup.region,
         vnet: serverGroup.vnet,
+        vnetResourceGroup: serverGroup.vnetResourceGroup,
         subnet: serverGroup.subnet,
         sku: serverGroup.sku,
         capacity: {
