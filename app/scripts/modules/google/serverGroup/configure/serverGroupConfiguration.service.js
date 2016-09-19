@@ -159,60 +159,66 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
     }
 
     function configureStandardInstanceTypes(command) {
+      let c = command;
       let result = { dirty: {} };
-      let locations = command.regional ? [ command.region ] : [ command.zone ];
-      let filtered = gceInstanceTypeService.getAvailableTypesForLocations(command.backingData.instanceTypes, locations);
+
+      let locations = c.regional ? [ c.region ] : [ c.zone ],
+        { instanceTypes, credentialsKeyedByAccount } = c.backingData,
+        { locationToInstanceTypesMap } = credentialsKeyedByAccount[c.credentials];
+
       if (locations.every(l => !l)) {
         return result;
       }
 
+      let filtered = gceInstanceTypeService
+        .getAvailableTypesForLocations(instanceTypes, locationToInstanceTypesMap, locations);
+
       filtered = sortInstanceTypes(filtered);
-      let instanceType = command.instanceType;
+      let instanceType = c.instanceType;
       if (_.every([ instanceType, !_.startsWith(instanceType, 'custom'), !_.contains(filtered, instanceType) ])) {
-        result.dirty.instanceType = command.instanceType;
-        command.instanceType = null;
+        result.dirty.instanceType = c.instanceType;
+        c.instanceType = null;
       }
-      command.backingData.filtered.instanceTypes = filtered;
+      c.backingData.filtered.instanceTypes = filtered;
       return result;
     }
 
     function configureCustomInstanceTypes(command) {
+      let c = command;
       let result = { dirty: {} },
-        vCpuCount = _.get(command, 'viewState.customInstance.vCpuCount'),
-        memory = _.get(command, 'viewState.customInstance.memory');
-      let { zone, regional, region } = command;
-      let location = regional ? region : zone;
+        vCpuCount = _.get(c, 'viewState.customInstance.vCpuCount'),
+        memory = _.get(c, 'viewState.customInstance.memory'),
+        { zone, regional, region } = c,
+        { locationToInstanceTypesMap } = c.backingData.credentialsKeyedByAccount[c.credentials],
+        location = regional ? region : zone;
+
       if (!location) {
         return result;
       }
 
       if (zone || regional) {
-        _.set(command,
+        _.set(
+          c,
           'backingData.customInstanceTypes.vCpuList',
-          gceCustomInstanceBuilderService.generateValidVCpuListForLocation(location)
-        );
+          gceCustomInstanceBuilderService.generateValidVCpuListForLocation(location, locationToInstanceTypesMap));
       }
 
       // initializes vCpuCount so that memory selector will be populated.
-      if (_.some([ !vCpuCount, !gceCustomInstanceBuilderService.vCpuCountForLocationIsValid(vCpuCount, location)] )) {
-        vCpuCount = _.get(command, 'backingData.customInstanceTypes.vCpuList[0]');
-        _.set(command, 'viewState.customInstance.vCpuCount', vCpuCount);
+      if (!vCpuCount || !gceCustomInstanceBuilderService
+              .vCpuCountForLocationIsValid(vCpuCount,location, locationToInstanceTypesMap)) {
+        vCpuCount = _.get(c, 'backingData.customInstanceTypes.vCpuList[0]');
+        _.set(c, 'viewState.customInstance.vCpuCount', vCpuCount);
       }
 
       _.set(
-        command,
+        c,
         'backingData.customInstanceTypes.memoryList',
-        gceCustomInstanceBuilderService.generateValidMemoryListForVCpuCount(vCpuCount)
-      );
+        gceCustomInstanceBuilderService.generateValidMemoryListForVCpuCount(vCpuCount));
 
       if (_.every([ memory, vCpuCount, !gceCustomInstanceBuilderService.memoryIsValid(memory, vCpuCount) ])) {
-        _.set(
-          command,
-          'viewState.customInstance.memory',
-          undefined
-        );
-        result.dirty.instanceType = command.instanceType;
-        command.instanceType = null;
+        _.set(c, 'viewState.customInstance.memory', undefined);
+        result.dirty.instanceType = c.instanceType;
+        c.instanceType = null;
       }
 
       return result;
@@ -566,6 +572,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
           }
 
           angular.extend(result.dirty, configureHttpHealthChecks(command).dirty);
+          angular.extend(result.dirty, configureInstanceTypes(command).dirty);
         } else {
           command.region = null;
         }

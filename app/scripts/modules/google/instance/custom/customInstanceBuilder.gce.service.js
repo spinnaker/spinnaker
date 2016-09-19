@@ -4,16 +4,11 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.customInstanceBuilder.gce.service', [
   require('../../../core/utils/lodash.js'),
-  require('../gceVCpuMaxByLocation.value.js'),
 ])
-  .factory('gceCustomInstanceBuilderService', function(gceVCpuMaxByLocation, _) {
-    const defaultMax = 16;
-
-    function vCpuCountForLocationIsValid(vCpuCount, location) {
-      let knownLocation = location in gceVCpuMaxByLocation;
-      return _.some([
-        !knownLocation && vCpuCount <= defaultMax,
-        knownLocation && vCpuCount <= gceVCpuMaxByLocation[location]]);
+  .factory('gceCustomInstanceBuilderService', function(_) {
+    function vCpuCountForLocationIsValid(vCpuCount, location, locationToInstanceTypesMap) {
+      let max = locationToInstanceTypesMap[location].vCpuMax;
+      return vCpuCount <= max;
     }
 
     /*
@@ -26,8 +21,8 @@ module.exports = angular.module('spinnaker.serverGroup.customInstanceBuilder.gce
       return vCpuCount % 2 === 0;
     }
 
-    function generateValidVCpuListForLocation(location) {
-      let max = gceVCpuMaxByLocation[location] || defaultMax;
+    function generateValidVCpuListForLocation(location, locationToInstanceTypesMap) {
+      let max = locationToInstanceTypesMap[location].vCpuMax;
       return [ 1, ..._.range(2, max, 2), max ];
     }
 
@@ -75,11 +70,11 @@ module.exports = angular.module('spinnaker.serverGroup.customInstanceBuilder.gce
       return { vCpuCount, memory };
     }
 
-    function customInstanceChoicesAreValid(vCpuCount, totalMemory, location) {
+    function customInstanceChoicesAreValid(vCpuCount, totalMemory, location, locationToInstanceTypesMap) {
       return _.every([
         numberOfVCpusIsValid(vCpuCount),
         memoryIsValid(totalMemory, vCpuCount),
-        vCpuCountForLocationIsValid(vCpuCount, location),
+        vCpuCountForLocationIsValid(vCpuCount, location, locationToInstanceTypesMap),
       ]);
     }
 

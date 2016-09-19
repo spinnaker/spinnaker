@@ -5,9 +5,8 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.gce.instanceType.service', [
   require('../../core/cache/deckCacheFactory.js'),
   require('../../core/utils/lodash.js'),
-  require('../instance/gceVCpuMaxByLocation.value.js'),
 ])
-  .factory('gceInstanceTypeService', function ($http, $q, _, gceVCpuMaxByLocation) {
+  .factory('gceInstanceTypeService', function ($http, $q, _) {
 
     var cachedResult = null;
 
@@ -432,38 +431,15 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
 
     }
 
-    function getAvailableTypesForLocations(instanceTypes, selectedLocations) {
-      if (instanceTypes || selectedLocations) {
-        let availableTypes = _(categories)
-          .pluck('families')
-          .flatten()
-          .pluck('instanceTypes')
-          .flatten()
-          .pluck('name')
-          .filter(name => {
-            return name !== 'buildCustom' &&
-              selectedLocations
-                .every(location => parseInstanceTypeString(name).vCpuCount <= gceVCpuMaxByLocation[location]);
-          })
-          .valueOf();
+    function getAvailableTypesForLocations(instanceTypes, locationToInstanceTypesMap, selectedLocations) {
+      // This function is only ever called with one location.
+      let [location] = selectedLocations,
+        availableTypesForLocation = locationToInstanceTypesMap[location].instanceTypes;
 
-        return availableTypes.sort();
-      }
-      return [];
+      return _.intersection(instanceTypes, availableTypesForLocation);
     }
 
     let getAvailableTypesForRegions = getAvailableTypesForLocations;
-
-    function parseInstanceTypeString(instanceType) {
-      if (_.contains(['f1-micro', 'g1-small'], instanceType)) {
-        return { family: instanceType, vCpuCount: 1 };
-      }
-
-      let [ n1, familyType, vCpuCount ] = instanceType.split('-');
-      vCpuCount = Number(vCpuCount);
-
-      return { family: n1 + familyType, vCpuCount };
-    }
 
     return {
       getCategories: getCategories,

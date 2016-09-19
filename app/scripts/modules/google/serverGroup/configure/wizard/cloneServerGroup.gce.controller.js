@@ -146,25 +146,26 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
     }
 
     function setInstanceTypeFromCustomChoices() {
-      let location = $scope.command.regional
-        ? $scope.command.region
-        : $scope.command.zone;
+      let c = $scope.command,
+        location = c.regional ? c.region : c.zone,
+        { locationToInstanceTypesMap } = c.backingData.credentialsKeyedByAccount[c.credentials];
 
       let customInstanceChoices = [
-          _.get($scope.command, 'viewState.customInstance.vCpuCount'),
-          _.get($scope.command, 'viewState.customInstance.memory'),
-          location
+          _.get(c, 'viewState.customInstance.vCpuCount'),
+          _.get(c, 'viewState.customInstance.memory'),
         ];
 
-      if (_.every([ ...customInstanceChoices,
-          gceCustomInstanceBuilderService.customInstanceChoicesAreValid(...customInstanceChoices)])) {
-        $scope.command.instanceType = gceCustomInstanceBuilderService
+      if (_.every([...customInstanceChoices,
+                   gceCustomInstanceBuilderService
+                     .customInstanceChoicesAreValid(...customInstanceChoices, location, locationToInstanceTypesMap)])) {
+
+        c.instanceType = gceCustomInstanceBuilderService
           .generateInstanceTypeString(...customInstanceChoices);
 
         instanceTypeService
-          .getInstanceTypeDetails($scope.command.selectedProvider, 'buildCustom')
+          .getInstanceTypeDetails(c.selectedProvider, 'buildCustom')
           .then((instanceTypeDetails) => {
-            $scope.command.viewState.instanceTypeDetails = instanceTypeDetails;
+            c.viewState.instanceTypeDetails = instanceTypeDetails;
           });
       }
     }
