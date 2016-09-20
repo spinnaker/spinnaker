@@ -51,9 +51,9 @@ class RetrofitConfiguration {
    @Value('${okHttpClient.retryOnConnectionFailure:true}')
    boolean retryOnConnectionFailure
 
-   @Bean
+   @Bean(name = ["retrofitClient", "okClient"])
    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-   Client retrofitClient(OkHttpClientConfiguration okHttpClientConfig) {
+   OkClient retrofitClient(OkHttpClientConfiguration okHttpClientConfig) {
      final String userAgent = "Spinnaker-${System.getProperty('spring.application.name', 'unknown')}/${getClass().getPackage().implementationVersion ?: '1.0'}"
      def cfg = okHttpClientConfig.create()
      cfg.networkInterceptors().add(new Interceptor() {

@@ -18,6 +18,9 @@ package com.netflix.spinnaker.orca.controllers
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
+import org.springframework.security.access.prepost.PostAuthorize
+import org.springframework.security.access.prepost.PostFilter
+import org.springframework.security.access.prepost.PreAuthorize
 
 import java.time.Clock
 import com.netflix.spinnaker.orca.batch.StageBuilder
@@ -62,6 +65,7 @@ class TaskController {
 
   Clock clock = Clock.systemUTC()
 
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/applications/{application}/tasks", method = RequestMethod.GET)
   List<Orchestration> list(@PathVariable String application,
                            @RequestParam(value = "limit", defaultValue = "2500") int limit,
@@ -79,65 +83,84 @@ class TaskController {
                        .subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
   }
 
+  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
+  @PostFilter("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/tasks", method = RequestMethod.GET)
   List<OrchestrationViewModel> list() {
     executionRepository.retrieveOrchestrations().toBlocking().iterator.collect { convert it }
   }
 
+  @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/tasks/{id}", method = RequestMethod.GET)
   OrchestrationViewModel getTask(@PathVariable String id) {
     convert executionRepository.retrieveOrchestration(id)
   }
 
+  Orchestration getOrchestration(String id) {
+    executionRepository.retrieveOrchestration(id)
+  }
+
+  @PreAuthorize("hasPermission(this.getOrchestration(#id)?.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/tasks/{id}", method = RequestMethod.DELETE)
   void deleteTask(@PathVariable String id) {
     executionRepository.deleteOrchestration(id)
   }
 
+  @PreAuthorize("hasPermission(this.getOrchestration(#id)?.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/tasks/{id}/cancel", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancelTask(@PathVariable String id) {
     executionRepository.cancel(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
   }
 
+  @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.GET)
   Pipeline getPipeline(@PathVariable String id) {
     executionRepository.retrievePipeline(id)
   }
 
+  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.DELETE)
   void deletePipeline(@PathVariable String id) {
     executionRepository.deletePipeline(id)
   }
 
+  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/pipelines/{id}/cancel", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancel(@PathVariable String id) {
     executionRepository.cancel(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
   }
 
+  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/pipelines/{id}/pause", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void pause(@PathVariable String id) {
     executionRepository.pause(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
   }
 
+  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/pipelines/{id}/resume", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void resume(@PathVariable String id) {
     executionRepository.resume(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
   }
 
+  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
+  @PostFilter("hasPermission(this.getPipeline(filterObject)?.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines/running", method = RequestMethod.GET)
   List<String> runningPipelines() {
     startTracker.getAllStartedExecutions()
   }
 
+  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
+  @PostFilter("hasPermission(this.getPipeline(filterObject)?.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines/waiting", method = RequestMethod.GET)
   List<String> waitingPipelines() {
     startTracker.getAllWaitingExecutions()
   }
 
+  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/pipelines/{id}/stages/{stageId}", method = RequestMethod.PATCH)
   Pipeline updatePipelineStage(@PathVariable String id, @PathVariable String stageId, @RequestBody Map context) {
     def pipeline = executionRepository.retrievePipeline(id)
@@ -159,6 +182,7 @@ class TaskController {
     pipeline
   }
 
+  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/pipelines/{id}/stages/{stageId}/restart", method = RequestMethod.PUT)
   Pipeline retryPipelineStage(@PathVariable String id, @PathVariable String stageId) {
     def pipeline = executionRepository.retrievePipeline(id)
@@ -172,6 +196,7 @@ class TaskController {
     pipeline
   }
 
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/v2/applications/{application}/pipelines", method = RequestMethod.GET)
   List<Pipeline> getApplicationPipelines(@PathVariable String application,
                                          @RequestParam(value = "limit", defaultValue = "5") int limit,
@@ -179,6 +204,7 @@ class TaskController {
     return getPipelinesForApplication(application, limit, statuses)
   }
 
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/applications/{application}/pipelines", method = RequestMethod.GET)
   List<Pipeline> getPipelinesForApplication(@PathVariable String application,
                                             @RequestParam(value = "limit", defaultValue = "5") int limit,
@@ -237,6 +263,7 @@ class TaskController {
     new OrchestrationViewModel(
       id: orchestration.id,
       name: orchestration.description,
+      application: orchestration.application,
       status: orchestration.getStatus(),
       variables: variables.collect { key, value ->
         [
