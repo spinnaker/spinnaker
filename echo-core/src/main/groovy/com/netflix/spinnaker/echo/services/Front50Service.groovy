@@ -28,9 +28,6 @@ interface Front50Service {
   @GET('/notifications/application/{application}/')
   Map getNotificationPreferences(@Path("application") String application)
 
-  @GET('/default/applications/name/{application}')
-  Map getApplication(@Path("application") String application)
-
   @GET("/pipelines")
   @Headers("Accept: application/json")
   Observable<List<Pipeline>> getPipelines();
