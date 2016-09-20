@@ -1,8 +1,10 @@
 'use strict';
 
+import {Subject} from 'rxjs';
+
 describe('Component: metricAlarmChart', function () {
 
-  var $ctrl, $scope, cloudMetricsReader, rx, $q;
+  var $ctrl, $scope, cloudMetricsReader, $q;
 
   beforeEach(
     window.module(
@@ -11,17 +13,15 @@ describe('Component: metricAlarmChart', function () {
   );
 
   beforeEach(
-    window.inject( function($componentController, $rootScope, _cloudMetricsReader_, _rx_, _, _$q_) {
+    window.inject( function($componentController, $rootScope, _cloudMetricsReader_, _, _$q_) {
       $scope = $rootScope.$new();
       cloudMetricsReader = _cloudMetricsReader_;
-      rx = _rx_;
       $q = _$q_;
 
       this.initialize = (bindings) => {
         $ctrl = $componentController('metricAlarmChart', {
           $scope: $scope,
           cloudMetricsReader: cloudMetricsReader,
-          rx: rx,
           _: _,
         }, bindings);
       };
@@ -61,7 +61,7 @@ describe('Component: metricAlarmChart', function () {
         comparisonOperator: 'GreaterThanThreshold',
         dimensions: [ { name: 'AutoScalingGroupName', value: 'asg-v000' }]
       },
-          alarmUpdated = new rx.Subject(),
+          alarmUpdated = new Subject(),
           ticks = { x: 3, y: 4, x2: 1, y2: 1 }, // x2, y2 ignored
           margins = { top: 3, left: 4, theseAreCopiedOverWholesale: 5 };
 
@@ -220,7 +220,7 @@ describe('Component: metricAlarmChart', function () {
     var alarm;
 
     beforeEach(function () {
-      updater = new rx.Subject();
+      updater = new Subject();
       alarm = {
         comparisonOperator: 'LessThanThreshold',
         threshold: 5,
@@ -241,7 +241,7 @@ describe('Component: metricAlarmChart', function () {
       expect($ctrl.chartData.threshold.map(d => d.val)).toEqual([5, 5]);
 
       alarm.threshold = 6;
-      updater.onNext();
+      updater.next();
       expect(cloudMetricsReader.getMetricStatistics.calls.count()).toBe(2);
       expect($ctrl.chartData.threshold.map(d => d.val)).toEqual([6, 6]);
     });

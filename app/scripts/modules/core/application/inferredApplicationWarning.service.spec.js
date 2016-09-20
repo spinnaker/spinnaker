@@ -5,8 +5,7 @@ describe('Service: inferredApplicationWarning', function () {
 
   beforeEach(
     window.module(
-      require('./inferredApplicationWarning.service.js'),
-      require('../utils/rx.js')
+      require('./inferredApplicationWarning.service.js')
     )
   );
 

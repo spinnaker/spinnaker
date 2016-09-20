@@ -7,7 +7,6 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.basic
   require('angular-ui-bootstrap'),
   require('../../../../core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
   require('../../../../core/modal/wizard/v2modalWizard.service.js'),
-  require('../../../../core/utils/rx.js'),
   require('../../../../core/image/image.reader.js'),
   require('../../../../core/naming/naming.service.js'),
 ])

@@ -248,7 +248,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
         let multiselectWatcher = MultiselectModel.instancesStream.subscribe(renderIfMultiselectChanges);
 
         scope.$on('$destroy', function() {
-          multiselectWatcher.dispose();
+          multiselectWatcher.unsubscribe();
           if (tooltipEnabled) {
             $('[data-toggle="tooltip"]', elem).tooltip('destroy').removeData();
           }

@@ -1,14 +1,15 @@
 'use strict';
 
+import {Observable, Subject} from 'rxjs';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.infrastructure.search.service', [
-  require('../../utils/rx.js'),
   require('../../navigation/urlBuilder.service.js'),
   require('../../application/service/applications.read.service.js'),
   require('../../cloudProvider/serviceDelegate.service.js'),
 ])
-  .factory('infrastructureSearchService', function(rx, $q, searchService, urlBuilderService, applicationReader, serviceDelegate) {
+  .factory('infrastructureSearchService', function($q, searchService, urlBuilderService, applicationReader, serviceDelegate) {
     return function() {
       var deferred;
 
@@ -77,7 +78,7 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
         };
       }
 
-      var querySubject = new rx.Subject();
+      var querySubject = new Subject();
 
       let initializeCategories = () => {
         let categories = {};
@@ -101,12 +102,12 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
       };
 
       querySubject
-        .flatMapLatest(function(query) {
+        .switchMap(function(query) {
           if (!query || !angular.isDefined(query) || query.length < 1) {
-            return rx.Observable.just(searchService.getFallbackResults());
+            return Observable.of(searchService.getFallbackResults());
           }
 
-          return rx.Observable.fromPromise(searchService.search({
+          return Observable.fromPromise(searchService.search({
            q: query,
            type: Object.keys(searchConfig),
           }));
@@ -132,7 +133,7 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
       return {
         query: function(query) {
           deferred = $q.defer();
-          querySubject.onNext(query);
+          querySubject.next(query);
           return deferred.promise;
         },
         formatRouteResult: function(type, params) {

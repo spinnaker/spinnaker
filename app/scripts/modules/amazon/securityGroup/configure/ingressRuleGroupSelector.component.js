@@ -126,7 +126,7 @@ module.exports = angular
       this.$onInit = this.setAvailableSecurityGroups;
 
       this.$onDestroy = () => {
-        this.subscriptions.forEach(subscription => subscription.dispose());
+        this.subscriptions.forEach(subscription => subscription.unsubscribe());
       };
     }
   });

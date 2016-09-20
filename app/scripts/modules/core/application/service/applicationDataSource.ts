@@ -1,4 +1,4 @@
-import Subject = Rx.Subject;
+import {Subject} from 'rxjs';
 import {Application} from '../application.model.ts';
 
 export class DataSourceConfig {
@@ -247,7 +247,7 @@ export class ApplicationDataSource {
    * independent of the execution data source's refresh cycle
    */
   dataUpdated(): void {
-    this.refreshStream.onNext(null);
+    this.refreshStream.next(null);
   }
 
   /**
@@ -259,10 +259,10 @@ export class ApplicationDataSource {
    */
   onNextRefresh($scope: ng.IScope, method: any, failureMethod?: any): void {
     let success = this.refreshStream.take(1).subscribe(method);
-    $scope.$on('$destroy', () => success.dispose());
+    $scope.$on('$destroy', () => success.unsubscribe());
     if (failureMethod) {
       let failure = this.refreshFailureStream.take(1).subscribe(failureMethod);
-      $scope.$on('$destroy', () => failure.dispose());
+      $scope.$on('$destroy', () => failure.unsubscribe());
     }
   }
 
@@ -276,10 +276,10 @@ export class ApplicationDataSource {
    */
   onRefresh($scope: ng.IScope, method: any, failureMethod?: any): void {
     let success = this.refreshStream.subscribe(method);
-    $scope.$on('$destroy', () => success.dispose());
+    $scope.$on('$destroy', () => success.unsubscribe());
     if (failureMethod) {
       let failure = this.refreshFailureStream.subscribe(failureMethod);
-      $scope.$on('$destroy', () => failure.dispose());
+      $scope.$on('$destroy', () => failure.unsubscribe());
     }
   }
 
@@ -365,7 +365,7 @@ export class ApplicationDataSource {
         this.$log.warn(`Error retrieving ${this.key}`, rejection);
         this.loading = false;
         this.loadFailure = true;
-        this.refreshFailureStream.onNext(rejection);
+        this.refreshFailureStream.next(rejection);
       });
   }
 

@@ -1,5 +1,5 @@
 import {ApplicationDataSource} from "./service/applicationDataSource";
-import Subject = Rx.Subject;
+import {Subject} from 'rxjs';
 
 export class Application {
 
@@ -101,10 +101,10 @@ export class Application {
    */
   onRefresh($scope: ng.IScope, method: any, failureMethod: any): void {
     let success = this.refreshStream.subscribe(method);
-    $scope.$on('$destroy', () => success.dispose());
+    $scope.$on('$destroy', () => success.unsubscribe());
     if (failureMethod) {
       let failure = this.refreshFailureStream.subscribe(failureMethod);
-      $scope.$on('$destroy', () => failure.dispose());
+      $scope.$on('$destroy', () => failure.unsubscribe());
     }
   }
 
@@ -116,8 +116,8 @@ export class Application {
   enableAutoRefresh(scope: ng.IScope): void {
     let dataLoader = this.scheduler.subscribe(() => this.refresh());
     scope.$on('$destroy', () => {
-      dataLoader.dispose();
-      this.scheduler.dispose();
+      dataLoader.unsubscribe();
+      this.scheduler.unsubscribe();
     });
   }
 
@@ -127,14 +127,14 @@ export class Application {
 
   private applicationLoadError(err: Error): void {
     this.$log.error(err, 'Failed to load application, will retry on next scheduler execution.');
-    this.refreshFailureStream.onNext(err);
+    this.refreshFailureStream.next(err);
   }
 
   private applicationLoadSuccess(): void {
     this.setApplicationAccounts();
     this.setDefaults();
     this.lastRefresh = new Date().getTime();
-    this.refreshStream.onNext(null);
+    this.refreshStream.next(null);
   }
 
   private setApplicationAccounts(): void {

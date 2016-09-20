@@ -234,7 +234,7 @@ module.exports = angular.module('spinnaker.core.instance.details.multipleInstanc
 
     $scope.$on('$destroy', () => {
       MultiselectModel.deselectAllInstances();
-      multiselectWatcher.dispose();
+      multiselectWatcher.unsubscribe();
     });
 
   }

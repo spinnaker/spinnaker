@@ -105,7 +105,7 @@ module.exports = angular.module('spinnaker.core.serverGroup.details.multipleServ
         if (this.serverGroups.length !== 1) {
           MultiselectModel.clearAllServerGroups();
         }
-        multiselectWatcher.dispose();
+        multiselectWatcher.unsubscribe();
       });
 
     }

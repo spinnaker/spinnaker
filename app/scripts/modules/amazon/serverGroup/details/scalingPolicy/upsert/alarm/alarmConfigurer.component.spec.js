@@ -2,7 +2,7 @@
 
 describe('Component: alarmConfigurer', function () {
 
-  var $ctrl, $scope, cloudMetricsReader, rx, $q, alarm;
+  var $ctrl, $scope, cloudMetricsReader, $q, alarm;
 
   beforeEach(
     window.module(
@@ -11,17 +11,15 @@ describe('Component: alarmConfigurer', function () {
   );
 
   beforeEach(
-    window.inject( function($componentController, $rootScope, _cloudMetricsReader_, _rx_, _, _$q_) {
+    window.inject( function($componentController, $rootScope, _cloudMetricsReader_, _, _$q_) {
       $scope = $rootScope.$new();
       cloudMetricsReader = _cloudMetricsReader_;
-      rx = _rx_;
       $q = _$q_;
 
       this.initialize = (bindings) => {
         $ctrl = $componentController('awsAlarmConfigurer', {
           $scope: $scope,
           cloudMetricsReader: cloudMetricsReader,
-          rx: rx,
           _: _,
         }, bindings);
       };
@@ -69,7 +67,7 @@ describe('Component: alarmConfigurer', function () {
         }
       ]));
       this.initialize({ command: {alarm: alarm}, serverGroup: { name: 'asg-v000'}, modalViewState: {} });
-      spyOn($ctrl.alarmUpdated, 'onNext');
+      spyOn($ctrl.alarmUpdated, 'next');
       $ctrl.$onInit();
       $scope.$digest();
 
@@ -77,7 +75,7 @@ describe('Component: alarmConfigurer', function () {
       expect($ctrl.metrics.map(m => m.name)).toEqual(['CPUUtilization', 'NetworkIn']);
       expect($ctrl.viewState.selectedMetric).toBe($ctrl.metrics[0]);
       expect($ctrl.viewState.metricsLoaded).toBe(true);
-      expect($ctrl.alarmUpdated.onNext.calls.count()).toBe(1);
+      expect($ctrl.alarmUpdated.next.calls.count()).toBe(1);
     });
   });
 
@@ -110,12 +108,12 @@ describe('Component: alarmConfigurer', function () {
         modalViewState: { comparatorBound: 'max' },
         boundsChanged: boundsChanged });
 
-      spyOn($ctrl.alarmUpdated, 'onNext');
+      spyOn($ctrl.alarmUpdated, 'next');
       $ctrl.thresholdChanged();
 
       expect(command.step.stepAdjustments[0].metricIntervalLowerBound).toBe(6);
       expect(bcCalled).toBe(true);
-      expect($ctrl.alarmUpdated.onNext.calls.count()).toBe(1);
+      expect($ctrl.alarmUpdated.next.calls.count()).toBe(1);
     });
   });
 
@@ -147,12 +145,12 @@ describe('Component: alarmConfigurer', function () {
     });
 
     it('triggers alarmUpdated, updates alarm fields when new metric selected', function () {
-      spyOn($ctrl.alarmUpdated, 'onNext');
+      spyOn($ctrl.alarmUpdated, 'next');
 
       $ctrl.viewState.selectedMetric = $ctrl.metrics[1];
       $ctrl.metricChanged();
       expect(alarm.metricName).toBe('NetworkIn');
-      expect($ctrl.alarmUpdated.onNext.calls.count()).toBe(1);
+      expect($ctrl.alarmUpdated.next.calls.count()).toBe(1);
     });
 
     it('updates dimensions, available metrics when dimensions on selected metric are different', function () {
@@ -166,20 +164,20 @@ describe('Component: alarmConfigurer', function () {
     });
 
     it('clears namespace when not in advanced mode and selected metric is removed', function () {
-      spyOn($ctrl.alarmUpdated, 'onNext');
+      spyOn($ctrl.alarmUpdated, 'next');
       $ctrl.viewState.selectedMetric = null;
       $ctrl.metricChanged();
       expect(alarm.namespace).toBe(null);
-      expect($ctrl.alarmUpdated.onNext.calls.count()).toBe(1);
+      expect($ctrl.alarmUpdated.next.calls.count()).toBe(1);
     });
 
     it('does not clear namespace when in advanced mode and selected metric is removed', function () {
-      spyOn($ctrl.alarmUpdated, 'onNext');
+      spyOn($ctrl.alarmUpdated, 'next');
       $ctrl.viewState.advancedMode = true;
       $ctrl.viewState.selectedMetric = null;
       $ctrl.metricChanged();
       expect(alarm.namespace).toBe('AWS/EC2');
-      expect($ctrl.alarmUpdated.onNext.calls.count()).toBe(1);
+      expect($ctrl.alarmUpdated.next.calls.count()).toBe(1);
     });
   });
 

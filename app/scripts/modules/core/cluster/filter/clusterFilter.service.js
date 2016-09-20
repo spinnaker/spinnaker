@@ -144,7 +144,7 @@ module.exports = angular
             instancesSelected += instanceGroup.instanceIds.length;
           }
         });
-        MultiselectModel.instancesStream.onNext();
+        MultiselectModel.instancesStream.next();
         MultiselectModel.syncNavigation();
       } else {
         MultiselectModel.instanceGroups.length = 0;
@@ -163,7 +163,7 @@ module.exports = angular
           });
           toRemove.reverse().forEach((index) => MultiselectModel.serverGroups.splice(index, 1));
         }
-        MultiselectModel.serverGroupsStream.onNext();
+        MultiselectModel.serverGroupsStream.next();
         MultiselectModel.syncNavigation();
       }
     }

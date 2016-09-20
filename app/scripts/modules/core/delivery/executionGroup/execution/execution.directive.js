@@ -140,7 +140,7 @@ module.exports = angular
     }
 
     $scope.$on('$destroy', () => {
-      activeRefresher.dispose();
+      activeRefresher.unsubscribe();
       if (this.isActive()) {
         this.hideDetails();
       }
