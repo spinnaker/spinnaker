@@ -1,5 +1,3 @@
-'use strict';
-
 describe('recent history service', function() {
 
   var service, deckCacheFactory, backingCache;

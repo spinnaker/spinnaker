@@ -75,8 +75,8 @@ module.exports = angular
     });
 
     function isExecutionState(stateName) {
-      return stateName === 'home.applications.application.executions' ||
-        stateName === 'home.project.application.executions';
+      return stateName === 'home.applications.application.pipelines.executions' ||
+        stateName === 'home.project.application.pipelines.executions';
     }
 
     function isExecutionStateOrChild(stateName) {

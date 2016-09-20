@@ -54,6 +54,12 @@ export class Application {
   public attributes: any = <any>{};
 
   /**
+   * Indicates that the application was not found in Front50
+   * @type {boolean}
+   */
+  public notFound: boolean = false;
+
+  /**
    * Returns a data source based on its key. Data sources can be accessed on the application directly via the key,
    * e.g. application.serverGroups, but this is the preferred access method, as it allows type inference
    * @param key

@@ -25,14 +25,9 @@ module.exports = angular.module('spinnaker.application.controller', [
     var hotkeyBind = hotkeys.bindTo($scope);
     var applicationHotkeys = [
       {
-        combo: 'ctrl+alt+0',
-        description: 'Pipeline Config',
-        callback: () => $state.go('home.applications.application.pipelineConfig'),
-      },
-      {
         combo: 'ctrl+alt+1',
         description: 'Pipelines',
-        callback: () => $state.go('home.applications.application.executions'),
+        callback: () => $state.go('home.applications.application.pipelines.executions'),
       },
       {
         combo: 'ctrl+alt+2',

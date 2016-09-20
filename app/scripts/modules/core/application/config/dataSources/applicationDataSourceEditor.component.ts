@@ -27,6 +27,9 @@ export class DataSourceEditorController implements ng.IComponentController {
   constructor(private applicationWriter: any) {}
 
   $onInit() {
+    if (this.application.notFound) {
+      return;
+    }
     if (!this.application.attributes) {
       this.application.attributes = {};
     }

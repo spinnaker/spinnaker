@@ -125,7 +125,7 @@ export class ApplicationDataSource {
     }
 
     if (!config.activeState) {
-      this.activeState = '**.' + config.key + '.**';
+      this.activeState = '**' + this.sref + '.**';
     }
   }
 
