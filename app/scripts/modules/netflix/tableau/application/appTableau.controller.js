@@ -7,20 +7,18 @@ require('./../tableau.less');
 module.exports = angular
   .module('spinnaker.netflix.tableau.application.controller', [
     require('../../../core/config/settings'),
+    require('../../../core/authentication/authentication.service')
   ])
-  .controller('AppTableauCtrl', function ($http, $sce, app, settings) {
-    this.tokenRetrieved = (token) => {
-      this.token = token;
-      let url = settings.tableau.appSourceUrl.replace('${token}', token).replace('${app}', app.name);
+  .controller('AppTableauCtrl', function ($sce, app, settings, authenticationService) {
+
+    this.$onInit = () => {
+      let [user] = authenticationService.getAuthenticatedUser().name.split('@');
+      let url = settings.tableau.appSourceUrl
+        .replace('${app}', app.name)
+        .replace('${user}', user);
       this.srcUrl = $sce.trustAsResourceUrl(url);
     };
 
-    this.handleError = (error) => {
-      this.error = error;
-    };
-
-    $http.get(settings.tableau.tokenUrl)
-      .then(resp => resp.data, this.handleError)
-      .then(this.tokenRetrieved, this.handleError);
+    this.$onInit();
 
   });
