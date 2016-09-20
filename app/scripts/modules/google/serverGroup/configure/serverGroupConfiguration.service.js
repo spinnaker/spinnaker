@@ -14,12 +14,13 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
   require('./../../instance/custom/customInstanceBuilder.gce.service.js'),
   require('../../loadBalancer/elSevenUtils.service.js'),
   require('../../httpHealthCheck/httpHealthCheck.reader.js'),
+  require('./wizard/securityGroups/tagManager.service.js'),
 ])
   .factory('gceServerGroupConfigurationService', function(gceImageReader, accountService, securityGroupReader,
                                                           gceInstanceTypeService, cacheInitializer,
                                                           $q, loadBalancerReader, networkReader, subnetReader,
                                                           settings, _, gceCustomInstanceBuilderService, elSevenUtils,
-                                                          gceHttpHealthCheckReader) {
+                                                          gceHttpHealthCheckReader, gceTagManager) {
 
     var persistentDiskTypes = [
       'pd-standard',
@@ -113,6 +114,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         }
 
         return $q.all([loadBalancerReloader, securityGroupReloader, networkReloader, httpHealthCheckReloader]).then(function() {
+          gceTagManager.register(command);
           attachEventHandlers(command);
         });
       });

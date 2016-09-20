@@ -3,9 +3,13 @@
   <div class="col-md-9">
     <ui-select ng-if="vm.command.backingData.filtered.securityGroups.length"
                multiple
+               on-remove="vm.onRemove($item.id)"
                ng-model="vm.command.securityGroups"
                class="form-control input-sm">
-      <ui-select-match>{{$item.name}}</ui-select-match>
+      <ui-select-match>{{$item.name}}
+        <gce-tag-selector-generator security-group-id="$item.id" command="vm.command">
+        </gce-tag-selector-generator>
+      </ui-select-match>
       <ui-select-choices repeat="securityGroup.id as securityGroup in vm.command.backingData.filtered.securityGroups | anyFieldFilter: {name: $select.search, id: $select.search}">
         <span ng-bind-html="securityGroup.name | highlight: $select.search"></span>
         (<span ng-bind-html="securityGroup.id  | highlight: $select.search"></span>)

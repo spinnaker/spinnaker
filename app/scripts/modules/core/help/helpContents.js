@@ -149,6 +149,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'gce.serverGroup.automaticRestart': 'Compute Engine can automatically restart VM instances if they are terminated for non-user-initiated reasons (maintenance event, hardware failure, software failure, etc.).',
     'gce.serverGroup.onHostMaintenance': 'When Compute Engine performs periodic infrastructure maintenance it can migrate your VM instances to other hardware without downtime.',
     'gce.serverGroup.securityGroups.implicit': 'Firewall rules with no target tags defined will permit incoming connections that match the ingress rules to all instances in the network.',
+    'gce.serverGroup.securityGroups.targetTags': 'This security group will be associated with this server group only if a target tag is selected.',
     'gce.serverGroup.autoscaling.targetCPUUsage': 'Autoscaling adds or removes VMs in the group to maintain this level of CPU usage on each VM.',
     'gce.serverGroup.autoscaling.targetHTTPLoadBalancingUsage': 'Autoscaling adds or removes VMs in the group to maintain this usage of load-balancing capacity. This value is a percentage of the \'Maximum rate\' setting of the load balancer this group is used by.',
     'gce.serverGroup.autoscaling.targetMetric': 'Autoscaling adds or removes VMs in the group to maintain these target levels.',

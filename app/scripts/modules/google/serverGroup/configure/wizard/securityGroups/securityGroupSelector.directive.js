@@ -6,6 +6,8 @@ module.exports = angular
   .module('spinnaker.google.serverGroup.configure.wizard.securityGroups.selector.directive', [
     require('../../../../../core/cache/infrastructureCaches.js'),
     require('../../serverGroupConfiguration.service.js'),
+    require('./tagSelectorGenerator.component.js'),
+    require('./tagManager.service.js'),
   ])
   .directive('gceServerGroupSecurityGroupSelector', function () {
     return {
@@ -18,7 +20,9 @@ module.exports = angular
       controllerAs: 'vm',
       controller: 'gceServerGroupSecurityGroupsSelectorCtrl',
     };
-  }).controller('gceServerGroupSecurityGroupsSelectorCtrl', function (gceServerGroupConfigurationService, infrastructureCaches) {
+  }).controller('gceServerGroupSecurityGroupsSelectorCtrl', function (gceServerGroupConfigurationService,
+                                                                      gceTagManager,
+                                                                      infrastructureCaches) {
     this.getSecurityGroupRefreshTime = () => {
       return infrastructureCaches.securityGroups.getStats().ageMax;
     };
@@ -29,4 +33,6 @@ module.exports = angular
         this.refreshing = false;
       });
     };
+
+    this.onRemove = gceTagManager.removeSecurityGroup;
   });

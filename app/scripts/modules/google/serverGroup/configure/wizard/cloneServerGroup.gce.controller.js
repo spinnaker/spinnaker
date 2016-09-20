@@ -9,13 +9,15 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
   require('../../../../core/instance/instanceTypeService.js'),
   require('../../../../core/modal/wizard/wizardSubFormValidation.service.js'),
   require('./hiddenMetadataKeys.value.js'),
+  require('./securityGroups/tagManager.service.js')
 ])
   .controller('gceCloneServerGroupCtrl', function($scope, $uibModalInstance, _, $q, $state,
                                                   serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                   gceServerGroupConfigurationService,
                                                   serverGroupCommand, application, title,
                                                   gceCustomInstanceBuilderService, instanceTypeService,
-                                                  wizardSubFormValidation, gceServerGroupHiddenMetadataKeys) {
+                                                  wizardSubFormValidation, gceServerGroupHiddenMetadataKeys,
+                                                  gceTagManager) {
     $scope.pages = {
       templateSelection: require('./templateSelection/templateSelection.html'),
       basicSettings: require('./location/basicSettings.html'),
@@ -282,6 +284,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
         $scope.command.capacity.max = $scope.command.capacity.desired;
       }
 
+      delete $scope.command.securityGroups;
+
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
         return $uibModalInstance.close($scope.command);
       }
@@ -293,6 +297,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
           $scope.command.instanceMetadata = _.omit($scope.command.instanceMetadata, gceServerGroupHiddenMetadataKeys);
 
           $scope.command.tags = origTags;
+          $scope.command.securityGroups = gceTagManager.inferSecurityGroupIdsFromTags($scope.command.tags);
 
           return promise;
         }
@@ -315,4 +320,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       $scope.state.requiresTemplateSelection = false;
       configureCommand();
     });
+
+    $scope.$on('$destroy', gceTagManager.reset);
   });

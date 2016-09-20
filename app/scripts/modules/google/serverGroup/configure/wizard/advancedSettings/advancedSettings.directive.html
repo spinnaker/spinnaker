@@ -45,8 +45,11 @@
       <b>Tags</b>
       <tbody>
       <tr ng-repeat="tag in vm.command.tags">
-        <td><input class="form-control input-sm" type="text" ng-model="tag.value" required/></td>
-        <td><a class="btn btn-link sm-label"
+        <td><input class="form-control input-sm" type="text" ng-model="tag.value"
+                   ng-change="vm.inferSelectedSecurityGroupFromTag(tag.value)" required/></td>
+        <td>
+          <help-field ng-if="vm.showToolTip(tag.value)" content="{{vm.getToolTipContent(tag.value)}}"></help-field>
+          <a class="btn btn-link sm-label"
                ng-click="vm.removeTag($index)"><span
           class="glyphicon glyphicon-trash"></span></a></td>
       </tr>

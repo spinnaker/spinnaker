@@ -8,11 +8,17 @@ describe('Directive: GCE Group Advanced Settings Selector', function() {
   beforeEach(
     window.module(
       require('./advancedSettingsSelector.directive.js'),
-      require('../../../../../../modules/core/forms/uiSelect.decorator.js')
+      require('../../../../../../modules/core/forms/uiSelect.decorator.js'),
+      require('../securityGroups/tagManager.service.js')
     )
   );
 
-  beforeEach(window.inject(function($rootScope, $compile) {
+  beforeEach(window.inject(function($rootScope, $compile, gceTagManager) {
+    ['showToolTip',
+     'updateSelectedTags',
+     'getToolTipContent',
+     'inferSelectedSecurityGroupFromTag'].forEach((prop) => spyOn(gceTagManager, prop));
+    this.gceTagManager = gceTagManager;
     this.scope = $rootScope.$new();
     this.scope.command = {instanceMetadata: [], tags: [], authScopes: []};
     this.elem = angular.element('<gce-server-group-advanced-settings-selector command="command"></gce-server-group-advanced-settings-selector>');
@@ -46,5 +52,6 @@ describe('Directive: GCE Group Advanced Settings Selector', function() {
 
     expect(this.scope.command.tags.length).toEqual(1);
     expect(this.scope.command.tags[0].value).toEqual('myTag2');
+    expect(this.gceTagManager.updateSelectedTags).toHaveBeenCalled();
   });
 });
