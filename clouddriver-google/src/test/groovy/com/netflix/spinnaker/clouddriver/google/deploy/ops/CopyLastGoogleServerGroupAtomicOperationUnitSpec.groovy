@@ -33,10 +33,8 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDe
 import com.netflix.spinnaker.clouddriver.google.deploy.handlers.BasicGoogleDeployHandler
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
-import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
-import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
@@ -62,11 +60,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final String SERVICE_ACCOUNT_EMAIL = "default"
   private static final List<String> AUTH_SCOPES = ["compute", "logging.write"]
   private static final List<String> LOAD_BALANCERS = ["testlb-east-1", "testlb-east-2"]
-  private static final String SECURITY_GROUP_1 = "sg-1"
-  private static final String SECURITY_GROUP_2 = "sg-2"
-  private static final Set<String> SECURITY_GROUPS = [SECURITY_GROUP_1, SECURITY_GROUP_2]
   private static final String ZONE = "us-central1-b"
-  private static final String ZONE_URL = "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/$ZONE"
 
   private static final long DISK_SIZE_GB = 100
   private static final String DISK_TYPE = "pd-standard"
@@ -161,7 +155,6 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          network: "other-network",
                                                          subnet: "other-subnet",
                                                          loadBalancers: ["testlb-west-1", "testlb-west-2"],
-                                                         securityGroups: ["sg-3", "sg-4"] as Set,
                                                          autoscalingPolicy:
                                                              new GoogleAutoscalingPolicy(
                                                                  coolDownPeriodSec: 90,
@@ -178,13 +171,11 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          accountName: ACCOUNT_NAME,
                                                          credentials: credentials)
       def googleClusterProviderMock = Mock(GoogleClusterProvider)
-      def googleSecurityGroupProviderMock = Mock(GoogleSecurityGroupProvider)
       def basicGoogleDeployHandlerMock = Mock(BasicGoogleDeployHandler)
       def newDescription = description.clone()
       def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
       @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)
       operation.googleClusterProvider = googleClusterProviderMock
-      operation.googleSecurityGroupProvider = googleSecurityGroupProviderMock
       operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock
 
     when:
@@ -192,8 +183,6 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
     then:
       1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, ANCESTOR_SERVER_GROUP_NAME) >> serverGroup
-
-      1 * googleSecurityGroupProviderMock.getAllByAccount(false, ACCOUNT_NAME) >> []
 
       1 * basicGoogleDeployHandlerMock.handle(newDescription, _) >> deploymentResult
 
@@ -209,7 +198,6 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          accountName: ACCOUNT_NAME,
                                                          credentials: credentials)
       def googleClusterProviderMock = Mock(GoogleClusterProvider)
-      def googleSecurityGroupProviderMock = Mock(GoogleSecurityGroupProvider)
       def basicGoogleDeployHandlerMock = Mock(BasicGoogleDeployHandler)
       def newDescription = description.clone()
       newDescription.application = APPLICATION_NAME
@@ -231,7 +219,6 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.network = DEFAULT_NETWORK_NAME
       newDescription.subnet = SUBNET_NAME
       newDescription.loadBalancers = LOAD_BALANCERS
-      newDescription.securityGroups = SECURITY_GROUPS
       newDescription.autoscalingPolicy = new GoogleAutoscalingPolicy(coolDownPeriodSec: 45,
                                                                      minNumReplicas: 2,
                                                                      maxNumReplicas: 5)
@@ -241,7 +228,6 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
       @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)
       operation.googleClusterProvider = googleClusterProviderMock
-      operation.googleSecurityGroupProvider = googleSecurityGroupProviderMock
       operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock
 
     when:
@@ -249,82 +235,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
     then:
       1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, ANCESTOR_SERVER_GROUP_NAME) >> serverGroup
-
-      1 * googleSecurityGroupProviderMock.getAllByAccount(false, ACCOUNT_NAME) >> [
-        new GoogleSecurityGroup(name: SECURITY_GROUP_1, targetTags: [HTTP_SERVER_TAG]),
-        new GoogleSecurityGroup(name: SECURITY_GROUP_2, targetTags: [HTTPS_SERVER_TAG])
-      ]
 
       1 * basicGoogleDeployHandlerMock.handle(newDescription, _) >> deploymentResult
-  }
-
-  void "description specifies subset of security groups, and subset of tags is properly calculated"() {
-    setup:
-      def description = new BasicGoogleDeployDescription(source: [region: REGION,
-                                                                  serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
-                                                         region: REGION,
-                                                         securityGroups: [SECURITY_GROUP_2],
-                                                         accountName: ACCOUNT_NAME,
-                                                         credentials: credentials)
-      def googleClusterProviderMock = Mock(GoogleClusterProvider)
-      def googleSecurityGroupProviderMock = Mock(GoogleSecurityGroupProvider)
-      def basicGoogleDeployHandlerMock = Mock(BasicGoogleDeployHandler)
-      def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
-      @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)
-      operation.googleClusterProvider = googleClusterProviderMock
-      operation.googleSecurityGroupProvider = googleSecurityGroupProviderMock
-      operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock
-
-    when:
-      operation.operate([])
-
-    then:
-      1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, ANCESTOR_SERVER_GROUP_NAME) >> serverGroup
-
-      2 * googleSecurityGroupProviderMock.getAllByAccount(false, ACCOUNT_NAME) >> [
-        new GoogleSecurityGroup(name: SECURITY_GROUP_1, targetTags: [HTTP_SERVER_TAG]),
-        new GoogleSecurityGroup(name: SECURITY_GROUP_2, targetTags: [HTTPS_SERVER_TAG])
-      ]
-
-      1 * basicGoogleDeployHandlerMock.handle(_, _) >> {
-        it[0].tags == TAGS - HTTP_SERVER_TAG
-
-        deploymentResult
-      }
-  }
-
-  void "description specifies empty list of security groups, and subset of tags is properly calculated"() {
-    setup:
-      def description = new BasicGoogleDeployDescription(source: [region: REGION,
-                                                                  serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
-                                                         region: REGION,
-                                                         securityGroups: [],
-                                                         accountName: ACCOUNT_NAME,
-                                                         credentials: credentials)
-      def googleClusterProviderMock = Mock(GoogleClusterProvider)
-      def googleSecurityGroupProviderMock = Mock(GoogleSecurityGroupProvider)
-      def basicGoogleDeployHandlerMock = Mock(BasicGoogleDeployHandler)
-      def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
-      @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)
-      operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock
-      operation.googleClusterProvider = googleClusterProviderMock
-      operation.googleSecurityGroupProvider = googleSecurityGroupProviderMock
-
-    when:
-      operation.operate([])
-
-    then:
-      1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, ANCESTOR_SERVER_GROUP_NAME) >> serverGroup
-
-      2 * googleSecurityGroupProviderMock.getAllByAccount(false, ACCOUNT_NAME) >> [
-        new GoogleSecurityGroup(name: SECURITY_GROUP_1, targetTags: [HTTP_SERVER_TAG]),
-        new GoogleSecurityGroup(name: SECURITY_GROUP_2, targetTags: [HTTPS_SERVER_TAG])
-      ]
-
-      1 * basicGoogleDeployHandlerMock.handle(_, _) >> {
-        it[0].tags == TAGS - HTTP_SERVER_TAG - HTTPS_SERVER_TAG
-
-        deploymentResult
-      }
   }
 }

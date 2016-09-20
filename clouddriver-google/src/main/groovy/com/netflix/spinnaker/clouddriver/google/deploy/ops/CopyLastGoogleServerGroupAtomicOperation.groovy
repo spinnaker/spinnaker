@@ -30,10 +30,8 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDe
 import com.netflix.spinnaker.clouddriver.google.deploy.handlers.BasicGoogleDeployHandler
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
-import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
-import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -51,9 +49,6 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
 
   @Autowired
   GoogleClusterProvider googleClusterProvider
-
-  @Autowired
-  GoogleSecurityGroupProvider googleSecurityGroupProvider
 
   CopyLastGoogleServerGroupAtomicOperation(BasicGoogleDeployDescription description) {
     this.description = description
@@ -201,40 +196,6 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
           description.subnet != null
           ? description.subnet
           : GCEUtil.getLocalName(ancestorInstanceProperties.networkInterfaces?.getAt(0)?.subnetwork)
-
-      Set<GoogleSecurityGroup> googleSecurityGroups = googleSecurityGroupProvider.getAllByAccount(false, accountName)
-
-      // Find all firewall rules with target tags matching the tags of the ancestor instance template.
-      def googleSecurityGroupMatches = [] as Set
-
-      ancestorInstanceTemplate?.properties?.tags?.items.each { instanceTemplateTag ->
-        googleSecurityGroupMatches << googleSecurityGroups.findAll { googleSecurityGroup ->
-          googleSecurityGroup.targetTags?.contains(instanceTemplateTag)
-        }
-      }
-
-      Set<GoogleSecurityGroup> ancestorSecurityGroups = googleSecurityGroupMatches.flatten().collect { it.name }
-
-      if (newDescription.securityGroups == null) {
-        // Since no security groups were specified, use the security groups of the ancestor server group.
-        newDescription.securityGroups = ancestorSecurityGroups
-      } else {
-        // Since security groups were specified, we must back out the tags of the security groups that are associated
-        // with the ancestor server group but not with the cloned server group.
-        if (newDescription.tags) {
-          Set<String> elidedSecurityGroupNames = ancestorSecurityGroups - newDescription.securityGroups
-
-          if (elidedSecurityGroupNames) {
-            Set<String> elidedSecurityGroupsTargetTags = GCEUtil.querySecurityGroupTags(elidedSecurityGroupNames,
-                                                                                        newDescription.accountName,
-                                                                                        googleSecurityGroupProvider,
-                                                                                        task,
-                                                                                        BASE_PHASE)
-
-            newDescription.tags -= elidedSecurityGroupsTargetTags
-          }
-        }
-      }
     }
 
     AutoscalingPolicy ancestorAutoscalingPolicy = ancestorServerGroup.autoscalingPolicy

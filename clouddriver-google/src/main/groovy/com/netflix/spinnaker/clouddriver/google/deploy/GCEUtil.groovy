@@ -317,40 +317,6 @@ class GCEUtil {
     return allMIGSInRegion
   }
 
-  static Set<String> querySecurityGroupTags(Set<String> securityGroupNames,
-                                            String accountName,
-                                            GoogleSecurityGroupProvider googleSecurityGroupProvider,
-                                            Task task,
-                                            String phase) {
-    if (!securityGroupNames) {
-      return null
-    }
-
-    task.updateStatus phase, "Looking up firewall rules $securityGroupNames..."
-
-    Set<GoogleSecurityGroup> securityGroups = googleSecurityGroupProvider.getAllByAccount(false, accountName)
-
-    Set<GoogleSecurityGroup> securityGroupMatches = securityGroups.findAll { securityGroup ->
-      securityGroupNames.contains(securityGroup.name)
-    }
-
-    if (securityGroupMatches.size() == securityGroupNames.size()) {
-      return securityGroupMatches.collect { securityGroupMatch ->
-        securityGroupMatch.targetTags
-      }.flatten() - null
-    } else {
-      def securityGroupNameMatches = securityGroupMatches.collect { it.name }
-
-      updateStatusAndThrowNotFoundException("Firewall rules ${securityGroupNames - securityGroupNameMatches} not found.", task, phase)
-    }
-
-    return securityGroups.findAll { securityGroup ->
-      securityGroupNames.contains(securityGroup.name)
-    }.collect { securityGroup ->
-      securityGroup.targetTags
-    }.flatten() - null
-  }
-
   static GoogleServerGroup.View queryServerGroup(GoogleClusterProvider googleClusterProvider, String accountName, String region, String serverGroupName) {
     def serverGroup = googleClusterProvider.getServerGroup(accountName, region, serverGroupName)
 
@@ -367,10 +333,6 @@ class GCEUtil {
     }.collect {
       it.selfLink
     }
-  }
-
-  static List<String> mergeDescriptionAndSecurityGroupTags(List<String> tags, Set<String> securityGroupTags) {
-    return ((tags ?: []) + securityGroupTags).unique()
   }
 
   static boolean shouldUpdateUrlMap(UrlMap urlMap, UpsertGoogleLoadBalancerDescription description) {

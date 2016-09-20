@@ -36,7 +36,6 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLo
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
-import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -64,9 +63,6 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
   @Autowired
   private GoogleOperationPoller googleOperationPoller
-
-  @Autowired
-  GoogleSecurityGroupProvider googleSecurityGroupProvider
 
   @Autowired
   GoogleLoadBalancerProvider googleLoadBalancerProvider
@@ -153,13 +149,6 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
         def networkLoadBalancers = foundLoadBalancers.findAll { it.loadBalancerType == GoogleLoadBalancerType.NETWORK.toString() }
         targetPools = networkLoadBalancers.collect { it.targetPool }
       }
-    }
-
-    def securityGroupTags = GCEUtil.querySecurityGroupTags(description.securityGroups, accountName,
-        googleSecurityGroupProvider, task, BASE_PHASE)
-
-    if (securityGroupTags) {
-      description.tags = GCEUtil.mergeDescriptionAndSecurityGroupTags(description.tags, securityGroupTags)
     }
 
     task.updateStatus BASE_PHASE, "Composing server group $serverGroupName..."
