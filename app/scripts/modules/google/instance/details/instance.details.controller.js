@@ -171,7 +171,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
     function augmentTagsWithHelp() {
       if (_.has($scope, 'instance.tags.items') && _.has($scope, 'instance.securityGroups')) {
         let securityGroups = _($scope.instance.securityGroups).map(securityGroup => {
-          return _.find(app.securityGroups.data, { accountName: $scope.instance.account, region: 'global', id: securityGroup.groupdId });
+          return _.find(app.securityGroups.data, { accountName: $scope.instance.account, region: 'global', id: securityGroup.groupId });
         }).compact().value();
 
         let helpMap = {};
