@@ -68,7 +68,7 @@ abstract class AbstractFront50Task implements Task {
     def executionStatus = ExecutionStatus.SUCCEEDED
 
     Map<String, Object> results = performRequest(account, application)
-    return new DefaultTaskResult(executionStatus, outputs + results)
+    return new DefaultTaskResult(executionStatus, outputs + (results ?: [:]))
   }
 
   Application fetchApplication(String applicationName) {
