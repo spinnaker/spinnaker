@@ -68,7 +68,7 @@ module.exports = angular.module('spinnaker.core.delivery.states', [])
           name: 'executionDetails',
           url: '/details',
           views: {
-            'insight': {
+            'pipelines': {
               templateUrl: require('./details/singleExecutionDetails.html'),
               controller: 'SingleExecutionDetailsCtrl',
               controllerAs: 'vm',
