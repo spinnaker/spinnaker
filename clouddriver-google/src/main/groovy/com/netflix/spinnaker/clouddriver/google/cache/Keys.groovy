@@ -32,6 +32,7 @@ class Keys {
     NETWORKS,
     SECURITY_GROUPS,
     SERVER_GROUPS,
+    SSL_CERTIFICATES,
     SUBNETS,
 
     ON_DEMAND,
@@ -142,6 +143,12 @@ class Keys {
           result.zone = parts[6]
         }
         break
+      case Namespace.SSL_CERTIFICATES.ns:
+        result << [
+          account: parts[2],
+          name   : parts[3],
+        ]
+        break
       case Namespace.SUBNETS.ns:
         result << [
             id     : parts[2],
@@ -214,6 +221,10 @@ class Keys {
                                   String zone) {
     Names names = Names.parseName(managedInstanceGroupName)
     "$GoogleCloudProvider.GCE:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}${zone ? ":$zone" : ""}"
+  }
+  static String getSslCertificateKey(String account,
+                                     String sslCertificateName) {
+    "$GoogleCloudProvider.GCE:${Namespace.SSL_CERTIFICATES}:${account}:${sslCertificateName}"
   }
 
   static String getSubnetKey(String subnetName,
