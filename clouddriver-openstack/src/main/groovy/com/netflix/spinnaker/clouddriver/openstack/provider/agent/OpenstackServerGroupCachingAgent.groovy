@@ -40,10 +40,6 @@ import groovy.util.logging.Slf4j
 import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.network.ext.LoadBalancerV2
 
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 
@@ -201,23 +197,25 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
    * @return
    */
   OpenstackServerGroup buildServerGroup(ProviderCache providerCache, Stack stack, Set<String> loadbalancerIds) {
-    Map<String, Object> launchConfig = buildLaunchConfig(stack.parameters)
+    ServerGroupParameters params = ServerGroupParameters.fromParamsMap(stack?.parameters ?: [:])
+    Map<String, Object> launchConfig = buildLaunchConfig(params)
     Map<String, Object> openstackImage = buildImage(providerCache, (String) launchConfig?.image)
-    Map<String, Object> advancedConfig = buildAdvancedConfig(stack.parameters)
+    Map<String, Object> advancedConfig = buildAdvancedConfig(params)
 
     OpenstackServerGroup.builder()
       .account(accountName)
       .region(region)
-      .name(stack.name)
+      .name(stack?.name)
       .createdTime(DateUtils.parseZonedDateTime(stack.creationTime).toInstant().toEpochMilli())
-      .scalingConfig(buildScalingConfig(stack))
+      .scalingConfig(buildScalingConfig(params))
       .launchConfig(launchConfig)
       .loadBalancers(loadbalancerIds)
       .image(openstackImage)
       .buildInfo(buildInfo((Map<String, String>) openstackImage?.properties))
       .disabled(loadbalancerIds.isEmpty()) //TODO - Determine if we need to check to see if the stack is suspended
-      .subnetId(stack.parameters.get('subnet_id'))
+      .subnetId(params.subnetId)
       .advancedConfig(advancedConfig)
+      .tags(params.tags ?: [:])
       .build()
   }
 
@@ -263,22 +261,17 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
    * @param stack
    * @return
    */
-  Map<String, Object> buildScalingConfig(Stack stack) {
+  Map<String, Object> buildScalingConfig(ServerGroupParameters parameters) {
     Map<String, Object> result = Maps.newHashMap()
 
-    if (stack) {
+    if (parameters) {
       // Using a default value of 0 for min, max, & desired size
-      result.put('minSize', stack.parameters.get('min_size', '0') as Integer)
-      result.put('maxSize', stack.parameters.get('max_size', '0') as Integer)
-      result.put('desiredSize', stack.parameters.get('desired_size', '0') as Integer)
-      result.put('autoscalingType', ServerGroupParameters.AutoscalingType.fromMeter(stack.parameters.get('autoscaling_type')))
-      ['up','down'].each {
-        // Not setting a default value for the scaler values
-        Map<String, Object> scaler = [cooldown  : stack.parameters.get("scale${it}_cooldown".toString()) as Integer,
-                                      period    : stack.parameters.get("scale${it}_period".toString()) as Integer,
-                                      adjustment: stack.parameters.get("scale${it}_adjustment".toString()) as Integer,
-                                      threshold : stack.parameters.get("scale${it}_threshold".toString()) as Integer]
-        result.put("scale$it".toString(), scaler)
+      result.put('minSize', parameters.minSize ?: 0)
+      result.put('maxSize', parameters.maxSize ?: 0)
+      result.put('desiredSize', parameters.desiredSize ?: 0)
+      result.put('autoscalingType', parameters.autoscalingType.jsonValue())
+      [up:parameters.scaleup, down:parameters.scaledown].each {
+        result.put("scale${it.key}".toString(), objectMapper.convertValue(it.value, ATTRIBUTES))
       }
     }
 
@@ -290,19 +283,19 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
    * @param parameters
    * @return
    */
-  Map<String, Object> buildLaunchConfig(Map<String, String> parameters) {
+  Map<String, Object> buildLaunchConfig(ServerGroupParameters parameters) {
     Map<String, Object> result = Collections.emptyMap()
 
     if (parameters) {
       OpenstackLaunchConfig launchConfig = OpenstackLaunchConfig.builder()
-        .image(parameters.get('image'))
-        .instanceType(parameters.get('flavor'))
-        .networkId(parameters.get('network_id'))
-        .loadBalancerId(parameters.get('pool_id'))
-        .securityGroups(parameters.get('security_groups')?.split(',')?.toList())
+        .image(parameters.image)
+        .instanceType(parameters.instanceType)
+        .networkId(parameters.networkId)
+        .loadBalancerId(parameters.loadBalancers?.join(","))
+        .securityGroups(parameters.securityGroups)
         .build()
 
-      result = objectMapper.convertValue(launchConfig, ATTRIBUTES)
+      result = ((Map<String, Object>)objectMapper.convertValue(launchConfig, ATTRIBUTES)).findAll { it.value }
     }
 
     result
@@ -313,13 +306,13 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
    * @param parameters
    * @return
    */
-  Map<String, Object> buildAdvancedConfig(Map<String, String> parameters) {
+  Map<String, Object> buildAdvancedConfig(ServerGroupParameters parameters) {
     Map<String, Object> params = [:]
-    if (parameters.get('source_user_data_type')) {
-      params << [userDataType:parameters.get('source_user_data_type')]
+    if (parameters.sourceUserDataType) {
+      params << [userDataType:parameters.sourceUserDataType]
     }
-    if (parameters.get('source_user_data')) {
-      params << [userData:parameters.get('source_user_data')]
+    if (parameters.sourceUserData) {
+      params << [userData:parameters.sourceUserData]
     }
     params
   }

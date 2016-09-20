@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
 import com.netflix.spinnaker.clouddriver.openstack.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ServerGroupParameters
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackServerGroup
 import com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider
@@ -37,7 +38,6 @@ import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccoun
 import org.openstack4j.model.common.ActionResponse
 import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.network.ext.LoadBalancerV2
-import org.springframework.format.datetime.joda.DateTimeParser
 import redis.clients.jedis.exceptions.JedisException
 import spock.lang.Ignore
 import spock.lang.Shared
@@ -46,7 +46,6 @@ import spock.lang.Unroll
 
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.APPLICATIONS
@@ -272,10 +271,14 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
   void "test build server group"() {
     given:
     ProviderCache providerCache = Mock(ProviderCache)
-    Stack stack = Mock(Stack)
     Set<String> loadBalancerIds = Sets.newHashSet('loadBalancerId')
     LocalDateTime createdTime = LocalDateTime.now()
     String subnetId = UUID.randomUUID().toString()
+    Stack stack = Mock(Stack) {
+      it.name >> { 'name' }
+      it.parameters >> { [subnet_id: subnetId, tags:'{foo: bar}'] }
+      it.creationTime >> { DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(createdTime) }
+    }
 
     and:
     Map<String, Object> launchConfig = Mock(Map)
@@ -298,21 +301,24 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
       .buildInfo(buildInfo)
       .disabled(loadBalancerIds.isEmpty())
       .subnetId(subnetId)
+      .tags([foo:'bar'])
       .build()
+
+    and:
+    ServerGroupParameters params = ServerGroupParameters.fromParamsMap(stack.parameters)
 
     when:
     OpenstackServerGroup result = cachingAgent.buildServerGroup(providerCache, stack, loadBalancerIds)
 
     then:
-    _ * stack.creationTime >> DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(createdTime)
-    _ * stack.parameters >> [subnet_id: subnetId]
-    1 * cachingAgent.buildLaunchConfig(stack.parameters) >> launchConfig
+    1 * cachingAgent.buildLaunchConfig(params) >> launchConfig
     1 * cachingAgent.buildImage(providerCache, launchConfig.image) >> openstackImage
-    1 * cachingAgent.buildScalingConfig(stack) >> scalingConfig
+    1 * cachingAgent.buildScalingConfig(params) >> scalingConfig
     1 * cachingAgent.buildInfo(openstackImage.properties) >> buildInfo
-    1 * cachingAgent.buildAdvancedConfig(stack.parameters) >> advancedConfig
+    1 * cachingAgent.buildAdvancedConfig(params) >> advancedConfig
 
     and:
+
     expected == result
     noExceptionThrown()
   }
@@ -326,9 +332,9 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     noExceptionThrown()
 
     where:
-    testCase | parameters                                                                                           | expected
-    'empty'  | [:]                                                                                                  | [:]
-    'normal' | [image: 'image', flavor: 'flavor', network_id: 'network', pool_id: 'portId', security_groups: 'a,b,c'] | [image: 'image', instanceType: 'flavor', networkId: 'network', loadBalancerId: 'portId', securityGroups: ['a', 'b', 'c']]
+    testCase | parameters                                                                                                                      | expected
+    'empty'  | new ServerGroupParameters()                                                                                                     | [:]
+    'normal' | new ServerGroupParameters(image: 'image', instanceType: 'flavor', networkId: 'network', loadBalancers: ['lb'], securityGroups: ['a','b','c']) | [instanceType: 'flavor', image: 'image', networkId: 'network', loadBalancerId: 'lb', securityGroups: ['a', 'b', 'c']]
   }
 
   void "test build image config"() {
@@ -388,17 +394,17 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
 
   void "test build scaling config - #testCase"() {
     when:
-    Map<String, Object> result = cachingAgent.buildScalingConfig(stack).sort { it.key }
+    Map<String, Object> result = cachingAgent.buildScalingConfig(params).sort { it.key }
 
     then:
     result == expected
     noExceptionThrown()
 
     where:
-    testCase  | stack               | expected
-    'empty'   | null                | [:]
-    'normal'  | buildStack(1, 5, 3) | [minSize: 1, maxSize: 5, desiredSize: 3, autoscalingType: 'cpu', scaleup:[cooldown: 60, period: 60, adjustment: 1, threshold: 50], scaledown:[cooldown: 60, period: 600, adjustment: -1, threshold: 15]].sort { it.key }
-    'missing' | buildStack()        | [minSize: 0, maxSize: 0, desiredSize: 0, autoscalingType: 'cpu', scaleup: [cooldown:null, period:null, adjustment:null, threshold:null], scaledown: [cooldown:null, period:null, adjustment:null, threshold:null]].sort { it.key }
+    testCase  | params               | expected
+    'empty'   | null                 | [:]
+    'normal'  | buildParams(1, 5, 3) | [minSize: 1, maxSize: 5, desiredSize: 3, autoscalingType: 'cpu', scaleup:[cooldown: 60, period: 60, adjustment: 1, threshold: 50], scaledown:[cooldown: 60, period: 600, adjustment: -1, threshold: 15]].sort { it.key }
+    'missing' | buildParams()        | [minSize: 0, maxSize: 0, desiredSize: 0, autoscalingType: 'cpu', scaleup: [cooldown:null, period:null, adjustment:null, threshold:null], scaledown: [cooldown:null, period:null, adjustment:null, threshold:null]].sort { it.key }
   }
 
   void "test build info config - #testCase"() {
@@ -427,9 +433,9 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     noExceptionThrown()
 
     where:
-    testCase | parameters                                                       | expected
-    'empty'  | [:]                                                              | [:]
-    'normal' | [source_user_data_type: 'Text', source_user_data: 'echo foobar'] | [userDataType: 'Text', userData: 'echo foobar']
+    testCase | parameters                                                                           | expected
+    'empty'  | new ServerGroupParameters()                                                          | [:]
+    'normal' | new ServerGroupParameters(sourceUserDataType: 'Text', sourceUserData: 'echo foobar') | [userDataType: 'Text', userData: 'echo foobar']
   }
 
   void "test handle on demand no result - #testCase"() {
@@ -569,28 +575,13 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
   }
 
   @Ignore
-  protected Stack buildStack(Integer minSize = null, Integer maxSize = null, Integer desiredSize = null) {
-    def params
+  protected ServerGroupParameters buildParams(Integer minSize = null, Integer maxSize = null, Integer desiredSize = null) {
     if (minSize && maxSize && desiredSize) {
-      params = [
-        min_size: minSize.toString(),
-        max_size: maxSize.toString(),
-        desired_size: desiredSize.toString(),
-        autoscaling_type: 'cpu_util',
-        scaleup_cooldown: '60',
-        scaleup_adjustment: '1',
-        scaleup_period: '60',
-        scaleup_threshold: '50',
-        scaledown_cooldown: '60',
-        scaledown_adjustment: '-1',
-        scaledown_period: '600',
-        scaledown_threshold: '15'
-      ]
+      new ServerGroupParameters(minSize: minSize, maxSize: maxSize, desiredSize: desiredSize, autoscalingType: ServerGroupParameters.AutoscalingType.CPU,
+        scaleup: new ServerGroupParameters.Scaler(cooldown: 60, adjustment: 1, period: 60, threshold: 50),
+        scaledown: new ServerGroupParameters.Scaler(cooldown: 60, adjustment: -1, period: 600, threshold: 15))
     } else {
-      params = [autoscaling_type: 'cpu_util']
-    }
-    Stub(Stack) {
-      getParameters() >> { params }
+      new ServerGroupParameters(autoscalingType: ServerGroupParameters.AutoscalingType.CPU, scaleup: new ServerGroupParameters.Scaler(), scaledown: new ServerGroupParameters.Scaler())
     }
   }
 }

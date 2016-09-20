@@ -90,6 +90,10 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
           "adjustment": -1,
           "period": 600,
           "threshold": 15
+        },
+        "tags": {
+          "foo": "bar",
+          "bar": "foo"
         }
       },
       "userDataType": "URL",

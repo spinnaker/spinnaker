@@ -107,7 +107,7 @@ class ServerGroupParameters {
         threshold: params.get('scaledown_threshold')?.toInteger()
       ),
       rawUserData: params.get('user_data'),
-      tags: unescapePythonUnicodeJsonMap(params.get('tags') ?: null),
+      tags: unescapePythonUnicodeJsonMap(params.get('tags') ?: '{}'),
       sourceUserDataType: params.get('source_user_data_type'),
       sourceUserData: params.get('source_user_data'),
       asgResourceFilename: params.get('asg_resource_filename')
@@ -170,6 +170,10 @@ class ServerGroupParameters {
     @Override
     String toString() {
       meterName
+    }
+
+    String jsonValue() {
+      fromMeter(meterName)
     }
 
     @JsonCreator
