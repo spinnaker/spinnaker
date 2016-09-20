@@ -67,7 +67,9 @@
       <div class="checkbox">
         <label>
           <input type="checkbox"
-                 ng-model="command.inService"/>
+                 ng-model="command.inService"
+                 ng-disabled="command.strategy !== '' && command.strategy !== 'custom'"
+          />
           Send client requests to new instances
         </label>
       </div>

@@ -96,7 +96,9 @@
           <label>
             <input type="checkbox"
                    ng-click="command.toggleSuspendedProcess('AddToLoadBalancer')"
-                   ng-checked="!command.processIsSuspended('AddToLoadBalancer')"/>
+                   ng-checked="!command.processIsSuspended('AddToLoadBalancer')"
+                   ng-disabled="command.strategy !== '' && command.strategy !== 'custom'"
+            />
             Send client requests to new instances
           </label>
         </div>
