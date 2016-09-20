@@ -69,7 +69,7 @@ class GetCommitsTaskSpec extends Specification {
     then:
 
     1 * front50Service.getCredentials() >> credentials
-    1 * front50Service.get(expectedAccount, app) >> new Application(repoSlug: null, repoProjectKey: null)
+    1 * front50Service.get(app) >> new Application(repoSlug: null, repoProjectKey: null)
     0 * _
 
     where:
@@ -209,7 +209,7 @@ class GetCommitsTaskSpec extends Specification {
     }
 
     task.front50Service = front50Service
-    1 * front50Service.get(account, app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
+    1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
 
     task.objectMapper = new ObjectMapper()
     def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
@@ -254,7 +254,7 @@ class GetCommitsTaskSpec extends Specification {
 
     and:
     task.front50Service = front50Service
-    1 * front50Service.get(account, app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
+    1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
 
     and:
     task.objectMapper = new ObjectMapper()
@@ -303,7 +303,7 @@ class GetCommitsTaskSpec extends Specification {
     task.buildService = buildService
     task.front50Service = front50Service
     1 * front50Service.getCredentials() >> []
-    1 * front50Service.get(account, app) >> new Application()
+    1 * front50Service.get(app) >> new Application()
 
     when:
     def result = task.execute(stage)
@@ -338,7 +338,7 @@ class GetCommitsTaskSpec extends Specification {
 
     and:
     task.front50Service = front50Service
-    1 * front50Service.get(account, app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
+    1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
 
     and:
     task.objectMapper = new ObjectMapper()
@@ -388,7 +388,7 @@ class GetCommitsTaskSpec extends Specification {
 
     and:
     task.front50Service = front50Service
-    1 * front50Service.get(account, app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
+    1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
 
     and:
     task.objectMapper = new ObjectMapper()
@@ -457,7 +457,7 @@ class GetCommitsTaskSpec extends Specification {
 
     and:
     task.front50Service = front50Service
-    1 * front50Service.get(account, app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
+    1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
 
     and:
     task.objectMapper = new ObjectMapper()

@@ -73,7 +73,7 @@ class PageApplicationOwnerTask implements RetryableTask {
 
   private String fetchApplicationPagerDutyKey(String applicationName) {
     try {
-      def application = front50Service.get("default", applicationName)
+      def application = front50Service.get(applicationName)
       return application.details().pdApiKey as String
     } catch (Exception e) {
       log.error("Unable to retrieve application '${applicationName}', reason: ${e.message}")
