@@ -9,6 +9,12 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.configura
 
 
     function configureCommand(command) {
+      command.onStrategyChange = function (strategy) {
+        // Any strategy other than None or Custom should force traffic to be enabled
+        if (strategy.key !== '' && strategy.key !== 'custom') {
+          command.inService = true;
+        }
+      };
       command.image = command.viewState.imageId;
       return $q.all({
         credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('titus'),

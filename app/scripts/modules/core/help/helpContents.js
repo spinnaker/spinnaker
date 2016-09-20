@@ -47,8 +47,9 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'aws.serverGroup.tags': '(Optional) <b>Tags</b> are propagated to the instances in this cluster.',
     'aws.serverGroup.allImages': 'Search for an image that does not match the name of your application.',
     'aws.serverGroup.filterImages': 'Select from a pre-filtered list of images matching the name of your application.',
-    'aws.serverGroup.traffic': 'Enables the "AddToLoadBalancer" scaling process, which is used by Spinnaker and ' +
-    ' discovery services to determine if the server group is enabled.',
+    'aws.serverGroup.traffic': '' +
+      '<p>Enables the "AddToLoadBalancer" scaling process, which is used by Spinnaker and discovery services to determine if the server group is enabled.</p>' +
+      '<p>Will be automatically enabled when any non "custom" deployment strategy is selected.</p>',
     'aws.securityGroup.vpc': '<p>The VPC to which this security group will apply.</p>' +
       '<p>If you wish to use VPC but are unsure which VPC to use, the most common one is "Main".</p>' +
       '<p>If you do not wish to use VPC, select "None".</p>',
@@ -171,8 +172,9 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
       If you want to cut instance utilization by half, set your balancing mode to 80% max CPU utilization and your capacity to 50%. Input must be a number between 0 and 100.`,
     'gce.serverGroup.loadBalancingPolicy.listeningPort': 'A load balancer sends traffic to an instance group through a named port. Input must be a port number (i.e., between 1 and 65535).',
     'gce.serverGroup.traffic': 'Registers the server group with any associated load balancers. These registrations are used by Spinnaker to determine if the server group is enabled.',
-    'titus.serverGroup.traffic': 'Enables the "inService" property, which is used by Spinnaker and ' +
-    ' discovery services to determine if the server group is enabled.',
+    'titus.serverGroup.traffic': '' +
+      '<p>Enables the "inService" scaling process, which is used by Spinnaker and discovery services to determine if the server group is enabled.</p>' +
+      '<p>Will be automatically enabled when any non "custom" deployment strategy is selected.</p>',
     'pipeline.config.optionalStage': '' +
       '<p>When this option is enabled, stage will only execute when the supplied expression evaluates true.</p>' +
       '<p>The expression <em>does not</em> need to be wrapped in ${ and }.</p>',

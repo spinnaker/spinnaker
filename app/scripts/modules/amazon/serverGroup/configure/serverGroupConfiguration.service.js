@@ -55,6 +55,13 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         return command.suspendedProcesses.indexOf(process) !== -1;
       };
 
+      command.onStrategyChange = function (strategy) {
+        // Any strategy other than None or Custom should force traffic to be enabled
+        if (strategy.key !== '' && strategy.key !== 'custom') {
+          command.suspendedProcesses = (command.suspendedProcesses || []).filter(p => p !== 'AddToLoadBalancer');
+        }
+      };
+
       command.regionIsDeprecated = () => {
         return _.has(command, 'backingData.filtered.regions') &&
           command.backingData.filtered.regions.some((region) => region.name === command.region && region.deprecated);
