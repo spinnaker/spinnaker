@@ -83,7 +83,7 @@ public class RolesController {
 
   @RequestMapping(value = "/sync", method = RequestMethod.POST)
   public long sync(HttpServletResponse response,
-                   @RequestBody List<String> specificRoles) throws IOException {
+                   @RequestBody(required = false) List<String> specificRoles) throws IOException {
     if (specificRoles == null) {
       long count = syncer.syncAndReturn();
       if (count == 0) {
