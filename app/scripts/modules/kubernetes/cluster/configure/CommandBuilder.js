@@ -50,7 +50,18 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
         viewState: {
           mode: defaults.mode || 'create',
           disableStrategySelection: true,
-        }
+        },
+        useAutoscaler: false,
+        capacity: {
+          min: 1,
+          desired: 1,
+          max: 1,
+        },
+        scalingPolicy: {
+          cpuUtilization: {
+            target: 40,
+          },
+        },
       };
 
       applyHealthProviders(application, command);
@@ -79,6 +90,18 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
       command.viewState = {
         mode: mode,
       };
+
+      if (!command.capacity) {
+        command.capacity = {
+          min: command.targetSize,
+          max: command.targetSize,
+          desired: command.targetSize,
+        };
+      }
+
+      if (!_.has(command, 'scalingPolicy.cpuUtilization.target')) {
+        command.scalingPolicy = { cpuUtilization: { target: 40, }, };
+      }
 
       applyHealthProviders(application, command);
 
@@ -206,6 +229,11 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
         contextImages: contextImages,
         submitButtonLabel: 'Done',
       };
+
+      if (!_.has(command, 'scalingPolicy.cpuUtilization.target')) {
+        command.scalingPolicy = { cpuUtilization: { target: 40, }, };
+      }
+
       return command;
     }
 

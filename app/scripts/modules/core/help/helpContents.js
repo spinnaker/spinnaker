@@ -338,6 +338,11 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'kubernetes.serverGroup.detail': '(Optional) A string of free-form alphanumeric characters and hyphens to describe any other variables.',
     'kubernetes.serverGroup.containers': '(Required) Select at least one image to run in this server group (pod). ' +
       'If multiple images are selected, they will be colocated and replicated equally.',
+    'kubernetes.serverGroup.autoscaling.enabled': 'If selected, a horizontal autoscaler will be attached to this replica set.',
+    'kubernetes.serverGroup.autoscaling.min': 'The smallest number of pods to be deployed.',
+    'kubernetes.serverGroup.autoscaling.max': 'The largest number of pods to be deployed.',
+    'kubernetes.serverGroup.autoscaling.desired': 'The initial number of pods to be deployed.',
+    'kubernetes.serverGroup.autoscaling.cpuTarget': 'The target CPU utilization to be achieved by the autoscaler.',
     'kubernetes.job.parallelism': '(Required) The number of concurrent pods to run.',
     'kubernetes.job.completions': '(Required) The number of sucessful completions required for the job to be considered a success.',
     'kubernetes.job.deadlineSeconds': '(Optional) The number of seconds until the job is considered a failure.',

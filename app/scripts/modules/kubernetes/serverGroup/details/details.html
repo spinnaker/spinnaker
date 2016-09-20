@@ -111,10 +111,29 @@
     <collapsible-section heading="Replicas" expanded="true">
       <dl class="dl-horizontal"
           ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'" >
-        <dt>Desired</dt>
-        <dd>{{serverGroup.capacity.desired}}</dd>
-        <dt>Current</dt>
-        <dd>{{serverGroup.instances.length}}</dd>
+        <div ng-show="serverGroup.autoscalerStatus === null">
+          <dt>Current</dt>
+          <dd>{{serverGroup.instances.length}}</dd>
+          <dt>Desired</dt>
+          <dd>{{serverGroup.capacity.desired}}</dd>
+        </div>
+        <div ng-show="serverGroup.autoscalerStatus !== null">
+          <dt>Min</dt>
+          <dd>{{serverGroup.deployDescription.capacity.min}}</dd>
+          <dt>Max</dt>
+          <dd>{{serverGroup.deployDescription.capacity.max}}</dd>
+          <dt>Current</dt>
+          <dd>{{serverGroup.instances.length}}</dd>
+          <dt>Desired</dt>
+          <dd>{{serverGroup.autoscalerStatus.desiredReplicas}}</dd>
+          <hr>
+          <dt>Target CPU</dt>
+          <dd>{{serverGroup.deployDescription.scalingPolicy.cpuUtilization.target}}%</dd>
+          <dt>Current CPU</dt>
+          <dd>{{serverGroup.autoscalerStatus.currentCpuUtilization}}%</dd>
+          <dt>Latest Rescale</dt>
+          <dd>{{serverGroup.autoscalerStatus.lastScaleTime | relativeTime}}</dd>
+        </div>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true">

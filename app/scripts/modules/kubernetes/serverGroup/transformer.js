@@ -30,6 +30,11 @@ module.exports = angular
         delete array[index].imageId;
       });
 
+      if (!command.useAutoscaler) {
+        delete command.scalingPolicy;
+        delete command.capacity;
+      }
+
       return command;
     }
 
