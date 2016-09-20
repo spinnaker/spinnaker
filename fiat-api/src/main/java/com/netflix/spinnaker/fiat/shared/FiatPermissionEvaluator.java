@@ -16,12 +16,15 @@
 
 package com.netflix.spinnaker.fiat.shared;
 
+import com.netflix.frigga.Names;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Authorizable;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.PermissionEvaluator;
@@ -58,10 +61,21 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     if (!Boolean.valueOf(fiatEnabled)) {
       return true;
     }
+    if (resourceName == null || resourceType == null || authorization == null) {
+      return false;
+    }
+
 
     String username = getUsername(authentication);
     ResourceType r = ResourceType.parse(resourceType);
     Authorization a = Authorization.valueOf(authorization.toString());
+
+    if (r == ResourceType.APPLICATION) {
+      val parsedName = Names.parseName(resourceName.toString()).getApp();
+      if (StringUtils.isNotEmpty(parsedName)) {
+        resourceName = parsedName;
+      }
+    }
 
     return isWholePermissionStored(authentication) ?
         permissionContains(authentication, resourceName.toString(), r, a) :

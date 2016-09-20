@@ -22,6 +22,7 @@ dependencies {
   compile spinnaker.dependency("korkSecurity")
   compile spinnaker.dependency("bootActuator")
   compile spinnaker.dependency("bootWeb")
+  compile spinnaker.dependency('frigga')
 
   compile spinnaker.dependency("springSecurityConfig")
   compile spinnaker.dependency("springSecurityCore")
