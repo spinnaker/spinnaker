@@ -12,19 +12,19 @@
     </div>
   </div>
   
-        <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
-        <div class="col-md-12">
-          <div class="well-compact" ng-class="well">
-            <h5 class="text-center">
-              <p>Your server group will be using a subnet in virtual network:</p>
-              <p>
-                <strong>
-                  {{networkSettingCtrl.getVnetName()}}
-                </strong>
-              </p>
-            </h5>
-          </div>
-        </div>
+  <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
+    <div class="col-md-12">
+      <div class="well-compact" ng-class="well">
+        <h5 class="text-center">
+          <p>Your server group will be using a subnet in virtual network:</p>
+          <p>
+            <strong>
+            {{networkSettingCtrl.getVnetName()}}
+            </strong>
+          </p>
+        </h5>
       </div>
+    </div>
+  </div>
 
 </div>

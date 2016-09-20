@@ -25,6 +25,7 @@ module.exports = angular
       });
 
       infrastructureCaches.clearCache('loadBalancers');
+      infrastructureCaches.clearCache('networks');
 
       return operation;
     }

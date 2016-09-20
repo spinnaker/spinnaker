@@ -171,6 +171,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
       $scope.loadBalancer.vnet = null;
       $scope.loadBalancer.vnetResourceGroup = null;
       ctrl.selectedVnets = [ ];
+      infrastructureCaches.clearCache('networks');
 
       networkReader.listNetworks().then(function(vnets) {
         if (vnets.azure) {
