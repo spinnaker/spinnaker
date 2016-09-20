@@ -26,6 +26,7 @@ import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.ReplicationController
+import io.fabric8.kubernetes.api.model.extensions.HorizontalPodAutoscaler
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 import io.fabric8.kubernetes.client.internal.SerializationUtils
 
@@ -46,6 +47,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
   Map<String, Object> launchConfig
   Map<String, String> labels = [:]
   DeployKubernetesAtomicOperationDescription deployDescription
+  KubernetesAutoscalerStatus autoscalerStatus
   String kind // Kubernetes resource-type
   String yaml
   Map buildInfo
@@ -63,7 +65,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
     this.namespace = namespace
   }
 
-  KubernetesServerGroup(ReplicaSet replicaSet, String account, List<Event> events) {
+  KubernetesServerGroup(ReplicaSet replicaSet, String account, List<Event> events, HorizontalPodAutoscaler autoscaler) {
     this.name = replicaSet.metadata?.name
     this.account = account
     this.region = replicaSet.metadata?.namespace
@@ -81,9 +83,13 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
     this.events = events.collect {
       new KubernetesEvent(it)
     }
+    if (autoscaler) {
+      KubernetesApiConverter.attachAutoscaler(this.deployDescription, autoscaler)
+      this.autoscalerStatus = new KubernetesAutoscalerStatus(autoscaler)
+    }
   }
 
-  KubernetesServerGroup(ReplicationController replicationController, String account, List<Event> events) {
+  KubernetesServerGroup(ReplicationController replicationController, String account, List<Event> events, HorizontalPodAutoscaler autoscaler) {
     this.name = replicationController.metadata?.name
     this.account = account
     this.region = replicationController.metadata?.namespace
@@ -100,6 +106,10 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
     this.kind = replicationController.kind
     this.events = events.collect {
       new KubernetesEvent(it)
+    }
+    if (autoscaler) {
+      KubernetesApiConverter.attachAutoscaler(this.deployDescription, autoscaler)
+      this.autoscalerStatus = new KubernetesAutoscalerStatus(autoscaler)
     }
   }
 

@@ -35,6 +35,16 @@ class DeployKubernetesAtomicOperationDescription extends KubernetesAtomicOperati
   List<String> securityGroups
   List<KubernetesContainerDescription> containers
   List<KubernetesVolumeSource> volumeSources
+  Capacity capacity
+  KubernetesScalingPolicy scalingPolicy
+}
+
+@AutoClone
+@Canonical
+class Capacity {
+  Integer min
+  Integer max
+  Integer desired
 }
 
 @AutoClone
@@ -83,6 +93,18 @@ class KubernetesEnvVar {
   String name
   String value
   KubernetesEnvVarSource envSource
+}
+
+@AutoClone
+@Canonical
+class KubernetesScalingPolicy {
+  KubernetesCpuUtilization cpuUtilization
+}
+
+@AutoClone
+@Canonical
+class KubernetesCpuUtilization {
+  Integer target
 }
 
 enum KubernetesPullPolicy {

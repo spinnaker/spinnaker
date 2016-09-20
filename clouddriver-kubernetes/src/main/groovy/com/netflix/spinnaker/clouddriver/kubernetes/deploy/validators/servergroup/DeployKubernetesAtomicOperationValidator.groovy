@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.servergro
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesVolumeSourceType
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.KubernetesContainerValidator
@@ -68,6 +69,11 @@ class DeployKubernetesAtomicOperationValidator extends DescriptionValidator<Depl
     helper.validateNotEmpty(description.containers, "containers")
     description.containers.eachWithIndex { container, idx ->
       KubernetesContainerValidator.validate(container, helper, "container[${idx}]")
+    }
+
+    if (description.scalingPolicy) {
+      helper.validateNotEmpty(description.scalingPolicy.cpuUtilization, "scalingPolicy.cpuUtilization")
+      helper.validatePositive(description.scalingPolicy.cpuUtilization.target, "scalingPolicy.cpuUtilization.target")
     }
   }
 }

@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesOperationException
 import groovy.util.logging.Slf4j
 import io.fabric8.kubernetes.api.model.*
+import io.fabric8.kubernetes.api.model.extensions.HorizontalPodAutoscaler
 import io.fabric8.kubernetes.api.model.extensions.Ingress
 import io.fabric8.kubernetes.api.model.extensions.Job
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
@@ -399,6 +400,26 @@ class KubernetesApiAdaptor {
   boolean hardDestroyPod(String namespace, String name) {
     atomicWrapper("Hard Destroy Pod $name", namespace) { KubernetesClient client ->
       client.pods().inNamespace(namespace).withName(name).delete()
+    }
+  }
+
+  HorizontalPodAutoscaler createAutoscaler(String namespace, HorizontalPodAutoscaler autoscaler) {
+    atomicWrapper("Create Autoscaler ${autoscaler?.metadata?.name}", namespace) { KubernetesClient client ->
+      client.extensions().horizontalPodAutoscalers().inNamespace(namespace).create(autoscaler)
+    }
+  }
+
+  HorizontalPodAutoscaler getAutoscaler(String namespace, String name) {
+    atomicWrapper("Get Autoscaler $name", namespace) { KubernetesClient client ->
+      client.extensions().horizontalPodAutoscalers().inNamespace(namespace).withField(name).get()
+    }
+  }
+
+  Map<String, HorizontalPodAutoscaler> getAutoscalers(String namespace, String kind) {
+    atomicWrapper("Get Autoscalers", namespace) { KubernetesClient client ->
+      client.extensions().horizontalPodAutoscalers().inNamespace(namespace).list().items.collectEntries { def autoscaler ->
+        autoscaler.spec.scaleRef.kind == kind ? [(autoscaler.metadata.name): autoscaler] : [:]
+      }
     }
   }
 }

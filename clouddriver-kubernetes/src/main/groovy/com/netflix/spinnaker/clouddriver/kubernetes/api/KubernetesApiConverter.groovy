@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securityg
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.KubernetesSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.*
 import io.fabric8.kubernetes.api.model.*
+import io.fabric8.kubernetes.api.model.extensions.HorizontalPodAutoscaler
 import io.fabric8.kubernetes.api.model.extensions.Ingress
 import io.fabric8.kubernetes.api.model.extensions.Job
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
@@ -481,6 +482,14 @@ class KubernetesApiConverter {
     } ?: []
 
     return deployDescription
+  }
+
+  static void attachAutoscaler(DeployKubernetesAtomicOperationDescription description, HorizontalPodAutoscaler autoscaler) {
+    description.capacity = new Capacity(min: autoscaler.spec.minReplicas,
+                                        max: autoscaler.spec.maxReplicas,
+                                        desired: description.targetSize)
+    def cpuUtilization = new KubernetesCpuUtilization(target: autoscaler.spec.cpuUtilization.targetPercentage)
+    description.scalingPolicy = new KubernetesScalingPolicy(cpuUtilization: cpuUtilization)
   }
 
   static DeployKubernetesAtomicOperationDescription fromReplicationController(ReplicationController replicationController) {

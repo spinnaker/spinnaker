@@ -93,6 +93,7 @@ class KubernetesServerGroupCachingAgentSpec extends Specification {
 
       apiMock.getReplicationControllers(NAMESPACE) >> [replicationControllerMock]
       apiMock.getEvents(NAMESPACE, "ReplicationController") >> [:].withDefault { _ -> [] }
+      apiMock.getAutoscalers(NAMESPACE, "replicationController") >> [:]
       apiMock.getPods(NAMESPACE, selector) >> [podMock]
 
       def providerCacheMock = Mock(ProviderCache)

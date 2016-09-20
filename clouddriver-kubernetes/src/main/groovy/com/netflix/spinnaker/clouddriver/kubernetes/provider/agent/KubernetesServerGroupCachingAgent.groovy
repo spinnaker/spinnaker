@@ -281,6 +281,15 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
       log.warn "Failure fetching events for all server groups in $namespace", e
     }
 
+    def rcAutoscalers = [:]
+    def rsAutoscalers = [:]
+    try {
+      rcAutoscalers = credentials.apiAdaptor.getAutoscalers(namespace, "replicationController")
+      rsAutoscalers = credentials.apiAdaptor.getAutoscalers(namespace, "replicaSet")
+    } catch (Exception e) {
+      log.warn "Failure fetching autoscalers for all server groups in $namespace", e
+    }
+
     for (ReplicaSetOrController serverGroup: serverGroups) {
       if (!serverGroup.exists()) {
         continue
@@ -344,8 +353,9 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
 
         cachedServerGroups[serverGroupKey].with {
           def events = serverGroup.replicationController ? rcEvents[serverGroupName] : rsEvents[serverGroupName]
+          def autoscaler = serverGroup.replicationController ? rcAutoscalers[serverGroupName] : rsAutoscalers[serverGroupName]
           attributes.name = serverGroupName
-          attributes.serverGroup = new KubernetesServerGroup(serverGroup.replicaSet ?: serverGroup.replicationController, accountName, events)
+          attributes.serverGroup = new KubernetesServerGroup(serverGroup.replicaSet ?: serverGroup.replicationController, accountName, events, autoscaler)
           relationships[Keys.Namespace.APPLICATIONS.ns].add(applicationKey)
           relationships[Keys.Namespace.CLUSTERS.ns].add(clusterKey)
           relationships[Keys.Namespace.LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
