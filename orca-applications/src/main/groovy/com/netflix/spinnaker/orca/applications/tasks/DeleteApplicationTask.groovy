@@ -46,7 +46,7 @@ class DeleteApplicationTask extends AbstractFront50Task {
       }
     } catch (RetrofitError e) {
       if (e.response.status == 404) {
-        return
+        return [:]
       }
       throw e
     }
@@ -56,13 +56,13 @@ class DeleteApplicationTask extends AbstractFront50Task {
         front50Service.deletePermission(application.name)
       } catch (RetrofitError re) {
         if (re.response.status == 404) {
-          return
+          return [:]
         }
         throw re
       }
     }
 
-    outputs
+    return outputs
   }
 
   @Override
