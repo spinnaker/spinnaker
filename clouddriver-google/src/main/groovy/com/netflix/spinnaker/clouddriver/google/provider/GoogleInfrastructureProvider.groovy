@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.provider
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
 import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 
@@ -50,12 +51,24 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
   ]
 
   final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators = [
-      (INSTANCES.ns): new InstanceSearchResultHydrator()
+      (INSTANCES.ns): new InstanceSearchResultHydrator(),
+      (BACKEND_SERVICES.ns): new BackendServiceResultHydrator()
   ]
 
   @Override
   Map<String, String> parseKey(String key) {
     return Keys.parse(key)
+  }
+
+  private static class BackendServiceResultHydrator implements SearchableProvider.SearchResultHydrator {
+
+    @Override
+    Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id) {
+      CacheData backendService  = cacheView.get(BACKEND_SERVICES.ns, id)
+      return result + [
+          healthCheckLink: backendService.attributes.healthCheckLink as String
+      ]
+    }
   }
 
   private static class InstanceSearchResultHydrator implements SearchableProvider.SearchResultHydrator {
