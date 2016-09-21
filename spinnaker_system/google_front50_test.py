@@ -240,7 +240,8 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
      .excludes_path_value('name', self.TEST_APP.upper()))
     (f50_builder.new_clause_builder('Deletes Application')
      .get_url_path(app_url_path, allow_http_error_status=404))
-    (f50_builder.new_clause_builder('History Retains Application')
+    (f50_builder.new_clause_builder('History Retains Application',
+                                    max_retries=5)
      .get_url_path('/default/applications/{app}/history'
                    .format(app=self.TEST_APP))
      .contains_path_value('[0]', self.app_history[0])
@@ -250,7 +251,7 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
 
 
     gcs_builder = gcp.GcpStorageContractBuilder(self.gcs_observer)
-    (gcs_builder.new_clause_builder('Deleted File')
+    (gcs_builder.new_clause_builder('Deleted File', max_retries=5)
      .list_bucket(self.BUCKET, '/'.join([self.BASE_PATH, 'applications']))
      .excludes_path_value('name', self.TEST_APP.upper()))
     for clause in gcs_builder.build().clauses:
@@ -325,14 +326,14 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
      .get_url_path('/pipelines/{app}'.format(app=self.TEST_APP))
      .excludes_path_value('id', self.TEST_PIPELINE_ID))
 
-    (f50_builder.new_clause_builder('History Retains Pipeline')
+    (f50_builder.new_clause_builder('History Retains Pipeline', max_retries=5)
      .get_url_path('/pipelines/{id}/history'.format(id=self.TEST_PIPELINE_ID))
      .contains_path_value('[0]', self.pipeline_history[0]))
     for clause in f50_builder.build().clauses:
       contract.add_clause(clause)
 
     gcs_builder = gcp.GcpStorageContractBuilder(self.gcs_observer)
-    (gcs_builder.new_clause_builder('Deleted File')
+    (gcs_builder.new_clause_builder('Deleted File', max_retries=5)
      .list_bucket(self.BUCKET, '/'.join([self.BASE_PATH, 'pipelines']))
      .excludes_path_value('name', self.TEST_PIPELINE_ID))
     for clause in gcs_builder.build().clauses:
