@@ -53,7 +53,7 @@ class SafeRetry<T> {
     try {
       task?.updateStatus phase, "Attempting $action of $resource..."
       return operation()
-    } catch (GoogleJsonResponseException | SocketTimeoutException _) {
+    } catch (GoogleJsonResponseException | SocketTimeoutException | SocketException _) {
       log.warn "Initial $action of $resource failed, retrying..."
 
       int tries = 1

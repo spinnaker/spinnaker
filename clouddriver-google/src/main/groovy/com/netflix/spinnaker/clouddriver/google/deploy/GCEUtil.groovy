@@ -25,9 +25,11 @@ import com.google.api.client.http.HttpHeaders
 import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
 import com.google.api.services.compute.Compute
+import com.google.api.services.compute.Compute.InstanceGroupManagers.AggregatedList
 import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
+import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
@@ -39,7 +41,8 @@ import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
-import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSubnetProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
 
@@ -48,6 +51,7 @@ class GCEUtil {
   private static final String DISK_TYPE_PERSISTENT = "PERSISTENT"
   private static final String DISK_TYPE_SCRATCH = "SCRATCH"
   private static final String GCE_API_PREFIX = "https://www.googleapis.com/compute/v1/projects/"
+  private static final List<Integer> RETRY_ERROR_CODES = [400, 403, 412]
 
   public static final String TARGET_POOL_NAME_PREFIX = "tp"
 
@@ -118,32 +122,27 @@ class GCEUtil {
     )
   }
 
-  static Network queryNetwork(String projectName, String networkName, Compute compute, Task task, String phase) {
+  static GoogleNetwork queryNetwork(String accountName, String networkName, Task task, String phase, GoogleNetworkProvider googleNetworkProvider) {
     task.updateStatus phase, "Looking up network $networkName..."
-    def network = compute.networks().list(projectName).execute().getItems().find {
-      it.getName() == networkName
-    }
 
-    if (network) {
-      return network
+    def networks = googleNetworkProvider.getAllMatchingKeyPattern(Keys.getNetworkKey(networkName, "global", accountName))
+
+    if (networks) {
+      return networks[0]
     } else {
       updateStatusAndThrowNotFoundException("Network $networkName not found.", task, phase)
     }
   }
 
-  static Subnetwork querySubnet(String projectName, String region, String subnetName, Compute compute, Task task, String phase) {
+  static GoogleSubnet querySubnet(String accountName, String region, String subnetName, Task task, String phase, GoogleSubnetProvider googleSubnetProvider) {
     task.updateStatus phase, "Looking up subnet $subnetName in $region..."
 
-    try {
-      return compute.subnetworks().get(projectName, region, subnetName).execute()
-    } catch (GoogleJsonResponseException e) {
-      // 404 is thrown, and the details are populated, if the subnet does not exist in the given region.
-      // Any other exception should be propagated directly.
-      if (e.getStatusCode() == 404 && e.details) {
-        updateStatusAndThrowNotFoundException("Subnet $subnetName not found in $region.", task, phase)
-      } else {
-        throw e
-      }
+    def subnets = googleSubnetProvider.getAllMatchingKeyPattern(Keys.getSubnetKey(subnetName, region, accountName))
+
+    if (subnets) {
+      return subnets[0]
+    } else {
+      updateStatusAndThrowNotFoundException("Subnet $subnetName not found in $region.", task, phase)
     }
   }
 
@@ -225,7 +224,16 @@ class GCEUtil {
           String projectName, String region, List<String> forwardingRuleNames, Compute compute, Task task, String phase) {
     task.updateStatus phase, "Looking up network load balancers $forwardingRuleNames..."
 
-    def foundForwardingRules = compute.forwardingRules().list(projectName, region).execute().items.findAll {
+    def forwardingRules = new SafeRetry<List<ForwardingRule>>().doRetry(
+      { return compute.forwardingRules().list(projectName, region).execute().items },
+      "list",
+      "regional forwarding rules",
+      task,
+      phase,
+      RETRY_ERROR_CODES,
+      []
+    )
+    def foundForwardingRules = forwardingRules.findAll {
       it.name in forwardingRuleNames
     }
 
@@ -288,33 +296,63 @@ class GCEUtil {
   static InstanceGroupManager queryRegionalManagedInstanceGroup(String projectName,
                                                                 String region,
                                                                 String serverGroupName,
-                                                                GoogleNamedAccountCredentials credentials) {
-    credentials.compute.regionInstanceGroupManagers().get(projectName, region, serverGroupName).execute()
+                                                                GoogleNamedAccountCredentials credentials,
+                                                                Task task,
+                                                                String phase) {
+    return new SafeRetry<InstanceGroupManager>().doRetry(
+      { return credentials.compute.regionInstanceGroupManagers().get(projectName, region, serverGroupName).execute() },
+      "get",
+      "regional managed instance group",
+      task,
+      phase,
+      RETRY_ERROR_CODES,
+      []
+    )
   }
 
   static InstanceGroupManager queryZonalManagedInstanceGroup(String projectName,
                                                              String zone,
                                                              String serverGroupName,
-                                                             GoogleNamedAccountCredentials credentials) {
-    credentials.compute.instanceGroupManagers().get(projectName, zone, serverGroupName).execute()
+                                                             GoogleNamedAccountCredentials credentials,
+                                                             Task task,
+                                                             String phase) {
+    return new SafeRetry<InstanceGroupManager>().doRetry(
+      { return credentials.compute.instanceGroupManagers().get(projectName, zone, serverGroupName).execute() },
+      "get",
+      "zonal managed instance group",
+      task,
+      phase,
+      RETRY_ERROR_CODES,
+      []
+    )
   }
 
-  static List<InstanceGroupManager> queryRegionalManagedInstanceGroups(String projectName,
-                                                                       String region,
-                                                                       GoogleNamedAccountCredentials credentials) {
-    return credentials.compute.regionInstanceGroupManagers().list(projectName, region).execute().getItems()
-  }
+  static List<InstanceGroupManager> queryAllManagedInstanceGroups(String projectName,
+                                                                  String region,
+                                                                  GoogleNamedAccountCredentials credentials,
+                                                                  Task task,
+                                                                  String phase) {
+    Map<String, InstanceGroupManagersScopedList> aggregatedList = new SafeRetry<AggregatedList>().doRetry(
+      { return credentials.compute.instanceGroupManagers().aggregatedList(projectName).execute().getItems() },
+      "list",
+      "aggregated managed instance groups",
+      task,
+      phase,
+      RETRY_ERROR_CODES,
+      []
+    )
 
-  static List<InstanceGroupManager> queryZonalManagedInstanceGroups(String projectName,
-                                                                    String region,
-                                                                    GoogleNamedAccountCredentials credentials) {
-    def compute = credentials.compute
-    def zones = credentials.getZonesFromRegion(region)
-    def allMIGSInRegion = zones.findResults { zone ->
-      compute.instanceGroupManagers().list(projectName, zone).execute().getItems()
+    def zonesInRegion = credentials.getZonesFromRegion(region)
+
+    return aggregatedList.findResults { _, InstanceGroupManagersScopedList instanceGroupManagersScopedList ->
+      return instanceGroupManagersScopedList.getInstanceGroupManagers()?.findResults { mig ->
+        if (mig.zone) {
+          return getLocalName(mig.zone) in zonesInRegion ? mig : null
+        } else {
+          return getLocalName(mig.region) == region ? mig : null
+        }
+      }
     }.flatten()
-
-    return allMIGSInRegion
   }
 
   static GoogleServerGroup.View queryServerGroup(GoogleClusterProvider googleClusterProvider, String accountName, String region, String serverGroupName) {
@@ -540,8 +578,8 @@ class GCEUtil {
     }
   }
 
-  static NetworkInterface buildNetworkInterface(Network network,
-                                                Subnetwork subnet,
+  static NetworkInterface buildNetworkInterface(GoogleNetwork network,
+                                                GoogleSubnet subnet,
                                                 String accessConfigName,
                                                 String accessConfigType) {
     def accessConfig = new AccessConfig(name: accessConfigName, type: accessConfigType)
@@ -849,12 +887,12 @@ class GCEUtil {
     return loadBalancerNames
   }
 
-  static Firewall buildFirewallRule(String projectName,
+  static Firewall buildFirewallRule(String accountName,
                                     UpsertGoogleSecurityGroupDescription securityGroupDescription,
-                                    Compute compute,
                                     Task task,
-                                    String phase) {
-    def network = queryNetwork(projectName, securityGroupDescription.network, compute, task, phase)
+                                    String phase,
+                                    GoogleNetworkProvider googleNetworkProvider) {
+    def network = queryNetwork(accountName, securityGroupDescription.network, task, phase, googleNetworkProvider)
     def firewall = new Firewall(
         name: securityGroupDescription.securityGroupName,
         network: network.selfLink

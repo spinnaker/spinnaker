@@ -20,8 +20,8 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
-import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleSecurityGroupDescription
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -33,6 +33,9 @@ import org.springframework.beans.factory.annotation.Autowired
  */
 class UpsertGoogleSecurityGroupAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "UPSERT_SECURITY_GROUP"
+
+  @Autowired
+  GoogleNetworkProvider googleNetworkProvider
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -52,11 +55,12 @@ class UpsertGoogleSecurityGroupAtomicOperation implements AtomicOperation<Void> 
     task.updateStatus BASE_PHASE, "Initializing upsert of security group " +
         "$description.securityGroupName for network $description.network..."
 
+    def accountName = description.accountName
     def compute = description.credentials.compute
     def project = description.credentials.project
     def firewallRuleName = description.securityGroupName
 
-    def firewall = GCEUtil.buildFirewallRule(project, description, compute, task, BASE_PHASE)
+    def firewall = GCEUtil.buildFirewallRule(accountName, description, task, BASE_PHASE, googleNetworkProvider)
 
     try {
       task.updateStatus BASE_PHASE, "Attempting to retrieve existing firewall rule $firewallRuleName for network " +

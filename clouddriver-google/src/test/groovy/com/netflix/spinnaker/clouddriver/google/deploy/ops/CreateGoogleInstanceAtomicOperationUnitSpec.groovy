@@ -24,14 +24,14 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.ImageList
-import com.google.api.services.compute.model.Network
-import com.google.api.services.compute.model.NetworkList
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.description.CreateGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
+import com.netflix.spinnaker.clouddriver.google.model.GoogleNetwork
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.google.security.TestDefaults
 import groovy.mock.interceptor.MockFor
@@ -43,7 +43,6 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
   private static final PROJECT_NAME = "my-project"
   private static final INSTANCE_NAME = "my-app-v000"
   private static final IMAGE = "debian-7-wheezy-v20140415"
-  private static final NETWORK_NAME = "default"
   private static final INSTANCE_TYPE = "f1-micro"
   private static final ZONE = "us-central1-b"
   private static final BASE_IMAGE_PROJECTS = ["centos-cloud", "ubuntu-os-cloud"]
@@ -59,8 +58,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
       def imageProjects = [PROJECT_NAME] + BASE_IMAGE_PROJECTS
       def listMock = new MockFor(Compute.Images.List)
 
-      def networksMock = Mock(Compute.Networks)
-      def networksListMock = Mock(Compute.Networks.List)
+      def googleNetworkProviderMock = Mock(GoogleNetworkProvider)
       def instancesMock = Mock(Compute.Instances)
       def instancesInsertMock = Mock(Compute.Instances.Insert)
 
@@ -88,7 +86,6 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
         callback.onSuccess(imageList, null)
       }
 
-      computeMock.demand.networks { networksMock }
       computeMock.demand.instances { instancesMock }
 
       computeMock.ignore('asBoolean')
@@ -115,14 +112,14 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
             @Subject def operation = new CreateGoogleInstanceAtomicOperation(description)
             operation.googleConfigurationProperties = new GoogleConfigurationProperties(baseImageProjects: BASE_IMAGE_PROJECTS)
             operation.googleDeployDefaults = new GoogleConfiguration.DeployDefaults()
+            operation.googleNetworkProvider = googleNetworkProviderMock
             operation.operate([])
           }
         }
       }
 
     then:
-      1 * networksMock.list(PROJECT_NAME) >> networksListMock
-      1 * networksListMock.execute() >> new NetworkList(items: [new Network(name: NETWORK_NAME)])
+      1 * googleNetworkProviderMock.getAllMatchingKeyPattern("gce:networks:default:$ACCOUNT_NAME:global") >> [new GoogleNetwork()]
       1 * instancesMock.insert(PROJECT_NAME, ZONE, _) >> instancesInsertMock
       1 * instancesInsertMock.execute()
   }

@@ -21,11 +21,11 @@ import com.google.api.client.googleapis.testing.json.GoogleJsonResponseException
 import com.google.api.client.testing.json.MockJsonFactory
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Firewall
-import com.google.api.services.compute.model.Network
-import com.google.api.services.compute.model.NetworkList
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleSecurityGroupDescription
+import com.netflix.spinnaker.clouddriver.google.model.GoogleNetwork
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
@@ -50,8 +50,7 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
   void "should insert new firewall rule with generated target tag"() {
     setup:
       def computeMock = Mock(Compute)
-      def networksMock = Mock(Compute.Networks)
-      def networksListMock = Mock(Compute.Networks.List)
+      def googleNetworkProviderMock = Mock(GoogleNetworkProvider)
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsGetMock = Mock(Compute.Firewalls.Get)
       def firewallsInsertMock = Mock(Compute.Firewalls.Insert)
@@ -75,15 +74,14 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
           credentials: credentials
       )
       @Subject def operation = new UpsertGoogleSecurityGroupAtomicOperation(description)
+      operation.googleNetworkProvider = googleNetworkProviderMock
 
     when:
       operation.operate([])
 
     then:
       // Query the network.
-      1 * computeMock.networks() >> networksMock
-      1 * networksMock.list(PROJECT_NAME) >> networksListMock
-      1 * networksListMock.execute() >> new NetworkList(items: [new Network(name: NETWORK_NAME)])
+      1 * googleNetworkProviderMock.getAllMatchingKeyPattern("gce:networks:$NETWORK_NAME:$ACCOUNT_NAME:global") >> [new GoogleNetwork()]
 
       // Check if the firewall rule exists already.
       2 * computeMock.firewalls() >> firewallsMock
@@ -104,8 +102,7 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
   void "should insert new firewall rule with specified target tag"() {
     setup:
       def computeMock = Mock(Compute)
-      def networksMock = Mock(Compute.Networks)
-      def networksListMock = Mock(Compute.Networks.List)
+      def googleNetworkProviderMock = Mock(GoogleNetworkProvider)
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsGetMock = Mock(Compute.Firewalls.Get)
       def firewallsInsertMock = Mock(Compute.Firewalls.Insert)
@@ -128,15 +125,14 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new UpsertGoogleSecurityGroupAtomicOperation(description)
+      operation.googleNetworkProvider = googleNetworkProviderMock
 
     when:
       operation.operate([])
 
     then:
       // Query the network.
-      1 * computeMock.networks() >> networksMock
-      1 * networksMock.list(PROJECT_NAME) >> networksListMock
-      1 * networksListMock.execute() >> new NetworkList(items: [new Network(name: NETWORK_NAME)])
+      1 * googleNetworkProviderMock.getAllMatchingKeyPattern("gce:networks:$NETWORK_NAME:$ACCOUNT_NAME:global") >> [new GoogleNetwork()]
 
       // Check if the firewall rule exists already.
       2 * computeMock.firewalls() >> firewallsMock
@@ -156,8 +152,7 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
   void "should update existing firewall rule and leave target tag unset"() {
     setup:
       def computeMock = Mock(Compute)
-      def networksMock = Mock(Compute.Networks)
-      def networksListMock = Mock(Compute.Networks.List)
+      def googleNetworkProviderMock = Mock(GoogleNetworkProvider)
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsGetMock = Mock(Compute.Firewalls.Get)
       def firewall = new Firewall(name: SECURITY_GROUP_NAME)
@@ -177,15 +172,14 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new UpsertGoogleSecurityGroupAtomicOperation(description)
+      operation.googleNetworkProvider = googleNetworkProviderMock
 
     when:
       operation.operate([])
 
     then:
       // Query the network.
-      1 * computeMock.networks() >> networksMock
-      1 * networksMock.list(PROJECT_NAME) >> networksListMock
-      1 * networksListMock.execute() >> new NetworkList(items: [new Network(name: NETWORK_NAME)])
+      1 * googleNetworkProviderMock.getAllMatchingKeyPattern("gce:networks:$NETWORK_NAME:$ACCOUNT_NAME:global") >> [new GoogleNetwork()]
 
       // Check if the firewall rule exists already.
       2 * computeMock.firewalls() >> firewallsMock
@@ -205,8 +199,7 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
   void "should update existing firewall rule and set specified target tag"() {
     setup:
       def computeMock = Mock(Compute)
-      def networksMock = Mock(Compute.Networks)
-      def networksListMock = Mock(Compute.Networks.List)
+      def googleNetworkProviderMock = Mock(GoogleNetworkProvider)
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsGetMock = Mock(Compute.Firewalls.Get)
       def firewall = new Firewall(name: SECURITY_GROUP_NAME)
@@ -227,15 +220,14 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
         accountName: ACCOUNT_NAME,
         credentials: credentials)
       @Subject def operation = new UpsertGoogleSecurityGroupAtomicOperation(description)
+      operation.googleNetworkProvider = googleNetworkProviderMock
 
     when:
       operation.operate([])
 
     then:
       // Query the network.
-      1 * computeMock.networks() >> networksMock
-      1 * networksMock.list(PROJECT_NAME) >> networksListMock
-      1 * networksListMock.execute() >> new NetworkList(items: [new Network(name: NETWORK_NAME)])
+      1 * googleNetworkProviderMock.getAllMatchingKeyPattern("gce:networks:$NETWORK_NAME:$ACCOUNT_NAME:global") >> [new GoogleNetwork()]
 
       // Check if the firewall rule exists already.
       2 * computeMock.firewalls() >> firewallsMock
@@ -255,8 +247,7 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
   void "should update existing firewall rule and override existing target tag with specified target tag"() {
     setup:
       def computeMock = Mock(Compute)
-      def networksMock = Mock(Compute.Networks)
-      def networksListMock = Mock(Compute.Networks.List)
+      def googleNetworkProviderMock = Mock(GoogleNetworkProvider)
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsGetMock = Mock(Compute.Firewalls.Get)
       def firewall = new Firewall(name: SECURITY_GROUP_NAME, targetTags: [ORIG_TARGET_TAG])
@@ -277,15 +268,14 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
         accountName: ACCOUNT_NAME,
         credentials: credentials)
       @Subject def operation = new UpsertGoogleSecurityGroupAtomicOperation(description)
+      operation.googleNetworkProvider = googleNetworkProviderMock
 
     when:
       operation.operate([])
 
     then:
       // Query the network.
-      1 * computeMock.networks() >> networksMock
-      1 * networksMock.list(PROJECT_NAME) >> networksListMock
-      1 * networksListMock.execute() >> new NetworkList(items: [new Network(name: NETWORK_NAME)])
+      1 * googleNetworkProviderMock.getAllMatchingKeyPattern("gce:networks:$NETWORK_NAME:$ACCOUNT_NAME:global") >> [new GoogleNetwork()]
 
       // Check if the firewall rule exists already.
       2 * computeMock.firewalls() >> firewallsMock

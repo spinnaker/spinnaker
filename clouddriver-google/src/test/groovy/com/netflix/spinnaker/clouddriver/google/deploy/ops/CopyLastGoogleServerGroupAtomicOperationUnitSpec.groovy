@@ -20,9 +20,7 @@ import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
-import com.google.api.services.compute.model.Network
 import com.google.api.services.compute.model.Scheduling
-import com.google.api.services.compute.model.Subnetwork
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
@@ -33,7 +31,9 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDe
 import com.netflix.spinnaker.clouddriver.google.deploy.handlers.BasicGoogleDeployHandler
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
+import com.netflix.spinnaker.clouddriver.google.model.GoogleNetwork
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.model.GoogleSubnet
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
@@ -95,8 +95,8 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
 
     sourceImage = new Image(selfLink: IMAGE)
-    network = new Network(selfLink: DEFAULT_NETWORK_NAME)
-    subnet = new Subnetwork(selfLink: SUBNET_NAME)
+    network = new GoogleNetwork(selfLink: DEFAULT_NETWORK_NAME)
+    subnet = new GoogleSubnet(selfLink: SUBNET_NAME)
     attachedDisks = GCEUtil.buildAttachedDisks(PROJECT_NAME,
                                                null,
                                                sourceImage,

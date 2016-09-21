@@ -27,5 +27,6 @@ class GoogleSubnet implements Subnet {
   String cidrBlock
   String account
   String region
+  String selfLink
   String purpose = "n/a"
 }

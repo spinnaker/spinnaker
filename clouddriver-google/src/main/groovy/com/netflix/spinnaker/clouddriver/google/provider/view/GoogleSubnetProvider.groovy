@@ -77,7 +77,8 @@ class GoogleSubnetProvider implements SubnetProvider<GoogleSubnet> {
       network: GCEUtil.getLocalName(subnet.network),
       cidrBlock: subnet.ipCidrRange,
       account: parts.account,
-      region: parts.region
+      region: parts.region,
+      selfLink: subnet.selfLink
     )
   }
 }

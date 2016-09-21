@@ -31,7 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RetrofitError
 
 abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<Void> {
-  private static final List<Integer> RETRY_ERROR_CODES = [400, 412]
+  private static final List<Integer> RETRY_ERROR_CODES = [400, 403, 412]
   private static final List<Integer> SUCCESSFUL_ERROR_CODES = [404]
 
   abstract boolean isDisable()
@@ -73,8 +73,8 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     def zone = serverGroup.zone
     def managedInstanceGroup =
       isRegional
-      ? GCEUtil.queryRegionalManagedInstanceGroup(project, region, serverGroupName, credentials)
-      : GCEUtil.queryZonalManagedInstanceGroup(project, zone, serverGroupName, credentials)
+      ? GCEUtil.queryRegionalManagedInstanceGroup(project, region, serverGroupName, credentials, task, phaseName)
+      : GCEUtil.queryZonalManagedInstanceGroup(project, zone, serverGroupName, credentials, task, phaseName)
     def currentTargetPoolUrls = managedInstanceGroup.getTargetPools()
     def newTargetPoolUrls = []
 
@@ -98,19 +98,19 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
       }
     }
 
-    def retry = new SafeRetry<Void>()
+    def voidRetry = new SafeRetry<Void>()
 
     if (disable) {
       task.updateStatus phaseName, "Deregistering server group from Http(s) load balancers..."
 
-      retry.doRetry(
-          destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
-          "destroy",
-          "Http load balancer backends",
-          task,
-          phaseName,
-          RETRY_ERROR_CODES,
-          SUCCESSFUL_ERROR_CODES
+      voidRetry.doRetry(
+        destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
+        "destroy",
+        "Http load balancer backends",
+        task,
+        phaseName,
+        RETRY_ERROR_CODES,
+        SUCCESSFUL_ERROR_CODES
       )
 
       task.updateStatus phaseName, "Deregistering server group from network load balancers..."
@@ -120,7 +120,16 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
         task.updateStatus phaseName, "Deregistering instances from $targetPoolLocalName..."
 
-        def targetPool = compute.targetPools().get(project, region, targetPoolLocalName).execute()
+        def targetPool = new SafeRetry<TargetPool>().doRetry(
+          getTargetPool(compute, project, region, targetPoolLocalName),
+          "get",
+          "target pool",
+          task,
+          phaseName,
+          RETRY_ERROR_CODES,
+          []
+        )
+
         def instanceUrls = targetPool.getInstances()
         def instanceReferencesToRemove = instanceUrls?.findResults { instanceUrl ->
           GCEUtil.getLocalName(instanceUrl).startsWith("$serverGroupName-") ? new InstanceReference(instance: instanceUrl) : null
@@ -129,44 +138,68 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         if (instanceReferencesToRemove) {
           def targetPoolsRemoveInstanceRequest = new TargetPoolsRemoveInstanceRequest(instances: instanceReferencesToRemove)
 
-          compute.targetPools().removeInstance(project,
-                                               region,
-                                               targetPoolLocalName,
-                                               targetPoolsRemoveInstanceRequest).execute()
+          voidRetry.doRetry(
+            removeInstancesFromTargetPool(compute, project, region, targetPoolLocalName, targetPoolsRemoveInstanceRequest),
+            "deregister",
+            "instances",
+            task,
+            phaseName,
+            RETRY_ERROR_CODES,
+            []
+          )
         }
       }
     } else {
       task.updateStatus phaseName, "Registering server group with Http(s) load balancers..."
 
-      retry.doRetry(
-          addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
-          "add",
-          "Http load balancer backends",
-          task,
-          phaseName,
-          RETRY_ERROR_CODES,
-          []
+      voidRetry.doRetry(
+        addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
+        "add",
+        "Http load balancer backends",
+        task,
+        phaseName,
+        RETRY_ERROR_CODES,
+        []
       )
 
       task.updateStatus phaseName, "Registering instances with network load balancers..."
 
+      def instanceListRetry = new SafeRetry<List<InstanceWithNamedPorts>>()
       def groupInstances =
         isRegional
-        ? compute.regionInstanceGroups().listInstances(project,
-                                                       region,
-                                                       serverGroupName,
-                                                       new RegionInstanceGroupsListInstancesRequest()).execute().items
-        : compute.instanceGroups().listInstances(project,
-                                                 zone,
-                                                 serverGroupName,
-                                                 new InstanceGroupsListInstancesRequest()).execute().items
+        ? instanceListRetry.doRetry(
+            listInstancesInRegionalGroup(compute, project, region, serverGroupName, new RegionInstanceGroupsListInstancesRequest()),
+            "list",
+            "instances in regional group",
+            task,
+            phaseName,
+            RETRY_ERROR_CODES,
+            []
+          )
+        : instanceListRetry.doRetry(
+            listInstancesInZonalGroup(compute, project, zone, serverGroupName, new InstanceGroupsListInstancesRequest()),
+            "list",
+            "instances in zonal group",
+            task,
+            phaseName,
+            RETRY_ERROR_CODES,
+            []
+          )
 
       def instanceReferencesToAdd = groupInstances.collect { groupInstance ->
         new InstanceReference(instance: groupInstance.instance)
       }
 
       def instanceTemplateUrl = managedInstanceGroup.getInstanceTemplate()
-      def instanceTemplate = compute.instanceTemplates().get(project, GCEUtil.getLocalName(instanceTemplateUrl)).execute()
+      def instanceTemplate = new SafeRetry<InstanceTemplate>().doRetry(
+        getInstanceTemplate(compute, project, instanceTemplateUrl),
+        "get",
+        "instance template",
+        task,
+        phaseName,
+        RETRY_ERROR_CODES,
+        []
+      )
       def metadataItems = instanceTemplate?.properties?.metadata?.items
       def newForwardingRuleNames = []
 
@@ -190,7 +223,15 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         if (instanceReferencesToAdd) {
           def targetPoolsAddInstanceRequest = new TargetPoolsAddInstanceRequest(instances: instanceReferencesToAdd)
 
-          compute.targetPools().addInstance(project, region, targetPoolLocalName, targetPoolsAddInstanceRequest).execute()
+          voidRetry.doRetry(
+            addInstancesToTargetPool(compute, project, region, targetPoolLocalName, targetPoolsAddInstanceRequest),
+            "register",
+            "instances",
+            task,
+            phaseName,
+            RETRY_ERROR_CODES,
+            []
+          )
         }
       }
 
@@ -239,6 +280,44 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
   Closure addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
     return {
       GCEUtil.addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName)
+      null
+    }
+  }
+
+  Closure getTargetPool(compute, project, region, targetPoolLocalName) {
+    return {
+      return compute.targetPools().get(project, region, targetPoolLocalName).execute()
+    }
+  }
+
+  Closure listInstancesInRegionalGroup(compute, project, region, serverGroupName, regionInstanceGroupsListInstancesRequest) {
+    return {
+      return compute.regionInstanceGroups().listInstances(project, region, serverGroupName, regionInstanceGroupsListInstancesRequest).execute().items
+    }
+  }
+
+  Closure listInstancesInZonalGroup(compute, project, zone, serverGroupName, instanceGroupsListInstancesRequest) {
+    return {
+      return compute.instanceGroups().listInstances(project, zone, serverGroupName, instanceGroupsListInstancesRequest).execute().items
+    }
+  }
+
+  Closure getInstanceTemplate(compute, project, instanceTemplateUrl) {
+    return {
+      return compute.instanceTemplates().get(project, GCEUtil.getLocalName(instanceTemplateUrl)).execute()
+    }
+  }
+
+  Closure removeInstancesFromTargetPool(compute, project, region, targetPoolLocalName, targetPoolsRemoveInstanceRequest) {
+    return {
+      compute.targetPools().removeInstance(project, region, targetPoolLocalName, targetPoolsRemoveInstanceRequest).execute()
+      null
+    }
+  }
+
+  Closure addInstancesToTargetPool(compute, project, region, targetPoolLocalName, targetPoolsAddInstanceRequest) {
+    return {
+      compute.targetPools().addInstance(project, region, targetPoolLocalName, targetPoolsAddInstanceRequest).execute()
       null
     }
   }

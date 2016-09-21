@@ -24,6 +24,8 @@ import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.CreateGoogleInstanceDescription
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSubnetProvider
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -40,6 +42,12 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
 
   @Autowired
   private GoogleConfiguration.DeployDefaults googleDeployDefaults
+
+  @Autowired
+  GoogleNetworkProvider googleNetworkProvider
+
+  @Autowired
+  GoogleSubnetProvider googleSubnetProvider
 
   @Autowired
   String googleApplicationName
@@ -65,6 +73,7 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
       throw new IllegalArgumentException("Unable to resolve credentials for Google account '${description.accountName}'.")
     }
 
+    def accountName = description.accountName
     def credentials = description.credentials
     def compute = description.credentials.compute
     def project = description.credentials.project
@@ -86,10 +95,10 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
                                                googleApplicationName,
                                                googleConfigurationProperties.baseImageProjects)
 
-    def network = GCEUtil.queryNetwork(project, description.network ?: DEFAULT_NETWORK_NAME, compute, task, BASE_PHASE)
+    def network = GCEUtil.queryNetwork(accountName, description.network ?: DEFAULT_NETWORK_NAME, task, BASE_PHASE, googleNetworkProvider)
 
     def subnet =
-      description.subnet ? GCEUtil.querySubnet(project, region, description.subnet, compute, task, BASE_PHASE) : null
+      description.subnet ? GCEUtil.querySubnet(accountName, region, description.subnet, task, BASE_PHASE, googleSubnetProvider) : null
 
     task.updateStatus BASE_PHASE, "Composing instance..."
 

@@ -24,6 +24,7 @@ class GoogleNetwork implements Network {
   String name
   String account
   String region
+  String selfLink
 
   Boolean autoCreateSubnets
   List<String> subnets

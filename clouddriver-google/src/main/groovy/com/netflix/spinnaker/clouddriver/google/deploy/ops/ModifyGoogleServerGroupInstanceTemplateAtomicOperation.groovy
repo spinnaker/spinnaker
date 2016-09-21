@@ -28,6 +28,8 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleIns
 import com.netflix.spinnaker.clouddriver.google.deploy.description.ModifyGoogleServerGroupInstanceTemplateDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSubnetProvider
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -61,6 +63,12 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
 
   @Autowired
   GoogleClusterProvider googleClusterProvider
+
+  @Autowired
+  GoogleNetworkProvider googleNetworkProvider
+
+  @Autowired
+  GoogleSubnetProvider googleSubnetProvider
 
   @Autowired
   String googleApplicationName
@@ -199,9 +207,9 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
 
       // Override the instance template's network if network was specified.
       if (overriddenProperties.network) {
-        def network = GCEUtil.queryNetwork(project, newDescription.network, compute, task, BASE_PHASE)
+        def network = GCEUtil.queryNetwork(accountName, newDescription.network, task, BASE_PHASE, googleNetworkProvider)
         def subnet =
-          description.subnet ? GCEUtil.querySubnet(project, region, description.subnet, compute, task, BASE_PHASE) : null
+          description.subnet ? GCEUtil.querySubnet(accountName, region, description.subnet, task, BASE_PHASE, googleSubnetProvider) : null
         def networkInterface = GCEUtil.buildNetworkInterface(network, subnet, accessConfigName, accessConfigType)
 
         instanceTemplateProperties.setNetworkInterfaces([networkInterface])
