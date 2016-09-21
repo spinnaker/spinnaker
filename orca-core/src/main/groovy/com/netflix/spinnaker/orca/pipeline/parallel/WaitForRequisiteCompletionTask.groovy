@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline.parallel
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -31,6 +32,8 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.*
 @Component
 @CompileStatic
 class WaitForRequisiteCompletionTask implements RetryableTask {
+  static final Set<ExecutionStatus> COMPLETED_STATUS = [SUCCEEDED, FAILED_CONTINUE, SKIPPED, STOPPED].toSet().asImmutable()
+
   long backoffPeriod = 5000
   long timeout = TimeUnit.DAYS.toMillis(1)
 
@@ -38,6 +41,7 @@ class WaitForRequisiteCompletionTask implements RetryableTask {
   TaskResult execute(Stage stage) {
     boolean allRequisiteStagesAreComplete = true
     Set<String> terminalStageNames = []
+    Set<String> stoppedStageNames = []
 
     def requisiteIds = stage.context.requisiteIds as List<String>
     requisiteIds?.each { String requisiteId ->
@@ -49,23 +53,32 @@ class WaitForRequisiteCompletionTask implements RetryableTask {
 
       def requisiteStages = [requisiteStage] + stage.execution.stages.findAll { it.parentStageId == requisiteStage.id }
       requisiteStages.each {
-        if ( !(it.status in [SUCCEEDED, FAILED_CONTINUE, SKIPPED]) ) {
+        if ( !(it.status in COMPLETED_STATUS) ) {
           allRequisiteStagesAreComplete = false
         }
         if (it.status == TERMINAL) {
           terminalStageNames << it?.name
         }
-
-        def tasks = (it.tasks ?: []) as List<Task>
-        if (tasks && !(tasks[-1].status in [SUCCEEDED, FAILED_CONTINUE, SKIPPED]) ) {
-          // ensure the last task has completed (heuristic for all tasks being complete)
-          allRequisiteStagesAreComplete = false
+        if (it.status == STOPPED) {
+          stoppedStageNames << it?.name
+        } else {
+          def tasks = (it.tasks ?: []) as List<Task>
+          if (tasks && !(tasks[-1].status in COMPLETED_STATUS)) {
+            // ensure the last task has completed (heuristic for all tasks being complete)
+            allRequisiteStagesAreComplete = false
+          }
         }
       }
     }
 
     if (terminalStageNames) {
       throw new IllegalStateException("Requisite stage failures: ${terminalStageNames.join(',')}")
+    }
+
+    // we don't want to fail this join point on a STOPPED upstream until all upstreams are in a completed state.
+    //  STOPPED shouldn't fail execution of the pipeline, but is not a legitimate join state
+    if (allRequisiteStagesAreComplete && stoppedStageNames) {
+      throw new IllegalStateException("Requisite stages were stopped: ${stoppedStageNames.join(',')}")
     }
 
     return new DefaultTaskResult(allRequisiteStagesAreComplete ? SUCCEEDED : RUNNING)
