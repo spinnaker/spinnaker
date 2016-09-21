@@ -20,10 +20,10 @@
           <dd>{{stage.context.baseOs}}</dd>
           <dt>VM Type</dt>
           <dd>{{stage.context.vmType | uppercase}}</dd>
-          <dt>Store Type</dt>
-          <dd>{{stage.context.storeType | uppercase}}</dd>
-          <dt>Label</dt>
-          <dd>{{stage.context.baseLabel}}</dd>
+          <dt ng-if="!roscoMode">Store Type</dt>
+          <dd ng-if="!roscoMode">{{stage.context.storeType | uppercase}}</dd>
+          <dt ng-if="!roscoMode">Label</dt>
+          <dd ng-if="!roscoMode">{{stage.context.baseLabel}}</dd>
           <dt ng-if="roscoMode || stage.context.rebake">Rebake</dt>
           <dd ng-if="roscoMode || stage.context.rebake">{{stage.context.rebake || false}}</dd>
           <dt ng-if="stage.context.templateFileName">Template</dt>

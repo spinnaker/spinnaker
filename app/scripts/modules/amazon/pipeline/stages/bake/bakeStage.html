@@ -20,7 +20,7 @@
         {{baseOsOption.id}} ({{baseOsOption.shortDescription}}) <help-field content="{{baseOsOption.detailedDescription}}" />
       </label>
     </stage-config-field>
-    <stage-config-field label="VM Type" ng-if="stage.cloudProviderType === 'aws' || stage.cloudProviderType === undefined">
+    <stage-config-field label="VM Type">
       <label class="radio-inline" ng-repeat="vmType in vmTypes">
         <input type="radio"
                ng-model="stage.vmType"
@@ -28,7 +28,7 @@
         {{vmType | uppercase}}
       </label>
     </stage-config-field>
-    <stage-config-field label="Store Type" ng-if="stage.cloudProviderType === 'aws' || stage.cloudProviderType === undefined">
+    <stage-config-field label="Store Type" ng-if="!viewState.roscoMode">
       <label class="radio-inline" ng-repeat="storeType in storeTypes">
         <input type="radio"
                ng-model="stage.storeType"
@@ -36,7 +36,7 @@
         {{storeType | uppercase}}
       </label>
     </stage-config-field>
-    <stage-config-field label="Base Label">
+    <stage-config-field label="Base Label" ng-if="!viewState.roscoMode">
       <label class="radio-inline" ng-repeat="baseLabel in baseLabelOptions">
         <input type="radio"
                ng-model="stage.baseLabel"
@@ -55,7 +55,7 @@
         </label>
       </div>
     </stage-config-field>
-    <div class="form-group" ng-if="stage.cloudProviderType === 'aws' || stage.cloudProviderType === undefined">
+    <div class="form-group">
       <div class="col-md-9 col-md-offset-1">
         <div class="checkbox">
           <label>
