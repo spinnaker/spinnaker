@@ -411,7 +411,7 @@ class KubernetesApiAdaptor {
 
   HorizontalPodAutoscaler getAutoscaler(String namespace, String name) {
     atomicWrapper("Get Autoscaler $name", namespace) { KubernetesClient client ->
-      client.extensions().horizontalPodAutoscalers().inNamespace(namespace).withField(name).get()
+      client.extensions().horizontalPodAutoscalers().inNamespace(namespace).withName(name).get()
     }
   }
 
@@ -420,6 +420,12 @@ class KubernetesApiAdaptor {
       client.extensions().horizontalPodAutoscalers().inNamespace(namespace).list().items.collectEntries { def autoscaler ->
         autoscaler.spec.scaleRef.kind == kind ? [(autoscaler.metadata.name): autoscaler] : [:]
       }
+    }
+  }
+
+  boolean deleteAutoscaler(String namespace, String name) {
+    atomicWrapper("Destroy Autoscaler $name", namespace) { KubernetesClient client ->
+      client.extensions().horizontalPodAutoscalers().inNamespace(namespace).withName(name).delete()
     }
   }
 }

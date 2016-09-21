@@ -246,10 +246,16 @@ class StandardKubernetesAttributeValidator {
 
   def validateServerGroupCloneSource(Object value, String attribute) {
     if (!value) {
-      errors.rejectValue("${context}.${attribute}",  "${context}.${attribute}.empty")
+      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.empty")
       return false
     } else {
       return validateNotEmpty(value.serverGroupName, attribute)
+    }
+  }
+
+  def validateNotLessThan(Integer value1, Integer value2, String attribute1, String attribute2) {
+    if (value1 < value2) {
+      errors.rejectValue("${context}.${attribute1}", "${context}.${attribute1}.lessThan ${context}.${attribute2}")
     }
   }
 }

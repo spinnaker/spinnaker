@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.instance
 
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.instance.AbstractRegistrationKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.instance.KubernetesInstanceDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider

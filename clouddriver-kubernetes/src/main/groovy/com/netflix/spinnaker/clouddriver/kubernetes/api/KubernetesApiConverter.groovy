@@ -18,20 +18,15 @@ package com.netflix.spinnaker.clouddriver.kubernetes.api
 
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.job.RunKubernetesJobDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.autoscaler.KubernetesAutoscalerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesNamedServicePort
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.KubernetesHttpIngressPath
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.KubernetesHttpIngressRuleValue
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.KubernetesIngressBackend
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.KubernetesIngressRule
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.KubernetesIngressRuleValue
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.KubernetesSecurityGroupDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.*
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.*
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.extensions.HorizontalPodAutoscaler
+import io.fabric8.kubernetes.api.model.extensions.HorizontalPodAutoscalerBuilder
 import io.fabric8.kubernetes.api.model.extensions.Ingress
-import io.fabric8.kubernetes.api.model.extensions.Job
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 
 class KubernetesApiConverter {
@@ -490,6 +485,25 @@ class KubernetesApiConverter {
                                         desired: description.targetSize)
     def cpuUtilization = new KubernetesCpuUtilization(target: autoscaler.spec.cpuUtilization.targetPercentage)
     description.scalingPolicy = new KubernetesScalingPolicy(cpuUtilization: cpuUtilization)
+  }
+
+  static HorizontalPodAutoscaler toAutoscaler(KubernetesAutoscalerDescription description) {
+    def autoscalerBuilder = new HorizontalPodAutoscalerBuilder()
+    autoscalerBuilder.withNewMetadata()
+      .withName(description.serverGroupName)
+      .withNamespace(description.namespace)
+      .endMetadata()
+      .withNewSpec()
+      .withMinReplicas(description.capacity.min)
+      .withMaxReplicas(description.capacity.max)
+      .withNewCpuUtilization()
+      .withTargetPercentage(description.scalingPolicy.cpuUtilization.target)
+      .endCpuUtilization()
+      .withNewScaleRef()
+      .withKind(KubernetesUtil.SERVER_GROUP_KIND)
+      .withName(description.serverGroupName)
+      .endScaleRef()
+      .endSpec().build()
   }
 
   static DeployKubernetesAtomicOperationDescription fromReplicationController(ReplicationController replicationController) {

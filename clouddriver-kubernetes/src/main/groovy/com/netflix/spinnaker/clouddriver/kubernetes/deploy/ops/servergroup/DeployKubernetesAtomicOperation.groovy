@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.autoscaler.KubernetesAutoscalerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.extensions.HorizontalPodAutoscalerBuilder
@@ -47,7 +48,7 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
    * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "loadBalancers":  [],  "containers": [ { "name": "librarynginx", "imageDescription": { "repository": "library/nginx", "tag": "latest", "registry": "index.docker.io" }, "livenessProbe": { "handler": { "type": "EXEC", "execAction": { "commands": [ "ls" ] } } } } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
    * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "loadBalancers":  [],  "volumeSources": [ { "name": "storage", "type": "EMPTYDIR", "emptyDir": {} } ], "containers": [ { "name": "librarynginx", "imageDescription": { "repository": "library/nginx", "tag": "latest", "registry": "index.docker.io" }, "volumeMounts": [ { "name": "storage", "mountPath": "/storage", "readOnly": false } ] } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
    * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "securityGroups": [], "loadBalancers":  [],  "containers": [ { "name": "librarynginx", "imageDescription": { "repository": "library/nginx" } } ], "capacity": { "min": 1, "max": 5 }, "scalingPolicy": { "cpuUtilization": { "target": 40 } }, "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
-  */
+   */
   @Override
   DeploymentResult operate(List priorOutputs) {
 
@@ -129,24 +130,10 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
 
     if (description.scalingPolicy) {
       task.updateStatus BASE_PHASE, "Attaching a horizontal pod autoscaler..."
-      def autoscalerBuilder = new HorizontalPodAutoscalerBuilder()
-      autoscalerBuilder.withNewMetadata()
-                       .withName(replicaSetName)
-                       .withNamespace(namespace)
-                       .endMetadata()
-                       .withNewSpec()
-                       .withMinReplicas(description.capacity.min)
-                       .withMaxReplicas(description.capacity.max)
-                       .withNewCpuUtilization()
-                       .withTargetPercentage(description.scalingPolicy.cpuUtilization.target)
-                       .endCpuUtilization()
-                       .withNewScaleRef()
-                       .withKind(KubernetesUtil.SERVER_GROUP_KIND)
-                       .withName(replicaSet.metadata.name)
-                       .endScaleRef()
-                       .endSpec()
 
-      credentials.apiAdaptor.createAutoscaler(namespace, autoscalerBuilder.build())
+      def autoscaler = KubernetesApiConverter.toAutoscaler(new KubernetesAutoscalerDescription(replicaSetName, description))
+
+      credentials.apiAdaptor.createAutoscaler(namespace, autoscaler)
     }
 
     return replicaSet
