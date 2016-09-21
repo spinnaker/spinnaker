@@ -1,12 +1,14 @@
 'use strict';
 
+import {Subject} from 'rxjs';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.securityGroup.configure.openstack.ports', [
     require('../../transformer.js'),
     require('../../../common/validateType.directive.js'),
 ])
-  .controller('openstackSecurityGroupRulesController', function($scope, openstackSecurityGroupTransformer, infrastructureCaches, securityGroupReader, cacheInitializer, rx) {
+  .controller('openstackSecurityGroupRulesController', function($scope, openstackSecurityGroupTransformer, infrastructureCaches, securityGroupReader, cacheInitializer) {
     this.infiniteScroll = {
       currentItems: 20,
     };
@@ -31,7 +33,7 @@ module.exports = angular.module('spinnaker.securityGroup.configure.openstack.por
        return infrastructureCaches.securityGroups.getStats().ageMax;
     };
 
-    $scope.allSecurityGroupsUpdated = new rx.Subject();
+    $scope.allSecurityGroupsUpdated = new Subject();
 
     $scope.initializeSecurityGroups = function() {
        return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
@@ -55,7 +57,7 @@ module.exports = angular.module('spinnaker.securityGroup.configure.openstack.por
            $scope.availableSecurityGroups.unshift(cidrObj);
          }
 
-         $scope.allSecurityGroupsUpdated.onNext();
+         $scope.allSecurityGroupsUpdated.next();
        });
     };
 

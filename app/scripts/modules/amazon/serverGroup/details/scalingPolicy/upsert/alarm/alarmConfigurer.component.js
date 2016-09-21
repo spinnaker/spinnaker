@@ -1,11 +1,12 @@
 'use strict';
 
+import {Subject} from 'rxjs';
+
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.aws.serverGroup.details.scalingPolicy.alarm.configurer', [
     require('../../../../../../core/utils/lodash.js'),
-    require('../../../../../../core/utils/rx.js'),
     require('../../../../../../core/config/settings.js'),
     require('../../../../../../core/serverGroup/metrics/cloudMetrics.read.service.js'),
     require('./dimensionsEditor.component.js'),
@@ -18,7 +19,7 @@ module.exports = angular
       boundsChanged: '&',
     },
     templateUrl: require('./alarmConfigurer.component.html'),
-    controller: function (cloudMetricsReader, _, rx, settings) {
+    controller: function (cloudMetricsReader, _, settings) {
 
       // AWS does not provide an API to get this, so we're baking it in. If you use custom namespaces, add them to
       // the settings.js block for aws as an array, e.g. aws { metrics: { customNamespaces: ['myns1', 'other'] } }
@@ -78,8 +79,8 @@ module.exports = angular
         noDefaultMetrics: false,
       };
 
-      this.alarmUpdated = new rx.Subject();
-      this.namespaceUpdated = new rx.Subject();
+      this.alarmUpdated = new Subject();
+      this.namespaceUpdated = new Subject();
 
       this.thresholdChanged = () => {
         let source = this.modalViewState.comparatorBound === 'max' ? 'metricIntervalLowerBound' : 'metricIntervalUpperBound';
@@ -88,7 +89,7 @@ module.exports = angular
           this.command.step.stepAdjustments[0][source] = this.command.alarm.threshold;
         }
         this.boundsChanged();
-        this.alarmUpdated.onNext();
+        this.alarmUpdated.next();
       };
 
       let convertDimensionsToObject = () => {
@@ -110,7 +111,7 @@ module.exports = angular
         }
         let alarm = this.alarm;
         if (this.viewState.advancedMode) {
-          this.alarmUpdated.onNext();
+          this.alarmUpdated.next();
           return;
         }
         if (this.viewState.selectedMetric) {
@@ -125,19 +126,19 @@ module.exports = angular
             this.updateAvailableMetrics();
           }
           if (alarmUpdated || forceUpdateStatistics) {
-            this.alarmUpdated.onNext();
+            this.alarmUpdated.next();
           }
         } else {
           alarm.namespace = null;
           alarm.metricName = null;
-          this.alarmUpdated.onNext();
+          this.alarmUpdated.next();
         }
       };
 
-      this.periodChanged = () => this.alarmUpdated.onNext();
+      this.periodChanged = () => this.alarmUpdated.next();
 
       this.namespaceChanged = () => {
-        this.namespaceUpdated.onNext();
+        this.namespaceUpdated.next();
         this.updateAvailableMetrics();
       };
 
@@ -223,7 +224,7 @@ module.exports = angular
         initializeMode();
         this.updateAvailableMetrics();
         this.alarmComparatorChanged();
-        this.alarmUpdated.onNext();
+        this.alarmUpdated.next();
       };
 
     }

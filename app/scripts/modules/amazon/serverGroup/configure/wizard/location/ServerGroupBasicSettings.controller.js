@@ -1,5 +1,7 @@
 'use strict';
 
+import {Observable, Subject} from 'rxjs';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.aws.basicSettings', [
@@ -7,12 +9,11 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.basicSettin
   require('angular-ui-bootstrap'),
   require('../../../../../core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
   require('../../../../../core/modal/wizard/v2modalWizard.service.js'),
-  require('../../../../../core/utils/rx.js'),
   require('../../../../../core/image/image.reader.js'),
   require('../../../../../core/naming/naming.service.js'),
 ])
   .controller('awsServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state,
-                                                          v2modalWizardService, rx, imageReader, namingService) {
+                                                          v2modalWizardService, imageReader, namingService) {
 
     function searchImages(q) {
       $scope.command.backingData.filtered.images = [
@@ -20,7 +21,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.basicSettin
           message: '<span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span> Finding results matching "' + q + '"...'
         }
       ];
-      return rx.Observable.fromPromise(
+      return Observable.fromPromise(
         imageReader.findImages({
           provider: $scope.command.selectedProvider,
           q: q,
@@ -29,11 +30,11 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.basicSettin
       );
     }
 
-    var imageSearchResultsStream = new rx.Subject();
+    var imageSearchResultsStream = new Subject();
 
     imageSearchResultsStream
       .throttle(250)
-      .flatMapLatest(searchImages)
+      .switchMap(searchImages)
       .subscribe(function (data) {
         $scope.command.backingData.filtered.images = data.map(function(image) {
           if (image.message && !image.imageName) {
@@ -49,7 +50,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.basicSettin
       });
 
     this.searchImages = function(q) {
-      imageSearchResultsStream.onNext(q);
+      imageSearchResultsStream.next(q);
     };
 
     this.enableAllImageSearch = () => {

@@ -7,7 +7,6 @@ module.exports = angular.module('spinnaker.utils', [
   require('./jQuery.js'),
   require('./lodash.js'),
   require('./moment.js'),
-  require('./rx.js'),
   require('./uuid.service.js'),
   require('./appendTransform.js'),
   require('./clipboard/copyToClipboard.directive.js'),

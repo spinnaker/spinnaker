@@ -1,14 +1,15 @@
 'use strict';
 
+import {Observable} from 'rxjs';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.authentication.initializer.service', [
   require('../config/settings.js'),
   require('./authentication.service.js'),
-  require('../utils/rx'),
   require('./loggedOut.modal.controller'),
 ])
-  .factory('authenticationInitializer', function ($http, $rootScope, rx, redirectService, authenticationService,
+  .factory('authenticationInitializer', function ($http, $rootScope, redirectService, authenticationService,
                                                   settings, $location, $uibModal, $uibModalStack) {
 
     let userLoggedOut = false;
@@ -49,7 +50,7 @@ module.exports = angular.module('spinnaker.authentication.initializer.service', 
           if (data.username) {
             authenticationService.setAuthenticatedUser(data.username);
             $uibModalStack.dismissAll();
-            visibilityWatch.dispose();
+            visibilityWatch.unsubscribe();
           }
         });
     }
@@ -62,7 +63,7 @@ module.exports = angular.module('spinnaker.authentication.initializer.service', 
         controller: 'LoggedOutModalCtrl as ctrl',
         size: 'squared',
       });
-      visibilityWatch = rx.Observable.fromEvent(document, 'visibilitychange').subscribe(() => {
+      visibilityWatch = Observable.fromEvent(document, 'visibilitychange').subscribe(() => {
         if (document.visibilityState === 'visible') {
           checkForReauthentication();
         }

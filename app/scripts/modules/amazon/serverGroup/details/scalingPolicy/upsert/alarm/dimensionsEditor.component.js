@@ -1,5 +1,7 @@
 'use strict';
 
+import {Observable, Subject} from 'rxjs';
+
 const angular = require('angular');
 
 require('./dimensionsEditor.component.less');
@@ -17,7 +19,7 @@ module.exports = angular
       namespaceUpdated: '=',
     },
     templateUrl: require('./dimensionsEditor.component.html'),
-    controller: function (cloudMetricsReader, _, rx) {
+    controller: function (cloudMetricsReader, _) {
 
       this.viewState = {
         loadingDimensions: false
@@ -26,16 +28,16 @@ module.exports = angular
       this.fetchDimensionOptions = () => {
         this.viewState.loadingDimensions = true;
         let filters = { namespace: this.alarm.namespace };
-        return rx.Observable
+        return Observable
           .fromPromise(
           cloudMetricsReader.listMetrics('aws', this.serverGroup.account, this.serverGroup.region, filters)
         );
       };
 
-      let dimensionSubject = new rx.Subject();
+      let dimensionSubject = new Subject();
 
       dimensionSubject
-        .flatMapLatest(this.fetchDimensionOptions)
+        .switchMap(this.fetchDimensionOptions)
         .subscribe((results) => {
           this.viewState.loadingDimensions = false;
           results = results || [];
@@ -44,7 +46,7 @@ module.exports = angular
         });
 
       this.updateDimensionOptions = () => {
-        dimensionSubject.onNext();
+        dimensionSubject.next();
       };
 
       this.removeDimension = (index) => {

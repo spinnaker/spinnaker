@@ -1,12 +1,13 @@
 'use strict';
 
+import {Observable, Subject} from 'rxjs';
+
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.triggers.docker.options.directive', [
     require('../../../../../core/config/settings.js'),
     require('../../../../../docker/image/image.reader.js'),
-    require('../../../../../core/utils/rx.js'),
   ])
   .directive('dockerTriggerOptions', function () {
     return {
@@ -20,7 +21,7 @@ module.exports = angular
       scope: {}
     };
   })
-  .controller('dockerTriggerOptionsCtrl', function ($scope, dockerImageReader, rx) {
+  .controller('dockerTriggerOptionsCtrl', function ($scope, dockerImageReader) {
     // These fields will be added to the trigger when the form is submitted
     this.command.extraFields = {};
 
@@ -48,14 +49,14 @@ module.exports = angular
     let initialize = () => {
       // cancel search stream if trigger has changed to some other type
       if (this.command.trigger.type !== 'docker') {
-        subscription.dispose();
+        subscription.unsubscribe();
         return;
       }
       this.searchTags();
     };
 
     let handleQuery = (q) => {
-      return rx.Observable.fromPromise(
+      return Observable.fromPromise(
           dockerImageReader.findImages({
             provider: 'dockerRegistry',
             account: this.command.trigger.account,
@@ -67,16 +68,16 @@ module.exports = angular
       this.command.extraFields.tag = item;
     };
 
-    let queryStream = new rx.Subject();
+    let queryStream = new Subject();
 
     let subscription = queryStream
       .debounce(250)
-      .flatMapLatest(handleQuery)
+      .switchMap(handleQuery)
       .subscribe((results) => $scope.$apply(() => tagLoadSuccess(results)), () => $scope.$apply(tagLoadFailure));
 
     this.searchTags = (query = '') => {
       this.tags = [`<span>Finding tags${query && ` matching ${query}`}...</span>`];
-      queryStream.onNext(formatQuery(query));
+      queryStream.next(formatQuery(query));
     };
 
     let formatQuery = (query) => `*${this.command.trigger.repository.split('/').pop()}:${query}*`;

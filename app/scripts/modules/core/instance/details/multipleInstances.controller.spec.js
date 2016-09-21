@@ -102,7 +102,7 @@ describe('Controller: MultipleInstances', function () {
       // unchanged as stream hasn't emitted new value yet
       expect(controller.selectedGroups[0].instances.length).toBe(1);
 
-      MultiselectModel.instancesStream.onNext();
+      MultiselectModel.instancesStream.next();
 
       expect(controller.selectedGroups[0].instances.length).toBe(2);
     });

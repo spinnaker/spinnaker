@@ -122,11 +122,11 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
     let executionLoader = executionScheduler.subscribe(getExecutions);
 
     $scope.$on('$destroy', () => {
-      clusterScheduler.dispose();
-      clusterLoader.dispose();
+      clusterScheduler.unsubscribe();
+      clusterLoader.unsubscribe();
 
-      executionScheduler.dispose();
-      executionLoader.dispose();
+      executionScheduler.unsubscribe();
+      executionLoader.unsubscribe();
     });
 
     this.refreshClusters = clusterScheduler.scheduleImmediate;

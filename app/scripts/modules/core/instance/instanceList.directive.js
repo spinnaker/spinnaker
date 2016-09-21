@@ -59,7 +59,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceList.directive'
         let multiselectWatcher = MultiselectModel.instancesStream.subscribe(setInstanceGroup);
 
         scope.$on('$destroy', () => {
-          multiselectWatcher.dispose();
+          multiselectWatcher.unsubscribe();
         });
       }
     };

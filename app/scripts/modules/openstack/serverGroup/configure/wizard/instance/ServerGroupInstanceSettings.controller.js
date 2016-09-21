@@ -1,5 +1,7 @@
 'use strict';
 
+import {Observable, Subject} from 'rxjs';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.openstack.instanceSettings', [
@@ -7,13 +9,12 @@ module.exports = angular.module('spinnaker.serverGroup.configure.openstack.insta
   require('angular-ui-bootstrap'),
   require('../../../../../core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
   require('../../../../../core/modal/wizard/v2modalWizard.service.js'),
-  require('../../../../../core/utils/rx.js'),
   require('../../../../../core/image/image.reader.js'),
   require('../../../../../core/naming/naming.service.js'),
   require('../../../../instance/osInstanceTypeSelectField.directive.js'),
 ])
   .controller('openstackServerGroupInstanceSettingsCtrl', function($scope, $controller, $uibModalStack, $state,
-                                                          v2modalWizardService, rx, imageReader) {
+                                                          v2modalWizardService, imageReader) {
 
     function searchImages(q) {
       $scope.command.backingData.filtered.images = [
@@ -21,7 +22,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.openstack.insta
           message: '<span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span> Finding results matching "' + q + '"...'
         }
       ];
-      return rx.Observable.fromPromise(
+      return Observable.fromPromise(
         imageReader.findImages({
           provider: $scope.command.selectedProvider,
           q: q,
@@ -31,18 +32,18 @@ module.exports = angular.module('spinnaker.serverGroup.configure.openstack.insta
       );
     }
 
-    var imageSearchResultsStream = new rx.Subject();
+    var imageSearchResultsStream = new Subject();
 
     imageSearchResultsStream
       .throttle(250)
-      .flatMapLatest(searchImages)
+      .switchMap(searchImages)
       .subscribe(function (data) {
         $scope.command.backingData.filtered.images = data;
         $scope.command.backingData.packageImages = $scope.command.backingData.filtered.images;
       });
 
     this.searchImages = function(q) {
-      imageSearchResultsStream.onNext(q);
+      imageSearchResultsStream.next(q);
     };
 
     $scope.$watch('instanceSettings.$valid', function(newVal) {

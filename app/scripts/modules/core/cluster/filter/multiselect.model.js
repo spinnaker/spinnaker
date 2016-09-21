@@ -1,21 +1,22 @@
 'use strict';
 
+import {Subject} from 'rxjs';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.cluster.filter.multiselect.model', [
     require('angular-ui-router'),
-    require('../../utils/rx.js'),
     require('../../utils/lodash'),
     require('./clusterFilter.model'),
   ])
-  .factory('MultiselectModel', function (_, rx, $state, ClusterFilterModel) {
+  .factory('MultiselectModel', function (_, $state, ClusterFilterModel) {
 
     this.instanceGroups = [];
-    this.instancesStream = new rx.Subject();
+    this.instancesStream = new Subject();
 
     this.serverGroups = [];
-    this.serverGroupsStream = new rx.Subject();
+    this.serverGroupsStream = new Subject();
 
     this.syncNavigation = () => {
       if ($state.includes('**.multipleInstances') && !ClusterFilterModel.sortFilter.multiselect) {
@@ -65,12 +66,12 @@ module.exports = angular
 
     this.clearAllInstanceGroups = () => {
       this.instanceGroups.length = 0;
-      this.instancesStream.onNext();
+      this.instancesStream.next();
     };
 
     this.clearAllServerGroups = () => {
       this.serverGroups.length = 0;
-      this.serverGroupsStream.onNext();
+      this.serverGroupsStream.next();
     };
 
     this.clearAll = () => {
@@ -150,7 +151,7 @@ module.exports = angular
           name: serverGroup.name,
         });
       }
-      this.serverGroupsStream.onNext();
+      this.serverGroupsStream.next();
       this.syncNavigation();
     };
 
@@ -172,7 +173,7 @@ module.exports = angular
       } else {
         group.instanceIds.push(instanceId);
       }
-      this.instancesStream.onNext();
+      this.instancesStream.next();
       this.syncNavigation();
     };
 
@@ -183,7 +184,7 @@ module.exports = angular
       if (group.selectAll) {
         this.clearAllServerGroups();
       }
-      this.instancesStream.onNext();
+      this.instancesStream.next();
       this.syncNavigation();
     };
 

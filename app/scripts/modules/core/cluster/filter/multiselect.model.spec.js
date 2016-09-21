@@ -134,13 +134,13 @@ describe('Multiselect Model', function () {
         expect(instanceGroup.instanceIds).toEqual([]);
       });
 
-      it('toggles server group, creates model when added, always calls onNext', function () {
+      it('toggles server group, creates model when added, always calls next', function () {
         expect(MultiselectModel.serverGroups.length).toBe(0);
-        let onNextCalls = 0;
-        MultiselectModel.serverGroupsStream.subscribe(() => onNextCalls++);
+        let nextCalls = 0;
+        MultiselectModel.serverGroupsStream.subscribe(() => nextCalls++);
 
         MultiselectModel.toggleServerGroup(this.serverGroup);
-        expect(onNextCalls).toBe(1);
+        expect(nextCalls).toBe(1);
         expect(MultiselectModel.serverGroups.length).toBe(1);
         let model = MultiselectModel.serverGroups[0];
         expect(model.name).toBe('asg-v001');
@@ -150,7 +150,7 @@ describe('Multiselect Model', function () {
 
         MultiselectModel.toggleServerGroup(this.serverGroup);
         expect(MultiselectModel.serverGroups.length).toBe(0);
-        expect(onNextCalls).toBe(2);
+        expect(nextCalls).toBe(2);
       });
 
       it('handles multiple server groups', function () {
