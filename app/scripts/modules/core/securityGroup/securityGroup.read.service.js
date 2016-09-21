@@ -169,6 +169,7 @@ module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
           }
         }
       }
+      data = _.uniq(data);
 
       if (notFoundCaught && retryIfNotFound) {
         $log.warn('Clearing security group cache and trying again...');
