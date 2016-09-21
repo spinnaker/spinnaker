@@ -25,6 +25,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.s
           maxSize: 1,
           loadBalancers: [],
           securityGroups: [],
+          tags: {},
           viewState: {
             mode: defaults.mode || 'create',
             disableStrategySelection: true,
@@ -72,6 +73,9 @@ module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.s
           desiredSize: parseInt(serverGroup.scalingConfig.desiredSize),
           image: serverGroup.image.id,
           instanceType: serverGroup.launchConfig.instanceType,
+          userDataType: serverGroup.advancedConfig.userDataType,
+          userData: serverGroup.advancedConfig.userData,
+          tags: serverGroup.tags,
           selectedProvider: 'openstack',
           source: {
             account: serverGroup.account,
