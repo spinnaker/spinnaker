@@ -116,7 +116,11 @@ module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
               var securityGroup = resolve(application.securityGroupsIndex, serverGroup, securityGroupId);
               attachUsageFields(securityGroup);
               if (!securityGroup.usages.serverGroups.some(sg => sg.name === serverGroup.name)) {
-                securityGroup.usages.serverGroups.push({name: serverGroup.name, isDisabled: serverGroup.isDisabled});
+                securityGroup.usages.serverGroups.push({
+                  name: serverGroup.name,
+                  isDisabled: serverGroup.isDisabled,
+                  region: serverGroup.region,
+                });
               }
               securityGroups.push(securityGroup);
             } catch (e) {
