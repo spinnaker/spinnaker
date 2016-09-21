@@ -22,6 +22,7 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
+import groovy.json.JsonOutput
 
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
@@ -51,8 +52,9 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
   ]
 
   final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators = [
-      (INSTANCES.ns): new InstanceSearchResultHydrator(),
-      (BACKEND_SERVICES.ns): new BackendServiceResultHydrator()
+    (BACKEND_SERVICES.ns): new BackendServiceResultHydrator(),
+    (HTTP_HEALTH_CHECKS.ns): new HttpHealthCheckResultHydrator(),
+    (INSTANCES.ns): new InstanceSearchResultHydrator()
   ]
 
   @Override
@@ -67,6 +69,17 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
       CacheData backendService  = cacheView.get(BACKEND_SERVICES.ns, id)
       return result + [
           healthCheckLink: backendService.attributes.healthCheckLink as String
+      ]
+    }
+  }
+
+  private static class HttpHealthCheckResultHydrator implements SearchableProvider.SearchResultHydrator {
+
+    @Override
+    Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id) {
+      CacheData healthCheckCacheData = cacheView.get(HTTP_HEALTH_CHECKS.ns, id)
+      return result + [
+        httpHealthCheck: JsonOutput.toJson(healthCheckCacheData.attributes.httpHealthCheck)
       ]
     }
   }
