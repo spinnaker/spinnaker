@@ -18,7 +18,7 @@
         <div class="well alert alert-info">
           <a ng-if="stage.context.executionId"
              ui-sref="home.applications.application.pipelines.executionDetails.execution({ application: stage.context.application, executionId: stage.context.executionId })"
-             ui-sref-opts="{inherit: false}">View Pipeline Execution</a>
+             ui-sref-opts="{inherit: false, reload: 'home.applications.application.pipelines.executionDetails'}">View Pipeline Execution</a>
         </div>
       </div>
     </div>

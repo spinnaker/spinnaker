@@ -37,14 +37,14 @@ describe('Multiselect Model', function () {
         it('navigates to multipleInstances child view when not already there and instances are selected', function () {
           this.instanceGroup.instanceIds.push('i-123');
           this.instanceGroup.instanceIds.push('i-124');
-          this.currentStates = ['**.clusters'];
+          $state.$current = { name: 'clusters' };
           MultiselectModel.syncNavigation();
           expect(this.result).toBe('.multipleInstances');
         });
 
         it('navigates to multipleInstances child view when not already there and an instance is selected', function () {
           this.instanceGroup.instanceIds.push('i-123');
-          this.currentStates = ['**.clusters'];
+          $state.$current = { name: 'clusters' };
           MultiselectModel.syncNavigation();
           expect(this.result).toBe('.multipleInstances');
         });
@@ -52,7 +52,7 @@ describe('Multiselect Model', function () {
         it('navigates to multipleInstances sibling view when not already there and instances are selected', function () {
           this.instanceGroup.instanceIds.push('i-123');
           this.instanceGroup.instanceIds.push('i-124');
-          this.currentStates = ['**.clusters.*', '**.clusters.instanceDetails'];
+          $state.$current = { name: 'clusters.instanceDetails' };
           MultiselectModel.syncNavigation();
           expect(this.result).toBe('^.multipleInstances');
         });
@@ -78,7 +78,7 @@ describe('Multiselect Model', function () {
         });
 
         it('navigates to multipleServerGroups child view when not already there and group is selected', function () {
-          this.currentStates = ['**.clusters'];
+          $state.$current = { name: 'clusters' };
           MultiselectModel.toggleServerGroup(this.serverGroup);
           expect(this.result).toBe('.multipleServerGroups');
         });
@@ -116,6 +116,7 @@ describe('Multiselect Model', function () {
 
       it('navigates to details child view when multiselect is not enabled and not in clusters child view', function () {
         ClusterFilterModel.sortFilter.multiselect = false;
+        $state.$current = { name: 'clusters' };
         MultiselectModel.toggleServerGroup(this.serverGroup);
         expect(this.result).toBe('.serverGroup');
       });

@@ -2,7 +2,8 @@
    analytics-on="click"
    analytics-category="Pipeline"
    analytics-event="Execution build number clicked - parent pipeline"
-   ui-sref="^.executionDetails.execution({application: execution.trigger.parentPipelineApplication, executionId: execution.trigger.parentPipelineId})">
+   ui-sref="^.executionDetails.execution({application: execution.trigger.parentPipelineApplication, executionId: execution.trigger.parentPipelineId})"
+   ui-sref-opts="{inherit: false, reload: 'home.applications.application.pipelines.executionDetails'}">
   {{::execution.trigger.parentPipelineName}}
 </a>
 <a ng-if="::execution.buildInfo.number"

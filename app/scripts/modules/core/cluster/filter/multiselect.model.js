@@ -37,7 +37,7 @@ module.exports = angular
         $state.go('^');
       }
       if (!$state.includes('**.multipleInstances') && instancesSelected) {
-        if ($state.includes('**.clusters.*')) {
+        if (isClusterChildState()) {
           // from a child state, e.g. instanceDetails
           $state.go('^.multipleInstances');
         } else {
@@ -49,7 +49,7 @@ module.exports = angular
         return;
       }
       if (!$state.includes('**.multipleServerGroups') && this.serverGroups.length) {
-        if ($state.includes('**.clusters.*')) {
+        if (isClusterChildState()) {
           $state.go('^.multipleServerGroups');
         } else {
           $state.go('.multipleServerGroups');
@@ -130,7 +130,7 @@ module.exports = angular
           serverGroup: serverGroup.name,
           job: serverGroup.name,
         };
-        if ($state.includes('**.clusters.*')) {
+        if (isClusterChildState()) {
           $state.go('^.' + serverGroup.category, params);
         } else {
           $state.go('.' + serverGroup.category, params);
@@ -158,7 +158,7 @@ module.exports = angular
     this.toggleInstance = (serverGroup, instanceId) => {
       if (!ClusterFilterModel.sortFilter.multiselect) {
         let params = {provider: serverGroup.type, instanceId: instanceId};
-        if ($state.includes('**.clusters.*')) {
+        if (isClusterChildState()) {
           $state.go('^.instanceDetails', params);
         } else {
           $state.go('.instanceDetails', params);
@@ -191,6 +191,10 @@ module.exports = angular
     this.instanceIsSelected = (serverGroup, instanceId) => {
       let group = this.getOrCreateInstanceGroup(serverGroup);
       return group.instanceIds.indexOf(instanceId) > -1;
+    };
+
+    let isClusterChildState = () => {
+      return $state.$current.name.split('.').pop() !== 'clusters';
     };
 
     return this;
