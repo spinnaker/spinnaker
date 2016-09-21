@@ -1,0 +1,52 @@
+<div ng-controller="openstackBakeStageCtrl as bakeStageCtrl">
+  <div ng-if="viewState.loading">
+    <h4 ng-if="viewState.loading" class="text-center">
+      <span us-spinner="{radius:20, width:6, length: 12}"></span>
+    </h4>
+  </div>
+  <div ng-if="!viewState.loading">
+    <stage-config-field label="Regions">
+      <checklist items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
+    </stage-config-field>
+    <stage-config-field label="Package" help-key="pipeline.config.bake.package">
+      <input type="text" class="form-control input-sm"
+             ng-model="stage.package"/>
+    </stage-config-field>
+    <stage-config-field label="Base OS">
+      <label class="radio-inline" ng-repeat="baseOsOption in baseOsOptions">
+        <input type="radio"
+               ng-model="stage.baseOs"
+               ng-value="baseOsOption.id"/>
+        {{baseOsOption.id}} ({{baseOsOption.shortDescription}}) <help-field content="{{baseOsOption.detailedDescription}}" />
+      </label>
+    </stage-config-field>
+
+    <stage-config-field label="Base Label">
+      <label class="radio-inline" ng-repeat="baseLabel in baseLabelOptions">
+        <input type="radio"
+               ng-model="stage.baseLabel"
+               ng-value="baseLabel"/>
+        {{baseLabel}}
+      </label>
+    </stage-config-field>
+    <!-- Even if the roscoMode flag is false, we should show the control if rebake is set. -->
+    <stage-config-field label="Rebake" ng-if="viewState.roscoMode || stage.rebake">
+      <div class="checkbox" style="margin-bottom: 0">
+        <label>
+          <input type="checkbox"
+                 ng-model="stage.rebake">
+          </input>
+          Rebake image without regard to the status of any existing bake
+        </label>
+      </div>
+    </stage-config-field>
+
+    <div ng-class="{collapse: stage.showAdvancedOptions !== true, 'collapse.in': stage.showAdvancedOptions === true}">
+      <stage-config-field label="Template File Name" help-key="pipeline.config.bake.templateFileName"
+                          ng-if="bakeStageCtrl.showTemplateFileName()">
+        <input type="text" class="form-control input-sm"
+               ng-model="stage.templateFileName"/>
+      </stage-config-field>
+    </div>
+  </div>
+</div>
