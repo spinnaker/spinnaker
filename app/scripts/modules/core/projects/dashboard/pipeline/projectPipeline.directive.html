@@ -1,6 +1,6 @@
 <div>
   <h5 class="execution-title">
-    <a ui-sref="^.application.executions.execution({application: vm.execution.application, executionId: vm.execution.id})">
+    <a ui-sref="^.application.pipelines.executions.execution({application: vm.execution.application, executionId: vm.execution.id})">
       {{vm.execution.application | uppercase}}: {{vm.execution.name}}
     </a>
   </h5>
@@ -13,6 +13,6 @@
          uib-tooltip-template="stage.labelTemplateUrl"
          tooltip-title="(Click for details)"
          tooltip-placement="bottom"
-         ui-sref="^.application.executionDetails.execution({application: vm.execution.application, executionId: vm.execution.id, stage: $index})"></div>
+         ui-sref="^.application.pipelines.executionDetails.execution({application: vm.execution.application, executionId: vm.execution.id, stage: $index})"></div>
   </div>
 </div>
