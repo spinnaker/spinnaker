@@ -24,6 +24,7 @@ import groovy.util.logging.Slf4j
 class Keys {
   static enum Namespace {
     APPLICATIONS,
+    BACKEND_SERVICES,
     CLUSTERS,
     HTTP_HEALTH_CHECKS,
     IMAGES,
@@ -66,6 +67,12 @@ class Keys {
     switch (result.type) {
       case Namespace.APPLICATIONS.ns:
         result << [application: parts[2]]
+        break
+      case Namespace.BACKEND_SERVICES.ns:
+        result << [
+          account: parts[2],
+          name   : parts[3],
+        ]
         break
       case Namespace.CLUSTERS.ns:
         def names = Names.parseName(parts[4])
@@ -168,6 +175,11 @@ class Keys {
     "$GoogleCloudProvider.GCE:${Namespace.APPLICATIONS}:${application}"
   }
 
+  static String getBackendServiceKey(String account,
+                                     String backendServiceName) {
+    "$GoogleCloudProvider.GCE:${Namespace.BACKEND_SERVICES}:${account}:${backendServiceName}"
+  }
+
   static String getClusterKey(String account,
                               String application,
                               String clusterName) {
@@ -222,6 +234,7 @@ class Keys {
     Names names = Names.parseName(managedInstanceGroupName)
     "$GoogleCloudProvider.GCE:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}${zone ? ":$zone" : ""}"
   }
+
   static String getSslCertificateKey(String account,
                                      String sslCertificateName) {
     "$GoogleCloudProvider.GCE:${Namespace.SSL_CERTIFICATES}:${account}:${sslCertificateName}"

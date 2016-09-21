@@ -111,6 +111,9 @@ class GoogleInfrastructureProviderConfig {
         newlyAddedAgents << new GoogleSslCertificateCachingAgent(googleConfiguration.googleApplicationName(),
                                                                  credentials,
                                                                  objectMapper)
+        newlyAddedAgents << new GoogleBackendServiceCachingAgent(googleConfiguration.googleApplicationName(),
+                                                                 credentials,
+                                                                 objectMapper)
         newlyAddedAgents << new GoogleInstanceCachingAgent(googleConfiguration.googleApplicationName(),
                                                            credentials,
                                                            objectMapper)

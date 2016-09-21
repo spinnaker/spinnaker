@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.api.services.compute.model.SslCertificate
+import com.google.api.services.compute.model.BackendService
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -27,18 +27,18 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.SSL_CERTIFICATES
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.BACKEND_SERVICES
 
 @Slf4j
-class GoogleSslCertificateCachingAgent extends AbstractGoogleCachingAgent  {
+class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
 
   final Set<AgentDataType> providedDataTypes = [
-    AUTHORITATIVE.forType(SSL_CERTIFICATES.ns)
+    AUTHORITATIVE.forType(BACKEND_SERVICES.ns)
   ] as Set
 
-  String agentType = "$accountName/$GoogleSslCertificateCachingAgent.simpleName"
+  String agentType = "$accountName/$GoogleBackendServiceCachingAgent.simpleName"
 
-  GoogleSslCertificateCachingAgent(String googleApplicationName,
+  GoogleBackendServiceCachingAgent(String googleApplicationName,
                                    GoogleNamedAccountCredentials credentials,
                                    ObjectMapper objectMapper) {
     super(googleApplicationName,
@@ -48,28 +48,29 @@ class GoogleSslCertificateCachingAgent extends AbstractGoogleCachingAgent  {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    List<SslCertificate> sslCertificateList = loadSslCertificates()
-    buildCacheResult(providerCache, sslCertificateList)
+    List<BackendService> backendServiceList = loadBackendServices()
+    buildCacheResult(providerCache, backendServiceList)
   }
 
-  List<SslCertificate> loadSslCertificates() {
-    compute.sslCertificates().list(project).execute().items as List
+  List<BackendService> loadBackendServices() {
+    compute.backendServices().list(project).execute().items as List
   }
 
-  private CacheResult buildCacheResult(ProviderCache _, List<SslCertificate> sslCertificateList) {
+  private CacheResult buildCacheResult(ProviderCache _, List<BackendService> backendServiceList) {
     log.info("Describing items in ${agentType}")
 
     def cacheResultBuilder = new CacheResultBuilder()
 
-    sslCertificateList.each { SslCertificate sslCertificate ->
-      def sslCertificateKey = Keys.getSslCertificateKey(accountName, sslCertificate.getName())
+    backendServiceList.each { BackendService backendService ->
+      def backendServiceKey = Keys.getBackendServiceKey(accountName, backendService.getName())
 
-      cacheResultBuilder.namespace(SSL_CERTIFICATES.ns).keep(sslCertificateKey).with {
-        attributes.name = sslCertificate.name
+      cacheResultBuilder.namespace(BACKEND_SERVICES.ns).keep(backendServiceKey).with {
+        attributes.name = backendService.name
+        attributes.healthCheckLink = backendService.healthChecks[0]
       }
     }
 
-    log.info("Caching ${cacheResultBuilder.namespace(SSL_CERTIFICATES.ns).keepSize()} items in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(BACKEND_SERVICES.ns).keepSize()} items in ${agentType}")
 
     cacheResultBuilder.build()
   }

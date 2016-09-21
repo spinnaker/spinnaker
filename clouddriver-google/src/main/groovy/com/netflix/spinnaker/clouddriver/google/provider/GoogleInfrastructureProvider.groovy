@@ -31,12 +31,14 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
 
   final Set<String> defaultCaches = [
       APPLICATIONS.ns,
+      BACKEND_SERVICES.ns,
       CLUSTERS.ns,
       HTTP_HEALTH_CHECKS.ns,
       INSTANCES.ns,
       LOAD_BALANCERS.ns,
       SECURITY_GROUPS.ns,
       SERVER_GROUPS.ns,
+      SSL_CERTIFICATES.ns,
   ].asImmutable()
 
   GoogleInfrastructureProvider(Collection<Agent> agents) {
