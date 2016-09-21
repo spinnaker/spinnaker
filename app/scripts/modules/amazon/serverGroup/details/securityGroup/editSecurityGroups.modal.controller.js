@@ -45,7 +45,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.securityGroup
         modalInstance: $uibModalInstance,
         application: application,
         title: 'Update Security Groups for ' + serverGroup.name,
-        onTaskComplete: application.serverGroups.refresh,
+        onTaskComplete: () => application.serverGroups.refresh(),
       };
 
       this.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);

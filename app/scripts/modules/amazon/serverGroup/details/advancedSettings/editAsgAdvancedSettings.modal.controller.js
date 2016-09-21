@@ -30,7 +30,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.advancedSetti
         modalInstance: $uibModalInstance,
         application: application,
         title: 'Update Advanced Settings for ' + serverGroup.name,
-        onTaskComplete: application.serverGroups.refresh,
+        onTaskComplete: () => application.serverGroups.refresh(),
       };
 
       $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);

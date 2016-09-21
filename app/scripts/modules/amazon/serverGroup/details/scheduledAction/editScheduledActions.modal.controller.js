@@ -52,7 +52,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.scheduledActi
         modalInstance: $uibModalInstance,
         application: application,
         title: 'Update Scheduled Actions for ' + serverGroup.name,
-        onTaskComplete: application.serverGroups.refresh,
+        onTaskComplete: () => application.serverGroups.refresh(),
       };
 
       $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);

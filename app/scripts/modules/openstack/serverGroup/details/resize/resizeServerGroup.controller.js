@@ -66,7 +66,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.details.resize.
         modalInstance: $uibModalInstance,
         application: application,
         title: 'Resizing ' + serverGroup.name,
-        onTaskComplete: application.serverGroups.refresh,
+        onTaskComplete: () => application.serverGroups.refresh(),
       };
 
       $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);
