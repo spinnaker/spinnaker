@@ -9,11 +9,21 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.resize
   require('../../../../core/task/monitor/taskMonitorService.js')
 ])
   .controller('kubernetesResizeServerGroupController', function($scope, $uibModalInstance, serverGroupWriter, taskMonitorService,
-                                                          application, serverGroup) {
+                                                                application, serverGroup, kubernetesAutoscalerWriter) {
     $scope.serverGroup = serverGroup;
     $scope.currentSize = { desired: serverGroup.replicas };
 
-    $scope.command = { capacity: { desired: $scope.currentSize.desired } };
+    $scope.command = {
+      capacity: {
+        desired: $scope.currentSize.desired,
+      },
+    };
+
+    if ($scope.serverGroup.autoscalerStatus) {
+      $scope.command.capacity.min = $scope.serverGroup.deployDescription.capacity.min;
+      $scope.command.capacity.max = $scope.serverGroup.deployDescription.capacity.max;
+      $scope.command.scalingPolicy = { cpuUtilization: { target: null, }, };
+    }
 
     $scope.verification = {};
 
@@ -39,14 +49,21 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.resize
       var capacity = $scope.command.capacity;
 
       var submitMethod = function() {
-        return serverGroupWriter.resizeServerGroup(serverGroup, application, {
+        var payload = {
           capacity: capacity,
           serverGroupName: serverGroup.name,
+          credentials: serverGroup.account,
           account: serverGroup.account,
           namespace: serverGroup.region,
+          region: serverGroup.region,
           interestingHealthProviderNames: ['KubernetesPod'],
           reason: $scope.command.reason,
-        });
+        };
+        if (serverGroup.autoscalerStatus) {
+          return kubernetesAutoscalerWriter.upsertAutoscaler(serverGroup, application, payload);
+        } else {
+          return serverGroupWriter.resizeServerGroup(serverGroup, application, payload);
+        }
       };
 
       var taskMonitorConfig = {

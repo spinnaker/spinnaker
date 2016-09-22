@@ -11,13 +11,7 @@ templates.keys().forEach(function(key) {
 });
 
 module.exports = angular.module('spinnaker.kubernetes', [
-  require('./pipeline/stages/findAmi/kubernetesFindAmiStage.js'),
-  require('./pipeline/stages/destroyAsg/kubernetesDestroyAsgStage.js'),
-  require('./pipeline/stages/disableAsg/kubernetesDisableAsgStage.js'),
-  require('./pipeline/stages/disableCluster/kubernetesDisableClusterStage.js'),
-  require('./pipeline/stages/enableAsg/kubernetesEnableAsgStage.js'),
-  require('./pipeline/stages/resizeAsg/resizeStage.js'),
-  require('./pipeline/stages/runJob/runJobStage.js'),
+  require('./autoscaler/autoscaler.write.service.js'),
   require('./cache/configurer.service.js'),
   require('./cluster/cluster.kubernetes.module.js'),
   require('./container/configurer.directive.js'),
@@ -29,6 +23,13 @@ module.exports = angular.module('spinnaker.kubernetes', [
   require('./loadBalancer/transformer.js'),
   require('./namespace/multiSelectField.component.js'),
   require('./namespace/selectField.directive.js'),
+  require('./pipeline/stages/destroyAsg/kubernetesDestroyAsgStage.js'),
+  require('./pipeline/stages/disableAsg/kubernetesDisableAsgStage.js'),
+  require('./pipeline/stages/disableCluster/kubernetesDisableClusterStage.js'),
+  require('./pipeline/stages/enableAsg/kubernetesEnableAsgStage.js'),
+  require('./pipeline/stages/findAmi/kubernetesFindAmiStage.js'),
+  require('./pipeline/stages/resizeAsg/resizeStage.js'),
+  require('./pipeline/stages/runJob/runJobStage.js'),
   require('./search/resultFormatter.js'),
   require('./securityGroup/configure/configure.kubernetes.module.js'),
   require('./securityGroup/details/details.kubernetes.module.js'),

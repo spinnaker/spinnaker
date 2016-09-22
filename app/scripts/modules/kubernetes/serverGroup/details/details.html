@@ -108,6 +108,16 @@
         <dd><a href ng-click="ctrl.showYaml()">Show YAML</a></dd>
       </dl>
     </collapsible-section>
+    <collapsible-section heading="Health" expanded="true">
+      <dl class="dl-horizontal"
+          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
+          ng-if="serverGroup">
+        <dt>Pods</dt>
+        <dd>
+          <health-counts container="serverGroup.instanceCounts" class="pull-left"></health-counts>
+        </dd>
+      </dl>
+    </collapsible-section>
     <collapsible-section heading="Replicas" expanded="true">
       <dl class="dl-horizontal"
           ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'" >
@@ -124,9 +134,18 @@
           <dd>{{serverGroup.deployDescription.capacity.max}}</dd>
           <dt>Current</dt>
           <dd>{{serverGroup.instances.length}}</dd>
+        </div>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Horizontal Pod Autoscaling" expanded="true">
+      <dl class="dl-horizontal"
+          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'" >
+        <div ng-show="serverGroup.autoscalerStatus === null">
+          No autoscaler found.
+        </div>
+        <div ng-show="serverGroup.autoscalerStatus !== null">
           <dt>Desired</dt>
           <dd>{{serverGroup.autoscalerStatus.desiredReplicas}}</dd>
-          <hr>
           <dt>Target CPU</dt>
           <dd>{{serverGroup.deployDescription.scalingPolicy.cpuUtilization.target}}%</dd>
           <dt>Current CPU</dt>
@@ -134,16 +153,6 @@
           <dt>Latest Rescale</dt>
           <dd>{{serverGroup.autoscalerStatus.lastScaleTime | relativeTime}}</dd>
         </div>
-      </dl>
-    </collapsible-section>
-    <collapsible-section heading="Health" expanded="true">
-      <dl class="dl-horizontal"
-          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
-          ng-if="serverGroup">
-        <dt>Instances</dt>
-        <dd>
-          <health-counts container="serverGroup.instanceCounts" class="pull-left"></health-counts>
-        </dd>
       </dl>
     </collapsible-section>
     <collapsible-section ng-repeat="container in serverGroup.deployDescription.containers" heading="{{container.name}}">
@@ -157,10 +166,8 @@
         <dd>{{container.imageDescription.repository}}</dd>
         <dt>Tag</dt>
         <dd>{{container.imageDescription.tag}}</dd>
-        <hr>
         <div ng-if="container.limits">
           <b>Limits</b>
-          <hr>
           <div ng-if="container.limits.cpu">
             <dt>CPU Limit</dt>
             <dd>{{container.limits.cpu}}</dd>
@@ -172,7 +179,6 @@
         </div>
         <div ng-if="container.requests">
           <b>Requests</b>
-          <hr>
           <div ng-if="container.requests.cpu">
             <dt>CPU Request</dt>
             <dd>{{container.requests.cpu}}</dd>
@@ -184,7 +190,6 @@
         </div>
         <div ng-if="container.readinessProbe">
           <b>Readiness Probe</b>
-          <hr>
           <dt>Success Threshold</dt>
           <dd>{{container.readinessProbe.successThreshold}}</dd>
           <dt>Failure Threshold</dt>
@@ -198,7 +203,6 @@
         </div>
         <div ng-if="container.livenessProbe">
           <b>Liveness Probe</b>
-          <hr>
           <dt>Success Threshold</dt>
           <dd>{{container.livenessProbe.successThreshold}}</dd>
           <dt>Failure Threshold</dt>
