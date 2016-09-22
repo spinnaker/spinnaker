@@ -29,7 +29,8 @@ public interface ApplicationDAO extends ItemDAO<Application> {
   Collection<Application> getApplicationHistory(String name, int limit)
 
   static class Searcher {
-    static Collection<Application> search(Collection<Application> searchableApplications, Map<String, String> attributes) {
+    static Collection<Application> search(Collection<Application> searchableApplications,
+                                          Map<String, String> attributes) {
       attributes = attributes.collect { k,v -> [k.toLowerCase(), v] }.collectEntries()
 
       if (attributes["accounts"]) {
@@ -65,7 +66,35 @@ public interface ApplicationDAO extends ItemDAO<Application> {
         throw new NotFoundException("No Application found for search criteria $attributes")
       }
 
-      return items
+      return items.sort { Application a, Application b ->
+        return score(b, attributes) - score(a, attributes)
+      }
+    }
+
+    static int score(Application application, Map<String, String> attributes) {
+      return attributes.collect { key, value ->
+        return score(application, key, value)
+      }?.sum() as Integer ?: 0
+    }
+
+    static int score(Application application, String attributeName, String attributeValue) {
+      if (!application.hasProperty(attributeName)) {
+        return 0
+      }
+
+      def attribute = application[attributeName].toString().toLowerCase()
+      def indexOf = attribute.indexOf(attributeValue.toLowerCase())
+
+      // what percentage of the value matched
+      def coverage = ((double) attributeValue.length() / attribute.length()) * 100
+
+      // where did the match occur, bonus points for it occurring close to the start
+      def boost = attribute.length() - indexOf
+
+      // scale boost based on coverage percentage
+      def scaledBoost = ((double) coverage / 100) * boost
+
+      return indexOf < 0 ? 0 : coverage + scaledBoost
     }
   }
 }
