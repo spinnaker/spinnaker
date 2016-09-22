@@ -33,7 +33,7 @@ allprojects {
   group = 'com.netflix.spinnaker.kork'
 
   spinnaker {
-    dependenciesVersion = "0.44.0"
+    dependenciesVersion = "0.50.0"
   }
 
   jacoco {

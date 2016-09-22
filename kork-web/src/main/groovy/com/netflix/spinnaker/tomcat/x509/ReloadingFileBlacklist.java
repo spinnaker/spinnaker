@@ -89,7 +89,8 @@ public class ReloadingFileBlacklist implements Blacklist {
           if (!f.exists()) {
             return Collections.emptySet();
           }
-          return ImmutableSet.copyOf(Files.lines(f.toPath())
+          return ImmutableSet.copyOf(Files.readAllLines(f.toPath())
+            .stream()
             .map(String::trim)
             .filter(line -> !(line.isEmpty() || line.startsWith("#")))
             .map(Entry::fromString)
