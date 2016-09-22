@@ -31,15 +31,8 @@ class LocalFileUserDataProvider implements UserDataProvider {
 
   boolean isLegacyUdf(String account, String applicationName) {
     Closure<Boolean> result = {
-      List<Map> creds = front50Service.getCredentials()
-      Map cred = creds.find { it.global } ?: creds.find { it.name == account }
-      if (!cred) {
-        throw new IllegalStateException("Unable to find front50 credentials (global of $account)")
-      }
-      String front50Account = cred.name
-
       try {
-        Map application = front50Service.getApplication(front50Account, applicationName)
+        Map application = front50Service.getApplication(applicationName)
         if (application.legacyUdf == null) {
           return localFileUserDataProperties.defaultLegacyUdf
         }
