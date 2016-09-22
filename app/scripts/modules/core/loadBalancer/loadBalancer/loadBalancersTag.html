@@ -7,7 +7,7 @@
       analytics-category="Cluster Pod"
       analytics-event="Toggle Load Balancers Menu ({{popover.show}})"
       uib-tooltip="{{popover.show ? 'Hide' : 'Show'}} all {{serverGroup.loadBalancers.length}} load balancers">
-    <span class="badge counter">
+    <span class="badge badge-counter">
       <span class="icon">
         <span class="icon-elb"></span>
       </span>
@@ -19,12 +19,14 @@
       Load Balancers
     </div>
     <a
-      ng-repeat="loadBalancer in serverGroup.loadBalancers | orderBy:'toString()'"
+      ng-repeat="loadBalancer in loadBalancers | orderBy: name"
       analytics-on="click"
       analytics-category="Cluster Pod"
       analytics-event="Load Load Balancer Details (multiple menu)"
-      ui-sref=".loadBalancerDetails({region: serverGroup.region, accountId: serverGroup.account, name: loadBalancer, provider: serverGroup.type})"
-      >{{loadBalancer}}
+      ui-sref=".loadBalancerDetails({region: serverGroup.region, accountId: serverGroup.account, name: loadBalancer.name, provider: serverGroup.type})"
+      >
+      <span class="name">{{loadBalancer.name}}</span>
+      <health-counts container="loadBalancer.instanceCounts"></health-counts>
     </a>
   </div>
   <span class="btn-load-balancer" ng-if="serverGroup.loadBalancers.length <= maxDisplay">
@@ -37,7 +39,7 @@
        ui-sref=".loadBalancerDetails({region: serverGroup.region, accountId: serverGroup.account, name: loadBalancer, provider: serverGroup.type})"
        ui-sref-active="active"
        uib-tooltip="Load Balancer: {{loadBalancer}}">
-      <span class="badge counter">
+      <span class="badge badge-counter">
         <span class="icon">
           <span class="icon-elb"></span>
         </span>

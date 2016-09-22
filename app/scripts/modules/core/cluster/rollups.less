@@ -275,8 +275,18 @@ running-tasks-tag {
     display: block;
   }
   a {
+    display: flex;
+    justify-content: space-between;
     border-bottom: 1px solid #d1d1d1;
     white-space: nowrap;
+
+    health-counts {
+      margin-left: 5px;
+      .instance-health-counts {
+        float: none !important;
+      }
+    }
+
     &:last-child {
       border-bottom-width: 0;
     }
@@ -331,7 +341,7 @@ load-balancers-tag {
     height: 0;
     width: 0;
   }
-  .counter {
+  .badge-counter {
     color: @spinnaker-link-color;
     background-color: #fff;
     border: 1px solid @spinnaker-link-color;
