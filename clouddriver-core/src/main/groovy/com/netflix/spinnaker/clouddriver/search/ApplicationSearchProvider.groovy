@@ -51,9 +51,7 @@ class ApplicationSearchProvider implements SearchProvider {
       return new SearchResultSet(totalMatches: 0)
     }
 
-    // TODO-AJ Front50 v2 APIs should not be account-specific
-    def account = front50Service.credentials.find { it.global == true }?.name as String
-    def results = front50Service.searchByName(account, query).collect {
+    def results = front50Service.searchByName(query, pageSize).collect {
       it.application = it.name.toString().toLowerCase()
       it.type = APPLICATIONS_TYPE
       it.url = "/applications/${it.application}".toString()
