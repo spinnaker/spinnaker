@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
+import com.google.api.services.compute.model.FixedOrPercent
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
@@ -51,6 +52,7 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
   static class AutoHealingPolicy {
     String healthCheck
     int initialDelaySec = 300
+    FixedOrPercent maxUnavailable
   }
 
   @Canonical

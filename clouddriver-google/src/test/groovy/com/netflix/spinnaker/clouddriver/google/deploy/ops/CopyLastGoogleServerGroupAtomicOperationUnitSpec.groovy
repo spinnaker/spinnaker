@@ -164,7 +164,8 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          autoHealingPolicy:
                                                              new BasicGoogleDeployDescription.AutoHealingPolicy(
                                                                  healthCheck: 'different-health-check',
-                                                                 initialDelaySec: 900
+                                                                 initialDelaySec: 900,
+                                                                 maxUnavailable: [fixed: 5]
                                                              ),
                                                          source: [region: REGION,
                                                                   serverGroupName: ANCESTOR_SERVER_GROUP_NAME],

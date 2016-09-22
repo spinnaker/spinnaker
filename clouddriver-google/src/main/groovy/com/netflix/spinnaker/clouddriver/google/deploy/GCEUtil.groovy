@@ -197,6 +197,7 @@ class GCEUtil {
   }
 
   static def queryHealthCheck(String projectName, String healthCheckName, Compute compute, Task task, String phase) {
+    // TODO(duftler): Update this to use the cache instead of a live call.
     task.updateStatus phase, "Looking up http(s) health check $healthCheckName..."
 
     try {
@@ -511,7 +512,8 @@ class GCEUtil {
 
     return new BasicGoogleDeployDescription.AutoHealingPolicy(
       healthCheck: Utils.getLocalName(autoHealingPolicy.healthCheck),
-      initialDelaySec: autoHealingPolicy.initialDelaySec
+      initialDelaySec: autoHealingPolicy.initialDelaySec,
+      maxUnavailable: autoHealingPolicy.maxUnavailable
     )
   }
 

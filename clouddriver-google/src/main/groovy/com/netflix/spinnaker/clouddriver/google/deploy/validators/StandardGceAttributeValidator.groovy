@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDiskType
@@ -203,6 +204,17 @@ class StandardGceAttributeValidator {
     def result = true
     if (value <= min || value >= max) {
       errors.rejectValue attribute, "${context}.${attribute} must be between ${min} and ${max}."
+      result = false
+    }
+    return result
+  }
+
+  def validateInRangeInclusive(int value, int min, int max, String attribute) {
+    def result = true
+    if (value < min || value > max) {
+      errors.rejectValue(attribute,
+                         "${context}.${attribute}.rangeViolation",
+                         "${context}.${attribute} must be between ${min} and ${max}, inclusive.")
       result = false
     }
     return result
@@ -410,6 +422,27 @@ class StandardGceAttributeValidator {
         if (policy[it] != null && policy[it].utilizationTarget != null) {
           validateInRangeExclusive(policy[it].utilizationTarget,
                                    0, 1, "autoscalingPolicy.${it}.utilizationTarget")
+        }
+      }
+    }
+  }
+
+  def validateAutoHealingPolicy(BasicGoogleDeployDescription.AutoHealingPolicy policy) {
+    policy?.with {
+      if (healthCheck != null) {
+        validateName(healthCheck, "autoHealingPolicy.healthCheck")
+        validateNonNegativeLong(initialDelaySec, "autoHealingPolicy.initialDelaySec")
+
+        maxUnavailable?.with {
+          if (fixed != null) {
+            validateNonNegativeLong(fixed, "autoHealingPolicy.maxUnavailable.fixed")
+          } else if (percent != null) {
+            validateInRangeInclusive(percent,
+                                     0, 100, "autoHealingPolicy.maxUnavailable.percent")
+          } else {
+            this.errors.rejectValue("autoHealingPolicy.maxUnavailable",
+                                    "${this.context}.autoHealingPolicy.maxUnavailable.neitherFixedNorPercent")
+          }
         }
       }
     }

@@ -70,11 +70,6 @@ class BasicGoogleDeployDescriptionValidator extends DescriptionValidator<BasicGo
 
     helper.validateAutoscalingPolicy(description.autoscalingPolicy)
 
-    description.autoHealingPolicy?.with {
-      if (healthCheck != null) {
-        helper.validateName(healthCheck, "autoHealingPolicy.healthCheck")
-        helper.validateNonNegativeLong(initialDelaySec, "autoHealingPolicy.initialDelaySec")
-      }
-    }
+    helper.validateAutoHealingPolicy(description.autoHealingPolicy)
   }
 }

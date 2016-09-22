@@ -271,7 +271,8 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                    compute,
                                                    task,
                                                    BASE_PHASE).selfLink,
-             initialDelaySec: description.autoHealingPolicy.initialDelaySec)]
+             initialDelaySec: description.autoHealingPolicy.initialDelaySec,
+             maxUnavailable: description.autoHealingPolicy.maxUnavailable)]
       : null
 
     def migCreateOperation
