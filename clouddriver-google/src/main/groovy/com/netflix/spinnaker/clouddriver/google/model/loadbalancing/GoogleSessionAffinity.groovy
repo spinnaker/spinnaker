@@ -16,15 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 
-import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
-import groovy.transform.Canonical
-import groovy.transform.EqualsAndHashCode
-
-@EqualsAndHashCode(excludes="backends")
-class GoogleBackendService {
-  String name
-  GoogleHealthCheck healthCheck
-  List<GoogleLoadBalancedBackend> backends
-  GoogleSessionAffinity sessionAffinity
-  // TODO(jacobkiefer): Add 'loadBalancingScheme' when we support ILB.
+// TODO(jacobkiefer): Extend this when we include ILB support.
+enum GoogleSessionAffinity {
+  NONE,
+  CLIENT_IP,
+  GENERATED_COOKIE,
 }

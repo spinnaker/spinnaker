@@ -67,6 +67,7 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
       cacheResultBuilder.namespace(BACKEND_SERVICES.ns).keep(backendServiceKey).with {
         attributes.name = backendService.name
         attributes.healthCheckLink = backendService.healthChecks[0]
+        attributes.sessionAffinity = backendService.sessionAffinity
       }
     }
 

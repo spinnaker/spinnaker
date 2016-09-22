@@ -379,6 +379,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
       List<GoogleBackendService> backendServicesInMap = Utils.getBackendServicesFromHttpLoadBalancerView(googleLoadBalancer.view)
       def backendServicesToUpdate = backendServicesInMap.findAll { it && it.name == backendService.name }
       backendServicesToUpdate.each { GoogleBackendService service ->
+        service.sessionAffinity = GoogleSessionAffinity.valueOf(backendService.sessionAffinity)
         service.backends = backendService.backends?.collect { Backend backend ->
           new GoogleLoadBalancedBackend(
               serverGroupUrl: backend.group,

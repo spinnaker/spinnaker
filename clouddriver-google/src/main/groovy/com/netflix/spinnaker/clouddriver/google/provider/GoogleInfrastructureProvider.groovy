@@ -68,7 +68,8 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
     Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id) {
       CacheData backendService  = cacheView.get(BACKEND_SERVICES.ns, id)
       return result + [
-          healthCheckLink: backendService.attributes.healthCheckLink as String
+          healthCheckLink: backendService.attributes.healthCheckLink as String,
+          sessionAffinity: backendService.attributes.sessionAffinity as String
       ]
     }
   }
