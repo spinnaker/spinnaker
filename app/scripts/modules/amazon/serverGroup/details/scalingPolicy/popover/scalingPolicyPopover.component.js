@@ -13,6 +13,18 @@ module.exports = angular
     },
     templateUrl: require('./scalingPolicyPopover.component.html'),
     controller: function() {
-      this.alarm = this.policy.alarms[0];
+
+      this.$onInit = () => {
+        this.alarm = this.policy.alarms[0];
+
+        let showWait = false;
+        if (this.policy.cooldown) {
+          showWait = true;
+        }
+        if (this.policy.stepAdjustments && this.policy.stepAdjustments.length) {
+          showWait = this.policy.stepAdjustments[0].operator !== 'decrease';
+        }
+        this.showWait = showWait;
+      };
     }
   });

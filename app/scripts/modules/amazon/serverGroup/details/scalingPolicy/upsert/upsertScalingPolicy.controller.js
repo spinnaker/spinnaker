@@ -169,6 +169,7 @@ module.exports = angular
         command.step.stepAdjustments.forEach((step) => {
           if (this.viewState.operator === 'Remove') {
             step.scalingAdjustment = 0 - step.scalingAdjustment;
+            delete command.step.estimatedInstanceWarmup;
           }
           if (step.metricIntervalLowerBound !== undefined) {
             step.metricIntervalLowerBound -= command.alarm.threshold;

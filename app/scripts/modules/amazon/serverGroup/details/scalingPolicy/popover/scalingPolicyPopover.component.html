@@ -72,11 +72,11 @@
     <dd ng-if="$ctrl.policy.minAdjustmentMagnitude">
       increments of at least {{$ctrl.policy.minAdjustmentMagnitude}} instance<span ng-if="$ctrl.policy.minAdjustmentMagnitude > 1">s</span>
     </dd>
-    <dt ng-if="$ctrl.policy.cooldown || $ctrl.policy.estimatedInstanceWarmup">wait</dt>
+    <dt ng-if="$ctrl.showWait">wait</dt>
     <dd ng-if="$ctrl.policy.cooldown">
       {{$ctrl.policy.cooldown}} seconds before allowing another scaling activity.
     </dd>
-    <dd ng-if="$ctrl.policy.estimatedInstanceWarmup">
+    <dd ng-if="$ctrl.showWait && $ctrl.policy.estimatedInstanceWarmup">
       {{$ctrl.policy.estimatedInstanceWarmup}} seconds to warm up after each step.
     </dd>
   </dl>
