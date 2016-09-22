@@ -115,7 +115,7 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
       cluster.name = clusterKey.name
       if (includeDetails) {
         cluster.loadBalancers = clusterDataEntry.relationships[Keys.Namespace.LOAD_BALANCERS.ns]?.findResults { loadBalancers.get(it) }
-        cluster.serverGroups = serverGroups.get(cluster.name)
+        cluster.serverGroups = serverGroups[cluster.name]?.findAll { it.account == cluster.accountName } ?: []
       } else {
         cluster.loadBalancers = clusterDataEntry.relationships[Keys.Namespace.LOAD_BALANCERS.ns]?.collect { loadBalancerKey ->
           Map parts = Keys.parse(loadBalancerKey)
@@ -152,6 +152,7 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
       for (def container : serverGroup.deployDescription.containers) {
         imageList.add(KubernetesUtil.getImageIdWithoutRegistry(container.imageDescription))
       }
+
       Map buildInfo = [images: imageList]
       serverGroup.buildInfo = buildInfo
       serverGroups[Names.parseName(serverGroup.name).cluster].add(serverGroup)
