@@ -4,7 +4,7 @@
       <b>Account</b>
     </div>
     <div class="col-md-7">
-      <account-select-field component="command" field="credentials" accounts="command.backingData.accounts" provider="'titus'"></account-select-field>
+      <account-select-field component="command" field="credentials" accounts="command.backingData.accounts" provider="'titus'" on-change="command.credentialsChanged()"></account-select-field>
     </div>
   </div>
   <region-select-field label-columns="2"
