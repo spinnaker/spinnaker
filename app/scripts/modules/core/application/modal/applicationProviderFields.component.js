@@ -1,12 +1,13 @@
 'use strict';
 
+import _ from 'lodash';
+
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.application.modal.applicationProviderFields.directive', [
     require('../../cloudProvider/cloudProvider.registry.js'),
     require('../../config/settings.js'),
-    require('../../utils/lodash.js'),
   ])
   .component('applicationProviderFields', {
       templateUrl: require('./applicationProviderFields.component.html'),
@@ -16,7 +17,7 @@ module.exports = angular
       },
       controller: 'ApplicationProviderFieldsCtrl',
   })
-  .controller('ApplicationProviderFieldsCtrl', function(cloudProviderRegistry, settings, _) {
+  .controller('ApplicationProviderFieldsCtrl', function(cloudProviderRegistry, settings) {
     const templateUrlPath = 'applicationProviderFields.templateUrl';
     let defaultProviderFields = settings.providers;
 

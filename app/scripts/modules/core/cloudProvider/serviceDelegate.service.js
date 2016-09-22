@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.delegation', [
   require('./cloudProvider.registry.js'),
 ])
-  .factory('serviceDelegate', function($injector, cloudProviderRegistry, _) {
+  .factory('serviceDelegate', function($injector, cloudProviderRegistry) {
 
     let hasDelegate = _.memoize((provider, serviceKey) => {
       let service = cloudProviderRegistry.getValue(provider, serviceKey);

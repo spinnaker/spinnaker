@@ -38,7 +38,7 @@ describe('Service: accountService ', function () {
     $http.flush();
 
     expect(accounts.length).toBe(2);
-    expect(_.pluck(accounts, 'name')).toEqual(['test', 'prod']);
+    expect(_.map(accounts, 'name')).toEqual(['test', 'prod']);
   });
 
   describe('getAllAccountDetailsForProvider', function () {

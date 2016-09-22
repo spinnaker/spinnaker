@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 var angular = require('angular');
 
 module.exports = angular
@@ -7,10 +9,9 @@ module.exports = angular
     require('../../../core/account/account.service.js'),
     require('../../../core/task/monitor/taskMonitorService.js'),
     require('../../../core/securityGroup/securityGroup.write.service.js'),
-    require('../../../core/utils/lodash.js'),
     require('../configure/ConfigSecurityGroupMixin.controller.js')
   ])
-  .controller('gceCloneSecurityGroupController', function($scope, $uibModalInstance, $controller, taskMonitorService, accountService, securityGroupWriter, securityGroup, application, _) {
+  .controller('gceCloneSecurityGroupController', function($scope, $uibModalInstance, $controller, taskMonitorService, accountService, securityGroupWriter, securityGroup, application) {
     var vm = this;
 
     $scope.pages = {
@@ -34,7 +35,7 @@ module.exports = angular
       return {value: sourceRange};
     });
 
-    securityGroup.ipIngress = _(securityGroup.ipIngressRules)
+    securityGroup.ipIngress = _.chain(securityGroup.ipIngressRules)
       .map(function(rule) {
         if (rule.portRanges && rule.portRanges.length > 0) {
           return rule.portRanges.map(function (portRange) {

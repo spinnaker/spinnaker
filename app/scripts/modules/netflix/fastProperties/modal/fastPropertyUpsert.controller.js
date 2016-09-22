@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
@@ -8,12 +10,11 @@ module.exports = angular
     require('../fastProperty.read.service.js'),
     require('../../../core/config/settings.js'),
     require('../../../core/application/service/applications.read.service.js'),
-    require('../../../core/utils/lodash.js'),
     require('../../../core/application/listExtractor/listExtractor.service'),
     require('./fastPropertyWizardManagement.service'),
     require('./fastPropertyScopeBuilder.service'),
   ])
-  .controller('FastPropertyUpsertController', function ($scope, $controller, $templateCache, $compile, $uibModalInstance, $q, _,
+  .controller('FastPropertyUpsertController', function ($scope, $controller, $templateCache, $compile, $uibModalInstance, $q,
                                                         settings, applicationList, applicationReader, fastPropertyReader,
                                                         fastPropertyStrategy, clusters, appName, fastProperty, isEditing,
                                                         appListExtractorService, fastPropertyWizardManagementService,
@@ -27,7 +28,7 @@ module.exports = angular
     let isSkip = (prop) => prop && prop === 'none';
 
     let prepareScope = (propertyScope) => {
-      vm.selectedScope = _(propertyScope)
+      vm.selectedScope = _.chain(propertyScope)
         .omit(isSkip)
         .transform((result, value, key) => {
           if(key === 'appIdList') {
@@ -43,9 +44,9 @@ module.exports = angular
     };
 
     vm.transformScope = (fpScope) => {
-      return _(fpScope)
+      return _.chain(fpScope)
         .omit(isSkip)
-        .transform( (result, value, key) => {
+        .transform((result, value, key) => {
           if(key === 'appIdList') {
             result.appId = value.join(',');
             result[key] = value;
@@ -108,7 +109,7 @@ module.exports = angular
     vm.property.targetScope = angular.copy(fastProperty.selectedScope) || {};
 
     vm.strategies = fastPropertyStrategy.getStrategies();
-    vm.selectedStrategy = vm.strategies.length === 1 ? {selected: _.first(vm.strategies)} : {};
+    vm.selectedStrategy = vm.strategies.length === 1 ? {selected: _.head(vm.strategies)} : {};
 
 
     vm.instanceChange = fastPropertyScopeBuilderService.createInstanceChangeFn(vm.property.targetScope, getImpact);
@@ -134,14 +135,14 @@ module.exports = angular
     vm.affectedInstancesForACA = [];
     vm.getAffectInstancesForACATarget = (clusterName) => {
 
-      vm.affectedInstancesForACA = _(objectValuesToList(vm.chosenApps))
+      vm.affectedInstancesForACA = _.chain(objectValuesToList(vm.chosenApps))
         .map('clusters').flatten()
         .filter((cluster) => cluster.name === clusterName)
         .map('serverGroups').flatten()
         .filter((serverGroup) => serverGroup.region === vm.property.startScope.region && !serverGroup.isDisabled)
         .map('instances').flatten()
         .filter((instance) => instance.healthState === 'Up')
-        .compact().unique()
+        .compact().uniq()
         .value();
 
       vm.affectedInstanceIdForAca = vm.affectedInstancesForACA.map((i) => i.id);

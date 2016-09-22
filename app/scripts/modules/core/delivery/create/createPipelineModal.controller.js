@@ -1,13 +1,14 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.create.controller', [
-  require('../../utils/lodash.js'),
   require('../../pipeline/config/services/pipelineConfigService.js'),
 ])
   .controller('CreatePipelineModalCtrl', function($scope, application,
-                                                  _, pipelineConfigService, $uibModalInstance, $log) {
+                                                  pipelineConfigService, $uibModalInstance, $log) {
 
     var noTemplate = {
       name: 'None',
@@ -23,8 +24,8 @@ module.exports = angular.module('spinnaker.core.pipeline.create.controller', [
     $scope.templates = [noTemplate].concat(application.pipelineConfigs.data);
     $scope.strategyTemplates = [noTemplate].concat(application.strategyConfigs.data);
 
-    $scope.existingNames = _.pluck($scope.templates, 'name');
-    $scope.existingStrategyNames = _.pluck($scope.strategyTemplates, 'name');
+    $scope.existingNames = _.map($scope.templates, 'name');
+    $scope.existingStrategyNames = _.map($scope.strategyTemplates, 'name');
 
     $scope.command = {
       template: noTemplate,

@@ -1,14 +1,15 @@
 'use strict';
 
+import _ from 'lodash';
+
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.aws.validation.applicationName', [
     require('../../core/application/modal/validation/applicationName.validator'),
     require('../../core/config/settings'),
-    require('../../core/utils/lodash'),
   ])
-  .factory('awsApplicationNameValidator', function (settings, _) {
+  .factory('awsApplicationNameValidator', function (settings) {
 
     function validateSpecialCharacters(name, errors) {
       let pattern = /^[a-zA-Z_0-9.]*$/g;

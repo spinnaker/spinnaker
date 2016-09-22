@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.gce.securityGroup.create.controller',
   .controller('gceCreateSecurityGroupCtrl', function($scope, $uibModalInstance, $state, $controller,
                                                   accountService, securityGroupReader,
                                                   taskMonitorService, cacheInitializer, infrastructureCaches,
-                                                  _, application, securityGroup ) {
+                                                  application, securityGroup ) {
 
     $scope.pages = {
       location: require('./createSecurityGroupProperties.html'),

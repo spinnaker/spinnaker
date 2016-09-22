@@ -2,15 +2,16 @@
 
 /* eslint consistent-return:0 */
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.cluster.service', [
   require('../naming/naming.service.js'),
   require('../api/api.service'),
-  require('../utils/lodash.js'),
   require('../serverGroup/serverGroup.transformer.js'),
 ])
-  .factory('clusterService', function ($q, API, _, serverGroupTransformer, namingService) {
+  .factory('clusterService', function ($q, API, serverGroupTransformer, namingService) {
 
     function loadServerGroups(applicationName) {
       var serverGroupLoader = $q.all({
@@ -83,9 +84,9 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
     function instanceIdsTaskMatcher(task, serverGroup) {
       if (task.getValueFor('region') === serverGroup.region && task.getValueFor('credentials') === serverGroup.account) {
         if (task.getValueFor('knownInstanceIds')) {
-          return _.intersection(_.pluck(serverGroup.instances, 'id'), task.getValueFor('knownInstanceIds')).length > 0;
+          return _.intersection(_.map(serverGroup.instances, 'id'), task.getValueFor('knownInstanceIds')).length > 0;
         } else {
-          return _.intersection(_.pluck(serverGroup.instances, 'id'), task.getValueFor('instanceIds')).length > 0;
+          return _.intersection(_.map(serverGroup.instances, 'id'), task.getValueFor('instanceIds')).length > 0;
         }
       }
       return false;
@@ -188,11 +189,11 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
     }
 
     function extractServerGroupNameFromContext(context) {
-      return _.first(_.values(context['deploy.server.groups'])) || context['targetop.asg.disableAsg.name'] || undefined;
+      return _.head(_.values(context['deploy.server.groups'])) || context['targetop.asg.disableAsg.name'] || undefined;
     }
 
     function extractRegionFromContext(context) {
-      return _.first(_.keys(context['deploy.server.groups'])) || _.first(context['targetop.asg.disableAsg.regions']) || undefined;
+      return _.head(_.keys(context['deploy.server.groups'])) || _.head(context['targetop.asg.disableAsg.regions']) || undefined;
     }
 
     function addExecutionsToServerGroups(application) {

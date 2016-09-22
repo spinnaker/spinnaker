@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.clone
   require('../../../../core/task/monitor/taskMonitorService.js'),
   require('../serverGroupConfiguration.service.js'),
 ])
-  .controller('openstackCloneServerGroupCtrl', function($scope, $uibModalInstance, _, $q, $state,
+  .controller('openstackCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
                                                                serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                                openstackServerGroupConfigurationService,
                                                                serverGroupCommand, application, title) {

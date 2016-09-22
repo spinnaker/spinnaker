@@ -1,12 +1,13 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.configProvider', [
-  require('../../utils/lodash'),
   require('../../config/settings.js'),
 ])
-  .provider('pipelineConfig', function(_, settings) {
+  .provider('pipelineConfig', function(settings) {
 
     var triggerTypes = [],
         stageTypes = [],

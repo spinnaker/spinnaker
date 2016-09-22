@@ -1,14 +1,15 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.property.details.controller', [
   require('angular-ui-router'),
-  require('../../../../../core/utils/lodash.js'),
   require('../../../../../core/delivery/details/executionDetailsSection.service.js'),
   require('../../../../../core/delivery/details/executionDetailsSectionNav.directive.js')
 ])
-  .controller('PropertyExecutionDetailsCtrl', function ($scope, _, $stateParams, $timeout, executionDetailsSectionService) {
+  .controller('PropertyExecutionDetailsCtrl', function ($scope, $stateParams, $timeout, executionDetailsSectionService) {
 
     let vm = this;
     $scope.configSections = ['propertiesConfig', 'taskStatus'];
@@ -33,7 +34,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.property.detai
 
     vm.propertyScopeForDisplay = () => {
       let temp = _.omit($scope.scope, ['appIdList']);
-      return Object.assign(temp, {'app': _.first($scope.scope.appIdList) });
+      return Object.assign(temp, {'app': _.head($scope.scope.appIdList) });
     };
 
     vm.getErrorMessage = () => {

@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.serverGroup.configure.titus.configuration.service', [
   require('../../../core/account/account.service'),
 ])
-  .factory('titusServerGroupConfigurationService', function(accountService, $q, _) {
+  .factory('titusServerGroupConfigurationService', function(accountService, $q) {
 
 
     function configureCommand(command) {

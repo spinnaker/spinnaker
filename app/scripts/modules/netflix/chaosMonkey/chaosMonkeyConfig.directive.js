@@ -1,12 +1,13 @@
 'use strict';
 
+import _ from 'lodash';
+
 const angular = require('angular');
 
 require('./chaosMonkeyConfig.directive.less');
 
 module.exports = angular
   .module('spinnaker.netflix.chaosMonkey.config.directive', [
-    require('../../core/utils/lodash.js'),
     require('../../core/config/settings.js'),
     require('./chaosMonkeyExceptions.directive.js'),
     require('./chaosMonkeyConfigFooter.directive.js'),
@@ -23,7 +24,7 @@ module.exports = angular
       controllerAs: 'vm',
     };
   })
-  .controller('ChaosMonkeyConfigCtrl', function($scope, _, settings) {
+  .controller('ChaosMonkeyConfigCtrl', function($scope, settings) {
     if (this.application.notFound) {
       return;
     }

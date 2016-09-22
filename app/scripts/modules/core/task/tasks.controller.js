@@ -1,10 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.task.controller', [
   require('angular-ui-router'),
-  require('../utils/lodash.js'),
   require('./taskProgressBar.directive.js'),
   require('../cache/viewStateCache.js'),
   require('./task.write.service.js'),
@@ -13,7 +14,7 @@ module.exports = angular.module('spinnaker.core.task.controller', [
   require('../cache/deckCacheFactory.js'),
   require('../config/settings.js'),
 ])
-  .controller('TasksCtrl', function ($scope, $state, $q, settings, app, _, viewStateCache, taskWriter, confirmationModalService) {
+  .controller('TasksCtrl', function ($scope, $state, $q, settings, app, viewStateCache, taskWriter, confirmationModalService) {
 
     if (app.notFound) {
       return;
@@ -164,20 +165,18 @@ module.exports = angular.module('spinnaker.core.task.controller', [
     controller.getFirstDeployServerGroupName = function(task) {
       if(task.execution && task.execution.stages) {
         var stage = findStageWithTaskInExecution(task.execution, ['createCopyLastAsg', 'createDeploy']);
-        return _(stage)
-          .chain()
+        return _.chain(stage)
           .get('context')
           .get('deploy.server.groups')
           .values()
-          .first()
-          .first()
+          .head()
+          .head()
           .value();
       }
     };
 
     controller.getAccountId = function(task) {
-      return _(task.variables)
-        .chain()
+      return _.chain(task.variables)
         .find({'key': 'account'})
         .result('value')
         .value();
@@ -193,8 +192,7 @@ module.exports = angular.module('spinnaker.core.task.controller', [
 
     controller.getProviderForServerGroupByTask = function(task) {
       var serverGroupName = controller.getFirstDeployServerGroupName(task);
-      return _(application.serverGroups.data)
-        .chain()
+      return _.chain(application.serverGroups.data)
         .find(function(serverGroup) {
           return serverGroup.name === serverGroupName;
         })
@@ -203,13 +201,12 @@ module.exports = angular.module('spinnaker.core.task.controller', [
     };
 
     function findStageWithTaskInExecution(execution, stageName) {
-      return _(execution.stages).find(function(stage) {
-        return _.any(stage.tasks, function(task) {
+      return _.chain(execution.stages).find(function(stage) {
+        return _.some(stage.tasks, function(task) {
           return stageName.indexOf(task.name) !== -1;
         });
-      });
+      }).value();
     }
-
 
     function filterRunningTasks() {
       var running = _.chain(application.tasks.data)

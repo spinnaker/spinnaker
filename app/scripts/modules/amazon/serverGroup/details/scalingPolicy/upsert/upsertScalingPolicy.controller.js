@@ -13,7 +13,7 @@ module.exports = angular
     require('./step/stepPolicyAction.component.js'),
     require('./alarm/alarmConfigurer.component.js'),
   ])
-  .controller('awsUpsertScalingPolicyCtrl', function ($uibModalInstance, _, scalingPolicyWriter,
+  .controller('awsUpsertScalingPolicyCtrl', function ($uibModalInstance, scalingPolicyWriter,
                                                       taskMonitorService,
                                                       serverGroupReader, serverGroup, application, policy) {
 

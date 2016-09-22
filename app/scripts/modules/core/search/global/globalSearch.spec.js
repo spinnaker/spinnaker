@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 describe('Controller: GlobalSearch', function () {
   const angular = require('angular');
 
@@ -12,7 +14,7 @@ describe('Controller: GlobalSearch', function () {
 
   describe('keyboard navigation', function() {
     // Initialize the controller and a mock scope
-    beforeEach(window.inject(function ($controller, $rootScope, $window, $q, _, ClusterFilterModel, clusterFilterService) {
+    beforeEach(window.inject(function ($controller, $rootScope, $window, $q, ClusterFilterModel, clusterFilterService) {
       var inputSpy = jasmine.createSpyObj('input', ['focus']),
           infrastructureSearchService = jasmine.createSpy('infrastructureSearchService');
       this.$scope = $rootScope.$new();

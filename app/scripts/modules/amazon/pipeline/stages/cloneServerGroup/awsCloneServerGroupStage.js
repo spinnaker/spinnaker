@@ -1,12 +1,13 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.cloneServerGroupStage', [
   require('../../../../core/application/modal/platformHealthOverride.directive.js'),
   require('../../../../core/account/account.service.js'),
   require('../../../../core/naming/naming.service.js'),
-  require('../../../../core/utils/lodash.js'),
   require('./cloneServerGroupExecutionDetails.controller.js'),
 ])
   .config(function(pipelineConfigProvider) {
@@ -23,7 +24,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.cloneServerGr
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'}
       ],
     });
-  }).controller('awsCloneServerGroupStageCtrl', function($scope, _, accountService, namingService, stageConstants) {
+  }).controller('awsCloneServerGroupStageCtrl', function($scope, accountService, namingService, stageConstants) {
 
     let stage = $scope.stage;
 

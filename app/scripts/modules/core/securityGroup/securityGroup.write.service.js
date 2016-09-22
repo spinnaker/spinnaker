@@ -1,21 +1,22 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.securityGroup.write.service', [
-    require('../utils/lodash.js'),
     require('../cache/infrastructureCaches.js'),
     require('../task/taskExecutor.js')
   ])
-  .factory('securityGroupWriter', function (_, taskExecutor, infrastructureCaches) {
+  .factory('securityGroupWriter', function (taskExecutor, infrastructureCaches) {
 
     function upsertSecurityGroup(command, application, descriptor, params = {}) {
       params.type = 'upsertSecurityGroup';
       params.credentials = command.credentials || command.accountName;
 
       // We want to extend params with all attributes from command, but only if they don't already exist.
-      _.assign(params, command, function(value, other) {
+      _.assignWith(params, command, function(value, other) {
         return _.isUndefined(value) ? other : value;
       });
 

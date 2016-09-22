@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', [
@@ -21,7 +23,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
   require('../../subnet/subnetSelectField.directive.js'),
   require('../../../core/config/settings.js'),
 ])
-  .controller('awsCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state, _,
+  .controller('awsCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
                                                     accountService, awsLoadBalancerTransformer, securityGroupReader,
                                                     cacheInitializer, infrastructureCaches, loadBalancerReader,
                                                     v2modalWizardService, loadBalancerWriter, taskMonitorService,
@@ -178,7 +180,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
         $scope.availableSecurityGroups = _.filter(allSecurityGroups[account].aws[region], function(securityGroup) {
           return availableVpcIds.indexOf(securityGroup.vpcId) !== -1;
         });
-        $scope.existingSecurityGroupNames = _.collect($scope.availableSecurityGroups, 'name');
+        $scope.existingSecurityGroupNames = _.map($scope.availableSecurityGroups, 'name');
         var existingNames = defaultSecurityGroups.filter(function(defaultName) {
           return $scope.existingSecurityGroupNames.indexOf(defaultName) !== -1;
         });
@@ -196,7 +198,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
             existingNames.push(securityGroup);
           }
         });
-        $scope.loadBalancer.securityGroups = _.unique(existingNames);
+        $scope.loadBalancer.securityGroups = _.uniq(existingNames);
         if ($scope.state.removedSecurityGroups.length) {
           v2modalWizardService.markDirty('Security Groups');
         }
@@ -220,10 +222,10 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
       var account = $scope.loadBalancer.credentials,
           region = $scope.loadBalancer.region;
       return subnetReader.listSubnets().then(function(subnets) {
-        return _(subnets)
+        return _.chain(subnets)
           .filter({account: account, region: region})
           .reject({'target': 'ec2'})
-          .valueOf();
+          .value();
       });
     }
 
@@ -337,7 +339,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     this.getName = function() {
       var elb = $scope.loadBalancer;
       var elbName = [application.name, (elb.stack || ''), (elb.detail || '')].join('-');
-      return _.trimRight(elbName, '-');
+      return _.trimEnd(elbName, '-');
     };
 
     this.accountUpdated = function() {

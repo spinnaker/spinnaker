@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.pipelineStage', [
         { type: 'requiredField', fieldName: 'pipeline', },
       ],
     });
-  }).controller('pipelineStageCtrl', function($scope, stage, pipelineConfigService, applicationReader, _) {
+  }).controller('pipelineStageCtrl', function($scope, stage, pipelineConfigService, applicationReader) {
 
     $scope.stage = stage;
     $scope.stage.failPipeline = ($scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline);
@@ -44,7 +44,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.pipelineStage', [
     };
 
     applicationReader.listApplications().then(function(applications) {
-      $scope.applications = _.pluck(applications, 'name').sort();
+      $scope.applications = _.map(applications, 'name').sort();
       initializeMasters();
     });
 

@@ -1,12 +1,13 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.deploymentStrategy.deploymentStrategy.service', [
-  require('../../utils/lodash.js'),
   require('../deploymentStrategyConfig.provider.js')
 ])
-  .factory('deploymentStrategyService', function (deploymentStrategyConfig, _) {
+  .factory('deploymentStrategyService', function (deploymentStrategyConfig) {
 
     function listAvailableStrategies(provider) {
       var allStrategies = deploymentStrategyConfig.listStrategies();

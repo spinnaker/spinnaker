@@ -1,11 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.serverGroup.configure.command.registry', [
-  require('../../../utils/lodash.js'),
-])
-  .provider('serverGroupCommandRegistry', function(_) {
+module.exports = angular.module('spinnaker.core.serverGroup.configure.command.registry', [])
+  .provider('serverGroupCommandRegistry', function () {
 
     const providers = Object.create(null);
 
@@ -26,5 +26,4 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.command.re
         register: register
       };
     };
-
   });

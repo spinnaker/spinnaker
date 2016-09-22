@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.trigger.pipeline', [
@@ -7,7 +9,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.pipeline
   require('../../pipelineConfigProvider.js'),
   require('../../../../application/service/applications.read.service.js'),
   require('../trigger.directive.js'),
-  require('../../../../utils/lodash.js'),
   require('./pipelineTriggerOptions.directive.js'),
 ])
   .config(function (pipelineConfigProvider) {
@@ -44,7 +45,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.pipeline
       selectorTemplate: require('./selectorTemplate.html'),
     };
   })
-  .controller('pipelineTriggerCtrl', function ($scope, trigger, pipelineConfigService, applicationReader, _) {
+  .controller('pipelineTriggerCtrl', function ($scope, trigger, pipelineConfigService, applicationReader) {
 
     $scope.trigger = trigger;
 
@@ -89,7 +90,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.pipeline
     };
 
     applicationReader.listApplications().then(function(applications) {
-      $scope.applications = _.pluck(applications, 'name').sort();
+      $scope.applications = _.map(applications, 'name').sort();
     });
 
 

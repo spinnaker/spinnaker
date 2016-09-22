@@ -21,7 +21,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.runJobStage
         {type: 'requiredField', fieldName: 'cluster.resources.disk'}
       ]
     });
-  }).controller('titusRunJobStageCtrl', function ($scope, accountService, $q, _) {
+  }).controller('titusRunJobStageCtrl', function ($scope, accountService, $q) {
 
     let stage = $scope.stage;
     let vm = this;
@@ -33,7 +33,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.runJobStage
     vm.updateRegions = function () {
       if (stage.credentials) {
         $scope.regions = $scope.backingData.credentialsKeyedByAccount[stage.credentials].regions;
-        if (!_.contains(_.pluck($scope.regions, 'name'), stage.cluster.region)) {
+        if (!_.includes(_.map($scope.regions, 'name'), stage.cluster.region)) {
           delete stage.cluster.region;
         }
       } else {

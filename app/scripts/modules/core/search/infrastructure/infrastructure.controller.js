@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.search.infrastructure.controller', [
@@ -15,7 +17,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
 ])
   .controller('InfrastructureCtrl', function($scope, infrastructureSearchService, $stateParams, $location, searchService,
                                              cacheInitializer, overrideRegistry,
-                                             pageTitleService, _, recentHistoryService, $uibModal, $state, clusterFilterService) {
+                                             pageTitleService, recentHistoryService, $uibModal, $state, clusterFilterService) {
 
     var search = infrastructureSearchService();
 
@@ -88,7 +90,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
         }
         $scope.categories = result.filter((category) => category.category !== 'Projects' && category.results.length);
         $scope.projects = result.filter((category) => category.category === 'Projects' && category.results.length);
-        $scope.moreResults = _.sum(result, function(resultSet) {
+        $scope.moreResults = _.sumBy(result, function(resultSet) {
           return resultSet.results.length;
         }) === $scope.pageSize;
         updateLocation();

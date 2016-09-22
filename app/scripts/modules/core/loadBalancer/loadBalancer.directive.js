@@ -1,11 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.loadBalancer.directive', [
-  require('../utils/lodash.js'),
-])
-  .directive('loadBalancer', function ($rootScope, $timeout, _, LoadBalancerFilterModel) {
+module.exports = angular.module('spinnaker.core.loadBalancer.directive', [])
+  .directive('loadBalancer', function ($rootScope, $timeout, LoadBalancerFilterModel) {
     return {
       restrict: 'E',
       templateUrl: require('./loadBalancer/loadBalancer.html'),
@@ -24,7 +24,7 @@ module.exports = angular.module('spinnaker.core.loadBalancer.directive', [
         scope.waypoint = [loadBalancer.account, loadBalancer.region, loadBalancer.name].join(':');
 
         scope.viewModel = {
-          instances: loadBalancer.instances.concat(_.flatten(_.pluck(loadBalancer.serverGroups, 'detachedInstances')))
+          instances: loadBalancer.instances.concat(_.flatten(_.map(loadBalancer.serverGroups, 'detachedInstances')))
         };
 
         scope.loadDetails = function(event) {

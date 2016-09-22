@@ -1,15 +1,16 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('securityGroup.filter.service', [
     require('./securityGroup.filter.model.js'),
-    require('../../utils/lodash.js'),
     require('../../utils/waypoints/waypoint.service.js'),
     require('../../filterModel/filter.model.service.js'),
   ])
-  .factory('securityGroupFilterService', function (SecurityGroupFilterModel, _, waypointService, filterModelService) {
+  .factory('securityGroupFilterService', function (SecurityGroupFilterModel, waypointService, filterModelService) {
 
     var lastApplication = null;
 
@@ -20,8 +21,8 @@ module.exports = angular
           securityGroup.id,
           securityGroup.accountName,
           securityGroup.region,
-          _.pluck(securityGroup.usages.serverGroups, 'name').join(' '),
-          _.pluck(securityGroup.usages.loadBalancers, 'name').join(' ')
+          _.map(securityGroup.usages.serverGroups, 'name').join(' '),
+          _.map(securityGroup.usages.loadBalancers, 'name').join(' ')
         ].join(' ');
       }
     }

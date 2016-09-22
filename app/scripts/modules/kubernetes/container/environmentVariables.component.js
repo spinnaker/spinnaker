@@ -1,16 +1,16 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.deck.kubernetes.environmentVariables.component', [
-    require('../../core/utils/lodash.js'),
-  ])
+module.exports = angular.module('spinnaker.deck.kubernetes.environmentVariables.component', [])
   .component('kubernetesContainerEnvironmentVariables', {
     bindings: {
       envVars: '='
     },
     templateUrl: require('./environmentVariables.component.html'),
-    controller: function (_) {
+    controller: function () {
       if (!this.envVars) {
         this.envVars = [];
       }

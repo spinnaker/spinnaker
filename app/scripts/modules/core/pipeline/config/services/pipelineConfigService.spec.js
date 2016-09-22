@@ -1,16 +1,16 @@
 'use strict';
 
+import _ from 'lodash';
+
 describe('pipelineConfigService', function () {
   beforeEach(
     window.module(
       require('./pipelineConfigService'),
-      require('../../../utils/lodash.js'),
       require('../../../api/api.service')
     )
   );
 
-  beforeEach(window.inject(function (pipelineConfigService, $httpBackend, $rootScope, ___, _API_) {
-    this._ = ___;
+  beforeEach(window.inject(function (pipelineConfigService, $httpBackend, $rootScope, _API_) {
     this.service = pipelineConfigService;
     this.$http = $httpBackend;
     this.$scope = $rootScope.$new();
@@ -59,7 +59,7 @@ describe('pipelineConfigService', function () {
       this.$scope.$digest();
       this.$http.flush();
 
-      expect(_.pluck(result, 'name')).toEqual(['first', 'second', 'third', 'last']);
+      expect(_.map(result, 'name')).toEqual(['first', 'second', 'third', 'last']);
     });
 
     it('should fix sort order of pipelines on initialization: 0..n, index collisions sorted alphabetically', function() {

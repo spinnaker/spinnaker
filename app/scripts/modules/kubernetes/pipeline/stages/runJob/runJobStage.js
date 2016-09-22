@@ -1,9 +1,10 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.runJobStage', [
-  require('../../../../core/utils/lodash.js'),
   require('../../../../docker/image/dockerImageAndTagSelector.component.js'),
   require('../../../container/commands.component.js'),
   require('../../../container/arguments.component.js'),
@@ -23,7 +24,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.runJob
         { type: 'requiredField', fieldName: 'container.imageDescription.tag', fieldLabel: 'tag' },
       ]
     });
-  }).controller('kubernetesRunJobStageCtrl', function($scope, accountService, _) {
+  }).controller('kubernetesRunJobStageCtrl', function($scope, accountService) {
     this.stage = $scope.stage;
     if (!_.has(this.stage, 'container.name')) {
       _.set(this.stage, 'container.name', Date.now().toString());

@@ -2,11 +2,12 @@
 
 require('./applicationLinks.component.less');
 
+import _ from 'lodash';
+
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.application.config.applicationLinks.component', [
-    require('../../../utils/lodash'),
     require('../../service/applications.write.service'),
     require('./editLinks.modal.controller'),
     require('../../../config/settings'),
@@ -17,7 +18,7 @@ module.exports = angular
       application: '=',
     },
     templateUrl: require('./applicationLinks.component.html'),
-    controller: function($uibModal, applicationWriter, settings, _) {
+    controller: function($uibModal, applicationWriter, settings) {
 
       let initialize = () => {
         if (this.application.notFound) {

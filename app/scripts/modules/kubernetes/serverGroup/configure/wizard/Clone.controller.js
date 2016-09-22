@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
   require('../configuration.service.js'),
   require('../../../../core/modal/wizard/wizardSubFormValidation.service.js'),
 ])
-  .controller('kubernetesCloneServerGroupController', function($scope, $uibModalInstance, _, $q, $state,
+  .controller('kubernetesCloneServerGroupController', function($scope, $uibModalInstance, $q, $state,
                                                                serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                                kubernetesServerGroupConfigurationService,
                                                                serverGroupCommand, application, title, $timeout,

@@ -1,11 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.kubernetes.loadBalancer.transformer', [
-  require('../../core/utils/lodash.js')
-])
-  .factory('kubernetesLoadBalancerTransformer', function (settings, _) {
+module.exports = angular.module('spinnaker.kubernetes.loadBalancer.transformer', [])
+  .factory('kubernetesLoadBalancerTransformer', function (settings) {
     function normalizeLoadBalancer(loadBalancer) {
       loadBalancer.provider = loadBalancer.type;
       loadBalancer.instances = [];
@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.kubernetes.loadBalancer.transformer',
     }
 
     function buildInstanceCounts(serverGroups) {
-      let instanceCounts = _(serverGroups)
+      let instanceCounts = _.chain(serverGroups)
         .map('instances')
         .flatten()
         .reduce(
@@ -30,9 +30,10 @@ module.exports = angular.module('spinnaker.kubernetes.loadBalancer.transformer',
             failed: 0,
             unknown: 0,
           }
-        );
+        )
+        .value();
 
-      instanceCounts.outOfService += _(serverGroups)
+      instanceCounts.outOfService += _.chain(serverGroups)
         .map('detachedInstances')
         .flatten()
         .value()

@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller', [
@@ -7,7 +9,6 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
   require('../../../core/securityGroup/securityGroup.read.service.js'),
   require('../../../core/loadBalancer/loadBalancer.write.service.js'),
   require('../../../core/loadBalancer/loadBalancer.read.service.js'),
-  require('../../../core/utils/lodash.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('../../../core/presentation/collapsibleSection/collapsibleSection.directive.js'),
@@ -15,7 +16,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
   require('../../../core/subnet/subnet.read.service'),
 ])
   .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, $q, loadBalancer, app, InsightFilterStateModel,
-                                                   securityGroupReader, _, confirmationModalService, loadBalancerWriter,
+                                                   securityGroupReader, confirmationModalService, loadBalancerWriter,
                                                       loadBalancerReader, subnetReader) {
 
     $scope.state = {
@@ -92,7 +93,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
     });
 
     this.getFirstSubnetPurpose = function(subnetDetailsList = []) {
-      return _.first(subnetDetailsList.map(subnet => subnet.purpose)) || '';
+      return _.head(subnetDetailsList.map(subnet => subnet.purpose)) || '';
     };
 
     this.editLoadBalancer = function editLoadBalancer() {

@@ -11,7 +11,7 @@ describe('Component: alarmConfigurer', function () {
   );
 
   beforeEach(
-    window.inject( function($componentController, $rootScope, _cloudMetricsReader_, _, _$q_) {
+    window.inject( function($componentController, $rootScope, _cloudMetricsReader_, _$q_) {
       $scope = $rootScope.$new();
       cloudMetricsReader = _cloudMetricsReader_;
       $q = _$q_;

@@ -4,11 +4,10 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.details.controller', [
   require('angular-ui-router'),
-  require('../../../../core/utils/lodash.js'),
   require('../../../../core/delivery/details/executionDetailsSection.service.js'),
   require('../../../../core/delivery/details/executionDetailsSectionNav.directive.js')
 ])
-  .controller('CanaryExecutionDetailsCtrl', function ($scope, _, $stateParams, $timeout, executionDetailsSectionService) {
+  .controller('CanaryExecutionDetailsCtrl', function ($scope, $stateParams, $timeout, executionDetailsSectionService) {
 
     $scope.configSections = ['canarySummary', 'canaryConfig', 'taskStatus'];
 

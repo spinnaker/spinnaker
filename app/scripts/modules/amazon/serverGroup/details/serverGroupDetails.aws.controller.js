@@ -1,6 +1,8 @@
 'use strict';
 /* jshint camelcase:false */
 
+import _ from 'lodash';
+
 require('../configure/serverGroup.configure.aws.module.js');
 
 let angular = require('angular');
@@ -13,7 +15,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('../../../core/serverGroup/details/serverGroupWarningMessage.service.js'),
   require('../../../core/overrideRegistry/override.registry.js'),
   require('../../../core/account/account.service.js'),
-  require('../../../core/utils/lodash.js'),
   require('../../vpc/vpcTag.directive.js'),
   require('./scalingProcesses/autoScalingProcess.service.js'),
   require('../../../core/serverGroup/serverGroup.read.service.js'),
@@ -33,7 +34,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, app, serverGroup, InsightFilterStateModel,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $uibModal,
-                                                     confirmationModalService, _, serverGroupWriter, subnetReader,
+                                                     confirmationModalService, serverGroupWriter, subnetReader,
                                                      autoScalingProcessService, runningExecutionsService,
                                                      awsServerGroupTransformer, accountService,
                                                      serverGroupWarningMessageService, overrideRegistry) {
@@ -104,7 +105,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
                 if (vpc !== '') {
                   var subnetId = vpc.split(',')[0];
                   subnetReader.listSubnets().then((subnets) => {
-                    var subnet = _(subnets).find({'id': subnetId});
+                    var subnet = _.chain(subnets).find({'id': subnetId}).value();
                     this.serverGroup.subnetType = subnet.purpose;
                   });
                 }
@@ -120,7 +121,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
                 }
 
                 if (details.launchConfig && details.launchConfig.securityGroups) {
-                  this.securityGroups = _(details.launchConfig.securityGroups).map((id) => {
+                  this.securityGroups = _.chain(details.launchConfig.securityGroups).map((id) => {
                     return _.find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
                       _.find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'name': id });
                   }).compact().value();

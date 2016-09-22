@@ -8,7 +8,7 @@ describe('Controller: ManualPipelineExecution', function () {
     )
   );
 
-  beforeEach(window.inject(function ($controller, $rootScope, _, $q, _notificationService_) {
+  beforeEach(window.inject(function ($controller, $rootScope, $q, _notificationService_) {
     this.scope = $rootScope.$new();
     this.$q = $q;
     this.notificationService = _notificationService_;

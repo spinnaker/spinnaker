@@ -1,11 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.openstack.appCacheBackedMultiSelectField.directive', [
-  require('../../core/utils/lodash'),
-])
-  .directive('osAppCacheBackedMultiSelectField', function (_) {
+module.exports = angular.module('spinnaker.openstack.appCacheBackedMultiSelectField.directive', [])
+  .directive('osAppCacheBackedMultiSelectField', function () {
     return {
       restrict: 'E',
       templateUrl: require('./appCacheBackedMultiSelect.template.html'),
@@ -44,9 +44,10 @@ module.exports = angular.module('spinnaker.openstack.appCacheBackedMultiSelectFi
         });
 
         function updateOptions() {
-          scope.options = _(cache.data).filter(scope.filter)
+          scope.options = _.chain(cache.data)
+            .filter(scope.filter)
             .sortBy(function(o) { o.name; })
-            .valueOf();
+            .value();
         }
 
         cache.onRefresh(scope, updateOptions);

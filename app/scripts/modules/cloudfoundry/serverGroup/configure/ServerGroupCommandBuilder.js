@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service', [
@@ -7,10 +9,9 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
   require('../../../core/account/account.service.js'),
   require('../../../core/instance/instanceTypeService.js'),
   require('../../../core/naming/naming.service.js'),
-  require('../../../core/utils/lodash.js'),
 ])
   .factory('cfServerGroupCommandBuilder', function (settings, $q,
-                                                     accountService, instanceTypeService, namingService, _) {
+                                                     accountService, instanceTypeService, namingService) {
 
     function populateTags(instanceTemplateTags, command) {
       if (instanceTemplateTags && instanceTemplateTags.items) {
@@ -22,7 +23,7 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
 
     function attemptToSetValidCredentials(application, defaultCredentials, command) {
       return accountService.listAccounts('cf').then(function (cfAccounts) {
-        var cfAccountNames = _.pluck(cfAccounts, 'name');
+        var cfAccountNames = _.map(cfAccounts, 'name');
         var firstcfAccount = null;
 
         if (application.accounts.length) {

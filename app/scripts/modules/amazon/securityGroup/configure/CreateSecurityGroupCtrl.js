@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.amazon.securityGroup.create.controlle
   .controller('awsCreateSecurityGroupCtrl', function($scope, $uibModalInstance, $state, $controller,
                                                   securityGroupReader,
                                                   taskMonitorService, cacheInitializer, infrastructureCaches,
-                                                  _, application, securityGroup, settings ) {
+                                                  application, securityGroup, settings ) {
 
     $scope.pages = {
       location: require('./createSecurityGroupProperties.html'),

@@ -11,7 +11,7 @@ describe('Controller: createPipelineModal', function() {
     )
   );
 
-  beforeEach(window.inject(function($controller, $rootScope, _, $log, $q, pipelineConfigService, applicationModelBuilder) {
+  beforeEach(window.inject(function($controller, $rootScope, $log, $q, pipelineConfigService, applicationModelBuilder) {
     this.$q = $q;
     this.initializeController = function(configs = []) {
       application = applicationModelBuilder.createApplication(

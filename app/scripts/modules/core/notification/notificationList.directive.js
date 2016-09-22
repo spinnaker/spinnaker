@@ -20,7 +20,7 @@ module.exports = angular.module('spinnaker.core.notifications.notificationList',
             controllerAs: 'notificationListCtrl'
         };
     })
-    .controller('NotificationListCtrl', function ($scope, $uibModal, notificationService, _) {
+    .controller('NotificationListCtrl', function ($scope, $uibModal, notificationService) {
 
         var vm = this;
 

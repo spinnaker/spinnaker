@@ -1,11 +1,12 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.fastProperties.promotion.directive', [
     require('../../../modules/core/confirmationModal/confirmationModal.service'),
-    require('../../core/utils/lodash.js'),
     require('./fastProperty.write.service.js'),
     require('./fastPropertyScope.service.js')
   ])
@@ -25,7 +26,7 @@ module.exports = angular
       controllerAs: 'fpPromotion',
     };
   })
-  .controller('fastPropertyPromotionController', function(_, fastPropertyWriter, $timeout, FastPropertyScopeService, confirmationModalService) {
+  .controller('fastPropertyPromotionController', function(fastPropertyWriter, $timeout, FastPropertyScopeService, confirmationModalService) {
     let vm = this;
 
     let refreshApp = () => {
@@ -52,7 +53,7 @@ module.exports = angular
 
     vm.getLastMessage = function(promotion) {
       if(promotion.history.length > 0) {
-        return FastPropertyScopeService.extractScopeFromHistoryMessage(_(promotion.history).last().message);
+        return FastPropertyScopeService.extractScopeFromHistoryMessage(_.chain(promotion.history).last().value().message);
       } else {
         return 'no history';
       }

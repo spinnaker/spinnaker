@@ -1,10 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.gce.serverGroup.details.resizeAutoscalingPolicy.component', [
     require('../../../autoscalingPolicy/autoscalingPolicy.write.service.js'),
-    require('../../../../core/utils/lodash.js'),
   ])
   .component('gceResizeAutoscalingPolicy', {
     bindings: {
@@ -14,13 +15,13 @@ module.exports = angular.module('spinnaker.deck.gce.serverGroup.details.resizeAu
       application: '='
     },
     templateUrl: require('./resizeAutoscalingPolicy.component.html'),
-    controller: function ($scope, _, gceAutoscalingPolicyWriter) {
+    controller: function ($scope, gceAutoscalingPolicyWriter) {
       let newPolicyBounds = ['newMinNumReplicas','newMaxNumReplicas'];
       newPolicyBounds.forEach((prop) => this.command[prop] = null);
 
       angular.extend(this.formMethods, {
         formIsValid: () => _.every([
-          _(newPolicyBounds).map(bound => this.command[bound] !== null).every().valueOf(),
+          _.chain(newPolicyBounds).map(bound => this.command[bound] !== null).every().value(),
           $scope.resizeAutoscalingPolicyForm.$valid
         ]),
         submitMethod: () => {

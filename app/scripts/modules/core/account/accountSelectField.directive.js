@@ -27,7 +27,7 @@ module.exports = angular
       },
     };
   })
-  .controller('AccountSelectFieldCtrl', function($scope, $q, _, accountService) {
+  .controller('AccountSelectFieldCtrl', function($scope, $q, accountService) {
     this.mergedAccounts = [];
 
     let groupAccounts = (accounts) => {
@@ -37,13 +37,13 @@ module.exports = angular
       let accountsAreObjects = accounts[0].name;
       let getAccountDetails = this.provider ? accountService.getAllAccountDetailsForProvider(this.provider) : $q.when([]);
       if (!this.provider && accountsAreObjects) {
-        let providers = _.uniq(_.pluck(accounts, 'type'));
+        let providers = _.uniq(_.map(accounts, 'type'));
         getAccountDetails = $q.all(providers.map(accountService.getAllAccountDetailsForProvider))
           .then((details) => _.flatten(details));
       }
 
       getAccountDetails.then((details) => {
-        let accountNames = accountsAreObjects ? _.pluck(accounts, 'name') : accounts;
+        let accountNames = accountsAreObjects ? _.map(accounts, 'name') : accounts;
         this.mergedAccounts = accountNames;
         if (accountNames) {
           this.primaryAccounts = accountNames.sort();

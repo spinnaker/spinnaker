@@ -1,12 +1,13 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.fastProperties.progressBar.directive', [
-  require('../../core/utils/lodash.js'),
   require('./fastPropertyScope.service.js')
 ])
-  .directive('fastPropertyProgressBar', function(_, FastPropertyScopeService) {
+  .directive('fastPropertyProgressBar', function(FastPropertyScopeService) {
     return {
       restrict: 'E',
       scope: {
@@ -49,7 +50,7 @@ module.exports = angular.module('spinnaker.netflix.fastProperties.progressBar.di
         }
 
         if (scope.isFailed) {
-          var lastHistory = _(task.history).last();
+          var lastHistory = _.chain(task.history).last().value();
           scope.progressStyle = { width: '100%' };
           // XSS_TODO
           scope.tooltip = 'Failed on Step ' + currentStep + ' of ' + totalSteps +

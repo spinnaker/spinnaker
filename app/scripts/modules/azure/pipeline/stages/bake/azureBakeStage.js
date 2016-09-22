@@ -1,9 +1,10 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.azure.bakeStage', [
-  require('../../../../core/utils/lodash.js'),
   require('../../../../core/pipeline/config/pipelineConfigProvider.js'),
   require('./bakeExecutionDetails.controller.js'),
   require('../../../../core/pipeline/config/stages/bake/bakery.service.js'),
@@ -30,7 +31,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.azure.bakeStage',
       restartable: true,
     });
   })
-  .controller('azureBakeStageCtrl', function($scope, bakeryService, $q, _, authenticationService, settings, $uibModal) {
+  .controller('azureBakeStageCtrl', function($scope, bakeryService, $q, authenticationService, settings, $uibModal) {
 
     $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
     $scope.stage.regions = $scope.stage.regions || [];

@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.securityGroup.openstack.create.contro
   .controller('openstackUpsertSecurityGroupController', function($q, $scope, $uibModalInstance, $state,
                                                                  application, securityGroup,
                                                                  accountService, openstackSecurityGroupTransformer, securityGroupReader, loadBalancerReader,
-                                                                 _, searchService, v2modalWizardService, securityGroupWriter, taskMonitorService, namingService) {
+                                                                 searchService, v2modalWizardService, securityGroupWriter, taskMonitorService, namingService) {
     var ctrl = this;
     $scope.isNew = !securityGroup.edit;
     $scope.securityGroup = securityGroup;
@@ -67,12 +67,12 @@ module.exports = angular.module('spinnaker.securityGroup.openstack.create.contro
     var allSecurityGroupNames = {};
 
     function getLoadBalancerNames(loadBalancers) {
-      return _(loadBalancers)
+      return _.chain(loadBalancers)
         .filter({ account: $scope.securityGroup.account, region: $scope.securityGroup.region })
-        .pluck('name')
-        .flatten(true)
-        .unique()
-        .valueOf();
+        .map('name')
+        .flattenDeep()
+        .uniq()
+        .value();
     }
 
     function initializeCreateMode() {
@@ -80,7 +80,7 @@ module.exports = angular.module('spinnaker.securityGroup.openstack.create.contro
         accounts: accountService.listAccounts('openstack'),
       }).then(function(backingData) {
         $scope.accounts = backingData.accounts;
-        var accountNames = _.pluck($scope.accounts, 'name');
+        var accountNames = _.map($scope.accounts, 'name');
         if (accountNames.length && accountNames.indexOf($scope.securityGroup.account) === -1) {
           $scope.securityGroup.account = accountNames[0];
         }
@@ -151,7 +151,7 @@ module.exports = angular.module('spinnaker.securityGroup.openstack.create.contro
     this.getName = function() {
       var securityGroup = $scope.securityGroup;
       var securityGroupName = _.compact([application.name, (securityGroup.stack), (securityGroup.detail)]).join('-');
-      return _.trimRight(securityGroupName, '-');
+      return _.trimEnd(securityGroupName, '-');
     };
 
     this.accountUpdated = function() {

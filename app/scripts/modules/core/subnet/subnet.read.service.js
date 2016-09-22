@@ -1,14 +1,15 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.subnet.read.service', [
     require('../api/api.service'),
     require('../cache/infrastructureCaches.js'),
-    require('../utils/lodash')
   ])
-  .factory('subnetReader', function ($q, _, API, infrastructureCaches) {
+  .factory('subnetReader', function ($q, API, infrastructureCaches) {
 
     let cachedSubnets = null;
 
@@ -44,7 +45,7 @@ module.exports = angular
     function getSubnetByIdAndProvider(subnetId, cloudProvider = 'aws') {
       return listSubnetsByProvider(cloudProvider)
         .then((results) => {
-          return _.first(_.filter(results, subnet => subnet.id === subnetId));
+          return _.head(_.filter(results, subnet => subnet.id === subnetId));
         });
     }
 

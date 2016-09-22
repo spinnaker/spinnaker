@@ -1,11 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.deck.core.securityGroup.dependentFilterHelper.service', [
-    require('../../utils/lodash.js')
-  ])
-  .factory('securityGroupDependentFilterHelper', function (_) {
+module.exports = angular.module('spinnaker.deck.core.securityGroup.dependentFilterHelper.service', [])
+  .factory('securityGroupDependentFilterHelper', function () {
     let poolValueCoordinates = [
       { filterField: 'providerType', on: 'securityGroup', localField: 'provider' },
       { filterField: 'account', on: 'securityGroup', localField: 'account' },
@@ -15,13 +15,13 @@ module.exports = angular.module('spinnaker.deck.core.securityGroup.dependentFilt
     function poolBuilder (securityGroups) {
       let pool = securityGroups
         .map((sg) => {
-          let poolUnit = _(poolValueCoordinates)
+          let poolUnit = _.chain(poolValueCoordinates)
             .filter({ on: 'securityGroup' })
             .reduce((poolUnitTemplate, coordinate) => {
               poolUnitTemplate[coordinate.filterField] = sg[coordinate.localField];
               return poolUnitTemplate;
             }, {})
-            .valueOf();
+            .value();
 
           return poolUnit;
         });

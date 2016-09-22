@@ -1,15 +1,16 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.account.service', [
   require('../api/api.service'),
-  require('../utils/lodash.js'),
   require('../cache/infrastructureCaches.js'),
   require('../config/settings.js'),
   require('../cloudProvider/cloudProvider.registry.js'),
 ])
-  .factory('accountService', function(settings, $log, _, API, $q, infrastructureCaches, cloudProviderRegistry) {
+  .factory('accountService', function(settings, $log, API, $q, infrastructureCaches, cloudProviderRegistry) {
 
     let getAllAccountDetailsForProvider = _.memoize((providerName) => {
       return listAccounts(providerName)
@@ -63,7 +64,7 @@ module.exports = angular.module('spinnaker.core.account.service', [
 
     let listProviders = (application) => {
       return listAccounts().then(function(accounts) {
-        let allProviders = _.uniq(_.pluck(accounts, 'type'));
+        let allProviders = _.uniq(_.map(accounts, 'type'));
         let availableRegisteredProviders = _.intersection(allProviders, cloudProviderRegistry.listRegisteredProviders());
         if (application) {
           let appProviders = application.attributes.cloudProviders ?
@@ -98,8 +99,8 @@ module.exports = angular.module('spinnaker.core.account.service', [
       return _.memoize((provider) => {
         return getCredentialsKeyedByAccount(provider)
           .then(function(credentialsByAccount) {
-            let attributes = _(credentialsByAccount)
-              .pluck(attribute)
+            let attributes = _.chain(credentialsByAccount)
+              .map(attribute)
               .flatten()
               .compact()
               .map(reg => reg.name || reg)
@@ -114,8 +115,8 @@ module.exports = angular.module('spinnaker.core.account.service', [
     let getUniqueGceZonesForAllAccounts = _.memoize((provider) => {
       return getCredentialsKeyedByAccount(provider)
         .then(function(regionsByAccount) {
-          return _(regionsByAccount)
-            .pluck('regions')
+          return _.chain(regionsByAccount)
+            .map('regions')
             .flatten()
             .reduce((acc, obj) => {
               Object.keys(obj).forEach((key) => {
@@ -126,7 +127,8 @@ module.exports = angular.module('spinnaker.core.account.service', [
                 }
               });
               return acc;
-            }, {});
+            }, {})
+            .value();
         });
     });
 

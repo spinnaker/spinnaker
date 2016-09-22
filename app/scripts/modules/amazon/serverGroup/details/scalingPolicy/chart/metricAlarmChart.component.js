@@ -1,5 +1,6 @@
 'use strict';
 
+import _ from 'lodash';
 import {Subject} from 'rxjs';
 
 const angular = require('angular');
@@ -13,7 +14,6 @@ require('./metricAlarmChart.component.less');
 module.exports = angular
   .module('spinnaker.aws.serverGroup.details.scalingPolicy.metricAlarmChart.component', [
     require('../../../../../core/serverGroup/metrics/cloudMetrics.read.service.js'),
-    require('../../../../../core/utils/lodash.js'),
     require('exports?"n3-line-chart"!n3-charts/build/LineChart.js'),
   ])
   .component('metricAlarmChart', {
@@ -27,7 +27,7 @@ module.exports = angular
                    // not provide a unit of measurement for an alarm or a metric, only statistics
     },
     templateUrl: require('./metricAlarmChart.component.html'),
-    controller: function (cloudMetricsReader, _, $filter) {
+    controller: function(cloudMetricsReader, $filter) {
 
       // converts alarm into parameters used to retrieve statistic data
       let getFilterParameters = () => {

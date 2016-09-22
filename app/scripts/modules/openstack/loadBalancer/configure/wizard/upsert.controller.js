@@ -20,7 +20,7 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
   .controller('openstackUpsertLoadBalancerController', function($scope, $uibModalInstance, $state,
                                                                 application, loadBalancer, isNew, loadBalancerReader,
                                                                 accountService, openstackLoadBalancerTransformer,
-                                                                _, loadBalancerWriter, taskMonitorService) {
+                                                                loadBalancerWriter, taskMonitorService) {
     var ctrl = this;
     $scope.isNew = isNew;
     $scope.application = application;
@@ -98,7 +98,7 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
 
-        var accountNames = _.pluck($scope.accounts, 'name');
+        var accountNames = _.map($scope.accounts, 'name');
         if (accountNames.length && accountNames.indexOf($scope.loadBalancer.account) === -1) {
           $scope.loadBalancer.account = accountNames[0];
         }
@@ -138,7 +138,7 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
 
       var loadBalancer = $scope.loadBalancer;
       var loadBalancerName = [application.name, (loadBalancer.stack || ''), (loadBalancer.detail || '')].join('-');
-      loadBalancer.name = _.trimRight(loadBalancerName, '-');
+      loadBalancer.name = _.trimEnd(loadBalancerName, '-');
     };
 
     this.accountUpdated = function() {

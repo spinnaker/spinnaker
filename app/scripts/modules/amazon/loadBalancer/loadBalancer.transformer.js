@@ -1,12 +1,13 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
-  require('../../core/utils/lodash.js'),
   require('../vpc/vpc.read.service.js'),
 ])
-  .factory('awsLoadBalancerTransformer', function (settings, _, vpcReader) {
+  .factory('awsLoadBalancerTransformer', function (settings, vpcReader) {
 
     function updateHealthCounts(container) {
       var instances = container.instances;
@@ -67,8 +68,8 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
       });
       var activeServerGroups = _.filter(loadBalancer.serverGroups, {isDisabled: false});
       loadBalancer.provider = loadBalancer.type;
-      loadBalancer.instances = _(activeServerGroups).pluck('instances').flatten().valueOf();
-      loadBalancer.detachedInstances = _(activeServerGroups).pluck('detachedInstances').flatten().valueOf();
+      loadBalancer.instances = _.chain(activeServerGroups).map('instances').flatten().value();
+      loadBalancer.detachedInstances = _.chain(activeServerGroups).map('detachedInstances').flatten().value();
       updateHealthCounts(loadBalancer);
       return vpcReader.listVpcs().then(addVpcNameToLoadBalancer(loadBalancer));
     }

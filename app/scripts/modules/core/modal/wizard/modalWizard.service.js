@@ -1,13 +1,12 @@
 'use strict';
 
+import _ from 'lodash';
 
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.modalWizard.service', [
-    require('../../utils/lodash.js'),
-  ])
-  .factory('modalWizardService', function(_) {
+  .module('spinnaker.core.modalWizard.service', [])
+  .factory('modalWizardService', function () {
     var modalWizard;
 
     function createWizard() {
@@ -119,17 +118,19 @@ module.exports = angular
       };
 
       wizard.isComplete = function () {
-        return _(wizard.renderedPages)
-          .collect('state')
+        return _.chain(wizard.renderedPages)
+          .map('state')
           .filter({rendered: true, required: true})
-          .every({done: true, dirty: false});
+          .every({done: true, dirty: false})
+          .value();
       };
 
       wizard.allPagesVisited = function () {
-        return _(wizard.renderedPages)
-          .collect('state')
+        return _.chain(wizard.renderedPages)
+          .map('state')
           .filter({rendered: true, required: true})
-          .every({done: true});
+          .every({done: true})
+          .value();
       };
 
       wizard.isFirstPage = function(key) {

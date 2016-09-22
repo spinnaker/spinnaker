@@ -1,16 +1,16 @@
 'use strict';
 
+import _ from 'lodash';
+
 describe('Controller: jenkinsTrigger', function() {
 
   beforeEach(
     window.module(
-      require('./jenkinsTrigger.module.js'),
-      require('../../../../utils/lodash.js')
+      require('./jenkinsTrigger.module.js')
     )
   );
 
-  beforeEach(window.inject(function ($controller, $rootScope, $q, igorService, ___) {
-    this._ = ___;
+  beforeEach(window.inject(function ($controller, $rootScope, $q, igorService) {
     this.$q = $q;
     this.igorService = igorService;
     this.$scope = $rootScope.$new();

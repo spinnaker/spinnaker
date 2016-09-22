@@ -1,12 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
 
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.fastProperties.scope.regionSelector.directive', [
-    require('../../../../../core/utils/lodash')
-  ])
+  .module('spinnaker.fastProperties.scope.regionSelector.directive', [])
   .directive('scopeRegionSelector', function() {
     return {
       restrict: 'E',
@@ -20,7 +19,7 @@ module.exports = angular
         onChange: '&',
       },
       controllerAs: 'fp',
-      controller: function controller($scope, _) {
+      controller: function controller($scope) {
         var vm = this;
 
         vm.allowNone = _.isBoolean($scope.allowNone) ? $scope.allowNone : true;

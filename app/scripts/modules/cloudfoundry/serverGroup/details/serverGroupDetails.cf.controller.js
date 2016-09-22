@@ -1,6 +1,8 @@
 'use strict';
 /* jshint camelcase:false */
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
@@ -11,7 +13,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../core/serverGroup/configure/common/runningExecutions.service.js'),
-  require('../../../core/utils/lodash.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('./resize/resizeServerGroup.controller'),
   require('./rollback/rollbackServerGroup.controller'),
@@ -19,7 +20,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
     .controller('cfServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup, InsightFilterStateModel,
-                                                       cfServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, _, serverGroupWriter,
+                                                       cfServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, serverGroupWriter,
                                                       runningExecutionsService, serverGroupWarningMessageService) {
 
       let application = app;
@@ -65,7 +66,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
 
           if (!_.isEmpty($scope.serverGroup)) {
             if (details.securityGroups) {
-              $scope.securityGroups = _(details.securityGroups).map(function(id) {
+              $scope.securityGroups = _.chain(details.securityGroups).map(function(id) {
                 return _.find(application.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
                     _.find(application.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'name': id });
               }).compact().value();

@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 const angular = require('angular');
 
 require('./instanceLinks.component.less');
@@ -7,7 +9,6 @@ require('./instanceLinks.component.less');
 module.exports = angular
   .module('spinnaker.core.instance.details.instanceLinks', [
     require('../../config/settings'),
-    require('../../utils/lodash')
   ])
   .component('instanceLinks', {
     bindings: {
@@ -16,7 +17,7 @@ module.exports = angular
       instance: '=',
     },
     templateUrl: require('./instanceLinks.component.html'),
-    controller: function(settings, _, $interpolate) {
+    controller: function(settings, $interpolate) {
       this.port = _.get(this.application, 'attributes.instancePort', settings.defaultInstancePort) || 80;
       this.sections = _.cloneDeep(_.get(this.application, 'attributes.instanceLinks', settings.defaultInstanceLinks) || []);
       this.sections.forEach(section => {

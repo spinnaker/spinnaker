@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.edit.contro
   .controller('azureEditSecurityGroupCtrl', function($scope, $uibModalInstance, $exceptionHandler, $state,
                                                 accountService, securityGroupReader,
                                                 taskMonitorService, cacheInitializer, infrastructureCaches,
-                                                _, application, securityGroup, azureSecurityGroupWriter) {
+                                                application, securityGroup, azureSecurityGroupWriter) {
 
     $scope.pages = {
       ingress: require('./createSecurityGroupIngress.html'),
@@ -57,7 +57,7 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.edit.contro
         var account = securityGroup.accountName,
           region = securityGroup.region,
           availableGroups = _.filter(securityGroups[account].azure[region], { /*vpcId: vpcId*/ });
-        $scope.availableSecurityGroups = _.pluck(availableGroups, 'name');
+        $scope.availableSecurityGroups = _.map(availableGroups, 'name');
       });
     }
 

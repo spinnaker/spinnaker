@@ -5,7 +5,6 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.enableAsgStage', [
-  require('../../../../utils/lodash.js'),
   require('../stageConstants.js'),
   require('../../pipelineConfigProvider.js')
 ])

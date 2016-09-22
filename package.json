@@ -41,7 +41,7 @@
     "jquery-ui": "~1.10.5",
     "later": "^1.2.0",
     "loader-utils": "^0.2.11",
-    "lodash": "^3.10.1",
+    "lodash": "^4.16.1",
     "moment-timezone": "^0.4.0",
     "rxjs": "^5.0.0-beta.12",
     "select2-bootstrap-css": "git://github.com/t0m/select2-bootstrap-css.git#v1.3.1",

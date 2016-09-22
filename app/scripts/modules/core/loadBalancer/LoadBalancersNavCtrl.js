@@ -1,11 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.loadBalancer.nav.controller', [
- require('../utils/lodash.js')
-])
-  .controller('LoadBalancersNavCtrl', function ($scope, app, _) {
+module.exports = angular.module('spinnaker.core.loadBalancer.nav.controller', [])
+  .controller('LoadBalancersNavCtrl', function ($scope, app) {
 
     $scope.application = app;
     $scope.loadBalancers = app.loadBalancers;
@@ -19,8 +19,8 @@ module.exports = angular.module('spinnaker.core.loadBalancer.nav.controller', [
     ];
 
     this.getHeadings = function getHeadings() {
-      var allValues = _.collect(app.loadBalancers, $scope.sortField);
-      return _.compact(_.unique(allValues)).sort();
+      var allValues = _.map(app.loadBalancers, $scope.sortField);
+      return _.compact(_.uniq(allValues)).sort();
     };
 
     this.getLoadBalancersFor = function getLoadBalancersFor(value) {

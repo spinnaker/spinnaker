@@ -1,11 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.config.actions.editJson', [
-  require('../../../../utils/lodash.js'),
-])
-  .controller('EditPipelineJsonModalCtrl', function($scope, pipeline, _, $uibModalInstance) {
+module.exports = angular.module('spinnaker.core.pipeline.config.actions.editJson', [])
+  .controller('EditPipelineJsonModalCtrl', function($scope, pipeline, $uibModalInstance) {
 
     this.cancel = $uibModalInstance.dismiss;
 
@@ -17,8 +17,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.editJson
     }
 
     this.initialize = function() {
-      var toCopy = pipeline;
-      var pipelineCopy = _.cloneDeep(toCopy, function (value) {
+      var pipelineCopy = _.cloneDeepWith(pipeline, function (value) {
         if (value && value.$$hashKey) {
           delete value.$$hashKey;
         }
@@ -47,6 +46,5 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.editJson
     };
 
     this.initialize();
-
   });
 

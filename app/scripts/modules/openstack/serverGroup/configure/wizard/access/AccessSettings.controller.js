@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.openstack.acces
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
   require('../../../../common/appCacheBackedMultiSelectField.directive.js'),
-]).controller('openstackServerGroupAccessSettingsCtrl', function($scope, loadBalancerReader, securityGroupReader, _, v2modalWizardService /* TODO: unused, $rootScope, infrastructureCaches, cacheInitializer */) {
+]).controller('openstackServerGroupAccessSettingsCtrl', function($scope, loadBalancerReader, securityGroupReader, v2modalWizardService /* TODO: unused, $rootScope, infrastructureCaches, cacheInitializer */) {
 
   function updateFilter() {
     $scope.filter = {

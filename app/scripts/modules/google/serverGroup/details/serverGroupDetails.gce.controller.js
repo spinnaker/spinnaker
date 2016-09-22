@@ -3,6 +3,8 @@
 
 require('../configure/serverGroup.configure.gce.module.js');
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', [
@@ -15,7 +17,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
   require('../../../core/network/network.read.service.js'),
   require('../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../core/serverGroup/configure/common/runningExecutions.service.js'),
-  require('../../../core/utils/lodash.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('./resize/resizeServerGroup.controller'),
   require('./rollback/rollbackServerGroup.controller'),
@@ -24,7 +25,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
   require('./autoscalingPolicy/addAutoscalingPolicyButton.component.js')
 ])
   .controller('gceServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup, InsightFilterStateModel,
-                                                     gceServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, _, serverGroupWriter,
+                                                     gceServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, serverGroupWriter,
                                                      runningExecutionsService, serverGroupWarningMessageService, networkReader) {
 
     this.state = {
@@ -81,7 +82,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
         if (!_.isEmpty(this.serverGroup)) {
           if (details.securityGroups) {
-            this.securityGroups = _(details.securityGroups).map((id) => {
+            this.securityGroups = _.chain(details.securityGroups).map((id) => {
               return _.find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': 'global', 'id': id }) ||
                 _.find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': 'global', 'name': id });
             }).compact().value();
@@ -211,7 +212,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
         this.serverGroup.launchConfig.instanceTemplate.properties.tags.items.forEach(tag => {
           let securityGroupsMatches = _.filter(this.securityGroups, securityGroup => _.includes(securityGroup.targetTags, tag));
-          let securityGroupMatchNames = _.pluck(securityGroupsMatches, 'name');
+          let securityGroupMatchNames = _.map(securityGroupsMatches, 'name');
 
           if (!_.isEmpty(securityGroupMatchNames)) {
             let groupOrGroups = securityGroupMatchNames.length > 1 ? 'groups' : 'group';
@@ -231,10 +232,11 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
     let retrieveSubnet = () => {
       networkReader.listNetworksByProvider('gce').then((networks) => {
-        let autoCreateSubnets = _(networks)
+        let autoCreateSubnets = _.chain(networks)
           .filter({ account: this.serverGroup.account, name: this.serverGroup.network })
-          .pluck('autoCreateSubnets')
-          .head();
+          .map('autoCreateSubnets')
+          .head()
+          .value();
 
         if (autoCreateSubnets) {
           this.serverGroup.subnet = '(Auto-select)';

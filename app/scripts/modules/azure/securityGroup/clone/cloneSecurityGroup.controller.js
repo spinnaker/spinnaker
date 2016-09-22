@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 var angular = require('angular');
 
 module.exports = angular
@@ -7,11 +9,10 @@ module.exports = angular
     require('../../../core/account/account.service.js'),
     require('../../../core/task/monitor/taskMonitorService.js'),
     require('../securityGroup.write.service.js'),
-    require('../../../core/utils/lodash.js'),
     require('../configure/CreateSecurityGroupCtrl.js')
   ])
   .controller('azureCloneSecurityGroupController', function($scope, $uibModalInstance, $controller, $state, taskMonitorService, accountService,
-    azureSecurityGroupWriter, securityGroup, application, _) {
+    azureSecurityGroupWriter, securityGroup, application) {
     var ctrl = this;
 
     $scope.pages = {

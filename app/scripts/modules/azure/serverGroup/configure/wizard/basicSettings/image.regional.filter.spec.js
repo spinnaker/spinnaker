@@ -8,7 +8,7 @@ describe('Filter: regional', function () {
       )
     );
 
-  beforeEach(window.inject(function (_regionalFilter_, _) {
+  beforeEach(window.inject(function (_regionalFilter_) {
     this.regionalFilter = _regionalFilter_;
     this._ = _;
 

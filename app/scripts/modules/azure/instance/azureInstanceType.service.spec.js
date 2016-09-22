@@ -64,7 +64,7 @@ describe('Service: InstanceType', function () {
 
       this.$httpBackend.flush();
       expect(results['us-west-2'].length).toBe(2);
-      expect(_.pluck(results['us-west-2'], 'name').sort()).toEqual(['m1.small', 'm2.xlarge']);
+      expect(_.map(results['us-west-2'], 'name').sort()).toEqual(['m1.small', 'm2.xlarge']);
     });
 
   });

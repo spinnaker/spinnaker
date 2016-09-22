@@ -1,8 +1,9 @@
 'use strict';
 
+import _ from 'lodash';
+
 // Most of this logic has been moved to filter.model.service.js, so these act more as integration tests now
 describe('Service: clusterFilterService', function () {
-
 
   var service;
   var clusterService;

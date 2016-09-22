@@ -1,17 +1,17 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.deck.gce.autoscalingPolicy.metricSettings.component', [
-    require('../../../../core/utils/lodash.js')
-  ])
+module.exports = angular.module('spinnaker.deck.gce.autoscalingPolicy.metricSettings.component', [])
   .component('gceAutoscalingPolicyMetricSettings', {
     bindings: {
       policy: '=',
       showNoMetricsWarning: '=',
     },
     templateUrl: require('./metricSettings.component.html'),
-    controller: function (_) {
+    controller: function () {
       let multipleAllowedFor = {
         cpuUtilization: false,
         loadBalancingUtilization: false,

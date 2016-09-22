@@ -1,5 +1,7 @@
 'use strict';
 
+
+import _ from 'lodash';
 import {Subject} from 'rxjs';
 
 var angular = require('angular');
@@ -12,7 +14,6 @@ module.exports = angular
     require('../../../core/account/account.service'),
     require('../../vpc/vpc.read.service'),
     require('../../../core/modal/wizard/v2modalWizard.service'),
-    require('../../../core/utils/lodash'),
     require('../../../core/config/settings'),
     require('./ingressRuleGroupSelector.component'),
   ])
@@ -29,7 +30,8 @@ module.exports = angular
                                                        cacheInitializer,
                                                        infrastructureCaches,
                                                        vpcReader,
-                                                       settings, _) {
+                                                       settings) {
+
 
 
     var ctrl = this;
@@ -269,7 +271,7 @@ module.exports = angular
           availableGroups = securityGroups;
         }
 
-        $scope.availableSecurityGroups = _.pluck(availableGroups, 'name');
+        $scope.availableSecurityGroups = _.map(availableGroups, 'name');
         $scope.allSecurityGroups = securityGroups;
         $scope.allSecurityGroupsUpdated.next();
       });

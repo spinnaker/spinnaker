@@ -1,12 +1,13 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.accountRegionClusterSelector.directive', [
     require('../../core/application/listExtractor/listExtractor.service'),
     require('../../core/account/account.service'),
-    require('../../core/utils/lodash')
   ])
   .directive('accountRegionClusterSelector', function() {
     return {
@@ -22,7 +23,7 @@ module.exports = angular
       },
       templateUrl: require('./accountRegionClusterSelector.component.html'),
       controllerAs: 'vm',
-      controller: function controller(appListExtractorService, accountService, _) {
+      controller: function controller(appListExtractorService, accountService) {
 
         this.clusterField = this.clusterField || 'cluster';
 
@@ -83,11 +84,11 @@ module.exports = angular
             // TODO(duftler): Remove this once we finish deprecating the old style regions/zones in clouddriver GCE credentials.
             let regionObjs = _.filter(regions, region => _.isObject(region));
             if (regionObjs.length) {
-              let oldStyleRegions = _(regionObjs)
+              let oldStyleRegions = _.chain(regionObjs)
                 .map(regionObj => _.keys(regionObj))
                 .flatten()
                 .value();
-              regions = _(regions)
+              regions = _.chain(regions)
                 .difference(regionObjs)
                 .union(oldStyleRegions)
                 .value();

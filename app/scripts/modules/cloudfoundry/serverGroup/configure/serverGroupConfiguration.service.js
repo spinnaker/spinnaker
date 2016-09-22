@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuration.service', [
@@ -11,7 +13,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
 ])
   .factory('cfServerGroupConfigurationService', function(cfImageReader, accountService, securityGroupReader,
                                                          cfInstanceTypeService, cacheInitializer,
-                                                         $q, _) {
+                                                         $q) {
 
 
     function configureCommand(command) {
@@ -28,7 +30,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
 
         if (command.securityGroups && command.securityGroups.length) {
           // Verify all security groups are accounted for; otherwise, try refreshing security groups cache.
-          var securityGroupIds = _.pluck(getSecurityGroups(command), 'id');
+          var securityGroupIds = _.map(getSecurityGroups(command), 'id');
           if (_.intersection(command.securityGroups, securityGroupIds).length < command.securityGroups.length) {
             securityGroupReloader = refreshSecurityGroups(command, true);
           }
@@ -64,9 +66,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
       newSecurityGroups = _.filter(newSecurityGroups.cf.global, function(securityGroup) {
         return securityGroup.network === command.network;
       });
-      return _(newSecurityGroups)
+      return _.chain(newSecurityGroups)
         .sortBy('name')
-        .valueOf();
+        .value();
     }
 
     function configureSecurityGroupOptions(command) {
@@ -76,23 +78,23 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
       if (currentOptions && command.securityGroups) {
         // not initializing - we are actually changing groups
         var currentGroupNames = command.securityGroups.map(function(groupId) {
-          var match = _(currentOptions).find({id: groupId});
+          var match = _.chain(currentOptions).find({id: groupId}).value();
           return match ? match.name : groupId;
         });
 
         var matchedGroups = command.securityGroups.map(function(groupId) {
-          var securityGroup = _(currentOptions).find({id: groupId}) ||
-              _(currentOptions).find({name: groupId});
+          var securityGroup = _.chain(currentOptions).find({id: groupId}).value() ||
+              _.chain(currentOptions).find({name: groupId}).value();
           return securityGroup ? securityGroup.name : null;
         }).map(function(groupName) {
-          return _(newSecurityGroups).find({name: groupName});
+          return _.chain(newSecurityGroups).find({name: groupName}).value();
         }).filter(function(group) {
           return group;
         });
 
-        var matchedGroupNames = _.pluck(matchedGroups, 'name');
+        var matchedGroupNames = _.map(matchedGroups, 'name');
         var removed = _.xor(currentGroupNames, matchedGroupNames);
-        command.securityGroups = _.pluck(matchedGroups, 'id');
+        command.securityGroups = _.map(matchedGroups, 'id');
         if (removed.length) {
           results.dirty.securityGroups = removed;
         }
@@ -109,7 +111,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
       });
 
       // Only include explicitly-selected security groups in the body of the command.
-      command.securityGroups = _.difference(command.securityGroups, _.pluck(command.implicitSecurityGroups, 'id'));
+      command.securityGroups = _.difference(command.securityGroups, _.map(command.implicitSecurityGroups, 'id'));
 
       return results;
     }

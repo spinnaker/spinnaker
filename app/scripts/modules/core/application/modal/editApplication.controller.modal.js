@@ -1,18 +1,19 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.editApplication.modal.controller', [
     require('../service/applications.write.service.js'),
-    require('../../utils/lodash.js'),
     require('../../account/account.service.js'),
     require('../../task/task.read.service.js'),
     require('./applicationProviderFields.component.js'),
     require('../../config/settings'),
   ])
   .controller('EditApplicationController', function ($window, $state, $uibModalInstance, application, applicationWriter,
-                                                     _, accountService, taskReader, settings) {
+                                                     accountService, taskReader, settings) {
     var vm = this;
     this.data = {};
     this.state = {
@@ -36,8 +37,8 @@ module.exports = angular
 
     function extractErrorMsg(error) {
       var exceptions = _.chain(error.variables)
-        .where({key: 'exception'})
-        .first()
+        .filter({key: 'exception'})
+        .head()
         .value()
         .value
         .details

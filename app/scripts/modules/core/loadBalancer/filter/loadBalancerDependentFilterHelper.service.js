@@ -1,11 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.deck.core.loadBalancer.dependentFilterHelper.service', [
-    require('../../utils/lodash.js')
-  ])
-  .factory('loadBalancerDependentFilterHelper', function (_) {
+module.exports = angular.module('spinnaker.deck.core.loadBalancer.dependentFilterHelper.service', [])
+  .factory('loadBalancerDependentFilterHelper', function () {
     let poolValueCoordinates = [
       { filterField: 'providerType', on: 'loadBalancer', localField: 'type' },
       { filterField: 'account', on: 'loadBalancer', localField: 'account' },
@@ -14,18 +14,18 @@ module.exports = angular.module('spinnaker.deck.core.loadBalancer.dependentFilte
     ];
 
     function poolBuilder (loadBalancers) {
-      let pool = _(loadBalancers)
+      let pool = _.chain(loadBalancers)
         .map((lb) => {
 
-          let poolUnitTemplate = _(poolValueCoordinates)
+          let poolUnitTemplate = _.chain(poolValueCoordinates)
             .filter({ on: 'loadBalancer' })
             .reduce((poolUnitTemplate, coordinate) => {
               poolUnitTemplate[coordinate.filterField] = lb[coordinate.localField];
               return poolUnitTemplate;
             }, {})
-            .valueOf();
+            .value();
 
-          let poolUnits = _(['instances', 'detachedInstances'])
+          let poolUnits = _.chain(['instances', 'detachedInstances'])
             .map((instanceStatus) => lb[instanceStatus])
             .flatten()
             .map((instance) => {
@@ -34,15 +34,15 @@ module.exports = angular.module('spinnaker.deck.core.loadBalancer.dependentFilte
                 return poolUnit;
               }
 
-              return _(poolValueCoordinates)
+              return _.chain(poolValueCoordinates)
                 .filter({ on: 'instance' })
                 .reduce((poolUnit, coordinate) => {
                   poolUnit[coordinate.filterField] = instance[coordinate.localField];
                   return poolUnit;
                 }, poolUnit)
-                .valueOf();
+                .value();
             })
-            .valueOf();
+            .value();
 
           if (!poolUnits.length) {
             poolUnits.push(poolUnitTemplate);
@@ -51,7 +51,7 @@ module.exports = angular.module('spinnaker.deck.core.loadBalancer.dependentFilte
           return poolUnits;
         })
         .flatten()
-        .valueOf();
+        .value();
 
       return pool;
     }

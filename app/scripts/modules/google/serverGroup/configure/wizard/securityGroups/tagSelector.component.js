@@ -3,7 +3,6 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.gce.tagSelector.component', [
-    require('../../../../../core/utils/lodash.js'),
     require('./tagManager.service.js')
   ])
   .component('gceTagSelector', {

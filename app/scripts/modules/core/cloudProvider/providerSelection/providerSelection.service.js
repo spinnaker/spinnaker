@@ -5,10 +5,9 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.providerSelection.service', [
   require('../../account/account.service.js'),
   require('../../config/settings.js'),
-  require('../../utils/lodash.js'),
   require('../cloudProvider.registry.js'),
 ])
-  .factory('providerSelectionService', function($uibModal, $q, _, accountService, settings, cloudProviderRegistry) {
+  .factory('providerSelectionService', function($uibModal, $q, accountService, settings, cloudProviderRegistry) {
     function selectProvider(application, feature) {
       return accountService.listProviders(application).then((providers) => {
         var provider;
@@ -37,5 +36,4 @@ module.exports = angular.module('spinnaker.providerSelection.service', [
     return {
       selectProvider: selectProvider,
     };
-
   });

@@ -2,6 +2,8 @@
 
 require('../migrator.less');
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
@@ -10,7 +12,6 @@ module.exports = angular
     require('../../../amazon/vpc/vpc.read.service.js'),
     require('../../../core/config/settings.js'),
     require('../../../core/subnet/subnet.read.service'),
-    require('../../../core/utils/lodash'),
     require('../migrator.service.js'),
     require('../../../core/presentation/autoScroll/autoScroll.directive.js'),
     require('../../../core/pipeline/config/services/pipelineConfigService.js'),
@@ -99,7 +100,7 @@ module.exports = angular
   .controller('PipelineMigratorCtrl', function ($scope, pipeline, application, migratableClusters,
                                                 $uibModalInstance, taskReader, $timeout, $state,
                                                 migratorService, pipelineConfigService, scrollToService,
-                                                cacheInitializer, _, $q, keyPairsReader, vpcReader, subnetReader) {
+                                                cacheInitializer, $q, keyPairsReader, vpcReader, subnetReader) {
 
     this.submittingTemplateUrl = require('../migrator.modal.submitting.html');
 

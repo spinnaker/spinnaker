@@ -1,13 +1,14 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.titus.deployInitialization.controller', [
   require('../../../../core/serverGroup/serverGroup.read.service.js'),
-  require('../../../../core/utils/lodash.js'),
   require('../ServerGroupCommandBuilder.js'),
 ])
-  .controller('titusDeployInitializerCtrl', function($scope, titusServerGroupCommandBuilder, serverGroupReader, _) {
+  .controller('titusDeployInitializerCtrl', function($scope, titusServerGroupCommandBuilder, serverGroupReader) {
     var controller = this;
 
     var noTemplate = { label: 'None', serverGroup: null, cluster: null };

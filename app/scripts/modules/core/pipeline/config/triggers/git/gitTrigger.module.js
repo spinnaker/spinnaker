@@ -1,9 +1,10 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.trigger.git', [
-    require('../../../../../core/utils/lodash'),
     require('../../../../../core/config/settings.js'),
   ])
   .config(function (pipelineConfigProvider) {
@@ -17,7 +18,7 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.git', [
       popoverLabelUrl: require('./gitPopoverLabel.html'),
     });
   })
-  .controller('GitTriggerCtrl', function (trigger, $scope, settings, _) {
+  .controller('GitTriggerCtrl', function (trigger, $scope, settings) {
     this.trigger = trigger;
 
     $scope.gitTriggerTypes = ['stash', 'github'];
@@ -37,5 +38,4 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.git', [
     }
 
     $scope.$watch('trigger.branch', updateBranch);
-
   });

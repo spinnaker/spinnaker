@@ -1,14 +1,15 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.validator.service', [
   require('../pipelineConfigProvider.js'),
   require('../services/pipelineConfigService.js'),
   require('../../../naming/naming.service.js'),
-  require('../../../utils/lodash.js'),
 ])
-  .factory('pipelineConfigValidator', function($log, _, pipelineConfig, pipelineConfigService, namingService) {
+  .factory('pipelineConfigValidator', function($log, pipelineConfig, pipelineConfigService, namingService) {
 
     var validators = {
       stageOrTriggerBeforeType: function(pipeline, index, validationConfig, messages) {

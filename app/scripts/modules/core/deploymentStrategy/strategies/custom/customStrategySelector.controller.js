@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.deploymentStrategy.custom.customStrategySelectorController', [
     ])
-    .controller('CustomStrategySelectorController', function($scope, pipelineConfigService, applicationReader, _) {
+    .controller('CustomStrategySelectorController', function($scope, pipelineConfigService, applicationReader) {
 
         if(!$scope.command.strategyApplication) {
             $scope.command.strategyApplication = $scope.command.application;
@@ -28,7 +28,7 @@ module.exports = angular.module('spinnaker.core.deploymentStrategy.custom.custom
         };
 
         applicationReader.listApplications().then(function(applications) {
-            $scope.applications = _.pluck(applications, 'name').sort();
+            $scope.applications = _.map(applications, 'name').sort();
             initializeMasters();
         });
 

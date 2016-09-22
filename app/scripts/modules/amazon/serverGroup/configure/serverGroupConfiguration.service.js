@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
@@ -12,13 +14,12 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   require('../../keyPairs/keyPairs.read.service.js'),
   require('../../../core/loadBalancer/loadBalancer.read.service.js'),
   require('../../../core/cache/cacheInitializer.js'),
-  require('../../../core/utils/lodash.js'),
   require('../../../core/serverGroup/configure/common/serverGroupCommand.registry.js'),
   require('../details/scalingProcesses/autoScalingProcess.service.js'),
 ])
   .factory('awsServerGroupConfigurationService', function($q, awsImageReader, accountService, securityGroupReader,
                                                           awsInstanceTypeService, cacheInitializer, namingService,
-                                                          subnetReader, keyPairsReader, loadBalancerReader, _,
+                                                          subnetReader, keyPairsReader, loadBalancerReader,
                                                           serverGroupCommandRegistry, autoScalingProcessService) {
 
 
@@ -99,7 +100,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
           }
         }
         if (command.securityGroups && command.securityGroups.length) {
-          var regionalSecurityGroupIds = _.pluck(getRegionalSecurityGroups(command), 'id');
+          var regionalSecurityGroupIds = _.map(getRegionalSecurityGroups(command), 'id');
           if (_.intersection(command.securityGroups, regionalSecurityGroupIds).length < command.securityGroups.length) {
             securityGroupReloader = refreshSecurityGroups(command, true);
           }
@@ -163,10 +164,10 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
       if (command.credentials && command.region) {
         // isDefault is imperfect, since we don't know what the previous account/region was, but probably a safe bet
         var isDefault = _.some(command.backingData.credentialsKeyedByAccount, c => c.defaultKeyPair && command.keyPair && command.keyPair.indexOf(c.defaultKeyPair.replace('{{region}}', '')) === 0);
-        var filtered = _(command.backingData.keyPairs)
+        var filtered = _.chain(command.backingData.keyPairs)
           .filter({account: command.credentials, region: command.region})
-          .pluck('keyName')
-          .valueOf();
+          .map('keyName')
+          .value();
         if (command.keyPair && filtered.length && filtered.indexOf(command.keyPair) === -1) {
           var acct = command.backingData.credentialsKeyedByAccount[command.credentials] || {
               regions: [],
@@ -261,14 +262,14 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
       if (command.region === null) {
         return result;
       }
-      filteredData.subnetPurposes = _(command.backingData.subnets)
+      filteredData.subnetPurposes = _.chain(command.backingData.subnets)
         .filter({account: command.credentials, region: command.region})
         .reject({target: 'elb'})
         .reject({purpose: null})
-        .uniq('purpose')
-        .valueOf();
+        .uniqBy('purpose')
+        .value();
 
-      if (!_(filteredData.subnetPurposes).some({purpose: command.subnetType})) {
+      if (!_.chain(filteredData.subnetPurposes).some({purpose: command.subnetType}).value()) {
         command.subnetType = null;
         result.dirty.subnetType = true;
       }
@@ -277,10 +278,10 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
 
     function getRegionalSecurityGroups(command) {
       var newSecurityGroups = command.backingData.securityGroups[command.credentials] || { aws: {}};
-      return _(newSecurityGroups.aws[command.region])
+      return _.chain(newSecurityGroups.aws[command.region])
         .filter({vpcId: command.vpcId || null})
         .sortBy('name')
-        .valueOf();
+        .value();
     }
 
     function configureSecurityGroupOptions(command) {
@@ -290,23 +291,23 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
       if (currentOptions && command.securityGroups) {
         // not initializing - we are actually changing groups
         var currentGroupNames = command.securityGroups.map(function(groupId) {
-          var match = _(currentOptions).find({id: groupId});
+          var match = _.chain(currentOptions).find({id: groupId}).value();
           return match ? match.name : groupId;
         });
 
         var matchedGroups = command.securityGroups.map(function(groupId) {
-          var securityGroup = _(currentOptions).find({id: groupId}) ||
-            _(currentOptions).find({name: groupId});
+          var securityGroup = _.chain(currentOptions).find({id: groupId}).value() ||
+            _.chain(currentOptions).find({name: groupId}).value();
           return securityGroup ? securityGroup.name : null;
         }).map(function(groupName) {
-          return _(newRegionalSecurityGroups).find({name: groupName});
+          return _.chain(newRegionalSecurityGroups).find({name: groupName}).value();
         }).filter(function(group) {
           return group;
         });
 
-        var matchedGroupNames = _.pluck(matchedGroups, 'name');
+        var matchedGroupNames = _.map(matchedGroups, 'name');
         var removed = _.xor(currentGroupNames, matchedGroupNames);
-        command.securityGroups = _.pluck(matchedGroups, 'id');
+        command.securityGroups = _.map(matchedGroups, 'id');
         if (removed.length) {
           result.dirty.securityGroups = removed;
         }
@@ -338,34 +339,34 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
     }
 
     function getLoadBalancerNames(command) {
-      return _(command.backingData.loadBalancers)
-        .pluck('accounts')
-        .flatten(true)
+      return _.chain(command.backingData.loadBalancers)
+        .map('accounts')
+        .flattenDeep()
         .filter({name: command.credentials})
-        .pluck('regions')
-        .flatten(true)
+        .map('regions')
+        .flattenDeep()
         .filter({name: command.region})
-        .pluck('loadBalancers')
-        .flatten(true)
+        .map('loadBalancers')
+        .flattenDeep()
         .filter({vpcId: command.vpcId})
-        .pluck('name')
-        .valueOf()
+        .map('name')
+        .value()
         .sort();
     }
 
     function getVpcLoadBalancerNames(command) {
-      return _(command.backingData.loadBalancers)
-        .pluck('accounts')
-        .flatten(true)
+      return _.chain(command.backingData.loadBalancers)
+        .map('accounts')
+        .flattenDeep()
         .filter({name: command.credentials})
-        .pluck('regions')
-        .flatten(true)
+        .map('regions')
+        .flattenDeep()
         .filter({name: command.region})
-        .pluck('loadBalancers')
-        .flatten(true)
+        .map('loadBalancers')
+        .flattenDeep()
         .filter('vpcId')
-        .pluck('name')
-        .valueOf()
+        .map('name')
+        .value()
         .sort();
     }
 
@@ -411,8 +412,8 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         command.vpcId = null;
         result.dirty.vpcId = true;
       } else {
-        var subnet = _(command.backingData.subnets)
-          .find({purpose: command.subnetType, account: command.credentials, region: command.region});
+        var subnet = _.chain(command.backingData.subnets)
+          .find({purpose: command.subnetType, account: command.credentials, region: command.region}).value();
         command.vpcId = subnet ? subnet.vpcId : null;
       }
       angular.extend(result.dirty, configureInstanceTypes(command).dirty);
@@ -472,7 +473,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         if (command.credentials) {
           var regionsForAccount = backingData.credentialsKeyedByAccount[command.credentials] || {regions: [], defaultKeyPair: null};
           backingData.filtered.regions = regionsForAccount.regions;
-          if (!_(backingData.filtered.regions).some({name: command.region})) {
+          if (!_.chain(backingData.filtered.regions).some({name: command.region}).value()) {
             command.region = null;
             result.dirty.region = true;
           } else {

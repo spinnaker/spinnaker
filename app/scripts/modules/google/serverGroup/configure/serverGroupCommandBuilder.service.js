@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service', [
@@ -7,12 +9,11 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
   require('../../../core/account/account.service.js'),
   require('../../../core/instance/instanceTypeService.js'),
   require('../../../core/naming/naming.service.js'),
-  require('../../../core/utils/lodash.js'),
   require('./../../instance/custom/customInstanceBuilder.gce.service.js'),
   require('./wizard/hiddenMetadataKeys.value.js'),
 ])
   .factory('gceServerGroupCommandBuilder', function (settings, $q,
-                                                     accountService, instanceTypeService, namingService, _,
+                                                     accountService, instanceTypeService, namingService,
                                                      gceCustomInstanceBuilderService,
                                                      gceServerGroupHiddenMetadataKeys) {
 
@@ -163,7 +164,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       if (metadataItems) {
         if (angular.isArray(metadataItems)) {
           metadataItems.forEach(function (metadataItem) {
-            if (!_.contains(gceServerGroupHiddenMetadataKeys, metadataItem.key)) {
+            if (!_.includes(gceServerGroupHiddenMetadataKeys, metadataItem.key)) {
               command.instanceMetadata[metadataItem.key] = metadataItem.value;
             }
           });
@@ -194,7 +195,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
     function attemptToSetValidCredentials(application, defaultCredentials, command) {
       return accountService.listAccounts('gce').then(function(gceAccounts) {
-        var gceAccountNames = _.pluck(gceAccounts, 'name');
+        var gceAccountNames = _.map(gceAccounts, 'name');
         var firstGCEAccount = null;
 
         if (application.accounts.length) {

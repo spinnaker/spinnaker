@@ -1,12 +1,13 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('kubernetes.namespace.multiSelectField.component', [
     require('../../core/application/listExtractor/listExtractor.service'),
     require('../../core/account/account.service'),
-    require('../../core/utils/lodash')
   ])
   .directive('namespaceMultiSelectField', function() {
     return {
@@ -20,7 +21,7 @@ module.exports = angular
       },
       templateUrl: require('./multiSelectField.component.html'),
       controllerAs: 'vm',
-      controller: function controller(appListExtractorService, accountService, _) {
+      controller: function controller(appListExtractorService, accountService) {
 
         this.clusterField = this.clusterField || 'cluster';
 

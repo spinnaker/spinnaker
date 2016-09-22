@@ -1,15 +1,16 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
 
   .module('spinnaker.migrator.service', [
-    require('../../core/utils/lodash.js'),
     require('../../core/task/taskExecutor.js'),
     require('../../core/account/account.service'),
   ])
-  .factory('migratorService', function(_, taskExecutor, accountService) {
+  .factory('migratorService', function(taskExecutor, accountService) {
 
     function executeMigration(application, config) {
       var taskStarter = taskExecutor.executeTask({

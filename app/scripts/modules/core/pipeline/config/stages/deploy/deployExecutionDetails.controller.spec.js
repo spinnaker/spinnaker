@@ -8,7 +8,7 @@ describe('DeployExecutionDetailsCtrl', function() {
     )
   );
 
-  beforeEach(window.inject(function ($controller, $rootScope, _, $timeout) {
+  beforeEach(window.inject(function ($controller, $rootScope, $timeout) {
     this.$controller = $controller;
     this._ = _;
     this.$timeout = $timeout;

@@ -1,28 +1,29 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.fastProperty.wizard.managent.service', [
-    require('../../../core/utils/lodash.js'),
     require('../../../core/modal/wizard/modalWizard.service'),
 
   ])
-  .factory('fastPropertyWizardManagementService', function(_, modalWizardService) {
+  .factory('fastPropertyWizardManagementService', function(modalWizardService) {
 
     let defaultPages = ['Details', 'Scope', 'Strategy'];
 
 
     let excludeDefaultPages = () => {
       return modalWizardService.getWizard().renderedPages.filter((page) => {
-        return !_.contains(defaultPages, page.key);
+        return !_.includes(defaultPages, page.key);
       });
     };
 
     let getPagesKeysToShow = (selectedKeys = []) => {
       let keys = excludeDefaultPages().map( page => page.key );
       return selectedKeys.reduce((acc, key) => {
-        if(!_.contains(acc, key)) {
+        if(!_.includes(acc, key)) {
           acc.push(key);
         }
         return acc;

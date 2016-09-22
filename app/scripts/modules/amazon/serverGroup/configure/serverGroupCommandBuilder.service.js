@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service', [
@@ -8,11 +10,10 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
   require('../../../core/instance/instanceTypeService.js'),
   require('../../../core/naming/naming.service.js'),
   require('./serverGroupConfiguration.service.js'),
-  require('../../../core/utils/lodash.js'),
 ])
   .factory('awsServerGroupCommandBuilder', function (settings, $q,
                                                      accountService, subnetReader, namingService, instanceTypeService,
-                                                     awsServerGroupConfigurationService, _) {
+                                                     awsServerGroupConfigurationService) {
 
     function buildNewServerGroupCommand (application, defaults) {
       defaults = defaults || {};
@@ -225,7 +226,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
         var vpcZoneIdentifier = serverGroup.asg.vpczoneIdentifier;
         if (vpcZoneIdentifier !== '') {
           var subnetId = vpcZoneIdentifier.split(',')[0];
-          var subnet = _(asyncData.subnets).find({'id': subnetId});
+          var subnet = _.chain(asyncData.subnets).find({'id': subnetId}).value();
           command.subnetType = subnet.purpose;
           command.vpcId = subnet.vpcId;
         } else {

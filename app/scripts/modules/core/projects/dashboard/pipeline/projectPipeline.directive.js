@@ -1,12 +1,12 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 require('./projectPipeline.less');
 
-module.exports = angular.module('spinnaker.core.projects.dashboard.pipelines.projectPipeline.directive', [
-  require('../../../utils/lodash.js'),
-])
+module.exports = angular.module('spinnaker.core.projects.dashboard.pipelines.projectPipeline.directive', [])
   .directive('projectPipeline', function () {
     return {
       restrict: 'E',
@@ -19,7 +19,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.pipelines.pro
       controllerAs: 'vm',
     };
   })
-  .controller('ProjectPipelineCtrl', function(_) {
+  .controller('ProjectPipelineCtrl', function () {
     this.state = {
       loaded: false,
     };

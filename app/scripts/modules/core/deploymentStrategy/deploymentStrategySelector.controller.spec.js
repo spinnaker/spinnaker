@@ -1,18 +1,16 @@
 'use strict';
 
-describe('Controller: deploymentStrategySelector', function() {
+import _ from 'lodash';
 
+describe('Controller: deploymentStrategySelector', function() {
 
   beforeEach(
     window.module(
-      require('./deploymentStrategySelector.controller.js'),
-      require('../utils/lodash.js')
+      require('./deploymentStrategySelector.controller.js')
     )
   );
 
-
-  beforeEach(window.inject(function($controller, $rootScope, deploymentStrategyService, ___) {
-    this._ = ___;
+  beforeEach(window.inject(function($controller, $rootScope, deploymentStrategyService) {
 
     var strategies = [
       {
@@ -85,7 +83,5 @@ describe('Controller: deploymentStrategySelector', function() {
       this.$scope.$digest();
       expect(this.$scope.additionalFieldsTemplateUrl).toBeNull();
     });
-
   });
-
 });

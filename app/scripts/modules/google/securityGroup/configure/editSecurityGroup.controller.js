@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
   .controller('gceEditSecurityGroupCtrl', function($scope, $uibModalInstance, $state,
                                                    accountService, securityGroupReader,
                                                    taskMonitorService, cacheInitializer, infrastructureCaches,
-                                                   _, application, securityGroup, securityGroupWriter, $controller) {
+                                                   application, securityGroup, securityGroupWriter, $controller) {
 
     $scope.pages = {
       ingress: require('./createSecurityGroupIngress.html'),
@@ -45,7 +45,7 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
       return {value: sourceRange};
     });
 
-    securityGroup.ipIngress = _(securityGroup.ipIngressRules)
+    securityGroup.ipIngress = _.chain(securityGroup.ipIngressRules)
       .map(function(rule) {
         if (rule.portRanges && rule.portRanges.length > 0) {
           return rule.portRanges.map(function (portRange) {
@@ -108,7 +108,7 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
           return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Update', {
             cloudProvider: 'gce',
             securityGroupName: $scope.securityGroup.name,
-            sourceRanges: _.uniq(_.pluck($scope.securityGroup.sourceRanges, 'value')),
+            sourceRanges: _.uniq(_.map($scope.securityGroup.sourceRanges, 'value')),
             allowed: allowed,
             targetTags: $scope.securityGroup.targetTags || [],
             region: 'global',

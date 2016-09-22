@@ -1,15 +1,14 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.deck.core.filterModel.dependentFilter.service', [
-  require('../../utils/lodash.js')
-])
-  .factory('dependentFilterService', function (_) {
+module.exports = angular.module('spinnaker.deck.core.filterModel.dependentFilter.service', [])
+  .factory('dependentFilterService', function () {
 
     function digestDependentFilters ({ pool, dependencyOrder, sortFilter }) {
-      let updatedHeadings = dependencyOrder.reduce(generateIterator(sortFilter), { pool, headings: {} }).headings;
-      return updatedHeadings;
+      return dependencyOrder.reduce(generateIterator(sortFilter), {pool, headings: {}}).headings;
     }
 
     function generateIterator (sortFilter) {
@@ -23,7 +22,7 @@ module.exports = angular.module('spinnaker.deck.core.filterModel.dependentFilter
     }
 
     function grabHeadingsForHeadingType (pool, headingType) {
-      return _(pool).pluck(headingType).uniq().compact().valueOf();
+      return _.chain(pool).map(headingType).uniq().compact().value();
     }
 
     function filterPoolBySelectedHeadings (pool, headingType, sortFilter) {
@@ -58,7 +57,7 @@ module.exports = angular.module('spinnaker.deck.core.filterModel.dependentFilter
     }
 
     function mapTruthyHashKeysToList (hash) {
-      return Object.keys(_.pick(hash, _.identity));
+      return Object.keys(_.pickBy(hash, _.identity));
     }
 
     return { digestDependentFilters };

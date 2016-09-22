@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
   .controller('cfCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
                                                  application, loadBalancer, isNew, loadBalancerReader,
                                                  accountService, cfLoadBalancerTransformer,
-                                                 _, searchService, modalWizardService, loadBalancerWriter, taskMonitorService) {
+                                                 searchService, modalWizardService, loadBalancerWriter, taskMonitorService) {
 
     var ctrl = this;
 
@@ -72,7 +72,7 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
 
-        var accountNames = _.pluck($scope.accounts, 'name');
+        var accountNames = _.map($scope.accounts, 'name');
         if (accountNames.length && accountNames.indexOf($scope.loadBalancer.credentials) === -1) {
           $scope.loadBalancer.credentials = accountNames[0];
         }
@@ -132,7 +132,7 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
     this.getName = function() {
       var loadBalancer = $scope.loadBalancer;
       var loadBalancerName = [application.name, (loadBalancer.stack || ''), (loadBalancer.detail || '')].join('-');
-      return _.trimRight(loadBalancerName, '-');
+      return _.trimEnd(loadBalancerName, '-');
     };
 
     this.accountUpdated = function() {

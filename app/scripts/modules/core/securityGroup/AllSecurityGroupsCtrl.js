@@ -1,17 +1,18 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
   require('./filter/securityGroup.filter.service.js'),
   require('./filter/securityGroup.filter.model.js'),
-  require('../utils/lodash.js'),
   require('../cloudProvider/providerSelection/providerSelection.service.js'),
   require('../config/settings.js'),
   require('angular-ui-bootstrap'),
   require('../cloudProvider/cloudProvider.registry.js'),
 ])
-  .controller('AllSecurityGroupsCtrl', function($scope, app, $uibModal, _, $timeout,
+  .controller('AllSecurityGroupsCtrl', function($scope, app, $uibModal, $timeout,
                                                 providerSelectionService, settings, cloudProviderRegistry,
                                                 SecurityGroupFilterModel, securityGroupFilterService) {
 

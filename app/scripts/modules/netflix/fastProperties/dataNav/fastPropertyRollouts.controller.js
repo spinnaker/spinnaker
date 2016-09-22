@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
@@ -7,18 +9,17 @@ module.exports = angular
     require('./../fastProperty.read.service.js'),
     require('./../fastProperty.write.service.js'),
     require('./../fastPropertyTransformer.service.js'),
-    require('../../../core/utils/lodash.js'),
     require('./../fastPropertyScope.service.js'),
   ])
   .controller('FastPropertyRolloutController', function ($scope, $log, fastPropertyReader, fastPropertyWriter,
-                                                         fastPropertyTransformer, _, FastPropertyScopeService) {
+                                                         fastPropertyTransformer, FastPropertyScopeService) {
     var vm = this;
 
     vm.applicationFilter = '';
     vm.promotionStateFilter = 'Running';
 
     vm.filter = function() {
-      if (!_(vm.applicationFilter).isEmpty()) {
+      if (!_.chain(vm.applicationFilter).isEmpty().value()) {
         vm.filteredPromotions = vm.promotions.filter(function(promotion) {
           return promotion.scopes.from.appId.indexOf(vm.applicationFilter) > -1;
         });
@@ -38,7 +39,7 @@ module.exports = angular
     vm.extractScopeFromHistoryMessage = FastPropertyScopeService.extractScopeFromHistoryMessage;
 
     vm.getLastMessage = function(promotion) {
-      return FastPropertyScopeService.extractScopeFromHistoryMessage( _(promotion.history).last().message);
+      return FastPropertyScopeService.extractScopeFromHistoryMessage(_.chain(promotion.history).last().value().message);
     };
 
 

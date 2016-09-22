@@ -1,14 +1,14 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 require('./editNotification.html');
 
 module.exports = angular
-  .module('spinnaker.core.notification.modal.editNotification.modal.controller', [
-    require('../../utils/lodash.js'),
-  ])
-  .controller('EditNotificationController', function ($scope, $uibModalInstance, notification, level, _) {
+  .module('spinnaker.core.notification.modal.editNotification.modal.controller', [])
+  .controller('EditNotificationController', function ($scope, $uibModalInstance, notification, level) {
     var vm = this;
 
     vm.notification = angular.copy(notification);
@@ -29,7 +29,6 @@ module.exports = angular
         'stage.failed'
       ];
     }
-
 
     vm.updateSelectedWhen = function() {
       var selected = false;

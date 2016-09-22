@@ -1,11 +1,12 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.google.serverGroup.details.resize.capacity.component', [
     require('../../../../core/serverGroup/serverGroup.write.service.js'),
-    require('../../../../core/utils/lodash.js')
   ])
   .component('gceResizeCapacity', {
     bindings: {
@@ -15,7 +16,7 @@ module.exports = angular
       formMethods: '='
     },
     templateUrl: require('./resizeCapacity.component.html'),
-    controller: function ($scope, serverGroupWriter, _) {
+    controller: function ($scope, serverGroupWriter) {
       this.command.newSize = null;
 
       angular.extend(this.formMethods, {

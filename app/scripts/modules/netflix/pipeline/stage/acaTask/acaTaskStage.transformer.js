@@ -1,12 +1,13 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTask.transformer', [
-  require('../../../../core/utils/lodash.js'),
   require('../../../../core/orchestratedItem/orchestratedItem.transformer.js'),
 ])
-  .service('acaTaskTransformer', function($log, _, orchestratedItemTransformer) {
+  .service('acaTaskTransformer', function($log, orchestratedItemTransformer) {
 
     function getException (stage) {
       orchestratedItemTransformer.defineProperties(stage);

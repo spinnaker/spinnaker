@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 // controllerAs: clustersFilters
@@ -8,11 +10,10 @@ module.exports = angular.module('cluster', [
   require('./collapsibleFilterSection.directive.js'),
   require('./clusterFilter.service.js'),
   require('./clusterFilter.model.js'),
-  require('../../utils/lodash.js'),
   require('../../filterModel/dependentFilter/dependentFilter.service.js'),
   require('./clusterDependentFilterHelper.service.js')
 ])
-  .controller('ClusterFilterCtrl', function ($scope, app, _, $log, clusterFilterService,
+  .controller('ClusterFilterCtrl', function ($scope, app, $log, clusterFilterService,
                                              ClusterFilterModel, $rootScope,
                                              clusterDependentFilterHelper, dependentFilterService) {
 
@@ -39,7 +40,7 @@ module.exports = angular.module('cluster', [
     };
 
     function getHeadingsForOption(option) {
-      return _.compact(_.uniq(_.pluck(app.serverGroups.data, option))).sort();
+      return _.compact(_.uniq(_.map(app.serverGroups.data, option))).sort();
     }
 
     function clearFilters() {

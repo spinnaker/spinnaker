@@ -1,14 +1,14 @@
 'use strict';
 
+import _ from 'lodash';
 
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.fastProperties.scopeLadder.strategy.controller', [
-    require('../../../../core/utils/lodash'),
     require('../../fastProperty.write.service.js')
   ])
-  .controller('ScopeLadderStrategyController', function(parentVM, fastPropertyWriter, modalInstance, _) {
+  .controller('ScopeLadderStrategyController', function(parentVM, fastPropertyWriter, modalInstance) {
     let vm = parentVM;
 
     vm.property.strategy.name = 'naive';
@@ -31,7 +31,7 @@ module.exports = angular
     };
 
     vm.update = () => {
-      var updatedParams = _(vm.property).omit(['ts', 'createdAsCanary']).value();
+      var updatedParams = _.chain(vm.property).omit(['ts', 'createdAsCanary']).value();
       vm.property.startScope = vm.transformScope(vm.property.startScope);
       vm.property.targetScope = vm.transformScope(vm.property.targetScope);
 

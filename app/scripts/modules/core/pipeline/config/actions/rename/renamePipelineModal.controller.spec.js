@@ -10,7 +10,7 @@ describe('Controller: renamePipelineModal', function() {
     )
   );
 
-  beforeEach(window.inject(function($controller, $rootScope, _, $log, $q, pipelineConfigService, applicationModelBuilder) {
+  beforeEach(window.inject(function($controller, $rootScope, $log, $q, pipelineConfigService, applicationModelBuilder) {
     this.$q = $q;
     this.application = applicationModelBuilder.createApplication({
       key: 'pipelineConfigs',

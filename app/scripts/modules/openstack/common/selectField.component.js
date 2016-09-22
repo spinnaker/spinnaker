@@ -1,10 +1,10 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.openstack.common.selectField', [
-  require('../../core/utils/lodash'),
-]).component('selectField', {
+module.exports = angular.module('spinnaker.openstack.common.selectField', []).component('selectField', {
   templateUrl: require('./selectField.component.html'),
   controller: SelectFieldController,
   bindings: {
@@ -24,7 +24,7 @@ module.exports = angular.module('spinnaker.openstack.common.selectField', [
   }
 });
 
-function SelectFieldController($scope, $element, $attrs, _, $timeout, $q, $rootScope, infrastructureCaches, cacheInitializer) {
+function SelectFieldController($scope, $element, $attrs, $timeout, $q, $rootScope, infrastructureCaches, cacheInitializer) {
   var ctrl = this;
   var coveredThreshold = 0;
 

@@ -1,13 +1,14 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.loadBalancer.loadBalancerSelectField.directive', [
-  require('../../core/utils/lodash'),
   require('../../core/loadBalancer/loadBalancer.read.service.js'),
   require('../common/selectField.component.js')
 ])
-  .directive('osLoadBalancerSelectField', function (_, loadBalancerReader) {
+  .directive('osLoadBalancerSelectField', function (loadBalancerReader) {
     return {
       restrict: 'E',
       templateUrl: require('../common/cacheBackedSelectField.template.html'),
@@ -35,11 +36,11 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.loadBalancerSe
 
           updateOptions: function() {
             return loadBalancerReader.listLoadBalancers('openstack').then(function(loadBalancers) {
-              scope.options = _(loadBalancers)
+              scope.options = _.chain(loadBalancers)
                 .filter(scope.filter || {})
                 .map(function(s) { return {label: s.name, value: s.id}; })
                 .sortBy(function(o) { return o.label; })
-                .valueOf();
+                .value();
 
               return scope.options;
             });

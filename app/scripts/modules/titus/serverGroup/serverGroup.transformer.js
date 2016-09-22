@@ -1,12 +1,12 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.titus.serverGroup.transformer', [
-    require('../../core/utils/lodash.js'),
-  ])
-  .factory('titusServerGroupTransformer', function ($q, _) {
+  .module('spinnaker.titus.serverGroup.transformer', [])
+  .factory('titusServerGroupTransformer', function ($q) {
 
     function normalizeServerGroup(serverGroup) {
       return $q.when(serverGroup); // no-op

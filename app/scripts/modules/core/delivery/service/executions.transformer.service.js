@@ -1,22 +1,21 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 let executionBarLabelTemplate = require('../../pipeline/config/stages/core/executionBarLabel.html');
 
 module.exports = angular.module('spinnaker.core.delivery.executionTransformer.service', [
   require('../../orchestratedItem/orchestratedItem.transformer.js'),
-  require('../../utils/lodash.js'),
   require('../../pipeline/config/pipelineConfigProvider.js'),
 ])
-  .factory('executionsTransformer', function(orchestratedItemTransformer, _, pipelineConfig) {
+  .factory('executionsTransformer', function(orchestratedItemTransformer, pipelineConfig) {
 
     var hiddenStageTypes = ['initialization', 'pipelineInitialization', 'waitForRequisiteCompletion'];
 
-    //let totalTime = 0.0;
-
     function transformExecution(application, execution) {
-      //let start = window.performance.now();
+
       if (execution.trigger) {
         execution.isStrategy = execution.trigger.isPipeline === false && execution.trigger.type === 'pipeline';
       }
@@ -162,25 +161,25 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
       if (stage.masterStage) {
         var lastStage = stages[stages.length - 1];
         setMasterStageStartTime(stages, stage);
-        var lastNotStartedStage = _(stages).findLast(
+        var lastNotStartedStage = _.findLast(stages,
           function (childStage) {
             return childStage.hasNotStarted;
           }
         );
 
-        var lastFailedStage = _(stages).findLast(
+        var lastFailedStage = _.findLast(stages,
           function (childStage) {
             return childStage.isFailed;
           }
         );
 
-        var lastRunningStage = _(stages).findLast(
+        var lastRunningStage = _.findLast(stages,
           function (childStage) {
             return childStage.isRunning;
           }
         );
 
-        var lastCanceledStage = _(stages).findLast(
+        var lastCanceledStage = _.findLast(stages,
           function (childStage) {
             return childStage.isCanceled;
           }
@@ -192,7 +191,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
         if (!currentStage.endTime) {
           delete stage.endTime;
         }
-        let lastEndingStage = _.max(stages, 'endTime');
+        let lastEndingStage = _.maxBy(stages, 'endTime');
         // if the current stage has an end time (i.e. it failed or completed), use the maximum end time
         // of all the child stages as the end time for the parent - we do this because the parent might
         // have been an initialization stage, which ends within a few milliseconds
@@ -239,7 +238,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
           }
         }
       });
-      execution.stages = _.sortByAll(stages, 'phase', 'refId');
+      execution.stages = _.sortBy(stages, 'phase', 'refId');
       if (!allPhasesResolved) {
         applyPhasesAndLink(execution);
       }
@@ -266,8 +265,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
       if (_.get(execution, 'trigger.buildInfo.lastBuild.number')) {
         execution.buildInfo = execution.trigger.buildInfo.lastBuild;
       }
-      var deploymentDetails = _(execution.stages)
-        .chain()
+      var deploymentDetails = _.chain(execution.stages)
         .find(function(stage) {
           return stage.type === 'deploy';
         })

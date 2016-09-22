@@ -1,12 +1,13 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.basicSettings.component', [
     require('./certificateSelector.component.js'),
     require('../../../../../core/account/account.service.js'),
     require('../../../../../core/loadBalancer/loadBalancer.read.service.js'),
-    require('../../../../../core/utils/lodash.js'),
     require('../../../elSevenUtils.service.js'),
   ])
   .component('gceHttpLoadBalancerBasicSettings', {
@@ -16,11 +17,11 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.basicSettin
       isNew: '='
     },
     templateUrl: require('./basicSettings.component.html'),
-    controller: function ($scope, accountService, loadBalancerReader, _, elSevenUtils, $q) {
+    controller: function ($scope, accountService, loadBalancerReader, elSevenUtils, $q) {
 
       this.getName = (loadBalancer, applicationName) => {
         let loadBalancerName = [applicationName, (loadBalancer.stack || ''), (loadBalancer.detail || '')].join('-');
-        return _.trimRight(loadBalancerName, '-');
+        return _.trimEnd(loadBalancerName, '-');
       };
 
       this.updateName = (lb, appName) => {
@@ -37,12 +38,12 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.basicSettin
       let loadBalancersKeyedByAccountPromise = loadBalancerReader
         .listLoadBalancers('gce')
         .then((lbs) => {
-          return _(lbs)
+          return _.chain(lbs)
             .map(lb => lb.accounts)
             .flatten()
             .groupBy('name')
             .mapValues((accounts) => {
-              return _(accounts)
+              return _.chain(accounts)
                 .map(a => a.regions)
                 .flatten()
                 .filter(region => region.name === elSevenUtils.getElSevenRegion())
@@ -50,9 +51,9 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.basicSettin
                 .flatten()
                 .map(lb => lb.name)
                 .uniq()
-                .valueOf();
+                .value();
             })
-            .valueOf();
+            .value();
         });
 
       $q.all({
@@ -62,9 +63,9 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.basicSettin
       .then(({ accounts, globalLoadBalancersKeyedByAccount }) => {
         // account view setup
         this.accounts = accounts;
-        let accountNames = _.pluck(accounts, 'name');
-        if (!_.contains(accountNames, _.get(this.loadBalancer, 'credentials.name'))) {
-          this.loadBalancer.credentials = _.first(accountNames);
+        let accountNames = _.map(accounts, 'name');
+        if (!_.includes(accountNames, _.get(this.loadBalancer, 'credentials.name'))) {
+          this.loadBalancer.credentials = _.head(accountNames);
         }
 
         // name collision detection setup

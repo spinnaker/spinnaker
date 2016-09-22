@@ -1,13 +1,14 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.history.service', [
   require('../cache/deckCacheFactory.js'),
-  require('../utils/lodash.js'),
   require('../utils/uuid.service.js'),
 ])
-  .factory('recentHistoryService', function (_, deckCacheFactory, uuidService) {
+  .factory('recentHistoryService', function (deckCacheFactory, uuidService) {
     const maxItems = 5;
 
     deckCacheFactory.createCache('history', 'user', {

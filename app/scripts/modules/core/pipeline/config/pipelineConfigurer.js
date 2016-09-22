@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       templateUrl: require('./pipelineConfigurer.html'),
     };
   })
-  .controller('PipelineConfigurerCtrl', function($scope, $uibModal, $timeout, _,
+  .controller('PipelineConfigurerCtrl', function($scope, $uibModal, $timeout,
                                                  dirtyPipelineTracker, pipelineConfigService, viewStateCache, overrideRegistry, $location) {
 
     this.actionsTemplateUrl = overrideRegistry.getTemplate('pipelineConfigActions', require('./actions/pipelineConfigActions.html'));

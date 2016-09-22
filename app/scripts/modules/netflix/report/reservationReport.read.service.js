@@ -4,7 +4,6 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.amazon.instance.report.reservation.read.service', [
-    require('../../core/utils/lodash.js'),
     require('../../core/config/settings.js'),
   ])
   .factory('reservationReportReader', function ($http, settings) {

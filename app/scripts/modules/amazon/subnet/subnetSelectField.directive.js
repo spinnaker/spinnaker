@@ -1,12 +1,13 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.subnet.subnetSelectField.directive', [
   require('../../core/config/settings'),
-  require('../../core/utils/lodash'),
 ])
-  .directive('subnetSelectField', function (settings, _) {
+  .directive('subnetSelectField', function (settings) {
     return {
       restrict: 'E',
       templateUrl: require('./subnetSelectField.directive.html'),

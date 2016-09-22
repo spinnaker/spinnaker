@@ -5,7 +5,6 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
   require('angular-ui-router'),
   require('../../../../core/application/modal/platformHealthOverride.directive.js'),
-  require('../../../../core/utils/lodash.js'),
   require('../serverGroupConfiguration.service.js'),
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js'),
@@ -14,7 +13,7 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
   require('../../../../core/serverGroup/configure/common/serverGroupCommand.registry.js'),
   require('../../../../core/task/modal/reason.directive.js'),
   ])
-  .controller('awsCloneServerGroupCtrl', function($scope, $uibModalInstance, _, $q, $state,
+  .controller('awsCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
                                                   serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                   overrideRegistry, awsServerGroupConfigurationService,
                                                   serverGroupCommandRegistry,

@@ -1,13 +1,14 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.network.networkSelectField.directive', [
-  require('../../core/utils/lodash'),
   require('../../core/network/network.read.service.js'),
   require('../common/selectField.component.js')
 ])
-  .directive('networkSelectField', function (_, networkReader) {
+  .directive('networkSelectField', function (networkReader) {
     return {
       restrict: 'E',
       templateUrl: require('../common/cacheBackedSelectField.template.html'),
@@ -33,11 +34,11 @@ module.exports = angular.module('spinnaker.openstack.network.networkSelectField.
 
           updateOptions: function() {
             return networkReader.listNetworksByProvider('openstack').then(function(networks) {
-              scope.options = _(networks)
+              scope.options = _.chain(networks)
                 .filter(scope.filter || {})
                 .map(function(a) { return {label: a.name, value: a.id}; })
                 .sortBy(function(o) { return o.label; })
-                .valueOf();
+                .value();
 
               return scope.options;
             });

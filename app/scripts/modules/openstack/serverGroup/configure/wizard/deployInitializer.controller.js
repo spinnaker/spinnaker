@@ -1,13 +1,14 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.serverGroup.configure.deployInitialization.controller', [
   require('../../../../core/serverGroup/serverGroup.read.service.js'),
-  require('../../../../core/utils/lodash.js'),
   require('../ServerGroupCommandBuilder.js'),
 ])
-  .controller('openstackDeployInitializerCtrl', function($scope, openstackServerGroupCommandBuilder, serverGroupReader, _) {
+  .controller('openstackDeployInitializerCtrl', function($scope, openstackServerGroupCommandBuilder, serverGroupReader) {
 
     $scope.templates = [];
     if (!$scope.command.viewState.disableNoTemplateSelection) {

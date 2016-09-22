@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 require('./dashboard.less');
@@ -12,12 +14,11 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
   require('../../scheduler/scheduler.factory.js'),
   require('../../history/recentHistory.service.js'),
   require('../../presentation/refresher/componentRefresher.directive.js'),
-  require('../../utils/lodash'),
   require('./regionFilter/regionFilter.component.js'),
   require('./regionFilter/regionFilter.service.js'),
 ])
   .controller('ProjectDashboardCtrl', function ($scope, $rootScope, projectConfiguration,
-                                                executionService, projectReader, _, regionFilterService,
+                                                executionService, projectReader, regionFilterService,
                                                 schedulerFactory, recentHistoryService, $q) {
 
     this.project = projectConfiguration;
@@ -104,14 +105,14 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
     };
 
     let getAllRegions = (clusters) => {
-      return _(clusters)
-        .pluck('applications')
+      return _.chain(clusters)
+        .map('applications')
         .flatten()
-        .pluck('clusters')
+        .map('clusters')
         .flatten()
-        .pluck('region')
+        .map('region')
         .uniq()
-        .valueOf();
+        .value();
     };
 
     let clusterScheduler = schedulerFactory.createScheduler(),

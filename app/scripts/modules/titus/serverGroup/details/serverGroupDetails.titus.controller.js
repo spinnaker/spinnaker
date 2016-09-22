@@ -1,6 +1,8 @@
 'use strict';
 /* jshint camelcase:false */
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.titus.controller', [
@@ -12,14 +14,13 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../core/serverGroup/configure/common/runningExecutions.service.js'),
-  require('../../../core/utils/lodash.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('./resize/resizeServerGroup.controller'),
   require('../../../core/modal/closeable/closeable.modal.controller.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('titusServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup, InsightFilterStateModel,
-                                                     titusServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, _, serverGroupWriter,
+                                                     titusServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, serverGroupWriter,
                                                        runningExecutionsService, serverGroupWarningMessageService, accountService) {
 
     let application = app;
@@ -46,7 +47,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
         details.account = serverGroup.accountId;
 
         accountService.getAccountDetails(details.account).then((accountDetails) => {
-          details.apiEndpoint = _.where(accountDetails.regions, {name: details.region})[0].endpoint;
+          details.apiEndpoint = _.filter(accountDetails.regions, {name: details.region})[0].endpoint;
         });
 
         angular.extend(details, summary);
@@ -58,7 +59,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
 
         if (!_.isEmpty($scope.serverGroup)) {
           if (details.securityGroups) {
-            $scope.securityGroups = _(details.securityGroups).map(function(id) {
+            $scope.securityGroups = _.chain(details.securityGroups).map(function(id) {
               return _.find(application.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': 'global', 'id': id }) ||
                 _.find(application.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': 'global', 'name': id });
             }).compact().value();

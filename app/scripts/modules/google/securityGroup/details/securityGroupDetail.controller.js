@@ -16,6 +16,8 @@
 
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.securityGroup.gce.details.controller', [
@@ -24,7 +26,6 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
   require('../../../core/securityGroup/securityGroup.read.service.js'),
   require('../../../core/securityGroup/securityGroup.write.service.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
-  require('../../../core/utils/lodash.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('../clone/cloneSecurityGroup.controller.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
@@ -32,7 +33,7 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
 ])
   .controller('gceSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, accountService, app, InsightFilterStateModel,
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,
-                                                    $uibModal, _, cloudProviderRegistry) {
+                                                    $uibModal, cloudProviderRegistry) {
 
     const application = app;
     const securityGroup = resolvedSecurityGroup;
@@ -73,7 +74,7 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
             if (_.has(ipIngressRules, ipIngressRule.protocol)) {
               ipIngressRules[ipIngressRule.protocol] = ipIngressRules[ipIngressRule.protocol].concat(ipIngressRule.portRanges);
 
-              ipIngressRules[ipIngressRule.protocol] = _.uniq(ipIngressRules[ipIngressRule.protocol], function(portRange) {
+              ipIngressRules[ipIngressRule.protocol] = _.uniqBy(ipIngressRules[ipIngressRule.protocol], function(portRange) {
                 return portRange.startPort + '->' + portRange.endPort;
               });
             } else {
@@ -90,7 +91,7 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
 
           $scope.securityGroup.ipIngressRules = ipIngressRules;
 
-          $scope.securityGroup.protocolPortRangeCount = _.sum(ipIngressRules, function(ipIngressRule) {
+          $scope.securityGroup.protocolPortRangeCount = _.sumBy(ipIngressRules, function(ipIngressRule) {
             return ipIngressRule.portRanges.length > 1 ? ipIngressRule.portRanges.length : 1;
           });
 

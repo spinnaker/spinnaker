@@ -5,19 +5,19 @@ describe('Controller: SnapshotDiffModalCtrl', function () {
     window.module(
       require('./snapshotDiff.modal.controller.js'),
       require('../../pipeline/config/actions/history/jsonDiff.service.js'),
-      require('../snapshot.read.service.js'),
-      require('../../utils/lodash.js')));
+      require('../snapshot.read.service.js')
+    )
+  );
 
   beforeEach(
-    window.inject(function ($controller, $filter, jsonDiffService, snapshotReader, _) {
+    window.inject(function ($controller, $filter, jsonDiffService, snapshotReader) {
       this.controller = $controller('SnapshotDiffModalCtrl', {
         availableAccounts: ['my-google-account'],
         application: { name: 'myApplication' },
         $uibModalInstance: { dismiss: angular.noop },
         jsonDiffService,
         snapshotReader,
-        $filter,
-        _
+        $filter
       });
 
       this.snapshotReader = snapshotReader;

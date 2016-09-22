@@ -1,13 +1,14 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.instanceType.service', [
   require('../cache/deckCacheFactory.js'),
-  require('../utils/lodash.js'),
   require('../cloudProvider/serviceDelegate.service.js'),
 ])
-  .factory('instanceTypeService', function ($http, $q, _, $window, serviceDelegate) {
+  .factory('instanceTypeService', function ($http, $q, $window, serviceDelegate) {
 
     function getDelegate(selectedProvider) {
       return serviceDelegate.getDelegate(selectedProvider, 'instance.instanceTypeService');
@@ -28,7 +29,7 @@ module.exports = angular.module('spinnaker.instanceType.service', [
     function getCategoryForInstanceType(selectedProvider, instanceType) {
       return getCategories(selectedProvider).then(function(categories) {
         var query = {families: [ {instanceTypes: [ {name:instanceType } ] } ] };
-        var result = _.result(_.findWhere(categories, query), 'type');
+        var result = _.result(_.find(categories, query), 'type');
         return result || 'custom';
       });
     }
@@ -36,7 +37,7 @@ module.exports = angular.module('spinnaker.instanceType.service', [
     function getInstanceTypeDetails(selectedProvider, instanceType) {
       return getCategories(selectedProvider).then(function(categories) {
         var query = {families: [ {instanceTypes: [ {name:instanceType } ] } ] };
-        var category = _.findWhere(categories, query);
+        var category = _.find(categories, query);
         var instanceTypeDetails;
 
         if (category && category.families && category.families.length && category.families[0].instanceTypes) {

@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
   require('../../gceRegionSelectField.directive.js'),
   require('../../../core/search/search.service.js'),
 ])
-  .controller('gceCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state, _,
+  .controller('gceCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
                                                     accountService, gceLoadBalancerTransformer,
                                                     application, loadBalancer, isNew, loadBalancerReader,
                                                     searchService, v2modalWizardService, loadBalancerWriter, taskMonitorService) {
@@ -76,7 +76,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
 
-        var accountNames = _.pluck($scope.accounts, 'name');
+        var accountNames = _.map($scope.accounts, 'name');
         if (accountNames.length && accountNames.indexOf($scope.loadBalancer.credentials) === -1) {
           $scope.loadBalancer.credentials = accountNames[0];
         }
@@ -144,7 +144,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
     this.getName = function() {
       var loadBalancer = $scope.loadBalancer;
       var loadBalancerName = [application.name, (loadBalancer.stack || ''), (loadBalancer.detail || '')].join('-');
-      return _.trimRight(loadBalancerName, '-');
+      return _.trimEnd(loadBalancerName, '-');
     };
 
     this.accountUpdated = function() {

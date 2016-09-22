@@ -1,11 +1,12 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
-  require('../../../core/utils/lodash.js'),
   require('../../../core/instance/instance.write.service.js'),
   require('../../../core/instance/instance.read.service.js'),
   require('../../vpc/vpcTag.directive.js'),
@@ -21,7 +22,7 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
   .controller('awsInstanceDetailsCtrl', function ($scope, $state, $uibModal, InsightFilterStateModel, settings,
                                                instanceWriter, confirmationModalService, recentHistoryService,
                                                   cloudProviderRegistry,
-                                               instanceReader, _, instance, app, $q, overrides) {
+                                               instanceReader, instance, app, $q, overrides) {
 
     // needed for standalone instances
     $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('aws', 'instance.detailsTemplateUrl');

@@ -19,7 +19,7 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
   require('../cloudProvider/cloudProvider.registry'),
   require('angular-ui-router'),
 ])
-  .controller('AllClustersCtrl', function($scope, app, $uibModal, $timeout, providerSelectionService, _, clusterFilterService, $state,
+  .controller('AllClustersCtrl', function($scope, app, $uibModal, $timeout, providerSelectionService, clusterFilterService, $state,
                                           ClusterFilterModel, MultiselectModel, serverGroupCommandBuilder, cloudProviderRegistry) {
 
     if (app.serverGroups.disabled) {
