@@ -528,7 +528,13 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
   def new_jenkins_build_operation(self):
     return None
 
-  def delete_baked_image(self, status, unused_verify_results):
+  def delete_baked_image(self, execution_context):
+    status = execution_context.get('OperationStatus', None)
+    if status is None:
+      self.log.info(
+          'Operation could not be performed so there is no image to delete.')
+      return;
+
     status = status.trigger_status
     detail = status.detail_doc
     if isinstance(detail, list):
