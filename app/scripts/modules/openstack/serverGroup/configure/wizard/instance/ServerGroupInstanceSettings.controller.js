@@ -35,7 +35,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.openstack.insta
     var imageSearchResultsStream = new Subject();
 
     imageSearchResultsStream
-      .throttle(250)
+      .debounceTime(250)
       .switchMap(searchImages)
       .subscribe(function (data) {
         $scope.command.backingData.filtered.images = data;
