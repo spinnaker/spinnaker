@@ -170,6 +170,14 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
         this.serverGroup.autoHealingPolicyHealthCheck = healthCheckUrl ? _.last(healthCheckUrl.split('/')) : null;
         this.serverGroup.initialDelaySec = autoHealingPolicy.initialDelaySec;
+
+        if (autoHealingPolicy.maxUnavailable) {
+          if (typeof autoHealingPolicy.maxUnavailable.percent === 'number') {
+            this.serverGroup.maxUnavailable = autoHealingPolicy.maxUnavailable.percent + '%';
+          } else {
+            this.serverGroup.maxUnavailable = autoHealingPolicy.maxUnavailable.fixed + ' instances';
+          }
+        }
       }
     };
 

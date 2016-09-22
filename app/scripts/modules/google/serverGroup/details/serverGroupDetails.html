@@ -208,6 +208,11 @@
         <help-field key="gce.serverGroup.initialDelaySec"></help-field>
       </dt>
       <dd>{{ctrl.serverGroup.initialDelaySec}} seconds</dd>
+      <dt ng-if="ctrl.serverGroup.maxUnavailable">
+        Max Unavailable
+        <help-field key="gce.serverGroup.maxUnavailable"></help-field>
+      </dt>
+      <dd ng-if="ctrl.serverGroup.maxUnavailable">{{ctrl.serverGroup.maxUnavailable}}</dd>
     </collapsible-section>
     <collapsible-section heading="Custom Metadata">
       <div ng-if="!ctrl.serverGroup.launchConfig.instanceTemplate.properties.metadata.items.length">No custom metadata associated with this server group</div>

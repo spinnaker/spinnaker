@@ -158,6 +158,11 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'gce.serverGroup.autoscaling.cooldown': 'How long to wait before collecting information from a new instance. This should be at least the time it takes to initialize the instance. To find the minimum, create an instance from the same image and note how long it takes to start.',
     'gce.serverGroup.autoHealing': 'VMs in the group are recreated as needed. You can use a health check to recreate a VM if the health check finds the VM unresponsive. If you do not select a health check, VMs are recreated only when stopped.',
     'gce.serverGroup.initialDelaySec': 'The time to allow an instance to boot and applications to fully start before the first health check.',
+    'gce.serverGroup.maxUnavailable': 'Maximum number of instances that can be unavailable when auto-healing. The instance is considered available if all of the following conditions are satisfied:' +
+      '<ul>' +
+      '<li>1. Instance\'s status is RUNNING.</li>' +
+      '<li>2. Instance\'s liveness health check result was observed to be HEALTHY at least once.</li>' +
+      '</ul>',
     'gce.serverGroup.subnet': 'Subnetworks allow you to regionally segment the network IP space into prefixes (subnets) and control which prefix a VM instance\'s internal IP address is allocated from. There are several types of GCE networks:' +
       '<ul>' +
       '<li><b>Legacy (non-subnet) Network</b>: IP address allocation occurs at the global network level. This means the network address space spans across all regions.</li>' +
