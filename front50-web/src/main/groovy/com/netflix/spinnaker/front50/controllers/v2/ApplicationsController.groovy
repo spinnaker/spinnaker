@@ -56,9 +56,6 @@ public class ApplicationsController {
   @Autowired(required = false)
   List<ApplicationEventListener> applicationEventListeners = []
 
-  @Autowired
-  Registry registry
-
   @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
   @PostFilter("hasPermission(filterObject.name, 'APPLICATION', 'READ')")
   @ApiOperation(value = "", notes = """Fetch all applications.
@@ -67,12 +64,18 @@ public class ApplicationsController {
     - ?email=my@email.com
     - ?email=my@email.com&name=flex""")
   @RequestMapping(method = RequestMethod.GET)
-  Set<Application> applications(@RequestParam Map<String, String> params) {
+  Set<Application> applications(@RequestParam(value = "pageSize", required = false) Integer pageSize,
+                                @RequestParam Map<String, String> params) {
+    params.remove("pageSize")
+
+    def applications
     if (params.isEmpty()) {
-      return applicationDAO.all()
+      applications = applicationDAO.all().sort { it.name }
+    } else {
+      applications = applicationDAO.search(params)
     }
 
-    return applicationDAO.search(params)
+    return pageSize ? applications.asList().subList(0, Math.min(pageSize, applications.size())) : applications
   }
 
   // TODO(ttomsu): Think through application creation permissions.

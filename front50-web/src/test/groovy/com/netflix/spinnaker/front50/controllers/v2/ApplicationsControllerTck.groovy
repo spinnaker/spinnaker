@@ -322,6 +322,24 @@ abstract class ApplicationsControllerTck extends Specification {
     then:
     response.andExpect status().isOk()
     response.andExpect content().string(new ObjectMapper().writeValueAsString([dao.findByName("SAMPLEAPP")]))
+
+    when:
+    response = mockMvc.perform(
+      get("/v2/applications?name=sample&pageSize=9999")
+    )
+
+    then:
+    response.andExpect status().isOk()
+    response.andExpect content().string(new ObjectMapper().writeValueAsString([dao.findByName("SAMPLEAPP"), dao.findByName("SAMPLEAPP-2")]))
+
+    when:
+    response = mockMvc.perform(
+      get("/v2/applications?name=sample&pageSize=1")
+    )
+
+    then:
+    response.andExpect status().isOk()
+    response.andExpect content().string(new ObjectMapper().writeValueAsString([dao.findByName("SAMPLEAPP")]))
   }
 
   private Map toMap(Application application) {
