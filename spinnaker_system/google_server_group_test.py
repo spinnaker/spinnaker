@@ -75,7 +75,7 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
       'provider': 'gce',
       'stack': self.TEST_STACK,
       'detail': 'frontend',
-      'credentials': self.bindings['GCE_CREDENTIALS'],
+      'credentials': self.bindings['SPINNAKER_GOOGLE_ACCOUNT'],
       'region': self.TEST_REGION,
       'listeners': [{
         'protocol': 'TCP',
@@ -106,7 +106,7 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
     job = [{
       'application': self.TEST_APP,
       'stack': self.TEST_STACK,
-      'credentials': self.bindings['GCE_CREDENTIALS'],
+      'credentials': self.bindings['SPINNAKER_GOOGLE_ACCOUNT'],
       'zone': self.TEST_ZONE,
       'network': 'default',
       'targetSize': 1,
@@ -127,7 +127,7 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
       'instanceType': 'f1-micro',
       'initialNumReplicas': 1,
       'type': 'createServerGroup',
-      'account': self.bindings['GCE_CREDENTIALS'],
+      'account': self.bindings['SPINNAKER_GOOGLE_ACCOUNT'],
       'user': 'integration-tests'
     }]
 
@@ -163,7 +163,7 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
       'type': 'resizeServerGroup',
       'regions': [self.TEST_REGION],
       'zones': [self.TEST_ZONE],
-      'credentials': self.bindings['GCE_CREDENTIALS'],
+      'credentials': self.bindings['SPINNAKER_GOOGLE_ACCOUNT'],
       'cloudProvider': 'gce',
       'user': 'integration-tests'
     }]
@@ -188,7 +188,7 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
     job = [{
       'application': self.TEST_APP,
       'stack': self.TEST_STACK,
-      'credentials': self.bindings['GCE_CREDENTIALS'],
+      'credentials': self.bindings['SPINNAKER_GOOGLE_ACCOUNT'],
       'loadBalancers': [self.__lb_name],
       'targetSize': 1,
       'capacity': {
@@ -202,7 +202,7 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
       'availabilityZones': {self.TEST_REGION: [self.TEST_ZONE]},
       'cloudProvider': 'gce',
       'source': {
-        'account': self.bindings['GCE_CREDENTIALS'],
+        'account': self.bindings['SPINNAKER_GOOGLE_ACCOUNT'],
         'region': self.TEST_REGION,
         'zone': self.TEST_ZONE,
         'serverGroupName': self.__server_group_name,
@@ -213,7 +213,7 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
       'initialNumReplicas': 1,
       'loadBalancers': [self.__lb_name],
       'type': 'cloneServerGroup',
-      'account': self.bindings['GCE_CREDENTIALS'],
+      'account': self.bindings['SPINNAKER_GOOGLE_ACCOUNT'],
       'user': 'integration-tests'
     }]
 
@@ -241,7 +241,7 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
       'type': 'disableServerGroup',
       'regions': [self.TEST_REGION],
       'zones': [self.TEST_ZONE],
-      'credentials': self.bindings['GCE_CREDENTIALS'],
+      'credentials': self.bindings['SPINNAKER_GOOGLE_ACCOUNT'],
       'user': 'integration-tests'
     }]
 
@@ -272,7 +272,7 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
       'type': 'enableServerGroup',
       'regions': [self.TEST_REGION],
       'zones': [self.TEST_ZONE],
-      'credentials': self.bindings['GCE_CREDENTIALS'],
+      'credentials': self.bindings['SPINNAKER_GOOGLE_ACCOUNT'],
       'user': 'integration-tests'
     }]
 
@@ -303,7 +303,7 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
       'type': 'destroyServerGroup',
       'regions': [self.TEST_REGION],
       'zones': [self.TEST_ZONE],
-      'credentials': self.bindings['GCE_CREDENTIALS'],
+      'credentials': self.bindings['SPINNAKER_GOOGLE_ACCOUNT'],
       'user': 'integration-tests'
     }]
 
@@ -328,7 +328,7 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
       "region": "us-central1",
       "type": "deleteLoadBalancer",
       "regions": ["us-central1"],
-      "credentials": self.bindings['GCE_CREDENTIALS'],
+      "credentials": self.bindings['SPINNAKER_GOOGLE_ACCOUNT'],
       "cloudProvider": "gce",
       "user": "integration-tests"
     }]

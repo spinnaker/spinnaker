@@ -91,7 +91,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
       'cloudProvider': 'gce',
       'provider': 'gce',
       'stack': bindings['TEST_STACK'],
-      'credentials': bindings['GCE_CREDENTIALS'],
+      'credentials': bindings['SPINNAKER_GOOGLE_ACCOUNT'],
       'region': bindings['TEST_GCE_REGION'],
       'loadBalancerType': 'HTTP',
       'loadBalancerName': self.__lb_name,
@@ -319,7 +319,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
       'loadBalancerName': self.__lb_name,
       'region': bindings['TEST_GCE_REGION'],
       'regions': [bindings['TEST_GCE_REGION']],
-      'credentials': bindings['GCE_CREDENTIALS'],
+      'credentials': bindings['SPINNAKER_GOOGLE_ACCOUNT'],
       'user': '[anonymous]'
     }
 
@@ -327,7 +327,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
       job=[delete],
       description='Delete L7 Load Balancer: {0} in {1}:{2}'.format(
         self.__lb_name,
-        bindings['GCE_CREDENTIALS'],
+        bindings['SPINNAKER_GOOGLE_ACCOUNT'],
         bindings['TEST_GCE_REGION'],
       ),
       application=self.TEST_APP
@@ -524,7 +524,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
           'backingData': {'networks': ['default']},
           'cloudProvider': 'gce',
           'application': self.TEST_APP,
-          'credentials': bindings['GCE_CREDENTIALS'],
+          'credentials': bindings['SPINNAKER_GOOGLE_ACCOUNT'],
           'description': '',
           'detail': 'http',
           'ipIngress': [
@@ -591,7 +591,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
       job=[{
         'cloudProvider': 'gce',
         'application': self.TEST_APP,
-        'credentials': bindings['GCE_CREDENTIALS'],
+        'credentials': bindings['SPINNAKER_GOOGLE_ACCOUNT'],
         'strategy':'',
         'capacity': {'min':1, 'max':1, 'desired':1},
         'targetSize': 1,
@@ -620,7 +620,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
           'backend-service-names': 'backend-service',
           'load-balancing-policy': json.dumps(policy)
         },
-        'account': bindings['GCE_CREDENTIALS'],
+        'account': bindings['SPINNAKER_GOOGLE_ACCOUNT'],
         'authScopes': ['compute'],
         'user': '[anonymous]'
       }],
@@ -662,7 +662,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
         'type': 'destroyServerGroup',
         'regions': [bindings['TEST_GCE_REGION']],
         'zones': [bindings['TEST_GCE_ZONE']],
-        'credentials': bindings['GCE_CREDENTIALS'],
+        'credentials': bindings['SPINNAKER_GOOGLE_ACCOUNT'],
         'user': '[anonymous]'
       }],
       application=self.TEST_APP,

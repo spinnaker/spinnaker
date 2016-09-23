@@ -152,7 +152,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
             'stack': bindings['TEST_STACK'],
             'detail': self.__lb_detail,
             'serviceType': 'ClusterIP',
-            'account': bindings['KUBE_CREDENTIALS'],
+            'account': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
             'namespace': 'default',
             'ports': [{'protocol':'TCP', 'port':80, 'name':'http'}],
             'externalIps': [],
@@ -191,14 +191,14 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
             'cloudProvider': 'kubernetes',
             'loadBalancerName': self.__lb_name,
             'namespace': 'default',
-            'account': bindings['KUBE_CREDENTIALS'],
-            'credentials': bindings['KUBE_CREDENTIALS'],
+            'account': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
+            'credentials': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
             'regions': ['default'],
             'user': '[anonymous]'
         }],
         description='Delete Load Balancer: {0} in {1}'.format(
             self.__lb_name,
-            bindings['KUBE_CREDENTIALS']),
+            bindings['SPINNAKER_KUBERNETES_ACCOUNT']),
         application=self.TEST_APP)
 
     builder = kube.KubeContractBuilder(self.kube_observer)
@@ -228,7 +228,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
         job=[{
             'cloudProvider': 'kubernetes',
             'application': self.TEST_APP,
-            'account': bindings['KUBE_CREDENTIALS'],
+            'account': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
             'strategy':'',
             'targetSize': 1,
             'containers': [{
@@ -289,7 +289,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
       'cloudProvider': 'kubernetes',
       'selectionStrategy': 'NEWEST',
       'onlyEnabled': True,
-      'credentials': self.bindings['KUBE_CREDENTIALS'],
+      'credentials': self.bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
       'cluster': frigga.Naming.cluster(
           app=self.TEST_APP, stack=self.bindings['TEST_STACK']),
       'imageNamePattern': self.__desired_image_pattern
@@ -400,8 +400,8 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
         job=[{
             'cloudProvider': 'kubernetes',
             'type': 'destroyServerGroup',
-            'account': bindings['KUBE_CREDENTIALS'],
-            'credentials': bindings['KUBE_CREDENTIALS'],
+            'account': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
+            'credentials': bindings['SPINNAKER_KUBEBERNETES_ACCOUNT'],
             'user': '[anonymous]',
             'serverGroupName': group_name,
             'asgName': group_name,

@@ -129,7 +129,7 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
     payload = self.agent.type_to_payload(
         'upsertAmazonLoadBalancerDescription',
         {
-            'credentials': bindings['AWS_CREDENTIALS'],
+            'credentials': bindings['SPINNAKER_AWS_ACCOUNT'],
             'clusterName': bindings['TEST_APP'],
             'name': detail_raw_name,
             'availabilityZones': {region: avail_zones},
@@ -179,7 +179,7 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
     payload = self.agent.type_to_payload(
         'deleteAmazonLoadBalancerDescription',
         {
-            'credentials': self.bindings['AWS_CREDENTIALS'],
+            'credentials': self.bindings['SPINNAKER_AWS_ACCOUNT'],
             'regions': [region],
             'loadBalancerName': self.__use_lb_name
         })

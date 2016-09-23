@@ -220,7 +220,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
           'provider': 'gce',
           'stack': bindings['TEST_STACK'],
           'detail': self.__short_lb_name,
-          'credentials': bindings['GCE_CREDENTIALS'],
+          'credentials': bindings['SPINNAKER_GOOGLE_ACCOUNT'],
           'region': bindings['TEST_GCE_REGION'],
           'ipProtocol': 'TCP',
           'portRange': spec['port'],
@@ -267,12 +267,12 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
           'loadBalancerName': self.__full_lb_name,
           'region': bindings['TEST_GCE_REGION'],
           'regions': [bindings['TEST_GCE_REGION']],
-          'credentials': bindings['GCE_CREDENTIALS'],
+          'credentials': bindings['SPINNAKER_GOOGLE_ACCOUNT'],
           'user': '[anonymous]'
        }],
        description='Delete Load Balancer: {0} in {1}:{2}'.format(
           self.__full_lb_name,
-          bindings['GCE_CREDENTIALS'],
+          bindings['SPINNAKER_GOOGLE_ACCOUNT'],
           bindings['TEST_GCE_REGION']),
       application=self.TEST_APP)
 
@@ -347,7 +347,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
         'instanceType': 'f1-micro',
         'image': None,
         'targetSize': 1,
-        'account': self.bindings['GCE_CREDENTIALS']
+        'account': self.bindings['SPINNAKER_GOOGLE_ACCOUNT']
       }]
     }
 
@@ -356,7 +356,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     result = {
       'cloudProvider': cloudProvider,
       'cloudProviderType': cloudProvider,
-      'credentials': self.bindings['GCE_CREDENTIALS'],
+      'credentials': self.bindings['SPINNAKER_GOOGLE_ACCOUNT'],
       'name': 'Destroy Server Group',
       'refId': 'DESTROY',
       'requisiteStageRefIds': requisiteStages or [],
@@ -380,7 +380,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
       'target': 'current_asg_dynamic',
       'cluster': '{app}-{stack}'.format(
           app=self.TEST_APP, stack=self.bindings['TEST_STACK']),
-      'credentials': self.bindings['GCE_CREDENTIALS']
+      'credentials': self.bindings['SPINNAKER_GOOGLE_ACCOUNT']
     }
     result.update(kwargs)
     return result

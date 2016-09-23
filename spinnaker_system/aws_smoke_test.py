@@ -196,7 +196,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
             # 'loadBalancerName': load_balancer_name,
 
 
-            'credentials': bindings['AWS_CREDENTIALS'],
+            'credentials': bindings['SPINNAKER_AWS_ACCOUNT'],
             'name': load_balancer_name,
             'stack': bindings['TEST_STACK'],
             'detail': self.lb_detail,
@@ -276,13 +276,13 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
             'type': 'deleteLoadBalancer',
             'cloudProvider': 'aws',
 
-            'credentials': self.bindings['AWS_CREDENTIALS'],
+            'credentials': self.bindings['SPINNAKER_AWS_ACCOUNT'],
             'regions': [self.bindings['TEST_AWS_REGION']],
             'loadBalancerName': load_balancer_name
         }],
         description='Delete Load Balancer: {0} in {1}:{2}'.format(
             load_balancer_name,
-            self.bindings['AWS_CREDENTIALS'],
+            self.bindings['SPINNAKER_AWS_ACCOUNT'],
             self.bindings['TEST_AWS_REGION']),
         application=self.TEST_APP)
 
@@ -324,7 +324,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
             'type': 'createServerGroup',
             'cloudProvider': 'aws',
             'application': self.TEST_APP,
-            'credentials': bindings['AWS_CREDENTIALS'],
+            'credentials': bindings['SPINNAKER_AWS_ACCOUNT'],
             'strategy':'',
             'capacity': {'min':2, 'max':2, 'desired':2},
             'targetHealthyDeployPercentage': 100,
@@ -338,7 +338,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
             'terminationPolicies': ['Default'],
 
             'availabilityZones': {region: avail_zones},
-            'keyPair': bindings['AWS_CREDENTIALS'] + '-keypair',
+            'keyPair': bindings['SPINNAKER_AWS_ACCOUNT'] + '-keypair',
             'suspendedProcesses': [],
             # TODO(ewiseblatt): Inquiring about how this value is determined.
             # It seems to be the "Name" tag value of one of the VPCs
@@ -354,7 +354,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
             'amiName': bindings['TEST_AWS_AMI'],
             'instanceType': 'm1.small',
             'useSourceCapacity': False,
-            'account': bindings['AWS_CREDENTIALS'],
+            'account': bindings['SPINNAKER_AWS_ACCOUNT'],
             'user': '[anonymous]'
         }],
         description='Create Server Group in ' + group_name,
@@ -391,7 +391,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
             'asgName': group_name,
             'region': bindings['TEST_AWS_REGION'],
             'regions': [bindings['TEST_AWS_REGION']],
-            'credentials': bindings['AWS_CREDENTIALS'],
+            'credentials': bindings['SPINNAKER_AWS_ACCOUNT'],
             'user': '[anonymous]'
         }],
         application=self.TEST_APP,

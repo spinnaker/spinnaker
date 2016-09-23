@@ -1,22 +1,226 @@
 # Summary
 
-This directory is not part of citest, rather it is here for temporary
-convenience sharing the repository and integration tests for Spinnaker that
-use citest.
+These Spinnaker integration tests depend on the [Cloud Integration Testing]
+(https://github.com/google/citest) python package. You'll need to run the
+setup script to install the dependencies into your environment, then can
+run the tests at will.
 
-The `spinnaker_testing` package is a package adapting Spinnaker to citest
-including a base SpinnakerAgent along with specializations for different
-subsystems (e.g. Gate and Kato) that understand the application protocols
-used for status and provide some helper functions.
+To write new tests refer to existing tests and see
+[the citest README.md](https://github.com/google/citest/blob/master/README.md)
+gifor the time being, and ask questions on the [Spinnaker #dev slack channel]
+(https://spinnakerteam.slack.com/messages/dev/).
 
-The `spinnaker_system` directory contains system/integration tests for
-spinnaker using citest and `spinnaker_testing` packages.
+# About This Subtree
 
-The run the tests in `spinnaker_system` you will need to set your `PYTHONPATH`.
-The simplest way to do this is from the commandline. The path needs to point
-to the repository root directory for citest, and this `spinnaker` directory
-for the spinnaker testing temporarily added here.
+This part of the repository is divided into the following parts:
 
+Directory | Purpose
+----------|--------
+'spinnaker_system'  | The actual integration tests.
+'spinnaker_testing' | Support modules for the spinnaker tests.
+'test_tests'        | Unit tests for parts of spinnaker_testing.
+
+
+# Installing dependencies
+
+These tests are written in Python. Instead of installing the dependencies
+into system folders consider using something like [virtualenv]
+(https://virtualenv.pypa.io/en/stable/). This is optional,
+but a suggestion.
+
+
+    # Install the python package manager if you dont already have it
+    sudo apt-get install python-pip
+
+    # Install virtualenv tools  and setup a Virtual Environment.
+    pip install virtualenv
+
+    # Create an environment to use.
+    MYENV=my-virtualenv   # to clarify documentation
+    virtualenv $MYENV     # create a new environment directory
+
+    # Use the environment for a session (in the current shell).
+    source $MYENV/bin/activate  # use $MYENV in the current shell
+    ...
+    deactivate            # leave the virtualenv when you are done
+
+
+If you are using Virtual Env, then all the remaining instructions
+would be performed within the virtual environment, entered by
+`source $MYENV/bin/activate` within the shell you run the commands in.
+
+## Install Platform Dependencies
+These are not yet automated. Depending on the platforms involved either
+by hosting Spinnaker or being the platform the test is running against,
+you may need additional tools.
+
+Platform | Tools
+Amazon Web Services | awscli
+Google Cloud Platform | gcloud
+Kubernetes | kube-ctrl
+
+
+
+## Install Spinnaker citest Dependencies
+`Run pip install -r requirements.txt.`
+
+
+# Preparing a deployment to test against
+Normally these tests do not require any particular type of deployment.
+The tests themselves can be run from anywhere provided they can gain
+access to the microservices and backend services they need to talk to.
+
+You can run the tests against any standard deployment. The tests will 
+typically inspect your configuration and adapt themselves if possible
+while providing command-line flags for remaining parameters or overrides
+for what it may find.
+
+Some tests require unique parameters, or may require certain features
+enabled in order to test them, but even so do not typically dictate any
+particular values beyond the feature being properly enabled in standard
+ways.
+
+2016-09-22 The documentation is sparse at this time. Currently only the
+bake_and_deploy test requires special configuration, which is basically
+a Jenkins job that it can trigger. Even there, the triggering information is
+passed to the test via command-line arguments. Instructions for this can be
+found in the test itself: [bake_and_deploy_test.py]
+(https://github.com/google/citest/blob/master/spinnaker/spinnaker_system/bake_and_deploy_test.py)
+
+## Providing access
+If your deployment is firewalled in a way that the machine you are running
+from cannot normally access the service endpoints then you will need to tunnel
+in or use one of the other suggestions recommended for users to gain access
+to the Spinnaker UI. While these tests do not use the UI, the networking
+techniques are the same.
+
+If Spinnaker is deployed on the Google Cloud Platform, the tests will
+tunnel into them if you use the --gce_[project|zone|instance] parameters.
+Otherwise, if you use --native_hostname then you must tunnel in (or provide
+some other means).
+
+### Providing the SSH passphrase
+If spinnaker tunnels on your behalf, it will need your ssh passphrase.
+Since the tests are meant to be automated, these can be implicit by
+running something like ssh-agent in the shell you are running the tests from,
+or you can create a file containing the passphrase and pass the path on the
+command-line using --ssh_passphrase_file. If using the file, be sure to protect
+it using `chmod 200`.
+
+
+# Running the tests
+
+The following parameters can be passed on the command-line using a flag
+`--`*<parameter_name>*`=`*<parameter_value>*.
+
+## Standard Parameters For Talking To Spinnaker
+
+### Platform Independent Parameters
+Flag | Description
+-----|------------
+native_hostname | The hostname (or IP address) for the Spinnaker endpoint.
+native_port | The portnumber for the Spinnaker endpoint.
+
+
+### When Spinnaker Is Deployed on GCE
+When spinnaker is on GCE you can use the `native_hostname` flag, or
+these custom flags which will locate the instance for you. If using the
+flags below, citest will automatically attempt to tunnel into the instance
+if it is not already reachable.
+
+Flag | Description
+-----|------------
+gce_project | The Google Cloud Project *running spinnaker* is used to locate spinnaker on GCE.
+gce_instance | The name of the Google Cloud Instance that the instance is running on.
+gce_zone | The name of the Google Cloud Platform zone the instanve is in.
+gce_ssh_passphrase_file | The path to the passphrase file for tunneling. Alternatively, you can run something like ssh-agent.
+
+
+## Standard Parameters Controlling Created Resources
+These parameters are typically obtained from the deployed Spinnaker where
+possible, and if not have default values so do not need to be specified.
+
+Flag | Description
+-----|------------
+test_stack | The default Spinnaker Stack to specify in test operations. Setting this could be helpful to identify where resources have come from if you have a shared environment where multiple people or accounts can be running tests independently.
+test_app | The Spinnaker application name to use for the test. The tests usually set a default unique name.
+managed_gce_project | The Google Cloud Platform for the project that GCE is
+managing. 
+test_gce_zone | The Google Cloud Platform zone you prefer to deploy test
+resources into.
+test_gce_region | The Google Cloud Platform region you prefer to deploy test
+resources into.
+test_gce_image_name | The default Google Compute Engine image name to use
+when creating test instances requiring an image.
+aws_iam_role | The Spinnaker IAM role name for test operations.
+test_aws_zone | The Amazon Web Services zone you prefer to deploy test
+resources into.
+test_aws_region | The Amazon Web Services region you prefer to deploy test
+resources into.
+test_aws_ami | The default Amazon Web Services Machine Image name to use
+when creating test instances requiring an image.
+test_aws_vpc_id' | The default AWS VpcId to use when creating test resources.
+test_aws_security_group_id: The default AWS SecurityGroupId to use when
+creating test resources.
+
+
+### Account Information
+Flag | Description
+-----|------------
+spinnaker_google_credentials | The name of the Spinnaker [clouddriver] account that you wish to use for Google operations. If not specified, this will use the configured primary account.
+spinnaker_kubernetes_credentials |  The name of the Spinnaker [clouddriver] account that you wish to use for Kubernetes operations. If not specified, this will use the configured primary account.
+spinnaker_aws_credentials |  The name of the Spinnaker [clouddriver] account that you wish to use for Amazon Web Services operations. If not specified, this will use the configured primary account.
+
+
+## Standard Parameters For Configuring Observers
+Flag | Description
+-----|------------
+gce_credentials_path | The path to a service account JSON credentials file used by the test to verify effects on GCE. The permissions needed on the account may vary depending on what the test is doing. You can use the same service account that you have configured spinnaker with,
+aws_profile | The name of the awscli profile to use when verifying effects on AWS. The permissions needed in the profile may vary depending on what the test is doing. You can use the same AWS credentials as those you configured spinnaker to use.
+
+
+
+## Typical Invocations
+
+Typical tests assume that the platform running Spinnaker is independent of
+the platform providing the resources that Spinnaker is managing. Therefore,
+a typical invocation has three sets of commandline parameters.
+One set specifies "spinnaker" things, another specifies "managed resource"
+things, and lastly, additional "observer" things.
+
+    PYTHONPATH=.:spinnaker \
+    python spinnaker/tests/<fixture name>.py \
+    <Talking to Spinnaker Parameters> \
+    <Managing Resource Parameters> \
+    <Observer Parameters>
+
+### Talking to Spinnaker Parameters
+#### Google
+        --gce_project=$PROJECT \
+        --gce_zone=$ZONE \
+        --gce_instance=$INSTANCE \
+        --gce_ssh_passphrase_file=<path to optional passphrase file>
+
+#### Aws
+        --native_hostname=$HOST
+        
+#### Other
+        --native_hostname=$HOST
+
+
+### Managed Resource Parameters
+
+### Observer Parameters
+#### Google
+        --gce_credentials_path=<path to downloaded JSON credentials>
+
+### Aws
+        --aws_profile=$PROFILE
+
+### Kubernetes
+        None (when on GCE)
+
+# Usage Examples
 
 Assuming you are in the repository root directory and testing against GCE
 where:
@@ -64,4 +268,3 @@ then:
 Note that `aws_kato_test.py` is written to specifically test managing AWS
 instances regardless of where Spinnaker is running from. So you can run
 it against a GCE deployment, but will still be observing changes on AWS.
-

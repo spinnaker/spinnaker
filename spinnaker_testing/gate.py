@@ -204,7 +204,7 @@ class GateAgent(sk.SpinnakerAgent):
     """Create a Gate operation that will create a new application.
 
     Args:
-      bindings: [dict] key/value pairs including GCE_CREDENTIALS
+      bindings: [dict] key/value pairs including SPINNAKER_GOOGLE_ACCOUNT
           and optional TEST_EMAIL.
       application: [string] Name of application to create.
       description: [string] Text description field for the operation payload.
@@ -212,7 +212,7 @@ class GateAgent(sk.SpinnakerAgent):
     Returns:
       AgentOperation.
     """
-    account_name = bindings['GCE_CREDENTIALS']
+    account_name = bindings['SPINNAKER_PRIMARY_ACCOUNT_NAME']
     email = bindings.get('TEST_EMAIL', 'testuser@testhost.org')
     payload = self.make_json_payload_from_kwargs(
         job=[{
@@ -235,14 +235,14 @@ class GateAgent(sk.SpinnakerAgent):
     """Create a Gate operation that will delete an existing application.
 
     Args:
-      bindings: [dict] key/value pairs including GCE_CREDENTIALS
+      bindings: [dict] key/value pairs including SPINNAKER_PRIMARY_ACCOUNT_NAME
           and optional TEST_EMAIL.
       application: [string] Name of application to create.
 
     Returns:
       AgentOperation.
     """
-    account_name = bindings['GCE_CREDENTIALS']
+    account_name = bindings['SPINNAKER_PRIMARY_ACCOUNT_NAME']
     payload = self.make_json_payload_from_kwargs(
         job=[{
             'type': 'deleteApplication',

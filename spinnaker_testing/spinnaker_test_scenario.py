@@ -92,6 +92,224 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
                                           status_class=status_class)
 
   @classmethod
+  def _initSpinnakerLocationParameters(cls, parser, defaults):
+    """Initialize arguments for locating spinnaker itself.
+    
+      parser: [argparse.ArgumentParser]
+      defaults: [dict] Default binding value overrides.
+         This is used to initialize the default commandline parameters.
+    """
+    subsystem_name = 'the server to test'
+
+    # This could probably be removed fairly easily.
+    # It probably isnt useful anymore.
+    parser.add_argument(
+        '--host_platform', default=defaults.get('HOST_PLATFORM', None),
+        help='Platform running spinnaker (gce, native).'
+             ' If this is not explicitly set, then try to'
+             ' guess based on other parameters set.')
+
+    parser.add_argument(
+        '--native_hostname', default=defaults.get('NATIVE_HOSTNAME', None),
+        help='Host name that {system} is running on.'
+             ' This parameter is only used if the spinnaker host platform'
+             ' is "native".'.format(system=subsystem_name))
+    parser.add_argument(
+        '--native_port', default=defaults.get('NATIVE_PORT', None),
+        help='Port number that {system} is running on.'
+             ' This parameter is only used if the spinnaker host platform'
+             ' is "native". It is not needed if the system is using its'
+             ' standard port.'.format(system=subsystem_name))
+
+    parser.add_argument(
+        '--gce_project', default=defaults.get('GCE_PROJECT', None),
+        help='The GCE project that {system} is running within.'
+             ' This parameter is only used if the spinnaker host platform'
+             ' is GCE.'.format(system=subsystem_name))
+    parser.add_argument(
+        '--gce_zone', default=defaults.get('GCE_ZONE', None),
+        help='The GCE zone that {system} is running within.'
+             ' This parameter is only used if the spinnaker host platform'
+             ' is GCE.'.format(system=subsystem_name))
+    parser.add_argument(
+        '--gce_instance', default=defaults.get('GCE_INSTANCE', None),
+        help='The GCE instance name that {system} is running on.'
+             ' This parameter is only used if the spinnaker host platform'
+             ' is GCE.'.format(system=subsystem_name))
+    parser.add_argument(
+        '--gce_ssh_passphrase_file',
+        default=defaults.get('GCE_SSH_PASSPHRASE_FILE', None),
+        help='Specifying a file containing the SSH passphrase'
+             ' will permit tunneling or the execution of remote'
+             ' commands into the --gce_instance if needed.')
+
+    # TODO(ewiseblatt): 20160923
+    # This is probably obsoleted. It is only used by the gcloud agent,
+    # which is only used to establish a tunnel. I dont think the credentials
+    # are needed there, but your ssh passphrase is (which is unrelated).
+    parser.add_argument(
+        '--gce_service_account',
+        default=defaults.get('GCE_SERVICE_ACCOUNT', None),
+        help='The GCE service account to use when interacting with the'
+             ' gce_instance. The default will be the default configured'
+             ' account on the local machine. To change the default account,'
+             ' use "gcloud config set account". To active service accounts,'
+             ' use "gcloud auth activate-service-account".'
+             ' This parameter is only used if the spinnaker host platform'
+             ' is GCE.')
+
+  @classmethod
+  def _initGoogleOperationConfigurationParameters(cls, parser, defaults):
+    """Initialize arguments for configuring operations for google.
+
+      parser: [argparse.ArgumentParser]
+      defaults: [dict] Default binding value overrides.
+         This is used to initialize the default commandline parameters.
+    """
+    parser.add_argument(
+        '--spinnaker_primary_account_name',
+        default=defaults.get('SPINNAKER_PRIMARY_ACCOUNT_NAME', None),
+        help='Spinnaker account name to use for test operations.'
+             ' Only used when managing jobs running on GCE.'
+             ' If left empty then use the configured primary account.')
+    parser.add_argument(
+        '--spinnaker_google_account',
+        default=defaults.get('SPINNAKER_GOOGLE_ACCOUNT', None),
+        help='Spinnaker account name to use for test operations against GCE.'
+             ' Only used when managing resources on GCE.'
+             ' If left empty then use the configured primary account.')
+    parser.add_argument(
+        '--gce_credentials',
+        dest='spinnaker_google_account',
+        help='DEPRECATED. Replaced by --spinnaker_google_account')
+    parser.add_argument(
+        '--managed_gce_project', dest='google_primary_managed_project_id',
+        help='GCE project to test instances in (when managing GCE).')
+    parser.add_argument(
+        '--test_gce_zone',
+        default=defaults.get('TEST_GCE_ZONE', 'us-central1-f'),
+        help='The GCE zone to test generated instances in (when managing GCE).'
+             ' This implies the GCE region as well.')
+    parser.add_argument(
+        '--test_gce_region',
+        default=defaults.get('TEST_GCE_REGION', ''),
+        help='The GCE region to test generated instances in (when managing'
+             ' GCE). If not specified, then derive it from --test_gce_zone.')
+    parser.add_argument(
+        '--test_gce_image_name',
+        default=defaults.get('TEST_GCE_IMAGE_NAME',
+                             'ubuntu-1404-trusty-v20160919'),
+        help='Default Google Compute Engine image name to use when'
+             ' creating test instances.')
+
+  @classmethod
+  def _initAwsOperationConfigurationParameters(cls, parser, defaults):
+    """Initialize arguments for configuring operations for aws.
+
+      parser: [argparse.ArgumentParser]
+      defaults: [dict] Default binding value overrides.
+         This is used to initialize the default commandline parameters.
+    """
+    parser.add_argument(
+        '--spinnaker_aws_account',
+        default=defaults.get('SPINNAKER_AWS_ACCOUNT', None),
+        help='Spinnaker account name to use for test operations against AWS.'
+             ' Only used when managing resources on AWS.')
+    parser.add_argument(
+        '--aws_credentials',
+        dest='spinnaker_aws_account',
+        help='DEPRECATED. Replaced by --spinnaker_aws_account')
+
+    parser.add_argument(
+        '--aws_iam_role', default=defaults.get('AWS_IAM_ROLE', None),
+        help='Spinnaker IAM role name for test operations.'
+             ' Only used when managing jobs running on AWS.')
+    parser.add_argument(
+        '--test_aws_zone',
+        default=defaults.get('TEST_AWS_ZONE', 'us-east-1c'),
+        help='The AWS zone to test generated instances in (when managing AWS).'
+             ' This implies the AWS region as well.')
+    parser.add_argument(
+        '--test_aws_region',
+        default=defaults.get('TEST_AWS_REGION', ''),
+        help='The GCE region to test generated instances in (when managing'
+             ' AWS). If not specified, then derive it fro --test_aws_zone.')
+    parser.add_argument(
+        '--test_aws_ami',
+        default=defaults.get(
+            'TEST_AWS_AMI',
+            'bitnami-tomcatstack-7.0.63-1-linux-ubuntu-14.04.1-x86_64-ebs'),
+        help='Default Amazon AMI to use when creating test instances.'
+             ' The default image will listen on port 80.')
+    parser.add_argument(
+        '--test_aws_vpc_id',
+        default=defaults.get('TEST_AWS_VPC_ID', None),
+        help='Default AWS VpcId to use when creating test resources.')
+    parser.add_argument(
+        '--test_aws_security_group_id',
+        default=defaults.get('TEST_AWS_SECURITY_GROUP_ID', None),
+        help='Default AWS SecurityGroupId when creating test resources.')
+
+  @classmethod
+  def _initKubeOperationConfigurationParameters(cls, parser, defaults):
+    """Initialize arguments for configuring operations for kubernetes.
+
+      parser: [argparse.ArgumentParser]
+      defaults: [dict] Default binding value overrides.
+         This is used to initialize the default commandline parameters.
+    """
+    parser.add_argument(
+        '--spinnaker_kubernetes_account',
+        default=defaults.get('SPINNAKER_KUBERNETES_ACCOUNT', None),
+        help='Spinnaker account name to use for test operations against'
+             ' Kubernetes. Only used when managing jobs running on'
+             ' Kubernetes.')
+
+    parser.add_argument(
+        '--kube_credentials',
+        dest='spinnaker_kubernetes_account',
+        help='DEPRECATED. Replaced by --spinnaker_kubernetes_account')
+
+  @classmethod
+  def _initOperationConfigurationParameters(cls, parser, defaults):
+    """Initialize arguments for configuring operations and resources to create.
+    
+      parser: [argparse.ArgumentParser]
+      defaults: [dict] Default binding value overrides.
+         This is used to initialize the default commandline parameters.
+    """
+    parser.add_argument(
+        '--test_stack', default=defaults.get('TEST_STACK', 'test'),
+        help='Default Spinnaker stack decorator.')
+
+    parser.add_argument(
+        '--test_app', default=defaults.get('TEST_APP', cls.__name__.lower()),
+        help='Default Spinnaker application name to use with test.')
+
+    cls._initGoogleOperationConfigurationParameters(parser, defaults)
+    cls._initAwsOperationConfigurationParameters(parser, defaults)
+    cls._initKubeOperationConfigurationParameters(parser, defaults)
+
+  @classmethod
+  def _initObservationConfigurationParameters(cls, parser, defaults):
+    """Initialize arguments for configuring observers.
+    
+      parser: [argparse.ArgumentParser]
+      defaults: [dict] Default binding value overrides.
+         This is used to initialize the default commandline parameters.
+    """
+    parser.add_argument(
+        '--gce_credentials_path',
+        default=defaults.get('GCE_CREDENTIALS_PATH', None),
+        help='A path to the JSON file with credentials to use for observing'
+             ' tests run against Google Cloud Platform.')
+
+    parser.add_argument(
+        '--aws_profile', default=defaults.get('AWS_PROFILE', None),
+        help='aws command-line tool --profile parameter when observing AWS.')
+
+
+  @classmethod
   def initArgumentParser(cls, parser, defaults=None):
     """Initialize command line argument parser.
 
@@ -104,161 +322,9 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
         parser, defaults=defaults)
 
     defaults = defaults or {}
-    subsystem_name = 'the server to test'
-    parser.add_argument(
-        '--host_platform', default=defaults.get('HOST_PLATFORM', None),
-        help='Platform running spinnaker (gce, native).'
-             ' If this is not explicitly set, then try to'
-             ' guess based on other parameters set.')
-
-    # Native provider paramters used to locate Spinnaker.
-    parser.add_argument(
-        '--native_hostname', default=defaults.get('NATIVE_HOSTNAME', None),
-        help='Host name that {system} is running on.'
-             ' This parameter is only used if the spinnaker host platform'
-             ' is "native".'.format(system=subsystem_name))
-
-    parser.add_argument(
-        '--native_port', default=defaults.get('NATIVE_PORT', None),
-        help='Port number that {system} is running on.'
-             ' This parameter is only used if the spinnaker host platform'
-             ' is "native". It is not needed if the system is using its'
-             ' standard port.'.format(system=subsystem_name))
-
-
-    # GCE Provider parameters used to locate Spinnaker itself.
-    parser.add_argument(
-        '--gce_project', default=defaults.get('GCE_PROJECT', None),
-        help='The GCE project that {system} is running within.'
-             ' This parameter is only used if the spinnaker host platform'
-             ' is GCE.'.format(system=subsystem_name))
-
-    parser.add_argument(
-        '--gce_zone', default=defaults.get('GCE_ZONE', None),
-        help='The GCE zone that {system} is running within.'
-             ' This parameter is only used if the spinnaker host platform'
-             ' is GCE.'.format(system=subsystem_name))
-    parser.add_argument(
-        '--gce_instance', default=defaults.get('GCE_INSTANCE', None),
-        help='The GCE instance name that {system} is running on.'
-             ' This parameter is only used if the spinnaker host platform'
-             ' is GCE.'.format(system=subsystem_name))
-
-    parser.add_argument(
-        '--gce_service_account',
-        default=defaults.get('GCE_SERVICE_ACCOUNT', None),
-        help='The GCE service account to use when interacting with the'
-             ' gce_instance. The default will be the default configured'
-             ' account on the local machine. To change the default account,'
-             ' use "gcloud config set account". To active service accounts,'
-             ' use "gcloud auth activate-service-account".'
-             ' This parameter is only used if the spinnaker host platform'
-             ' is GCE.')
-
-    parser.add_argument(
-        '--gce_credentials_path',
-        default=defaults.get('GCE_CREDENTIALS_PATH', None),
-        help='A path to the JSON file with credentials to use for observing'
-             ' tests run against Google Cloud Platform.')
-
-    parser.add_argument(
-        '--gce_ssh_passphrase_file',
-        default=defaults.get('GCE_SSH_PASSPHRASE_FILE', None),
-        help='Specifying a file containing the SSH passphrase'
-             ' will permit tunneling or the execution of remote'
-             ' commands into the --gce_instance if needed.')
-
-    # Google Cloud management parameters
-    parser.add_argument(
-        '--gce_credentials', default=defaults.get('GCE_CREDENTIALS', None),
-        help='Spinnaker account name to use for test operations.'
-             ' Only used when managing jobs running on GCE.'
-             ' If left empty then use the configured primary account.')
-
-    # Kubernetes management parameters
-    parser.add_argument(
-        '--kube_credentials', default=defaults.get('KUBE_CREDENTIALS', None),
-        help='Spinnaker account name to use for test operations.'
-             ' Only used when managing jobs running on Kubernetes.')
-
-
-    # AWS management parameters
-    parser.add_argument(
-        '--aws_profile', default=defaults.get('AWS_PROFILE', None),
-        help='aws command-line tool --profile parameter when observing AWS.')
-
-    parser.add_argument(
-        '--aws_credentials', default=defaults.get('AWS_CREDENTIALS', None),
-        help='Spinnaker account name to use for test operations.'
-             ' Only used when managing jobs running on AWS.')
-
-    parser.add_argument(
-        '--aws_iam_role', default=defaults.get('AWS_IAM_ROLE', None),
-        help='Spinnaker IAM role name for test operations.'
-             ' Only used when managing jobs running on AWS.')
-
-    # Spinnaker Stuff
-    parser.add_argument(
-        '--managed_gce_project', dest='google_primary_managed_project_id',
-        help='GCE project to test instances in'
-             ' if not determined by {system}.'.format(system=subsystem_name))
-
-    parser.add_argument(
-        '--test_gce_zone',
-        default=defaults.get('TEST_GCE_ZONE', 'us-central1-f'),
-        help='The GCE zone to test generated instances in (when managing GCE).'
-             ' This implies the GCE region as well.')
-
-    parser.add_argument(
-        '--test_gce_region',
-        default=defaults.get('TEST_GCE_REGION', ''),
-        help='The GCE region to test generated instances in (when managing'
-             ' GCE). If not specified, then derive it fro --test_gce_zone.')
-
-    parser.add_argument(
-        '--test_aws_zone',
-        default=defaults.get('TEST_AWS_ZONE', 'us-east-1c'),
-        help='The AWS zone to test generated instances in (when managing AWS).'
-             ' This implies the AWS region as well.')
-
-    parser.add_argument(
-        '--test_aws_region',
-        default=defaults.get('TEST_AWS_REGION', ''),
-        help='The GCE region to test generated instances in (when managing'
-             ' AWS). If not specified, then derive it fro --test_aws_zone.')
-
-    parser.add_argument(
-        '--test_gce_image_name',
-        default=defaults.get('TEST_GCE_IMAGE_NAME',
-                             'ubuntu-1404-trusty-v20160610'),
-        help='Default Google Compute Engine image name to use when'
-             ' creating test instances.')
-
-    parser.add_argument(
-        '--test_aws_ami',
-        default=defaults.get(
-            'TEST_AWS_AMI',
-            'bitnami-tomcatstack-7.0.63-1-linux-ubuntu-14.04.1-x86_64-ebs'),
-        help='Default Amazon AMI to use when creating test instances.'
-             ' The default image will listen on port 80.')
-
-    parser.add_argument(
-        '--test_aws_vpc_id',
-        default=defaults.get('TEST_AWS_VPC_ID', None),
-        help='Default AWS VpcId to use when creating test resources.')
-    parser.add_argument(
-        '--test_aws_security_group_id',
-        default=defaults.get('TEST_AWS_SECURITY_GROUP_ID', None),
-        help='Default AWS SecurityGroupId when creating test resources.')
-
-    parser.add_argument(
-        '--test_stack', default=defaults.get('TEST_STACK', 'test'),
-        help='Default Spinnaker stack decorator.')
-
-    parser.add_argument(
-        '--test_app', default=defaults.get('TEST_APP', cls.__name__.lower()),
-        help='Default Spinnaker application name to use with test.')
-
+    cls._initSpinnakerLocationParameters(parser, defaults=defaults)
+    cls._initOperationConfigurationParameters(parser, defaults=defaults)
+    cls._initObservationConfigurationParameters(parser, defaults=defaults)
 
   @property
   def gcp_observer(self):
@@ -379,7 +445,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
 
   def __init_kubernetes_bindings(self):
     bindings = self.bindings  # base class made a copy
-    if bindings.get('KUBE_CREDENTIALS'):
+    if bindings.get('SPINNAKER_KUBERNETES_ACCOUNT'):
       self.__kube_observer = kube.KubeCtlAgent()
     else:
       self.__kube_observer = None
@@ -405,16 +471,23 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
           pass
         self.bindings[key] = value
 
-    if not self.bindings['GCE_CREDENTIALS']:
-      self.bindings['GCE_CREDENTIALS'] = self.agent.deployed_config.get(
-          'providers.google.primaryCredentials.name', None)
+    if not self.bindings['SPINNAKER_PRIMARY_ACCOUNT_NAME']:
+      self.bindings['SPINNAKER_PRIMARY_ACCOUNT_NAME'] = (
+          self.agent.deployed_config.get(
+              'services.default.primaryAccountName', None))
 
-    if not self.bindings['KUBE_CREDENTIALS']:
-      self.bindings['KUBE_CREDENTIALS'] = self.agent.deployed_config.get(
-          'providers.kubernetes.primaryCredentials.name', None)
+    if not self.bindings['SPINNAKER_GOOGLE_ACCOUNT']:
+      self.bindings['SPINNAKER_GOOGLE_ACCOUNT'] = (
+          self.agent.deployed_config.get(
+              'providers.google.primaryCredentials.name', None))
 
-    if not self.bindings['AWS_CREDENTIALS']:
-      self.bindings['AWS_CREDENTIALS'] = self.agent.deployed_config.get(
+    if not self.bindings['SPINNAKER_KUBERNETES_ACCOUNT']:
+      self.bindings['SPINNAKER_KUBERNETES_ACCOUNT'] = (
+          self.agent.deployed_config.get(
+              'providers.kubernetes.primaryCredentials.name', None))
+
+    if not self.bindings['SPINNAKER_AWS_ACCOUNT']:
+      self.bindings['SPINNAKER_AWS_ACCOUNT'] = self.agent.deployed_config.get(
           'providers.aws.primaryCredentials.name', None)
 
     if not self.bindings['AWS_IAM_ROLE']:
