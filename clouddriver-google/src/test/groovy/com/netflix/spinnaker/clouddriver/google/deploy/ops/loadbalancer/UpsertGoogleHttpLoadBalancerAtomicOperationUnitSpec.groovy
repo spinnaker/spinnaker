@@ -123,6 +123,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           "name"       : DEFAULT_SERVICE,
           "backends"   : [],
           "healthCheck": hc,
+          "sessionAffinity": "NONE",
         ],
         "certificate"     : "",
         "hostRules"       : [
@@ -142,6 +143,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
                     "name"       : PM_SERVICE,
                     "backends"   : [],
                     "healthCheck": hc,
+                    "sessionAffinity": "NONE",
                   ]
                 ]
               ],
@@ -149,6 +151,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
                 "name"       : DEFAULT_PM_SERVICE,
                 "backends"   : [],
                 "healthCheck": hc,
+                "sessionAffinity": "NONE",
               ]
             ]
           ]
@@ -266,6 +269,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           "name"       : DEFAULT_SERVICE,
           "backends"   : [],
           "healthCheck": hc,
+          "sessionAffinity": "NONE",
         ],
         "certificate"     : "",
         "hostRules"       : null,
@@ -383,6 +387,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           "name"       : DEFAULT_SERVICE,
           "backends"   : [],
           "healthCheck": hc,
+          "sessionAffinity": "NONE",
         ],
         "hostRules"       : null,
       ]
@@ -499,6 +504,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           "name"       : DEFAULT_SERVICE,
           "backends"   : [],
           "healthCheck": hc,
+          "sessionAffinity": "NONE",
         ],
         "certificate"     : "",
         "hostRules"       : [
@@ -518,6 +524,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
                     "name"       : PM_SERVICE,
                     "backends"   : [],
                     "healthCheck": hc,
+                    "sessionAffinity": "NONE",
                   ]
                 ]
               ],
@@ -525,6 +532,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
                 "name"       : DEFAULT_PM_SERVICE,
                 "backends"   : [],
                 "healthCheck": hc,
+                "sessionAffinity": "NONE",
               ]
             ]
           ]
@@ -608,7 +616,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
 
       def backendServices = Mock(Compute.BackendServices)
       def backendServicesList = Mock(Compute.BackendServices.List)
-      def bsListReal = new BackendServiceList(items: [new BackendService(name: PM_SERVICE)])
+      def bsListReal = new BackendServiceList(items: [new BackendService(name: PM_SERVICE, sessionAffinity: 'NONE')])
       def backendServicesInsert = Mock(Compute.BackendServices.Insert)
       def backendServicesInsertOp = new Operation(
         targetLink: "backend-service",
@@ -648,6 +656,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           "name"       : DEFAULT_SERVICE,
           "backends"   : [],
           "healthCheck": hc,
+          "sessionAffinity": "NONE",
         ],
         "certificate"     : "",
         "hostRules"       : [
@@ -667,6 +676,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
                     "name"       : PM_SERVICE,
                     "backends"   : [],
                     "healthCheck": hc,
+                    "sessionAffinity": "NONE",
                   ]
                 ]
               ],
@@ -674,6 +684,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
                 "name"       : DEFAULT_PM_SERVICE,
                 "backends"   : [],
                 "healthCheck": hc,
+                "sessionAffinity": "NONE",
               ]
             ]
           ]
@@ -761,7 +772,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
 
       def backendServices = Mock(Compute.BackendServices)
       def backendServicesList = Mock(Compute.BackendServices.List)
-      def bsListReal = new BackendServiceList(items: [new BackendService(name: PM_SERVICE)])
+      def bsListReal = new BackendServiceList(items: [new BackendService(name: PM_SERVICE, sessionAffinity: 'NONE')])
       def backendServicesInsert = Mock(Compute.BackendServices.Insert)
       def backendServicesInsertOp = new Operation(
         targetLink: "backend-service",
@@ -802,6 +813,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           "name"       : DEFAULT_SERVICE,
           "backends"   : [],
           "healthCheck": hc,
+          "sessionAffinity": "NONE",
         ],
         "certificate"     : "",
         "hostRules"       : [
@@ -821,6 +833,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
                     "name"       : PM_SERVICE,
                     "backends"   : [],
                     "healthCheck": hc,
+                    "sessionAffinity": "NONE",
                   ]
                 ]
               ],
@@ -828,6 +841,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
                 "name"       : DEFAULT_PM_SERVICE,
                 "backends"   : [],
                 "healthCheck": hc,
+                "sessionAffinity": "NONE",
               ]
             ]
           ]
@@ -915,7 +929,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
 
       def backendServices = Mock(Compute.BackendServices)
       def backendServicesList = Mock(Compute.BackendServices.List)
-      def bsListReal = new BackendServiceList(items: [new BackendService(name: PM_SERVICE)])
+      def bsListReal = new BackendServiceList(items: [new BackendService(name: PM_SERVICE, sessionAffinity: 'NONE')])
       def backendServicesInsert = Mock(Compute.BackendServices.Insert)
       def backendServicesInsertOp = new Operation(
         targetLink: "backend-service",
@@ -969,6 +983,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           "name"       : DEFAULT_SERVICE,
           "backends"   : [],
           "healthCheck": hc,
+          "sessionAffinity": "NONE",
         ],
         "certificate"     : "woot-certificate",
         "hostRules"       : [
@@ -988,6 +1003,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
                     "name"       : PM_SERVICE,
                     "backends"   : [],
                     "healthCheck": hc,
+                    "sessionAffinity": "NONE",
                   ]
                 ]
               ],
@@ -995,6 +1011,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
                 "name"       : DEFAULT_PM_SERVICE,
                 "backends"   : [],
                 "healthCheck": hc,
+                "sessionAffinity": "NONE",
               ]
             ]
           ]

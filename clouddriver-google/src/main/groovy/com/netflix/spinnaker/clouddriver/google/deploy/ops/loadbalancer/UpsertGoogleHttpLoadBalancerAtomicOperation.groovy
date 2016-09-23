@@ -26,10 +26,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleL
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHostRule
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -201,8 +198,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
       def existingService = existingServices.find { it.name == backendServiceName }
       if (existingService) {
         serviceExistsSet.add(backendService.name)
-        if (existingService.getHealthChecks().collect { GCEUtil.getLocalName(it) } !=
-            [backendService.healthCheck.name]) {
+
+        Boolean differentHealthChecks = existingService.getHealthChecks().collect { GCEUtil.getLocalName(it) } != [backendService.healthCheck.name]
+        Boolean differentSessionAffinity = GoogleSessionAffinity.valueOf(existingService.getSessionAffinity()) != backendService.sessionAffinity
+        if (differentHealthChecks || differentSessionAffinity) {
           serviceNeedsUpdatedSet.add(backendService.name)
         }
       }
@@ -251,13 +250,15 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
     // BackendServices
     backendServicesFromDescription.each { GoogleBackendService backendService ->
       String backendServiceName = backendService.name
+      String sessionAffinity = backendService?.sessionAffinity?.toString() ?: 'NONE'
 
       if (!serviceExistsSet.contains(backendService.name)) {
         task.updateStatus BASE_PHASE, "Creating backend service $backendServiceName..."
         BackendService bs = new BackendService(
           name: backendServiceName,
           portName: GoogleHttpLoadBalancingPolicy.HTTP_PORT_NAME,
-          healthChecks: [GCEUtil.buildHttpHealthCheckUrl(project, backendService.healthCheck.name)]
+          healthChecks: [GCEUtil.buildHttpHealthCheckUrl(project, backendService.healthCheck.name)],
+          sessionAffinity: sessionAffinity
         )
         def insertBackendServiceOperation = compute.backendServices().insert(project, bs).execute()
         googleOperationPoller.waitForGlobalOperation(compute, project, insertBackendServiceOperation.getName(),
@@ -267,10 +268,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
         task.updateStatus BASE_PHASE, "Updating backend service $backendServiceName..."
         def bsToUpdate = existingServices.find { it.name == backendServiceName }
         def hcName = backendService.healthCheck.name
-        bsToUpdate.with {
-          portName = GoogleHttpLoadBalancingPolicy.HTTP_PORT_NAME
-          healthChecks = [GCEUtil.buildHttpHealthCheckUrl(project, hcName)]
-        }
+        bsToUpdate.portName = GoogleHttpLoadBalancingPolicy.HTTP_PORT_NAME
+        bsToUpdate.healChecks = [GCEUtil.buildHttpHealthCheckUrl(project, hcName)]
+        bsToUpdate.sessionAffinity = sessionAffinity
+
         def updateServiceOperation = compute.backendServices().update(project, backendServiceName, bsToUpdate).execute()
         googleOperationPoller.waitForGlobalOperation(compute, project, updateServiceOperation.getName(),
           null, task, "backend service  $backendServiceName", BASE_PHASE)
