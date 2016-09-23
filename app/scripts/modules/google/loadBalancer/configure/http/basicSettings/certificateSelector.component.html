@@ -1,0 +1,26 @@
+<div class="form-group">
+  <div class="col-md-3 sm-label-right">Certificate
+    <help-field key="gce.httpLoadBalancer.certificate"></help-field>
+  </div>
+  <div class="col-md-3">
+    <ui-select ng-model="$ctrl.certificate" class="form-control input-sm">
+      <ui-select-match allow-clear placeholder="Select...">{{$select.selected.name}}</ui-select-match>
+      <ui-select-choices repeat="certificate.name as certificate in $ctrl.certificates | filter: $select.search">
+        <span ng-bind-html="certificate.name | highlight: $select.search"></span>
+      </ui-select-choices>
+    </ui-select>
+  </div>
+</div>
+<div class="form-group small" style="margin-top: 20px">
+  <div class="col-md-offset-3 col-md-6">
+    <p>
+      <span ng-if="$ctrl.refreshing"><span class="small glyphicon glyphicon-refresh glyphicon-spinning"></span></span>
+      Certificates
+      <span ng-if="!$ctrl.refreshing">last refreshed {{ $ctrl.getCertificateRefreshTime() | timestamp }}</span>
+      <span ng-if="$ctrl.refreshing"> refreshing...</span>
+    </p>
+    <p>If you're not finding a certificate that was recently added,
+      <a href ng-click="$ctrl.refreshCertificates()">click here</a> to refresh the list.
+    </p>
+  </div>
+</div>

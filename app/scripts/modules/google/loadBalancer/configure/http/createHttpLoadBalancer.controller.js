@@ -161,10 +161,9 @@ module.exports = angular.module('spinnaker.deck.gce.loadBalancer.createHttp.cont
     };
 
     $scope.$watch('ctrl.loadBalancer.certificate', (cert) => {
-      if (cert === '') {
-        delete this.loadBalancer.certificate;
+      if (!cert) {
         this.loadBalancer.portRange = 8080;
-      } else if (cert) {
+      } else {
         this.loadBalancer.portRange = 443;
       }
     });

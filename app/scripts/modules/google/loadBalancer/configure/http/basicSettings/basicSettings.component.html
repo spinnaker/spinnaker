@@ -62,16 +62,7 @@
           <validation-error message="Detail can only contain lowercase letters, numbers, and dashes(-)."></validation-error>
         </div>
       </div>
-      <div class="form-group">
-        <div class="col-md-3 sm-label-right">Certificate
-          <help-field key="gce.httpLoadBalancer.certificate"></help-field>
-        </div>
-        <div class="col-md-3">
-          <input type="text"
-                 class="form-control input-sm"
-                 ng-model="$ctrl.loadBalancer.certificate"/>
-        </div>
-      </div>
+      <gce-certificate-selector ng-model="$ctrl.loadBalancer.certificate"></gce-certificate-selector>
       <div class="form-group">
         <div class="col-md-9 col-md-offset-3" ng-if="basicSettings.loadBalancerName.$error.maxlength">
           <validation-error message="Load Balancer name can only be 63 characters."></validation-error>

@@ -11,10 +11,15 @@ module.exports = angular.module('spinnaker.gce.cache.initializer', [
   require('../../core/subnet/subnet.read.service.js'),
   require('../httpHealthCheck/httpHealthCheck.reader.js'),
 ])
-  .factory('gceCacheConfigurer', function (accountService, gceHttpHealthCheckReader, instanceTypeService,
+  .factory('gceCacheConfigurer', function (accountService, gceCertificateReader,
+                                           gceHttpHealthCheckReader, instanceTypeService,
                                            loadBalancerReader, networkReader, subnetReader) {
 
     let config = Object.create(null);
+
+    config.certificates = {
+      initializers: [ () => gceCertificateReader.listCertificates() ],
+    };
 
     config.credentials = {
       initializers: [ () => accountService.getCredentialsKeyedByAccount('gce') ],

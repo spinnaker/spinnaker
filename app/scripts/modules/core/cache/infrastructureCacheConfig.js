@@ -29,4 +29,7 @@ module.exports = angular.module('spinnaker.core.cache.infrastructure.config', []
     httpHealthChecks: {
       version: 2,
     },
+    certificates: {
+      version: 2,
+    },
   });
