@@ -159,7 +159,7 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
             'provider': 'gce',
             'stack': bindings['TEST_STACK'],
             'detail': self.__lb_detail,
-            'credentials': bindings['GCE_CREDENTIALS'],
+            'credentials': bindings['SPINNAKER_GOOGLE_ACCOUNT'],
             'region': bindings['TEST_GCE_REGION'],
             'ipProtocol': 'TCP',
             'portRange': spec['port'],
@@ -215,12 +215,12 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
             'loadBalancerName': self.__lb_name,
             'region': bindings['TEST_GCE_REGION'],
             'regions': [bindings['TEST_GCE_REGION']],
-            'credentials': bindings['GCE_CREDENTIALS'],
+            'credentials': bindings['SPINNAKER_GOOGLE_ACCOUNT'],
             'user': '[anonymous]'
         }],
         description='Delete Load Balancer: {0} in {1}:{2}'.format(
             self.__lb_name,
-            bindings['GCE_CREDENTIALS'],
+            bindings['SPINNAKER_GOOGLE_ACCOUNT'],
             bindings['TEST_GCE_REGION']),
         application=self.TEST_APP)
 
@@ -257,7 +257,7 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
         job=[{
             'cloudProvider': 'gce',
             'application': self.TEST_APP,
-            'credentials': bindings['GCE_CREDENTIALS'],
+            'credentials': bindings['SPINNAKER_GOOGLE_ACCOUNT'],
             'strategy':'',
             'capacity': {'min':2, 'max':2, 'desired':2},
             'targetSize': 2,
@@ -275,7 +275,7 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
                                    ' && sudo apt-get install apache2 -y'),
                 'load-balancer-names': self.__lb_name
             },
-            'account': bindings['GCE_CREDENTIALS'],
+            'account': bindings['SPINNAKER_GOOGLE_ACCOUNT'],
             'authScopes': ['compute'],
             'user': '[anonymous]'
         }],
@@ -315,7 +315,7 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
             'type': 'destroyServerGroup',
             'regions': [bindings['TEST_GCE_REGION']],
             'zones': [bindings['TEST_GCE_ZONE']],
-            'credentials': bindings['GCE_CREDENTIALS'],
+            'credentials': bindings['SPINNAKER_GOOGLE_ACCOUNT'],
             'user': '[anonymous]'
         }],
         application=self.TEST_APP,

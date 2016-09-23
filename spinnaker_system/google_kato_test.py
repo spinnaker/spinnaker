@@ -163,7 +163,7 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
             'image': image_name[i],
             'instanceType': machine_type[i],
             'zone': self.use_instance_zones[i],
-            'credentials': self.bindings['GCE_CREDENTIALS']
+            'credentials': self.bindings['SPINNAKER_GOOGLE_ACCOUNT']
             }
         })
 
@@ -232,7 +232,7 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
           {
             'instanceIds': names,
             'zone': zone,
-            'credentials': self.bindings['GCE_CREDENTIALS']
+            'credentials': self.bindings['SPINNAKER_GOOGLE_ACCOUNT']
           })
 
     return st.OperationContract(
@@ -246,7 +246,7 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     payload = self.agent.type_to_payload(
         'upsertGoogleServerGroupTagsDescription',
         {
-          'credentials': self.bindings['GCE_CREDENTIALS'],
+          'credentials': self.bindings['SPINNAKER_GOOGLE_ACCOUNT'],
           'zone': self.bindings['TEST_GCE_ZONE'],
           'serverGroupName': 'katotest-server-group',
           'tags': ['test-tag-1', 'test-tag-2']
@@ -315,7 +315,7 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
           'healthCheck': health_check,
           'portRange': port_range,
           'loadBalancerName': logical_http_lb_name,
-          'credentials': self.bindings['GCE_CREDENTIALS']
+          'credentials': self.bindings['SPINNAKER_GOOGLE_ACCOUNT']
         })
 
     builder = gcp.GcpContractBuilder(self.gcp_observer)
@@ -359,7 +359,7 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
         'deleteGoogleHttpLoadBalancerDescription',
         {
           'loadBalancerName': self.__use_http_lb_name,
-          'credentials': self.bindings['GCE_CREDENTIALS']
+          'credentials': self.bindings['SPINNAKER_GOOGLE_ACCOUNT']
         })
 
     builder = gcp.GcpContractBuilder(self.gcp_observer)
@@ -412,7 +412,7 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
         {
           'healthCheck': health_check,
           'region': self.bindings['TEST_GCE_REGION'],
-          'credentials': self.bindings['GCE_CREDENTIALS'],
+          'credentials': self.bindings['SPINNAKER_GOOGLE_ACCOUNT'],
           'loadBalancerName': self.__use_lb_name
         })
 
@@ -445,7 +445,7 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
         'deleteGoogleLoadBalancerDescription',
         {
           'region': self.bindings['TEST_GCE_REGION'],
-          'credentials': self.bindings['GCE_CREDENTIALS'],
+          'credentials': self.bindings['SPINNAKER_GOOGLE_ACCOUNT'],
           'loadBalancerName': self.__use_lb_name
         })
 
@@ -484,7 +484,7 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
           'loadBalancerNames': [self.__use_lb_name],
           'instanceIds': self.use_instance_names[:2],
           'region': self.bindings['TEST_GCE_REGION'],
-          'credentials': self.bindings['GCE_CREDENTIALS']
+          'credentials': self.bindings['SPINNAKER_GOOGLE_ACCOUNT']
         })
 
     builder = gcp.GcpContractBuilder(self.gcp_observer)
@@ -522,7 +522,7 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
           'loadBalancerNames': [self.__use_lb_name],
           'instanceIds': self.use_instance_names[:2],
           'region': self.bindings['TEST_GCE_REGION'],
-          'credentials': self.bindings['GCE_CREDENTIALS']
+          'credentials': self.bindings['SPINNAKER_GOOGLE_ACCOUNT']
         })
 
     # NOTE(ewiseblatt): 20150530
