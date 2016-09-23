@@ -66,8 +66,10 @@ import java.security.Security
 @ComponentScan([
   'com.netflix.spinnaker.config',
 ])
-@EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration, SecurityAutoConfiguration,
-  ManagementSecurityAutoConfiguration])
+@EnableAutoConfiguration(exclude = [
+    BatchAutoConfiguration,
+    GroovyTemplateAutoConfiguration,
+])
 @EnableScheduling
 class Main extends SpringBootServletInitializer {
 

@@ -28,6 +28,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.prepost.PostAuthorize
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -43,8 +45,10 @@ class ClusterController {
   @Autowired
   MessageSource messageSource
 
+  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission() and hasPermission(#application, 'APPLICATION', 'READ')")
+  @PostAuthorize("@authorizationSupport.filterForAccounts(returnObject)")
   @RequestMapping(method = RequestMethod.GET)
-  Map<String, Set<String>> list(@PathVariable String application) {
+  Map<String, Set<String>> listByAccount(@PathVariable String application) {
     def apps = ((List<Application>) applicationProviders.collectMany {
       [it.getApplication(application)] ?: []
     }).findAll().sort { a, b -> a.name.toLowerCase() <=> b.name.toLowerCase() }
@@ -61,6 +65,7 @@ class ClusterController {
     clusterNames
   }
 
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') && hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(value = "/{account:.+}", method = RequestMethod.GET)
   Set<ClusterViewModel> getForAccount(@PathVariable String application, @PathVariable String account) {
     def clusters = clusterProviders.collect {
@@ -81,6 +86,7 @@ class ClusterController {
     clusters
   }
 
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') && hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(value = "/{account:.+}/{name:.+}", method = RequestMethod.GET)
   Set<Cluster> getForAccountAndName(@PathVariable String application,
                                     @PathVariable String account,
@@ -95,6 +101,7 @@ class ClusterController {
     clusters
   }
 
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') && hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(value = "/{account:.+}/{name:.+}/{type}", method = RequestMethod.GET)
   Cluster getForAccountAndNameAndType(@PathVariable String application,
                                       @PathVariable String account,
@@ -108,6 +115,7 @@ class ClusterController {
     cluster
   }
 
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') && hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(value = "/{account:.+}/{clusterName:.+}/{type}/serverGroups", method = RequestMethod.GET)
   Set<ServerGroup> getServerGroups(@PathVariable String application,
                                    @PathVariable String account,
@@ -119,6 +127,7 @@ class ClusterController {
     results ?: []
   }
 
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') && hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(value = "/{account:.+}/{clusterName:.+}/{type}/serverGroups/{serverGroupName:.+}", method = RequestMethod.GET)
   def getServerGroup(@PathVariable String application,
                      @PathVariable String account,
@@ -140,6 +149,7 @@ class ClusterController {
    * @param scope Should be either a region or zone, depending on the cloud provider.
    * @return A dynamically determined server group using a {@code TargetServerGroup} specifier.
    */
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') && hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(value = "/{account:.+}/{clusterName:.+}/{cloudProvider}/{scope}/serverGroups/target/{target:.+}", method = RequestMethod.GET)
   ServerGroup getTargetServerGroup(
       @PathVariable String application,
@@ -202,6 +212,7 @@ class ClusterController {
     }
   }
 
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') && hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(value = "/{account:.+}/{clusterName:.+}/{cloudProvider}/{scope}/serverGroups/target/{target:.+}/{summaryType:.+}", method = RequestMethod.GET)
   Summary getServerGroupSummary(
       @PathVariable String application,

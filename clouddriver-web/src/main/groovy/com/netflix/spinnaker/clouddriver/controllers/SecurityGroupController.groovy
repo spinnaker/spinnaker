@@ -20,9 +20,15 @@ import com.netflix.spinnaker.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.prepost.PostAuthorize
+import org.springframework.security.access.prepost.PostFilter
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -41,6 +47,8 @@ class SecurityGroupController {
   @Autowired
   List<SecurityGroupProvider> securityGroupProviders
 
+  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
+  @PostAuthorize("@authorizationSupport.filterForAccounts(returnObject)")
   @RequestMapping(method = RequestMethod.GET)
   Map<String, Map<String, Map<String, Set<SecurityGroupSummary>>>> list() {
     rx.Observable.from(securityGroupProviders).flatMap { secGrpProv ->
@@ -64,6 +72,7 @@ class SecurityGroupController {
     } toBlocking() first()
   }
 
+  @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(method = RequestMethod.GET, value = "/{account}")
   Map<String, Map<String, Set<SecurityGroupSummary>>> listByAccount(@PathVariable String account) {
     rx.Observable.from(securityGroupProviders).flatMap { secGrpProv ->
@@ -82,9 +91,10 @@ class SecurityGroupController {
     }) toBlocking() first()
   }
 
+  @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(method = RequestMethod.GET, value = "/{account}", params = ['region'])
   Map<String, Set<SecurityGroupSummary>> listByAccountAndRegion(@PathVariable String account,
-                                                          @RequestParam("region") String region) {
+                                                                @RequestParam("region") String region) {
     rx.Observable.from(securityGroupProviders).flatMap { secGrpProv ->
       rx.Observable.from(secGrpProv.getAllByAccountAndRegion(false, account, region))
     } filter {
@@ -98,8 +108,10 @@ class SecurityGroupController {
     }) toBlocking() first()
   }
 
+  @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(method = RequestMethod.GET, value = "/{account}/{type}")
-  Map<String, Set<SecurityGroupSummary>> listByAccountAndType(@PathVariable String account, @PathVariable String type) {
+  Map<String, Set<SecurityGroupSummary>> listByAccountAndType(@PathVariable String account,
+                                                              @PathVariable String type) {
     rx.Observable.from(securityGroupProviders).filter { secGrpProv ->
       secGrpProv.type == type
     } flatMap {
@@ -113,9 +125,11 @@ class SecurityGroupController {
     }) toBlocking() first()
   }
 
+  @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(method = RequestMethod.GET, value = "/{account}/{type}", params = ['region'])
-  Set<SecurityGroupSummary> listByAccountAndTypeAndRegion(@PathVariable String account, @PathVariable String type,
-                                           @RequestParam("region") String region) {
+  Set<SecurityGroupSummary> listByAccountAndTypeAndRegion(@PathVariable String account,
+                                                          @PathVariable String type,
+                                                          @RequestParam("region") String region) {
     rx.Observable.from(securityGroupProviders).filter { secGrpProv ->
       secGrpProv.type == type
     } flatMap {
@@ -126,9 +140,11 @@ class SecurityGroupController {
     }) toBlocking() first()
   }
 
+  @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(method = RequestMethod.GET, value = "/{account}/{type}/{securityGroupName:.+}")
-  Map<String, Set<SecurityGroupSummary>> listByAccountAndTypeAndName(@PathVariable String account, @PathVariable String type,
-                                                 @PathVariable String securityGroupName) {
+  Map<String, Set<SecurityGroupSummary>> listByAccountAndTypeAndName(@PathVariable String account,
+                                                                     @PathVariable String type,
+                                                                     @PathVariable String securityGroupName) {
     rx.Observable.from(securityGroupProviders).filter { secGrpProv ->
       secGrpProv.type == type
     } flatMap {
@@ -142,6 +158,7 @@ class SecurityGroupController {
     }) toBlocking() first()
     }
 
+  @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(method = RequestMethod.GET, value = "/{account}/{type}/{region}/{securityGroupName:.+}")
   SecurityGroup get(@PathVariable String account,
                     @PathVariable String type,

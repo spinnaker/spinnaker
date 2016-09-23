@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -48,8 +49,12 @@ class ServerGroupController {
   @Autowired
   MessageSource messageSource
 
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') and hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
-  ServerGroup getServerGroup(@PathVariable String account, @PathVariable String region, @PathVariable String name) {
+  ServerGroup getServerGroup(@PathVariable String application, // needed for @PreAuthorize
+                             @PathVariable String account,
+                             @PathVariable String region,
+                             @PathVariable String name) {
     def matches = (Set<ServerGroup>) clusterProviders.findResults {
       it.getServerGroup(account, region, name)
     }
@@ -95,6 +100,7 @@ class ServerGroupController {
     serverGroupViews
   }
 
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(method = RequestMethod.GET)
   List list(@PathVariable String application,
             @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand,

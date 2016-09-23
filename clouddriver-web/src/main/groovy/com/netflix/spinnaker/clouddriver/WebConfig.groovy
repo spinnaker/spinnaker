@@ -21,15 +21,21 @@ import com.netflix.spinnaker.clouddriver.filters.SimpleCORSFilter
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.context.embedded.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.Ordered
+import org.springframework.security.access.AccessDeniedException
+import org.springframework.web.bind.annotation.ControllerAdvice
+import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.filter.ShallowEtagHeaderFilter
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 import javax.servlet.Filter
+import javax.servlet.http.HttpServletResponse
 
 @Configuration
 @ComponentScan([
@@ -57,8 +63,10 @@ public class WebConfig extends WebMvcConfigurerAdapter {
   }
 
   @Bean
-  Filter authenticatedRequestFilter() {
-    new AuthenticatedRequestFilter(true)
+  FilterRegistrationBean authenticatedRequestFilter() {
+    def frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(true))
+    frb.order = Ordered.HIGHEST_PRECEDENCE
+    return frb
   }
 
   @Bean
@@ -72,4 +80,11 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     configurer.favorPathExtension(false);
   }
 
+  @ControllerAdvice
+  static class AccessDeniedExceptionHanlder {
+    @ExceptionHandler(AccessDeniedException)
+    public void handle(HttpServletResponse response, AccessDeniedException ex) {
+      response.sendError(HttpServletResponse.SC_FORBIDDEN, ex.getMessage())
+    }
+  }
 }

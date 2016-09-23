@@ -27,6 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.prepost.PostFilter
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 
 @Slf4j
@@ -43,6 +45,8 @@ class ApplicationsController {
   @Autowired
   MessageSource messageSource
 
+  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
+  @PostFilter("hasPermission(filterObject.name, 'APPLICATION', 'READ')")
   @RequestMapping(method = RequestMethod.GET)
   List<Application> list(@RequestParam(required = false, value = 'expand', defaultValue = 'true') boolean expand) {
     def results = applicationProviders.collectMany {
@@ -52,6 +56,7 @@ class ApplicationsController {
     results.sort { a, b -> a?.name?.toLowerCase() <=> b?.name?.toLowerCase() }
   }
 
+  @PreAuthorize("hasPermission(#name, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)
   ApplicationViewModel get(@PathVariable String name) {
     try {

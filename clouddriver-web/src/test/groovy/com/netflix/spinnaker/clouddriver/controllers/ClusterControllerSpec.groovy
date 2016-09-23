@@ -56,7 +56,7 @@ class ClusterControllerSpec extends Specification {
       clusterController.applicationProviders = [appProvider1, appProvider2]
 
     when:
-      def result = clusterController.list("app")
+      def result = clusterController.listByAccount("app")
 
     then:
       result == [test: ["foo", "bar"] as Set, prod: ["baz"] as Set]

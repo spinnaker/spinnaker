@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -36,7 +37,7 @@ class JobController {
   @Autowired
   MessageSource messageSource
 
-  @ApiOperation(value = "Collect a JobStatus", notes = "Collects the output of the job, may modify the job.")
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE') and hasPermission(#account, 'ACCOUNT', 'WRITE')")  @ApiOperation(value = "Collect a JobStatus", notes = "Collects the output of the job, may modify the job.")
   @RequestMapping(value = "/{account}/{location}/{id:.+}", method = RequestMethod.POST)
   JobStatus collectJob(@ApiParam(value = "Application name", required = true) @PathVariable String application,
                        @ApiParam(value = "Account job was created by", required = true) @PathVariable String account,

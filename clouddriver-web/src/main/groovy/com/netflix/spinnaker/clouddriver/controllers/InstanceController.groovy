@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -40,8 +41,11 @@ class InstanceController {
   @Autowired
   MessageSource messageSource
 
+  @PreAuthorize("hasPermission(#id, 'APPLICATION', 'READ') and hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(value = "/{account}/{region}/{id:.+}", method = RequestMethod.GET)
-  Instance getInstance(@PathVariable String account, @PathVariable String region, @PathVariable String id) {
+  Instance getInstance(@PathVariable String account,
+                       @PathVariable String region,
+                       @PathVariable String id) {
     Collection<Instance> instanceMatches = instanceProviders.findResults {
       it.getInstance(account, region, id)
     }
@@ -51,8 +55,12 @@ class InstanceController {
     instanceMatches.first()
   }
 
+  @PreAuthorize("hasPermission(#id, 'APPLICATION', 'READ') and hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(value = "{account}/{region}/{id}/console", method = RequestMethod.GET)
-  Map getConsoleOutput(@RequestParam(value = "provider", required = false) String provider, @PathVariable String account, @PathVariable String region, @PathVariable String id) {
+  Map getConsoleOutput(@RequestParam(value = "provider", required = false) String provider,
+                       @PathVariable String account,
+                       @PathVariable String region,
+                       @PathVariable String id) {
     Collection<String> outputs = instanceProviders.findResults {
       if (!provider || it.platform == provider) {
         return it.getConsoleOutput(account, region, id)
