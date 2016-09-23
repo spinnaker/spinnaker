@@ -160,11 +160,11 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
     def loadBalancerKeys = cacheData.relationships[LOAD_BALANCERS.ns]
     def loadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys).collect {
       def loadBalancer = null
-      switch (it.attributes?.type) {
-        case GoogleLoadBalancerType.HTTP.toString():
+      switch (GoogleLoadBalancerType.valueOf(it.attributes?.type as String)) {
+        case GoogleLoadBalancerType.HTTP:
           loadBalancer = objectMapper.convertValue(it.attributes, GoogleHttpLoadBalancer)
           break
-        case GoogleLoadBalancerType.NETWORK.toString():
+        case GoogleLoadBalancerType.NETWORK:
           loadBalancer = objectMapper.convertValue(it.attributes, GoogleLoadBalancer)
           break
         default:

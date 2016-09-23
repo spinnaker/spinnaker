@@ -25,7 +25,7 @@ import groovy.transform.Canonical
 @Canonical
 abstract class GoogleLoadBalancerView implements LoadBalancer {
   final String type = GoogleCloudProvider.GCE
-  String loadBalancerType
+  GoogleLoadBalancerType loadBalancerType
 
   String name
   String account

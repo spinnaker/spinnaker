@@ -158,7 +158,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                              BASE_PHASE)
 
       if (!description.disableTraffic) {
-        def networkLoadBalancers = foundLoadBalancers.findAll { it.loadBalancerType == GoogleLoadBalancerType.NETWORK.toString() }
+        def networkLoadBalancers = foundLoadBalancers.findAll { it.loadBalancerType == GoogleLoadBalancerType.NETWORK }
         targetPools = networkLoadBalancers.collect { it.targetPool }
       }
     }

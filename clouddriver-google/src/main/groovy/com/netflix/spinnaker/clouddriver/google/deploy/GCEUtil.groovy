@@ -733,7 +733,7 @@ class GCEUtil {
 
     def allFoundLoadBalancers = (httpLoadBalancersInMetadata + networkLoadBalancersInMetadata) as List<String>
     def httpLoadBalancersToAddTo = queryAllLoadBalancers(googleLoadBalancerProvider, allFoundLoadBalancers, task, phase)
-        .findAll { GoogleLoadBalancerType.valueOf(it.loadBalancerType) == GoogleLoadBalancerType.HTTP }
+        .findAll { it.loadBalancerType == GoogleLoadBalancerType.HTTP }
 
     if (httpLoadBalancersToAddTo) {
       String policyJson = metadataMap?.(GoogleServerGroup.View.LOAD_BALANCING_POLICY)
@@ -803,7 +803,7 @@ class GCEUtil {
     def serverGroupName = serverGroup.name
     def httpLoadBalancersInMetadata = serverGroup?.asg?.get(GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES) ?: []
     def foundHttpLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
-      it.name in serverGroup.loadBalancers && it.loadBalancerType == GoogleLoadBalancerType.HTTP.toString()
+      it.name in serverGroup.loadBalancers && it.loadBalancerType == GoogleLoadBalancerType.HTTP
     }
     def notDeleted = httpLoadBalancersInMetadata - (foundHttpLoadBalancers.collect { it.name })
 

@@ -57,7 +57,7 @@ class GoogleHttpLoadBalancer {
 
   @Canonical
   class View extends GoogleLoadBalancerView {
-    String loadBalancerType = GoogleHttpLoadBalancer.this.type
+    GoogleLoadBalancerType loadBalancerType = GoogleHttpLoadBalancer.this.type
 
     String name = GoogleHttpLoadBalancer.this.name
     String account = GoogleHttpLoadBalancer.this.account

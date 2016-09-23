@@ -67,11 +67,11 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
 
   GoogleLoadBalancerView loadBalancersFromCacheData(CacheData loadBalancerCacheData) {
     def loadBalancer = null
-    switch (loadBalancerCacheData.attributes?.type) {
-      case GoogleLoadBalancerType.HTTP.toString():
+    switch (GoogleLoadBalancerType.valueOf(loadBalancerCacheData.attributes?.type as String)) {
+      case GoogleLoadBalancerType.HTTP:
         loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleHttpLoadBalancer)
         break
-      case GoogleLoadBalancerType.NETWORK.toString():
+      case GoogleLoadBalancerType.NETWORK:
         loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleLoadBalancer)
         break
       default:

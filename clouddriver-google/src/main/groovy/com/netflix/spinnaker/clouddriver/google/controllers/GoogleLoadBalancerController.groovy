@@ -40,8 +40,6 @@ class GoogleLoadBalancerController {
   @Autowired
   GoogleLoadBalancerProvider googleLoadBalancerProvider
 
-  private static final String HTTP = GoogleLoadBalancerType.HTTP.toString()
-
   @RequestMapping(method = RequestMethod.GET)
   List<GoogleLoadBalancerAccountRegionSummary> list() {
     def loadBalancerViewsByName = googleLoadBalancerProvider.getApplicationLoadBalancers("").groupBy { it.name }
@@ -52,7 +50,7 @@ class GoogleLoadBalancerController {
       views.each { GoogleLoadBalancerView view ->
         def loadBalancerType = view.loadBalancerType
         def backendServices = []
-        if (loadBalancerType == HTTP) {
+        if (loadBalancerType == GoogleLoadBalancerType.HTTP) {
           GoogleHttpLoadBalancer.View httpView = view as GoogleHttpLoadBalancer.View
           if (httpView.defaultService) {
             backendServices << httpView?.defaultService.name
@@ -70,7 +68,7 @@ class GoogleLoadBalancerController {
             region: view.region,
             name: view.name,
             loadBalancerType: loadBalancerType,
-            backendServices: loadBalancerType == HTTP ? backendServices.unique() as List<String> : null
+            backendServices: loadBalancerType == GoogleLoadBalancerType.HTTP ? backendServices.unique() as List<String> : null
         )
       }
 
@@ -98,7 +96,7 @@ class GoogleLoadBalancerController {
     }
 
     def backendServiceHealthChecks = [:]
-    if (GoogleLoadBalancerType.valueOf(view.loadBalancerType) == GoogleLoadBalancerType.HTTP) {
+    if (view.loadBalancerType == GoogleLoadBalancerType.HTTP) {
       GoogleHttpLoadBalancer.View httpView = view as GoogleHttpLoadBalancer.View
       List<GoogleBackendService> backendServices = Utils.getBackendServicesFromHttpLoadBalancerView(httpView)
       backendServices?.each { GoogleBackendService backendService ->
@@ -156,7 +154,7 @@ class GoogleLoadBalancerController {
   }
 
   static class GoogleLoadBalancerSummary {
-    String loadBalancerType
+    GoogleLoadBalancerType loadBalancerType
     String account
     String region
     String name

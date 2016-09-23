@@ -45,7 +45,7 @@ class GoogleLoadBalancer {
 
   class View extends GoogleLoadBalancerView {
     final String type = GoogleCloudProvider.GCE
-    String loadBalancerType = GoogleLoadBalancer.this.type
+    GoogleLoadBalancerType loadBalancerType = GoogleLoadBalancer.this.type
 
     String name = GoogleLoadBalancer.this.name
     String account = GoogleLoadBalancer.this.account
