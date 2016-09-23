@@ -47,4 +47,9 @@ class NoopClusterProvider implements ClusterProvider<Cluster> {
   Cluster getCluster(String application, String account, String name) {
     null
   }
+
+  @Override
+  String getCloudProviderId() {
+    return "noop"
+  }
 }

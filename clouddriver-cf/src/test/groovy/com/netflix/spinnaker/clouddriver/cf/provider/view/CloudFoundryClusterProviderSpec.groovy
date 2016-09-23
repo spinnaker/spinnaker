@@ -20,6 +20,7 @@ import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.cats.mem.InMemoryNamedCacheFactory
 import com.netflix.spinnaker.cats.provider.DefaultProviderRegistry
 import com.netflix.spinnaker.cats.provider.ProviderRegistry
+import com.netflix.spinnaker.clouddriver.cf.CloudFoundryCloudProvider
 import com.netflix.spinnaker.clouddriver.cf.TestCredential
 import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConstants
 import com.netflix.spinnaker.clouddriver.cf.provider.CloudFoundryProvider
@@ -60,8 +61,12 @@ class CloudFoundryClusterProviderSpec extends Specification {
 		registry = new DefaultProviderRegistry([cloudFoundryProvider],
 				new InMemoryNamedCacheFactory())
 
-		clusterProvider = new CloudFoundryClusterProvider(registry.getProviderCache(CloudFoundryProvider.PROVIDER_NAME),
-				cloudFoundryProvider, new ObjectMapper())
+    clusterProvider = new CloudFoundryClusterProvider(
+      new CloudFoundryCloudProvider(),
+      registry.getProviderCache(CloudFoundryProvider.PROVIDER_NAME),
+      cloudFoundryProvider,
+      new ObjectMapper()
+    )
 	}
 
 	def "should handle an empty cache"() {

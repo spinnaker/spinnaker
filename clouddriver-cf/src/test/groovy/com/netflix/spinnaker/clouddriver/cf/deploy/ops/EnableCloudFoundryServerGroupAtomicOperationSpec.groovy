@@ -20,6 +20,7 @@ import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.cats.mem.InMemoryNamedCacheFactory
 import com.netflix.spinnaker.cats.provider.DefaultProviderRegistry
 import com.netflix.spinnaker.cats.provider.ProviderRegistry
+import com.netflix.spinnaker.clouddriver.cf.CloudFoundryCloudProvider
 import com.netflix.spinnaker.clouddriver.cf.TestCredential
 import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConstants
 import com.netflix.spinnaker.clouddriver.cf.deploy.description.EnableDisableCloudFoundryServerGroupDescription
@@ -70,7 +71,12 @@ class EnableCloudFoundryServerGroupAtomicOperationSpec extends Specification {
 
     def cloudFoundryProvider = new CloudFoundryProvider([cachingAgent])
     registry = new DefaultProviderRegistry([cloudFoundryProvider], new InMemoryNamedCacheFactory())
-    clusterProvider = new CloudFoundryClusterProvider(registry.getProviderCache(CloudFoundryProvider.PROVIDER_NAME), cloudFoundryProvider, new ObjectMapper())
+    clusterProvider = new CloudFoundryClusterProvider(
+      new CloudFoundryCloudProvider(),
+      registry.getProviderCache(CloudFoundryProvider.PROVIDER_NAME),
+      cloudFoundryProvider,
+      new ObjectMapper()
+    )
   }
 
   void "should bubble up exception if server group doesn't exist"() {

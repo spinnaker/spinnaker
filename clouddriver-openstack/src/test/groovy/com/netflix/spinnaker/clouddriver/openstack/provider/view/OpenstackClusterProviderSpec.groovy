@@ -21,6 +21,7 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackCluster
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLoadBalancer
@@ -52,7 +53,9 @@ class OpenstackClusterProviderSpec extends Specification {
     objectMapper = new ObjectMapper()
     cache = Mock(Cache)
     instanceProvider = Mock(OpenstackInstanceProvider)
-    provider = Spy(OpenstackClusterProvider, constructorArgs: [cache, objectMapper, instanceProvider])
+    provider = Spy(OpenstackClusterProvider, constructorArgs: [
+      new OpenstackCloudProvider(), cache, objectMapper, instanceProvider
+    ])
   }
 
   void "test all get clusters"() {

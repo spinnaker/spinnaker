@@ -117,6 +117,11 @@ class AzureClusterProvider implements ClusterProvider<AzureCluster> {
     translateServerGroup(serverGroupData)
   }
 
+  @Override
+  String getCloudProviderId() {
+    return azureCloudProvider.id
+  }
+
   private Collection<AzureCluster> translateClusters(Collection<CacheData> clusterData, boolean includeDetails) {
     Map<String, AzureLoadBalancer> loadBalancers
     Map<String, AzureServerGroupDescription> serverGroups
