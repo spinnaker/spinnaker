@@ -24,7 +24,7 @@ aws:
   # info on setting environment variables.
   enabled: ${providers.aws.enabled:false}
   defaults:
-    iamRole: ${provider.aws.defaultIAMRole:BaseIAMRole}
+    iamRole: ${providers.aws.defaultIAMRole:BaseIAMRole}
   defaultRegions:
     - name: ${providers.aws.defaultRegion:us-east-1}
   defaultFront50Template: ${services.front50.baseUrl}
@@ -47,6 +47,8 @@ google:
     - name: ${providers.google.primaryCredentials.name}
       project: ${providers.google.primaryCredentials.project}
       jsonPath: ${providers.google.primaryCredentials.jsonPath}
+      consul:
+        enabled: ${providers.google.primaryCredentials.consul.enabled:false}
 
 cf:
   enabled: ${providers.cf.enabled:false}
@@ -73,9 +75,7 @@ dockerRegistry:
     - name: ${providers.dockerRegistry.primaryCredentials.name}
       address: ${providers.dockerRegistry.primaryCredentials.address}
       username: ${providers.dockerRegistry.primaryCredentials.username:}
-      passwordFile: ${providers.dockerRegistry.primaryCredentials.passwordFile:}
-      repositories: 
-        - ${providers.dockerRegistry.primaryCredentials.repository}
+      passwordFile: ${providers.dockerRegistry.primaryCredentials.passwordFile}
 
 credentials:
   primaryAccountTypes: ${providers.aws.primaryCredentials.name}, ${providers.google.primaryCredentials.name}, ${providers.cf.primaryCredentials.name}, ${providers.azure.primaryCredentials.name}

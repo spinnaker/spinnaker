@@ -634,7 +634,7 @@ function install_spinnaker() {
   local apt_status=$?
   if [[ $apt_status -ne 0 ]]; then
     if $DOWNLOAD && [[ $apt_status -eq 100 ]]; then
-      install_packages="spinnaker-clouddriver spinnaker-deck spinnaker-echo spinnaker-front50 spinnaker-gate spinnaker-igor spinnaker-orca spinnaker-rosco spinnaker_"
+      install_packages="spinnaker-clouddriver spinnaker-deck spinnaker-echo spinnaker-fiat spinnaker-front50 spinnaker-gate spinnaker-igor spinnaker-orca spinnaker-rosco spinnaker_"
       for package in $install_packages;do
         latest=`curl $REPOSITORY_URL/dists/$DISTRIB_CODENAME/spinnaker/binary-amd64/Packages | grep "^Filename" | grep $package | awk '{print $2}' | awk -F'/' '{print $NF}' | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1`
         debfile=`echo $latest | awk -F "/" '{print $NF}'`

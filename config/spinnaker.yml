@@ -234,6 +234,8 @@ providers:
       # downloaded from the Google Developer's Console.
       project:
       jsonPath:
+      consul:
+        enabled: false
 
   cf:
     # For more information on configuring Cloud Foundry (cf) support, see

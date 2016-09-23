@@ -33,6 +33,7 @@
 // var smsEnabled = ${services.echo.notifications.sms.enabled};
 // var slackEnabled = ${services.echo.notifications.slack.enabled};
 // var slackBotName = ${services.echo.notifications.slack.botName};
+// var fiatEnabled = ${services.fiat.enabled}
 
 // END reconfigure_spinnaker
 /**
@@ -111,5 +112,6 @@ window.spinnakerSettings = {
     clusterDiff: false,
     roscoMode: true,
     netflixMode: false,
+    fiatEnabled: fiatEnabled,
   },
 };

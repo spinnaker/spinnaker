@@ -150,6 +150,7 @@ class Runner(object):
 
     # These are additional, optional subsystems.
     result.extend(['igor'])
+    result.extend(['fiat'])
 
     # Gate is started after everything else is up and available.
     result.append('gate')
@@ -283,6 +284,12 @@ class Runner(object):
         pid = self.maybe_start_job(jobs, subsys)
         if pid:
           started_list.append((subsys, pid))
+
+    fiat_enabled = self.__bindings.get('services.fiat.enabled')
+    if fiat_enabled:
+      pid = self.maybe_start_job(jobs, 'fiat')
+      if pid:
+        started_list.append(('fiat', pid))
 
     jenkins_address = self.__bindings.get(
         'services.jenkins.defaultMaster.baseUrl')
