@@ -103,7 +103,9 @@ interface ClouddriverService {
 
   @Headers("Accept: application/json")
   @GET("/applications/{name}/serverGroups")
-  List getServerGroups(@Path("name") String name, @Query("expand") String expand)
+  List getServerGroups(@Path("name") String name,
+                       @Query("expand") String expand,
+                       @Query("cloudProvider") String cloudProvider)
 
   @Headers("Accept: application/json")
   @GET("/applications/{name}/jobs")
