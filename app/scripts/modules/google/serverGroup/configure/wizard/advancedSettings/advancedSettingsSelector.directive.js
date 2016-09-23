@@ -8,6 +8,7 @@ module.exports = angular
     require('../../../../../core/cache/infrastructureCaches.js'),
     require('../../serverGroupConfiguration.service.js'),
     require('../securityGroups/tagManager.service.js'),
+    require('../../../../../core/utils/lodash.js')
   ])
   .directive('gceServerGroupAdvancedSettingsSelector', function() {
     return {
@@ -23,7 +24,7 @@ module.exports = angular
   })
   .controller('gceServerGroupAdvancedSettingsSelectorCtrl', function(gceServerGroupConfigurationService,
                                                                      infrastructureCaches,
-                                                                     gceTagManager) {
+                                                                     gceTagManager, _) {
     this.addTag = () => {
       this.command.tags.push({});
     };
@@ -52,6 +53,15 @@ module.exports = angular
         this.command.autoHealingPolicy = {initialDelaySec: 300};
       } else {
         this.command.autoHealingPolicy = {};
+      }
+    };
+
+    this.manageMaxUnavailableMetric = (selectedMetric) => {
+      if (!selectedMetric) {
+        delete this.command.autoHealingPolicy.maxUnavailable;
+      } else {
+        let toDeleteKey = selectedMetric === 'percent' ? 'fixed' : 'percent';
+        _.set(this.command.autoHealingPolicy, ['maxUnavailable', toDeleteKey], undefined);
       }
     };
 

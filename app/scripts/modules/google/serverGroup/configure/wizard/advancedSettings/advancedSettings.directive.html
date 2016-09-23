@@ -169,6 +169,36 @@
                                max="2147483647"
                                required/></div>
 </div>
+<div class="form-group" ng-if="vm.command.enableAutoHealing" ng-switch on="vm.command.viewState.maxUnavailableMetric">
+  <div class="col-md-5 sm-label-right">
+    <b>Max Unavailable <help-field key="gce.serverGroup.maxUnavailable"></help-field></b>
+  </div>
+  <div class="col-md-3" ng-switch-default>
+    <input type="number"
+           readonly
+           class="form-control input-sm"/>
+  </div>
+  <div class="col-md-3" ng-switch-when="percent">
+    <input class="form-control input-sm"
+           ng-model="vm.command.autoHealingPolicy.maxUnavailable.percent"
+           required
+           type="number" min="0" max="100"/>
+  </div>
+  <div class="col-md-3" ng-switch-when="fixed">
+    <input class="form-control input-sm"
+           required
+           ng-model="vm.command.autoHealingPolicy.maxUnavailable.fixed"
+           type="number" min="0" max="2147483647"/>
+  </div>
+  <div class="col-md-3">
+    <select ng-model="vm.command.viewState.maxUnavailableMetric"
+            ng-change="vm.manageMaxUnavailableMetric(vm.command.viewState.maxUnavailableMetric)"
+            ng-options="metric for metric in ['percent', 'fixed']"
+            class="form-control input-sm">
+      <option value="">-- select metric --</option>
+    </select>
+  </div>
+</div>
 <div class="form-group">
   <div class="col-md-5 sm-label-right">
     <b>Service Account</b>

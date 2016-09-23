@@ -149,6 +149,12 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
             initialDelaySec: autoHealingPolicy.initialDelaySec,
           };
         }
+
+        let maxUnavailable = autoHealingPolicy.maxUnavailable;
+        if (maxUnavailable) {
+          command.autoHealingPolicy.maxUnavailable = maxUnavailable;
+          command.viewState.maxUnavailableMetric = typeof maxUnavailable.percent === 'number' ? 'percent' : 'fixed';
+        }
       }
     }
 
@@ -385,6 +391,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           var instanceMetadata = extendedCommand.instanceMetadata;
           extendedCommand.instanceMetadata = {};
           populateCustomMetadata(instanceMetadata, extendedCommand);
+          populateAutoHealingPolicy(pipelineCluster, extendedCommand);
 
           var instanceTemplateTags = {items: extendedCommand.tags};
           extendedCommand.tags = [];
