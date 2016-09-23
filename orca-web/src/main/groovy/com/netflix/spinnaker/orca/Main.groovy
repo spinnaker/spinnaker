@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.ErrorConfiguration
+import com.netflix.spinnaker.config.FiatAuthenticationConfig
 import com.netflix.spinnaker.config.TomcatConfiguration
 import com.netflix.spinnaker.kork.PlatformComponents
 import com.netflix.spinnaker.orca.applications.config.ApplicationConfig
@@ -75,7 +76,8 @@ import org.springframework.scheduling.annotation.EnableAsync
   MineConfiguration,
   MaheConfiguration,
   TideConfiguration,
-  ApplicationConfig
+  ApplicationConfig,
+  FiatAuthenticationConfig,
 ])
 class Main extends SpringBootServletInitializer {
   static final Map<String, String> DEFAULT_PROPS = [

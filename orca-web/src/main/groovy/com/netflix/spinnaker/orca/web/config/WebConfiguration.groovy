@@ -16,6 +16,12 @@
 
 package com.netflix.spinnaker.orca.web.config
 
+import org.springframework.boot.context.embedded.FilterRegistrationBean
+import org.springframework.core.Ordered
+import org.springframework.security.access.AccessDeniedException
+import org.springframework.web.bind.annotation.ControllerAdvice
+import org.springframework.web.bind.annotation.ExceptionHandler
+
 import javax.servlet.*
 import javax.servlet.http.HttpServletResponse
 import com.netflix.spectator.api.Registry
@@ -52,8 +58,10 @@ class WebConfiguration extends WebMvcConfigurerAdapter {
   }
 
   @Bean
-  Filter authenticatedRequestFilter() {
-    new AuthenticatedRequestFilter(true)
+  FilterRegistrationBean authenticatedRequestFilter() {
+    def frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(true))
+    frb.order = Ordered.HIGHEST_PRECEDENCE
+    return frb
   }
 
   @Bean
@@ -71,6 +79,14 @@ class WebConfiguration extends WebMvcConfigurerAdapter {
       public void init(FilterConfig filterConfig) {}
 
       public void destroy() {}
+    }
+  }
+
+  @ControllerAdvice
+  static class AccessDeniedExceptionHanlder {
+    @ExceptionHandler(AccessDeniedException)
+    public void handle(HttpServletResponse response, AccessDeniedException ex) {
+      response.sendError(HttpServletResponse.SC_FORBIDDEN, ex.getMessage())
     }
   }
 }

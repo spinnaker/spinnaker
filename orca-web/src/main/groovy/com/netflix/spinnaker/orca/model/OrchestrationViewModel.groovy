@@ -26,6 +26,7 @@ import groovy.transform.Immutable
 class OrchestrationViewModel {
   String id
   String name
+  String application
   ExecutionStatus status
   def variables
   List<Task> steps
