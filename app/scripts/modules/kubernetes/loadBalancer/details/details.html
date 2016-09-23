@@ -89,7 +89,9 @@
       <dl ng-if="loadBalancer.service.spec.clusterIP">
         <dt>Cluster IP</dt>
         <dd>
-        {{loadBalancer.service.spec.clusterIP}}
+          <a target="_blank" href="//{{loadBalancer.service.spec.clusterIP}}">
+            {{loadBalancer.service.spec.clusterIP}}
+          </a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
               text="{{loadBalancer.service.spec.clusterIP}}"
@@ -100,7 +102,9 @@
       <dl ng-if="loadBalancer.service.status.loadBalancer.ingress.length">
         <dt>Ingress IPs</dt>
         <dd ng-repeat="ingress in loadBalancer.service.status.loadBalancer.ingress">
-          {{ingress.ip}}
+          <a target="_blank" href="//{{ingress.ip}}">
+            {{ingress.ip}}
+          </a>
           <copy-to-clipboard
             class="copy-to-clipboard copy-to-clipboard-sm"
             text="{{ingress.ip}}"
@@ -111,7 +115,9 @@
       <dl ng-if="loadBalancer.service.spec.loadBalancerIP">
         <dt>Load Balancer IP</dt>
         <dd>
-        {{loadBalancer.service.spec.loadBalancerIP}}
+          <a target="_blank" href="//{{loadBalancer.service.spec.loadBalancerIP}}">
+            {{loadBalancer.service.spec.loadBalancerIP}}
+          </a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
               text="{{loadBalancer.service.spec.loadBalancerIP}}"

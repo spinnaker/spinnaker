@@ -82,10 +82,10 @@
       <dl>
         <dt ng-if="loadBalancer.elb.dnsname">DNS Name</dt>
         <dd>
-          <a target=_blank href="http://{{loadBalancer.elb.dnsname}}">{{loadBalancer.elb.dnsname}}</a>
+          <a target=_blank href="//{{loadBalancer.elb.dnsname}}">{{loadBalancer.elb.dnsname}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
-              text="http://{{loadBalancer.elb.dnsname}}"
+              text="{{loadBalancer.elb.dnsname}}"
               tool-tip="Copy DNS Name to clipboard">
           </copy-to-clipboard>
         </dd>
