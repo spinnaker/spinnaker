@@ -26,6 +26,10 @@ bakery:
   roscoApisEnabled: true
   allowMissingPackageInstallation: false
 
+services:
+  fiat:
+    baseUrl: http://localhost:7003
+ 
 redis:
   connection: ${REDIS_URL:redis://localhost:6379}
 
