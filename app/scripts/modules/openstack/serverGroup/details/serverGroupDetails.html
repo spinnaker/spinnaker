@@ -199,6 +199,14 @@
         </li>
       </ul>
     </collapsible-section>
+    <collapsible-section heading="Tags">
+      <div ng-if="!ctrl.serverGroup.tags">No tags associated with this server group</div>
+      <dl ng-if="ctrl.serverGroup.tags">
+        <dt ng-repeat-start="(key,value) in ctrl.serverGroup.tags">{{key}}</dt>
+        <dd ng-repeat-end>{{value}}</dd>
+      </dl>
+    </collapsible-section>
+  </div>
     <collapsible-section heading="Logs">
       <ul>
         <li>TBD</li>
