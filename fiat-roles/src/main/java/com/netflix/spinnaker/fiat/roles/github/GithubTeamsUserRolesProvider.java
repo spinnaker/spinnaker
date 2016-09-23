@@ -95,7 +95,8 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
     // Get teams of the current user
     List<GitHubMaster.Team> teams = new ArrayList<>();
     try {
-      teams = master.getGitHubClient().getOrgTeams(gitHubProperties.getOrganization());
+      teams = master.getGitHubClient().getOrgTeams(gitHubProperties.getOrganization(),
+                                                   gitHubProperties.paginationValue);
     } catch (RetrofitError e) {
       log.error(String.format("RetrofitError %s %s ",
                               e.getResponse().getStatus(),

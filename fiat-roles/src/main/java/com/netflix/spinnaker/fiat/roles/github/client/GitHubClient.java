@@ -20,6 +20,7 @@ package com.netflix.spinnaker.fiat.roles.github.client;
 import retrofit.client.Response;
 import retrofit.http.GET;
 import retrofit.http.Path;
+import retrofit.http.Query;
 
 import java.util.List;
 
@@ -39,7 +40,8 @@ public interface GitHubClient {
   List<GitHubMaster.Team> getUserTeams();
 
   @GET("/orgs/{org}/teams")
-  List<GitHubMaster.Team> getOrgTeams(@Path("org") String org);
+  List<GitHubMaster.Team> getOrgTeams(@Path("org") String org,
+                                      @Query("per_page") int paginationValue);
 
   @GET("/teams/{idTeam}/memberships/{username}")
   GitHubMaster.TeamMembership isMemberOfTeam(@Path("idTeam") Long idTeam,
