@@ -27,6 +27,8 @@ import com.google.api.client.http.HttpRequestInitializer
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.Compute.InstanceGroupManagers.AggregatedList
 import com.google.api.services.compute.model.*
+import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
@@ -45,6 +47,8 @@ import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvi
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSubnetProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
+
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.HTTP_HEALTH_CHECKS
 
 @Slf4j
 class GCEUtil {
@@ -196,27 +200,26 @@ class GCEUtil {
     }
   }
 
-  static def queryHealthCheck(String projectName, String healthCheckName, Compute compute, Task task, String phase) {
-    // TODO(duftler): Update this to use the cache instead of a live call.
+  static def queryHealthCheck(String projectName,
+                              String account,
+                              String healthCheckName,
+                              Compute compute,
+                              Cache cacheView,
+                              Task task,
+                              String phase) {
     task.updateStatus phase, "Looking up http(s) health check $healthCheckName..."
 
-    try {
-      return compute.httpHealthChecks().get(projectName, healthCheckName).execute()
-    } catch (GoogleJsonResponseException e) {
-      // 404 is thrown, and the details are populated, if the health check does not exist in the given project.
-      // Any other exception should be propagated directly.
-      if (e.getStatusCode() == 404 && e.details) {
-        try {
-          return compute.httpsHealthChecks().get(projectName, healthCheckName).execute()
-        } catch (GoogleJsonResponseException exc) {
-          if (exc.getStatusCode() == 404 && exc.details) {
-            updateStatusAndThrowNotFoundException("Http(s) health check $healthCheckName not found.", task, phase)
-          } else {
-            throw e
-          }
-        }
-      } else {
-        throw e
+    def httpHealthCheckIdentifiers = cacheView.filterIdentifiers(HTTP_HEALTH_CHECKS.ns, Keys.getHttpHealthCheckKey(account, healthCheckName))
+    def results = cacheView.getAll(HTTP_HEALTH_CHECKS.ns, httpHealthCheckIdentifiers, RelationshipCacheFilter.none())
+
+    if (results[0]?.attributes?.httpHealthCheck) {
+      return results[0]?.attributes?.httpHealthCheck
+    } else {
+      try {
+        // TODO(duftler): Update this to use the cache instead of a live call once we are caching https health checks.
+        return compute.httpsHealthChecks().get(projectName, healthCheckName).execute()
+      } catch (GoogleJsonResponseException | SocketTimeoutException | SocketException _) {
+        updateStatusAndThrowNotFoundException("Http(s) health check $healthCheckName not found.", task, phase)
       }
     }
   }

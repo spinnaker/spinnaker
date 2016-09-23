@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.handlers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
+import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
@@ -77,6 +78,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
   @Autowired
   String googleApplicationName
+
+  @Autowired
+  Cache cacheView
 
   @Autowired
   ObjectMapper objectMapper
@@ -267,8 +271,10 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       description.autoHealingPolicy?.healthCheck
       ? [new InstanceGroupManagerAutoHealingPolicy(
              healthCheck: GCEUtil.queryHealthCheck(project,
+                                                   description.accountName,
                                                    description.autoHealingPolicy.healthCheck,
                                                    compute,
+                                                   cacheView,
                                                    task,
                                                    BASE_PHASE).selfLink,
              initialDelaySec: description.autoHealingPolicy.initialDelaySec,
