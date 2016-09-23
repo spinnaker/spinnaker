@@ -71,9 +71,9 @@ module.exports = angular
     let queryStream = new Subject();
 
     let subscription = queryStream
-      .debounce(250)
+      .debounceTime(250)
       .switchMap(handleQuery)
-      .subscribe((results) => $scope.$apply(() => tagLoadSuccess(results)), () => $scope.$apply(tagLoadFailure));
+      .subscribe(tagLoadSuccess, tagLoadFailure);
 
     this.searchTags = (query = '') => {
       this.tags = [`<span>Finding tags${query && ` matching ${query}`}...</span>`];

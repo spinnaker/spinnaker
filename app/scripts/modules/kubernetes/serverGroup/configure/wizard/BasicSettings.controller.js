@@ -31,7 +31,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.basi
     var imageSearchResultsStream = new Subject();
 
     imageSearchResultsStream
-      .debounce(250)
+      .debounceTime(250)
       .switchMap(searchImages)
       .subscribe();
 
