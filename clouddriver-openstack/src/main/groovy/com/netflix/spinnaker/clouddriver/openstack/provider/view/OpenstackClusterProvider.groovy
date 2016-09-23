@@ -23,6 +23,7 @@ import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackCluster
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLoadBalancer
@@ -40,15 +41,18 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.IN
 
 @Component
 class OpenstackClusterProvider implements ClusterProvider<OpenstackCluster> {
-
+  final OpenstackCloudProvider openstackCloudProvider
   final Cache cacheView
   final ObjectMapper objectMapper
   final Closure<String> clusterAccountMapper = { Cluster it -> it.getAccountName() }
   final OpenstackInstanceProvider instanceProvider
 
   @Autowired
-  OpenstackClusterProvider(
-    final Cache cacheView, final ObjectMapper objectMapper, final OpenstackInstanceProvider instanceProvider) {
+  OpenstackClusterProvider(final OpenstackCloudProvider openstackCloudProvider,
+                           final Cache cacheView,
+                           final ObjectMapper objectMapper,
+                           final OpenstackInstanceProvider instanceProvider) {
+    this.openstackCloudProvider = openstackCloudProvider
     this.cacheView = cacheView
     this.objectMapper = objectMapper
     this.instanceProvider = instanceProvider
@@ -99,6 +103,11 @@ class OpenstackClusterProvider implements ClusterProvider<OpenstackCluster> {
     }
 
     result
+  }
+
+  @Override
+  String getCloudProviderId() {
+    return openstackCloudProvider.id
   }
 
   protected Map<String, Set<OpenstackCluster>> getClustersInternal(

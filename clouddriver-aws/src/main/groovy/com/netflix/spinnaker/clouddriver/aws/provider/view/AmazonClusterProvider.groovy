@@ -21,6 +21,7 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.core.provider.agent.ExternalHealthProvider
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
@@ -35,6 +36,7 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
 @Component
 class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
 
+  private final AmazonCloudProvider amazonCloudProvider
   private final Cache cacheView
   private final AwsProvider awsProvider
 
@@ -45,7 +47,8 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   String defaultBuildHost
 
   @Autowired
-  AmazonClusterProvider(Cache cacheView, AwsProvider awsProvider) {
+  AmazonClusterProvider(AmazonCloudProvider amazonCloudProvider, Cache cacheView, AwsProvider awsProvider) {
+    this.amazonCloudProvider = amazonCloudProvider
     this.cacheView = cacheView
     this.awsProvider = awsProvider
   }
@@ -98,6 +101,11 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
     serverGroup.instances = translateInstances(resolveRelationshipData(serverGroupData, INSTANCES.ns, instanceFilter, RelationshipCacheFilter.none())).values()
 
     serverGroup
+  }
+
+  @Override
+  String getCloudProviderId() {
+    return amazonCloudProvider.id
   }
 
   private static Map<String, Set<AmazonCluster>> mapResponse(Collection<AmazonCluster> clusters) {

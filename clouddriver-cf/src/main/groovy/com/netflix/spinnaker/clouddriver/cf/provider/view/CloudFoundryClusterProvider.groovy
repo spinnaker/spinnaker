@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.cf.CloudFoundryCloudProvider
 import com.netflix.spinnaker.clouddriver.cf.cache.CacheUtils
 import com.netflix.spinnaker.clouddriver.cf.cache.Keys
 import com.netflix.spinnaker.clouddriver.cf.model.CloudFoundryCluster
@@ -34,13 +35,18 @@ import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.*
 @Component
 class CloudFoundryClusterProvider implements ClusterProvider<CloudFoundryCluster> {
 
+  private final CloudFoundryCloudProvider cloudFoundryCloudProvider
   private final Cache cacheView
   private final CloudFoundryProvider cloudFoundryProvider
   private final ObjectMapper objectMapper
 
 
   @Autowired
-  CloudFoundryClusterProvider(Cache cacheView, CloudFoundryProvider cloudFoundryProvider, ObjectMapper objectMapper) {
+  CloudFoundryClusterProvider(CloudFoundryCloudProvider cloudFoundryCloudProvider,
+                              Cache cacheView,
+                              CloudFoundryProvider cloudFoundryProvider,
+                              ObjectMapper objectMapper) {
+    this.cloudFoundryCloudProvider = cloudFoundryCloudProvider
     this.cacheView = cacheView
     this.cloudFoundryProvider = cloudFoundryProvider
     this.objectMapper = objectMapper
@@ -95,6 +101,11 @@ class CloudFoundryClusterProvider implements ClusterProvider<CloudFoundryCluster
     CacheUtils.translateServerGroup(serverGroupData,
         CacheUtils.translateInstances(cacheView, ProviderUtils.resolveRelationshipData(cacheView, serverGroupData, INSTANCES.ns)).values(),
         CacheUtils.translateLoadBalancers(ProviderUtils.resolveRelationshipData(cacheView, serverGroupData, LOAD_BALANCERS.ns)).values())
+  }
+
+  @Override
+  String getCloudProviderId() {
+    return cloudFoundryCloudProvider.id
   }
 
   private Map<String, Set<CloudFoundryCluster>> getClusters0(String applicationName, boolean includeDetails) {

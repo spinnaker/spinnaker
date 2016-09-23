@@ -21,6 +21,7 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.consul.provider.ConsulProviderUtils
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.*
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
@@ -36,15 +37,21 @@ import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
 @Component
 class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
+  @Autowired
+  GoogleCloudProvider googleCloudProvider
 
   @Autowired
   Cache cacheView
+
   @Autowired
   ObjectMapper objectMapper
+
   @Autowired
   GoogleApplicationProvider applicationProvider
+
   @Autowired
   GoogleInstanceProvider instanceProvider
+
   @Autowired
   GoogleSecurityGroupProvider securityGroupProvider
 
@@ -120,6 +127,11 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
     if (cacheData) {
       return serverGroupFromCacheData(cacheData, account)?.view
     }
+  }
+
+  @Override
+  String getCloudProviderId() {
+    return googleCloudProvider.id
   }
 
   GoogleCluster.View clusterFromCacheData(CacheData cacheData, boolean includeInstanceDetails) {

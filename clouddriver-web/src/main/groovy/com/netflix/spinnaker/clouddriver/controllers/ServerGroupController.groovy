@@ -48,7 +48,7 @@ class ServerGroupController {
   @Autowired
   MessageSource messageSource
 
-  @RequestMapping(value="/{account}/{region}/{name:.+}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
   ServerGroup getServerGroup(@PathVariable String account, @PathVariable String region, @PathVariable String name) {
     def matches = (Set<ServerGroup>) clusterProviders.findResults {
       it.getServerGroup(account, region, name)
@@ -59,8 +59,9 @@ class ServerGroupController {
     matches.first()
   }
 
-  List<Map> expandedList(String application) {
+  List<Map> expandedList(String application, String cloudProvider) {
     return clusterProviders
+      .findAll { cloudProvider ? cloudProvider.equalsIgnoreCase(it.cloudProviderId) : true}
       .findResults { ClusterProvider cp -> cp.getClusterDetails(application)?.values() }
       .collectNested { Cluster c ->
         c.serverGroups?.collect {
@@ -76,13 +77,15 @@ class ServerGroupController {
       }.flatten()
   }
 
-  List<ServerGroupViewModel> summaryList(String application) {
+  List<ServerGroupViewModel> summaryList(String application, String cloudProvider) {
 
     List<ServerGroupViewModel> serverGroupViews = []
 
-    def clusters = (Set<Cluster>) clusterProviders.findResults {
-      it.getClusterDetails(application)?.values()
-    }.flatten()
+    def clusters = (Set<Cluster>) clusterProviders
+      .findAll { cloudProvider ? cloudProvider.equalsIgnoreCase(it.cloudProviderId) : true }
+      .findResults {
+        it.getClusterDetails(application)?.values()
+      }.flatten()
     clusters.each { Cluster cluster ->
       cluster.serverGroups.each { ServerGroup serverGroup ->
         serverGroupViews << new ServerGroupViewModel(serverGroup, cluster)
@@ -93,11 +96,13 @@ class ServerGroupController {
   }
 
   @RequestMapping(method = RequestMethod.GET)
-  List list(@PathVariable String application, @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand) {
+  List list(@PathVariable String application,
+            @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand,
+            @RequestParam(required = false, value = 'cloudProvider') String cloudProvider) {
     if (Boolean.valueOf(expand)) {
-      return expandedList(application)
+      return expandedList(application, cloudProvider)
     }
-    return summaryList(application)
+    return summaryList(application, cloudProvider)
   }
 
   @ExceptionHandler
@@ -175,7 +180,7 @@ class ServerGroupController {
         }
         if (health.type == InstanceLoadBalancers.HEALTH_TYPE && health.containsKey("loadBalancers")) {
           healthMetric.loadBalancers = health.loadBalancers.collect {
-            [name : it.loadBalancerName, state : it.state, description: it.description, healthState: it.healthState, loadBalancerType: it.loadBalancerType ]
+            [name: it.loadBalancerName, state: it.state, description: it.description, healthState: it.healthState, loadBalancerType: it.loadBalancerType]
           }
         }
         healthMetric

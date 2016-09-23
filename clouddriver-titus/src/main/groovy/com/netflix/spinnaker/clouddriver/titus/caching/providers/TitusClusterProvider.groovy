@@ -23,6 +23,7 @@ import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.core.provider.agent.ExternalHealthProvider
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
+import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
 import com.netflix.spinnaker.clouddriver.titus.caching.Keys
 import com.netflix.spinnaker.clouddriver.titus.caching.TitusCachingProvider
 import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
@@ -43,6 +44,7 @@ import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.SER
 @Component
 class TitusClusterProvider implements ClusterProvider<TitusCluster> {
 
+  private final TitusCloudProvider titusCloudProvider
   private final Cache cacheView
   private final TitusCachingProvider titusCachingProvider
   private final ObjectMapper objectMapper
@@ -51,9 +53,11 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
   AwsLookupUtil awsLookupUtil
 
   @Autowired
-  TitusClusterProvider(TitusCachingProvider titusCachingProvider,
+  TitusClusterProvider(TitusCloudProvider titusCloudProvider,
+                       TitusCachingProvider titusCachingProvider,
                        Cache cacheView,
                        ObjectMapper objectMapper) {
+    this.titusCloudProvider = titusCloudProvider
     this.cacheView = cacheView
     this.titusCachingProvider = titusCachingProvider
     this.objectMapper = objectMapper
@@ -156,7 +160,11 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
     serverGroup
   }
 
-  // Private methods
+  @Override
+  String getCloudProviderId() {
+    return titusCloudProvider.id
+  }
+// Private methods
 
   private Map<String, Set<TitusCluster>> getClustersInternal(String applicationName, boolean includeDetails) {
     CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName))
