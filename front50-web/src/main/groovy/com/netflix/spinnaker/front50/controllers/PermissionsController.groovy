@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.front50.controllers
 
+import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO
+import groovy.util.logging.Slf4j
 import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
@@ -26,7 +28,9 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
+import retrofit.RetrofitError
 
+@Slf4j
 @RestController
 @RequestMapping("/permissions")
 @ConditionalOnExpression('${spinnaker.gcs.enabled:false} || ${spinnaker.s3.enabled:false}')
@@ -34,6 +38,9 @@ public class PermissionsController {
 
   @Autowired
   ApplicationPermissionDAO applicationPermissionDAO;
+
+  @Autowired(required = false)
+  FiatService fiatService
 
   @ApiOperation(value = "", notes = "Get all application permissions. Internal use only.")
   @RequestMapping(method = RequestMethod.GET, value = "/applications")
@@ -45,7 +52,9 @@ public class PermissionsController {
   @RequestMapping(method = RequestMethod.POST, value = "/applications")
   Application.Permission createApplicationPermission(
       @RequestBody Application.Permission permission) {
-    return applicationPermissionDAO.create(permission.id, permission)
+    def perm = applicationPermissionDAO.create(permission.id, permission)
+    syncUsers(perm)
+    return perm
   }
 
   @RequestMapping(method = RequestMethod.PUT, value = "/applications/{appName:.+}")
@@ -53,11 +62,31 @@ public class PermissionsController {
       @PathVariable String appName,
       @RequestBody Application.Permission permission) {
     applicationPermissionDAO.update(appName, permission)
-    return applicationPermissionDAO.findById(appName);
+    def perm = applicationPermissionDAO.findById(appName)
+    syncUsers(perm)
+    return perm
   }
 
   @RequestMapping(method = RequestMethod.DELETE, value = "/applications/{appName:.+}")
   void deleteApplicationPermission(@PathVariable String appName) {
+    def perm = applicationPermissionDAO.findById(appName)
     applicationPermissionDAO.delete(appName);
+    syncUsers(perm)
+  }
+
+  private void syncUsers(Application.Permission permission) {
+    if (fiatService && permission) {
+      // Specifically using an empty list here instead of null, because an empty list will update
+      // the anonymous user's app list.
+      List<String> roles = []
+      if (permission.requiredGroupMembership) {
+        roles = permission.requiredGroupMembership
+      }
+      try {
+        fiatService.sync(roles)
+      } catch (RetrofitError re) {
+        log.warn("Error syncing users", re)
+      }
+    }
   }
 }
