@@ -15,15 +15,17 @@
  */
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.handlers
+
+import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
-import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
-import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.client.model.SubmitJobRequest
+import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
+import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -64,6 +66,10 @@ class TitusDeployHandlerSpec extends Specification {
     )
     titusClient.findJobsByApplication(_) >> []
 
+    titusDeployHandler.deployDefaults = [
+      addAppGroupToServerGroup: false
+    ] as AwsConfiguration.DeployDefaults
+
     when:
     DeploymentResult deploymentResult = titusDeployHandler.handle(titusDeployDescription, [])
 
@@ -85,7 +91,7 @@ class TitusDeployHandlerSpec extends Specification {
         it.ports == titusDeployDescription.resources.ports &&
         it.env == titusDeployDescription.env &&
         it.application == titusDeployDescription.application &&
-        it.allocateIpAddress ==  titusDeployDescription.resources.allocateIpAddress
+        it.allocateIpAddress == titusDeployDescription.resources.allocateIpAddress
     } as SubmitJobRequest)
   }
 

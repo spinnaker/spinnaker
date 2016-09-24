@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.titus.caching.utils
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonVpc
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonSecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonVpcProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.model.TitusSecurityGroup
@@ -41,6 +43,9 @@ class AwsLookupUtil {
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
+
+  @Autowired
+  RegionScopedProviderFactory regionScopedProviderFactory
 
   Set<TitusSecurityGroup> lookupSecurityGroupNames(String account, String region, LinkedHashSet<String> securityGroups) {
     Set<TitusSecurityGroup> expandedGroups = new LinkedHashSet<TitusSecurityGroup>()
@@ -71,6 +76,16 @@ class AwsLookupUtil {
     awsSecurityGroupProvider.get(awsDetails.awsAccount, region, providedSecurityGroup, awsDetails.vpcId)?.id
   }
 
+  String createSecurityGroupForApplication(account, region, application) {
+    Map awsDetails = awsAccountLookup.find {
+      it.titusAccount == account && it.region == region
+    }
+    RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider = regionScopedProviderFactory.forRegion(accountCredentialsProvider.all.find {
+      it instanceof AmazonCredentials && it.name == awsDetails.awsAccount
+    }, region)
+    regionScopedProvider.securityGroupService.createSecurityGroupWithVpcId(application, awsDetails.vpcId)
+  }
+
   private String convertVpcNameToId(String awsAccount, String region, String name) {
     if (!amazonVpcs) {
       amazonVpcs = amazonVpcProvider.all
@@ -87,7 +102,7 @@ class AwsLookupUtil {
       return null
     }
 
-    [name      : awsSecurityGroupProvider.getById(awsDetails.awsAccount,
+    [name: awsSecurityGroupProvider.getById(awsDetails.awsAccount,
       region,
       securityGroupId,
       awsDetails.vpcId
