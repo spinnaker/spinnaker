@@ -24,19 +24,29 @@ import spock.lang.Unroll
 class DefaultAllowedAccountsValidatorSpec extends Specification {
 
   @Shared
-  TestAccountCredentials credentialsWithRequiredGroup = new TestAccountCredentials(name: 'TestAccount', requiredGroupMembership: ['targetAccount1'])
+  TestAccountCredentials credentialsWithRequiredGroup = new TestAccountCredentials(
+      name: 'TestAccount',
+      requiredGroupMembership: ['targetAccount1']
+  )
 
   @Shared
-  TestAccountCredentials credentialsWithSameRequiredGroup = new TestAccountCredentials(name: 'OtherAccount', requiredGroupMembership: ['targetAccount1'])
+  TestAccountCredentials credentialsWithSameRequiredGroup = new TestAccountCredentials(
+      name: 'OtherAccount',
+      requiredGroupMembership: ['targetAccount1']
+  )
 
   @Shared
-  TestAccountCredentials credentialsWithDifferentRequiredGroup = new TestAccountCredentials(name: 'AnotherAccount', requiredGroupMembership: ['targetAccount2'])
+  TestAccountCredentials credentialsWithDifferentRequiredGroup = new TestAccountCredentials(
+      name: 'AnotherAccount',
+      requiredGroupMembership: ['targetAccount2']
+  )
 
   @Unroll
   void "should reject if allowed accounts does not intersect with required group memberships"() {
     given:
     def errors = Mock(Errors)
-    def validator = new DefaultAllowedAccountsValidator(Mock(AccountCredentialsProvider) {
+    def validator = new DefaultAllowedAccountsValidator(
+        accountCredentialsProvider: Mock(AccountCredentialsProvider) {
       1 * getAll() >> { [credentialsWithRequiredGroup] }
       0 * _
     })
@@ -61,7 +71,8 @@ class DefaultAllowedAccountsValidatorSpec extends Specification {
   void "should allow if allow accounts intersect with required group memberships"() {
     given:
     def errors = Mock(Errors)
-    def validator = new DefaultAllowedAccountsValidator(Mock(AccountCredentialsProvider) {
+    def validator = new DefaultAllowedAccountsValidator(
+        accountCredentialsProvider: Mock(AccountCredentialsProvider) {
       1 * getAll() >> { [credentialsWithRequiredGroup] }
       0 * _
     })
@@ -79,7 +90,8 @@ class DefaultAllowedAccountsValidatorSpec extends Specification {
   void "should allow if all accounts intersection with required group memberships"() {
     given:
     def errors = Mock(Errors)
-    def validator = new DefaultAllowedAccountsValidator(Mock(AccountCredentialsProvider) {
+    def validator = new DefaultAllowedAccountsValidator(
+        accountCredentialsProvider: Mock(AccountCredentialsProvider) {
       1 * getAll() >> { [credentialsWithRequiredGroup] }
       0 * _
     })
@@ -102,7 +114,8 @@ class DefaultAllowedAccountsValidatorSpec extends Specification {
   void "should allow if no required group memberships"() {
     given:
     def errors = Mock(Errors)
-    def validator = new DefaultAllowedAccountsValidator(Mock(AccountCredentialsProvider))
+    def validator = new DefaultAllowedAccountsValidator(
+        accountCredentialsProvider: Mock(AccountCredentialsProvider))
 
     when:
     validator.validate("TestAccount", [], new TestDescription(), errors)
@@ -114,7 +127,8 @@ class DefaultAllowedAccountsValidatorSpec extends Specification {
   void "should reject if no credentials in description"() {
     given:
     def errors = Mock(Errors)
-    def validator = new DefaultAllowedAccountsValidator(Mock(AccountCredentialsProvider) {
+    def validator = new DefaultAllowedAccountsValidator(
+        accountCredentialsProvider: Mock(AccountCredentialsProvider) {
       1 * getAll() >> { [credentialsWithRequiredGroup] }
       0 * _
     })

@@ -16,6 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.deploy
 
+import com.netflix.spinnaker.clouddriver.security.resources.AccountNameable
+import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
+import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.validation.Errors
 
 public abstract class DescriptionValidator<T> {
@@ -25,4 +32,39 @@ public abstract class DescriptionValidator<T> {
   }
 
   abstract void validate(List priorDescriptions, T description, Errors errors)
+
+  @Autowired(required = false)
+  FiatPermissionEvaluator permissionEvaluator
+
+  void authorize(T description, Errors errors) {
+    if (!permissionEvaluator) {
+      return
+    }
+
+    Authentication auth = SecurityContextHolder.context.authentication
+
+    if (description instanceof ApplicationNameable) {
+      ApplicationNameable asApp = description as ApplicationNameable
+      if (!permissionEvaluator.hasPermission(auth, asApp.application, 'APPLICATION', 'WRITE')) {
+        errors.reject("authorization", "Access denied to application ${asApp.application}")
+      }
+    }
+
+    if (description instanceof AccountNameable) {
+      AccountNameable asAcct = description as AccountNameable
+      if (!permissionEvaluator.hasPermission(auth, asAcct.account, 'ACCOUNT', 'WRITE')) {
+        errors.reject("authorization", "Access denied to account ${asAcct.account}")
+      }
+    }
+
+    if (description instanceof ResourcesNameable) {
+      ResourcesNameable asResources = description as ResourcesNameable
+      permissionEvaluator.storeWholePermission()
+      asResources.applications.each { String app ->
+        if (!permissionEvaluator.hasPermission(auth, app, 'APPLICATION', 'WRITE')) {
+          errors.reject("authorization", "Access denied to application ${app}")
+        }
+      }
+    }
+  }
 }

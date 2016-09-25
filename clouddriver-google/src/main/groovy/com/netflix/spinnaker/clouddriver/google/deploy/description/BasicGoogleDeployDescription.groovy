@@ -17,9 +17,12 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
 import com.google.api.services.compute.model.FixedOrPercent
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
+import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 import groovy.transform.ToString
@@ -27,7 +30,7 @@ import groovy.transform.ToString
 @AutoClone
 @Canonical
 @ToString(includeSuper = true, includeNames = true)
-class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription implements DeployDescription {
+class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription implements DeployDescription, ApplicationNameable {
   String application
   String stack
   String freeFormDetails
@@ -62,8 +65,17 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
     Integer desired
   }
 
+  String getApplication() {
+    if (application) {
+      return application
+    }
+    if (source && source.serverGroupName) {
+      return Names.parseName(source.serverGroupName).app
+    }
+  }
+
   @Canonical
-  static class Source {
+  static class Source implements ServerGroupNameable {
     // TODO(duftler): Add accountName/credentials to support cloning from one account to another.
     String region
     String serverGroupName

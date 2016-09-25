@@ -22,13 +22,20 @@ import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 
+/**
+ * Support for controllers requiring authorization checks from Fiat.
+ */
 @Component
 class AuthorizationSupport {
 
   @Autowired
   FiatPermissionEvaluator permissionEvaluator
 
-  @SuppressWarnings("unused")
+  /**
+   * Performs READ authorization checks on returned Maps that are keyed by account name.
+   * @param map Objected returned by a controller that has account names as the key
+   * @return true always, to conform to Spring Security annotation expectation.
+   */
   boolean filterForAccounts(Map<String, Object> map) {
     if (map == null || map.isEmpty()) {
       return true

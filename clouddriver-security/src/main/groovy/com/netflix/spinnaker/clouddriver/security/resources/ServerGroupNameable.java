@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.google.deploy.description
+package com.netflix.spinnaker.clouddriver.security.resources;
 
-import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.resources.CredentialsNameable
+import com.netflix.frigga.Names;
 
-abstract class AbstractGoogleCredentialsDescription implements CredentialsNameable {
-  GoogleNamedAccountCredentials credentials
+/**
+ * Convenience trait for parsing the application name out of a description with a "serverGroupName"
+ * property.
+ */
+public interface ServerGroupNameable extends ApplicationNameable {
+  String getServerGroupName();
+
+  @Override
+  default String getApplication() {
+    return Names.parseName(getServerGroupName()).getApp();
+  }
 }

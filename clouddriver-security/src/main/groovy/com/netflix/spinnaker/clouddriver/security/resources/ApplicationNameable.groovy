@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.google.deploy.description
+package com.netflix.spinnaker.clouddriver.security.resources
 
-import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.resources.CredentialsNameable
-
-abstract class AbstractGoogleCredentialsDescription implements CredentialsNameable {
-  GoogleNamedAccountCredentials credentials
+/**
+ * Denotes an operation description operates on a specific application resource.
+ */
+interface ApplicationNameable {
+  String getApplication()
 }

@@ -16,8 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
-class RebootGoogleInstancesDescription extends AbstractGoogleCredentialsDescription {
+import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable
+
+class RebootGoogleInstancesDescription extends AbstractGoogleCredentialsDescription implements ResourcesNameable {
   List<String> instanceIds
   String zone
   String accountName
+
+  List<String> getNames() {
+    return instanceIds
+  }
 }

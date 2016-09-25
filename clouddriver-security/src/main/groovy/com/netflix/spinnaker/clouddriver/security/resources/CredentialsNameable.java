@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.google.deploy.description
+package com.netflix.spinnaker.clouddriver.security.resources;
 
-import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.resources.CredentialsNameable
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 
-abstract class AbstractGoogleCredentialsDescription implements CredentialsNameable {
-  GoogleNamedAccountCredentials credentials
+/**
+ * Convenience trait for extracting the account name from a credential, which all
+ * descriptions should have.
+ */
+public interface CredentialsNameable extends AccountNameable {
+  AccountCredentials getCredentials();
+
+  @Override
+  default String getAccount() {
+    return getCredentials().getName();
+  }
 }
