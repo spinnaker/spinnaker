@@ -1,3 +1,3 @@
 #!/bin/sh
 
-rm -rf /var/log/spinnaker/clouddriver
+rm -rf /var/log/spinnaker/fiat
