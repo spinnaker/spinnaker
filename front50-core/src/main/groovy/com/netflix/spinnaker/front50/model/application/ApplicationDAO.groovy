@@ -62,10 +62,6 @@ public interface ApplicationDAO extends ItemDAO<Application> {
         return result
       } as Set
 
-      if (!items) {
-        throw new NotFoundException("No Application found for search criteria $attributes")
-      }
-
       return items.sort { Application a, Application b ->
         return score(b, attributes) - score(a, attributes)
       }
