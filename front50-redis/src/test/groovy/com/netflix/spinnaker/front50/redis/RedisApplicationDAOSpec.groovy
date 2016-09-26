@@ -130,10 +130,10 @@ class RedisApplicationDAOSpec extends Specification {
     foundApplications*.persistedProperties == [newApplication]*.persistedProperties
 
     when:
-    redisApplicationDAO.search([name: newApplicationAttrs.name, group: "does not exist"])
+    def result = redisApplicationDAO.search([name: newApplicationAttrs.name, group: "does not exist"])
 
     then:
-    thrown(NotFoundException)
+    result.isEmpty()
 
     when:
     foundApplications = redisApplicationDAO.search([name: "app"])

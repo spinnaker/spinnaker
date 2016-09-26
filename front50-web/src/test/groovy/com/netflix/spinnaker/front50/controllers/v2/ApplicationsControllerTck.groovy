@@ -325,6 +325,17 @@ abstract class ApplicationsControllerTck extends Specification {
 
     when:
     response = mockMvc.perform(
+      get("/v2/applications?name=non-existent")
+    )
+
+    then:
+    response.andExpect status().isOk()
+    notThrown(NotFoundException)
+    response.andExpect content().string("[]")
+
+
+    when:
+    response = mockMvc.perform(
       get("/v2/applications?name=sample&pageSize=9999")
     )
 

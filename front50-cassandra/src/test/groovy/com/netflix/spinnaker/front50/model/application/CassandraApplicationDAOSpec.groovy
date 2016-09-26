@@ -130,10 +130,10 @@ class CassandraApplicationDAOSpec extends Specification {
     foundApplications*.persistedProperties == [newApplication]*.persistedProperties
 
     when:
-    cassandraApplicationDAO.search([name: newApplicationAttrs.name, group: "does not exist"])
+    def result = cassandraApplicationDAO.search([name: newApplicationAttrs.name, group: "does not exist"])
 
     then:
-    thrown(NotFoundException)
+    result.isEmpty()
 
     when:
     foundApplications = cassandraApplicationDAO.search([name: "app"])
