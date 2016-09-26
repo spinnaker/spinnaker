@@ -52,7 +52,7 @@ class BuildController {
     @Autowired
     ObjectMapper objectMapper
 
-    @RequestMapping(value = '/builds/status/{buildNumber}/{master}/**')
+    @RequestMapping(value = '/builds/status/{buildNumber}/{master:.+}/**')
     GenericBuild getJobStatus(@PathVariable String master, @PathVariable Integer buildNumber, HttpServletRequest request) {
         def job = (String) request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(5).join('/')
@@ -90,7 +90,7 @@ class BuildController {
 
     }
 
-    @RequestMapping(value = '/builds/all/{master}/**')
+    @RequestMapping(value = '/builds/all/{master:.+}/**')
     List<Object> getBuilds(@PathVariable String master, HttpServletRequest request) {
         def job = (String) request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(4).join('/')
@@ -194,7 +194,7 @@ class BuildController {
         }
     }
 
-    @RequestMapping(value = '/builds/properties/{buildNumber}/{fileName}/{master}/**')
+    @RequestMapping(value = '/builds/properties/{buildNumber}/{fileName}/{master:.+}/**')
     Map<String, Object> getProperties(
         @PathVariable String master,
         @PathVariable Integer buildNumber, @PathVariable String fileName, HttpServletRequest request) {

@@ -77,7 +77,7 @@ class InfoController {
         }
     }
 
-    @RequestMapping(value = '/jobs/{master}', method = RequestMethod.GET)
+    @RequestMapping(value = '/jobs/{master:.+}', method = RequestMethod.GET)
     List<String> getJobs(@PathVariable String master) {
         def jenkinsService = buildMasters.filteredMap(BuildServiceProvider.JENKINS)[master]
         if (jenkinsService) {
@@ -106,7 +106,7 @@ class InfoController {
         }
     }
 
-    @RequestMapping(value = '/jobs/{master}/**')
+    @RequestMapping(value = '/jobs/{master:.+}/**')
     Object getJobConfig(@PathVariable String master, HttpServletRequest request) {
         def job = (String) request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(3).join('/')
