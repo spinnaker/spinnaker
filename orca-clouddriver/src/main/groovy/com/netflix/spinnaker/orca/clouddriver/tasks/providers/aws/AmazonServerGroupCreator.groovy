@@ -54,7 +54,7 @@ class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
     def createServerGroupOp = createServerGroupOperation(stage)
     def allowLaunchOps = allowLaunchOperations(createServerGroupOp)
     if (allowLaunchOps) {
-      allowLaunchOps.each{
+      allowLaunchOps.each {
         ops.add([allowLaunchDescription: it])
       }
     }
@@ -113,13 +113,15 @@ class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
     operation.securityGroups = operation.securityGroups ?: []
     def defaultSecurityGroupsForAccount
 
-    if (context.cloudProvider != 'titus') {
-      if (operation.subnetType && !operation.subnetType.contains('vpc0')) {
-        //TODO(cfieber)- remove the VPC special case asap
-        defaultSecurityGroupsForAccount = defaultVpcSecurityGroups
-      } else {
-        defaultSecurityGroupsForAccount = defaultSecurityGroups
-      }
+    if (operation.subnetType && !operation.subnetType.contains('vpc0')) {
+      //TODO(cfieber)- remove the VPC special case asap
+      defaultSecurityGroupsForAccount = defaultVpcSecurityGroups
+    } else {
+      defaultSecurityGroupsForAccount = defaultSecurityGroups
+    }
+
+    if (context.cloudProvider == 'titus') {
+      defaultSecurityGroupsForAccount << 'titusmaster-mainvpc'
     }
 
     try {
@@ -128,7 +130,7 @@ class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
       if (accountDetails.defaultSecurityGroups != null) {
         defaultSecurityGroupsForAccount = accountDetails.defaultSecurityGroups as List<String>
       }
-    } catch(Exception e) {
+    } catch (Exception e) {
       log.error("Unable to lookup default security groups", e)
     }
     addAllNonEmpty(operation.securityGroups as List<String>, defaultSecurityGroupsForAccount)
