@@ -247,10 +247,7 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
       .withSpotPrice(settings.spotPrice)
       .withClassicLinkVPCId(settings.classicLinkVpcId)
       .withClassicLinkVPCSecurityGroups(settings.classicLinkVpcSecurityGroups)
-
-    if (settings.instanceMonitoring) {
-      request.withInstanceMonitoring(new InstanceMonitoring(enabled: settings.instanceMonitoring))
-    }
+      .withInstanceMonitoring(new InstanceMonitoring(enabled: settings.instanceMonitoring))
 
     if (settings.blockDevices) {
       def mappings = []
