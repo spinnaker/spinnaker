@@ -120,10 +120,6 @@ class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
       defaultSecurityGroupsForAccount = defaultSecurityGroups
     }
 
-    if (context.cloudProvider == 'titus') {
-      defaultSecurityGroupsForAccount << 'titusmaster-mainvpc'
-    }
-
     try {
       // Check for any explicitly provided per-account security group defaults (and use them)
       def accountDetails = mortService.getAccountDetails(operation.credentials as String)
