@@ -1,6 +1,5 @@
 # Halyard
 
-This is a temporary staging repository before we consider moving this 
-into the [Spinnaker](https://github.com/spinnaker) org. 
+A tool to simplify configuring & running Spinnaker.
 
 Please look over the design.md doc in the docs/ directory.
