@@ -249,26 +249,43 @@ function extract_spinnaker_gcr_credentials() {
   mkdir -p $(dirname $config_path)
   chown -R spinnaker:spinnaker $(dirname $config_path)
 
+  local gcr_enabled=$(get_instance_metadata_attribute "gcr_enabled")
   local gcr_account=$(get_instance_metadata_attribute "gcr_account")
-  if [ -n "$gcr_account" ]; then
-    # This downloads the JSON key for the specified service account
+
+  if [ -n "$gcr_enabled" ] || [ -n "$gcr_account" ]; then
+    echo "GCR enabled"
+
+    if [ -z "$gcr_account" ]; then
+      gcr_account=$(gcloud iam service-accounts list --filter="displayName:'Compute Engine default service account'" --format="value(email)")
+      clear_instance_metadata "gcr_account"
+    fi
+
+    echo "Extracting GCR credentials for email $gcr_account"
     gcloud iam service-accounts keys create $config_path --iam-account=$gcr_account
 
     if [[ -s $config_path ]]; then
       echo "Extracted GCR credentials to $config_path"
-
+  
       chmod 400 $config_path
       chown spinnaker:spinnaker $config_path
 
+      local gcr_location=$(get_instance_metadata_attribute "gcr_location")
+
+      if [ -z "$gcr_location" ]; then
+        gcr_location="https://gcr.io"
+      fi
+  
       write_default_value "SPINNAKER_DOCKER_PASSWORD_FILE" $config_path
       write_default_value "SPINNAKER_DOCKER_USERNAME" "_json_key"
-      write_default_value "SPINNAKER_DOCKER_REGISTRY" "https://gcr.io"
+      write_default_value "SPINNAKER_DOCKER_REGISTRY" $gcr_location
     else
       rm $config_path
       echo "Failed to extract GCR credentials to $config_path"
     fi
   else
+    echo "GCR not enabled"
     clear_instance_metadata "gcr_account"
+    clear_instance_metadata "gcr_enabled"
   fi
 }
 
