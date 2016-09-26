@@ -24,7 +24,7 @@ module.exports = angular
 
         API.one('canaryConfig').all('names').getList()
           .then(
-            (results) => vm.nameList = results,
+            (results) => vm.nameList = results.sort(),
             () => vm.nameList = []
           );
 
