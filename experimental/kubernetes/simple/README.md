@@ -53,15 +53,21 @@ the storage buckets in your projects containing your Docker images.
 [Here](https://cloud.google.com/iam/docs/service-accounts) is some background
 reading on service accounts in GCP if this is unfamiliar to you. 
 
-Create the account:
+Create the account with the necessary permissions:
 
 ```
-$ gcloud iam service-accounts create spinnaker-gcr-account \
-    --display-name "GCR Kubernetes Spinnaker Images"
+gcloud iam service-accounts create \
+    spinnaker-bootstrap-account \
+    --display-name spinnaker-bootstrap-account
 
-$ gcloud iam service-accounts list # Record the email linked with your account
+SA_EMAIL=$(gcloud iam service-accounts list \
+    --filter="displayName:spinnaker-bootstrap-account" \
+    --format='value(email)')
 
-$ SA_EMAIL=... # See above
+PROJECT=$(gcloud info --format='value(config.project)')
+
+gcloud projects add-iam-policy-binding $PROJECT \
+    --role roles/compute.storageAdmin--member serviceAccount:$SA_EMAIL
 ```
 
 Download the key:
