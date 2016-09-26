@@ -104,17 +104,21 @@ class GoogleLoadBalancerController {
       }
     }
 
+    def isHttp = view.loadBalancerType == GoogleLoadBalancerType.HTTP
     [new GoogleLoadBalancerDetails(loadBalancerName: view.name,
+                                   loadBalancerType: view.loadBalancerType,
                                    createdTime: view.createdTime,
                                    dnsname: view.ipAddress,
                                    ipAddress: view.ipAddress,
                                    healthCheck: view.healthCheck ?: null,
                                    backendServiceHealthChecks: backendServiceHealthChecks ?: null,
                                    listenerDescriptions: [[
-                                       listener: new ListenerDescription(instancePort: view.portRange,
-                                                                         loadBalancerPort: view.portRange,
-                                                                         instanceProtocol: view.ipProtocol,
-                                                                         protocol: view.ipProtocol)
+                                       listener: new ListenerDescription(
+                                         instancePort: isHttp ? 'http' : Utils.derivePortOrPortRange(view.portRange), // Https forwards traffic to a 'named' port.
+                                         loadBalancerPort: Utils.derivePortOrPortRange(view.portRange),
+                                         instanceProtocol: view.ipProtocol,
+                                         protocol: view.ipProtocol
+                                       )
                                    ]])]
   }
 
@@ -167,6 +171,7 @@ class GoogleLoadBalancerController {
     String dnsname
     String ipAddress
     String loadBalancerName
+    GoogleLoadBalancerType loadBalancerType
     GoogleHealthCheck.View healthCheck
     Map<String, GoogleHealthCheck.View> backendServiceHealthChecks = [:]
     // TODO(ttomsu): Bizarre nesting of data. Necessary?

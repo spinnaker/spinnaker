@@ -36,6 +36,24 @@ class Utils {
     }
   }
 
+  /**
+   * Return a single port string if a port range refers to a single port (e.g. 80-80).
+   *
+   * @param portRange - Port range to parse.
+   * @return - Single port if the ports in the port range are the same.
+   */
+  static String derivePortOrPortRange(String portRange) {
+    if (!portRange || !portRange.contains('-')) {
+      return portRange
+    }
+    def tokens = portRange.split('-')
+    if (tokens.length != 2) {
+      throw new IllegalFormatException("Port range ${portRange} formatted improperly.")
+    }
+
+    tokens[0] != tokens[1] ? portRange : tokens[0]
+  }
+
   static String getLocalName(String fullUrl) {
     if (!fullUrl) {
       return fullUrl

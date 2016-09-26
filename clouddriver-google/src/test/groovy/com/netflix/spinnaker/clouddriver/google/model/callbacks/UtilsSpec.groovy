@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.model.callbacks
 
 
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class UtilsSpec extends Specification {
 
@@ -93,5 +94,17 @@ class UtilsSpec extends Specification {
       "/projects/PROJECT/zones/us-central1-f/instanceGroups/svg-stack-v000"                                      | "us-central1"
       "https://www.googleapis.com/compute/v1/projects/PROJECT/regions/us-central1/instanceGroups/svg-stack-v00"  | "us-central1"
       "projects/PROJECT/regions/us-central1/instanceGroups/svg-stack-v00"                                        | "us-central1"
+  }
+
+  @Unroll
+  def "should represent port range as a single port string if ports equal"() {
+    expect:
+      expected == Utils.derivePortOrPortRange(input)
+
+    where:
+      input       | expected
+      ""          | ""
+      "80-90"     | "80-90"
+      "8080-8080" | "8080"
   }
 }
