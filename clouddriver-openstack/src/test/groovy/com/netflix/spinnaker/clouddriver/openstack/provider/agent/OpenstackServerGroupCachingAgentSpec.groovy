@@ -24,6 +24,7 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
@@ -38,6 +39,11 @@ import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccoun
 import org.openstack4j.model.common.ActionResponse
 import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.network.ext.LoadBalancerV2
+import org.openstack4j.model.network.ext.LoadBalancerV2StatusTree
+import org.openstack4j.model.network.ext.status.LbPoolV2Status
+import org.openstack4j.model.network.ext.status.ListenerV2Status
+import org.openstack4j.model.network.ext.status.LoadBalancerV2Status
+import org.openstack4j.model.network.ext.status.MemberV2Status
 import redis.clients.jedis.exceptions.JedisException
 import spock.lang.Ignore
 import spock.lang.Shared
@@ -68,6 +74,10 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
   String account = 'test'
   ObjectMapper objectMapper
   Registry registry
+  @Shared
+  String en = 'ENABLED'
+  @Shared
+  String dis = 'DISABLED'
 
   void "setup"() {
     namedAccountCredentials = Mock(OpenstackNamedAccountCredentials)
@@ -199,9 +209,13 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
       getId() >> { stackId }
       getName() >> { serverGroupName }
     }
-    LoadBalancerV2 lb = Mock(LoadBalancerV2) {
-      getId() >> { loadBalancerId }
-      getName() >> { loadBalancerName }
+    LoadBalancerV2StatusTree lb = Mock(LoadBalancerV2StatusTree) {
+      it.loadBalancerV2Status >> {
+        Mock(LoadBalancerV2Status) {
+          getId() >> { loadBalancerId }
+          getName() >> { loadBalancerName }
+        }
+      }
     }
     Stack stackDetail = Mock(Stack) { getParameters() >> ['load_balancers': loadBalancerId] }
     OpenstackServerGroup openstackServerGroup = OpenstackServerGroup.builder().account(account).name(serverGroupName).build()
@@ -222,8 +236,8 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     then:
     1 * cachingAgent.getInstanceIdsByStack(region, stacks) >> [(stackId): [serverId]]
     1 * provider.getStack(region, stack.name) >> stackDetail
-    1 * provider.getLoadBalancer(region, loadBalancerId) >> lb
-    1 * cachingAgent.buildServerGroup(providerCache, stackDetail, _) >> openstackServerGroup
+    1 * provider.getLoadBalancerStatusTree(region, loadBalancerId) >> lb
+    1 * cachingAgent.buildServerGroup(providerCache, stackDetail, _, _) >> openstackServerGroup
 
     and:
     CacheResult result = cacheResultBuilder.build()
@@ -270,8 +284,15 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
 
   void "test build server group"() {
     given:
+    boolean disabled = false
+    String loadBalancerId = 'loadBalancerId'
     ProviderCache providerCache = Mock(ProviderCache)
-    Set<String> loadBalancerIds = Sets.newHashSet('loadBalancerId')
+    LoadBalancerV2Status status = Mock(LoadBalancerV2Status) {
+      it.id >> { loadBalancerId }
+      it.name >> { 'loadBalancerName' }
+    }
+    Set<String> loadBalancerIds = [Keys.getLoadBalancerKey('loadBalancerName','loadBalancerId', account, region)].toSet()
+    Set<LoadBalancerV2Status> statuses = [status].toSet()
     LocalDateTime createdTime = LocalDateTime.now()
     String subnetId = UUID.randomUUID().toString()
     Stack stack = Mock(Stack) {
@@ -281,11 +302,11 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     }
 
     and:
-    Map<String, Object> launchConfig = Mock(Map)
-    Map<String, Object> openstackImage = Mock(Map)
-    Map<String, Object> scalingConfig = Mock(Map)
-    Map<String, Object> buildInfo = Mock(Map)
-    Map<String, Object> advancedConfig = Mock(Map)
+    Map<String, Object> launchConfig = [image:'foo']
+    Map<String, Object> openstackImage = [properties:[:]]
+    Map<String, Object> scalingConfig = [:]
+    Map<String, Object> buildInfo = [:]
+    Map<String, Object> advancedConfig = [:]
 
     and:
     OpenstackServerGroup expected = OpenstackServerGroup.builder()
@@ -299,23 +320,21 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
       .loadBalancers(loadBalancerIds)
       .image(openstackImage)
       .buildInfo(buildInfo)
-      .disabled(loadBalancerIds.isEmpty())
+      .disabled(disabled)
       .subnetId(subnetId)
       .tags([foo:'bar'])
       .build()
 
-    and:
-    ServerGroupParameters params = ServerGroupParameters.fromParamsMap(stack.parameters)
-
     when:
-    OpenstackServerGroup result = cachingAgent.buildServerGroup(providerCache, stack, loadBalancerIds)
+    OpenstackServerGroup result = cachingAgent.buildServerGroup(providerCache, stack, statuses, [])
 
     then:
-    1 * cachingAgent.buildLaunchConfig(params) >> launchConfig
-    1 * cachingAgent.buildImage(providerCache, launchConfig.image) >> openstackImage
-    1 * cachingAgent.buildScalingConfig(params) >> scalingConfig
-    1 * cachingAgent.buildInfo(openstackImage.properties) >> buildInfo
-    1 * cachingAgent.buildAdvancedConfig(params) >> advancedConfig
+    1 * cachingAgent.buildLaunchConfig(_ as ServerGroupParameters) >> launchConfig
+    1 * cachingAgent.buildImage(providerCache, 'foo') >> openstackImage
+    1 * cachingAgent.buildScalingConfig(_ as ServerGroupParameters) >> scalingConfig
+    1 * cachingAgent.buildInfo(_ as Map) >> buildInfo
+    1 * cachingAgent.buildAdvancedConfig(_ as ServerGroupParameters) >> advancedConfig
+    1 * cachingAgent.calculateServerGroupStatus(providerCache, statuses, []) >> disabled
 
     and:
 
@@ -436,6 +455,47 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     testCase | parameters                                                                           | expected
     'empty'  | new ServerGroupParameters()                                                          | [:]
     'normal' | new ServerGroupParameters(sourceUserDataType: 'Text', sourceUserData: 'echo foobar') | [userDataType: 'Text', userData: 'echo foobar']
+  }
+
+  void "test calculateServerGroupStatus - #testCase"() {
+    given:
+    List<String> addresses = ['addr1', 'addr2']
+    ProviderCache providerCache = Mock(ProviderCache)
+    MemberV2Status memberStatus1 = Mock(MemberV2Status) {
+      it.address >> { addresses[0] }
+      it.operatingStatus >> { status1 }
+    }
+    MemberV2Status memberStatus2 = Mock(MemberV2Status) {
+      it.address >> { addresses[1] }
+      it.operatingStatus >> { status2 }
+    }
+    LbPoolV2Status poolStatus = Mock(LbPoolV2Status) {
+      it.memberStatuses >> { [memberStatus1, memberStatus2] }
+    }
+    ListenerV2Status listenerStatus = Mock(ListenerV2Status) {
+      it.lbPoolV2Statuses >> { [poolStatus] }
+    }
+    LoadBalancerV2Status status = Mock(LoadBalancerV2Status) {
+      it.id >> { 'loadBalancerId' }
+      it.name >> { 'loadBalancerName' }
+      it.listenerStatuses >> { [listenerStatus] }
+    }
+    Set<LoadBalancerV2Status> statuses = [status].toSet()
+    Collection<CacheData> cacheData = addresses.collect { addr -> Mock(CacheData) { it.attributes >> [ipv6:addr] } }
+    List<String> instanceKeys = ['id1','id2'].collect { Keys.getInstanceKey(it, account, region) }
+
+    when:
+    boolean disabled = cachingAgent.calculateServerGroupStatus(providerCache, statuses, instanceKeys)
+
+    then:
+    1 * providerCache.getAll(INSTANCES.ns, instanceKeys, _ as RelationshipCacheFilter) >> cacheData
+    disabled == expected
+
+    where:
+    testCase             | status1 | status2 | expected
+    "all instances up"   | en      | en      | false
+    "all instances down" | dis     | dis     | true
+    "some up some down"  | en      | dis     | false
   }
 
   void "test handle on demand no result - #testCase"() {

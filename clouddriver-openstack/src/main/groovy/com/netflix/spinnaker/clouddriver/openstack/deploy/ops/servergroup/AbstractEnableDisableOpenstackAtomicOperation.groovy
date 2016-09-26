@@ -29,6 +29,11 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.network.ext.LbProvisioningStatus
 import org.openstack4j.model.network.ext.LoadBalancerV2
+import org.openstack4j.model.network.ext.LoadBalancerV2StatusTree
+
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Future
+import java.util.function.Supplier
 
 abstract class AbstractEnableDisableOpenstackAtomicOperation implements AtomicOperation<Void>, LoadBalancerStatusAware {
   abstract boolean isDisable()
@@ -36,8 +41,6 @@ abstract class AbstractEnableDisableOpenstackAtomicOperation implements AtomicOp
   abstract String getPhaseName()
 
   abstract String getOperation()
-
-  abstract Void addOrRemoveInstancesFromLoadBalancer(List<String> instanceIds, List<String> loadBalancers)
 
   static final int DEFAULT_WEIGHT = 1
 
@@ -54,7 +57,7 @@ abstract class AbstractEnableDisableOpenstackAtomicOperation implements AtomicOp
   @Override
   Void operate(List priorOutputs) {
     String verb = disable ? 'disable' : 'enable'
-    String presentParticipling = disable ? 'Disabling' : 'Enabling'
+    String gerund = disable ? 'Disabling' : 'Enabling'
     task.updateStatus phaseName, "Initializing $verb server group operation for $description.serverGroupName in $description.region..."
     try {
       task.updateStatus phaseName, "Getting stack details for $description.serverGroupName..."
@@ -62,8 +65,8 @@ abstract class AbstractEnableDisableOpenstackAtomicOperation implements AtomicOp
       if (instanceIds?.size() > 0) {
         Stack stack = provider.getStack(description.region, description.serverGroupName)
         if (stack.tags?.size() > 0) {
-          addOrRemoveInstancesFromLoadBalancer(instanceIds, stack.tags)
-          task.updateStatus phaseName, "Done ${presentParticipling.toLowerCase()} server group $description.serverGroupName in $description.region."
+          enableDisableLoadBalancerMembers(instanceIds, stack.tags)
+          task.updateStatus phaseName, "Done ${gerund.toLowerCase()} server group $description.serverGroupName in $description.region."
         } else {
           task.updateStatus phaseName, "Did not find any load balancers associated with $description.serverGroupName, nothing to do."
         }
@@ -73,6 +76,51 @@ abstract class AbstractEnableDisableOpenstackAtomicOperation implements AtomicOp
     } catch (Exception e) {
       throw new OpenstackOperationException(operation, e)
     }
+  }
+
+  void enableDisableLoadBalancerMembers(List<String> instanceIds, List<String> loadBalancerIds) {
+    String gerund = disable ? 'Disabling' : 'Enabling'
+    task.updateStatus phaseName, "$gerund instances in load balancers..."
+    Map<String, Future<LoadBalancerV2StatusTree>> statusTrees = [:]
+    Map<String, Future<List<String>>> ips = instanceIds.collectEntries { instanceId ->
+      task.updateStatus phaseName, "Getting ip for instance $instanceId..."
+      [(instanceId): CompletableFuture.supplyAsync({
+        provider.getIpsForInstance(description.region, instanceId).collect { it.addr }
+      } as Supplier<String>).exceptionally { t ->
+        null
+      }]
+    }
+    loadBalancerIds.each { lbId ->
+      task.updateStatus phaseName, "Getting load balancer tree for $lbId..."
+      statusTrees << [(lbId): CompletableFuture.supplyAsync({
+        provider.getLoadBalancerStatusTree(description.region, lbId)
+      } as Supplier<LoadBalancerV2StatusTree>)]
+    }
+    CompletableFuture.allOf([statusTrees.values(), ips.values()].flatten() as CompletableFuture[]).join()
+    Map<String, BlockingStatusChecker> checkers = loadBalancerIds.collectEntries { [(it):createBlockingActiveStatusChecker(description.credentials, description.region, it)] }
+    for (String id : instanceIds) {
+      List<String> ip = ips[(id)].get()
+      if (!ip) {
+        task.updateStatus phaseName, "Could not find floating ip for instance $id, continuing with next instance"
+      } else {
+        loadBalancerIds.each { lbId ->
+          LoadBalancerV2StatusTree status = statusTrees[(lbId)].get()
+          status.loadBalancerV2Status?.listenerStatuses?.each { listenerStatus ->
+            listenerStatus.lbPoolV2Statuses?.each { poolStatus ->
+              poolStatus.memberStatuses?.each { memberStatus ->
+                if (memberStatus.address && ip.contains(memberStatus.address)) {
+                  task.updateStatus phaseName, "$gerund member instance $id with ip $memberStatus.address on load balancer $lbId with listener ${listenerStatus.id} and pool ${poolStatus.id}..."
+                  checkers[lbId].execute {
+                    provider.updatePoolMemberStatus(description.region, poolStatus.id, memberStatus.id, !disable)
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    task.updateStatus phaseName, "Finished deregistering instances from load balancers."
   }
 
   OpenstackClientProvider getProvider() {

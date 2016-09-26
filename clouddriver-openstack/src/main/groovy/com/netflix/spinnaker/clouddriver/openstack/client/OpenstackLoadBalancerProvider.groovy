@@ -238,4 +238,13 @@ interface OpenstackLoadBalancerProvider {
    * @return
    */
   LoadBalancerV2StatusTree getLoadBalancerStatusTree(final String region, final String id)
+
+  /**
+   * Updates a pool member status.
+   * @param region
+   * @param poolId
+   * @param memberId
+   * @param status true means the pool member is enabled, false means it's disabled and can receive no traffic
+   */
+  MemberV2 updatePoolMemberStatus(final String region, final String poolId, final String memberId, final boolean status)
 }

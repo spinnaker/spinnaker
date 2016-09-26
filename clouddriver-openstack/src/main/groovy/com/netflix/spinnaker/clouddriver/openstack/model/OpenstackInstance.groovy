@@ -16,56 +16,32 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
+import com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider
 import groovy.transform.Canonical
+import org.openstack4j.model.compute.Address
 import org.openstack4j.model.compute.Server
 
-import static org.openstack4j.model.compute.Server.Status
-
 @Canonical
-class OpenstackInstance implements Instance, Serializable {
+class OpenstackInstance {
   String name
   String instanceId
   Long launchTime
   String zone
   String region
-  String status
   String keyName
   Map<String, String> metadata
   String account
-
-  //TODO - Determine if load balancers, security groups, and server groups are needed
-  // TODO - Determine which external health checks matter
-  @Override
-  List<Map<String, String>> getHealth() {
-    [[
-       state      : healthState.toString(),
-       zone       : zone,
-       type       : 'serverGroup',
-       description: ''
-     ]]
-  }
-
-  //TODO - Further define health states ... There are 18 OP and 7 spinnaker states.
-  @Override
-  HealthState getHealthState() {
-    switch (Status.forValue(status)) {
-      case Status.ACTIVE:
-        HealthState.Up
-        break
-      case Status.BUILD:
-        HealthState.Starting
-        break
-      case Status.UNKNOWN:
-        HealthState.Unknown
-        break
-      default:
-        HealthState.Down
-    }
-  }
+  String ipv6
+  List<OpenstackLoadBalancerHealth> loadBalancerHealths = []
+  OpenstackInstanceHealth instanceHealth
 
   static OpenstackInstance from(Server server, String account, String region) {
+    Address fixedIpAddress = server?.addresses?.getAddresses('private')?.find { it.type == 'fixed' && it.version == 6 }
+
     new OpenstackInstance(name: server.name
       , region: region
       , account: account
@@ -73,7 +49,87 @@ class OpenstackInstance implements Instance, Serializable {
       , instanceId: server.id
       , launchTime: server.launchedAt?.time
       , metadata: server.metadata
-      , status: server.status?.value()
-      , keyName: server.keyName)
+      , instanceHealth: new OpenstackInstanceHealth(status: server.status)
+      , keyName: server.keyName
+      , ipv6: fixedIpAddress?.addr)
+  }
+
+  @JsonIgnore
+  View getView() {
+    new View()
+  }
+
+  @Canonical
+  class View implements Instance {
+    String name = OpenstackInstance.this.name
+    String instanceId = OpenstackInstance.this.instanceId
+    Long launchTime = OpenstackInstance.this.launchTime
+    String zone = OpenstackInstance.this.zone
+    String region = OpenstackInstance.this.region
+    String keyName = OpenstackInstance.this.keyName
+    Map<String, String> metadata = OpenstackInstance.this.metadata
+    String account = OpenstackInstance.this.account
+    String ipv6 = OpenstackInstance.this.ipv6
+
+    @Override
+    List<Map<String, Object>> getHealth() {
+      ObjectMapper mapper = new ObjectMapper()
+      List<Map<String, Object>> healths = []
+
+      // load balancer health
+      loadBalancerHealths?.each {
+        healths << mapper.convertValue(it.view, OpenstackInfrastructureProvider.ATTRIBUTES)
+      }
+
+      //instance health
+      healths << mapper.convertValue(instanceHealth?.view, OpenstackInfrastructureProvider.ATTRIBUTES)
+
+      //TODO derekolk - Add consul health
+
+      healths
+    }
+
+    @JsonIgnore
+    List<OpenstackHealth> allHealths() {
+      def allHealths = []
+
+      loadBalancerHealths?.each {
+        allHealths << it.view
+      }
+      if (instanceHealth) {
+        allHealths << instanceHealth.view
+      }
+
+      //TODO derekolk - Add consul health views
+
+      allHealths
+    }
+
+    @Override
+    HealthState getHealthState() {
+      def allHealths = allHealths()
+      someUpRemainingUnknown(allHealths) ? HealthState.Up :
+        anyStarting(allHealths) ? HealthState.Starting :
+          anyDown(allHealths) ? HealthState.Down :
+            anyOutOfService(allHealths) ? HealthState.OutOfService :
+              HealthState.Unknown
+    }
+
+    private static boolean anyDown(List<OpenstackHealth> healthsList) {
+      healthsList.any { it.state == HealthState.Down }
+    }
+
+    private static boolean someUpRemainingUnknown(List<OpenstackHealth> healthsList) {
+      List<OpenstackHealth> knownHealthList = healthsList.findAll { it.state != HealthState.Unknown }
+      knownHealthList ? knownHealthList.every { it.state == HealthState.Up } : false
+    }
+
+    private static boolean anyStarting(List<OpenstackHealth> healthsList) {
+      healthsList.any { it.state == HealthState.Starting }
+    }
+
+    private static boolean anyOutOfService(List<OpenstackHealth> healthsList) {
+      healthsList.any { it.state == HealthState.OutOfService }
+    }
   }
 }

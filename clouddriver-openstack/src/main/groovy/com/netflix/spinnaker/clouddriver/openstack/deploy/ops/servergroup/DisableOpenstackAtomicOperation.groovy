@@ -16,14 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup
 
-import com.netflix.spinnaker.clouddriver.openstack.client.BlockingStatusChecker
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.OpenstackServerGroupAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import org.openstack4j.model.network.ext.LoadBalancerV2StatusTree
-
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Future
-import java.util.function.Supplier
 
 /**
  * curl -X POST -H "Content-Type: application/json" -d '[ { "disableServerGroup": { "serverGroupName": "myapp-teststack-v006", "region": "RegionOne", "account": "test" }} ]' localhost:7002/openstack/ops
@@ -38,51 +32,6 @@ class DisableOpenstackAtomicOperation extends AbstractEnableDisableOpenstackAtom
   @Override
   boolean isDisable() {
     true
-  }
-
-  @Override
-  Void addOrRemoveInstancesFromLoadBalancer(List<String> instanceIds, List<String> loadBalancerIds) {
-    task.updateStatus phaseName, "Deregistering instances from load balancers..."
-    Map<String, Future<LoadBalancerV2StatusTree>> statusTrees = [:]
-    Map<String, Future<List<String>>> ips = instanceIds.collectEntries { instanceId ->
-      task.updateStatus phaseName, "Getting ip for instance $instanceId..."
-      [(instanceId): CompletableFuture.supplyAsync({
-        provider.getIpsForInstance(description.region, instanceId).collect { it.addr }
-      } as Supplier<String>).exceptionally { t ->
-        null
-      }]
-    }
-    loadBalancerIds.each { lbId ->
-      task.updateStatus phaseName, "Getting load balancer tree for $lbId..."
-      statusTrees << [(lbId): CompletableFuture.supplyAsync({
-        provider.getLoadBalancerStatusTree(description.region, lbId)
-      } as Supplier<LoadBalancerV2StatusTree>)]
-    }
-    CompletableFuture.allOf([statusTrees.values(), ips.values()].flatten() as CompletableFuture[]).join()
-    Map<String, BlockingStatusChecker> checkers = loadBalancerIds.collectEntries { [(it):createBlockingActiveStatusChecker(description.credentials, description.region, it)] }
-    for (String id : instanceIds) {
-      List<String> ip = ips[(id)].get()
-      if (!ip) {
-        task.updateStatus phaseName, "Could not find floating ip for instance $id, continuing with next instance"
-      } else {
-        loadBalancerIds.each { lbId ->
-          LoadBalancerV2StatusTree status = statusTrees[(lbId)].get()
-          status.loadBalancerV2Status?.listenerStatuses?.each { listenerStatus ->
-            listenerStatus.lbPoolV2Statuses?.each { poolStatus ->
-              poolStatus.memberStatuses?.each { memberStatus ->
-                if (memberStatus.address && ip.contains(memberStatus.address)) {
-                  task.updateStatus phaseName, "Removing member instance $id with ip $memberStatus.address from load balancer $lbId with listener ${listenerStatus.id} and pool ${poolStatus.id}..."
-                  checkers[lbId].execute {
-                    provider.removeMemberFromLoadBalancerPool(description.region, poolStatus.id, memberStatus.id)
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    task.updateStatus phaseName, "Finished deregistering instances from load balancers."
   }
 
 }

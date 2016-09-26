@@ -103,7 +103,7 @@ class OpenstackLoadBalancerProvider implements LoadBalancerProvider<OpenstackLoa
       if (serverGroup) {
         loadBalancerServerGroup = new LoadBalancerServerGroup(name: serverGroup.name, isDisabled: serverGroup.isDisabled())
         loadBalancerServerGroup.instances = serverGroup.instances?.collect { instance ->
-          new LoadBalancerInstance(id: ((OpenstackInstance) instance).instanceId, health: instance.health && instance.health.size() > 0 ? instance.health[0] : null)
+          new LoadBalancerInstance(id: instance.name, health: [state: instance.healthState?.toString()])
         }?.toSet()
       }
       loadBalancerServerGroup

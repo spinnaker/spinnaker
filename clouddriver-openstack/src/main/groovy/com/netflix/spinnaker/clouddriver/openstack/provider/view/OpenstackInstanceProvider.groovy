@@ -19,19 +19,23 @@ package com.netflix.spinnaker.clouddriver.openstack.provider.view
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackInstance
+import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLoadBalancer
+import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.LOAD_BALANCERS
 
 @Component
-class OpenstackInstanceProvider implements InstanceProvider<OpenstackInstance> {
+class OpenstackInstanceProvider implements InstanceProvider<OpenstackInstance.View> {
   final Cache cacheView
   final AccountCredentialsProvider accountCredentialsProvider
   final ObjectMapper objectMapper
@@ -48,13 +52,13 @@ class OpenstackInstanceProvider implements InstanceProvider<OpenstackInstance> {
     OpenstackCloudProvider.ID
   }
 
-  Set<OpenstackInstance> getInstances(Collection<String> cacheKeys) {
-    cacheKeys.findResults(this.&getInstanceInternal).toSet()
+  Set<OpenstackInstance.View> getInstances(Collection<String> cacheKeys) {
+    cacheKeys.findResults(this.&getInstanceInternal).collect { it.view }.toSet()
   }
 
   @Override
-  OpenstackInstance getInstance(String account, String region, String id) {
-    getInstanceInternal(Keys.getInstanceKey(id, account, region))
+  OpenstackInstance.View getInstance(String account, String region, String id) {
+    getInstanceInternal(Keys.getInstanceKey(id, account, region))?.view
   }
 
   /**
@@ -65,9 +69,22 @@ class OpenstackInstanceProvider implements InstanceProvider<OpenstackInstance> {
   protected OpenstackInstance getInstanceInternal(String cacheKey) {
     OpenstackInstance result = null
 
-    CacheData instanceEntry = cacheView.get(INSTANCES.ns, cacheKey)
+    CacheData instanceEntry = cacheView.get(INSTANCES.ns, cacheKey, RelationshipCacheFilter.include(LOAD_BALANCERS.ns))
     if (instanceEntry) {
       result = objectMapper.convertValue(instanceEntry.attributes, OpenstackInstance)
+
+      def loadBalancerKeys = instanceEntry.relationships[LOAD_BALANCERS.ns]
+      if (loadBalancerKeys) {
+        cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys).each { CacheData loadBalancerCacheData ->
+          OpenstackLoadBalancer loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, OpenstackLoadBalancer)
+          def foundHealths = loadBalancer.healths.findAll { OpenstackLoadBalancerHealth health ->
+            health.instanceId == result.instanceId
+          }
+          if (foundHealths) {
+            result.loadBalancerHealths?.addAll(foundHealths)
+          }
+        }
+      }
     }
     result
   }

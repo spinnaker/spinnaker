@@ -19,10 +19,13 @@ package com.netflix.spinnaker.clouddriver.openstack.provider.view
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackInstance
+import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLoadBalancer
+import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -30,6 +33,7 @@ import org.openstack4j.model.common.ActionResponse
 import spock.lang.Specification
 
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.LOAD_BALANCERS
 
 class OpenstackInstanceProviderSpec extends Specification {
 
@@ -56,14 +60,31 @@ class OpenstackInstanceProviderSpec extends Specification {
     String instanceKey = Keys.getInstanceKey(id, account, region)
     OpenstackInstance openstackInstance = Mock(OpenstackInstance)
 
+    and:
+    Collection<String> lbKeys = ['key']
+    Map<String, Collection<String>> relationshipMap = [(LOAD_BALANCERS.ns): lbKeys]
+    CacheData lbCacheData = Mock(CacheData)
+    OpenstackLoadBalancer openstackLoadBalancer = Mock(OpenstackLoadBalancer)
+    OpenstackLoadBalancerHealth openstackLoadBalancerHealth = Mock(OpenstackLoadBalancerHealth)
+    OpenstackInstance.View view = Mock(OpenstackInstance.View)
+
     when:
-    OpenstackInstance result = instanceProvider.getInstance(account, region, id)
+    OpenstackInstance.View result = instanceProvider.getInstance(account, region, id)
 
     then:
-    1 * cache.get(INSTANCES.ns, instanceKey) >> cacheData
+    1 * cache.get(INSTANCES.ns, instanceKey, _ as RelationshipCacheFilter) >> cacheData
     1 * cacheData.attributes >> attributes
     1 * objectMapper.convertValue(attributes, OpenstackInstance) >> openstackInstance
-    result == openstackInstance
+    1 * cacheData.relationships >> relationshipMap
+    1 * cache.getAll(LOAD_BALANCERS.ns, lbKeys) >> [lbCacheData]
+    1 * objectMapper.convertValue(_, _) >> openstackLoadBalancer
+    1 * openstackLoadBalancer.healths >> [openstackLoadBalancerHealth]
+    1 * openstackLoadBalancerHealth.instanceId >> id
+    1 * openstackInstance.instanceId >> id
+    1 * openstackInstance.view >> view
+
+    and:
+    result == view
     noExceptionThrown()
   }
 
@@ -72,10 +93,10 @@ class OpenstackInstanceProviderSpec extends Specification {
     String id = 'instance'
 
     when:
-    OpenstackInstance result = instanceProvider.getInstance(account, region, id)
+    OpenstackInstance.View result = instanceProvider.getInstance(account, region, id)
 
     then:
-    1 * cache.get(INSTANCES.ns, Keys.getInstanceKey(id, account, region)) >> null
+    1 * cache.get(INSTANCES.ns, Keys.getInstanceKey(id, account, region), _ as RelationshipCacheFilter) >> null
     0 * _
     result == null
     noExceptionThrown()
@@ -90,7 +111,9 @@ class OpenstackInstanceProviderSpec extends Specification {
     instanceProvider.getInstance(account, region, id)
 
     then:
-    1 * cache.get(INSTANCES.ns, Keys.getInstanceKey(id, account, region)) >> { throw throwable }
+    1 * cache.get(INSTANCES.ns, Keys.getInstanceKey(id, account, region), _ as RelationshipCacheFilter) >> {
+      throw throwable
+    }
     thrown(RuntimeException)
   }
 

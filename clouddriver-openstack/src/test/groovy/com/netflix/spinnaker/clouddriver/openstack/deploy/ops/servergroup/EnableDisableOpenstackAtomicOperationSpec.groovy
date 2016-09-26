@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackPro
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.openstack4j.model.compute.Address
 import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.network.ext.LbProvisioningStatus
@@ -35,10 +36,12 @@ import org.openstack4j.model.network.ext.LoadBalancerV2StatusTree
 import org.openstack4j.model.network.ext.status.LbPoolV2Status
 import org.openstack4j.model.network.ext.status.ListenerV2Status
 import org.openstack4j.model.network.ext.status.LoadBalancerV2Status
+import org.openstack4j.model.network.ext.status.MemberV2Status
 import spock.lang.Specification
-import spock.lang.Subject
+import spock.lang.Unroll
 
-class EnableOpenstackAtomicOperationSpec extends Specification {
+@Unroll
+class EnableDisableOpenstackAtomicOperationSpec extends Specification {
 
   private static final STACK = "stack"
   private static final REGION = "region"
@@ -50,6 +53,7 @@ class EnableOpenstackAtomicOperationSpec extends Specification {
 
   List<String> ids = ['foo', 'bar']
   List<String> lbIds = ['lb1','lb2']
+  String memberId = '42'
   String poolId = '1'
   String subnet = '2'
   String listenerId = '3'
@@ -72,27 +76,15 @@ class EnableOpenstackAtomicOperationSpec extends Specification {
     }
   }
 
-  def "enable stack adds instances to load balancer"() {
+  def "#testcase stack #testcase instances on load balancer"() {
     given:
-    @Subject def operation = new EnableOpenstackAtomicOperation(description)
-    LoadBalancerV2 loadBalancer1 = Mock(LoadBalancerV2) {
-      it.id >> { lbIds[0] }
-      it.vipSubnetId >> { subnet }
-      it.provisioningStatus >> { LbProvisioningStatus.ACTIVE }
+    MemberV2Status mstatus = Mock(MemberV2Status) {
+      it.id >> { memberId }
+      it.address >> { ip }
     }
-    LoadBalancerV2 loadBalancer2 = Mock(LoadBalancerV2) {
-      it.id >> { lbIds[1] }
-      it.vipSubnetId >> { subnet }
-      it.provisioningStatus >> { LbProvisioningStatus.ACTIVE }
-    }
-    LoadBalancerV2 mockLB = Mock(LoadBalancerV2) {
-      it.id >> { _ }
-      it.vipSubnetId >> { subnet }
-      it.provisioningStatus >> { LbProvisioningStatus.ACTIVE }
-    }
-    Map<String, LoadBalancerV2> loadBalancers = [(lbIds[0]):loadBalancer1, (lbIds[1]):loadBalancer2]
     LbPoolV2Status pstatus = Mock(LbPoolV2Status) {
       it.id >> { poolId }
+      it.memberStatuses >> { [mstatus] }
     }
     ListenerV2Status lstatus = Mock(ListenerV2Status) {
       it.id >> { listenerId }
@@ -106,112 +98,109 @@ class EnableOpenstackAtomicOperationSpec extends Specification {
     }
     Address address = Mock(Address) {
       it.addr >> { ip }
-      it.version >> { 6 }
+    }
+    LoadBalancerV2 mockLB = Mock(LoadBalancerV2) {
+      it.provisioningStatus >> { LbProvisioningStatus.ACTIVE }
     }
 
     when:
+    AtomicOperation operation = operationClazz.newInstance([description].toArray())
     operation.operate([])
 
     then:
+    _ * provider.getLoadBalancer(description.region, _) >> mockLB
     1 * provider.getInstanceIdsForStack(description.region, description.serverGroupName) >> ids
     1 * provider.getStack(description.region, description.serverGroupName) >> stack
     ids.each { id ->
       1 * provider.getIpsForInstance(description.region, id) >> [address]
     }
     lbIds.each { lbId ->
-      2 * provider.getInternalLoadBalancerPort(description.region, listenerId) >> port
-      1 * provider.getLoadBalancer(description.region, lbId) >> loadBalancers[(lbId)]
       1 * provider.getLoadBalancerStatusTree(description.region, lbId) >> tree
-      2 * provider.addMemberToLoadBalancerPool(description.region, ip, poolId, subnet, port, AbstractEnableDisableOpenstackAtomicOperation.DEFAULT_WEIGHT)
-      _ * provider.getLoadBalancer(description.region, lbId) >> mockLB
+      2 * provider.updatePoolMemberStatus(description.region, poolId, memberId, memberStatus)
     }
     noExceptionThrown()
+
+    where:
+    operationClazz                  | memberStatus  | testcase
+    DisableOpenstackAtomicOperation | false         | 'disable'
+    EnableOpenstackAtomicOperation  | true          | 'enable'
   }
 
-  def "enable stack does nothing when stack has no instances"() {
-    given:
-    @Subject def operation = new EnableOpenstackAtomicOperation(description)
-
+  def "#testcase stack does nothing when stack has no instances"() {
     when:
+    AtomicOperation operation = operationClazz.newInstance([description].toArray())
     operation.operate([])
 
     then:
     1 * provider.getInstanceIdsForStack(description.region, description.serverGroupName) >> []
     0 * provider.getStack(description.region, description.serverGroupName)
     0 * provider.getIpsForInstance(description.region, _ as String)
-    0 * provider.getInternalLoadBalancerPort(description.region, listenerId)
-    0 * provider.getLoadBalancer(description.region, _ as String)
     0 * provider.getLoadBalancerStatusTree(description.region, _ as String)
-    0 * provider.addMemberToLoadBalancerPool(description.region, ip, poolId, subnet, port, AbstractEnableDisableOpenstackAtomicOperation.DEFAULT_WEIGHT)
+    0 * provider.updatePoolMemberStatus(description.region, poolId, memberId)
     noExceptionThrown()
+
+    where:
+    operationClazz                  | memberStatus  | testcase
+    DisableOpenstackAtomicOperation | false         | 'disable'
+    EnableOpenstackAtomicOperation  | true          | 'enable'
   }
 
-  def "enable stack does nothing when stack has no load balancers"() {
+  def "#testcase stack does nothing when stack has no load balancers"() {
     given:
-    @Subject def operation = new EnableOpenstackAtomicOperation(description)
     Stack emptyStack = Mock(Stack) {
       it.tags >> { [] }
     }
 
     when:
+    AtomicOperation operation = operationClazz.newInstance([description].toArray())
     operation.operate([])
 
     then:
     1 * provider.getInstanceIdsForStack(description.region, description.serverGroupName) >> ['1','2','3']
     1 * provider.getStack(description.region, description.serverGroupName) >> emptyStack
     0 * provider.getIpsForInstance(description.region, _ as String)
-    0 * provider.getInternalLoadBalancerPort(description.region, listenerId)
-    0 * provider.getLoadBalancer(description.region, _ as String)
     0 * provider.getLoadBalancerStatusTree(description.region, _ as String)
-    0 * provider.addMemberToLoadBalancerPool(description.region, ip, poolId, subnet, port, AbstractEnableDisableOpenstackAtomicOperation.DEFAULT_WEIGHT)
+    0 * provider.updatePoolMemberStatus(description.region, poolId, memberId, false)
     noExceptionThrown()
+
+    where:
+    operationClazz                  | memberStatus  | testcase
+    DisableOpenstackAtomicOperation | false         | 'disable'
+    EnableOpenstackAtomicOperation  | true          | 'enable'
   }
 
-  def "stack not found"() {
+  def "stack not found - #testcase"() {
     given:
-    @Subject def operation = new EnableOpenstackAtomicOperation(description)
     Throwable throwable = new OpenstackProviderException("Unable to find stack $description.serverGroupName in region $description.region")
 
     when:
+    AtomicOperation operation = operationClazz.newInstance([description].toArray())
     operation.operate([])
 
     then:
     1 * provider.getInstanceIdsForStack(description.region, description.serverGroupName) >> ['1','2','3']
     1 * provider.getStack(description.region, description.serverGroupName) >> { throw throwable }
     0 * provider.getIpsForInstance(description.region, _ as String)
-    0 * provider.getInternalLoadBalancerPort(description.region, listenerId)
-    0 * provider.getLoadBalancer(description.region, _ as String)
     0 * provider.getLoadBalancerStatusTree(description.region, _ as String)
-    0 * provider.addMemberToLoadBalancerPool(description.region, ip, poolId, subnet, port, AbstractEnableDisableOpenstackAtomicOperation.DEFAULT_WEIGHT)
+    0 * provider.updatePoolMemberStatus(description.region, poolId, memberId, false)
     Throwable actual = thrown(OpenstackOperationException)
     actual.cause == throwable
+
+    where:
+    operationClazz                  | memberStatus  | testcase
+    DisableOpenstackAtomicOperation | false         | 'disable'
+    EnableOpenstackAtomicOperation  | true          | 'enable'
   }
 
-  def "load balancer not found"() {
+  def "load balancer not found - #testcase"() {
     given:
-    @Subject def operation = new EnableOpenstackAtomicOperation(description)
-    Throwable throwable = new OpenstackResourceNotFoundException("Unable to find load balancer lb1 in ${description.region}")
-    LbPoolV2Status pstatus = Mock(LbPoolV2Status) {
-      it.id >> { poolId }
-    }
-    ListenerV2Status lstatus = Mock(ListenerV2Status) {
-      it.id >> { listenerId }
-      it.lbPoolV2Statuses >> { [pstatus] }
-    }
-    LoadBalancerV2Status status = Mock(LoadBalancerV2Status) {
-      it.listenerStatuses >> { [lstatus] }
-    }
-    LoadBalancerV2StatusTree tree = Mock(LoadBalancerV2StatusTree) {
-      it.loadBalancerV2Status >> { status }
-    }
     Address address = Mock(Address) {
       it.addr >> { ip }
     }
-    LoadBalancerV2 mockLB = Mock(LoadBalancerV2) {
-      it.provisioningStatus >> { LbProvisioningStatus.ACTIVE }
-    }
+    Throwable throwable = new OpenstackResourceNotFoundException("Unable to find load balancer lb1 in ${description.region}")
 
     when:
+    AtomicOperation operation = operationClazz.newInstance([description].toArray())
     operation.operate([])
 
     then:
@@ -221,13 +210,16 @@ class EnableOpenstackAtomicOperationSpec extends Specification {
       1 * provider.getIpsForInstance(description.region, id) >> [address]
     }
     lbIds.each { lbId ->
-      1 * provider.getLoadBalancer(description.region, lbId) >> { throw throwable }
-      1 * provider.getLoadBalancerStatusTree(description.region, lbId) >> tree
-      0 * provider.getInternalLoadBalancerPort(description.region, listenerId) >> port
-      0 * provider.addMemberToLoadBalancerPool(description.region, ip, poolId, subnet, port, AbstractEnableDisableOpenstackAtomicOperation.DEFAULT_WEIGHT)
+      1 * provider.getLoadBalancerStatusTree(description.region, lbId) >> { throw throwable }
+      0 * provider.updatePoolMemberStatus(description.region, poolId, memberId, false)
     }
     Throwable actual = thrown(OpenstackOperationException)
     actual.cause.cause == throwable
+
+    where:
+    operationClazz                  | memberStatus  | testcase
+    DisableOpenstackAtomicOperation | false         | 'disable'
+    EnableOpenstackAtomicOperation  | true          | 'enable'
   }
 
 }

@@ -32,6 +32,7 @@ import org.openstack4j.model.network.ext.ListenerV2
 import org.openstack4j.model.network.ext.LoadBalancerV2
 import org.openstack4j.model.network.ext.LoadBalancerV2StatusTree
 import org.openstack4j.model.network.ext.MemberV2
+import org.openstack4j.model.network.ext.MemberV2Update
 import org.openstack4j.model.network.ext.Protocol
 
 class OpenstackLoadBalancerV2Provider implements OpenstackLoadBalancerProvider, OpenstackRequestHandler, OpenstackIdentityAware, LoadBalancerResolver {
@@ -276,11 +277,18 @@ class OpenstackLoadBalancerV2Provider implements OpenstackLoadBalancerProvider, 
     }
   }
 
-
-
+  @Override
   LoadBalancerV2StatusTree getLoadBalancerStatusTree(final String region, final String id) {
     handleRequest {
       getRegionClient(region).networking().lbaasV2().loadbalancer().statusTree(id)
+    }
+  }
+
+  @Override
+  MemberV2 updatePoolMemberStatus(final String region, final String poolId, final String memberId, final boolean status) {
+    handleRequest {
+      MemberV2Update update = Builders.memberV2Update().adminStateUp(status).build()
+      getRegionClient(region).networking().lbaasV2().lbPool().updateMember(poolId, memberId, update)
     }
   }
 }

@@ -41,6 +41,7 @@ class OpenstackLoadBalancer implements LoadBalancerResolver {
   String algorithm
   Set<OpenstackLoadBalancerListener> listeners
   OpenstackHealthMonitor healthMonitor
+  List<OpenstackLoadBalancerHealth> healths
 
   static OpenstackLoadBalancer from(LoadBalancerV2 loadBalancer, Set<ListenerV2> listeners, LbPoolV2 pool,
                                     HealthMonitorV2 healthMonitor, String account, String region) {

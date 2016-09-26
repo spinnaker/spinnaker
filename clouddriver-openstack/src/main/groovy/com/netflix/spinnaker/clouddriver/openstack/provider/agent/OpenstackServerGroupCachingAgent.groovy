@@ -24,6 +24,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
@@ -38,7 +39,14 @@ import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccoun
 import com.netflix.spinnaker.clouddriver.openstack.utils.DateUtils
 import groovy.util.logging.Slf4j
 import org.openstack4j.model.heat.Stack
+import org.openstack4j.model.network.ext.LbOperatingStatus
 import org.openstack4j.model.network.ext.LoadBalancerV2
+import org.openstack4j.model.network.ext.LoadBalancerV2StatusTree
+import org.openstack4j.model.network.ext.MemberV2
+import org.openstack4j.model.network.ext.status.LbPoolV2Status
+import org.openstack4j.model.network.ext.status.ListenerV2Status
+import org.openstack4j.model.network.ext.status.LoadBalancerV2Status
+import org.openstack4j.model.network.ext.status.MemberV2Status
 
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
@@ -119,22 +127,24 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
 
         Stack detail = clientProvider.getStack(region, stack.name)
         Set<String> loadBalancerKeys = [].toSet()
+        Set<LoadBalancerV2Status> statuses = [].toSet()
         if (detail && detail.parameters) {
-          loadBalancerKeys = ServerGroupParameters.fromParamsMap(detail.parameters).loadBalancers?.collect { loadBalancerId ->
-            String loadBalancerKey = null
+          statuses = ServerGroupParameters.fromParamsMap(detail.parameters).loadBalancers?.collect { loadBalancerId ->
+            LoadBalancerV2Status status = null
             try {
-              LoadBalancerV2 loadBalancer = clientProvider.getLoadBalancer(region, loadBalancerId)
-              if (loadBalancer) {
-                loadBalancerKey = Keys.getLoadBalancerKey(loadBalancer.name, loadBalancer.id, accountName, region)
+              status = clientProvider.getLoadBalancerStatusTree(region, loadBalancerId)?.loadBalancerV2Status
+              if (status) {
+                String loadBalancerKey = Keys.getLoadBalancerKey(status.name, status.id, accountName, region)
                 cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keep(loadBalancerKey).with {
                   relationships[SERVER_GROUPS.ns].add(serverGroupKey)
                 }
+                loadBalancerKeys << loadBalancerKey
               }
             } catch (OpenstackProviderException e) {
               //Do nothing ... Load balancer not found.
             }
-            loadBalancerKey
-          }
+            status
+          }?.findAll()?.toSet()
         }
 
         List<String> instanceKeys = []
@@ -144,7 +154,7 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
           instanceKeys.add(instanceKey)
         }
 
-        OpenstackServerGroup openstackServerGroup = buildServerGroup(providerCache, detail, loadBalancerKeys)
+        OpenstackServerGroup openstackServerGroup = buildServerGroup(providerCache, detail, statuses, instanceKeys)
 
         if (shouldUseOnDemandData(cacheResultBuilder, serverGroupKey)) {
           moveOnDemandDataToNamespace(objectMapper, typeReference, cacheResultBuilder, serverGroupKey)
@@ -196,11 +206,12 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
    * @param loadbalancerIds
    * @return
    */
-  OpenstackServerGroup buildServerGroup(ProviderCache providerCache, Stack stack, Set<String> loadbalancerIds) {
+  OpenstackServerGroup buildServerGroup(ProviderCache providerCache, Stack stack, Set<LoadBalancerV2Status> statuses, List<String> instanceKeys) {
     ServerGroupParameters params = ServerGroupParameters.fromParamsMap(stack?.parameters ?: [:])
     Map<String, Object> launchConfig = buildLaunchConfig(params)
     Map<String, Object> openstackImage = buildImage(providerCache, (String) launchConfig?.image)
     Map<String, Object> advancedConfig = buildAdvancedConfig(params)
+    Set<String> loadbalancerIds = statuses.collect { status -> Keys.getLoadBalancerKey(status.name, status.id, accountName, region) }
 
     OpenstackServerGroup.builder()
       .account(accountName)
@@ -212,7 +223,7 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
       .loadBalancers(loadbalancerIds)
       .image(openstackImage)
       .buildInfo(buildInfo((Map<String, String>) openstackImage?.properties))
-      .disabled(loadbalancerIds.isEmpty()) //TODO - Determine if we need to check to see if the stack is suspended
+      .disabled(calculateServerGroupStatus(providerCache, statuses, instanceKeys))
       .subnetId(params.subnetId)
       .advancedConfig(advancedConfig)
       .tags(params.tags ?: [:])
@@ -331,6 +342,36 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
     }
 
     result
+  }
+
+  /**
+   * calculate server group healthStatus
+   * @param statuses
+   * @return
+   */
+  boolean calculateServerGroupStatus(ProviderCache providerCache, Set<LoadBalancerV2Status> statuses, List<String> instanceKeys) {
+
+    //when all members for this server group are disabled, the server group is disabled, otherwise it is enabled.
+    Map<String, String> memberStatusMap = statuses?.collectEntries { lbStatus ->
+      lbStatus.listenerStatuses?.collectEntries { listenerStatus ->
+        listenerStatus.lbPoolV2Statuses?.collectEntries { poolStatus ->
+          poolStatus.memberStatuses?.collectEntries { memberStatus ->
+            [(memberStatus.address): memberStatus.operatingStatus.toString()]
+          }
+        }
+      }
+    }
+
+    // Read instances from cache and create a map indexed by ipv6 address to compare to load balancer member status
+    Collection<CacheData> instancesData = providerCache.getAll(INSTANCES.ns, instanceKeys, RelationshipCacheFilter.none())
+    Map<String, CacheData> addressCacheDataMap = instancesData.collectEntries { data ->
+      [data.attributes.ipv6, data]
+    }
+
+    // Find corresponding instance id, save key for caching below, and add new lb health based upon current member status
+    memberStatusMap
+      .findAll { key, value -> key == addressCacheDataMap[key]?.attributes?.ipv6?.toString() }
+      .every { key, value -> value == "DISABLED" }
   }
 
   @Override
