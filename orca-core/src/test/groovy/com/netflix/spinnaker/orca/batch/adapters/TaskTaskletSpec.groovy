@@ -118,6 +118,24 @@ class TaskTaskletSpec extends Specification {
     taskStatus << ExecutionStatus.values().findAll { it.complete }
   }
 
+  def "should skip the task if the stage is optional"() {
+    given:
+    stage.tasks.each { it.status = STOPPED }
+    stage.context.stageEnabled = [
+      expression: "false",
+      type      : "expression"
+    ]
+    executionRepository.store(pipeline)
+
+    when:
+    tasklet.execute(stepContribution, chunkContext)
+
+    then:
+    0 * task.execute(_)
+
+    stepContext.stepExecution.executionContext.get("orcaTaskStatus") == SKIPPED
+  }
+
   def "should pass the correct stage to the task"() {
     given:
     Stage stageArgument = null
