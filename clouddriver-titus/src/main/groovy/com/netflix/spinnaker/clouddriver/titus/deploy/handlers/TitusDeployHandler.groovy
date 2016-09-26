@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.handlers
 
+import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
@@ -36,6 +37,9 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
 
   @Autowired
   AwsLookupUtil awsLookupUtil
+
+  @Autowired
+  AwsConfiguration.DeployDefaults deployDefaults
 
   private final Logger logger = LoggerFactory.getLogger(TitusDeployHandler)
 
@@ -94,19 +98,30 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         .withLabels(description.labels)
         .withInService(description.inService)
 
-      if (description.securityGroups && !description.securityGroups.empty) {
-        Set<String> securityGroups = []
-        description.securityGroups.each { providedSecurityGroup ->
-          if (awsLookupUtil.securityGroupIdExists(account, region, providedSecurityGroup)) {
-            securityGroups << providedSecurityGroup
-          } else {
-            String convertedSecurityGroup = awsLookupUtil.convertSecurityGroupNameToId(account, region, providedSecurityGroup)
-            if (!convertedSecurityGroup) {
-              throw new RuntimeException("Security Group ${providedSecurityGroup} cannot be found")
-            }
-            securityGroups << convertedSecurityGroup
+      Set<String> securityGroups = []
+      description.securityGroups?.each { providedSecurityGroup ->
+        if (awsLookupUtil.securityGroupIdExists(account, region, providedSecurityGroup)) {
+          securityGroups << providedSecurityGroup
+        } else {
+          String convertedSecurityGroup = awsLookupUtil.convertSecurityGroupNameToId(account, region, providedSecurityGroup)
+          if (!convertedSecurityGroup) {
+            throw new RuntimeException("Security Group ${providedSecurityGroup} cannot be found")
           }
+          securityGroups << convertedSecurityGroup
         }
+      }
+
+      if (description.jobType != 'batch' && deployDefaults.addAppGroupToServerGroup && securityGroups.size() < deployDefaults.maxSecurityGroups) {
+        String applicationSecurityGroup = awsLookupUtil.convertSecurityGroupNameToId(account, region, description.application)
+        if (!applicationSecurityGroup) {
+          applicationSecurityGroup = awsLookupUtil.createSecurityGroupForApplication(account, region, description.application)
+        }
+        if (!securityGroups.contains(applicationSecurityGroup)) {
+          securityGroups << applicationSecurityGroup
+        }
+      }
+
+      if (!securityGroups.empty) {
         submitJobRequest.withSecurityGroups(securityGroups.asList())
       }
 

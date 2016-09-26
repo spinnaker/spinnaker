@@ -34,12 +34,12 @@ class SecurityGroupService {
     this.subnetAnalyzer = subnetAnalyzer
   }
 /**
-   * Find a security group that matches the name of this application.
-   *
-   * @param applicationName the name of the application to lookup
-   * @param subnetPurpose the subnet within which the lookup should take place
-   * @return id of Security Group for application
-   */
+ * Find a security group that matches the name of this application.
+ *
+ * @param applicationName the name of the application to lookup
+ * @param subnetPurpose the subnet within which the lookup should take place
+ * @return id of Security Group for application
+ */
   String getSecurityGroupForApplication(String applicationName, String subnetPurpose = null) {
     try {
       getSecurityGroupIdsWithSubnetPurpose([applicationName], subnetPurpose)?.values()?.getAt(0)
@@ -74,7 +74,7 @@ class SecurityGroupService {
 
   /**
    * Find security group ids for provided security group names
-    * @param securityGroupNames names to resolve to ids
+   * @param securityGroupNames names to resolve to ids
    * @param subnetPurpose if not null, will find the vpcId matching the subnet purpose and locate groups in that vpc
    * @return group ids
    */
@@ -84,7 +84,7 @@ class SecurityGroupService {
   }
 
   /**
-   * Create a security group for this this application. Security Group name will equal the application's.
+   * Create a security group for this application. Security Group name will equal the application's.
    * (ie. "application") name.
    *
    * @param applicationName
@@ -92,9 +92,21 @@ class SecurityGroupService {
    * @return id of the security group created
    */
   String createSecurityGroup(String applicationName, String subnetPurpose = null) {
+    createSecurityGroupWithVpcId(applicationName, subnetPurpose ? subnetAnalyzer.getVpcIdForSubnetPurpose(subnetPurpose) : null)
+  }
+
+  /**
+   * Create a security group using the vpcId specified for this application. Security Group name will equal the application's.
+   * (ie. "application") name.
+   *
+   * @param applicationName
+   * @param vpcId
+   * @return id of the security group created
+   */
+  String createSecurityGroupWithVpcId(String applicationName, String vpcId) {
     CreateSecurityGroupRequest request = new CreateSecurityGroupRequest(applicationName, "Security Group for $applicationName")
-    if (subnetPurpose) {
-      request.withVpcId(subnetAnalyzer.getVpcIdForSubnetPurpose(subnetPurpose))
+    if (vpcId) {
+      request.withVpcId(vpcId)
     }
     CreateSecurityGroupResult result = amazonEC2.createSecurityGroup(request)
     result.groupId
