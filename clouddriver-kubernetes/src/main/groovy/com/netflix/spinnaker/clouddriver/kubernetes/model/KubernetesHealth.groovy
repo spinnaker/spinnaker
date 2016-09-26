@@ -82,7 +82,7 @@ class KubernetesHealth implements Health {
       }
     } else if (containerStatus.state.waiting) {
       if (!containerStatus.ready) {
-        state = HealthState.Starting
+        state = HealthState.Down
       }
     }
   }

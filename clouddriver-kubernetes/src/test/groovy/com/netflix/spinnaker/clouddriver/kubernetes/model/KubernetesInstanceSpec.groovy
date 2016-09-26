@@ -90,14 +90,12 @@ class KubernetesInstanceSpec extends Specification {
 
     then:
       state == HealthState.Down
-  }
 
-  void "Should report state as Starting"() {
     when:
-      def state = (new KubernetesHealth('', containerStatusAsWaitingMock)).state
+      state = (new KubernetesHealth('', containerStatusAsWaitingMock)).state
 
     then:
-      state == HealthState.Starting
+      state == HealthState.Down
   }
 
   void "Should report state as Up"() {
