@@ -36,6 +36,9 @@
       <span ng-if="::vm.execution.canceledBy">
         by {{::vm.execution.canceledBy}} &mdash; {{::vm.execution.endTime | timestamp}}
       </span>
+      <span ng-if="::vm.restartDetails">
+        Restarted by {{::vm.restartDetails.restartedBy}} &mdash; {{::vm.restartDetails.restartTime | timestamp}}
+      </span>
       <span class="pull-right">Duration: {{vm.execution.runningTimeInMs | duration}}</span>
     </div>
   </div>
