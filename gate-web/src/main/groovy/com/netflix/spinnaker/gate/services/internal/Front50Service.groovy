@@ -96,7 +96,10 @@ interface Front50Service {
   // Project-related
   //
   @GET('/v2/projects')
-  HalList getAllProjects()
+  HalList legacyGetAllProjects() //TODO: remove this when front50 is updated to return a list of POJO Projects
+
+  @GET('/v2/projects')
+  List<Map> getAllProjects()
 
   @GET('/v2/projects/{projectId}')
   Map getProject(@Path('projectId') String projectId)
