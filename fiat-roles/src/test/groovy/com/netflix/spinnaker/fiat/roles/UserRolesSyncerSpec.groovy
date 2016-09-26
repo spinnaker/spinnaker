@@ -18,15 +18,18 @@ package com.netflix.spinnaker.fiat.roles
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver
 import com.netflix.spinnaker.fiat.permissions.RedisPermissionsRepository
+import com.netflix.spinnaker.fiat.providers.ProviderException
 import com.netflix.spinnaker.fiat.providers.ServiceAccountProvider
 import com.netflix.spinnaker.fiat.redis.JedisSource
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import org.springframework.boot.actuate.health.Health
 import redis.clients.jedis.Jedis
 import spock.lang.AutoCleanup
 import spock.lang.Shared
@@ -34,6 +37,8 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class UserRolesSyncerSpec extends Specification {
+
+  private static final String UNRESTRICTED = UnrestrictedResourceConfig.UNRESTRICTED_USERNAME;
 
   @Shared
   @AutoCleanup("destroy")
@@ -70,7 +75,7 @@ class UserRolesSyncerSpec extends Specification {
     jedis.flushDB()
   }
 
-  def "should sync all user roles"() {
+  def "should update user roles & add service accounts"() {
     setup:
     def user1 = new UserPermission()
         .setId("user1")
@@ -82,6 +87,9 @@ class UserRolesSyncerSpec extends Specification {
         .setId(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME)
         .setAccounts([new Account().setName("unrestrictedAccount")] as Set)
 
+    def abcServiceAcct = new UserPermission().setId("abc")
+    def xyzServiceAcct = new UserPermission().setId("xyz@domain.com")
+
     repo.put(user1)
     repo.put(user2)
     repo.put(unrestrictedUser)
@@ -90,54 +98,49 @@ class UserRolesSyncerSpec extends Specification {
         .setId("user2")
         .setAccounts([new Account().setName("account3")] as Set)
 
+    def serviceAccountProvider = Mock(ServiceAccountProvider) {
+      getAll() >> [new ServiceAccount().setName("abc"),
+                   new ServiceAccount().setName("xyz@domain.com")]
+    }
 
     def permissionsResolver = Mock(PermissionsResolver)
     @Subject syncer = new UserRolesSyncer()
         .setPermissionsRepository(repo)
         .setPermissionsResolver(permissionsResolver)
+        .setServiceAccountProvider(serviceAccountProvider)
+        .setHealthIndicator(new AlwaysUpHealthIndicator())
 
     expect:
-    repo.get("user1").get() == user1.merge(unrestrictedUser)
-    repo.get("user2").get() == user2.merge(unrestrictedUser)
-    repo.get(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME).get() == unrestrictedUser
+    repo.getAllById() == [
+        "user1"       : user1.merge(unrestrictedUser),
+        "user2"       : user2.merge(unrestrictedUser),
+        (UNRESTRICTED): unrestrictedUser
+    ]
 
     when:
-    syncer.updateUserPermissions()
+    syncer.syncAndReturn()
 
     then:
-    permissionsResolver.resolve(_ as Set) >> ["user1": user1, "user2": newUser2]
-    permissionsResolver.resolveUnrestrictedUser() >> Optional.of(unrestrictedUser)
+    permissionsResolver.resolve(_ as Set) >> ["user1"         : user1,
+                                              "user2"         : newUser2,
+                                              "abc"           : abcServiceAcct,
+                                              "xyz@domain.com": xyzServiceAcct]
+    permissionsResolver.resolveUnrestrictedUser() >> unrestrictedUser
 
     expect:
-    repo.get("user1").get() == user1.merge(unrestrictedUser)
-    repo.get("user2").get() == newUser2.merge(unrestrictedUser)
-    repo.get(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME).get() == unrestrictedUser
+    repo.getAllById() == [
+        "user1"         : user1.merge(unrestrictedUser),
+        "user2"         : newUser2.merge(unrestrictedUser),
+        "abc"           : abcServiceAcct.merge(unrestrictedUser),
+        "xyz@domain.com": xyzServiceAcct.merge(unrestrictedUser),
+        (UNRESTRICTED)  : unrestrictedUser
+    ]
   }
 
-
-  def "should update service accounts"() {
-    setup:
-    def abcPermission = new UserPermission().setId("abc")
-    def xyzPermission = new UserPermission().setId("xyz@domain.com")
-    def permissionsResolver = Mock(PermissionsResolver) {
-      resolve("abc") >> Optional.of(abcPermission)
-      resolve("xyz@domain.com") >> Optional.of(xyzPermission)
+  class AlwaysUpHealthIndicator extends ResourceProvidersHealthIndicator {
+    @Override
+    protected void doHealthCheck(Health.Builder builder) throws Exception {
+      builder.up()
     }
-    def serviceAccountProvider = Mock(ServiceAccountProvider) {
-      getAll() >> [ new ServiceAccount().setName("abc"),
-                         new ServiceAccount().setName("xyz@domain.com") ]
-    }
-
-    @Subject syncer = new UserRolesSyncer()
-        .setPermissionsRepository(repo)
-        .setPermissionsResolver(permissionsResolver)
-        .setServiceAccountProvider(serviceAccountProvider)
-
-    when:
-    syncer.updateServiceAccounts()
-
-    then:
-    repo.get("abc").get() == abcPermission
-    repo.get("xyz@domain.com").get() == xyzPermission
   }
 }

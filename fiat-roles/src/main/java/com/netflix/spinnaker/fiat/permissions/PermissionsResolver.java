@@ -26,24 +26,23 @@ import java.util.Optional;
 public interface PermissionsResolver {
 
   /**
-   * @return The UserPermission for an anonymous user. May return empty if anonymous users are
-   * disabled.
+   * @return The UserPermission for an anonymous user.
    */
-  Optional<UserPermission> resolveUnrestrictedUser();
+  UserPermission resolveUnrestrictedUser() throws PermissionResolutionException;
 
   /**
    * Resolves a single user's permissions.
    */
-  Optional<UserPermission> resolve(String userId);
+  UserPermission resolve(String userId) throws PermissionResolutionException;
 
   /**
    * Resolves a single user's permissions, taking into account externally
    * provided list of roles.
    */
-  Optional<UserPermission> resolveAndMerge(String userId, Collection<Role> externalRoles);
+  UserPermission resolveAndMerge(String userId, Collection<Role> externalRoles) throws PermissionResolutionException;
 
   /**
    * Resolves multiple user's permissions. Returned map is keyed by userId.
    */
-  Map<String, UserPermission> resolve(Collection<String> userIds);
+  Map<String, UserPermission> resolve(Collection<String> userIds) throws PermissionResolutionException;
 }

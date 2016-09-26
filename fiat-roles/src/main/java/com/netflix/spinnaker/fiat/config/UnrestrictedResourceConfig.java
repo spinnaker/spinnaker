@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.fiat.config;
 
+import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
 import org.springframework.context.annotation.Bean;
@@ -27,9 +28,8 @@ public class UnrestrictedResourceConfig {
   public static String UNRESTRICTED_USERNAME = "__unrestricted_user__";
 
   @Bean
-  String addUnrestrictedUser(PermissionsRepository permissionsRepository,
-                             PermissionsResolver permissionsResolver) {
-    permissionsResolver.resolveUnrestrictedUser().ifPresent(permissionsRepository::put);
+  String addUnrestrictedUser(PermissionsRepository permissionsRepository) {
+    permissionsRepository.put(new UserPermission().setId(UNRESTRICTED_USERNAME));
     return UNRESTRICTED_USERNAME;
   }
 }

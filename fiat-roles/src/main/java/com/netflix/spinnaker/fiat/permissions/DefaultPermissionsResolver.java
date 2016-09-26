@@ -54,24 +54,23 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
   private List<ResourceProvider> resourceProviders;
 
   @Override
-  public Optional<UserPermission> resolveUnrestrictedUser() {
+  public UserPermission resolveUnrestrictedUser() {
     return getUserPermission(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME,
                              Collections.emptySet() /* groups */);
   }
 
   @Override
-  public Optional<UserPermission> resolve(@NonNull String userId) {
+  public UserPermission resolve(@NonNull String userId) {
     return resolveAndMerge(userId, Collections.emptySet());
   }
 
   @Override
-  public Optional<UserPermission> resolveAndMerge(@NonNull String userId, Collection<Role> externalRoles) {
+  public UserPermission resolveAndMerge(@NonNull String userId, Collection<Role> externalRoles) {
     List<Role> roles;
     try {
       roles = userRolesProvider.loadRoles(userId);
-    } catch (ProviderException e) {
-      log.warn("Failed to resolve user permission for user " + userId, e);
-      return Optional.empty();
+    } catch (ProviderException pe) {
+      throw new PermissionResolutionException("Failed to resolve user permission for user " + userId, pe);
     }
     Set<Role> combo = Stream.concat(roles.stream(), externalRoles.stream())
                       .collect(Collectors.toSet());
@@ -80,7 +79,7 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
   }
 
   @SuppressWarnings("unchecked")
-  private Optional<UserPermission> getUserPermission(String userId, Set<Role> roles) {
+  private UserPermission getUserPermission(String userId, Set<Role> roles) {
     UserPermission permission = new UserPermission().setId(userId).setRoles(roles);
 
     for (ResourceProvider provider : resourceProviders) {
@@ -91,15 +90,10 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
           permission.addResources(provider.getAllUnrestricted());
         }
       } catch (ProviderException pe) {
-        log.warn("Can't resolve permission for '{}' due to error with '{}': {}",
-                 userId,
-                 provider.getClass().getSimpleName(),
-                 pe.getMessage());
-        log.debug("Error resolving UserPermission", pe);
-        return Optional.empty();
+        throw new PermissionResolutionException(pe);
       }
     }
-    return Optional.of(permission);
+    return permission;
   }
 
   @Override
@@ -126,11 +120,7 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
               }
             });
       } catch (ProviderException pe) {
-        log.warn("Can't getAllRestricted '{}' resources: {}",
-                 provider.getClass().getSimpleName(),
-                 pe.getMessage());
-        log.debug("Error resolving UserPermission", pe);
-        return Collections.emptyMap();
+        throw new PermissionResolutionException(pe);
       }
     }
 

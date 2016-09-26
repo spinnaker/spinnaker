@@ -16,8 +16,12 @@
 
 package com.netflix.spinnaker.fiat.roles;
 
+import com.diffplug.common.base.Functions;
+import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.UserPermission;
+import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
+import com.netflix.spinnaker.fiat.permissions.PermissionResolutionException;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
 import com.netflix.spinnaker.fiat.providers.ProviderException;
@@ -27,13 +31,19 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.health.Status;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.backoff.BackOffExecution;
 import org.springframework.util.backoff.FixedBackOff;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Component
@@ -51,6 +61,10 @@ public class UserRolesSyncer {
   @Setter
   private ServiceAccountProvider serviceAccountProvider;
 
+  @Autowired
+  @Setter
+  private ResourceProvidersHealthIndicator healthIndicator;
+
   @Value("${auth.userSync.retryIntervalMs:10000}")
   @Setter
   private long retryIntervalMs;
@@ -62,57 +76,78 @@ public class UserRolesSyncer {
   }
 
   public long syncAndReturn() {
-    updateServiceAccounts();
-    return updateUserPermissions();
-  }
-
-  private void updateServiceAccounts() {
-    AtomicInteger updateCount = new AtomicInteger(0);
-
     FixedBackOff backoff = new FixedBackOff();
     backoff.setInterval(retryIntervalMs);
     BackOffExecution backOffExec = backoff.start();
 
+    if (!isServerHealthy()) {
+      log.warn("Server is currently UNHEALTHY. User permission role synchronization and " +
+                   "resolution may not complete until this server becomes healthy again.");
+    }
+
     while (true) {
       try {
-        serviceAccountProvider
-            .getAll()
-            .forEach(serviceAccount -> permissionsResolver
-                .resolve(serviceAccount.getName())
-                .ifPresent(permission -> {
-                  permissionsRepository.put(permission);
-                  updateCount.incrementAndGet();
-                })
-            );
-        log.info("Synced " + updateCount.get() + " service accounts");
-        return;
-      } catch (ProviderException pe) {
+        Map<String, UserPermission> combo = new HashMap<>();
+        Map<String, UserPermission> temp;
+        if (!(temp = getUserPermissions()).isEmpty()) {
+          combo.putAll(temp);
+        }
+        if (!(temp = getServiceAccountsAsMap()).isEmpty()) {
+          combo.putAll(temp);
+        }
+
+        return updateUserPermissions(combo);
+      } catch (ProviderException|PermissionResolutionException ex) {
+        Status status = healthIndicator.health().getStatus();
         long waitTime = backOffExec.nextBackOff();
         if (waitTime == BackOffExecution.STOP) {
-          return;
+          log.error("Unable to resolve service account permissions.", ex);
+          return 0;
         }
-        log.warn("Service account resolution failed. Trying again in " + waitTime + "ms.", pe);
+        String message = new StringBuilder("User permission sync failed. ")
+            .append("Server status is ")
+            .append(status)
+            .append(". Trying again in ")
+            .append(waitTime)
+            .append(" ms. Cause:")
+            .append(ex.getMessage())
+            .toString();
+        if (log.isDebugEnabled()) {
+          log.debug(message, ex);
+        } else {
+          log.warn(message);
+        }
 
         try {
           Thread.sleep(waitTime);
         } catch (InterruptedException ignored) {
-          return;
         }
+      } finally {
+        isServerHealthy();
       }
     }
   }
 
-  public long updateUserPermissions() {
-    val permissionMap = permissionsRepository.getAllById();
-    return updateUserPermissions(permissionMap);
+  private boolean isServerHealthy() {
+    return healthIndicator.health().getStatus() == Status.UP;
+  }
+
+  private Map<String, UserPermission> getServiceAccountsAsMap() {
+    return serviceAccountProvider
+        .getAll()
+        .stream()
+        .map(serviceAccount -> new UserPermission().setId(serviceAccount.getName()))
+        .collect(Collectors.toMap(UserPermission::getId, Functions.identity()));
+  }
+
+  private Map<String, UserPermission> getUserPermissions() {
+    return permissionsRepository.getAllById();
   }
 
   public long updateUserPermissions(Map<String, UserPermission> permissionsById) {
     if (permissionsById.remove(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME) != null) {
-      permissionsResolver.resolveUnrestrictedUser().ifPresent(permission -> {
-        permissionsRepository.put(permission);
-        log.info("Synced anonymous user role.");
-      });
+      permissionsRepository.put(permissionsResolver.resolveUnrestrictedUser());
+      log.info("Synced anonymous user role.");
     }
 
     long count = permissionsResolver.resolve(permissionsById.keySet())

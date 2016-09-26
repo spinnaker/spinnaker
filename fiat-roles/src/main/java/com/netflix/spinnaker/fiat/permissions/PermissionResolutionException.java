@@ -14,29 +14,25 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.fiat.controllers;
+package com.netflix.spinnaker.fiat.permissions;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-@ResponseStatus(HttpStatus.BAD_REQUEST)
-public class UserPermissionModificationException extends RuntimeException {
-  public UserPermissionModificationException() {
+public class PermissionResolutionException extends RuntimeException {
+  public PermissionResolutionException() {
   }
 
-  public UserPermissionModificationException(String message) {
+  public PermissionResolutionException(String message) {
     super(message);
   }
 
-  public UserPermissionModificationException(String message, Throwable cause) {
+  public PermissionResolutionException(String message, Throwable cause) {
     super(message, cause);
   }
 
-  public UserPermissionModificationException(Throwable cause) {
+  public PermissionResolutionException(Throwable cause) {
     super(cause);
   }
 
-  public UserPermissionModificationException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+  public PermissionResolutionException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
     super(message, cause, enableSuppression, writableStackTrace);
   }
 }

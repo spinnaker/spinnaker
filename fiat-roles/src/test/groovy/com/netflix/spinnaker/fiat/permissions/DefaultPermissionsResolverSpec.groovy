@@ -81,7 +81,7 @@ class DefaultPermissionsResolverSpec extends Specification {
         .setResourceProviders(resourceProviders)
 
     when:
-    def result = resolver.resolveUnrestrictedUser().get()
+    def result = resolver.resolveUnrestrictedUser()
 
     then:
     result == new UserPermission().setId("__unrestricted_user__")
@@ -106,7 +106,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     thrown IllegalArgumentException
 
     when:
-    def result = resolver.resolve(testUserId).get()
+    def result = resolver.resolve(testUserId)
 
     then:
     1 * userRolesProvider.loadRoles(testUserId) >> []
@@ -114,7 +114,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     result == expected
 
     when:
-    result = resolver.resolve(testUserId).get()
+    result = resolver.resolve(testUserId)
 
     then:
     1 * userRolesProvider.loadRoles(testUserId) >> [role2]
@@ -124,7 +124,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     result == expected
 
     when: "merge externally provided roles"
-    result = resolver.resolveAndMerge(testUserId, [role1]).get()
+    result = resolver.resolveAndMerge(testUserId, [role1])
 
     then:
     1 * userRolesProvider.loadRoles(testUserId) >> [role2]

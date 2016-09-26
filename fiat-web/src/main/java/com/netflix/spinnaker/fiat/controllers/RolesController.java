@@ -18,6 +18,7 @@ package com.netflix.spinnaker.fiat.controllers;
 
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Role;
+import com.netflix.spinnaker.fiat.permissions.PermissionResolutionException;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
 import com.netflix.spinnaker.fiat.roles.UserRolesSyncer;
@@ -57,10 +58,13 @@ public class RolesController {
 
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.POST)
   public void putUserPermission(@PathVariable String userId) {
-    permissionsRepository.put(
-        permissionsResolver.resolve(ControllerSupport.decode(userId))
-                           .orElseThrow(UserPermissionModificationException::new)
-    );
+    try {
+      permissionsRepository.put(
+          permissionsResolver.resolve(ControllerSupport.decode(userId))
+      );
+    } catch (PermissionResolutionException pre) {
+      throw new UserPermissionModificationException(pre);
+    }
   }
 
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.PUT)
@@ -70,10 +74,14 @@ public class RolesController {
         .stream()
         .map(extRole -> new Role().setSource(Role.Source.EXTERNAL).setName(extRole))
         .collect(Collectors.toSet());
-    permissionsRepository.put(
-        permissionsResolver.resolveAndMerge(ControllerSupport.decode(userId), convertedRoles)
-                           .orElseThrow(UserPermissionModificationException::new)
-    );
+
+    try {
+      permissionsRepository.put(
+          permissionsResolver.resolveAndMerge(ControllerSupport.decode(userId), convertedRoles)
+      );
+    } catch (PermissionResolutionException pre) {
+      throw new UserPermissionModificationException(pre);
+    }
   }
 
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.DELETE)
