@@ -224,11 +224,22 @@ function extract_spinnaker_kube_credentials() {
   chown -R spinnaker:spinnaker $(dirname $config_path)
 
   local kube_cluster=$(get_instance_metadata_attribute "kube_cluster")
+  local kube_project=$(get_instance_metadata_attribute "kube_project")
+  local kube_zone=$(get_instance_metadata_attribute "kube_zone")
+
+  if [ -z "$kube_project" ]; then
+    kube_project=$MY_PROJECT
+  fi
+
+  if [ -z "$kube_zone" ]; then
+    kube_zone=$MY_ZONE
+  fi
+
   if [ -n "$kube_cluster" ]; then
-    echo "Downloading credentials..."
+    echo "Downloading credentials for cluster $kube_cluster in project $kube_project in zone $kube_zone..."
     export KUBECONFIG=$config_path
     gcloud config set container/use_client_certificate true
-    gcloud container clusters get-credentials $kube_cluster --zone $MY_ZONE
+    gcloud container clusters get-credentials $kube_cluster --zone $kube_zone --project $kube_project
 
     if [[ -s $config_path ]]; then
       echo "Kubernetes credentials successfully extracted to $config_path" 
