@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.fiat.model.resources;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.collect.ImmutableList;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.util.Collections;
 import java.util.List;
 
 @Data
@@ -45,7 +45,7 @@ public class Role implements GroupAccessControlled, Resource, Viewable {
 
   @JsonIgnore
   public List<String> getRequiredGroupMembership() {
-    return ImmutableList.of(name); // duh.
+    return Collections.singletonList(name); // duh.
   }
 
   @JsonIgnore

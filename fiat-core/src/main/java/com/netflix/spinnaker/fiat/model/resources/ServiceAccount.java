@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.fiat.model.resources;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.collect.ImmutableList;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collections;
 import java.util.List;
 
 @Data
@@ -36,7 +36,7 @@ public class ServiceAccount implements GroupAccessControlled, Viewable {
     // There is a potential here for a naming collision where service account
     // "my-svc-account@abc.com" and "my-svc-account@xyz.com" each allow one another's users to use
     // their service account. In practice, though, I don't think this will be an issue.
-    return ImmutableList.of(StringUtils.substringBefore(name, "@"));
+    return Collections.singletonList(StringUtils.substringBefore(name, "@"));
   }
 
   @JsonIgnore

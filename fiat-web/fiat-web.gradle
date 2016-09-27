@@ -16,12 +16,20 @@ configurations.all {
 }
 
 dependencies {
+  spinnaker.group('retrofitDefault')
+
+  compileOnly spinnaker.dependency("lombok")
+
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
+  compile spinnaker.dependency('korkWeb')
+  compile spinnaker.dependency("korkSwagger")
+
   compile project(':fiat-core')
   compile project(':fiat-roles')
 }
 
 applicationName = 'fiat'
 tasks.bootRepackage.enabled = project.repackage
+
 

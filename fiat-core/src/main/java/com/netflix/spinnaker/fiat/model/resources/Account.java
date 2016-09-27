@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.fiat.model.resources;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -45,11 +45,13 @@ public class Account implements GroupAccessControlled, Resource, Viewable {
   @NoArgsConstructor
   public static class View extends BaseView implements Authorizable {
     String name;
-    Set<Authorization> authorizations = ImmutableSet.of(Authorization.READ,
-                                                        Authorization.WRITE);
+    Set<Authorization> authorizations;
 
     public View(Account account) {
       this.name = account.name;
+      this.authorizations = new HashSet<>();
+      this.authorizations.add(Authorization.READ);
+      this.authorizations.add(Authorization.WRITE);
     }
   }
 }

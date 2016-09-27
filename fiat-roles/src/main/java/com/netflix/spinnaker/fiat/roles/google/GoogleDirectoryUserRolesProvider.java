@@ -55,8 +55,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.codehaus.groovy.runtime.DefaultGroovyMethods.collect;
-
 @Slf4j
 @Component
 @ConditionalOnProperty(value = "auth.groupMembership.service", havingValue = "google")
