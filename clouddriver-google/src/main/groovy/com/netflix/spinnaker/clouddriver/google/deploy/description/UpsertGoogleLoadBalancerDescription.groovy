@@ -32,6 +32,7 @@ class UpsertGoogleLoadBalancerDescription extends AbstractGoogleCredentialsDescr
   String accountName
 
   // Http(s) attributes.
+  String urlMapName
   GoogleBackendService defaultService
   List<GoogleHostRule> hostRules
   String certificate

@@ -65,6 +65,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
   Map operate(List priorOutputs) {
     def httpLoadBalancer = new GoogleHttpLoadBalancer(
         name: description.loadBalancerName,
+        urlMapName: description.urlMapName,
         defaultService: description.defaultService,
         hostRules: description.hostRules,
         certificate: description.certificate,
@@ -101,7 +102,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
     List<GoogleBackendService> backendServicesFromDescription = Utils.getBackendServicesFromHttpLoadBalancerView(httpLoadBalancer.view).unique()
     List<GoogleHealthCheck> healthChecksFromDescription = backendServicesFromDescription.collect { it.healthCheck }.unique()
 
-    String urlMapName = httpLoadBalancerName // An L7 load balancer is identified by its UrlMap name in Google Cloud Console.
+    String urlMapName = httpLoadBalancer?.urlMapName ?: httpLoadBalancerName // An L7 load balancer is identified by its UrlMap name in Google Cloud Console.
 
     // Get all the existing infrastructure.
     Set<HttpHealthCheck> existingHealthChecks = compute.httpHealthChecks().list(project).execute().getItems() as Set
