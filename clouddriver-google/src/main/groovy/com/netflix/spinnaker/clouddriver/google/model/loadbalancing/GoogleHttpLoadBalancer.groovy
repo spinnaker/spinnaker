@@ -50,6 +50,12 @@ class GoogleHttpLoadBalancer {
    */
   String certificate
 
+  /**
+   * The name of the UrlMap this load balancer uses to route traffic. In the Google
+   * Cloud Console, the L7 load balancer name is the same as this name.
+   */
+  String urlMapName
+
   @JsonIgnore
   GoogleLoadBalancerView getView() {
     new View()

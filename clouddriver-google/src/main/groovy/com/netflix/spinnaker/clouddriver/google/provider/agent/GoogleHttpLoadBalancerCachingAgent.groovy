@@ -307,6 +307,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
         log.error("Overwriting UrlMap ${urlMap.name}. You may have a TargetHttp(s)Proxy naming collision.")
       }
 
+      googleLoadBalancer.urlMapName = urlMap.name
       Set queuedServices = [] as Set
       // Default service is mandatory.
       def urlMapDefaultService = Utils.getLocalName(urlMap.defaultService)
