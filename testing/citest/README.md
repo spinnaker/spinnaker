@@ -54,14 +54,23 @@ These are not yet automated. Depending on the platforms involved either
 by hosting Spinnaker or being the platform the test is running against,
 you may need additional tools.
 
-Platform | Tools
-Amazon Web Services | awscli
-Google Cloud Platform | gcloud
-Kubernetes | kube-ctrl
-
+Platform | Tools | Installation Command
+Amazon Web Services | awscli | ```sudo apt-get install -y awscli```
+Google Cloud Platform | gcloud | ```curl https://sdk.cloud.google.com | bash```
+Kubernetes | kubectl | [See instructions](http://kubernetes.io/docs/user-guide/prereqs/)
 
 
 ## Install Spinnaker citest Dependencies
+citest is not yet published to a pip repository so you need to clone
+the citest repository and install it from there.
+```
+# From the sibling directory to this repository, such as pushd ..
+git clone https://github.com/google/citest.git
+cd citest
+pip install -r requirements.txt
+```
+
+Then come back here and install the requirements for these tests.
 `Run pip install -r requirements.txt.`
 
 
@@ -107,6 +116,10 @@ or you can create a file containing the passphrase and pass the path on the
 command-line using --ssh_passphrase_file. If using the file, be sure to protect
 it using `chmod 200`.
 
+**Caveat**: You may need to manually ssh for the first time in order to set up
+your ssh keys. If so the test will fail with gcloud errors. Simply ssh into the
+machine, terminate the ssh session, then try again.
+
 
 # Running the tests
 
@@ -127,6 +140,8 @@ When spinnaker is on GCE you can use the `native_hostname` flag, or
 these custom flags which will locate the instance for you. If using the
 flags below, citest will automatically attempt to tunnel into the instance
 if it is not already reachable.
+
+
 
 Flag | Description
 -----|------------
