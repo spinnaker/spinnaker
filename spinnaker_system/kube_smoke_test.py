@@ -401,7 +401,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
             'cloudProvider': 'kubernetes',
             'type': 'destroyServerGroup',
             'account': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
-            'credentials': bindings['SPINNAKER_KUBEBERNETES_ACCOUNT'],
+            'credentials': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
             'user': '[anonymous]',
             'serverGroupName': group_name,
             'asgName': group_name,
