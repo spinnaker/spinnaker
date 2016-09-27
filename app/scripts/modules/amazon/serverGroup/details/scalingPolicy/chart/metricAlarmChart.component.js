@@ -126,7 +126,6 @@ module.exports = angular
         this.chartOptions = {
           margin: this.margins || {top: 5, left: 5},
           tooltipHook: tooltipHook,
-          drawLegend: false,
           series: [
             {
               axis: 'y',
@@ -170,6 +169,10 @@ module.exports = angular
             y: {ticks: ticks.y},
             x2: {ticks: 0}, // hide right hand x-axis labels
             y2: {ticks: 0} // hide top y-axis labels
+          },
+          zoom: {
+            x: true,
+            y: true
           }
         };
         updateChartData();

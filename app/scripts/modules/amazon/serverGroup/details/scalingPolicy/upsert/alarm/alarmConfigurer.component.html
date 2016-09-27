@@ -120,7 +120,7 @@
 
 <div class="row" ng-if="$ctrl.alarm.metricName">
   <div class="col-md-10 col-md-offset-1">
-    <div style="height: 150px">
+    <div style="height: 220px">
       <metric-alarm-chart alarm="$ctrl.alarm"
                           ng-if="$ctrl.alarm"
                           style="height: 150px;"
@@ -129,6 +129,8 @@
                           margins="{top: 10, left: 50}"
                           stats="$ctrl.viewState"
                           server-group="$ctrl.serverGroup"></metric-alarm-chart>
+      <div class="small help-contents" style="margin-left: 45px"><b>Note:</b> to zoom in, hold down the alt key and use your
+        mouse to select an area. Double-click to zoom back out.</div>
     </div>
   </div>
 </div>
