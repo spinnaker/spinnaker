@@ -112,9 +112,9 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
       this.initialize();
 
       this.$scope.subnets = [
-        { purpose: 'internal/old', vpcIds: [] },
-        { purpose: 'internal/new', vpcIds: [] },
-        { purpose: 'external', vpcIds: [] }
+        { purpose: 'internal/old', vpcIds: [], availabilityZones: ['us-east-1c'] },
+        { purpose: 'internal/new', vpcIds: [], availabilityZones: ['us-east-1c'] },
+        { purpose: 'external', vpcIds: [], availabilityZones: ['us-east-1c'] }
       ];
       this.$scope.loadBalancer.subnetType = 'internal/old';
       this.ctrl.subnetUpdated();
@@ -133,9 +133,9 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
       this.initialize();
 
       this.$scope.subnets = [
-        { purpose: 'internal/old', vpcIds: [] },
-        { purpose: 'internal/new', vpcIds: [] },
-        { purpose: 'external', vpcIds: [] }
+        { purpose: 'internal/old', vpcIds: [], availabilityZones: ['us-east-1c'] },
+        { purpose: 'internal/new', vpcIds: [], availabilityZones: ['us-east-1c'] },
+        { purpose: 'external', vpcIds: [], availabilityZones: ['us-east-1c'] }
       ];
       this.$scope.loadBalancer.isInternal = false;
       this.$scope.state.internalFlagToggled = true;
