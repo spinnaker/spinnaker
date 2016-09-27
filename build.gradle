@@ -43,6 +43,9 @@ allprojects {
     minHeapSize = "512m"
     maxHeapSize = "512m"
   }
+  tasks.withType(Javadoc) {
+    failOnError = false
+  }
 }
 
 subprojects { project ->
