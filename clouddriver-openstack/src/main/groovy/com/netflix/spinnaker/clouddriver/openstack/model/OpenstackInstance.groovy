@@ -35,12 +35,16 @@ class OpenstackInstance {
   String keyName
   Map<String, String> metadata
   String account
+  String ipv4
   String ipv6
   List<OpenstackLoadBalancerHealth> loadBalancerHealths = []
   OpenstackInstanceHealth instanceHealth
 
   static OpenstackInstance from(Server server, String account, String region) {
-    Address fixedIpAddress = server?.addresses?.getAddresses('private')?.find { it.type == 'fixed' && it.version == 6 }
+    //find first fixed v4 address
+    Address fixedIpAddressV4 = server?.addresses?.getAddresses()?.collectMany { it.value }?.find { it.type == 'fixed' && it.version == 4 }
+    //find first fixed v6 address
+    Address fixedIpAddressV6 = server?.addresses?.getAddresses()?.collectMany { it.value }?.find { it.type == 'fixed' && it.version == 6 }
 
     new OpenstackInstance(name: server.name
       , region: region
@@ -51,7 +55,8 @@ class OpenstackInstance {
       , metadata: server.metadata
       , instanceHealth: new OpenstackInstanceHealth(status: server.status)
       , keyName: server.keyName
-      , ipv6: fixedIpAddress?.addr)
+      , ipv4: fixedIpAddressV4?.addr
+      , ipv6: fixedIpAddressV6?.addr)
   }
 
   @JsonIgnore
@@ -69,6 +74,7 @@ class OpenstackInstance {
     String keyName = OpenstackInstance.this.keyName
     Map<String, String> metadata = OpenstackInstance.this.metadata
     String account = OpenstackInstance.this.account
+    String ipv4 = OpenstackInstance.this.ipv4
     String ipv6 = OpenstackInstance.this.ipv6
 
     @Override

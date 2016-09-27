@@ -166,12 +166,12 @@ class OpenstackLoadBalancerCachingAgent extends AbstractOpenstackCachingAgent im
         Collection<String> instanceFilters = providerCache.filterIdentifiers(INSTANCES.ns, Keys.getInstanceKey('*', accountName, region))
         Collection<CacheData> instancesData = providerCache.getAll(INSTANCES.ns, instanceFilters, RelationshipCacheFilter.none())
         Map<String, CacheData> addressCacheDataMap = instancesData.collectEntries { data ->
-          [data.attributes.ipv6, data]
+          [(data.attributes.ipv4): data, (data.attributes.ipv6): data]
         }
 
         // Find corresponding instance id, save key for caching below, and add new lb health based upon current member status
         memberStatusMap.each { String key, String value ->
-          CacheData instanceData = addressCacheDataMap[key]
+          CacheData instanceData = addressCacheDataMap[key] ?: null
           if (instanceData) {
             String instanceId = instanceData.attributes.instanceId
             instanceKeys << Keys.getInstanceKey(instanceId, accountName, region)

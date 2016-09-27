@@ -362,15 +362,18 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
       }
     }
 
-    // Read instances from cache and create a map indexed by ipv6 address to compare to load balancer member status
+    // Read instances from cache and create a map indexed by ipv4/ipv6 address to compare to load balancer member status
     Collection<CacheData> instancesData = providerCache.getAll(INSTANCES.ns, instanceKeys, RelationshipCacheFilter.none())
     Map<String, CacheData> addressCacheDataMap = instancesData.collectEntries { data ->
-      [data.attributes.ipv6, data]
+      [(data.attributes.ipv4): data, (data.attributes.ipv6): data]
     }
 
     // Find corresponding instance id, save key for caching below, and add new lb health based upon current member status
     memberStatusMap
-      .findAll { key, value -> key == addressCacheDataMap[key]?.attributes?.ipv6?.toString() }
+      .findAll { key, value ->
+        key == addressCacheDataMap[key]?.attributes?.ipv4?.toString() ||
+        key == addressCacheDataMap[key]?.attributes?.ipv6?.toString()
+      }
       .every { key, value -> value == "DISABLED" }
   }
 

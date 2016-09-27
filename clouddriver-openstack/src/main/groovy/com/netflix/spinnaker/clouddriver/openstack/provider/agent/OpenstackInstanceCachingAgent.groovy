@@ -59,7 +59,7 @@ class OpenstackInstanceCachingAgent extends AbstractOpenstackCachingAgent {
   CacheResult loadData(ProviderCache providerCache) {
     CacheResultBuilder cacheResultBuilder = new CacheResultBuilder()
 
-    clientProvider.getInstances(region)?.each { Server server ->
+    clientProvider.getInstances(region)?.each { server ->
       String instanceKey = Keys.getInstanceKey(server.id, accountName, region)
 
       Map<String, Object> instanceAttributes = objectMapper.convertValue(OpenstackInstance.from(server, accountName, region), ATTRIBUTES)
