@@ -26,7 +26,6 @@ import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -73,7 +72,7 @@ class DestroyAwsServerGroupTask extends AbstractCloudProviderAwareTask implement
       input = ((List) stage.context[DESTROY_ASG_DESCRIPTIONS_KEY]).pop()
     }
 
-    Map context = mapper.convertValue(input, Map)
+    Map context = mapper.convertValue(input, HashMap)
     context.serverGroupName = (context.serverGroupName ?: context.asgName) as String
 
     if (targetReferenceSupport.isDynamicallyBound(stage)) {

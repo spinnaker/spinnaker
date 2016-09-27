@@ -58,7 +58,7 @@ class PackageInfo {
       Map trigger = ((Pipeline) stage.execution).trigger
       Map buildInfo = null
       if (requestMap.buildInfo) { // package was built as part of the pipeline
-        buildInfo = mapper.convertValue(requestMap.buildInfo, Map)
+        buildInfo = mapper.convertValue(requestMap.buildInfo, HashMap)
       }
       return createAugmentedRequest(trigger, buildInfo, requestMap, allowMissingPackageInstallation)
     }
