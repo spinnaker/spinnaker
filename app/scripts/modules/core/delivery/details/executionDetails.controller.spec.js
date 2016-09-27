@@ -21,6 +21,10 @@ describe('Controller: ExecutionDetails', function () {
     this.$scope = $rootScope.$new();
     this.$controller = $controller;
     this.pipelineConfig = pipelineConfig;
+
+    this.$scope.execution = {
+      isRunning: false
+    };
   }));
 
   describe('isRestartable', function() {
@@ -40,6 +44,13 @@ describe('Controller: ExecutionDetails', function () {
 
     it('returns false when stage is already restarting', function() {
       expect(this.controller.isRestartable({restartable: true, isRestarting: true})).toBe(false);
+    });
+
+    it('returns false when execution is still running', function() {
+      this.$scope.execution = {
+        isRunning: true
+      };
+      expect(this.controller.isRestartable({restartable: true})).toBe(false);
     });
 
     it('returns true when stage is restartable', function() {
