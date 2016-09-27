@@ -1,25 +1,27 @@
-<v2-modal-wizard heading="Edit {{loadBalancer.name}}: {{loadBalancer.region}}: {{loadBalancer.credentials}}">
-  <v2-wizard-page key="Location" label="Location" render="{{forPipelineConfig}}">
-    <ng-include src="pages.location"></ng-include>
-  </v2-wizard-page>
-  <v2-wizard-page key="Security Groups" label="Security Groups" done="true" render="{{!!loadBalancer.vpcId}}">
-    <ng-include src="pages.securityGroups"></ng-include>
-  </v2-wizard-page>
-  <v2-wizard-page key="Listeners" label="Listeners" done="true">
-    <ng-include src="pages.listeners"></ng-include>
-  </v2-wizard-page>
-  <v2-wizard-page key="Health Check" label="Health Check" done="true">
-    <ng-include src="pages.healthCheck"></ng-include>
-  </v2-wizard-page>
-  <v2-wizard-page key="Advanced Settings" label="Advanced Settings" done="true">
-    <ng-include src="pages.advancedSettings"></ng-include>
-  </v2-wizard-page>
-</v2-modal-wizard>
-<div class="modal-footer">
-  <button ng-disabled="taskMonitor.submitting" class="btn btn-default"
-          ng-click="ctrl.cancel()">Cancel
-  </button>
-  <submit-button is-disabled="form.$invalid || taskMonitor.submitting"
-                 submitting="taskMonitor.submitting" on-click="ctrl.submit()"
-                 is-new="isNew" label="submitButtonLabel"></submit-button>
-</div>
+<form name="form" class="form-horizontal">
+  <v2-modal-wizard heading="Edit {{loadBalancer.name}}: {{loadBalancer.region}}: {{loadBalancer.credentials}}">
+    <v2-wizard-page key="Location" label="Location" render="{{forPipelineConfig}}">
+      <ng-include src="pages.location"></ng-include>
+    </v2-wizard-page>
+    <v2-wizard-page key="Security Groups" label="Security Groups" done="true" render="{{!!loadBalancer.vpcId}}">
+      <ng-include src="pages.securityGroups"></ng-include>
+    </v2-wizard-page>
+    <v2-wizard-page key="Listeners" label="Listeners" done="true">
+      <ng-include src="pages.listeners"></ng-include>
+    </v2-wizard-page>
+    <v2-wizard-page key="Health Check" label="Health Check" done="true">
+      <ng-include src="pages.healthCheck"></ng-include>
+    </v2-wizard-page>
+    <v2-wizard-page key="Advanced Settings" label="Advanced Settings" done="true">
+      <ng-include src="pages.advancedSettings"></ng-include>
+    </v2-wizard-page>
+  </v2-modal-wizard>
+  <div class="modal-footer">
+    <button ng-disabled="taskMonitor.submitting" class="btn btn-default"
+            ng-click="ctrl.cancel()">Cancel
+    </button>
+    <submit-button is-disabled="form.$invalid || taskMonitor.submitting"
+                   submitting="taskMonitor.submitting" on-click="ctrl.submit()"
+                   is-new="isNew" label="submitButtonLabel"></submit-button>
+  </div>
+</form>
