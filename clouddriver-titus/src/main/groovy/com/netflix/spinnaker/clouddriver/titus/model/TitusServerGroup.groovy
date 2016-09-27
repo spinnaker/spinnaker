@@ -37,6 +37,8 @@ class TitusServerGroup implements ServerGroup, Serializable {
   String entryPoint
   String iamProfile
   List<String> securityGroups
+  List<String> hardConstraints
+  List<String> softConstraints
   Set<TitusSecurityGroup> securityGroupDetails
   Map env
   Long submittedAt
@@ -73,6 +75,8 @@ class TitusServerGroup implements ServerGroup, Serializable {
     capacity = new ServerGroup.Capacity(min: job.instancesMin, max: job.instancesMax, desired: job.instancesDesired)
     disabled = !job.inService
     securityGroups = job.securityGroups
+    hardConstraints = job.hardConstraints
+    softConstraints = job.softConstraints
   }
 
   @Override

@@ -92,7 +92,6 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         .withAllocateIpAddress(description.resources.allocateIpAddress)
         .withStack(description.stack)
         .withDetail(description.freeFormDetails)
-        .withConstraint(SubmitJobRequest.Constraint.soft(SubmitJobRequest.Constraint.ZONE_BALANCE))
         .withEntryPoint(description.entryPoint)
         .withIamProfile(description.iamProfile)
         .withLabels(description.labels)
@@ -119,6 +118,22 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         if (!securityGroups.contains(applicationSecurityGroup)) {
           securityGroups << applicationSecurityGroup
         }
+      }
+
+      if (description.hardConstraints) {
+        description.hardConstraints.each { constraint ->
+          submitJobRequest.withConstraint(SubmitJobRequest.Constraint.hard(constraint))
+        }
+      }
+
+      if (description.softConstraints) {
+        description.softConstraints.each { constraint ->
+          submitJobRequest.withConstraint(SubmitJobRequest.Constraint.soft(constraint))
+        }
+      }
+
+      if (!description.hardConstraints?.contains(SubmitJobRequest.Constraint.ZONE_BALANCE) && !description.softConstraints?.contains(SubmitJobRequest.Constraint.ZONE_BALANCE)) {
+        submitJobRequest.withConstraint(SubmitJobRequest.Constraint.soft(SubmitJobRequest.Constraint.ZONE_BALANCE))
       }
 
       if (!securityGroups.empty) {
