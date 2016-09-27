@@ -10,7 +10,7 @@ module.exports = angular
   ])
   .run(function($q, applicationDataSourceRegistry, settings) {
 
-    if (settings.feature && settings.feature.fastProperty) {
+    if (settings.feature && settings.feature.fastProperty && settings.feature.netflixMode) {
       applicationDataSourceRegistry.registerDataSource(new DataSourceConfig({
         key: 'properties',
         sref: '.propInsights.properties',
