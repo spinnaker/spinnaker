@@ -189,6 +189,8 @@ public class Job {
     private String jobGroupStack;
     private String jobGroupDetail;
     private String jobGroupSequence;
+    private List<String> hardConstraints;
+    private List<String> softConstraints;
 
     public Job() {}
 
@@ -383,5 +385,14 @@ public class Job {
     public String getAppName() { return appName; }
 
     public void setAppName(String appName) { this.appName = appName; }
+
+    public List<String> getHardConstraints() { return hardConstraints; }
+
+    public void setHardConstraints(List<String> hardConstraints) { this.hardConstraints = hardConstraints; }
+
+    public List<String> getSoftConstraints() { return softConstraints; }
+
+    public void setSoftConstraints(List<String> softConstraints) { this.softConstraints = softConstraints; }
+
 
 }
