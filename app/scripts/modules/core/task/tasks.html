@@ -84,6 +84,9 @@
                 <div class="task-name">
                   <a href id="task-{{task.id}}"><span class="glyphicon glyphicon-chevron-{{tasks.isExpanded(task.id) ? 'down' : 'right'}}"></span></a>
                   {{task.name}}
+                  <account-tag account="task.getValueFor('credentials')" pad="both"></account-tag>
+                  <span ng-if="task.getValueFor('region')">({{task.getValueFor('region')}})</span>
+                  <span ng-if="!task.getValueFor('region') && task.getValueFor('regions')">({{task.getValueFor('regions').join(', ')}})</span>
                 </div>
 
                 <div ng-if="tasks.getFirstDeployServerGroupName(task)" class="task-name">
