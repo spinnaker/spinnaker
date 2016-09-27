@@ -171,10 +171,11 @@ module.exports = angular.module('spinnaker.deck.gce.tagManager.service', [
     };
 
     this.getToolTipContent = (tagName) => {
-      let groups = this.securityGroupObjectsKeyedByTag[tagName].map((sg) => sg.id);
+      let groups = _.get(this, ['securityGroupObjectsKeyedByTag', tagName]),
+        groupIds = groups ? groups.map((sg) => sg.id) : [];
 
-      return `This tag associates this server group with security group${groups.length > 1 ? 's' : ''}
-              <em>${groups.join(', ')}</em>.`;
+      return `This tag associates this server group with security group${groupIds.length > 1 ? 's' : ''}
+              <em>${groupIds.join(', ')}</em>.`;
     };
 
     this.showToolTip = (tagName) => {
