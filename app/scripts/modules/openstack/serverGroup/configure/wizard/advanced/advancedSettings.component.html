@@ -1,5 +1,11 @@
 <div class="container-fluid form-horizontal">
   <div class="form-group">
+    <div class="sm-label-left">
+      <b>User Data (optional)</b>
+      <help-field key="openstack.serverGroup.userData"></help-field>
+    </div>
+  </div>
+  <div class="form-group">
     <div class="col-md-3 sm-label-right"><b>User Data Type</b></div>
     <div class="col-md-7">
       <ui-select ng-model="$ctrl.command.userDataType" class="form-control input-sm">
@@ -11,18 +17,25 @@
     </div>
   </div>
   <div class="form-group">
-    <div class="col-md-3 sm-label-right">User Data</div>
-    <div class="col-md-7 no-spel" ng-switch on="$ctrl.command.userDataType">
+    <div class="col-md-3 sm-label-right">User Data Value</div>
+    <div class="col-md-9 no-spel">
       <input type="text"
              class="form-control"
              ng-model="$ctrl.command.userData"
-             ng-if="$ctrl.command.userDataType == 'Swift' || $ctrl.command.userDataType == 'URL' || !$ctrl.command.userDataType">
+             placeholder="A url that points to a script"
+             ng-if="$ctrl.command.userDataType == 'URL'">
+      </input>
+      <input type="text"
+             class="form-control"
+             ng-model="$ctrl.command.userData"
+             placeholder="A swift object that contains a script, e.g. '<container>:<my/object>'"
+             ng-if="$ctrl.command.userDataType == 'Swift'">
       </input>
       <textarea class="form-control nospel"
                 ng-model="$ctrl.command.userData"
-                ng-if="$ctrl.command.userDataType=='Text'"
+                ng-if="$ctrl.command.userDataType=='Text' || !$ctrl.command.userDataType"
                 rows="3"
-                placeholder="(Optional) A raw plaintext script or url that points to a plaintext script. It will run on each instance when booted.">
+                placeholder="A raw plaintext script">
       </textarea>
     </div>
   </div>

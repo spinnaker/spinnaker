@@ -446,4 +446,6 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'openstack.loadBalancer.healthCheck.delay': '<p>The interval, in seconds, between health checks.</p><p>Default: <b>10</b></p>',
     'openstack.loadBalancer.healthCheck.maxRetries': '<p>The number of retries before declaring an instance as failed and removing it from the pool.</p><p>Default: <b>2</b></p>',
     'openstack.loadBalancer.healthCheck.statusCodes': 'A list of HTTP status codes that will be considered a successful response.',
+    'openstack.serverGroup.userData': '<p>Provides a script that will run when each server group instance starts.</p>',
+    'openstack.serverGroup.tags': '<p>Key-value pairs of metadata that will be associate to each server group instance.</p>',
   });
