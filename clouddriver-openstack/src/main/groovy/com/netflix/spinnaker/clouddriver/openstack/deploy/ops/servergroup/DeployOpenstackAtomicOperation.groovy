@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvide
 import com.netflix.spinnaker.clouddriver.openstack.deploy.OpenstackServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.DeployOpenstackAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.MemberData
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.UserDataType
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.StackPoolMemberAware
 import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerResolver
@@ -165,12 +166,16 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
       Subnet subnet = provider.getSubnet(description.region, subnetId)
       task.updateStatus BASE_PHASE, "Found network id $subnet.networkId from subnet $subnetId."
 
-      String userData
-      if (description.userData) {
-        //TODO this will change to resolve based on userDataType
-        if (description.userData.startsWith("http")) {
+      String userData = ""
+      if (description.userDataType && description.userData) {
+        if (UserDataType.fromString(description.userDataType) == UserDataType.URL) {
           task.updateStatus BASE_PHASE, "Resolving user data from url $description.userData..."
           userData = description.userData.toURL()?.text
+        } else if (UserDataType.fromString(description.userDataType) == UserDataType.SWIFT) {
+          String[] parts = description.userData.split(":")
+          if (parts?.length == 2) {
+            userData = provider.readSwiftObject(description.region, parts[0], parts[1])
+          }
         } else {
           userData = description.userData
         }

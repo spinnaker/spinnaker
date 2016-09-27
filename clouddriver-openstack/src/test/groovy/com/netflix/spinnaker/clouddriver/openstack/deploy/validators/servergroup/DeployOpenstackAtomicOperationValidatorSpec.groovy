@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvide
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFactory
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.DeployOpenstackAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ServerGroupParameters
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.UserDataType
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -162,10 +163,10 @@ class DeployOpenstackAtomicOperationValidatorSpec extends Specification {
   }
 
   @Unroll
-  def "validate userData parameter"() {
+  def "validate userData"() {
     given:
     ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: maxSize, minSize: minSize, desiredSize: desiredSize, subnetId: subnetId, loadBalancers: loadBalancerIds, securityGroups: securityGroups)
-    DeployOpenstackAtomicOperationDescription description = new DeployOpenstackAtomicOperationDescription(account: account, application: application, region: region, stack: stack, freeFormDetails: freeFormDetails, disableRollback: disableRollback, timeoutMins: timeoutMins, serverGroupParameters: params, userData: userData, credentials: credz)
+    DeployOpenstackAtomicOperationDescription description = new DeployOpenstackAtomicOperationDescription(account: account, application: application, region: region, stack: stack, freeFormDetails: freeFormDetails, disableRollback: disableRollback, timeoutMins: timeoutMins, serverGroupParameters: params, userDataType: userDataType.toString(), userData: userData, credentials: credz)
 
     when:
     validator.validate([], description, errors)
@@ -174,11 +175,14 @@ class DeployOpenstackAtomicOperationValidatorSpec extends Specification {
     times * errors.rejectValue(_,_)
 
     where:
-    userData            | times
-    'http://foobar.com' | 0
-    '#!/bin/bash'       | 0
-    'http$$$asdfdfadf'  | 0
-    null                | 0
+    userDataType       | userData                   | times
+    UserDataType.URL   | 'http://foobar.com'        | 0
+    UserDataType.URL   | 'http$$$asdfdfadf'         | 0
+    UserDataType.TEXT  | '#!/bin/bash'              | 0
+    UserDataType.SWIFT | 'container:my/object/file' | 0
+    UserDataType.SWIFT | 'my/object/file'           | 1
+    UserDataType.SWIFT | 'container:'               | 1
+    null               | null                       | 0
   }
 
 }

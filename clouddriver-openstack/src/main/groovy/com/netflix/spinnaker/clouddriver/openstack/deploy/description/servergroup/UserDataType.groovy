@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergro
 import com.fasterxml.jackson.annotation.JsonCreator
 
 enum UserDataType {
-  URL('url'), TEXT('text')
+  URL('URL'), TEXT('Text'), SWIFT('Swift')
 
   String type
 
@@ -41,6 +41,9 @@ enum UserDataType {
       case TEXT.type:
         TEXT.name().toLowerCase()
         break
+      case SWIFT.type:
+        SWIFT.name().toLowerCase()
+        break
       default:
         throw new IllegalArgumentException("Invalid enum type: $type")
     }
@@ -53,6 +56,9 @@ enum UserDataType {
         break
       case TEXT.toString():
         TEXT
+        break
+      case SWIFT.toString():
+        SWIFT
         break
       default:
         throw new IllegalArgumentException("Invalid enum type: $value")

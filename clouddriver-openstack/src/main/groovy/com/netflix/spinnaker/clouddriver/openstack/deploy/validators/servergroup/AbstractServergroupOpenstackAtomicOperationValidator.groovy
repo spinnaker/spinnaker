@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.validators.servergrou
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.OpenstackAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ServerGroupParameters
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ServerGroupParameters.Scaler
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.UserDataType
 import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.AbstractOpenstackDescriptionValidator
 import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.OpenstackAttributeValidator
 
@@ -63,6 +64,17 @@ abstract class AbstractServergroupOpenstackAtomicOperationValidator<T extends Op
       if (cooldown) validator.validatePositive(cooldown, "${prefix}.${type}.cooldown")
       if (period) validator.validatePositive(period, "${prefix}.${type}.period")
       if (threshold) validator.validatePositive(threshold, "${prefix}.${type}.threshold")
+    }
+  }
+
+  def validateUserData(OpenstackAttributeValidator validator, String userDataType, String userData) {
+    if (userDataType && userData) {
+      validator.validateByContainment(UserDataType.fromString(userDataType), "userDataType", UserDataType.values().toList())
+      if (UserDataType.URL == UserDataType.fromString(userDataType)) {
+        validator.validateURI(userData, "userData")
+      } else if (UserDataType.SWIFT == UserDataType.fromString(userDataType)) {
+        validator.validateByRegex(userData, "userData", "(.+:.+)")
+      }
     }
   }
 
