@@ -65,7 +65,7 @@ def main():
 
   defaults = {
       'TEST_STACK': str(GoogleHttpLoadBalancerTestScenario.DEFAULT_TEST_ID),
-      'TEST_APP': ('gcphttplbtest' +
+      'TEST_APP': ('gcphttplbservertest' +
                    GoogleHttpLoadBalancerTestScenario.DEFAULT_TEST_ID)
   }
 

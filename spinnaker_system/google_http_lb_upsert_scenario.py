@@ -79,7 +79,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
         app=bindings['TEST_APP'], stack=bindings['TEST_STACK'],
         detail=self.__lb_detail)
     self.__proto_hc = {
-      'name': 'basic-http-check',
+      'name': 'basic-' + self.TEST_APP,
       'requestPath': '/',
       'port': 80,
       'checkIntervalSec': 2,
@@ -97,7 +97,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
       'loadBalancerName': self.__lb_name,
       'portRange': '80',
       'defaultService': {
-        'name': 'default-backend-service',
+        'name': 'default-' + self.TEST_APP,
         'backends': [],
         'healthCheck': self.__proto_hc,
       },
@@ -110,14 +110,14 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
               {
                 'paths': ['/path', '/path2/more'],
                 'backendService': {
-                  'name': 'backend-service',
+                  'name': 'bs-' + self.TEST_APP,
                   'backends': [],
                   'healthCheck': self.__proto_hc,
                 }
               }
             ],
             'defaultService': {
-              'name': 'pm-backend-service',
+              'name': 'pm-' + self.TEST_APP,
               'backends': [],
               'healthCheck': self.__proto_hc,
             }
@@ -385,7 +385,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
     '''
     hc = copy.deepcopy(self.__proto_hc)
     bs_upsert = copy.deepcopy(self.__proto_upsert)
-    hc['name'] = 'updated-hc'
+    hc['name'] = 'updated-' + self.TEST_APP
     hc['requestPath'] = '/changedPath1'
     hc['port'] = 8080
 
@@ -602,7 +602,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
         'type': 'createServerGroup',
         'securityGroups': [self.__lb_name + '-rule'],
         'loadBalancers': [self.__lb_name],
-        'backendServices': {self.__lb_name: ['backend-service']},
+        'backendServices': {self.__lb_name: ['bs-' + self.TEST_APP]},
         'disableTraffic': False,
         'loadBalancingPolicy': {
           'balancingMode': 'UTILIZATION',
@@ -617,7 +617,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
           'startup-script': ('sudo apt-get update'
                              ' && sudo apt-get install apache2 -y'),
           'global-load-balancer-names': self.__lb_name,
-          'backend-service-names': 'backend-service',
+          'backend-service-names': 'bs-' + self.TEST_APP,
           'load-balancing-policy': json.dumps(policy)
         },
         'account': bindings['SPINNAKER_GOOGLE_ACCOUNT'],
