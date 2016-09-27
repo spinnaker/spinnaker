@@ -212,7 +212,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
           },
         };
 
-        if (mode === 'clone') {
+        if (mode === 'clone' || mode === 'editPipeline') {
           command.useSourceCapacity = true;
           command.viewState.useSimpleCapacity = false;
         }

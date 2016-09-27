@@ -121,9 +121,13 @@ describe('Service: awsServerGroup', function () {
   });
 
   describe('buildServerGroupCommandFromExisting', function () {
-    it('retains non-core suspended processes', function () {
+
+    beforeEach(function () {
       spyOn(this.accountService, 'getPreferredZonesByAccount').and.returnValue(this.$q.when([]));
       spyOn(this.subnetReader, 'listSubnets').and.returnValue(this.$q.when([]));
+    });
+
+    it('retains non-core suspended processes', function () {
       var serverGroup = {
         asg: {
           availabilityZones: [],
@@ -143,6 +147,25 @@ describe('Service: awsServerGroup', function () {
 
       this.$scope.$digest();
       expect(command.suspendedProcesses).toEqual(['AZRebalance']);
+    });
+
+    it('sets source capacity flags when creating for pipeline', function () {
+      var serverGroup = {
+        asg: {
+          availabilityZones: [],
+          vpczoneIdentifier: '',
+          suspendedProcesses: []
+        }
+      };
+      var command = null;
+      this.service.buildServerGroupCommandFromExisting({}, serverGroup, 'editPipeline').then(function(result) {
+        command = result;
+      });
+
+      this.$scope.$digest();
+
+      expect(command.viewState.useSimpleCapacity).toBe(false);
+      expect(command.useSourceCapacity).toBe(true);
     });
   });
 
