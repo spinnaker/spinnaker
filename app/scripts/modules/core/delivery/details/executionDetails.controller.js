@@ -93,7 +93,7 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
 
     controller.isRestartable = function(stage) {
       var stageConfig = pipelineConfig.getStageConfig(stage);
-      if (!stageConfig || stage.isRestarting === true) {
+      if (!stageConfig || stage.isRestarting === true || $scope.execution.isRunning) {
         return false;
       }
 
