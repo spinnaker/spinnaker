@@ -269,7 +269,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
         def bsToUpdate = existingServices.find { it.name == backendServiceName }
         def hcName = backendService.healthCheck.name
         bsToUpdate.portName = GoogleHttpLoadBalancingPolicy.HTTP_PORT_NAME
-        bsToUpdate.healChecks = [GCEUtil.buildHttpHealthCheckUrl(project, hcName)]
+        bsToUpdate.healthChecks = [GCEUtil.buildHttpHealthCheckUrl(project, hcName)]
         bsToUpdate.sessionAffinity = sessionAffinity
 
         def updateServiceOperation = compute.backendServices().update(project, backendServiceName, bsToUpdate).execute()
