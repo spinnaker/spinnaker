@@ -18,6 +18,7 @@ deck:
     - DECK_PORT=9000
     - PROTOCOL=http
     - AUTH_ENABLED=false
+    - "AUTH_ENDPOINT=http://$DOCKER_IP:8084/auth/user"
   image: quay.io/spinnaker/deck
   ports: 
     - "9000:9000"
@@ -102,3 +103,16 @@ rosco:
     - redis
   ports: 
     - "8087:8087"
+fiat:
+  container_name: fiat
+  env_file: ./compose.env
+  environment:
+    - SERVICES_CLOUDDRIVER_HOST=clouddriver
+    - SERVICES_FRONT50_HOST=front50
+  image: quay.io/spinnaker/fiat
+  links:
+    - redis
+    - clouddriver
+    - front50
+  ports:
+    - "7003:7003"
