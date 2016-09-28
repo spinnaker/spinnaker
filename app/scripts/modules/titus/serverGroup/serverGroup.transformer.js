@@ -30,6 +30,20 @@ module.exports = angular
       if (command.securityGroups === '') {
         delete command.securityGroups;
       }
+      if (command.softConstraints) {
+        var softConstraints = '' + command.softConstraints;
+        command.softConstraints = softConstraints.split(/\s*,\s*/);
+      }
+      if (command.softConstraints === '') {
+        delete command.softConstraints;
+      }
+      if (command.hardConstraints) {
+        var hardConstraints = '' + command.hardConstraints;
+        command.hardConstraints = hardConstraints.split(/\s*,\s*/);
+      }
+      if (command.softConstraints === '') {
+        delete command.softConstraints;
+      }
       if (command.resources.allocateIpAddress === true) {
         delete command.resources.ports;
       }

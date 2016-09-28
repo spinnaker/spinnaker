@@ -70,6 +70,8 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
         entryPoint: serverGroup.entryPoint,
         iamProfile: serverGroup.iamProfile,
         securityGroups: serverGroup.securityGroups,
+        hardConstraints: serverGroup.hardConstraints,
+        softConstraints: serverGroup.softConstraints,
         inService: serverGroup.disabled ? false : true,
         source: {
           account: serverGroup.account,
