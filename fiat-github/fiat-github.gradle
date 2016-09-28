@@ -1,0 +1,11 @@
+dependencies {
+  compile project(":fiat-roles")
+
+  compileOnly spinnaker.dependency("retrofit")
+  compileOnly spinnaker.dependency("okHttp")
+  compileOnly spinnaker.dependency("okHttpUrlconnection")
+  compileOnly spinnaker.dependency("okHttpApache")
+  compileOnly spinnaker.dependency("retrofitJackson")
+
+  compileOnly spinnaker.dependency("lombok")
+}

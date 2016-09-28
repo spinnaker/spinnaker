@@ -15,20 +15,16 @@
  */
 
 dependencies {
-  compile project(":fiat-core")
+  compile project(":fiat-roles")
 
-  spinnaker.group("retrofitDefault")
+  compileOnly spinnaker.dependency("retrofit")
+  compileOnly spinnaker.dependency("okHttp")
+  compileOnly spinnaker.dependency("okHttpUrlconnection")
+  compileOnly spinnaker.dependency("okHttpApache")
+  compileOnly spinnaker.dependency("retrofitJackson")
 
   compileOnly spinnaker.dependency("lombok")
 
-  compile spinnaker.dependency("bootActuator")
-  compile spinnaker.dependency("bootWeb")
-
-  compile "redis.clients:jedis:2.6.2"
   compile "com.google.api-client:google-api-client:1.21.0"
   compile "com.google.apis:google-api-services-admin-directory:directory_v1-rev65-1.21.0"
-  compile "com.squareup.retrofit:converter-simplexml:1.9.0"
-  compile "com.diffplug.durian:durian:3.4.0"
-
-  testCompile spinnaker.dependency("korkJedisTest")
 }

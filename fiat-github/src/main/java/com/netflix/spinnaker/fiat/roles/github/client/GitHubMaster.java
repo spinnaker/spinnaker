@@ -3,6 +3,7 @@ package com.netflix.spinnaker.fiat.roles.github.client;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.netflix.spinnaker.fiat.roles.github.GitHubProperties;
 import lombok.Data;
+import lombok.Setter;
 import lombok.val;
 import org.springframework.context.annotation.Bean;
 import retrofit.Endpoints;
@@ -19,7 +20,10 @@ import javax.validation.Valid;
 @Data
 public class GitHubMaster {
 
+  @Setter
   private GitHubClient gitHubClient;
+
+  @Setter
   private String baseUrl;
 
   @Bean

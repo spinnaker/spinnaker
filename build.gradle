@@ -31,7 +31,7 @@ buildscript {
 allprojects {
   group = "com.netflix.spinnaker.fiat"
   apply plugin: 'spinnaker.project'
-  apply plugin: 'groovy'
+  apply plugin: 'java'
 
   spinnaker {
     dependenciesVersion = "0.48.0"
