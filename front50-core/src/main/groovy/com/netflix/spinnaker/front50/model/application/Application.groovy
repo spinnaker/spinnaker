@@ -361,7 +361,7 @@ class Application implements Timestamped {
     String name
     Long lastModified
     String lastModifiedBy
-    List<String> requiredGroupMembership
+    List<String> requiredGroupMembership = new ArrayList<>();
 
     @Override
     @JsonIgnore()
