@@ -18,6 +18,7 @@ package com.netflix.spinnaker.fiat.controllers;
 
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Role;
+import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 import com.netflix.spinnaker.fiat.permissions.PermissionResolutionException;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
@@ -37,7 +38,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -72,14 +72,17 @@ public class RolesController {
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.PUT)
   public void putUserPermission(@PathVariable String userId,
                                 @RequestBody @NonNull List<String> externalRoles) {
-    Set<Role> convertedRoles = externalRoles
+    List<Role> convertedRoles = externalRoles
         .stream()
         .map(extRole -> new Role().setSource(Role.Source.EXTERNAL).setName(extRole))
-        .collect(Collectors.toSet());
+        .collect(Collectors.toList());
+
+    ExternalUser extUser = new ExternalUser().setId(ControllerSupport.decode(userId))
+                                             .setExternalRoles(convertedRoles);
 
     try {
       permissionsRepository.put(
-          permissionsResolver.resolveAndMerge(ControllerSupport.decode(userId), convertedRoles)
+          permissionsResolver.resolveAndMerge(extUser)
       );
     } catch (PermissionResolutionException pre) {
       throw new UserPermissionModificationException(pre);

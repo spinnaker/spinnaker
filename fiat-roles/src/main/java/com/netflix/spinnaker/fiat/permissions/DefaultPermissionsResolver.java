@@ -23,7 +23,6 @@ import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.GroupAccessControlled;
 import com.netflix.spinnaker.fiat.model.resources.Resource;
 import com.netflix.spinnaker.fiat.model.resources.Role;
-import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.fiat.providers.ProviderException;
 import com.netflix.spinnaker.fiat.providers.ResourceProvider;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
@@ -35,7 +34,13 @@ import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -61,21 +66,21 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
 
   @Override
   public UserPermission resolve(@NonNull String userId) {
-    return resolveAndMerge(userId, Collections.emptySet());
+    return resolveAndMerge(new ExternalUser().setId(userId));
   }
 
   @Override
-  public UserPermission resolveAndMerge(@NonNull String userId, Collection<Role> externalRoles) {
+  public UserPermission resolveAndMerge(@NonNull ExternalUser user) {
     List<Role> roles;
     try {
-      roles = userRolesProvider.loadRoles(userId);
+      roles = userRolesProvider.loadRoles(user.getId());
     } catch (ProviderException pe) {
-      throw new PermissionResolutionException("Failed to resolve user permission for user " + userId, pe);
+      throw new PermissionResolutionException("Failed to resolve user permission for user " + user.getId(), pe);
     }
-    Set<Role> combo = Stream.concat(roles.stream(), externalRoles.stream())
+    Set<Role> combo = Stream.concat(roles.stream(), user.getExternalRoles().stream())
                       .collect(Collectors.toSet());
 
-    return getUserPermission(userId, combo);
+    return getUserPermission(user.getId(), combo);
   }
 
   @SuppressWarnings("unchecked")
@@ -98,8 +103,8 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
 
   @Override
   @SuppressWarnings("unchecked")
-  public Map<String, UserPermission> resolve(@NonNull Collection<String> userIds) {
-    val userToRoles = userRolesProvider.multiLoadRoles(userIds);
+  public Map<String, UserPermission> resolve(@NonNull Collection<ExternalUser> users) {
+    val userToRoles = getAndMergeUserRoles(users);
 
     // This is the reverse index of each resourceProvider's getAllRestricted() call.
     Multimap<String, Resource> roleToResource = ArrayListMultimap.create();
@@ -136,5 +141,20 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
           return permission;
         })
         .collect(Collectors.toMap(UserPermission::getId, Function.identity()));
+  }
+
+  private Map<String, Collection<Role>> getAndMergeUserRoles(@NonNull Collection<ExternalUser> users) {
+    List<String> usernames = users.stream()
+                                  .map(ExternalUser::getId)
+                                  .collect(Collectors.toList());
+
+    Map<String, Collection<Role>> userToRoles = userRolesProvider.multiLoadRoles(usernames);
+
+    users.forEach(user -> {
+      userToRoles.computeIfAbsent(user.getId(), ignored -> new ArrayList<>())
+                 .addAll(user.getExternalRoles());
+    });
+
+    return userToRoles;
   }
 }

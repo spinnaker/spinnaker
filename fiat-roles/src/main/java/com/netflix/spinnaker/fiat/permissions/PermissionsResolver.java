@@ -18,10 +18,13 @@ package com.netflix.spinnaker.fiat.permissions;
 
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Role;
+import lombok.Data;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public interface PermissionsResolver {
 
@@ -39,10 +42,10 @@ public interface PermissionsResolver {
    * Resolves a single user's permissions, taking into account externally
    * provided list of roles.
    */
-  UserPermission resolveAndMerge(String userId, Collection<Role> externalRoles) throws PermissionResolutionException;
+  UserPermission resolveAndMerge(ExternalUser user) throws PermissionResolutionException;
 
   /**
    * Resolves multiple user's permissions. Returned map is keyed by userId.
    */
-  Map<String, UserPermission> resolve(Collection<String> userIds) throws PermissionResolutionException;
+  Map<String, UserPermission> resolve(Collection<ExternalUser> users) throws PermissionResolutionException;
 }

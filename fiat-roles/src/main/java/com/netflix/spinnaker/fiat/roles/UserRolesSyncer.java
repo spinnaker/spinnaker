@@ -20,7 +20,8 @@ import com.diffplug.common.base.Functions;
 import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.UserPermission;
-import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
+import com.netflix.spinnaker.fiat.model.resources.Role;
+import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 import com.netflix.spinnaker.fiat.permissions.PermissionResolutionException;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
@@ -28,7 +29,6 @@ import com.netflix.spinnaker.fiat.providers.ProviderException;
 import com.netflix.spinnaker.fiat.providers.ServiceAccountProvider;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Status;
@@ -39,12 +39,9 @@ import org.springframework.util.backoff.BackOffExecution;
 import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 @Component
@@ -151,7 +148,18 @@ public class UserRolesSyncer {
       log.info("Synced anonymous user role.");
     }
 
-    long count = permissionsResolver.resolve(permissionsById.keySet())
+    List<ExternalUser> extUsers = permissionsById
+        .values()
+        .stream()
+        .map(permission -> new ExternalUser()
+            .setId(permission.getId())
+            .setExternalRoles(permission.getRoles()
+                                        .stream()
+                                        .filter(role -> role.getSource() == Role.Source.EXTERNAL)
+                                        .collect(Collectors.toList())))
+        .collect(Collectors.toList());
+
+    long count = permissionsResolver.resolve(extUsers)
                                     .values()
                                     .stream()
                                     .map(permission -> permissionsRepository.put(permission))

@@ -22,10 +22,10 @@ import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
+import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver
 import com.netflix.spinnaker.fiat.permissions.RedisPermissionsRepository
-import com.netflix.spinnaker.fiat.providers.ProviderException
 import com.netflix.spinnaker.fiat.providers.ServiceAccountProvider
 import com.netflix.spinnaker.fiat.redis.JedisSource
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
@@ -77,9 +77,11 @@ class UserRolesSyncerSpec extends Specification {
 
   def "should update user roles & add service accounts"() {
     setup:
+    def extRole = new Role("extRole").setSource(Role.Source.EXTERNAL)
     def user1 = new UserPermission()
         .setId("user1")
         .setAccounts([new Account().setName("account1")] as Set)
+        .setRoles([extRole] as Set)
     def user2 = new UserPermission()
         .setId("user2")
         .setAccounts([new Account().setName("account2")] as Set)
@@ -121,10 +123,10 @@ class UserRolesSyncerSpec extends Specification {
     syncer.syncAndReturn()
 
     then:
-    permissionsResolver.resolve(_ as Set) >> ["user1"         : user1,
-                                              "user2"         : newUser2,
-                                              "abc"           : abcServiceAcct,
-                                              "xyz@domain.com": xyzServiceAcct]
+    permissionsResolver.resolve(_ as List) >> ["user1"         : user1,
+                                               "user2"         : newUser2,
+                                               "abc"           : abcServiceAcct,
+                                               "xyz@domain.com": xyzServiceAcct]
     permissionsResolver.resolveUnrestrictedUser() >> unrestrictedUser
 
     expect:

@@ -27,6 +27,7 @@ import com.netflix.spinnaker.fiat.providers.ResourceProvider
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider
+import org.springframework.hateoas.alps.Ext
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -99,6 +100,8 @@ class DefaultPermissionsResolverSpec extends Specification {
     def role1 = new Role("group1")
     def role2 = new Role("group2")
 
+    def testUser = new ExternalUser().setId(testUserId).setExternalRoles([role1])
+
     when:
     resolver.resolve(null as String)
 
@@ -124,7 +127,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     result == expected
 
     when: "merge externally provided roles"
-    result = resolver.resolveAndMerge(testUserId, [role1])
+    result = resolver.resolveAndMerge(testUser)
 
     then:
     1 * userRolesProvider.loadRoles(testUserId) >> [role2]
@@ -144,6 +147,9 @@ class DefaultPermissionsResolverSpec extends Specification {
     def role1 = new Role("group1")
     def role2 = new Role("group2")
 
+    def extUser1 = new ExternalUser().setId("user1")
+    def extUser2 = new ExternalUser().setId("user2")
+
     when:
     resolver.resolve(null as Collection)
 
@@ -155,7 +161,7 @@ class DefaultPermissionsResolverSpec extends Specification {
         user1: [role1],
         user2: [role2],
     ]
-    def result = resolver.resolve(["user1", "user2"])
+    def result = resolver.resolve([extUser1, extUser2])
 
     then:
     def user1 = new UserPermission().setId("user1")
@@ -167,5 +173,20 @@ class DefaultPermissionsResolverSpec extends Specification {
                                     .setServiceAccounts([group2SvcAcct] as Set)
                                     .setRoles([role2] as Set)
     result == ["user1": user1, "user2": user2]
+
+    when:
+    def extRole = new Role("extRole").setSource(Role.Source.EXTERNAL)
+    def extUser3 = new ExternalUser().setId("user3").setExternalRoles([extRole])
+    1 * userRolesProvider.multiLoadRoles(_) >> [
+        "user3": [role1]
+    ]
+    result = resolver.resolve([extUser3])
+
+    then:
+    def user3 = new UserPermission().setId("user3")
+                                    .setAccounts([reqGroup1Acct, reqGroup1and2Acct] as Set)
+                                    .setServiceAccounts([group1SvcAcct] as Set)
+                                    .setRoles([role1, extRole] as Set)
+    result == ["user3": user3]
   }
 }
