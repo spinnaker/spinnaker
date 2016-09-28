@@ -32,6 +32,7 @@ import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Status;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.backoff.BackOffExecution;
@@ -47,6 +48,7 @@ import java.util.stream.Stream;
 
 @Slf4j
 @Component
+@ConditionalOnExpression("${fiat.writeMode.enabled:true}")
 public class UserRolesSyncer {
 
   @Autowired
@@ -65,12 +67,11 @@ public class UserRolesSyncer {
   @Setter
   private ResourceProvidersHealthIndicator healthIndicator;
 
-  @Value("${auth.userSync.retryIntervalMs:10000}")
+  @Value("${fiat.writeMode.retryIntervalMs:10000}")
   @Setter
   private long retryIntervalMs;
 
-  // TODO(ttomsu): Acquire a lock in order to make this scale to multiple instances.
-  @Scheduled(fixedDelayString = "${auth.userSync.intervalMs:600000}")
+  @Scheduled(fixedDelayString = "${fiat.writeMode.syncDelayMs:600000}")
   public void sync() {
     syncAndReturn();
   }

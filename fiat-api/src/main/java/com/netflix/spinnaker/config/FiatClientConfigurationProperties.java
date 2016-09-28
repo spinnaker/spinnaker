@@ -21,7 +21,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
 @ConfigurationProperties("services.fiat")
-public class FiatConfigurationProperties {
+public class FiatClientConfigurationProperties {
 
   private boolean enabled;
 

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.fiat.controllers;
 
+import com.netflix.spinnaker.fiat.config.FiatServerConfigurationProperties;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Account;
@@ -26,6 +27,8 @@ import io.swagger.annotations.ApiOperation;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -44,16 +47,16 @@ public class AuthorizeController {
   @Autowired
   private PermissionsRepository permissionsRepository;
 
-  @Value("${auth.getAll.enabled:false}")
-  @Setter
-  private boolean getAllEnabled;
+  @Autowired
+  FiatServerConfigurationProperties configProps;
 
   @ApiOperation(value = "Used mostly for testing. Not really any real value to the rest of " +
       "the system. Disabled by default.")
   @RequestMapping(method = RequestMethod.GET)
-  public Set<UserPermission.View> getAll() {
-    if (!getAllEnabled) {
-      return new HashSet<>(0);
+  public Set<UserPermission.View> getAll(HttpServletResponse response) throws IOException {
+    if (!configProps.isGetAllEnabled()) {
+      response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "/authorize is disabled");
+      return null;
     }
 
     return permissionsRepository

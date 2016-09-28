@@ -43,7 +43,7 @@ import retrofit.converter.JacksonConverter;
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @Configuration
-@EnableConfigurationProperties(FiatConfigurationProperties.class)
+@EnableConfigurationProperties(FiatClientConfigurationProperties.class)
 @ComponentScan("com.netflix.spinnaker.fiat.shared")
 public class FiatAuthenticationConfig {
 
@@ -60,7 +60,7 @@ public class FiatAuthenticationConfig {
   private OkClient okClient;
 
   @Bean
-  public FiatService fiatService(FiatConfigurationProperties fiatConfigurationProperties) {
+  public FiatService fiatService(FiatClientConfigurationProperties fiatConfigurationProperties) {
     return new RestAdapter.Builder()
         .setEndpoint(Endpoints.newFixedEndpoint(fiatConfigurationProperties.getBaseUrl()))
         .setClient(okClient)
