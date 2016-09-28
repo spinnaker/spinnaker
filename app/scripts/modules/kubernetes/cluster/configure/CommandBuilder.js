@@ -213,7 +213,8 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
       };
     }
 
-    function buildClusterCommandFromPipeline(app, command, current, pipeline) {
+    function buildClusterCommandFromPipeline(app, originalCommand, current, pipeline) {
+      let command = _.cloneDeep(originalCommand);
       let contextImages = findUpstreamImages(current, pipeline.stages) || [];
       contextImages = contextImages.concat(findTriggerImages(pipeline.triggers));
       command.containers = reconcileUpstreamImages(command.containers, contextImages);
