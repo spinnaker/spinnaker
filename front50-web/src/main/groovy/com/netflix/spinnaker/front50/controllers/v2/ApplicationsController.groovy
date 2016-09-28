@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.front50.controllers.v2
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.front50.events.ApplicationEventListener
 import com.netflix.spinnaker.front50.controllers.exception.InvalidApplicationRequestException
 import com.netflix.spinnaker.front50.model.application.Application

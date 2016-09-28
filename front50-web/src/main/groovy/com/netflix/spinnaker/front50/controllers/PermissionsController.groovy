@@ -18,6 +18,7 @@ package com.netflix.spinnaker.front50.controllers
 
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.front50.model.application.Application
+import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO
 import groovy.util.logging.Slf4j
 import io.swagger.annotations.ApiOperation
@@ -39,13 +40,29 @@ public class PermissionsController {
   @Autowired
   ApplicationPermissionDAO applicationPermissionDAO;
 
+  @Autowired
+  ApplicationDAO applicationDAO;
+
   @Autowired(required = false)
   FiatService fiatService
 
   @ApiOperation(value = "", notes = "Get all application permissions. Internal use only.")
   @RequestMapping(method = RequestMethod.GET, value = "/applications")
   Set<Application.Permission> getAllApplicationPermissions() {
-    applicationPermissionDAO.all();
+    Map<String, Application.Permission> actualPermissions = applicationPermissionDAO.all().collectEntries {
+      [(it.name.toLowerCase()): it]
+    }
+
+    applicationDAO.all().each {
+      if (!actualPermissions.containsKey(it.name.toLowerCase())) {
+        actualPermissions.put(it.name.toLowerCase(),
+                              new Application.Permission(name: it.name,
+                                                         lastModified: -1,
+                                                         lastModifiedBy: "auto-generated"))
+      }
+    }
+
+    return actualPermissions.values()
   }
 
   @ApiOperation(value = "", notes = "Create an application permission.")
