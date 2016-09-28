@@ -52,7 +52,7 @@ class OpenstackNetworkCachingAgentSpec extends Specification {
     OpenstackClientProvider provider = Mock(OpenstackClientProvider)
     Network network = Mock(Network)
     String networkId = UUID.randomUUID().toString()
-    Map<String, Object> networkAttributes = Mock(Map)
+    Map<String, Object> networkAttributes = new HashMap<>()
     String networkKey = Keys.getNetworkKey(networkId, account, region)
 
     when:

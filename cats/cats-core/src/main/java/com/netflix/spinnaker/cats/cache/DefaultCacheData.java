@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.cats.cache;
 
+import java.time.Clock;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.Optional;
 
 /**
  * An immutable CacheData.
@@ -34,10 +36,27 @@ public class DefaultCacheData implements CacheData {
     }
 
     public DefaultCacheData(String id, int ttlSeconds, Map<String, Object> attributes, Map<String, Collection<String>> relationships) {
+        this(id, ttlSeconds, attributes, relationships, Clock.systemDefaultZone());
+    }
+
+    public DefaultCacheData(String id, int ttlSeconds, Map<String, Object> attributes, Map<String, Collection<String>> relationships, Clock clock) {
+        // ensure attributes is non-null and mutable given that `cacheExpiry` will be added
+        attributes = attributes == null ? new HashMap<>() : new HashMap<>(attributes);
+
         this.id = id;
-        this.ttlSeconds = ttlSeconds;
         this.attributes = attributes;
         this.relationships = relationships;
+
+        if (ttlSeconds > 0) {
+            Long cacheExpiry = clock.millis() + ttlSeconds * 1000;
+            this.attributes.put("cacheExpiry", cacheExpiry);
+        }
+
+        if (ttlSeconds < 0 && attributes.containsKey("cacheExpiry")) {
+            ttlSeconds = (int) (clock.millis() - (long) attributes.get("cacheExpiry")) * -1 / 1000;
+        }
+
+        this.ttlSeconds = ttlSeconds;
     }
 
     @Override
