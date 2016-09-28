@@ -28,6 +28,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Scope
+import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.client.OkClient
 import retrofit.converter.JacksonConverter
@@ -48,6 +49,9 @@ class RetrofitConfig {
   @Value('${okHttpClient.retryOnConnectionFailure:true}')
   boolean retryOnConnectionFailure
 
+  @Autowired
+  RequestInterceptor spinnakerRequestInterceptor
+
   @Bean RestAdapter.LogLevel retrofitLogLevel(@Value('${retrofit.logLevel:BASIC}') String retrofitLogLevel) {
     return RestAdapter.LogLevel.valueOf(retrofitLogLevel)
   }
@@ -66,6 +70,7 @@ class RetrofitConfig {
   Front50Service front50Service(@Value('${services.front50.baseUrl}') String front50BaseUrl, RestAdapter.LogLevel retrofitLogLevel) {
     def endpoint = newFixedEndpoint(front50BaseUrl)
     new RestAdapter.Builder()
+      .setRequestInterceptor(spinnakerRequestInterceptor)
       .setEndpoint(endpoint)
       .setClient(okClient())
       .setConverter(new JacksonConverter())

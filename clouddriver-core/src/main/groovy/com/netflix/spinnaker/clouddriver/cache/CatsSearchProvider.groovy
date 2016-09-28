@@ -19,11 +19,14 @@ package com.netflix.spinnaker.clouddriver.cache
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.clouddriver.search.SearchProvider
 import com.netflix.spinnaker.clouddriver.search.SearchResultSet
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 
 @Component
@@ -37,6 +40,9 @@ class CatsSearchProvider implements SearchProvider {
   private final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators
 
   private final Map<String, Template> urlMappings
+
+  @Autowired(required = false)
+  FiatPermissionEvaluator permissionEvaluator
 
   @Autowired
   public CatsSearchProvider(Cache cacheView, List<SearchableProvider> providers) {
@@ -81,6 +87,23 @@ class CatsSearchProvider implements SearchProvider {
     types = defaultCaches.intersect(types)
 
     List<String> matches = findMatches(query, types, filters)
+
+    if (permissionEvaluator) {
+      Authentication auth = SecurityContextHolder.context.authentication
+
+      matches = new ArrayList(matches).findResults { String key ->
+        Map<String, String> result = providers.findResult { it.parseKey(key) }
+        boolean canView = true
+        if (result.application) {
+          canView = permissionEvaluator.hasPermission(auth, result.application as String, 'APPLICATION', 'READ')
+        }
+        if (canView && result.account) {
+          canView = permissionEvaluator.hasPermission(auth, result.account as String, 'ACCOUNT', 'READ')
+        }
+        return canView ? key : null
+      }
+    }
+
     generateResultSet(query, matches, pageNumber, pageSize)
   }
 

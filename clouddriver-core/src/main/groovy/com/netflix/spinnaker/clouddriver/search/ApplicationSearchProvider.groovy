@@ -17,13 +17,20 @@
 package com.netflix.spinnaker.clouddriver.search
 
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import groovy.transform.Canonical
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.context.SecurityContextHolder
 
 @Canonical
 class ApplicationSearchProvider implements SearchProvider {
   private final String APPLICATIONS_TYPE = "applications"
 
   Front50Service front50Service
+
+  @Autowired(required = false)
+  FiatPermissionEvaluator permissionEvaluator
 
   @Override
   String getPlatform() {
@@ -51,8 +58,14 @@ class ApplicationSearchProvider implements SearchProvider {
       return new SearchResultSet(totalMatches: 0)
     }
 
-    def results = front50Service.searchByName(query, pageSize).collect {
-      it.application = it.name.toString().toLowerCase()
+    Authentication auth = SecurityContextHolder.context.authentication
+
+    def results = front50Service.searchByName(query, pageSize).findResults {
+      def application = it.name.toString().toLowerCase()
+      if (permissionEvaluator && !permissionEvaluator.hasPermission(auth, application, 'APPLICATION', 'READ')) {
+        return null
+      }
+      it.application = application
       it.type = APPLICATIONS_TYPE
       it.url = "/applications/${it.application}".toString()
 

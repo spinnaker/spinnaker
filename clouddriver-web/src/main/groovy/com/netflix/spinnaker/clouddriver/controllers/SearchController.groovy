@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.search.SearchProvider
 import com.netflix.spinnaker.clouddriver.search.SearchResultSet
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
@@ -42,6 +43,7 @@ class SearchController {
    * @param filters (optional) a map of key-value pairs to further filter the keys
    * @return a list {@link SearchResultSet)s
    */
+  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
   @RequestMapping(value = '/search', method = RequestMethod.GET)
   List<SearchResultSet> search(SearchQueryCommand q) {
 
