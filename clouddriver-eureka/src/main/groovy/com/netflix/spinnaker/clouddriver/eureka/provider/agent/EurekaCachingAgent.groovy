@@ -42,15 +42,19 @@ class EurekaCachingAgent implements CachingAgent, HealthProvidingCachingAgent {
   private final EurekaApi eurekaApi
   private final ObjectMapper objectMapper
   private final String eurekaHost
+  private final String eurekaAccountName
+  private final boolean allowMultipleEurekaPerAccount
   final String healthId = "Discovery"
 
   private List<EurekaAwareProvider> eurekaAwareProviderList
 
-  EurekaCachingAgent(EurekaApi eurekaApi, String region, ObjectMapper objectMapper, eurekaHost, eurekaAwareProviderList) {
+  EurekaCachingAgent(EurekaApi eurekaApi, String region, ObjectMapper objectMapper, eurekaHost, allowMultipleEurekaPerAccount, eurekaAccountName, eurekaAwareProviderList) {
     this.region = region
     this.eurekaApi = eurekaApi
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     this.eurekaHost = eurekaHost
+    this.allowMultipleEurekaPerAccount = allowMultipleEurekaPerAccount
+    this.eurekaAccountName = eurekaAccountName
     this.eurekaAwareProviderList = eurekaAwareProviderList
   }
 
@@ -81,6 +85,8 @@ class EurekaCachingAgent implements CachingAgent, HealthProvidingCachingAgent {
       for (EurekaInstance instance : application.instances) {
         if (instance.instanceId) {
           Map<String, Object> attributes = objectMapper.convertValue(instance, ATTRIBUTES)
+          attributes.eurekaAccountName = eurekaAccountName
+          attributes.allowMultipleEurekaPerAccount = allowMultipleEurekaPerAccount
           eurekaAwareProviderList.each { provider ->
             if (provider.isProviderForEurekaRecord(attributes)) {
               String instanceKey = provider.getInstanceKey(attributes, region)

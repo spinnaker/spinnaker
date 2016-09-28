@@ -59,7 +59,8 @@ class EurekaProviderConfiguration {
     eurekaAccountConfigurationProperties.accounts.each { EurekaAccountConfigurationProperties.EurekaAccount accountConfig ->
       accountConfig.regions.each { region ->
         String eurekaHost = accountConfig.readOnlyUrl.replaceAll(Pattern.quote('{{region}}'), region)
-        agents << new EurekaCachingAgent(eurekaApiFactory.createApi(eurekaHost), region, objectMapper, eurekaHost, eurekaAwareProviderList)
+        boolean multipleEurekaPerAcc = eurekaAccountConfigurationProperties.allowMultipleEurekaPerAccount ?: false
+        agents << new EurekaCachingAgent(eurekaApiFactory.createApi(eurekaHost), region, objectMapper, eurekaHost, multipleEurekaPerAcc, accountConfig.name, eurekaAwareProviderList)
       }
     }
     EurekaCachingProvider eurekaCachingProvider = new EurekaCachingProvider(agents)
