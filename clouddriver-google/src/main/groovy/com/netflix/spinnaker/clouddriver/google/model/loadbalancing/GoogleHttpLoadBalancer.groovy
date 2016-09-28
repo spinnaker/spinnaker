@@ -73,6 +73,7 @@ class GoogleHttpLoadBalancer {
     String ipProtocol = GoogleHttpLoadBalancer.this.ipProtocol
     String portRange = GoogleHttpLoadBalancer.this.portRange
     String certificate = GoogleHttpLoadBalancer.this.certificate
+    String urlMapName = GoogleHttpLoadBalancer.this.urlMapName
     GoogleBackendService defaultService = GoogleHttpLoadBalancer.this.defaultService
 
     Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
