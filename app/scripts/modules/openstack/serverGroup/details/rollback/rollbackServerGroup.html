@@ -1,0 +1,65 @@
+<div modal-page class="confirmation-modal">
+  <task-monitor monitor="taskMonitor"></task-monitor>
+  <form role="form">
+    <modal-close></modal-close>
+    <div class="modal-header">
+      <h3>Rollback {{serverGroup.name}}</h3>
+    </div>
+    <div class="modal-body confirmation-modal">
+      <div class="row">
+        <div class="col-sm-3 sm-label-right">
+          Restore to
+        </div>
+        <div class="col-sm-6">
+          <ui-select ng-model="command.rollbackContext.restoreServerGroupName" class="form-control input-sm">
+            <ui-select-match placeholder="Select...">{{$select.selected.name}}</ui-select-match>
+            <ui-select-choices repeat="serverGroup.name as serverGroup in disabledServerGroups">
+              <span ng-bind-html="serverGroup.name"></span>
+            </ui-select-choices>
+          </ui-select>
+        </div>
+      </div>
+
+      <div class="row" ng-if="command.platformHealthOnlyShowOverride">
+        <div class="col-sm-10 col-sm-offset-1">
+          <platform-health-override command="command"
+                                    platform-health-type="'Openstack'"
+                                    show-help-details="true"
+                                    field-columns="12">
+          </platform-health-override>
+        </div>
+      </div>
+
+      <task-reason command="command"></task-reason>
+
+      <div class="row">
+        <div class="col-sm-4 sm-label-right">
+          Rollback Operations
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-11 col-sm-offset-1">
+          <ol>
+            <li>Enable <em>{{ command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em></li>
+            <li>Resize <em>{{ command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em> to [
+              <strong>min</strong>: {{serverGroup.capacity.min}},
+              <strong>max</strong>: {{ serverGroup.capacity.max }},
+              <strong>desired</strong>: {{ serverGroup.capacity.desired }}
+            ]</li>
+            <li>Disable {{ serverGroup.name }}</li>
+          </ol>
+
+          <p>
+            This rollback will affect server groups in {{ serverGroup.account }} ({{ serverGroup.region }}).
+          </p>
+        </div>
+      </div>
+
+    </div>
+    <openstack-footer action="ctrl.rollback()"
+                cancel="ctrl.cancel()"
+                is-valid="ctrl.isValid()"
+                account="serverGroup.account"
+                verification="verification"></openstack-footer>
+  </form>
+</div>

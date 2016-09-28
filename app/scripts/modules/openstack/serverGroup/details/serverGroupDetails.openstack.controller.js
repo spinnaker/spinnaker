@@ -28,7 +28,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
                                                      confirmationModalService, _, serverGroupWriter, subnetReader,
                                                      securityGroupReader, loadBalancerReader, runningExecutionsService,
                                                      accountService, serverGroupWarningMessageService,
-                                                     openstackServerGroupTransformer) {
+                                                     openstackServerGroupTransformer, overrideRegistry) {
     var ctrl = this;
     this.state = {
       loading: true
@@ -242,7 +242,18 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
     };
 
     this.rollbackServerGroup = () => {
-      alert('Not yet implemented.'); // eslint-disable-line no-alert
+      $uibModal.open({
+        templateUrl: overrideRegistry.getTemplate('openstack.rollback.modal', require('./rollback/rollbackServerGroup.html')),
+        controller: 'openstackRollbackServerGroupCtrl as ctrl',
+        resolve: {
+          serverGroup: () => this.serverGroup,
+          disabledServerGroups: () => {
+            var cluster = _.find(app.clusters, {name: this.serverGroup.cluster, account: this.serverGroup.account});
+            return _.filter(cluster.serverGroups, {isDisabled: true, region: this.serverGroup.region});
+          },
+          application: () => app
+        }
+      });
     };
 
     this.resizeServerGroup = () => {
