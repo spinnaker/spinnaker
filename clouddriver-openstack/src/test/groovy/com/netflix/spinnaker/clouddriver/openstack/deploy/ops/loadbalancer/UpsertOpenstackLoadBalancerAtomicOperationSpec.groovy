@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.loadbalancer
 
+import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.openstack.client.BlockingStatusChecker
@@ -72,7 +73,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
   def setup() {
     provider = Mock(OpenstackClientProvider)
     GroovyMock(OpenstackProviderFactory, global: true)
-    OpenstackNamedAccountCredentials credz = new OpenstackNamedAccountCredentials("name", "test", "main", "user", "pw", "tenant", "domain", "endpoint", [], false, "", new LbaasConfig(pollTimeout: 60, pollInterval: 5))
+    OpenstackNamedAccountCredentials credz = new OpenstackNamedAccountCredentials("name", "test", "main", "user", "pw", "tenant", "domain", "endpoint", [], false, "", new LbaasConfig(pollTimeout: 60, pollInterval: 5), new ConsulConfig())
     OpenstackProviderFactory.createProvider(credz) >> { provider }
     credentials = new OpenstackCredentials(credz)
     description = new OpenstackLoadBalancerDescription(credentials: credentials, region: region, account: account)

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.openstack.security
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties.LbaasConfig
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import groovy.transform.ToString
@@ -39,6 +40,7 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
   final Boolean insecure
   final String heatTemplateLocation
   final LbaasConfig lbaasConfig
+  final ConsulConfig consulConfig
 
   OpenstackNamedAccountCredentials(String accountName,
                                    String environment,
@@ -51,8 +53,9 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
                                    List<String> regions,
                                    Boolean insecure,
                                    String heatTemplateLocation,
-                                   LbaasConfig lbaasConfig) {
-    this(accountName, environment, accountType, username, password, null, projectName, domainName, authUrl, regions, insecure, heatTemplateLocation, lbaasConfig)
+                                   LbaasConfig lbaasConfig,
+                                   ConsulConfig consulConfig) {
+    this(accountName, environment, accountType, username, password, null, projectName, domainName, authUrl, regions, insecure, heatTemplateLocation, lbaasConfig, consulConfig)
   }
 
   OpenstackNamedAccountCredentials(String accountName,
@@ -67,7 +70,8 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
                                    List<String> regions,
                                    Boolean insecure,
                                    String heatTemplateLocation,
-                                   LbaasConfig lbaasConfig) {
+                                   LbaasConfig lbaasConfig,
+                                   ConsulConfig consulConfig) {
     this.name = accountName
     this.environment = environment
     this.accountType = accountType
@@ -81,6 +85,10 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
     this.insecure = insecure
     this.heatTemplateLocation = heatTemplateLocation
     this.lbaasConfig = lbaasConfig
+    this.consulConfig = consulConfig
+    if (this.consulConfig?.enabled) {
+      this.consulConfig.applyDefaults()
+    }
     this.credentials = buildCredentials()
   }
 

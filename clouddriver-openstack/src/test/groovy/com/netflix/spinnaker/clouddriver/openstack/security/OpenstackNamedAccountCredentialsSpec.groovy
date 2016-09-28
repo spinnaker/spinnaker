@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.security
 
+import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackIdentityV3Provider
 import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties.LbaasConfig
 import org.openstack4j.api.OSClient
@@ -38,7 +39,7 @@ class OpenstackNamedAccountCredentialsSpec extends Specification {
     IOSClientBuilder.V3.metaClass.authenticate = { mockClient }
 
     when:
-    def credentials = new OpenstackNamedAccountCredentials("name", "test", "main", "user", "pw", "project", "domain", "endpoint", [], false, "", new LbaasConfig(pollTimeout: 60, pollInterval: 5))
+    def credentials = new OpenstackNamedAccountCredentials("name", "test", "main", "user", "pw", "project", "domain", "endpoint", [], false, "", new LbaasConfig(pollTimeout: 60, pollInterval: 5), new ConsulConfig())
     def client = credentials.credentials.provider.client
 
     then:

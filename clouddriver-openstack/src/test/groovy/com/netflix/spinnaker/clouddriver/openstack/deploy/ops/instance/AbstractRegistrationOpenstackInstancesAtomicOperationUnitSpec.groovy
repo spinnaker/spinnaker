@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.instance
 
+import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
@@ -60,7 +61,7 @@ class AbstractRegistrationOpenstackInstancesAtomicOperationUnitSpec extends Spec
   def setup() {
     OpenstackClientProvider provider = Mock(OpenstackClientProvider)
     GroovyMock(OpenstackProviderFactory, global: true)
-    OpenstackNamedAccountCredentials credz = new OpenstackNamedAccountCredentials("name", "test", "main", "user", "pw", "tenant", "domain", "endpoint", [], false, "", new OpenstackConfigurationProperties.LbaasConfig(pollTimeout: 60, pollInterval: 5))
+    OpenstackNamedAccountCredentials credz = new OpenstackNamedAccountCredentials("name", "test", "main", "user", "pw", "tenant", "domain", "endpoint", [], false, "", new OpenstackConfigurationProperties.LbaasConfig(pollTimeout: 60, pollInterval: 5), new ConsulConfig())
     OpenstackProviderFactory.createProvider(credz) >> { provider }
     credentials = new OpenstackCredentials(credz)
     description = new OpenstackInstancesRegistrationDescription(region: region, loadBalancerIds: LB_IDS, instanceIds: INSTANCE_IDS, weight: 1, account: ACCOUNT_NAME, credentials: credentials)

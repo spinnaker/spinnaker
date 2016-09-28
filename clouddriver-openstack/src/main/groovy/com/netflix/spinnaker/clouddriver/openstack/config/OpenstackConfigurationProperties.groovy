@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.config
 
+import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import groovy.transform.ToString
 
 @ToString(includeNames = true)
@@ -35,6 +36,7 @@ class OpenstackConfigurationProperties {
     Boolean insecure
     String heatTemplatePath
     LbaasConfig lbaas
+    ConsulConfig consul
   }
 
   static class LbaasConfig {
