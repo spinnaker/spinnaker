@@ -16,13 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.cf.deploy.description
 
-import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
-
-class UpsertCloudFoundryLoadBalancerDescription {
+class UpsertCloudFoundryLoadBalancerDescription extends AbstractCloudFoundryDescription {
   String loadBalancerName
   String region
   String getAccountName() {
     credentials?.name
   }
-  CloudFoundryAccountCredentials credentials
 }

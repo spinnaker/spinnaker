@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 Pivotal, Inc.
+ * Copyright 2016 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,13 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.cf.deploy.description
 
-class ResizeCloudFoundryServerGroupDescription extends AbstractCloudFoundryDescription {
-  String serverGroupName
-  int targetSize = 1
-  int memory = 1024
-  int disk = 1024
-  String region
-  String getAccountName() {
-    credentials?.name
-  }
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
+import com.netflix.spinnaker.clouddriver.security.resources.CredentialsNameable
+
+abstract class AbstractCloudFoundryDescription implements CredentialsNameable {
+  @JsonIgnore
+  CloudFoundryAccountCredentials credentials
 }

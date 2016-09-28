@@ -16,13 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.cf.deploy.description
 
-import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
-
-class DestroyCloudFoundryServerGroupDescription {
+class DestroyCloudFoundryServerGroupDescription extends AbstractCloudFoundryDescription {
   String serverGroupName
   String region
   String getAccountName() {
     credentials?.name
   }
-  CloudFoundryAccountCredentials credentials
 }

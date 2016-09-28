@@ -18,9 +18,10 @@ package com.netflix.spinnaker.clouddriver.titus.deploy.description
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.netflix.spinnaker.clouddriver.security.resources.CredentialsNameable
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 
-abstract class AbstractTitusCredentialsDescription {
+abstract class AbstractTitusCredentialsDescription implements CredentialsNameable {
   @JsonIgnore
   NetflixTitusCredentials credentials
 

@@ -16,15 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.cf.deploy.description
 
-import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
 import com.netflix.spinnaker.clouddriver.cf.model.CloudFoundryLoadBalancer
 
-class EnableDisableCloudFoundryServerGroupDescription {
+class EnableDisableCloudFoundryServerGroupDescription extends AbstractCloudFoundryDescription {
   String serverGroupName
   String region
   String getAccountName() {
     credentials?.name
   }
   Set<CloudFoundryLoadBalancer> nativeLoadBalancers
-  CloudFoundryAccountCredentials credentials
 }

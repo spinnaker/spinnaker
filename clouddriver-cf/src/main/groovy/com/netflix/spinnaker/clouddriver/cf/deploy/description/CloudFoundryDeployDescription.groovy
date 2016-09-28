@@ -16,10 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.cf.deploy.description
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
@@ -32,7 +30,7 @@ import groovy.transform.Canonical
 @AutoClone
 @Canonical
 @JsonIgnoreProperties(ignoreUnknown = true)
-class CloudFoundryDeployDescription implements DeployDescription {
+class CloudFoundryDeployDescription extends AbstractCloudFoundryDescription implements DeployDescription {
 
   String application
 
@@ -62,9 +60,6 @@ class CloudFoundryDeployDescription implements DeployDescription {
   String freeFormDetails
 
   Boolean trustSelfSignedCerts = true
-
-  @JsonIgnore
-  CloudFoundryAccountCredentials credentials
 
   @JsonProperty("credentials")
   String getCredentialAccount() {

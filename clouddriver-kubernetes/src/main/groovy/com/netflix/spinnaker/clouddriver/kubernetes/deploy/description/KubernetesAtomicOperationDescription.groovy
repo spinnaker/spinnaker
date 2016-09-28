@@ -18,13 +18,14 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.description
 
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.security.resources.CredentialsNameable
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
 // Pair of credentials name and associated kubernetes client
 @AutoClone
 @Canonical
-class KubernetesAtomicOperationDescription implements DeployDescription {
+class KubernetesAtomicOperationDescription implements DeployDescription, CredentialsNameable {
   String account
   KubernetesNamedAccountCredentials credentials
 }
