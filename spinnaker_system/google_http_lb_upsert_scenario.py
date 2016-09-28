@@ -73,7 +73,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
 
     bindings = self.bindings
 
-    self.__lb_detail = 'lb'
+    self.__lb_detail = 'httplb'
     self.TEST_APP = bindings['TEST_APP']
     self.__lb_name = '{app}-{stack}-{detail}'.format(
         app=bindings['TEST_APP'], stack=bindings['TEST_STACK'],
@@ -86,6 +86,16 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
       'timeoutSec': 1,
       'healthyThreshold': 3,
       'unhealthyThreshold': 4
+    }
+    self.__proto_delete = {
+      'type': 'deleteLoadBalancer',
+      'cloudProvider': 'gce',
+      'loadBalancerType': 'HTTP',
+      'loadBalancerName': self.__lb_name,
+      'region': bindings['TEST_GCE_REGION'],
+      'regions': [bindings['TEST_GCE_REGION']],
+      'credentials': bindings['SPINNAKER_GOOGLE_ACCOUNT'],
+      'user': '[anonymous]'
     }
     self.__proto_upsert = {
       'cloudProvider': 'gce',
@@ -308,20 +318,11 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
     )
 
 
-  def delete_load_balancer(self):
+  def delete_http_load_balancer(self):
     '''Deletes the L7 LB.
     '''
     bindings = self.bindings
-    delete = {
-      'type': 'deleteLoadBalancer',
-      'cloudProvider': 'gce',
-      'loadBalancerType': 'HTTP',
-      'loadBalancerName': self.__lb_name,
-      'region': bindings['TEST_GCE_REGION'],
-      'regions': [bindings['TEST_GCE_REGION']],
-      'credentials': bindings['SPINNAKER_GOOGLE_ACCOUNT'],
-      'user': '[anonymous]'
-    }
+    delete = copy.deepcopy(self.__proto_delete)
 
     payload = self.agent.make_json_payload_from_kwargs(
       job=[delete],
@@ -351,7 +352,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
 
     return st.OperationContract(
       self.new_post_operation(
-        title='delete_load_balancer', data=payload, path='tasks'),
+        title='delete_http_load_balancer', data=payload, path='tasks'),
       contract=contract_builder.build())
 
 

@@ -51,6 +51,8 @@ import citest.json_predicate as jp
 import citest.service_testing as st
 
 # Spinnaker modules.
+from google_http_lb_upsert_scenario import GoogleHttpLoadBalancerTestScenario
+
 import spinnaker_testing as sk
 import spinnaker_testing.gate as gate
 import citest.base
@@ -379,6 +381,14 @@ class GoogleSmokeTest(st.AgentTestCase):
     # but we'll continue anyway because side effects
     # should have still taken place.
     self.run_test_case(self.scenario.create_server_group(), timeout_ok=True)
+
+  def test_d_upsert_http_load_balancer(self):
+    self.run_test_case(GoogleHttpLoadBalancerTestScenario(self.scenario.bindings)
+                       .upsert_min_load_balancer())
+
+  def test_e_delete_http_load_balancer(self):
+    self.run_test_case(GoogleHttpLoadBalancerTestScenario(self.scenario.bindings)
+                       .delete_http_load_balancer())
 
   def test_x_delete_server_group(self):
     self.run_test_case(self.scenario.delete_server_group(), max_retries=5)
