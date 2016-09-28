@@ -60,7 +60,7 @@ class OpenstackFloatingIPCachingAgentSpec extends Specification {
     NetFloatingIP floatingIP = Mock(NetFloatingIP) {
       it.id >> { ipId }
     }
-    Map<String, Object> ipAttributes = Mock(Map)
+    Map<String, Object> ipAttributes = new HashMap<>()
     String ipKey = Keys.getFloatingIPKey(ipId, account, region)
 
     when:

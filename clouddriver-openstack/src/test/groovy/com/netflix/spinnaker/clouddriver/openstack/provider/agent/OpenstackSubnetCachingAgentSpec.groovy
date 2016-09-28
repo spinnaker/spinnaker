@@ -52,7 +52,7 @@ class OpenstackSubnetCachingAgentSpec extends Specification {
     OpenstackClientProvider provider = Mock()
     Subnet subnet = Mock(Subnet)
     String subnetId = UUID.randomUUID().toString()
-    Map<String, Object> subnetAttributes = Mock(Map)
+    Map<String, Object> subnetAttributes = new HashMap<>()
     String subnetKey = Keys.getSubnetKey(subnetId, account, region)
 
     when:

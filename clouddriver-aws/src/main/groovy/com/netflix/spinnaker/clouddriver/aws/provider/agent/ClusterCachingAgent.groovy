@@ -444,6 +444,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
         id: it.id,
         details  : Keys.parse(it.id),
         cacheTime: it.attributes.cacheTime,
+        cacheExpiry: it.attributes.cacheExpiry,
         processedCount: it.attributes.processedCount,
         processedTime: it.attributes.processedTime
       ]

@@ -161,7 +161,7 @@ class OpenstackLoadBalancerCachingAgentSpec extends Specification {
       it.healthMonitorId >> { healthId }
     }
     HealthMonitorV2 healthMonitor = Mock(HealthMonitorV2)
-    Map<String, Object> lbAttributes = Mock(Map)
+    Map<String, Object> lbAttributes = new HashMap<>()
     String lbKey = Keys.getLoadBalancerKey(lbName, loadBalancerId, account, region)
     MemberV2Status memberV2Status = Mock(MemberV2Status) {
       it.address >> { ipv6 }

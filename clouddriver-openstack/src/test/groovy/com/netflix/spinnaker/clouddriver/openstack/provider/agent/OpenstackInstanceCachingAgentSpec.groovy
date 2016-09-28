@@ -53,7 +53,7 @@ class OpenstackInstanceCachingAgentSpec extends Specification {
     Server server = Mock(Server)
     String id = UUID.randomUUID().toString()
     String instanceKey = Keys.getInstanceKey(id, account, region)
-    Map<String, Object> instanceAttributes = Mock(Map)
+    Map<String, Object> instanceAttributes = new HashMap<>()
 
     when:
     CacheResult result = cachingAgent.loadData(providerCache)

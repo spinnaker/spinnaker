@@ -53,7 +53,7 @@ class OpenstackImageCachingAgentSpec extends Specification {
     Image image = Mock(Image)
     String id = UUID.randomUUID().toString()
     String imageKey = Keys.getImageKey(id, account, region)
-    Map<String, Object> imageAttributes = Mock(Map)
+    Map<String, Object> imageAttributes = new HashMap<>()
 
     when:
     CacheResult result = cachingAgent.loadData(providerCache)
