@@ -30,6 +30,10 @@ public class GitHubConfig {
   @Setter
   private OkClient okClient;
 
+  @Autowired
+  @Setter
+  private RestAdapter.LogLevel retrofitLogLevel;
+
   @Bean
   public GitHubMaster gitHubMasters(@Valid final GitHubProperties gitHubProperties) {
     log.info("bootstrapping " + gitHubProperties.getBaseUrl() + " as github");
@@ -48,6 +52,7 @@ public class GitHubConfig {
         .setRequestInterceptor(interceptor.setAccessToken(accessToken))
         .setClient(okClient)
         .setConverter(new JacksonConverter())
+        .setLogLevel(retrofitLogLevel)
         .build()
         .create(GitHubClient.class);
   }
