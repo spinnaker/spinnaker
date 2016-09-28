@@ -175,7 +175,7 @@ class GoogleHttpLoadBalancerTest(st.AgentTestCase):
   # Test letters f and n are reserved for another test derived from this one.
 
   def test_o_delete_lb(self):
-    self.run_test_case(self.scenario.delete_load_balancer())
+    self.run_test_case(self.scenario.delete_http_load_balancer())
 
 
 def main():
