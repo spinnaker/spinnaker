@@ -101,8 +101,8 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
       return terminateAction ? terminateAction.delayBeforeActionInMins : 60;
     };
 
-    accountService.listAccounts('aws').then(function(accounts) {
-      $scope.accounts = accounts;
+    $scope.application.serverGroups.ready().then(() => {
+      accountService.listAccounts('aws').then(accounts => $scope.accounts = accounts);
       setClusterList();
     });
 

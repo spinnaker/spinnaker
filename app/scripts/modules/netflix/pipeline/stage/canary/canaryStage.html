@@ -172,6 +172,7 @@
   </stage-config-field>
   <stage-config-field label="Cluster">
     <cluster-selector
+      ng-if="application.serverGroups.loaded"
       clusters="clusterList"
       model="stage.baseline.cluster">
     </cluster-selector>

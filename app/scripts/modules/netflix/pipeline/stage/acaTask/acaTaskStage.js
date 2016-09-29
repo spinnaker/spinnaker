@@ -3,7 +3,6 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTaskStage', [
-  require('../../../../core/application/listExtractor/listExtractor.service'),
   require('../../../../core/serverGroup/configure/common/serverGroupCommandBuilder.js'),
   require('../../../../core/cloudProvider/cloudProvider.registry.js'),
   require('../../../../core/config/settings.js'),
@@ -30,7 +29,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTaskStage',
   .controller('AcaTaskStageCtrl', function ($scope, $uibModal, stage,
                                            namingService, providerSelectionService,
                                            authenticationService, cloudProviderRegistry,
-                                           serverGroupCommandBuilder, awsServerGroupTransformer, accountService, appListExtractorService) {
+                                           serverGroupCommandBuilder, awsServerGroupTransformer, accountService) {
 
     var user = authenticationService.getAuthenticatedUser();
     $scope.stage = stage;
@@ -66,7 +65,6 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTaskStage',
 
     accountService.listAccounts('aws').then(function(accounts) {
       $scope.accounts = accounts;
-      setClusterList();
     });
 
 
@@ -93,37 +91,5 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTaskStage',
         return 0;
       });
     };
-
-    this.getRegion = function(cluster) {
-      var availabilityZones = cluster.availabilityZones;
-      if (availabilityZones) {
-        var regions = Object.keys(availabilityZones);
-        if (regions && regions.length) {
-          return regions[0];
-        }
-      }
-      return 'n/a';
-    };
-
-    let clusterFilter = (cluster) => {
-      return $scope.stage.baseline.account ? cluster.account === $scope.stage.baseline.account : true;
-    };
-
-    let setClusterList = () => {
-      $scope.clusterList = appListExtractorService.getClusters([$scope.application], clusterFilter);
-    };
-
-    $scope.resetSelectedCluster = () => {
-      $scope.stage.baseline.cluster = undefined;
-      setClusterList();
-    };
-
-
-
-    function getClusterName(cluster) {
-      return namingService.getClusterName(cluster.application, cluster.stack, cluster.freeFormDetails);
-    }
-
-    this.getClusterName = getClusterName;
 
   });
