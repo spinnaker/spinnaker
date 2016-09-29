@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.mine.tasks.MonitorAcaTaskTask
 import com.netflix.spinnaker.orca.mine.tasks.RegisterAcaTaskTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.util.logging.Slf4j
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowire
@@ -54,8 +55,8 @@ class AcaTaskStage extends LinearStage implements CancellableStage, RestartableS
   }
 
   @Override
-  Stage prepareStageForRestart(Stage stage) {
-    stage = super.prepareStageForRestart(stage)
+  Stage prepareStageForRestart(ExecutionRepository executionRepository, Stage stage) {
+    stage = super.prepareStageForRestart(executionRepository, stage)
     stage.startTime = null
     stage.endTime = null
 

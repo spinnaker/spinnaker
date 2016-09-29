@@ -18,11 +18,14 @@ package com.netflix.spinnaker.orca.batch
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler
+import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.job.builder.FlowBuilder
+import org.springframework.context.ApplicationContext
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -73,6 +76,56 @@ class StageBuilderSpec extends Specification {
     stage.startTime != null
     stage.endTime != null
     stage.context.exception.details.errors == ["Expected Exception"]
+  }
+
+  def "should prepare completed downstream stages for restart"() {
+    given:
+    def executionRepository = Mock(ExecutionRepository)
+    def stageBuilder = new StageBuilder("bake", []) {
+      @Override
+      protected FlowBuilder buildInternal(FlowBuilder jobBuilder, Stage stage) {
+        throw new IllegalStateException("ignored")
+      }
+    }
+    stageBuilder.applicationContext = Stub(ApplicationContext)
+
+    def pipeline = new Pipeline()
+    pipeline.stages = [
+        new PipelineStage(pipeline, "1", [:]),
+        new PipelineStage(pipeline, "2", [:]),
+        new PipelineStage(pipeline, "3", [:])
+    ]
+    pipeline.stages.eachWithIndex { Stage stage, int index ->
+      stage.refId = index.toString()
+      if (index > 0) {
+        stage.requisiteStageRefIds = ["${index - 1}".toString()]
+      }
+
+      ((PipelineStage) stage).tasks = [
+        new DefaultTask(startTime: 1, endTime: 2, status: ExecutionStatus.SUCCEEDED)
+      ]
+    }
+
+    when:
+    pipeline.stages[0].status = ExecutionStatus.SUCCEEDED
+    pipeline.stages[1].status = ExecutionStatus.SUCCEEDED
+    pipeline.stages[2].status = ExecutionStatus.NOT_STARTED
+    stageBuilder.prepareStageForRestart(executionRepository, pipeline.stages[0])
+
+    then:
+    pipeline.stages[0].context.containsKey("restartDetails")
+    pipeline.stages[1].context.containsKey("restartDetails")
+    !pipeline.stages[2].context.containsKey("restartDetails")
+
+    // second stage was restarted and should have it's tasks reset
+    pipeline.stages[1].tasks[0].startTime == null
+    pipeline.stages[1].tasks[0].endTime == null
+    pipeline.stages[1].tasks[0].status == ExecutionStatus.NOT_STARTED
+
+    // third stage was not restarted (incomplete status)
+    pipeline.stages[2].tasks[0].startTime == 1
+    pipeline.stages[2].tasks[0].endTime == 2
+    pipeline.stages[2].tasks[0].status == ExecutionStatus.SUCCEEDED
   }
 
   Stage buildParent(Execution execution, String... parentStageIds) {

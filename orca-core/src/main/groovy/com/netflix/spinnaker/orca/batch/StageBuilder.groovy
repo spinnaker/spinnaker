@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionStage
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
@@ -112,7 +113,7 @@ abstract class StageBuilder implements ApplicationContextAware {
    * - marking the halted task as NOT_STARTED and resetting its start and end times
    * - marking the stage as RUNNING
    */
-  Stage prepareStageForRestart(Stage stage) {
+  Stage prepareStageForRestart(ExecutionRepository executionRepository, Stage stage) {
     stage.execution.canceled = false
     stage.execution.stages
          .findAll { it.status == ExecutionStatus.CANCELED }
@@ -126,6 +127,32 @@ abstract class StageBuilder implements ApplicationContextAware {
                task.status = ExecutionStatus.NOT_STARTED
              }
          }
+
+    def childStages = stage.execution.stages.findAll {
+      def requisiteStageRefIds = it.requisiteStageRefIds ?: []
+      if (it.context.requisiteIds) {
+        requisiteStageRefIds.addAll(it.context.requisiteIds as Collection<String>)
+      }
+
+      // only want to consider completed child stages
+      return it.status.complete && requisiteStageRefIds.contains(stage.refId)
+    }
+
+    def stageBuilders = getStageBuilders()
+    childStages.each { Stage childStage ->
+      def stageBuilder = stageBuilders.find { it.type == childStage.type } ?: this
+      stageBuilder.prepareStageForRestart(executionRepository, childStage)
+
+      // the default `prepareStageForRestart` behavior sets a stage back to RUNNING, that's not appropriate for child stages
+      childStage.status = ExecutionStatus.NOT_STARTED
+      childStage.tasks.each {
+        it.startTime = null
+        it.endTime = null
+        it.status = ExecutionStatus.NOT_STARTED
+      }
+      executionRepository.storeStage((PipelineStage) childStage)
+    }
+
     stage.tasks.find { it.status.halt }.each { com.netflix.spinnaker.orca.pipeline.model.Task task ->
       task.startTime = null
       task.endTime = null
@@ -141,6 +168,9 @@ abstract class StageBuilder implements ApplicationContextAware {
       stage.context.remove("exception")
     }
     stage.status = ExecutionStatus.RUNNING
+    stage.startTime = null
+    stage.endTime = null
+    executionRepository.storeStage((PipelineStage) stage)
 
     return stage
   }
@@ -297,6 +327,10 @@ abstract class StageBuilder implements ApplicationContextAware {
 
   private String nextTaskId(Stage stage) {
     return stage.taskCounter.incrementAndGet()
+  }
+
+  private Collection<StageBuilder> getStageBuilders() {
+    return applicationContext.getBeansOfType(StageBuilder).values()
   }
 
   @Autowired

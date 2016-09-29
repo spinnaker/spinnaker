@@ -189,7 +189,7 @@ class TaskController {
     def stage = pipeline.stages.find { it.id == stageId } as PipelineStage
     if (stage) {
       def stageBuilder = stageBuilders.find { it.type == stage.type }
-      stage = stageBuilder.prepareStageForRestart(stage)
+      stage = stageBuilder.prepareStageForRestart(executionRepository, stage)
       executionRepository.storeStage(stage)
       pipelineStarter.resume(pipeline)
     }
