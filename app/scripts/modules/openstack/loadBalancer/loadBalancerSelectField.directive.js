@@ -54,7 +54,7 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.loadBalancerSe
           }
         });
 
-        scope.$watch('filter', function() { scope.$broadcast('updateOptions'); });
+        scope.$watch('filter', function() { scope.$broadcast('updateOptions'); }, true);
       }
     };
 });

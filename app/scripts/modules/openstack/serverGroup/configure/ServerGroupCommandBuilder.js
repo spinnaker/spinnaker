@@ -7,7 +7,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.service', [
   require('../../image/image.reader.js'),
 ])
-  .factory('openstackServerGroupCommandBuilder', function ($q, openstackImageReader, subnetReader, loadBalancerReader, settings, namingService) {
+  .factory('openstackServerGroupCommandBuilder', function ($q, openstackImageReader, subnetReader, loadBalancerReader, settings, namingService, applicationReader, openstackServerGroupTransformer) {
 
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
@@ -20,6 +20,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.s
           application: application.name,
           credentials: defaultCredentials,
           region: defaultRegion,
+          strategy: '',
           stack: '',
           freeFormDetails: '',
           minSize: 1,
@@ -38,20 +39,19 @@ module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.s
     }
 
     // Only used to prepare view requiring template selecting
-    function buildNewServerGroupCommandForPipeline() {
-      return $q.when({
-        viewState: {
-          requiresTemplateSelection: true,
-        }
+    function buildNewServerGroupCommandForPipeline(stage, pipeline) {
+      return applicationReader.getApplication(pipeline.application).then(function(application) {
+        return buildNewServerGroupCommand(application).then(function(command) {
+          command.viewState.requiresTemplateSelection = true;
+          command.viewState.disableStrategySelection = true;
+          return command;
+        });
       });
     }
 
     function buildServerGroupCommandFromExisting(application, serverGroup, mode = 'clone') {
       var subnetsLoader = subnetReader.listSubnets();
       var serverGroupName = namingService.parseServerGroupName(serverGroup.name);
-      // TODO: unused variable
-      // var instanceType = serverGroup.launchConfig ? serverGroup.launchConfig.instanceType : null;
-
       var asyncLoader = $q.all({
         subnets: subnetsLoader,
         loadBalancers: loadBalancerReader.listLoadBalancers('openstack')
@@ -68,7 +68,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.s
           stack: serverGroupName.stack,
           freeFormDetails: serverGroupName.freeFormDetails,
           credentials: serverGroup.account,
-          loadBalancers: serverGroup.loadBalancers.map((lbName) => loadBalancers[lbName]),
+          loadBalancers: serverGroup.loadBalancers.map((lbName) => /^openstack:/.test(lbName) ? lbName.split(':')[4] : loadBalancers[lbName]),
           region: serverGroup.region,
           minSize: parseInt(serverGroup.scalingConfig.minSize),
           maxSize: parseInt(serverGroup.scalingConfig.maxSize),
@@ -95,6 +95,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.s
         if (mode === 'editPipeline') {
           command.strategy = 'redblack';
           command.suspendedProcesses = [];
+          delete command.image;
         }
 
         command.subnetId = serverGroup.subnetId;
@@ -114,11 +115,29 @@ module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.s
       });
     }
 
+    function buildServerGroupCommandFromPipeline(application, originalCluster) {
+      var command = _.cloneDeep(originalCluster);
+      if( !command.credentials ) {
+        command.credentials = command.account;
+      }
+      var params = command.serverGroupParameters;
+      delete command.serverGroupParameters;
+      return _.extend(command, params, {
+          selectedProvider: 'openstack',
+          viewState: {
+            disableImageSelection: true,
+            mode: 'editPipeline',
+            dirty: {},
+          },
+      });
+    }
+
 
     return {
       buildNewServerGroupCommand: buildNewServerGroupCommand,
       buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting,
       buildNewServerGroupCommandForPipeline: buildNewServerGroupCommandForPipeline,
+      buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline
     };
   });
 

@@ -51,7 +51,10 @@ module.exports = angular.module('spinnaker.openstack.appCacheBackedMultiSelectFi
         }
 
         cache.onRefresh(scope, updateOptions);
-        scope.$watch('filter', updateOptions);
+        scope.$watch('filter', updateOptions, true);
+        scope.$watch('model', function(model) {
+          scope.state.selectedOptions = model;
+        });
 
         updateOptions();
       }

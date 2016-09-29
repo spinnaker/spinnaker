@@ -55,7 +55,7 @@ module.exports = angular.module('spinnaker.openstack.subnet.subnetSelectField.di
 
         });
 
-        scope.$watch('filter', function() { scope.$broadcast('updateOptions'); });
+        scope.$watch('filter', function() { scope.$broadcast('updateOptions'); }, true);
       }
     };
 });

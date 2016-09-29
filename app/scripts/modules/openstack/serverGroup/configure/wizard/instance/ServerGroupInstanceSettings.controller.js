@@ -16,7 +16,16 @@ module.exports = angular.module('spinnaker.serverGroup.configure.openstack.insta
   .controller('openstackServerGroupInstanceSettingsCtrl', function($scope, $controller, $uibModalStack, $state,
                                                           v2modalWizardService, imageReader) {
 
+    function ensureCommandBackingDataFilteredExists() {
+        if( !$scope.command.backingData ) {
+          $scope.command.backingData = { filtered: {} };
+        } else if( !$scope.command.backingData.filtered ) {
+          $scope.command.backingData.filtered = {};
+        }
+    }
+
     function searchImages(q) {
+      ensureCommandBackingDataFilteredExists();
       $scope.command.backingData.filtered.images = [
         {
           message: '<span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span> Finding results matching "' + q + '"...'
@@ -38,6 +47,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.openstack.insta
       .debounceTime(250)
       .switchMap(searchImages)
       .subscribe(function (data) {
+        ensureCommandBackingDataFilteredExists();
         $scope.command.backingData.filtered.images = data;
         $scope.command.backingData.packageImages = $scope.command.backingData.filtered.images;
       });

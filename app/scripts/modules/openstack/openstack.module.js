@@ -30,7 +30,8 @@ module.exports = angular.module('spinnaker.openstack', [
   require('../core/subnet/subnet.module.js'),
   require('./common/selectField.component.js'),
   require('./search/resultFormatter.js'),
-  require('./pipeline/stages/bake/openstackBakeStage.js')
+  require('./pipeline/stages/bake/openstackBakeStage.js'),
+  require('./pipeline/stages/resizeAsg/openstackResizeAsgStage.js')
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('openstack', {
