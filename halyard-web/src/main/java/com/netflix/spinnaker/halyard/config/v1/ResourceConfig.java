@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.model.v1;
+package com.netflix.spinnaker.halyard.config.v1;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
+import org.yaml.snakeyaml.Yaml;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+@Component
+public class ResourceConfig {
+  @Bean
+  ObjectMapper objectMapper() {
+    return new ObjectMapper();
+  }
 
-/*
- * Maps the entire contents of ~/.hal/config
- */
-@Data
-public class Halconfig {
-  private String halyardVersion;
-  private String currentDeployment;
-  private List<DeploymentConfiguration> deploymentConfigurations = new ArrayList<>();
+  @Bean
+  Yaml yamlParser() {
+    return new Yaml();
+  }
 }

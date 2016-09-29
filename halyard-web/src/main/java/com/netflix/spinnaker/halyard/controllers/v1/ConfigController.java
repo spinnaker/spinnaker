@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.halyard.controllers.v1;
 
-import com.netflix.spinnaker.halyard.config.v1.HalyardConfig;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
+import com.netflix.spinnaker.halyard.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.model.v1.Halconfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,10 +31,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/v1/config")
 public class ConfigController {
   @Autowired
-  HalyardConfig halyardConfig;
+  HalconfigParser halyardConfig;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  Halconfig deployments() {
+  Halconfig config() throws UnrecognizedPropertyException {
     return halyardConfig.getConfig();
   }
 }

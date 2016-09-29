@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.controllers.v1;
+package com.netflix.spinnaker.halyard.model.v1.providers;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.yaml.snakeyaml.error.Mark;
+import lombok.Data;
 
-@ResponseStatus(HttpStatus.PRECONDITION_FAILED)
-public class UnknownPropertyException extends RuntimeException {
-  public UnknownPropertyException(Mark mark) {
-    super("Unknown halconfig field:\n" + mark.toString());
-  }
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
+public class Provider<T extends Account> {
+  boolean enabled;
+  String name;
+  List<T> accounts = new ArrayList<T>();
 }

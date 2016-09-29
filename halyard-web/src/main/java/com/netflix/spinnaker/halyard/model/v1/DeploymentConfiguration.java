@@ -16,21 +16,18 @@
 
 package com.netflix.spinnaker.halyard.model.v1;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import com.netflix.spinnaker.halyard.model.v1.providers.Providers;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 /*
- * Maps the entire contents of ~/.hal/config
+ * A DeploymentConfiguration is an installation of Spinnaker
  */
-@Data
-public class Halconfig {
-  private String halyardVersion;
-  private String currentDeployment;
-  private List<DeploymentConfiguration> deploymentConfigurations = new ArrayList<>();
+public class DeploymentConfiguration {
+  public String name;
+  public String version;
+  public Providers providers;
+  public List<Map> webhooks = new ArrayList<>();
 }

@@ -14,23 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.model.v1;
+package com.netflix.spinnaker.halyard.model.v1.providers.kubernetes;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.spinnaker.halyard.model.v1.providers.Provider;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-/*
- * Maps the entire contents of ~/.hal/config
- */
 @Data
-public class Halconfig {
-  private String halyardVersion;
-  private String currentDeployment;
-  private List<DeploymentConfiguration> deploymentConfigurations = new ArrayList<>();
+public class KubernetesProvider extends Provider<KubernetesAccount> {
 }
