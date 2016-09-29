@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.halyard.model.v1.providers;
 
+import com.netflix.spinnaker.halyard.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import com.netflix.spinnaker.halyard.model.v1.providers.kubernetes.KubernetesProvider;
 import lombok.Data;
 
 @Data
 public class Providers {
   KubernetesProvider kubernetes;
+  DockerRegistryProvider dockerRegistry;
 }
