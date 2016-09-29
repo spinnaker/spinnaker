@@ -40,7 +40,7 @@ public class FiatServerConfigurationProperties {
     /**
      * How much of a delay between the end of one sync and the beginning of the next.
      */
-    private int syncDelayMs = 60000;
+    private int syncDelayMs = 600000;
 
     /**
      * How much time to between retries of dependent resource providers if they are down.
