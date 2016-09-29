@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.model.v1.providers;
+package com.netflix.spinnaker.halyard.model.v1.providers.dockerRegistry;
 
+import com.netflix.spinnaker.halyard.model.v1.providers.Account;
 import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class Provider<T extends Account> {
-  boolean enabled;
-  List<T> accounts = new ArrayList<T>();
+public class DockerRegistryAccount extends Account {
+  private String address;
+  private String username;
+  private String password;
+  private String passwordFile;
+  private String email;
+  private List<String> repositories = new ArrayList<>();
 }
