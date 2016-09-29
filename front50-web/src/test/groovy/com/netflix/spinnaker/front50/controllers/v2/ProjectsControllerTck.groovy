@@ -44,6 +44,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 abstract class ProjectsControllerTck extends Specification {
@@ -79,11 +80,10 @@ abstract class ProjectsControllerTck extends Specification {
 
     when:
     def response = mockMvc.perform(get("/v2/projects/search?q=" + criteria))
-    def result = response.andReturn()
 
     then:
     response.andExpect status().isOk()
-    extractList(result.getResponse().getContentAsString()) == (project ? [toMap(dao.findByName(project.name))] : [])
+    response.andExpect content().string(new ObjectMapper().writeValueAsString([dao.findByName(project.name)]))
 
     where:
     criteria       | project
@@ -91,7 +91,6 @@ abstract class ProjectsControllerTck extends Specification {
     "Application1" | new Project(name: "Project1", config: new Project.ProjectConfig(
         applications: ["Application1", "Application2"]
     ))
-    "n/a"          | null
   }
 
   void "should fetch all projects"() {
@@ -101,9 +100,9 @@ abstract class ProjectsControllerTck extends Specification {
     }
 
     expect:
-    extractList(mockMvc.perform(get("/v2/projects")).andReturn().response.contentAsString) == dao.all().collect {
-      objectMapper.convertValue(it, Map)
-    }
+    mockMvc.perform(
+      get("/v2/projects")
+    ).andExpect content().string(new ObjectMapper().writeValueAsString(dao.all()))
   }
 
   @Unroll
@@ -188,16 +187,8 @@ abstract class ProjectsControllerTck extends Specification {
     thrown(NotFoundException)
   }
 
-  List<Map> extractList(String content) {
-    (objectMapper.readValue(content, Map).content as List<Map>).collect {
-      it.remove("links")
-      it
-    }
-  }
-
   Map extractMap(String content) {
     def result = objectMapper.readValue(content, Map) as Map
-    result.remove("links")
     result
   }
 
