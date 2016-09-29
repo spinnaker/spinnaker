@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.config
 
-import com.netflix.hystrix.exception.HystrixRuntimeException
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
@@ -28,14 +27,12 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseBody
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.filter.ShallowEtagHeaderFilter
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import retrofit.RetrofitError
 
 import javax.servlet.Filter
-import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 @Configuration
@@ -67,11 +64,8 @@ public class GateWebConfig extends WebMvcConfigurerAdapter {
   static class UpstreamBadRequestExceptionHandler {
     @ResponseBody
     @ExceptionHandler(UpstreamBadRequest)
-    public Map handleUpstreamBadRequest(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      UpstreamBadRequest exception
-    ) {
+    public Map handleUpstreamBadRequest(HttpServletResponse response,
+                                        UpstreamBadRequest exception) {
       response.setStatus(exception.status)
 
       def failureCause = exception.cause
