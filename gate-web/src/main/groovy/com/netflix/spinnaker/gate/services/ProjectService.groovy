@@ -47,7 +47,7 @@ class ProjectService {
     HystrixFactory.newListCommand(GROUP, "getAll") {
       try {
         return front50Service.legacyGetAllProjects().embedded?.projects ?: []
-      } catch (retrofit.converter.ConversionException e) {
+      } catch (Exception e) {
         log.info("Falling back on new return type {}", e.getMessage())
         return front50Service.getAllProjects() ?: []
       }
