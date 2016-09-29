@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller', [
@@ -7,14 +9,13 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller
   require('../../../core/securityGroup/securityGroup.read.service.js'),
   require('../loadBalancer.write.service.js'),
   require('../../../core/loadBalancer/loadBalancer.read.service.js'),
-  require('../../../core/utils/lodash.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('../../../core/presentation/collapsibleSection/collapsibleSection.directive.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('azureLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $uibModal, loadBalancer, app, InsightFilterStateModel,
-                                                   securityGroupReader, _, confirmationModalService, azureLoadBalancerWriter, loadBalancerReader, $q) {
+                                                   securityGroupReader, confirmationModalService, azureLoadBalancerWriter, loadBalancerReader, $q) {
 
     $scope.state = {
       loading: true

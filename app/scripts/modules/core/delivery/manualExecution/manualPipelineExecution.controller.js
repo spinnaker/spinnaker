@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 require('./manualPipelineExecution.less');
@@ -7,13 +9,12 @@ require('./manualPipelineExecution.less');
 module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution.controller', [
   require('angular-ui-bootstrap'),
   require('./inlinePropertyScope.filter'),
-  require('../../utils/lodash.js'),
   require('../../pipeline/config/pipelineConfigProvider.js'),
   require('../../pipeline/config/services/pipelineConfigService'),
   require('../../notification/notification.service'),
   require('../../authentication/authentication.service'),
 ])
-  .controller('ManualPipelineExecutionCtrl', function (_, $uibModalInstance, pipeline, application, pipelineConfig,
+  .controller('ManualPipelineExecutionCtrl', function ($uibModalInstance, pipeline, application, pipelineConfig,
                                                        notificationService, authenticationService,
                                                        pipelineConfigService) {
 
@@ -78,7 +79,7 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
           return copy;
         });
 
-      this.command.trigger = _.first(this.triggers);
+      this.command.trigger = _.head(this.triggers);
     };
 
 

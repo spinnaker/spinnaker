@@ -1,12 +1,13 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.instanceType.service', [
   require('../../core/cache/deckCacheFactory.js'),
-  require('../../core/utils/lodash.js'),
 ])
-  .factory('gceInstanceTypeService', function ($http, $q, _) {
+  .factory('gceInstanceTypeService', function ($http, $q) {
 
     var cachedResult = null;
 
@@ -417,14 +418,14 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
 
       var deferred = $q.defer();
 
-      deferred.resolve(_(categories)
-          .pluck('families')
+      deferred.resolve(_.chain(categories)
+          .map('families')
           .flatten()
-          .pluck('instanceTypes')
+          .map('instanceTypes')
           .flatten()
-          .pluck('name')
+          .map('name')
           .filter(name => name !== 'buildCustom')
-          .valueOf()
+          .value()
       );
 
       return deferred.promise;

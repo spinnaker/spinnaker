@@ -56,7 +56,7 @@ describe('pipelineConfigProvider: API', function() {
       configurer.registerStage({nameToCheckInTest: 'b', provides: 'c'});
       var providers = service.getProvidersFor('d');
       expect(providers.length).toBe(2);
-      expect(_.pluck(providers, 'nameToCheckInTest').sort()).toEqual(['a', 'b']);
+      expect(_.map(providers, 'nameToCheckInTest').sort()).toEqual(['a', 'b']);
     }));
 
     it('augments provider stages with parent keys, labels, and descriptions', window.inject(function() {

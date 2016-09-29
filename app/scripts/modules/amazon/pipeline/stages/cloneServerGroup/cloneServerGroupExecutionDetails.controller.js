@@ -1,9 +1,10 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.cloneServerGroup.aws.executionDetails.controller', [
-  require('../../../../core/utils/lodash.js'),
   require('angular-ui-router'),
   require('../../../../core/cluster/filter/clusterFilter.service.js'),
   require('../../../../core/delivery/details/executionDetailsSection.service.js'),

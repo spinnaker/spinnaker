@@ -25,7 +25,7 @@ module.exports = angular
       controllerAs: 'vm',
     };
   })
-  .controller('executionGroupCtrl', function($scope, $timeout, _, $state, settings, $stateParams, $uibModal, executionService, collapsibleSectionStateCache,
+  .controller('executionGroupCtrl', function($scope, $timeout, $state, settings, $stateParams, $uibModal, executionService, collapsibleSectionStateCache,
                                                ExecutionFilterModel, pipelineConfigService) {
     this.showDetails = function(executionId) {
       return executionId === $stateParams.executionId &&

@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.securityGroup.kubernetes.details.controller', [
@@ -8,14 +10,13 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.details.cont
   require('../../../core/securityGroup/securityGroup.read.service.js'),
   require('../../../core/securityGroup/securityGroup.write.service.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
-  require('../../../core/utils/lodash.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
   require('../../../core/cloudProvider/cloudProvider.registry.js'),
 ])
   .controller('kubernetesSecurityGroupDetailsController', function ($scope, $state, resolvedSecurityGroup, accountService, app, InsightFilterStateModel,
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,
-                                                    $uibModal, _, cloudProviderRegistry) {
+                                                    $uibModal, cloudProviderRegistry) {
 
     const application = app;
     const securityGroup = resolvedSecurityGroup;

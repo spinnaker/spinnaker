@@ -1,11 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.gce.serverGroup.transformer', [
-    require('../../core/utils/lodash.js'),
-  ])
-  .factory('gceServerGroupTransformer', function ($q, _) {
+module.exports = angular.module('spinnaker.gce.serverGroup.transformer', [])
+  .factory('gceServerGroupTransformer', function ($q) {
 
     function normalizeServerGroup(serverGroup) {
       return $q.when(serverGroup); // no-op

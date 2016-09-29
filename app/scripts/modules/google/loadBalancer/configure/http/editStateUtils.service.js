@@ -1,11 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.editStateUtils.service', [
-    require('../../../../core/utils/lodash.js')
-  ])
-  .factory('gceHttpLoadBalancerEditStateUtils', function (_) {
+module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.editStateUtils.service', [])
+  .factory('gceHttpLoadBalancerEditStateUtils', function () {
 
     function getBackingData (lb) {
       let backendServices = getBackendServices(lb);
@@ -22,7 +22,7 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.editStateUt
       let backendServices = [getAndMarkDefaultBackend(lb)];
 
       if (lb.hostRules) {
-        backendServices = _.uniq(
+        backendServices = _.uniqBy(
           lb.hostRules
             .reduce((services, hostRule) => {
               services = services.concat(hostRule.pathMatcher.defaultService);
@@ -42,10 +42,10 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.editStateUt
     }
 
     function getHealthChecks (services) {
-      return _(services)
+      return _.chain(services)
         .map((s) => s.healthCheck)
-        .uniq((healthCheck) => healthCheck.name)
-        .valueOf();
+        .uniqBy((healthCheck) => healthCheck.name)
+        .value();
     }
 
     function getHostRules (lb) {
@@ -58,10 +58,10 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.editStateUt
     }
 
     function reconcileBackendServiceReferences (lb, backendServices) {
-      let servicesByName = _(backendServices)
+      let servicesByName = _.chain(backendServices)
         .groupBy('name')
-        .mapValues((services) => _.first(services))
-        .valueOf();
+        .mapValues((services) => _.head(services))
+        .value();
 
       /*
         places to spot a backend service:
@@ -84,10 +84,10 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.editStateUt
     }
 
     function reconcileHealthCheckReferences (backendServices, healthChecks) {
-      let healthChecksByName = _(healthChecks)
+      let healthChecksByName = _.chain(healthChecks)
         .groupBy('name')
-        .mapValues((checks) => _.first(checks))
-        .valueOf();
+        .mapValues((checks) => _.head(checks))
+        .value();
 
       backendServices.forEach((service) => {
         service.healthCheck = healthChecksByName[service.healthCheck.name];

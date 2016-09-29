@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
   require('./hiddenMetadataKeys.value.js'),
   require('./securityGroups/tagManager.service.js')
 ])
-  .controller('gceCloneServerGroupCtrl', function($scope, $uibModalInstance, _, $q, $state,
+  .controller('gceCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
                                                   serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                   gceServerGroupConfigurationService,
                                                   serverGroupCommand, application, title,

@@ -16,12 +16,12 @@
 
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.forms.checkmap.checkmap.directive', [
-  require('../../utils/lodash.js'),
-])
-  .directive('checkmap', function(_) {
+module.exports = angular.module('spinnaker.core.forms.checkmap.checkmap.directive', [])
+  .directive('checkmap', function () {
     return {
       restrict: 'E',
       templateUrl: require('./checkmap.directive.html'),

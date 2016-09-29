@@ -1,12 +1,13 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.accountNamespaceClusterSelector.directive', [
     require('../../core/application/listExtractor/listExtractor.service'),
     require('../../core/account/account.service'),
-    require('../../core/utils/lodash')
   ])
   .directive('accountNamespaceClusterSelector', function() {
     return {
@@ -21,7 +22,7 @@ module.exports = angular
       },
       templateUrl: require('./accountNamespaceClusterSelector.component.html'),
       controllerAs: 'vm',
-      controller: function controller(appListExtractorService, accountService, _) {
+      controller: function controller(appListExtractorService, accountService) {
 
         this.clusterField = this.clusterField || 'cluster';
 

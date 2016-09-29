@@ -1,11 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.customInstanceBuilder.gce.service', [
-  require('../../../core/utils/lodash.js'),
-])
-  .factory('gceCustomInstanceBuilderService', function(_) {
+module.exports = angular.module('spinnaker.serverGroup.customInstanceBuilder.gce.service', [])
+  .factory('gceCustomInstanceBuilderService', function () {
     function vCpuCountForLocationIsValid(vCpuCount, location, locationToInstanceTypesMap) {
       let max = locationToInstanceTypesMap[location].vCpuMax;
       return vCpuCount <= max;
@@ -60,7 +60,7 @@ module.exports = angular.module('spinnaker.serverGroup.customInstanceBuilder.gce
     }
 
     function parseInstanceTypeString(instanceTypeString) {
-      let [ vCpuCount, memoryInMbs ] = _(instanceTypeString.split('-'))
+      let [ vCpuCount, memoryInMbs ] = _.chain(instanceTypeString.split('-'))
         .takeRight(2)
         .map(value => Number(value))
         .value();

@@ -1,12 +1,12 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.cf.serverGroup.transformer', [
-    require('../../core/utils/lodash.js'),
-  ])
-  .factory('cfServerGroupTransformer', function ($q, _) {
+  .module('spinnaker.cf.serverGroup.transformer', [])
+  .factory('cfServerGroupTransformer', function ($q) {
 
     function normalizeServerGroup(serverGroup) {
       return $q.when(serverGroup); // no-op
@@ -34,5 +34,4 @@ module.exports = angular
       convertServerGroupCommandToDeployConfiguration: convertServerGroupCommandToDeployConfiguration,
       normalizeServerGroup: normalizeServerGroup,
     };
-
   });

@@ -1,16 +1,16 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.deck.gce.loadBalancer.loadBalancerType', [
-    require('../../../../core/utils/lodash.js')
-  ])
+module.exports = angular.module('spinnaker.deck.gce.loadBalancer.loadBalancerType', [])
   .component('gceLoadBalancerType', {
     template: '<span>{{ $ctrl.type }}</span>',
     bindings: {
       loadBalancer: '='
     },
-    controller: function(_) {
+    controller: function () {
       this.type = (function(lb) {
         if (lb.loadBalancerType === 'NETWORK') {
           return 'NETWORK';

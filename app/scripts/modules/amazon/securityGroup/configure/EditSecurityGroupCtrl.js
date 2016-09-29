@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
@@ -13,7 +15,7 @@ module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
   .controller('awsEditSecurityGroupCtrl', function($scope, $uibModalInstance, $state,
                                                 accountService, securityGroupReader,
                                                 taskMonitorService, cacheInitializer, infrastructureCaches,
-                                                _, application, securityGroup, securityGroupWriter, $controller) {
+                                                application, securityGroup, securityGroupWriter, $controller) {
 
     $scope.pages = {
       ingress: require('./createSecurityGroupIngress.html'),
@@ -44,7 +46,7 @@ module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
       onTaskComplete: () => application.securityGroups.refresh(),
     });
 
-    securityGroup.securityGroupIngress = _(securityGroup.inboundRules)
+    securityGroup.securityGroupIngress = _.chain(securityGroup.inboundRules)
       .filter(rule => rule.securityGroup)
       .map(rule => rule.portRanges.map(portRange => {
           let vpcId = rule.securityGroup.vpcId === securityGroup.vpcId ? null : rule.securityGroup.vpcId;
@@ -64,7 +66,7 @@ module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
       .flatten()
       .value();
 
-    securityGroup.ipIngress = _(securityGroup.inboundRules)
+    securityGroup.ipIngress = _.chain(securityGroup.inboundRules)
       .filter(function(rule) {
         return rule.range;
       }).map(function(rule) {

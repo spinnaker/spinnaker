@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.securityGroup.aws.details.controller', [
@@ -7,7 +9,6 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
   require('../../../core/securityGroup/securityGroup.read.service.js'),
   require('../../../core/securityGroup/securityGroup.write.service.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
-  require('../../../core/utils/lodash.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('../clone/cloneSecurityGroup.controller.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
@@ -15,7 +16,7 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
 ])
   .controller('awsSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, app, InsightFilterStateModel,
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,
-                                                    $uibModal, _, cloudProviderRegistry) {
+                                                    $uibModal, cloudProviderRegistry) {
 
     const application = app;
     const securityGroup = resolvedSecurityGroup;

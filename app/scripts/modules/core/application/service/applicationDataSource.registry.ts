@@ -1,14 +1,12 @@
-import {DataSourceConfig} from './applicationDataSource.ts'
+import * as _ from 'lodash';
+
 import {module} from 'angular';
-import LoDashStatic = _.LoDashStatic;
+
+import {DataSourceConfig} from './applicationDataSource.ts'
 
 export class ApplicationDataSourceRegistry {
 
   private defaultDataSourceOrder: string[] = ['executions', 'serverGroups', 'loadBalancers', 'securityGroups', 'tasks', 'config'];
-  static get $inject() { return ['_']; }
-
-  constructor(private _: LoDashStatic) {}
-
   private dataSources: DataSourceConfig[] = [];
   private dataSourceOrder: string[] = [];
 
@@ -36,15 +34,13 @@ export class ApplicationDataSourceRegistry {
   }
 
   getDataSources(): DataSourceConfig[] {
-    return this._.cloneDeep(this.dataSources);
+    return _.cloneDeep(this.dataSources);
   }
 }
 
 const moduleName = 'spinnaker.core.application.section.registry';
 
-module(moduleName, [
-  require('../../utils/lodash.js')
-  ])
+module(moduleName, [])
   .service('applicationDataSourceRegistry', ApplicationDataSourceRegistry);
 
 export default moduleName;

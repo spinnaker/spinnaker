@@ -1,11 +1,12 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 require('./snapshotDiff.modal.less');
 
 module.exports = angular.module('spinnaker.deck.core.snapshot.diff.modal.controller', [
-    require('../../utils/lodash.js'),
     require('../snapshot.read.service.js'),
     require('../snapshot.write.service.js'),
     require('../../confirmationModal/confirmationModal.service.js'),
@@ -13,14 +14,14 @@ module.exports = angular.module('spinnaker.deck.core.snapshot.diff.modal.control
     require('../../pipeline/config/actions/history/diffSummary.component.js'),
     require('../../pipeline/config/actions/history/diffView.component.js'),
   ])
-  .controller('SnapshotDiffModalCtrl', function (availableAccounts, application, _, $filter, $uibModalInstance,
+  .controller('SnapshotDiffModalCtrl', function (availableAccounts, application, $filter, $uibModalInstance,
                                                  snapshotReader, snapshotWriter, jsonDiffService, confirmationModalService) {
     this.availableAccounts = availableAccounts;
-    this.selectedAccount = _.first(availableAccounts);
+    this.selectedAccount = _.head(availableAccounts);
     this.compareOptions = ['most recent', 'previous version'];
     this.compareTo = _.last(this.compareOptions);
     this.findLeftMap = {
-      'most recent': () => _.first(this.snapshots).contents,
+      'most recent': () => _.head(this.snapshots).contents,
       'previous version': (right, version) => {
         let left = right;
         if (version < this.snapshots.length - 1) {
@@ -53,7 +54,7 @@ module.exports = angular.module('spinnaker.deck.core.snapshot.diff.modal.control
           };
         });
 
-      _.first(formatted).formattedTimestamp += ' (most recent)';
+      _.head(formatted).formattedTimestamp += ' (most recent)';
       return formatted;
     };
 

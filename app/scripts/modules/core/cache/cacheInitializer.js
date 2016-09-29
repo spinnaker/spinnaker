@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.cache.initializer', [
@@ -10,12 +12,11 @@ module.exports = angular.module('spinnaker.core.cache.initializer', [
   require('../ci/jenkins/igor.service.js'),
   require('./infrastructureCaches.js'),
   require('./infrastructureCacheConfig.js'),
-  require('../utils/lodash.js'),
   require('../cloudProvider/cloudProvider.registry.js'),
 ])
   .factory('cacheInitializer', function ($q, applicationReader, infrastructureCaches,
                                          accountService, securityGroupReader, cloudProviderRegistry,
-                                         igorService, infrastructureCacheConfig, serviceDelegate, _) {
+                                         igorService, infrastructureCacheConfig, serviceDelegate) {
 
     var initializers = {
       credentials: [accountService.listAccounts],

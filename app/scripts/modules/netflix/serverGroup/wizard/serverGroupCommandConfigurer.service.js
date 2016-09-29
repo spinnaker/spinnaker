@@ -1,22 +1,23 @@
 'use strict';
 
+import _ from 'lodash';
+
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.serverGroup.configurer.service', [
-    require('../../../core/utils/lodash.js'),
     require('./../diff/diff.service.js'),
     require('../../../core/naming/naming.service.js'),
     require('../../../core/config/settings.js'),
     require('../../../core/serverGroup/configure/common/serverGroupCommand.registry.js'),
     require('../../../core/modal/wizard/v2modalWizard.service.js'),
   ])
-  .factory('netflixServerGroupCommandConfigurer', function(diffService, namingService, _, v2modalWizardService) {
+  .factory('netflixServerGroupCommandConfigurer', function(diffService, namingService, v2modalWizardService) {
     function configureSecurityGroupDiffs(command) {
       var currentOptions = command.backingData.filtered.securityGroups,
           currentSecurityGroups = command.securityGroups || [];
       var currentSecurityGroupNames = currentSecurityGroups.map(function(groupId) {
-        var match = _(currentOptions).find({id: groupId});
+        var match = _.chain(currentOptions).find({id: groupId}).value();
         return match ? match.name : groupId;
       });
       var result = diffService.diffSecurityGroups(currentSecurityGroupNames, command.viewState.clusterDiff, command.source);

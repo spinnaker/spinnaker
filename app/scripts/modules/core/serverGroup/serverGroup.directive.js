@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.core.serverGroup.serverGroup.directiv
   require('../instance/instanceList.directive'),
   require('./serverGroup.transformer'),
 ])
-  .directive('serverGroup', function ($rootScope, $timeout, $filter, _, clusterFilterService,
+  .directive('serverGroup', function ($rootScope, $timeout, $filter, clusterFilterService,
                                       MultiselectModel, ClusterFilterModel, serverGroupTransformer) {
     return {
       restrict: 'E',

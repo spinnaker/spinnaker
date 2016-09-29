@@ -30,7 +30,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
       });
     }
   })
-  .controller('CanaryStageCtrl', function ($scope, $uibModal, stage, _,
+  .controller('CanaryStageCtrl', function ($scope, $uibModal, stage,
                                            namingService, providerSelectionService,
                                            authenticationService, cloudProviderRegistry,
                                            serverGroupCommandBuilder, awsServerGroupTransformer, accountService, appListExtractorService) {

@@ -1,14 +1,15 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.loadBalancer.write.service', [
-    require('../utils/lodash.js'),
     require('../task/taskExecutor.js'),
     require('../cache/infrastructureCaches.js'),
   ])
-  .factory('loadBalancerWriter', function(_, infrastructureCaches, taskExecutor) {
+  .factory('loadBalancerWriter', function(infrastructureCaches, taskExecutor) {
 
     function deleteLoadBalancer(loadBalancer, application, params = {}) {
       params.type = 'deleteLoadBalancer';
@@ -46,7 +47,7 @@ module.exports = angular
       }
 
       // We want to extend params with all attributes from loadBalancer, but only if they don't already exist.
-      _.assign(params, loadBalancer, function(value, other) {
+      _.assignWith(params, loadBalancer, function(value, other) {
         return _.isUndefined(value) ? other : value;
       });
 

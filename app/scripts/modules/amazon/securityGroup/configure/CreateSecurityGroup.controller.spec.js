@@ -1,10 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
+
 describe('Controller: CreateSecurityGroup', function () {
 
   beforeEach(
     window.module(
-      require('../../../core/utils/lodash.js'),
       require('./CreateSecurityGroupCtrl.js'),
       require('./configSecurityGroup.mixin.controller.js')
     )
@@ -144,12 +145,12 @@ describe('Controller: CreateSecurityGroup', function () {
       this.$scope.securityGroup.regions = ['us-east-1', 'us-west-1'];
       this.ctrl.accountUpdated();
       this.$scope.$digest();
-      expect(_.pluck(this.$scope.vpcs, 'label').sort()).toEqual(['vpc 2']);
+      expect(_.map(this.$scope.vpcs, 'label').sort()).toEqual(['vpc 2']);
 
       this.$scope.securityGroup.regions = ['us-east-1'];
       this.ctrl.accountUpdated();
       this.$scope.$digest();
-      expect(_.pluck(this.$scope.vpcs, 'label').sort()).toEqual(['vpc 1', 'vpc 2']);
+      expect(_.map(this.$scope.vpcs, 'label').sort()).toEqual(['vpc 1', 'vpc 2']);
     });
 
     describe('security group removal', function () {

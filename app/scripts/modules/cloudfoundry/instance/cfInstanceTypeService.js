@@ -1,12 +1,13 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.cf.instanceType.service', [
   require('../../core/cache/deckCacheFactory.js'),
-  require('../../core/utils/lodash.js'),
 ])
-  .factory('cfInstanceTypeService', function ($http, $q, _) {
+  .factory('cfInstanceTypeService', function ($http, $q) {
 
     var cachedResult = null;
 
@@ -282,13 +283,13 @@ module.exports = angular.module('spinnaker.cf.instanceType.service', [
 
       var deferred = $q.defer();
 
-      deferred.resolve(_(categories)
-          .pluck('families')
+      deferred.resolve(_.chain(categories)
+          .map('families')
           .flatten()
-          .pluck('instanceTypes')
+          .map('instanceTypes')
           .flatten()
-          .pluck('name')
-          .valueOf()
+          .map('name')
+          .value()
       );
 
       return deferred.promise;
@@ -297,13 +298,13 @@ module.exports = angular.module('spinnaker.cf.instanceType.service', [
 
     function getAvailableTypesForRegions(availableRegions, selectedRegions) {
       if (availableRegions || selectedRegions) {
-        var availableTypes = _(categories)
-          .pluck('families')
+        var availableTypes = _.chain(categories)
+          .map('families')
           .flatten()
-          .pluck('instanceTypes')
+          .map('instanceTypes')
           .flatten()
-          .pluck('name')
-          .valueOf();
+          .map('name')
+          .value();
 
         return availableTypes.sort();
       }

@@ -1,15 +1,16 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.instanceType.service', [
   require('../../core/api/api.service'),
   require('../../core/cache/deckCacheFactory.js'),
-  require('../../core/utils/lodash.js'),
   require('../../core/config/settings.js'),
   require('../../core/cache/infrastructureCaches.js'),
 ])
-  .factory('azureInstanceTypeService', function ($http, $q, settings, _, API, infrastructureCaches) {
+  .factory('azureInstanceTypeService', function ($http, $q, settings, API, infrastructureCaches) {
 
     var m3 = {
       type: 'M3',
@@ -225,14 +226,14 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', [
       if (category.families && category.families.length) {
         category.families.forEach(function(family) {
           stats.families.push(family.type);
-          var cpuMin = _.min(family.instanceTypes, 'cpu').cpu || Number.MAX_VALUE,
-            cpuMax = _.max(family.instanceTypes, 'cpu').cpu || -Number.MAX_VALUE,
-            memoryMin = _.min(family.instanceTypes, 'memory').memory || Number.MAX_VALUE,
-            memoryMax = _.max(family.instanceTypes, 'memory').memory || -Number.MAX_VALUE,
-            storageMin = calculateStorage(_.min(family.instanceTypes, calculateStorage)) || Number.MAX_VALUE,
-            storageMax = calculateStorage(_.max(family.instanceTypes, calculateStorage)) || -Number.MAX_VALUE,
-            costFactorMin = _.min(family.instanceTypes, 'costFactor').costFactor || Number.MAX_VALUE,
-            costFactorMax = _.max(family.instanceTypes, 'costFactor').costFactor || -Number.MAX_VALUE;
+          var cpuMin = _.minBy(family.instanceTypes, 'cpu').cpu || Number.MAX_VALUE,
+            cpuMax = _.maxBy(family.instanceTypes, 'cpu').cpu || -Number.MAX_VALUE,
+            memoryMin = _.minBy(family.instanceTypes, 'memory').memory || Number.MAX_VALUE,
+            memoryMax = _.maxBy(family.instanceTypes, 'memory').memory || -Number.MAX_VALUE,
+            storageMin = calculateStorage(_.minBy(family.instanceTypes, calculateStorage)) || Number.MAX_VALUE,
+            storageMax = calculateStorage(_.maxBy(family.instanceTypes, calculateStorage)) || -Number.MAX_VALUE,
+            costFactorMin = _.minBy(family.instanceTypes, 'costFactor').costFactor || Number.MAX_VALUE,
+            costFactorMax = _.maxBy(family.instanceTypes, 'costFactor').costFactor || -Number.MAX_VALUE;
 
           stats.cpu.min = Math.min(stats.cpu.min, cpuMin);
           stats.cpu.max = Math.max(stats.cpu.max, cpuMax);
@@ -264,13 +265,13 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', [
         .one('instanceTypes')
         .get()
         .then(function (types) {
-          var result = _(types)
+          var result = _.chain(types)
             .map(function (type) {
               return { region: type.region, account: type.account, name: type.name, key: [type.region, type.account, type.name].join(':') };
             })
-            .uniq('key')
+            .uniqBy('key')
             .groupBy('region')
-            .valueOf();
+            .value();
           infrastructureCaches.instanceTypes.put('azure', result);
           return result;
         });
@@ -282,13 +283,13 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', [
 
       // prime the list of available types
       if (selectedRegions && selectedRegions.length) {
-        availableTypes = _.pluck(availableRegions[selectedRegions[0]], 'name');
+        availableTypes = _.map(availableRegions[selectedRegions[0]], 'name');
       }
 
       // this will perform an unnecessary intersection with the first region, which is fine
       selectedRegions.forEach(function(selectedRegion) {
         if (availableRegions[selectedRegion]) {
-          availableTypes = _.intersection(availableTypes, _.pluck(availableRegions[selectedRegion], 'name'));
+          availableTypes = _.intersection(availableTypes, _.map(availableRegions[selectedRegion], 'name'));
         }
       });
 

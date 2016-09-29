@@ -1,15 +1,16 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.loadBalancer.filter.service', [
     require('./loadBalancer.filter.model.js'),
-    require('../../utils/lodash.js'),
     require('../../utils/waypoints/waypoint.service.js'),
     require('../../filterModel/filter.model.service.js'),
   ])
-  .factory('loadBalancerFilterService', function (LoadBalancerFilterModel, _, waypointService, filterModelService,
+  .factory('loadBalancerFilterService', function (LoadBalancerFilterModel, waypointService, filterModelService,
                                                   $log) {
 
     var isFilterable = filterModelService.isFilterable,
@@ -23,8 +24,8 @@ module.exports = angular
           loadBalancer.name,
           loadBalancer.region.toLowerCase(),
           loadBalancer.account,
-          _.pluck(loadBalancer.serverGroups, 'name').join(' '),
-          _.pluck(loadBalancer.instances, 'id').join(' '),
+          _.map(loadBalancer.serverGroups, 'name').join(' '),
+          _.map(loadBalancer.instances, 'id').join(' '),
         ].join(' ');
       }
     }
@@ -89,7 +90,7 @@ module.exports = angular
         if (!checkedStatus.length) {
           return true;
         }
-        return _.contains(checkedStatus, instance.healthState);
+        return _.includes(checkedStatus, instance.healthState);
       }
       return true;
     }

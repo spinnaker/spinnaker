@@ -1,12 +1,12 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.executionFilter.service', [
-    require('../../../utils/lodash.js'),
-  ])
-  .factory('runningExecutionsService', function(_) {
+  .module('spinnaker.executionFilter.service', [])
+  .factory('runningExecutionsService', function () {
 
     function filterRunningExecutions(executions) {
       if(executions) {
@@ -21,5 +21,4 @@ module.exports = angular
     return {
       filterRunningExecutions: filterRunningExecutions
     };
-
   });

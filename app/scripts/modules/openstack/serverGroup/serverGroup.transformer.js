@@ -1,12 +1,12 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.openstack.serverGroup.transformer', [
-    require('../../core/utils/lodash.js'),
-  ])
-  .factory('openstackServerGroupTransformer', function ($q, _) {
+  .module('spinnaker.openstack.serverGroup.transformer', [])
+  .factory('openstackServerGroupTransformer', function ($q) {
 
     function normalizeServerGroup(serverGroup) {
       if( serverGroup.loadBalancers ) {

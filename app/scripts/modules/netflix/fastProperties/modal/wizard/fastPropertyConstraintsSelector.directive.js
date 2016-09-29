@@ -1,12 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
 
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.fastProperties.constraintSelector.directive', [
-    require('../../../../core/utils/lodash')
-  ])
+  .module('spinnaker.fastProperties.constraintSelector.directive', [])
   .directive('constraintsSelector', () => {
     return {
       restrict: 'E',
@@ -15,7 +14,7 @@ module.exports = angular
       bindToController:{
         model: '='
       },
-      controller: function($scope, _, $log) {
+      controller: function($scope, $log) {
         let vm = this;
 
         vm.model = vm.model || 'none';

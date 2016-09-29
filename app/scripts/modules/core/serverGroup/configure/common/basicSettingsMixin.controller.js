@@ -1,16 +1,17 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.serverGroup.basicSettings.controller', [
     require('angular-ui-bootstrap'),
     require('angular-ui-router'),
-    require('../../../utils/lodash.js'),
     require('../../../naming/naming.service.js'),
     require('../../../image/image.reader.js')
   ])
-  .controller('BasicSettingsMixin', function ($scope, imageReader, namingService, $uibModalStack, $state, _) {
+  .controller('BasicSettingsMixin', function ($scope, imageReader, namingService, $uibModalStack, $state) {
 
     this.createsNewCluster = function() {
       var name = this.getNamePreview();

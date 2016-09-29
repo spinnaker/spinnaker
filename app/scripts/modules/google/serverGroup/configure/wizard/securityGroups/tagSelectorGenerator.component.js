@@ -3,11 +3,10 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.gce.tagSelectorGenerator.component', [
-  require('../../../../../core/utils/lodash.js'),
   require('./tagSelector.component.js'),
   require('./tagManager.service.js')
 ])
-  .directive('gceTagSelectorGenerator', function($compile, _, gceTagManager) {
+  .directive('gceTagSelectorGenerator', function($compile, gceTagManager) {
     let template = `<gce-tag-selector security-group-id="securityGroupId" command="command">
                     </gce-tag-selector>`;
 

@@ -4,7 +4,6 @@
 
    beforeEach(
      window.module(
-       require('../../../core/utils/lodash.js'),
        require('./CreateSecurityGroupCtrl.js')
      )
    );
@@ -12,7 +11,7 @@
    describe('filtering', function() {
 
      // Initialize the controller and a mock scope
-     beforeEach(window.inject(function ($controller, $rootScope, $q, accountService, securityGroupReader, 
+     beforeEach(window.inject(function ($controller, $rootScope, $q, accountService, securityGroupReader,
                                  taskMonitorService, azureSecurityGroupWriter) {
 
        this.$scope = $rootScope.$new();

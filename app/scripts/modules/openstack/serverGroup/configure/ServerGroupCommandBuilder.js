@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.service', [
@@ -96,7 +98,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.s
         }
 
         command.subnetId = serverGroup.subnetId;
-        command.subnet = _(asyncData.subnets).find({'id': serverGroup.subnetId});
+        command.subnet = _.chain(asyncData.subnets).find({'id': serverGroup.subnetId});
 
         if (serverGroup.launchConfig) {
           angular.extend(command, {

@@ -8,7 +8,7 @@
      )
    );
 
-   beforeEach(window.inject(function ($controller, $rootScope, _, $q) {
+   beforeEach(window.inject(function ($controller, $rootScope, $q) {
      this.$controller = $controller;
      this.serverGroupCommandBuilder = {};
      this.securityGroupReader = {};

@@ -1,16 +1,17 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.filterModel.service', [
-    require('../utils/lodash.js'),
     require('angular-ui-router'),
   ])
-.factory('filterModelService', function (_, $location, $state, $stateParams, $timeout) {
+.factory('filterModelService', function ($location, $state, $stateParams, $timeout) {
 
     function isFilterable(sortFilterModel) {
-      return _.size(sortFilterModel) > 0 && _.any(sortFilterModel);
+      return _.size(sortFilterModel) > 0 && _.some(sortFilterModel);
     }
 
     function getCheckValues(sortFilterModel) {
@@ -26,7 +27,7 @@ module.exports = angular
       return function(target) {
         if(isFilterable(model.sortFilter.account)) {
           var checkedAccounts = getCheckValues(model.sortFilter.account);
-          return _.contains(checkedAccounts, target.account);
+          return _.includes(checkedAccounts, target.account);
         } else {
           return true;
         }
@@ -37,7 +38,7 @@ module.exports = angular
       return function(target) {
         if(isFilterable(model.sortFilter.region)) {
           var checkedRegions = getCheckValues(model.sortFilter.region);
-          return _.contains(checkedRegions, target.region);
+          return _.includes(checkedRegions, target.region);
         } else {
           return true;
         }
@@ -51,7 +52,7 @@ module.exports = angular
           if (checkedStacks.indexOf('(none)') > -1) {
             checkedStacks.push('');
           }
-          return _.contains(checkedStacks, target.stack);
+          return _.includes(checkedStacks, target.stack);
         } else {
           return true;
         }
@@ -62,11 +63,11 @@ module.exports = angular
       return function(target) {
         if (isFilterable(model.sortFilter.status)) {
           var checkedStatus = getCheckValues(model.sortFilter.status);
-          return _.contains(checkedStatus, 'Up') && target.instanceCounts.down === 0 ||
-            _.contains(checkedStatus, 'Down') && target.instanceCounts.down > 0 ||
-            _.contains(checkedStatus, 'OutOfService') && target.instanceCounts.outOfService > 0 ||
-            _.contains(checkedStatus, 'Starting') && target.instanceCounts.starting > 0 ||
-            _.contains(checkedStatus, 'Disabled') && target.isDisabled;
+          return _.includes(checkedStatus, 'Up') && target.instanceCounts.down === 0 ||
+            _.includes(checkedStatus, 'Down') && target.instanceCounts.down > 0 ||
+            _.includes(checkedStatus, 'OutOfService') && target.instanceCounts.outOfService > 0 ||
+            _.includes(checkedStatus, 'Starting') && target.instanceCounts.starting > 0 ||
+            _.includes(checkedStatus, 'Disabled') && target.isDisabled;
         }
         return true;
       };
@@ -76,7 +77,7 @@ module.exports = angular
       return function(target) {
         if (isFilterable(model.sortFilter.category)) {
           var checkedCategories = getCheckValues(model.sortFilter.category);
-          return _.contains(checkedCategories, target.type) || _.contains(checkedCategories, target.category);
+          return _.includes(checkedCategories, target.type) || _.includes(checkedCategories, target.category);
         } else {
           return true;
         }
@@ -87,7 +88,7 @@ module.exports = angular
       return function(target) {
         if (isFilterable(model.sortFilter.providerType)) {
           var checkedProviderTypes = getCheckValues(model.sortFilter.providerType);
-          return _.contains(checkedProviderTypes, target.type) || _.contains(checkedProviderTypes, target.provider);
+          return _.includes(checkedProviderTypes, target.type) || _.includes(checkedProviderTypes, target.provider);
         } else {
           return true;
         }
@@ -142,7 +143,7 @@ module.exports = angular
           var obj = filterModel.sortFilter[property.model];
           if (obj) {
             return _.chain(obj)
-              .collect(function (val, key) {
+              .map(function (val, key) {
                 if (val) {
                   // replace any commas in the string with their uri-encoded version ('%2c'), since
                   // we use commas as our separator in the URL

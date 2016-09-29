@@ -1,11 +1,12 @@
+import _ from 'lodash';
+
 describe('recent history service', function() {
 
   var service, deckCacheFactory, backingCache;
 
   beforeEach(
     window.module(
-      require('./recentHistory.service.js'),
-      require('../utils/lodash.js')
+      require('./recentHistory.service.js')
     )
   );
 
@@ -94,7 +95,7 @@ describe('recent history service', function() {
       service.removeByAppName('foo');
       let items = service.getItems('applications');
       expect(items.length).toBe(2);
-      expect(_.any(items, {params: {application: 'foo'}})).toBeFalsy();
+      expect(_.some(items, {params: {application: 'foo'}})).toBeFalsy();
     });
   });
 

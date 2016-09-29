@@ -1,21 +1,22 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.write.service', [
     require('angular-ui-router'),
-    require('../../core/utils/lodash.js'),
     require('../../core/task/taskExecutor.js'),
     require('../../core/cache/infrastructureCaches.js'),
   ])
-  .factory('azureSecurityGroupWriter', function (_, infrastructureCaches, taskExecutor) {
+  .factory('azureSecurityGroupWriter', function (infrastructureCaches, taskExecutor) {
 
 
     function upsertSecurityGroup(securityGroup, application, descriptor, params = {}) {
 
       // We want to extend params with all attributes from securityGroup, but only if they don't already exist.
-      _.assign(params, securityGroup, function (value, other) {
+      _.assignWith(params, securityGroup, function (value, other) {
         return _.isUndefined(value) ? other : value;
       });
 

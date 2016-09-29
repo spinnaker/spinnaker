@@ -10,15 +10,14 @@ describe('Controller: renamePipelineModal', function() {
     )
   );
 
-  beforeEach(window.inject(function ($controller, $rootScope, _) {
+  beforeEach(window.inject(function ($controller, $rootScope) {
     this.initializeController = function (pipeline) {
       this.$scope = $rootScope.$new();
       this.$uibModalInstance = { close: angular.noop };
       this.controller = $controller('EditPipelineJsonModalCtrl', {
         $scope: this.$scope,
         pipeline: pipeline,
-        $uibModalInstance: this.$uibModalInstance,
-        _: _,
+        $uibModalInstance: this.$uibModalInstance
       });
     };
   }));

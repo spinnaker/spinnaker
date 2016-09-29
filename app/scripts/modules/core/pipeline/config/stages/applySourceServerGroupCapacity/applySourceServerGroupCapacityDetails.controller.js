@@ -1,11 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.applySourceServerGroupCapacityDetails.controller', [
-  require('../../../../utils/lodash.js'),
-  ])
-  .controller('applySourceServerGroupCapacityDetailsCtrl', function($scope, $stateParams, executionDetailsSectionService, _) {
+module.exports = angular.module('spinnaker.core.pipeline.stage.applySourceServerGroupCapacityDetails.controller', [])
+  .controller('applySourceServerGroupCapacityDetailsCtrl', function($scope, $stateParams, executionDetailsSectionService) {
     $scope.configSections = ['capacitySnapshot', 'taskStatus'];
 
     function initialize() {

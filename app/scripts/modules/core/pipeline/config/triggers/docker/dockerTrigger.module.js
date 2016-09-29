@@ -3,7 +3,6 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
-    require('../../../../../core/utils/lodash'),
     require('../../../../../core/config/settings.js'),
     require('../../../../../docker/image/image.reader.js'),
     require('./dockerTriggerOptions.directive.js'),

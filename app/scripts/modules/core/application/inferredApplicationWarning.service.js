@@ -1,12 +1,13 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.core.application.inferredApplicationWarning.service', [
     require('../widgets/notifier/notifier.service.js'),
-    require('../utils/lodash.js'),
   ])
-  .factory('inferredApplicationWarning', function (notifierService, _) {
+  .factory('inferredApplicationWarning', function (notifierService) {
 
     let viewedApplications = {};
 

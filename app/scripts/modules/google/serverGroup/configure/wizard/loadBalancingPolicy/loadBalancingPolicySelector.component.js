@@ -1,16 +1,16 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.deck.gce.loadBalancingPolicySelector.component', [
-    require('../../../../../core/utils/lodash.js')
-  ])
+module.exports = angular.module('spinnaker.deck.gce.loadBalancingPolicySelector.component', [])
   .component('gceLoadBalancingPolicySelector', {
     bindings: {
       command: '='
     },
     templateUrl: require('./loadBalancingPolicySelector.component.html'),
-    controller: function ($scope, _) {
+    controller: function ($scope) {
       if (!this.command.loadBalancingPolicy) {
         this.command.loadBalancingPolicy = {
           balancingMode: 'UTILIZATION'

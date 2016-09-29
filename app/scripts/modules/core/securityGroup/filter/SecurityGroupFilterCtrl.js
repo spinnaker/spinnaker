@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 // controllerAs: securityGroupFilters
@@ -7,11 +9,10 @@ let angular = require('angular');
 module.exports = angular.module('securityGroup.filter.controller', [
   require('./securityGroup.filter.service.js'),
   require('./securityGroup.filter.model.js'),
-  require('../../utils/lodash.js'),
   require('../../filterModel/dependentFilter/dependentFilter.service.js'),
   require('./securityGroupDependentFilterHelper.service.js'),
 ])
-  .controller('SecurityGroupFilterCtrl', function ($scope, app, _, $log, securityGroupFilterService,
+  .controller('SecurityGroupFilterCtrl', function ($scope, app, $log, securityGroupFilterService,
                                                    SecurityGroupFilterModel, $rootScope,
                                                    dependentFilterService, securityGroupDependentFilterHelper) {
 
@@ -34,7 +35,7 @@ module.exports = angular.module('securityGroup.filter.controller', [
     };
 
     function getHeadingsForOption(option) {
-      return _.compact(_.uniq(_.pluck(app.securityGroups.data, option))).sort();
+      return _.compact(_.uniq(_.map(app.securityGroups.data, option))).sort();
     }
 
     function clearFilters() {

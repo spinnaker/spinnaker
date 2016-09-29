@@ -1,16 +1,17 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.snapshot.write.service', [
     require('../task/taskExecutor.js'),
-    require('../utils/lodash.js'),
     require('../account/account.service.js'),
     require('../cloudProvider/cloudProvider.registry.js'),
   ])
   .factory('snapshotWriter', function($q, taskExecutor, cloudProviderRegistry,
-                                      accountService, _) {
+                                      accountService) {
 
     function buildSaveSnapshotJobs(app, accountDetails) {
       let jobs = [];

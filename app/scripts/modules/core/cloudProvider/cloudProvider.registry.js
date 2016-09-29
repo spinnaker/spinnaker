@@ -1,13 +1,14 @@
 'use strict';
 /*eslint-disable no-console*/
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.cloudProvider.registry', [
-  require('../utils/lodash.js'),
   require('../config/settings.js'),
 ])
-  .provider('cloudProviderRegistry', function(_, settings) {
+  .provider('cloudProviderRegistry', function(settings) {
 
     const providers = Object.create(null);
 

@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
@@ -23,8 +25,8 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
       });
       var activeServerGroups = _.filter(loadBalancer.serverGroups, {isDisabled: false});
       loadBalancer.provider = loadBalancer.type;
-      loadBalancer.instances = _(activeServerGroups).pluck('instances').flatten().valueOf();
-      loadBalancer.detachedInstances = _(activeServerGroups).pluck('detachedInstances').flatten().valueOf();
+      loadBalancer.instances = _.chain(activeServerGroups).map('instances').flatten().value();
+      loadBalancer.detachedInstances = _.chain(activeServerGroups).map('detachedInstances').flatten().value();
       return loadBalancer;
     }
 

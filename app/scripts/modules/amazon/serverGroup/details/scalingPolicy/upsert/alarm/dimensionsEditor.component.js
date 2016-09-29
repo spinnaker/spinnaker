@@ -1,5 +1,6 @@
 'use strict';
 
+import _ from 'lodash';
 import {Observable, Subject} from 'rxjs';
 
 const angular = require('angular');
@@ -8,7 +9,6 @@ require('./dimensionsEditor.component.less');
 
 module.exports = angular
   .module('spinnaker.aws.serverGroup.details.scalingPolicy.dimensionEditor', [
-    require('../../../../../../core/utils/lodash.js'),
     require('../../../../../../core/serverGroup/metrics/cloudMetrics.read.service.js'),
   ])
   .component('dimensionsEditor', {
@@ -19,7 +19,7 @@ module.exports = angular
       namespaceUpdated: '=',
     },
     templateUrl: require('./dimensionsEditor.component.html'),
-    controller: function (cloudMetricsReader, _) {
+    controller: function (cloudMetricsReader) {
 
       this.viewState = {
         loadingDimensions: false

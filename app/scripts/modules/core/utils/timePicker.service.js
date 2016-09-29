@@ -1,11 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.utils.timePicker.service', [
-  require('./lodash.js'),
-])
-  .factory('timePickerService', function(_) {
+module.exports = angular.module('spinnaker.core.utils.timePicker.service', [])
+  .factory('timePickerService', function () {
 
     function getHours() {
       var hours = [];
@@ -33,5 +33,4 @@ module.exports = angular.module('spinnaker.core.utils.timePicker.service', [
       getHours: getHours,
       getMinutes: getMinutes,
     };
-
   });

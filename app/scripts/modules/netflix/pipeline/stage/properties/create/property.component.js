@@ -1,11 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports =
-  angular.module('spinnaker.netflix.pipeline.persistedProperty.property', [
-    require('../../../../../core/utils/lodash')
-  ])
+  angular.module('spinnaker.netflix.pipeline.persistedProperty.property', [])
   .component('property', {
     bindings: {
       property: '=',
@@ -17,7 +17,7 @@ module.exports =
     controllerAs: 'propertyCtrl',
     templateUrl: require('./property.component.html'),
   })
-  .controller('PropertyController', function(_) {
+  .controller('PropertyController', function () {
     let vm = this;
 
     vm.remove = function(property) {

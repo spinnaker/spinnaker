@@ -1,17 +1,17 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.fastProperties.write.service', [
     require('../../core/api/api.service'),
-    require('../../core/utils/lodash.js'),
     require('../../core/authentication/authentication.service.js')
   ])
-  .factory('fastPropertyWriter', function (API, authenticationService, _) {
+  .factory('fastPropertyWriter', function (API, authenticationService) {
 
     function upsertFastProperty(fastProperty) {
-      //var payload = createPromotedPayload(fastProperty);
       fastProperty.updatedBy = authenticationService.getAuthenticatedUser().name;
       fastProperty.sourceOfUpdate = 'spinnaker';
       return API
@@ -52,8 +52,7 @@ module.exports = angular
     }
 
     function createPromotedPayload(fastProperty) {
-      return _(fastProperty)
-        .chain()
+      return _.chain(fastProperty)
         .set('scope', fastProperty.selectedScope)
         .assign(fastProperty.scope, {sourceOfUpdate: 'spinnaker', updatedBy: authenticationService.getAuthenticatedUser().name})
         .omit(['selectedScope', 'impactCount'])
@@ -61,8 +60,7 @@ module.exports = angular
     }
 
     function flattenFastProperty(fastProperty) {
-      return _(fastProperty)
-        .chain()
+      return _.chain(fastProperty)
         .assign(fastProperty, fastProperty.selectedScope)
         .assign(fastProperty, {sourceOfUpdate: 'spinnaker', updatedBy: authenticationService.getAuthenticatedUser().name})
         .omit('selectedScope')

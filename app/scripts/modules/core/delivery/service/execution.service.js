@@ -1,16 +1,18 @@
 'use strict';
+
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.delivery.executions.service', [
   require('../../cache/deckCacheFactory.js'),
   require('../../utils/appendTransform.js'),
-  require('../../utils/lodash.js'),
   require('../../config/settings.js'),
   require('../filter/executionFilter.model.js'),
   require('./executions.transformer.service.js')
 ])
   .factory('executionService', function($http, $timeout, $q, $log, ExecutionFilterModel, $state,
-                                        _, settings, appendTransform, executionsTransformer) {
+                                        settings, appendTransform, executionsTransformer) {
 
     const activeStatuses = ['RUNNING', 'SUSPENDED', 'PAUSED', 'NOT_STARTED'];
     const runningLimit = 30;
@@ -19,7 +21,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       return getFilteredExecutions(applicationName, {statuses: activeStatuses, limit: runningLimit});
     }
 
-    function getFilteredExecutions(applicationName, {statuses = Object.keys(_.pick(ExecutionFilterModel.sortFilter.status || {}, _.identity)), limit = ExecutionFilterModel.sortFilter.count} = {}) {
+    function getFilteredExecutions(applicationName, {statuses = Object.keys(_.pickBy(ExecutionFilterModel.sortFilter.status || {}, _.identity)), limit = ExecutionFilterModel.sortFilter.count} = {}) {
       let url = [ settings.gateUrl, 'applications', applicationName, `pipelines?limit=${limit}`].join('/');
       if (statuses.length) {
         url += '&statuses=' + statuses.map((status) => status.toUpperCase()).join(',');

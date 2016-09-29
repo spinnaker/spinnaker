@@ -1,12 +1,13 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.instance.instances.directive', [
   require('../utils/jQuery.js'),
-  require('../utils/lodash.js'),
 ])
-  .directive('instances', function ($timeout, $, _) {
+  .directive('instances', function ($timeout, $) {
     return {
       restrict: 'E',
       scope: {

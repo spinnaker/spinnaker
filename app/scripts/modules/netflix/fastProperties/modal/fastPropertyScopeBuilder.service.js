@@ -1,16 +1,17 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.fastProperty.scopeBuilder.service', [
     require('../fastProperty.read.service'),
-    require('../../../core/utils/lodash.js'),
     require('../../../core/application/listExtractor/listExtractor.service'),
     require('../../../core/application/service/applications.read.service.js'),
     require('../../../core/config/settings.js'),
   ])
-  .factory('fastPropertyScopeBuilderService', (_, appListExtractorService, applicationReader, settings, fastPropertyReader) => {
+  .factory('fastPropertyScopeBuilderService', (appListExtractorService, applicationReader, settings, fastPropertyReader) => {
 
     let isSkip = (prop) => prop && prop === 'none';
 
@@ -232,7 +233,7 @@ module.exports = angular
     };
 
     let prepareScopeForEnvironment = (propertyScope, env) => {
-      let selectedScope = _(propertyScope)
+      let selectedScope = _.chain(propertyScope)
         .omit(isSkip)
         .transform((result, value, key) => {
           if(key === 'appIdList') {
@@ -248,9 +249,9 @@ module.exports = angular
     };
 
     let transformScope = (fpScope, env) => {
-      return _(fpScope)
+      return _.chain(fpScope)
         .omit(isSkip)
-        .transform( (result, value, key) => {
+        .transform((result, value, key) => {
           if(key === 'appIdList') {
             result.appId = value.join(',');
             result[key] = value;

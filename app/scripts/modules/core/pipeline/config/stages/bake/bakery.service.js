@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.bake.service', [
   require('../../../../account/account.service.js'),
   require('../../../../config/settings.js'),
 ])
-  .factory('bakeryService', function($q, _, API, accountService, settings) {
+  .factory('bakeryService', function($q, API, accountService, settings) {
 
     function getRegions(provider) {
       if (_.has(settings, `providers.${provider}.bakeryRegions`)) {

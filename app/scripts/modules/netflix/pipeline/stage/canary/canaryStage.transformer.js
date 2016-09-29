@@ -1,12 +1,13 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.transformer', [
-  require('../../../../core/utils/lodash.js'),
   require('../../../../core/orchestratedItem/orchestratedItem.transformer.js'),
 ])
-  .service('canaryStageTransformer', function($log, _, orchestratedItemTransformer) {
+  .service('canaryStageTransformer', function($log, orchestratedItemTransformer) {
 
     // adds "canary" or "baseline" to the deploy stage name when converting it to a task
     function getDeployTaskName(stage) {
@@ -42,7 +43,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.transfo
           return parts.join('-');
         };
         var region = function (cluster) {
-          return _.first(_.keys(cluster.availabilityZones));
+          return _.head(_.keys(cluster.availabilityZones));
         };
         return {
           canaryCluster: {
@@ -181,7 +182,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.transfo
           stage.status = status;
 
           var tasks = _.map(deployStages, function(deployStage) {
-            var region = _.first(_.keys(deployStage.context.availabilityZones));
+            var region = _.head(_.keys(deployStage.context.availabilityZones));
             return {
               id: deployStage.id,
               region: region,

@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.contr
   .controller('kubernetesUpsertSecurityGroupController', function($q, $scope, $uibModalInstance, $state,
                                                                  application, securityGroup,
                                                                  accountService, kubernetesSecurityGroupTransformer, securityGroupReader, loadBalancerReader,
-                                                                 _, searchService, v2modalWizardService, securityGroupWriter, taskMonitorService) {
+                                                                 searchService, v2modalWizardService, securityGroupWriter, taskMonitorService) {
     var ctrl = this;
     $scope.isNew = !securityGroup.edit;
     $scope.securityGroup = securityGroup;
@@ -68,13 +68,13 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.contr
     var allSecurityGroupNames = {};
 
     function getLoadBalancerNames(loadBalancers) {
-      return _(loadBalancers)
+      return _.chain(loadBalancers)
         .filter({ account: $scope.securityGroup.account })
         .filter({ namespace: $scope.securityGroup.namespace })
-        .pluck('name')
-        .flatten(true)
-        .unique()
-        .valueOf();
+        .map('name')
+        .flattenDeep()
+        .uniq()
+        .value();
     }
 
     function initializeCreateMode() {
@@ -85,7 +85,7 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.contr
         $scope.accounts = backingData.accounts;
         $scope.state.accountsLoaded = true;
 
-        var accountNames = _.pluck($scope.accounts, 'name');
+        var accountNames = _.map($scope.accounts, 'name');
         if (accountNames.length && accountNames.indexOf($scope.securityGroup.account) === -1) {
           $scope.securityGroup.account = accountNames[0];
         }
@@ -147,7 +147,7 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.contr
     this.getName = function() {
       var securityGroup = $scope.securityGroup;
       var securityGroupName = [application.name, (securityGroup.stack || ''), (securityGroup.detail || '')].join('-');
-      return _.trimRight(securityGroupName, '-');
+      return _.trimEnd(securityGroupName, '-');
     };
 
     this.accountUpdated = function() {

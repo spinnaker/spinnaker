@@ -1,11 +1,12 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
-  require('../../../core/utils/lodash.js'),
   require('../../../core/instance/instance.write.service.js'),
   require('../../../core/instance/instance.read.service.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
@@ -16,7 +17,7 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
 ])
   .controller('azureInstanceDetailsCtrl', function ($scope, $state, $uibModal, InsightFilterStateModel,
                                                     instanceWriter, confirmationModalService, recentHistoryService,
-                                                    cloudProviderRegistry, instanceReader, _, instance, app, $q) {
+                                                    cloudProviderRegistry, instanceReader, instance, app, $q) {
 
     // needed for standalone instances
     $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('azure', 'instance.detailsTemplateUrl');
@@ -130,7 +131,7 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
           var discoveryMetric = _.find($scope.healthMetrics, function(metric) { return metric.type === 'Discovery'; });
           if( discoveryMetric && discoveryMetric.vipAddress) {
             var vipList = discoveryMetric.vipAddress;
-            $scope.instance.vipAddress = vipList.contains(',') ? vipList.split(',') : [vipList];
+            $scope.instance.vipAddress = vipList.includes(',') ? vipList.split(',') : [vipList];
           }
           $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
         },

@@ -1,13 +1,14 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.tasks.monitor.service', [
-  require('../../utils/lodash.js'),
   require('./taskMonitor.directive.js'),
   require('../task.read.service.js'),
 ])
-  .factory('taskMonitorService', function($log, _, taskReader, $timeout) {
+  .factory('taskMonitorService', function($log, taskReader, $timeout) {
 
     function buildTaskMonitor(params) {
       var monitor = {

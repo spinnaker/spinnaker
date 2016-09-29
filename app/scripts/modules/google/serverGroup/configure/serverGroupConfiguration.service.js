@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.configuration.service', [
@@ -19,7 +21,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
   .factory('gceServerGroupConfigurationService', function(gceImageReader, accountService, securityGroupReader,
                                                           gceInstanceTypeService, cacheInitializer,
                                                           $q, loadBalancerReader, networkReader, subnetReader,
-                                                          settings, _, gceCustomInstanceBuilderService, elSevenUtils,
+                                                          settings, gceCustomInstanceBuilderService, elSevenUtils,
                                                           gceHttpHealthCheckReader, gceTagManager) {
 
     var persistentDiskTypes = [
@@ -83,14 +85,14 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
 
         if (command.loadBalancers && command.loadBalancers.length) {
           // Verify all load balancers are accounted for; otherwise, try refreshing load balancers cache.
-          var loadBalancerNames = _.pluck(getLoadBalancers(command), 'name');
+          var loadBalancerNames = _.map(getLoadBalancers(command), 'name');
           if (_.intersection(loadBalancerNames, command.loadBalancers).length < command.loadBalancers.length) {
             loadBalancerReloader = refreshLoadBalancers(command, true);
           }
         }
         if (command.securityGroups && command.securityGroups.length) {
           // Verify all security groups are accounted for; otherwise, try refreshing security groups cache.
-          var securityGroupIds = _.pluck(getSecurityGroups(command), 'id');
+          var securityGroupIds = _.map(getSecurityGroups(command), 'id');
           if (_.intersection(command.securityGroups, securityGroupIds).length < command.securityGroups.length) {
             securityGroupReloader = refreshSecurityGroups(command, true);
           }
@@ -108,7 +110,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         if (_.has(command, 'autoHealingPolicy.healthCheck')) {
           // Verify http health check is accounted for; otherwise, try refreshing http health checks cache.
           var httpHealthChecks = getHttpHealthChecks(command);
-          if (!_(httpHealthChecks).contains(command.autoHealingPolicy.healthCheck)) {
+          if (!_.chain(httpHealthChecks).includes(command.autoHealingPolicy.healthCheck).value()) {
             httpHealthCheckReloader = refreshHttpHealthChecks(command, true);
           }
         }
@@ -177,7 +179,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
 
       filtered = sortInstanceTypes(filtered);
       let instanceType = c.instanceType;
-      if (_.every([ instanceType, !_.startsWith(instanceType, 'custom'), !_.contains(filtered, instanceType) ])) {
+      if (_.every([ instanceType, !_.startsWith(instanceType, 'custom'), !_.includes(filtered, instanceType) ])) {
         result.dirty.instanceType = c.instanceType;
         c.instanceType = null;
       }
@@ -238,7 +240,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         };
       });
 
-      let sortedTokenizedInstanceTypes = _.sortByAll(tokenizedInstanceTypes, ['class', 'group', 'index']);
+      let sortedTokenizedInstanceTypes = _.sortBy(tokenizedInstanceTypes, ['class', 'group', 'index']);
 
       return _.map(sortedTokenizedInstanceTypes, sortedTokenizedInstanceType => {
         return sortedTokenizedInstanceType.class + '-' + sortedTokenizedInstanceType.group + (sortedTokenizedInstanceType.index ? '-' + sortedTokenizedInstanceType.index : '');
@@ -254,7 +256,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         command.viewState.lastImageAccount = command.credentials;
         var filteredImages = extractFilteredImages(command);
         command.backingData.filtered.images = filteredImages;
-        if (!_(filteredImages).find({imageName: command.image})) {
+        if (!_.chain(filteredImages).find({imageName: command.image}).value()) {
           command.image = null;
           result.dirty.imageName = true;
         }
@@ -276,7 +278,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         // TODO(duftler): Remove this once we finish deprecating the old style regions/zones in clouddriver GCE credentials.
         filteredData.zones = regions[command.region];
       }
-      if (!_(filteredData.zones).contains(command.zone)) {
+      if (!_.chain(filteredData.zones).includes(command.zone).value()) {
         delete command.zone;
         if (!command.regional) {
           result.dirty.zone = true;
@@ -286,10 +288,10 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
     }
 
     function getHttpHealthChecks(command) {
-      return _(command.backingData.httpHealthChecks[0].results)
+      return _.chain(command.backingData.httpHealthChecks[0].results)
         .filter({provider: 'gce', account: command.credentials})
-        .pluck('name')
-        .valueOf();
+        .map('name')
+        .value();
     }
 
     function configureHttpHealthChecks(command) {
@@ -302,7 +304,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
 
       filteredData.httpHealthChecks = getHttpHealthChecks(command);
 
-      if (_.has(command, 'autoHealingPolicy.healthCheck') && !_(filteredData.httpHealthChecks).contains(command.autoHealingPolicy.healthCheck)) {
+      if (_.has(command, 'autoHealingPolicy.healthCheck') && !_.chain(filteredData.httpHealthChecks).includes(command.autoHealingPolicy.healthCheck).value()) {
         delete command.autoHealingPolicy.healthCheck;
         result.dirty.autoHealingPolicy = true;
       } else {
@@ -313,17 +315,17 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
     }
 
     function getLoadBalancers(command) {
-      return _(command.backingData.loadBalancers)
-        .pluck('accounts')
-        .flatten(true)
+      return _.chain(command.backingData.loadBalancers)
+        .map('accounts')
+        .flattenDeep()
         .filter({name: command.credentials})
-        .pluck('regions')
-        .flatten(true)
-        .pluck('loadBalancers')
-        .flatten(true)
+        .map('regions')
+        .flattenDeep()
+        .map('loadBalancers')
+        .flattenDeep()
         .filter(_.curry(isRelevantLoadBalancer)(command))
-        .unique()
-        .valueOf();
+        .uniq()
+        .value();
     }
 
     function isRelevantLoadBalancer(command, loadBalancer) {
@@ -334,7 +336,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       var results = { dirty: {} };
       var current = command.loadBalancers;
       var newLoadBalancerObjects = getLoadBalancers(command);
-      command.backingData.filtered.loadBalancerIndex = _.indexBy(newLoadBalancerObjects, 'name');
+      command.backingData.filtered.loadBalancerIndex = _.keyBy(newLoadBalancerObjects, 'name');
       command.backingData.filtered.loadBalancers = _.map(newLoadBalancerObjects, 'name');
 
       if (current && command.loadBalancers) {
@@ -374,10 +376,10 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
     }
 
     function extractFilteredImages(command) {
-      return _(command.backingData.packageImages)
+      return _.chain(command.backingData.packageImages)
         .filter({account: command.credentials})
-        .unique()
-        .valueOf();
+        .uniq()
+        .value();
     }
 
     function refreshLoadBalancers(command, skipCommandReconfiguration) {
@@ -410,12 +412,12 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       if (command.region === null) {
         return result;
       }
-      filteredData.subnets = _(command.backingData.subnets)
+      filteredData.subnets = _.chain(command.backingData.subnets)
         .filter({ account: command.credentials, network: command.network, region: command.region })
-        .pluck('name')
-        .valueOf();
+        .map('name')
+        .value();
 
-      if (!_(filteredData.subnets).contains(command.subnet)) {
+      if (!_.chain(filteredData.subnets).includes(command.subnet).value()) {
         command.subnet = '';
         result.dirty.subnet = true;
       }
@@ -427,9 +429,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       newSecurityGroups = _.filter(newSecurityGroups.gce.global, function(securityGroup) {
         return securityGroup.network === command.network;
       });
-      return _(newSecurityGroups)
+      return _.chain(newSecurityGroups)
         .sortBy('name')
-        .valueOf();
+        .value();
     }
 
     function configureSecurityGroupOptions(command) {
@@ -439,23 +441,23 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       if (currentOptions && command.securityGroups) {
         // not initializing - we are actually changing groups
         var currentGroupNames = command.securityGroups.map(function(groupId) {
-          var match = _(currentOptions).find({id: groupId});
+          var match = _.chain(currentOptions).find({id: groupId}).value();
           return match ? match.name : groupId;
         });
 
         var matchedGroups = command.securityGroups.map(function(groupId) {
-          var securityGroup = _(currentOptions).find({id: groupId}) ||
-              _(currentOptions).find({name: groupId});
+          var securityGroup = _.chain(currentOptions).find({id: groupId}).value() ||
+              _.chain(currentOptions).find({name: groupId}).value();
           return securityGroup ? securityGroup.name : null;
         }).map(function(groupName) {
-          return _(newSecurityGroups).find({name: groupName});
+          return _.chain(newSecurityGroups).find({name: groupName}).value();
         }).filter(function(group) {
           return group;
         });
 
-        var matchedGroupNames = _.pluck(matchedGroups, 'name');
+        var matchedGroupNames = _.map(matchedGroups, 'name');
         var removed = _.xor(currentGroupNames, matchedGroupNames);
-        command.securityGroups = _.pluck(matchedGroups, 'id');
+        command.securityGroups = _.map(matchedGroups, 'id');
         if (removed.length) {
           results.dirty.securityGroups = removed;
         }
@@ -472,7 +474,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       });
 
       // Only include explicitly-selected security groups in the body of the command.
-      command.securityGroups = _.difference(command.securityGroups, _.pluck(command.implicitSecurityGroups, 'id'));
+      command.securityGroups = _.difference(command.securityGroups, _.map(command.implicitSecurityGroups, 'id'));
 
       return results;
     }
@@ -489,7 +491,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
     }
 
     function getNetworkNames(command) {
-      return _.pluck(_.filter(command.backingData.networks, { account: command.credentials }), 'name');
+      return _.map(_.filter(command.backingData.networks, { account: command.credentials }), 'name');
     }
 
     function refreshNetworks(command) {
@@ -588,15 +590,17 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       command.networkChanged = function networkChanged() {
         var result = { dirty: {} };
 
-        command.viewState.autoCreateSubnets = _(command.backingData.networks)
+        command.viewState.autoCreateSubnets = _.chain(command.backingData.networks)
           .filter({ account: command.credentials, name: command.network })
-          .pluck('autoCreateSubnets')
-          .head();
+          .map('autoCreateSubnets')
+          .head()
+          .value();
 
-        command.viewState.subnets = _(command.backingData.networks)
+        command.viewState.subnets = _.chain(command.backingData.networks)
           .filter({ account: command.credentials, name: command.network })
-          .pluck('subnets')
-          .head();
+          .map('subnets')
+          .head()
+          .value();
 
         angular.extend(result.dirty, configureSubnets(command).dirty);
         angular.extend(result.dirty, configureSecurityGroupOptions(command).dirty);

@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage', [
@@ -31,7 +33,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage'
       });
     }
   })
-  .controller('PropertyStageCtrl', function ($scope, $uibModal, stage, _,
+  .controller('PropertyStageCtrl', function ($scope, $uibModal, stage,
                                            namingService, providerSelectionService, fastPropertyReader,
                                            cloudProviderRegistry, applicationReader,
                                            serverGroupCommandBuilder, awsServerGroupTransformer, accountService, appListExtractorService, fastPropertyScopeBuilderService) {

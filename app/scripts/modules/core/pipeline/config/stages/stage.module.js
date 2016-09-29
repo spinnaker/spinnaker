@@ -1,9 +1,10 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
-  require('../../../utils/lodash.js'),
   require('../../../api/api.service'),
   require('../pipelineConfigProvider.js'),
   require('../services/pipelineConfigService.js'),
@@ -31,7 +32,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
     };
   })
   .controller('StageConfigCtrl', function($scope, $element, $compile, $controller, $templateCache,
-                                          pipelineConfigService, pipelineConfig, _, accountService) {
+                                          pipelineConfigService, pipelineConfig, accountService) {
 
     var stageTypes = pipelineConfig.getConfigurableStageTypes(),
         lastStageScope;
@@ -45,7 +46,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
 
     accountService.listProviders($scope.application).then((providers) => {
       $scope.options.stageTypes = $scope.options.stageTypes.filter((stageType) => {
-        return !stageType.cloudProvider || _.contains(providers, stageType.cloudProvider);
+        return !stageType.cloudProvider || _.includes(providers, stageType.cloudProvider);
       });
     });
 

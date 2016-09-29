@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', [])
@@ -37,7 +39,7 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', 
 
       var healthMonitor = _.get(loadBalancer, 'healthChecks[0]') || loadBalancer.healthMonitor || {};
       delete loadBalancer.healthChecks;
-      _(healthMonitor).keys().each(function (k) {
+      _.chain(healthMonitor).keys().each(function (k) {
         if (healthMonitor[k] === null) {
           delete healthMonitor[k];
         }

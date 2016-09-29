@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
@@ -8,7 +10,6 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
   require('../../../core/instance/instance.write.service.js'),
   require('../../../core/instance/instance.read.service.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
-  require('../../../core/utils/lodash.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('../../../core/history/recentHistory.service.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
@@ -18,7 +19,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 ])
   .controller('gceInstanceDetailsCtrl', function ($scope, $state, $uibModal, InsightFilterStateModel,
                                                   instanceWriter, confirmationModalService, recentHistoryService,
-                                                  cloudProviderRegistry, instanceReader, _, instance, app, $q,
+                                                  cloudProviderRegistry, instanceReader, instance, app, $q,
                                                   elSevenUtils) {
 
     // needed for standalone instances
@@ -170,7 +171,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
     function augmentTagsWithHelp() {
       if (_.has($scope, 'instance.tags.items') && _.has($scope, 'instance.securityGroups')) {
-        let securityGroups = _($scope.instance.securityGroups).map(securityGroup => {
+        let securityGroups = _.chain($scope.instance.securityGroups).map(securityGroup => {
           return _.find(app.securityGroups.data, { accountName: $scope.instance.account, region: 'global', id: securityGroup.groupId });
         }).compact().value();
 
@@ -178,7 +179,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
         $scope.instance.tags.items.forEach(tag => {
           let securityGroupsMatches = _.filter(securityGroups, securityGroup => _.includes(securityGroup.targetTags, tag));
-          let securityGroupMatchNames = _.pluck(securityGroupsMatches, 'name');
+          let securityGroupMatchNames = _.map(securityGroupsMatches, 'name');
 
           if (!_.isEmpty(securityGroupMatchNames)) {
             let groupOrGroups = securityGroupMatchNames.length > 1 ? 'groups' : 'group';
@@ -218,11 +219,11 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
     this.canDeregisterFromLoadBalancer = function() {
       var instance = $scope.instance;
       // TODO(dpeach): remove when it's possible to degister from l7 load balancer.
-      var attachedToElSeven = _(app.loadBalancers.data)
+      var attachedToElSeven = _.chain(app.loadBalancers.data)
         .filter(elSevenUtils.isElSeven)
-        .pluck('name')
+        .map('name')
         .intersection(instance.loadBalancers)
-        .valueOf()
+        .value()
         .length;
 
       if (!instance.loadBalancers ||

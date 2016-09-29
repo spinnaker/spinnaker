@@ -27,7 +27,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTaskStage',
       });
     }
   })
-  .controller('AcaTaskStageCtrl', function ($scope, $uibModal, stage, _,
+  .controller('AcaTaskStageCtrl', function ($scope, $uibModal, stage,
                                            namingService, providerSelectionService,
                                            authenticationService, cloudProviderRegistry,
                                            serverGroupCommandBuilder, awsServerGroupTransformer, accountService, appListExtractorService) {

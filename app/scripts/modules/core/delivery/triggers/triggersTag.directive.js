@@ -1,10 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.delivery.execution.triggers', [
   require('../../pipeline/config/pipelineConfigProvider.js'),
-  require('../../utils/lodash.js'),
 ])
   .directive('triggersTag', function() {
     return {
@@ -17,7 +18,7 @@ module.exports = angular.module('spinnaker.core.delivery.execution.triggers', [
       controllerAs: 'triggersTagCtrl',
     };
   })
-  .controller('TriggersTagCtrl', function($scope, pipelineConfigService, pipelineConfig, _) {
+  .controller('TriggersTagCtrl', function($scope, pipelineConfigService, pipelineConfig) {
     $scope.popover = {
       show: false,
     };

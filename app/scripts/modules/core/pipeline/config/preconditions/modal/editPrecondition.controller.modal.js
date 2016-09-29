@@ -5,10 +5,8 @@ let angular = require('angular');
 require('./editPrecondition.html');
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.config.preconditions.modal.controller', [
-    require('../../../../utils/lodash.js'),
-  ])
-  .controller('EditPreconditionController', function ($scope, $uibModalInstance, precondition, _, strategy, application) {
+  .module('spinnaker.core.pipeline.config.preconditions.modal.controller', [])
+  .controller('EditPreconditionController', function ($scope, $uibModalInstance, precondition, strategy, application) {
     var vm = this;
 
     vm.strategy = strategy;

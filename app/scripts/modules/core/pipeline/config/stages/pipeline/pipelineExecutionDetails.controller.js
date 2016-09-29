@@ -1,14 +1,15 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.pipeline.executionDetails.controller', [
   require('angular-ui-router'),
-  require('../../../../utils/lodash.js'),
   require('../../../../delivery/details/executionDetailsSection.service.js'),
   require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
 ])
-  .controller('pipelineExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService, _) {
+  .controller('pipelineExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 
     $scope.configSections = ['pipelineConfig', 'taskStatus'];
 

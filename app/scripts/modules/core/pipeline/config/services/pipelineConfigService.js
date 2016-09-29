@@ -1,14 +1,15 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.services.configService', [
   require('../../../api/api.service'),
-  require('../../../utils/lodash.js'),
   require('../../../authentication/authentication.service.js'),
   require('../../../cache/viewStateCache.js'),
 ])
-  .factory('pipelineConfigService', function (_, $q, API, authenticationService, viewStateCache) {
+  .factory('pipelineConfigService', function ($q, API, authenticationService, viewStateCache) {
 
     var configViewStateCache = viewStateCache.createCache('pipelineConfig', { version: 1 });
 
@@ -36,7 +37,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
 
     function sortPipelines(pipelines) {
 
-      var sorted = _.sortByAll(pipelines, ['index', 'name']);
+      var sorted = _.sortBy(pipelines, ['index', 'name']);
 
       // if there are pipelines with a bad index, fix that
       var misindexed = [];
@@ -93,12 +94,12 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
                stageToTest.requisiteStageRefIds.indexOf(stage.refId) !== -1;
       });
       if (children.length) {
-        downstream = _.pluck(children, 'refId');
+        downstream = _.map(children, 'refId');
         children.forEach(function(child) {
           downstream = downstream.concat(getDownstreamStageIds(pipeline, child));
         });
       }
-      return _(downstream).compact().uniq().value();
+      return _.chain(downstream).compact().uniq().value();
     }
 
     function getDependencyCandidateStages(pipeline, stage) {

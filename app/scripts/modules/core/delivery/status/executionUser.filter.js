@@ -1,11 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.delivery.executionUser.filter', [
-  require('../../utils/lodash.js'),
-])
-  .filter('executionUser', function (_) {
+module.exports = angular.module('spinnaker.core.delivery.executionUser.filter', [])
+  .filter('executionUser', function () {
     return function (input) {
       if (!input.trigger.user) {
         return 'unknown user';

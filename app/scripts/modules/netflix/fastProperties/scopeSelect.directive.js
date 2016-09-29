@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 function selectScopeDirective() {
@@ -20,10 +22,9 @@ module.exports = angular
   .module('spinnaker.netflix.fastProperties.scope.selection.directive', [
     require('./fastPropertyScope.service.js'),
     require('./fastProperty.read.service.js'),
-    require('../../core/utils/lodash.js'),
   ])
   .directive('scopeSelect', selectScopeDirective)
-  .controller('ScopeSelectController', function ($scope, FastPropertyScopeService, fastPropertyReader, _) {
+  .controller('ScopeSelectController', function ($scope, FastPropertyScopeService, fastPropertyReader) {
     var vm = this;
 
     vm.clusters = $scope.clusters;
@@ -51,9 +52,9 @@ module.exports = angular
         }
         else {
           vm.filteredScopeResults = vm.scopeResults.filter(function (item) {
-            return item.primary.indexOf(query) > -1 || _(item.secondary).any(function (scopeItem) {
+            return item.primary.indexOf(query) > -1 || _.chain(item.secondary).some(function (scopeItem) {
                 return scopeItem.indexOf(query) > -1;
-              });
+              }).value();
           });
         }
       }

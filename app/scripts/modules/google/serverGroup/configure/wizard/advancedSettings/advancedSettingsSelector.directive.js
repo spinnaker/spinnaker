@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
@@ -7,8 +9,7 @@ module.exports = angular
     require('exports?"ui.select"!ui-select'),
     require('../../../../../core/cache/infrastructureCaches.js'),
     require('../../serverGroupConfiguration.service.js'),
-    require('../securityGroups/tagManager.service.js'),
-    require('../../../../../core/utils/lodash.js')
+    require('../securityGroups/tagManager.service.js')
   ])
   .directive('gceServerGroupAdvancedSettingsSelector', function() {
     return {
@@ -24,7 +25,7 @@ module.exports = angular
   })
   .controller('gceServerGroupAdvancedSettingsSelectorCtrl', function(gceServerGroupConfigurationService,
                                                                      infrastructureCaches,
-                                                                     gceTagManager, _) {
+                                                                     gceTagManager) {
     this.addTag = () => {
       this.command.tags.push({});
     };

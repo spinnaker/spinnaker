@@ -1,11 +1,12 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.gce.loadBalancer.createHttp.controller', [
   require('angular-ui-bootstrap'),
   require('angular-ui-router'),
-  require('../../../../core/utils/lodash.js'),
   require('./templateGenerator.service.js'),
   require('./backendService/backendService.component.js'),
   require('./healthCheck/healthCheck.component.js'),
@@ -18,7 +19,7 @@ module.exports = angular.module('spinnaker.deck.gce.loadBalancer.createHttp.cont
   require('../../../../core/modal/wizard/v2modalWizard.service.js'),
   require('../../elSevenUtils.service.js'),
 ])
-  .controller('gceCreateHttpLoadBalancerCtrl', function (_, $scope, $uibModalInstance, application, taskMonitorService,
+  .controller('gceCreateHttpLoadBalancerCtrl', function ($scope, $uibModalInstance, application, taskMonitorService,
                                                          loadBalancer, isNew, loadBalancerWriter, taskExecutor,
                                                          gceHttpLoadBalancerWriter, $state, wizardSubFormValidation,
                                                          gceHttpLoadBalancerTemplateGenerator, $timeout, elSevenUtils,
@@ -98,7 +99,7 @@ module.exports = angular.module('spinnaker.deck.gce.loadBalancer.createHttp.cont
       let [removed] = this.backingData[key].splice(index, 1);
 
       if (removed.useAsDefault) {
-        _.first(this.backingData[key]).useAsDefault = true;
+        _.head(this.backingData[key]).useAsDefault = true;
       }
     };
 

@@ -1,15 +1,16 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.instanceType.service', [
   require('../../core/api/api.service'),
   require('../../core/cache/deckCacheFactory.js'),
-  require('../../core/utils/lodash.js'),
   require('../../core/config/settings.js'),
   require('../../core/cache/infrastructureCaches.js'),
 ])
-  .factory('openstackInstanceTypeService', function ($http, $q, settings, _, API, infrastructureCaches) {
+  .factory('openstackInstanceTypeService', function ($http, $q, settings, API, infrastructureCaches) {
     var categories = [
       {
         type: 'custom',
@@ -30,13 +31,13 @@ module.exports = angular.module('spinnaker.openstack.instanceType.service', [
       }
       return API.one('instanceTypes').get()
         .then(function (types) {
-          var result = _(types)
+          var result = _.chain(types)
             .map(function (type) {
               return { region: type.region, account: type.account, name: type.name, key: [type.region, type.account, type.name].join(':') };
             })
-            .uniq('key')
+            .uniqBy('key')
             .groupBy('region')
-            .valueOf();
+            .value();
           infrastructureCaches.instanceTypes.put('openstack', result);
           return result;
         });
@@ -48,13 +49,13 @@ module.exports = angular.module('spinnaker.openstack.instanceType.service', [
 
       // prime the list of available types
       if (selectedRegions && selectedRegions.length) {
-        availableTypes = _.pluck(availableRegions[selectedRegions[0]], 'name');
+        availableTypes = _.map(availableRegions[selectedRegions[0]], 'name');
       }
 
       // this will perform an unnecessary intersection with the first region, which is fine
       selectedRegions.forEach(function(selectedRegion) {
         if (availableRegions[selectedRegion]) {
-          availableTypes = _.intersection(availableTypes, _.pluck(availableRegions[selectedRegion], 'name'));
+          availableTypes = _.intersection(availableTypes, _.map(availableRegions[selectedRegion], 'name'));
         }
       });
 

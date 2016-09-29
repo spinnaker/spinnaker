@@ -1,24 +1,25 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.fastPropertiesScope.service', [
     require('../../core/naming/naming.service.js'),
-    require('../../core/utils/lodash.js'),
   ])
-  .factory('FastPropertyScopeService', function ($q, namingService, _) {
+  .factory('FastPropertyScopeService', function ($q, namingService) {
 
     function regionTransformer(appId, clusters) {
       return _.chain(clusters)
-        .pluck('serverGroups')
+        .map('serverGroups')
         .map(function(serverGroupList) {
           return _.map(serverGroupList, function(serverGroup) {
             return serverGroup.region;
           });
         })
         .flatten()
-        .unique()
+        .uniq()
         .map(function(regionName) {
           return {
             scope: {
@@ -34,7 +35,7 @@ module.exports = angular
 
     function stackTransformer(appId, clusters) {
       return _.chain(clusters)
-        .pluck('serverGroups')
+        .map('serverGroups')
         .map(function (serverGroupList) {
           return _.map(serverGroupList, function (serverGroup) {
             var stack = namingService.parseServerGroupName(serverGroup.name).stack;
@@ -50,14 +51,14 @@ module.exports = angular
           });
         })
         .flatten()
-        .unique()
+        .uniq()
         .value();
     }
 
     function clusterTransformer(appId, clusters) {
       return _.chain(clusters)
-        .pluck('name')
-        .unique()
+        .map('name')
+        .uniq()
         .map(function(clusterName) {
           return {
             scope: {
@@ -75,8 +76,7 @@ module.exports = angular
     function asgTransformer(appId, clusters) {
       return _.chain(clusters)
         .map(function(cluster) {
-          return _(cluster.serverGroups)
-            .chain()
+          return _.chain(cluster.serverGroups)
             .flatten()
             .map(function(serverGroup) {
               serverGroup.cluster = cluster.name;
@@ -101,15 +101,12 @@ module.exports = angular
     }
 
     function zoneTransformer(appId, clusters) {
-      return _(clusters)
-        .chain()
+      return _.chain(clusters)
         .map(function(cluster) {
-          return _(cluster.serverGroups)
-            .chain()
+          return _.chain(cluster.serverGroups)
             .flatten()
             .map(function(serverGroup) {
-              return _(serverGroup.instances)
-                .chain()
+              return _.chain(serverGroup.instances)
                 .map(function (instance) {
                   instance.cluster = cluster.name;
                   instance.region = serverGroup.region;
@@ -140,15 +137,12 @@ module.exports = angular
     }
 
     function instanceTransformer(appId, clusters) {
-      return _(clusters)
-        .chain()
+      return _.chain(clusters)
         .map(function(cluster) {
-          return _(cluster.serverGroups)
-            .chain()
+          return _.chain(cluster.serverGroups)
             .flatten()
             .map(function(serverGroup) {
-              return _(serverGroup.instances)
-                .chain()
+              return _.chain(serverGroup.instances)
                 .map(function (instance) {
                   instance.cluster = cluster.name;
                   instance.region = serverGroup.region;

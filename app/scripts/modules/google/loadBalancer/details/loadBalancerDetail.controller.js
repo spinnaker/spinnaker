@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller', [
@@ -8,7 +10,6 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../core/loadBalancer/loadBalancer.write.service.js'),
   require('../../../core/loadBalancer/loadBalancer.read.service.js'),
-  require('../../../core/utils/lodash.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
@@ -19,7 +20,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   require('../configure/choice/loadBalancerTypeToWizardMap.constant.js')
 ])
   .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, loadBalancer, app, InsightFilterStateModel,
-                                                      _, confirmationModalService, accountService, elSevenUtils,
+                                                      confirmationModalService, accountService, elSevenUtils,
                                                       loadBalancerWriter, loadBalancerReader,
                                                       $q, loadBalancerTypeToWizardMap) {
 

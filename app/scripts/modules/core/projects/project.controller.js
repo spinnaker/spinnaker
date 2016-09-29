@@ -1,14 +1,15 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 require('./project.less');
 
 module.exports = angular.module('spinnaker.core.projects.project.controller', [
   require('./configure/configureProject.modal.controller.js'),
-  require('../utils/lodash.js'),
 ])
-  .controller('ProjectCtrl', function ($scope, $uibModal, $timeout, $state, projectConfiguration, _) {
+  .controller('ProjectCtrl', function ($scope, $uibModal, $timeout, $state, projectConfiguration) {
 
     this.project = projectConfiguration;
 

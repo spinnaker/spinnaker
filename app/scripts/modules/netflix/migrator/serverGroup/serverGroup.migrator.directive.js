@@ -2,6 +2,8 @@
 
 require('../migrator.less');
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
@@ -10,7 +12,6 @@ module.exports = angular
     require('../../../amazon/vpc/vpc.read.service.js'),
     require('../../../core/config/settings.js'),
     require('../../../core/subnet/subnet.read.service'),
-    require('../../../core/utils/lodash'),
     require('../migrator.service.js'),
     require('../../../core/presentation/autoScroll/autoScroll.directive.js'),
     require('../../../amazon/keyPairs/keyPairs.read.service'),
@@ -54,7 +55,7 @@ module.exports = angular
     };
   })
   .controller('MigratorCtrl', function ($scope, $timeout, $q,
-                                        $uibModalInstance, _,
+                                        $uibModalInstance,
                                         migratorService, taskReader, keyPairsReader, vpcReader, subnetReader,
                                         serverGroup, application) {
 

@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.openstack.details.controller', [
@@ -8,13 +10,12 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.details.contro
     require('../../../core/confirmationModal/confirmationModal.service.js'),
     require('../../../core/loadBalancer/loadBalancer.write.service.js'),
     require('../../../core/loadBalancer/loadBalancer.read.service.js'),
-    require('../../../core/utils/lodash.js'),
     require('../../../core/confirmationModal/confirmationModal.service.js'),
     require('../../../core/insight/insightFilterState.model.js'),
     require('../../../core/utils/selectOnDblClick.directive.js'),
   ])
   .controller('openstackLoadBalancerDetailsController', function ($scope, $state, $uibModal, loadBalancer, app, InsightFilterStateModel,
-                                                                  _, confirmationModalService, accountService, loadBalancerReader, loadBalancerWriter, subnetReader, $q) {
+                                                                  confirmationModalService, accountService, loadBalancerReader, loadBalancerWriter, subnetReader, $q) {
 
       let application = app;
 

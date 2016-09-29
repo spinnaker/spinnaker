@@ -1,12 +1,12 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.kubernetes.serverGroup.transformer', [
-    require('../../core/utils/lodash.js'),
-  ])
-  .factory('kubernetesServerGroupTransformer', function ($q, _) {
+  .module('spinnaker.kubernetes.serverGroup.transformer', [])
+  .factory('kubernetesServerGroupTransformer', function ($q) {
 
     function normalizeServerGroup(serverGroup) {
       return $q.when(serverGroup); // no-op

@@ -1,9 +1,10 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.bakeStage', [
-  require('../../../../core/utils/lodash.js'),
   require('../../../../core/pipeline/config/pipelineConfigProvider.js'),
   require('./bakeExecutionDetails.controller.js'),
   require('../../../../core/pipeline/config/stages/bake/bakery.service.js'),
@@ -30,7 +31,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.bakeSta
       restartable: true,
     });
   })
-  .controller('openstackBakeStageCtrl', function($scope, bakeryService, $q, _, authenticationService, settings) {
+  .controller('openstackBakeStageCtrl', function($scope, bakeryService, $q, authenticationService, settings) {
 
     $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
     $scope.stage.regions = $scope.stage.regions || [];

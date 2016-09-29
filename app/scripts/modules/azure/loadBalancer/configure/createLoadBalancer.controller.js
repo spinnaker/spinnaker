@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
   require('../../../core/account/accountSelectField.directive.js'),
   require('../../../core/network/network.read.service.js'),
 ])
-  .controller('azureCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state, _,
+  .controller('azureCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
                                                     accountService, azureLoadBalancerTransformer,
                                                     cacheInitializer, infrastructureCaches, loadBalancerReader, networkReader,
                                                     v2modalWizardService, azureLoadBalancerWriter, taskMonitorService,
@@ -148,7 +148,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
     this.getName = function() {
       var elb = $scope.loadBalancer;
       var elbName = [application.name, (elb.stack || ''), (elb.detail || '')].join('-');
-      return _.trimRight(elbName, '-');
+      return _.trimEnd(elbName, '-');
     };
 
     this.accountUpdated = function() {

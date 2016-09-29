@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 // controllerAs: loadBalancerFilters
@@ -7,11 +9,10 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.loadBalancer.filter.controller', [
   require('./loadBalancer.filter.service.js'),
   require('./loadBalancer.filter.model.js'),
-  require('../../utils/lodash.js'),
   require('../../filterModel/dependentFilter/dependentFilter.service.js'),
   require('./loadBalancerDependentFilterHelper.service.js'),
 ])
-  .controller('LoadBalancerFilterCtrl', function ($scope, app, _, $log, loadBalancerFilterService,
+  .controller('LoadBalancerFilterCtrl', function ($scope, app, $log, loadBalancerFilterService,
                                                   LoadBalancerFilterModel, $rootScope,
                                                   loadBalancerDependentFilterHelper, dependentFilterService) {
 
@@ -36,7 +37,7 @@ module.exports = angular.module('spinnaker.core.loadBalancer.filter.controller',
     };
 
     function getHeadingsForOption(option) {
-      return _.compact(_.uniq(_.pluck(app.loadBalancers.data, option))).sort();
+      return _.compact(_.uniq(_.map(app.loadBalancers.data, option))).sort();
     }
 
     function clearFilters() {

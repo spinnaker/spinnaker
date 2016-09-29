@@ -1,13 +1,14 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.region.regionSelectField.directive', [
-  require('../../core/utils/lodash'),
   require('../../core/account/account.service.js'),
   require('../common/selectField.component.js')
 ])
-  .directive('osRegionSelectField', function (_, accountService) {
+  .directive('osRegionSelectField', function (accountService) {
     return {
       restrict: 'E',
       templateUrl: require('./regionSelectField.directive.html'),
@@ -45,10 +46,10 @@ module.exports = angular.module('spinnaker.openstack.region.regionSelectField.di
               return;
             }
 
-            scope.regions = _(regions)
+            scope.regions = _.chain(regions)
               .map(function(r) { return {label: r, value: r}; })
               .sortBy(function(o) { return o.label; })
-              .valueOf();
+              .value();
           });
         }
 

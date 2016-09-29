@@ -1,12 +1,12 @@
 'use strict';
 
+import _ from 'lodash';
 import {Subject} from 'rxjs';
 
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.aws.serverGroup.details.scalingPolicy.alarm.configurer', [
-    require('../../../../../../core/utils/lodash.js'),
     require('../../../../../../core/config/settings.js'),
     require('../../../../../../core/serverGroup/metrics/cloudMetrics.read.service.js'),
     require('./dimensionsEditor.component.js'),
@@ -19,7 +19,7 @@ module.exports = angular
       boundsChanged: '&',
     },
     templateUrl: require('./alarmConfigurer.component.html'),
-    controller: function (cloudMetricsReader, _, settings) {
+    controller: function (cloudMetricsReader, settings) {
 
       // AWS does not provide an API to get this, so we're baking it in. If you use custom namespaces, add them to
       // the settings.js block for aws as an array, e.g. aws { metrics: { customNamespaces: ['myns1', 'other'] } }

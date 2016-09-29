@@ -20,7 +20,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.pr
         controllerAs: 'preconditionListCtrl'
       };
     })
-    .controller('PreconditionListCtrl', function ($scope, $uibModal, _) {
+    .controller('PreconditionListCtrl', function ($scope, $uibModal) {
 
       var vm = this;
 

@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.serverGroup.configure.titus.cloneServerGroup', [
   require('angular-ui-router'),
 ])
-  .controller('titusCloneServerGroupCtrl', function($scope, $uibModalInstance, _, $q, $state,
+  .controller('titusCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
                                                   serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                   titusServerGroupConfigurationService,
                                                   serverGroupCommand, application, title) {

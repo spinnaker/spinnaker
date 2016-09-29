@@ -7,10 +7,9 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.core.cluster.filter.multiselect.model', [
     require('angular-ui-router'),
-    require('../../utils/lodash'),
     require('./clusterFilter.model'),
   ])
-  .factory('MultiselectModel', function (_, $state, ClusterFilterModel) {
+  .factory('MultiselectModel', function ($state, ClusterFilterModel) {
 
     this.instanceGroups = [];
     this.instancesStream = new Subject();

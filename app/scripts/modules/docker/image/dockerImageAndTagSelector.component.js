@@ -1,10 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.docker.imageAndTagSelector.component', [
     require('./image.reader.js'),
-    require('../../core/utils/lodash.js')
   ])
   .component('dockerImageAndTagSelector', {
     bindings: {
@@ -16,7 +17,7 @@ module.exports = angular.module('spinnaker.deck.docker.imageAndTagSelector.compo
       account: '='
     },
     templateUrl: require('./dockerImageAndTagSelector.component.html'),
-    controller: function ($scope, dockerImageReader, _) {
+    controller: function ($scope, dockerImageReader) {
       $scope.viewState = {
         imagesLoaded: false,
         imagesRefreshing: false,

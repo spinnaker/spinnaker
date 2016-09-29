@@ -1,12 +1,13 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.serverGroup.transformer', [
-    require('../../core/utils/lodash.js'),
     require('../vpc/vpc.read.service.js'),
   ])
-  .factory('awsServerGroupTransformer', function (_, vpcReader) {
+  .factory('awsServerGroupTransformer', function (vpcReader) {
 
     function addComparator(alarm) {
       if (!alarm.comparisonOperator) {

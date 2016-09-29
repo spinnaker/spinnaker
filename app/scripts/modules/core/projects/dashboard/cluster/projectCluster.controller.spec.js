@@ -32,9 +32,14 @@ describe('Controller: projectCluster directive', function () {
       };
 
       this.initialize = () => {
-        $controller('ProjectClusterCtrl', {
-          $scope: $scope,
-        }, {project: project, cluster: cluster});
+        $controller('ProjectClusterCtrl',
+          {
+            $scope: $scope
+          },
+          {
+            project: project,
+            cluster: cluster
+          });
       };
     });
 

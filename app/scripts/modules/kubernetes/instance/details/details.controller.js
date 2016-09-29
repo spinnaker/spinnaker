@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller', [
@@ -8,7 +10,6 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
   require('../../../core/instance/instance.write.service.js'),
   require('../../../core/instance/instance.read.service.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
-  require('../../../core/utils/lodash.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('../../../core/history/recentHistory.service.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
@@ -16,7 +17,7 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
 ])
   .controller('kubernetesInstanceDetailsController', function ($scope, $state, $uibModal, InsightFilterStateModel,
                                                                instanceWriter, confirmationModalService, recentHistoryService,
-                                                               cloudProviderRegistry, instanceReader, _, instance, app, $q) {
+                                                               cloudProviderRegistry, instanceReader, instance, app, $q) {
     // needed for standalone instances
     $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('kubernetes', 'instance.detailsTemplateUrl');
 

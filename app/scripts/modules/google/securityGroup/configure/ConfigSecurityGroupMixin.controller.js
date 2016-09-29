@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 var angular = require('angular');
 
 module.exports = angular
@@ -10,7 +12,6 @@ module.exports = angular
     require('../../../core/account/account.service.js'),
     require('../../../core/network/network.read.service.js'),
     require('../../../core/modal/wizard/v2modalWizard.service.js'),
-    require('../../../core/utils/lodash.js'),
   ])
   .controller('gceConfigSecurityGroupMixin', function ($scope,
                                                        $state,
@@ -23,8 +24,7 @@ module.exports = angular
                                                        accountService,
                                                        v2modalWizardService,
                                                        cacheInitializer,
-                                                       networkReader,
-                                                       _ ) {
+                                                       networkReader) {
 
 
 
@@ -108,7 +108,7 @@ module.exports = angular
           return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, descriptor, {
             cloudProvider: 'gce',
             securityGroupName: $scope.securityGroup.name,
-            sourceRanges: _.uniq(_.pluck($scope.securityGroup.sourceRanges, 'value')),
+            sourceRanges: _.uniq(_.map($scope.securityGroup.sourceRanges, 'value')),
             allowed: allowed,
             region: 'global',
             network: $scope.securityGroup.network,
@@ -143,7 +143,7 @@ module.exports = angular
           existingGroups = securityGroups;
         }
 
-        $scope.existingSecurityGroupNames = _.pluck(existingGroups, 'name');
+        $scope.existingSecurityGroupNames = _.map(existingGroups, 'name');
       });
     };
 
@@ -154,7 +154,7 @@ module.exports = angular
     ctrl.updateNetworks = function() {
       networkReader.listNetworksByProvider('gce').then(function(gceNetworks) {
         var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
-        $scope.securityGroup.backingData.networks = _.pluck(_.filter(gceNetworks, { account: account }), 'name');
+        $scope.securityGroup.backingData.networks = _.map(_.filter(gceNetworks, { account: account }), 'name');
       });
     };
 
@@ -167,7 +167,7 @@ module.exports = angular
         name = application.name;
       if (securityGroup.detail) {
         name += '-' + securityGroup.detail;
-        name = _.trimRight(name, '-');
+        name = _.trimEnd(name, '-');
       }
       securityGroup.name = name;
       $scope.namePreview = name;

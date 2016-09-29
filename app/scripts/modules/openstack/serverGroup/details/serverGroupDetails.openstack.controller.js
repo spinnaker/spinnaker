@@ -3,6 +3,8 @@
 
 require('../configure/serverGroup.configure.openstack.module.js');
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.openstack.controller', [
@@ -14,7 +16,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
   require('../../../core/serverGroup/details/serverGroupWarningMessage.service.js'),
   require('../../../core/overrideRegistry/override.registry.js'),
   require('../../../core/account/account.service.js'),
-  require('../../../core/utils/lodash.js'),
   require('../../../core/serverGroup/serverGroup.read.service.js'),
   require('../configure/ServerGroupCommandBuilder.js'),
   require('../../../core/serverGroup/configure/common/runningExecutions.service.js'),
@@ -25,7 +26,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
 ])
   .controller('openstackServerGroupDetailsCtrl', function ($scope, $state, app, serverGroup, InsightFilterStateModel,
                                                      serverGroupReader, openstackServerGroupCommandBuilder, $uibModal,
-                                                     confirmationModalService, _, serverGroupWriter, subnetReader,
+                                                     confirmationModalService, serverGroupWriter, subnetReader,
                                                      securityGroupReader, loadBalancerReader, runningExecutionsService,
                                                      accountService, serverGroupWarningMessageService,
                                                      openstackServerGroupTransformer, overrideRegistry) {
@@ -321,10 +322,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
       return loadBalancerReader.loadLoadBalancers(app.name).then( (allLoadBalancers) => {
         var lbIndex = {};
         _.forEach(allLoadBalancers, (lb) => { lbIndex[lb.name] = lb; } );
-        $scope.loadBalancers = _(serverGroup.loadBalancers)
-            .map( (lbName) => { return lbIndex[lbName]; } )
+        $scope.loadBalancers = _.chain(serverGroup.loadBalancers)
+            .map((lbName) => { return lbIndex[lbName]; } )
             .compact()
-            .valueOf();
+            .value();
       });
     };
 

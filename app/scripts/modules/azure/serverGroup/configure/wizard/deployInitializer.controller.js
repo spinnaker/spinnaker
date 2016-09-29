@@ -1,13 +1,14 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.serverGroup.configure.deployInitialization.controller', [
   require('../../../../core/serverGroup/serverGroup.read.service.js'),
-  require('../../../../core/utils/lodash.js'),
   require('../serverGroupCommandBuilder.service.js'),
 ])
-  .controller('azureDeployInitializerCtrl', function($scope, azureServerGroupCommandBuilder, serverGroupReader, _) {
+  .controller('azureDeployInitializerCtrl', function($scope, azureServerGroupCommandBuilder, serverGroupReader) {
 
     $scope.templates = [];
     if (!$scope.command.viewState.disableNoTemplateSelection) {

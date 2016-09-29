@@ -1,11 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.cf.loadBalancer.transformer', [
-  require('../../core/utils/lodash.js')
-])
-  .factory('cfLoadBalancerTransformer', function ($q, settings, _) {
+module.exports = angular.module('spinnaker.cf.loadBalancer.transformer', [])
+  .factory('cfLoadBalancerTransformer', function ($q, settings) {
 
     function updateHealthCounts(container) {
       var instances = container.instances;
@@ -56,8 +56,8 @@ module.exports = angular.module('spinnaker.cf.loadBalancer.transformer', [
       });
       var activeServerGroups = _.filter(loadBalancer.serverGroups, {isDisabled: false});
       loadBalancer.provider = loadBalancer.type;
-      loadBalancer.instances = _(activeServerGroups).pluck('instances').flatten().valueOf();
-      loadBalancer.detachedInstances = _(activeServerGroups).pluck('detachedInstances').flatten().valueOf();
+      loadBalancer.instances = _.chain(activeServerGroups).map('instances').flatten().value();
+      loadBalancer.detachedInstances = _.chain(activeServerGroups).map('detachedInstances').flatten().value();
       updateHealthCounts(loadBalancer);
       return $q.when(loadBalancer);
     }

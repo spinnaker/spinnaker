@@ -1,11 +1,12 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.instance.aws.controller', [
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
-  require('../../../core/utils/lodash.js'),
   require('../../../core/account/account.service.js'),
   require('../../../core/instance/instance.write.service.js'),
   require('../../../core/instance/instance.read.service.js'),
@@ -19,19 +20,19 @@ module.exports = angular.module('spinnaker.netflix.instance.aws.controller', [
   .controller('netflixAwsInstanceDetailsCtrl', function ($scope, $state, $uibModal, InsightFilterStateModel, settings,
                                                          instanceWriter, confirmationModalService, recentHistoryService,
                                                          accountService,
-                                                         instanceReader, _, instance, app, $q, $controller) {
+                                                         instanceReader, instance, app, $q, $controller) {
 
     this.instanceDetailsLoaded = () => {
       this.getBastionAddressForAccount($scope.instance.account);
       var discoveryMetric = _.find($scope.healthMetrics, function(metric) { return metric.type === 'Discovery'; });
       if (discoveryMetric && discoveryMetric.vipAddress) {
         var vipList = discoveryMetric.vipAddress;
-        let vipAddress = vipList.contains(',') ? vipList.split(',') : [vipList];
+        let vipAddress = vipList.includes(',') ? vipList.split(',') : [vipList];
         $scope.instance.vipAddress = _.uniq(vipAddress);
       }
       if (discoveryMetric && discoveryMetric.secureVipAddress) {
         var secureVipList = discoveryMetric.secureVipAddress;
-        let secureVipAddress = secureVipList.contains(',') ? secureVipList.split(',') : [secureVipList];
+        let secureVipAddress = secureVipList.includes(',') ? secureVipList.split(',') : [secureVipList];
         $scope.instance.secureVipAddress = _.uniq(secureVipAddress);
       }
     };

@@ -4,11 +4,9 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.network.read.service', [
-    require('../utils/lodash.js'),
     require('../cache/infrastructureCaches.js'),
     require('../api/api.service')
   ])
-
   .factory('networkReader', function (API, infrastructureCaches ) {
 
     function listNetworks() {
@@ -27,5 +25,4 @@ module.exports = angular
       listNetworks: listNetworks,
       listNetworksByProvider: listNetworksByProvider,
     };
-
   });

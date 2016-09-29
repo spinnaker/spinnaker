@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2instanceArchetypeSelector', [
@@ -8,7 +10,6 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
   require('../../../modal/wizard/modalWizard.service.js'),
   require('../../../modal/wizard/v2modalWizard.service.js'),
   require('../../../cloudProvider/cloudProvider.registry.js'),
-  require('../../../utils/lodash.js'),
 ])
   .directive('v2InstanceArchetypeSelector', function() {
     return {
@@ -23,7 +24,7 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
   })
   .controller('v2InstanceArchetypeSelectorCtrl', function($scope, instanceTypeService, infrastructureCaches,
                                                         serverGroupConfigurationService, modalWizardService,
-                                                        v2modalWizardService, $log, cloudProviderRegistry, _) {
+                                                        v2modalWizardService, $log, cloudProviderRegistry) {
     var controller = this;
     instanceTypeService.getCategories($scope.command.selectedProvider).then(function(categories) {
       $scope.instanceProfiles = categories;

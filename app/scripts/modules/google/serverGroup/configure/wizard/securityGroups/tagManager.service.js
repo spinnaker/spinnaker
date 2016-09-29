@@ -1,11 +1,11 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.deck.gce.tagManager.service', [
-    require('../../../../../core/utils/lodash.js'),
-  ])
-  .factory('gceTagManager', function (_) {
+module.exports = angular.module('spinnaker.deck.gce.tagManager.service', [])
+  .factory('gceTagManager', function () {
     let resetKeys = ['command', 'securityGroups', 'securityGroupObjectsKeyedByTag', 'securityGroupObjectsKeyedById'];
 
     this.reset = () => {
@@ -29,12 +29,12 @@ module.exports = angular.module('spinnaker.deck.gce.tagManager.service', [
     };
 
     this.inferSecurityGroupIdsFromTags = (commandTags = []) => {
-      return _(commandTags)
+      return _.chain(commandTags)
         .map(t => this.securityGroupObjectsKeyedByTag[t.value])
         .flatten()
         .map('id')
         .uniq()
-        .valueOf();
+        .value();
     };
 
     let initializeSecurityGroupObjects = (securityGroupObjects, commandTags = []) => {
@@ -75,7 +75,7 @@ module.exports = angular.module('spinnaker.deck.gce.tagManager.service', [
 
       if (securityGroupObjectsWithTag) {
         updateSelectedTagsOnSecurityGroupObjects(securityGroupObjectsWithTag, tagName);
-        c.securityGroups = _.pluck(
+        c.securityGroups = _.map(
           updateSelectedSecurityGroups(getSecurityGroupObjectsFromIds(c.securityGroups), securityGroupObjectsWithTag),
           'id');
       }
@@ -106,13 +106,13 @@ module.exports = angular.module('spinnaker.deck.gce.tagManager.service', [
         tags = c.tags,
         securityGroupObjectsWithTag = this.securityGroupObjectsKeyedByTag[tagName];
 
-      if (!_.contains(tags.map(t => t.value), tagName)) {
+      if (!_.includes(tags.map(t => t.value), tagName)) {
         tags.push({ value: tagName });
       }
 
       if (securityGroupObjectsWithTag) {
         updateSelectedTagsOnSecurityGroupObjects(securityGroupObjectsWithTag, tagName);
-        c.securityGroups = _.pluck(
+        c.securityGroups = _.map(
           updateSelectedSecurityGroups(getSecurityGroupObjectsFromIds(c.securityGroups), securityGroupObjectsWithTag),
           'id');
       }
@@ -122,18 +122,18 @@ module.exports = angular.module('spinnaker.deck.gce.tagManager.service', [
 
     let updateSelectedTagsOnSecurityGroupObjects = (securityGroupObjects, newTag) => {
       securityGroupObjects.forEach((sg) => {
-        sg.selectedTags = _(sg.selectedTags || [])
+        sg.selectedTags = _.chain(sg.selectedTags || [])
           .concat([newTag])
           .uniq()
-          .valueOf();
+          .value();
       });
     };
 
     let updateSelectedSecurityGroups = (oldGroups, newGroups) => {
-      return _(oldGroups)
+      return _.chain(oldGroups)
         .concat(newGroups)
         .uniq()
-        .valueOf();
+        .value();
     };
 
     this.removeTag = (tagName) => {
@@ -163,11 +163,11 @@ module.exports = angular.module('spinnaker.deck.gce.tagManager.service', [
         });
 
       securityGroupObject.selectedTags = [];
-      c.tags = _(c.tags)
+      c.tags = _.chain(c.tags)
         .map(t => t.value)
         .difference(tagsToRemove)
         .map(t => ({ value: t }))
-        .valueOf();
+        .value();
     };
 
     this.getToolTipContent = (tagName) => {

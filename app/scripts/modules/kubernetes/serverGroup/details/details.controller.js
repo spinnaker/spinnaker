@@ -1,6 +1,8 @@
 'use strict';
 /* jshint camelcase:false */
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.controller', [
@@ -11,7 +13,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
   require('../../../core/serverGroup/details/serverGroupWarningMessage.service.js'),
   require('../../../core/serverGroup/serverGroup.read.service.js'),
   require('../../../core/serverGroup/serverGroup.write.service.js'),
-  require('../../../core/utils/lodash.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])

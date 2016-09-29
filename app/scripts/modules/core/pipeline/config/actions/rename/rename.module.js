@@ -1,13 +1,14 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.actions.rename', [
-  require('../../../../utils/lodash.js'),
   require('../../services/dirtyPipelineTracker.service.js'),
   require('../../services/pipelineConfigService.js'),
 ])
-  .controller('RenamePipelineModalCtrl', function($scope, application, pipeline, _, $uibModalInstance, $log,
+  .controller('RenamePipelineModalCtrl', function($scope, application, pipeline, $uibModalInstance, $log,
                                                   dirtyPipelineTracker, pipelineConfigService) {
 
     this.cancel = $uibModalInstance.dismiss;
@@ -17,7 +18,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.rename',
     $scope.viewState = {};
 
     $scope.pipeline = pipeline;
-    $scope.existingNames = _.without(_.pluck(application.pipelineConfigs.data, 'name'), currentName);
+    $scope.existingNames = _.without(_.map(application.pipelineConfigs.data, 'name'), currentName);
     $scope.command = {
       newName: currentName
     };
@@ -43,5 +44,4 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.rename',
         }
       );
     };
-
   });

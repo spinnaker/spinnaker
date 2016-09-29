@@ -1,12 +1,13 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.utils.waypoints.service', [
   require('../jQuery.js'),
-  require('../lodash.js'),
 ])
-  .factory('waypointService', function($timeout, $, _, $log, $rootScope) {
+  .factory('waypointService', function($timeout, $, $log, $rootScope) {
 
     var waypointRegistry = Object.create(null);
 
@@ -89,7 +90,7 @@ module.exports = angular.module('spinnaker.core.utils.waypoints.service', [
     }
 
     function getLastWindow(key) {
-      return waypointRegistry[key] ? _.pluck(waypointRegistry[key].lastWindow, 'elem') : [];
+      return waypointRegistry[key] ? _.map(waypointRegistry[key].lastWindow, 'elem') : [];
     }
 
     return {

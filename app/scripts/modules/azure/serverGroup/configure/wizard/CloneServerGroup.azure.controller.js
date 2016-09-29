@@ -4,14 +4,13 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
   require('angular-ui-router'),
-  require('../../../../core/utils/lodash.js'),
   require('../serverGroupConfiguration.service.js'),
   require('../../serverGroup.transformer.js'),
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js'),
   require('../../../../core/modal/wizard/v2modalWizard.service.js'),
 ])
-  .controller('azureCloneServerGroupCtrl', function($scope, $uibModalInstance, _, $q, $state,
+  .controller('azureCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
                                                   serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                   azureServerGroupConfigurationService, serverGroupCommand,
                                                   application, title) {
@@ -22,10 +21,6 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
       networkSettings: require('./networkSettings/networkSettings.html'),
       capacity: require('./capacity/capacity.html'),
       securityGroups: require('./securityGroup/securityGroups.html'),
-/*      instanceArchetype: require('./instanceArchetype.html'),
-      instanceType: require('./instanceType.html'),
-      advancedSettings: require('./advancedSettings.html'),
-      */
     };
 
     $scope.title = title;

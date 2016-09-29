@@ -1,11 +1,12 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netfilx.widgits.canaryConfigSelector.directive', [
     require('./canary.read.service'),
-    require('../../core/utils/lodash')
   ])
   .directive('canaryConfigSelector', () => {
     return {
@@ -16,7 +17,7 @@ module.exports = angular
       },
       templateUrl: require('./canaryConfigSelector.directive.html'),
       controllerAs: 'vm',
-      controller: function($scope, canaryReadService, _) {
+      controller: function($scope, canaryReadService) {
         let vm = this;
 
         vm.selectorChanged = (model) => {
@@ -41,7 +42,7 @@ module.exports = angular
           return canaryConfigs.filter((config) => config.name === canaryName);
         });
 
-        let findConfigAndSet = _.flowRight(vm.selectorChanged, _.first, getSelected);
+        let findConfigAndSet = _.flowRight(vm.selectorChanged, _.head, getSelected);
 
         $scope.$watch('vm.model.name', function(newVal) {
           if(newVal !== undefined) {

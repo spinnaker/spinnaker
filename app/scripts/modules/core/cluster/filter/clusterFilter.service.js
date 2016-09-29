@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
@@ -7,11 +9,10 @@ module.exports = angular
     require('angular-ui-router'),
     require('./clusterFilter.model'),
     require('./multiselect.model'),
-    require('../../utils/lodash'),
     require('../../utils/waypoints/waypoint.service'),
     require('../../filterModel/filter.model.service'),
   ])
-  .factory('clusterFilterService', function (ClusterFilterModel, MultiselectModel, _, waypointService, $log, $stateParams, $state,
+  .factory('clusterFilterService', function (ClusterFilterModel, MultiselectModel, waypointService, $log, $stateParams, $state,
                                              filterModelService) {
 
     var lastApplication = null;
@@ -25,7 +26,7 @@ module.exports = angular
     function instanceTypeFilters(serverGroup) {
       if(isFilterable(ClusterFilterModel.sortFilter.instanceType)) {
         var checkedInstanceTypes = filterModelService.getCheckValues(ClusterFilterModel.sortFilter.instanceType);
-        return _.contains(checkedInstanceTypes, serverGroup.instanceType);
+        return _.includes(checkedInstanceTypes, serverGroup.instanceType);
       } else {
         return true;
       }
@@ -59,8 +60,8 @@ module.exports = angular
           serverGroup.name.toLowerCase(),
           serverGroup.account.toLowerCase(),
           buildInfo,
-          _.pluck(serverGroup.loadBalancers, 'name').join(' '),
-          _.pluck(serverGroup.instances, 'id').join(' ')
+          _.map(serverGroup.loadBalancers, 'name').join(' '),
+          _.map(serverGroup.instances, 'id').join(' ')
         ].join(' ');
       }
     }
@@ -194,7 +195,7 @@ module.exports = angular
           // filtering should be performed on the server group; always show instances
           return true;
         }
-        return _.contains(checkedStatus, instance.healthState);
+        return _.includes(checkedStatus, instance.healthState);
       }
       return true;
     }
@@ -277,7 +278,7 @@ module.exports = angular
 
         groups.push( {
           heading: accountKey,
-          subgroups: _.sortByAll(clusterGroups, ['heading', 'category']),
+          subgroups: _.sortBy(clusterGroups, ['heading', 'category']),
         } );
       });
 

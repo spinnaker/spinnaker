@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 /*
@@ -8,7 +10,6 @@ let angular = require('angular');
   execution details.
  */
 module.exports = angular.module('spinnaker.core.pipeline.stage.docker.bakeStage', [
-  require('../../../../core/utils/lodash.js'),
   require('../../../../core/pipeline/config/pipelineConfigProvider.js'),
   require('./bakeExecutionDetails.controller.js'),
   require('./../../../../core/pipeline/config/stages/bake/bakery.service.js'),
@@ -29,7 +30,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.docker.bakeStage'
       restartable: true,
     });
   })
-  .controller('dockerBakeStageCtrl', function($scope, bakeryService, $q, _, authenticationService) {
+  .controller('dockerBakeStageCtrl', function($scope, bakeryService, $q, authenticationService) {
 
     var stage = $scope.stage;
 

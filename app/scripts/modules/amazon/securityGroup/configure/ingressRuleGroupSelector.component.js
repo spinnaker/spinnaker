@@ -1,13 +1,13 @@
 'use strict';
 
+import _ from 'lodash';
+
 const angular = require('angular');
 
 require('./ingressRuleGroupSelector.component.less');
 
 module.exports = angular
-  .module('spinnaker.amazon.securityGroup.configure.ingressRuleGroupSelector', [
-    require('../../../core/utils/lodash'),
-  ])
+  .module('spinnaker.amazon.securityGroup.configure.ingressRuleGroupSelector', [])
   .component('ingressRuleGroupSelector', {
     bindings: {
       rule: '=',
@@ -19,7 +19,7 @@ module.exports = angular
       allSecurityGroupsUpdated: '=',
     },
     templateUrl: require('./ingressRuleGroupSelector.component.html'),
-    controller: function(_) {
+    controller: function() {
 
       this.infiniteScroll = {
         currentItems: 20,

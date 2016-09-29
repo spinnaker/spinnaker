@@ -1,14 +1,14 @@
 'use strict';
 
+import _ from 'lodash';
 
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.modalWizard.service.v2', [
-    require('../../utils/lodash.js'),
     require('../../utils/scrollTo/scrollTo.service.js'),
   ])
-  .factory('v2modalWizardService', function(_, scrollToService) {
+  .factory('v2modalWizardService', function(scrollToService) {
 
     this.renderedPages = [];
     this.pageRegistry = [];
@@ -56,15 +56,17 @@ module.exports = angular
       }
     };
 
-    this.isComplete = () => _(this.renderedPages)
-      .collect('state')
+    this.isComplete = () => _.chain(this.renderedPages)
+      .map('state')
       .filter({rendered: true, required: true})
-      .every({done: true, dirty: false});
+      .every({done: true, dirty: false})
+      .value();
 
-    this.allPagesVisited = () => _(this.renderedPages)
-      .collect('state')
+    this.allPagesVisited = () => _.chain(this.renderedPages)
+      .map('state')
       .filter({rendered: true, required: true})
-      .every({done: true});
+      .every({done: true})
+      .value();
 
     this.setRendered = (pageKey, rendered) => {
       this.pageRegistry.filter((page) => page.key === pageKey)

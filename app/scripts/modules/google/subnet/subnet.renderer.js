@@ -1,12 +1,13 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.subnet.renderer', [
   require('../../core/network/network.read.service.js'),
-  require('../../core/utils/lodash.js'),
 ])
-  .factory('gceSubnetRenderer', function ($q, networkReader, _) {
+  .factory('gceSubnetRenderer', function ($q, networkReader) {
 
     var gceNetworks;
 
@@ -18,10 +19,11 @@ module.exports = angular.module('spinnaker.gce.subnet.renderer', [
       if (serverGroup.subnet) {
         return serverGroup.subnet;
       } else {
-        let autoCreateSubnets = _(gceNetworks)
+        let autoCreateSubnets = _.chain(gceNetworks)
           .filter({ account: serverGroup.account, name: serverGroup.network })
-          .pluck('autoCreateSubnets')
-          .head();
+          .map('autoCreateSubnets')
+          .head()
+          .value();
 
         return autoCreateSubnets ? '(Auto-select)' : '[none]';
       }

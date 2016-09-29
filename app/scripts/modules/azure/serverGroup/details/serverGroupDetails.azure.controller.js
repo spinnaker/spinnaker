@@ -1,6 +1,8 @@
 'use strict';
 /* jshint camelcase:false */
 
+import _ from 'lodash';
+
 require('../configure/serverGroup.configure.azure.module.js');
 
 let angular = require('angular');
@@ -12,11 +14,10 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
   require('../../../core/utils/selectOnDblClick.directive.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../core/serverGroup/serverGroup.write.service.js'),
-  require('../../../core/utils/lodash.js'),
   require('../../../core/insight/insightFilterState.model.js'),
 ])
   .controller('azureServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
-                                                     serverGroupReader, azureServerGroupCommandBuilder, $uibModal, confirmationModalService, _, serverGroupWriter) {
+                                                     serverGroupReader, azureServerGroupCommandBuilder, $uibModal, confirmationModalService, serverGroupWriter) {
 
     $scope.state = {
       loading: true
@@ -71,7 +72,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
           }
 
           if (details.launchConfig && details.launchConfig.securityGroups) {
-            $scope.securityGroups = _(details.launchConfig.securityGroups).map(function(id) {
+            $scope.securityGroups = _.chain(details.launchConfig.securityGroups).map(function(id) {
               return _.find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
                 _.find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'name': id });
             }).compact().value();

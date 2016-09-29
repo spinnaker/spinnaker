@@ -1,23 +1,23 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.application.listExtractor.service', [
-    require('../../utils/lodash.js')
-  ])
-  .factory('appListExtractorService', function(_) {
+  .module('spinnaker.application.listExtractor.service', [])
+  .factory('appListExtractorService', function () {
 
     let defaultAccountFilter = (/*cluster*/) => true;
 
     let getRegions = (appList, accountFilter = defaultAccountFilter) => {
-      return _(appList)
+      return _.chain(appList)
         .map('clusters').flatten()
         .filter(accountFilter)
         .map('serverGroups').flatten()
         .map('region')
         .compact()
-        .unique()
+        .uniq()
         .sort()
         .value();
     };
@@ -25,13 +25,13 @@ module.exports = angular
     let defaultRegionFilter = (/*serverGroup*/) => true;
 
     let getStacks = (appList, regionFilter = defaultRegionFilter) => {
-      return _(appList)
+      return _.chain(appList)
         .map('clusters').flatten()
         .map('serverGroups').flatten()
         .filter( regionFilter )
         .map('stack').flatten()
         .compact()
-        .unique()
+        .uniq()
         .value()
         .sort();
     };
@@ -52,7 +52,7 @@ module.exports = angular
         let regionFilter = cluster && Array.isArray(region) && region.length
           ? _.some( cluster.serverGroups, (sg) => _.some(region, (region) => region === sg.region))
           : _.isString(region) //region is just a string not an array
-          ? _.any(cluster.serverGroups, (sg) => sg.region === region)
+          ? _.some(cluster.serverGroups, (sg) => sg.region === region)
           : true;
 
         return acctFilter && regionFilter;
@@ -66,7 +66,7 @@ module.exports = angular
         let zoneFilter = Array.isArray(zone) && zone.length
           ? _.some( cluster.serverGroups, (sg) => _.some(zone, (zone) => zone.startsWith(`${sg.region}-`)))
           : _.isString(zone) //zone is just a string not an array
-          ? _.any(cluster.serverGroups, (sg) => zone.startsWith(`${sg.region}-`))
+          ? _.some(cluster.serverGroups, (sg) => zone.startsWith(`${sg.region}-`))
           : true;
 
         return acctFilter && zoneFilter;
@@ -74,25 +74,25 @@ module.exports = angular
     };
 
     let getClusters = (appList, clusterFilter = defaultClusterFilter) => {
-      return _(appList)
+      return _.chain(appList)
         .map('clusters').flatten()
         .filter(clusterFilter)
         .map('name').flatten()
         .compact()
-        .unique()
+        .uniq()
         .value()
         .sort();
     };
 
 
     let getAsgs = (appList, clusterFilter = defaultClusterFilter) => {
-      return _(appList)
+      return _.chain(appList)
         .map('clusters').flatten()
         .filter(clusterFilter)
         .map('serverGroups').flatten()
         .map('name')
         .compact()
-        .unique()
+        .uniq()
         .value()
         .sort()
         .reverse();
@@ -101,7 +101,7 @@ module.exports = angular
     let defaultServerGroupFilter = (/*serverGroup*/) => true;
 
     let getZones = (appList, clusterFilter = defaultClusterFilter, regionFilter = defaultRegionFilter, serverGroupFilter = defaultServerGroupFilter) => {
-      return _(appList)
+      return _.chain(appList)
         .map('clusters').flatten()
         .filter( clusterFilter )
         .map('serverGroups').flatten()
@@ -110,14 +110,14 @@ module.exports = angular
         .map('instances').flatten()
         .map('availabilityZone').flatten()
         .compact()
-        .unique()
+        .uniq()
         .value();
     };
 
     let defaultAvailabilityZoneFilter = (/*instance*/) => true;
 
     let getInstances = (appList, clusterFilter = defaultClusterFilter, serverGroupFilter = defaultServerGroupFilter, availabilityZoneFilter = defaultAvailabilityZoneFilter) => {
-      return _(appList)
+      return _.chain(appList)
         .map('clusters').flatten()
         .filter(clusterFilter)
         .map('serverGroups').flatten()
@@ -125,7 +125,7 @@ module.exports = angular
         .map('instances').flatten()
         .filter( availabilityZoneFilter )
         .compact()
-        .unique()
+        .uniq()
         .value();
     };
 
@@ -140,5 +140,4 @@ module.exports = angular
       getZones: getZones,
       getInstances: getInstances,
     };
-
   });

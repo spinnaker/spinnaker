@@ -3,7 +3,6 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.createLoadBalancerStage', [
-  require('../../../../utils/lodash.js'),
   require('../../../../cloudProvider/cloudProvider.registry.js'),
 ])
   .config(function(pipelineConfigProvider, settings) {
@@ -22,7 +21,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.createLoadBalance
         ],
       });
     }
-
   })
   .controller('createLoadBalancerStageCtrl', function($scope, $uibModal, providerSelectionService,
                                                          cloudProviderRegistry) {
