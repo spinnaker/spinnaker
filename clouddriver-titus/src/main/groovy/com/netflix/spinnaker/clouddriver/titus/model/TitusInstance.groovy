@@ -36,7 +36,7 @@ class TitusInstance implements Instance {
   Map env
   Long submittedAt
   Long finishedAt
-  List<Map<String, String>> health
+  List<Map<String, Object>> health
   TitusInstanceResources resources = new TitusInstanceResources()
   TitusInstancePlacement placement = new TitusInstancePlacement()
   Set<TitusSecurityGroup> securityGroups
@@ -77,7 +77,7 @@ class TitusInstance implements Instance {
 
   @Override
   HealthState getHealthState() {
-    List<Map<String, String>> healthList = getHealth()
+    List<Map<String, Object>> healthList = getHealth()
     someUpRemainingUnknown(healthList) ? HealthState.Up :
       anyStarting(healthList) ? HealthState.Starting :
         anyDown(healthList) ? HealthState.Down :
@@ -95,7 +95,7 @@ class TitusInstance implements Instance {
   }
 
   @Override
-  List<Map<String, String>> getHealth() {
+  List<Map<String, Object>> getHealth() {
     health
   }
 
@@ -103,20 +103,20 @@ class TitusInstance implements Instance {
     health ? health.any { it.state == 'Up' } && health.every { it.state == 'Up' || it.state == 'Unknown' } : false
   }
 
-  private static boolean anyDown(List<Map<String, String>> healthList) {
+  private static boolean anyDown(List<Map<String, Object>> healthList) {
     healthList.any { it.state == HealthState.Down.toString()}
   }
 
-  private static boolean someUpRemainingUnknown(List<Map<String, String>> healthList) {
-    List<Map<String, String>> knownHealthList = healthList.findAll{ it.state != HealthState.Unknown.toString() }
+  private static boolean someUpRemainingUnknown(List<Map<String, Object>> healthList) {
+    List<Map<String, Object>> knownHealthList = healthList.findAll{ it.state != HealthState.Unknown.toString() }
     knownHealthList ? knownHealthList.every { it.state == HealthState.Up.toString() } : false
   }
 
-  private static boolean anyStarting(List<Map<String, String>> healthList) {
+  private static boolean anyStarting(List<Map<String, Object>> healthList) {
     healthList.any { it.state == HealthState.Starting.toString()}
   }
 
-  private static boolean anyOutOfService(List<Map<String, String>> healthList) {
+  private static boolean anyOutOfService(List<Map<String, Object>> healthList) {
     healthList.any { it.state == HealthState.OutOfService.toString()}
   }
 
