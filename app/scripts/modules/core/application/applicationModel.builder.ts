@@ -11,7 +11,7 @@ export class ApplicationModelBuilder {
 
   constructor(private $log: ng.ILogService, private $q: ng.IQService, private $filter: any, private schedulerFactory: any) {}
 
-  createApplication(...dataSources: any[]): Application {
+  public createApplication(...dataSources: any[]): Application {
     if (Array.isArray(dataSources[0])) {
       dataSources = dataSources[0];
     }

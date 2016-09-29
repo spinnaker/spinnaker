@@ -246,7 +246,7 @@ export class ApplicationDataSource {
    * Called when a method mutates some item in the data source's data, e.g. when a running execution is updated
    * independent of the execution data source's refresh cycle
    */
-  dataUpdated(): void {
+  public dataUpdated(): void {
     this.refreshStream.next(null);
   }
 
@@ -257,7 +257,7 @@ export class ApplicationDataSource {
    * @param method the method to call the next time the data source refreshes
    * @param failureMethod (optional) a method to call if the data source refresh fails
    */
-  onNextRefresh($scope: ng.IScope, method: any, failureMethod?: any): void {
+  public onNextRefresh($scope: ng.IScope, method: any, failureMethod?: any): void {
     let success = this.refreshStream.take(1).subscribe(method);
     $scope.$on('$destroy', () => success.unsubscribe());
     if (failureMethod) {
@@ -274,7 +274,7 @@ export class ApplicationDataSource {
    * @param method the method to call the next time the data source refreshes
    * @param failureMethod (optional) a method to call if the data source refresh fails
    */
-  onRefresh($scope: ng.IScope, method: any, failureMethod?: any): void {
+  public onRefresh($scope: ng.IScope, method: any, failureMethod?: any): void {
     let success = this.refreshStream.subscribe(method);
     $scope.$on('$destroy', () => success.unsubscribe());
     if (failureMethod) {
@@ -295,7 +295,7 @@ export class ApplicationDataSource {
    *
    * @returns {IPromise<T>}
    */
-  ready(): ng.IPromise<any> {
+  public ready(): ng.IPromise<any> {
     let deferred = this.$q.defer();
     if (this.disabled || this.loaded || (this.lazy && !this.active)) {
       deferred.resolve();
@@ -311,7 +311,7 @@ export class ApplicationDataSource {
   /**
    * Sets the data source's "active" flag to false, preventing it from participating in the application refresh cycle
    */
-  deactivate(): void {
+  public deactivate(): void {
     this.active = false;
   }
 
@@ -331,7 +331,7 @@ export class ApplicationDataSource {
    * @param forceRefresh
    * @returns {any}
    */
-  refresh(forceRefresh?: boolean): ng.IPromise<any> {
+  public refresh(forceRefresh?: boolean): ng.IPromise<any> {
     if (!this.loader || this.disabled) {
       this.data.length = 0;
       this.loading = false;
@@ -372,7 +372,7 @@ export class ApplicationDataSource {
   /**
    * Sets the "active" flag to true and, if the data source has not been loaded, immediately calls "refresh()"
    */
-  activate(): void {
+  public activate(): void {
     if (!this.active) {
       this.active = true;
       if (!this.loaded) {

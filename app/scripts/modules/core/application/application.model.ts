@@ -64,7 +64,7 @@ export class Application {
    * e.g. application.serverGroups, but this is the preferred access method, as it allows type inference
    * @param key
    */
-  getDataSource(key: string): ApplicationDataSource {
+  public getDataSource(key: string): ApplicationDataSource {
     let [dataSource] = this.dataSources.filter(ds => ds.key === key);
     return dataSource;
   }
@@ -76,7 +76,7 @@ export class Application {
    * @returns {IPromise<void>} a promise that resolves when the application finishes loading, rejecting with an error if
    * one of the data sources fails to refresh
    */
-  refresh(forceRefresh?: boolean): ng.IPromise<any> {
+  public refresh(forceRefresh?: boolean): ng.IPromise<any> {
     return this.$q.all(this.dataSources.map(source => source.refresh(forceRefresh))).then(
       () => this.applicationLoadSuccess(),
       (error) => this.applicationLoadError(error)
@@ -89,7 +89,7 @@ export class Application {
    * @returns {IPromise<any>|IPromise<any[]>|IPromise<{}>|IPromise<T>} the return value is a promise, but its value is
    * not useful - it's only useful to watch the promise itself
    */
-  ready(): ng.IPromise<any> {
+  public ready(): ng.IPromise<any> {
     return this.$q.all(this.dataSources.filter(ds => ds.onLoad !== undefined).map(dataSource => dataSource.ready()));
   }
 
@@ -99,7 +99,7 @@ export class Application {
    * @param method the method to call when the refresh completes
    * @param failureMethod a method to call if the refresh fails
    */
-  onRefresh($scope: ng.IScope, method: any, failureMethod: any): void {
+  public onRefresh($scope: ng.IScope, method: any, failureMethod: any): void {
     let success = this.refreshStream.subscribe(method);
     $scope.$on('$destroy', () => success.unsubscribe());
     if (failureMethod) {
@@ -113,7 +113,7 @@ export class Application {
    * and halts refresh when switching applications or navigating to a non-application view
    * @param scope
    */
-  enableAutoRefresh(scope: ng.IScope): void {
+  public enableAutoRefresh(scope: ng.IScope): void {
     let dataLoader = this.scheduler.subscribe(() => this.refresh());
     scope.$on('$destroy', () => {
       dataLoader.unsubscribe();

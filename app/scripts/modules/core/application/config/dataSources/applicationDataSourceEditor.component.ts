@@ -1,14 +1,9 @@
-import {module} from 'angular';
 import {Application} from '../../application.model.ts';
 import {ApplicationDataSource} from '../../service/applicationDataSource.ts';
 
 import './applicationDataSourceEditor.component.less';
 
 export class DataSourceEditorController implements ng.IComponentController {
-
-  static dependencies = [
-    require('../../service/applications.write.service.js'),
-  ];
 
   static get $inject() { return ['applicationWriter']; }
 
@@ -26,7 +21,7 @@ export class DataSourceEditorController implements ng.IComponentController {
 
   constructor(private applicationWriter: any) {}
 
-  $onInit() {
+  public $onInit() {
     if (this.application.notFound) {
       return;
     }
@@ -45,7 +40,7 @@ export class DataSourceEditorController implements ng.IComponentController {
     this.original = JSON.stringify(this.model);
   }
 
-  dataSourceChanged(key) {
+  public dataSourceChanged(key) {
     if (this.model[key]) {
       if (!this.explicitlyEnabled.includes(key)) {
         this.explicitlyEnabled.push(key);
@@ -60,11 +55,11 @@ export class DataSourceEditorController implements ng.IComponentController {
     this.isDirty = JSON.stringify(this.model) !== this.original;
   };
 
-  revert() {
+  public revert() {
     this.$onInit();
   };
 
-  save() {
+  public save() {
     this.saving = true;
     this.saveError = false;
     let newDataSources = { enabled: this.explicitlyEnabled, disabled: this.explicitlyDisabled };
@@ -95,12 +90,13 @@ class ApplicationDataSourceEditorComponent implements ng.IComponentOptions {
   public controller: ng.IComponentController = DataSourceEditorController;
   public templateUrl: string = require('./applicationDataSourceEditor.component.html');
 
-  constructor() {}
 }
 
 const moduleName = 'spinnaker.core.application.config.applicationDataSourceEditor';
 
-angular.module(moduleName, DataSourceEditorController.dependencies)
+angular.module(moduleName, [
+  require('../../service/applications.write.service.js')
+])
   .component('applicationDataSourceEditor', new ApplicationDataSourceEditorComponent());
 
 export default moduleName;

@@ -10,7 +10,7 @@ export class ApplicationDataSourceRegistry {
   private dataSources: DataSourceConfig[] = [];
   private dataSourceOrder: string[] = [];
 
-  setDataSourceOrder(keys: string[]): void {
+  public setDataSourceOrder(keys: string[]): void {
     this.dataSourceOrder = keys;
     this.sortDataSources();
   }
@@ -28,12 +28,12 @@ export class ApplicationDataSourceRegistry {
     this.dataSources.sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key));
   }
 
-  registerDataSource(config: any): void {
+  public registerDataSource(config: any): void {
     this.dataSources.push(new DataSourceConfig(config));
     this.sortDataSources();
   }
 
-  getDataSources(): DataSourceConfig[] {
+  public getDataSources(): DataSourceConfig[] {
     return _.cloneDeep(this.dataSources);
   }
 }
