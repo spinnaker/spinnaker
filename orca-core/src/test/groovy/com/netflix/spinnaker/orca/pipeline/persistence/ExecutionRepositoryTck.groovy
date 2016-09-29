@@ -635,5 +635,37 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     retrieved.isEmpty()
   }
 
+  def "should remove null 'stage' keys"() {
+    given:
+    def pipeline = Pipeline
+      .builder()
+      .withApplication("orca")
+      .withName("dummy-pipeline")
+      .withStage("one", "one", [foo: "foo"])
+      .build()
 
+    pipeline.stages[0].startTime = 100
+    pipeline.stages[0].endTime = 200
+
+    repository.store(pipeline)
+
+    when:
+    def fetchedPipeline = repository.retrievePipeline(pipeline.id)
+
+    then:
+    fetchedPipeline.stages[0].startTime == 100
+    fetchedPipeline.stages[0].endTime == 200
+
+    when:
+    fetchedPipeline.stages[0].startTime = null
+    fetchedPipeline.stages[0].endTime = null
+    repository.storeStage(fetchedPipeline.stages[0])
+
+    fetchedPipeline = repository.retrievePipeline(pipeline.id)
+
+    then:
+    fetchedPipeline.stages[0].startTime == null
+    fetchedPipeline.stages[0].endTime == null
+
+  }
 }

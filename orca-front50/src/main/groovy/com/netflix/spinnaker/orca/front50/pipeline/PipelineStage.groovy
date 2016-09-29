@@ -54,8 +54,8 @@ class PipelineStage extends LinearStage implements RestartableStage, Cancellable
   }
 
   @Override
-  Stage prepareStageForRestart(Stage stage) {
-    stage = super.prepareStageForRestart(stage)
+  Stage prepareStageForRestart(ExecutionRepository executionRepository, Stage stage) {
+    stage = super.prepareStageForRestart(executionRepository, stage)
     stage.startTime = null
     stage.endTime = null
 

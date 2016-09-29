@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.batch.RestartableStage
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.batch.core.Step
@@ -48,8 +49,8 @@ class ManualJudgmentStage extends LinearStage implements RestartableStage, Authe
   }
 
   @Override
-  Stage prepareStageForRestart(Stage stage) {
-    stage = super.prepareStageForRestart(stage)
+  Stage prepareStageForRestart(ExecutionRepository executionRepository, Stage stage) {
+    stage = super.prepareStageForRestart(executionRepository, stage)
 
     stage.context.remove("judgmentStatus")
     stage.context.remove("lastModifiedBy")

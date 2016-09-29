@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.igor.tasks.StartJenkinsJobTask
 import com.netflix.spinnaker.orca.igor.tasks.StopJenkinsJobTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.batch.core.Step
@@ -53,8 +54,8 @@ class JenkinsStage extends LinearStage implements RestartableStage, CancellableS
   }
 
   @Override
-  Stage prepareStageForRestart(Stage stage) {
-    stage = super.prepareStageForRestart(stage)
+  Stage prepareStageForRestart(ExecutionRepository executionRepository, Stage stage) {
+    stage = super.prepareStageForRestart(executionRepository, stage)
     stage.startTime = null
     stage.endTime = null
 

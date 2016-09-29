@@ -6,7 +6,8 @@ import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.Task
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import org.springframework.context.ApplicationContext
 import spock.lang.Specification
 
 /*
@@ -29,7 +30,7 @@ class AcaTaskStageSpec extends Specification {
 
   def "restart aca task should cancel cancel off the original canary and clean up the stage context"() {
     given:
-
+    def executionRepository = Mock(ExecutionRepository)
     def pipeline = new Pipeline().builder().build()
 
     def canary = [
@@ -67,12 +68,12 @@ class AcaTaskStageSpec extends Specification {
           status: "CANCELED"
         ),
     ]
-    AcaTaskStage acaTaskStage = new AcaTaskStage()
+    AcaTaskStage acaTaskStage = new AcaTaskStage(applicationContext: Stub(ApplicationContext))
     MineService mineService = Mock()
     acaTaskStage.mineService = mineService
 
     when:
-    Stage result = acaTaskStage.prepareStageForRestart(stage)
+    Stage result = acaTaskStage.prepareStageForRestart(executionRepository, stage)
 
     then: "canary should be copied to the restart details"
     result.context.restartDetails.previousCanary == canary

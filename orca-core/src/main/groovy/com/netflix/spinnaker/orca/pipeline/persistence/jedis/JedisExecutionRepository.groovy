@@ -512,7 +512,10 @@ class JedisExecutionRepository implements ExecutionRepository {
   private <T extends Execution> void storeStageInternal(Jedis jedis, Class<T> type, Stage<T> stage) {
     def prefix = type.simpleName.toLowerCase()
     def key = "$prefix:$stage.execution.id"
-    jedis.hmset(key, filterValues(serializeStage(stage), notNull()))
+
+    def serializedStage = serializeStage(stage)
+    jedis.hmset(key, filterValues(serializedStage, notNull()))
+    jedis.hdel(key, serializedStage.keySet().findAll { serializedStage[it] == null } as String[])
   }
 
   @CompileDynamic

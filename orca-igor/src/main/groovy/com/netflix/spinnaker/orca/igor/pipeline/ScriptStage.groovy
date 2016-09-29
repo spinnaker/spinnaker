@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.igor.tasks.MonitorQueuedJenkinsJobTask
 import com.netflix.spinnaker.orca.igor.tasks.StartScriptTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
@@ -46,8 +47,8 @@ class ScriptStage extends LinearStage implements RestartableStage {
   }
 
   @Override
-  Stage prepareStageForRestart(Stage stage) {
-    stage = super.prepareStageForRestart(stage)
+  Stage prepareStageForRestart(ExecutionRepository executionRepository, Stage stage) {
+    stage = super.prepareStageForRestart(executionRepository, stage)
     stage.startTime = null
     stage.endTime = null
 
