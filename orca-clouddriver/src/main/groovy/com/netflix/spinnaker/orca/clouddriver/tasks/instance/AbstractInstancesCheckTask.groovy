@@ -39,7 +39,6 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
   long backoffPeriod = TimeUnit.SECONDS.toMillis(10)
   long timeout = TimeUnit.HOURS.toMillis(2)
   long serverGroupWaitTime = TimeUnit.MINUTES.toMillis(10)
-  Long serverGroupReportedMissing = null
 
   @Autowired
   OortService oortService
@@ -135,9 +134,10 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
       } catch (MissingServerGroupException e) {
         if (waitForUpServerGroup()) {
           def now = System.currentTimeMillis()
-          if (serverGroupReportedMissing == null) {
-            serverGroupReportedMissing = now
-          } else if (now - serverGroupReportedMissing > serverGroupWaitTime) {
+          def runningTask = stage.tasks.find { task -> task.status == ExecutionStatus.RUNNING }
+          if (!runningTask) {
+            throw new IllegalStateException("Unable to find currently running task. This is likely a problem with Spinnaker itself.")
+          } else if (now - runningTask.startTime > serverGroupWaitTime) {
             log.info "Waited over ${TimeUnit.MILLISECONDS.toMinutes(serverGroupWaitTime)} minutes for the server group to appear."
             throw e
           }
