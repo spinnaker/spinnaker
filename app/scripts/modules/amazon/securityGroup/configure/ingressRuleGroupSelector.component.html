@@ -1,6 +1,6 @@
 <span class="form-control-static" ng-if="$ctrl.rule.existing">
   <account-tag account="$ctrl.rule.accountName" ng-if="$ctrl.rule.accountName !== $ctrl.securityGroup.accountName"></account-tag>
-  {{$ctrl.rule.name}}
+  {{$ctrl.rule.name || $ctrl.rule.id}}
 </span>
 
 <div ng-if="$ctrl.rule.crossAccountEnabled && $ctrl.securityGroup.regions.length === 1" class="cross-account-select">

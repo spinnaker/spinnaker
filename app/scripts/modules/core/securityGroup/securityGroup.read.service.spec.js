@@ -89,8 +89,11 @@ describe('Service: securityGroupReader', function () {
 
     expect(details.securityGroupRules.length).toBe(3);
     expect(details.securityGroupRules[0].securityGroup.name).toBe('sg-345');
+    expect(details.securityGroupRules[0].securityGroup.inferredName).toBe(true);
     expect(details.securityGroupRules[1].securityGroup.name).toBe('matched');
+    expect(details.securityGroupRules[1].securityGroup.inferredName).toBeFalsy();
     expect(details.securityGroupRules[2].securityGroup.name).toBe('matched-prod');
+    expect(details.securityGroupRules[2].securityGroup.inferredName).toBeFalsy();
   });
 
   it('should clear cache, then reload security groups and try again if a security group is not found', function () {

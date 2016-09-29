@@ -55,7 +55,7 @@ module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
             accountId: rule.securityGroup.accountId,
             vpcId: vpcId,
             id: rule.securityGroup.id,
-            name: rule.securityGroup.name,
+            name: rule.securityGroup.inferredName ? null : rule.securityGroup.name,
             type: rule.protocol,
             startPort: portRange.startPort,
             endPort: portRange.endPort,
@@ -85,9 +85,21 @@ module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
     $scope.taskMonitor.onApplicationRefresh = $uibModalInstance.dismiss;
 
     this.upsert = function () {
+
+      let group = $scope.securityGroup;
+      let command = {
+        credentials: group.accountName,
+        name: group.name,
+        description: group.description,
+        vpcId: group.vpcId,
+        region: group.region,
+        securityGroupIngress: group.securityGroupIngress,
+        ipIngress: group.ipIngress
+      };
+
       $scope.taskMonitor.submit(
         function() {
-          return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Update');
+          return securityGroupWriter.upsertSecurityGroup(command, application, 'Update');
         }
       );
     };
