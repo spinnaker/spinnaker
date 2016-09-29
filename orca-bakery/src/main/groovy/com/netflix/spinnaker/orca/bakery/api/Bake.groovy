@@ -33,6 +33,7 @@ import groovy.transform.ToString
 class Bake {
   String id
   String ami
+  String amiName
   String imageName
   // TODO(duftler): Add a cloudProviderType property here? Will be straightforward once rosco is backed by redis.
 }

@@ -46,8 +46,8 @@ class CompletedBakeTask implements Task {
      * Problem with "imageName" is that docker images have two components - imageName and imageVersion,
      * so "imageName" is not really a unique identifier. - sthadeshwar
      */
-    if (bake.imageName) {
-      results.imageName = bake.imageName
+    if (bake.imageName || bake.amiName) {
+      results.imageName = bake.imageName ?: bake.amiName
     }
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, results)
   }
