@@ -53,13 +53,7 @@ class SearchController {
       searchProviders.findAll { it.platform == q.platform } :
       searchProviders
 
-    List<SearchResultSet> results = providers.collect {
-      if (q.type && !q.type.isEmpty()) {
-        it.search(q.q, q.type, q.page, q.pageSize, q.filter)
-      } else {
-        it.search(q.q, q.page, q.pageSize, q.filter)
-      }
-    }
+    List<SearchResultSet> results = searchAllProviders(providers, q)
 
     if (results.size() == 1) {
       results
@@ -77,6 +71,23 @@ class SearchController {
         query: q.q,
         results: allResults)]
     }
+  }
+
+  List<SearchResultSet> searchAllProviders(List<SearchProvider> providers, SearchQueryCommand searchQueryCommand) {
+    List<SearchResultSet> results = providers.collect {
+      try {
+        if (searchQueryCommand.type && !searchQueryCommand.type.isEmpty()) {
+          it.search(searchQueryCommand.q, searchQueryCommand.type, searchQueryCommand.page, searchQueryCommand.pageSize, searchQueryCommand.filter)
+        } else {
+          it.search(searchQueryCommand.q, searchQueryCommand.page, searchQueryCommand.pageSize, searchQueryCommand.filter)
+        }
+      } catch (Exception e) {
+        log.warn("search for '${searchQueryCommand.q}' in  '${it.platform}' failed with : ${e.getCause().getMessage()}")
+        new SearchResultSet(totalMatches: 0, results: [])
+      }
+    }
+
+    results
   }
 
   static class SearchQueryCommand {
