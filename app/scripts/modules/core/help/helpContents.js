@@ -129,6 +129,10 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'gce.httpLoadBalancer.pathRule.paths': 'For example, <b>/path</b> in <b>example.com/path</b>',
     'gce.httpLoadBalancer.port': 'HTTP requests can be load balanced based on port 80 or port 8080. HTTPS requests can be load balanced on port 443.',
     'gce.httpLoadBalancer.certificate': 'The name of an SSL certificate. If specified, Spinnaker will create an HTTPS load balancer.',
+    'gce.httpLoadBalancer.namedPort': `
+      Incoming traffic is directed through a named port (for Spinnaker, the named port is <b>http</b>).
+      The mapping from named port to port number is specified per server group
+      and can be configured within the server group creation dialogue under <b>Port Name Mapping</b>.`,
     'gce.serverGroup.resizeWithAutoscalingPolicy': `
       Setting the desired instance count for a server group with an autoscaler is not supported by Spinnaker;
       if the desired instance count differs from the instance count that the autoscaler wants to maintain for its configured metrics,

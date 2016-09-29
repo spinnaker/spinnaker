@@ -109,6 +109,7 @@
           {{listener.listener.protocol}}:{{listener.listener.loadBalancerPort}}
           &rarr;
           {{listener.listener.instanceProtocol}}:{{listener.listener.instancePort}}
+            <help-field ng-if="ctrl.isElSeven(loadBalancer)" key="gce.httpLoadBalancer.namedPort"></help-field>
         </dd>
       </dl>
     </collapsible-section>
