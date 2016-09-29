@@ -50,6 +50,27 @@ class SearchControllerSpec extends Specification {
     searchResultSets == [expected]
   }
 
+  def 'should not fail all searches if any provider fail'() {
+    given:
+    SearchResultSet rsB = new SearchResultSet(platform: 'b', totalMatches: 1, pageSize: 10, pageNumber: 1, query: 'aBC', results: [[item2: 'bar']])
+    SearchResultSet expected = new SearchResultSet(platform: 'aws', totalMatches: 1, pageSize: 10, pageNumber: 1, query: 'aBC', results: [[item2: 'bar']])
+
+    and:
+    SearchController.SearchQueryCommand queryCommand = new SearchController.SearchQueryCommand(q:'aBC', page: 1, pageSize: 10)
+
+    when:
+    List searchResultSets = searchController.search(queryCommand)
+
+    then:
+    1 * searchProviderA.search(queryCommand.q, queryCommand.page, queryCommand.pageSize, null) >> {
+      throw new Exception("An exception message")
+    }
+
+    1 * searchProviderB.search(queryCommand.q, queryCommand.page, queryCommand.pageSize, null) >> rsB
+    searchResultSets == [expected]
+    notThrown(Exception)
+  }
+
   def 'filter search providers by platform'() {
     given:
     SearchResultSet resultSetA = Stub(SearchResultSet)
