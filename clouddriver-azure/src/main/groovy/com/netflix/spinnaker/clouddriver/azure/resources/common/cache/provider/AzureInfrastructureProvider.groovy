@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 
 import static com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys.Namespace.SECURITY_GROUPS
+import static com.netflix.spinnaker.clouddriver.cache.SearchableProvider.SearchableResource
 
 @ConditionalOnProperty('azure.enabled')
 class AzureInfrastructureProvider extends AgentSchedulerAware implements SearchableProvider {
@@ -53,7 +54,7 @@ class AzureInfrastructureProvider extends AgentSchedulerAware implements Searcha
     (SECURITY_GROUPS.ns): '/securityGroups/$account/$provider/$name?region=$region'
   ]
 
-  final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators = Collections.emptyMap()
+  final Map<SearchableResource, SearchableProvider.SearchResultHydrator> searchResultHydrators = Collections.emptyMap()
 
   @Override
   Map<String, String> parseKey(String key) {

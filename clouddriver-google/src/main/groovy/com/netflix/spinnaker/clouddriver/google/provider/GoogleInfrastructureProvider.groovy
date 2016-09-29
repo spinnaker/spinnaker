@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import groovy.json.JsonOutput
 
+import static com.netflix.spinnaker.clouddriver.cache.SearchableProvider.SearchableResource
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
 class GoogleInfrastructureProvider extends AgentSchedulerAware implements SearchableProvider {
@@ -51,10 +52,10 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
       (SECURITY_GROUPS.ns): '/securityGroups/$account/$provider/$name?region=$region'
   ]
 
-  final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators = [
-    (BACKEND_SERVICES.ns): new BackendServiceResultHydrator(),
-    (HTTP_HEALTH_CHECKS.ns): new HttpHealthCheckResultHydrator(),
-    (INSTANCES.ns): new InstanceSearchResultHydrator()
+  final Map<SearchableResource, SearchableProvider.SearchResultHydrator> searchResultHydrators = [
+    (new GoogleSearchableResource(BACKEND_SERVICES.ns)): new BackendServiceResultHydrator(),
+    (new GoogleSearchableResource(HTTP_HEALTH_CHECKS.ns)): new HttpHealthCheckResultHydrator(),
+    (new GoogleSearchableResource(INSTANCES.ns)): new InstanceSearchResultHydrator()
   ]
 
   @Override
@@ -100,6 +101,13 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
           cluster: serverGroup.cluster as String,
           serverGroup: serverGroup.serverGroup as String
       ]
+    }
+  }
+
+  private static class GoogleSearchableResource extends SearchableResource {
+    public GoogleSearchableResource(String resourceType) {
+      this.resourceType = resourceType.toLowerCase()
+      this.platform = 'gce'
     }
   }
 }

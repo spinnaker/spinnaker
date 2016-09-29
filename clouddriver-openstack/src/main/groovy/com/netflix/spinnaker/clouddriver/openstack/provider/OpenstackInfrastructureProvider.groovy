@@ -31,6 +31,8 @@ import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.L
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SECURITY_GROUPS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SERVER_GROUPS
 
+import static com.netflix.spinnaker.clouddriver.cache.SearchableProvider.SearchableResource
+
 @ConditionalOnProperty('openstack.enabled')
 class OpenstackInfrastructureProvider extends AgentSchedulerAware implements SearchableProvider {
   public static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
@@ -56,7 +58,7 @@ class OpenstackInfrastructureProvider extends AgentSchedulerAware implements Sea
   //TODO - Need to define urlMappingTemplates
   final Map<String, String> urlMappingTemplates = Collections.emptyMap()
   //TODO - Need to define (if applicable)
-  final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators = Collections.emptyMap()
+  final Map<SearchableResource, SearchableProvider.SearchResultHydrator> searchResultHydrators = Collections.emptyMap()
 
   @Override
   Map<String, String> parseKey(String key) {

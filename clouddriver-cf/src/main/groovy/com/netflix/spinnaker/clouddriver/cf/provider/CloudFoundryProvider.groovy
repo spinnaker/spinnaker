@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.cf.cache.Keys
 
 import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.CLUSTERS
 import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.SERVER_GROUPS
+import static com.netflix.spinnaker.clouddriver.cache.SearchableProvider.SearchableResource
 
 class CloudFoundryProvider extends AgentSchedulerAware implements SearchableProvider {
 
@@ -50,7 +51,7 @@ class CloudFoundryProvider extends AgentSchedulerAware implements SearchableProv
       (CLUSTERS.ns): '/applications/${application.toLowerCase()}/clusters/$account/$cluster'
   ].asImmutable()
 
-  final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators = Collections.emptyMap()
+  final Map<SearchableResource, SearchableProvider.SearchResultHydrator> searchResultHydrators = Collections.emptyMap()
 
   @Override
   Map<String, String> parseKey(String key) {

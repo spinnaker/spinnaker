@@ -29,6 +29,8 @@ import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 
+import static com.netflix.spinnaker.clouddriver.cache.SearchableProvider.SearchableResource
+
 @Component
 class CatsSearchProvider implements SearchProvider {
 
@@ -37,7 +39,7 @@ class CatsSearchProvider implements SearchProvider {
   private final Cache cacheView
   private final List<SearchableProvider> providers
   private final List<String> defaultCaches
-  private final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators
+  private final Map<SearchableResource, SearchableProvider.SearchResultHydrator> searchResultHydrators
 
   private final Map<String, Template> urlMappings
 
@@ -87,7 +89,6 @@ class CatsSearchProvider implements SearchProvider {
     types = defaultCaches.intersect(types)
 
     List<String> matches = findMatches(query, types, filters)
-
     if (permissionEvaluator) {
       Authentication auth = SecurityContextHolder.context.authentication
 
@@ -103,7 +104,6 @@ class CatsSearchProvider implements SearchProvider {
         return canView ? key : null
       }
     }
-
     generateResultSet(query, matches, pageNumber, pageSize)
   }
 
@@ -112,7 +112,12 @@ class CatsSearchProvider implements SearchProvider {
     List<Map<String, String>> results = resultPage.findResults { String key ->
       Map<String, String> result = providers.findResult { it.parseKey(key) }
       if (result) {
-        return searchResultHydrators.containsKey(result.type) ? searchResultHydrators[result.type].hydrateResult(cacheView, result, key) : result
+        def resultResource = new SearchableResource(resourceType: result.type.toLowerCase(), platform: result.provider.toLowerCase())
+        if (resultResource in searchResultHydrators) {
+          return searchResultHydrators[(resultResource)].hydrateResult(cacheView, result, key)
+        } else {
+          return result
+        }
       }
       return null
     }

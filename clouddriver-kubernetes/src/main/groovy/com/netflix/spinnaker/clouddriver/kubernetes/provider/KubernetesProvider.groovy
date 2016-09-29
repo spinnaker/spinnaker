@@ -22,6 +22,8 @@ import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
 
+import static com.netflix.spinnaker.clouddriver.cache.SearchableProvider.SearchableResource
+
 class KubernetesProvider extends AgentSchedulerAware implements SearchableProvider {
   public static final String PROVIDER_NAME = KubernetesProvider.name
 
@@ -48,7 +50,7 @@ class KubernetesProvider extends AgentSchedulerAware implements SearchableProvid
     return PROVIDER_NAME
   }
 
-  final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators = Collections.emptyMap()
+  final Map<SearchableResource, SearchableProvider.SearchResultHydrator> searchResultHydrators = Collections.emptyMap()
 
   @Override
   Map<String, String> parseKey(String key) {

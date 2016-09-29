@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 
 import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.SECURITY_GROUPS
+import static com.netflix.spinnaker.clouddriver.cache.SearchableProvider.SearchableResource
 
 class AwsInfrastructureProvider extends AgentSchedulerAware implements SearchableProvider {
   public static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
@@ -51,7 +52,7 @@ class AwsInfrastructureProvider extends AgentSchedulerAware implements Searchabl
     (SECURITY_GROUPS.ns): '/securityGroups/$account/$provider/$name?region=$region'
   ]
 
-  final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators = Collections.emptyMap()
+  final Map<SearchableResource, SearchableProvider.SearchResultHydrator> searchResultHydrators = Collections.emptyMap()
 
   @Override
   Map<String, String> parseKey(String key) {

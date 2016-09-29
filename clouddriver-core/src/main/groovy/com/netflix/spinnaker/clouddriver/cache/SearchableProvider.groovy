@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.cache
 
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.provider.Provider
+import groovy.transform.Canonical
 
 interface SearchableProvider extends Provider {
 
@@ -36,7 +37,7 @@ interface SearchableProvider extends Provider {
   /**
    * SearchResultHydrators for cache types
    */
-  Map<String, SearchResultHydrator> getSearchResultHydrators()
+  Map<SearchableResource, SearchResultHydrator> getSearchResultHydrators()
 
   /**
    * The parts of the key, if this Provider supports keys of this type, otherwise null.
@@ -48,5 +49,20 @@ interface SearchableProvider extends Provider {
    */
   public static interface SearchResultHydrator {
     Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id)
+  }
+
+  @Canonical
+  public static class SearchableResource {
+    /**
+     * Lowercase name of a resource type.
+     * e.g. 'instances', 'load_balancers'
+     */
+    String resourceType
+
+    /**
+     * Lowercase name of the platform.
+     * e.g. 'aws', 'gce'
+     */
+    String platform
   }
 }

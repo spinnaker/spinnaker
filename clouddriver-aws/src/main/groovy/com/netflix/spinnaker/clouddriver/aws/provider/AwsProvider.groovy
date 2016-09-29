@@ -27,7 +27,9 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.core.provider.agent.HealthProvidingCachingAgent
 import java.util.regex.Pattern
+
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
+import static com.netflix.spinnaker.clouddriver.cache.SearchableProvider.SearchableResource
 
 class AwsProvider extends AgentSchedulerAware implements SearchableProvider, EurekaAwareProvider {
 
@@ -48,8 +50,8 @@ class AwsProvider extends AgentSchedulerAware implements SearchableProvider, Eur
     (CLUSTERS.ns)      : '/applications/${application.toLowerCase()}/clusters/$account/$cluster'
   ].asImmutable()
 
-  final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators = [
-    (INSTANCES.ns): new InstanceSearchResultHydrator()
+  final Map<SearchableResource, SearchableProvider.SearchResultHydrator> searchResultHydrators = [
+    (new AmazonSearchableResource(INSTANCES.ns)): new InstanceSearchResultHydrator(),
   ]
 
   final Collection<Agent> agents
@@ -137,4 +139,10 @@ class AwsProvider extends AgentSchedulerAware implements SearchableProvider, Eur
     }?.name
   }
 
+  private static class AmazonSearchableResource extends SearchableResource {
+    public AmazonSearchableResource(String resourceType) {
+      this.resourceType = resourceType.toLowerCase()
+      this.platform = 'aws'
+    }
+  }
 }
