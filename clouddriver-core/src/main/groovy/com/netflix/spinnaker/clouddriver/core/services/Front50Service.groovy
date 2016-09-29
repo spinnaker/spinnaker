@@ -35,7 +35,10 @@ interface Front50Service {
   Map getProject(@Path('project') String project)
 
   @GET('/v2/projects/search')
-  HalList searchForProjects(@Query("q") String query)
+  HalList legacySearchForProjects(@Query("q") String query) //TODO: remove this once front50 is live
+
+  @GET('/v2/projects/search')
+  List<Map> searchForProjects(@Query("q") String query)
 
   @POST('/snapshots')
   Response saveSnapshot(@Body Map snapshot)
