@@ -136,6 +136,10 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
     Directory service = getDirectoryService();
     try {
       Groups groups = service.groups().list().setDomain(config.getDomain()).setUserKey(userEmail).execute();
+      if (groups == null || groups.getGroups() == null || groups.getGroups().isEmpty()) {
+        return Collections.emptyList();
+      }
+
       return groups
           .getGroups()
           .stream()
