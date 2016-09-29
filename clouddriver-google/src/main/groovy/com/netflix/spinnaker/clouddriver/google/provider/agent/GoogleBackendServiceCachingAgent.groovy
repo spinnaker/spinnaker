@@ -68,6 +68,7 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
         attributes.name = backendService.name
         attributes.healthCheckLink = backendService.healthChecks[0]
         attributes.sessionAffinity = backendService.sessionAffinity
+        attributes.affinityCookieTtlSec = backendService.affinityCookieTtlSec
       }
     }
 

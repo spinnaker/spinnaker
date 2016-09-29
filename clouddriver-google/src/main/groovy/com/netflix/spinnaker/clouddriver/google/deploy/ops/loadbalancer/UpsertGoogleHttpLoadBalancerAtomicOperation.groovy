@@ -202,7 +202,8 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
 
         Boolean differentHealthChecks = existingService.getHealthChecks().collect { GCEUtil.getLocalName(it) } != [backendService.healthCheck.name]
         Boolean differentSessionAffinity = GoogleSessionAffinity.valueOf(existingService.getSessionAffinity()) != backendService.sessionAffinity
-        if (differentHealthChecks || differentSessionAffinity) {
+        Boolean differentSessionCookieTtl = existingService.getAffinityCookieTtlSec() != backendService.affinityCookieTtlSec
+        if (differentHealthChecks || differentSessionAffinity || differentSessionCookieTtl) {
           serviceNeedsUpdatedSet.add(backendService.name)
         }
       }
@@ -259,7 +260,8 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
           name: backendServiceName,
           portName: GoogleHttpLoadBalancingPolicy.HTTP_PORT_NAME,
           healthChecks: [GCEUtil.buildHttpHealthCheckUrl(project, backendService.healthCheck.name)],
-          sessionAffinity: sessionAffinity
+          sessionAffinity: sessionAffinity,
+          affinityCookieTtlSec: backendService.affinityCookieTtlSec
         )
         def insertBackendServiceOperation = compute.backendServices().insert(project, bs).execute()
         googleOperationPoller.waitForGlobalOperation(compute, project, insertBackendServiceOperation.getName(),
@@ -272,6 +274,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
         bsToUpdate.portName = GoogleHttpLoadBalancingPolicy.HTTP_PORT_NAME
         bsToUpdate.healthChecks = [GCEUtil.buildHttpHealthCheckUrl(project, hcName)]
         bsToUpdate.sessionAffinity = sessionAffinity
+        bsToUpdate.affinityCookieTtlSec = backendService.affinityCookieTtlSec
 
         def updateServiceOperation = compute.backendServices().update(project, backendServiceName, bsToUpdate).execute()
         googleOperationPoller.waitForGlobalOperation(compute, project, updateServiceOperation.getName(),

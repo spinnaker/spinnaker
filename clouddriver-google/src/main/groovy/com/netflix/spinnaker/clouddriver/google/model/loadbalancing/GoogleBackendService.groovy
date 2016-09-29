@@ -26,5 +26,6 @@ class GoogleBackendService {
   GoogleHealthCheck healthCheck
   List<GoogleLoadBalancedBackend> backends
   GoogleSessionAffinity sessionAffinity
+  Integer affinityCookieTtlSec
   // TODO(jacobkiefer): Add 'loadBalancingScheme' when we support ILB.
 }
