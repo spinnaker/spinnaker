@@ -892,6 +892,60 @@ class GCEUtil {
     return loadBalancerNames
   }
 
+  /**
+   * Deletes an L7 global listener, i.e. a global forwarding rule and its target proxy.
+   * @param compute
+   * @param project
+   * @param forwardingRuleName - Name of global forwarding rule to delete (along with its target proxy).
+   */
+  static void deleteGlobalListener(Compute compute, String project, String forwardingRuleName) {
+    SafeRetry<ForwardingRule> ruleGetRetry = new SafeRetry<ForwardingRule>()
+    SafeRetry<Void> proxyDeleteRetry = new SafeRetry<Void>()
+    ForwardingRule ruleToDelete = ruleGetRetry.doRetry(
+      { compute.globalForwardingRules().get(project, forwardingRuleName).execute() },
+      'get',
+      "global forwarding rule ${forwardingRuleName}",
+      null,
+      null,
+      [400, 412],
+      [404]
+    )
+    if (ruleToDelete) {
+      compute.globalForwardingRules().delete(project, ruleToDelete.getName()).execute()
+      String targetProxyLink = ruleToDelete.getTarget()
+      String targetProxyName = getLocalName(targetProxyLink)
+      String targetProxyType = Utils.getTargetProxyType(targetProxyLink)
+      Closure deleteProxyClosure = { null }
+      switch (targetProxyType) {
+        case "targetHttpProxies":
+          deleteProxyClosure = {
+            compute.targetHttpProxies().delete(project, targetProxyName)
+            null
+          }
+          break
+        case "targetHttpsProxies":
+          deleteProxyClosure = {
+            compute.targetHttpsProxies().delete(project, targetProxyName)
+            null
+          }
+          break
+        default:
+          log.warn("Unexpected target proxy type for $targetProxyName.")
+          break
+      }
+
+      proxyDeleteRetry.doRetry(
+        deleteProxyClosure,
+        'delete',
+        "target http proxy ${targetProxyName}",
+        null,
+        null,
+        [400, 412],
+        [404]
+      )
+    }
+  }
+
   static Firewall buildFirewallRule(String accountName,
                                     UpsertGoogleSecurityGroupDescription securityGroupDescription,
                                     Task task,

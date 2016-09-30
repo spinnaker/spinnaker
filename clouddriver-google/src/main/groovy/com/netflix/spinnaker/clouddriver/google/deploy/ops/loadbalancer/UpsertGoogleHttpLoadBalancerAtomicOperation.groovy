@@ -153,9 +153,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
           break
         case "targetHttpsProxies":
           existingProxy = compute.targetHttpsProxies().get(project, targetProxyName).execute()
-          targetProxyNeedsUpdated = httpLoadBalancer.certificate ?
-            GCEUtil.getLocalName(existingProxy?.getSslCertificates()[0]) != GCEUtil.getLocalName(GCEUtil.buildCertificateUrl(project, httpLoadBalancer.certificate)) :
-            false // We shouldn't downgrade the proxy if a cert is absent in the request.
+          if (!httpLoadBalancer.certificate) {
+            throw new IllegalArgumentException("${httpLoadBalancerName} is an Https load balancer, but the upsert description does not contain a certificate.")
+          }
+          targetProxyNeedsUpdated = GCEUtil.getLocalName(existingProxy?.getSslCertificates()[0]) != GCEUtil.getLocalName(GCEUtil.buildCertificateUrl(project, httpLoadBalancer.certificate))
           break
         default:
           log.warn("Unexpected target proxy type for $targetProxyName.")
@@ -435,6 +436,12 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
     // Cleanup in case we switched types of TargetProxies.
     if (deleteExistingProxy) {
       compute.targetHttpProxies().delete(project, existingProxy.getName()).execute()
+    }
+
+    // Delete extraneous listeners.
+    description.listenersToDelete?.each { String forwardingRuleName ->
+      task.updateStatus BASE_PHASE, "Deleting listener ${forwardingRuleName}..."
+      GCEUtil.deleteGlobalListener(compute, project, forwardingRuleName)
     }
 
     task.updateStatus BASE_PHASE, "Done upserting HTTP load balancer $httpLoadBalancerName"

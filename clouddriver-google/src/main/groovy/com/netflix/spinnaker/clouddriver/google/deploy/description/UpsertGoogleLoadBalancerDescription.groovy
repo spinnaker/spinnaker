@@ -36,6 +36,7 @@ class UpsertGoogleLoadBalancerDescription extends AbstractGoogleCredentialsDescr
   GoogleBackendService defaultService
   List<GoogleHostRule> hostRules
   String certificate
+  List<String> listenersToDelete
 
   GoogleLoadBalancerType loadBalancerType
 
