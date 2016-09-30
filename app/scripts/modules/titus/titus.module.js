@@ -40,6 +40,7 @@ module.exports = angular.module('spinnaker.titus', [
       },
       securityGroup: {
         reader: 'titusSecurityGroupReader',
+        useProvider: 'aws'
       },
       instance: {
         detailsTemplateUrl: require('./instance/details/instanceDetails.html'),
