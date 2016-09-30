@@ -41,8 +41,8 @@ module.exports = angular
         var hardConstraints = '' + command.hardConstraints;
         command.hardConstraints = hardConstraints.split(/\s*,\s*/);
       }
-      if (command.softConstraints === '') {
-        delete command.softConstraints;
+      if (command.hardConstraints === '') {
+        delete command.hardConstraints;
       }
       if (command.resources.allocateIpAddress === true) {
         delete command.resources.ports;
