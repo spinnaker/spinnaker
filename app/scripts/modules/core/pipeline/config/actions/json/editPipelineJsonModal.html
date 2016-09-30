@@ -1,14 +1,16 @@
 <div modal-page class="flex-fill">
   <modal-close></modal-close>
   <div class="modal-header">
-    <h3>Edit {{isStrategy === true ? 'Strategy' : 'Pipeline'}} JSON</h3>
+    <h3><span ng-if="!command.locked">Edit </span>{{isStrategy === true ? 'Strategy' : 'Pipeline'}} JSON</h3>
   </div>
   <div class="modal-body flex-fill">
     <div class="row">
       <div class="col-md-12">
         <p>
           The JSON below represents the {{isStrategy === true ? 'strategy' : 'pipeline'}} configuration in its persisted state.
-          You can change it here or use this to quickly copy a {{isStrategy === true ? 'strategy' : 'pipeline'}}.
+          <span ng-if="!command.locked">
+            You can change it here or use this to quickly copy a {{isStrategy === true ? 'strategy' : 'pipeline'}}.
+          </span>
         </p>
       </div>
     </div>
@@ -17,7 +19,7 @@
         <textarea class="code form-control flex-fill" ng-model="command.pipelineJSON"></textarea>
       </div>
     </form>
-    <div class="row">
+    <div class="row" ng-if="!command.locked">
       <div class="col-md-12">
         <p>
           <strong>Note:</strong> Clicking "Update {{isStrategy === true ? 'Strategy' : 'Pipeline'}}" below will not save your changes to the server - it only
@@ -35,7 +37,8 @@
   <div class="modal-footer">
     <button class="btn btn-default" ng-click="editPipelineJsonModalCtrl.cancel()">Cancel</button>
     <button class="btn btn-primary"
-            ng-click="editPipelineJsonModalCtrl.updatePipeline()">
+            ng-click="editPipelineJsonModalCtrl.updatePipeline()"
+            ng-if="!command.locked">
       <span class="glyphicon glyphicon-ok-circle"></span> Update {{isStrategy === true ? 'Strategy' : 'Pipeline'}}
     </button>
   </div>

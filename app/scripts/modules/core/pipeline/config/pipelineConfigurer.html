@@ -7,11 +7,11 @@
       <a href class="nav-popover"
          ng-click="navMenuState.showMenu = !navMenuState.showMenu"
          ng-blur="pipelineConfigurerCtrl.hideNavigationMenu()">
-        {{pipeline.name}} <span ng-if="pipeline.disabled">(disabled)</span>
+        {{pipeline.name}}
+        <span ng-if="pipeline.disabled">(disabled)</span>
       </a>
       <pipeline-config-errors pipeline="pipeline"></pipeline-config-errors>
     </h3>
-
 
     <div class="permalink">
       <a target="_blank"
@@ -26,6 +26,9 @@
     </div>
     <div class="pipeline-actions text-right">
       <div ng-include="pipelineConfigurerCtrl.actionsTemplateUrl"></div>
+    </div>
+    <div class="band band-info" ng-if="pipeline.locked">
+      <span class="glyphicon glyphicon small glyphicon-lock"></span> This pipeline is locked and does not allow modification
     </div>
   </div>
   <div class="pipeline-contents">
@@ -88,7 +91,7 @@
 
     <div class="row pipeline-footer">
       <div class="col-md-3">
-        <button is-visible="viewState.isDirty" class="btn btn-default"
+        <button is-visible="!pipeline.locked && viewState.isDirty" class="btn btn-default"
                 analytics-on="click"
                 analytics-category="Pipeline Config"
                 analytics-event="Revert changes clicked"
@@ -103,7 +106,8 @@
              analytics-event="Error saving changes dismissed"
              ng-click="viewState.saveError = false">[dismiss]</a>
         </span>
-        <button ng-if="viewState.isDirty" ng-disabled="!pipelineConfigurerCtrl.isValid()" class="btn btn-primary"
+
+        <button ng-if="!pipeline.locked && viewState.isDirty" ng-disabled="!pipelineConfigurerCtrl.isValid()" class="btn btn-primary"
                 analytics-on="click"
                 analytics-category="Pipeline Config"
                 analytics-event="Save pipeline clicked"
@@ -115,7 +119,10 @@
             <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span> Saving&hellip;
           </span>
         </button>
-        <span ng-if="!viewState.isDirty" class="btn btn-link disabled"><span class="glyphicon glyphicon-ok-circle"></span> In sync with server</span>
+        <span ng-if="!pipeline.locked && !viewState.isDirty" class="btn btn-link disabled"><span class="glyphicon glyphicon-ok-circle"></span> In sync with server</span>
+        <span ng-if="pipeline.locked" class="btn btn-link disabled" uib-tooltip="This pipeline is locked and does not allow modification">
+          <span class="glyphicon glyphicon-lock"></span> Pipeline is locked
+        </span>
       </div>
 
     </div>

@@ -27,7 +27,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.editJson
       $scope.isStrategy = pipelineCopy.strategy || false;
 
       $scope.command = {
-        pipelineJSON: JSON.stringify(pipelineCopy, null, 2)
+        pipelineJSON: JSON.stringify(pipelineCopy, null, 2),
+        locked: pipelineCopy.locked,
       };
     };
 
