@@ -170,6 +170,30 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       $scope.pipeline.disabled = !$scope.pipeline.disabled;
     }
 
+    this.lockPipeline = () => {
+      $uibModal.open({
+        templateUrl: require('./actions/lock/lockPipelineModal.html'),
+        controller: 'LockPipelineModalCtrl as ctrl',
+        resolve: {
+          pipeline: () => original
+        }
+      }).result.then(function() {
+        $scope.pipeline.locked = original.locked;
+      })
+    };
+
+    this.unlockPipeline = () => {
+      $uibModal.open({
+        templateUrl: require('./actions/unlock/unlockPipelineModal.html'),
+        controller: 'unlockPipelineModalCtrl as ctrl',
+        resolve: {
+          pipeline: () => original
+        }
+      }).result.then(function () {
+        delete $scope.pipeline.locked;
+      })
+    };
+
     this.showHistory = () => {
       $uibModal.open({
         templateUrl: require('./actions/history/showHistory.modal.html'),
