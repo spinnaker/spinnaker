@@ -27,7 +27,6 @@ import com.netflix.spinnaker.fiat.providers.ResourceProvider
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider
-import org.springframework.hateoas.alps.Ext
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
