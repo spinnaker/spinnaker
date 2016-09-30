@@ -70,7 +70,8 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
       CacheData backendService  = cacheView.get(BACKEND_SERVICES.ns, id)
       return result + [
           healthCheckLink: backendService.attributes.healthCheckLink as String,
-          sessionAffinity: backendService.attributes.sessionAffinity as String
+          sessionAffinity: backendService.attributes.sessionAffinity as String,
+          affinityCookieTtlSec: backendService.attributes.affinityCookieTtlSec as String
       ]
     }
   }
