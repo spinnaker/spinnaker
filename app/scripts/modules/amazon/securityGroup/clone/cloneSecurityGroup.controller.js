@@ -20,6 +20,9 @@ module.exports = angular
       ingress: require('../configure/createSecurityGroupIngress.html'),
     };
 
+    securityGroup.credentials = securityGroup.accountName;
+    $scope.namePreview = securityGroup.name;
+
     angular.extend(this, $controller('awsConfigSecurityGroupMixin', {
       $scope: $scope,
       $uibModalInstance: $uibModalInstance,
