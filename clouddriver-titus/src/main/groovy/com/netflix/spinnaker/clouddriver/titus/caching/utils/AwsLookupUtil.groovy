@@ -80,10 +80,19 @@ class AwsLookupUtil {
     Map awsDetails = awsAccountLookup.find {
       it.titusAccount == account && it.region == region
     }
+    String applicationSecurityGroup
     RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider = regionScopedProviderFactory.forRegion(accountCredentialsProvider.all.find {
       it instanceof AmazonCredentials && it.name == awsDetails.awsAccount
     }, region)
-    regionScopedProvider.securityGroupService.createSecurityGroupWithVpcId(application, awsDetails.vpcId)
+    // check against the list of security groups to make sure we haven't just missed it in the cache
+    def securityGroups = regionScopedProvider.securityGroupService.getSecurityGroupIds([application], awsDetails.vpcId, false)
+    if (securityGroups[application]) {
+      applicationSecurityGroup = securityGroups[application]
+    }
+    if (!applicationSecurityGroup) {
+      applicationSecurityGroup = regionScopedProvider.securityGroupService.createSecurityGroupWithVpcId(application, awsDetails.vpcId)
+    }
+    applicationSecurityGroup
   }
 
   private String convertVpcNameToId(String awsAccount, String region, String name) {
@@ -102,13 +111,13 @@ class AwsLookupUtil {
       return null
     }
 
-    [name: awsSecurityGroupProvider.getById(awsDetails.awsAccount,
+    [name      : awsSecurityGroupProvider.getById(awsDetails.awsAccount,
       region,
       securityGroupId,
       awsDetails.vpcId
     )?.name,
      awsAccount: awsDetails.awsAccount,
-     vpcId: awsDetails.vpcId
+     vpcId     : awsDetails.vpcId
     ]
 
   }
