@@ -10,6 +10,7 @@
                         ng-model="$ctrl.model[dataSource.key]"
                         ng-change="$ctrl.dataSourceChanged(dataSource.key)"
           /> {{dataSource.label}}</label>
+          <p ng-if="dataSource.description" ng-bind-html="dataSource.description"></p>
         </div>
         <div class="row footer">
           <div class="col-md-3">

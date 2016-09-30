@@ -15,6 +15,7 @@ module.exports = angular
         key: 'properties',
         sref: '.propInsights.properties',
         optional: true,
+        description: 'Fast property management'
       }));
     }
 

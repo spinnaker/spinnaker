@@ -26,5 +26,6 @@ module.exports = angular
       providerField: 'provider',
       credentialsField: 'accountName',
       regionField: 'region',
+      description: 'Network traffic access management'
     }));
   });

@@ -33,5 +33,6 @@ module.exports = angular
       providerField: 'type',
       credentialsField: 'account',
       regionField: 'region',
+      description: 'Collections of server groups or jobs'
     }));
   });

@@ -26,5 +26,6 @@ module.exports = angular
       providerField: 'type',
       credentialsField: 'account',
       regionField: 'region',
+      description: 'Traffic distribution management between servers'
     }));
   });

@@ -15,6 +15,7 @@ module.exports = angular
         sref: '.analytics',
         optIn: true,
         optional: true,
+        description: 'Pipeline and task statistics'
       }));
     }
   });

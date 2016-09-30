@@ -55,6 +55,7 @@ module.exports = angular
         onLoad: addExecutions,
         lazy: true,
         badge: 'runningExecutions',
+        description: 'Orchestrated deployment management'
       }));
 
       applicationDataSourceRegistry.registerDataSource(new DataSourceConfig({

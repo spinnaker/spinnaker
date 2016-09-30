@@ -39,6 +39,13 @@ export class DataSourceConfig {
   public optional: boolean = false;
 
   /**
+   * (Optional) a description of the data source that will be displayed on the app config screen
+   *
+   * Only needed if the data source is optional
+   */
+  public description: string;
+
+  /**
    * (Optional) The display label of the application header tab
    *
    * If omitted, the value will default to the result of running the "key" through the robotToHuman filter
@@ -168,6 +175,11 @@ export class ApplicationDataSource {
    * See DataSourceConfig#optional
    */
   public optional: boolean = false;
+
+  /**
+   * See DataSourceConfig#description
+   */
+  public description: string;
 
   /**
    * See DataSourceConfig#optIn
