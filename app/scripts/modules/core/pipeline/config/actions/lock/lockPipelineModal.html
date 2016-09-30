@@ -1,0 +1,47 @@
+<div modal-page>
+  <modal-close></modal-close>
+  <div class="modal-header">
+    <h3>Really Lock Pipeline?</h3>
+  </div>
+  <div class="modal-body">
+    <div class="alert alert-danger" ng-if="ctrl.viewState.saveError">
+      <p>Could not lock pipeline.</p>
+      <p><b>Reason: </b>{{ctrl.viewState.errorMessage}}</p>
+      <p><a href ng-click="ctrl.viewState.saveError = false">[dismiss]</a></p>
+    </div>
+    <form role="form" name="form" class="form-horizontal">
+      <div class="form-group">
+        <div class="col-md-12">
+          <p>Are you sure you want to lock {{ctrl.pipelineName}}?</p>
+          <p>This will prevent any further modification to this pipeline made via the Spinnaker UI.</p>
+        </div>
+      </div>
+
+      <div class="form-group form-inline">
+        <div class="col-md-3 sm-label-right">
+          Allow Unlock via UI
+        </div>
+
+        <div class="col-md-6">
+          <input type="checkbox" class="input-sm" ng-model="ctrl.command.allowUnlockUi" style="margin: 0"/>
+        </div>
+      </div>
+      <div class="form-group form-inline">
+        <div class="col-md-3 sm-label-right">
+          Description
+        </div>
+        <div class="col-md-9">
+          <input type="text" class="form-control input-sm" style="width: 100%" ng-model="ctrl.command.description"
+                 placeholder="This pipeline is locked and does not allow modification">
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+    <button class="btn btn-primary"
+            ng-click="ctrl.lockPipeline()">
+      Lock pipeline
+    </button>
+  </div>
+</div>

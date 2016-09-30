@@ -7,6 +7,8 @@
     <li ng-if="!pipeline.locked"><a href ng-click="pipelineConfigurerCtrl.deletePipeline()">Delete</a></li>
     <li ng-if="!pipeline.locked && pipeline.disabled"><a href ng-click="pipelineConfigurerCtrl.enablePipeline()">Enable</a></li>
     <li ng-if="!pipeline.locked && !pipeline.disabled"><a href ng-click="pipelineConfigurerCtrl.disablePipeline()">Disable</a></li>
+    <li ng-if="!pipeline.locked"><a href ng-click="pipelineConfigurerCtrl.lockPipeline()">Lock</a></li>
+    <li ng-if="pipeline.locked && pipeline.locked.allowUnlockUi"><a href ng-click="pipelineConfigurerCtrl.unlockPipeline()">Unlock</a></li>
 
     <li ng-if="pipeline.locked"><a href ng-click="pipelineConfigurerCtrl.editPipelineJson()">Show JSON</a></li>
     <li ng-if="!pipeline.locked"><a href ng-click="pipelineConfigurerCtrl.editPipelineJson()">Edit as JSON</a></li>

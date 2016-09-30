@@ -9,4 +9,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions', [
   require('./history/showHistory.controller'),
   require('./enable/enable.module'),
   require('./disable/disable.module'),
+  require('./lock/lock.module'),
+  require('./unlock/unlock.module'),
 ]);
