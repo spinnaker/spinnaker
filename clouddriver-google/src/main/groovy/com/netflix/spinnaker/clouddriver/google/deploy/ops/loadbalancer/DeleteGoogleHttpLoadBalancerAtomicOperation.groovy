@@ -64,7 +64,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteLoadBalancer": { "credentials": "my-account-name", "loadBalancerName": "spin-lb", "deleteHealthChecks": false "loadBalancerType": "HTTP"}} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteLoadBalancer": { "credentials": "my-account-name", "loadBalancerName": "spin-lb", "deleteHealthChecks": false, "loadBalancerType": "HTTP"}} ]' localhost:7002/gce/ops
    */
   @Override
   Void operate(List priorOutputs) {
@@ -82,37 +82,33 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
     // Start with the forwaring rule.
     task.updateStatus BASE_PHASE, "Retrieving global forwarding rule $forwardingRuleName..."
 
-    ForwardingRule forwardingRule = compute.globalForwardingRules().get(project, forwardingRuleName).execute()
+    List<ForwardingRule> projectForwardingRules = compute.globalForwardingRules().list(project).execute().getItems()
+
+    ForwardingRule forwardingRule = projectForwardingRules.find { it.name == forwardingRuleName }
     if (!forwardingRule) {
       GCEUtil.updateStatusAndThrowNotFoundException("Global forwarding rule $forwardingRuleName not found for $project",
           task, BASE_PHASE)
     }
-    String targetProxyType = Utils.getTargetProxyType(forwardingRule.target)
-    String targetProxyName = GCEUtil.getLocalName(forwardingRule.target)
 
+    String targetProxyName = GCEUtil.getLocalName(forwardingRule.getTarget())
     // Target HTTP(S) proxy.
     task.updateStatus BASE_PHASE, "Retrieving target proxy $targetProxyName..."
 
-    def retrievedTargetProxy = null
-
-    switch (targetProxyType) {
-      case "targetHttpProxies":
-        retrievedTargetProxy = compute.targetHttpProxies().get(project, targetProxyName).execute()
-        break
-      case "targetHttpsProxies":
-        retrievedTargetProxy = compute.targetHttpsProxies().get(project, targetProxyName).execute()
-        break
-      default:
-        log.warn("Unexpected target proxy type for $targetProxyName.")
-        retrievedTargetProxy = null
-        break
-    }
+    def retrievedTargetProxy = GCEUtil.getTargetProxyFromRule(compute, project, forwardingRule)
 
     if (!retrievedTargetProxy) {
       GCEUtil.updateStatusAndThrowNotFoundException("Target proxy $targetProxyName not found for $project", task,
           BASE_PHASE)
     }
     def urlMapName = GCEUtil.getLocalName(retrievedTargetProxy.getUrlMap())
+
+    List<String> listenersToDelete = []
+    projectForwardingRules.each { ForwardingRule rule ->
+      def proxy = GCEUtil.getTargetProxyFromRule(compute, project, rule)
+      if (GCEUtil.getLocalName(proxy?.getUrlMap()) == urlMapName) {
+        listenersToDelete << rule.getName()
+      }
+    }
 
     // URL map.
     task.updateStatus BASE_PHASE, "Retrieving URL map $urlMapName..."
@@ -151,32 +147,12 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
 
     def timeoutSeconds = description.deleteOperationTimeoutSeconds
 
-    // Start deleting these objects. Wait between each delete operation for it to complete before continuing on to
-    // delete its dependencies.
-    task.updateStatus BASE_PHASE, "Deleting forwarding rule $forwardingRuleName..."
-    Operation deleteForwardingRuleOperation =
-        compute.globalForwardingRules().delete(project, forwardingRuleName).execute()
-
-    googleOperationPoller.waitForGlobalOperation(compute, project, deleteForwardingRuleOperation.getName(),
-        timeoutSeconds, task, "forwarding rule " + forwardingRuleName, BASE_PHASE)
-
-    task.updateStatus BASE_PHASE, "Deleting target proxy $targetProxyName..."
-
-    Operation deleteTargetProxyOperation  = null
-    switch (targetProxyType) {
-      case "targetHttpProxies":
-        deleteTargetProxyOperation = compute.targetHttpProxies().delete(project, targetProxyName).execute()
-        break
-      case "targetHttpsProxies":
-        deleteTargetProxyOperation = compute.targetHttpsProxies().delete(project, targetProxyName).execute()
-        break
-      default:
-        log.warn("Unexpected target proxy type for $targetProxyName. Cannot delete target proxy.")
-        break
+    listenersToDelete.each { String ruleName ->
+      task.updateStatus BASE_PHASE, "Deleting listener $ruleName..."
+      Operation operation = GCEUtil.deleteGlobalListener(compute, project, ruleName)
+      googleOperationPoller.waitForGlobalOperation(compute, project, operation.getName(),
+        timeoutSeconds, task, "listener " + ruleName, BASE_PHASE)
     }
-
-    googleOperationPoller.waitForGlobalOperation(compute, project, deleteTargetProxyOperation.getName(),
-        timeoutSeconds, task, "target proxy" + targetProxyName, BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Deleting URL map $urlMapName..."
     Operation deleteUrlMapOperation = compute.urlMaps().delete(project, urlMapName).execute()

@@ -892,15 +892,37 @@ class GCEUtil {
     return loadBalancerNames
   }
 
+  def static getTargetProxyFromRule(Compute compute, String project, ForwardingRule forwardingRule) {
+    String target = forwardingRule.getTarget()
+    String targetProxyType = Utils.getTargetProxyType(target)
+    String targetProxyName = getLocalName(target)
+
+    def retrievedTargetProxy = null
+
+    switch (targetProxyType) {
+      case "targetHttpProxies":
+        retrievedTargetProxy = compute.targetHttpProxies().get(project, targetProxyName).execute()
+        break
+      case "targetHttpsProxies":
+        retrievedTargetProxy = compute.targetHttpsProxies().get(project, targetProxyName).execute()
+        break
+      default:
+        log.warn("Unexpected target proxy type for $targetProxyName.")
+        retrievedTargetProxy = null
+        break
+    }
+    return retrievedTargetProxy
+  }
+
   /**
    * Deletes an L7 global listener, i.e. a global forwarding rule and its target proxy.
    * @param compute
    * @param project
    * @param forwardingRuleName - Name of global forwarding rule to delete (along with its target proxy).
    */
-  static void deleteGlobalListener(Compute compute, String project, String forwardingRuleName) {
+  static Operation deleteGlobalListener(Compute compute, String project, String forwardingRuleName) {
     SafeRetry<ForwardingRule> ruleGetRetry = new SafeRetry<ForwardingRule>()
-    SafeRetry<Void> proxyDeleteRetry = new SafeRetry<Void>()
+    SafeRetry<Operation> proxyDeleteRetry = new SafeRetry<Operation>()
     ForwardingRule ruleToDelete = ruleGetRetry.doRetry(
       { compute.globalForwardingRules().get(project, forwardingRuleName).execute() },
       'get',
@@ -919,14 +941,12 @@ class GCEUtil {
       switch (targetProxyType) {
         case "targetHttpProxies":
           deleteProxyClosure = {
-            compute.targetHttpProxies().delete(project, targetProxyName)
-            null
+            compute.targetHttpProxies().delete(project, targetProxyName).execute()
           }
           break
         case "targetHttpsProxies":
           deleteProxyClosure = {
-            compute.targetHttpsProxies().delete(project, targetProxyName)
-            null
+            compute.targetHttpsProxies().delete(project, targetProxyName).execute()
           }
           break
         default:
@@ -934,7 +954,7 @@ class GCEUtil {
           break
       }
 
-      proxyDeleteRetry.doRetry(
+      Operation result = proxyDeleteRetry.doRetry(
         deleteProxyClosure,
         'delete',
         "target http proxy ${targetProxyName}",
@@ -943,6 +963,7 @@ class GCEUtil {
         [400, 412],
         [404]
       )
+      return result
     }
   }
 
