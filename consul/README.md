@@ -22,9 +22,9 @@ tutorial](https://www.consul.io/intro/getting-started/install.html).
 If you're using Consul, Spinnaker assumes that you've taken care of
 installing the Consul agent on each machine you want to be discoverable. The
 best way to take care of this is to create a base image with Consul installed,
-and install further packages on top of that. To do so, copy the file in
-`./install/install.sh` onto a VM, run `$ sudo bash install.sh [client|server]`, 
-and capture the resulting disk [as an
+and install further packages on top of that. To do so, copy this directory
+onto a VM, run `$ sudo bash install/install.sh [client|server]`, and capture 
+the resulting disk [as an
 image](https://cloud.google.com/compute/docs/images/create-delete-deprecate-private-images). 
 There are many ways to do this (Packer, config-management, etc...) and we'll 
 leave that up to you.
@@ -32,8 +32,7 @@ leave that up to you.
 > __IMPORTANT__ For spinnaker to communicate with and join Consul nodes to the
 > network, they must provide the `-client` flag to Consul with an
 > address that's reachable from the machine running Spinnaker. This is taken 
-> care of in the installation path provided here. We do enable a setup
-> that does not require this, but that will be covered later.
+> care of in the installation path provided here.
 
 ## 1. Starting your Consul Server
 
