@@ -6,17 +6,17 @@
     </h4>
     <div class="panel panel-default">
       <div class="panel-body form-inline">
-        <h5 class="first-header">Kill frequency</h5>
+        <h5 class="first-header">Termination frequency</h5>
         <div class="row">
           <div class="col-md-5 col-md-offset-1">
-            <label>Mean time between kills</label>
+            <label>Mean time between terms</label>
             <input type="number" class="form-control input-sm"
                    min="0"
                    ng-model="vm.config.meanTimeBetweenKillsInWorkDays"/>
             days <help-field key="chaos.meanTime"></help-field>
           </div>
           <div class="col-md-6">
-            <label>Minimum time between kills</label>
+            <label>Min time between terms</label>
             <input type="number" class="form-control input-sm"
                    min="0"
                    ng-model="vm.config.minTimeBetweenKillsInWorkDays"/>
