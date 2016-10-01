@@ -1,6 +1,6 @@
 'use strict';
 
-fdescribe('providerSelectionService: API', () => {
+describe('providerSelectionService: API', () => {
 
   let cloudProvider;
   beforeEach(

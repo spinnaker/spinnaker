@@ -179,7 +179,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
         }
       }).result.then(function() {
         $scope.pipeline.locked = original.locked;
-      })
+      });
     };
 
     this.unlockPipeline = () => {
@@ -191,7 +191,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
         }
       }).result.then(function () {
         delete $scope.pipeline.locked;
-      })
+      });
     };
 
     this.showHistory = () => {

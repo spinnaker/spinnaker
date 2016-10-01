@@ -11,7 +11,8 @@ module.exports = angular.module('spinnaker.providerSelection.service', [
     function selectProvider(application, feature) {
       return accountService.listProviders(application).then((providers) => {
 
-        let provider, reducedProviders;
+        let provider;
+        let reducedProviders = [];
         if (feature) {
           reducedProviders = providers.filter((provider) => cloudProviderRegistry.hasValue(provider, feature));
         }
