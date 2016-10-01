@@ -185,6 +185,12 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'titus.serverGroup.traffic': '' +
       '<p>Enables the "inService" scaling process, which is used by Spinnaker and discovery services to determine if the server group is enabled.</p>' +
       '<p>Will be automatically enabled when any non "custom" deployment strategy is selected.</p>',
+    'pipeline.config.lock.allowUnlockUi': '' +
+      '<p><strong>Checked</strong> - the pipeline can be unlocked via the Spinnaker UI.</p>' +
+      '<p><strong>Unchecked</strong> - the pipeline can only be unlocked via the Spinnaker API.</p>',
+    'pipeline.config.lock.description': '' +
+      '<p>Friendly description of why this pipeline is locked.</p>' +
+      '<p>Please include an email address or slack channel as appropriate.</p>',
     'pipeline.config.optionalStage': '' +
       '<p>When this option is enabled, stage will only execute when the supplied expression evaluates true.</p>' +
       '<p>The expression <em>does not</em> need to be wrapped in ${ and }.</p>',
