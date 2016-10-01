@@ -297,6 +297,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         }
       };
 
+      if (app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly) {
+        confirmationModalParams.interestingHealthProviderNames = ['Google'];
+      }
+
       confirmationModalService.confirm(confirmationModalParams);
     };
 
@@ -337,6 +341,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         askForReason: true,
       };
 
+      if (app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly) {
+        confirmationModalParams.interestingHealthProviderNames = ['Google'];
+      }
+
       confirmationModalService.confirm(confirmationModalParams);
     };
 
@@ -360,6 +368,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         submitMethod: submitMethod,
         askForReason: true,
       };
+
+      if (app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly) {
+        confirmationModalParams.interestingHealthProviderNames = ['Google'];
+      }
 
       confirmationModalService.confirm(confirmationModalParams);
     };

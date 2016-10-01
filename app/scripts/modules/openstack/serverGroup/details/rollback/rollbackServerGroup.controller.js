@@ -23,6 +23,10 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.details.rollbac
       };
 
       if (application && application.attributes) {
+        if (application.attributes.platformHealthOnlyShowOverride && application.attributes.platformHealthOnly) {
+          $scope.command.interestingHealthProviderNames = ['Openstack'];
+        }
+
         $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
       }
 

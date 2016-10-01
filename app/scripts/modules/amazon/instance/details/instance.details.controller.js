@@ -256,6 +256,10 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
       };
 
       var submitMethod = (params = {}) => {
+        if (app.attributes && app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly) {
+          params.interestingHealthProviderNames = ['Amazon'];
+        }
+
         return instanceWriter.rebootInstance(instance, app, params);
       };
 

@@ -25,8 +25,8 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.details.resize.
     };
 
     if (application && application.attributes) {
-      if (application.attributes.platformHealthOnly) {
-        $scope.command.interestingHealthProviderNames = ['OpenStack'];
+      if (application.attributes.platformHealthOnlyShowOverride && application.attributes.platformHealthOnly) {
+        $scope.command.interestingHealthProviderNames = ['Openstack'];
       }
 
       $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;

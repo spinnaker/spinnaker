@@ -121,7 +121,8 @@
         <div class="col-sm-9 checkbox" style="margin-bottom: 0">
           <label>
             <input type="checkbox"
-                   ng-model="editApp.applicationAttributes.platformHealthOnly"/>
+                   ng-model="editApp.applicationAttributes.platformHealthOnly"
+                   ng-click="editApp.updateCloudProviderHealthWarning(false)"/>
             Consider only cloud provider health when executing tasks
             <help-field key="application.platformHealthOnly"></help-field>
           </label>
@@ -132,10 +133,22 @@
         <div class="col-sm-9 col-sm-offset-3 checkbox" style="margin-top: 0">
           <label>
             <input type="checkbox"
-                   ng-model="editApp.applicationAttributes.platformHealthOnlyShowOverride"/>
+                   ng-model="editApp.applicationAttributes.platformHealthOnlyShowOverride"
+                   ng-click="editApp.updateCloudProviderHealthWarning(true)"/>
             Show health override option for each operation
             <help-field key="application.showPlatformHealthOverride"></help-field>
           </label>
+        </div>
+      </div>
+
+      <div class="col-md-12" ng-if="editApp.data.showOverrideWarning">
+        <div class="alert alert-warning">
+          <p><span class="glyphicon glyphicon-warning-sign"></span>
+            {{editApp.data.showOverrideWarning}}
+          </p>
+          <p class="text-right">
+            <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="editApp.data.showOverrideWarning = null">Okay</a>
+          </p>
         </div>
       </div>
 
@@ -173,7 +186,7 @@
       <button type="submit"
               class="btn btn-primary"
               data-purpose="submit"
-              ng-disabled="!editApplicationForm.$valid || editApp.state.submitting"
+              ng-disabled="!editApplicationForm.$valid || editApp.state.submitting || editApp.data.showOverrideWarning"
               ng-click="editApp.submit()">
         <span class="glyphicon glyphicon-ok-circle" ng-if="!editApp.state.submitting"></span>
         <button-busy-indicator ng-if="editApp.state.submitting"></button-busy-indicator>

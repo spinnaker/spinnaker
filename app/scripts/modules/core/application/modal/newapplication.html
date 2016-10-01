@@ -145,10 +145,22 @@
         <div class="col-sm-9 checkbox" style="margin-top: 0">
           <label>
             <input type="checkbox"
-                   ng-model="newAppModal.application.platformHealthOnlyShowOverride"/>
+                   ng-model="newAppModal.application.platformHealthOnlyShowOverride"
+                   ng-click="newAppModal.updateCloudProviderHealthWarning()"/>
             Show health override option for each operation
             <help-field key="application.showPlatformHealthOverride"></help-field>
           </label>
+        </div>
+      </div>
+
+      <div class="col-md-12" ng-if="newAppModal.data.showOverrideWarning">
+        <div class="alert alert-warning">
+          <p><span class="glyphicon glyphicon-warning-sign"></span>
+            {{newAppModal.data.showOverrideWarning}}
+          </p>
+          <p class="text-right">
+            <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="newAppModal.data.showOverrideWarning = null">Okay</a>
+          </p>
         </div>
       </div>
 
@@ -189,7 +201,7 @@
       <button type="submit"
               class="btn btn-primary"
               data-purpose="submit"
-              ng-disabled="newApplicationForm.$invalid || !newAppModal.application.hasOwnProperty('account') || (newAppModal.application.hasOwnProperty('account') && newAppModal.application.account.length < 1)|| newAppModal.state.submitting"
+              ng-disabled="newApplicationForm.$invalid || !newAppModal.application.hasOwnProperty('account') || (newAppModal.application.hasOwnProperty('account') && newAppModal.application.account.length < 1)|| newAppModal.state.submitting || newAppModal.data.showOverrideWarning"
               ng-click="newAppModal.submit()">
         <span class="glyphicon glyphicon-ok-circle" ng-if="!newAppModal.state.submitting"></span>
         <button-busy-indicator ng-if="newAppModal.state.submitting"></button-busy-indicator>

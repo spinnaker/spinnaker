@@ -25,6 +25,10 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.rollback.c
       };
 
       if (application && application.attributes) {
+        if (application.attributes.platformHealthOnlyShowOverride && application.attributes.platformHealthOnly) {
+          $scope.command.interestingHealthProviderNames = ['Google'];
+        }
+
         $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
       }
 

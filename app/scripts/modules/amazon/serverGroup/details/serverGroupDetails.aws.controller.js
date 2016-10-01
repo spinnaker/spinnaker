@@ -213,8 +213,11 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         }
       };
 
-      confirmationModalService.confirm(confirmationModalParams);
+      if (app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly) {
+        confirmationModalParams.interestingHealthProviderNames = ['Amazon'];
+      }
 
+      confirmationModalService.confirm(confirmationModalParams);
     };
 
     this.getBodyTemplate = (serverGroup, app) => {
@@ -256,6 +259,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         askForReason: true
       };
 
+      if (app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly) {
+        confirmationModalParams.interestingHealthProviderNames = ['Amazon'];
+      }
+
       confirmationModalService.confirm(confirmationModalParams);
     };
 
@@ -281,6 +288,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         submitMethod: submitMethod,
         askForReason: true
       };
+
+      if (app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly) {
+        confirmationModalParams.interestingHealthProviderNames = ['Amazon'];
+      }
 
       confirmationModalService.confirm(confirmationModalParams);
     };

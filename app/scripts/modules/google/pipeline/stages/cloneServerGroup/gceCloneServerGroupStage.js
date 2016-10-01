@@ -43,6 +43,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.cloneServerGr
     stage.cloudProvider = 'gce';
     stage.cloudProviderType = 'gce';
 
+    if (stage.isNew && $scope.application.attributes.platformHealthOnlyShowOverride && $scope.application.attributes.platformHealthOnly) {
+      stage.interestingHealthProviderNames = ['Google'];
+    }
+
     if (!stage.credentials && $scope.application.defaultCredentials.gce) {
       stage.credentials = $scope.application.defaultCredentials.gce;
     }

@@ -75,6 +75,10 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
             },
           };
 
+          if (application.attributes && application.attributes.platformHealthOnlyShowOverride && application.attributes.platformHealthOnly) {
+            command.interestingHealthProviderNames = ['Amazon'];
+          }
+
           return command;
         });
     }
@@ -212,6 +216,10 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
             dirty: {},
           },
         };
+
+        if (application.attributes && application.attributes.platformHealthOnlyShowOverride && application.attributes.platformHealthOnly) {
+          command.interestingHealthProviderNames = ['Amazon'];
+        }
 
         if (mode === 'clone' || mode === 'editPipeline') {
           command.useSourceCapacity = true;

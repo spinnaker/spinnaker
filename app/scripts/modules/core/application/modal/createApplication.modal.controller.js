@@ -87,6 +87,15 @@ module.exports = angular
         .then(waitUntilApplicationIsCreated, createApplicationFailure);
     };
 
+    this.updateCloudProviderHealthWarning = () => {
+      if (!this.application.platformHealthOnlyShowOverride) {
+        // Show the warning if platformHealthOnlyShowOverride is being enabled.
+        this.data.showOverrideWarning = `Simply enabling the "Consider only cloud provider health when executing tasks"
+          option above is usually sufficient for most applications that want the same health provider behavior for
+          all stages. Note that pipelines will require manual updating if this setting is disabled in the future.`;
+      }
+    };
+
     this.submit = () => {
       submitting();
       this.application.name = this.application.name.toLowerCase();
