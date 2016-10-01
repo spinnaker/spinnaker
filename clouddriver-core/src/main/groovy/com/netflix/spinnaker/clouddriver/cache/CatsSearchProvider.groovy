@@ -94,6 +94,11 @@ class CatsSearchProvider implements SearchProvider {
 
       matches = new ArrayList(matches).findResults { String key ->
         Map<String, String> result = providers.findResult { it.parseKey(key) }
+        if (!result) {
+          log.warn("No supporting provider found for key (key: ${key})")
+          return key
+        }
+
         boolean canView = true
         if (result.application) {
           canView = permissionEvaluator.hasPermission(auth, result.application as String, 'APPLICATION', 'READ')

@@ -82,7 +82,7 @@ class SearchController {
           it.search(searchQueryCommand.q, searchQueryCommand.page, searchQueryCommand.pageSize, searchQueryCommand.filter)
         }
       } catch (Exception e) {
-        log.debug("Search for '${searchQueryCommand.q}' in '${it.platform}' failed with : ${e.message}")
+        log.debug("Search for '${searchQueryCommand.q}' in '${it.platform}' failed", e)
         new SearchResultSet(totalMatches: 0, results: [])
       }
     }
