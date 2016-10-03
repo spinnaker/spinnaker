@@ -41,7 +41,7 @@ class InstanceController {
   @Autowired
   MessageSource messageSource
 
-  @PreAuthorize("hasPermission(#id, 'APPLICATION', 'READ') and hasPermission(#account, 'ACCOUNT', 'READ')")
+  @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(value = "/{account}/{region}/{id:.+}", method = RequestMethod.GET)
   Instance getInstance(@PathVariable String account,
                        @PathVariable String region,
@@ -55,7 +55,7 @@ class InstanceController {
     instanceMatches.first()
   }
 
-  @PreAuthorize("hasPermission(#id, 'APPLICATION', 'READ') and hasPermission(#account, 'ACCOUNT', 'READ')")
+  @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(value = "{account}/{region}/{id}/console", method = RequestMethod.GET)
   Map getConsoleOutput(@RequestParam(value = "provider", required = false) String provider,
                        @PathVariable String account,
