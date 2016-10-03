@@ -138,7 +138,6 @@ class OperationsController {
     startTask([application: null, name: null, appConfig: null, stages: input])
   }
 
-  @PreAuthorize("hasPermission(#input['application'], 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/ops", consumes = "application/context+json", method = RequestMethod.POST)
   Map<String, String> ops(@RequestBody Map input) {
     startTask([application: input.application, name: input.description, appConfig: input.appConfig, stages: input.job])

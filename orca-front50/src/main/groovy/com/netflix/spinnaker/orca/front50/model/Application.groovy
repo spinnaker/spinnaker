@@ -40,7 +40,7 @@ public class Application {
   @JsonIgnore
   String user
   @JsonIgnore
-  List<String> requiredGroupMembership
+  List<String> requiredGroupMembership = new ArrayList<>()
 
   private Map<String, Object> details = new HashMap<String, Object>()
 

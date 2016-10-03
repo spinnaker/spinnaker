@@ -64,6 +64,7 @@ class ApplicationSpec extends Specification {
     application.someMap = [ a: 'some string', b: 4 ]
     def expected = [
         accounts: "prod,test",
+        requiredGroupMembership: [],
         someBoolean: true,
         someMap: [a: 'some string', b: 4]
     ]

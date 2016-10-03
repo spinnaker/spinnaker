@@ -90,7 +90,12 @@ class TaskController {
     executionRepository.retrieveOrchestrations().toBlocking().iterator.collect { convert it }
   }
 
-  @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
+  // @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
+  //
+  // This endpoint is unsecured because of the create application process, where Deck immediately
+  // queries this endpoint to check on the status of creating a new application before the
+  // application permissions have been propagated. Furthermore, given that the ID is a hard-to-guess
+  // GUID, it's unlikely than an attacker would be able to guess the identifier for any task.
   @RequestMapping(value = "/tasks/{id}", method = RequestMethod.GET)
   OrchestrationViewModel getTask(@PathVariable String id) {
     convert executionRepository.retrieveOrchestration(id)
