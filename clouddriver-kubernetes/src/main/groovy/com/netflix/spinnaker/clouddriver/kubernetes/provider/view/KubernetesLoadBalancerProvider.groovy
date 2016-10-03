@@ -58,9 +58,9 @@ class KubernetesLoadBalancerProvider implements LoadBalancerProvider<KubernetesL
     }
 
     loadBalancerKeys.addAll(cacheView.filterIdentifiers(Keys.Namespace.LOAD_BALANCERS.ns,
-                                            Keys.getLoadBalancerKey("*", "*", KubernetesUtil.combineAppStackDetail(applicationName, '*', null))))
+                            Keys.getLoadBalancerKey("*", "*", KubernetesUtil.combineAppStackDetail(applicationName, '*', null))))
     loadBalancerKeys.addAll(cacheView.filterIdentifiers(Keys.Namespace.LOAD_BALANCERS.ns,
-                                            Keys.getLoadBalancerKey("*", "*", KubernetesUtil.combineAppStackDetail(applicationName, null, null))))
+                            Keys.getLoadBalancerKey("*", "*", KubernetesUtil.combineAppStackDetail(applicationName, null, null))))
 
 
     def loadBalancers = cacheView.getAll(Keys.Namespace.LOAD_BALANCERS.ns, loadBalancerKeys)
@@ -74,7 +74,7 @@ class KubernetesLoadBalancerProvider implements LoadBalancerProvider<KubernetesL
     def instanceMap = KubernetesProviderUtils.controllerToInstanceMap(objectMapper, instances)
 
     Map<String, KubernetesServerGroup> serverGroupMap = allServerGroups.collectEntries { serverGroupData ->
-      def ownedInstances = instanceMap[(String)serverGroupData.attributes.name]
+      def ownedInstances = instanceMap[(String) serverGroupData.attributes.name]
       def serverGroup = KubernetesProviderUtils.serverGroupFromCacheData(objectMapper, serverGroupData, ownedInstances)
       return [(serverGroupData.id): serverGroup]
     }
