@@ -163,6 +163,12 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
           break
       }
       targetProxyExists = existingProxy as Boolean
+      if (existingProxy && GCEUtil.getLocalName(existingProxy.getUrlMap()) != description.urlMapName) {
+        throw new IllegalStateException(
+          "Listener with name ${existingRule.getName()} already exists and points to url map: ${GCEUtil.getLocalName(existingProxy.getUrlMap())}," +
+            " which is different from the description url map: ${description.urlMapName}."
+        )
+      }
     }
 
     // HttpHealthChecks
