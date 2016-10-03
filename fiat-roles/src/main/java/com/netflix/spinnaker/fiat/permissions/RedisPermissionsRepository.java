@@ -214,7 +214,6 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
       RawUserPermission rawUnrestricted = new RawUserPermission(responseTable.row(UNRESTRICTED));
       UserPermission unrestrictedUser = getUserPermission(UNRESTRICTED, rawUnrestricted);
-      dedupedUsernames.remove(UNRESTRICTED);
 
       return dedupedUsernames
           .stream()

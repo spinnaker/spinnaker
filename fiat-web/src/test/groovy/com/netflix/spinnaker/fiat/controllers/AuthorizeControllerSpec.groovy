@@ -61,10 +61,6 @@ class AuthorizeControllerSpec extends Specification {
   @Delegate
   FiatSystemTestSupport fiatIntegrationTestSupport = new FiatSystemTestSupport()
 
-//  UserPermission getUnrestrictedUser() {
-//    return fiatIntegrationTestSupport?.unrestrictedUser
-//  }
-
   @Autowired
   ObjectMapper objectMapper
 
