@@ -50,6 +50,7 @@ class GoogleLoadBalancerController {
       views.each { GoogleLoadBalancerView view ->
         def loadBalancerType = view.loadBalancerType
         def backendServices = []
+        def urlMapName
         if (loadBalancerType == GoogleLoadBalancerType.HTTP) {
           GoogleHttpLoadBalancer.View httpView = view as GoogleHttpLoadBalancer.View
           if (httpView.defaultService) {
@@ -61,6 +62,7 @@ class GoogleLoadBalancerController {
               backendServices << pathRule.backendService.name
             }
           }
+          urlMapName = httpView.urlMapName
         }
 
         summary.mappedAccounts[view.account].mappedRegions[view.region].loadBalancers << new GoogleLoadBalancerSummary(
@@ -68,7 +70,8 @@ class GoogleLoadBalancerController {
             region: view.region,
             name: view.name,
             loadBalancerType: loadBalancerType,
-            backendServices: loadBalancerType == GoogleLoadBalancerType.HTTP ? backendServices.unique() as List<String> : null
+            backendServices: loadBalancerType == GoogleLoadBalancerType.HTTP ? backendServices.unique() as List<String> : null,
+            urlMapName: urlMapName
         )
       }
 
@@ -164,6 +167,7 @@ class GoogleLoadBalancerController {
     String name
     String type = GoogleCloudProvider.GCE
     List<String> backendServices
+    String urlMapName
   }
 
   static class GoogleLoadBalancerDetails {
