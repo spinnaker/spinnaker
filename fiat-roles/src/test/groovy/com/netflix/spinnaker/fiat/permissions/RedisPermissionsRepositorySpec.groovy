@@ -277,14 +277,16 @@ class RedisPermissionsRepositorySpec extends Specification {
 
     then:
     result == ["user1": user1.merge(unrestricted),
-               "user2": user2.merge(unrestricted)]
+               "user2": user2.merge(unrestricted),
+               (UNRESTRICTED): unrestricted]
 
     when:
     result = repo.getAllByRoles(["role3", "role4"])
 
     then:
     result == ["user2": user2.merge(unrestricted),
-               "user4": user4.merge(unrestricted)];
+               "user4": user4.merge(unrestricted),
+               (UNRESTRICTED): unrestricted];
 
     when:
     result = repo.getAllByRoles(null);

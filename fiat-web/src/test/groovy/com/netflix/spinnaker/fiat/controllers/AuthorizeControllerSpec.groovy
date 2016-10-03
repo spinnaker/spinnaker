@@ -25,11 +25,13 @@ import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
+import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -58,15 +60,15 @@ class AuthorizeControllerSpec extends Specification {
   @Autowired
   TestUserRoleProviderConfig.TestUserRoleProvider userRoleProvider
 
-  @Delegate
-  FiatSystemTestSupport fiatIntegrationTestSupport = new FiatSystemTestSupport()
-
-//  UserPermission getUnrestrictedUser() {
-//    return fiatIntegrationTestSupport?.unrestrictedUser
-//  }
-
   @Autowired
   ObjectMapper objectMapper
+
+  @Autowired
+  @AutoCleanup("destroy")
+  EmbeddedRedis embeddedRedis
+
+  @Delegate
+  FiatSystemTestSupport fiatIntegrationTestSupport = new FiatSystemTestSupport()
 
   MockMvc mockMvc;
 
