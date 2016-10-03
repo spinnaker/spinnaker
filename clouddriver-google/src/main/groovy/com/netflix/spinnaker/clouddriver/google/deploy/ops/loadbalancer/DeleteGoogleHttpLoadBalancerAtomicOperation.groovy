@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -184,11 +185,12 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
           new ArrayList<HealthCheckAsyncDeleteOperation>()
       for (String healthCheckUrl : healthCheckUrls) {
         def healthCheckName = GCEUtil.getLocalName(healthCheckUrl)
-        task.updateStatus BASE_PHASE, "Deleting health check $healthCheckName for $project..."
-        Operation deleteHealthCheckOp = compute.httpHealthChecks().delete(project, healthCheckName).execute()
-        deleteHealthCheckAsyncOperations.add(new HealthCheckAsyncDeleteOperation(
+        Operation deleteHealthCheckOp = GCEUtil.deleteHealthCheckIfNotInUse(compute, project, healthCheckName, task, BASE_PHASE)
+        if (deleteHealthCheckOp) {
+          deleteHealthCheckAsyncOperations.add(new HealthCheckAsyncDeleteOperation(
             healthCheckName: healthCheckName,
             operationName: deleteHealthCheckOp.getName()))
+        }
       }
 
       // Finally, wait on all of these deletes to complete.
