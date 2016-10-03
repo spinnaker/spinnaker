@@ -319,10 +319,12 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
         pipeline=urllib.quote(self.TEST_PIPELINE_NAME))
 
     f50_builder = st.http_observer.HttpContractBuilder(self.agent)
-    (f50_builder.new_clause_builder('Global Unlists Pipeline')
+    (f50_builder.new_clause_builder('Global Unlists Pipeline',
+                                    retryable_for_secs=5)
      .get_url_path('/pipelines')
      .excludes_path_value('name', self.TEST_PIPELINE_NAME))
-    (f50_builder.new_clause_builder('Application Unlists Pipeline')
+    (f50_builder.new_clause_builder('Application Unlists Pipeline',
+                                    retryable_for_secs=5)
      .get_url_path('/pipelines/{app}'.format(app=self.TEST_APP))
      .excludes_path_value('id', self.TEST_PIPELINE_ID))
 
