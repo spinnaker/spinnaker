@@ -29,6 +29,8 @@ dependencies {
 
   compile project(':fiat-github')
   compile project(':fiat-google-groups')
+
+  testCompile spinnaker.dependency('korkJedisTest')
 }
 
 applicationName = 'fiat'

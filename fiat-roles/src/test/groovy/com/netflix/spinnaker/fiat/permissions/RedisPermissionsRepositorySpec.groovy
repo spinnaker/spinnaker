@@ -135,7 +135,7 @@ class RedisPermissionsRepositorySpec extends Specification {
 
   def "should get the permission out of redis"() {
     setup:
-    jedis.sadd("unittest:users", "testUser");
+    jedis.sadd("unittests:users", "testUser");
     jedis.hset("unittests:permissions:testUser:accounts",
                "account",
                '{"name":"account","requiredGroupMembership":["abc"]}')

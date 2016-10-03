@@ -132,12 +132,12 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
   @Override
   public Optional<UserPermission> get(@NonNull String id) {
-    UserPermission userPermission = null;
     try (Jedis jedis = jedisSource.getJedis()) {
       RawUserPermission userResponseMap = new RawUserPermission();
       RawUserPermission unrestrictedResponseMap = new RawUserPermission();
 
       Pipeline p = jedis.pipelined();
+      Response<Boolean> isUserInRepo = p.sismember(allUsersKey(), id);
       for (ResourceType r : ResourceType.values()) {
         Response<Map<String, String>> resourceMap = p.hgetAll(userKey(id, r));
         userResponseMap.put(r, resourceMap);
@@ -146,12 +146,16 @@ public class RedisPermissionsRepository implements PermissionsRepository {
       }
       p.sync();
 
+      if (!isUserInRepo.get()) {
+        return Optional.empty();
+      }
+
       UserPermission unrestrictedUser = getUserPermission(UNRESTRICTED, unrestrictedResponseMap);
-      userPermission = getUserPermission(id, userResponseMap).merge(unrestrictedUser);
+      return Optional.of(getUserPermission(id, userResponseMap).merge(unrestrictedUser));
     } catch (Exception e) {
       log.error("Storage exception reading " + id + " entry.", e);
     }
-    return userPermission == null ? Optional.empty() : Optional.of(userPermission);
+    return Optional.empty();
   }
 
   @Override

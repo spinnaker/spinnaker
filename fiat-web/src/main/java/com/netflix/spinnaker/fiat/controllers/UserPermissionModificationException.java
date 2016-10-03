@@ -19,7 +19,7 @@ package com.netflix.spinnaker.fiat.controllers;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(HttpStatus.BAD_REQUEST)
+@ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
 public class UserPermissionModificationException extends RuntimeException {
   public UserPermissionModificationException() {
   }

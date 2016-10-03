@@ -62,7 +62,7 @@ public class RolesController {
   public void putUserPermission(@PathVariable String userId) {
     try {
       permissionsRepository.put(
-          permissionsResolver.resolve(ControllerSupport.decode(userId))
+          permissionsResolver.resolve(ControllerSupport.convert(userId))
       );
     } catch (PermissionResolutionException pre) {
       throw new UserPermissionModificationException(pre);
@@ -77,7 +77,7 @@ public class RolesController {
         .map(extRole -> new Role().setSource(Role.Source.EXTERNAL).setName(extRole))
         .collect(Collectors.toList());
 
-    ExternalUser extUser = new ExternalUser().setId(ControllerSupport.decode(userId))
+    ExternalUser extUser = new ExternalUser().setId(ControllerSupport.convert(userId))
                                              .setExternalRoles(convertedRoles);
 
     try {
@@ -91,7 +91,7 @@ public class RolesController {
 
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.DELETE)
   public void deleteUserPermission(@PathVariable String userId) {
-    permissionsRepository.remove(ControllerSupport.decode(userId));
+    permissionsRepository.remove(ControllerSupport.convert(userId));
   }
 
   @RequestMapping(value = "/sync", method = RequestMethod.POST)

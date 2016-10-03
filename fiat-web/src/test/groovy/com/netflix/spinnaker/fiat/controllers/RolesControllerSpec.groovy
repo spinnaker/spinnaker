@@ -16,36 +16,112 @@
 
 package com.netflix.spinnaker.fiat.controllers
 
+import com.netflix.spinnaker.config.FiatSystemTest
+import com.netflix.spinnaker.config.TestUserRoleProviderConfig.TestUserRoleProvider
 import com.netflix.spinnaker.fiat.model.UserPermission
-import com.netflix.spinnaker.fiat.permissions.PermissionResolutionException
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository
-import com.netflix.spinnaker.fiat.permissions.PermissionsResolver
+import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
+import com.netflix.spinnaker.fiat.providers.internal.Front50Service
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import org.springframework.web.context.WebApplicationContext
+import retrofit.RetrofitError
 import spock.lang.Specification
-import spock.lang.Subject
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+
+@DirtiesContext
+@FiatSystemTest
 class RolesControllerSpec extends Specification {
 
-  def "should put user in repo or throw error"() {
+  @Autowired
+  WebApplicationContext wac
+
+  @Autowired
+  Front50Service stubFront50Service
+
+  @Autowired
+  ClouddriverService stubClouddriverService
+
+  @Autowired
+  PermissionsRepository permissionsRepository
+
+  @Autowired
+  TestUserRoleProvider userRoleProvider
+
+  @Delegate
+  FiatSystemTestSupport fiatIntegrationTestSupport = new FiatSystemTestSupport()
+
+  MockMvc mockMvc;
+
+  def setup() {
+    this.mockMvc = MockMvcBuilders
+        .webAppContextSetup(this.wac)
+        .defaultRequest(get("/").content().contentType("application/json"))
+        .build();
+  }
+
+  def "should put user in the repo"() {
     setup:
-    def user = new UserPermission().setId("user")
-    PermissionsRepository repo = Mock(PermissionsRepository)
-    PermissionsResolver resolver = Mock(PermissionsResolver) {
-      resolve("empty") >> { throw new PermissionResolutionException()}
-      resolve("user") >> user
+    stubFront50Service.getAllServiceAccounts() >> []
+    stubFront50Service.getAllApplicationPermissions() >> [unrestrictedApp, restrictedApp]
+    stubClouddriverService.getAccounts() >> [unrestrictedAccount, restrictedAccount]
+
+    userRoleProvider.userToRoles = [
+        "noRolesUser@group.com"   : [],
+        "roleAUser@group.com"     : [roleA],
+        "roleAroleBUser@group.com": [roleA],  // roleB comes in "externally"
+    ]
+
+    when:
+    mockMvc.perform(post("/roles/noRolesUser@group.com")).andExpect(status().isOk())
+
+    then:
+    permissionsRepository.get("noRolesUser@group.com").get() == new UserPermission().setId("noRolesUser@group.com")
+
+    when:
+    mockMvc.perform(post("/roles/roleAUser@group.com")).andExpect(status().isOk())
+
+    then:
+    permissionsRepository.get("roleAUser@group.com").get() == new UserPermission().setId("roleAUser@group.com")
+                                                                                  .setRoles([roleA] as Set)
+                                                                                  .setApplications([restrictedApp] as Set)
+
+    when:
+    mockMvc.perform(put("/roles/roleBUser@group.com").content('["roleB"]')).andExpect(status().isOk())
+
+    then:
+    permissionsRepository.get("roleBUser@group.com").get() == new UserPermission().setId("roleBUser@group.com")
+                                                                                  .setRoles([roleB] as Set)
+                                                                                  .setAccounts([restrictedAccount] as Set)
+
+    when:
+    mockMvc.perform(put("/roles/roleAroleBUser@group.com").content('["roleB"]')).andExpect(status().isOk())
+
+    then:
+    permissionsRepository.get("roleAroleBUser@group.com").get() == new UserPermission().setId("roleAroleBUser@group.com")
+                                                                                       .setRoles([roleA, roleB] as Set)
+                                                                                       .setApplications([restrictedApp] as Set)
+                                                                                       .setAccounts([restrictedAccount] as Set)
+
+    when:
+    mockMvc.perform(put("/roles/expectedError").content('["batman"]')).andExpect(status().is5xxServerError())
+
+    then:
+    stubFront50Service.getAllApplicationPermissions() >> {
+      throw RetrofitError.networkError("test1", new IOException("test2"))
     }
-    @Subject RolesController controller = new RolesController(permissionsResolver: resolver,
-                                                              permissionsRepository: repo)
 
     when:
-    controller.putUserPermission("empty")
+    mockMvc.perform(delete("/roles/noRolesUser@group.com")).andExpect(status().isOk())
 
     then:
-    thrown UserPermissionModificationException
-
-    when:
-    controller.putUserPermission("user")
-
-    then:
-    1 * repo.put(user)
+    !permissionsRepository.get("noRolesUser@group.com").isPresent()
   }
 }

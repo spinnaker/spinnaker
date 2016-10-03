@@ -24,11 +24,7 @@ import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import io.swagger.annotations.ApiOperation;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -69,14 +65,14 @@ public class AuthorizeController {
 
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.GET)
   public UserPermission.View getUserPermission(@PathVariable String userId) {
-    return permissionsRepository.get(ControllerSupport.decode(userId))
+    return permissionsRepository.get(ControllerSupport.convert(userId))
                                 .orElseThrow(NotFoundException::new)
                                 .getView();
   }
 
   @RequestMapping(value = "/{userId:.+}/accounts", method = RequestMethod.GET)
   public Set<Account.View> getUserAccounts(@PathVariable String userId) {
-    return permissionsRepository.get(ControllerSupport.decode(userId))
+    return permissionsRepository.get(ControllerSupport.convert(userId))
                                 .orElseThrow(NotFoundException::new)
                                 .getAccounts()
                                 .stream()
@@ -86,7 +82,7 @@ public class AuthorizeController {
 
   @RequestMapping(value = "/{userId:.+}/accounts/{accountName:.+}", method = RequestMethod.GET)
   public Account.View getUserAccount(@PathVariable String userId, @PathVariable String accountName) {
-    return permissionsRepository.get(ControllerSupport.decode(userId))
+    return permissionsRepository.get(ControllerSupport.convert(userId))
                                 .orElseThrow(NotFoundException::new)
                                 .getAccounts()
                                 .stream()
@@ -133,7 +129,7 @@ public class AuthorizeController {
 
   @RequestMapping(value = "/{userId:.+}/applications", method = RequestMethod.GET)
   public Set<Application.View> getUserApplications(@PathVariable String userId) {
-    return permissionsRepository.get(ControllerSupport.decode(userId))
+    return permissionsRepository.get(ControllerSupport.convert(userId))
                                 .orElseThrow(NotFoundException::new)
                                 .getApplications()
                                 .stream()
@@ -143,7 +139,7 @@ public class AuthorizeController {
 
   @RequestMapping(value = "/{userId:.+}/applications/{applicationName:.+}", method = RequestMethod.GET)
   public Application.View getUserApplication(@PathVariable String userId, @PathVariable String applicationName) {
-    return permissionsRepository.get(ControllerSupport.decode(userId))
+    return permissionsRepository.get(ControllerSupport.convert(userId))
                                 .orElseThrow(NotFoundException::new)
                                 .getApplications()
                                 .stream()
