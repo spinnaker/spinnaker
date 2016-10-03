@@ -58,7 +58,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
   def new_agent(cls, bindings):
     '''Implements citest.service_testing.AgentTestScenario.new_agent.'''
     agent = gate.new_agent(bindings)
-    agent.default_max_wait_secs = 600
+    agent.default_max_wait_secs = 1200
     return agent
 
 
