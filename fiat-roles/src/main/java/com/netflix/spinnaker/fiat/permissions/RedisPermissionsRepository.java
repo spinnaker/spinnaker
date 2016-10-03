@@ -189,7 +189,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
         map.put(UNRESTRICTED, unrestricted.get());
         return map;
       }
-      return Collections.emptyMap();
+      return new HashMap<>();
     }
 
     try (Jedis jedis = jedisSource.getJedis()) {

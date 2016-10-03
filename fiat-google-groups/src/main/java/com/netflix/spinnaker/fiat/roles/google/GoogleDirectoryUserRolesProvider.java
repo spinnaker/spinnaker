@@ -47,6 +47,7 @@ import org.springframework.util.Assert;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -134,14 +135,14 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
   @Override
   public List<Role> loadRoles(String userEmail) {
     if (userEmail == null || userEmail.isEmpty()) {
-      return Collections.emptyList();
+      return new ArrayList<>();
     }
 
     Directory service = getDirectoryService();
     try {
       Groups groups = service.groups().list().setDomain(config.getDomain()).setUserKey(userEmail).execute();
       if (groups == null || groups.getGroups() == null || groups.getGroups().isEmpty()) {
-        return Collections.emptyList();
+        return new ArrayList<>();
       }
 
       return groups
