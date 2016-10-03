@@ -26,13 +26,13 @@
                       ng-options="protocol for protocol in ['HTTP','HTTPS','TCP','SSL']"></select></td>
           <td><input class="form-control input-sm" type="number" min="0" ng-model="listener.internalPort"
                      required/></td>
-          <td>
-            <select ng-if="ctrl.certificateTypes.length > 1 && (listener.externalProtocol === 'HTTPS' || listener.externalProtocol === 'SSL')"
+          <td ng-if="ctrl.showSslCertificateIdField() && ctrl.certificateTypes.length > 1">
+            <select ng-if="(listener.externalProtocol === 'HTTPS' || listener.externalProtocol === 'SSL')"
                     class="form-control input-sm"
                     ng-model="listener.sslCertificateType"
                     ng-options="certificateType for certificateType in ['iam','acm']"></select>
           </td>
-          <td>
+          <td ng-if="ctrl.showSslCertificateIdField()">
             <input ng-if="listener.externalProtocol === 'HTTPS' || listener.externalProtocol === 'SSL'"
                    class="form-control input-sm no-spel"
                    type="text"
