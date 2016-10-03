@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.fiat.controllers
 
+import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig
+import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.model.resources.Application
 import com.netflix.spinnaker.fiat.model.resources.Role
@@ -35,4 +37,21 @@ class FiatSystemTestSupport {
 
   ServiceAccount serviceAccount = new ServiceAccount().setName("svcAcct@group.com")
   Role roleServiceAccount = new Role(serviceAccount.requiredGroupMembership.first())
+
+  UserPermission unrestrictedUser = new UserPermission().setId(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME)
+                                                        .setAccounts([unrestrictedAccount] as Set)
+                                                        .setApplications([unrestrictedApp] as Set)
+
+  UserPermission roleAUser = new UserPermission().setId("roleAUser")
+                                                 .setRoles([roleA] as Set)
+                                                 .setApplications([restrictedApp] as Set)
+
+  UserPermission roleBUser = new UserPermission().setId("roleBUser")
+                                                 .setRoles([roleB] as Set)
+                                                 .setAccounts([restrictedAccount] as Set)
+
+  UserPermission roleAroleBUser = new UserPermission().setId("roleAroleBUser")
+                                                      .setRoles([roleA, roleB] as Set)
+                                                      .setAccounts([restrictedAccount] as Set)
+                                                      .setApplications([restrictedApp] as Set)
 }

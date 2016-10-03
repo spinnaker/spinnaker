@@ -16,12 +16,128 @@
 
 package com.netflix.spinnaker.fiat.controllers
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.config.FiatSystemTest
+import com.netflix.spinnaker.config.TestUserRoleProviderConfig
+import com.netflix.spinnaker.fiat.config.FiatServerConfigurationProperties
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository
+import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
+import com.netflix.spinnaker.fiat.providers.internal.Front50Service
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import org.springframework.web.context.WebApplicationContext
 import spock.lang.Specification
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+
+@DirtiesContext
+@FiatSystemTest
 class AuthorizeControllerSpec extends Specification {
+
+  @Autowired
+  WebApplicationContext wac
+
+  @Autowired
+  Front50Service stubFront50Service
+
+  @Autowired
+  ClouddriverService stubClouddriverService
+
+  @Autowired
+  PermissionsRepository permissionsRepository
+
+  @Autowired
+  FiatServerConfigurationProperties fiatServerConfigurationProperties
+
+  @Autowired
+  TestUserRoleProviderConfig.TestUserRoleProvider userRoleProvider
+
+  @Delegate
+  FiatSystemTestSupport fiatIntegrationTestSupport = new FiatSystemTestSupport()
+
+//  UserPermission getUnrestrictedUser() {
+//    return fiatIntegrationTestSupport?.unrestrictedUser
+//  }
+
+  @Autowired
+  ObjectMapper objectMapper
+
+  MockMvc mockMvc;
+
+  def setup() {
+    this.mockMvc = MockMvcBuilders
+        .webAppContextSetup(this.wac)
+        .defaultRequest(get("/").content().contentType("application/json"))
+        .build();
+  }
+
+  def "should get user from repo via endpoint"() {
+    setup:
+    permissionsRepository.put(unrestrictedUser)
+    permissionsRepository.put(roleAUser)
+    permissionsRepository.put(roleBUser)
+    permissionsRepository.put(roleAroleBUser)
+
+    when:
+    def expected = objectMapper.writeValueAsString(unrestrictedUser.view)
+
+    then:
+    mockMvc.perform(get("/authorize/anonymous"))
+           .andExpect(status().isOk())
+           .andExpect(content().json(expected))
+
+    when:
+    expected = objectMapper.writeValueAsString(roleAUser.merge(unrestrictedUser).view)
+
+    then:
+    mockMvc.perform(get("/authorize/roleAUser"))
+           .andExpect(status().isOk())
+           .andExpect(content().json(expected))
+
+    when:
+    expected = objectMapper.writeValueAsString(roleBUser.merge(unrestrictedUser).view)
+
+    then:
+    mockMvc.perform(get("/authorize/roleBUser"))
+           .andExpect(status().isOk())
+           .andExpect(content().json(expected))
+
+    when:
+    expected = objectMapper.writeValueAsString(roleAroleBUser.merge(unrestrictedUser).view)
+
+    then:
+    mockMvc.perform(get("/authorize/roleAroleBUser"))
+           .andExpect(status().isOk())
+           .andExpect(content().json(expected))
+
+    when:
+    fiatServerConfigurationProperties.setGetAllEnabled(false)
+
+
+    then:
+    mockMvc.perform(get("/authorize/")).andExpect(status().is4xxClientError())
+
+    when:
+    fiatServerConfigurationProperties.setGetAllEnabled(true)
+    // This only works because we made a bunch of .merge(unrestrictedUser) calls that
+    // added the unrestricted resources to the users.
+    expected = objectMapper.writeValueAsString([unrestrictedUser.view,
+                                                roleAUser.view,
+                                                roleBUser.view,
+                                                roleAroleBUser.view])
+    
+    then:
+    mockMvc.perform(get("/authorize/"))
+           .andExpect(status().isOk())
+           .andExpect(content().json(expected))
+  }
+
 
   def "should get user from repo"() {
     setup:
