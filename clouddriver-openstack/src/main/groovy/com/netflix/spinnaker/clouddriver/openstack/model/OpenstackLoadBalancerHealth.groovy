@@ -66,6 +66,7 @@ class OpenstackLoadBalancerHealth {
 
   class View extends OpenstackHealth implements Health {
     final OpenstackHealthType type = OpenstackHealthType.LoadBalancer
+    final HealthClass healthClass = null
 
     List<LBHealthSummary> loadBalancers = OpenstackLoadBalancerHealth.this.lbHealthSummaries
 

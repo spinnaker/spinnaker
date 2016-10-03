@@ -52,6 +52,7 @@ class OpenstackInstanceHealth {
   class View extends OpenstackHealth implements Health {
 
     final OpenstackHealthType type = OpenstackHealthType.Openstack
+    final HealthClass healthClass = HealthClass.platform
 
     HealthState getState() {
       OpenstackInstanceHealth.this.toHealthState()

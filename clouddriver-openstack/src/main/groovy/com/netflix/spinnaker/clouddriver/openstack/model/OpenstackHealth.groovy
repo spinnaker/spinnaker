@@ -22,6 +22,10 @@ abstract class OpenstackHealth implements Health, Serializable {
 
   abstract OpenstackHealthType getType()
 
+  enum HealthClass {
+    platform
+  }
+
   static enum OpenstackHealthType {
     Openstack, LoadBalancer
   }
