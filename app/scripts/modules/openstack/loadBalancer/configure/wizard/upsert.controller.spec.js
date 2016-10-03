@@ -35,16 +35,16 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
       securityGroups: [],
       listeners: [
         {
-          internalPort: 443,
+          internalPort: 80,
           externalProtocol: 'HTTP',
-          externalPort: 443
+          externalPort: 80
         }
       ]
     };
 
     this.testData = {
       loadBalancerList: [
-        {account: 'account1', region: 'region1', name: 'lb111', healthChecks: [this.loadBalancerDefaults.healthMonitor]},
+        {account: 'account1', region: 'region1', name: 'lb111', healthChecks: [this.loadBalancerDefaults.healthMonitor], listeners: [this.loadBalancerDefaults.listeners]},
         {account: 'account1', region: 'region1', name: 'lb112', healthChecks: [this.loadBalancerDefaults.healthMonitor]},
         {account: 'account1', region: 'region1', name: 'lb113', healthChecks: [this.loadBalancerDefaults.healthMonitor]},
         {account: 'account2', region: 'region1', name: 'lb211', healthChecks: [this.loadBalancerDefaults.healthMonitor]},
