@@ -86,7 +86,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     String username = "anonymous";
     if (authentication instanceof PreAuthenticatedAuthenticationToken) {
       PreAuthenticatedAuthenticationToken authToken = (PreAuthenticatedAuthenticationToken) authentication;
-      if (authToken.isAuthenticated()) {
+      if (authToken.isAuthenticated() && authToken.getPrincipal() != null) {
         username = authToken.getPrincipal().toString();
       }
     }
@@ -99,8 +99,8 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     } catch (RetrofitError re) {
       String message = String.format("Fiat authorization failed for user '%s' '%s'-ing '%s' " +
                                          "resourceType named '%s'. Cause: %s", username, a, resourceType, resourceName, re.getMessage());
-      log.debug(message);
-      log.trace(message, re);
+      log.info(message);
+      log.debug(message, re);
       return false;
     }
     return true;

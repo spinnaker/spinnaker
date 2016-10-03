@@ -88,10 +88,14 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
 
     @Override
     public void onSuccess(Groups groups, HttpHeaders responseHeaders) throws IOException {
+      if (groups == null || groups.getGroups() == null || groups.getGroups().isEmpty()) {
+        return;
+      }
+
       Set<Role> groupSet = groups.getGroups()
-                                   .stream()
-                                   .map(GoogleDirectoryUserRolesProvider::toRole)
-                                   .collect(Collectors.toSet());
+                                 .stream()
+                                 .map(GoogleDirectoryUserRolesProvider::toRole)
+                                 .collect(Collectors.toSet());
       emailGroupsMap.put(email, groupSet);
     }
   }
