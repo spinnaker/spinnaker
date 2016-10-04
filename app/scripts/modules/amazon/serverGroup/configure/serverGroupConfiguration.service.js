@@ -234,7 +234,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
               ami: image.amis ? image.amis[command.region][0] : null
             };
           });
-        var [match] = regionalImages.filter((image) => image.imageName === command.amiName);
+        let match = regionalImages.find((image) => image.imageName === command.amiName);
         if (command.amiName && !match) {
           result.dirty.amiName = true;
           command.amiName = null;

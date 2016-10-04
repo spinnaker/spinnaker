@@ -67,8 +67,7 @@ export class Application {
    * @param key
    */
   public getDataSource(key: string): ApplicationDataSource {
-    let [dataSource] = this.dataSources.filter(ds => ds.key === key);
-    return dataSource;
+    return this.dataSources.find(ds => ds.key === key);
   }
 
   /**

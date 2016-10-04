@@ -83,7 +83,7 @@ module.exports = angular
           account = serverGroup.account,
           region = serverGroup.region,
           cloudProvider = serverGroup.type;
-      let [result] = this.instanceGroups.filter((instanceGroup) => {
+      let result = this.instanceGroups.find((instanceGroup) => {
         return instanceGroup.serverGroup === serverGroupName &&
           instanceGroup.account === account &&
           instanceGroup.region === region &&
@@ -138,7 +138,7 @@ module.exports = angular
       }
       this.deselectAllInstances();
       let key = this.makeServerGroupKey(serverGroup),
-          [selected] = this.serverGroups.filter((sg) => sg.key === key);
+          selected = this.serverGroups.find((sg) => sg.key === key);
       if (selected) {
         this.serverGroups.splice(this.serverGroups.indexOf(selected), 1);
       } else {

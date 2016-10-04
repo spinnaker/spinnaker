@@ -51,7 +51,7 @@ module.exports = angular
 
     function getSubnetPurpose(id) {
       return listSubnets().then(subnets => {
-        let [match] = subnets.filter(test => test.id === id);
+        let match = subnets.find(test => test.id === id);
         return match ? match.purpose : null;
       });
     }

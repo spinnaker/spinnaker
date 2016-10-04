@@ -69,7 +69,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
     function waitUntilNewTriggeredPipelineAppears(application, pipelineName, triggeredPipelineId) {
 
       return getRunningExecutions(application.name).then(function(executions) {
-        var [match] = executions.filter(function(execution) {
+        let match = executions.find(function(execution) {
           return execution.id === triggeredPipelineId;
         });
         var deferred = $q.defer();

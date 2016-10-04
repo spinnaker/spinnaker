@@ -16,9 +16,9 @@ export class LoadBalancersTagController implements ng.IComponentController {
     this.application.getDataSource('loadBalancers').ready().then(() => {
       let serverGroup: ServerGroup = this.serverGroup;
       this.loadBalancers = serverGroup.loadBalancers.map( (lbName: string) => {
-        let [match] = this.application.getDataSource('loadBalancers')
+        let match = this.application.getDataSource('loadBalancers')
           .data
-          .filter((lb: LoadBalancer): boolean => {
+          .find((lb: LoadBalancer): boolean => {
             return lb.name === lbName
               && lb.account === serverGroup.account
               && lb.region === serverGroup.region

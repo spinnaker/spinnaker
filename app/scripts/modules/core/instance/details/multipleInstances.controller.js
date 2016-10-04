@@ -174,10 +174,8 @@ module.exports = angular.module('spinnaker.core.instance.details.multipleInstanc
      */
 
     function getServerGroup(group) {
-      let [serverGroup] = app.serverGroups.data.filter((serverGroup) => serverGroup.name === group.serverGroup &&
+      return app.serverGroups.data.find((serverGroup) => serverGroup.name === group.serverGroup &&
           serverGroup.account === group.account && serverGroup.region === group.region);
-
-      return serverGroup;
     }
 
     function getInstanceDetails(group, instanceId) {
@@ -187,8 +185,7 @@ module.exports = angular.module('spinnaker.core.instance.details.multipleInstanc
         return null;
       }
 
-      let [instance] = serverGroup.instances.filter((instance) => instance.id === instanceId);
-      return instance || {};
+      return serverGroup.instances.find((instance) => instance.id === instanceId) || {};
     }
 
     let makeInstanceModel = (group, instanceId) => {

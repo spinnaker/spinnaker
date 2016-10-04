@@ -122,7 +122,7 @@ module.exports = angular
       if (ClusterFilterModel.sortFilter.listInstances && ClusterFilterModel.sortFilter.multiselect) {
         let instancesSelected = 0;
         MultiselectModel.instanceGroups.forEach((instanceGroup) => {
-          let [match] = serverGroups.filter((serverGroup) => {
+          let match = serverGroups.find((serverGroup) => {
             return serverGroup.name === instanceGroup.serverGroup &&
               serverGroup.region === instanceGroup.region &&
               serverGroup.account === instanceGroup.account &&
@@ -291,14 +291,13 @@ module.exports = angular
     }, 25);
 
     function getCluster(application, clusterName, account, category) {
-      let [match] = (application.clusters || []).filter(c => c.account === account && c.name === clusterName && c.category === category);
-      return match;
+      return (application.clusters || []).find(c => c.account === account && c.name === clusterName && c.category === category);
     }
 
     function diffSubgroups(oldGroups, newGroups) {
       var groupsToRemove = [];
       oldGroups.forEach(function(oldGroup, idx) {
-        var [newGroup] = (newGroups || []).filter(group =>
+        let newGroup = (newGroups || []).find(group =>
             group.heading === oldGroup.heading &&
             group.category === oldGroup.category);
         if (!newGroup) {

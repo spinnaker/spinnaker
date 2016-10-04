@@ -55,7 +55,7 @@ module.exports = angular
     }
 
     if (settings.feature.vpcMigrator) {
-      let [migrated] = $scope.application.pipelineConfigs.data.filter(test => test.name === $scope.pipeline.name + ' - vpc0');
+      let migrated = $scope.application.pipelineConfigs.data.find(test => test.name === $scope.pipeline.name + ' - vpc0');
       if (migrated) {
         $scope.migrated = migrated;
       }
@@ -244,7 +244,7 @@ module.exports = angular
     };
 
     this.close = () => {
-      var [newPipeline] = application.pipelineConfigs.data.filter(test => {
+      let newPipeline = application.pipelineConfigs.data.find(test => {
         return test.name.indexOf(this.viewState.targetName) === 0;
       });
       $state.go('^.pipelineConfig', {pipelineId: newPipeline.id});

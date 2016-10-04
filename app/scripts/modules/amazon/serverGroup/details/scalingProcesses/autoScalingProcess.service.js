@@ -67,7 +67,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.p
     function getDisabledDate(serverGroup) {
       if (serverGroup.isDisabled) {
         let processes = normalizeScalingProcesses(serverGroup);
-        let [disabledProcess] = processes.filter((process) => process.name === 'AddToLoadBalancer' && !process.enabled);
+        let disabledProcess = processes.find((process) => process.name === 'AddToLoadBalancer' && !process.enabled);
         if (disabledProcess) {
           return disabledProcess.suspensionDate;
         }

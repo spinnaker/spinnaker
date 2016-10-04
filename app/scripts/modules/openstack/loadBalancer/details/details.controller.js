@@ -26,7 +26,7 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.details.contro
       $scope.InsightFilterStateModel = InsightFilterStateModel;
 
       function extractLoadBalancer() {
-        let [appLoadBalancer] = app.loadBalancers.data.filter(function (test) {
+        let appLoadBalancer = app.loadBalancers.data.find(function (test) {
           return test.name === loadBalancer.name &&
             test.region === loadBalancer.region &&
             test.account === loadBalancer.accountId;

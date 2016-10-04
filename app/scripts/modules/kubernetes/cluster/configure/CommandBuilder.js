@@ -135,7 +135,7 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
       let result = [];
       containers.forEach((container) => {
         if (container.imageDescription.fromContext) {
-          let [matchingImage] = upstreamImages.filter((image) => container.imageDescription.stageId === image.stageId);
+          let matchingImage = upstreamImages.find((image) => container.imageDescription.stageId === image.stageId);
           if (matchingImage) {
             container.imageDescription.cluster = matchingImage.cluster;
             container.imageDescription.pattern = matchingImage.pattern;
@@ -143,7 +143,7 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
             result.push(container);
           }
         } else if (container.imageDescription.fromTrigger) {
-          let [matchingImage] = upstreamImages.filter((image) => {
+          let matchingImage = upstreamImages.find((image) => {
             return container.imageDescription.registry === image.registry
               && container.imageDescription.repository === image.repository
               && container.imageDescription.tag === image.tag;
@@ -176,7 +176,7 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
         });
       }
       current.requisiteStageRefIds.forEach(function(id) {
-        let [next] = all.filter((stage) => stage.refId === id);
+        let next = all.find((stage) => stage.refId === id);
         if (next) {
           result = result.concat(findUpstreamImages(next, all, visited));
         }

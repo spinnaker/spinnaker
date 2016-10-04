@@ -7,7 +7,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.service', [
   require('../../image/image.reader.js'),
 ])
-  .factory('openstackServerGroupCommandBuilder', function ($q, openstackImageReader, subnetReader, loadBalancerReader, settings, namingService, applicationReader, openstackServerGroupTransformer) {
+  .factory('openstackServerGroupCommandBuilder', function ($q, openstackImageReader, subnetReader, loadBalancerReader, settings, namingService, applicationReader) {
 
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};

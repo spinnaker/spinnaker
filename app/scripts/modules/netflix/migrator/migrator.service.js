@@ -95,7 +95,7 @@ module.exports = angular
     let addAccountNames = (results) => {
       accountService.getAllAccountDetailsForProvider('aws').then(accounts => {
         results.securityGroups.forEach(group => {
-          let [match] = accounts.filter(a => a.accountId === group.accountId);
+          let match = accounts.find(a => a.accountId === group.accountId);
           group.accountName = match ? match.name : group.accountId;
         });
       });

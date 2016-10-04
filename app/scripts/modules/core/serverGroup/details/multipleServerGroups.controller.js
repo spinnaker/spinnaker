@@ -87,7 +87,7 @@ module.exports = angular.module('spinnaker.core.serverGroup.details.multipleServ
       let retrieveServerGroups = () => {
         this.serverGroups = MultiselectModel.serverGroups.map(multiselectGroup => {
           let group = _.cloneDeep(multiselectGroup);
-          let [match] = app.serverGroups.data.filter(check => check.name === group.name && check.account === group.account && check.region === group.region);
+          let match = app.serverGroups.data.find(check => check.name === group.name && check.account === group.account && check.region === group.region);
           if (match) {
             group.instanceCounts = _.cloneDeep(match.instanceCounts);
             group.disabled = match.isDisabled;

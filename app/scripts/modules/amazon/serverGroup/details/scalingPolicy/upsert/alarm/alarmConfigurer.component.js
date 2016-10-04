@@ -181,7 +181,7 @@ module.exports = angular
             results.forEach(transformAvailableMetric);
             this.metrics = results.sort((a, b) => a.label.localeCompare(b.label));
             let currentDimensions = alarm.dimensions.sort(dimensionSorter).map(d => d.value).join(', ');
-            let [selected] = this.metrics.filter(metric =>
+            let selected = this.metrics.find(metric =>
               metric.name === alarm.metricName && metric.namespace === alarm.namespace &&
               metric.dimensionValues === currentDimensions
             );

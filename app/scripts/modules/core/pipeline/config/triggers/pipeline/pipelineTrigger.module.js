@@ -31,7 +31,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.pipeline
       formatLabel: (trigger) => {
 
         let loadSuccess = (pipelines) => {
-          let [pipeline] = pipelines.filter((config) => config.id === trigger.pipeline);
+          let pipeline = pipelines.find((config) => config.id === trigger.pipeline);
           return pipeline ? `(Pipeline) ${trigger.application}: ${pipeline.name}` : '[pipeline not found]';
         };
 
@@ -98,7 +98,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.pipeline
     $scope.userSuppliedParameters = {};
 
     this.updateParam = function(parameter) {
-      if($scope.useDefaultParameters[parameter] === true) {
+      if ($scope.useDefaultParameters[parameter] === true) {
         delete $scope.userSuppliedParameters[parameter];
         delete $scope.trigger.parameters[parameter];
       } else if($scope.userSuppliedParameters[parameter]) {

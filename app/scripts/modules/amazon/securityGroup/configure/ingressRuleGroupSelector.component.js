@@ -42,8 +42,8 @@ module.exports = angular
         regions.forEach(region => {
           var regionalVpcId = null;
           if (vpcId) {
-            var [baseVpc] = this.vpcs.filter(vpc => vpc.id === vpcId),
-                [regionalVpc] = this.vpcs.filter(vpc => vpc.account === account && vpc.region === region && vpc.name === baseVpc.name);
+            let baseVpc = this.vpcs.find(vpc => vpc.id === vpcId),
+                regionalVpc = this.vpcs.find(vpc => vpc.account === account && vpc.region === region && vpc.name === baseVpc.name);
             regionalVpcId = regionalVpc ? regionalVpc.id : undefined;
           }
 
@@ -87,8 +87,8 @@ module.exports = angular
             this.rule.name = null;
             return;
           }
-          let [baseVpc] = filtered.filter(vpc => vpc.id === this.rule.vpcId),
-              [regionalVpc] = filtered.filter(vpc => vpc.account === this.rule.accountName && vpc.name === baseVpc.name);
+          let baseVpc = filtered.find(vpc => vpc.id === this.rule.vpcId),
+              regionalVpc = filtered.find(vpc => vpc.account === this.rule.accountName && vpc.name === baseVpc.name);
           if (regionalVpc) {
             this.rule.vpcId = regionalVpc.id;
           } else {

@@ -27,7 +27,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.wait.executionDet
     this.finishWaiting = () => {
       let stage = $scope.stage;
       let matcher = (execution) => {
-        let [match] = execution.stages.filter((test) => test.id === stage.id);
+        let match = execution.stages.find((test) => test.id === stage.id);
         return match.status !== 'RUNNING';
       };
 
