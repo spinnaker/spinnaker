@@ -143,11 +143,6 @@ function extract_spinnaker_local_yaml() {
       chmod 600 $AWS_DIR/credentials
   fi
 
-  local consul_enabled=$(get_instance_metadata_attribute "consul_enabled")
-  if [ -n "$consul_enabled" ]; then
-      write_default_value "SPINNAKER_GOOGLE_CONSUL_ENABLED" "$consul_enabled"
-  fi
-
   clear_instance_metadata "spinnaker_local"
   return 0
 }
@@ -180,6 +175,12 @@ function extract_spinnaker_google_credentials() {
   else
     clear_instance_metadata "managed_project_credentials"
     json_path=""
+  fi
+
+  local consul_enabled=$(get_instance_metadata_attribute "consul_enabled")
+  if [ -n "$consul_enabled" ]; then
+      echo "Setting google consul enabled to $consul_enabled"
+      write_default_value "SPINNAKER_GOOGLE_CONSUL_ENABLED" "$consul_enabled"
   fi
 
   # This cant be configured when we create the instance because

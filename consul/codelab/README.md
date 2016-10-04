@@ -24,7 +24,7 @@ gcloud compute instances create $SPINNAKER_VM_NAME \
     --image spinnaker-latest-stable-licensed \
     --image-project click-to-deploy-images \
     --scopes compute-rw,storage-rw \
-    --machine-type n1-highmem-8 \
+    --machine-type n1-highmem-4 \
     --metadata startup-script=/opt/spinnaker/install/first_google_boot.sh,consul_enabled=true
 
 # connect to our instance of Spinnaker - it will take a few minutes
@@ -121,7 +121,8 @@ necessary:
 Now to create the image...
 
 ```bash
-# create a client node we will use to capture an image
+# create a client node we will use to capture an image, with a bootdisk
+# that won't be auto-deleted
 gcloud compute instances create consul-client \
     --image-project marketplace-spinnaker-release \
     --image consul-client \
@@ -135,6 +136,7 @@ gcloud compute ssh consul-client
 # ssh'd into the demo VM (we don't have permission to copy the file into this
 # protected part of the filesystem remotely).
 sudo mv join.json /etc/consul.d/client/
+sudo chown consul:consul /etc/consul.d/client/join.json 
 
 # close the connection
 exit
@@ -145,4 +147,47 @@ echo y | gcloud compute instances delete consul-client
 # capture the image
 gcloud compute images create consul-client \
     --source-disk consul-client
+
+# delete the old boot disk
+echo y | gcloud compute disks delete consul-client
+```
+
+## Deploying our Application
+
+We will use the `consul-client` image we created as the base VM image that all 
+our applications are installed on to guarantee that each instance deployed by 
+Spinnaker joins the Consul cluster. This setup ensures that no extra work is
+required by any application's developer. To do this, we need to configure 
+Rosco, Spinnaker's bakery.
+
+### Configuring Rosco
+
+> On the VM running Spinnaker (that we ssh'd into in the very first step).
+
+We need to create the following file `/opt/rosco/config/rosco-local.yml` with 
+the contents
+
+```yaml
+google:
+  enabled: true
+  gce:
+    bakeryDefaults:
+      zone: us-central1-f
+      network: default
+      useInternalIp: false
+      templateFile: gce.json
+      baseImages:
+      - baseImage:
+          id: consul
+          shortDescription: v0.6.4                    # consul version
+          detailedDescription: Consul Client v0.6.4
+          packageType: deb
+        virtualizationSettings:
+          sourceImage: consul-client                  # image created above
+```
+
+Make sure that file is readable by Spinnaker:
+
+```bash
+sudo chown spinnaker:spinnaker /opt/rosco/config/rosco-local.yml
 ```
