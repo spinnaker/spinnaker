@@ -1,0 +1,9 @@
+--index-url https://pypi.python.org/simple/
+
+# citest is not currently published through pip
+# You'll need to clone the https://github.com/google/citest repository
+# and run pip install -r requirements.txt on its requirements file
+citest
+
+# This is needed by the google_http_lb_tests
+pyopenssl

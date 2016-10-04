@@ -16,9 +16,9 @@ This part of the repository is divided into the following parts:
 
 Directory | Purpose
 ----------|--------
-'spinnaker_system'  | The actual integration tests.
-'spinnaker_testing' | Support modules for the spinnaker tests.
-'test_tests'        | Unit tests for parts of spinnaker_testing.
+'tests'  | The actual Spinnaker integration tests.
+'spinnaker_testing' | Support modules for the Spinnaker integration tests.
+'unittests'        | Unit tests for parts of spinnaker_testing.
 
 
 # Installing dependencies
@@ -54,14 +54,24 @@ These are not yet automated. Depending on the platforms involved either
 by hosting Spinnaker or being the platform the test is running against,
 you may need additional tools.
 
-Platform | Tools
-Amazon Web Services | awscli
-Google Cloud Platform | gcloud
-Kubernetes | kube-ctrl
-
+Platform | Tools | Installation Command
+---------|-------|---------------------
+Amazon Web Services | awscli | ```sudo apt-get install -y awscli```
+Google Cloud Platform | gcloud | ```curl https://sdk.cloud.google.com | bash```
+Kubernetes | kubectl | [See instructions](http://kubernetes.io/docs/user-guide/prereqs/)
 
 
 ## Install Spinnaker citest Dependencies
+citest is not yet published to a pip repository so you need to clone
+the citest repository and install it from there.
+```
+# From the sibling directory to this repository, such as pushd ..
+git clone https://github.com/google/citest.git
+cd citest
+pip install -r requirements.txt
+```
+
+Then come back here and install the requirements for these tests.
 `Run pip install -r requirements.txt.`
 
 
