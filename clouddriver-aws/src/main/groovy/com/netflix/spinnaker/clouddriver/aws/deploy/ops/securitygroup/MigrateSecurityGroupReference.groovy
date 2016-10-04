@@ -40,4 +40,9 @@ class MigrateSecurityGroupReference extends AbstractAmazonCredentialsDescription
     this.sourceId = pair.groupId
     this.credentials = credentials
   }
+
+  @Override
+  String getAccount() {
+    getCredentialAccount()
+  }
 }
