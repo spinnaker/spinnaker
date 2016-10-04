@@ -25,6 +25,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.bakeSta
         { type: 'requiredField', fieldName: 'regions', },
         { type: 'stageOrTriggerBeforeType',
           stageType: 'jenkins',
+          checkParentTriggers: true,
           message: 'Bake stages should always have a Jenkins stage or trigger preceding them.<br> Otherwise, ' +
         'Spinnaker will bake and deploy the most-recently built package.'}
       ],

@@ -1,6 +1,8 @@
 'use strict';
 
-describe('pipelineConfigValidator', function () {
+describe('pipelineConfigValidator', () => {
+
+  var pipeline, validate, messages, pipelineConfigValidator, pipelineConfig, pipelineConfigService, $q;
 
   beforeEach(
     window.module(
@@ -9,15 +11,22 @@ describe('pipelineConfigValidator', function () {
     )
   );
 
-  beforeEach(window.inject(function (pipelineConfigValidator, pipelineConfig) {
-    this.validator = pipelineConfigValidator;
-    this.pipelineConfig = pipelineConfig;
+  beforeEach(window.inject((_pipelineConfigValidator_, _pipelineConfig_, _pipelineConfigService_, _$q_, $rootScope) => {
+    pipelineConfigValidator = _pipelineConfigValidator_;
+    pipelineConfig = _pipelineConfig_;
+    pipelineConfigService = _pipelineConfigService_;
+    $q = _$q_;
+    validate = () => {
+      messages = null;
+      pipelineConfigValidator.validatePipeline(pipeline).then(result => messages = result);
+      $rootScope.$new().$digest();
+    };
   }));
 
-  describe('validation', function () {
+  describe('validation', () => {
 
-    it('performs validation against stages and triggers where declared, ignores others', function () {
-      spyOn(this.pipelineConfig, 'getTriggerConfig').and.callFake(function (type) {
+    it('performs validation against stages and triggers where declared, ignores others', () => {
+      spyOn(pipelineConfig, 'getTriggerConfig').and.callFake((type) => {
         if (type === 'withTriggerValidation') {
           return {
             validators: [
@@ -31,7 +40,7 @@ describe('pipelineConfigValidator', function () {
         }
         return {};
       });
-      spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (stage) {
+      spyOn(pipelineConfig, 'getStageConfig').and.callFake((stage) => {
         if (stage.type === 'withValidation') {
           return {
             validators: [
@@ -46,7 +55,7 @@ describe('pipelineConfigValidator', function () {
         return {};
       });
 
-      var pipeline = {
+      pipeline = {
         stages: [
           { type: 'withValidation', },
           { type: 'no-validation' },
@@ -57,14 +66,14 @@ describe('pipelineConfigValidator', function () {
         ]
       };
 
-      var validationMessages = this.validator.validatePipeline(pipeline);
-      expect(validationMessages.length).toBe(2);
-      expect(validationMessages[0]).toBe('boo is required');
-      expect(validationMessages[1]).toBe('bar is required');
+      validate();
+      expect(messages.length).toBe(2);
+      expect(messages[0]).toBe('boo is required');
+      expect(messages[1]).toBe('bar is required');
     });
 
-    it('executes all validators', function () {
-      spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (stage) {
+    it('executes all validators', () => {
+      spyOn(pipelineConfig, 'getStageConfig').and.callFake((stage) => {
         if (stage.type === 'withValidation') {
           return {
             validators: [
@@ -85,29 +94,41 @@ describe('pipelineConfigValidator', function () {
         }
       });
 
-      var pipeline = {
+      pipeline = {
         stages: [
           { type: 'withValidation', },
           { type: 'no-validation' }
         ]
       };
 
-      var validationMessages = this.validator.validatePipeline(pipeline);
-      expect(validationMessages.length).toBe(2);
+      validate();
+      expect(messages.length).toBe(2);
 
       pipeline.stages[0].foo = 'a';
-      validationMessages = this.validator.validatePipeline(pipeline);
-      expect(validationMessages.length).toBe(1);
-      expect(validationMessages[0]).toBe('bar is required');
+      validate();
+      expect(messages.length).toBe(1);
+      expect(messages[0]).toBe('bar is required');
     });
 
   });
 
-  describe('validators', function () {
+  describe('validators', () => {
 
-    describe('stageOrTriggerBeforeType', function () {
-      beforeEach(function() {
-        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (stage) {
+    describe('stageOrTriggerBeforeType', () => {
+      beforeEach(() => {
+        spyOn(pipelineConfig, 'getStageConfig').and.callFake((stage) => {
+          if (stage.type === 'withValidationIncludingParent') {
+            return {
+              validators: [
+                {
+                  type: 'stageOrTriggerBeforeType',
+                  checkParentTriggers: true,
+                  stageType: 'prereq',
+                  message: 'need a prereq',
+                },
+              ]
+            };
+          }
           if (stage.type === 'withValidation') {
             return {
               validators: [
@@ -118,12 +139,11 @@ describe('pipelineConfigValidator', function () {
                 },
               ]
             };
-          } else {
-            return {};
           }
+          return {};
         });
 
-        this.pipeline = {
+        pipeline = {
           stages: [
             {type: 'withValidation', refId: 1, requisiteStageRefIds: []},
             {type: 'no-validation', refId: 2, requisiteStageRefIds: []}
@@ -132,75 +152,138 @@ describe('pipelineConfigValidator', function () {
         };
       });
 
-      it('fails if no stage/trigger is first or not preceded by declared stage type', function () {
-
-        var messages = this.validator.validatePipeline(this.pipeline);
+      it('fails if no stage/trigger is first or not preceded by declared stage type', () => {
+        validate();
         expect(messages.length).toBe(1);
         expect(messages[0]).toBe('need a prereq');
 
-        this.pipeline.stages = [
+        pipeline.stages = [
           {type: 'wrongType', refId: 1, requisiteStageRefIds: []},
           {type: 'withValidation', refId: 2, requisiteStageRefIds: [1]}
         ];
 
-        messages = this.validator.validatePipeline(this.pipeline);
+        validate();
         expect(messages.length).toBe(1);
         expect(messages[0]).toBe('need a prereq');
       });
 
-      it('succeeds if preceding stage type matches', function () {
-        this.pipeline.stages[0].type = 'prereq';
-        var messages = this.validator.validatePipeline(this.pipeline);
+      it('succeeds if preceding stage type matches', () => {
+        pipeline.stages[0].type = 'prereq';
+        validate();
         expect(messages.length).toBe(0);
 
-        this.pipeline.stages = [
+        pipeline.stages = [
           {type: 'prereq', refId: 1, requisiteStageRefIds: []},
           {type: 'somethingElse', refId: 2, requisiteStageRefIds: [1]},
           {type: 'withValidation', refId: 3, requisiteStageRefIds: [2]}
         ];
 
-        messages = this.validator.validatePipeline(this.pipeline);
+        validate();
         expect(messages.length).toBe(0);
       });
 
-      it('succeeds if trigger type matches', function () {
-        this.pipeline.stages[0].type = 'prereq';
-        var messages = this.validator.validatePipeline(this.pipeline);
+      it('succeeds if trigger type matches', () => {
+        pipeline.stages[0].type = 'prereq';
+        validate();
         expect(messages.length).toBe(0);
 
-        this.pipeline.stages = [
+        pipeline.stages = [
           {type: 'withValidation', refId: 1, requisiteStageRefIds: []}
         ];
-        this.pipeline.triggers = [
+        pipeline.triggers = [
           {type: 'prereq'}
         ];
 
-        messages = this.validator.validatePipeline(this.pipeline);
+        validate();
         expect(messages.length).toBe(0);
       });
 
-      it('fails if no preceding stage type matches and no trigger type matches', function () {
-        this.pipeline.stages[0].type = 'prereq';
-        var messages = this.validator.validatePipeline(this.pipeline);
+      it('fails if no preceding stage type matches and no trigger type matches', () => {
+        pipeline.stages[0].type = 'prereq';
+        validate();
         expect(messages.length).toBe(0);
 
-        this.pipeline.stages = [
+        pipeline.stages = [
           {type: 'noValidation', refId: 1, requisiteStageRefIds: []},
           {type: 'withValidation', refId: 2, requisiteStageRefIds: [1]}
         ];
-        this.pipeline.triggers = [
+        pipeline.triggers = [
           {type: 'alsoNotValidation'}
         ];
 
-        messages = this.validator.validatePipeline(this.pipeline);
+        validate();
         expect(messages.length).toBe(1);
         expect(messages[0]).toBe('need a prereq');
       });
+
+      it('checks parent pipeline triggers for match', () => {
+        spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([
+          { id: 'abcd', triggers: [ { type: 'prereq' } ] }
+        ]));
+
+        pipeline = {
+          stages: [ { type: 'withValidationIncludingParent', refId: 1 } ],
+          triggers: [ { type: 'pipeline', application: 'someApp', pipeline: 'abcd' } ]
+        };
+        validate();
+        expect(pipelineConfigService.getPipelinesForApplication).toHaveBeenCalledWith('someApp');
+        expect(messages.length).toBe(0);
+      });
+
+      it('caches pipeline configs', () => {
+        spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([
+          { id: 'abcd', triggers: [ { type: 'prereq' } ] }
+        ]));
+
+        pipeline = {
+          stages: [ { type: 'withValidationIncludingParent', refId: 1 } ],
+          triggers: [ { type: 'pipeline', application: 'someApp', pipeline: 'abcd' } ]
+        };
+
+        validate();
+        expect(pipelineConfigService.getPipelinesForApplication.calls.count()).toBe(1);
+
+        validate();
+        expect(pipelineConfigService.getPipelinesForApplication.calls.count()).toBe(1);
+
+        pipelineConfigValidator.clearCache();
+        validate();
+        expect(pipelineConfigService.getPipelinesForApplication.calls.count()).toBe(2);
+      });
+
+      it('fails if own stages and parent pipeline triggers do not match', () => {
+        spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([
+          { id: 'abcd', triggers: [ { type: 'not-prereq' } ] },
+          { id: 'other', triggers: [ { type: 'prereq' } ] }
+        ]));
+
+        pipeline = {
+          stages: [ { type: 'withValidationIncludingParent', refId: 1 } ],
+          triggers: [ { type: 'pipeline', application: 'someApp', pipeline: 'abcd' } ]
+        };
+        validate();
+        expect(pipelineConfigService.getPipelinesForApplication).toHaveBeenCalledWith('someApp');
+        expect(messages.length).toBe(1);
+      });
+
+      it('does not check parent triggers unless specified in validator', () => {
+        spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([
+          { id: 'abcd', triggers: [ { type: 'prereq' } ] }
+        ]));
+
+        pipeline = {
+          stages: [ { type: 'withValidation', refId: 1 } ],
+          triggers: [ { type: 'pipeline', application: 'someApp', pipeline: 'abcd' } ]
+        };
+        validate();
+        expect(pipelineConfigService.getPipelinesForApplication.calls.count()).toBe(0);
+        expect(messages.length).toBe(1);
+      });
     });
 
-    describe('stageBeforeType', function () {
-      it('fails if no stage is first or not preceded by declared stage type', function () {
-        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (stage) {
+    describe('stageBeforeType', () => {
+      it('fails if no stage is first or not preceded by declared stage type', () => {
+        spyOn(pipelineConfig, 'getStageConfig').and.callFake((stage) => {
           if (stage.type === 'withValidation') {
             return {
               validators: [
@@ -216,14 +299,14 @@ describe('pipelineConfigValidator', function () {
           }
         });
 
-        var pipeline = {
+        pipeline = {
           stages: [
             {type: 'withValidation', refId: 1, requisiteStageRefIds: []},
             {type: 'no-validation', refId: 2, requisiteStageRefIds: []}
           ]
         };
 
-        var messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(1);
         expect(messages[0]).toBe('need a prereq');
 
@@ -232,12 +315,12 @@ describe('pipelineConfigValidator', function () {
           {type: 'withValidation', refId: 2, requisiteStageRefIds: [1]}
         ];
 
-        messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(1);
         expect(messages[0]).toBe('need a prereq');
 
         pipeline.stages[0].type = 'prereq';
-        messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(0);
 
         pipeline.stages = [
@@ -246,12 +329,12 @@ describe('pipelineConfigValidator', function () {
           {type: 'withValidation', refId: 3, requisiteStageRefIds: [2]}
         ];
 
-        messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(0);
       });
 
-      it('validates against multiple types if present', function () {
-        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (stage) {
+      it('validates against multiple types if present', () => {
+        spyOn(pipelineConfig, 'getStageConfig').and.callFake((stage) => {
           if (stage.type === 'withValidation') {
             return {
               validators: [
@@ -267,19 +350,19 @@ describe('pipelineConfigValidator', function () {
           }
         });
 
-        var pipeline = {
+        pipeline = {
           stages: [
             {type: 'three', refId: 1, requisiteStageRefIds: []},
             {type: 'withValidation', refId: 2, requisiteStageRefIds: [1]}
           ]
         };
 
-        var messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(1);
         expect(messages[0]).toBe('need a prereq');
 
         pipeline.stages[0].type = 'one';
-        messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(0);
 
         pipeline.stages = [
@@ -288,14 +371,14 @@ describe('pipelineConfigValidator', function () {
           {type: 'withValidation', refId: 3, requisiteStageRefIds: [2]}
         ];
 
-        messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(0);
       });
     });
 
-    describe('checkRequiredField', function () {
-      beforeEach(function () {
-        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (stage) {
+    describe('checkRequiredField', () => {
+      beforeEach(() => {
+        spyOn(pipelineConfig, 'getStageConfig').and.callFake((stage) => {
           if (stage.type === 'simpleField') {
             return {
               validators: [
@@ -322,81 +405,81 @@ describe('pipelineConfigValidator', function () {
         });
       });
 
-      it('non-nested field', function () {
-        var pipeline = { stages: [
+      it('non-nested field', () => {
+        pipeline = { stages: [
           { type: 'simpleField' }
         ]};
-        var messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(1);
         expect(messages[0]).toBe('need a foo');
 
         pipeline.stages[0].foo = 4;
-        messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(0);
 
         pipeline.stages[0].foo = 0;
-        messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(0);
 
         pipeline.stages[0].foo = '';
-        messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(1);
 
         pipeline.stages[0].foo = null;
-        messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(1);
       });
 
-      it('nested field', function () {
-        var pipeline = { stages: [
+      it('nested field', () => {
+        pipeline = { stages: [
           { type: 'nestedField' }
         ]};
-        var messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(1);
         expect(messages[0]).toBe('need a foo.bar.baz');
 
         pipeline.stages[0].foo = 4;
-        messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(1);
 
         pipeline.stages[0].foo = { bar: 1 };
-        messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(1);
 
         pipeline.stages[0].foo = { bar: { baz: null }};
-        messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(1);
 
         pipeline.stages[0].foo = { bar: { baz: '' }};
-        messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(1);
 
         pipeline.stages[0].foo = { bar: { baz: 0 }};
-        messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(0);
 
         pipeline.stages[0].foo = { bar: { baz: 'ok' }};
-        messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(0);
       });
 
-      it('empty array', function () {
-        var pipeline = { stages: [
+      it('empty array', () => {
+        pipeline = { stages: [
           { type: 'simpleField', foo: [] }
         ]};
-        var messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(1);
         expect(messages[0]).toBe('need a foo');
 
         pipeline.stages[0].foo.push(1);
-        messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(0);
       });
     });
 
-    describe('targetImpedance', function () {
-      beforeEach(function () {
-        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (stage) {
+    describe('targetImpedance', () => {
+      beforeEach(() => {
+        spyOn(pipelineConfig, 'getStageConfig').and.callFake((stage) => {
           if (stage.type === 'targetCheck') {
             return {
               validators: [
@@ -411,84 +494,84 @@ describe('pipelineConfigValidator', function () {
         });
       });
 
-      it('flags when no deploy step present', function () {
-        var pipeline = { stages: [
+      it('flags when no deploy step present', () => {
+        pipeline = { stages: [
           { type: 'targetCheck', regions: ['us-east-1'], credentials: 'test', cluster: 'deck-main' }
         ]};
-        var messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(1);
         expect(messages[0]).toBe('mismatch detected');
       });
 
-      it('passes without stack or details', function () {
-        var pipeline = { stages: [
+      it('passes without stack or details', () => {
+        pipeline = { stages: [
           { type: 'deploy', clusters: [
             { application: 'deck', account: 'test', availabilityZones: { 'us-east-1': [] }}
           ]},
           { type: 'targetCheck', regions: ['us-east-1'], credentials: 'test', cluster: 'deck' }
         ]};
-        var messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(0);
       });
 
-      it('passes with stack', function () {
-        var pipeline = { stages: [
+      it('passes with stack', () => {
+        pipeline = { stages: [
           { type: 'deploy', clusters: [
             { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-east-1': [] }}
           ]},
           { type: 'targetCheck', regions: ['us-east-1'], credentials: 'test', cluster: 'deck-main' }
         ]};
-        var messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(0);
       });
 
-      it('passes with freeFormDetails', function () {
-        var pipeline = { stages: [
+      it('passes with freeFormDetails', () => {
+        pipeline = { stages: [
           { type: 'deploy', clusters: [
             { application: 'deck', account: 'test', freeFormDetails: 'main', availabilityZones: { 'us-east-1': [] }}
           ]},
           { type: 'targetCheck', regions: ['us-east-1'], credentials: 'test', cluster: 'deck--main' }
         ]};
-        var messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(0);
       });
 
-      it('passes with stack and freeFormDetails', function () {
-        var pipeline = { stages: [
+      it('passes with stack and freeFormDetails', () => {
+        pipeline = { stages: [
           { type: 'deploy', clusters: [
             { application: 'deck', account: 'test', stack: 'main', freeFormDetails: 'foo', availabilityZones: { 'us-east-1': [] }}
           ]},
           { type: 'targetCheck', regions: ['us-east-1'], credentials: 'test', cluster: 'deck-main-foo' }
         ]};
-        var messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(0);
       });
 
-      it('passes single region', function () {
-        var pipeline = { stages: [
+      it('passes single region', () => {
+        pipeline = { stages: [
           { type: 'deploy', clusters: [
             { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-east-1': [] }}
           ]},
           { type: 'targetCheck', regions: ['us-east-1'], credentials: 'test', cluster: 'deck-main' }
         ]};
-        var messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(0);
       });
 
-      it('passes multiple regions in same deploy stage', function () {
-        var pipeline = { stages: [
+      it('passes multiple regions in same deploy stage', () => {
+        pipeline = { stages: [
           { type: 'deploy', clusters: [
             { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-east-1': [] }},
             { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-west-1': [] }}
           ]},
           { type: 'targetCheck', regions: ['us-east-1', 'us-west-1'], credentials: 'test', cluster: 'deck-main' }
         ]};
-        var messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(0);
       });
 
-      it('passes multiple regions scattered across deploy stages', function () {
-        var pipeline = { stages: [
+      it('passes multiple regions scattered across deploy stages', () => {
+        pipeline = { stages: [
           { type: 'deploy', clusters: [
             { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-east-1': [] }}
           ]},
@@ -497,74 +580,74 @@ describe('pipelineConfigValidator', function () {
           ]},
           { type: 'targetCheck', regions: ['us-east-1', 'us-west-1'], credentials: 'test', cluster: 'deck-main' }
         ]};
-        var messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(0);
       });
 
-      it('flags credentials mismatch', function () {
-        var pipeline = { stages: [
+      it('flags credentials mismatch', () => {
+        pipeline = { stages: [
           { type: 'deploy', clusters: [
             { application: 'deck', account: 'prod', stack: 'main', availabilityZones: { 'us-east-1': [] }}
           ]},
           { type: 'targetCheck', regions: ['us-east-1'], credentials: 'test', cluster: 'deck-main' }
         ]};
-        var messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(1);
         expect(messages[0]).toBe('mismatch detected');
       });
 
-      it('flags region mismatch', function () {
-        var pipeline = { stages: [
+      it('flags region mismatch', () => {
+        pipeline = { stages: [
           { type: 'deploy', clusters: [
             { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-west-1': [] }}
           ]},
           { type: 'targetCheck', regions: ['us-east-1'], credentials: 'test', cluster: 'deck-main' }
         ]};
-        var messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(1);
         expect(messages[0]).toBe('mismatch detected');
       });
 
-      it('flags cluster mismatch - no stack or freeFormDetails', function () {
-        var pipeline = { stages: [
+      it('flags cluster mismatch - no stack or freeFormDetails', () => {
+        pipeline = { stages: [
           { type: 'deploy', clusters: [
             { application: 'deck', account: 'test', availabilityZones: { 'us-east-1': [] }}
           ]},
           { type: 'targetCheck', regions: ['us-east-1'], credentials: 'test', cluster: 'deck2' }
         ]};
-        var messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(1);
         expect(messages[0]).toBe('mismatch detected');
       });
 
-      it('flags cluster mismatch on stack', function () {
-        var pipeline = { stages: [
+      it('flags cluster mismatch on stack', () => {
+        pipeline = { stages: [
           { type: 'deploy', clusters: [
             { application: 'deck', account: 'test', stack: 'staging', availabilityZones: { 'us-east-1': [] }}
           ]},
           { type: 'targetCheck', regions: ['us-east-1'], credentials: 'test', cluster: 'deck-main' }
         ]};
-        var messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(1);
         expect(messages[0]).toBe('mismatch detected');
       });
 
-      it('flags cluster mismatch on freeFormDetails', function () {
-        var pipeline = { stages: [
+      it('flags cluster mismatch on freeFormDetails', () => {
+        pipeline = { stages: [
           { type: 'deploy', clusters: [
             { application: 'deck', account: 'test', freeFormDetails: 'foo', availabilityZones: { 'us-east-1': [] }}
           ]},
           { type: 'targetCheck', regions: ['us-east-1'], credentials: 'test', cluster: 'deck--bar' }
         ]};
-        var messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(1);
         expect(messages[0]).toBe('mismatch detected');
       });
     });
 
-    describe('skipValidation', function () {
-      beforeEach(function () {
-        spyOn(this.pipelineConfig, 'getStageConfig').and.returnValue({
+    describe('skipValidation', () => {
+      beforeEach(() => {
+        spyOn(pipelineConfig, 'getStageConfig').and.returnValue({
           validators: [
             {
               type: 'custom',
@@ -580,24 +663,24 @@ describe('pipelineConfigValidator', function () {
         });
       });
 
-      it('skips validation if skipValidation method returns true', function () {
-        var pipeline = { validationCalled: false, stages: [ { name: 'skip' }]};
-        let messages = this.validator.validatePipeline(pipeline);
+      it('skips validation if skipValidation method returns true', () => {
+        pipeline = { validationCalled: false, stages: [ { name: 'skip' }]};
+        validate();
         expect(messages).toEqual([]);
         expect(pipeline.validationCalled).toBe(false);
       });
 
-      it('calls validation if skipValidation method returns false', function () {
-        var pipeline = { validationCalled: false, stages: [ { name: 'not skip' }]};
-        let messages = this.validator.validatePipeline(pipeline);
+      it('calls validation if skipValidation method returns false', () => {
+        pipeline = { validationCalled: false, stages: [ { name: 'not skip' }]};
+        validate();
         expect(messages).toEqual(['did not skip']);
         expect(pipeline.validationCalled).toBe(true);
       });
     });
 
-    describe('custom validator', function () {
-      beforeEach(function () {
-        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (stage) {
+    describe('custom validator', () => {
+      beforeEach(() => {
+        spyOn(pipelineConfig, 'getStageConfig').and.callFake((stage) => {
           if (stage.type === 'targetCheck') {
             return {
               validators: [
@@ -616,15 +699,15 @@ describe('pipelineConfigValidator', function () {
         });
       });
 
-      it('calls custom validator', function () {
-        var pipeline = { stages: [
+      it('calls custom validator', () => {
+        pipeline = { stages: [
           { type: 'targetCheck', name: 'goodName' }
         ]};
-        var messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages.length).toBe(0);
 
         pipeline.stages[0].name = 'bad name';
-        messages = this.validator.validatePipeline(pipeline);
+        validate();
         expect(messages).toEqual(['No spaces in targetCheck stage names']);
 
       });

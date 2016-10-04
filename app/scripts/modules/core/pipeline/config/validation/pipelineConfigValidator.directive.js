@@ -19,8 +19,10 @@ module.exports = angular.module('spinnaker.core.pipeline.config.validator.direct
   .controller('PipelineConfigValidatorCtrl', function($scope, pipelineConfigValidator) {
 
     function validate() {
-      $scope.messages = pipelineConfigValidator.validatePipeline($scope.pipeline);
+      pipelineConfigValidator.validatePipeline($scope.pipeline).then(messages => $scope.messages = messages);
     }
+
+    pipelineConfigValidator.clearCache();
 
     $scope.$watch('pipeline', validate, true);
 
