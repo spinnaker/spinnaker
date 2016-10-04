@@ -2,6 +2,7 @@
 
 import _ from 'lodash';
 
+
 let angular = require('angular');
 
 require('./project.less');

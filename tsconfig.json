@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "module": "commonjs"
+    "module": "commonjs",
+    "noImplicitAny": true
   },
   "files": [
     "typings/index.d.ts"

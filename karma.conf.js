@@ -31,6 +31,9 @@ module.exports = function(config) {
     },
 
     webpack: {
+      resolve: {
+        extensions: ['', '.js', '.ts']
+      },
       module: {
         loaders: [
           {

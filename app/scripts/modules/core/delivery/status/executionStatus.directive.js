@@ -1,4 +1,5 @@
 'use strict';
+import executionUserFilter from './executionUser.filter.ts';
 
 let angular = require('angular');
 
@@ -7,7 +8,7 @@ require('./executionStatus.less');
 module.exports = angular
   .module('spinnaker.core.delivery.executionStatus.directive', [
     require('../filter/executionFilter.model.js'),
-    require('./executionUser.filter.js'),
+    executionUserFilter
   ])
   .directive('executionStatus', function() {
     return {

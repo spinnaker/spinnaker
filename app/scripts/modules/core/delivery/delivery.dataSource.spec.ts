@@ -5,11 +5,11 @@ import dataSourceRegistryModule from '../application/service/applicationDataSour
 describe('Delivery Data Source', function () {
 
   var application: Application,
-      executionService,
-      pipelineConfigService,
-      $scope,
-      applicationModelBuilder,
-      applicationDataSourceRegistry,
+      executionService: any,
+      pipelineConfigService: any,
+      $scope: any,
+      applicationModelBuilder: any,
+      applicationDataSourceRegistry: any,
       $q: ng.IQService;
 
   beforeEach(
@@ -22,8 +22,8 @@ describe('Delivery Data Source', function () {
   ));
 
   beforeEach(
-    angular.mock.inject(function (_executionService_, _pipelineConfigService_, _$q_, $rootScope,
-                            _applicationModelBuilder_, _applicationDataSourceRegistry_) {
+    angular.mock.inject(function (_executionService_: any, _pipelineConfigService_: any, _$q_: any, $rootScope: any,
+                            _applicationModelBuilder_: any, _applicationDataSourceRegistry_: any) {
       $q = _$q_;
       $scope = $rootScope.$new();
       executionService = _executionService_;

@@ -3,6 +3,8 @@ import {Subject} from 'rxjs';
 
 export class Application {
 
+  [k:string]: any;
+  
   constructor(private applicationName: string, private scheduler: any, private $q: ng.IQService, private $log: ng.ILogService) {}
 
   /**
@@ -150,7 +152,7 @@ export class Application {
     let results = new Map<string, string>();
     let sources = this.dataSources.filter(d => d[field] !== undefined);
     let providers = sources.map(ds => ds.data.map(d => d[ds.providerField])).filter(p => p.length > 0);
-    let allProviders; //typescript made me do it this way
+    let allProviders: any; //typescript made me do it this way
     allProviders = _.union<string[]>(...providers);
     allProviders.forEach((provider: string) => {
       let vals = sources
@@ -158,7 +160,7 @@ export class Application {
         .filter(v => v.length > 0);
       let allRegions = _.union(...vals);
       if (allRegions.length === 1) {
-        results[provider] = allRegions[0];
+        (<any>results)[provider] = allRegions[0];
       }
     });
     return results;

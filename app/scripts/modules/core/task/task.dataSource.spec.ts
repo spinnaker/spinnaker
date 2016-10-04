@@ -5,10 +5,10 @@ import dataSourceRegistryModule from '../application/service/applicationDataSour
 describe('Task Data Source', function () {
 
   var application: Application,
-    taskReader,
-    $scope,
-    applicationModelBuilder,
-    applicationDataSourceRegistry,
+    taskReader: any,
+    $scope: any,
+    applicationModelBuilder: any,
+    applicationDataSourceRegistry: any,
     $q: ng.IQService;
 
   beforeEach(
@@ -20,8 +20,8 @@ describe('Task Data Source', function () {
     ));
 
   beforeEach(
-    angular.mock.inject(function (_taskReader_, _$q_, $rootScope,
-                            _applicationModelBuilder_, _applicationDataSourceRegistry_) {
+    angular.mock.inject(function (_taskReader_:any, _$q_: any, $rootScope: any,
+                            _applicationModelBuilder_: any, _applicationDataSourceRegistry_: any) {
       $q = _$q_;
       $scope = $rootScope.$new();
       taskReader = _taskReader_;

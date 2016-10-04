@@ -1,4 +1,5 @@
 'use strict';
+import anyFieldFilter from './anyFieldFilter/anyField.filter.ts';
 
 let angular = require('angular');
 
@@ -7,7 +8,7 @@ require('./main.less');
 require('./navPopover.less');
 
 module.exports = angular.module('spinnaker.core.presentation', [
-  require('./anyFieldFilter/anyField.filter.js'),
+  anyFieldFilter,
   require('./autoScroll/autoScroll.directive.js'),
   require('./collapsibleSection/collapsibleSection.directive.js'),
   require('./gist/gist.directive.js'),

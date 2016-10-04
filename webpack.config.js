@@ -59,6 +59,9 @@ module.exports = {
       }
     ],
   },
+  resolve: {
+    extensions: ['', '.js', '.ts']
+  },
   resolveLoader: {
     root: nodeModulePath
   },

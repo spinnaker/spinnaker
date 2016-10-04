@@ -1,6 +1,7 @@
 import {Application} from '../application/application.model.ts';
 import modelBuilderModule, {ApplicationModelBuilder} from '../application/applicationModel.builder.ts';
 import tagModule, {LoadBalancersTagController} from './loadBalancersTag.component.ts';
+import {InstanceCounts} from "../domain/instanceCounts";
 
 describe('Component: loadBalancersTag', () => {
 
@@ -107,8 +108,8 @@ describe('Component: loadBalancersTag', () => {
 
       $scope.$digest();
       expect(ctrl.loadBalancers.length).toBe(2);
-      expect(ctrl.loadBalancers[0].instanceCounts).toEqual({up: 2, down: 0, succeeded: 0, failed: 0, unknown: 0 });
-      expect(ctrl.loadBalancers[1].instanceCounts).toEqual({up: 0, down: 1, succeeded: 0, failed: 0, unknown: 0 });
+      expect(ctrl.loadBalancers[0].instanceCounts).toEqual(<InstanceCounts>{up: 2, down: 0, succeeded: 0, failed: 0, unknown: 0 });
+      expect(ctrl.loadBalancers[1].instanceCounts).toEqual(<InstanceCounts>{up: 0, down: 1, succeeded: 0, failed: 0, unknown: 0 });
     });
   });
 });

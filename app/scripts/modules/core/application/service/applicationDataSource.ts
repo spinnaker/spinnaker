@@ -84,7 +84,7 @@ export class DataSourceConfig {
    * It does *not* automatically populate the "data" field of the data source - that is the responsibility of the
    * "onLoad" method.
    */
-  public loader: {(any): ng.IPromise<any>};
+  public loader: {(any: any): ng.IPromise<any>};
 
   /**
    * A method that is called when the "loader" method resolves. The method must return a promise. If the "loader"
@@ -94,7 +94,7 @@ export class DataSourceConfig {
    * If the onLoad method resolves with a null value, the result will be discarded and the data source's "data" field
    * will remain unchanged.
    */
-  public onLoad: {(any): ng.IPromise<any>};
+  public onLoad: {(any: any): ng.IPromise<any>};
 
   /**
    * If the data source should contribute to the application's default credentials setting, this field should be set
@@ -135,6 +135,11 @@ export class ApplicationDataSource {
       this.activeState = '**' + this.sref + '.**';
     }
   }
+
+  /**
+   * Index Signature
+   */
+  [k: string]: any;
 
   /**
    * See DataSourceConfig#key
@@ -247,12 +252,12 @@ export class ApplicationDataSource {
   /**
    * See DataSourceConfig#onLoad
    */
-  public onLoad: {(Application, any): ng.IPromise<any>};
+  public onLoad: {(Application: any, any: any): ng.IPromise<any>};
 
   /**
    * See DataSourceConfig#loader
    */
-  public loader: {(any): ng.IPromise<any>};
+  public loader: {(any: any): ng.IPromise<any>};
 
   /**
    * Called when a method mutates some item in the data source's data, e.g. when a running execution is updated
