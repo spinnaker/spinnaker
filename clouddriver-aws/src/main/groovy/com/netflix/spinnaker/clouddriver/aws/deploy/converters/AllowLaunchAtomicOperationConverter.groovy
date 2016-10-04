@@ -19,13 +19,20 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AllowLaunchDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.AllowLaunchAtomicOperation
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
 
 @Component("allowLaunchDescription")
 class AllowLaunchAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+  @Autowired
+  ApplicationContext applicationContext
+
   @Override
   AllowLaunchAtomicOperation convertOperation(Map input) {
-    new AllowLaunchAtomicOperation(convertDescription(input))
+    def op = new AllowLaunchAtomicOperation(convertDescription(input))
+    applicationContext?.autowireCapableBeanFactory?.autowireBean(op)
+    op
   }
 
   @Override

@@ -21,9 +21,11 @@ import com.amazonaws.services.autoscaling.model.LaunchConfiguration;
 import com.amazonaws.services.autoscaling.model.SuspendedProcess;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults;
+import com.netflix.spinnaker.clouddriver.aws.deploy.converters.AllowLaunchAtomicOperationConverter;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription.Capacity;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription.Source;
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.AllowLaunchAtomicOperation;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerMigrator;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerMigrator.LoadBalancerLocation;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerMigrator.TargetLoadBalancerLocation;
@@ -69,6 +71,8 @@ public abstract class MigrateServerGroupStrategy implements MigrateStrategySuppo
   abstract BasicAmazonDeployHandler getBasicAmazonDeployHandler();
 
   abstract BasicAmazonDeployDescriptionValidator getBasicAmazonDeployDescriptionValidator();
+
+  abstract AllowLaunchAtomicOperationConverter getAllowLaunchAtomicOperationConverter();
 
 
   /**
@@ -173,6 +177,17 @@ public abstract class MigrateServerGroupStrategy implements MigrateStrategySuppo
       deployDescription.setSubnetType(subnetType);
 
       BasicAmazonDeployDescription description = generateDescription(deployDescription);
+
+      if (!source.getCredentialAccount().equals(target.getCredentialAccount())) {
+        Map<String, String> allowLaunchMap = new HashMap<>();
+        allowLaunchMap.put("credentials", source.getCredentialAccount());
+        allowLaunchMap.put("account", target.getCredentialAccount());
+        allowLaunchMap.put("region", target.getRegion());
+        allowLaunchMap.put("amiName", deployDescription.getAmiName());
+        AllowLaunchAtomicOperation operation = getAllowLaunchAtomicOperationConverter().convertOperation(allowLaunchMap);
+
+        operation.operate(null);
+      }
 
       result = getBasicAmazonDeployHandler().handle(description, new ArrayList());
     } else {

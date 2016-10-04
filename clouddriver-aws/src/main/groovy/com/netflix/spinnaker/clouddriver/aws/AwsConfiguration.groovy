@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.aws.agent.CleanupAlarmsAgent
 import com.netflix.spinnaker.clouddriver.aws.agent.CleanupDetachedInstancesAgent
 import com.netflix.spinnaker.clouddriver.aws.agent.ReconcileClassicLinkSecurityGroupsAgent
 import com.netflix.spinnaker.clouddriver.aws.bastion.BastionConfig
+import com.netflix.spinnaker.clouddriver.aws.deploy.converters.AllowLaunchAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.BasicAmazonDeployHandler
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.DefaultMigrateClusterConfigurationStrategy
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.DefaultMigrateLoadBalancerStrategy
@@ -176,9 +177,11 @@ class AwsConfiguration {
                                                         BasicAmazonDeployHandler basicAmazonDeployHandler,
                                                         RegionScopedProviderFactory regionScopedProviderFactory,
                                                         BasicAmazonDeployDescriptionValidator basicAmazonDeployDescriptionValidator,
+                                                        AllowLaunchAtomicOperationConverter allowLaunchAtomicOperationConverter,
                                                         DeployDefaults deployDefaults) {
     new DefaultMigrateServerGroupStrategy(amazonClientProvider, basicAmazonDeployHandler,
-      regionScopedProviderFactory, basicAmazonDeployDescriptionValidator, deployDefaults)
+      regionScopedProviderFactory, basicAmazonDeployDescriptionValidator, allowLaunchAtomicOperationConverter,
+      deployDefaults)
   }
 
   @Bean
