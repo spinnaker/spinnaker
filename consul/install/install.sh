@@ -1,6 +1,6 @@
 #! /bin/bash
 
-if [ -z "$1" ]; then
+if [ -z "${1}" ]; then
     echo "Please provide either 'server' or 'client' as the only argument to this script"
 fi
 
