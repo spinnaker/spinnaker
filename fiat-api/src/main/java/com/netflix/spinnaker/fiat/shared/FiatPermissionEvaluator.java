@@ -52,16 +52,23 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
   private String fiatEnabled;
 
   @Override
-  public boolean hasPermission(Authentication authentication, Object resource, Object authorization) {
+  public boolean hasPermission(Authentication authentication,
+                               Object resource,
+                               Object authorization) {
     return false;
   }
 
   @Override
-  public boolean hasPermission(Authentication authentication, Serializable resourceName, String resourceType, Object authorization) {
+  public boolean hasPermission(Authentication authentication,
+                               Serializable resourceName,
+                               String resourceType,
+                               Object authorization) {
     if (!Boolean.valueOf(fiatEnabled)) {
       return true;
     }
     if (resourceName == null || resourceType == null || authorization == null) {
+      log.debug("Permission denied due to null argument. resourceName={}, resourceType={}, " +
+                    "authorization={}", resourceName, resourceType, authorization);
       return false;
     }
 
@@ -93,14 +100,24 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     return username;
   }
 
-  private boolean isAuthorized(String username, ResourceType resourceType, String resourceName, Authorization a) {
+  private boolean isAuthorized(String username,
+                               ResourceType resourceType,
+                               String resourceName,
+                               Authorization a) {
     try {
       fiatService.hasAuthorization(username, resourceType.toString(), resourceName, a.toString());
     } catch (RetrofitError re) {
-      String message = String.format("Fiat authorization failed for user '%s' '%s'-ing '%s' " +
-                                         "resourceType named '%s'. Cause: %s", username, a, resourceType, resourceName, re.getMessage());
-      log.info(message);
-      log.debug(message, re);
+      String message = String.format("Fiat authorization failed for user '%s' '%s'-ing '%s' resourceType named '%s'. Cause: %s",
+                                     username,
+                                     a,
+                                     resourceType,
+                                     resourceName,
+                                     re.getMessage());
+      if (log.isDebugEnabled()) {
+        log.debug(message, re);
+      } else {
+        log.info(message);
+      }
       return false;
     }
     return true;
@@ -118,13 +135,20 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     try {
       view = fiatService.getUserPermission(username);
     } catch (RetrofitError re) {
-      String message = String.format("Cannot get whole user permission for user %s", username);
-      log.debug(message);
-      log.trace(message, re);
+      String message = String.format("Cannot get whole user permission for user %s. Cause: %s",
+                                     username,
+                                     re.getMessage());
+      if (log.isDebugEnabled()) {
+        log.debug(message, re);
+      } else {
+        log.info(message);
+      }
       return false;
     }
 
-    PreAuthenticatedAuthenticationToken auth = new PreAuthenticatedAuthenticationToken(username, null, null);
+    PreAuthenticatedAuthenticationToken auth = new PreAuthenticatedAuthenticationToken(username,
+                                                                                       null,
+                                                                                       null);
     auth.setDetails(view);
 
     SecurityContext ctx = SecurityContextHolder.createEmptyContext();
