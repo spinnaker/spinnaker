@@ -1,6 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
+import chaosMonkeyConfigModule from '../../chaosMonkey/chaosMonkeyNewApplicationConfig.component.ts';
 
 let angular = require('angular');
 
@@ -16,6 +17,7 @@ module.exports = angular
     require('./validation/validateApplicationName.directive.js'),
     require('./applicationProviderFields.component.js'),
     require('./groupMembershipConfigurer.component.js'),
+    chaosMonkeyConfigModule,
   ])
   .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $uibModalInstance, accountService,
                                                      applicationWriter, applicationReader, taskReader, $timeout,

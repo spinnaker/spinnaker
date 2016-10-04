@@ -15,13 +15,14 @@
  */
 
 'use strict';
+import helpRegistryModule from './helpContents.registry.ts';
 
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.help.helpField.directive', [
     require('./helpContents.js'),
-    require('./helpContents.registry.js'),
+    helpRegistryModule,
     require('angulartics'),
   ])
   .directive('helpField', function (helpContents, helpContentsRegistry, $analytics) {

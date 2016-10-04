@@ -1,4 +1,5 @@
 import applicationDataSourceEditor from './dataSources/applicationDataSourceEditor.component.ts';
+import chaosMonkeyComponent from '../../chaosMonkey/chaosMonkeyConfig.component.ts';
 
 let angular = require('angular');
 
@@ -11,6 +12,7 @@ module.exports = angular
     require('./deleteApplicationSection.directive.js'),
     require('./applicationSnapshotSection.component.js'),
     applicationDataSourceEditor,
+    chaosMonkeyComponent,
     require('./links/applicationLinks.component.js'),
     require('../../config/settings.js')
   ])

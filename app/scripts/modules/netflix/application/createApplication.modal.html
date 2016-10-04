@@ -100,21 +100,7 @@
         </div>
       </div>
 
-      <div class="form-group row" ng-if="newAppModal.chaosEnabled">
-        <div class="col-sm-3 sm-label-right">
-          Chaos Monkey
-          <help-field key="application.chaos.enabled"></help-field>
-        </div>
-        <div class="col-sm-9" style="margin-bottom: 0">
-          <div class="checkbox" style="margin-top: 5px">
-            <label>
-              <input type="checkbox"
-                     ng-model="newAppModal.application.chaosMonkey.enabled"/>
-              Enabled
-            </label>
-          </div>
-        </div>
-      </div>
+      <chaos-monkey-new-application-config application-config="newAppModal.application"></chaos-monkey-new-application-config>
 
       <div class="form-group row">
         <div class="col-sm-3 sm-label-right">Description</div>

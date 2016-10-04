@@ -7,6 +7,7 @@ var bakeryDetailUrl = process.env.BAKERY_DETAIL_URL || (bakeryHost + '/#/?region
 var authEndpoint = process.env.AUTH_ENDPOINT || (gateHost + '/auth/user');
 var authEnabled = process.env.AUTH_ENABLED === 'false' ? false : true;
 var netflixMode = process.env.NETFLIX_MODE === 'true' ? true : false;
+var chaosEnabled = netflixMode || process.env.CHAOS_ENABLED === 'true' ? true : false;
 
 window.spinnakerSettings = {
   checkForUpdates: true,
@@ -98,6 +99,7 @@ window.spinnakerSettings = {
     clusterDiff: false,
     roscoMode: false,
     netflixMode: netflixMode,
+    chaosMonkey: chaosEnabled,
     // whether stages affecting infrastructure (like "Create Load Balancer") should be enabled or not
     infrastructureStages: process.env.INFRA_STAGES === 'enabled',
     jobs: false,

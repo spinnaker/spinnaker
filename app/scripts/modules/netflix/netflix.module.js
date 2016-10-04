@@ -36,8 +36,6 @@ module.exports = angular
     require('./application/netflixEditApplicationModal.controller.js'),
     require('./help/netflixHelpContents.registry.js'),
 
-    require('./chaosMonkey/chaosMonkeyConfig.directive.js'),
-
     require('../core/config/settings.js'),
 
     require('./tableau/states'),
