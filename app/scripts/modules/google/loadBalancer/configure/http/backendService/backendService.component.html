@@ -1,22 +1,70 @@
-<hr ng-if="$ctrl.index > 0">
-<ng-form name="backendService">
-  <div class="container-fluid form-horizontal">
+<div class="container-fluid form-horizontal">
+  <hr ng-if="$ctrl.index > 0">
+  <ng-form name="backendService">
+    <div class="form-group">
+      <div class="col-md-12 well alert-danger" ng-if="backendService.serviceName.$error.validateUnique">
+        <validation-error message="There is already a backend service with that name."></validation-error>
+      </div>
+      <div class="col-md-12 well alert-danger"
+           ng-if="backendService.serviceName.$error.pattern || backendService.serviceName.$error.max">
+        <validation-error
+          message="Name must start with a lowercase letter followed by up to 62 lowercase letters, numbers, or hyphens, and cannot end with a hyphen.">
+        </validation-error>
+      </div>
+    </div>
+
     <div class="form-group">
       <div class="col-md-4 sm-label-right">Name</div>
-      <div class="col-md-3">
+
+      <div class="col-md-4" ng-if="$ctrl.editExisting">
+        <ui-select ng-model="$ctrl.backendService"
+                   on-select="$ctrl.onBackendServiceSelect($item)"
+                   class="form-control input-sm">
+          <ui-select-match placeholder="Select...">
+            {{$select.selected.name}}
+          </ui-select-match>
+          <ui-select-choices repeat="backendService in $ctrl.backingData.backendServices | filter: {name: $select.search}">
+            <div ng-bind-html="backendService.name | highlight: $select.search"></div>
+          </ui-select-choices>
+        </ui-select>
+      </div>
+
+      <div class="col-md-4" ng-if="!$ctrl.editExisting">
         <input class="form-control input-sm"
                required
                type="text"
                name="serviceName"
                ng-pattern="/^[a-z]([-a-z0-9]*[a-z0-9])?$/"
                max="63"
+               validate-unique="$ctrl.allServiceNames"
+               ng-model-options="{ debounce: 250 }"
                ng-model="$ctrl.backendService.name"/>
       </div>
-      <div class="col-md-1">
+
+      <div class="col-md-2">
         <button class="btn btn-sm btn-default" ng-click="$ctrl.deleteService()">
           <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
           <span>Delete</span>
         </button>
+      </div>
+      <div class="col-md-2" ng-if="$ctrl.modified()">
+        <button class="btn btn-sm btn-default" ng-click="$ctrl.revert()">
+          <span class="glyphicon glyphicon-flash visible-lg-inline"></span>
+          <span>Revert</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-md-6 col-md-offset-4">
+        <a href
+           class="small"
+           ng-if="!$ctrl.editExisting"
+           ng-click="$ctrl.toggleEditExisting()">Toggle for list of existing backend services</a>
+        <a href
+           class="small"
+           ng-if="$ctrl.editExisting"
+           ng-click="$ctrl.toggleEditExisting()">Toggle for text input</a>
       </div>
     </div>
 
@@ -24,30 +72,55 @@
       <div class="col-md-4 sm-label-right">
         <b>Health Check</b>
       </div>
-      <div class="col-md-3 small text-center" ng-if="!$ctrl.oneHealthCheckIsConfigured()">
-        Configure at least one health check
-      </div>
-      <div class="col-md-3" ng-if="$ctrl.oneHealthCheckIsConfigured()">
-        <select class="form-control input-sm"
-                required
-                ng-model="$ctrl.backendService.healthCheck"
-                ng-options="healthCheck.name for healthCheck in $ctrl.healthChecks | filter:$ctrl.isNameDefined">
-        </select>
-      </div>
-      <div class="col-md-3">
-        <label class="sm-label-right">Default service
-          <help-field key="gce.httpLoadBalancer.backendService.default"></help-field>
-        </label>
-        <input type="checkbox" ng-model="$ctrl.backendService.useAsDefault" ng-change="$ctrl.defaultServiceManager()"/>
+      <div class="col-md-4">
+        <ui-select ng-model="$ctrl.backendService.healthCheck"
+                   required
+                   on-select="$ctrl.command.onHealthCheckSelected($item, $ctrl.command)"
+                   class="form-control input-sm">
+          <ui-select-match placeholder="Select...">
+            {{$select.selected}}
+          </ui-select-match>
+          <ui-select-choices
+            repeat="healthCheck in $ctrl.getAllHealthChecks() | filter: $select.search">
+            <div ng-bind-html="healthCheck | highlight: $select.search"></div>
+          </ui-select-choices>
+        </ui-select>
       </div>
     </div>
-    <div>
-      <div class="col-md-10 col-md-offset-2"
-           ng-if="backendService.serviceName.$error.pattern || backendService.serviceName.$error.max">
-        <validation-error 
-          message="Name must start with a lowercase letter followed by up to 62 lowercase letters, numbers, or hyphens, and cannot end with a hyphen.">
-        </validation-error>
+
+    <div class="form-group">
+      <div class="col-md-4 sm-label-right">
+        <b>Session Affinity</b>
+      </div>
+      <div class="col-md-4">
+        <ui-select ng-model="$ctrl.backendService.sessionAffinity"
+                   required
+                   class="form-control input-sm">
+          <ui-select-match placeholder="Select...">
+            {{$select.selected}}
+          </ui-select-match>
+          <ui-select-choices
+            repeat="sessionAffinity in ['NONE', 'CLIENT_IP', 'GENERATED_COOKIE'] | filter: $select.search">
+            <div ng-bind-html="sessionAffinity | highlight: $select.search"></div>
+          </ui-select-choices>
+        </ui-select>
+      </div>
+    </div>
+
+    <div class="form-group" ng-if="$ctrl.backendService.sessionAffinity === 'GENERATED_COOKIE'">
+      <div class="col-md-4 sm-label-right">
+        <b>Affinity Cookie TTL Seconds</b>
+      </div>
+      <div class="col-md-4">
+        <input ng-model="$ctrl.backendService.affinityCookieTtlSec"
+               required
+               type="number"
+               name="cookieTtl"
+               min="0"
+               max="{{$ctrl.maxCookieTtl}}"
+               class="form-control input-sm"/>
       </div>
     </div>
   </div>
-</ng-form>
+  </ng-form>
+</div>

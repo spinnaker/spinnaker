@@ -32,4 +32,7 @@ module.exports = angular.module('spinnaker.core.cache.infrastructure.config', []
     certificates: {
       version: 2,
     },
+    backendServices: {
+      version: 2,
+    },
   });

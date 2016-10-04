@@ -15,6 +15,7 @@ module.exports = angular
     function loadLoadBalancers(applicationName) {
       var loadBalancers = API.one('applications').one(applicationName).all('loadBalancers').getList();
         return loadBalancers.then(function(results) {
+          results = loadBalancerTransformer.normalizeLoadBalancerSet(results);
           results.forEach(addStackToLoadBalancer);
           return $q.all(results.map(loadBalancerTransformer.normalizeLoadBalancer));
         });

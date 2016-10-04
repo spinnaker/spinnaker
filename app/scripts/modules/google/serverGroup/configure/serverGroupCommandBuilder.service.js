@@ -54,6 +54,16 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         }, []);
     }
 
+    function extractLoadBalancersFromMetadata (metadata) {
+      return ['load-balancer-names', 'global-load-balancer-names']
+        .reduce((loadBalancers, property) => {
+          if (metadata[property]) {
+            loadBalancers = loadBalancers.concat(metadata[property].split(','));
+          }
+          return loadBalancers;
+        }, []);
+    }
+
     function populateDisksFromExisting(disks, command) {
       let localSSDDisks = _.filter(disks, disk => {
         return disk.initializeParams.diskType === 'local-ssd';
@@ -398,6 +408,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
         return populateDisksFromPipeline(extendedCommand.disks, extendedCommand).then(function() {
           var instanceMetadata = extendedCommand.instanceMetadata;
+          extendedCommand.loadBalancers = extractLoadBalancersFromMetadata(instanceMetadata);
           extendedCommand.instanceMetadata = {};
           populateCustomMetadata(instanceMetadata, extendedCommand);
           populateAutoHealingPolicy(pipelineCluster, extendedCommand);

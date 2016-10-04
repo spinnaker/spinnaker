@@ -6,16 +6,9 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.pathRule.co
   .component('gcePathRule', {
     bindings: {
       pathRule: '=',
-      backendServices: '=',
+      command: '=',
       index: '=',
       deletePathRule: '&'
     },
-    templateUrl: require('./pathRule.component.html'),
-    controller: function () {
-      this.isNameDefined = (backendService) => angular.isDefined(backendService.name);
-
-      this.oneBackendServiceIsConfigured = () => {
-        return this.backendServices.filter(this.isNameDefined).length > 0;
-      };
-    }
+    templateUrl: require('./pathRule.component.html')
   });

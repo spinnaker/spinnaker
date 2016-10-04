@@ -1,0 +1,21 @@
+<ng-form name="listeners">
+  <gce-listener command="ctrl.command"
+                delete-listener="ctrl.remove('listeners', $index)"
+                index="$index"
+                application="ctrl.application"
+                listener="listener"
+                ng-repeat="listener in ctrl.command.loadBalancer.listeners"></gce-listener>
+  <div class="row">
+    <div class="col-md-12">
+      <button class="add-new btn btn-block"
+              ng-click="ctrl.add('listeners')">
+        <span class="glyphicon glyphicon-plus-sign"></span> Add listener
+      </button>
+    </div>
+  </div>
+  <div class="form-group small">
+    <div class="col-md-offset-2 col-md-6">
+      <gce-cache-refresh cache-key="certificates" on-refresh="ctrl.command.onCertificateRefresh()"></gce-cache-refresh>
+    </div>
+  </div>
+</ng-form>

@@ -229,7 +229,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
           let loadBalancerDetails = loadBalancerIndex[name];
 
           if (loadBalancerDetails.loadBalancerType === 'HTTP') {
-            metadata['global-load-balancer-names'].push(name);
+            metadata['global-load-balancer-names'] =
+              metadata['global-load-balancer-names']
+                .concat(loadBalancerDetails.listeners.map(listener => listener.name));
           } else {
             metadata['load-balancer-names'].push(name);
           }
@@ -286,6 +288,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
 
       delete $scope.command.securityGroups;
 
+      var origLoadBalancers = $scope.command.loadBalancers;
+      delete $scope.command.loadBalancers;
+
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
         return $uibModalInstance.close($scope.command);
       }
@@ -297,6 +302,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
           $scope.command.instanceMetadata = _.omit($scope.command.instanceMetadata, gceServerGroupHiddenMetadataKeys);
 
           $scope.command.tags = origTags;
+          $scope.command.loadBalancers = origLoadBalancers;
           $scope.command.securityGroups = gceTagManager.inferSecurityGroupIdsFromTags($scope.command.tags);
 
           return promise;

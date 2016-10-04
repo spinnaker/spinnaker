@@ -1,9 +1,31 @@
 <ng-form name="backendServices">
-  <gce-backend-service ng-repeat="backendService in ctrl.backingData.backendServices"
+  <div class="col-md-12" ng-if="ctrl.command.getUnusedBackendServices(ctrl.command).length">
+    <div class="alert alert-warning">
+      <p><span class="glyphicon glyphicon-warning-sign"></span>
+        The following backend services have not been associated with a host or path rule, or set as this
+        load balancer's default service:
+        <ul>
+          <li ng-repeat="service in ctrl.command.getUnusedBackendServices(ctrl.command)" ng-bind-html="service"></li>
+        </ul>
+      </p>
+      <p class="text-right">
+        <a class="btn btn-sm btn-default dirty-flag-dismiss"
+           href ng-click="ctrl.command.removeUnusedBackendServices(ctrl.command)">Remove backend services</a>
+      </p>
+    </div>
+  </div>
+  <div class="col-md-12"
+       ng-if="!ctrl.command.loadBalancer.backendServices.length && !ctrl.command.backingData.backendServices.length">
+    <div class="alert alert-warning">
+      <p><span class="glyphicon glyphicon-warning-sign"></span>
+        You have not configured any backend services.
+      </p>
+    </div>
+  </div>
+  <gce-backend-service ng-repeat="backendService in ctrl.command.loadBalancer.backendServices"
                        backend-service="backendService"
                        index="$index"
-                       health-checks="ctrl.backingData.healthChecks"
-                       default-service-manager="ctrl.defaultServiceManager(backendService)"
+                       command="ctrl.command"
                        delete-service="ctrl.remove('backendServices', $index)"></gce-backend-service>
   <div class="row">
     <div class="col-md-12">
@@ -11,6 +33,13 @@
               ng-click="ctrl.add('backendServices')">
         <span class="glyphicon glyphicon-plus-sign"></span> Add backend service
       </button>
+    </div>
+  </div>
+  <div class="form-group small" style="margin-top: 20px">
+    <div class="col-md-offset-2 col-md-6">
+      <gce-cache-refresh cache-key="backendServices"
+                         cache-key-alias="backend services"
+                         on-refresh="ctrl.command.onBackendServiceRefresh(ctrl.command)"></gce-cache-refresh>
     </div>
   </div>
 </ng-form>

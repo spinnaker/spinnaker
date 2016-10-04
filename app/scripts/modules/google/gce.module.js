@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+import gceLoadBalancerSetTransformer from './loadBalancer/loadBalancer.setTransformer.ts';
+
 require('./logo/gce.logo.less');
 
 // load all templates into the $templateCache
@@ -12,6 +14,7 @@ templates.keys().forEach(function(key) {
 
 module.exports = angular.module('spinnaker.gce', [
   require('../core/cloudProvider/cloudProvider.registry.js'),
+  gceLoadBalancerSetTransformer,
   require('./serverGroup/details/serverGroup.details.gce.module.js'),
   require('./serverGroup/configure/serverGroupCommandBuilder.service.js'),
   require('./serverGroup/configure/wizard/cloneServerGroup.gce.controller.js'),
@@ -77,6 +80,7 @@ module.exports = angular.module('spinnaker.gce', [
       },
       loadBalancer: {
         transformer: 'gceLoadBalancerTransformer',
+        setTransformer: 'gceLoadBalancerSetTransformer',
         detailsTemplateUrl: require('./loadBalancer/details/loadBalancerDetails.html'),
         detailsController: 'gceLoadBalancerDetailsCtrl',
         createLoadBalancerTemplateUrl: require('./loadBalancer/configure/choice/gceLoadBalancerChoice.modal.html'),

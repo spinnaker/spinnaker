@@ -1,10 +1,12 @@
 'use strict';
 
 import _ from 'lodash';
+import gceLoadBalancerSetTransformer from '../../loadBalancer/loadBalancer.setTransformer.ts';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.configuration.service', [
+  gceLoadBalancerSetTransformer,
   require('../../../core/account/account.service.js'),
   require('../../../core/securityGroup/securityGroup.read.service.js'),
   require('../../../core/cache/cacheInitializer.js'),
@@ -22,7 +24,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
                                                           gceInstanceTypeService, cacheInitializer,
                                                           $q, loadBalancerReader, networkReader, subnetReader,
                                                           settings, gceCustomInstanceBuilderService, elSevenUtils,
-                                                          gceHttpHealthCheckReader, gceTagManager) {
+                                                          gceHttpHealthCheckReader, gceTagManager,
+                                                          gceLoadBalancerSetTransformer) {
 
     var persistentDiskTypes = [
       'pd-standard',
@@ -332,16 +335,34 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       return elSevenUtils.isElSeven(loadBalancer) || loadBalancer.region === command.region;
     }
 
+    function mapListenerNameToUrlMapName (loadBalancerNames, newLoadBalancerObjects) {
+      var urlMaps = newLoadBalancerObjects.filter(_.property('listeners'));
+      var byListenerName = urlMaps.reduce((byListenerName, urlMap) => {
+        urlMap.listeners.forEach((listener) => {
+          byListenerName[listener.name] = urlMap;
+        });
+        return byListenerName;
+      }, {});
+
+      return _.chain(loadBalancerNames)
+        .map((lbName) => {
+          return byListenerName[lbName] ? byListenerName[lbName].urlMapName : lbName;
+        })
+        .uniq()
+        .value();
+    }
+
     function configureLoadBalancerOptions(command) {
       var results = { dirty: {} };
       var current = command.loadBalancers;
-      var newLoadBalancerObjects = getLoadBalancers(command);
+      var newLoadBalancerObjects = gceLoadBalancerSetTransformer.normalizeLoadBalancerSet(getLoadBalancers(command));
       command.backingData.filtered.loadBalancerIndex = _.keyBy(newLoadBalancerObjects, 'name');
       command.backingData.filtered.loadBalancers = _.map(newLoadBalancerObjects, 'name');
 
       if (current && command.loadBalancers) {
+        command.loadBalancers = mapListenerNameToUrlMapName(command.loadBalancers, newLoadBalancerObjects);
         var matched = _.intersection(command.backingData.filtered.loadBalancers, command.loadBalancers);
-        var removed = _.xor(matched, current);
+        var removed = _.xor(matched, command.loadBalancers);
         command.loadBalancers = matched;
         configureBackendServiceOptions(command);
 

@@ -80,15 +80,32 @@
         </dd>
       </dl>
       <dl>
-        <dt ng-if="loadBalancer.elb.dnsname">DNS Name</dt>
-        <dd>
-          <a target=_blank href="//{{loadBalancer.elb.dnsname}}">{{loadBalancer.elb.dnsname}}</a>
-          <copy-to-clipboard
-              class="copy-to-clipboard copy-to-clipboard-sm"
-              text="{{loadBalancer.elb.dnsname}}"
-              tool-tip="Copy DNS Name to clipboard">
-          </copy-to-clipboard>
-        </dd>
+        <div ng-if="!ctrl.isElSeven(loadBalancer) && loadBalancer.elb.dnsname">
+          <dt>DNS Name</dt>
+          <dd>
+            <a target=_blank href="//{{loadBalancer.elb.dnsname}}">{{loadBalancer.elb.dnsname}}</a>
+            <copy-to-clipboard
+                class="copy-to-clipboard copy-to-clipboard-sm"
+                text="{{loadBalancer.elb.dnsname}}"
+                tool-tip="Copy DNS Name to clipboard">
+            </copy-to-clipboard>
+          </dd>
+        </div>
+        <div ng-if="ctrl.isElSeven(loadBalancer)">
+          <dt >DNS Names</dt>
+          <dd>
+            <ul>
+              <li ng-repeat="dnsname in loadBalancer.elb.dnsnames">
+                <a target=_blank href="//{{dnsname}}">{{dnsname}}</a>
+                <copy-to-clipboard
+                  class="copy-to-clipboard copy-to-clipboard-sm"
+                  text="{{dnsname}}"
+                  tool-tip="Copy DNS Name to clipboard">
+                </copy-to-clipboard>
+              </li>
+            </ul>
+          </dd>
+        </div>
       </dl>
       <dl ng-if="loadBalancer.hostRules">
         <dd>
