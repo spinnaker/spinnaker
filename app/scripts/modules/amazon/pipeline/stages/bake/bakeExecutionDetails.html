@@ -39,6 +39,11 @@
       <div class="col-md-12">
         <div class="alert alert-{{stage.isFailed ? 'danger' : 'info'}}">
           <div ng-if="stage.context.previouslyBaked">No changes detected; reused existing bake</div>
+          <div ng-if="stage.context.imageName">
+            <strong>Image:</strong>
+            <div select-on-dbl-click>{{stage.context.imageName}}</div>
+            <div>({{stage.context.ami}})</div>
+          </div>
           <a target="_blank" href="{{ bakeryDetailUrl(stage) }}">
             View Bakery Details
           </a>
