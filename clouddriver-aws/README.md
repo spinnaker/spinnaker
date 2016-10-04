@@ -98,14 +98,16 @@ aws:
     - name: us-east-1
   accounts:
     - name: managing
-      accountId: 123456789012
+      accountId: "123456789012"
       regions:
         - name: us-east-1
     - name: managed
-      accountId: 987654321098
+      accountId: "987654321098"
       regions:
         - name: us-east-1
 ````
+
+**NOTE:** In your yaml configuration file, ensure your `accountId` values are quoted. If your `accountId` starts with a `0` and is unquoted it will get interpreted as an octal number and result in an incorrect value, which will manifest as a failure to perform an `sts:assumeRole` command in the AWS SDK, the same as if your IAM configuration is incorrect.
 
 In the AWS provider section of your spinnaker config update `providers.aws.primaryCredentials.name` to match the name of the managing account.
 
