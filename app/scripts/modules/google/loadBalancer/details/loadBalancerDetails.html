@@ -121,22 +121,36 @@
     </collapsible-section>
     <collapsible-section heading="Listeners">
       <dl>
-        <dt>Load Balancer &rarr; Instance</dt>
+        <dt>Load Balancer &rarr; Instance
+          <help-field ng-if="ctrl.isElSeven(loadBalancer)" key="gce.httpLoadBalancer.namedPort"></help-field>
+        </dt>
         <dd ng-repeat="listener in loadBalancer.elb.listenerDescriptions">
           {{listener.listener.protocol}}:{{listener.listener.loadBalancerPort}}
           &rarr;
           {{listener.listener.instanceProtocol}}:{{listener.listener.instancePort}}
-            <help-field ng-if="ctrl.isElSeven(loadBalancer)" key="gce.httpLoadBalancer.namedPort"></help-field>
         </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Backend Services" ng-if="ctrl.isElSeven(loadBalancer)">
+      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+        <div ng-repeat="service in loadBalancer.elb.backendServices">
+          <hr ng-if="$index > 0">
+          <dt>Name</dt>
+          <dd>{{service.name}}</dd>
+          <dt>Health Check</dt>
+          <dd>{{service.healthCheck.name}}</dd>
+          <dt>Session Affinity</dt>
+          <dd>{{service.sessionAffinity}}</dd>
+          <dt ng-if="service.sessionAffinity === 'GENERATED_COOKIE'">Affinity Cookie TTL</dt>
+          <dd ng-if="service.sessionAffinity === 'GENERATED_COOKIE'">{{service.affinityCookieTtlSec}}</dd>
+        </div>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Health Checks">
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
         <gce-health-check ng-if="!ctrl.isElSeven(loadBalancer)" health-check="loadBalancer.elb.healthCheck"></gce-health-check>
-        <div ng-if="ctrl.isElSeven(loadBalancer)" ng-repeat="(serviceName, healthCheck) in loadBalancer.elb.backendServiceHealthChecks">
+        <div ng-if="ctrl.isElSeven(loadBalancer)" ng-repeat="healthCheck in loadBalancer.elb.healthChecks">
           <hr ng-if="$index > 0">
-          <dt>Backend Service Name</dt>
-          <dd>{{ serviceName }}</dd>
           <gce-health-check health-check="healthCheck"></gce-health-check>
         </div>
       </dl>

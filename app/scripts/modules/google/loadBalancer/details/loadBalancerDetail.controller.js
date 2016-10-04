@@ -51,7 +51,10 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
 
             accountService.getCredentialsKeyedByAccount('gce').then(function(credentialsKeyedByAccount) {
               if (elSevenUtils.isElSeven($scope.loadBalancer)) {
-                $scope.loadBalancer.elb.availabilityZones = [ 'All zones' ];
+                $scope.loadBalancer.elb.availabilityZones = ['All zones'];
+                $scope.loadBalancer.elb.backendServices = getBackendServices($scope.loadBalancer);
+                $scope.loadBalancer.elb.healthChecks = getUniqueHealthChecks($scope.loadBalancer.elb.backendServiceHealthChecks);
+
               } else {
                 $scope.loadBalancer.elb.availabilityZones = _.find(credentialsKeyedByAccount[loadBalancer.accountId].regions, { name: loadBalancer.region }).zones.sort();
               }
@@ -91,6 +94,28 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
         return loadBalancerReader
           .getLoadBalancerDetails($scope.loadBalancer.provider, loadBalancer.accountId, $scope.loadBalancer.region, $scope.loadBalancer.name);
       }
+    }
+
+    function getBackendServices (loadBalancer) {
+      var backendServices = [loadBalancer.defaultService];
+
+      if (loadBalancer.hostRules.length) {
+        backendServices = _.chain(loadBalancer.hostRules)
+          .reduce((services, hostRule) => {
+            services.push(hostRule.pathMatcher.defaultService);
+            return services.concat(_.map(hostRule.pathMatcher.pathRules, 'backendService'));
+          }, backendServices)
+          .uniqBy('name')
+          .value();
+      }
+      return backendServices;
+    }
+
+    function getUniqueHealthChecks(healthChecksKeyedByBackendService) {
+      return _.chain(healthChecksKeyedByBackendService)
+        .map(_.identity)
+        .uniqBy(_.isEqual)
+        .value();
     }
 
     function autoClose() {
