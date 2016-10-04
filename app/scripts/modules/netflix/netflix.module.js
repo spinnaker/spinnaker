@@ -39,7 +39,7 @@ module.exports = angular
     require('../core/config/settings.js'),
 
     require('./tableau/states'),
-
+    require('./ci/ci.module'),
     dataSourceRegistryModule,
   ])
   .run(function(cloudProviderRegistry, applicationDataSourceRegistry, settings) {
@@ -70,7 +70,7 @@ module.exports = angular
         'netflixTitusInstanceDetailsCtrl'
       );
       applicationDataSourceRegistry.setDataSourceOrder([
-        'executions', 'serverGroups', 'loadBalancers', 'securityGroups', 'properties', 'analytics', 'tasks', 'config',
+        'ci', 'executions', 'serverGroups', 'loadBalancers', 'securityGroups', 'properties', 'analytics', 'tasks', 'config'
       ]);
     }
   });

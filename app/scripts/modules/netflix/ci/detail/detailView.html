@@ -1,0 +1,60 @@
+<div class="row">
+  <div class="col-md-12 build-details-title">
+    <h3 class="builds-navigation-title">Build #{{ ctrl.build.buildNumber }}</h3>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-12">
+    <span class="commit-message">{{ ctrl.build.change.to.message }}</span>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-7">
+    <table class="table build-summary">
+      <tbody>
+      <tr>
+        <th>Status</th>
+        <td>
+          <span class="build-status build-status-{{ ctrl.build.completionStatus | lowercase }}">{{ ctrl.build.completionStatus }}</span>
+        </td>
+        <th>Commit</th>
+        <td>{{ ctrl.build.change.to.displayId }}</td>
+        <th>Run</th>
+        <td>{{ ctrl.build.completedAt | relativeTime }}</td>
+      </tr>
+      <tr>
+        <th>Duration</th>
+        <td>{{ ctrl.build.runningTimeInMs | duration }}</td>
+        <th>Author</th>
+        <td>{{ ctrl.build.change.to.author.name }}</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="build-details-tabs">
+      <ul class="nav nav-tabs">
+        <li>
+          <a ui-sref=".detailTab({ tab: 'output' })" ui-sref-active="active">
+            build log
+          </a>
+        </li>
+        <li>
+          <a ui-sref=".detailTab({ tab: 'config' })" ui-sref-active="active">
+            config
+          </a>
+        </li>
+        <li class="pull-right" id="save-raw-log">
+          <a ng-href="{{ctrl.downloadLink}}" target="_blank" ng-if="ctrl.viewState.isDownloadable()">
+            <span class="glyphicon glyphicon-save-file"></span> Save Log
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+<div class="build-detail-tabs" ui-view="detailTab">
+</div>
