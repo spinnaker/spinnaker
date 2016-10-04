@@ -53,6 +53,14 @@ class OpenstackLoadBalancerHealth {
         "Healthy"
     }
 
+    /**
+     * This seems to be needed by deck
+     * @return
+     */
+    ServiceStatus getHealthState() {
+      state
+    }
+
     enum ServiceStatus {
       InService,
       OutOfService

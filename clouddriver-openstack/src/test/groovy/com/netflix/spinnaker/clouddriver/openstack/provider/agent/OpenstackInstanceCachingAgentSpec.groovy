@@ -52,6 +52,7 @@ class OpenstackInstanceCachingAgentSpec extends Specification {
     OpenstackClientProvider provider = Mock()
     Server server = Mock(Server)
     String id = UUID.randomUUID().toString()
+    String name = 'foobar'
     String instanceKey = Keys.getInstanceKey(id, account, region)
     Map<String, Object> instanceAttributes = new HashMap<>()
 
@@ -64,6 +65,7 @@ class OpenstackInstanceCachingAgentSpec extends Specification {
     1 * credentials.provider >> provider
     1 * provider.getInstances(region) >> [server]
     _ * server.id >> id
+    _ * server.name >> name
     1 * objectMapper.convertValue(_, OpenstackInfrastructureProvider.ATTRIBUTES) >> instanceAttributes
 
     and:
