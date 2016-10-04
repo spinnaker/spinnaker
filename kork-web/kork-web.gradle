@@ -11,6 +11,7 @@ dependencies {
 
   compileOnly spinnaker.dependency('bootActuator')
 
+  spinnaker.group('tomcatEmbedded')
   spinnaker.group('spockBase')
 }
 
