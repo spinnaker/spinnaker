@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.shared.FiatAuthenticationFilter;
 import com.netflix.spinnaker.fiat.shared.FiatService;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,7 @@ import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
 
+@Slf4j
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @Configuration
@@ -88,6 +90,8 @@ public class FiatAuthenticationConfig {
   private class AnonymousConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+      // TODO(ttomsu): Make management endpoints non-sensitive?
+      log.debug("Fiat service is disabled. Setting Spring Security to allow all traffic.");
       http.authorizeRequests().anyRequest().permitAll().and().csrf().disable();
     }
   }

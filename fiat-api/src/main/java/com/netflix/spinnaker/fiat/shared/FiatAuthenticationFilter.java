@@ -50,6 +50,7 @@ public class FiatAuthenticationFilter implements Filter {
     val ctx = SecurityContextHolder.createEmptyContext();
     ctx.setAuthentication(auth);
     SecurityContextHolder.setContext(ctx);
+    log.debug("Set SecurityContext to user: {}", auth.getPrincipal().toString());
     chain.doFilter(request, response);
   }
 
