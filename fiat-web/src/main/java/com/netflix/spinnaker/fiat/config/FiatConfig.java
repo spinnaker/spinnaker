@@ -8,8 +8,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,12 +26,12 @@ public class FiatConfig {
     return new UserRolesProvider() {
       @Override
       public Map<String, Collection<Role>> multiLoadRoles(Collection<String> userIds) {
-        return Collections.emptyMap();
+        return new HashMap<>();
       }
 
       @Override
       public List<Role> loadRoles(String userId) {
-        return Collections.emptyList();
+        return new ArrayList<>();
       }
     };
   }

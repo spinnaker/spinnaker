@@ -54,7 +54,7 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
   @Override
   public List<Role> loadRoles(String userName) {
     if (StringUtils.isEmpty(userName)|| StringUtils.isEmpty(gitHubProperties.getOrganization())) {
-      return Collections.emptyList();
+      return new ArrayList<>();
     }
     // check organization if set.
     // If organization is unset, all GitHub users can login and have full access
@@ -71,22 +71,22 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
     } catch (RetrofitError e) {
       if (e.getKind() == RetrofitError.Kind.NETWORK) {
         log.error(String.format("Could not find the server %s", master.getBaseUrl()), e);
-        return Collections.emptyList();
+        return new ArrayList<>();
       } else if (e.getResponse().getStatus() == 404) {
         log.error(String.format("Could not find the GitHub organization %s",
                                 gitHubProperties.getOrganization()),
                   e);
-        return Collections.emptyList();
+        return new ArrayList<>();
       } else if (e.getResponse().getStatus() == 401) {
         log.error(String.format("Cannot get GitHub organization %s information: Not authorized.",
                                 gitHubProperties.getOrganization()),
                   e);
-        return Collections.emptyList();
+        return new ArrayList<>();
       }
     }
 
     if (!isMemberOfOrg) {
-      return Collections.emptyList();
+      return new ArrayList<>();
     }
 
     List<Role> result = new ArrayList<>();
@@ -155,7 +155,7 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
   @Override
   public Map<String, Collection<Role>> multiLoadRoles(Collection<String> userEmails) {
     if (userEmails == null || userEmails.isEmpty()) {
-      return Collections.emptyMap();
+      return new HashMap<>();
     }
 
     val emailGroupsMap = new HashMap<String, Collection<Role>>();
