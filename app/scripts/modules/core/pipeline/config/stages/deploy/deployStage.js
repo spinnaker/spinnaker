@@ -91,7 +91,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
     };
 
     this.addCluster = function() {
-      providerSelectionService.selectProvider($scope.application).then(function(selectedProvider) {
+      providerSelectionService.selectProvider($scope.application, 'serverGroup').then(function(selectedProvider) {
         let config = cloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
         $uibModal.open({
           templateUrl: config.cloneServerGroupTemplateUrl,
