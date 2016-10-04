@@ -20,12 +20,18 @@ import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.AttachClassicLinkVpcRequest
 import com.amazonaws.services.ec2.model.ClassicLinkInstance
 import com.amazonaws.services.ec2.model.DescribeVpcClassicLinkResult
+import com.amazonaws.services.ec2.model.Instance
 import com.amazonaws.services.ec2.model.Tag
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import spock.lang.Shared
 import spock.lang.Specification
+
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
 
 /**
  * ReconcileClassicLinkSecurityGroupsAgentSpec.
@@ -47,8 +53,20 @@ class ReconcileClassicLinkSecurityGroupsAgentSpec extends Specification {
 
   def agent = buildAgent(test)
 
+  @Shared
+  Instant currentTime = Instant.now()
+
   private ReconcileClassicLinkSecurityGroupsAgent buildAgent(NetflixAmazonCredentials account) {
-    return new ReconcileClassicLinkSecurityGroupsAgent(amazonClientProvider, account ?: test, "us-east-1", defaults)
+    return new ReconcileClassicLinkSecurityGroupsAgent(
+      amazonClientProvider,
+      account ?: test,
+      "us-east-1",
+      defaults,
+      ReconcileClassicLinkSecurityGroupsAgent.DEFAULT_POLL_INTERVAL_MILLIS,
+      ReconcileClassicLinkSecurityGroupsAgent.DEFAULT_TIMEOUT_MILLIS,
+      ReconcileClassicLinkSecurityGroupsAgent.DEFAULT_REQUIRED_INSTANCE_LIFETIME,
+      Clock.fixed(currentTime, ZoneId.of("UTC")))
+
   }
 
 
@@ -81,6 +99,22 @@ class ReconcileClassicLinkSecurityGroupsAgentSpec extends Specification {
     then:
     1 * ec2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
     0 * _
+  }
+
+  def "should filter instances that havent been up long enough"() {
+    given:
+    Instance i = new Instance(launchTime: launchTime)
+
+    expect:
+    agent.isInstanceOldEnough(i) == expected
+
+    where:
+    launchTime                                                                                                                       | expected
+    null                                                                                                                             | false
+    new Date(currentTime.toEpochMilli())                                                                                             | false
+    new Date(currentTime.minusMillis(ReconcileClassicLinkSecurityGroupsAgent.DEFAULT_REQUIRED_INSTANCE_LIFETIME).toEpochMilli())     | false
+    new Date(currentTime.minusMillis(ReconcileClassicLinkSecurityGroupsAgent.DEFAULT_REQUIRED_INSTANCE_LIFETIME - 1).toEpochMilli()) | false
+    new Date(currentTime.minusMillis(ReconcileClassicLinkSecurityGroupsAgent.DEFAULT_REQUIRED_INSTANCE_LIFETIME + 1).toEpochMilli()) | true
   }
 
   def "should add missing groups"() {

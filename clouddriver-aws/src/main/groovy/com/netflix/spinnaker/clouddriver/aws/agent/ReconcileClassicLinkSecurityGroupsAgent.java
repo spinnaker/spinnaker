@@ -27,6 +27,7 @@ import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
 import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.GroupIdentifier;
+import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.SecurityGroup;
 import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.ec2.model.VpcClassicLink;
@@ -43,8 +44,11 @@ import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -62,6 +66,7 @@ public class ReconcileClassicLinkSecurityGroupsAgent implements RunnableAgent, C
   private final Logger log = LoggerFactory.getLogger(getClass());
   public static final long DEFAULT_POLL_INTERVAL_MILLIS = TimeUnit.SECONDS.toMillis(30);
   public static final long DEFAULT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(5);
+  public static final long DEFAULT_REQUIRED_INSTANCE_LIFETIME = TimeUnit.MINUTES.toMillis(5);
 
   private final AmazonClientProvider amazonClientProvider;
   private final NetflixAmazonCredentials account;
@@ -69,6 +74,9 @@ public class ReconcileClassicLinkSecurityGroupsAgent implements RunnableAgent, C
   private final AwsConfiguration.DeployDefaults deployDefaults;
   private final long pollIntervalMillis;
   private final long timeoutMillis;
+  private final long requiredInstanceLifetime;
+  private final Clock clock;
+
 
   @Override
   public String getAccountName() {
@@ -79,7 +87,7 @@ public class ReconcileClassicLinkSecurityGroupsAgent implements RunnableAgent, C
                                                  NetflixAmazonCredentials account,
                                                  String region,
                                                  AwsConfiguration.DeployDefaults deployDefaults) {
-    this(amazonClientProvider, account, region, deployDefaults, DEFAULT_POLL_INTERVAL_MILLIS, DEFAULT_TIMEOUT_MILLIS);
+    this(amazonClientProvider, account, region, deployDefaults, DEFAULT_POLL_INTERVAL_MILLIS, DEFAULT_TIMEOUT_MILLIS, DEFAULT_REQUIRED_INSTANCE_LIFETIME, Clock.systemUTC());
   }
 
   public ReconcileClassicLinkSecurityGroupsAgent(AmazonClientProvider amazonClientProvider,
@@ -87,14 +95,19 @@ public class ReconcileClassicLinkSecurityGroupsAgent implements RunnableAgent, C
                                                  String region,
                                                  AwsConfiguration.DeployDefaults deployDefaults,
                                                  long pollIntervalMillis,
-                                                 long timeoutMillis) {
+                                                 long timeoutMillis,
+                                                 long requiredInstanceLifetime,
+                                                 Clock clock) {
     this.amazonClientProvider = amazonClientProvider;
     this.account = account;
     this.region = region;
     this.deployDefaults = deployDefaults;
     this.pollIntervalMillis = pollIntervalMillis;
     this.timeoutMillis = timeoutMillis;
+    this.requiredInstanceLifetime = requiredInstanceLifetime;
+    this.clock = clock;
   }
+
 
   @Override
   public void run() {
@@ -124,6 +137,7 @@ public class ReconcileClassicLinkSecurityGroupsAgent implements RunnableAgent, C
         .flatMap(r -> r.getInstances().stream())
         .filter(i -> i.getVpcId() == null)
         .filter(i -> Optional.ofNullable(i.getState()).filter(is -> is.getCode() == RUNNING_STATE).isPresent())
+        .filter(this::isInstanceOldEnough)
         .map(i -> new ClassicLinkInstance().withInstanceId(i.getInstanceId()).withVpcId(classicLinkVpcId).withTags(i.getTags()))
         .forEach(cli -> classicLinkInstances.put(cli.getInstanceId(), cli));
 
@@ -157,6 +171,15 @@ public class ReconcileClassicLinkSecurityGroupsAgent implements RunnableAgent, C
         SecurityGroup::getGroupId));
 
     reconcileInstances(ec2, groupNamesToIds, classicLinkInstances.values());
+  }
+
+  boolean isInstanceOldEnough(Instance instance) {
+    return Optional.ofNullable(instance.getLaunchTime())
+      .map(Date::getTime)
+      .map(Instant::ofEpochMilli)
+      .map(i -> i.plusMillis(requiredInstanceLifetime))
+      .map(i -> clock.instant().isAfter(i))
+      .orElse(false);
   }
 
   void reconcileInstances(AmazonEC2 ec2, Map<String, String> groupNamesToIds, Collection<ClassicLinkInstance> instances) {
