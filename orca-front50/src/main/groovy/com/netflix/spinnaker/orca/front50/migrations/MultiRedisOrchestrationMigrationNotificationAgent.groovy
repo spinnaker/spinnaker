@@ -105,7 +105,7 @@ class MultiRedisOrchestrationMigrationNotificationAgent extends AbstractPollingN
     log.info("Found ${allApplications.size()} applications")
 
     allApplications.eachWithIndex { Application application, int index ->
-      def applicationName = application.getName().toLowerCase()
+      def applicationName = application.name.toLowerCase()
       def migratableOrchestrations = executionRepositoryPrevious
         .retrieveOrchestrationsForApplication(applicationName, executionCriteria)
         .filter({ orchestration -> orchestration.status.isComplete() && !previouslyMigratedOrchestrationIds.contains(orchestration.id) })
