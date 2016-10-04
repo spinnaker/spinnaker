@@ -19,8 +19,10 @@ package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.fiat.redis.JedisSource
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Scope
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 
@@ -28,6 +30,7 @@ import redis.clients.util.Pool
 class EmbeddedRedisConfig {
 
   @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   EmbeddedRedis redisServer() {
     def redis = EmbeddedRedis.embed()
     redis.jedis.withCloseable { Jedis jedis ->
