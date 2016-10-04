@@ -929,6 +929,22 @@ class GCEUtil {
     }
   }
 
+  static Operation deleteBackendServiceIfNotInUse(Compute compute, String project, String backendServiceName, Task task, String phase) {
+    task.updateStatus phase, "Deleting backend service $backendServiceName for $project..."
+    Operation deleteBackendServiceOp
+    try {
+      deleteBackendServiceOp = compute.backendServices().delete(project, backendServiceName).execute()
+    } catch (GoogleJsonResponseException e) {
+      if (e.details?.code == 400 && e.details?.errors?.getAt(0)?.reason == "resourceInUseByAnotherResource") {
+        log.warn("Could not delete backend service $backendServiceName for $project, it was in use by another resource.")
+        return null
+      } else {
+        throw e
+      }
+    }
+    return deleteBackendServiceOp
+  }
+
   static Operation deleteHealthCheckIfNotInUse(Compute compute, String project, String healthCheckName, Task task, String phase) {
     task.updateStatus phase, "Deleting health check $healthCheckName for $project..."
     Operation deleteHealthCheckOp

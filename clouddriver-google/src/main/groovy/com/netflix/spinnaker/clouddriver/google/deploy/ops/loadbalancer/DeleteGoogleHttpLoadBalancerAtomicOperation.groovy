@@ -132,14 +132,9 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
       def backendServiceName = GCEUtil.getLocalName(backendServiceUrl)
       task.updateStatus BASE_PHASE, "Retrieving backend service $backendServiceName..."
       BackendService backendService = compute.backendServices().get(project, backendServiceName).execute()
-
       if (backendService?.backends) {
         task.updateStatus BASE_PHASE, "Server groups still associated with Http(s) load balancer ${description.loadBalancerName}. Failing..."
         throw new IllegalStateException("Server groups still associated with Http(s) load balancer: ${description.loadBalancerName}.")
-      }
-      if (GCEUtil.isBackendServiceInUse(projectUrlMaps, backendServiceName)) {
-        task.updateStatus BASE_PHASE, "Backend service in use by another Http(s) load balancer. Failing..."
-        throw new IllegalStateException("Backend service in use by another Http(s) load balancer. Cannot destroy.")
       }
 
       healthCheckUrls.addAll(backendService.getHealthChecks())
@@ -166,11 +161,12 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
         new ArrayList<BackendServiceAsyncDeleteOperation>()
     for (String backendServiceUrl : backendServiceUrls) {
       def backendServiceName = GCEUtil.getLocalName(backendServiceUrl)
-      task.updateStatus BASE_PHASE, "Deleting backend service $backendServiceName for $project..."
-      Operation deleteBackendServiceOp = compute.backendServices().delete(project, backendServiceName).execute()
-      deleteBackendServiceAsyncOperations.add(new BackendServiceAsyncDeleteOperation(
+      Operation deleteBackendServiceOp = GCEUtil.deleteBackendServiceIfNotInUse(compute, project, backendServiceName, task, BASE_PHASE)
+      if (deleteBackendServiceOp) {
+        deleteBackendServiceAsyncOperations.add(new BackendServiceAsyncDeleteOperation(
           backendServiceName: backendServiceName,
           operationName: deleteBackendServiceOp.getName()))
+      }
     }
 
     // Wait on all of these deletes to complete.

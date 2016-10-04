@@ -592,10 +592,11 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * healthChecksOperationGet.execute() >> healthChecksDeleteOp
   }
 
-  void "should fail if backend service in more than one url map"() {
+  void "should not delete backend service in more than one url map"() {
     setup:
       def computeMock = Mock(Compute)
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+      def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
       def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
       def forwardingRule = new ForwardingRule(target: TARGET_HTTP_PROXY_URL, name: HTTP_LOAD_BALANCER_NAME)
       def targetHttpProxies = Mock(Compute.TargetHttpProxies)
@@ -604,15 +605,40 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def urlMaps = Mock(Compute.UrlMaps)
       def urlMapsList = Mock(Compute.UrlMaps.List)
       def urlMap = new UrlMap(defaultService: BACKEND_SERVICE_URL, name: URL_MAP_NAME)
-      def conflictingMap = new UrlMap(defaultService: BACKEND_SERVICE_URL, name: "conflicting")
       def backendServices = Mock(Compute.BackendServices)
       def backendServicesGet = Mock(Compute.BackendServices.Get)
       def backendService = new BackendService(healthChecks: [HEALTH_CHECK_URL])
+      def healthChecks = Mock(Compute.HttpHealthChecks)
+
+      def globalForwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
+      def globalForwardingRulesDeleteOp = new Operation(
+        name: FORWARDING_RULE_DELETE_OP_NAME,
+        status: DONE)
+      def targetHttpProxiesDelete = Mock(Compute.TargetHttpProxies.Delete)
+      def targetHttpProxiesDeleteOp = new Operation(
+        name: TARGET_HTTP_PROXY_DELETE_OP_NAME,
+        status: DONE)
+      def urlMapsDelete = Mock(Compute.UrlMaps.Delete)
+      def urlMapsDeleteOp = new Operation(
+        name: URL_MAP_DELETE_OP_NAME,
+        status: DONE)
+      def backendServicesDelete = Mock(Compute.BackendServices.Delete)
+      def healthChecksDelete = Mock(Compute.HttpHealthChecks.Delete)
+      def healthChecksDeleteOp = new Operation(
+        name: HEALTH_CHECK_DELETE_OP_NAME,
+        status: DONE)
+
+      def globalOperations = Mock(Compute.GlobalOperations)
+      def targetHttpProxiesOperationGet = Mock(Compute.GlobalOperations.Get)
+      def urlMapsOperationGet = Mock(Compute.GlobalOperations.Get)
+      def healthChecksOperationGet = Mock(Compute.GlobalOperations.Get)
+
       def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DeleteGoogleLoadBalancerDescription(
-          loadBalancerName: HTTP_LOAD_BALANCER_NAME,
-          accountName: ACCOUNT_NAME,
-          credentials: credentials)
+        loadBalancerName: HTTP_LOAD_BALANCER_NAME,
+        accountName: ACCOUNT_NAME,
+        credentials: credentials)
+      def conflictingMap = new UrlMap(defaultService: BACKEND_SERVICE_URL, name: "conflicting")
       @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
           new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
@@ -622,19 +648,40 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       operation.operate([])
 
     then:
-      1 * computeMock.globalForwardingRules() >> globalForwardingRules
+      3 * computeMock.globalForwardingRules() >> globalForwardingRules
       1 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
       1 * globalForwardingRulesList.execute() >> [items: [forwardingRule]]
-      2 * computeMock.targetHttpProxies() >> targetHttpProxies
+      1 * globalForwardingRules.get(PROJECT_NAME, HTTP_LOAD_BALANCER_NAME) >> globalForwardingRulesGet
+      1 * globalForwardingRulesGet.execute() >> forwardingRule
+      3 * computeMock.targetHttpProxies() >> targetHttpProxies
       2 * targetHttpProxies.get(PROJECT_NAME, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesGet
       2 * targetHttpProxiesGet.execute() >> targetHttpProxy
-      1 * computeMock.urlMaps() >> urlMaps
+      2 * computeMock.urlMaps() >> urlMaps
       1 * urlMaps.list(PROJECT_NAME) >> urlMapsList
       1 * urlMapsList.execute() >> new UrlMapList(items: [urlMap, conflictingMap])
-      1 * computeMock.backendServices() >> backendServices
+      2 * computeMock.backendServices() >> backendServices
       1 * backendServices.get(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesGet
       1 * backendServicesGet.execute() >> backendService
-      thrown IllegalStateException
+
+      1 * globalForwardingRules.delete(PROJECT_NAME, HTTP_LOAD_BALANCER_NAME) >> globalForwardingRulesDelete
+      1 * globalForwardingRulesDelete.execute() >> globalForwardingRulesDeleteOp
+      1 * targetHttpProxies.delete(PROJECT_NAME, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesDelete
+      1 * targetHttpProxiesDelete.execute() >> targetHttpProxiesDeleteOp
+      1 * urlMaps.delete(PROJECT_NAME, URL_MAP_NAME) >> urlMapsDelete
+      1 * urlMapsDelete.execute() >> urlMapsDeleteOp
+      1 * backendServices.delete(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesDelete
+      1 * backendServicesDelete.execute() >> null
+      1 * computeMock.httpHealthChecks() >> healthChecks
+      1 * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
+      1 * healthChecksDelete.execute() >> healthChecksDeleteOp
+
+      3 * computeMock.globalOperations() >> globalOperations
+      1 * globalOperations.get(PROJECT_NAME, TARGET_HTTP_PROXY_DELETE_OP_NAME) >> targetHttpProxiesOperationGet
+      1 * targetHttpProxiesOperationGet.execute() >> targetHttpProxiesDeleteOp
+      1 * globalOperations.get(PROJECT_NAME, URL_MAP_DELETE_OP_NAME) >> urlMapsOperationGet
+      1 * urlMapsOperationGet.execute() >> urlMapsDeleteOp
+      1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_DELETE_OP_NAME) >> healthChecksOperationGet
+      1 * healthChecksOperationGet.execute() >> healthChecksDeleteOp
   }
 
   void "should fail if server group still associated"() {
