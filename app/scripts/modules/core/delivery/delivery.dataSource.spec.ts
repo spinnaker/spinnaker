@@ -1,6 +1,6 @@
-import {Application} from '../application/application.model.ts';
-import modelBuilderModule from '../application/applicationModel.builder.ts';
-import dataSourceRegistryModule from '../application/service/applicationDataSource.registry.ts';
+import {Application} from '../application/application.model';
+import modelBuilderModule from '../application/applicationModel.builder';
+import dataSourceRegistryModule from '../application/service/applicationDataSource.registry';
 
 describe('Delivery Data Source', function () {
 

@@ -1,5 +1,5 @@
 import {Subject} from 'rxjs';
-import {Application} from '../application.model.ts';
+import {Application} from '../application.model';
 
 export class DataSourceConfig {
 

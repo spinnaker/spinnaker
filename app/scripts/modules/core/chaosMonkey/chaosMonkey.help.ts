@@ -1,5 +1,5 @@
 import {module} from 'angular';
-import helpRegistryModule from '../help/helpContents.registry.ts';
+import helpRegistryModule from '../help/helpContents.registry';
 
 const helpContents: any[] = [
   {

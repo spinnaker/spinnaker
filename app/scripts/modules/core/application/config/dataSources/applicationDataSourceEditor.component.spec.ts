@@ -1,6 +1,6 @@
-import {Application} from '../../application.model.ts';
-import modelBuilderModule, {ApplicationModelBuilder} from '../../applicationModel.builder.ts';
-import editorModule, {DataSourceEditorController} from './applicationDataSourceEditor.component.ts';
+import {Application} from '../../application.model';
+import modelBuilderModule, {ApplicationModelBuilder} from '../../applicationModel.builder';
+import editorModule, {DataSourceEditorController} from './applicationDataSourceEditor.component';
 
 describe('Component: Application Data Source Editor', () => {
 

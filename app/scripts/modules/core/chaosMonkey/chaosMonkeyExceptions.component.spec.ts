@@ -1,4 +1,4 @@
-import exceptionsModule, {ChaosMonkeyExceptionsController} from './chaosMonkeyExceptions.component.ts';
+import exceptionsModule, {ChaosMonkeyExceptionsController} from './chaosMonkeyExceptions.component';
 
 describe('Controller: ChaosMonkeyExceptions', () => {
 

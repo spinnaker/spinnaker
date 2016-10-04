@@ -1,7 +1,7 @@
-import {Application} from '../application/application.model.ts';
-import modelBuilderModule, {ApplicationModelBuilder} from '../application/applicationModel.builder.ts';
-import tagModule, {LoadBalancersTagController} from './loadBalancersTag.component.ts';
-import {InstanceCounts} from "../domain/instanceCounts";
+import {Application} from '../application/application.model';
+import modelBuilderModule, {ApplicationModelBuilder} from '../application/applicationModel.builder';
+import tagModule, {LoadBalancersTagController} from './loadBalancersTag.component';
+import {InstanceCounts} from '../domain/instanceCounts';
 
 describe('Component: loadBalancersTag', () => {
 

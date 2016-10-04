@@ -1,4 +1,4 @@
-import { Trigger } from './trigger.ts'
+import { Trigger } from './trigger';
 
 export interface Execution {
   trigger: Trigger;
