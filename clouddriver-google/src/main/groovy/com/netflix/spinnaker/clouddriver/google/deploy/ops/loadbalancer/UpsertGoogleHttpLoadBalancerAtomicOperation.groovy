@@ -91,7 +91,6 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
     HashSet serviceExistsSet = [] as HashSet
     HashSet serviceNeedsUpdatedSet = [] as HashSet
     Boolean urlMapExists
-    Boolean urlMapNeedsUpdated
     Boolean targetProxyExists = false
     Boolean targetProxyNeedsUpdated = false
     Boolean forwardingRuleExists
@@ -122,7 +121,6 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
 
     // UrlMap
     urlMapExists = existingUrlMap as Boolean
-    urlMapNeedsUpdated = GCEUtil.shouldUpdateUrlMap(existingUrlMap, description)
 
     // ForwardingRule
     ForwardingRule existingRule = null
@@ -316,7 +314,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
       googleOperationPoller.waitForGlobalOperation(compute, project, insertUrlMapOperation.getName(),
         null, task, "url map " + urlMapName, BASE_PHASE)
       urlMapUrl = insertUrlMapOperation.getTargetLink()
-    } else if (urlMapExists && urlMapNeedsUpdated) {
+    } else if (urlMapExists) {
       task.updateStatus BASE_PHASE, "Updating URL map $urlMapName..."
       existingUrlMap.defaultService = GCEUtil.buildBackendServiceUrl(project, httpLoadBalancer.defaultService.name)
       existingUrlMap.pathMatchers = []

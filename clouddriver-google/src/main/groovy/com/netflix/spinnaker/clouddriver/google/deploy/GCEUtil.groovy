@@ -377,44 +377,6 @@ class GCEUtil {
     }
   }
 
-  static boolean shouldUpdateUrlMap(UrlMap urlMap, UpsertGoogleLoadBalancerDescription description) {
-    if (!urlMap) {
-      return false
-    }
-    if (getLocalName(urlMap.getDefaultService()) != description.defaultService.name) {
-      return true
-    }
-
-    Map<List<String>, Map> existingHostRuleMap = [:] // Nested: [sorted host pattern list -> [sorted url pattern list -> local backend service name]]
-
-    urlMap?.getHostRules()?.each { HostRule hostRule ->
-      urlMap?.getPathMatchers()?.each { PathMatcher pathMatcher ->
-        if (pathMatcher.getName() == hostRule.getPathMatcher()) {
-          Map pathRuleMap = [:]
-          List<PathRule> pathRules = pathMatcher.getPathRules()
-          pathRules?.each { PathRule pathRule ->
-            pathRuleMap.put(pathRule.getPaths().sort(), getLocalName(pathRule.getService()))
-          }
-          existingHostRuleMap.put(hostRule.getHosts().sort(), pathRuleMap)
-        }
-      }
-    }
-
-    Boolean mapServicesDiffer = false
-    description?.hostRules?.each { GoogleHostRule googleHostRule ->
-      def hostPatterns = googleHostRule.hostPatterns.sort()
-      googleHostRule?.pathMatcher?.pathRules?.each { GooglePathRule googlePathRule ->
-        def urlPatterns = googlePathRule?.paths?.sort()
-        Map urlPatternMap = existingHostRuleMap.get(hostPatterns)
-        if (!urlPatternMap || !urlPatternMap.containsKey(urlPatterns) || urlPatternMap.get(urlPatterns) != getLocalName(googlePathRule.backendService.name)) {
-          mapServicesDiffer = true // Groovy, baby.
-          return
-        }
-      }
-    }
-    return mapServicesDiffer
-  }
-
   static BaseGoogleInstanceDescription buildInstanceDescriptionFromTemplate(InstanceTemplate instanceTemplate) {
     def instanceTemplateProperties = instanceTemplate?.properties
 
