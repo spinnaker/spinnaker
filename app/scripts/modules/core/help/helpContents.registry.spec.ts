@@ -1,4 +1,4 @@
-import helpRegistryModule, {HelpContentsRegistry} from './helpContents.registry.ts';
+import helpRegistryModule, {HelpContentsRegistry} from './helpContents.registry';
 
 describe('Help contents registry', () => {
 

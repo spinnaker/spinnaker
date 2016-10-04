@@ -1,8 +1,8 @@
 import {module, copy, toJson} from 'angular';
 import * as _ from 'lodash';
 
-import {Application} from '../application/application.model.ts';
-import {ViewState} from './chaosMonkeyConfig.component.ts';
+import {Application} from '../application/application.model';
+import {ViewState} from './chaosMonkeyConfig.component';
 
 import './chaosMonkeyConfigFooter.component.less';
 

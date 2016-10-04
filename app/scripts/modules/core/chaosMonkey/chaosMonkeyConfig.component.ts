@@ -1,11 +1,11 @@
 import * as _ from 'lodash';
 import {module, toJson} from 'angular';
 
-import helpContents from './chaosMonkey.help.ts';
-import exceptionsModule from './chaosMonkeyExceptions.component.ts';
-import footerModule from './chaosMonkeyConfigFooter.component.ts';
+import helpContents from './chaosMonkey.help';
+import exceptionsModule from './chaosMonkeyExceptions.component';
+import footerModule from './chaosMonkeyConfigFooter.component';
 
-import {Application} from '../application/application.model.ts';
+import {Application} from '../application/application.model';
 
 import './chaosMonkeyConfig.component.less';
 

@@ -1,6 +1,6 @@
-import {ApplicationDataSource, DataSourceConfig} from './service/applicationDataSource.ts'
+import {ApplicationDataSource, DataSourceConfig} from './service/applicationDataSource';
 import {module} from 'angular';
-import {Application} from './application.model.ts';
+import {Application} from './application.model';
 
 /**
  * NOTE: this is only used in tests

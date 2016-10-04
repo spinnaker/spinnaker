@@ -1,5 +1,5 @@
-import {Application} from '../../application.model.ts';
-import {ApplicationDataSource} from '../../service/applicationDataSource.ts';
+import {Application} from '../../application.model';
+import {ApplicationDataSource} from '../../service/applicationDataSource';
 
 import './applicationDataSourceEditor.component.less';
 

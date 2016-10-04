@@ -1,4 +1,4 @@
-import footerModule, {ChaosMonkeyConfigFooterController} from './chaosMonkeyConfigFooter.component.ts';
+import footerModule, {ChaosMonkeyConfigFooterController} from './chaosMonkeyConfigFooter.component';
 
 describe('Component: ChaosMonkeyConfigFooter', () => {
 

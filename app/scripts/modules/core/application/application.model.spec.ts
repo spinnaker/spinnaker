@@ -1,6 +1,6 @@
-import {Application} from './application.model.ts';
-import modelBuilderModule, {ApplicationModelBuilder} from './applicationModel.builder.ts';
-import {ApplicationDataSourceRegistry} from './service/applicationDataSource.registry.ts';
+import {Application} from './application.model';
+import modelBuilderModule, {ApplicationModelBuilder} from './applicationModel.builder';
+import {ApplicationDataSourceRegistry} from './service/applicationDataSource.registry';
 
 import {
   ServerGroup,
