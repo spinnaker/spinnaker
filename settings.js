@@ -8,6 +8,7 @@ var authEndpoint = process.env.AUTH_ENDPOINT || (gateHost + '/auth/user');
 var authEnabled = process.env.AUTH_ENABLED === 'false' ? false : true;
 var netflixMode = process.env.NETFLIX_MODE === 'true' ? true : false;
 var chaosEnabled = netflixMode || process.env.CHAOS_ENABLED === 'true' ? true : false;
+var fiatEnabled = process.env.FIAT_ENABLED === 'true' ? true : false;
 
 window.spinnakerSettings = {
   checkForUpdates: true,
