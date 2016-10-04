@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-import gceLoadBalancerSetTransformer from './loadBalancer/loadBalancer.setTransformer.ts';
+import gceLoadBalancerSetTransformer from './loadBalancer/loadBalancer.setTransformer';
 
 require('./logo/gce.logo.less');
 

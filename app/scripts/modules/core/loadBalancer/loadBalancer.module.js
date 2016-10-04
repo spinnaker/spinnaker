@@ -1,4 +1,4 @@
-import loadBalancerTagModule from './loadBalancersTag.component.ts';
+import loadBalancerTagModule from './loadBalancersTag.component';
 
 let angular = require('angular');
 

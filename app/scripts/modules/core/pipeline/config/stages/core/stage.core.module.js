@@ -1,5 +1,5 @@
 'use strict';
-import displayableTaskFilter from '../../../../task/displayableTasks.filter.ts';
+import displayableTaskFilter from '../../../../task/displayableTasks.filter';
 
 let angular = require('angular');
 

@@ -1,4 +1,4 @@
-import modelBuilderModule from '../../../core/application/applicationModel.builder.ts';
+import modelBuilderModule from '../../../core/application/applicationModel.builder';
 
 describe('Controller: azureInstanceDetailsCtrl', function () {
 

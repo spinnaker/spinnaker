@@ -1,6 +1,6 @@
 'use strict';
 
-import {HttpLoadBalancerTemplate, ListenerTemplate} from './templates.ts';
+import {HttpLoadBalancerTemplate, ListenerTemplate} from './templates';
 import * as _ from 'lodash';
 
 let angular = require('angular');

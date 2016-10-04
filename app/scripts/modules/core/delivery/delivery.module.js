@@ -1,6 +1,6 @@
 'use strict';
 
-import buildDisplayNameFilter from './executionBuild/buildDisplayName.filter.ts';
+import buildDisplayNameFilter from './executionBuild/buildDisplayName.filter';
 
 let angular = require('angular');
 

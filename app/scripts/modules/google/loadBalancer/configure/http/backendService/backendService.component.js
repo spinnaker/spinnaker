@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 import * as _ from 'lodash';
-import {BackendServiceTemplate} from '../templates.ts';
+import {BackendServiceTemplate} from '../templates';
 
 module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backendService.component', [])
   .component('gceBackendService', {

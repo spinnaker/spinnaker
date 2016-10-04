@@ -2,6 +2,7 @@
   "globalDependencies": {
     "angular": "registry:dt/angular#1.5.0+20160909133806",
     "angular-mocks": "registry:dt/angular-mocks#1.5.0+20160608104721",
+    "angular-ui-router": "registry:dt/angular-ui-router#1.1.5+20160810191828",
     "core-js": "registry:dt/core-js#0.0.0+20160914114559",
     "jasmine": "registry:dt/jasmine#2.2.0+20160621224255",
     "jquery": "registry:dt/jquery#1.10.0+20160908203239",

@@ -1,6 +1,6 @@
 'use strict';
 
-import anyFieldFilter from '../presentation/anyFieldFilter/anyField.filter.ts';
+import anyFieldFilter from '../presentation/anyFieldFilter/anyField.filter';
 
 let angular = require('angular');
 

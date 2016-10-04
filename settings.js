@@ -93,6 +93,7 @@ window.spinnakerSettings = {
   gitSources: ['stash', 'github'],
   triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins'],
   feature: {
+    fiatEnabled: fiatEnabled,
     pipelines: true,
     notifications: false,
     fastProperty: true,

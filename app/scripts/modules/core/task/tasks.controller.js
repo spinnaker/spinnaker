@@ -1,7 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
-import displayableTaskFilter from './displayableTasks.filter.ts';
+import displayableTaskFilter from './displayableTasks.filter';
 
 let angular = require('angular');
 

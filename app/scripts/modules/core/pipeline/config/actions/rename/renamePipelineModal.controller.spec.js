@@ -1,4 +1,4 @@
-import modelBuilderModule from '../../../../application/applicationModel.builder.ts';
+import modelBuilderModule from '../../../../application/applicationModel.builder';
 
 describe('Controller: renamePipelineModal', function() {
   const angular = require('angular');

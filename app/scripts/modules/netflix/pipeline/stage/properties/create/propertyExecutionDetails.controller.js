@@ -1,46 +1,40 @@
 'use strict';
 
 import _ from 'lodash';
+import detailsSectionModule from '../../../../../core/delivery/details/executionDetailsSection.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.property.details.controller', [
   require('angular-ui-router'),
-  require('../../../../../core/delivery/details/executionDetailsSection.service.js'),
+  detailsSectionModule,
   require('../../../../../core/delivery/details/executionDetailsSectionNav.directive.js')
 ])
-  .controller('PropertyExecutionDetailsCtrl', function ($scope, $stateParams, $timeout, executionDetailsSectionService) {
+  .controller('PropertyExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 
-    let vm = this;
     $scope.configSections = ['propertiesConfig', 'taskStatus'];
 
-    function initialize() {
+    let initialized = () => {
+      $scope.detailsSection = $stateParams.details;
+      $scope.properties = $scope.stage.context.persistedProperties;
+      $scope.notificationEmail = $scope.stage.context.email;
+      $scope.cmcTicket = $scope.stage.context.cmcTicket;
+      $scope.scope = $scope.stage.context.scope;
+    };
 
-      // When this is called from a stateChangeSuccess event, the stage in the scope is not updated in this digest cycle
-      // so we need to wait until the next cycle to update any scope values based on the stage
-      $timeout(function() {
-        executionDetailsSectionService.synchronizeSection($scope.configSections);
-        $scope.detailsSection = $stateParams.details;
-
-        $scope.properties = $scope.stage.context.persistedProperties;
-        $scope.notificationEmail = $scope.stage.context.email;
-        $scope.cmcTicket = $scope.stage.context.cmcTicket;
-        $scope.scope = $scope.stage.context.scope;
-      });
-    }
-
-    initialize();
-
-
-    vm.propertyScopeForDisplay = () => {
+    this.propertyScopeForDisplay = () => {
       let temp = _.omit($scope.scope, ['appIdList']);
       return Object.assign(temp, {'app': _.head($scope.scope.appIdList) });
     };
 
-    vm.getErrorMessage = () => {
+    this.getErrorMessage = () => {
       return $scope.stage.context.exception.details.error;
     };
 
-    $scope.$on('$stateChangeSuccess', initialize, true);
+    let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
+
+    initialize();
+
+    $scope.$on('$stateChangeSuccess', initialize);
 
   });

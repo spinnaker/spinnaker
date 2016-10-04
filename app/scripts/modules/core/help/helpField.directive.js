@@ -15,7 +15,7 @@
  */
 
 'use strict';
-import helpRegistryModule from './helpContents.registry.ts';
+import helpRegistryModule from './helpContents.registry';
 
 let angular = require('angular');
 

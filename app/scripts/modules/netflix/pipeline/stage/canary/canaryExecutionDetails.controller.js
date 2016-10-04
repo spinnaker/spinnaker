@@ -1,35 +1,33 @@
 'use strict';
 
+import detailsSectionModule from '../../../../core/delivery/details/executionDetailsSection.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.details.controller', [
   require('angular-ui-router'),
-  require('../../../../core/delivery/details/executionDetailsSection.service.js'),
+  detailsSectionModule,
   require('../../../../core/delivery/details/executionDetailsSectionNav.directive.js')
 ])
-  .controller('CanaryExecutionDetailsCtrl', function ($scope, $stateParams, $timeout, executionDetailsSectionService) {
+  .controller('CanaryExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 
     $scope.configSections = ['canarySummary', 'canaryConfig', 'taskStatus'];
 
-    function initialize() {
+    let initialized = () => {
+      $scope.detailsSection = $stateParams.details;
+      $scope.canary = $scope.stage.context.canary;
 
-      // When this is called from a stateChangeSuccess event, the stage in the scope is not updated in this digest cycle
-      // so we need to wait until the next cycle to update any scope values based on the stage
-      $timeout(function() {
-        executionDetailsSectionService.synchronizeSection($scope.configSections);
-        $scope.detailsSection = $stateParams.details;
+      if ($scope.canary) {
+        $scope.canaryConfig = $scope.canary.canaryConfig;
+        $scope.baseline = $scope.stage.context.baseline;
+        $scope.canaryDeployments = $scope.canary.canaryDeployments;
+      }
+    };
 
-        $scope.canary = $scope.stage.context.canary;
-        if ($scope.canary) {
-          $scope.canaryConfig = $scope.canary.canaryConfig;
-          $scope.baseline = $scope.stage.context.baseline;
-          $scope.canaryDeployments = $scope.canary.canaryDeployments;
-        }
-      });
-    }
+    let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 
     initialize();
 
-    $scope.$on('$stateChangeSuccess', initialize, true);
+    $scope.$on('$stateChangeSuccess', initialize);
 
   });

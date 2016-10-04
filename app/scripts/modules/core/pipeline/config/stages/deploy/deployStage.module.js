@@ -1,5 +1,5 @@
 'use strict';
-import clusterNameFilter from './clusterName.filter.ts';
+import clusterNameFilter from './clusterName.filter';
 
 let angular = require('angular');
 

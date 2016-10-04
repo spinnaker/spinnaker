@@ -1,5 +1,5 @@
-import applicationDataSourceEditor from './dataSources/applicationDataSourceEditor.component.ts';
-import chaosMonkeyComponent from '../../chaosMonkey/chaosMonkeyConfig.component.ts';
+import applicationDataSourceEditor from './dataSources/applicationDataSourceEditor.component';
+import chaosMonkeyComponent from '../../chaosMonkey/chaosMonkeyConfig.component';
 
 let angular = require('angular');
 

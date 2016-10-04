@@ -10,12 +10,14 @@ module.exports = angular
 
     $scope.configSections = ['runJobConfig', 'taskStatus'];
 
-    function initialize() {
-      executionDetailsSectionService.synchronizeSection($scope.configSections);
+    let initialized = () => {
       $scope.detailsSection = $stateParams.details;
-    }
+    };
+
+    let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 
     initialize();
-    $scope.$on('$stateChangeSuccess', initialize, true);
+
+    $scope.$on('$stateChangeSuccess', initialize);
 
   });

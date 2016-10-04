@@ -1,23 +1,26 @@
 'use strict';
 
+import detailsSectionModule from '../../../../core/delivery/details/executionDetailsSection.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.findAmi.gce.executionDetails.controller', [
   require('angular-ui-router'),
-  require('../../../../core/delivery/details/executionDetailsSection.service.js'),
+  detailsSectionModule,
   require('../../../../core/delivery/details/executionDetailsSectionNav.directive.js'),
 ])
   .controller('gceFindAmiExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 
     $scope.configSections = ['findImageConfig', 'taskStatus'];
 
-    function initialize() {
-      executionDetailsSectionService.synchronizeSection($scope.configSections);
+    let initialized = () => {
       $scope.detailsSection = $stateParams.details;
-    }
+    };
+
+    let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 
     initialize();
 
-    $scope.$on('$stateChangeSuccess', initialize, true);
+    $scope.$on('$stateChangeSuccess', initialize);
 
   });

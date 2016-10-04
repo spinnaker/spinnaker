@@ -1,7 +1,6 @@
 'use strict';
 
 describe('Jenkins Execution Details Controller:', function () {
-  const angular = require('angular');
   var $scope;
 
   beforeEach(
@@ -10,16 +9,15 @@ describe('Jenkins Execution Details Controller:', function () {
     )
   );
 
-  beforeEach(window.inject(function($controller, $rootScope, $timeout) {
+  beforeEach(window.inject(function($controller, $rootScope) {
     this.initializeController = function(stage) {
       var scope = $rootScope.$new();
       scope.stage = stage;
       $controller('JenkinsExecutionDetailsCtrl', {
         '$scope': scope,
-        executionDetailsSectionService: { synchronizeSection: angular.noop, },
+        executionDetailsSectionService: { synchronizeSection: (a, fn) => fn(), },
       });
       $scope = scope;
-      $timeout.flush();
     };
   }));
 

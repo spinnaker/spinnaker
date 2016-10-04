@@ -1,21 +1,22 @@
 'use strict';
 
+import detailsSectionModule from '../../../../delivery/details/executionDetailsSection.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.jenkins.executionDetails.controller', [
   require('angular-ui-router'),
-  require('../../../../delivery/details/executionDetailsSection.service.js'),
+  detailsSectionModule,
   require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
 ])
-  .controller('JenkinsExecutionDetailsCtrl', function ($scope, $stateParams, $timeout, executionDetailsSectionService) {
+  .controller('JenkinsExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 
     $scope.configSections = ['jenkinsConfig', 'taskStatus'];
 
-    function initialize() {
-      executionDetailsSectionService.synchronizeSection($scope.configSections);
+    let initialized = () => {
       $scope.detailsSection = $stateParams.details;
-      $timeout(getFailureMessage);
-    }
+      getFailureMessage();
+    };
 
     function getFailureMessage() {
       var failureMessage = $scope.stage.failureMessage,
@@ -39,8 +40,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkins.execution
       $scope.failureMessage = failureMessage;
     }
 
+    let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
+
     initialize();
 
-    $scope.$on('$stateChangeSuccess', initialize, true);
+    $scope.$on('$stateChangeSuccess', initialize);
 
   });

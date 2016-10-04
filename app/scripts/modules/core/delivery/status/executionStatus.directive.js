@@ -1,5 +1,5 @@
 'use strict';
-import executionUserFilter from './executionUser.filter.ts';
+import executionUserFilter from './executionUser.filter';
 
 let angular = require('angular');
 

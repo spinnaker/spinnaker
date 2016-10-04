@@ -1,7 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
-import gceLoadBalancerSetTransformer from '../../loadBalancer/loadBalancer.setTransformer.ts';
+import gceLoadBalancerSetTransformer from '../../loadBalancer/loadBalancer.setTransformer';
 
 let angular = require('angular');
 

@@ -14,11 +14,10 @@ describe('executionDetailsSectionService', function() {
       spyOn(this.$state, 'includes').and.returnValue(false);
       spyOn(this.$state, 'go');
 
-      var result = this.service.synchronizeSection(['a', 'b']);
+      this.service.synchronizeSection(['a', 'b']);
 
       expect(this.$state.includes).toHaveBeenCalledWith('**.execution');
       expect(this.$state.go).not.toHaveBeenCalled();
-      expect(result).toBe(false);
     });
 
     it('reuses current section if still valid', function() {
@@ -27,11 +26,10 @@ describe('executionDetailsSectionService', function() {
 
       this.$stateParams.details = 'b';
 
-      var result = this.service.synchronizeSection(['a', 'b']);
+      this.service.synchronizeSection(['a', 'b']);
 
       expect(this.$state.includes).toHaveBeenCalledWith('**.execution');
       expect(this.$state.go).not.toHaveBeenCalled();
-      expect(result).toBe(true);
     });
 
     it('replaces current section if not valid', function() {
@@ -40,11 +38,10 @@ describe('executionDetailsSectionService', function() {
 
       this.$stateParams.details = 'c';
 
-      var result = this.service.synchronizeSection(['a', 'b']);
+      this.service.synchronizeSection(['a', 'b']);
 
       expect(this.$state.includes).toHaveBeenCalledWith('**.execution');
       expect(this.$state.go).toHaveBeenCalledWith('.', { details: 'a'}, {location: 'replace'});
-      expect(result).toBe(true);
     });
 
 
@@ -54,11 +51,10 @@ describe('executionDetailsSectionService', function() {
 
       this.$stateParams.details = undefined;
 
-      var result = this.service.synchronizeSection(['a', 'b']);
+      this.service.synchronizeSection(['a', 'b']);
 
       expect(this.$state.includes).toHaveBeenCalledWith('**.execution');
       expect(this.$state.go).toHaveBeenCalledWith('.', { details: 'a'}, {location: 'replace'});
-      expect(result).toBe(true);
     });
 
   });

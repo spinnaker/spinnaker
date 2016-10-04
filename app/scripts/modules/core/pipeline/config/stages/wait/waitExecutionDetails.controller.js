@@ -1,10 +1,12 @@
 'use strict';
 
+import detailsSectionModule from '../../../../delivery/details/executionDetailsSection.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.wait.executionDetails.controller', [
   require('angular-ui-router'),
-  require('../../../../delivery/details/executionDetailsSection.service.js'),
+  detailsSectionModule,
   require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
   require('../../../../delivery/service/execution.service'),
   require('../../../../confirmationModal/confirmationModal.service'),
@@ -13,12 +15,9 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.wait.executionDet
 
     $scope.configSections = ['waitConfig', 'taskStatus'];
 
-    function initialize() {
-      executionDetailsSectionService.synchronizeSection($scope.configSections);
+    let initialized = () => {
       $scope.detailsSection = $stateParams.details;
-    }
-
-    initialize();
+    };
 
     this.getRemainingWait = () => {
       return $scope.stage.context.waitTime * 1000 - $scope.stage.runningTimeInMs;
@@ -43,6 +42,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.wait.executionDet
       });
     };
 
-    $scope.$on('$stateChangeSuccess', initialize, true);
+    let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
+
+    initialize();
+
+    $scope.$on('$stateChangeSuccess', initialize);
 
   });

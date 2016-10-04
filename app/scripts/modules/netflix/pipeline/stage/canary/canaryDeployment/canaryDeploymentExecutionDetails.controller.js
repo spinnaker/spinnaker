@@ -1,21 +1,25 @@
 'use strict';
 
+import detailsSectionModule from '../../../../../core/delivery/details/executionDetailsSection.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.canaryDeployment.details.controller', [
   require('angular-ui-router'),
-  require('../../../../../core/delivery/details/executionDetailsSection.service.js'),
+  detailsSectionModule,
   require('../../../../../core/delivery/details/executionDetailsSectionNav.directive.js'),
   require('../../../../../core/navigation/urlBuilder.service.js'),
   require('./canaryDeploymentHistory.service.js')
 ])
-  .controller('CanaryDeploymentExecutionDetailsCtrl', function ($scope, $stateParams, $timeout,
+  .controller('CanaryDeploymentExecutionDetailsCtrl', function ($scope, $stateParams,
                                                                 executionDetailsSectionService,
                                                                 canaryDeploymentHistoryService, urlBuilderService,
                                                                 clusterFilterService) {
 
-    function initialize() {
-      $scope.configSections = ['canaryDeployment', 'canaryAnalysisHistory'];
+    $scope.configSections = ['canaryDeployment', 'canaryAnalysisHistory'];
+
+    let initialized = () => {
+      $scope.detailsSection = $stateParams.details;
 
       if ($scope.stage.context && $scope.stage.context.commits && $scope.stage.context.commits.length > 0) {
         $scope.configSections.push('codeChanges');
@@ -26,9 +30,6 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.canaryD
         loadingHistory: true,
         loadingHistoryError: false,
       };
-
-      executionDetailsSectionService.synchronizeSection($scope.configSections);
-      $scope.detailsSection = $stateParams.details;
 
       $scope.commits = $scope.stage.context.commits;
 
@@ -55,7 +56,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.canaryD
 
         $scope.loadHistory();
       }
-    }
+    };
 
     $scope.loadHistory = function () {
       if ($scope.deployment.canaryDeploymentId) {
@@ -82,12 +83,10 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.canaryD
 
     this.overrideFiltersForUrl = clusterFilterService.overrideFiltersForUrl;
 
+    let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
+
     initialize();
 
-    $scope.$on('$stateChangeSuccess',
-      function () {
-        $timeout(initialize);
-      },
-      true);
+    $scope.$on('$stateChangeSuccess', initialize);
 
   });

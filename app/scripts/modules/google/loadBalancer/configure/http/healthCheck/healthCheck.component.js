@@ -1,7 +1,7 @@
 'use strict';
 
 let angular = require('angular');
-import {HealthCheckTemplate} from '../templates.ts';
+import {HealthCheckTemplate} from '../templates';
 import * as _ from 'lodash';
 
 module.exports = angular.module('spinnaker.deck.httpLoadBalancer.healthCheck.component', [

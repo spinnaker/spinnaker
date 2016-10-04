@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-import gceLoadBalancingPolicySelector from './wizard/loadBalancingPolicy/loadBalancingPolicySelector.component.ts';
+import gceLoadBalancingPolicySelector from './wizard/loadBalancingPolicy/loadBalancingPolicySelector.component';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce', [
   require('../../autoscalingPolicy/components/basicSettings/basicSettings.component.js'),

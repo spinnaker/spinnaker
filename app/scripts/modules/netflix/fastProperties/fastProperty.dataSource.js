@@ -1,5 +1,5 @@
-import {DataSourceConfig} from '../../core/application/service/applicationDataSource.ts';
-import dataSourceRegistryModule from '../../core/application/service/applicationDataSource.registry.ts';
+import {DataSourceConfig} from '../../core/application/service/applicationDataSource';
+import dataSourceRegistryModule from '../../core/application/service/applicationDataSource.registry';
 
 let angular = require('angular');
 

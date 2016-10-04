@@ -38,9 +38,9 @@ export class HelpContentsRegistry {
   }
 }
 
-module('spinnaker.core.help.registry', [])
-  .service('helpContentsRegistry', HelpContentsRegistry);
-
 const moduleName = 'spinnaker.core.help.registry';
+
+module(moduleName, [])
+  .service('helpContentsRegistry', HelpContentsRegistry);
 
 export default moduleName;

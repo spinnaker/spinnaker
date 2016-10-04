@@ -1,25 +1,23 @@
 'use strict';
 
+import detailsSectionModule from '../../../../delivery/details/executionDetailsSection.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.createLoadBalancer.executionDetails.controller', [
   require('angular-ui-router'),
-  require('../../../../delivery/details/executionDetailsSection.service.js'),
+  detailsSectionModule,
   require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
   require('../../../../cloudProvider/cloudProvider.registry.js'),
 ])
-  .controller('createLoadBalancerExecutionDetailsCtrl', function ($scope, $stateParams, $timeout, cloudProviderRegistry,
+  .controller('createLoadBalancerExecutionDetailsCtrl', function ($scope, $stateParams, cloudProviderRegistry,
                                                                   executionDetailsSectionService) {
 
     $scope.configSections = ['loadBalancerConfig', 'taskStatus'];
 
-    function initialize() {
-      executionDetailsSectionService.synchronizeSection($scope.configSections);
+    let initialized = () => {
       $scope.detailsSection = $stateParams.details;
 
-      // When this is called from a stateChangeSuccess event, the stage in the scope is not updated in this digest cycle
-      // so we need to wait until the next cycle to update the created artifacts
-      $timeout(function () {
         var context = $scope.stage.context || {},
           results = [];
 
@@ -52,17 +50,17 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.createLoadBalance
         }
         $scope.createdLoadBalancers = results;
         $scope.provider = context.cloudProvider || context.providerType || 'aws';
-      });
-
-    }
+    };
 
     $scope.hasSubnetDeployments = () => {
       let cloudProvider = $scope.provider || 'aws';
       return cloudProviderRegistry.hasValue(cloudProvider, 'subnet');
     };
 
+    let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
+
     initialize();
 
-    $scope.$on('$stateChangeSuccess', initialize, true);
+    $scope.$on('$stateChangeSuccess', initialize);
 
   });

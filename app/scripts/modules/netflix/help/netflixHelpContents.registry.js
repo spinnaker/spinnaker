@@ -1,6 +1,6 @@
 'use strict';
 
-import registryModule from '../../core/help/helpContents.registry.ts';
+import registryModule from '../../core/help/helpContents.registry';
 
 const angular = require('angular');
 

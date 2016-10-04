@@ -27,10 +27,9 @@ describe('DeployExecutionDetailsCtrl', function() {
           $scope: $scope,
           _: _,
           $stateParams: { details: 'deploymentConfig' },
-          executionDetailsSectionService: jasmine.createSpyObj('executionDetailsSectionService', ['synchronizeSection']),
+          executionDetailsSectionService: { synchronizeSection: (a, fn) => fn(), },
           urlBuilderService: this.urlBuilderService,
         });
-        this.$timeout.flush();
       };
 
     });

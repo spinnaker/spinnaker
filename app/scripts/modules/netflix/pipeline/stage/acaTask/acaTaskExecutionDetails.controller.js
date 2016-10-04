@@ -1,52 +1,46 @@
 'use strict';
 
+import detailsSectionModule from '../../../../core/delivery/details/executionDetailsSection.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTask.details.controller', [
   require('angular-ui-router'),
-  require('../../../../core/delivery/details/executionDetailsSection.service.js'),
+  detailsSectionModule,
   require('../../../../core/delivery/details/executionDetailsSectionNav.directive.js'),
   require('../canary/canaryDeployment/canaryDeploymentHistory.service.js')
 ])
-  .controller('acaTaskExecutionDetailsCtrl', function ($scope, $stateParams, $timeout,
+  .controller('acaTaskExecutionDetailsCtrl', function ($scope, $stateParams,
                                                        executionDetailsSectionService, canaryDeploymentHistoryService, clusterFilterService) {
 
     $scope.configSections = ['canarySummary', 'canaryConfig', 'canaryAnalysisHistory'];
 
-    function initialize() {
+    let initialized = () => {
+      $scope.detailsSection = $stateParams.details;
 
-      // When this is called from a stateChangeSuccess event, the stage in the scope is not updated in this digest cycle
-      // so we need to wait until the next cycle to update any scope values based on the stage
-      $timeout(function() {
-        executionDetailsSectionService.synchronizeSection($scope.configSections);
-        $scope.detailsSection = $stateParams.details;
+      $scope.canary = $scope.stage.context.canary;
 
-        $scope.canary = $scope.stage.context.canary;
-        if ($scope.canary) {
-          $scope.canaryConfig = $scope.canary.canaryConfig;
-          $scope.baseline = $scope.stage.context.baseline;
-          $scope.canaryDeployments = $scope.canary.canaryDeployments;
-        }
+      if ($scope.canary) {
+        $scope.canaryConfig = $scope.canary.canaryConfig;
+        $scope.baseline = $scope.stage.context.baseline;
+        $scope.canaryDeployments = $scope.canary.canaryDeployments;
+      }
 
-        $scope.deployment = $scope.stage.context;
+      $scope.deployment = $scope.stage.context;
 
-        $scope.viewState = {
-          loadingHistory: true,
-          loadingHistoryError: false,
-        };
+      $scope.viewState = {
+        loadingHistory: true,
+        loadingHistoryError: false,
+      };
 
-        executionDetailsSectionService.synchronizeSection($scope.configSections);
-        $scope.detailsSection = $stateParams.details;
+      $scope.detailsSection = $stateParams.details;
 
-
-        $scope.loadHistory();
-      });
-
-    }
+      $scope.loadHistory();
+    };
 
 
     $scope.loadHistory = function () {
-      if ( $scope.deployment.canary && $scope.deployment.canary.canaryDeployments.length > 0) {
+      if ($scope.deployment.canary && $scope.deployment.canary.canaryDeployments.length > 0) {
         $scope.viewState.loadingHistory = true;
         $scope.viewState.loadingHistoryError = false;
 
@@ -71,8 +65,10 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTask.detail
 
     this.overrideFiltersForUrl = clusterFilterService.overrideFiltersForUrl;
 
+    let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
+
     initialize();
 
-    $scope.$on('$stateChangeSuccess', initialize, true);
+    $scope.$on('$stateChangeSuccess', initialize);
 
   });

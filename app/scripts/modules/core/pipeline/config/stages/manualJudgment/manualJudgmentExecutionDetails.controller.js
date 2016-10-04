@@ -1,32 +1,31 @@
 'use strict';
 
+import detailsSectionModule from '../../../../delivery/details/executionDetailsSection.service';
+
 let angular = require('angular');
 
 module.exports = angular
     .module('spinnaker.core.pipeline.stage.manualJudgment.executionDetails.controller', [
     require('angular-ui-router'),
     require('./manualJudgment.service.js'),
-    require('../../../../delivery/details/executionDetailsSection.service.js'),
+    detailsSectionModule,
     require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
   ])
   .controller('ManualJudgmentExecutionDetailsCtrl', function ($scope, $stateParams, manualJudgmentService,
                                                               executionDetailsSectionService) {
 
     $scope.configSections = ['manualJudgment', 'taskStatus'];
+
+    let initialized = () => {
+      $scope.detailsSection = $stateParams.details;
+    };
+
     $scope.viewState = {
       submitting: false,
       judgmentDecision: null,
       judgmentInput: null,
       error: false,
     };
-
-    function initialize() {
-      executionDetailsSectionService.synchronizeSection($scope.configSections);
-      $scope.detailsSection = $stateParams.details;
-    }
-
-    initialize();
-    $scope.$on('$stateChangeSuccess', initialize, true);
 
     function judgmentMade() {
       // do not update the submitting state - the reload of the executions will clear it out; otherwise,
@@ -47,4 +46,10 @@ module.exports = angular
       return manualJudgmentService.provideJudgment($scope.execution, $scope.stage, judgmentDecision, judgmentInput)
         .then(judgmentMade, judgmentFailure);
     };
+
+    let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
+
+    initialize();
+
+    $scope.$on('$stateChangeSuccess', initialize);
   });

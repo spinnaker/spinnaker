@@ -1,12 +1,13 @@
 'use strict';
 
 import { DAYS_OF_WEEK } from './daysOfWeek';
+import detailsSectionModule from '../../../../delivery/details/executionDetailsSection.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.details.controller', [
   require('angular-ui-router'),
-  require('../../../../delivery/details/executionDetailsSection.service.js'),
+  detailsSectionModule,
   require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
   require('../../../../delivery/service/execution.service'),
   require('../../../../confirmationModal/confirmationModal.service'),
@@ -14,6 +15,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.
   .controller('ExecutionWindowsDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService, executionService, confirmationModalService) {
 
     $scope.configSections = ['windowConfig', 'taskStatus'];
+
+    let initialized = () => {
+      $scope.detailsSection = $stateParams.details;
+      $scope.dayText = getDayText();
+    };
 
     // yes, this is ugly - when we replace the execution window w/ an ng2 component, this will go away.  i promise
     function replaceDays(days) {
@@ -32,14 +38,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.
 
       return dayText;
     }
-
-    function initialize() {
-      executionDetailsSectionService.synchronizeSection($scope.configSections);
-      $scope.detailsSection = $stateParams.details;
-      $scope.dayText = getDayText();
-    }
-
-    initialize();
 
     this.finishWaiting = () => {
       let stage = $scope.stage;
@@ -67,6 +65,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.
       });
     };
 
-    $scope.$on('$stateChangeSuccess', initialize, true);
+    let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
+
+    initialize();
+
+    $scope.$on('$stateChangeSuccess', initialize);
 
   });

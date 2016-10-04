@@ -1,6 +1,6 @@
 'use strict';
 
-import {HealthCheckTemplate, BackendServiceTemplate, HostRuleTemplate, ListenerTemplate} from './templates.ts';
+import {HealthCheckTemplate, BackendServiceTemplate, HostRuleTemplate, ListenerTemplate} from './templates';
 
 let angular = require('angular');
 require('./httpLoadBalancerWizard.component.less');

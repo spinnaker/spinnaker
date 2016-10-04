@@ -1,7 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
-import chaosMonkeyConfigModule from '../../chaosMonkey/chaosMonkeyNewApplicationConfig.component.ts';
+import chaosMonkeyConfigModule from '../../chaosMonkey/chaosMonkeyNewApplicationConfig.component';
 
 let angular = require('angular');
 
