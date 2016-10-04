@@ -1,11 +1,9 @@
-'use strict';
-
 import { module } from 'angular';
 
-import { TaskStep } from '../domain/taskStep.ts'
+import { TaskStep } from '../domain/taskStep';
 
 export function displayableTaskFilter() {
-  var blacklist = [
+  let blacklist = [
     'stageStart', 'stageEnd'
   ];
   return function (input: TaskStep[]) {
@@ -15,7 +13,7 @@ export function displayableTaskFilter() {
       });
     }
   };
-};
+}
 
 const MODULE_NAME = 'spinnaker.pipelines.stages.core.displayableTasks.filter';
 

@@ -6,12 +6,12 @@ export class ChaosMonkeyExceptionsController {
 
   static get $inject() { return ['accountService', '$q']; }
 
-  public constructor(private accountService: any, private $q: ng.IQService) {}
-
   public accounts: any[] = [];
   public regionsByAccount: any;
   public config: any;
   public configChanged: () => void;
+
+  public constructor(private accountService: any, private $q: ng.IQService) {}
 
   public addException(): void {
     this.config.exceptions = this.config.exceptions || [];
@@ -21,7 +21,7 @@ export class ChaosMonkeyExceptionsController {
 
   public removeException(index): void {
     this.config.exceptions.splice(index, 1);
-    this.configChanged()
+    this.configChanged();
   };
 
   public $onInit(): void {

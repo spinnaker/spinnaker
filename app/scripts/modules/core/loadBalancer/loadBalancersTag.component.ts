@@ -1,10 +1,10 @@
-import { Application } from '../application/application.model.ts';
+import { Application } from '../application/application.model';
 import {
   LoadBalancer,
   ServerGroup,
   Health
 } from '../domain';
-import {InstanceCounts} from "../domain/instanceCounts";
+import {InstanceCounts} from '../domain/instanceCounts';
 
 export class LoadBalancersTagController implements ng.IComponentController {
 
@@ -21,7 +21,7 @@ export class LoadBalancersTagController implements ng.IComponentController {
           .find((lb: LoadBalancer): boolean => {
             return lb.name === lbName
               && lb.account === serverGroup.account
-              && lb.region === serverGroup.region
+              && lb.region === serverGroup.region;
           });
 
         return this.buildLoadBalancer(match);
@@ -35,7 +35,7 @@ export class LoadBalancersTagController implements ng.IComponentController {
     }
 
     let loadBalancer: LoadBalancer = new LoadBalancer(match.name, match.vpcId);
-    loadBalancer.instanceCounts = <InstanceCounts>{up:0, down: 0, succeeded: 0, failed: 0, unknown: 0};
+    loadBalancer.instanceCounts = <InstanceCounts>{up: 0, down: 0, succeeded: 0, failed: 0, unknown: 0};
 
     this.serverGroup.instances.forEach(instance => {
       let lbHealth: Health = instance.health.find(h => h.type === 'LoadBalancer');

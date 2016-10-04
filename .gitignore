@@ -1,6 +1,7 @@
 node_modules
 typings
 /dist
+/transpiled
 /xmloutput
 test-results.xml
 npm-debug.log

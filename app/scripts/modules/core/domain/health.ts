@@ -1,5 +1,4 @@
-
-import { LoadBalancer } from "./loadBalancer";
+import { LoadBalancer } from './loadBalancer';
 
 export class Health {
   type: string;

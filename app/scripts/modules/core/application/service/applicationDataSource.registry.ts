@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 
 import {module} from 'angular';
 
-import {DataSourceConfig} from './applicationDataSource.ts'
+import {DataSourceConfig} from './applicationDataSource.ts';
 
 export class ApplicationDataSourceRegistry {
 

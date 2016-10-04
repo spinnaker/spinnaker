@@ -3,10 +3,6 @@ import {Application} from '../application.model.ts';
 
 export class DataSourceConfig {
 
-  constructor(config:any) {
-    Object.assign(this, config);
-  }
-
   /**
    * unique value for this data source; the data source will be available on the Application directly via this key,
    * e.g. if the key is "serverGroups", you can access the data source via application.serverGroups
@@ -117,24 +113,13 @@ export class DataSourceConfig {
    * to the field name that represents the provider on each data item.
    */
   public providerField: string;
+
+  constructor(config: any) {
+    Object.assign(this, config);
+  }
 }
 
 export class ApplicationDataSource {
-
-  constructor(config: DataSourceConfig, private application: Application, private $q?: ng.IQService, private $log?: ng.ILogService, private $filter?: any) {
-    Object.assign(this, config);
-    if (!config.sref && config.visible !== false) {
-      this.sref = '.insight.' + config.key;
-    }
-
-    if (!config.label && this.$filter) {
-      this.label = this.$filter('robotToHuman')(config.key);
-    }
-
-    if (!config.activeState) {
-      this.activeState = '**' + this.sref + '.**';
-    }
-  }
 
   /**
    * Index Signature
@@ -259,12 +244,31 @@ export class ApplicationDataSource {
    */
   public loader: {(any: any): ng.IPromise<any>};
 
+  private refreshStream: Subject<any> = new Subject();
+
+  private refreshFailureStream: Subject<any> = new Subject();
+
   /**
    * Called when a method mutates some item in the data source's data, e.g. when a running execution is updated
    * independent of the execution data source's refresh cycle
    */
   public dataUpdated(): void {
     this.refreshStream.next(null);
+  }
+
+  constructor(config: DataSourceConfig, private application: Application, private $q?: ng.IQService, private $log?: ng.ILogService, private $filter?: any) {
+    Object.assign(this, config);
+    if (!config.sref && config.visible !== false) {
+      this.sref = '.insight.' + config.key;
+    }
+
+    if (!config.label && this.$filter) {
+      this.label = this.$filter('robotToHuman')(config.key);
+    }
+
+    if (!config.activeState) {
+      this.activeState = '**' + this.sref + '.**';
+    }
   }
 
   /**
@@ -397,9 +401,4 @@ export class ApplicationDataSource {
       }
     }
   }
-
-  private refreshStream: Subject<any> = new Subject();
-
-  private refreshFailureStream: Subject<any> = new Subject();
-
 }

@@ -18,7 +18,6 @@ module.exports = function(config) {
       './node_modules/jquery/dist/jquery.js',
       './node_modules/angular/angular.js',
       './node_modules/angular-mocks/angular-mocks.js',
-      //'app/**/*.spec.js',
       'settings.js',
       'test/test_index.js'
     ],

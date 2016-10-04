@@ -11,7 +11,7 @@ class GceLoadBalancingPolicySelectorController implements ng.IComponentControlle
     _.set(this, propertyName, viewValue / 100);
   };
 
-  public setView (propertyName:string , modelValue: number): void {
+  public setView (propertyName: string , modelValue: number): void {
     this[propertyName] = this.decimalToPercent(modelValue);
   };
 

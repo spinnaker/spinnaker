@@ -1,6 +1,5 @@
 import { InstanceCounts } from './instanceCounts';
 
-
 export class LoadBalancer {
 
   constructor(
@@ -10,8 +9,7 @@ export class LoadBalancer {
     public region?: string,
     public account?: string,
     public serverGroups?: any[],
-    public healthState?:string,
+    public healthState?: string,
     public instanceCounts?: InstanceCounts,
   ) { }
-
 }

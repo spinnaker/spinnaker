@@ -1,8 +1,6 @@
 /**
  * From angular-ui-select demo: http://plnkr.co/edit/juqoNOt1z1Gb349XabQ2
  */
-'use strict';
-
 /**
  * AngularJS default filter with the following expression:
  * "person in people | filter: {name: $select.search, age: $select.search}"
@@ -12,7 +10,7 @@
 
 import { module } from 'angular';
 
-const MODULE_NAME ='spinnaker.core.presentation.anyFieldFilter';
+const MODULE_NAME = 'spinnaker.core.presentation.anyFieldFilter';
 
 export function anyFieldFilter() {
   return function(items: any, props: any): any[] {
@@ -20,10 +18,10 @@ export function anyFieldFilter() {
 
     if (angular.isArray(items)) {
       items.forEach(function (item) {
-        let itemMatches: boolean = false;
+        let itemMatches = false;
 
         let keys: any[] = Object.keys(props);
-        for (var i = 0; i < keys.length; i++) {
+        for (let i = 0; i < keys.length; i++) {
           let prop: any = keys[i];
           let text: string = (<any>props)[prop].toLowerCase();
           if (item[prop] && item[prop].toString().toLowerCase().indexOf(text) !== -1) {
@@ -42,7 +40,7 @@ export function anyFieldFilter() {
     }
 
     return out;
-  }
+  };
 }
 
 module(MODULE_NAME, [])
