@@ -27,6 +27,7 @@ module.exports = angular.module('spinnaker.openstack', [
   require('./loadBalancer/configure/configure.openstack.module.js'),
   require('./loadBalancer/details/details.openstack.module.js'),
   require('./loadBalancer/transformer.js'),
+  require('./instance/details/instance.details.controller.js'),
   require('../core/subnet/subnet.module.js'),
   require('./common/selectField.component.js'),
   require('./search/resultFormatter.js'),
@@ -51,6 +52,8 @@ module.exports = angular.module('spinnaker.openstack', [
       },
       instance: {
         instanceTypeService: 'openstackInstanceTypeService',
+        detailsTemplateUrl: require('./instance/details/instanceDetails.html'),
+        detailsController: 'openstackInstanceDetailsCtrl',
       },
       securityGroup: {
         reader: 'openstackSecurityGroupReader',

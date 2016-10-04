@@ -10,6 +10,9 @@ module.exports = angular
 
     function normalizeServerGroup(serverGroup) {
       if( serverGroup.loadBalancers ) {
+        serverGroup.loadBalancerIds = _.map(serverGroup.loadBalancers, function(lb) {
+          return /^openstack:/.test(lb) ? lb.split(':')[4] : lb;
+        });
         serverGroup.loadBalancers = _.map(serverGroup.loadBalancers, function(lb) {
           return /^openstack:/.test(lb) ? lb.split(':')[5] : lb;
         });
