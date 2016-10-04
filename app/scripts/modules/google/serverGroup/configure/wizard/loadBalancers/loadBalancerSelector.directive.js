@@ -1,6 +1,7 @@
 'use strict';
 
 let angular = require('angular');
+import _ from 'lodash';
 
 module.exports = angular
   .module('spinnaker.google.serverGroup.configure.wizard.loadBalancers.selector.directive', [
