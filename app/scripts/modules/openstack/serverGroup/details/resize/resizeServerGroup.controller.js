@@ -12,8 +12,8 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.details.resize.
 
     $scope.serverGroup = serverGroup;
     $scope.currentSize = {
-      min: serverGroup.scalingConfig.min,
-      max: serverGroup.scalingConfig.max,
+      min: serverGroup.scalingConfig.minSize,
+      max: serverGroup.scalingConfig.maxSize,
       desired: serverGroup.scalingConfig.desiredSize
     };
 
