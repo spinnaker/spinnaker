@@ -64,11 +64,11 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller
       return $q.when(null);
     }
 
-    app.loadBalancers.ready().then(extractLoadBalancer).then(() => {
+    app.ready().then(extractLoadBalancer).then(() => {
       // If the user navigates away from the view before the initial extractLoadBalancer call completes,
       // do not bother subscribing to the refresh
       if (!$scope.$$destroyed) {
-        app.loadBalancers.onRefresh($scope, extractLoadBalancer);
+        app.onRefresh($scope, extractLoadBalancer);
       }
     });
 
