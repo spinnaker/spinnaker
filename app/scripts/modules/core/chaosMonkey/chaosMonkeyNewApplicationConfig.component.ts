@@ -12,7 +12,7 @@ export class ChaosMonkeyNewApplicationConfigController {
     if (this.enabled) {
       this.applicationConfig.chaosMonkey = {
         enabled: this.enabled
-      }
+      };
     }
   }
 }

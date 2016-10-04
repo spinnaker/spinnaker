@@ -1,7 +1,7 @@
 import { has } from 'lodash';
 import { module } from 'angular';
-import { Execution } from '../../domain'
 
+import { Execution } from '../../domain';
 
 export function executionUserFilter() {
   return function (input: Execution): string {
@@ -14,11 +14,11 @@ export function executionUserFilter() {
     }
     return user;
   };
-};
+}
 
 const MODULE_NAME = 'spinnaker.core.delivery.executionUser.filter';
 
 module(MODULE_NAME, [])
   .filter('executionUser', executionUserFilter);
 
-export default MODULE_NAME
+export default MODULE_NAME;
