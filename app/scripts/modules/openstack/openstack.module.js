@@ -34,7 +34,9 @@ module.exports = angular.module('spinnaker.openstack', [
   require('./pipeline/stages/bake/openstackBakeStage.js'),
   require('./pipeline/stages/resizeAsg/openstackResizeAsgStage.js'),
   require('./pipeline/stages/destroyAsg/openstackDestroyAsgStage.js'),
-  require('./pipeline/stages/disableAsg/openstackDisableAsgStage.js')
+  require('./pipeline/stages/disableAsg/openstackDisableAsgStage.js'),
+  require('./pipeline/stages/enableAsg/openstackEnableAsgStage.js'),
+  require('./pipeline/stages/disableCluster/openstackDisableClusterStage.js')
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('openstack', {
