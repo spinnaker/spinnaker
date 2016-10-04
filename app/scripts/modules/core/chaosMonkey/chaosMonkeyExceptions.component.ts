@@ -19,19 +19,19 @@ export class ChaosMonkeyExceptionsController {
     this.configChanged();
   };
 
-  public removeException(index): void {
+  public removeException(index: number): void {
     this.config.exceptions.splice(index, 1);
     this.configChanged();
   };
 
   public $onInit(): void {
     this.accountService.listAccounts().then((accounts: any[]) => {
-      this.$q.all(accounts.map((account) => this.accountService.getAccountDetails(account.name)))
+      this.$q.all(accounts.map((account: any) => this.accountService.getAccountDetails(account.name)))
         .then((details) => {
           this.accounts = details.filter((account: any) => account.regions );
           this.regionsByAccount = {};
-          this.accounts.forEach((account) => {
-            this.regionsByAccount[account.name] = ['*'].concat(account.regions.map((region) => region.name));
+          this.accounts.forEach((account: any) => {
+            this.regionsByAccount[account.name] = ['*'].concat(account.regions.map((region: any) => region.name));
           });
         });
     });

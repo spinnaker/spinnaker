@@ -13,7 +13,7 @@ export class HttpLoadBalancerTemplate {
 }
 
 export class BackendServiceTemplate {
-  backends = [];
+  backends: any[] = [];
   healthCheck: HealthCheckTemplate;
   sessionAffinity: string = 'NONE';
   affinityCookieTtlSec: number | null = null;

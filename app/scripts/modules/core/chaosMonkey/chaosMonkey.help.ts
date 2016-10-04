@@ -47,8 +47,8 @@ const helpContents: any[] = [
 const moduleName = 'spinnaker.core.chaosMonkey.help.contents';
 
 module(moduleName, [helpRegistryModule])
-  .run((helpContentsRegistry) => {
-    helpContents.forEach((entry) => helpContentsRegistry.register(entry.key, entry.contents));
+  .run((helpContentsRegistry: any) => {
+    helpContents.forEach((entry: any) => helpContentsRegistry.register(entry.key, entry.contents));
 });
 
 export default moduleName;

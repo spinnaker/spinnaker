@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import {set} from 'lodash';
 import {module} from 'angular';
 import './loadBalancingPolicySelector.component.less';
 
@@ -6,9 +6,10 @@ class GceLoadBalancingPolicySelectorController implements ng.IComponentControlle
 
   public maxPort: number = 65535;
   public command: any;
+  [key: string]: any;
 
   public setModel (propertyName: string, viewValue: number): void {
-    _.set(this, propertyName, viewValue / 100);
+    set(this, propertyName, viewValue / 100);
   };
 
   public setView (propertyName: string , modelValue: number): void {
