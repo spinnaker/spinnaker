@@ -32,6 +32,7 @@ module.exports = angular.module('spinnaker.openstack', [
   require('./common/selectField.component.js'),
   require('./search/resultFormatter.js'),
   require('./pipeline/stages/bake/openstackBakeStage.js'),
+  require('./pipeline/stages/findAmi/openstackFindAmiStage.js'),
   require('./pipeline/stages/resizeAsg/openstackResizeAsgStage.js'),
   require('./pipeline/stages/destroyAsg/openstackDestroyAsgStage.js'),
   require('./pipeline/stages/disableAsg/openstackDisableAsgStage.js'),

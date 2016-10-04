@@ -1,0 +1,42 @@
+<div ng-controller="openstackFindAmiExecutionDetailsCtrl">
+  <execution-details-section-nav sections="configSections"></execution-details-section-nav>
+  <div class="step-section-details" ng-if="detailsSection === 'findImageConfig'">
+    <div class="row">
+      <div class="col-md-10">
+        <dl class="dl-narrow dl-horizontal">
+          <dt>Account</dt>
+          <dd>
+            <account-tag account="stage.context.credentials"></account-tag>
+          </dd>
+          <dt ng-if="stage.context.regions">Regions</dt>
+          <dd ng-if="stage.context.regions">{{stage.context.regions.join(', ')}}</dd>
+          <dt>Cluster</dt>
+          <dd>{{stage.context.cluster}}</dd>
+        </dl>
+      </div>
+    </div>
+    <stage-failure-message is-failed="stage.isFailed" message="stage.failureMessage"></stage-failure-message>
+
+    <div class="row" ng-if="stage.context.amiDetails">
+      <div class="col-md-12">
+        <div class="well alert alert-info">
+          <h4>Results</h4>
+          <dl ng-repeat="image in stage.context.amiDetails" class="dl-narrow dl-horizontal">
+            <dt>Region</dt>
+            <dd>{{image.region}}</dd>
+            <dt>Image ID</dt>
+            <dd>{{image.imageId}}</dd>
+            <dt>Name</dt>
+            <dd>{{image.imageName}}</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
+    <div class="row">
+      <execution-step-details item="stage"></execution-step-details>
+    </div>
+  </div>
+</div>
