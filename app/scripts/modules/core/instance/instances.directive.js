@@ -74,8 +74,12 @@ module.exports = angular.module('spinnaker.core.instance.instances.directive', [
         });
 
         elem.mouseover((event) => {
-          $(event.target, elem).tooltip({placement: 'top', container: 'body', animation: false}).tooltip('show');
-          tooltipsApplied = true;
+          if (tooltipsApplied) {
+            $(event.target, elem).tooltip('show');
+          } else {
+            $(event.target, elem).tooltip({placement: 'top', container: 'body', animation: false, selector: '[data-toggle="tooltip"]'}).tooltip('show');
+            tooltipsApplied = true;
+          }
         });
 
         function clearActiveState() {
