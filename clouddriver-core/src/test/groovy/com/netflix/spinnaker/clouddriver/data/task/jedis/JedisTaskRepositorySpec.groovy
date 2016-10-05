@@ -16,16 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.data.task.jedis
 
-import com.netflix.spinnaker.cats.redis.test.LocalRedisCheck
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
-import spock.lang.IgnoreIf
+import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
 
-@IgnoreIf({ LocalRedisCheck.redisUnavailable() })
 class JedisTaskRepositorySpec extends Specification {
   @Shared
   JedisTaskRepository taskRepository
@@ -33,8 +32,13 @@ class JedisTaskRepositorySpec extends Specification {
   @Shared
   JedisPool jedisPool
 
+  @Shared
+  @AutoCleanup("destroy")
+  EmbeddedRedis embeddedRedis
+
   def setupSpec() {
-    jedisPool = new JedisPool("localhost", 6379)
+    embeddedRedis = EmbeddedRedis.embed()
+    jedisPool = embeddedRedis.pool as JedisPool
     taskRepository = new JedisTaskRepository(jedisPool, Optional.empty())
   }
 
@@ -46,10 +50,14 @@ class JedisTaskRepositorySpec extends Specification {
 
   void "reads from previous redis if task missing"() {
     given:
-    def previousJedisPool = new JedisPool(URI.create("redis://localhost:6379/1"))
+    def embeddedRedis1 = EmbeddedRedis.embed()
+    def previousJedisPool = embeddedRedis.pool as JedisPool
     previousJedisPool.resource.withCloseable { it.flushDB() }
-    def currentPool = new JedisPool(URI.create("redis://localhost:6379/2"))
+
+    def embeddedRedis2 = EmbeddedRedis.embed()
+    def currentPool = embeddedRedis.pool as JedisPool
     currentPool.resource.withCloseable { it.flushDB() }
+
     def taskR = new JedisTaskRepository(previousJedisPool, Optional.empty())
     def oldPoolTask = taskR.create("starting", "foo")
     oldPoolTask.complete()
@@ -129,7 +137,7 @@ class JedisTaskRepositorySpec extends Specification {
   void "Can add a result object and retrieve it"() {
     setup:
     JedisTask t1 = taskRepository.create "Test", "Test Status"
-    final TestObject s = new TestObject(name:'blimp', value:'bah')
+    final TestObject s = new TestObject(name: 'blimp', value: 'bah')
 
     expect:
     taskRepository.getResultObjects(t1).empty
@@ -144,7 +152,7 @@ class JedisTaskRepositorySpec extends Specification {
     resultObjects.first().value == s.value
 
     when:
-    taskRepository.addResultObjects([new TestObject(name:"t1", value:'h2')], t1)
+    taskRepository.addResultObjects([new TestObject(name: "t1", value: 'h2')], t1)
     resultObjects = taskRepository.getResultObjects(t1)
 
     then:
@@ -155,10 +163,13 @@ class JedisTaskRepositorySpec extends Specification {
     given:
     JedisTask t1 = taskRepository.create "Test", "Test Status"
     4.times {
-      taskRepository.addResultObjects([new TestObject(name:"Object${it}", value:'value')], t1)
+      taskRepository.addResultObjects([new TestObject(name: "Object${it}", value: 'value')], t1)
     }
     expect:
-    taskRepository.getResultObjects(t1).collect{it.name} == ['Object0', 'Object1', 'Object2', 'Object3']
+    taskRepository.getResultObjects(t1).collect { it.name } == ['Object0',
+                                                                'Object1',
+                                                                'Object2',
+                                                                'Object3']
   }
 
   void "task history is correctly persisted"() {
@@ -200,7 +211,7 @@ class JedisTaskRepositorySpec extends Specification {
     t1.id != t3.id
   }
 
-  class TestObject{
+  class TestObject {
     String name
     String value
   }

@@ -22,13 +22,13 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.cache.WriteableCacheSpec
 import com.netflix.spinnaker.cats.redis.JedisPoolSource
-import com.netflix.spinnaker.cats.redis.test.LocalRedisCheck
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
-import spock.lang.IgnoreIf
+import spock.lang.AutoCleanup
+import spock.lang.Shared
 import spock.lang.Unroll
 
-@IgnoreIf({ LocalRedisCheck.redisUnavailable() })
 class RedisCacheSpec extends WriteableCacheSpec {
     static int MAX_MSET_SIZE = 2
     static int MAX_MERGE_COUNT = 1
@@ -36,9 +36,16 @@ class RedisCacheSpec extends WriteableCacheSpec {
     RedisCache.CacheMetrics cacheMetrics = Mock(RedisCache.CacheMetrics)
     JedisPool pool
 
+    @Shared
+    @AutoCleanup("destroy")
+    EmbeddedRedis embeddedRedis
+
     @Override
     Cache getSubject() {
-        pool = new JedisPool("localhost", 6379)
+        if (!embeddedRedis) {
+            embeddedRedis = EmbeddedRedis.embed()
+        }
+        pool = embeddedRedis.pool as JedisPool
         def source = new JedisPoolSource(pool)
         Jedis jedis
         try {
@@ -164,7 +171,12 @@ class RedisCacheSpec extends WriteableCacheSpec {
 
     def 'should merge #mergeCount items at a time'() {
         setup:
-        def cache = new RedisCache('test', new JedisPoolSource(pool), new ObjectMapper(), RedisCacheOptions.builder().maxMergeBatch(mergeCount).hashing(false).build(), cacheMetrics)
+        def cache = new RedisCache(
+            'test',
+            new JedisPoolSource(pool),
+            new ObjectMapper(),
+            RedisCacheOptions.builder().maxMergeBatch(mergeCount).hashing(false).build(),
+            cacheMetrics)
 
         when:
         cache.mergeAll('foo', items)
