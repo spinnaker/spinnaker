@@ -16,8 +16,18 @@ allprojects {
   apply plugin: 'spinnaker.project'
   apply plugin: 'groovy'
 
+  ext {
+    spinnakerDependenciesVersion = "0.54.0"
+  }
+
+  if (spinnakerDependenciesVersion.indexOf('-dev') != -1) {
+    repositories {
+      mavenLocal()
+    }
+  }
+
   spinnaker {
-    dependenciesVersion = "0.51.0"
+    dependenciesVersion = spinnakerDependenciesVersion
   }
 
   configurations.all {
