@@ -1,0 +1,3 @@
+#!/bin/sh
+
+chown consul:consul /etc/consul.d/client/hello-consul.json
