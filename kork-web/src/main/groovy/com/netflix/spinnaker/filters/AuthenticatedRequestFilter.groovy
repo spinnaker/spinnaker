@@ -83,7 +83,7 @@ class AuthenticatedRequestFilter implements Filter {
         }
         def principal = securityContext?.authentication?.principal
         if (principal && principal instanceof User) {
-          spinnakerUser = principal.email
+          spinnakerUser = principal.username
           spinnakerAccounts = principal.allowedAccounts.join(",")
         }
       }

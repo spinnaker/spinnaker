@@ -29,9 +29,10 @@ class AuthenticatedRequest {
   /**
    * Ensure an appropriate MDC context is available when {@code closure} is executed.
    */
-  public static final Closure propagate(Closure closure,
-                                        boolean restoreOriginalContext = true,
-                                        Object principal = SecurityContextHolder.context?.authentication?.principal) {
+  public static final Closure propagate(
+      Closure closure,
+      boolean restoreOriginalContext = true,
+      Object principal = SecurityContextHolder.context?.authentication?.principal) {
     def spinnakerUser = getSpinnakerUser(principal).orElse(null)
     if (!spinnakerUser) {
       return {
@@ -54,9 +55,6 @@ class AuthenticatedRequest {
           MDC.put(SPINNAKER_ACCOUNTS, spinnakerAccounts)
         }
         closure()
-      } catch (Exception e) {
-        log.error("Error occurred propagating authentication context", e)
-        throw e
       } finally {
         MDC.clear()
 
@@ -64,7 +62,8 @@ class AuthenticatedRequest {
           // force clear to avoid the potential for a memory leak if log4j is being used
           def log4jMDC = Class.forName("org.apache.log4j.MDC")
           log4jMDC.clear()
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         if (originalSpinnakerUser && restoreOriginalContext) {
           MDC.put(SPINNAKER_USER, originalSpinnakerUser)
@@ -79,26 +78,24 @@ class AuthenticatedRequest {
 
   public static Map<String, Optional<String>> getAuthenticationHeaders() {
     return [
-      (SPINNAKER_USER)    : getSpinnakerUser(),
-      (SPINNAKER_ACCOUNTS): getSpinnakerAccounts()
+        (SPINNAKER_USER)    : getSpinnakerUser(),
+        (SPINNAKER_ACCOUNTS): getSpinnakerAccounts()
     ]
   }
 
   public static Optional<String> getSpinnakerUser(
-    Object principal = SecurityContextHolder.context?.authentication?.principal
-  ) {
+      Object principal = SecurityContextHolder.context?.authentication?.principal) {
     def spinnakerUser = MDC.get(SPINNAKER_USER)
 
     if (principal && principal instanceof User) {
-      spinnakerUser = principal.email
+      spinnakerUser = principal.username
     }
 
     return Optional.ofNullable(spinnakerUser)
   }
 
   public static Optional<String> getSpinnakerAccounts(
-    Object principal = SecurityContextHolder.context?.authentication?.principal
-  ) {
+      Object principal = SecurityContextHolder.context?.authentication?.principal) {
     def spinnakerAccounts = MDC.get(SPINNAKER_ACCOUNTS)
 
     if (principal && principal instanceof User && principal.allowedAccounts) {
