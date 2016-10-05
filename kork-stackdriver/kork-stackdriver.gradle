@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-include 'kork-core', 'kork-cassandra', 'kork-jedis-test', 'kork-swagger', 'kork-security', 'kork-web', 'kork-hystrix', 'kork-stackdriver'
+dependencies {
+  compile spinnaker.dependency('spectatorApi')
 
-rootProject.name='kork'
+  // googleMonitoring is not yet in spinnaker-dependencies
+  // compile spinnaker.dependency('googleMonitoring')
+  compile compile('com.google.apis:google-api-services-monitoring:v3-rev9-1.22.0')
 
-def setBuildFile(project) {
-    project.buildFileName = "${project.name}.gradle"
-    project.children.each {
-        setBuildFile(it)
-    }
-}
-
-rootProject.children.each {
-    setBuildFile it
+  testCompile 'org.mockito:mockito-core:2.+'
+  testCompile 'junit:junit:4.+'
 }
