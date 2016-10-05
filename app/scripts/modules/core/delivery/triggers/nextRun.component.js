@@ -31,7 +31,7 @@ module.exports = angular
             if (offset) {
               offset /= 60;
               let start = parseInt(allHours[0]);
-              allHours[0] = start + offset >= 24 ? start : start + offset;
+              allHours[0] = (start + offset) % 24;
               parts[2] = allHours.join('/');
             }
           }
