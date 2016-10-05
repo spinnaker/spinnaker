@@ -70,8 +70,8 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
         entryPoint: serverGroup.entryPoint,
         iamProfile: serverGroup.iamProfile,
         securityGroups: serverGroup.securityGroups,
-        hardConstraints: serverGroup.hardConstraints,
-        softConstraints: serverGroup.softConstraints,
+        hardConstraints: serverGroup.hardConstraints.join(),
+        softConstraints: serverGroup.softConstraints.join(),
         inService: serverGroup.disabled ? false : true,
         source: {
           account: serverGroup.account,
@@ -113,6 +113,8 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
 
       return asyncLoader.then(function(asyncData) {
         var command = asyncData.command;
+        command.hardConstraints = command.hardConstraints.join();
+        command.softConstraints = command.softConstraints.join();
 
         var viewState = {
           disableImageSelection: true,
