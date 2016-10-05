@@ -10,3 +10,6 @@ config/spinnaker-local.yml
 packer/ami_table.md
 packer/ami_table.json
 packer/example_output.txt
+*.lock
+*.deb
+consul/hello-consul/target

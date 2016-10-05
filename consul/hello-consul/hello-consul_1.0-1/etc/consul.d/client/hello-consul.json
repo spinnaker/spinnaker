@@ -1,0 +1,15 @@
+{
+    "service": {
+        "name": "spinnaker",
+        "port": 3000,
+        "checks": [
+            {
+                "id": "server",
+                "name": "Check that the demo server is running",
+                "tcp": "localhost:3000",
+                "interval": "30s",
+                "timeout": "1s"
+            }
+        ]
+    }
+}

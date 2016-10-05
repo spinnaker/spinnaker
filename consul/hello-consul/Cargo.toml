@@ -1,0 +1,10 @@
+[package]
+name = "hello-consul"
+version = "0.1.0"
+authors = ["Lars Wander <lwander@google.com>"]
+
+[dependencies.iron]
+version = "*"
+
+[dependencies.curl]
+version = "*"
