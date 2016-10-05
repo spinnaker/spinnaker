@@ -99,7 +99,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.s
         }
 
         command.subnetId = serverGroup.subnetId;
-        command.subnet = _.chain(asyncData.subnets).find({'id': serverGroup.subnetId});
+        command.subnet = _.chain(asyncData.subnets).find({'id': serverGroup.subnetId}).valueOf();
 
         if (serverGroup.launchConfig) {
           angular.extend(command, {
