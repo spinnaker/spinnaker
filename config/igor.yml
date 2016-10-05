@@ -31,3 +31,9 @@ redis:
 #     baseUrl: ${services.clouddriver.baseUrl}
 #   echo:
 #     baseUrl: ${services.echo.baseUrl}
+
+stackdriver:
+  hints:
+    - name: controller.invocations
+      labels:
+      - master
