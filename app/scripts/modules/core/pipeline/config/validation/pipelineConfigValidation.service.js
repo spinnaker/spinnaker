@@ -144,6 +144,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.validator.servic
     function validatePipeline(pipeline) {
       var stages = pipeline.stages || [],
           triggers = pipeline.triggers || [],
+          parameters = pipeline.parameterConfig || [],
           messages = [],
           asyncValidations = [];
 
@@ -189,6 +190,15 @@ module.exports = angular.module('spinnaker.core.pipeline.config.validator.servic
             }
           });
         }
+      });
+      parameters.forEach(function (parameter) {
+        var validationConfig = {
+          type: 'requiredField',
+          fieldName: 'name',
+          message: '<b>Name</b> is a required field for parameters.',
+        };
+
+        validators.checkRequiredField(pipeline, parameter, validationConfig, {}, messages);
       });
       return $q.all(asyncValidations).then(() => {
         return _.uniq(messages);
