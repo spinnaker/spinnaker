@@ -16,12 +16,13 @@
 
 buildscript {
   ext {
-    springBootVersion = "1.2.8.RELEASE"
+    springBootVersion = "1.4.1.RELEASE"
   }
   repositories {
     jcenter()
     maven { url "http://spinnaker.bintray.com/gradle" }
   }
+
   dependencies {
     classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.9.0'
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
@@ -34,7 +35,7 @@ allprojects {
   apply plugin: 'groovy'
 
   ext {
-    spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.57.0'
+    spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.61.0'
   }
 
   def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]
@@ -77,9 +78,6 @@ allprojects {
     minHeapSize = "512m"
     maxHeapSize = "512m"
   }
-}
-
-subprojects { project ->
 
   configurations {
     all {
@@ -92,10 +90,10 @@ subprojects { project ->
             it.useTarget group: 'org.ow2.asm', name: 'asm-all', version: '5.0.3'
           }
           if (it.requested.group == 'junit') {
-            it.useTarget group: 'junit', name: 'junit', version: '4.12'
+            it.useTarget group: 'junit', name: 'junit', version: spinnaker.version('junit')
           }
           if (it.requested.group == 'cglib' || it.requested.name == 'cglib') {
-            it.useTarget group: 'cglib', name: 'cglib', version: '3.2.0'
+            it.useTarget group: 'cglib', name: 'cglib', version: spinnaker.version('cglib')
           }
           if (it.requested.group == 'com.google.guava') {
             it.useTarget group: 'com.google.guava', name: 'guava', version: '18.0'
@@ -105,6 +103,9 @@ subprojects { project ->
           }
           if (it.requested.group == 'org.apache.xbean') {
             it.useVersion '4.3'
+          }
+          if (it.requested.group.startsWith('org.apache.tomcat')) {
+            it.useVersion spinnaker.version('tomcat')
           }
         }
       }

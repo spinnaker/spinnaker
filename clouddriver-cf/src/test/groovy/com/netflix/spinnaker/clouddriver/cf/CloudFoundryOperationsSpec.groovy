@@ -36,6 +36,8 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.test.IntegrationTest
+import org.springframework.boot.test.WebIntegrationTest
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -62,9 +64,9 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
  * @see http://docs.spring.io/spring/docs/current/spring-framework-reference/html/testing.html#spring-mvc-test-framework
  *
  */
-@WebAppConfiguration
 @ContextConfiguration(classes = [TestConfiguration])
-@IntegrationTest(['cf.enabled:true', 'services.front50.enabled:false'])
+@SpringBootTest(properties=['cf.enabled:true', 'services.front50.enabled:false'],
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class CloudFoundryOperationsSpec extends Specification {
 
   @Autowired

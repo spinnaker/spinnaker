@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.provider.view
 import com.amazonaws.services.ec2.model.Subnet
 import com.amazonaws.services.ec2.model.Tag
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.awsobjectmapper.AmazonObjectMapper
+import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
@@ -33,7 +33,7 @@ import spock.lang.Subject
 class AmazonSubnetProviderSpec extends Specification {
 
   Cache cache = Mock(Cache)
-  ObjectMapper mapper = new AmazonObjectMapper()
+  ObjectMapper mapper = AmazonObjectMapperConfigurer.createConfigured()
 
   @Subject
   AmazonSubnetProvider provider = new AmazonSubnetProvider(cache, mapper)

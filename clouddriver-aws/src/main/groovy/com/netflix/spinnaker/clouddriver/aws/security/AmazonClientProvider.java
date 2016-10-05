@@ -46,7 +46,7 @@ import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflowClient;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.awsobjectmapper.AmazonObjectMapper;
+import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
@@ -158,7 +158,7 @@ public class AmazonClientProvider {
         client = builder.build();
       }
 
-      ObjectMapper mapper = this.objectMapper == null ? new AmazonObjectMapper() : this.objectMapper;
+      ObjectMapper mapper = this.objectMapper == null ? AmazonObjectMapperConfigurer.createConfigured() : this.objectMapper;
       EddaTemplater templater = this.eddaTemplater == null ? EddaTemplater.defaultTemplater() : this.eddaTemplater;
       RetryPolicy policy = buildPolicy();
       AWSProxy proxy = this.proxy;
@@ -187,7 +187,7 @@ public class AmazonClientProvider {
   }
 
   public AmazonClientProvider(HttpClient httpClient) {
-    this(httpClient, new AmazonObjectMapper());
+    this(httpClient, null);
   }
 
   public AmazonClientProvider(ObjectMapper objectMapper) {
@@ -196,7 +196,7 @@ public class AmazonClientProvider {
 
   public AmazonClientProvider(HttpClient httpClient, ObjectMapper objectMapper) {
     this(httpClient == null ? HttpClients.createDefault() : httpClient,
-      objectMapper == null ? new AmazonObjectMapper() : objectMapper,
+      objectMapper == null ? AmazonObjectMapperConfigurer.createConfigured() : objectMapper,
       EddaTemplater.defaultTemplater(),
       PredefinedRetryPolicies.getDefaultRetryPolicy(),
       Collections.emptyList(),

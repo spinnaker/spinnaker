@@ -22,7 +22,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergro
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
-import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.ReplicationController
@@ -30,7 +29,6 @@ import io.fabric8.kubernetes.api.model.extensions.HorizontalPodAutoscaler
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 import io.fabric8.kubernetes.client.internal.SerializationUtils
 
-@CompileStatic
 @EqualsAndHashCode(includes = ["name"])
 class KubernetesServerGroup implements ServerGroup, Serializable {
   String name
