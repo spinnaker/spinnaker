@@ -8,7 +8,7 @@ use curl::easy::Easy;
 fn get_nodes() -> String {
     let mut data = Vec::new();
     let mut easy = Easy::new();
-    easy.url("http://localhost:8500/v1/catalog/service/spinnaker").unwrap();
+    easy.url("http://localhost:8500/v1/health/service/spinnaker?passing").unwrap();
     {
         let mut transfer = easy.transfer();
         transfer.write_function(|new_data| {
