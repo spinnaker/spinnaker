@@ -507,8 +507,9 @@ function install_redis_server() {
   if $DOWNLOAD && [[ $apt_status -eq 100 ]]; then
     echo "Manually downloading and installing redis-server..."
     mkdir /tmp/deppkgs && pushd /tmp/deppkgs
-    curl -L -O http://mirrors.kernel.org/ubuntu/pool/universe/j/jemalloc/libjemalloc1_3.5.1-2_amd64.deb
-    curl -L -O https://launchpad.net/~chris-lea/+archive/ubuntu/redis-server/+build/8137860/+files/redis-server_3.0.5-1chl1~trusty1_amd64.deb
+    curl -L -O http://mirrors.kernel.org/ubuntu/pool/universe/j/jemalloc/libjemalloc1_3.6.0-2_amd64.deb
+
+    curl -L -O https://launchpad.net/~chris-lea/+archive/ubuntu/redis-server/+build/8914180/+files/redis-server_3.0.7-1chl1~trusty1_amd64.deb
     dpkg -i *.deb
     popd
     rm -rf /tmp/deppkgs
@@ -690,8 +691,8 @@ fi
 
 ## Packer
 mkdir /tmp/packer && pushd /tmp/packer
-curl -s -L -O https://releases.hashicorp.com/packer/0.8.6/packer_0.8.6_linux_amd64.zip
-unzip -u -o -q packer_0.8.6_linux_amd64.zip -d /usr/bin
+curl -s -L -O https://releases.hashicorp.com/packer/0.10.2/packer_0.10.2_linux_amd64.zip
+unzip -u -o -q packer_0.10.2_linux_amd64.zip -d /usr/bin
 popd
 rm -rf /tmp/packer
 
