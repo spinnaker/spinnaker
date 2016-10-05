@@ -39,6 +39,12 @@ class AzureUtilities {
   static final String VNET_DEFAULT_ADDRESS_PREFIX = "10.0.0.0/8"
   static final int SUBNET_DEFAULT_ADDRESS_PREFIX_LENGTH = 24
   static final int PROVIDER_TYPE_INDEX_IN_RESOURCEID = 6
+  static final String AZURE_CUSTOM_SCRIPT_EXT_TYPE_LINUX="CustomScript"
+  static final String AZURE_CUSTOM_SCRIPT_EXT_VERSION_LINUX="2.0"
+  static final String AZURE_CUSTOM_SCRIPT_EXT_PUBLISHER_LINUX="Microsoft.Azure.Extensions"
+  static final String AZURE_CUSTOM_SCRIPT_EXT_TYPE_WINDOWS="CustomScriptExtension"
+  static final String AZURE_CUSTOM_SCRIPT_EXT_PUBLISHER_WINDOWS="Microsoft.Compute"
+  static final String AZURE_CUSTOM_SCRIPT_EXT_VERSION_WINDOWS="1.8"
 
   static String getResourceGroupName(AzureResourceOpsDescription description) {
     if (description == null) {

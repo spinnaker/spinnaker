@@ -13,6 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Copyright 2016 The original authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.netflix.spinnaker.clouddriver.azure.templates
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -157,27 +172,32 @@ class AzureServerGroupResourceTemplate {
    *
    */
   static class ServerGroupTemplateParameters {
-    LocationParameter location = new LocationParameter()
-    SubnetParameter subnetId = new SubnetParameter()
-    AppGatewayAddressPoolParameter appGatewayAddressPoolId = new AppGatewayAddressPoolParameter()
+    LocationParameter location = new LocationParameter(["description": "Location to deploy"])
+    SubnetParameter subnetId = new SubnetParameter(["description": "Subnet Resource ID"])
+    AppGatewayAddressPoolParameter appGatewayAddressPoolId = new AppGatewayAddressPoolParameter(["description": "App Gateway backend address pool resource ID"])
+    CustomDataParameter customData = new CustomDataParameter(["description":"custom data to pass down to the virtual machine(s)"], "")
   }
 
-  static class SubnetParameter {
-    String type = "string"
-    Map<String, String> metadata = ["description": "Subnet Resource ID"]
+  /* Server Group Parameters */
+  static class SubnetParameter extends StringParameter {
+    SubnetParameter(Map<String, String> metadata) {
+      super(metadata)
+    }
   }
-
-  /**
-   *
-   */
-  static class LocationParameter {
-    String type = "string"
-    Map<String, String> metadata = ["description": "Location to deploy"]
+  static class LocationParameter extends StringParameter {
+    LocationParameter(Map<String, String> metadata) {
+      super(metadata)
+    }
   }
-
-  static class AppGatewayAddressPoolParameter {
-    String type = "string"
-    Map<String, String> metadata = ["description": "App Gateway backend address pool resource ID"]
+  static class AppGatewayAddressPoolParameter extends StringParameter {
+    AppGatewayAddressPoolParameter(Map<String, String> metadata) {
+      super(metadata)
+    }
+  }
+  static class CustomDataParameter extends StringParameterWithDefault {
+    CustomDataParameter(Map<String, String> metadata, String defValue) {
+      super(metadata, defValue)
+    }
   }
 
 
@@ -325,11 +345,15 @@ class AzureServerGroupResourceTemplate {
 
   static class VirtualMachineScaleSetProperty {
     Map<String, String> upgradePolicy = [:]
-    ScaleSetVMProfileProperty virtualMachineProfile
+    ScaleSetVMProfile virtualMachineProfile
 
     VirtualMachineScaleSetProperty(AzureServerGroupDescription description) {
       upgradePolicy["mode"] = description.upgradePolicy.toString()
-      virtualMachineProfile = new ScaleSetVMProfileProperty(description)
+      virtualMachineProfile = description.customScriptSettings?.fileUris ?
+        new ScaleSetVMProfilePropertyWithExtension(description) :
+        new ScaleSetVMProfileProperty(description)
+
+
     }
   }
 
@@ -358,6 +382,7 @@ class AzureServerGroupResourceTemplate {
     String computerNamePrefix
     String adminUsername
     String adminPassword
+    String customData
 
     /**
      *
@@ -369,6 +394,7 @@ class AzureServerGroupResourceTemplate {
       log.info("computerNamePrefix will be truncated to 10 characters to maintain Azure restrictions")
       adminUsername = description.osConfig.adminUserName
       adminPassword = description.osConfig.adminPassword
+      customData = "[base64(parameters('customData'))]"
     }
   }
 
@@ -494,11 +520,12 @@ class AzureServerGroupResourceTemplate {
     }
   }
 
+  interface ScaleSetVMProfile {}
   // ***VM Profile
   /**
    *
    */
-  static class ScaleSetVMProfileProperty {
+  static class ScaleSetVMProfileProperty implements ScaleSetVMProfile {
     StorageProfile storageProfile
     ScaleSetOsProfileProperty osProfile
     ScaleSetNetworkProfileProperty networkProfile
@@ -509,6 +536,15 @@ class AzureServerGroupResourceTemplate {
         new ScaleSetStorageProfile(description)
       osProfile = new ScaleSetOsProfileProperty(description)
       networkProfile = new ScaleSetNetworkProfileProperty(description)
+
+    }
+  }
+
+  static class ScaleSetVMProfilePropertyWithExtension extends ScaleSetVMProfileProperty implements ScaleSetVMProfile {
+    ScaleSetExtensionProfileProperty extensionProfile
+    ScaleSetVMProfilePropertyWithExtension(AzureServerGroupDescription description) {
+      super(description)
+      extensionProfile = new ScaleSetExtensionProfileProperty(description)
     }
   }
 
@@ -590,6 +626,52 @@ class AzureServerGroupResourceTemplate {
       image.uri = description.image.uri
     }
   }
+
+
+  /**** VMSS extensionsProfile ****/
+  static class ScaleSetExtensionProfileProperty {
+    Collection<Extensions> extensions = []
+
+    ScaleSetExtensionProfileProperty(AzureServerGroupDescription description) {
+      extensions.add(new Extensions(description))
+    }
+  }
+
+  static class Extensions {
+    String name
+    ExtensionProperty properties
+
+    Extensions(AzureServerGroupDescription description) {
+      name = description.application + "_ext"
+      properties = new ExtensionProperty(description)
+    }
+  }
+
+  static class ExtensionProperty {
+    String publisher
+    String type
+    String typeHandlerVersion // This will need to be updated every time the custom script extension major version is updated
+    Boolean autoUpgradeMinorVersion = true
+    CustomScriptExtensionSettings settings
+
+    ExtensionProperty(AzureServerGroupDescription description) {
+      settings = new CustomScriptExtensionSettings(description)
+      publisher = description.image?.ostype?.toLowerCase() == "linux" ? AzureUtilities.AZURE_CUSTOM_SCRIPT_EXT_PUBLISHER_LINUX : AzureUtilities.AZURE_CUSTOM_SCRIPT_EXT_PUBLISHER_WINDOWS
+      type = description.image?.ostype?.toLowerCase() == "linux" ? AzureUtilities.AZURE_CUSTOM_SCRIPT_EXT_TYPE_LINUX: AzureUtilities.AZURE_CUSTOM_SCRIPT_EXT_TYPE_WINDOWS
+      typeHandlerVersion = description.image?.ostype?.toLowerCase() == "linux" ? AzureUtilities.AZURE_CUSTOM_SCRIPT_EXT_VERSION_LINUX : AzureUtilities.AZURE_CUSTOM_SCRIPT_EXT_VERSION_WINDOWS
+    }
+  }
+
+  static class CustomScriptExtensionSettings {
+    Collection<String> fileUris
+    String commandToExecute
+
+    CustomScriptExtensionSettings(AzureServerGroupDescription description) {
+      commandToExecute = description.customScriptSettings.commandToExecute
+      fileUris = description.customScriptSettings.fileUris
+    }
+  }
+
 
   /**** Load Balancer Resource ****/
   static class LoadBalancer extends DependingResource {
