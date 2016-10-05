@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.StackPoolMemberAwa
 import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerResolver
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
+import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 import org.openstack4j.model.network.Subnet
@@ -50,6 +51,7 @@ import java.util.concurrent.ConcurrentHashMap
  * but again it would need to honor the expected parameters.
  * We could use the freeform details field to store the template string.
  */
+@Slf4j
 class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult>, StackPoolMemberAware, LoadBalancerResolver {
 
   private final String BASE_PHASE = "DEPLOY"
@@ -110,6 +112,7 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
   DeploymentResult operate(List priorOutputs) {
     DeploymentResult deploymentResult = new DeploymentResult()
     try {
+      log.debug("Deploy Description: ${description}")
       task.updateStatus BASE_PHASE, "Initializing creation of server group..."
       OpenstackClientProvider provider = description.credentials.provider
 
@@ -179,7 +182,6 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
         } else {
           userData = description.userData
         }
-        userData = Base64.encoder.encodeToString(userData.bytes)
         task.updateStatus BASE_PHASE, "Resolved user data."
       }
 

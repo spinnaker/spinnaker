@@ -21,7 +21,7 @@ parameters:
     description: Subnet used to allocate a fixed IP for each server.
   user_data:
     type: string
-    description: Raw base64-encoded string that will execute upon server boot, if cloud-init is installed.
+    description: String that will execute upon server boot, if cloud-init is installed.
 resources:
   server:
     type: OS::Nova::Server
