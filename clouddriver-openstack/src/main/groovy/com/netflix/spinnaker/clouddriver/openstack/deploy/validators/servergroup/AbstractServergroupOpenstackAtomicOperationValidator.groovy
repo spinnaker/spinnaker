@@ -42,11 +42,9 @@ abstract class AbstractServergroupOpenstackAtomicOperationValidator<T extends Op
     parameters.with {
       validator.validateNotEmpty(instanceType, "${prefix}.instanceType")
       validator.validateNotEmpty(image, "${prefix}.image")
-      validator.validatePositive(maxSize, "${prefix}.maxSize")
-      validator.validatePositive(minSize, "${prefix}.minSize")
-      validator.validateGreaterThanEqual(maxSize, minSize, "${prefix}.maxSize")
-      validator.validatePositive(desiredSize, "${prefix}.desiredSize")
+      validator.validateNonNegative(minSize, "${prefix}.minSize")
       validator.validateGreaterThanEqual(desiredSize, minSize, "${prefix}.desiredSize")
+      validator.validateGreaterThanEqual(maxSize, desiredSize, "${prefix}.maxSize")
       validator.validateNotEmpty(subnetId, "${prefix}.subnetId")
       validator.validateNotEmpty(securityGroups, "${prefix}.securityGroups")
       int maxAdjustment = (maxSize && minSize) ? maxSize - minSize : 0

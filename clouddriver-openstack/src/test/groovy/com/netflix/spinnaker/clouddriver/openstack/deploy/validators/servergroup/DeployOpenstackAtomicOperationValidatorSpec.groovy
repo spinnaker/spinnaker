@@ -147,19 +147,19 @@ class DeployOpenstackAtomicOperationValidatorSpec extends Specification {
 
     where:
     attribute << ['instanceType', 'image', 'maxSize', 'minSize', 'desiredSize', 'subnetId', 'securityGroups']
-    times << [1,1,2,3,2,1,1]
+    times << [1,1,1,2,2,1,1]
   }
 
   def "Validate sizing - error"() {
     given:
-    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: -2, minSize: -1, desiredSize: -3, subnetId: subnetId, loadBalancers: loadBalancerIds, securityGroups: securityGroups)
+    ServerGroupParameters params = new ServerGroupParameters(instanceType: instanceType, image:image, maxSize: -3, minSize: -1, desiredSize: -2, subnetId: subnetId, loadBalancers: loadBalancerIds, securityGroups: securityGroups)
     DeployOpenstackAtomicOperationDescription description = new DeployOpenstackAtomicOperationDescription(account: account, application: application, region: region, stack: stack, freeFormDetails: freeFormDetails, disableRollback: disableRollback, timeoutMins: timeoutMins, serverGroupParameters: params, credentials: credz)
 
     when:
     validator.validate([], description, errors)
 
     then:
-    5 * errors.rejectValue(_,_)
+    3 * errors.rejectValue(_,_)
   }
 
   @Unroll

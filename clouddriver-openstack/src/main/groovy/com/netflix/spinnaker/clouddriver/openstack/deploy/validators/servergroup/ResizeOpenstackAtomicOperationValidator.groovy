@@ -34,9 +34,9 @@ class ResizeOpenstackAtomicOperationValidator extends AbstractOpenstackDescripti
   void validate(OpenstackAttributeValidator validator, List priorDescriptions, ResizeOpenstackAtomicOperationDescription description, Errors errors) {
     validator.validateNotEmpty(description.serverGroupName, "serverGroupName")
     validator.validateNotNull(description.capacity, "capacity")
-    validator.validatePositive(description.capacity.min, "capacity.min")
-    validator.validateGreaterThanEqual(description.capacity.max, description.capacity.min, "capacity.max")
+    validator.validateNonNegative(description.capacity.min, "capacity.min")
     validator.validateGreaterThanEqual(description.capacity.desired, description.capacity.min, "capacity.desired")
+    validator.validateGreaterThanEqual(description.capacity.max, description.capacity.desired, "capacity.max")
   }
 
 }
