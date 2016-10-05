@@ -96,7 +96,7 @@
         <dt>URL</dt>
         <dd>{{loadBalancer.healthMonitor.url}}</dd>
         <dt>Status Codes</dt>
-        <dd><div class="status-code" ng-repeat="statusCode in loadBalancer.healthMonitor.expectedCodes">{{statusCode}}</div></dd>
+        <dd><div class="status-code" ng-repeat="statusCode in loadBalancer.healthMonitor.expectedCodes track by $index">{{statusCode}}</div></dd>
       </dl>
     </collapsible-section>
   </div>

@@ -66,7 +66,7 @@
       <help-field key="openstack.loadBalancer.healthCheck.statusCodes"></help-field>
     </div>
     <div class="col-md-8">
-      <div ng-repeat="statusCode in loadBalancer.healthMonitor.expectedHttpStatusCodes" class="status-code pull-left">
+      <div ng-repeat="statusCode in loadBalancer.healthMonitor.expectedCodes track by $index" class="status-code pull-left">
         {{statusCode}}
         <span class="glyphicon glyphicon-remove-circle" aria-hidden="true" ng-click="ctrl.removeStatusCode(statusCode);"></span>
       </div>
