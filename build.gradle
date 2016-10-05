@@ -34,8 +34,18 @@ allprojects { project ->
 
   group = "com.netflix.spinnaker.front50"
 
+  ext {
+    spinnakerDependenciesVersion = "0.54.0"
+  }
+
+  if (spinnakerDependenciesVersion.indexOf('-dev') != -1) {
+    repositories {
+      mavenLocal()
+    }
+  }
+
   spinnaker {
-    dependenciesVersion = "0.48.0"
+    dependenciesVersion = spinnakerDependenciesVersion
   }
   test {
     testLogging {
