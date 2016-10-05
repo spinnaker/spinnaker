@@ -97,14 +97,14 @@ The joins are symmetric, so you are all set!
 
 ### Consul Client Setup
 
-We will create an image with Consul installed and able to autojoin our cluster 
-that will serve as the base image for all other instances in our application.
-This is again a one-time setup cost to get Consul working.
+We will create a base-image with Consul installed and able to autojoin our 
+cluster that will serve as the base image for all other instances in our 
+application. This is again a one-time setup cost to get Consul working.
 
 Since we want our __client__ to autojoin the cluster on startup, we need to 
 provide each instance with configuration indicating where to find the 
 __server__ nodes (or any other __client__ nodes for that matter, but we
-generally treat those as fungible). So now we need create a `join.json` file
+generally treat those as fungible). So now we need create a `join.json` file 
 with the following contents, replacing your __server__ node names where
 necessary:
 
@@ -118,47 +118,71 @@ necessary:
 }
 ```
 
+Let's assume that we are creating a base-image for a team that's running a
+service on port 80, and we want this image to register itself with a service
+named `myapp` on startup. To do so, we also need to create this `myapp.json`
+file:
+
+```json  
+{
+    "service": {
+        "name": "myapp",
+        "port": 80,
+        "checks": [
+            {
+                "id": "myapp-connect",
+                "tcp": "localhost:80",
+                "interval": "30s",
+                "timeout": "1s"
+            }
+        ]
+    }
+}
+```
+
 Now to create the image...
 
 ```bash
 # create a client node we will use to capture an image, with a bootdisk
 # that won't be auto-deleted
-gcloud compute instances create consul-client \
+gcloud compute instances create consul-client-myapp \
     --image-project marketplace-spinnaker-release \
     --image consul-client \
     --no-boot-disk-auto-delete
 
-# This copies the join file onto our new instnace
-gcloud compute copy-files join.json consul-client:~/
+# This copies the join & myapp files onto our new instnace
+gcloud compute copy-files join.json consul-client-myapp:~/
+gcloud compute copy-files myapp.json consul-client-myapp:~/
 
-gcloud compute ssh consul-client
+gcloud compute ssh consul-client-myapp
 
 # ssh'd into the demo VM (we don't have permission to copy the file into this
 # protected part of the filesystem remotely).
 sudo mv join.json /etc/consul.d/client/
-sudo chown consul:consul /etc/consul.d/client/join.json 
+sudo mv myapp.json /etc/consul.d/client/
+sudo chown consul:consul /etc/consul.d/client/*.json 
 
 # close the connection
 exit
 
 # delete the instance to capture the disk
-echo y | gcloud compute instances delete consul-client
+echo y | gcloud compute instances delete consul-client-myapp
 
 # capture the image
-gcloud compute images create consul-client \
-    --source-disk consul-client
+gcloud compute images create consul-client-myapp \
+    --source-disk consul-client-myapp
 
 # delete the old boot disk
-echo y | gcloud compute disks delete consul-client
+echo y | gcloud compute disks delete consul-client-myapp
 ```
 
 ## Deploying our Application
 
-We will use the `consul-client` image we created as the base VM image that all 
-our applications are installed on to guarantee that each instance deployed by 
-Spinnaker joins the Consul cluster. This setup ensures that no extra work is
-required by any application's developer. To do this, we need to configure 
-Rosco, Spinnaker's bakery.
+We will use the `consul-client-myapp` image we created as the base VM image 
+that all our applications are installed on to guarantee that each instance 
+deployed by Spinnaker joins the Consul cluster. This setup ensures that no 
+extra work is required by any application's developer. To do this, we need to 
+configure Rosco, Spinnaker's bakery.
 
 ### Configuring Rosco
 
@@ -183,7 +207,7 @@ google:
           detailedDescription: Consul Client v0.6.4
           packageType: deb
         virtualizationSettings:
-          sourceImage: consul-client                  # image created above
+          sourceImage: consul-client-myapp            # image created above
 ```
 
 Make sure that file is readable by Spinnaker:
@@ -191,3 +215,7 @@ Make sure that file is readable by Spinnaker:
 ```bash
 sudo chown spinnaker:spinnaker /opt/rosco/config/rosco-local.yml
 ```
+
+### Creating our Deploy Pipeline
+
+(Include images of selecting `nginx` as the repo)
