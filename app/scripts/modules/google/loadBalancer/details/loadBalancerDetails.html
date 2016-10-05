@@ -49,25 +49,19 @@
         <dd>{{loadBalancer.elb.createdTime | timestamp}}</dd>
         <dt>In</dt>
         <dd><account-tag account="loadBalancer.account" pad="right"></account-tag> {{loadBalancer.region}}</dd>
-      </dl>
-      <dl>
         <dt>Type</dt>
         <dd>
           <gce-load-balancer-type load-balancer="loadBalancer"></gce-load-balancer-type>
         </dd>
-      </dl>
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
         <dt>Zones</dt>
         <dd>
-          <ul ng-style="{'margin-left': InsightFilterStateModel.filtersExpanded ? '30px' : 0}">
+          <ul>
             <li ng-repeat="availabilityZone in loadBalancer.elb.availabilityZones">{{availabilityZone}}</li>
           </ul>
         </dd>
-      </dl>
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
-        <dt ng-if="loadBalancer.serverGroups">Server Groups</dt>
-        <dd ng-if="loadBalancer.serverGroups">
-          <ul ng-style="{'margin-left': InsightFilterStateModel.filtersExpanded ? '30px' : 0}">
+        <dt ng-if="loadBalancer.serverGroups.length">Server Groups</dt>
+        <dd ng-if="loadBalancer.serverGroups.length">
+          <ul>
             <li ng-repeat="serverGroup in loadBalancer.serverGroups | orderBy: ['isDisabled', '-name']">
               <a ui-sref="^.serverGroup({region: serverGroup.region,
                                           accountId: serverGroup.account,
@@ -78,8 +72,6 @@
             </li>
           </ul>
         </dd>
-      </dl>
-      <dl>
         <div ng-if="!ctrl.isElSeven(loadBalancer) && loadBalancer.elb.dnsname">
           <dt>DNS Name</dt>
           <dd>
@@ -92,7 +84,7 @@
           </dd>
         </div>
         <div ng-if="ctrl.isElSeven(loadBalancer)">
-          <dt >DNS Names</dt>
+          <dt>DNS Names</dt>
           <dd>
             <ul>
               <li ng-repeat="dnsname in loadBalancer.elb.dnsnames">
@@ -106,14 +98,12 @@
             </ul>
           </dd>
         </div>
-      </dl>
-      <dl ng-if="loadBalancer.hostRules">
-        <dd>
+        <div ng-if="ctrl.isElSeven(loadBalancer)">
           <gce-host-and-path-rules-button default-service="loadBalancer.defaultService"
                                           load-balancer-name="loadBalancer.name"
                                           host-rules="loadBalancer.hostRules">
           </gce-host-and-path-rules-button>
-        </dd>
+        </div>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">
