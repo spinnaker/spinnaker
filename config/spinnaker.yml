@@ -72,11 +72,16 @@ services:
         token: # twilio auth token
         from: # phone number by which sms messages are sent
       slack:
+        # See https://api.slack.com/bot-users for details about using bots
+        # and how to create your own bot user.
         enabled: false
         token: # the API token for the bot
         botName: # the username of the bot
 
   deck:
+    # Frontend configuration.
+    # If you are proxying Spinnaker behind a single host, you may want to
+    # override these values. Remember to run `reconfigure_spinnaker.sh` after.
     host: ${services.default.host}
     port: 9000
     baseUrl: ${services.default.protocol}://${services.deck.host}:${services.deck.port}
@@ -97,9 +102,10 @@ services:
     port: 8080
     baseUrl: ${services.default.protocol}://${services.front50.host}:${services.front50.port}
 
-    # If using storage bucket persistence (gcs or s3), specify the bucket here
-    # disable cassandra and enable the storage service below.
-    storage_bucket:
+    # To use a cloud storage bucket on Amazon S3 or Google Cloud Storage instead
+    # of cassandra, set the storage_bucket, disable cassandra, and enable one of
+    # the service providers.
+    storage_bucket: ${SPINNAKER_DEFAULT_STORAGE_BUCKET:}
     # (GCS Only) Location for bucket.
     bucket_location:
     bucket_root: front50
@@ -152,7 +158,8 @@ services:
     host: ${services.default.host}
     port: 8087
     baseUrl: ${services.default.protocol}://${services.rosco.host}:${services.rosco.port}
-    # You need to provide the fully-qualified path to the directory containing the packer templates.
+    # You need to provide the fully-qualified path to the directory containing
+    # the packer templates.
     # They typically live in rosco's config/packer directory.
     configDir: /opt/rosco/config/packer
 
@@ -169,8 +176,11 @@ services:
     targetRepository: # Optional, but expected in spinnaker-local.yml if specified.
 
   jenkins:
+    # If you are integrating Jenkins, set its location here using the baseUrl
+    # field and provide the username/password credentials.
+    # You must also enable the "igor" service listed separately.
     # The "name" entry is used for the display name when selecting
-    # this server. You must set `enabled` to true when enabling igor.
+    # this server.
     #
     # If you have multiple jenkins servers, you will need to list
     # them in an igor-local.yml. See jenkins.masters in config/igor.yml.
@@ -198,6 +208,24 @@ services:
     port: 9042
     embedded: false
     cluster: CASS_SPINNAKER
+
+  travis:
+    # If you are integrating Travis, set its location here using the baseUrl
+    # and adress fields and provide the githubToken for authentication.
+    # You must also enable the "igor" service listed separately.
+    #
+    # If you have multiple travis servers, you will need to list
+    # them in an igor-local.yml. See travis.masters in config/igor.yml.
+    #
+    # Note that travis is not installed with Spinnaker so you must obtain this
+    # on your own if you are interested.
+    enabled: false
+    defaultMaster:
+      name: ci # The display name for this server. Gets prefixed with "travis-"
+      baseUrl: https://travis-ci.com
+      address: https://api.travis-ci.org
+      githubToken: # GitHub scopes currently required by Travis is required.
+
 
 providers:
   aws:

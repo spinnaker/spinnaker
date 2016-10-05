@@ -117,33 +117,11 @@ function replace_startup_script() {
 }
 
 function extract_spinnaker_local_yaml() {
-  local value=$(get_instance_metadata_attribute "spinnaker_local")
-  if [[ "$value" == "" ]]; then
-    return 0
-  fi
-
   local yml_path=$LOCAL_CONFIG_DIR/spinnaker-local.yml
-  sudo cp $SPINNAKER_INSTALL_DIR/config/default-spinnaker-local.yml $yml_path
-  chown spinnaker:spinnaker $yml_path
-  chmod 600 $yml_path
-
-  mkdir -p $AWS_DIR
-  chown -R spinnaker:spinnaker /home/spinnaker
-  
-  PYTHONPATH=$SPINNAKER_INSTALL_DIR/pylib python \
-      $SPINNAKER_INSTALL_DIR/pylib/spinnaker/transform_old_config.py \
-      "$value" /etc/default/spinnaker $yml_path $AWS_DIR/credentials
-
-  # Be extra sure we're protecting this
-  chown spinnaker:spinnaker $yml_path
-  chmod 600 $yml_path
-
-  if [[ -f $AWS_DIR/credentials ]]; then
-      chown spinnaker:spinnaker $AWS_DIR/credentials
-      chmod 600 $AWS_DIR/credentials
+  if clear_metadata_to_file "spinnaker_local" $yml_path; then
+    chown spinnaker:spinnaker $yml_path
+    chmod 600 $yml_path
   fi
-
-  clear_instance_metadata "spinnaker_local"
   return 0
 }
 
