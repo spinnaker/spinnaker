@@ -18,9 +18,12 @@ package com.netflix.spinnaker.clouddriver.core
 
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
 import com.netflix.spinnaker.cats.agent.NoopExecutionInstrumentation
+import com.netflix.spinnaker.cats.redis.JedisSource
 import com.netflix.spinnaker.clouddriver.cache.CacheConfig
 import com.netflix.spinnaker.clouddriver.cache.NoopOnDemandCacheUpdater
 import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
+import com.netflix.spinnaker.clouddriver.core.agent.CleanupPendingOnDemandCachesAgent
+import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
 import com.netflix.spinnaker.clouddriver.model.CloudMetricProvider
@@ -56,6 +59,7 @@ import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvi
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
@@ -192,6 +196,13 @@ class CloudDriverConfig {
   @ConditionalOnMissingBean(ElasticIpProvider)
   ElasticIpProvider noopElasticIpProvider() {
     new NoopElasticIpProvider()
+  }
+
+  @Bean
+  CoreProvider coreProvider(JedisSource jedisSource, ApplicationContext applicationContext) {
+    return new CoreProvider([
+      new CleanupPendingOnDemandCachesAgent(jedisSource, applicationContext)
+    ])
   }
 
   // Allows @Value annotation to tokenize a list of strings.
