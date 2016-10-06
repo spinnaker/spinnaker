@@ -41,7 +41,7 @@ class ApplicationControllerSpec extends Specification {
     applicationsController.applicationProviders = [appProvider1, appProvider2]
 
     when:
-    applicationsController.list(false)
+    applicationsController.list(false /*expand*/, true /*restricted*/)
 
     then:
     1 * appProvider1.getApplications(false)

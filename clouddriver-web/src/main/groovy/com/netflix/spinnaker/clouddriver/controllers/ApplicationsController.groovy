@@ -45,10 +45,11 @@ class ApplicationsController {
   @Autowired
   MessageSource messageSource
 
-  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
-  @PostFilter("hasPermission(filterObject.name, 'APPLICATION', 'READ')")
+  @PreAuthorize("#restricted ? @fiatPermissionEvaluator.storeWholePermission() : true")
+  @PostFilter("#restricted ? hasPermission(filterObject.name, 'APPLICATION', 'READ') : true")
   @RequestMapping(method = RequestMethod.GET)
-  List<Application> list(@RequestParam(required = false, value = 'expand', defaultValue = 'true') boolean expand) {
+  List<Application> list(@RequestParam(required = false, value = 'expand', defaultValue = 'true') boolean expand,
+                         @RequestParam(required = false, value = 'restricted', defaultValue = 'true') boolean restricted) {
     def results = applicationProviders.collectMany {
       it.getApplications(expand) ?: []
     }
