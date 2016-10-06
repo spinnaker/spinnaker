@@ -142,7 +142,7 @@ module.exports = angular
       };
 
       function setRendered(pageKey, rendered) {
-        _.forEach(_.filter(wizard.pageRegistry, 'key', pageKey), function(page) { page.state.rendered = rendered; });
+        _.forEach(_.filter(wizard.pageRegistry, ['key', pageKey]), function(page) { page.state.rendered = rendered; });
         wizard.renderPages();
       }
 
