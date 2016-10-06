@@ -20,6 +20,9 @@ don't trust the ones I provide.
 
 ## Configuring Kubernetes
 
+> __Note__ Only make changes to the files suffixed with `-local.yml` in `./config/`, 
+> every other file is liable to be deleted/overwritten.
+
 Make sure you have a running Kubernetes cluster, which is explained in more
 detail [here](http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-kubernetes-cluster-setup).
 The key takeaway is having a kubeconfig file sitting in `~/.kube/config` that
