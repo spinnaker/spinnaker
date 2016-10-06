@@ -41,17 +41,9 @@ class ProjectService {
   @Autowired
   ClouddriverService clouddriverService
 
-  //TODO: (jeyrs)Remove the try catch to handle the new format when front50 is updated & in prod
   List<Map> getAll() {
-    // Prepping to start using List<Map> instead of HalList from Front50
     HystrixFactory.newListCommand(GROUP, "getAll") {
-      try {
-        return front50Service.legacyGetAllProjects().embedded?.projects ?: []
-      } catch (Exception e) {
-        log.info("Falling back on new return type {}", e.getMessage())
-        return front50Service.getAllProjects() ?: []
-      }
-
+      return front50Service.getAllProjects() ?: []
     } execute()
   }
 
