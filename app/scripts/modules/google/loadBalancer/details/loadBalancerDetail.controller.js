@@ -1,6 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
+import gceLoadBalancerDeleteModal from './deleteModal/deleteModal.controller';
 
 let angular = require('angular');
 
@@ -17,13 +18,14 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   require('./loadBalancerType/loadBalancerType.component.js'),
   require('../elSevenUtils.service.js'),
   require('./healthCheck/healthCheck.component.js'),
+  require('../../../core/help/helpField.directive.js'),
   require('../configure/choice/loadBalancerTypeToWizardMap.constant.js'),
-  require('../configure/http/httpLoadBalancer.write.service.js'),
+  gceLoadBalancerDeleteModal,
 ])
   .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, loadBalancer, app, InsightFilterStateModel,
                                                       confirmationModalService, accountService, elSevenUtils,
                                                       loadBalancerWriter, loadBalancerReader,
-                                                      $q, loadBalancerTypeToWizardMap, gceHttpLoadBalancerWriter) {
+                                                      $q, loadBalancerTypeToWizardMap) {
 
     let application = app;
 
@@ -151,43 +153,16 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
     };
 
     this.deleteLoadBalancer = function deleteLoadBalancer() {
-      if ($scope.loadBalancer.instances && $scope.loadBalancer.instances.length) {
-        return;
+      if (!($scope.loadBalancer.instances && $scope.loadBalancer.instances.length)) {
+        $uibModal.open({
+          controller: 'gceLoadBalancerDeleteModalCtrl as ctrl',
+          templateUrl: require('./deleteModal/deleteModal.html'),
+          resolve: {
+            application: () => application,
+            loadBalancer: () => $scope.loadBalancer,
+          },
+        });
       }
-
-      var taskMonitor = {
-        application: application,
-        title: 'Deleting ' + loadBalancer.name,
-        forceRefreshMessage: 'Refreshing application...',
-        forceRefreshEnabled: true
-      };
-
-      var submitMethod;
-      if (elSevenUtils.isElSeven($scope.loadBalancer)) {
-        submitMethod = function () {
-          return gceHttpLoadBalancerWriter.deleteLoadBalancers($scope.loadBalancer, application);
-        };
-      } else {
-        submitMethod = function () {
-          loadBalancer.providerType = $scope.loadBalancer.provider;
-          return loadBalancerWriter.deleteLoadBalancer(loadBalancer, application, {
-            loadBalancerName: loadBalancer.name,
-            region: $scope.loadBalancer.region,
-            loadBalancerType: $scope.loadBalancer.loadBalancerType || 'NETWORK',
-          });
-        };
-      }
-
-
-      confirmationModalService.confirm({
-        header: 'Really delete ' + loadBalancer.name + '?',
-        buttonText: 'Delete ' + loadBalancer.name,
-        provider: 'gce',
-        account: loadBalancer.accountId,
-        applicationName: application.name,
-        taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
-      });
     };
 
     this.isElSeven = elSevenUtils.isElSeven;

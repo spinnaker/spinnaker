@@ -27,9 +27,8 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.write.servi
       });
     }
 
-    function deleteLoadBalancers (loadBalancer, application) {
-
-      let job = [{
+    function deleteLoadBalancers (loadBalancer, application, params = {}) {
+      let job = {
         type: 'deleteLoadBalancer',
         loadBalancerName: loadBalancer.listeners[0].name,
         regions: ['global'],
@@ -37,14 +36,16 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.write.servi
         loadBalancerType: 'HTTP',
         cloudProvider: loadBalancer.provider,
         credentials: loadBalancer.account,
-      }];
+      };
+
+      angular.extend(job, params);
 
       infrastructureCaches.clearCache('loadBalancers');
       infrastructureCaches.clearCache('backendServices');
       infrastructureCaches.clearCache('httpHealthChecks');
 
       return taskExecutor.executeTask({
-        job,
+        job: [job],
         application: application,
         description: `Delete load balancer: ${loadBalancer.urlMapName} in ${loadBalancer.account}:global`
       });

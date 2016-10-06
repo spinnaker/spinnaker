@@ -136,9 +136,10 @@
         </div>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Health Checks">
+    <collapsible-section ng-if="ctrl.isElSeven(loadBalancer) || loadBalancer.healthCheck" heading="Health Checks">
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
-        <gce-health-check ng-if="!ctrl.isElSeven(loadBalancer)" health-check="loadBalancer.elb.healthCheck"></gce-health-check>
+        <gce-health-check ng-if="!ctrl.isElSeven(loadBalancer)"
+                          health-check="loadBalancer.healthCheck"></gce-health-check>
         <div ng-if="ctrl.isElSeven(loadBalancer)" ng-repeat="healthCheck in loadBalancer.elb.healthChecks">
           <hr ng-if="$index > 0">
           <gce-health-check health-check="healthCheck"></gce-health-check>
