@@ -51,13 +51,7 @@ class ProjectSearchProvider implements SearchProvider {
       return new SearchResultSet(totalMatches: 0)
     }
 
-    def projects
-    try { //TODO: (jeyrs) Remove try & catch when front50 is in Prod (This is to adapt to front50 project API)
-      projects = front50Service.legacySearchForProjects(query).embedded?.projects as List<Map>
-    } catch (Exception e) {
-      projects = front50Service.searchForProjects(query) as List<Map>
-    }
-
+    def projects = front50Service.searchForProjects(query) as List<Map>
     def results = (projects ?: []).collect { Map project ->
       project.type = PROJECTS_TYPE
       project.url = "/projects/${project.id}".toString()
