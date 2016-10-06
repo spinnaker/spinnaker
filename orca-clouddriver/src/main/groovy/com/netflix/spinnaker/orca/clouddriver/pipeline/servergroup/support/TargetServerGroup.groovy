@@ -31,6 +31,14 @@ class TargetServerGroup {
   @Delegate private final Map<String, Object> serverGroup
 
   TargetServerGroup(Map<String, Object> serverGroupData) {
+    if (serverGroupData.instances && serverGroupData.instances instanceof Collection) {
+      serverGroupData.instances = serverGroupData.instances.collect {
+        [name: it.name, launchTime: it.launchTime, health: it.health, healthState: it.healthState, zone: it.zone]
+      }
+    }
+    if (serverGroupData.containsKey("asg") && serverGroupData.asg instanceof Map) {
+      ((Map) serverGroupData.get("asg")).remove("instances")
+    }
     serverGroup = new HashMap(serverGroupData).asImmutable()
   }
 
