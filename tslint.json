@@ -38,7 +38,7 @@
     "no-debugger": true,
     "no-duplicate-key": true,
     "no-duplicate-variable": true,
-    "no-empty": false,
+    "no-empty": true,
     "no-eval": true,
     "no-inferrable-types": true,
     "no-shadowed-variable": true,
@@ -53,12 +53,15 @@
     "object-literal-sort-keys": false,
     "one-line": [
       true,
+      "check-catch",
+      "check-else",
       "check-open-brace",
       "check-whitespace"
     ],
     "quotemark": [
       true,
-      "single"
+      "single",
+      "avoid-escape"
     ],
     "radix": true,
     "semicolon": [
@@ -78,7 +81,11 @@
         "variable-declaration": "nospace"
       }
     ],
-    "variable-name": false,
+    "variable-name": [
+      true,
+      "ban-keywords",
+      "allow-leading-underscore"
+    ],
     "whitespace": [
       true,
       "check-branch",

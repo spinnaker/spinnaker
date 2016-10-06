@@ -8,7 +8,7 @@ describe('Component: ChaosMonkeyConfigFooter', () => {
       $q: ng.IQService,
       $scope: ng.IScope;
 
-  let initializeController = (data) => {
+  let initializeController = (data: any) => {
     $ctrl = <ChaosMonkeyConfigFooterController> $componentController(
       'chaosMonkeyConfigFooter',
       { $scope: null, applicationWriter: applicationWriter },
@@ -34,7 +34,7 @@ describe('Component: ChaosMonkeyConfigFooter', () => {
     it('replaces contents of config with original config', () => {
       var data = {
         viewState: {
-          originalConfig: { exceptions: [], enabled: false }
+          originalConfig: { exceptions: ([] as any), enabled: false }
         },
         config: {
           exceptions: [ {account: 'prod', region: 'us-east-1'} ],

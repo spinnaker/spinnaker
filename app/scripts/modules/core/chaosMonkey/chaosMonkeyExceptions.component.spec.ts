@@ -8,7 +8,7 @@ describe('Controller: ChaosMonkeyExceptions', () => {
       $scope: ng.IScope,
       $q: ng.IQService;
 
-  let initializeController = (data) => {
+  let initializeController = (data: any) => {
     $ctrl = <ChaosMonkeyExceptionsController> $componentController(
       'chaosMonkeyExceptions',
       { $scope: null, accountService: accountService, $q: $q },
@@ -33,13 +33,13 @@ describe('Controller: ChaosMonkeyExceptions', () => {
 
     it('gets all accounts, then adds wildcard and regions per account to vm', () => {
       let accounts = [ {name: 'prod'}, {name: 'test'} ];
-      let details = {
+      let details: any = {
         prod: { name: 'prod', regions: [ {name: 'us-east-1'}, {name: 'us-west-1'}] },
         test: { name: 'test', regions: [ {name: 'us-west-2'}, {name: 'eu-west-1'}] }
       };
 
       spyOn(accountService, 'listAccounts').and.returnValue($q.when(accounts));
-      spyOn(accountService, 'getAccountDetails').and.callFake((accountName) => {
+      spyOn(accountService, 'getAccountDetails').and.callFake((accountName: string): ng.IPromise<any> => {
         return $q.when(details[accountName]);
       });
 
