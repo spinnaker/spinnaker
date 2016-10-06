@@ -6,6 +6,8 @@ import com.netflix.spinnaker.fiat.roles.github.client.GitHubMaster;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -53,8 +55,26 @@ public class GitHubConfig {
         .setClient(okClient)
         .setConverter(new JacksonConverter())
         .setLogLevel(retrofitLogLevel)
+        .setLog(new Slf4jRetrofitLogger(GitHubClient.class))
         .build()
         .create(GitHubClient.class);
+  }
+
+  private static class Slf4jRetrofitLogger implements RestAdapter.Log {
+    private final Logger logger;
+
+    Slf4jRetrofitLogger(Class type) {
+      this(LoggerFactory.getLogger(type));
+    }
+
+    Slf4jRetrofitLogger(Logger logger) {
+      this.logger = logger;
+    }
+
+    @Override
+    public void log(String message) {
+      logger.info(message);
+    }
   }
 
   private static class BasicAuthRequestInterceptor implements RequestInterceptor {

@@ -81,7 +81,7 @@ public class RetrofitConfig {
   }
 
   @Bean
-  RestAdapter.LogLevel retrofitLogLevel(@Value("${retrofit.logLevel:NONE}") String logLevel) {
+  RestAdapter.LogLevel retrofitLogLevel(@Value("${retrofit.logLevel:BASIC}") String logLevel) {
     return RestAdapter.LogLevel.valueOf(logLevel);
   }
 

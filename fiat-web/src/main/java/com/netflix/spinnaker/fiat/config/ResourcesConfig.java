@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -58,6 +60,7 @@ public class ResourcesConfig {
         .setClient(okClient)
         .setConverter(new JacksonConverter(objectMapper))
         .setLogLevel(retrofitLogLevel)
+        .setLog(new Slf4jRetrofitLogger(Front50Service.class))
         .build()
         .create(Front50Service.class);
   }
@@ -69,7 +72,25 @@ public class ResourcesConfig {
         .setClient(okClient)
         .setConverter(new JacksonConverter(objectMapper))
         .setLogLevel(retrofitLogLevel)
+        .setLog(new Slf4jRetrofitLogger(ClouddriverService.class))
         .build()
         .create(ClouddriverService.class);
+  }
+
+  private static class Slf4jRetrofitLogger implements RestAdapter.Log {
+    private final Logger logger;
+
+    Slf4jRetrofitLogger(Class type) {
+      this(LoggerFactory.getLogger(type));
+    }
+
+    Slf4jRetrofitLogger(Logger logger) {
+      this.logger = logger;
+    }
+
+    @Override
+    public void log(String message) {
+      logger.debug(message);
+    }
   }
 }
