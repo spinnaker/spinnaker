@@ -8,7 +8,7 @@ module.exports = angular
   .module('spinnaker.core.filterModel.service', [
     require('angular-ui-router'),
   ])
-.factory('filterModelService', function ($location, $state, $stateParams, $timeout) {
+.factory('filterModelService', function ($location, $state, $stateParams, $urlRouter, $timeout) {
 
     function isFilterable(sortFilterModel) {
       return _.size(sortFilterModel) > 0 && _.some(sortFilterModel);
@@ -299,6 +299,7 @@ module.exports = angular
         filterModelConfig.forEach(function (property) {
           $location.search(property.param, converters[property.type].toParam(filterModel, property));
         });
+        $urlRouter.update(true);
       };
     }
 
