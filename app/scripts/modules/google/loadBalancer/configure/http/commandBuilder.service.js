@@ -188,7 +188,14 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
 
           command.loadBalancer.healthChecks =
             command.loadBalancer.healthChecks
-              .map((hc) => _.cloneDeep(command.backingData.healthChecksKeyedByName[hc.name]));
+              .map((hc) => {
+                let updated = command.backingData.healthChecksKeyedByName[_.get(hc,'name')];
+                if (updated) {
+                  return _.cloneDeep(updated);
+                } else {
+                  return hc;
+                }
+              });
         });
     }
 
@@ -209,12 +216,19 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
 
           command.loadBalancer.backendServices =
             command.loadBalancer.backendServices
-              .map((service) => _.cloneDeep(command.backingData.backendServicesKeyedByName[service.name]));
+              .map((service) => {
+                let updated = command.backingData.backendServicesKeyedByName[_.get(service, 'name')];
+                if (updated) {
+                  return _.cloneDeep(updated);
+                } else {
+                  return service;
+                }
+              });
         });
     }
 
     function onHealthCheckSelected (selectedName, command) {
-      if (!command.loadBalancer.healthChecks.find((hc) => hc.name === selectedName)) {
+      if (!command.loadBalancer.healthChecks.find((hc) => _.get(hc, 'name') === selectedName)) {
         let selectedObject = command.backingData.healthChecksKeyedByName[selectedName];
         if (selectedObject) {
           command.loadBalancer.healthChecks.push(selectedObject);

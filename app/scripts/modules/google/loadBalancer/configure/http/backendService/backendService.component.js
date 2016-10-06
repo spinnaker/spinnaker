@@ -37,7 +37,7 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backendServ
 
       this.getAllHealthChecks = () => {
         let allHealthChecks = loadBalancer.healthChecks.concat(this.backingData.healthChecks);
-        return _.uniq(allHealthChecks.map((hc) => hc.name));
+        return _.uniq(allHealthChecks.map((hc) => _.get(hc, 'name')));
       };
 
       this.maxCookieTtl = 60 * 60 * 24; // One day.
@@ -52,17 +52,21 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backendServ
       };
 
       this.modified = () => {
-        let originalService = servicesByNameCopy[this.backendService.name];
+        let originalService = servicesByNameCopy[getBackendServiceName()];
         return originalService && !_.isEqual(getPlain(this.backendService), getPlain(originalService));
       };
 
       this.revert = () => {
-        let originalService = _.cloneDeep(servicesByNameCopy[this.backendService.name]);
+        let originalService = _.cloneDeep(servicesByNameCopy[getBackendServiceName()]);
         assign(originalService);
         this.command.onHealthCheckSelected(originalService.healthCheck, this.command);
       };
 
-      if (servicesByName[this.backendService.name]) {
+      let getBackendServiceName = () => {
+        return _.get(this, 'backendService.name');
+      };
+
+      if (servicesByName[getBackendServiceName()]) {
         this.editExisting = true;
       }
 

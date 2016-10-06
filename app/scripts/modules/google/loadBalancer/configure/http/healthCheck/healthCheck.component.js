@@ -41,12 +41,12 @@ module.exports = angular.module('spinnaker.deck.httpLoadBalancer.healthCheck.com
       };
 
       this.modified = () => {
-        let originalHealthCheck = healthChecksByNameCopy[this.healthCheck.name];
+        let originalHealthCheck = healthChecksByNameCopy[getHealthCheckName()];
         return originalHealthCheck && !_.isEqual(getPlain(this.healthCheck), getPlain(originalHealthCheck));
       };
 
       this.revert = () => {
-        let originalHealthCheck = _.cloneDeep(healthChecksByNameCopy[this.healthCheck.name]);
+        let originalHealthCheck = _.cloneDeep(healthChecksByNameCopy[getHealthCheckName()]);
         assign(originalHealthCheck);
       };
 
@@ -63,7 +63,11 @@ module.exports = angular.module('spinnaker.deck.httpLoadBalancer.healthCheck.com
         loadBalancer.healthChecks[this.index] = this.healthCheck = toAssign;
       };
 
-      if (healthChecksByName[this.healthCheck.name]) {
+      let getHealthCheckName = () => {
+        return _.get(this, 'healthCheck.name');
+      };
+
+      if (healthChecksByName[getHealthCheckName()]) {
         this.editExisting = true;
       }
     }
