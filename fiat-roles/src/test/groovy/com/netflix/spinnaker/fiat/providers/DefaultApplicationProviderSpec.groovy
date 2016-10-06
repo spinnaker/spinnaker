@@ -18,6 +18,7 @@ package com.netflix.spinnaker.fiat.providers
 
 import com.netflix.spinnaker.fiat.model.resources.Application
 import com.netflix.spinnaker.fiat.model.resources.Role
+import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service
 import spock.lang.Specification
 import spock.lang.Subject
@@ -37,7 +38,15 @@ class DefaultApplicationProviderSpec extends Specification {
           new Application().setName("reqGroup1and2").setRequiredGroupMembership(["group1", "group2"])
       ]
     }
-    provider = new DefaultApplicationProvider(front50Service: front50Service)
+    ClouddriverService clouddriverService = Mock(ClouddriverService) {
+      getApplications() >> [
+          new Application().setName("reqGroups1"),
+          new Application().setName("onlyKnownToClouddriver")
+      ]
+    }
+
+    provider = new DefaultApplicationProvider(front50Service: front50Service,
+                                              clouddriverService: clouddriverService)
 
     when:
     def result = provider.getAllRestricted(input.collect {new Role(it)})
@@ -50,6 +59,12 @@ class DefaultApplicationProviderSpec extends Specification {
 
     then:
     thrown IllegalArgumentException
+
+    when:
+    result = provider.getAllUnrestricted()
+
+    then:
+    result*.name.containsAll(["noReqGroups", "onlyKnownToClouddriver"])
 
     where:
     input                || values
