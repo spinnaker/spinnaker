@@ -41,7 +41,7 @@ The high level Consul architecture has two components:
 1. The group of instances running as the __server__ nodes, acting as the
    leaders in your Consul cluster.
 
-2. Every instance you intend to be discoverable, running as __client__ 
+2. Every instance you intend to be discoverable, running as __client__
    nodes.
 
 ### Consul Server Setup
@@ -52,7 +52,7 @@ cost we need to incur to get Consul running in your network.
 
 ```bash
 # create an instance template describing the consul server instance
-# 
+#
 # we will be using an image we've created with consul installed, and configured
 # to start as a server node.
 gcloud compute instance-templates create consul-server \
@@ -97,14 +97,14 @@ The joins are symmetric, so you are all set!
 
 ### Consul Client Setup
 
-We will create a base-image with Consul installed and able to autojoin our 
-cluster that will serve as the base image for all other instances in our 
+We will create a base-image with Consul installed and able to autojoin our
+cluster that will serve as the base image for all other instances in our
 application. This is again a one-time setup cost to get Consul working.
 
-Since we want our __client__ to autojoin the cluster on startup, we need to 
-provide each instance with configuration indicating where to find the 
+Since we want our __client__ to autojoin the cluster on startup, we need to
+provide each instance with configuration indicating where to find the
 __server__ nodes (or any other __client__ nodes for that matter, but we
-generally treat those as fungible). So now we need create a `join.json` file 
+generally treat those as fungible). So now we need create a `join.json` file
 with the following contents, replacing your __server__ node names where
 necessary:
 
@@ -123,7 +123,7 @@ service on port 80, and we want this image to register itself with a service
 named `myapp` on startup. To do so, we also need to create this `myapp.json`
 file:
 
-```json  
+```json
 {
     "service": {
         "name": "myapp",
@@ -160,7 +160,7 @@ gcloud compute ssh consul-client-myapp
 # protected part of the filesystem remotely).
 sudo mv join.json /etc/consul.d/client/
 sudo mv myapp.json /etc/consul.d/client/
-sudo chown consul:consul /etc/consul.d/client/*.json 
+sudo chown consul:consul /etc/consul.d/client/*.json
 
 # close the connection
 exit
@@ -178,17 +178,17 @@ echo y | gcloud compute disks delete consul-client-myapp
 
 ## Deploying our Application
 
-We will use the `consul-client-myapp` image we created as the base VM image 
-that all our applications are installed on to guarantee that each instance 
-deployed by Spinnaker joins the Consul cluster. This setup ensures that no 
-extra work is required by any application's developer. To do this, we need to 
+We will use the `consul-client-myapp` image we created as the base VM image
+that all our applications are installed on to guarantee that each instance
+deployed by Spinnaker joins the Consul cluster. This setup ensures that no
+extra work is required by any application's developer. To do this, we need to
 configure Rosco, Spinnaker's bakery.
 
 ### Configuring Rosco
 
 > On the VM running Spinnaker (that we ssh'd into in the very first step).
 
-We need to create the following file `/opt/rosco/config/rosco-local.yml` with 
+We need to create the following file `/opt/rosco/config/rosco-local.yml` with
 the contents
 
 ```yaml

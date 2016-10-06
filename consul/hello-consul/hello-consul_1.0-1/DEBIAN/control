@@ -1,8 +1,0 @@
-Package: hello-consul
-Version: 1.0-1
-Section: base
-Priority: optional
-Architecture: amd64
-Maintainer: Lars Wander <lwander@google.com>
-Description: Consul Demo
- Show off Consul + Spinnaker 
