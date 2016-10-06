@@ -18,6 +18,7 @@ package com.netflix.spinnaker.fiat.providers;
 
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.model.resources.Role;
+import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
 import lombok.NonNull;
 import lombok.val;
@@ -27,7 +28,10 @@ import retrofit.RetrofitError;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
@@ -36,14 +40,27 @@ public class DefaultApplicationProvider extends BaseProvider implements Applicat
   @Autowired
   private Front50Service front50Service;
 
+  @Autowired
+  private ClouddriverService clouddriverService;
+
   @Override
   public Set<Application> getAll() throws ProviderException {
     try {
-      val returnVal = front50Service.getAllApplicationPermissions()
-                                    .stream()
-                                    .collect(Collectors.toSet());
+      Map<String, Application> appByName = front50Service
+          .getAllApplicationPermissions()
+          .stream()
+          .collect(Collectors.toMap(Application::getName,
+                                    Function.identity()));
       success();
-      return returnVal;
+
+      clouddriverService
+          .getApplications()
+          .stream()
+          .filter(app -> !appByName.containsKey(app.getName()))
+          .forEach(app -> appByName.put(app.getName(), app));
+      success();
+
+      return new HashSet<>(appByName.values());
     } catch (RetrofitError re) {
       failure();
       throw new ProviderException(re);
