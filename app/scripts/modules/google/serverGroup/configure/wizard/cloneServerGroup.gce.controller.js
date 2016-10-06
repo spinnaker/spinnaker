@@ -266,6 +266,11 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
         $scope.command.backingData.filtered.loadBalancerIndex,
         $scope.command.backendServices);
 
+      var origLoadBalancers = $scope.command.loadBalancers;
+      $scope.command.loadBalancers = loadBalancerMetadata['load-balancer-names']
+        ? loadBalancerMetadata['load-balancer-names'].split(',')
+        : [];
+
       angular.extend($scope.command.instanceMetadata, loadBalancerMetadata);
 
       var origTags = $scope.command.tags;
@@ -287,9 +292,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       }
 
       delete $scope.command.securityGroups;
-
-      var origLoadBalancers = $scope.command.loadBalancers;
-      delete $scope.command.loadBalancers;
 
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
         return $uibModalInstance.close($scope.command);
