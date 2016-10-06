@@ -194,13 +194,16 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     # and that the get method is the current version.
     num_versions = 2 if self.versioning_enabled else 1
     gcs_builder = gcp.GcpStorageContractBuilder(self.gcs_observer)
-    (gcs_builder.new_clause_builder('Google Cloud Storage Contains File')
+    (gcs_builder.new_clause_builder('Google Cloud Storage Contains File',
+                                    retryable_for_secs=5)
+
      .list_bucket(self.BUCKET,
                   '/'.join([self.BASE_PATH, 'applications', self.TEST_APP]),
                   with_versions=True)
      .contains_path_value('name', self.TEST_APP,
                           min=num_versions, max=num_versions))
-    (gcs_builder.new_clause_builder('Updated File Content')
+    (gcs_builder.new_clause_builder('Updated File Content',
+                                    retryable_for_secs=5)
      .retrieve_content(self.BUCKET,
                        '/'.join([self.BASE_PATH, 'applications', self.TEST_APP,
                                  'specification.json']),

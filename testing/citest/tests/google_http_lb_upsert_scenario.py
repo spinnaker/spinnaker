@@ -105,6 +105,8 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
       'region': bindings['TEST_GCE_REGION'],
       'loadBalancerType': 'HTTP',
       'loadBalancerName': self.__lb_name,
+      'urlMapName': self.__lb_name,
+      'listenersToDelete': [],
       'portRange': '80',
       'defaultService': {
         'name': 'default-' + self.TEST_APP,
@@ -550,6 +552,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
           'region': 'global',
           'securityGroupName': self.__lb_name + '-rule',
           'sourceRanges': ['0.0.0.0/0'],
+          'targetTags': [self.__lb_name + '-tag'],
           'type': 'upsertSecurityGroup',
           'user': '[anonymous]'
         }
@@ -601,7 +604,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
         'stack': bindings['TEST_STACK'],
         'instanceType': 'f1-micro',
         'type': 'createServerGroup',
-        'securityGroups': [self.__lb_name + '-rule'],
+        'tags': [self.__lb_name + '-tag'],
         'loadBalancers': [self.__lb_name],
         'backendServices': {self.__lb_name: ['bs-' + self.TEST_APP]},
         'disableTraffic': False,
@@ -659,7 +662,6 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
         'serverGroupName': group_name,
         'region': bindings['TEST_GCE_REGION'],
         'zone': bindings['TEST_GCE_ZONE'],
-        'asgName': group_name,
         'type': 'destroyServerGroup',
         'regions': [bindings['TEST_GCE_REGION']],
         'zones': [bindings['TEST_GCE_ZONE']],
