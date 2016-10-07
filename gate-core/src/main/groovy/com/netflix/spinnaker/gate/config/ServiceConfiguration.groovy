@@ -18,19 +18,31 @@ package com.netflix.spinnaker.gate.config
 
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
+
+import javax.annotation.PostConstruct
 
 @CompileStatic
 @Component
 @ConfigurationProperties
 class ServiceConfiguration {
+  List<String> healthCheckableServices
   List<String> discoveryHosts
   Map<String, Service> services = [:]
 
   @Autowired
   ApplicationContext ctx
+
+  @PostConstruct
+  void postConstruct() {
+    // this check is done in a @PostConstruct to avoid Spring's list merging in @ConfigurationProperties (vs. overriding)
+    healthCheckableServices = healthCheckableServices ?: [
+      "orca", "clouddriver", "echo", "igor", "flex", "front50", "mahe", "mine"
+    ]
+  }
 
   Service getService(String name) {
     services[name]
