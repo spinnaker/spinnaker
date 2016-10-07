@@ -35,6 +35,7 @@ import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLoadBalancerHe
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLoadBalancerHealth.PlatformStatus
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import groovy.util.logging.Slf4j
+import org.openstack4j.model.network.Port
 import org.openstack4j.model.network.ext.HealthMonitorV2
 import org.openstack4j.model.network.ext.LbPoolV2
 import org.openstack4j.model.network.ext.ListenerV2
@@ -55,6 +56,7 @@ import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.F
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.LOAD_BALANCERS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.NETWORKS
+import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SECURITY_GROUPS
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SUBNETS
 import static com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider.ATTRIBUTES
 
@@ -110,14 +112,18 @@ class OpenstackLoadBalancerCachingAgent extends AbstractOpenstackCachingAgent im
     Future<Set<? extends HealthMonitorV2>> healthMonitors = CompletableFuture.supplyAsync {
       clientProvider.getHealthMonitors(region)?.toSet()
     }
-    CompletableFuture.allOf(loadBalancers, listeners, pools, healthMonitors, statusTrees).join()
+    Future<Map<String, ? extends Port>> ports = CompletableFuture.supplyAsync {
+      clientProvider.listPorts(region)?.collectEntries { [it.id, it] }
+    }
+
+    CompletableFuture.allOf(loadBalancers, listeners, pools, healthMonitors, statusTrees, ports).join()
 
     List<String> loadBalancerKeys = loadBalancers.get().collect {
       Keys.getLoadBalancerKey(it.name, it.id, accountName, region)
     }
 
     buildLoadDataCache(providerCache, loadBalancerKeys) { CacheResultBuilder cacheResultBuilder ->
-      buildCacheResult(providerCache, loadBalancers.get(), listeners.get(), pools.get(), healthMonitors.get(), statusTrees.get(), cacheResultBuilder)
+      buildCacheResult(providerCache, loadBalancers.get(), listeners.get(), pools.get(), healthMonitors.get(), statusTrees.get(), ports.get(), cacheResultBuilder)
     }
   }
 
@@ -127,6 +133,7 @@ class OpenstackLoadBalancerCachingAgent extends AbstractOpenstackCachingAgent im
                                Set<LbPoolV2> pools,
                                Set<HealthMonitorV2> healthMonitors,
                                Map<String, LoadBalancerV2StatusTree> statusTreeMap,
+                               Map<String, Port> portMap,
                                CacheResultBuilder cacheResultBuilder) {
     loadBalancers?.each { loadBalancer ->
       String loadBalancerKey = Keys.getLoadBalancerKey(loadBalancer.name, loadBalancer.id, accountName, region)
@@ -206,11 +213,21 @@ class OpenstackLoadBalancerCachingAgent extends AbstractOpenstackCachingAgent im
           }
         }
 
+        // security groups cached
+        Port vipPort = portMap.get(loadBalancer.vipPortId)
+        Set<String> securityGroupKeys = []
+        if (vipPort) {
+          vipPort.securityGroups?.each {
+            securityGroupKeys << Keys.getSecurityGroupKey('*', it, accountName, region)
+          }
+        }
+
         cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keep(loadBalancerKey).with {
           attributes = objectMapper.convertValue(openstackLoadBalancer, ATTRIBUTES)
           relationships[FLOATING_IPS.ns] = [floatingIpKey]
           relationships[NETWORKS.ns] = [networkKey]
           relationships[SUBNETS.ns] = [subnetKey]
+          relationships[SECURITY_GROUPS.ns] = securityGroupKeys
         }
       }
     }
@@ -247,6 +264,7 @@ class OpenstackLoadBalancerCachingAgent extends AbstractOpenstackCachingAgent im
       Set<LbPoolV2> pools = [].toSet()
       Set<HealthMonitorV2> healthMonitors = [].toSet()
       Map<String, LoadBalancerV2StatusTree> statusMap = [:]
+      Map<String, Port> portMap = [:]
       String loadBalancerKey = Keys.getLoadBalancerKey(loadBalancerName, '*', accountName, region)
 
       if (loadBalancer) {
@@ -267,10 +285,11 @@ class OpenstackLoadBalancerCachingAgent extends AbstractOpenstackCachingAgent im
         }
         loadBalancerKey = Keys.getLoadBalancerKey(loadBalancerName, loadBalancer.id, accountName, region)
         statusMap[loadBalancer.id] = clientProvider.getLoadBalancerStatusTree(region, loadBalancer.id)
+        portMap[loadBalancer.vipPortId] = clientProvider.getPort(region, loadBalancer.vipPortId)
       }
 
       CacheResult cacheResult = metricsSupport.transformData {
-        buildCacheResult(providerCache, loadBalancers, listeners, pools, healthMonitors, statusMap, new CacheResultBuilder(startTime: Long.MAX_VALUE))
+        buildCacheResult(providerCache, loadBalancers, listeners, pools, healthMonitors, statusMap, portMap, new CacheResultBuilder(startTime: Long.MAX_VALUE))
       }
 
       String namespace = LOAD_BALANCERS.ns

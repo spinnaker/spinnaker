@@ -28,7 +28,7 @@ import org.openstack4j.model.network.ext.ListenerV2
 import org.openstack4j.model.network.ext.LoadBalancerV2
 
 @Canonical
-@JsonIgnoreProperties(['createdRegex','createdPattern'])
+@JsonIgnoreProperties(['createdRegex', 'createdPattern'])
 class OpenstackLoadBalancer implements LoadBalancerResolver {
 
   String type = OpenstackCloudProvider.ID
@@ -50,12 +50,15 @@ class OpenstackLoadBalancer implements LoadBalancerResolver {
     }
     Set<OpenstackLoadBalancerListener> openstackListeners = listeners?.collect { listener ->
       new OpenstackLoadBalancerListener(externalProtocol: listener.protocol.toString(),
-        externalPort: listener.protocolPort.toString(),
+        externalPort: listener.protocolPort,
         description: listener.description)
     }?.toSet() ?: [].toSet()
     OpenstackHealthMonitor openstackHealthMonitor = healthMonitor ? new OpenstackHealthMonitor(id: healthMonitor.id,
       adminStateUp: healthMonitor.adminStateUp, delay: healthMonitor.delay, maxRetries: healthMonitor.maxRetries,
-      expectedCodes: healthMonitor.expectedCodes, httpMethod: healthMonitor.httpMethod) : null
+      expectedCodes: healthMonitor.expectedCodes?.split(',')?.collect {
+        it?.toInteger()
+      }, httpMethod: healthMonitor.httpMethod,
+      timeout: healthMonitor.timeout, type: healthMonitor.type.toString(), url: healthMonitor.urlPath) : null
     new OpenstackLoadBalancer(account: account, region: region, id: loadBalancer.id, name: loadBalancer.name,
       description: loadBalancer.description, status: loadBalancer.operatingStatus,
       algorithm: pool?.lbMethod?.toString(), listeners: openstackListeners, healthMonitor: openstackHealthMonitor)
@@ -66,14 +69,14 @@ class OpenstackLoadBalancer implements LoadBalancerResolver {
   }
 
   @Canonical
-  @JsonIgnoreProperties(['createdRegex','createdPattern'])
+  @JsonIgnoreProperties(['createdRegex', 'createdPattern'])
   static class OpenstackLoadBalancerListener implements LoadBalancerResolver {
     String description
     String externalProtocol
-    String externalPort
+    Integer externalPort
 
-    String getInternalPort() {
-      parseListenerKey(description)?.get('internalPort')
+    Integer getInternalPort() {
+      parseListenerKey(description)?.get('internalPort')?.toInteger()
     }
   }
 
@@ -83,12 +86,15 @@ class OpenstackLoadBalancer implements LoadBalancerResolver {
     boolean adminStateUp
     Integer delay
     Integer maxRetries
-    String expectedCodes
+    Integer timeout
+    List<Integer> expectedCodes
     String httpMethod
+    String type
+    String url
   }
 
   @Canonical
-  @JsonIgnoreProperties(['createdRegex','createdPattern'])
+  @JsonIgnoreProperties(['createdRegex', 'createdPattern'])
   static class View extends OpenstackLoadBalancer implements LoadBalancer {
     String ip = ""
     String subnetId = ""
@@ -96,14 +102,15 @@ class OpenstackLoadBalancer implements LoadBalancerResolver {
     String networkId = ""
     String networkName = ""
     Set<LoadBalancerServerGroup> serverGroups = [].toSet()
+    Set<String> securityGroups = [].toSet()
 
     //oh groovy asts are fun - they bring insanity for everyone
     //we need this for creating sets
     @Override
     boolean equals(Object other) {
-      View view = (View)other
+      View view = (View) other
       ip == view.ip && subnetId == view.subnetId && subnetName == view.subnetName &&
-        networkId == view.networkId && networkName == view.networkName && super.equals((OpenstackLoadBalancer)view)
+        networkId == view.networkId && networkName == view.networkName && super.equals((OpenstackLoadBalancer) view)
     }
 
   }

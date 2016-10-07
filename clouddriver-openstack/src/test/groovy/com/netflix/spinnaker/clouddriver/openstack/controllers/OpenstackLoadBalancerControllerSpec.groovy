@@ -121,7 +121,7 @@ class OpenstackLoadBalancerControllerSpec extends Specification {
     String subnet = "subnet$i"
     String network = "network$i"
     def healthMonitor = new OpenstackLoadBalancer.OpenstackHealthMonitor(id: "health$i", httpMethod: 'GET',
-      maxRetries: 5, adminStateUp: 'UP', delay: 5, expectedCodes: '200')
+      maxRetries: 5, adminStateUp: 'UP', delay: 5, expectedCodes: [200])
     def serverGroups = [new LoadBalancerServerGroup(name: 'sg1', isDisabled: false,
       instances: [new LoadBalancerInstance(id: 'id', zone: "zone$i", health: [state:'up', zone: "zone$i"])])]
     new OpenstackLoadBalancer.View(account: account, region: region, id: id, name: name, description: description,

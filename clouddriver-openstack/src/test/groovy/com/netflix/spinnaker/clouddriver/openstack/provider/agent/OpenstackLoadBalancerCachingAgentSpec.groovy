@@ -35,6 +35,7 @@ import com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastruct
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import org.openstack4j.model.common.ActionResponse
+import org.openstack4j.model.network.Port
 import org.openstack4j.model.network.ext.HealthMonitorV2
 import org.openstack4j.model.network.ext.LbPoolV2
 import org.openstack4j.model.network.ext.ListenerProtocol
@@ -96,7 +97,7 @@ class OpenstackLoadBalancerCachingAgentSpec extends Specification {
     CompletableFuture.supplyAsync(_) >> Mock(CompletableFuture) {
       thenApplyAsync(_) >> Mock(CompletableFuture)
     }
-    CompletableFuture.allOf(_ as CompletableFuture, _ as CompletableFuture, _ as CompletableFuture, _ as CompletableFuture, _ as CompletableFuture) >> Mock(CompletableFuture)
+    CompletableFuture.allOf(_ as CompletableFuture, _ as CompletableFuture, _ as CompletableFuture, _ as CompletableFuture, _ as CompletableFuture, _ as CompletableFuture) >> Mock(CompletableFuture)
 
     when:
     CacheResult result = cachingAgent.loadData(providerCache)
@@ -118,7 +119,7 @@ class OpenstackLoadBalancerCachingAgentSpec extends Specification {
     }
     GroovyMock(CompletableFuture, global: true)
     CompletableFuture.supplyAsync(_) >> f
-    CompletableFuture.allOf(_ as CompletableFuture, _ as CompletableFuture, _ as CompletableFuture, _ as CompletableFuture, _ as CompletableFuture) >> Mock(CompletableFuture)
+    CompletableFuture.allOf(_ as CompletableFuture, _ as CompletableFuture, _ as CompletableFuture, _ as CompletableFuture, _ as CompletableFuture, _ as CompletableFuture) >> Mock(CompletableFuture)
     Throwable throwable = new OpenstackProviderException(ActionResponse.actionFailed('test', 1))
 
     when:
@@ -140,12 +141,14 @@ class OpenstackLoadBalancerCachingAgentSpec extends Specification {
     String poolId = UUID.randomUUID().toString()
     String healthId = UUID.randomUUID().toString()
     String ipId = UUID.randomUUID().toString()
+    String vipPortId = UUID.randomUUID().toString()
     String lbName = 'myapp-lb'
     String subnetId = UUID.randomUUID().toString()
     String ipv6 = 'fd16:3966:18cc:0:f816:3eff:fe88:9004'
     LoadBalancerV2 loadBalancer = Mock(LoadBalancerV2) {
       it.id >> { loadBalancerId }
       it.name >> { lbName }
+      it.vipPortId >> { vipPortId }
       it.vipSubnetId >> { subnetId }
       it.listeners >> [new ListItem(id: listenerId)]
     }
@@ -179,6 +182,9 @@ class OpenstackLoadBalancerCachingAgentSpec extends Specification {
     LoadBalancerV2StatusTree loadBalancerV2StatusTree = Mock(LoadBalancerV2StatusTree) {
       it.loadBalancerV2Status >> { loadBalancerV2Status }
     }
+    Port port = Mock(Port) {
+      it.securityGroups >> { [] }
+    }
 
     and:
     List<String> instanceKeys = [Keys.getInstanceKey(ipId, account, region)]
@@ -207,7 +213,7 @@ class OpenstackLoadBalancerCachingAgentSpec extends Specification {
 
     when:
     CacheResult result = cachingAgent.buildCacheResult(providerCache, [loadBalancer].toSet(),
-      [listener].toSet(), [pool].toSet(), [healthMonitor].toSet(), [loadBalancerId: loadBalancerV2StatusTree],
+      [listener].toSet(), [pool].toSet(), [healthMonitor].toSet(), [loadBalancerId: loadBalancerV2StatusTree], [vipPortId: port],
       new CacheResultBuilder(startTime: System.currentTimeMillis()))
 
     then:
@@ -270,7 +276,7 @@ class OpenstackLoadBalancerCachingAgentSpec extends Specification {
 
     then:
     1 * provider.getLoadBalancerByName(region, loadbalancerName) >> { throw new OpenstackProviderException('test') }
-    1 * cachingAgent.buildCacheResult(providerCache, [].toSet(), [].toSet(), [].toSet(), [].toSet(), [:] as Map, _) >> cacheResult
+    1 * cachingAgent.buildCacheResult(providerCache, [].toSet(), [].toSet(), [].toSet(), [].toSet(), [:] as Map, [:] as Map, _) >> cacheResult
     1 * cachingAgent.resolveKey(providerCache, LOAD_BALANCERS.ns, loadBalancerKey) >> loadBalancerKey
     1 * cachingAgent.processOnDemandCache(cacheResult, objectMapper, _, providerCache, loadBalancerKey)
 
@@ -289,12 +295,14 @@ class OpenstackLoadBalancerCachingAgentSpec extends Specification {
     String healthId = UUID.randomUUID().toString()
     String lbName = 'myapp-lb'
     String subnetId = UUID.randomUUID().toString()
+    String vipPortId = UUID.randomUUID().toString()
     String loadbalancerName = "test"
     String loadBalancerKey = Keys.getLoadBalancerKey(loadbalancerName, loadBalancerId, account, region)
     Map<String, Object> data = [loadBalancerName: loadbalancerName, account: account, region: region]
     LoadBalancerV2 loadBalancer = Mock(LoadBalancerV2) {
       it.id >> { loadBalancerId }
       it.name >> { lbName }
+      it.vipPortId >> { vipPortId }
       it.vipSubnetId >> { subnetId }
       it.listeners >> [new ListItem(id: listenerId)]
     }
@@ -309,6 +317,9 @@ class OpenstackLoadBalancerCachingAgentSpec extends Specification {
       it.id >> { poolId }
       it.healthMonitorId >> { healthId }
     }
+    Port port = Mock(Port) {
+      it.securityGroups >> { [] }
+    }
     HealthMonitorV2 healthMonitor = Mock(HealthMonitorV2)
     LoadBalancerV2StatusTree loadBalancerStatusTree = Mock(LoadBalancerV2StatusTree)
     when:
@@ -320,7 +331,8 @@ class OpenstackLoadBalancerCachingAgentSpec extends Specification {
     1 * provider.getPool(region, poolId) >> pool
     1 * provider.getMonitor(region, healthId) >> healthMonitor
     1 * provider.getLoadBalancerStatusTree(region, loadBalancerId) >> loadBalancerStatusTree
-    1 * cachingAgent.buildCacheResult(providerCache, [loadBalancer].toSet(), [listener].toSet(), [pool].toSet(), [healthMonitor].toSet(), [(loadBalancerId) : loadBalancerStatusTree], _) >> cacheResult
+    1 * provider.getPort(region, vipPortId) >> port
+    1 * cachingAgent.buildCacheResult(providerCache, [loadBalancer].toSet(), [listener].toSet(), [pool].toSet(), [healthMonitor].toSet(), [(loadBalancerId) : loadBalancerStatusTree], [(vipPortId): port],  _) >> cacheResult
     1 * cachingAgent.resolveKey(providerCache, LOAD_BALANCERS.ns, loadBalancerKey) >> loadBalancerKey
     1 * cachingAgent.processOnDemandCache(cacheResult, objectMapper, _, providerCache, loadBalancerKey)
 
