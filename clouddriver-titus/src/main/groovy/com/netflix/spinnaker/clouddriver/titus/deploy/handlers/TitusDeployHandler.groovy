@@ -87,6 +87,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         .withCpu(description.resources.cpu)
         .withMemory(description.resources.memory)
         .withDisk(description.resources.disk)
+        .withNetworkMbps(description.resources.networkMbps)
         .withPorts(description.resources.ports)
         .withEnv(description.env)
         .withAllocateIpAddress(description.resources.allocateIpAddress)
