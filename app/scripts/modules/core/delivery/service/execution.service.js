@@ -56,7 +56,11 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
         return;
       }
       executions.forEach((execution) => {
-        let stringVal = JSON.stringify(execution);
+        (execution.stages || []).forEach(removeInstances);
+        if (execution.trigger && execution.trigger.parentExecution) {
+          (execution.trigger.parentExecution.stages || []).forEach(removeInstances);
+        }
+        let stringVal = JSON.stringify(execution, jsonReplacer);
         // do not transform if it hasn't changed
         let match = (application.executions.data || []).filter((test) => test.id === execution.id);
         if (!match.length || !match[0].stringVal || match[0].stringVal !== stringVal) {
@@ -64,6 +68,32 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
           executionsTransformer.transformExecution(application, execution);
         }
       });
+    }
+
+    // these fields are never displayed in the UI, so don't retain references to them, as they consume a lot of memory
+    // on very large deployments
+    function removeInstances(stage) {
+      if (stage.context) {
+        delete stage.context.instances;
+        delete stage.context.asg;
+        if (stage.context.targetReferences) {
+          stage.context.targetReferences.forEach(tr => {
+            delete tr.instances;
+            delete tr.asg;
+          });
+        }
+      }
+    }
+
+    // remove these fields - they are not of interest when determining if the pipeline has changed
+    function jsonReplacer(key, value) {
+      var val = value;
+
+      if (key === 'instances' || key === 'asg' || key === 'commits' || key === 'history') {
+        val = undefined;
+      }
+
+      return val;
     }
 
     function waitUntilNewTriggeredPipelineAppears(application, pipelineName, triggeredPipelineId) {
