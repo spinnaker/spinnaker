@@ -69,11 +69,13 @@
         <table class="table table-condensed">
           <thead>
             <tr>
-              <th width="36%">Task</th>
+              <th width="30%">Task</th>
+              <th width="5%">Account</th>
+              <th width="8%">Region</th>
               <th width="12%">Progress</th>
               <th width="12%">Started</th>
               <th width="12%">Ended</th>
-              <th width="12%">Running Time</th>
+              <th width="8%">Running Time</th>
               <th>User</th>
               <th>Actions</th>
             </tr>
@@ -84,9 +86,6 @@
                 <div class="task-name">
                   <a href id="task-{{task.id}}"><span class="glyphicon glyphicon-chevron-{{tasks.isExpanded(task.id) ? 'down' : 'right'}}"></span></a>
                   {{task.name}}
-                  <account-tag account="task.getValueFor('credentials')" pad="both"></account-tag>
-                  <span ng-if="task.getValueFor('region')">({{task.getValueFor('region')}})</span>
-                  <span ng-if="!task.getValueFor('region') && task.getValueFor('regions')">({{task.getValueFor('regions').join(', ')}})</span>
                 </div>
 
                 <div ng-if="tasks.getFirstDeployServerGroupName(task)" class="task-name">
@@ -100,6 +99,13 @@
                   </span>
 
                 </div>
+              </td>
+              <td>
+                <account-tag account="task.getValueFor('credentials')" pad="both"></account-tag>
+              </td>
+              <td>
+                <span ng-if="task.getValueFor('region')">({{task.getValueFor('region')}})</span>
+                <span ng-if="!task.getValueFor('region') && task.getValueFor('regions')">({{task.getValueFor('regions').join(', ')}})</span>
               </td>
               <td>
                 <task-progress-bar task="task"></task-progress-bar>
