@@ -44,6 +44,12 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.con
         command.newSize !== null;
     };
 
+    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+      modalInstance: $uibModalInstance,
+      application: application,
+      title: 'Resizing ' + serverGroup.name,
+    });
+
     this.resize = function () {
       if (!this.isValid()) {
         return;
@@ -60,14 +66,6 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.con
           reason: $scope.command.reason,
         });
       };
-
-      var taskMonitorConfig = {
-        modalInstance: $uibModalInstance,
-        application: application,
-        title: 'Resizing ' + serverGroup.name,
-      };
-
-      $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);
 
       $scope.taskMonitor.submit(submitMethod);
     };

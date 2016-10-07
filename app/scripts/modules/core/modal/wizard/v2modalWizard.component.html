@@ -1,14 +1,14 @@
 <div modal-page>
-  <task-monitor monitor="taskMonitor"></task-monitor>
-  <modal-close></modal-close>
-  <div class="modal-header">
-    <h3>{{wizard.heading}}</h3>
+  <task-monitor ng-if="$ctrl.taskMonitor" monitor="$ctrl.taskMonitor"></task-monitor>
+  <modal-close ng-if="!$ctrl.notReallyModal" dismiss="$ctrl.dismiss()"></modal-close>
+  <div class="modal-header" ng-if="$ctrl.wizard.heading">
+    <h3>{{$ctrl.wizard.heading}}</h3>
   </div>
-  <div class="modal-body">
+  <div ng-class="{'modal-body': !$ctrl.notReallyModal}">
     <div class="row">
       <div class="col-md-3 hidden-sm hidden-xs">
         <ul class="steps-indicator wizard-navigation">
-          <li ng-repeat="page in wizard.renderedPages"
+          <li ng-repeat="page in $ctrl.wizard.renderedPages"
               class="animated"
               ng-class="{
                   default: !page.state.done,
@@ -16,7 +16,7 @@
                   done: page.state.done,
                   dirty: page.state.dirty
             }">
-            <a href ng-click="wizard.setCurrentPage(page)">{{page.label}}</a>
+            <a href ng-click="$ctrl.wizard.setCurrentPage(page)">{{page.label}}</a>
           </li>
         </ul>
       </div>

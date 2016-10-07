@@ -1,5 +1,7 @@
 'use strict';
 
+import modalCloseModule from '../../modal/buttons/modalClose.component';
+
 let angular = require('angular');
 
 require('./taskMonitor.directive.less');
@@ -7,7 +9,7 @@ require('./taskMonitor.directive.less');
 module.exports = angular.module('spinnaker.tasks.monitor.directive', [
   require('../../presentation/autoScroll/autoScroll.directive.js'),
   require('../../modal/modalOverlay.directive.js'),
-  require('../../modal/buttons/modalClose.directive.js'),
+  modalCloseModule,
   require('./taskMonitorError.component'),
   require('./taskMonitorStatus.component'),
 ])

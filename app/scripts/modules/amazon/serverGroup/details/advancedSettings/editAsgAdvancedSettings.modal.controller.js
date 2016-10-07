@@ -14,6 +14,13 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.advancedSetti
 
     $scope.serverGroup = serverGroup;
 
+    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+      modalInstance: $uibModalInstance,
+      application: application,
+      title: 'Update Advanced Settings for ' + serverGroup.name,
+      onTaskComplete: () => application.serverGroups.refresh(),
+    });
+
     this.submit = () => {
       var job = [ $scope.command ];
 
@@ -24,15 +31,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.advancedSetti
           description: 'Update Advanced Settings for ' + serverGroup.name
         });
       };
-
-      var taskMonitorConfig = {
-        modalInstance: $uibModalInstance,
-        application: application,
-        title: 'Update Advanced Settings for ' + serverGroup.name,
-        onTaskComplete: () => application.serverGroups.refresh(),
-      };
-
-      $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);
 
       $scope.taskMonitor.submit(submitMethod);
     };

@@ -32,6 +32,13 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.p
       return !!(toEnable.length || toSuspend.length);
     };
 
+    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+      modalInstance: $uibModalInstance,
+      application: application,
+      title: 'Update Auto Scaling Processes for ' + serverGroup.name,
+      onTaskComplete: () => application.serverGroups.refresh(),
+    });
+
     this.submit = function () {
       var enabledSelections = _.chain($scope.command).filter({enabled: true}).map('name').value(),
           suspendedSelections = _.chain($scope.command).filter({enabled: false}).map('name').value(),
@@ -71,15 +78,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.p
           description: 'Update Auto Scaling Processes for ' + serverGroup.name
         });
       };
-
-      var taskMonitorConfig = {
-        modalInstance: $uibModalInstance,
-        application: application,
-        title: 'Update Auto Scaling Processes for ' + serverGroup.name,
-        onTaskComplete: () => application.serverGroups.refresh(),
-      };
-
-      $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);
 
       $scope.taskMonitor.submit(submitMethod);
     };

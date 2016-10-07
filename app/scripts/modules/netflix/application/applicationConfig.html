@@ -1,9 +1,25 @@
-<div class="container">
-  <application-attributes application="config.application"></application-attributes>
-  <application-notifications application="config.application" notifications="config.notifications"></application-notifications>
-  <application-data-source-editor application="config.application"></application-data-source-editor>
-  <application-links application="config.application"></application-links>
-  <application-cache-management application="config.application"></application-cache-management>
-  <chaos-monkey-config application="config.application"></chaos-monkey-config>
-  <delete-application-section application="config.application"></delete-application-section>
+<div class="container" sticky-headers>
+  <v2-modal-wizard not-really-modal="true">
+    <v2-wizard-page key="location" label="Application Attributes" done="true">
+      <application-attributes application="config.application"></application-attributes>
+    </v2-wizard-page>
+    <v2-wizard-page key="notifications" label="Notifications" done="true">
+      <application-notifications application="config.application" notifications="config.notifications"></application-notifications>
+    </v2-wizard-page>
+    <v2-wizard-page key="features" label="Features" done="true">
+      <application-data-source-editor application="config.application"></application-data-source-editor>
+    </v2-wizard-page>
+    <v2-wizard-page key="links" label="Links" done="true">
+      <application-links application="config.application"></application-links>
+    </v2-wizard-page>
+    <v2-wizard-page key="cache" label="Cache Management" done="true">
+      <application-cache-management application="config.application"></application-cache-management>
+    </v2-wizard-page>
+    <v2-wizard-page key="chaos" label="Chaos Monkey" done="true">
+      <chaos-monkey-config application="config.application"></chaos-monkey-config>
+    </v2-wizard-page>
+    <v2-wizard-page key="delete" label="Delete Application" done="true">
+      <delete-application-section application="config.application"></delete-application-section>
+    </v2-wizard-page>
+  </v2-modal-wizard>
 </div>

@@ -1,12 +1,14 @@
 'use strict';
 
+import modalWizardServiceModule from '../../../../core/modal/wizard/v2modalWizard.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.serverGroup.configure.basicSettings', [
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
   require('../../../../core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
-  require('../../../../core/modal/wizard/v2modalWizard.service.js'),
+  modalWizardServiceModule,
   require('../../../../core/image/image.reader.js'),
   require('../../../../core/naming/naming.service.js'),
 ])

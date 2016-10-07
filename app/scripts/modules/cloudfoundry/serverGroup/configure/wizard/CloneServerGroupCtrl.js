@@ -1,10 +1,12 @@
 'use strict';
 
+import modalWizardServiceModule from '../../../../core/modal/wizard/v2modalWizard.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerGroup', [
   require('angular-ui-router'),
-  require('../../../../core/modal/wizard/v2modalWizard.service.js'),
+  modalWizardServiceModule,
 ])
   .controller('cfCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
                                                   serverGroupWriter, v2modalWizardService, taskMonitorService,

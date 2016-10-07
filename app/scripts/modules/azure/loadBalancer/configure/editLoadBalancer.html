@@ -1,5 +1,5 @@
 <form name="form" novalidate>
-<v2-modal-wizard heading="Edit {{loadBalancer.name}}: {{loadBalancer.region}}: {{loadBalancer.credentials}}">
+<v2-modal-wizard heading="Edit {{loadBalancer.name}}: {{loadBalancer.region}}: {{loadBalancer.credentials}}" task-monitor="taskMonitor">
   <v2-wizard-page key="Listeners" label="Listeners" done="true">
     <ng-include src="pages.listeners"></ng-include>
   </v2-wizard-page>

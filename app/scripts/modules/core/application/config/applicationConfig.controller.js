@@ -18,7 +18,7 @@ module.exports = angular
   ])
   .controller('ApplicationConfigController', function ($state, app, settings) {
     this.application = app;
-    this.snapshots = settings.feature.snapshots;
+    this.feature = settings.feature;
     if (app.notFound) {
       $state.go('home.infrastructure', null, {location: 'replace'});
     }

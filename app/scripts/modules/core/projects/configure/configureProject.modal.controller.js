@@ -134,18 +134,15 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
       $scope.accounts = accounts;
     });
 
+    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+      modalInstance: $uibModalInstance,
+    });
 
     this.deleteProject = () => {
       var submitMethod = () => projectWriter.deleteProject($scope.command);
 
-      var taskMonitorConfig = {
-        modalInstance: $uibModalInstance,
-        title: 'Deleting ' + $scope.command.name,
-        onTaskComplete: () => $uibModalInstance.close({action: 'delete'})
-      };
-
-      $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);
-
+      $scope.taskMonitor.onTaskComplete = () => $uibModalInstance.close({action: 'delete'});
+      $scope.taskMonitor.title = 'Deleting ' + $scope.command.name;
       $scope.taskMonitor.submit(submitMethod);
     };
 
@@ -161,13 +158,8 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
       var submitMethod = () => projectWriter.upsertProject($scope.command);
       let descriptor = $scope.command.id ? 'Updating ' : 'Creating ';
 
-      var taskMonitorConfig = {
-        modalInstance: $uibModalInstance,
-        title: descriptor + $scope.command.name,
-        onTaskComplete: () => $uibModalInstance.close({action: 'upsert', name: $scope.command.name})
-      };
-
-      $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);
+      $scope.taskMonitor.onTaskComplete = () => $uibModalInstance.close({action: 'upsert', name: $scope.command.name});
+      $scope.taskMonitor.title = descriptor + $scope.command.name;
 
       $scope.taskMonitor.submit(submitMethod);
     };

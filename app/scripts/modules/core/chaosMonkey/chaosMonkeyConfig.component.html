@@ -1,14 +1,15 @@
 <div class="row" ng-if="$ctrl.chaosEnabled">
-  <div class="col-md-7">
-    <h4>
-      Chaos Monkey
-      <span class="small">
-        <label><input type="checkbox"
-                      ng-model="$ctrl.config.enabled"
-                      ng-change="$ctrl.configChanged()"/> Enabled</label></span>
-    </h4>
+  <div class="col-md-12">
     <div class="panel panel-default">
       <div class="panel-body form-inline">
+        <div class="chaos-enabled">
+            <label class="checkbox-inline">
+              <input type="checkbox"
+                     ng-model="$ctrl.config.enabled"
+                     ng-change="$ctrl.configChanged()"/>
+              Enabled
+            </label>
+        </div>
         <h5 class="first-header">Termination frequency</h5>
         <div class="row">
           <div class="col-md-5 col-md-offset-1">

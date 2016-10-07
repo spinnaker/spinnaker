@@ -1,9 +1,11 @@
 'use strict';
 
+import modalWizardServiceModule from '../../../../core/modal/wizard/v2modalWizard.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.cf.services.controller', [
-        require('../../../../core/modal/wizard/v2modalWizard.service.js'),
+        modalWizardServiceModule,
     ])
     .controller('cfServerGroupServicesCtrl', function(/*$scope, v2modalWizardService*/) {
 

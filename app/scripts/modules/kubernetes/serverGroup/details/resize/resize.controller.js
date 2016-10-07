@@ -42,6 +42,12 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.resize
         && command.capacity.desired !== null;
     };
 
+    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+      modalInstance: $uibModalInstance,
+      application: application,
+      title: 'Resizing ' + serverGroup.name,
+    });
+
     this.resize = function () {
       if (!this.isValid()) {
         return;
@@ -65,14 +71,6 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.resize
           return serverGroupWriter.resizeServerGroup(serverGroup, application, payload);
         }
       };
-
-      var taskMonitorConfig = {
-        modalInstance: $uibModalInstance,
-        application: application,
-        title: 'Resizing ' + serverGroup.name,
-      };
-
-      $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);
 
       $scope.taskMonitor.submit(submitMethod);
     };

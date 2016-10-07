@@ -1,8 +1,9 @@
 'use strict';
 
-
 import _ from 'lodash';
 import {Subject} from 'rxjs';
+
+import modalWizardServiceModule from '../../../core/modal/wizard/v2modalWizard.service';
 
 var angular = require('angular');
 
@@ -13,7 +14,7 @@ module.exports = angular
     require('../../../core/securityGroup/securityGroup.write.service'),
     require('../../../core/account/account.service'),
     require('../../vpc/vpc.read.service'),
-    require('../../../core/modal/wizard/v2modalWizard.service'),
+    modalWizardServiceModule,
     require('../../../core/config/settings'),
     require('./ingressRuleGroupSelector.component'),
   ])

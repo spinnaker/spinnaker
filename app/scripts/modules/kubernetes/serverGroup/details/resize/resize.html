@@ -1,7 +1,7 @@
 <div modal-page class="confirmation-modal">
   <task-monitor monitor="taskMonitor"></task-monitor>
   <form role="form">
-    <modal-close></modal-close>
+    <modal-close dismiss="$dismiss()"></modal-close>
     <div class="modal-header">
       <h3>Resize {{serverGroup.name}}</h3>
     </div>
@@ -66,9 +66,9 @@
           </div>
           <div class="col-md-3">
             <div class="input-group">
-              <input type="number" 
-                     class="form-control input-sm" 
-                     name="details" 
+              <input type="number"
+                     class="form-control input-sm"
+                     name="details"
                      ng-model="command.scalingPolicy.cpuUtilization.target"
                      min="0"
                      max="100"/>
@@ -111,7 +111,7 @@
                    ng-model="command.capacity.desired"
                    min="0"
                    required/>
-           pods 
+           pods
           </div>
         </div>
       </div>

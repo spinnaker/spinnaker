@@ -2,6 +2,8 @@
 
 import _ from 'lodash';
 
+import modalWizardServiceModule from '../../../core/modal/wizard/v2modalWizard.service';
+
 const angular = require('angular');
 
 module.exports = angular
@@ -10,7 +12,7 @@ module.exports = angular
     require('../../../core/naming/naming.service.js'),
     require('../../../core/config/settings.js'),
     require('../../../core/serverGroup/configure/common/serverGroupCommand.registry.js'),
-    require('../../../core/modal/wizard/v2modalWizard.service.js'),
+    modalWizardServiceModule,
   ])
   .factory('netflixServerGroupCommandConfigurer', function(diffService, namingService, v2modalWizardService) {
     function configureSecurityGroupDiffs(command) {

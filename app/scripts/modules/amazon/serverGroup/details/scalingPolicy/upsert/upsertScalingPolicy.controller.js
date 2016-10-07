@@ -186,17 +186,15 @@ module.exports = angular
       return command;
     };
 
+    this.taskMonitor = taskMonitorService.buildTaskMonitor({
+      modalInstance: $uibModalInstance,
+      application: application,
+      title: this.action + ' scaling policy for ' + serverGroup.name,
+    });
+
     this.save = () => {
       let command = prepareCommandForSubmit();
       var submitMethod = () => scalingPolicyWriter.upsertScalingPolicy(application, command);
-
-      var taskMonitorConfig = {
-        modalInstance: $uibModalInstance,
-        application: application,
-        title: this.action + ' scaling policy for ' + serverGroup.name,
-      };
-
-      this.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);
 
       this.taskMonitor.submit(submitMethod);
     };

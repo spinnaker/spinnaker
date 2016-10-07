@@ -1,6 +1,7 @@
 'use strict';
 
 import {Observable, Subject} from 'rxjs';
+import modalWizardServiceModule from '../../../../../core/modal/wizard/v2modalWizard.service';
 
 let angular = require('angular');
 
@@ -8,7 +9,7 @@ module.exports = angular.module('spinnaker.google.serverGroup.configure.wizard.b
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
   require('../../../../../core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
-  require('../../../../../core/modal/wizard/v2modalWizard.service.js'),
+  modalWizardServiceModule,
   require('../../../../../core/image/image.reader.js'),
   require('../../../../../core/naming/naming.service.js'),
   require('../../../../gceRegionSelectField.directive.js'),

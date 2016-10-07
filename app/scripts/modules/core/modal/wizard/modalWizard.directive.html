@@ -1,6 +1,6 @@
 <div ng-class="[wizard.direction, wizard.jump]" modal-page>
   <task-monitor monitor="taskMonitor"></task-monitor>
-  <modal-close></modal-close>
+  <modal-close dismiss="$dismiss()"></modal-close>
   <div class="modal-header">
     <h3>{{wizard.heading}}</h3>
     <ul class="steps-indicator steps-{{wizard.renderedPages.length}}" ng-if="!wizard.hideIndicators">

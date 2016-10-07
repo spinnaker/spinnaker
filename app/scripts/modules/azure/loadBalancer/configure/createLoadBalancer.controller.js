@@ -1,5 +1,7 @@
 'use strict';
 
+import modalWizardServiceModule from '../../../core/modal/wizard/v2modalWizard.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller', [
@@ -8,7 +10,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
   require('../../../core/loadBalancer/loadBalancer.read.service.js'),
   require('../../../core/account/account.service.js'),
   require('../loadBalancer.transformer.js'),
-  require('../../../core/modal/wizard/v2modalWizard.service.js'),
+  modalWizardServiceModule,
   require('../../../core/task/monitor/taskMonitorService.js'),
   require('../../../core/cache/cacheInitializer.js'),
   require('../../../core/cache/infrastructureCaches.js'),

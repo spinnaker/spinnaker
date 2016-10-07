@@ -2,11 +2,13 @@
 
 let angular = require('angular');
 
+import modalWizardServiceModule from '../../../../../core/modal/wizard/v2modalWizard.service';
+
 module.exports = angular.module('spinnaker.serverGroup.configure.openstack.basicSettings', [
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
   require('../../../../../core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
-  require('../../../../../core/modal/wizard/v2modalWizard.service.js'),
+  modalWizardServiceModule,
   require('../../../../../core/image/image.reader.js'),
   require('../../../../../core/naming/naming.service.js'),
 ])

@@ -38,13 +38,7 @@ class DeleteLoadBalancerModalController implements ng.IComponentController {
     // The core load balancer writer expects these fields on the load balancer.
     this.loadBalancer.accountId = this.loadBalancer.account;
     this.loadBalancer.providerType = this.loadBalancer.provider;
-  }
 
-  public isValid (): boolean {
-    return this.verification.verified;
-  }
-
-  public submit (): void {
     let taskMonitorConfig = {
       modalInstance: this.$uibModalInstance,
       application: this.application,
@@ -52,6 +46,13 @@ class DeleteLoadBalancerModalController implements ng.IComponentController {
     };
 
     this.taskMonitor = this.taskMonitorService.buildTaskMonitor(taskMonitorConfig);
+  }
+
+  public isValid (): boolean {
+    return this.verification.verified;
+  }
+
+  public submit (): void {
     this.taskMonitor.submit(this.getSubmitMethod());
   }
 

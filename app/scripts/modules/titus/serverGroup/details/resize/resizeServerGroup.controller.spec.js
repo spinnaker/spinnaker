@@ -18,7 +18,7 @@ describe('Controller: titusResizeServerGroupCtrl', function () {
       scope = $rootScope.$new();
       controller = $controller('titusResizeServerGroupCtrl', {
         $scope: scope,
-        $uibModalInstance: {},
+        $uibModalInstance: { result: {then: angular.noop}},
         application: {},
         serverGroup: {
           capacity:{

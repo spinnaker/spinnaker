@@ -1,6 +1,7 @@
 'use strict';
 
 import {HealthCheckTemplate, BackendServiceTemplate, HostRuleTemplate, ListenerTemplate} from './templates';
+import modalWizardServiceModule from '../../../../core/modal/wizard/v2modalWizard.service';
 
 let angular = require('angular');
 require('./httpLoadBalancerWizard.component.less');
@@ -12,7 +13,7 @@ module.exports = angular.module('spinnaker.deck.gce.loadBalancer.createHttp.cont
   require('./basicSettings/basicSettings.component.js'),
   require('../../../cache/cacheRefresh.component.js'),
   require('../../../../core/modal/wizard/wizardSubFormValidation.service.js'),
-  require('../../../../core/modal/wizard/v2modalWizard.service.js'),
+  modalWizardServiceModule,
   require('../../../../core/task/monitor/taskMonitorService.js'),
   require('./commandBuilder.service.js'),
   require('../../details/hostAndPathRules/hostAndPathRulesButton.component.js'),

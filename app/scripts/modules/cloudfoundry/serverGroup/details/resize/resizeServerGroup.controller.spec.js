@@ -18,7 +18,7 @@ describe('Controller: cfResizeServerGroupCtrl', function () {
       scope = $rootScope.$new();
       controller = $controller('cfResizeServerGroupCtrl', {
         $scope: scope,
-        $uibModalInstance: {},
+        $uibModalInstance: { result: {then: angular.noop}},
         application: {},
         serverGroup: {
           asg:{

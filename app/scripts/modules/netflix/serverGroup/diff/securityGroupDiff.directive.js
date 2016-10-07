@@ -1,10 +1,14 @@
 'use strict';
 
+// TODO: Consider removing this after 11/15/2006 if nobody has complained about its absence
+
 let angular = require('angular');
+
+import modalWizardServiceModule from '../../../core/modal/wizard/v2modalWizard.service';
 
 module.exports = angular
   .module('spinnaker.netflix.serverGroup.diff.securityGroupDiff.directive', [
-    require('../../../core/modal/wizard/v2modalWizard.service.js'),
+    modalWizardServiceModule,
   ])
   .directive('netflixSecurityGroupDiff', function () {
     return {

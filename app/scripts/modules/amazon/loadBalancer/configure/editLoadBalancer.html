@@ -1,9 +1,11 @@
 <form name="form" class="form-horizontal" novalidate>
-  <v2-modal-wizard heading="Edit {{loadBalancer.name}}: {{loadBalancer.region}}: {{loadBalancer.credentials}}">
-    <v2-wizard-page key="Location" label="Location" render="{{forPipelineConfig}}">
+  <v2-modal-wizard heading="Edit {{loadBalancer.name}}: {{loadBalancer.region}}: {{loadBalancer.credentials}}"
+                   task-monitor="taskMonitor"
+                   dismiss="$dismiss()">
+    <v2-wizard-page key="Location" label="Location" render="forPipelineConfig">
       <ng-include src="pages.location"></ng-include>
     </v2-wizard-page>
-    <v2-wizard-page key="Security Groups" label="Security Groups" done="true" render="{{!!loadBalancer.vpcId}}">
+    <v2-wizard-page key="Security Groups" label="Security Groups" done="true" render="!!loadBalancer.vpcId">
       <ng-include src="pages.securityGroups"></ng-include>
     </v2-wizard-page>
     <v2-wizard-page key="Listeners" label="Listeners" done="true">

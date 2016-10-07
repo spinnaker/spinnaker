@@ -4,6 +4,22 @@
 @indicator-radius: @indicator-size/2;
 
 v2-modal-wizard {
+  &[not-really-modal] {
+    .steps {
+      max-height: calc(~"100vh - 145px");
+      .wizard-page-body {
+        padding: 0;
+      }
+      .wizard-subheading {
+        h4 {
+          margin-top: 0;
+        }
+      }
+    }
+    .wizard-navigation {
+      border: 1px solid @mid_light_grey;
+    }
+  }
   .modal-header {
     /* Set to keep sticky section headings beneath modal header*/
     position: relative;

@@ -1,5 +1,5 @@
 <form name="projectConfigForm" novalidate>
-  <v2-modal-wizard heading="Configure Project">
+  <v2-modal-wizard heading="Configure Project" task-monitor="taskMonitor" dismiss="$dismiss()">
     <v2-wizard-page key="config" label="Project Attributes" mark-complete-on-view="false">
       <ng-include src="ctrl.pages.config"></ng-include>
     </v2-wizard-page>

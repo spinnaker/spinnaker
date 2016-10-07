@@ -1,10 +1,12 @@
 'use strict';
 
+import modalWizardServiceModule from '../../../../../core/modal/wizard/v2modalWizard.service';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.openstack.serverGroup.configure.wizard.advancedSettings.component', [
-    require('../../../../../core/modal/wizard/v2modalWizard.service.js'),
+    modalWizardServiceModule,
   ])
   .component('openstackServerGroupAdvancedSettings', {
     bindings: {

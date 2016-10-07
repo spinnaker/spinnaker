@@ -1,10 +1,12 @@
 'use strict';
 
+import modalWizardServiceModule from '../../../../../core/modal/wizard/v2modalWizard.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.serverGroup.configure.loadBalancer.controller', [
   require('../../../../../core/cache/infrastructureCaches.js'),
-  require('../../../../../core/modal/wizard/v2modalWizard.service.js'),
+  modalWizardServiceModule,
   require('../../../../../core/loadBalancer/loadBalancer.read.service.js'),
   require('../../../../../core/network/network.read.service.js'),
 ])

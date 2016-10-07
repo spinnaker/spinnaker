@@ -16,39 +16,31 @@ module.exports = angular.module('spinnaker.aws.serverGroup.details.elasticIp.con
 
     this.isValid = () => $scope.verification.verified;
 
-    this.associate = function () {
-      var taskMonitorConfig = {
-        application: application,
-        title: 'Associating Elastic IP with ' + serverGroup.cluster,
-        modalInstance: $uibModalInstance,
-        onTaskComplete: onTaskComplete
-      };
+    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+      application: application,
+      modalInstance: $uibModalInstance,
+      onTaskComplete: onTaskComplete
+    });
 
+    this.associate = function () {
       var submitMethod = function () {
         return elasticIpWriter.associateElasticIpWithCluster(
           application, serverGroup.account, serverGroup.cluster, serverGroup.region, $scope.elasticIp
         );
       };
 
-      $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);
+      $scope.taskMonitor.title = 'Associating Elastic IP with ' + serverGroup.cluster;
       $scope.taskMonitor.submit(submitMethod);
     };
 
     this.disassociate = function () {
-        var taskMonitorConfig = {
-          application: application,
-          title: 'Disassociating Elastic IP with ' + serverGroup.cluster,
-          modalInstance: $uibModalInstance,
-          onTaskComplete: onTaskComplete
-        };
-
       var submitMethod = function() {
         return elasticIpWriter.disassociateElasticIpWithCluster(
           application, serverGroup.account, serverGroup.cluster, serverGroup.region, elasticIp.address
         );
       };
 
-      $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);
+      $scope.taskMonitor.title = 'Disassociating Elastic IP with ' + serverGroup.cluster;
       $scope.taskMonitor.submit(submitMethod);
     };
 

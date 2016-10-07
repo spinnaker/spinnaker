@@ -17,16 +17,15 @@ module.exports = angular.module('spinnaker.deck.gce.upsertAutoscalingPolicy.moda
 
     this.cancel = $uibModalInstance.dismiss;
 
+    this.taskMonitor = taskMonitorService.buildTaskMonitor({
+      modalInstance: $uibModalInstance,
+      application: application,
+      title: `${this.action} scaling policy for ${serverGroup.name}`
+    });
+
     this.save = () => {
       let submitMethod = () => gceAutoscalingPolicyWriter.upsertAutoscalingPolicy(application, serverGroup, this.policy);
 
-      let taskMonitorConfig = {
-        modalInstance: $uibModalInstance,
-        application: application,
-        title: `${this.action} scaling policy for ${serverGroup.name}`
-      };
-
-      this.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);
       this.taskMonitor.submit(submitMethod);
     };
   });

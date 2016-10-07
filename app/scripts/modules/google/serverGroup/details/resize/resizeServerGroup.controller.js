@@ -33,19 +33,17 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.resize.con
       return $scope.formMethods.formIsValid();
     };
 
+    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+      modalInstance: $uibModalInstance,
+      application: application,
+      title: 'Resizing ' + serverGroup.name,
+    });
+
     this.resize = function () {
       this.submitting = true;
       if (!this.isValid()) {
         return;
       }
-
-      var taskMonitorConfig = {
-        modalInstance: $uibModalInstance,
-        application: application,
-        title: 'Resizing ' + serverGroup.name,
-      };
-
-      $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);
 
       $scope.taskMonitor.submit($scope.formMethods.submitMethod);
     };

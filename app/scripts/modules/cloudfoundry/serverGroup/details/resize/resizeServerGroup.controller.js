@@ -33,6 +33,13 @@ module.exports = angular.module('spinnaker.cf.serverGroup.details.resize.control
       return command.newSize !== null;
     };
 
+    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+      modalInstance: $uibModalInstance,
+      application: application,
+      title: 'Resizing ' + serverGroup.name,
+      onTaskComplete: () => application.serverGroups.refresh(),
+    });
+
     this.resize = function () {
       if (!this.isValid()) {
         return;
@@ -52,15 +59,6 @@ module.exports = angular.module('spinnaker.cf.serverGroup.details.resize.control
           interestingHealthProviderNames: $scope.command.interestingHealthProviderNames,
         });
       };
-
-      var taskMonitorConfig = {
-        modalInstance: $uibModalInstance,
-        application: application,
-        title: 'Resizing ' + serverGroup.name,
-        onTaskComplete: () => application.serverGroups.refresh(),
-      };
-
-      $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);
 
       $scope.taskMonitor.submit(submitMethod);
     };

@@ -1,6 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
+import modalWizardServiceModule from '../../../core/modal/wizard/v2modalWizard.service';
 
 var angular = require('angular');
 
@@ -11,7 +12,7 @@ module.exports = angular
     require('../../../core/securityGroup/securityGroup.write.service.js'),
     require('../../../core/account/account.service.js'),
     require('../../../core/network/network.read.service.js'),
-    require('../../../core/modal/wizard/v2modalWizard.service.js'),
+    modalWizardServiceModule,
   ])
   .controller('gceConfigSecurityGroupMixin', function ($scope,
                                                        $state,

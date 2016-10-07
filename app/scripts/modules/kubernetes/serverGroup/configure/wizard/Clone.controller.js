@@ -1,12 +1,14 @@
 'use strict';
 
+import modalWizardServiceModule from '../../../../core/modal/wizard/v2modalWizard.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clone', [
   require('angular-ui-router'),
   require('../../../../core/application/modal/platformHealthOverride.directive.js'),
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
-  require('../../../../core/modal/wizard/v2modalWizard.service.js'),
+  modalWizardServiceModule,
   require('../../../../core/task/monitor/taskMonitorService.js'),
   require('../configuration.service.js'),
   require('../../../../core/modal/wizard/wizardSubFormValidation.service.js'),

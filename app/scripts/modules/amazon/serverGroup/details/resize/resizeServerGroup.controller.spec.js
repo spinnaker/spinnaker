@@ -18,7 +18,7 @@ describe('Controller: awsResizeServerGroupCtrl', function () {
       scope = $rootScope.$new();
       controller = $controller('awsResizeServerGroupCtrl', {
         $scope: scope,
-        $uibModalInstance: {},
+        $uibModalInstance: { result: {then: angular.noop}},
         application: {},
         serverGroup: {
           asg:{

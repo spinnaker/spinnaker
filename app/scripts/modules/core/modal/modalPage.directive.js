@@ -8,7 +8,10 @@ module.exports = angular.module('spinnaker.core.modal.modalPage.directive', [
   .directive('modalPage', function ($) {
     return {
       restrict: 'EA',
-      link: function (scope, elem) {
+      link: function (scope, elem, attrs) {
+        if (attrs.modalPage === 'false') {
+          return;
+        }
         function getTabbableElements() {
           var tagSelector = 'a[href],input,select,button,textarea';
           return elem.find(tagSelector).filter(':visible').not(':disabled').not(elem.find('.ng-enter *'));

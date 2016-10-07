@@ -1,5 +1,7 @@
 'use strict';
 
+import modalWizardServiceModule from '../../../../core/modal/wizard/v2modalWizard.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.controller', [
@@ -8,7 +10,7 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.contr
   require('../../../../core/securityGroup/securityGroup.read.service.js'),
   require('../../../../core/loadBalancer/loadBalancer.read.service.js'),
   require('../../../../core/account/account.service.js'),
-  require('../../../../core/modal/wizard/v2modalWizard.service.js'),
+  modalWizardServiceModule,
   require('../../../../core/task/monitor/taskMonitorService.js'),
   require('../../../../core/search/search.service.js'),
   require('../../../namespace/selectField.directive.js'),

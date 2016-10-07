@@ -2,6 +2,8 @@
 
 import _ from 'lodash';
 
+import modalWizardServiceModule from '../../../core/modal/wizard/v2modalWizard.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', [
@@ -11,7 +13,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
   require('../../../core/account/account.service.js'),
   require('../loadBalancer.transformer.js'),
   require('../../../core/securityGroup/securityGroup.read.service.js'),
-  require('../../../core/modal/wizard/v2modalWizard.service.js'),
+  modalWizardServiceModule,
   require('../../../core/task/monitor/taskMonitorService.js'),
   require('../../../core/subnet/subnet.read.service.js'),
   require('../../../core/cache/cacheInitializer.js'),

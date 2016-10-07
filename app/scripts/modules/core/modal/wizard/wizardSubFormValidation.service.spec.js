@@ -1,5 +1,7 @@
 'use strict';
 
+import modalWizardServiceModule from './v2modalWizard.service';
+
 describe('Service: wizardSubFormValidation', function () {
 
   let angular = require('angular');
@@ -8,7 +10,7 @@ describe('Service: wizardSubFormValidation', function () {
   beforeEach(
     window.module(
       require('./wizardSubFormValidation.service.js'),
-      require('./v2modalWizard.service.js')
+      modalWizardServiceModule
     )
   );
 

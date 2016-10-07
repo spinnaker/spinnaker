@@ -41,6 +41,12 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.rollback.c
         return command.rollbackContext.restoreServerGroupName !== undefined;
       };
 
+      $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+        modalInstance: $uibModalInstance,
+        application: application,
+        title: 'Rollback ' + serverGroup.name,
+      });
+
       this.rollback = function () {
         this.submitting = true;
         if (!this.isValid()) {
@@ -50,14 +56,6 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.rollback.c
         var submitMethod = function () {
           return serverGroupWriter.rollbackServerGroup(serverGroup, application, $scope.command);
         };
-
-        var taskMonitorConfig = {
-          modalInstance: $uibModalInstance,
-          application: application,
-          title: 'Rollback ' + serverGroup.name,
-        };
-
-        $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);
 
         $scope.taskMonitor.submit(submitMethod);
       };

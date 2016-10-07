@@ -2,7 +2,10 @@
   <div ng-if="!ctrl.command" style="height: 200px">
     <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
   </div>
-  <v2-modal-wizard heading="{{:: ctrl.modalDescriptor}}" ng-if="ctrl.command">
+  <v2-modal-wizard heading="{{:: ctrl.modalDescriptor}}"
+                   ng-if="ctrl.command"
+                   task-monitor="taskMonitor"
+                   dismiss="$dismiss()">
     <v2-wizard-page key="listeners" label="Listeners" done="true">
       <ng-include src="ctrl.pages.listeners"></ng-include>
     </v2-wizard-page>

@@ -37,6 +37,12 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.rollba
         return command.rollbackContext.restoreServerGroupName !== undefined;
       };
 
+      $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+        modalInstance: $uibModalInstance,
+        application: application,
+        title: 'Rollback ' + serverGroup.name,
+      });
+
       this.rollback = function () {
         if (!this.isValid()) {
           return;
@@ -45,14 +51,6 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.rollba
         var submitMethod = function () {
           return serverGroupWriter.rollbackServerGroup(serverGroup, application, $scope.command);
         };
-
-        var taskMonitorConfig = {
-          modalInstance: $uibModalInstance,
-          application: application,
-          title: 'Rollback ' + serverGroup.name,
-        };
-
-        $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);
 
         $scope.taskMonitor.submit(submitMethod);
       };

@@ -18,7 +18,7 @@ describe('Controller: openstackResizeServerGroupCtrl', function () {
       scope = $rootScope.$new();
       controller = $controller('openstackResizeServerGroupCtrl', {
         $scope: scope,
-        $uibModalInstance: {},
+        $uibModalInstance: { result: {then: angular.noop}},
         application: {},
         serverGroup: {
           scalingConfig:{

@@ -35,6 +35,12 @@ module.exports = angular.module('spinnaker.titus.serverGroup.details.resize.cont
         command.newSize !== null;
     };
 
+    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+      modalInstance: $uibModalInstance,
+      application: application,
+      title: 'Resizing ' + serverGroup.name,
+    });
+
     this.resize = function () {
       if (!this.isValid()) {
         return;
@@ -53,14 +59,6 @@ module.exports = angular.module('spinnaker.titus.serverGroup.details.resize.cont
           region: serverGroup.region,
         });
       };
-
-      var taskMonitorConfig = {
-        modalInstance: $uibModalInstance,
-        application: application,
-        title: 'Resizing ' + serverGroup.name,
-      };
-
-      $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);
 
       $scope.taskMonitor.submit(submitMethod);
     };

@@ -2,13 +2,15 @@
 
 import _ from 'lodash';
 
+import modalWizardServiceModule from '../../../modal/wizard/v2modalWizard.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2instanceArchetypeSelector', [
   require('./costFactor.js'),
   require('../../../presentation/isVisible/isVisible.directive.js'),
   require('../../../modal/wizard/modalWizard.service.js'),
-  require('../../../modal/wizard/v2modalWizard.service.js'),
+  modalWizardServiceModule,
   require('../../../cloudProvider/cloudProvider.registry.js'),
 ])
   .directive('v2InstanceArchetypeSelector', function() {

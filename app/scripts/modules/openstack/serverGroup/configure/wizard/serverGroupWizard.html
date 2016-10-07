@@ -7,7 +7,10 @@
   </div>
   <div>
     <form name="serverGroupWizardForm" class="form-horizontal" novalidate>
-      <v2-modal-wizard ng-show="state.loaded && !state.requiresTemplateSelection" heading="{{title}}">
+      <v2-modal-wizard ng-show="state.loaded && !state.requiresTemplateSelection"
+                       heading="{{title}}"
+                       task-monitor="taskMonitor"
+                       dismiss="$dismiss()">
         <v2-wizard-page key="location" label="Location" hide-subheading="true">
           <ng-include src="pages.basicSettings"></ng-include>
         </v2-wizard-page>
