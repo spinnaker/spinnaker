@@ -32,6 +32,10 @@
     <input type="number" class="form-control input-sm" name="disk" ng-model="stage.cluster.resources.disk" required/>
   </stage-config-field>
 
+  <stage-config-field label="Network (Mbps)">
+    <input type="number" class="form-control input-sm" name="networkMbps" ng-model="stage.cluster.resources.networkMbps" required/>
+  </stage-config-field>
+
   <stage-config-field label="Command">
     <input type="text" class="form-control input-sm" name="command" ng-model="stage.cluster.entryPoint"
            required/>

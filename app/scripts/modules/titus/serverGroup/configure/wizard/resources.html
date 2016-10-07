@@ -19,6 +19,12 @@
       </div>
     </div>
     <div class="form-group">
+      <div class="col-md-3 sm-label-right"><b>Network (Mbps)</b></div>
+      <div class="col-md-3">
+        <input type="number" class="form-control input-sm" name="cpu" ng-model="command.resources.networkMbps" required/>
+      </div>
+    </div>
+    <div class="form-group">
       <div class="col-md-3 sm-label-right"><b>Allocate IP?</b></div>
       <div class="col-md-5">
         <input type="checkbox" class="form-control input-sm" name="allocateIpAddress" ng-model="command.resources.allocateIpAddress" />

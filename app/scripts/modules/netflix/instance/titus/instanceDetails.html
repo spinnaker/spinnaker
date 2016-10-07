@@ -94,8 +94,10 @@
         <dd>{{instance.resources.memory}} MB</dd>
         <dt>Disk</dt>
         <dd>{{instance.resources.disk}} MB</dd>
-        <dt>Port(s)</dt>
-        <dd>
+        <dt>Network</dt>
+        <dd>{{instance.resources.networkMbps}} Mbps</dd>
+        <dt ng-if="instance.resources.ports && instance.resources.ports.size() > 0">Port(s)</dt>
+        <dd ng-if="instance.resources.ports && instance.resources.ports.size() > 0">
           <div ng-repeat="(key, val) in instance.resources.ports">
             {{key}} -> {{val}}
           </div>
