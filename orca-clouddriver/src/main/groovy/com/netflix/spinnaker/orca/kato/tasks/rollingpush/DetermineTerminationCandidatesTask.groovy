@@ -38,11 +38,13 @@ class DetermineTerminationCandidatesTask implements Task {
   @Override
   TaskResult execute(Stage stage) {
     def stageData = stage.mapTo(StageData)
-    def response = oortService.getServerGroup(stageData.application, stageData.account, stageData.cluster, stage.context.asgName, stage.context.region, stage.context.providerType ?: 'aws')
+    def response = oortService.getServerGroup(stageData.application, stageData.account, stageData.cluster, stage.context.asgName, stage.context.region, stage.context.cloudProvider ?: 'aws')
     def serverGroup = objectMapper.readValue(response.body.in(), Map)
     boolean ascending = stage.context.termination?.order != 'newest'
     int totalRelaunches = getNumberOfRelaunches(stage.context.termination, serverGroup.instances.size())
-    def knownInstanceIds = serverGroup.instances.sort { ascending ? it.launchTime : -it.launchTime }*.instanceId
+    def serverGroupInstances = serverGroup.instances.sort { ascending ? it.launchTime : -it.launchTime }
+    // need to use id instead of instanceIds for titus as the titus API doesn't yet support this yet.
+    def knownInstanceIds = stage.context.cloudProvider == 'titus' ? serverGroupInstances*.id : serverGroupInstances*.instanceId
     def terminationInstanceIds = knownInstanceIds.take(totalRelaunches)
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [terminationInstanceIds: terminationInstanceIds, knownInstanceIds: knownInstanceIds])
   }

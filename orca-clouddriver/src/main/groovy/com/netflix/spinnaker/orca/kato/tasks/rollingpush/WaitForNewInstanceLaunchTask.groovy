@@ -41,11 +41,12 @@ class WaitForNewInstanceLaunchTask implements RetryableTask {
   @Override
   TaskResult execute(Stage stage) {
     StageData stageData = stage.mapTo(StageData)
-    def response = oortService.getServerGroup(stageData.application, stageData.account, stageData.cluster, stage.context.asgName as String, stage.context.region as String, stageData.providerType ?: 'aws' )
+    def response = oortService.getServerGroup(stageData.application, stageData.account, stageData.cluster, stage.context.asgName as String, stage.context.region as String, stageData.cloudProvider ?: 'aws' )
 
     Map serverGroup = objectMapper.readValue(response.body.in(), Map)
 
-    Set<String> currentIds = serverGroup.instances*.instanceId
+    def serverGroupInstances = serverGroup.instances
+    Set<String> currentIds = stageData.cloudProvider == 'titus' ? serverGroupInstances*.id : serverGroupInstances*.instanceId
     Set<String> knownInstanceIds = new HashSet(stage.context.knownInstanceIds as List)
 
     Set<String> newLaunches = new  HashSet(currentIds)
