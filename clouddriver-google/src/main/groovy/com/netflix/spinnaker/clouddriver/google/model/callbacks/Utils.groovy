@@ -83,6 +83,19 @@ class Utils {
                       fullUrl.indexOf("instances/") - 1)
   }
 
+  static String getHealthCheckType(String fullUrl) {
+    if (!fullUrl) {
+      throw new IllegalFormatException("Health check url ${fullUrl} malformed.")
+    }
+
+    int lastIndex = fullUrl.lastIndexOf('/')
+    if (lastIndex == -1) {
+      throw new IllegalFormatException("Health check url ${fullUrl} malformed.")
+    }
+    String withoutName = fullUrl.substring(0, lastIndex)
+    return getLocalName(withoutName)
+  }
+
   // TODO(duftler): Consolidate this method with the same one from kato/GCEUtil and move to a common library.
   static Map<String, String> buildMapFromMetadata(Metadata metadata) {
     metadata.items?.collectEntries { Metadata.Items metadataItems ->

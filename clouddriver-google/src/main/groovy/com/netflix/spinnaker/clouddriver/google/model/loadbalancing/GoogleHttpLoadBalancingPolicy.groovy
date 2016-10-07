@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 
-class GoogleHttpLoadBalancingPolicy {
+/**
+ * For Http(s), balancingMode must be either UTILIZATION or RATE.
+ * maxRatePerInstance must be set if RATE, and maxUtilization must be set if UTILIZATION.
+ */
+class GoogleHttpLoadBalancingPolicy extends GoogleLoadBalancingPolicy {
   @JsonIgnore
   static final String HTTP_PORT_NAME = 'http'
 
   @JsonIgnore
   static final Integer HTTP_DEFAULT_PORT = 80
-
-  /**
-   * Describes the metric used to determine the serving capacity of the serverGroup.
-   * Either UTILIZATION or RATE. maxRatePerInstance must be set if RATE, and
-   * maxUtilization must be set if UTILIZATION.
-   */
-  BalancingMode balancingMode
 
   Float maxRatePerInstance
 
@@ -47,8 +45,4 @@ class GoogleHttpLoadBalancingPolicy {
    */
   Integer listeningPort
 
-  static enum BalancingMode {
-    UTILIZATION,
-    RATE
-  }
 }

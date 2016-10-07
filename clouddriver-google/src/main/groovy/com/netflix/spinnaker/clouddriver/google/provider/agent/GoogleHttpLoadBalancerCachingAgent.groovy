@@ -423,6 +423,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
       googleBackendServices.each { GoogleBackendService service ->
         service.healthCheck = new GoogleHealthCheck(
             name: httpsHealthCheck.name,
+            healthCheckType: GoogleHealthCheck.HealthCheckType.HTTPS,
             requestPath: httpsHealthCheck.requestPath,
             port: httpsHealthCheck.port,
             checkIntervalSec: httpsHealthCheck.checkIntervalSec,
@@ -442,6 +443,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
       googleBackendServices.each { GoogleBackendService service ->
         service.healthCheck = new GoogleHealthCheck(
             name: httpHealthCheck.name,
+            healthCheckType: GoogleHealthCheck.HealthCheckType.HTTP,
             requestPath: httpHealthCheck.requestPath,
             port: httpHealthCheck.port,
             checkIntervalSec: httpHealthCheck.checkIntervalSec,

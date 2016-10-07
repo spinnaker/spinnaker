@@ -21,7 +21,7 @@ import groovy.transform.Canonical
 @Canonical
 class GoogleLoadBalancedBackend {
 
-  GoogleHttpLoadBalancingPolicy policy
+  GoogleLoadBalancingPolicy policy
 
   /**
    * Full URL of the server group this backend routes traffic to.

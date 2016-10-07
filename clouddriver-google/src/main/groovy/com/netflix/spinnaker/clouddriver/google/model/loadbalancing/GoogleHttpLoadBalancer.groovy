@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import groovy.transform.Canonical
@@ -25,6 +24,7 @@ import groovy.transform.Canonical
 @Canonical
 class GoogleHttpLoadBalancer {
   GoogleLoadBalancerType type = GoogleLoadBalancerType.HTTP
+  GoogleLoadBalancingScheme loadBalancingScheme = GoogleLoadBalancingScheme.EXTERNAL
 
   String name
   String account
@@ -64,6 +64,7 @@ class GoogleHttpLoadBalancer {
   @Canonical
   class View extends GoogleLoadBalancerView {
     GoogleLoadBalancerType loadBalancerType = GoogleHttpLoadBalancer.this.type
+    GoogleLoadBalancingScheme loadBalancingScheme = GoogleHttpLoadBalancer.this.loadBalancingScheme
 
     String name = GoogleHttpLoadBalancer.this.name
     String account = GoogleHttpLoadBalancer.this.account

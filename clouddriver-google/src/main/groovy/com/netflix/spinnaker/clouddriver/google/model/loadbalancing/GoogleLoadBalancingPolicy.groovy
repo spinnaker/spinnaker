@@ -16,8 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 
-enum GoogleLoadBalancerType {
-  HTTP,
-  INTERNAL,
-  NETWORK,
+class GoogleLoadBalancingPolicy {
+
+  BalancingMode balancingMode
+
+  public static enum BalancingMode {
+    CONNECTION,
+    RATE,
+    UTILIZATION,
+  }
 }

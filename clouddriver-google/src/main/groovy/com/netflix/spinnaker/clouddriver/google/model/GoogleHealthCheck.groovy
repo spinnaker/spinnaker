@@ -25,6 +25,7 @@ class GoogleHealthCheck {
   String name
   String requestPath
   int port
+  HealthCheckType healthCheckType
 
   // Attributes
   int checkIntervalSec
@@ -40,6 +41,7 @@ class GoogleHealthCheck {
   @Canonical
   class View implements Serializable {
     String name = GoogleHealthCheck.this.name
+    HealthCheckType healthCheckType = GoogleHealthCheck.this.healthCheckType
     int interval = GoogleHealthCheck.this.checkIntervalSec
     int timeout = GoogleHealthCheck.this.timeoutSec
     int unhealthyThreshold = GoogleHealthCheck.this.unhealthyThreshold
@@ -53,5 +55,12 @@ class GoogleHealthCheck {
           null
     }
 
+  }
+
+  static enum HealthCheckType {
+    HTTP,
+    HTTPS,
+    SSL,
+    TCP,
   }
 }

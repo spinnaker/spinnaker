@@ -127,6 +127,11 @@ class GoogleInfrastructureProviderConfig {
                                                                    objectMapper,
                                                                    registry)
         regions.each { String region ->
+          newlyAddedAgents << new GoogleInternalLoadBalancerCachingAgent(googleConfiguration.googleApplicationName(),
+                                                                         credentials,
+                                                                         objectMapper,
+                                                                         region,
+                                                                         registry)
           newlyAddedAgents << new GoogleLoadBalancerCachingAgent(googleConfiguration.googleApplicationName(),
                                                                  credentials,
                                                                  objectMapper,

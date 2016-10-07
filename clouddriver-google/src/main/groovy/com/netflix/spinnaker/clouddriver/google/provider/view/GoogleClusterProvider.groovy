@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.google.model.*
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
@@ -161,6 +162,9 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
     def loadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys).collect {
       def loadBalancer = null
       switch (GoogleLoadBalancerType.valueOf(it.attributes?.type as String)) {
+        case GoogleLoadBalancerType.INTERNAL:
+          loadBalancer = objectMapper.convertValue(it.attributes, GoogleInternalLoadBalancer)
+          break
         case GoogleLoadBalancerType.HTTP:
           loadBalancer = objectMapper.convertValue(it.attributes, GoogleHttpLoadBalancer)
           break

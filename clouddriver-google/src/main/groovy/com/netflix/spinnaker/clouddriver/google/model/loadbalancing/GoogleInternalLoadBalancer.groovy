@@ -17,16 +17,14 @@
 package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
-import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import groovy.transform.Canonical
 
 @Canonical
-class GoogleLoadBalancer {
-  GoogleLoadBalancerType type = GoogleLoadBalancerType.NETWORK
-  GoogleLoadBalancingScheme loadBalancingScheme = GoogleLoadBalancingScheme.EXTERNAL
+class GoogleInternalLoadBalancer {
+  GoogleLoadBalancerType type = GoogleLoadBalancerType.INTERNAL
+  GoogleLoadBalancingScheme loadBalancingScheme = GoogleLoadBalancingScheme.INTERNAL
 
   String name
   String account
@@ -35,9 +33,11 @@ class GoogleLoadBalancer {
   String ipAddress
   String ipProtocol
   String portRange
-  String targetPool
-  GoogleHealthCheck healthCheck
   List<GoogleLoadBalancerHealth> healths
+
+  String network
+  String subnet
+  GoogleBackendService backendService
 
   @JsonIgnore
   GoogleLoadBalancerView getView() {
@@ -45,19 +45,20 @@ class GoogleLoadBalancer {
   }
 
   class View extends GoogleLoadBalancerView {
-    final String type = GoogleCloudProvider.GCE
-    GoogleLoadBalancerType loadBalancerType = GoogleLoadBalancer.this.type
-    GoogleLoadBalancingScheme loadBalancingScheme = GoogleLoadBalancer.this.loadBalancingScheme
+    GoogleLoadBalancerType loadBalancerType = GoogleInternalLoadBalancer.this.type
+    GoogleLoadBalancingScheme loadBalancingScheme = GoogleInternalLoadBalancer.this.loadBalancingScheme
 
-    String name = GoogleLoadBalancer.this.name
-    String account = GoogleLoadBalancer.this.account
-    String region = GoogleLoadBalancer.this.region
-    Long createdTime = GoogleLoadBalancer.this.createdTime
-    String ipAddress = GoogleLoadBalancer.this.ipAddress
-    String ipProtocol = GoogleLoadBalancer.this.ipProtocol
-    String portRange = GoogleLoadBalancer.this.portRange
-    String targetPool =  GoogleLoadBalancer.this.targetPool
-    GoogleHealthCheck.View healthCheck = GoogleLoadBalancer.this.healthCheck?.view
+    String name = GoogleInternalLoadBalancer.this.name
+    String account = GoogleInternalLoadBalancer.this.account
+    String region = GoogleInternalLoadBalancer.this.region
+    Long createdTime = GoogleInternalLoadBalancer.this.createdTime
+    String ipAddress = GoogleInternalLoadBalancer.this.ipAddress
+    String ipProtocol = GoogleInternalLoadBalancer.this.ipProtocol
+    String portRange = GoogleInternalLoadBalancer.this.portRange
+
+    String network = GoogleInternalLoadBalancer.this.network
+    String subnet = GoogleInternalLoadBalancer.this.subnet
+    GoogleBackendService backendService = GoogleInternalLoadBalancer.this.backendService
 
     Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
   }

@@ -25,10 +25,7 @@ import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerView
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
@@ -68,6 +65,9 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
   GoogleLoadBalancerView loadBalancersFromCacheData(CacheData loadBalancerCacheData) {
     def loadBalancer = null
     switch (GoogleLoadBalancerType.valueOf(loadBalancerCacheData.attributes?.type as String)) {
+      case GoogleLoadBalancerType.INTERNAL:
+        loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleInternalLoadBalancer)
+        break
       case GoogleLoadBalancerType.HTTP:
         loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleHttpLoadBalancer)
         break

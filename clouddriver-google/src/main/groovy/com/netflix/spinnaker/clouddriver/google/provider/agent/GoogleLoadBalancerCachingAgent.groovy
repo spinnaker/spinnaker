@@ -33,9 +33,9 @@ import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
 
@@ -181,7 +181,8 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
     @Override
     void onSuccess(ForwardingRuleList forwardingRuleList, HttpHeaders responseHeaders) throws IOException {
       forwardingRuleList?.items?.each { ForwardingRule forwardingRule ->
-        def newLoadBalancer = new GoogleLoadBalancer(
+        if (forwardingRule.target) {
+          def newLoadBalancer = new GoogleLoadBalancer(
             name: forwardingRule.name,
             account: accountName,
             region: region,
@@ -190,9 +191,8 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
             ipProtocol: forwardingRule.IPProtocol,
             portRange: forwardingRule.portRange,
             healths: [])
-        loadBalancers << newLoadBalancer
+          loadBalancers << newLoadBalancer
 
-        if (forwardingRule.target) {
           def forwardingRuleTokens = forwardingRule.target.split("/")
 
           if (forwardingRuleTokens[forwardingRuleTokens.size() - 2] != "targetVpnGateways") {
@@ -247,6 +247,7 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
       if (httpHealthCheck) {
         googleLoadBalancer.healthCheck = new GoogleHealthCheck(
             name: httpHealthCheck.name,
+            healthCheckType: GoogleHealthCheck.HealthCheckType.HTTP, // Uses HTTP even though it's a network LB -- https://cloud.google.com/compute/docs/load-balancing/network
             port: httpHealthCheck.port,
             requestPath: httpHealthCheck.requestPath,
             checkIntervalSec: httpHealthCheck.checkIntervalSec,

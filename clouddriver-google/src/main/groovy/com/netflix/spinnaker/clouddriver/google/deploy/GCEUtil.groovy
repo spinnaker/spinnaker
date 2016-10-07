@@ -40,7 +40,10 @@ import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.model.*
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerView
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
@@ -735,9 +738,9 @@ class GCEUtil {
     def balancingMode = policy.balancingMode
     return new Backend(
       balancingMode: balancingMode,
-      maxRatePerInstance: balancingMode == GoogleHttpLoadBalancingPolicy.BalancingMode.RATE ?
+      maxRatePerInstance: balancingMode == GoogleLoadBalancingPolicy.BalancingMode.RATE ?
         policy.maxRatePerInstance : null,
-      maxUtilization: balancingMode == GoogleHttpLoadBalancingPolicy.BalancingMode.UTILIZATION ?
+      maxUtilization: balancingMode == GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION ?
         policy.maxUtilization : null,
       capacityScaler: policy.capacityScaler != null ? policy.capacityScaler : 1.0,
     )
@@ -745,12 +748,12 @@ class GCEUtil {
 
   // Note: listeningPort is not set in this method.
   static GoogleHttpLoadBalancingPolicy loadBalancingPolicyFromBackend(Backend backend) {
-    def backendBalancingMode = GoogleHttpLoadBalancingPolicy.BalancingMode.valueOf(backend.balancingMode)
+    def backendBalancingMode = GoogleLoadBalancingPolicy.BalancingMode.valueOf(backend.balancingMode)
     return new GoogleHttpLoadBalancingPolicy(
       balancingMode: backendBalancingMode,
-      maxRatePerInstance: backendBalancingMode == GoogleHttpLoadBalancingPolicy.BalancingMode.RATE ?
+      maxRatePerInstance: backendBalancingMode == GoogleLoadBalancingPolicy.BalancingMode.RATE ?
         backend.maxRatePerInstance : null,
-      maxUtilization: backendBalancingMode == GoogleHttpLoadBalancingPolicy.BalancingMode.UTILIZATION ?
+      maxUtilization: backendBalancingMode == GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION ?
         backend.maxUtilization : null,
       capacityScaler: backend.capacityScaler,
     )

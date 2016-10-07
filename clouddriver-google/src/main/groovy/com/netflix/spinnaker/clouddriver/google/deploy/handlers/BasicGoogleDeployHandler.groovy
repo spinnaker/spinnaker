@@ -35,6 +35,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDe
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
@@ -203,7 +204,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
           description.instanceMetadata[(GoogleServerGroup.View.LOAD_BALANCING_POLICY)] = objectMapper.writeValueAsString(
             // Sane defaults in case of a create with no LoadBalancingPolicy specified.
             new GoogleHttpLoadBalancingPolicy(
-              balancingMode: GoogleHttpLoadBalancingPolicy.BalancingMode.UTILIZATION,
+              balancingMode: GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION,
               maxUtilization: 0.80,
               capacityScaler: 1.0,
             )

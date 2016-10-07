@@ -107,4 +107,15 @@ class UtilsSpec extends Specification {
       "80-90"     | "80-90"
       "8080-8080" | "8080"
   }
+
+  def "should return health check type from full url"() {
+    expect:
+      expected == Utils.getHealthCheckType(input)
+
+    where:
+      input                                                                                                | expected
+      "https://www.googleapis.com/compute/beta/projects/spinnaker-jtk54/global/healthChecks/jake-ilb"      | "healthChecks"
+      "https://www.googleapis.com/compute/beta/projects/spinnaker-jtk54/global/httpHealthChecks/jake-ilb"  | "httpHealthChecks"
+      "https://www.googleapis.com/compute/beta/projects/spinnaker-jtk54/global/httpsHealthChecks/jake-ilb" | "httpsHealthChecks"
+  }
 }
