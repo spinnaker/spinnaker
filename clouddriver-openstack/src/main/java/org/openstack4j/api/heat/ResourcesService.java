@@ -1,26 +1,12 @@
-/*
- * Copyright 2016 Target, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package org.openstack4j.api.heat;
 
+import org.openstack4j.model.common.*;
 import org.openstack4j.model.heat.Resource;
+import org.openstack4j.model.heat.ResourceHealth;
 
 import java.util.List;
+import java.util.Map;
 
-//TODO remove once merged into Openstack4j release.
 
 /**
  * This interface defines all methods for the manipulation of resources
@@ -66,5 +52,32 @@ public interface ResourcesService {
    * @return the detail of the specified resource
    */
   Resource show(String stackName, String stackId, String resourceName);
-}
 
+  /**
+   * Gets the stack resource metadata
+   *
+   * @param stackName     The name of a stack
+   * @param stackId       The unique identifier for a stack
+   * @param resourceName  The name of a resource
+   * @return the metadata of the specified resource
+   */
+  Map<String, Object> getMetadata(String stackName, String stackId, String resourceName);
+
+  /**
+   * Signals a resource
+   * @param stackName
+   * @param stackId
+   * @param resourceName
+   */
+  ActionResponse signal(String stackName, String stackId, String resourceName, String jsonData);
+
+  /**
+   * Marks a resource unhealthy
+   * @param stackName
+   * @param stackId
+   * @param resourceName
+   * @param resourceHealth
+   */
+  ActionResponse markUnhealthy(String stackName, String stackId, String resourceName, ResourceHealth resourceHealth);
+
+}

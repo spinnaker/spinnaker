@@ -50,11 +50,37 @@ abstract class AbstractStackUpdateOpenstackAtomicOperation implements AtomicOper
   abstract String getOperation()
 
   /**
+   * Get the server group name to operate on. Defaults to what was passed in.
+   * If server group name was not passed in, you can override to find an alternate server group to work with.
+   * @return
+   */
+  String getServerGroupName() {
+    description.serverGroupName
+  }
+
+  /**
    * Return the new parameters that you want to apply to the stack.
+   * Defaults to return existing parameters.
    * @param stack
    * @return
    */
-  abstract ServerGroupParameters buildServerGroupParameters(Stack stack)
+  ServerGroupParameters buildServerGroupParameters(Stack stack) {
+    ServerGroupParameters.fromParamsMap(stack.parameters)
+  }
+
+  /**
+   * Defaults to noop.
+   * @param stack
+   */
+  void preUpdate(Stack stack) {
+  }
+
+  /**
+   * Defaults to noop.
+   * @param stack
+   */
+  void postUpdate(Stack stack) {
+  }
 
   @Override
   Void operate(List priorOutputs) {
@@ -63,8 +89,13 @@ abstract class AbstractStackUpdateOpenstackAtomicOperation implements AtomicOper
       OpenstackClientProvider provider = description.credentials.provider
 
       //get stack from server group
-      task.updateStatus phaseName, "Fetching server group $description.serverGroupName"
-      Stack stack = provider.getStack(description.region, description.serverGroupName)
+      String foundServerGroupName = serverGroupName
+      task.updateStatus phaseName, "Fetching server group $foundServerGroupName"
+      Stack stack = provider.getStack(description.region, foundServerGroupName)
+
+      //pre update ops
+      preUpdate(stack)
+
       //we need to store subtemplate in asg output from create, as it is required to do an update and there is no native way of
       //obtaining it from a stack
       String resourceFileName = stack.parameters?.get(ServerGroupConstants.SUBTEMPLATE_FILENAME)
@@ -73,12 +104,12 @@ abstract class AbstractStackUpdateOpenstackAtomicOperation implements AtomicOper
         List<Map<String, Object>> outputs = stack.outputs
         String resourceSubtemplate = outputs.find { m -> m.get("output_key") == ServerGroupConstants.SUBTEMPLATE_OUTPUT }.get("output_value")
         String memberTemplate = outputs.find { m -> m.get("output_key") == ServerGroupConstants.MEMBERTEMPLATE_OUTPUT }.get("output_value")
-        task.updateStatus phaseName, "Successfully fetched server group $description.serverGroupName"
+        task.updateStatus phaseName, "Successfully fetched server group $foundServerGroupName"
 
         //get the current template from the stack
-        task.updateStatus phaseName, "Fetching current template for server group $description.serverGroupName"
+        task.updateStatus phaseName, "Fetching current template for server group $foundServerGroupName"
         String template = provider.getHeatTemplate(description.region, stack.name, stack.id)
-        task.updateStatus phaseName, "Successfully fetched current template for server group $description.serverGroupName"
+        task.updateStatus phaseName, "Successfully fetched current template for server group $foundServerGroupName"
 
         Map<String, String> templateMap = [(resourceFileName): resourceSubtemplate]
         if (memberTemplate) {
@@ -93,6 +124,9 @@ abstract class AbstractStackUpdateOpenstackAtomicOperation implements AtomicOper
         task.updateStatus phaseName, "Missing resource filename in parameters list- ${stack.parameters}"
         throw new OpenstackOperationException("Missing resource filename in HEAT template")
       }
+
+      //post update ops
+      postUpdate(stack)
 
       task.updateStatus phaseName, "Successfully completed $operation."
     } catch (Exception e) {

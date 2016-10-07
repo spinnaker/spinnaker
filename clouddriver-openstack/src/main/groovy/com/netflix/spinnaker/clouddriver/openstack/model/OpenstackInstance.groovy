@@ -46,11 +46,11 @@ class OpenstackInstance {
 
   static OpenstackInstance from(Server server, String account, String region) {
     //find first fixed v4 address
-    Address fixedIpAddressV4 = server?.addresses?.getAddresses()?.collectMany { it.value }?.find { it.type == 'fixed' && it.version == 4 }
+    Address fixedIpAddressV4 = server?.addresses?.addresses?.collectMany { it.value }?.find { it.type == 'fixed' && it.version == 4 }
     //find first fixed v6 address
-    Address fixedIpAddressV6 = server?.addresses?.getAddresses()?.collectMany { it.value }?.find { it.type == 'fixed' && it.version == 6 }
+    Address fixedIpAddressV6 = server?.addresses?.addresses?.collectMany { it.value }?.find { it.type == 'fixed' && it.version == 6 }
     //floating ip
-    Address floatingIpAddress = server?.addresses?.getAddresses()?.collectMany { it.value }?.find { it.type == 'floating' && it.version == 4 }
+    Address floatingIpAddress = server?.addresses?.addresses?.collectMany { it.value }?.find { it.type == 'floating' && it.version == 4 }
 
     new OpenstackInstance(name: server.name
       , region: region

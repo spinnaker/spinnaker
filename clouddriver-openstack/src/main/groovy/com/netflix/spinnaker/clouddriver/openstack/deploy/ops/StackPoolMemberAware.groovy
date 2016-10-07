@@ -19,8 +19,44 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.ops
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.MemberData
+import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
+import org.openstack4j.model.network.ext.ListenerV2
+import org.openstack4j.model.network.ext.LoadBalancerV2
 
 trait StackPoolMemberAware {
+
+  /**
+   * Build pool member resources for the given load balancers.
+   * @param credentials
+   * @param region
+   * @param subnetId
+   * @param lbIds
+   * @param portParser
+   * @return
+   */
+  List<MemberData> buildMemberData(OpenstackCredentials credentials, String region, String subnetId, List<String> lbIds, Closure portParser) {
+    lbIds.collectMany { loadBalancerId ->
+      LoadBalancerV2 loadBalancer = credentials.provider.getLoadBalancer(region, loadBalancerId)
+      loadBalancer.listeners.collect { item ->
+        ListenerV2 listener = credentials.provider.getListener(region, item.id)
+        String internalPort = portParser(listener.description).internalPort
+        String poolId = listener.defaultPoolId
+        new MemberData(subnetId: subnetId ?: loadBalancer.vipSubnetId, externalPort: listener.protocolPort.toString(), internalPort: internalPort, poolId: poolId)
+      }
+    }
+  }
+
+  /**
+   * Build pool member resources for the given load balancers.
+   * @param credentials
+   * @param region
+   * @param lbIds
+   * @param portParser
+   * @return
+   */
+  List<MemberData> buildMemberData(OpenstackCredentials credentials, String region, List<String> lbIds, Closure portParser) {
+    buildMemberData(credentials, region, null, lbIds, portParser)
+  }
 
   /**
    * Convert a list of pool members to an embeddable heat template.

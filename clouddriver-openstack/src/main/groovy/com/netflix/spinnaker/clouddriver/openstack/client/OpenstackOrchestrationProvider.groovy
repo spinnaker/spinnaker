@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.openstack.client
 
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ServerGroupParameters
+import org.openstack4j.model.heat.Resource
+import org.openstack4j.model.heat.ResourceHealth
 import org.openstack4j.model.heat.Stack
 
 interface OpenstackOrchestrationProvider {
@@ -92,4 +94,32 @@ interface OpenstackOrchestrationProvider {
    * @param stackName
    */
   List<String> getInstanceIdsForStack(String region, String stackName)
+
+  /**
+   * Get the resource associated to an instance.
+   * @param region
+   * @param stackName
+   * @param instanceId
+   * @return
+   */
+  Resource getInstanceResourceForStack(String region, Stack stack, String instanceId)
+
+  /**
+   * Get the autoscaling resource for a stack.
+   * @param region
+   * @param stack
+   * @return
+   */
+  Resource getAsgResourceForStack(String region, Stack stack)
+
+  /**
+   *
+   * @param region
+   * @param stackName
+   * @param stackId
+   * @param resource
+   * @param resourceHealth
+   */
+  void markStackResourceUnhealthy(String region, String stackName, String stackId, String resource, ResourceHealth resourceHealth)
+
 }

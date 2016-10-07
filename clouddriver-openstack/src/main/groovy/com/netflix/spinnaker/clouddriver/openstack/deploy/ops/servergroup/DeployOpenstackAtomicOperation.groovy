@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup
 
-import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.deploy.OpenstackServerGroupNameResolver
@@ -27,14 +25,12 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergrou
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.StackPoolMemberAware
 import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerResolver
+import com.netflix.spinnaker.clouddriver.openstack.task.TaskStatusAware
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 import org.openstack4j.model.network.Subnet
-import org.openstack4j.model.network.ext.ListenerV2
-import org.openstack4j.model.network.ext.LoadBalancerV2
 
 import java.util.concurrent.ConcurrentHashMap
 
@@ -51,8 +47,7 @@ import java.util.concurrent.ConcurrentHashMap
  * but again it would need to honor the expected parameters.
  * We could use the freeform details field to store the template string.
  */
-@Slf4j
-class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult>, StackPoolMemberAware, LoadBalancerResolver {
+class DeployOpenstackAtomicOperation implements TaskStatusAware, AtomicOperation<DeploymentResult>, StackPoolMemberAware, LoadBalancerResolver {
 
   private final String BASE_PHASE = "DEPLOY"
 
@@ -62,10 +57,6 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
 
   DeployOpenstackAtomicOperation(DeployOpenstackAtomicOperationDescription description) {
     this.description = description
-  }
-
-  protected static Task getTask() {
-    TaskRepository.threadLocalTask.get()
   }
 
   /*
@@ -112,7 +103,6 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
   DeploymentResult operate(List priorOutputs) {
     DeploymentResult deploymentResult = new DeploymentResult()
     try {
-      log.debug("Deploy Description: ${description}")
       task.updateStatus BASE_PHASE, "Initializing creation of server group..."
       OpenstackClientProvider provider = description.credentials.provider
 
@@ -130,19 +120,7 @@ class DeployOpenstackAtomicOperation implements AtomicOperation<DeploymentResult
       if (description.serverGroupParameters.loadBalancers && !description.serverGroupParameters.loadBalancers.isEmpty()) {
         //look up all load balancer listeners -> pool ids and internal ports
         task.updateStatus BASE_PHASE, "Getting load balancer details for load balancers $description.serverGroupParameters.loadBalancers..."
-        List<MemberData> memberDataList = description.serverGroupParameters.loadBalancers.collectMany { loadBalancerId ->
-          task.updateStatus BASE_PHASE, "Looking up load balancer details for load balancer $loadBalancerId..."
-          LoadBalancerV2 loadBalancer = provider.getLoadBalancer(description.region, loadBalancerId)
-          task.updateStatus BASE_PHASE, "Found load balancer details for load balancer $loadBalancerId."
-          loadBalancer.listeners.collect { item ->
-            task.updateStatus BASE_PHASE, "Looking up load balancer listener details for listener $item.id"
-            ListenerV2 listener = provider.getListener(description.region, item.id)
-            String internalPort = parseListenerKey(listener.description).internalPort
-            String poolId = listener.defaultPoolId
-            task.updateStatus BASE_PHASE, "Found load balancer listener details (poolId=$poolId, internalPort=$internalPort) for listener $item.id."
-            new MemberData(subnetId: description.serverGroupParameters.subnetId, externalPort: listener.protocolPort.toString(), internalPort: internalPort, poolId: poolId)
-          }
-        }
+        List<MemberData> memberDataList = buildMemberData(description.credentials, description.region, description.serverGroupParameters.subnetId, description.serverGroupParameters.loadBalancers, this.&parseListenerKey)
         task.updateStatus BASE_PHASE, "Finished getting load balancer details for load balancers $description.serverGroupParameters.loadBalancers."
 
         task.updateStatus BASE_PHASE, "Loading lbaas subtemplates..."

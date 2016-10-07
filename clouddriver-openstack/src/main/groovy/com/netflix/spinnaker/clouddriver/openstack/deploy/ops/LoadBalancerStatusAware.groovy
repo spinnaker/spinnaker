@@ -23,7 +23,9 @@ import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import org.openstack4j.model.network.ext.LbProvisioningStatus
 import org.openstack4j.model.network.ext.LoadBalancerV2
 
-//TODO other operations (e.g. Delete Upsert load balancer operations) should be able to use and enhance this as well
+/**
+ * Helper methods to check on load balancer statuses.
+ */
 trait LoadBalancerStatusAware {
 
   /**

@@ -147,7 +147,7 @@ class UpsertOpenstackLoadBalancerAtomicOperation extends AbstractOpenstackLoadBa
   protected LoadBalancerV2 createLoadBalancer(String region, String name, String subnetId) {
     task.updateStatus UPSERT_LOADBALANCER_PHASE, "Creating load balancer $name in ${region} ..."
     String description = generateCreatedTime(System.currentTimeMillis())
-    LoadBalancerV2 result = createBlockingActiveStatusChecker(region).execute {
+    LoadBalancerV2 result = createBlockingActiveStatusChecker(openstackCredentials, region).execute {
       provider.createLoadBalancer(region, name, description, subnetId)
     }
     task.updateStatus UPSERT_LOADBALANCER_PHASE, "Created load balancer $name in ${region}."
@@ -210,7 +210,7 @@ class UpsertOpenstackLoadBalancerAtomicOperation extends AbstractOpenstackLoadBa
    * @return
    */
   protected void addListenersAndPools(String region, String loadBalancerId, String name, Algorithm algorithm, Map<String, Listener> listeners, HealthMonitor healthMonitor) {
-    BlockingStatusChecker blockingStatusChecker = createBlockingActiveStatusChecker(region, loadBalancerId)
+    BlockingStatusChecker blockingStatusChecker = createBlockingActiveStatusChecker(openstackCredentials, region, loadBalancerId)
     listeners?.each { String key, Listener currentListener ->
       task.updateStatus UPSERT_LOADBALANCER_PHASE, "Creating listener $name in ${region}"
       ListenerV2 listener = blockingStatusChecker.execute {
@@ -234,7 +234,7 @@ class UpsertOpenstackLoadBalancerAtomicOperation extends AbstractOpenstackLoadBa
    * @param listeners
    */
   protected void updateListenersAndPools(String region, String loadBalancerId, Algorithm algorithm, Collection<ListenerV2> listeners, HealthMonitor healthMonitor) {
-    BlockingStatusChecker blockingStatusChecker = createBlockingActiveStatusChecker(region, loadBalancerId)
+    BlockingStatusChecker blockingStatusChecker = createBlockingActiveStatusChecker(openstackCredentials, region, loadBalancerId)
 
     listeners?.each { ListenerV2 currentListener ->
       LbPoolV2 lbPool = provider.getPool(region, currentListener.defaultPoolId)
@@ -255,7 +255,7 @@ class UpsertOpenstackLoadBalancerAtomicOperation extends AbstractOpenstackLoadBa
    * @param lbPool
    */
   protected void updateHealthMonitor(String region, String loadBalancerId, LbPoolV2 lbPool, HealthMonitor healthMonitor) {
-    BlockingStatusChecker blockingStatusChecker = createBlockingActiveStatusChecker(region, loadBalancerId)
+    BlockingStatusChecker blockingStatusChecker = createBlockingActiveStatusChecker(openstackCredentials, region, loadBalancerId)
     if (lbPool.healthMonitorId) {
       if (healthMonitor) {
         HealthMonitorV2 existingMonitor = provider.getMonitor(region, lbPool.healthMonitorId)

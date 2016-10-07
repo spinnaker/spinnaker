@@ -24,18 +24,31 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.description.instance.O
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
+import org.openstack4j.model.compute.Server
+import org.openstack4j.model.heat.Resource
+import org.openstack4j.model.heat.ResourceHealth
+import org.openstack4j.model.heat.Stack
 import spock.lang.Specification
 import spock.lang.Subject
 
 class TerminateOpenstackInstancesAtomicOperationUnitSpec extends Specification {
 
   private static final String ACCOUNT_NAME = 'myaccount'
-  private static final INSTANCE_IDS = ['instance1','instance2','instance3']
+  private static final INSTANCE_IDS = ['1-2-3-4','2-3-4-5','3-4-5-6']
 
   def credentials
   def description
 
   String region = 'r1'
+  String serverGroupName = 'asg1'
+
+  Map<String, Server> servers
+  Stack stack
+  Stack asgStack
+  Resource asg
+  Resource instance
+  String asgId = 'asgId'
+  String resourceName = 'r'
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -47,19 +60,40 @@ class TerminateOpenstackInstancesAtomicOperationUnitSpec extends Specification {
     OpenstackNamedAccountCredentials credz = Mock(OpenstackNamedAccountCredentials)
     OpenstackProviderFactory.createProvider(credz) >> { provider }
     credentials = new OpenstackCredentials(credz)
-    description = new OpenstackInstancesDescription(instanceIds: INSTANCE_IDS, account: ACCOUNT_NAME, credentials: credentials, region: region)
+    description = new OpenstackInstancesDescription(serverGroupName: serverGroupName, instanceIds: INSTANCE_IDS, account: ACCOUNT_NAME, credentials: credentials, region: region)
+    servers = INSTANCE_IDS.collectEntries { id ->
+      [(id): Mock(Server) { it.id >> { id } ; it.name >> { id } }]
+    }
+    stack = Mock(Stack) {
+      it.name >> { 'stack' }
+    }
+    asg = Mock(Resource) {
+      it.physicalResourceId >> { asgId }
+      it.type >> { "OS::Heat::AutoScalingGroup" }
+    }
+    asgStack = Mock(Stack) {
+      it.id >> { 'id' }
+      it.name >> { 'name' }
+    }
+    instance = Mock(Resource) {
+      it.resourceName >> { resourceName }
+    }
   }
 
-  def "should terminate instances"() {
+  def "test pre update"() {
     given:
     @Subject def operation = new TerminateOpenstackInstancesAtomicOperation(description)
 
     when:
-    operation.operate([])
+    operation.preUpdate(stack)
 
     then:
+    1 * credentials.provider.getAsgResourceForStack(region, stack) >> asg
+    1 * credentials.provider.getStack(region, asgId) >> asgStack
     INSTANCE_IDS.each {
-      1 * credentials.provider.deleteInstance(region, it)
+      1 * credentials.provider.getServerInstance(region, it) >> servers[it]
+      1 * credentials.provider.getInstanceResourceForStack(region, stack, servers[it].name) >> instance
+      1 * credentials.provider.markStackResourceUnhealthy(region, 'name', 'id', resourceName, _ as ResourceHealth)
     }
     noExceptionThrown()
   }
@@ -69,11 +103,15 @@ class TerminateOpenstackInstancesAtomicOperationUnitSpec extends Specification {
     @Subject def operation = new TerminateOpenstackInstancesAtomicOperation(description)
 
     when:
-    operation.operate([])
+    operation.preUpdate(stack)
 
     then:
-    INSTANCE_IDS.each {
-      credentials.provider.deleteInstance(region, it) >> { throw new OpenstackOperationException("foobar") }
+    1 * credentials.provider.getAsgResourceForStack(region, stack) >> asg
+    1 * credentials.provider.getStack(region, asgId) >> asgStack
+    INSTANCE_IDS.findAll { it == INSTANCE_IDS[0] }.each {
+      1 * credentials.provider.getServerInstance(region, it) >> servers[it]
+      1 * credentials.provider.getInstanceResourceForStack(region, stack, servers[it].name) >> instance
+      1 * credentials.provider.markStackResourceUnhealthy(region, 'name', 'id', resourceName, _ as ResourceHealth) >> { throw new OpenstackOperationException("foobar") }
     }
     OpenstackOperationException ex = thrown(OpenstackOperationException)
     ex.message == "foobar"

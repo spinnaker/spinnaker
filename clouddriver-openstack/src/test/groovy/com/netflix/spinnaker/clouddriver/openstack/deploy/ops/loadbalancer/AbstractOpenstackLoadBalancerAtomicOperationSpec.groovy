@@ -87,7 +87,7 @@ class AbstractOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     operation.deleteLoadBalancerPeripherals(opName, region, loadBalancerId, [listener])
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(region, loadBalancerId) >> blockingClientAdapter
+    1 * operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId) >> blockingClientAdapter
     _ * listener.defaultPoolId >> poolId
     1 * provider.getPool(region, poolId) >> lbPool
     _ * lbPool.healthMonitorId >> healthMonitorId
@@ -115,7 +115,7 @@ class AbstractOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     operation.deleteLoadBalancerPeripherals(opName, region, loadBalancerId, [listener])
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(region, loadBalancerId) >> blockingClientAdapter
+    1 * operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId) >> blockingClientAdapter
     _ * listener.defaultPoolId >> poolId
     1 * provider.getPool(region, poolId) >> lbPool
     _ * lbPool.healthMonitorId >> healthMonitorId
@@ -143,7 +143,7 @@ class AbstractOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     operation.deleteLoadBalancerPeripherals(opName, region, loadBalancerId, [listener])
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(region, loadBalancerId) >> blockingClientAdapter
+    1 * operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId) >> blockingClientAdapter
     _ * listener.defaultPoolId >> poolId
     1 * provider.getPool(region, poolId) >> { throw new OpenstackResourceNotFoundException('test') }
     _ * lbPool.healthMonitorId >> healthMonitorId

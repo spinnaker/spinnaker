@@ -74,6 +74,11 @@ class BlockingStatusChecker {
     result
   }
 
+  @PackageScope
+  void execute() {
+    execute ( { null } )
+  }
+
   static interface StatusChecker<T> {
     boolean isReady(T input)
   }

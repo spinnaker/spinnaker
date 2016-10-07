@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.description.instance
 
-import com.netflix.spinnaker.clouddriver.openstack.deploy.description.OpenstackAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.OpenstackServerGroupAtomicOperationDescription
 
-class OpenstackInstancesDescription extends OpenstackAtomicOperationDescription {
+class OpenstackInstancesDescription extends OpenstackServerGroupAtomicOperationDescription {
   List<String> instanceIds
 
   String getInstances() {

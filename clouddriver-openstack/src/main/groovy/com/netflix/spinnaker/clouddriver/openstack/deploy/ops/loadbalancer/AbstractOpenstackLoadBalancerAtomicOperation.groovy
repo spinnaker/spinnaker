@@ -18,12 +18,10 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.loadbalancer
 
 import com.netflix.spinnaker.clouddriver.openstack.client.BlockingStatusChecker
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
-import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties
-import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.MemberData
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ServerGroupParameters
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
-import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackResourceNotFoundException
+import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.LoadBalancerStatusAware
 import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.StackPoolMemberAware
 import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup.ServerGroupConstants
 import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerResolver
@@ -32,12 +30,11 @@ import com.netflix.spinnaker.clouddriver.openstack.task.TaskStatusAware
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.network.ext.LbPoolV2
-import org.openstack4j.model.network.ext.LbProvisioningStatus
 import org.openstack4j.model.network.ext.ListenerV2
 import org.openstack4j.model.network.ext.LoadBalancerV2
 import org.openstack4j.openstack.networking.domain.ext.ListItem
 
-abstract class AbstractOpenstackLoadBalancerAtomicOperation implements TaskStatusAware, StackPoolMemberAware, LoadBalancerResolver {
+abstract class AbstractOpenstackLoadBalancerAtomicOperation implements TaskStatusAware, StackPoolMemberAware, LoadBalancerResolver, LoadBalancerStatusAware {
 
   OpenstackCredentials openstackCredentials
 
@@ -75,19 +72,9 @@ abstract class AbstractOpenstackLoadBalancerAtomicOperation implements TaskStatu
       String subtemplate = outputs.find { m -> m.get("output_key") == ServerGroupConstants.SUBTEMPLATE_OUTPUT }.get("output_value")
 
       //rebuild memberTemplate
-      String memberTemplate = buildPoolMemberTemplate(newParams.loadBalancers.collectMany { lbid ->
-        task.updateStatus operation, "Looking up load balancer details for load balancer $lbid..."
-        LoadBalancerV2 loadBalancer = provider.getLoadBalancer(region, lbid)
-        task.updateStatus operation, "Found load balancer details for load balancer $lbid."
-        loadBalancer.listeners.collect { item ->
-          task.updateStatus operation, "Looking up load balancer listener details for listener $item.id..."
-          ListenerV2 listener = provider.getListener(region, item.id)
-          String internalPort = parseListenerKey(listener.description).internalPort
-          String poolId = listener.defaultPoolId
-          task.updateStatus operation, "Found load balancer listener details (poolId=$poolId, internalPort=$internalPort) for listener $item.id."
-          new MemberData(subnetId: loadBalancer.vipSubnetId, externalPort: listener.protocolPort.toString(), internalPort: internalPort, poolId: poolId)
-        }
-      })
+      String memberTemplate = buildPoolMemberTemplate(
+        buildMemberData(openstackCredentials, region, newParams.loadBalancers, this.&parseListenerKey)
+      )
       task.updateStatus operation, "Fetched subtemplates for server group $stack.name."
 
       //update stack
@@ -107,7 +94,7 @@ abstract class AbstractOpenstackLoadBalancerAtomicOperation implements TaskStatu
    * @param listenerStatuses
    */
   protected void deleteLoadBalancerPeripherals(String operation, String region, String loadBalancerId, Collection<ListenerV2> listeners) {
-    BlockingStatusChecker blockingActiveStatusChecker = createBlockingActiveStatusChecker(region, loadBalancerId)
+    BlockingStatusChecker blockingActiveStatusChecker = createBlockingActiveStatusChecker(openstackCredentials, region, loadBalancerId)
     //remove elements
     listeners?.each { ListenerV2 currentListener ->
       try {
@@ -139,33 +126,8 @@ abstract class AbstractOpenstackLoadBalancerAtomicOperation implements TaskStatu
    */
   protected void removeHealthMonitor(String operation, String region, String loadBalancerId, String id) {
     task.updateStatus operation, "Removing existing monitor ${id} in ${region}..."
-    createBlockingActiveStatusChecker(region, loadBalancerId).execute { provider.deleteMonitor(region, id) }
+    createBlockingActiveStatusChecker(openstackCredentials, region, loadBalancerId).execute { provider.deleteMonitor(region, id) }
     task.updateStatus operation, "Removed existing monitor ${id} in ${region}."
-  }
-
-  /**
-   * Creates and returns a new blocking active status checker.
-   * @param region
-   * @param loadBalancerId
-   * @return
-   */
-  BlockingStatusChecker createBlockingActiveStatusChecker(String region, String loadBalancerId = null) {
-    OpenstackConfigurationProperties.LbaasConfig config = this.openstackCredentials.credentials.lbaasConfig
-    BlockingStatusChecker.from(config.pollTimeout, config.pollInterval) { Object input ->
-      String id = loadBalancerId
-      if (!loadBalancerId && input && input instanceof LoadBalancerV2) {
-        id = ((LoadBalancerV2) input).id
-      }
-
-      LbProvisioningStatus currentProvisioningStatus = provider.getLoadBalancer(region, id)?.provisioningStatus
-
-      // Short circuit polling if openstack is unable to provision the load balancer
-      if (LbProvisioningStatus.ERROR == currentProvisioningStatus) {
-        throw new OpenstackProviderException("Openstack was unable to provision load balancer ${loadBalancerId}")
-      }
-
-      LbProvisioningStatus.ACTIVE == currentProvisioningStatus
-    }
   }
 
   /**

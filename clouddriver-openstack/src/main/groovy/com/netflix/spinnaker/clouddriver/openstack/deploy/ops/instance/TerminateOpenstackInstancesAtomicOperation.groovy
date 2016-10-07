@@ -16,43 +16,83 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.instance
 
-import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.instance.OpenstackInstancesDescription
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup.AbstractStackUpdateOpenstackAtomicOperation
+import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerResolver
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import groovy.util.logging.Slf4j
+import org.openstack4j.api.Builders
+import org.openstack4j.model.compute.Server
+import org.openstack4j.model.heat.Resource
+import org.openstack4j.model.heat.Stack
 
 /**
- * Terminates an Openstack instance.
+ * Terminates an Openstack instance by marking the stack resource unhealthy and doing a stack update. This will
+ * recreate instances until the stack reaches the correct size.
+ *
+ * TODO test upsert load balancer
  */
 @Slf4j
-class TerminateOpenstackInstancesAtomicOperation implements AtomicOperation<Void> {
+class TerminateOpenstackInstancesAtomicOperation extends AbstractStackUpdateOpenstackAtomicOperation implements LoadBalancerResolver {
 
-  private final String BASE_PHASE = "TERMINATE_INSTANCES"
-  OpenstackInstancesDescription description
+  final String phaseName = "TERMINATE_INSTANCES"
+
+  final String operation = AtomicOperations.TERMINATE_INSTANCES
+
 
   TerminateOpenstackInstancesAtomicOperation(OpenstackInstancesDescription description) {
-    this.description = description
-  }
-
-  protected static Task getTask() {
-    TaskRepository.threadLocalTask.get()
+    super(description)
   }
 
   /*
    * curl -X POST -H "Content-Type: application/json" -d '[ { "terminateInstances": { "instanceIds": ["os-test-v000-beef"], "account": "test", "region": "region1" }} ]' localhost:7002/openstack/ops
    * curl -X GET -H "Accept: application/json" localhost:7002/task/1
    */
+
   @Override
-  Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing terminate instances operation..."
-
-    description.instanceIds.each {
-      task.updateStatus BASE_PHASE, "Deleting $it"
-      description.credentials.provider.deleteInstance(description.region, it)
-      task.updateStatus BASE_PHASE, "Deleted $it"
+  String getServerGroupName() {
+    String instanceId = description.instanceIds?.find() ?: null
+    String serverGroupName = ""
+    if (instanceId) {
+      task.updateStatus phaseName, "Getting server group name from instance $instanceId ..."
+      Server server = provider.getServerInstance(description.region, instanceId)
+      serverGroupName = server.metadata?.get("metering.stack.name") ?: provider.getStack(description.region, server.metadata?.get("metering.stack"))?.name
+      task.updateStatus phaseName, "Found server group name $serverGroupName from instance $instanceId."
     }
-
-    task.updateStatus BASE_PHASE, "Successfully terminated provided instances."
+    serverGroupName
   }
+
+  @Override
+  void preUpdate(Stack stack) {
+
+    //get asg_resource stack id and name
+    task.updateStatus phaseName, "Finding asg resource for $stack.name ..."
+    Resource asg = provider.getAsgResourceForStack(description.region, stack)
+    task.updateStatus phaseName, "Finding nested stack for resource $asg.type ..."
+    Stack nested = provider.getStack(description.region, asg.physicalResourceId)
+
+    description.instanceIds.each { id ->
+
+      //get server name
+      task.updateStatus phaseName, "Getting server details for $id ..."
+      Server server = provider.getServerInstance(description.region, id)
+
+      //get resource
+      task.updateStatus phaseName, "Finding server group resource for $id ..."
+      //for some reason it only works to look up the resource from the parent stack, not the nested stack
+      Resource instance = provider.getInstanceResourceForStack(description.region, stack, server.name)
+
+      //mark unhealthy - subsequent stack update will delete and recreate the resource
+      task.updateStatus phaseName, "Marking server group resource $instance.resourceName unhealthy ..."
+      provider.markStackResourceUnhealthy(description.region, nested.name, nested.id, instance.resourceName,
+        Builders.resourceHealth().markUnhealthy(true).resourceStatusReason("Deleted instance $id").build())
+
+    }
+  }
+
+  OpenstackClientProvider getProvider() {
+    description.credentials.provider
+  }
+
 }

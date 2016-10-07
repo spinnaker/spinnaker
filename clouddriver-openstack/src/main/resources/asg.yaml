@@ -101,6 +101,7 @@ resources:
           metadata:
             map_merge:
               - {"metering.stack": {get_param: "OS::stack_id"}}
+              - {"metering.stack.name": {get_param: "OS::stack_name"}}
               - {get_param: tags}
           network_id: {get_param: network_id}
           security_groups: {get_param: security_groups}

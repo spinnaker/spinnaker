@@ -17,10 +17,14 @@
 package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup
 
 class ServerGroupConstants {
+  public static final String HEAT_SERVER_RESOURCE = "OS::Nova::Server"
+  public static final String HEAT_ASG_RESOURCE = "OS::Heat::AutoScalingGroup"
+
   final static String SUBTEMPLATE_FILENAME = 'asg_resource_filename'
   final static String SUBTEMPLATE_SERVER_OUTPUT = 'asg_server_resource'
   final static String SUBTEMPLATE_OUTPUT = 'asg_resource'
   final static String MEMBERTEMPLATE_OUTPUT = 'asg_member'
+  final static String ASG_RESOURCE_NAME = 'asg'
 
   //this is the file name of the heat template used to create the auto scaling group,
   //and needs to be loaded into memory as a String

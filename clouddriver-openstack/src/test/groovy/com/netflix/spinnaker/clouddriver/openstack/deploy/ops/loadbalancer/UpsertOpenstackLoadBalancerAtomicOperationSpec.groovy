@@ -233,7 +233,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     LoadBalancerV2 result = operation.createLoadBalancer(region, name, subnetId)
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(region) >> blockingClientAdapter
+    1 * operation.createBlockingActiveStatusChecker(credentials, region) >> blockingClientAdapter
     1 * provider.createLoadBalancer(region, name, _, subnetId) >> loadBalancer
 
     and:
@@ -253,7 +253,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     operation.createLoadBalancer(region, name, subnetId)
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(region) >> blockingClientAdapter
+    1 * operation.createBlockingActiveStatusChecker(credentials, region) >> blockingClientAdapter
     1 * provider.createLoadBalancer(region, name, _, subnetId) >> { throw openstackProviderException }
 
     and:
@@ -401,7 +401,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     operation.addListenersAndPools(region, loadBalancerId, name, algorithm, [(key): listener], healthMonitor)
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(region, loadBalancerId) >> blockingClientAdapter
+    1 * operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId) >> blockingClientAdapter
     1 * provider.createListener(region, name, listener.externalProtocol.name(), listener.externalPort, key, loadBalancerId) >> newListener
     //todo: is this right? just doing listener.externalProtocol.name()
     1 * provider.createPool(region, name, listener.externalProtocol.name(), algorithm.name(), newListener.id) >> newLbPool
@@ -426,7 +426,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     operation.updateListenersAndPools(region, loadBalancerId, algorithm, [listener], healthMonitor)
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(region, loadBalancerId) >> blockingClientAdapter
+    1 * operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId) >> blockingClientAdapter
     _ * listener.defaultPoolId >> poolId
     1 * provider.getPool(region, poolId) >> lbPool
     _ * lbPool.lbMethod >> LbMethod.LEAST_CONNECTIONS
@@ -452,7 +452,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     operation.updateListenersAndPools(region, loadBalancerId, algorithm, [listener], healthMonitor)
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(region, loadBalancerId) >> blockingClientAdapter
+    1 * operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId) >> blockingClientAdapter
     _ * listener.defaultPoolId >> poolId
     1 * provider.getPool(region, poolId) >> lbPool
     _ * lbPool.lbMethod >> LbMethod.ROUND_ROBIN
@@ -475,7 +475,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     operation.updateHealthMonitor(region, loadBalancerId, lbPool, healthMonitor)
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(region, loadBalancerId) >> blockingClientAdapter
+    1 * operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId) >> blockingClientAdapter
     _ * lbPool.healthMonitorId >> healthMonitorId
     1 * provider.getMonitor(region, healthMonitorId) >> healthMonitorV2
     1 * healthMonitorV2.type >> HealthMonitorType.PING
@@ -498,7 +498,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     operation.updateHealthMonitor(region, loadBalancerId, lbPool, healthMonitor)
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(region, loadBalancerId) >> blockingClientAdapter
+    1 * operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId) >> blockingClientAdapter
     _ * lbPool.healthMonitorId >> healthMonitorId
     1 * provider.getMonitor(region, healthMonitorId) >> healthMonitorV2
     1 * healthMonitorV2.type >> HealthMonitorType.PING
@@ -522,7 +522,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     operation.updateHealthMonitor(region, loadBalancerId, lbPool, healthMonitor)
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(region, loadBalancerId) >> blockingClientAdapter
+    1 * operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId) >> blockingClientAdapter
     _ * lbPool.healthMonitorId >> healthMonitorId
     1 * operation.removeHealthMonitor(opName, region, loadBalancerId, healthMonitorId) >> {}
   }
@@ -541,7 +541,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     operation.updateHealthMonitor(region, loadBalancerId, lbPool, healthMonitor)
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(region, loadBalancerId) >> blockingClientAdapter
+    1 * operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId) >> blockingClientAdapter
     _ * lbPool.healthMonitorId >> healthMonitorId
     1 * provider.createMonitor(region, lbPool.id, healthMonitor)
   }
@@ -558,7 +558,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     operation.removeHealthMonitor(opName, region, loadBalancerId, id)
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(region, loadBalancerId) >> blockingClientAdapter
+    1 * operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId) >> blockingClientAdapter
     1 * provider.deleteMonitor(region, id)
   }
 
@@ -570,7 +570,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     def operation = new UpsertOpenstackLoadBalancerAtomicOperation(description)
 
     when:
-    BlockingStatusChecker result = operation.createBlockingActiveStatusChecker(region, loadBalancerId)
+    BlockingStatusChecker result = operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId)
 
     then:
     result.statusChecker != null

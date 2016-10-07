@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.client
 
-import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ServerGroupParameters
+import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
+import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup.ServerGroupConstants
 import org.openstack4j.api.Builders
 import org.openstack4j.model.heat.Resource
+import org.openstack4j.model.heat.ResourceHealth
 import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.heat.StackCreate
 import org.openstack4j.model.heat.StackUpdate
@@ -82,7 +84,7 @@ class OpenstackOrchestrationV1Provider implements OpenstackOrchestrationProvider
   @Override
   List<? extends Stack> listStacksWithLoadBalancers(String region, List<String> loadBalancerIds) {
     handleRequest {
-      getRegionClient(region).heat().stacks().list([tags:loadBalancerIds.join(',')])
+      getRegionClient(region).heat().stacks().list([tags:loadBalancerIds.join(",")])
     }
   }
 
@@ -112,7 +114,44 @@ class OpenstackOrchestrationV1Provider implements OpenstackOrchestrationProvider
       getRegionClient(region).heat().resources().list(stackName, 10)
     }
     resources?.findResults {
-      it.type == "OS::Nova::Server" ? it.physicalResourceId : null
+      it.type == ServerGroupConstants.HEAT_SERVER_RESOURCE ? it.physicalResourceId : null
+    }
+  }
+
+  @Override
+  Resource getInstanceResourceForStack(String region, Stack stack, String instanceName) {
+    List<? extends Resource> resources = handleRequest {
+      //this means it has the ability to list resources 10 levels deep in the heat template hierarchy.
+      //provide a depth of 10 for insurance - the default template has a depth of 4.
+      getRegionClient(region).heat().resources().list(stack.name, 10)
+    }
+    List<String> parts = instanceName.split("-")?.toList()
+    if (parts && parts.size() > 2) {
+      String instanceResourceId = parts.get(2)
+      resources?.find {
+        it.type == stack.parameters.get(ServerGroupConstants.SUBTEMPLATE_FILENAME) && it.resourceName == instanceResourceId
+      }
+    } else {
+      null
+    }
+  }
+
+  @Override
+  Resource getAsgResourceForStack(String region, Stack stack) {
+    List<? extends Resource> resources = handleRequest {
+      //this means it has the ability to list resources 10 levels deep in the heat template hierarchy.
+      //provide a depth of 10 for insurance - the default template has a depth of 4.
+      getRegionClient(region).heat().resources().list(stack.name, 10)
+    }
+    resources?.find {
+      it.type == ServerGroupConstants.HEAT_ASG_RESOURCE && it.resourceName == ServerGroupConstants.ASG_RESOURCE_NAME
+    }
+  }
+
+  @Override
+  void markStackResourceUnhealthy(String region, String stackName, String stackId, String resource, ResourceHealth resourceHealth) {
+    handleRequest {
+      getRegionClient(region).heat().resources().markUnhealthy(stackName, stackId, resource, resourceHealth)
     }
   }
 }

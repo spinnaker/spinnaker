@@ -37,8 +37,6 @@ resources:
   member:
     type: OS::Heat::ResourceGroup
     properties:
-      count: 1
-      removal_policies: [{resource_list: [{resource: asg_member.yaml}]}]
       resource_def:
         # this is dynamically generated to associate a load balancer pool member from each listener to each server
         type: asg_member.yaml
