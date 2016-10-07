@@ -68,7 +68,7 @@ class TaskController {
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/applications/{application}/tasks", method = RequestMethod.GET)
   List<Orchestration> list(@PathVariable String application,
-                           @RequestParam(value = "limit", defaultValue = "2500") int limit,
+                           @RequestParam(value = "limit", defaultValue = "3500") int limit,
                            @RequestParam(value = "statuses", required = false) String statuses) {
     statuses = statuses ?: ExecutionStatus.values()*.toString().join(",")
     def executionCriteria = new ExecutionRepository.ExecutionCriteria(
