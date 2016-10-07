@@ -31,7 +31,7 @@ class StartPipelineTaskSpec extends Specification {
   StartPipelineTask task = new StartPipelineTask(front50Service: front50Service,
                                                  dependentPipelineStarter: dependentPipelineStarter)
 
-  def "should trigger the dependent pipeline with the correct context"() {
+  def "should trigger the dependent pipeline with the correct context and parentPipelineStageId"() {
     given:
       def pipelineConfig = [id: "testStrategyId", name: "testStrategy"]
       1 * front50Service.getStrategies(_) >> [pipelineConfig]
@@ -52,6 +52,7 @@ class StartPipelineTaskSpec extends Specification {
           user              : "testUser"
       ])
       def gotContext
+      def parentPipelineStageId
 
     when:
       def result = task.execute(stage)
@@ -59,6 +60,7 @@ class StartPipelineTaskSpec extends Specification {
     then:
       dependentPipelineStarter.trigger(*_) >> {
         gotContext = it[3] // 3rd arg is context.
+        parentPipelineStageId = it[4]
         return [id: "testPipelineId"]
       }
       gotContext == [
@@ -75,5 +77,6 @@ class StartPipelineTaskSpec extends Specification {
               ]
           ]
       ]
+      parentPipelineStageId == stage.id
   }
 }

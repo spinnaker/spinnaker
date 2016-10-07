@@ -18,13 +18,14 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.titus
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.AmazonServerGroupCreator
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
+import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
-class TitusServerGroupCreator implements ServerGroupCreator {
+class TitusServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAware {
 
   /**
    * Prefer composition over inheritance FTW!

@@ -58,7 +58,7 @@ class DependentPipelineExecutionListener implements JobExecutionListener {
             trigger.pipeline == execution.pipelineConfigId &&
             trigger.status.contains(convertStatus(execution))
           ) {
-            dependentPipelineStarter.trigger(it, execution.trigger?.user, execution, [:])
+            dependentPipelineStarter.trigger(it, execution.trigger?.user, execution, [:], null)
           }
         }
       }

@@ -73,7 +73,7 @@ class DependentPipelineExecutionListenerSpec extends Specification {
     listener.afterJob(jobExecution)
 
     then:
-    1 * dependentPipelineStarter.trigger(_, _, _, _)
+    1 * dependentPipelineStarter.trigger(_, _, _, _, _)
 
     where:
     status << [ExecutionStatus.SUCCEEDED, ExecutionStatus.TERMINAL]

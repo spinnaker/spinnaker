@@ -35,9 +35,9 @@ class DependentPipelineStarter {
   @Autowired
   PipelineStarter pipelineStarter
 
-  Pipeline trigger(Map pipelineConfig, String user, Execution parentPipeline, Map suppliedParameters) {
+  Pipeline trigger(Map pipelineConfig, String user, Execution parentPipeline, Map suppliedParameters, String parentPipelineStageId) {
     def json = objectMapper.writeValueAsString(pipelineConfig)
-    log.info('triggering dependant pipeline {}:{}', pipelineConfig.id, json)
+    log.info('triggering dependent pipeline {}:{}', pipelineConfig.id, json)
 
     pipelineConfig.trigger = [
       type                     : "pipeline",
@@ -48,6 +48,10 @@ class DependentPipelineStarter {
       parentExecution          : parentPipeline,
       isPipeline               : false
     ]
+
+    if (parentPipelineStageId) {
+      pipelineConfig.trigger.parentPipelineStageId = parentPipelineStageId
+    }
 
     if( parentPipeline instanceof Pipeline){
       pipelineConfig.trigger.parentPipelineName = parentPipeline.name

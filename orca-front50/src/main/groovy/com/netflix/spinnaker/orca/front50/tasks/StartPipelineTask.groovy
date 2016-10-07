@@ -73,7 +73,7 @@ class StartPipelineTask implements Task {
       }
     }
 
-    def pipeline = dependentPipelineStarter.trigger(pipelineConfig, stage.context.user, stage.execution, parameters)
+    def pipeline = dependentPipelineStarter.trigger(pipelineConfig, stage.context.user, stage.execution, parameters, stage.id)
 
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [executionId: pipeline.id, executionName: pipelineConfig.name])
 
