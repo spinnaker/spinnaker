@@ -34,6 +34,7 @@ public class JobDescription {
     private int cpu;
     private int memory;
     private int disk;
+    private int networkMbps;
     private int[] ports;
     private Map<String,String> env;
     private boolean allocateIpAddress;
@@ -68,6 +69,7 @@ public class JobDescription {
         memory = request.getMemory();
         disk = request.getDisk();
         ports = request.getPorts();
+        networkMbps = request.getNetworkMbps();
         allocateIpAddress = request.getAllocateIpAddress();
         appName = request.getApplication();
         jobGroupStack = request.getStack();
@@ -161,7 +163,16 @@ public class JobDescription {
         this.disk = disk;
     }
 
-    public int[] getPorts() {
+    public int getNetworkMbps() {
+    return networkMbps;
+  }
+
+    public void setNetworkMbps(int networkMbps) {
+    this.networkMbps = networkMbps;
+  }
+
+
+  public int[] getPorts() {
         return ports;
     }
 

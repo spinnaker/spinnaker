@@ -63,6 +63,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
     resources.cpu = job.cpu
     resources.memory = job.memory
     resources.disk = job.disk
+    resources.networkMbps = job.networkMbps
     resources.ports = job.ports ? job.ports.toList() : []
     resources.allocateIpAddress = job.allocateIpAddress
     env = job.environment

@@ -71,6 +71,7 @@ public class SubmitJobRequest {
     private int cpu;
     private int memory;
     private int disk;
+    private int networkMbps;
     private int[] ports;
     private Map<String, String> env;
     private boolean allocateIpAddress;
@@ -136,6 +137,11 @@ public class SubmitJobRequest {
     public SubmitJobRequest withPorts(int[] ports) {
         this.ports = ports;
         return this;
+    }
+
+    public SubmitJobRequest withNetworkMbps(int networkMbps) {
+      this.networkMbps = networkMbps;
+      return this;
     }
 
     public SubmitJobRequest withEnv(Map<String, String> env) {
@@ -229,6 +235,10 @@ public class SubmitJobRequest {
     public int getDisk() {
         return disk;
     }
+
+    public int getNetworkMbps() {
+    return networkMbps;
+  }
 
     public int[] getPorts() {
         return ports;

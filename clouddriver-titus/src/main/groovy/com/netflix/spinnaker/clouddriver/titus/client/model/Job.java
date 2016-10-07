@@ -177,6 +177,7 @@ public class Job {
     private int cpu;
     private int memory;
     private int disk;
+    private int networkMbps;
     private int[] ports;
     private Map<String, String> environment;
     private int retries;
@@ -394,5 +395,8 @@ public class Job {
 
     public void setSoftConstraints(List<String> softConstraints) { this.softConstraints = softConstraints; }
 
+    public int getNetworkMbps() { return networkMbps; }
+
+    public void setNetworkMbps(int networkMbps) { this.networkMbps = networkMbps; }
 
 }
