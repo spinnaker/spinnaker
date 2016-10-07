@@ -125,13 +125,13 @@ class PipelineConfigsPollingAgent extends AbstractPollingAgent {
         Trigger trigger = triggers.find { it.id == actionInstance.id }
         try {
           if (trigger) {
-            if (trigger.enabled) {
+            Pipeline pipeline = pipelines.find { it.triggers.contains(trigger) }
+            if (trigger.enabled && !pipeline.disabled) {
               if (!PipelineTriggerConverter.isInSync(actionInstance, trigger, timeZoneId)) {
                 /**
                  * The trigger has been updated, so we need to update the scheduled action
                  */
                 log.info("Trigger '${trigger}' has been updated and enabled. Recreating the scheduled action...")
-                Pipeline pipeline = pipelines.find { it.triggers.contains(trigger) }
                 ActionInstance updatedActionInstance = PipelineTriggerConverter.toScheduledAction(pipeline,
                   trigger, timeZoneId)
                 actionsOperator.updateActionInstance(updatedActionInstance)
