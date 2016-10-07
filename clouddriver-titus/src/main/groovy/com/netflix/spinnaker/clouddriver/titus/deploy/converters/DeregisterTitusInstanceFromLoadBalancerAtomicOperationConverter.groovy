@@ -20,21 +20,21 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.clouddriver.titus.TitusOperation
-import com.netflix.spinnaker.clouddriver.titus.deploy.description.ModifyTitusAsgLaunchConfigurationDescription
-import com.netflix.spinnaker.clouddriver.titus.deploy.ops.ModifyTitusAsgLaunchConfigurationOperation
+import com.netflix.spinnaker.clouddriver.titus.deploy.description.DeregisterTitusInstanceFromLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.titus.deploy.ops.DeregisterTitusInstanceFromLoadBalancerAtomicOperation
 import org.springframework.stereotype.Component
 
-@TitusOperation(AtomicOperations.UPDATE_LAUNCH_CONFIG)
-@Component("modifyTitusAsgLaunchConfigurationDescription")
-class ModifyTitusAsgLaunchConfigurationOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+@TitusOperation(AtomicOperations.DEREGISTER_INSTANCES_FROM_LOAD_BALANCER)
+@Component("deregisterTitusInstanceFromLoadBalancerDescription")
+class DeregisterTitusInstanceFromLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Override
   AtomicOperation convertOperation(Map input) {
-    new ModifyTitusAsgLaunchConfigurationOperation(convertDescription(input))
+    new DeregisterTitusInstanceFromLoadBalancerAtomicOperation(convertDescription(input))
   }
 
   @Override
-  ModifyTitusAsgLaunchConfigurationDescription convertDescription(Map input) {
-    def converted = objectMapper.convertValue(input, ModifyTitusAsgLaunchConfigurationDescription)
+  DeregisterTitusInstanceFromLoadBalancerDescription convertDescription(Map input) {
+    def converted = objectMapper.convertValue(input, DeregisterTitusInstanceFromLoadBalancerDescription)
     converted.credentials = getCredentialsObject(input.credentials as String)
     converted
   }
