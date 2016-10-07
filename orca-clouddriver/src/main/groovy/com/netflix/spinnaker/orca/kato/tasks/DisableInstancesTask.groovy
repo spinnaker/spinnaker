@@ -33,7 +33,7 @@ class DisableInstancesTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def actions = [[disableInstancesInDiscoveryDescription: stage.context], [deregisterInstancesFromLoadBalancerDescription: stage.context]]
+    def actions = [[disableInstancesInDiscovery: stage.context], [deregisterInstancesFromLoadBalancer: stage.context]]
     def taskId = katoService.requestOperations(actions)
       .toBlocking()
       .first()
