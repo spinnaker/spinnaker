@@ -83,6 +83,10 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
           status == 'complete' ? 'completed successfully' : status
         }"""
 
+      if (preference.message?."$status"?.text) {
+        body += "\n\n" + preference.message[status].text
+      }
+
       String address = preference.address.startsWith('#') ? preference.address : "#${preference.address}"
 
       slackService.sendMessage(token, new SlackMessage(body, color).buildMessage(), address, true)

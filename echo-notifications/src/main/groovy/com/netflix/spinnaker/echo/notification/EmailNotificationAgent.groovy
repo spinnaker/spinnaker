@@ -16,90 +16,100 @@
 
 package com.netflix.spinnaker.echo.notification
 
-import static groovy.json.JsonOutput.prettyPrint
-import static groovy.json.JsonOutput.toJson
-
+import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.echo.email.EmailNotificationService
 import com.netflix.spinnaker.echo.model.Event
-import groovy.util.logging.Slf4j
-import org.apache.commons.lang.WordUtils
 import org.apache.velocity.app.VelocityEngine
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import org.springframework.ui.velocity.VelocityEngineUtils
+import static groovy.json.JsonOutput.prettyPrint
+import static groovy.json.JsonOutput.toJson
 
 @Slf4j
 @ConditionalOnProperty('mail.enabled')
 @Service
 class EmailNotificationAgent extends AbstractEventNotificationAgent {
 
-    @Autowired
-    EmailNotificationService mailService
+  @Autowired
+  EmailNotificationService mailService
 
-    @Autowired
-    VelocityEngine engine
+  @Autowired
+  VelocityEngine engine
 
-    @Override
-    void sendNotifications(Map preference, String application, Event event, Map config, String status) {
-        String buildInfo = ''
+  @Override
+  void sendNotifications(Map preference, String application, Event event, Map config, String status) {
+    String buildInfo = ''
 
-        if (config.type == 'pipeline' || config.type == 'stage') {
-            if (event.content?.execution?.trigger?.buildInfo?.url) {
-                buildInfo = """build #${event.content.execution.trigger.buildInfo.number as Integer} """
-            }
-        }
-
-        String subject = '[Spinnaker] '
-
-        if(config.type == 'stage'){
-          subject = """Stage ${event.content.context.stageDetails.name} for ${application}'s ${ event.content?.execution?.name } pipeline ${buildInfo}"""
-        } else if ( config.type == 'pipeline'){
-          subject = """${application}'s ${ event.content?.execution?.name } pipeline ${buildInfo}"""
-        } else {
-          subject = """${application}'s ${event.content?.execution?.id } task """
-        }
-
-        subject += """${status == 'starting' ? 'is' : 'has'} ${
-          status == 'complete' ? 'completed successfully' : status
-        }"""
-
-        log.info("Send Email: ${preference.address} for ${application} ${config.type} ${status} ${event.content?.execution?.id}")
-
-        sendMessage(
-            [preference.address] as String[],
-            event,
-            subject,
-            config.type,
-            status,
-            config.link
-        )
+    if (config.type == 'pipeline' || config.type == 'stage') {
+      if (event.content?.execution?.trigger?.buildInfo?.url) {
+        buildInfo = """build #${
+          event.content.execution.trigger.buildInfo.number as Integer
+        } """
+      }
     }
 
-    @Override
-    String getNotificationType(){
-        'email'
+    String subject = '[Spinnaker] '
+
+    def customMessage = preference.message?."$status"
+
+    if (config.type == 'stage') {
+      subject = """Stage ${event.content.context.stageDetails.name} for ${
+        application
+      }'s ${event.content?.execution?.name} pipeline ${buildInfo}"""
+    } else if (config.type == 'pipeline') {
+      subject = """${application}'s ${
+        event.content?.execution?.name
+      } pipeline ${buildInfo}"""
+    } else {
+      subject = """${application}'s ${event.content?.execution?.id} task """
     }
 
-    private void sendMessage(String[] email, Event event, String title, String type, String status, String link) {
-        mailService.send(
-            email,
-            title,
-            VelocityEngineUtils.mergeTemplateIntoString(
-                engine,
-                type == 'stage' ? 'stage.vm' : 'pipeline.vm',
-                "UTF-8",
-                [
-                    event      : prettyPrint(toJson(event.content)),
-                    url        : spinnakerUrl,
-                    application: event.details?.application,
-                    executionId: event.content?.execution?.id,
-                    type       : type,
-                    status     : status,
-                    link       : link,
-                    name       : event.content?.execution?.name ?: event.content?.execution?.description
-                ]
-            )
-        )
-    }
+    subject += """${status == 'starting' ? 'is' : 'has'} ${
+      status == 'complete' ? 'completed successfully' : status
+    }"""
+
+    log.info("Send Email: ${preference.address} for ${application} ${config.type} ${status} ${event.content?.execution?.id}")
+
+    sendMessage(
+      [preference.address] as String[],
+      event,
+      subject,
+      config.type,
+      status,
+      config.link,
+      preference.message?."$status"?.text
+    )
+  }
+
+  @Override
+  String getNotificationType() {
+    'email'
+  }
+
+  private void sendMessage(String[] email, Event event, String title, String type, String status, String link, String customMessage) {
+    def body = VelocityEngineUtils.mergeTemplateIntoString(
+      engine,
+      type == 'stage' ? 'stage.vm' : 'pipeline.vm',
+      "UTF-8",
+      [
+        event      : prettyPrint(toJson(event.content)),
+        url        : spinnakerUrl,
+        application: event.details?.application,
+        executionId: event.content?.execution?.id,
+        type       : type,
+        status     : status,
+        link       : link,
+        name       : event.content?.execution?.name ?: event.content?.execution?.description,
+        message    : customMessage
+      ]
+    )
+
+    mailService.send(email, title, body)
+  }
+
+  private void sendMessage(String[] email, String title, String text) {
+    mailService.send(email, title, text)
+  }
 }

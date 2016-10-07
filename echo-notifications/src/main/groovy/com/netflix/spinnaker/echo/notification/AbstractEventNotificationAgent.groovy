@@ -94,7 +94,7 @@ abstract class AbstractEventNotificationAgent implements EchoEventListener {
       // pipeline level
       if (config.type == 'pipeline') {
         event.content?.execution.notifications?.each { notification ->
-          String key = "${getNotificationType()}"
+          String key = getNotificationType()
           if (notification.type == key && notification?.when?.contains("$config.type.$status".toString())) {
             sendRequests << notification
           }
@@ -105,7 +105,7 @@ abstract class AbstractEventNotificationAgent implements EchoEventListener {
       if (config.type == 'stage') {
         if (event.content?.context?.sendNotifications && ( event.content?.context?.stageDetails?.isSynthetic == false ) ) {
           event.content?.context?.notifications?.each { notification ->
-            String key = "${getNotificationType()}"
+            String key = getNotificationType()
             if (notification.type == key && notification?.when?.contains("$config.type.$status".toString())) {
               sendRequests << notification
             }
