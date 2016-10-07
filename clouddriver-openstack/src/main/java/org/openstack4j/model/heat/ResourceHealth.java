@@ -24,7 +24,7 @@ import org.openstack4j.model.heat.builder.ResourceHealthBuilder;
  * TODO remove once openstack4j 3.0.3 is released
  * This interface describes the getter-methods (and thus components) of a mark resource unhealthy request.
  *
- * @see http://developer.openstack.org/api-ref-orchestration-v1.html
+ * @see <a href="http://developer.openstack.org/api-ref-orchestration-v1.html">openstack api reference</a>
  *
  * @author Dan Maas
  *
