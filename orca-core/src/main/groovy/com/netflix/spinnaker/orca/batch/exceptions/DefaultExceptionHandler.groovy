@@ -18,7 +18,9 @@
 package com.netflix.spinnaker.orca.batch.exceptions
 
 import com.google.common.base.Throwables
+import groovy.util.logging.Slf4j
 
+@Slf4j
 class DefaultExceptionHandler implements ExceptionHandler<Exception> {
   @Override
   boolean handles(Exception e) {
@@ -29,6 +31,7 @@ class DefaultExceptionHandler implements ExceptionHandler<Exception> {
   ExceptionHandler.Response handle(String taskName, Exception e) {
     def exceptionDetails = new ExceptionHandler.ResponseDetails("Unexpected Task Failure", [e.message])
     exceptionDetails.stackTrace = Throwables.getStackTraceAsString(e)
+    log.warn("Error ocurred during task ${taskName}", e)
     return new ExceptionHandler.Response(
       exceptionType: e.class.simpleName, operation: taskName, details: exceptionDetails
     )
