@@ -31,7 +31,10 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
         url: url,
         timeout: settings.pollSchedule * 2 + 5000, // TODO: replace with apiHost call
       })
-        .then((resp) => resp.data);
+        .then((resp) => {
+          resp.data.forEach(cleanExecutionForDiffing);
+          return resp.data;
+        });
     }
 
     function getExecutions(applicationName) {
@@ -44,7 +47,10 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
         method: 'GET',
         url: url,
         timeout: settings.pollSchedule * 2 + 5000, // TODO: replace with apiHost call
-      }).then((resp) => resp.data);
+      }).then((resp) => {
+        cleanExecutionForDiffing(resp.data);
+        return resp.data;
+      });
     }
 
     function transformExecution(application, execution) {
@@ -56,18 +62,21 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
         return;
       }
       executions.forEach((execution) => {
-        (execution.stages || []).forEach(removeInstances);
-        if (execution.trigger && execution.trigger.parentExecution) {
-          (execution.trigger.parentExecution.stages || []).forEach(removeInstances);
-        }
         let stringVal = JSON.stringify(execution, jsonReplacer);
         // do not transform if it hasn't changed
-        let match = (application.executions.data || []).filter((test) => test.id === execution.id);
-        if (!match.length || !match[0].stringVal || match[0].stringVal !== stringVal) {
+        let match = (application.executions.data || []).find((test) => test.id === execution.id);
+        if (!match || !match.stringVal || match.stringVal !== stringVal) {
           execution.stringVal = stringVal;
           executionsTransformer.transformExecution(application, execution);
         }
       });
+    }
+
+    function cleanExecutionForDiffing(execution) {
+      (execution.stages || []).forEach(removeInstances);
+      if (execution.trigger && execution.trigger.parentExecution) {
+        (execution.trigger.parentExecution.stages || []).forEach(removeInstances);
+      }
     }
 
     // these fields are never displayed in the UI, so don't retain references to them, as they consume a lot of memory
@@ -282,7 +291,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       if (application.executions.data && application.executions.data.length) {
         application.executions.data.forEach((t, idx) => {
           if (execution.id === t.id) {
-            execution.stringVal = JSON.stringify(execution);
+            execution.stringVal = JSON.stringify(execution, jsonReplacer);
             if (t.stringVal !== execution.stringVal) {
               transformExecution(application, execution);
               application.executions.data[idx] = execution;
