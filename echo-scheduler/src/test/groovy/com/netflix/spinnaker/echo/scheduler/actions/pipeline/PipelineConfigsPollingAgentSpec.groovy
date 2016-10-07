@@ -72,6 +72,26 @@ class PipelineConfigsPollingAgentSpec extends Specification {
         1 * actionsOperator.disableActionInstance(actionInstance)
     }
 
+    void 'when an existing pipeline is disabled, corresponding scheduled action is also disabled'() {
+      given:
+      Trigger trigger = new Trigger(true, 't1', Trigger.Type.CRON.toString(), null, null, null, null, '* 0/30 * * * ? *', null, null, null, null, null, null, null, null, null, null)
+      Pipeline pipeline = buildPipeline([trigger], true)
+      ActionInstance actionInstance = buildScheduledAction(trigger.id, '* 0/30 * * * ? *', true)
+      pipelineCache.getPipelines() >> [pipeline]
+      actionsOperator.getActionInstances() >> [actionInstance]
+
+      when:
+      pollingAgent.execute()
+
+      then:
+      !actionInstance.disabled
+      0 * actionsOperator.enableActionInstance(_)
+      0 * actionsOperator.updateActionInstance(_)
+      0 * actionsOperator.registerActionInstance(_)
+      0 * actionsOperator.deleteActionInstance(_)
+      1 * actionsOperator.disableActionInstance(actionInstance)
+    }
+
     void 'when an existing disabled pipeline trigger is enabled, corresponding scheduled action is also enabled'() {
         given:
         Trigger trigger = new Trigger(true, 't1', Trigger.Type.CRON.toString(), null, null, null, null, '* 0/30 * * * ? *', null, null, null, null, null, null, null, null, null, null)
@@ -167,6 +187,10 @@ class PipelineConfigsPollingAgentSpec extends Specification {
     }
 
     private static Pipeline buildPipeline(List<Trigger> triggers) {
+        buildPipeline(triggers, false)
+    }
+
+    private static Pipeline buildPipeline(List<Trigger> triggers, boolean disabled) {
       Pipeline
         .builder()
         .application('api')
@@ -174,6 +198,7 @@ class PipelineConfigsPollingAgentSpec extends Specification {
         .id('p1')
         .parallel(true)
         .triggers(triggers)
+        .disabled(disabled)
         .build()
     }
 
