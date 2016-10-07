@@ -197,9 +197,14 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
     };
 
     this.restart = function () {
+      let body = null;
+      if ($scope.execution.isRunning) {
+        body = '<p><strong>This pipeline is currently running - restarting this stage will result in multiple concurrently running pipelines.</strong></p>';
+      }
       confirmationModalService.confirm({
         header: 'Really restart ' + $scope.stage.name + '?',
         buttonText: 'Restart ' + $scope.stage.name,
+        body: body,
         submitMethod: restartStage
       });
     };

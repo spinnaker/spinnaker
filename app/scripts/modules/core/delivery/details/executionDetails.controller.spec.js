@@ -46,13 +46,6 @@ describe('Controller: ExecutionDetails', function () {
       expect(this.controller.isRestartable({restartable: true, isRestarting: true})).toBe(false);
     });
 
-    it('returns false when execution is still running', function() {
-      this.$scope.execution = {
-        isRunning: true
-      };
-      expect(this.controller.isRestartable({restartable: true})).toBe(false);
-    });
-
     it('returns true when stage is restartable', function() {
       expect(this.controller.isRestartable({restartable: true})).toBe(true);
     });
