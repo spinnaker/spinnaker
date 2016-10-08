@@ -97,7 +97,7 @@ class DetermineSourceServerGroupTask implements RetryableTask {
       return new DefaultTaskResult(ExecutionStatus.RUNNING, ctx)
     }
 
-    throw new IllegalStateException("maxAttempts exceeded", lastException)
+    throw new IllegalStateException(lastException.getMessage(), lastException)
   }
 
   Boolean useSourceCapacity(Stage stage, StageData.Source source) {
