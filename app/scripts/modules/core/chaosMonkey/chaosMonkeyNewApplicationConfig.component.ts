@@ -11,7 +11,12 @@ export class ChaosMonkeyNewApplicationConfigController {
     this.enabled = settings.feature && settings.feature.chaosMonkey;
     if (this.enabled) {
       this.applicationConfig.chaosMonkey = {
-        enabled: this.enabled
+        enabled: this.enabled,
+        meanTimeBetweenKillsInWorkDays: 2,
+        minTimeBetweenKillsInWorkDays: 1,
+        grouping: 'cluster',
+        regionsAreIndependent: true,
+        exceptions: []
       };
     }
   }
