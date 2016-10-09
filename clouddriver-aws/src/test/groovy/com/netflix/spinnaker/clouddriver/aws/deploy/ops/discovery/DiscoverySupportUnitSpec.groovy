@@ -140,6 +140,38 @@ class DiscoverySupportUnitSpec extends Specification {
     instanceIds = ["i-123", "i-456"]
   }
 
+  void "should fail but still try all instances before failing task"() {
+    given:
+    def task = Mock(Task)
+    def description = new EnableDisableInstanceDiscoveryDescription(
+      region: 'us-west-1',
+      credentials: TestCredential.named('test', [discovery: discoveryUrl])
+    )
+
+    when:
+    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
+
+    then:
+    task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    1 * task.fail()
+    1 * eureka.getInstanceInfo(_) >> [ instance: [ app: appName ] ]
+    1 * eureka.updateInstanceStatus(appName, "bad", discoveryStatus.value) >> httpError(500)
+    1 * eureka.updateInstanceStatus(appName, "good", discoveryStatus.value) >> response(200)
+    1 * eureka.updateInstanceStatus(appName, "also-bad", discoveryStatus.value) >> httpError(500)
+    1 * task.updateStatus("PHASE", { it.startsWith("Looking up discovery") })
+    3 * task.updateStatus("PHASE", { it.startsWith("Attempting to mark") })
+    1 * task.updateStatus("PHASE", { it.startsWith("Failed marking instances 'UP'")})
+    0 * _
+    
+    where:
+    discoveryUrl = "http://us-west-1.discovery.netflix.net"
+    region = "us-west-1"
+    discoveryStatus = AbstractEurekaSupport.DiscoveryStatus.Enable
+    appName = "kato"
+    instanceIds = ["good", "bad", "also-bad"]
+
+  }
+
   void "should retry on http errors from discovery"() {
     given:
     def task = Mock(Task)

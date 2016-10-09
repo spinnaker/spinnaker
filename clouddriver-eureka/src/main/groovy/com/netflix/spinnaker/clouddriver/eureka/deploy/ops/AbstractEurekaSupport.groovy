@@ -81,6 +81,8 @@ abstract class AbstractEurekaSupport {
       }
     }
 
+    def errors = [:]
+    boolean shouldFail = false
     int index = 0
     for (String instanceId : instanceIds) {
       if (index > 0) {
@@ -107,7 +109,6 @@ abstract class AbstractEurekaSupport {
         }
       }
 
-      def errors = [:]
       try {
         retry(task, discoveryRetry) { retryCount ->
           task.updateStatus phaseName, "Attempting to mark ${instanceId} as '${discoveryStatus.value}' in discovery (attempt: ${retryCount})."
@@ -126,17 +127,19 @@ abstract class AbstractEurekaSupport {
       } catch (ex) {
         errors[instanceId] = ex
       }
-      if (errors) {
+      if (errors[instanceId]) {
         if (verifyInstanceAndAsgExist(description.credentials, description.region, instanceId, description.asgName)) {
-          task.updateStatus phaseName, "Failed marking instances '${discoveryStatus.value}' in discovery for instances ${errors.keySet()}"
-          task.fail()
-          AbstractEurekaSupport.log.info("Failed marking discovery $discoveryStatus.value for instances ${errors}")
+          shouldFail = true
         } else {
           task.updateStatus phaseName, "Instance '${instanceId}' does not exist and will not be marked as '${discoveryStatus.value}'"
         }
       }
-
       index++
+    }
+    if (shouldFail) {
+      task.updateStatus phaseName, "Failed marking instances '${discoveryStatus.value}' in discovery for instances ${errors.keySet()}"
+      task.fail()
+      AbstractEurekaSupport.log.info("Failed marking discovery $discoveryStatus.value for instances ${errors}")
     }
   }
 
