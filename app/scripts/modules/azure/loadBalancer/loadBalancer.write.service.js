@@ -42,7 +42,7 @@ module.exports = angular
       var operation = taskExecutor.executeTask({
         job: [params],
         application: application,
-        description: 'Delete load balancer: ' + loadBalancer.name + ' in ' + loadBalancer.accountId + ':' + loadBalancer.region
+        description: 'Delete load balancer: ' + loadBalancer.name
       });
 
       infrastructureCaches.clearCache('loadBalancers');

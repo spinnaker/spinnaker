@@ -85,6 +85,9 @@ module.exports = angular.module('spinnaker.core.task.controller', [
         controller.sortedTasks = _.filter(joinedLists, function(task) {
           return task.name.toLowerCase().indexOf(normalizedSearch) !== -1 ||
             task.id.toLowerCase().indexOf(normalizedSearch) !== -1 ||
+            (task.getValueFor('credentials') || '').toLowerCase().indexOf(normalizedSearch) !== -1 ||
+            (task.getValueFor('region') || '').toLowerCase().indexOf(normalizedSearch) !== -1 ||
+            (task.getValueFor('regions') || []).join(' ').toLowerCase().indexOf(normalizedSearch) !== -1 ||
             (task.getValueFor('user') || '').toLowerCase().indexOf(normalizedSearch) !== -1;
         });
       }
@@ -165,7 +168,7 @@ module.exports = angular.module('spinnaker.core.task.controller', [
 
     controller.getFirstDeployServerGroupName = function(task) {
       if(task.execution && task.execution.stages) {
-        var stage = findStageWithTaskInExecution(task.execution, ['createCopyLastAsg', 'createDeploy']);
+        var stage = findStageWithTaskInExecution(task.execution, ['createCopyLastAsg', 'createDeploy', 'cloneServerGroup', 'createServerGroup']);
         return _.chain(stage)
           .get('context')
           .get('deploy.server.groups')
