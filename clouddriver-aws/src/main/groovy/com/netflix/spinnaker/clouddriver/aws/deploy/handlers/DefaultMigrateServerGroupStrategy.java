@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.handlers;
 
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults;
+import com.netflix.spinnaker.clouddriver.aws.deploy.converters.AllowLaunchAtomicOperationConverter;
 import com.netflix.spinnaker.clouddriver.aws.deploy.validators.BasicAmazonDeployDescriptionValidator;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory;
@@ -28,17 +29,20 @@ public class DefaultMigrateServerGroupStrategy extends MigrateServerGroupStrateg
   private DeployDefaults deployDefaults;
   private BasicAmazonDeployHandler basicAmazonDeployHandler;
   private BasicAmazonDeployDescriptionValidator basicAmazonDeployDescriptionValidator;
+  private AllowLaunchAtomicOperationConverter allowLaunchAtomicOperationConverter;
 
   public DefaultMigrateServerGroupStrategy(AmazonClientProvider amazonClientProvider,
                                            BasicAmazonDeployHandler basicAmazonDeployHandler,
                                            RegionScopedProviderFactory regionScopedProviderFactory,
                                            BasicAmazonDeployDescriptionValidator basicAmazonDeployDescriptionValidator,
+                                           AllowLaunchAtomicOperationConverter allowLaunchAtomicOperationConverter,
                                            DeployDefaults deployDefaults) {
 
     this.amazonClientProvider = amazonClientProvider;
     this.basicAmazonDeployHandler = basicAmazonDeployHandler;
     this.regionScopedProviderFactory = regionScopedProviderFactory;
     this.basicAmazonDeployDescriptionValidator = basicAmazonDeployDescriptionValidator;
+    this.allowLaunchAtomicOperationConverter = allowLaunchAtomicOperationConverter;
     this.deployDefaults = deployDefaults;
   }
 
@@ -65,5 +69,10 @@ public class DefaultMigrateServerGroupStrategy extends MigrateServerGroupStrateg
   @Override
   public BasicAmazonDeployDescriptionValidator getBasicAmazonDeployDescriptionValidator() {
     return basicAmazonDeployDescriptionValidator;
+  }
+
+  @Override
+  AllowLaunchAtomicOperationConverter getAllowLaunchAtomicOperationConverter() {
+    return allowLaunchAtomicOperationConverter;
   }
 }

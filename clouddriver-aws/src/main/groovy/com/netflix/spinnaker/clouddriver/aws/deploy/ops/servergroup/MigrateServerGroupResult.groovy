@@ -21,7 +21,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.MigrateSec
 
 class MigrateServerGroupResult {
   List<String> serverGroupNames
-  List<String> warnings
+  List<String> warnings = []
   List<MigrateLoadBalancerResult> loadBalancers
   List<MigrateSecurityGroupResult> securityGroups
 }

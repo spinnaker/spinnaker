@@ -27,6 +27,8 @@ import com.amazonaws.services.ec2.model.SecurityGroup
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.AWSServerGroupNameResolver
+import com.netflix.spinnaker.clouddriver.aws.deploy.converters.AllowLaunchAtomicOperationConverter
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.AllowLaunchAtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.MigrateLoadBalancerResult
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.MigrateSecurityGroupReference
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.MigrateSecurityGroupResult
@@ -81,10 +83,14 @@ class MigrateServerGroupStrategySpec extends Specification {
 
   BasicAmazonDeployDescriptionValidator validator = Stub(BasicAmazonDeployDescriptionValidator)
 
+  AllowLaunchAtomicOperationConverter allowLaunchAtomicOperationConverter = Mock(AllowLaunchAtomicOperationConverter)
+
+  AllowLaunchAtomicOperation allowLaunchOperation = Mock(AllowLaunchAtomicOperation)
+
   void setup() {
     TaskRepository.threadLocalTask.set(Stub(Task))
     strategy = new DefaultMigrateServerGroupStrategy(amazonClientProvider, basicAmazonDeployHandler,
-      regionScopedProviderFactory, validator, deployDefaults)
+      regionScopedProviderFactory, validator, allowLaunchAtomicOperationConverter, deployDefaults)
   }
 
   void 'generates load balancers from launch config'() {
@@ -114,6 +120,8 @@ class MigrateServerGroupStrategySpec extends Specification {
     1 * asgService.getAutoScalingGroup('asg-v001') >> asg
     1 * asgService.getLaunchConfiguration('asg-v001-lc') >> lc
     1 * deployDefaults.getAddAppGroupToServerGroup() >> false
+    1 * allowLaunchAtomicOperationConverter.convertOperation(_) >> allowLaunchOperation
+    1 * allowLaunchOperation.operate(null)
     1 * migrateLoadBalancerStrategy.generateResults(sourceLookup, targetLookup,
       migrateSecurityGroupStrategy,
       {s -> s.name == 'lb-1' && s.region == 'us-east-1' && s.credentials == testCredentials && s.vpcId == 'vpc-1'},
@@ -165,6 +173,8 @@ class MigrateServerGroupStrategySpec extends Specification {
     1 * asgService.getAutoScalingGroup('asg-v001') >> asg
     1 * asgService.getLaunchConfiguration('asg-v001-lc') >> lc
     1 * deployDefaults.getAddAppGroupToServerGroup() >> false
+    1 * allowLaunchAtomicOperationConverter.convertOperation(_) >> allowLaunchOperation
+    1 * allowLaunchOperation.operate(null)
     1 * migrateSecurityGroupStrategy.generateResults(
       {s -> s.name == 'group1' && s.region == 'us-east-1' && s.credentials == testCredentials},
       {s -> s.region == 'eu-west-1' && s.credentials == prodCredentials},
@@ -208,6 +218,8 @@ class MigrateServerGroupStrategySpec extends Specification {
     1 * asgService.getAutoScalingGroup('asg-v001') >> asg
     1 * asgService.getLaunchConfiguration('asg-v001-lc') >> lc
     1 * deployDefaults.getAddAppGroupToServerGroup() >> true
+    1 * allowLaunchAtomicOperationConverter.convertOperation(_) >> allowLaunchOperation
+    1 * allowLaunchOperation.operate(null)
     1 * migrateSecurityGroupStrategy.generateResults(
       {s -> s.name == 'asg' && s.region == 'us-east-1' && s.credentials == testCredentials},
       {s -> s.region == 'eu-west-1' && s.credentials == prodCredentials},
@@ -284,6 +296,8 @@ class MigrateServerGroupStrategySpec extends Specification {
     1 * asgService.getAutoScalingGroup('asg-v001') >> asg
     1 * asgService.getLaunchConfiguration('asg-v001-lc') >> lc
     1 * deployDefaults.getAddAppGroupToServerGroup() >> false
+    1 * allowLaunchAtomicOperationConverter.convertOperation(_) >> allowLaunchOperation
+    1 * allowLaunchOperation.operate(null)
     1 * basicAmazonDeployHandler.copySourceAttributes(regionScopedProvider, 'asg-v001', false, _) >> { a, b, c, d -> d }
     1 * basicAmazonDeployHandler.handle({d -> d.suspendedProcesses.sort() == ['otherProcess', 'someProcess']}, []) >> new DeploymentResult(serverGroupNames: ['asg-v003'])
     0 * _
@@ -315,6 +329,8 @@ class MigrateServerGroupStrategySpec extends Specification {
     1 * asgService.getAutoScalingGroup('asg-v001') >> asg
     1 * asgService.getLaunchConfiguration('asg-v001-lc') >> lc
     1 * deployDefaults.getAddAppGroupToServerGroup() >> false
+    1 * allowLaunchAtomicOperationConverter.convertOperation(_) >> allowLaunchOperation
+    1 * allowLaunchOperation.operate(null)
     1 * basicAmazonDeployHandler.copySourceAttributes(regionScopedProvider, 'asg-v001', false, _) >> { a, b, c, d -> d }
     1 * basicAmazonDeployHandler.handle(_, []) >> new DeploymentResult(serverGroupNames: ['asg-v003'])
     0 * _
