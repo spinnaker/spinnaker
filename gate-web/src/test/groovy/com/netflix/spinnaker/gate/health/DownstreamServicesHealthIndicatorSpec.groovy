@@ -121,4 +121,19 @@ class DownstreamServicesHealthIndicatorSpec extends Specification {
     1 * healthBuilder.down() >> { healthBuilder }
     1 * healthBuilder.withDetail("errors", ["test": "Unable to connect (url: http://localhost)"])
   }
+
+  def "should noop if no request attributes are available"() {
+    given:
+    def healthIndicator = new DownstreamServicesHealthIndicator(["test": healthCheckableService])
+    def healthBuilder = Mock(Health.Builder)
+
+    and:
+    RequestContextHolder.setRequestAttributes(null)
+
+    when:
+    healthIndicator.doHealthCheck(healthBuilder)
+
+    then:
+    0 * _
+  }
 }
