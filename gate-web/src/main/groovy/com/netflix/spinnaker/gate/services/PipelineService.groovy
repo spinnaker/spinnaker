@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.gate.services
 
+import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OrcaService
@@ -32,6 +33,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @Component
 @Slf4j
 class PipelineService {
+  private static final String GROUP = "pipelines"
+
   @Autowired(required = false)
   Front50Service front50Service
 
@@ -49,7 +52,9 @@ class PipelineService {
   }
 
   void save(Map pipeline) {
-    front50Service.savePipelineConfig(pipeline)
+    HystrixFactory.newVoidCommand(GROUP, "savePipeline") {
+      front50Service.savePipelineConfig(pipeline)
+    } execute()
   }
 
   void move(Map moveCommand) {

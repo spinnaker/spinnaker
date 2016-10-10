@@ -68,15 +68,23 @@ public class GateWebConfig extends WebMvcConfigurerAdapter {
                                         UpstreamBadRequest exception) {
       response.setStatus(exception.status)
 
+      def message = exception.message
       def failureCause = exception.cause
       if (failureCause instanceof RetrofitError) {
+        try {
+          def retrofitBody = failureCause.getBodyAs(Map) as Map
+          message = retrofitBody.error ?: message
+        } catch (Exception ignored) {
+          // unable to extract error from response
+        }
+
         failureCause = failureCause.cause ?: failureCause
       }
 
       return [
         failureCause: failureCause.toString(),
         error: HttpStatus.valueOf(exception.status).reasonPhrase,
-        message: exception.message,
+        message: message,
         status: exception.status,
         url: exception.url,
         timestamp: System.currentTimeMillis()
