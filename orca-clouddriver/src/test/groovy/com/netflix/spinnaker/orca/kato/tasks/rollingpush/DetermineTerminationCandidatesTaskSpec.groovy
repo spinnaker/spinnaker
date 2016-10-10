@@ -23,14 +23,16 @@ import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DetermineTerminationCandidatesTaskSpec extends Specification {
 
   def oortService = Mock(OortService)
   def task = new DetermineTerminationCandidatesTask(oortService: oortService, objectMapper: new ObjectMapper())
 
-  def 'should order instances correctly'() {
-    def termination = buildTermination(order, relaunchAllInstances, totalRelaunches)
+  @Unroll
+  def 'should order and filter instances correctly'() {
+    def termination = buildTermination(order, relaunchAllInstances, totalRelaunches, concurrentRelaunches, instances)
 
     def context = [
       account     : account,
@@ -59,15 +61,17 @@ class DetermineTerminationCandidatesTaskSpec extends Specification {
     response.stageOutputs.knownInstanceIds.toSet() == knownInstanceIds.toSet()
 
     where:
-    order    | relaunchAllInstances | totalRelaunches | expectedTerminations
-    null     | null                 | null            | ['i-1', 'i-2', 'i-3', 'i-4']
-    'oldest' | null                 | null            | ['i-1', 'i-2', 'i-3', 'i-4']
-    'newest' | null                 | null            | ['i-4', 'i-3', 'i-2', 'i-1']
-    'oldest' | null                 | 2               | ['i-1', 'i-2']
-    'oldest' | true                 | 2               | ['i-1', 'i-2', 'i-3', 'i-4']
-    'oldest' | false                | 2               | ['i-1', 'i-2']
-    'newest' | false                | 2               | ['i-4', 'i-3']
-
+    order    | relaunchAllInstances | totalRelaunches | instances             || expectedTerminations
+    null     | null                 | null            | null                  || ['i-1', 'i-2', 'i-3', 'i-4']
+    'oldest' | null                 | null            | null                  || ['i-1', 'i-2', 'i-3', 'i-4']
+    'newest' | null                 | null            | null                  || ['i-4', 'i-3', 'i-2', 'i-1']
+    'oldest' | null                 | 2               | null                  || ['i-1', 'i-2']
+    'oldest' | true                 | 2               | null                  || ['i-1', 'i-2', 'i-3', 'i-4']
+    'oldest' | false                | 2               | null                  || ['i-1', 'i-2']
+    'newest' | false                | 2               | null                  || ['i-4', 'i-3']
+    null     | true                 | 4               | null                  || ['i-1', 'i-2', 'i-3', 'i-4']
+    null     | true                 | 4               | ['i-4', 'i-9']        || ['i-4']
+    null     | true                 | 4               | ['i-4', 'i-2', 'i-3'] || ['i-4', 'i-2', 'i-3']
 
     account = 'test'
     application = 'foo'
@@ -77,10 +81,10 @@ class DetermineTerminationCandidatesTaskSpec extends Specification {
     region = 'us-east-1'
     providerType = 'aws'
     knownInstanceIds = ['i-1', 'i-2', 'i-3', 'i-4']
-
+    concurrentRelaunches = totalRelaunches
   }
 
-  Map buildTermination(String order = null, Boolean relaunchAllInstances = null, Integer totalRelaunches = null, Integer concurrentRelaunches = null) {
+  Map buildTermination(String order = null, Boolean relaunchAllInstances = null, Integer totalRelaunches = null, Integer concurrentRelaunches = null, ArrayList instances = null) {
     def termination = [:]
     if (order) {
       termination.order = order
@@ -93,6 +97,9 @@ class DetermineTerminationCandidatesTaskSpec extends Specification {
     }
     if (concurrentRelaunches != null) {
       termination.concurrentRelaunches = concurrentRelaunches
+    }
+    if (instances != null) {
+      termination.instances = instances
     }
 
     return termination
