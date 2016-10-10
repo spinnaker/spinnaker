@@ -43,7 +43,7 @@ export class LoadBalancersTagController implements ng.IComponentController {
 
         let matchedHealth: LoadBalancer = lbHealth.loadBalancers.find(lb => lb.name === match.name);
 
-        if ( matchedHealth && loadBalancer.instanceCounts[matchedHealth.healthState.toLowerCase()] !== undefined) {
+        if (matchedHealth !== undefined && matchedHealth.healthState !== undefined && loadBalancer.instanceCounts[matchedHealth.healthState.toLowerCase()] !== undefined) {
           loadBalancer.instanceCounts[matchedHealth.healthState.toLowerCase()]++;
         }
       }

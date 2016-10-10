@@ -11,19 +11,19 @@
                        heading="{{title}}"
                        task-monitor="taskMonitor"
                        dismiss="$dismiss()">
-        <v2-wizard-page key="location" label="Location" hide-subheading="true">
+        <v2-wizard-page key="location" label="Location" hide-subheading="true" done="false" mandatory="true">
           <ng-include src="pages.basicSettings"></ng-include>
         </v2-wizard-page>
-        <v2-wizard-page key="instance-settings" label="Instance Settings" mark-complete-on-view="false">
+        <v2-wizard-page key="instance-settings" label="Instance Settings" mark-complete-on-view="false" done="false" mandatory="true">
           <ng-include src="pages.instanceSettings"></ng-include>
         </v2-wizard-page>
-        <v2-wizard-page key="cluster-size" label="Cluster Size" mark-complete-on-view="true">
+        <v2-wizard-page key="cluster-size" label="Cluster Size" mark-complete-on-view="true" done="false" mandatory="true">
           <ng-include src="pages.clusterSettings"></ng-include>
         </v2-wizard-page>
-        <v2-wizard-page key="access-settings" label="Access" mark-complete-on-view="false">
+        <v2-wizard-page key="access-settings" label="Access" mark-complete-on-view="false" done="false" mandatory="true">
           <ng-include src="pages.accessSettings"></ng-include>
         </v2-wizard-page>
-        <v2-wizard-page key="advanced-settings" label="Advanced Settings" mark-complete-on-view="false" done="true">
+        <v2-wizard-page key="advanced-settings" label="Advanced Settings" mark-complete-on-view="false" done="true" mandatory="false">
             <ng-include src="pages.advancedSettings"></ng-include>
         </v2-wizard-page>
       </v2-modal-wizard>

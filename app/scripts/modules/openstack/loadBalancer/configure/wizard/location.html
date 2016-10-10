@@ -37,6 +37,7 @@
                  ng-model="loadBalancer.stack"
                  name="stackName"
                  ng-change="ctrl.updateName()"
+                 required="true"
                  ng-pattern="/^[a-zA-Z0-9]*$/"/>
         </div>
       </div>
@@ -50,6 +51,7 @@
                  ng-model="loadBalancer.detail"
                  name="detailName"
                  ng-change="ctrl.updateName()"
+                 required="true"
                  ng-pattern="/^[a-zA-Z0-9-]*$/"/>
         </div>
       </div>
