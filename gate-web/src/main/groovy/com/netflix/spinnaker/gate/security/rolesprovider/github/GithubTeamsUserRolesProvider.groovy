@@ -19,11 +19,10 @@ package com.netflix.spinnaker.gate.security.rolesprovider.github
 import com.netflix.spinnaker.gate.config.GitHubProperties
 import com.netflix.spinnaker.gate.security.rolesprovider.UserRolesProvider
 import com.netflix.spinnaker.gate.security.rolesprovider.github.client.GitHubMaster
-
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
 import org.springframework.util.Assert
 import retrofit.RetrofitError
@@ -31,7 +30,7 @@ import retrofit.client.Response
 
 @Slf4j
 @Component
-@ConditionalOnProperty(value = "auth.groupMembership.service", havingValue = "github")
+@ConditionalOnExpression('!${services.fiat.enabled:false} and "github".equalsIgnoreCase("${auth.groupMembership.service:}")')
 class GithubTeamsUserRolesProvider implements UserRolesProvider, InitializingBean {
 
   @Autowired

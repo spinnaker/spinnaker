@@ -32,7 +32,7 @@ import com.netflix.spinnaker.gate.security.rolesprovider.UserRolesProvider
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
@@ -40,7 +40,7 @@ import org.springframework.util.Assert
 
 @Slf4j
 @Component
-@ConditionalOnProperty(value = "auth.groupMembership.service", havingValue = "google")
+@ConditionalOnExpression('!${services.fiat.enabled:false} and "google".equalsIgnoreCase("${auth.groupMembership.service:}")')
 class GoogleDirectoryUserRolesProvider implements UserRolesProvider, InitializingBean {
 
   @Autowired
