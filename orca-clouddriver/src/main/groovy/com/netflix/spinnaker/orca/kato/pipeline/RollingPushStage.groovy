@@ -22,24 +22,26 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.batch.StageExecutionListener
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.TerminateInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForDownInstanceHealthTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForTerminatedInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstanceHealthTask
-import com.netflix.spinnaker.orca.kato.tasks.*
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.kato.tasks.DisableInstancesTask
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.CheckForRemainingTerminationsTask
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.DetermineTerminationCandidatesTask
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.DetermineTerminationPhaseInstancesTask
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.WaitForNewInstanceLaunchTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask
 import groovy.transform.CompileStatic
 import org.slf4j.LoggerFactory
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.job.builder.FlowBuilder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 import static com.netflix.spinnaker.orca.ExecutionStatus.REDIRECT
 
@@ -61,6 +63,9 @@ class RollingPushStage extends StageBuilder {
     jobBuilder.next(buildStep(stage, "determineTerminationCandidates", DetermineTerminationCandidatesTask))
     def startOfCycle = buildStep(stage, "determineCurrentPhaseTerminations", DetermineTerminationPhaseInstancesTask)
     jobBuilder.next(startOfCycle)
+    if (((Map) stage.context.termination)?.waitTime) {
+      jobBuilder.next(buildStep(stage, "wait", WaitTask))
+    }
     jobBuilder.next(buildStep(stage, "disableInstances", DisableInstancesTask))
     jobBuilder.next(buildStep(stage, "monitorDisable", MonitorKatoTask))
     jobBuilder.next(buildStep(stage, "waitForDisabledState", WaitForDownInstanceHealthTask))
