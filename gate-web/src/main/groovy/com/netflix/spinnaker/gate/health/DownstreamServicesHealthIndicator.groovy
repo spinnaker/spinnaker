@@ -71,8 +71,12 @@ class DownstreamServicesHealthIndicator extends AbstractHealthIndicator {
 
   @Override
   protected void doHealthCheck(Health.Builder builder) throws Exception {
-    def httpServletRequest = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest()
+    def attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes()
+    if (!attributes) {
+      return
+    }
 
+    def httpServletRequest = attributes.getRequest()
     if (Boolean.valueOf(httpServletRequest.getParameter("checkDownstreamServices") ?: "false")) {
       // force a re-check of downstream services
       skipDownstreamServiceChecks.set(false)
