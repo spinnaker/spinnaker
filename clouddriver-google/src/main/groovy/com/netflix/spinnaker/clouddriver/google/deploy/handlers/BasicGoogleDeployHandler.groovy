@@ -115,6 +115,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     def zone = description.zone
     def region = description.region ?: credentials.regionFromZone(zone)
     def location = isRegional ? region : zone
+    def instanceMetadata = description.instanceMetadata
 
     def serverGroupNameResolver = new GCEServerGroupNameResolver(project, region, credentials)
     def clusterName = serverGroupNameResolver.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
@@ -148,6 +149,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       description.subnet ? GCEUtil.querySubnet(accountName, region, description.subnet, task, BASE_PHASE, googleSubnetProvider) : null
 
     def targetPools = []
+    def internalLoadBalancers = []
 
     // We need the full url for each referenced network load balancer, and also to check that the HTTP(S)
     // load balancers exist.
@@ -157,6 +159,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                              description.loadBalancers,
                                                              task,
                                                              BASE_PHASE)
+
+      // Queue ILBs to update, but wait to update metadata until Https LBs are calculated.
+      internalLoadBalancers = foundLoadBalancers.findAll { it.loadBalancerType == GoogleLoadBalancerType.INTERNAL }
 
       if (!description.disableTraffic) {
         def networkLoadBalancers = foundLoadBalancers.findAll { it.loadBalancerType == GoogleLoadBalancerType.NETWORK }
@@ -176,8 +181,8 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def networkInterface = GCEUtil.buildNetworkInterface(network, subnet, ACCESS_CONFIG_NAME, ACCESS_CONFIG_TYPE)
 
-    def hasBackendServices = description.instanceMetadata &&
-      description.instanceMetadata.containsKey(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)
+    def hasBackendServices = instanceMetadata &&
+      instanceMetadata.containsKey(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)
 
     // Resolve and queue the backend service updates, but don't execute yet.
     // We need to resolve this information to set metadata in the template so enable can know about the
@@ -185,9 +190,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     // If we try to execute the update, GCP will fail since the MIG is not created yet.
     List<BackendService> backendServicesToUpdate = []
     if (hasBackendServices) {
-      List<String> backendServices = description.instanceMetadata[GoogleServerGroup.View.BACKEND_SERVICE_NAMES].split(",")
-      description.instanceMetadata[GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES] = GCEUtil.resolveHttpLoadBalancerNamesMetadata(backendServices, compute, project).join(",")
-      String sourcePolicyJson = description.instanceMetadata[GoogleServerGroup.View.LOAD_BALANCING_POLICY]
+      List<String> backendServices = instanceMetadata[GoogleServerGroup.View.BACKEND_SERVICE_NAMES].split(",")
+      instanceMetadata[GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES] = GCEUtil.resolveHttpLoadBalancerNamesMetadata(backendServices, compute, project).join(",")
+      String sourcePolicyJson = instanceMetadata[GoogleServerGroup.View.LOAD_BALANCING_POLICY]
       def loadBalancingPolicy = description.loadBalancingPolicy
 
       backendServices.each { String backendServiceName ->
@@ -195,13 +200,13 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
         Backend backendToAdd
         if (loadBalancingPolicy?.balancingMode) {
-          description.instanceMetadata[(GoogleServerGroup.View.LOAD_BALANCING_POLICY)] = objectMapper.writeValueAsString(loadBalancingPolicy)
+          instanceMetadata[(GoogleServerGroup.View.LOAD_BALANCING_POLICY)] = objectMapper.writeValueAsString(loadBalancingPolicy)
           backendToAdd = GCEUtil.backendFromLoadBalancingPolicy(loadBalancingPolicy)
         } else if (sourcePolicyJson) {
           // We don't have to update the metadata here, since we are reading these properties directly from it.
           backendToAdd = GCEUtil.backendFromLoadBalancingPolicy(objectMapper.readValue(sourcePolicyJson, GoogleHttpLoadBalancingPolicy))
         } else {
-          description.instanceMetadata[(GoogleServerGroup.View.LOAD_BALANCING_POLICY)] = objectMapper.writeValueAsString(
+          instanceMetadata[(GoogleServerGroup.View.LOAD_BALANCING_POLICY)] = objectMapper.writeValueAsString(
             // Sane defaults in case of a create with no LoadBalancingPolicy specified.
             new GoogleHttpLoadBalancingPolicy(
               balancingMode: GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION,
@@ -226,7 +231,38 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       }
     }
 
-    def metadata = GCEUtil.buildMetadataFromMap(description.instanceMetadata)
+    // Update the instance metadata for ILBs and queue up region backend service calls.
+    List<BackendService> regionBackendServicesToUpdate = []
+    if (internalLoadBalancers) {
+      List<String> existingRegionalLbs = instanceMetadata[GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES]?.split(",") ?: []
+      def ilbServices = internalLoadBalancers.collect { it.backendService.name }
+      def ilbNames = internalLoadBalancers.collect { it.name }
+
+      ilbNames.each { String ilbName ->
+        if (!(ilbName in existingRegionalLbs))  {
+          existingRegionalLbs << ilbName
+        }
+      }
+      instanceMetadata[GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES] = existingRegionalLbs.join(",")
+
+      ilbServices.each { String backendServiceName ->
+        BackendService backendService = compute.regionBackendServices().get(project, region, backendServiceName).execute()
+        Backend backendToAdd = new Backend()
+        if (isRegional) {
+          backendToAdd.setGroup(GCEUtil.buildRegionalServerGroupUrl(project, region, serverGroupName))
+        } else {
+          backendToAdd.setGroup(GCEUtil.buildZonalServerGroupUrl(project, zone, serverGroupName))
+        }
+
+        if (backendService.backends == null) {
+          backendService.backends = new ArrayList<Backend>()
+        }
+        backendService.backends << backendToAdd
+        regionBackendServicesToUpdate << backendService
+      }
+    }
+
+    def metadata = GCEUtil.buildMetadataFromMap(instanceMetadata)
 
     def tags = GCEUtil.buildTagsFromList(description.tags)
 
@@ -322,11 +358,12 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def willUpdateBackendServices = !description.disableTraffic && hasBackendServices
     def willCreateAutoscaler = autoscalerIsSpecified(description)
+    def willUpdateIlbs = !description.disableTraffic && internalLoadBalancers
 
     if (isRegional) {
       migCreateOperation = compute.regionInstanceGroupManagers().insert(project, region, instanceGroupManager).execute()
 
-      if (willUpdateBackendServices || willCreateAutoscaler) {
+      if (willUpdateBackendServices || willCreateAutoscaler || willUpdateIlbs) {
         // Before updating the Backend Services or creating the Autoscaler we must wait until the managed instance group is created.
         googleOperationPoller.waitForRegionalOperation(compute, project, region, migCreateOperation.getName(),
           null, task, "managed instance group $serverGroupName", BASE_PHASE)
@@ -344,7 +381,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     } else {
       migCreateOperation = compute.instanceGroupManagers().insert(project, zone, instanceGroupManager).execute()
 
-      if (willUpdateBackendServices || willCreateAutoscaler) {
+      if (willUpdateBackendServices || willCreateAutoscaler || willUpdateIlbs) {
         // Before updating the Backend Services or creating the Autoscaler we must wait until the managed instance group is created.
         googleOperationPoller.waitForZonalOperation(compute, project, zone, migCreateOperation.getName(),
           null, task, "managed instance group $serverGroupName", BASE_PHASE)
@@ -380,6 +417,21 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       }
     }
 
+    if (willUpdateIlbs) {
+      regionBackendServicesToUpdate.each { BackendService backendService ->
+        retry.doRetry(
+          updateRegionBackendServices(compute, project, region, backendService.name, backendService),
+          "update",
+          "Internal load balancer backend service",
+          task,
+          BASE_PHASE,
+          [400, 412],
+          []
+        )
+        task.updateStatus BASE_PHASE, "Done associating server group $serverGroupName with backend service ${backendService.name}."
+      }
+    }
+
     DeploymentResult deploymentResult = new DeploymentResult()
     deploymentResult.serverGroupNames = ["$region:$serverGroupName".toString()]
     deploymentResult.serverGroupNameByRegion[region] = serverGroupName
@@ -389,6 +441,19 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
   private boolean autoscalerIsSpecified(BasicGoogleDeployDescription description) {
     return description.autoscalingPolicy?.with {
       cpuUtilization || loadBalancingUtilization || customMetricUtilizations
+    }
+  }
+
+  private Closure updateRegionBackendServices(Compute compute, String project, String region, String backendServiceName, BackendService backendService) {
+    return {
+      BackendService serviceToUpdate = compute.regionBackendServices().get(project, region, backendServiceName).execute()
+      if (serviceToUpdate.backends == null) {
+        serviceToUpdate.backends = new ArrayList<Backend>()
+      }
+      backendService?.backends?.each { serviceToUpdate.backends << it }
+      serviceToUpdate.getBackends().unique { backend -> backend.group }
+      compute.regionBackendServices().update(project, region, backendServiceName, serviceToUpdate).execute()
+      null
     }
   }
 

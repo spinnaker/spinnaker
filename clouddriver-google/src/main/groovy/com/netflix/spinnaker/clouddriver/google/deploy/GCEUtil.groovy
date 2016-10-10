@@ -733,7 +733,7 @@ class GCEUtil {
    *
    * @param policy - The load balancing policy to build the Backend from.
    * @return Backend created from the load balancing policy.
-     */
+   */
   static Backend backendFromLoadBalancingPolicy(GoogleHttpLoadBalancingPolicy policy) {
     def balancingMode = policy.balancingMode
     return new Backend(
