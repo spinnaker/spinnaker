@@ -63,7 +63,7 @@ module.exports = angular.module('spinnaker.core.cache.deckCacheFactory', [
           if (k.indexOf(settings.gateUrl) > -1) {
             let response = JSON.parse(v);
             if (response.value && Array.isArray(response.value) && response.value.length > 2 && Array.isArray(response.value[2])) {
-              if (response.value[2]['content-type'] && response.value[2]['content-type'].indexOf('application/json') < 0) {
+              if (response.value[2]['content-type'] && !response.value[2]['content-type'].includes('application/json')) {
                 return;
               }
             }

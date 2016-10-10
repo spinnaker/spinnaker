@@ -30,7 +30,7 @@ module.exports = angular.module('spinnaker.deck.docker.imageAndTagSelector.compo
 
         this.registry = $scope.registryMap[this.account];
         $scope.organizations = $scope.accountMap[this.account] || [];
-        if ($scope.organizations.indexOf(this.organization) < 0) {
+        if (!$scope.organizations.includes(this.organization)) {
           this.organization = null;
         }
         updateRepositoryList();
@@ -42,7 +42,7 @@ module.exports = angular.module('spinnaker.deck.docker.imageAndTagSelector.compo
         }
         let key = `${this.account}/${this.organization || '' }`;
         $scope.repositories = $scope.organizationMap[key] || [];
-        if ($scope.repositories.indexOf(this.repository) < 0) {
+        if (!$scope.repositories.includes(this.repository)) {
           this.repository = null;
         }
         updateTag();
@@ -62,7 +62,7 @@ module.exports = angular.module('spinnaker.deck.docker.imageAndTagSelector.compo
           }
           let key = this.repository;
           $scope.tags = $scope.repositoryMap[key] || [];
-          if ($scope.tags.indexOf(this.tag) < 0) {
+          if (!$scope.tags.includes(this.tag)) {
             this.tag = null;
           }
         };
@@ -84,7 +84,7 @@ module.exports = angular.module('spinnaker.deck.docker.imageAndTagSelector.compo
             let parts = image.repository.split('/');
             parts.pop();
             let org = parts.join('/');
-            if (all.indexOf(org) < 0) {
+            if (!all.includes(org)) {
               map[key] = all.concat(org);
             }
             return map;
@@ -98,7 +98,7 @@ module.exports = angular.module('spinnaker.deck.docker.imageAndTagSelector.compo
             parts.pop();
             let key = `${image.account}/${parts.join('/')}`;
             let all = map[key] || [];
-            if (all.indexOf(image.repository) < 0) {
+            if (!all.includes(image.repository)) {
               map[key] = all.concat(image.repository);
             }
             return map;
@@ -113,7 +113,7 @@ module.exports = angular.module('spinnaker.deck.docker.imageAndTagSelector.compo
 
             let key = image.repository;
             let all = map[key] || [];
-            if (all.indexOf(image.tag) < 0) {
+            if (!all.includes(image.tag)) {
               map[key] = all.concat(image.tag);
             }
 

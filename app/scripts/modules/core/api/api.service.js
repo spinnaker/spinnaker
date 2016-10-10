@@ -17,7 +17,7 @@ module.exports = angular
     };
 
     var getData = (results) => {
-      if (results.headers('content-type') && results.headers('content-type').indexOf('application/json') < 0) {
+      if (results.headers('content-type') && !results.headers('content-type').includes('application/json')) {
         authenticationInitializer.reauthenticateUser();
         return $q.reject(results);
       }

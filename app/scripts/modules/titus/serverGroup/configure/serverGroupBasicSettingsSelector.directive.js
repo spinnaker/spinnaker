@@ -35,7 +35,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.basicSett
     };
 
     let isNotExpressionLanguage = (field) => {
-      return field && field.indexOf('${') < 0;
+      return field && !field.includes('${');
     };
 
   });

@@ -165,7 +165,7 @@ module.exports = angular
     this.accountChanged = () => {
       let subnets = this.accountMapping.map(m => m.target).map(a => this.subnetsByAccount[a]);
       this.subnets = _.intersection.apply(null, subnets);
-      if (this.subnets.indexOf(this.targetSubnet) < 0) {
+      if (!this.subnets.includes(this.targetSubnet)) {
         this.targetSubnet = this.subnets[0];
       }
     };

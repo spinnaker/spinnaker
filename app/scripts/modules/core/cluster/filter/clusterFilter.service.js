@@ -158,7 +158,7 @@ module.exports = angular
           let remainingKeys = serverGroups.map(MultiselectModel.makeServerGroupKey);
           let toRemove = [];
           MultiselectModel.serverGroups.forEach((group, index) => {
-            if (remainingKeys.indexOf(group.key) < 0) {
+            if (!remainingKeys.includes(group.key)) {
               toRemove.push(index);
             }
           });

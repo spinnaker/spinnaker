@@ -40,7 +40,7 @@ module.exports = angular.module('spinnaker.core.cache.initializer', [
       });
       accountService.listProviders().then((availableProviders) => {
         cloudProviderRegistry.listRegisteredProviders().forEach((provider) => {
-          if (availableProviders.indexOf(provider) < 0) {
+          if (!availableProviders.includes(provider)) {
             return;
           }
           if (serviceDelegate.hasDelegate(provider, 'cache.configurer')) {

@@ -38,7 +38,7 @@ module.exports = angular
 
     if (this.execution.trigger && this.execution.trigger.parameters) {
       this.parameters = Object.keys(this.execution.trigger.parameters).sort()
-        .filter((paramKey) => this.execution.isStrategy ? strategyExclusions.indexOf(paramKey) < 0 : true)
+        .filter((paramKey) => this.execution.isStrategy ? !strategyExclusions.includes(paramKey) : true)
         .map((paramKey) => {
           return { key: paramKey, value: this.execution.trigger.parameters[paramKey] };
         });

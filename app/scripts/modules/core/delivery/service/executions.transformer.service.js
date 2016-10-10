@@ -121,7 +121,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
     function flattenAndFilter(stage) {
       return flattenStages([], stage)
         .filter(function(stage) {
-          return hiddenStageTypes.indexOf(stage.type) < 0 && stage.initializationStage !== true;
+          return !hiddenStageTypes.includes(stage.type) && stage.initializationStage !== true;
         });
     }
 

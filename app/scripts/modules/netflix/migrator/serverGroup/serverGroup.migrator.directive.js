@@ -121,7 +121,7 @@ module.exports = angular
 
     this.filterKeyPairs = () => {
       this.filteredKeyPairs = (this.keyPairs || []).filter(kp => kp.account === this.target.credentials).map(kp => kp.name);
-      if (this.filteredKeyPairs.indexOf(this.target.keyName) < 0) {
+      if (!this.filteredKeyPairs.includes(this.target.keyName)) {
         this.target.keyName = null;
       }
     };

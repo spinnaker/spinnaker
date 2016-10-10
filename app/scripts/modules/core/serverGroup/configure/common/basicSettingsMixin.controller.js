@@ -83,7 +83,7 @@ module.exports = angular
     };
 
     let isNotExpressionLanguage = (field) => {
-      return field && field.indexOf('${') < 0;
+      return field && !field.includes('${');
     };
 
   });

@@ -203,7 +203,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
           },
           suspendedProcesses: (serverGroup.asg.suspendedProcesses || [])
             .map((process) => process.processName)
-            .filter((name) => enabledProcesses.indexOf(name) < 0),
+            .filter((name) => !enabledProcesses.includes(name)),
           tags: serverGroup.tags || {},
           useAmiBlockDeviceMappings: applicationAwsSettings.useAmiBlockDeviceMappings || false,
           viewState: {
