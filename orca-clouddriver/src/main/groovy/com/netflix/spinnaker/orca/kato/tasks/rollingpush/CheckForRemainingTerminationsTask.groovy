@@ -34,6 +34,6 @@ class CheckForRemainingTerminationsTask implements Task {
       return DefaultTaskResult.SUCCEEDED
     }
 
-    return new DefaultTaskResult(ExecutionStatus.REDIRECT)
+    return new DefaultTaskResult(ExecutionStatus.REDIRECT, [skipRemainingWait: false])
   }
 }
