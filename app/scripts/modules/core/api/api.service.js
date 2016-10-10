@@ -17,9 +17,14 @@ module.exports = angular
     };
 
     var getData = (results) => {
-      if (results.headers('content-type') && !results.headers('content-type').includes('application/json')) {
-        authenticationInitializer.reauthenticateUser();
-        return $q.reject(results);
+      let contentType = results.headers('content-type');
+      if (contentType) {
+        let isJson = contentType.includes('application/json');
+        let isZeroLengthHtml = contentType.includes('text/html') && results.data === '';
+        if (!(isJson || isZeroLengthHtml)) {
+          authenticationInitializer.reauthenticateUser();
+          return $q.reject(results);
+        }
       }
       return $q.when(results.data);
     };
