@@ -39,6 +39,7 @@ class BakeryControllerSpec extends Specification {
   private static final String AMI_ID = "ami-3cf4a854"
   private static final String IMAGE_NAME = "some-image"
   private static final String BAKE_KEY = "bake:gce:ubuntu:$PACKAGE_NAME"
+  private static final String BAKE_ID = "some-bake-id"
   private static final String PACKER_COMMAND = "packer build ..."
   private static final String LOGS_CONTENT = "Some logs content..."
 
@@ -374,7 +375,7 @@ class BakeryControllerSpec extends Specification {
     then:
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
-      1 * bakeStoreMock.deleteBakeByKey(BAKE_KEY)
+      1 * bakeStoreMock.deleteBakeByKeyPreserveDetails(BAKE_KEY) >> BAKE_ID
       1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> [PACKER_COMMAND]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
       1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND])) >> JOB_ID
@@ -526,8 +527,8 @@ class BakeryControllerSpec extends Specification {
     then:
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
-      1 * bakeStoreMock.deleteBakeByKey(BAKE_KEY) >> true
-      response == "Deleted bake '$BAKE_KEY'."
+      1 * bakeStoreMock.deleteBakeByKey(BAKE_KEY) >> BAKE_ID
+      response == "Deleted bake '$BAKE_KEY' with id '$BAKE_ID'."
   }
 
   void 'delete bake throws exception when bake key cannot be found'() {
@@ -550,7 +551,7 @@ class BakeryControllerSpec extends Specification {
     then:
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
-      1 * bakeStoreMock.deleteBakeByKey(BAKE_KEY) >> false
+      1 * bakeStoreMock.deleteBakeByKey(BAKE_KEY) >> null
       IllegalArgumentException e = thrown()
       e.message == "Unable to locate bake with key '$BAKE_KEY'."
   }

@@ -79,9 +79,17 @@ interface BakeStore {
 
   /**
    * Delete the bake status, completed bake details and logs associated with the bakeKey. If the bake is still
-   * incomplete, remove the bake id from the set of incomplete bakes.
+   * incomplete, remove the bake id from the set of incomplete bakes. Returns the bake id of the deleted bake or null
+   * if it is not found.
    */
-  public boolean deleteBakeByKey(String bakeKey)
+  public String deleteBakeByKey(String bakeKey)
+
+  /**
+   * Delete the bake status associated with the bake key. If the bake is still incomplete, remove the bake id from the
+   * set of incomplete bakes and mark the bake CANCELED. Leave behind any completed bake details and logs associated
+   * with the bake id resolved from the bake key. Returns the bake id of the deleted bake or null if it is not found.
+   */
+  public String deleteBakeByKeyPreserveDetails(String bakeKey)
 
   /**
    * Cancel the incomplete bake associated with the bake id and delete the completed bake details associated with the

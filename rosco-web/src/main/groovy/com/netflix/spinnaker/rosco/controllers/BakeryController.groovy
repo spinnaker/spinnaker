@@ -143,8 +143,11 @@ class BakeryController {
         Id bakesId = registry.createId('bakes').withTag("rebake", "true")
         registry.counter(bakesId).increment()
 
-        // TODO(duftler): Does it make sense to cancel here as well?
-        bakeStore.deleteBakeByKey(bakeKey)
+        String bakeId = bakeStore.deleteBakeByKeyPreserveDetails(bakeKey)
+
+        if (bakeId) {
+          jobExecutor.cancelJob(bakeId)
+        }
       } else {
         def existingBakeStatus = queryExistingBakes(bakeKey)
 
@@ -240,9 +243,10 @@ class BakeryController {
 
     if (cloudProviderBakeHandler) {
       def bakeKey = cloudProviderBakeHandler.produceBakeKey(region, bakeRequest)
+      def bakeId = bakeStore.deleteBakeByKey(bakeKey)
 
-      if (bakeStore.deleteBakeByKey(bakeKey)) {
-        return "Deleted bake '$bakeKey'."
+      if (bakeId) {
+        return "Deleted bake '$bakeKey' with id '$bakeId'."
       }
 
       throw new IllegalArgumentException("Unable to locate bake with key '$bakeKey'.")
