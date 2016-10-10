@@ -18,6 +18,7 @@ package com.netflix.spinnaker.front50.controllers
 
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
+import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.AccessDeniedException
@@ -122,7 +123,7 @@ class PipelineController {
 
   private void checkForDuplicatePipeline(String application, String name) {
     if (pipelineDAO.getPipelinesByApplication(application).any {
-      it.getName() == name
+      it.getName().equalsIgnoreCase(name)
     }) {
       throw new DuplicatePipelineNameException()
     }
@@ -146,7 +147,9 @@ class PipelineController {
     return [error: "Access is denied", status: HttpStatus.FORBIDDEN.value()]
   }
 
-  static class DuplicatePipelineNameException extends Exception {}
+  @InheritConstructors
+  static class DuplicatePipelineNameException extends RuntimeException {}
 
-  static class InvalidPipelineDefinition extends Exception {}
+  @InheritConstructors
+  static class InvalidPipelineDefinition extends RuntimeException {}
 }
