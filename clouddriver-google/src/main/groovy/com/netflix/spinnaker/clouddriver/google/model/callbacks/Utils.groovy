@@ -204,4 +204,14 @@ class Utils {
   static String getNetworkNameFromInstanceTemplate(InstanceTemplate instanceTemplate) {
     return getLocalName(instanceTemplate?.properties?.networkInterfaces?.getAt(0)?.network)
   }
+
+  static boolean determineInternalLoadBalancerDisabledState(GoogleInternalLoadBalancer loadBalancer,
+                                                            GoogleServerGroup serverGroup) {
+    def regionalLoadBalancersFromMetadata = serverGroup.asg.get(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES)
+    List<GoogleLoadBalancedBackend> serviceBackends = loadBalancer.backendService.backends
+    List<String> backendGroupNames = serviceBackends
+      .findAll { serverGroup.region == Utils.getRegionFromGroupUrl(it.serverGroupUrl) }
+      .collect { GCEUtil.getLocalName(it.serverGroupUrl) }
+    return loadBalancer.name in regionalLoadBalancersFromMetadata && !(serverGroup.name in backendGroupNames)
+  }
 }

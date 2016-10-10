@@ -51,18 +51,27 @@ class GoogleLoadBalancerController {
         def loadBalancerType = view.loadBalancerType
         def backendServices = []
         def urlMapName
-        if (loadBalancerType == GoogleLoadBalancerType.HTTP) {
-          GoogleHttpLoadBalancer.View httpView = view as GoogleHttpLoadBalancer.View
-          if (httpView.defaultService) {
-            backendServices << httpView?.defaultService.name
-          }
-          httpView?.hostRules?.each { GoogleHostRule hostRule ->
-            backendServices << hostRule?.pathMatcher?.defaultService?.name
-            hostRule?.pathMatcher?.pathRules?.each { GooglePathRule pathRule ->
-              backendServices << pathRule.backendService.name
+        switch (loadBalancerType) {
+          case (GoogleLoadBalancerType.HTTP):
+            GoogleHttpLoadBalancer.View httpView = view as GoogleHttpLoadBalancer.View
+            if (httpView.defaultService) {
+              backendServices << httpView?.defaultService.name
             }
-          }
-          urlMapName = httpView.urlMapName
+            httpView?.hostRules?.each { GoogleHostRule hostRule ->
+              backendServices << hostRule?.pathMatcher?.defaultService?.name
+              hostRule?.pathMatcher?.pathRules?.each { GooglePathRule pathRule ->
+                backendServices << pathRule.backendService.name
+              }
+            }
+            urlMapName = httpView.urlMapName
+            break
+          case (GoogleLoadBalancerType.INTERNAL):
+            GoogleInternalLoadBalancer.View ilbView = view as GoogleInternalLoadBalancer.View
+            backendServices << ilbView.backendService.name
+            break
+          default:
+            // No backend services to add.
+            break
         }
 
         summary.mappedAccounts[view.account].mappedRegions[view.region].loadBalancers << new GoogleLoadBalancerSummary(
@@ -70,7 +79,7 @@ class GoogleLoadBalancerController {
             region: view.region,
             name: view.name,
             loadBalancerType: loadBalancerType,
-            backendServices: loadBalancerType == GoogleLoadBalancerType.HTTP ? backendServices.unique() as List<String> : null,
+            backendServices: backendServices.unique() as List<String> ?: null,
             urlMapName: urlMapName
         )
       }

@@ -102,10 +102,28 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
         isDisabledFromHttp = Utils.determineHttpLoadBalancerDisabledState(loadBalancer, serverGroup)
       }
 
+      // We have to calculate the ILB disabled state for this server group since it's not set on the
+      // way to the cache. A server group shouldn't be internally and externally load balanced at the same time.
+      def isDisabledFromIlb = false
+      Boolean isIlb = loadBalancer.type == GoogleLoadBalancerType.INTERNAL
+      if (isIlb) {
+        isDisabledFromIlb = Utils.determineInternalLoadBalancerDisabledState(loadBalancer, serverGroup)
+      }
+
+      Boolean isDisabled = false
+      if (isIlb) {
+        isDisabled = isDisabledFromIlb // A server group shouldn't be internally and externally (L4/L7) load balanced at the same time.
+      } else if (isHttpLoadBalancer) {
+        isDisabled = serverGroup.asg.get(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES) ? // We assume these are L4 load balancers, and the state has been calculated on the way to the cache.
+          isDisabledFromHttp && serverGroup.disabled : isDisabledFromHttp
+      } else {
+        isDisabled = serverGroup.disabled
+      }
+
       def loadBalancerServerGroup = new LoadBalancerServerGroup(
           name: serverGroup.name,
           region: serverGroup.region,
-          isDisabled: isHttpLoadBalancer ? isDisabledFromHttp : serverGroup.disabled,
+          isDisabled: isDisabled,
           detachedInstances: [],
           instances: [],
       )

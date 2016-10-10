@@ -198,6 +198,10 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
     }
 
     // Time to aggregate health states that can't be computed during the server group fetch operation.
+    def internalLoadBalancers = loadBalancers.findAll { it.type == GoogleLoadBalancerType.INTERNAL }
+    def internalDisabledStates = internalLoadBalancers.collect { loadBalancer ->
+      Utils.determineInternalLoadBalancerDisabledState(loadBalancer, serverGroup)
+    }
 
     // Health states for L7 load balancer.
     def httpLoadBalancers = loadBalancers.findAll { it.type == GoogleLoadBalancerType.HTTP }
@@ -213,13 +217,16 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
       consulDisabled = ConsulProviderUtils.serverGroupDisabled(consulNodes)
     }
 
-    if (httpDisabledStates && httpDisabledStates.size() == loadBalancers.size()) {
-      // We have only L7.
-      serverGroup.disabled = httpDisabledStates.every { it }
-    } else if (httpDisabledStates) {
-      // We have a mix of L4 and L7.
-      serverGroup.disabled &= httpDisabledStates.every { it }
+    def isDisabled = true
+    // TODO: Extend this for future load balancers that calculate disabled state after caching.
+    def ilbAndHttpOnly = internalDisabledStates.size() + httpDisabledStates.size() == loadBalancers.size()
+    if (httpDisabledStates) {
+      isDisabled &= httpDisabledStates.every { it }
     }
+    if (internalDisabledStates) {
+      isDisabled &= internalDisabledStates.every { it }
+    }
+    serverGroup.disabled = ilbAndHttpOnly ? isDisabled : isDisabled && serverGroup.disabled
 
     // Now that disabled is set based on L7 & L4 state, we need to take Consul into account.
     if (consulDiscoverable) {
