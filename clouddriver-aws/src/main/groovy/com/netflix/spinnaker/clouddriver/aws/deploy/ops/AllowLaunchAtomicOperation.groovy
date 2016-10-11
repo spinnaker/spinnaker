@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.helpers.OperationPoller
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.aws.deploy.AmiIdResolver
@@ -81,8 +82,10 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
 
     task.updateStatus BASE_PHASE, "Allowing launch of $description.amiName from $description.account"
 
-    sourceAmazonEC2.modifyImageAttribute(new ModifyImageAttributeRequest().withImageId(resolvedAmi.amiId).withLaunchPermission(
-            new LaunchPermissionModifications().withAdd(new LaunchPermission().withUserId(targetCredentials.accountId))))
+    OperationPoller.retryWithBackoff({o ->
+      sourceAmazonEC2.modifyImageAttribute(new ModifyImageAttributeRequest().withImageId(resolvedAmi.amiId).withLaunchPermission(
+        new LaunchPermissionModifications().withAdd(new LaunchPermission().withUserId(targetCredentials.accountId))))
+    }, 500, 3);
 
     if (sourceCredentials == targetCredentials) {
       task.updateStatus BASE_PHASE, "Tag replication not required"
