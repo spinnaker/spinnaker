@@ -29,7 +29,24 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.basicSettin
           q: q,
           region: $scope.command.region
         })
-      );
+      ).map(function (result) {
+        if (result.length === 0 && q.startsWith('ami-') && q.length === 12) {
+          // allow 'advanced' users to continue with just an ami id (backing image may not have been indexed yet)
+          let record = {
+            imageName: q,
+            amis: {},
+            attributes: {
+              virtualizationType: '*',
+            }
+          };
+
+          // trust that the specific image exists in the selected region
+          record.amis[$scope.command.region] = [q];
+          result = [record];
+        }
+
+        return result;
+      });
     }
 
     var imageSearchResultsStream = new Subject();

@@ -241,6 +241,10 @@ module.exports = angular.module('spinnaker.aws.instanceType.service', [
 
     function filterInstanceTypes(instanceTypes, virtualizationType, vpcOnly) {
       return instanceTypes.filter((instanceType) => {
+        if (virtualizationType === '*') {
+          // show all instance types
+          return true;
+        }
         let [family] = instanceType.split('.');
         if (!vpcOnly && families.vpcOnly.indexOf(family) > -1) {
           return false;
