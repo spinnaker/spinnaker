@@ -55,15 +55,13 @@
   <div ng-class="{collapse: stage.showAdvancedOptions !== true, 'collapse.in': stage.showAdvancedOptions === true}">
 
     <stage-config-field label="Allocate IP">
-      <input type="checkbox" class="form-control input-sm" name="allocateIpAddress"
+      <input type="checkbox" class="input-sm" name="allocateIpAddress"
              ng-model="stage.cluster.resources.allocateIpAddress"/>
     </stage-config-field>
 
-    <stage-config-field label="Ports" ng-if="!stage.cluster.resources.allocateIpAddress">
-      <input type="text" class="form-control input-sm" name="cpu" ng-model="stage.cluster.resources.ports"/>
-      (Comma separated)
+    <stage-config-field label="Ports" ng-if="!stage.cluster.resources.allocateIpAddress" field-columns="3">
+      <number-list model="stage.cluster.resources.ports" label="Port" constraints="{min: 1, max: 65535}"></number-list>
     </stage-config-field>
-
     <stage-config-field label="IAM Instance Profile (optional)">
       <input type="text"
              class="form-control input-sm"

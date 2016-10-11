@@ -1,4 +1,7 @@
-<form ng-controller="titusInstanceResourcesCtrl" class="container-fluid form-horizontal" name="form" novalidate>
+<form ng-controller="titusInstanceResourcesCtrl"
+      class="container-fluid form-horizontal"
+      ng-class="{'no-spel': command.viewState.mode !== 'editPipeline'}"
+      name="form" novalidate>
   <div class="modal-body">
     <div class="form-group">
       <div class="col-md-3 sm-label-right"><b>CPU(s)</b></div>
@@ -27,16 +30,13 @@
     <div class="form-group">
       <div class="col-md-3 sm-label-right"><b>Allocate IP?</b></div>
       <div class="col-md-5">
-        <input type="checkbox" class="form-control input-sm" name="allocateIpAddress" ng-model="command.resources.allocateIpAddress" />
+        <input type="checkbox" name="allocateIpAddress" ng-model="command.resources.allocateIpAddress" />
       </div>
     </div>
     <div class="form-group" ng-if="!command.resources.allocateIpAddress">
       <div class="col-md-3 sm-label-right"><b>Ports</b></div>
       <div class="col-md-5">
-        <input type="text" class="form-control input-sm no-spel" name="cpu" ng-model="command.resources.ports" />
-      </div>
-      <div class="col-md-4">
-        (Comma separated)
+        <number-list model="command.resources.ports" label="Port" constraints="{min: 1, max: 65535}"></number-list>
       </div>
     </div>
   </div>

@@ -19,10 +19,6 @@ module.exports = angular
         delete command.source;
       }
       command.account = command.credentials;
-      if (command.resources.ports) {
-        var ports = '' + command.resources.ports;
-        command.resources.ports = ports.split(/\s*,\s*/);
-      }
       if (command.securityGroups) {
         var securityGroups = '' + command.securityGroups;
         command.securityGroups = securityGroups.split(/\s*,\s*/);
