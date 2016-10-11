@@ -9,9 +9,10 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
   require('../../utils/appendTransform.js'),
   require('../../config/settings.js'),
   require('../filter/executionFilter.model.js'),
-  require('./executions.transformer.service.js')
+  require('./executions.transformer.service.js'),
+  require('core/api/api.service'),
 ])
-  .factory('executionService', function($http, $timeout, $q, $log, ExecutionFilterModel, $state,
+  .factory('executionService', function($http, API, $timeout, $q, $log, ExecutionFilterModel, $state,
                                         settings, appendTransform, executionsTransformer) {
 
     const activeStatuses = ['RUNNING', 'SUSPENDED', 'PAUSED', 'NOT_STARTED'];
@@ -22,18 +23,11 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
     }
 
     function getFilteredExecutions(applicationName, {statuses = Object.keys(_.pickBy(ExecutionFilterModel.sortFilter.status || {}, _.identity)), limit = ExecutionFilterModel.sortFilter.count} = {}) {
-      let url = [ settings.gateUrl, 'applications', applicationName, `pipelines?limit=${limit}`].join('/');
-      if (statuses.length) {
-        url += '&statuses=' + statuses.map((status) => status.toUpperCase()).join(',');
-      }
-      return $http({
-        method: 'GET',
-        url: url,
-        timeout: settings.pollSchedule * 2 + 5000, // TODO: replace with apiHost call
-      })
-        .then((resp) => {
-          resp.data.forEach(cleanExecutionForDiffing);
-          return resp.data;
+      let statusString = statuses.map((status) => status.toUpperCase()).join(',') || null;
+      return API.one('applications', applicationName).all('pipelines').getList({ limit: limit, statuses: statusString})
+        .then(data => {
+          data.forEach(cleanExecutionForDiffing);
+          return data;
         });
     }
 
@@ -42,15 +36,11 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
     }
 
     function getExecution(executionId) {
-      const url = [ settings.gateUrl, 'pipelines', executionId].join('/');
-      return $http({
-        method: 'GET',
-        url: url,
-        timeout: settings.pollSchedule * 2 + 5000, // TODO: replace with apiHost call
-      }).then((resp) => {
-        cleanExecutionForDiffing(resp.data);
-        return resp.data;
-      });
+      return API.one('pipelines', executionId).get()
+        .then(execution => {
+          cleanExecutionForDiffing(execution);
+          return execution;
+        });
     }
 
     function transformExecution(application, execution) {
@@ -231,26 +221,14 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
     }
 
     function getProjectExecutions(project, limit = 1) {
-      return $http({
-        method: 'GET',
-        transformResponse: appendTransform(function(executions) {
+      return API.one('projects', project).all('pipelines').getList({ limit: limit })
+        .then(executions => {
           if (!executions || !executions.length) {
             return [];
           }
-          executions.forEach(function(execution) {
-            executionsTransformer.transformExecution({}, execution);
-          });
-          return executions;
-        }),
-        url: [
-          settings.gateUrl,
-          'projects',
-          project,
-          'pipelines'
-        ].join('/') + '?limit=' + limit
-      }).then((resp) => {
-        return resp.data.sort((a, b) => b.startTime - (a.startTime || new Date().getTime()));
-      });
+          executions.forEach(execution => executionsTransformer.transformExecution({}, execution));
+          return executions.sort((a, b) => b.startTime - (a.startTime || Date.now()));
+        });
     }
 
     function addExecutionsToApplication(application, executions = []) {
