@@ -34,7 +34,7 @@ module.exports = angular.module('spinnaker.core.taskExecutor', [
           if (owner.tasks && owner.tasks.refresh) {
             owner.tasks.refresh();
           }
-          return taskReader.getTask(owner.name, taskId);
+          return taskReader.getTask(taskId);
         },
         function(response) {
           var error = {

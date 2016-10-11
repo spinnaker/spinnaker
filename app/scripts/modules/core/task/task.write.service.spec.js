@@ -33,7 +33,7 @@ describe('Service: taskWriter', function () {
       let completed = false;
       let taskId = 'abc';
       let cancelUrl = [API.baseUrl, 'applications', 'deck', 'tasks', taskId, 'cancel'].join('/');
-      let checkUrl = [API.baseUrl, 'applications', 'deck', 'tasks', taskId].join('/');
+      let checkUrl = [API.baseUrl, 'tasks', taskId].join('/');
       let application = 'deck';
 
       $httpBackend.expectPUT(cancelUrl).respond(200, []);

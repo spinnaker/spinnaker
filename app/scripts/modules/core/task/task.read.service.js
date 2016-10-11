@@ -57,7 +57,7 @@ module.exports = angular
         deferred.reject(task);
       } else {
         task.poller = $timeout(() => {
-          getTask(application, task.id).then((updated) => {
+          getTask(task.id).then((updated) => {
             updateTask(task, updated);
             waitUntilTaskMatches(application, task, closure, failureClosure, interval)
               .then(deferred.resolve, deferred.reject);
@@ -71,8 +71,8 @@ module.exports = angular
       return waitUntilTaskMatches(application, task, (task) => task.isCompleted, (task) => task.isFailed, interval);
     }
 
-    function getTask(applicationName, taskId) {
-      return API.one('applications', applicationName).one('tasks', taskId).get()
+    function getTask(taskId) {
+      return API.one('tasks', taskId).get()
         .then((task) => {
           orchestratedItemTransformer.defineProperties(task);
           if (task.steps && task.steps.length) {

@@ -38,7 +38,7 @@ describe('serverGroupWriter', function () {
         return true;
       }).respond(200, {ref: '/1'});
 
-      $httpBackend.expectGET(API.baseUrl + '/applications/appName/tasks/1').respond({});
+      $httpBackend.expectGET(API.baseUrl + '/tasks/1').respond({});
 
       serverGroupWriter.cloneServerGroup(command, { name: 'appName', tasks: { refresh: angular.noop } });
 

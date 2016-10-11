@@ -19,7 +19,7 @@ module.exports = angular
 
     function cancelTask(application, taskId) {
       return getEndpoint(application).one(taskId).one('cancel').put().then(() =>
-        taskReader.getTask(application, taskId).then((task) =>
+        taskReader.getTask(taskId).then((task) =>
           taskReader.waitUntilTaskMatches(application, task, (task) => task.status === 'CANCELED')
         )
       );

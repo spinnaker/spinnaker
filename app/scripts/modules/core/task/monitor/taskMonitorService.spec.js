@@ -50,13 +50,13 @@ describe('Service: taskMonitorService', function () {
 
       $timeout.flush(); // still running first time
 
-      $http.expectGET([API.baseUrl, 'applications', 'deck', 'tasks', 'a'].join('/')).respond(200, { status: 'RUNNING' });
+      $http.expectGET([API.baseUrl, 'tasks', 'a'].join('/')).respond(200, { status: 'RUNNING' });
       $timeout.flush();
       $http.flush();
       expect(monitor.task.isCompleted).toBe(false);
       expect(monitor.application.runningOrchestrations.refresh.calls.count()).toBe(1);
 
-      $http.expectGET([API.baseUrl, 'applications', 'deck', 'tasks', 'a'].join('/')).respond(200, { status: 'SUCCEEDED' });
+      $http.expectGET([API.baseUrl, 'tasks', 'a'].join('/')).respond(200, { status: 'SUCCEEDED' });
       $timeout.flush(); // complete second time
       $http.flush();
 
@@ -104,12 +104,12 @@ describe('Service: taskMonitorService', function () {
 
       $timeout.flush(); // still running first time
 
-      $http.expectGET([API.baseUrl, 'applications', 'deck', 'tasks', 'a'].join('/')).respond(200, { status: 'RUNNING' });
+      $http.expectGET([API.baseUrl, 'tasks', 'a'].join('/')).respond(200, { status: 'RUNNING' });
       $timeout.flush();
       $http.flush();
       expect(monitor.task.isCompleted).toBe(false);
 
-      $http.expectGET([API.baseUrl, 'applications', 'deck', 'tasks', 'a'].join('/')).respond(200, { status: 'TERMINAL' });
+      $http.expectGET([API.baseUrl, 'tasks', 'a'].join('/')).respond(200, { status: 'TERMINAL' });
       $timeout.flush(); // complete second time
       $http.flush();
 
