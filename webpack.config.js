@@ -72,7 +72,11 @@ module.exports = {
     ],
   },
   resolve: {
-    extensions: ['', '.js', '.ts']
+    extensions: ['', '.js', '.ts'],
+    root: [
+      nodeModulePath,
+      path.join(__dirname, 'app', 'scripts', 'modules'),
+    ]
   },
   resolveLoader: {
     root: nodeModulePath

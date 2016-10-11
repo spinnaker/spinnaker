@@ -1,14 +1,14 @@
 'use strict';
 
-import detailsSectionModule from '../../../../delivery/details/executionDetailsSection.service';
+import detailsSectionModule from 'core/delivery/details/executionDetailsSection.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.createLoadBalancer.executionDetails.controller', [
   require('angular-ui-router'),
   detailsSectionModule,
-  require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
-  require('../../../../cloudProvider/cloudProvider.registry.js'),
+  require('core/delivery/details/executionDetailsSectionNav.directive.js'),
+  require('core/cloudProvider/cloudProvider.registry.js'),
 ])
   .controller('createLoadBalancerExecutionDetailsCtrl', function ($scope, $stateParams, cloudProviderRegistry,
                                                                   executionDetailsSectionService) {

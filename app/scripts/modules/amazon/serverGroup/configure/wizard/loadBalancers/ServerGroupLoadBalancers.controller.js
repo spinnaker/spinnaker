@@ -3,8 +3,8 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.aws.loadBalancer.controller', [
-  require('../../../../../core/modal/wizard/modalWizard.service.js'),
-  require('../../../../../core/cache/infrastructureCaches.js'),
+  require('core/modal/wizard/modalWizard.service.js'),
+  require('core/cache/infrastructureCaches.js'),
   require('../../serverGroupConfiguration.service.js'),
 ])
   .controller('awsServerGroupLoadBalancersCtrl', function($scope, modalWizardService, infrastructureCaches,

@@ -3,8 +3,8 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.shrinkClusterStage', [
-  require('../../../../core/application/listExtractor/listExtractor.service.js'),
-  require('../../../../core/pipeline/config/stages/stageConstants.js'),
+  require('core/application/listExtractor/listExtractor.service.js'),
+  require('core/pipeline/config/stages/stageConstants.js'),
   require('./shrinkClusterExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {

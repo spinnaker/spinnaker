@@ -7,8 +7,8 @@ let angular = require('angular');
 module.exports = angular
 
   .module('spinnaker.migrator.service', [
-    require('../../core/task/taskExecutor.js'),
-    require('../../core/account/account.service'),
+    require('core/task/taskExecutor.js'),
+    require('core/account/account.service'),
   ])
   .factory('migratorService', function(taskExecutor, accountService) {
 

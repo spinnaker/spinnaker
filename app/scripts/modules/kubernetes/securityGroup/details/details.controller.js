@@ -6,13 +6,13 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.securityGroup.kubernetes.details.controller', [
   require('angular-ui-router'),
-  require('../../../core/account/account.service.js'),
-  require('../../../core/securityGroup/securityGroup.read.service.js'),
-  require('../../../core/securityGroup/securityGroup.write.service.js'),
-  require('../../../core/confirmationModal/confirmationModal.service.js'),
-  require('../../../core/insight/insightFilterState.model.js'),
-  require('../../../core/utils/selectOnDblClick.directive.js'),
-  require('../../../core/cloudProvider/cloudProvider.registry.js'),
+  require('core/account/account.service.js'),
+  require('core/securityGroup/securityGroup.read.service.js'),
+  require('core/securityGroup/securityGroup.write.service.js'),
+  require('core/confirmationModal/confirmationModal.service.js'),
+  require('core/insight/insightFilterState.model.js'),
+  require('core/utils/selectOnDblClick.directive.js'),
+  require('core/cloudProvider/cloudProvider.registry.js'),
 ])
   .controller('kubernetesSecurityGroupDetailsController', function ($scope, $state, resolvedSecurityGroup, accountService, app, InsightFilterStateModel,
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,
@@ -49,7 +49,7 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.details.cont
       $scope.userDataModalTitle = 'Ingress YAML';
       $scope.userData = $scope.securityGroup.yaml;
       $uibModal.open({
-        templateUrl: require('../../../core/serverGroup/details/userData.html'),
+        templateUrl: require('core/serverGroup/details/userData.html'),
         controller: 'CloseableModalCtrl',
         scope: $scope
       });

@@ -5,7 +5,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.vpc.read.service', [
-    require('../../core/network/network.read.service.js')
+    require('core/network/network.read.service.js')
   ])
   .factory('vpcReader', function ($q, networkReader) {
 

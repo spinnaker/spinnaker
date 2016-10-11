@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.service', [
   require('../../image/image.reader.js'),
-  require('../../../core/naming/naming.service.js'),
+  require('core/naming/naming.service.js'),
 ])
   .factory('azureServerGroupCommandBuilder', function ($q, azureImageReader, namingService) {
 

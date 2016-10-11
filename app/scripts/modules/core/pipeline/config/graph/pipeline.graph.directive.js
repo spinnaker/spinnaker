@@ -7,8 +7,8 @@ let angular = require('angular');
 require('./pipelineGraph.less');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive', [
-  require('../../../utils/d3.js'),
-  require('../../../utils/jQuery.js'),
+  require('core/utils/d3.js'),
+  require('core/utils/jQuery.js'),
   require('./pipelineGraph.service.js'),
 ])
   .directive('pipelineGraph', function ($window, d3Service, $, pipelineGraphService) {

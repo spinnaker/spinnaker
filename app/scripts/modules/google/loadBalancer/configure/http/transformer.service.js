@@ -5,7 +5,7 @@ import * as _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.deck.httpLoadBalancer.transformer', [
-    require('../../../../core/naming/naming.service.js'),
+    require('core/naming/naming.service.js'),
   ])
   .factory('gceHttpLoadBalancerTransformer', function (namingService) {
 

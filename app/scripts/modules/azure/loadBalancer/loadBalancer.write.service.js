@@ -6,8 +6,8 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.azure.loadBalancer.write.service', [
-    require('../../core/task/taskExecutor.js'),
-    require('../../core/cache/infrastructureCaches.js'),
+    require('core/task/taskExecutor.js'),
+    require('core/cache/infrastructureCaches.js'),
   ])
   .factory('azureLoadBalancerWriter', function(infrastructureCaches, taskExecutor) {
 

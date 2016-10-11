@@ -1,4 +1,4 @@
-import dataSourceRegistryModule from '../core/application/service/applicationDataSource.registry';
+import dataSourceRegistryModule from 'core/application/service/applicationDataSource.registry';
 
 let angular = require('angular');
 
@@ -36,7 +36,7 @@ module.exports = angular
     require('./application/netflixEditApplicationModal.controller.js'),
     require('./help/netflixHelpContents.registry.js'),
 
-    require('../core/config/settings.js'),
+    require('core/config/settings.js'),
 
     require('./tableau/states'),
     require('./ci/ci.module'),

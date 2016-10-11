@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.configure.wizard.loadBalancers.selector.directive', [
-    require('../../../../../core/cache/infrastructureCaches.js'),
+    require('core/cache/infrastructureCaches.js'),
     require('../../serverGroupConfiguration.service.js'),
   ])
   .directive('awsServerGroupLoadBalancerSelector', function () {

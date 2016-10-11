@@ -6,15 +6,15 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   require('../../image/image.reader.js'),
-  require('../../../core/account/account.service.js'),
-  require('../../../core/naming/naming.service.js'),
-  require('../../../core/securityGroup/securityGroup.read.service.js'),
-  require('../../../core/subnet/subnet.read.service.js'),
+  require('core/account/account.service.js'),
+  require('core/naming/naming.service.js'),
+  require('core/securityGroup/securityGroup.read.service.js'),
+  require('core/subnet/subnet.read.service.js'),
   require('../../instance/awsInstanceType.service.js'),
   require('../../keyPairs/keyPairs.read.service.js'),
-  require('../../../core/loadBalancer/loadBalancer.read.service.js'),
-  require('../../../core/cache/cacheInitializer.js'),
-  require('../../../core/serverGroup/configure/common/serverGroupCommand.registry.js'),
+  require('core/loadBalancer/loadBalancer.read.service.js'),
+  require('core/cache/cacheInitializer.js'),
+  require('core/serverGroup/configure/common/serverGroupCommand.registry.js'),
   require('../details/scalingProcesses/autoScalingProcess.service.js'),
 ])
   .factory('awsServerGroupConfigurationService', function($q, awsImageReader, accountService, securityGroupReader,

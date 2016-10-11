@@ -1,16 +1,16 @@
 'use strict';
 
 import { DAYS_OF_WEEK } from './daysOfWeek';
-import detailsSectionModule from '../../../../delivery/details/executionDetailsSection.service';
+import detailsSectionModule from 'core/delivery/details/executionDetailsSection.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.details.controller', [
   require('angular-ui-router'),
   detailsSectionModule,
-  require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
-  require('../../../../delivery/service/execution.service'),
-  require('../../../../confirmationModal/confirmationModal.service'),
+  require('core/delivery/details/executionDetailsSectionNav.directive.js'),
+  require('core/delivery/service/execution.service'),
+  require('core/confirmationModal/confirmationModal.service'),
 ])
   .controller('ExecutionWindowsDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService, executionService, confirmationModalService) {
 

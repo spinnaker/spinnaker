@@ -1,13 +1,13 @@
 'use strict';
 
-import detailsSectionModule from '../../../../core/delivery/details/executionDetailsSection.service';
+import detailsSectionModule from 'core/delivery/details/executionDetailsSection.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTask.details.controller', [
   require('angular-ui-router'),
   detailsSectionModule,
-  require('../../../../core/delivery/details/executionDetailsSectionNav.directive.js'),
+  require('core/delivery/details/executionDetailsSectionNav.directive.js'),
   require('../canary/canaryDeployment/canaryDeploymentHistory.service.js')
 ])
   .controller('acaTaskExecutionDetailsCtrl', function ($scope, $stateParams,

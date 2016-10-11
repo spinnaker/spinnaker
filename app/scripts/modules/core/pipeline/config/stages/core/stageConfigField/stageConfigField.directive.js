@@ -6,7 +6,7 @@ require('./stageConfigField.directive.less');
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.stages.core.stageField.directive', [
-    require('../../../../../help/helpField.directive.js'),
+    require('core/help/helpField.directive.js'),
   ])
   .directive('stageConfigField', function () {
     return {

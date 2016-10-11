@@ -6,9 +6,9 @@ var angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.google.securityGroup.clone.controller', [
-    require('../../../core/account/account.service.js'),
-    require('../../../core/task/monitor/taskMonitorService.js'),
-    require('../../../core/securityGroup/securityGroup.write.service.js'),
+    require('core/account/account.service.js'),
+    require('core/task/monitor/taskMonitorService.js'),
+    require('core/securityGroup/securityGroup.write.service.js'),
     require('../configure/ConfigSecurityGroupMixin.controller.js')
   ])
   .controller('gceCloneSecurityGroupController', function($scope, $uibModalInstance, $controller, taskMonitorService, accountService, securityGroupWriter, securityGroup, application) {

@@ -7,5 +7,5 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.wait', [
   require('../stage.module.js'),
   require('../core/stage.core.module.js'),
   require('./waitExecutionDetails.controller.js'),
-  require('../../../../../core/widgets/spelText/numberInput.component')
+  require('core/widgets/spelText/numberInput.component')
 ]);

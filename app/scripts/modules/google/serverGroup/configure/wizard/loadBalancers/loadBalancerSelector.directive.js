@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 module.exports = angular
   .module('spinnaker.google.serverGroup.configure.wizard.loadBalancers.selector.directive', [
-    require('../../../../../core/cache/infrastructureCaches.js'),
+    require('core/cache/infrastructureCaches.js'),
     require('../../serverGroupConfiguration.service.js'),
     require('./elSevenOptions/elSevenOptionsGenerator.component.js'),
   ])

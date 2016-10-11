@@ -23,7 +23,7 @@ describe('Service: InstanceType', function () {
   beforeEach(function() {
       window.module(
         require('./awsInstanceType.service'),
-        require('../../core/api/api.service')
+        require('core/api/api.service')
       );
   });
 

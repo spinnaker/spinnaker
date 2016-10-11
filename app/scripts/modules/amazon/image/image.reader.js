@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.image.reader', [
-  require('../../core/api/api.service')
+  require('core/api/api.service')
 ])
   .factory('awsImageReader', function ($q, API) {
 

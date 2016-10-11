@@ -3,10 +3,10 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.aws', [
-  require('../../../core/account/account.module.js'),
-  require('../../../core/cache/infrastructureCaches.js'),
-  require('../../../core/serverGroup/configure/common/v2instanceArchetypeSelector.directive.js'),
-  require('../../../core/serverGroup/configure/common/v2InstanceTypeSelector.directive.js'),
+  require('core/account/account.module.js'),
+  require('core/cache/infrastructureCaches.js'),
+  require('core/serverGroup/configure/common/v2instanceArchetypeSelector.directive.js'),
+  require('core/serverGroup/configure/common/v2InstanceTypeSelector.directive.js'),
   require('../serverGroup.transformer.js'),
   require('./wizard/templateSelection/deployInitializer.controller.js'),
   require('./wizard/location/ServerGroupBasicSettings.controller.js'),

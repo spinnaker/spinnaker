@@ -6,7 +6,7 @@ module.exports = angular
   .module('spinnaker.core.application.modal.validation.example.applicationName', [
     require('./applicationName.validator.js'),
     require('../../../cloudProvider/cloudProvider.registry.js'),
-    require('../../../config/settings.js'),
+    require('core/config/settings.js'),
   ])
   .factory('exampleApplicationNameValidator', function () {
 

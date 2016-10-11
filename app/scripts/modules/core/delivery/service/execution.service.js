@@ -5,7 +5,7 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.delivery.executions.service', [
-  require('../../cache/deckCacheFactory.js'),
+  require('core/cache/deckCacheFactory.js'),
   require('../../utils/appendTransform.js'),
   require('../../config/settings.js'),
   require('../filter/executionFilter.model.js'),

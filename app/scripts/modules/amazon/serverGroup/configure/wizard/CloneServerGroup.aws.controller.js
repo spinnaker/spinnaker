@@ -1,19 +1,19 @@
 'use strict';
 
-import modalWizardServiceModule from '../../../../core/modal/wizard/v2modalWizard.service';
+import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
   require('angular-ui-router'),
-  require('../../../../core/application/modal/platformHealthOverride.directive.js'),
+  require('core/application/modal/platformHealthOverride.directive.js'),
   require('../serverGroupConfiguration.service.js'),
-  require('../../../../core/serverGroup/serverGroup.write.service.js'),
-  require('../../../../core/task/monitor/taskMonitorService.js'),
+  require('core/serverGroup/serverGroup.write.service.js'),
+  require('core/task/monitor/taskMonitorService.js'),
   modalWizardServiceModule,
-  require('../../../../core/overrideRegistry/override.registry.js'),
-  require('../../../../core/serverGroup/configure/common/serverGroupCommand.registry.js'),
-  require('../../../../core/task/modal/reason.directive.js'),
+  require('core/overrideRegistry/override.registry.js'),
+  require('core/serverGroup/configure/common/serverGroupCommand.registry.js'),
+  require('core/task/modal/reason.directive.js'),
   ])
   .controller('awsCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
                                                   serverGroupWriter, v2modalWizardService, taskMonitorService,

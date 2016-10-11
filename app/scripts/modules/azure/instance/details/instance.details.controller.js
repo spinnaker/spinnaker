@@ -7,13 +7,13 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
-  require('../../../core/instance/instance.write.service.js'),
-  require('../../../core/instance/instance.read.service.js'),
-  require('../../../core/confirmationModal/confirmationModal.service.js'),
-  require('../../../core/insight/insightFilterState.model.js'),
-  require('../../../core/history/recentHistory.service.js'),
-  require('../../../core/utils/selectOnDblClick.directive.js'),
-  require('../../../core/cloudProvider/cloudProvider.registry.js'),
+  require('core/instance/instance.write.service.js'),
+  require('core/instance/instance.read.service.js'),
+  require('core/confirmationModal/confirmationModal.service.js'),
+  require('core/insight/insightFilterState.model.js'),
+  require('core/history/recentHistory.service.js'),
+  require('core/utils/selectOnDblClick.directive.js'),
+  require('core/cloudProvider/cloudProvider.registry.js'),
 ])
   .controller('azureInstanceDetailsCtrl', function ($scope, $state, $uibModal, InsightFilterStateModel,
                                                     instanceWriter, confirmationModalService, recentHistoryService,
@@ -344,7 +344,7 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
 
     this.showConsoleOutput = function () {
       $uibModal.open({
-        templateUrl: require('../../../core/instance/details/console/consoleOutput.modal.html'),
+        templateUrl: require('core/instance/details/console/consoleOutput.modal.html'),
         controller: 'ConsoleOutputCtrl as ctrl',
         size: 'lg',
         resolve: {

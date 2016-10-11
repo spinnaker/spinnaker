@@ -4,8 +4,8 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.application.config.cache.management.directive', [
-    require('../../cache/cacheInitializer.js'),
-    require('../../cache/infrastructureCaches.js'),
+    require('core/cache/cacheInitializer.js'),
+    require('core/cache/infrastructureCaches.js'),
 
   ])
   .directive('applicationCacheManagement', function (overrideRegistry) {

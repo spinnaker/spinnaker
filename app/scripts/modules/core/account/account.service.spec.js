@@ -7,7 +7,7 @@ describe('Service: accountService ', function () {
   beforeEach(
     window.module(
       require('./account.service'),
-      require('../../core/api/api.service')
+      require('core/api/api.service')
     )
   );
 

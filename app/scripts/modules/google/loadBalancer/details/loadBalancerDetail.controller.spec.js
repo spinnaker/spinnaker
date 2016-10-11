@@ -1,4 +1,4 @@
-import modelBuilderModule from '../../../core/application/applicationModel.builder';
+import modelBuilderModule from 'core/application/applicationModel.builder';
 
 describe('Controller: LoadBalancerDetailsCtrl', function () {
   //NOTE: This is just a skeleton test to test DI.  Please add more tests.;

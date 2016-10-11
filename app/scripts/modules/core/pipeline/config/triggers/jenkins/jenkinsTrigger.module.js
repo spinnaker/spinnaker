@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins', [
   require('./jenkinsTriggerOptions.directive.js'),
   require('../trigger.directive.js'),
-  require('../../../../ci/jenkins/igor.service.js'),
+  require('core/ci/jenkins/igor.service.js'),
   require('../../pipelineConfigProvider.js'),
 ])
   .config(function(pipelineConfigProvider) {

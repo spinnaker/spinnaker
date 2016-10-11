@@ -5,8 +5,8 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.baseProviderStage', [
-  require('../../../../config/settings'),
-  require('../../../../cloudProvider/providerSelection/providerSelector.directive.js'),
+  require('core/config/settings'),
+  require('core/cloudProvider/providerSelection/providerSelector.directive.js'),
 ])
   .controller('BaseProviderStageCtrl', function($scope, stage, accountService, pipelineConfig, settings) {
 

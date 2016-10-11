@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentStage', [
-  require('../../../../config/settings.js'),
+  require('core/config/settings.js'),
 ])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

@@ -5,7 +5,7 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.loadBalancer.loadBalancerSelectField.directive', [
-  require('../../core/loadBalancer/loadBalancer.read.service.js'),
+  require('core/loadBalancer/loadBalancer.read.service.js'),
   require('../common/selectField.component.js')
 ])
   .directive('osLoadBalancerSelectField', function (loadBalancerReader) {

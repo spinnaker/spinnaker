@@ -1,14 +1,14 @@
 'use strict';
 
-import detailsSectionModule from '../../../../../core/delivery/details/executionDetailsSection.service';
+import detailsSectionModule from 'core/delivery/details/executionDetailsSection.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.canaryDeployment.details.controller', [
   require('angular-ui-router'),
   detailsSectionModule,
-  require('../../../../../core/delivery/details/executionDetailsSectionNav.directive.js'),
-  require('../../../../../core/navigation/urlBuilder.service.js'),
+  require('core/delivery/details/executionDetailsSectionNav.directive.js'),
+  require('core/navigation/urlBuilder.service.js'),
   require('./canaryDeploymentHistory.service.js')
 ])
   .controller('CanaryDeploymentExecutionDetailsCtrl', function ($scope, $stateParams,

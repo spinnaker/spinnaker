@@ -7,7 +7,7 @@ require('./reservationReport.directive.less');
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.report.reservationReport.directive', [
     require('./reservationReport.read.service.js'),
-    require('../../core/account/accountTag.directive')
+    require('core/account/accountTag.directive')
   ])
   .directive('reservationReport', function() {
     return {

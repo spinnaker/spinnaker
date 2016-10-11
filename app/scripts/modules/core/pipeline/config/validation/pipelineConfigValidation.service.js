@@ -7,7 +7,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.pipeline.config.validator.service', [
   require('../pipelineConfigProvider.js'),
   require('../services/pipelineConfigService.js'),
-  require('../../../naming/naming.service.js'),
+  require('core/naming/naming.service.js'),
 ])
   .factory('pipelineConfigValidator', function($log, pipelineConfig, pipelineConfigService, namingService, $q) {
 

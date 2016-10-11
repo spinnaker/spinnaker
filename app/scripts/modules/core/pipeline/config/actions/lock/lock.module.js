@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.actions.lock', [
   require('../../services/services.module.js'),
-  require('../../../../help/helpField.directive.js')
+  require('core/help/helpField.directive.js')
 ])
   .controller('LockPipelineModalCtrl', function($uibModalInstance, pipelineConfigService, pipeline) {
     this.viewState = {};

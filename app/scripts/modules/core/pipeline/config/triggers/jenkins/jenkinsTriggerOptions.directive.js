@@ -4,7 +4,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.triggers.jenkins.options.directive', [
-    require('../../../../ci/jenkins/igor.service.js')
+    require('core/ci/jenkins/igor.service.js')
   ])
   .directive('jenkinsTriggerOptions', function () {
     return {

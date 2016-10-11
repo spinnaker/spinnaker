@@ -1,6 +1,6 @@
 'use strict';
 
-import modalWizardServiceModule from '../../../../../core/modal/wizard/v2modalWizard.service';
+import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
 
 let angular = require('angular');
 

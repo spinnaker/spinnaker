@@ -5,7 +5,7 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.trigger.git', [
-    require('../../../../../core/config/settings.js'),
+    require('core/config/settings.js'),
   ])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerTrigger({

@@ -5,7 +5,7 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.network.networkSelectField.directive', [
-  require('../../core/network/network.read.service.js'),
+  require('core/network/network.read.service.js'),
   require('../common/selectField.component.js')
 ])
   .directive('networkSelectField', function (networkReader) {

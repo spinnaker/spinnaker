@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.aws.serverGroup.details.scalingPolicy.write.service', [
-    require('../../../../core/task/taskExecutor.js')
+    require('core/task/taskExecutor.js')
   ])
   .factory('scalingPolicyWriter', function (taskExecutor) {
 

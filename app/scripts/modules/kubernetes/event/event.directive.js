@@ -26,7 +26,7 @@ module.exports = angular.module('spinnaker.kubernetes.event.event.directive', []
       $scope.userDataModalTitle = 'Message';
       $scope.userData = $scope.event.message;
       $uibModal.open({
-        templateUrl: require('../../core/serverGroup/details/userData.html'),
+        templateUrl: require('core/serverGroup/details/userData.html'),
         controller: 'CloseableModalCtrl',
         scope: $scope
       });

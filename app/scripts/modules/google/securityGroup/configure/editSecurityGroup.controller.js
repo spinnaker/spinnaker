@@ -4,11 +4,11 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.google.securityGroup.edit.controller', [
   require('angular-ui-router'),
-  require('../../../core/account/account.service.js'),
-  require('../../../core/cache/infrastructureCaches.js'),
-  require('../../../core/cache/cacheInitializer.js'),
-  require('../../../core/task/monitor/taskMonitorService.js'),
-  require('../../../core/securityGroup/securityGroup.write.service.js'),
+  require('core/account/account.service.js'),
+  require('core/cache/infrastructureCaches.js'),
+  require('core/cache/cacheInitializer.js'),
+  require('core/task/monitor/taskMonitorService.js'),
+  require('core/securityGroup/securityGroup.write.service.js'),
 ])
   .controller('gceEditSecurityGroupCtrl', function($scope, $uibModalInstance, $state,
                                                    accountService, securityGroupReader,

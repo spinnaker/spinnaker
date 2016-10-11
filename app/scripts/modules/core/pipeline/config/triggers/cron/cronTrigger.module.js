@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.trigger.cron', [
     require('../trigger.directive.js'),
-    require('../../../../utils/uuid.service.js'),
+    require('core/utils/uuid.service.js'),
     require('./cron.validator.directive.js'),
   ])
   .config(function(pipelineConfigProvider) {

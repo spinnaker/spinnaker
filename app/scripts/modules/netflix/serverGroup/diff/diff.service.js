@@ -5,8 +5,8 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.diff.service', [
-  require('../../../core/api/api.service'),
-  require('../../../core/config/settings.js'),
+  require('core/api/api.service'),
+  require('core/config/settings.js'),
 ])
   .factory('diffService', function (API, $q, settings) {
 

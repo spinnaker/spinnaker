@@ -9,9 +9,9 @@ module.exports = angular
     require('angular-ui-router'),
     require('./fastProperty.read.service.js'),
     require('./fastProperty.write.service.js'),
-    require('../../core/confirmationModal/confirmationModal.service.js'),
+    require('core/confirmationModal/confirmationModal.service.js'),
     require('./fastPropertyTransformer.service.js'),
-    require('../../core/application/service/applications.read.service'),
+    require('core/application/service/applications.read.service'),
   ])
   .controller('ApplicationPropertiesController', function ($scope, $filter, $uibModal, $state, app, applicationReader, $log,
                                                            fastPropertyReader, fastPropertyWriter, fastPropertyTransformer) {

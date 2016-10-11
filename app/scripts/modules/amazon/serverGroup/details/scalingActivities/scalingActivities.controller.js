@@ -5,7 +5,7 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.scalingActivities.controller', [
-  require('../../../../core/serverGroup/serverGroup.read.service.js'),
+  require('core/serverGroup/serverGroup.read.service.js'),
 ])
   .controller('ScalingActivitiesCtrl', function($scope, $uibModalInstance, serverGroupReader, applicationName, account, clusterName, serverGroup) {
     var ctrl = this;

@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.azure', [
   require('./pipeline/stages/enableAsg/azureEnableAsgStage.js'),
   require('./pipeline/stages/disableAsg/azureDisableAsgStage.js'),
   require('./pipeline/stages/bake/azureBakeStage.js'),
-  require('../core/cloudProvider/cloudProvider.registry.js'),
+  require('core/cloudProvider/cloudProvider.registry.js'),
   require('./serverGroup/details/serverGroup.details.module.js'),
   require('./serverGroup/serverGroup.transformer.js'),
   require('./serverGroup/configure/wizard/CloneServerGroup.azure.controller.js'),

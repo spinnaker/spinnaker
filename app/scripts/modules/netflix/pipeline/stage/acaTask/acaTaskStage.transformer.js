@@ -5,7 +5,7 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTask.transformer', [
-  require('../../../../core/orchestratedItem/orchestratedItem.transformer.js'),
+  require('core/orchestratedItem/orchestratedItem.transformer.js'),
 ])
   .service('acaTaskTransformer', function($log, orchestratedItemTransformer) {
 

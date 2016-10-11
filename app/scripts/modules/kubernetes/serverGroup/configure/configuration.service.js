@@ -5,9 +5,9 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.configuration.service', [
-  require('../../../core/account/account.service.js'),
-  require('../../../core/cache/cacheInitializer.js'),
-  require('../../../core/loadBalancer/loadBalancer.read.service.js'),
+  require('core/account/account.service.js'),
+  require('core/cache/cacheInitializer.js'),
+  require('core/loadBalancer/loadBalancer.read.service.js'),
   require('../../image/image.reader.js'),
 ])
   .factory('kubernetesServerGroupConfigurationService', function($q, accountService, kubernetesImageReader,

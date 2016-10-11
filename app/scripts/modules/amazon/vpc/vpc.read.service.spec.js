@@ -7,7 +7,7 @@ describe('vpcReader', function() {
   beforeEach(
     window.module(
       require('./vpc.read.service.js'),
-      require('../../core/api/api.service')
+      require('core/api/api.service')
     )
   );
 

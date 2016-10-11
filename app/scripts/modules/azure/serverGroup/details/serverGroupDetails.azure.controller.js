@@ -10,11 +10,11 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.azure.serverGroup.details.controller', [
   require('angular-ui-router'),
   require('../configure/serverGroupCommandBuilder.service.js'),
-  require('../../../core/serverGroup/serverGroup.read.service.js'),
-  require('../../../core/utils/selectOnDblClick.directive.js'),
-  require('../../../core/confirmationModal/confirmationModal.service.js'),
-  require('../../../core/serverGroup/serverGroup.write.service.js'),
-  require('../../../core/insight/insightFilterState.model.js'),
+  require('core/serverGroup/serverGroup.read.service.js'),
+  require('core/utils/selectOnDblClick.directive.js'),
+  require('core/confirmationModal/confirmationModal.service.js'),
+  require('core/serverGroup/serverGroup.write.service.js'),
+  require('core/insight/insightFilterState.model.js'),
 ])
   .controller('azureServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
                                                      serverGroupReader, azureServerGroupCommandBuilder, $uibModal, confirmationModalService, serverGroupWriter) {
@@ -140,7 +140,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
 
     this.getBodyTemplate = function(serverGroup, app) {
       if(this.isLastServerGroupInRegion(serverGroup, app)) {
-        var template = $templateCache.get(require('../../../core/serverGroup/details/deleteLastServerGroupWarning.html'));
+        var template = $templateCache.get(require('core/serverGroup/details/deleteLastServerGroupWarning.html'));
         $scope.deletingServerGroup = serverGroup;
         return $compile(template)($scope);
       }

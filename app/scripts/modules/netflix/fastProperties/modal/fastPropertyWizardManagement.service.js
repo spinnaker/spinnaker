@@ -6,7 +6,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.fastProperty.wizard.managent.service', [
-    require('../../../core/modal/wizard/modalWizard.service'),
+    require('core/modal/wizard/modalWizard.service'),
 
   ])
   .factory('fastPropertyWizardManagementService', function(modalWizardService) {

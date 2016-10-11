@@ -4,12 +4,12 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.cache.initializer', [
   require('../backendService/backendService.reader.js'),
-  require('../../core/account/account.service.js'),
-  require('../../core/instance/instanceTypeService.js'),
-  require('../../core/loadBalancer/loadBalancer.read.service.js'),
-  require('../../core/network/network.read.service.js'),
-  require('../../core/securityGroup/securityGroup.read.service.js'),
-  require('../../core/subnet/subnet.read.service.js'),
+  require('core/account/account.service.js'),
+  require('core/instance/instanceTypeService.js'),
+  require('core/loadBalancer/loadBalancer.read.service.js'),
+  require('core/network/network.read.service.js'),
+  require('core/securityGroup/securityGroup.read.service.js'),
+  require('core/subnet/subnet.read.service.js'),
   require('../httpHealthCheck/httpHealthCheck.reader.js'),
 ])
   .factory('gceCacheConfigurer', function (accountService, gceBackendServiceReader,

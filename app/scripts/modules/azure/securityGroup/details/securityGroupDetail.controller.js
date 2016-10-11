@@ -6,12 +6,12 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.controller', [
   require('angular-ui-router'),
-  require('../../../core/securityGroup/securityGroup.read.service.js'),
+  require('core/securityGroup/securityGroup.read.service.js'),
   require('../securityGroup.write.service.js'),
-  require('../../../core/confirmationModal/confirmationModal.service.js'),
-  require('../../../core/insight/insightFilterState.model.js'),
+  require('core/confirmationModal/confirmationModal.service.js'),
+  require('core/insight/insightFilterState.model.js'),
   require('../clone/cloneSecurityGroup.controller.js'),
-  require('../../../core/utils/selectOnDblClick.directive.js'),
+  require('core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('azureSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, app, InsightFilterStateModel,
                                                     confirmationModalService, azureSecurityGroupWriter, securityGroupReader,

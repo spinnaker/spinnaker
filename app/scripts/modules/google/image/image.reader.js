@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.image.reader', [
-  require('../../core/api/api.service')
+  require('core/api/api.service')
 ])
   .factory('gceImageReader', function ($q, API) {
 

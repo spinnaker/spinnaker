@@ -3,16 +3,16 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableAsgStage', [
-  require('../../../../core/application/modal/platformHealthOverride.directive.js'),
-  require('../../../../core/pipeline/config/stages/stageConstants.js'),
-  require('../../../../core/account/account.service.js'),
+  require('core/application/modal/platformHealthOverride.directive.js'),
+  require('core/pipeline/config/stages/stageConstants.js'),
+  require('core/account/account.service.js'),
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'disableServerGroup',
       cloudProvider: 'gce',
       templateUrl: require('./disableAsgStage.html'),
-      executionDetailsUrl: require('../../../../core/pipeline/config/stages/disableAsg/templates/disableAsgExecutionDetails.template.html'),
+      executionDetailsUrl: require('core/pipeline/config/stages/disableAsg/templates/disableAsgExecutionDetails.template.html'),
       executionStepLabelUrl: require('./disableAsgStepLabel.html'),
       validators: [
         {

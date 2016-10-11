@@ -3,10 +3,10 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.serverGroup.configure.common.service', [
-  require('../../../api/api.service'),
-  require('../../../cache/deckCacheFactory.js'),
+  require('core/api/api.service'),
+  require('core/cache/deckCacheFactory.js'),
   require('../../../cloudProvider/serviceDelegate.service.js'),
-  require('../../../config/settings.js')
+  require('core/config/settings.js')
 ])
   .factory('serverGroupCommandBuilder', function (settings, API, serviceDelegate) {
 

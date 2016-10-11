@@ -3,6 +3,9 @@
 var HappyPack = require('happypack');
 var happyThreadPool = HappyPack.ThreadPool({ size: 3 });
 
+var path = require('path');
+var nodeModulePath = path.join(__dirname, 'node_modules');
+
 module.exports = function(config) {
   config.set({
     autoWatch: true,
@@ -31,7 +34,11 @@ module.exports = function(config) {
 
     webpack: {
       resolve: {
-        extensions: ['', '.js', '.ts']
+        extensions: ['', '.js', '.ts'],
+        root: [
+          nodeModulePath,
+          path.join(__dirname, 'app', 'scripts', 'modules'),
+        ]
       },
       module: {
         loaders: [

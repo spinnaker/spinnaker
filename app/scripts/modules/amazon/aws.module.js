@@ -11,7 +11,7 @@ templates.keys().forEach(function(key) {
 });
 
 module.exports = angular.module('spinnaker.aws', [
-  require('../core/cloudProvider/cloudProvider.registry.js'),
+  require('core/cloudProvider/cloudProvider.registry.js'),
   require('./pipeline/stages/bake/awsBakeStage.js'),
   require('./pipeline/stages/cloneServerGroup/awsCloneServerGroupStage.js'),
   require('./pipeline/stages/destroyAsg/awsDestroyAsgStage.js'),
@@ -19,11 +19,11 @@ module.exports = angular.module('spinnaker.aws', [
   require('./pipeline/stages/disableCluster/awsDisableClusterStage.js'),
   require('./pipeline/stages/enableAsg/awsEnableAsgStage.js'),
   require('./pipeline/stages/findAmi/awsFindAmiStage.js'),
-  require('../core/pipeline/config/stages/modifyScalingProcess/modifyScalingProcess.module.js'),
+  require('core/pipeline/config/stages/modifyScalingProcess/modifyScalingProcess.module.js'),
   require('./pipeline/stages/resizeAsg/awsResizeAsgStage.js'),
   require('./pipeline/stages/scaleDownCluster/awsScaleDownClusterStage.js'),
   require('./pipeline/stages/shrinkCluster/awsShrinkClusterStage.js'),
-  require('../core/subnet/subnet.module.js'),
+  require('core/subnet/subnet.module.js'),
   require('./serverGroup/details/serverGroup.details.module.js'),
   require('./serverGroup/serverGroup.transformer.js'),
   require('./serverGroup/configure/wizard/CloneServerGroup.aws.controller.js'),

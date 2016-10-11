@@ -4,8 +4,8 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.docker.image.reader', [
-    require('../../core/api/api.service'),
-    require('../../core/retry/retry.service.js')
+    require('core/api/api.service'),
+    require('core/retry/retry.service.js')
   ])
   .factory('dockerImageReader', function ($q, API, retryService) {
     function findImages (params) {

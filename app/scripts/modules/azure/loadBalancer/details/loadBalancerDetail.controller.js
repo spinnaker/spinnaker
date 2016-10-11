@@ -6,13 +6,13 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller', [
   require('angular-ui-router'),
-  require('../../../core/securityGroup/securityGroup.read.service.js'),
+  require('core/securityGroup/securityGroup.read.service.js'),
   require('../loadBalancer.write.service.js'),
-  require('../../../core/loadBalancer/loadBalancer.read.service.js'),
-  require('../../../core/confirmationModal/confirmationModal.service.js'),
-  require('../../../core/insight/insightFilterState.model.js'),
-  require('../../../core/presentation/collapsibleSection/collapsibleSection.directive.js'),
-  require('../../../core/utils/selectOnDblClick.directive.js'),
+  require('core/loadBalancer/loadBalancer.read.service.js'),
+  require('core/confirmationModal/confirmationModal.service.js'),
+  require('core/insight/insightFilterState.model.js'),
+  require('core/presentation/collapsibleSection/collapsibleSection.directive.js'),
+  require('core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('azureLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $uibModal, loadBalancer, app, InsightFilterStateModel,
                                                    securityGroupReader, confirmationModalService, azureLoadBalancerWriter, loadBalancerReader, $q) {

@@ -5,7 +5,7 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.serverGroup.configure.templateSelection.controller', [
-  require('../../../../core/serverGroup/serverGroup.read.service.js'),
+  require('core/serverGroup/serverGroup.read.service.js'),
   require('../ServerGroupCommandBuilder.js'),
 ])
   .controller('openstackServerGroupTemplateSelectionCtrl', function($scope, openstackServerGroupCommandBuilder, serverGroupReader) {

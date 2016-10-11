@@ -3,9 +3,9 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.bake.service', [
-  require('../../../../api/api.service'),
-  require('../../../../account/account.service.js'),
-  require('../../../../config/settings.js'),
+  require('core/api/api.service'),
+  require('core/account/account.service.js'),
+  require('core/config/settings.js'),
 ])
   .factory('bakeryService', function($q, API, accountService, settings) {
 

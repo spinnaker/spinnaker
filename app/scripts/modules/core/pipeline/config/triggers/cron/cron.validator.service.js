@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.trigger.cron.validation.service', [
-    require('../../../../api/api.service')
+    require('core/api/api.service')
   ])
   .factory('cronValidationService', function(API) {
 

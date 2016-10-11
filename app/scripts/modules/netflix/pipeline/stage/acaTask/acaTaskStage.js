@@ -3,11 +3,11 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTaskStage', [
-  require('../../../../core/serverGroup/configure/common/serverGroupCommandBuilder.js'),
-  require('../../../../core/cloudProvider/cloudProvider.registry.js'),
-  require('../../../../core/config/settings.js'),
+  require('core/serverGroup/configure/common/serverGroupCommandBuilder.js'),
+  require('core/cloudProvider/cloudProvider.registry.js'),
+  require('core/config/settings.js'),
   require('../canary/canaryExecutionSummary.controller'),
-  require('../../../../core/account/account.service.js'),
+  require('core/account/account.service.js'),
 ])
   .config(function (pipelineConfigProvider, settings) {
     if (settings.feature && settings.feature.netflixMode) {

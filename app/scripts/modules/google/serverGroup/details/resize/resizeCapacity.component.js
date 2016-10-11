@@ -6,7 +6,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.google.serverGroup.details.resize.capacity.component', [
-    require('../../../../core/serverGroup/serverGroup.write.service.js'),
+    require('core/serverGroup/serverGroup.write.service.js'),
   ])
   .component('gceResizeCapacity', {
     bindings: {

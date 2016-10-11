@@ -7,7 +7,7 @@ let angular = require('angular');
 // delete
 module.exports = angular
   .module('spinnaker.deleteFastProperty.controller', [
-    require('../../../core/account/account.service.js'),
+    require('core/account/account.service.js'),
     require('../fastProperty.write.service.js'),
   ])
   .controller('DeleteFastPropertyModalController', function ($uibModalInstance, accountService, fastProperty, fastPropertyWriter) {

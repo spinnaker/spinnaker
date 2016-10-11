@@ -6,8 +6,8 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.accountRegionClusterSelector.directive', [
-    require('../../core/application/listExtractor/listExtractor.service'),
-    require('../../core/account/account.service'),
+    require('core/application/listExtractor/listExtractor.service'),
+    require('core/account/account.service'),
   ])
   .directive('accountRegionClusterSelector', function() {
     return {

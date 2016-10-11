@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.aws.serverGroup.details.elasticIp.read.service', [
-    require('../../../core/api/api.service')
+    require('core/api/api.service')
   ])
   .factory('elasticIpReader', function (API, $log) {
     function getElasticIpsForCluster(application, account, clusterName, region) {

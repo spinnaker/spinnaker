@@ -7,10 +7,10 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.service', [
     require('../../../backendService/backendService.reader.js'),
-    require('../../../../core/cache/cacheInitializer.js'),
+    require('core/cache/cacheInitializer.js'),
     require('../../../certificate/certificate.reader.js'),
-    require('../../../../core/account/account.service.js'),
-    require('../../../../core/loadBalancer/loadBalancer.read.service.js'),
+    require('core/account/account.service.js'),
+    require('core/loadBalancer/loadBalancer.read.service.js'),
     require('../../elSevenUtils.service.js'),
     require('../../../httpHealthCheck/httpHealthCheck.reader.js'),
     require('./transformer.service.js'),

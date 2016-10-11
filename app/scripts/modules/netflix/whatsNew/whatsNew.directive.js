@@ -7,9 +7,9 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.netflix.whatsNew.directive', [
     require('angular-marked'),
-    require('../../core/cache/viewStateCache.js'),
+    require('core/cache/viewStateCache.js'),
     require('./whatsNew.read.service.js'),
-    require('../../core/utils/timeFormatters.js'),
+    require('core/utils/timeFormatters.js'),
   ])
   .config(function (markedProvider) {
     markedProvider.setOptions(

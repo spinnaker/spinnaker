@@ -10,18 +10,18 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', [
   require('angular-ui-router'),
   require('../configure/serverGroupCommandBuilder.service.js'),
-  require('../../../core/application/modal/platformHealthOverride.directive.js'),
-  require('../../../core/serverGroup/serverGroup.read.service.js'),
-  require('../../../core/serverGroup/details/serverGroupWarningMessage.service.js'),
-  require('../../../core/confirmationModal/confirmationModal.service.js'),
-  require('../../../core/network/network.read.service.js'),
-  require('../../../core/serverGroup/serverGroup.write.service.js'),
-  require('../../../core/serverGroup/configure/common/runningExecutions.service.js'),
-  require('../../../core/insight/insightFilterState.model.js'),
+  require('core/application/modal/platformHealthOverride.directive.js'),
+  require('core/serverGroup/serverGroup.read.service.js'),
+  require('core/serverGroup/details/serverGroupWarningMessage.service.js'),
+  require('core/confirmationModal/confirmationModal.service.js'),
+  require('core/network/network.read.service.js'),
+  require('core/serverGroup/serverGroup.write.service.js'),
+  require('core/serverGroup/configure/common/runningExecutions.service.js'),
+  require('core/insight/insightFilterState.model.js'),
   require('./resize/resizeServerGroup.controller'),
   require('./rollback/rollbackServerGroup.controller'),
   require('./autoscalingPolicy/autoscalingPolicy.directive.js'),
-  require('../../../core/utils/selectOnDblClick.directive.js'),
+  require('core/utils/selectOnDblClick.directive.js'),
   require('./autoscalingPolicy/addAutoscalingPolicyButton.component.js')
 ])
   .controller('gceServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup, InsightFilterStateModel,
@@ -421,7 +421,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       $scope.serverGroup = { name: this.serverGroup.name };
       $scope.userData = this.serverGroup.startupScript;
       $uibModal.open({
-        templateUrl: require('../../../core/serverGroup/details/userData.html'),
+        templateUrl: require('core/serverGroup/details/userData.html'),
         controller: 'CloseableModalCtrl',
         scope: $scope
       });

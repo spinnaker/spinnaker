@@ -7,11 +7,11 @@ let angular = require('angular');
 require('./projectCluster.less');
 
 module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.projectCluster.directive', [
-  require('../../../account/collapsibleAccountTag.directive.js'),
-  require('../../../navigation/urlBuilder.service.js'),
-  require('../../../cache/collapsibleSectionStateCache.js'),
+  require('core/account/collapsibleAccountTag.directive.js'),
+  require('core/navigation/urlBuilder.service.js'),
+  require('core/cache/collapsibleSectionStateCache.js'),
   require('../../../cluster/filter/clusterFilter.service.js'),
-  require('../../../utils/timeFormatters.js'),
+  require('core/utils/timeFormatters.js'),
   require('../../../healthCounts/healthCounts.directive.js'),
   require('../regionFilter/regionFilter.service.js'),
 ])

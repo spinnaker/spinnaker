@@ -3,10 +3,10 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
-    require('../../../../../core/config/settings.js'),
-    require('../../../../../docker/image/image.reader.js'),
+    require('core/config/settings.js'),
+    require('docker/image/image.reader.js'),
     require('./dockerTriggerOptions.directive.js'),
-    require('../../../../../docker/image/dockerImageAndTagSelector.component.js')
+    require('docker/image/dockerImageAndTagSelector.component.js')
   ])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerTrigger({

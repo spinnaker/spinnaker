@@ -1,16 +1,16 @@
 'use strict';
 
 import _ from 'lodash';
-import detailsSectionModule from '../../../../core/delivery/details/executionDetailsSection.service';
+import detailsSectionModule from 'core/delivery/details/executionDetailsSection.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.cloneServerGroup.aws.executionDetails.controller', [
   require('angular-ui-router'),
-  require('../../../../core/cluster/filter/clusterFilter.service.js'),
+  require('core/cluster/filter/clusterFilter.service.js'),
   detailsSectionModule,
-  require('../../../../core/delivery/details/executionDetailsSectionNav.directive.js'),
-  require('../../../../core/navigation/urlBuilder.service.js'),
+  require('core/delivery/details/executionDetailsSectionNav.directive.js'),
+  require('core/navigation/urlBuilder.service.js'),
 ])
   .controller('awsCloneServerGroupExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService,
                                                                    urlBuilderService, clusterFilterService) {

@@ -1,11 +1,11 @@
-import {DataSourceConfig} from '../../core/application/service/applicationDataSource';
-import dataSourceRegistryModule from '../../core/application/service/applicationDataSource.registry';
+import {DataSourceConfig} from 'core/application/service/applicationDataSource';
+import dataSourceRegistryModule from 'core/application/service/applicationDataSource.registry';
 
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.ci.dataSource', [
-    require('../../core/config/settings'),
+    require('core/config/settings'),
     dataSourceRegistryModule
   ])
   .run(function($q, applicationDataSourceRegistry, settings) {

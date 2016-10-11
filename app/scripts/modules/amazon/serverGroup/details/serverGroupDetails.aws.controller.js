@@ -9,25 +9,25 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', [
   require('angular-ui-router'),
-  require('../../../core/application/modal/platformHealthOverride.directive.js'),
-  require('../../../core/confirmationModal/confirmationModal.service.js'),
-  require('../../../core/serverGroup/serverGroup.write.service.js'),
-  require('../../../core/serverGroup/details/serverGroupWarningMessage.service.js'),
-  require('../../../core/overrideRegistry/override.registry.js'),
-  require('../../../core/account/account.service.js'),
+  require('core/application/modal/platformHealthOverride.directive.js'),
+  require('core/confirmationModal/confirmationModal.service.js'),
+  require('core/serverGroup/serverGroup.write.service.js'),
+  require('core/serverGroup/details/serverGroupWarningMessage.service.js'),
+  require('core/overrideRegistry/override.registry.js'),
+  require('core/account/account.service.js'),
   require('../../vpc/vpcTag.directive.js'),
   require('./scalingProcesses/autoScalingProcess.service.js'),
-  require('../../../core/serverGroup/serverGroup.read.service.js'),
+  require('core/serverGroup/serverGroup.read.service.js'),
   require('../configure/serverGroupCommandBuilder.service.js'),
-  require('../../../core/serverGroup/configure/common/runningExecutions.service.js'),
+  require('core/serverGroup/configure/common/runningExecutions.service.js'),
   require('../../../netflix/migrator/serverGroup/serverGroup.migrator.directive.js'), // TODO: make actions pluggable
   require('./scalingPolicy/scalingPolicySummary.component.js'),
   require('./scheduledAction/scheduledAction.directive.js'),
-  require('../../../core/insight/insightFilterState.model.js'),
+  require('core/insight/insightFilterState.model.js'),
   require('./scalingActivities/scalingActivities.controller.js'),
   require('./resize/resizeServerGroup.controller'),
   require('./rollback/rollbackServerGroup.controller'),
-  require('../../../core/utils/selectOnDblClick.directive.js'),
+  require('core/utils/selectOnDblClick.directive.js'),
   require('../serverGroup.transformer.js'),
   require('./scalingPolicy/addScalingPolicyButton.component.js'),
   require('./securityGroup/editSecurityGroups.modal.controller'),
@@ -377,7 +377,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
       $scope.userData = window.atob(this.serverGroup.launchConfig.userData);
       $scope.serverGroup = { name: this.serverGroup.name };
       $uibModal.open({
-        templateUrl: require('../../../core/serverGroup/details/userData.html'),
+        templateUrl: require('core/serverGroup/details/userData.html'),
         controller: 'CloseableModalCtrl',
         scope: $scope
       });

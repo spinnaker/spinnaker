@@ -4,9 +4,9 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.ci.build.read.service', [
-    require('../../core/api/api.service'),
-    require('../../core/config/settings'),
-    require('../../core/orchestratedItem/orchestratedItem.transformer'),
+    require('core/api/api.service'),
+    require('core/config/settings'),
+    require('core/orchestratedItem/orchestratedItem.transformer'),
   ])
   .factory('buildService', function (API, settings, orchestratedItemTransformer) {
 

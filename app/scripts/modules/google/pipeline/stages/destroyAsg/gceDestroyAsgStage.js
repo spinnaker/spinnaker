@@ -3,14 +3,14 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.destroyAsgStage', [
-  require('../../../../core/pipeline/config/stages/stageConstants.js'),
+  require('core/pipeline/config/stages/stageConstants.js'),
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'destroyServerGroup',
       cloudProvider: 'gce',
       templateUrl: require('./destroyAsgStage.html'),
-      executionDetailsUrl: require('../../../../core/pipeline/config/stages/destroyAsg/templates/destroyAsgExecutionDetails.template.html'),
+      executionDetailsUrl: require('core/pipeline/config/stages/destroyAsg/templates/destroyAsgExecutionDetails.template.html'),
       executionStepLabelUrl: require('./destroyAsgStepLabel.html'),
       validators: [
         {

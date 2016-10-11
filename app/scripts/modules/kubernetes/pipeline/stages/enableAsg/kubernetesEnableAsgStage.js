@@ -3,9 +3,9 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.enableAsgStage', [
-  require('../../../../core/application/listExtractor/listExtractor.service.js'),
-  require('../../../../core/application/modal/platformHealthOverride.directive.js'),
-  require('../../../../core/pipeline/config/stages/stageConstants.js'),
+  require('core/application/listExtractor/listExtractor.service.js'),
+  require('core/application/modal/platformHealthOverride.directive.js'),
+  require('core/pipeline/config/stages/stageConstants.js'),
   require('./enableAsgExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {

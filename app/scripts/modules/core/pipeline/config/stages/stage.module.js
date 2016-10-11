@@ -5,14 +5,14 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
-  require('../../../api/api.service'),
+  require('core/api/api.service'),
   require('../pipelineConfigProvider.js'),
   require('../services/pipelineConfigService.js'),
   require('./overrideTimeout/overrideTimeout.directive.js'),
   require('./overrideFailure/overrideFailure.component.js'),
   require('./optionalStage/optionalStage.directive.js'),
-  require('../../../confirmationModal/confirmationModal.service.js'),
-  require('../../../account/account.service.js'),
+  require('core/confirmationModal/confirmationModal.service.js'),
+  require('core/account/account.service.js'),
   require('./core/stageConfigField/stageConfigField.directive.js'),
 ])
   .directive('pipelineConfigStage', function() {

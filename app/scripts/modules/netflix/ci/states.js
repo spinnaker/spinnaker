@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.ci.states', [
-    require('../../core/navigation/states.provider.js'),
+    require('core/navigation/states.provider.js'),
     require('./ci.controller'),
     require('./detail/detail.controller'),
     require('./detail/detailTab/detailTab.controller'),

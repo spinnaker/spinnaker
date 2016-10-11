@@ -6,12 +6,12 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.securityGroup.openstack.details.controller', [
   require('angular-ui-router'),
-  require('../../../core/securityGroup/securityGroup.read.service.js'),
-  require('../../../core/securityGroup/securityGroup.write.service.js'),
-  require('../../../core/confirmationModal/confirmationModal.service.js'),
-  require('../../../core/insight/insightFilterState.model.js'),
-  require('../../../core/utils/selectOnDblClick.directive.js'),
-  require('../../../core/cloudProvider/cloudProvider.registry.js'),
+  require('core/securityGroup/securityGroup.read.service.js'),
+  require('core/securityGroup/securityGroup.write.service.js'),
+  require('core/confirmationModal/confirmationModal.service.js'),
+  require('core/insight/insightFilterState.model.js'),
+  require('core/utils/selectOnDblClick.directive.js'),
+  require('core/cloudProvider/cloudProvider.registry.js'),
 ])
   .controller('openstackSecurityGroupDetailsController', function ($scope, $state, resolvedSecurityGroup, app, InsightFilterStateModel,
                                                        confirmationModalService, securityGroupWriter, securityGroupReader,

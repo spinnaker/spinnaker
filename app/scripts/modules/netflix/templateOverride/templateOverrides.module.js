@@ -4,8 +4,8 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.templateOverride.templateOverrides', [
-    require('../../core/overrideRegistry/override.registry.js'),
-    require('../../core/config/settings.js'),
+    require('core/overrideRegistry/override.registry.js'),
+    require('core/config/settings.js'),
   ])
   .run(function(overrideRegistry, settings) {
     if (settings.feature && settings.feature.netflixMode) {

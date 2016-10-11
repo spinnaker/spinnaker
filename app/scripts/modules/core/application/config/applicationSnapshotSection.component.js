@@ -7,7 +7,7 @@ module.exports = angular
     require('angular-ui-router'),
     require('./../../snapshot/snapshot.write.service.js'),
     require('../../confirmationModal/confirmationModal.service.js'),
-    require('../../../core/snapshot/diff/viewSnapshotDiffButton.component.js'),
+    require('core/snapshot/diff/viewSnapshotDiffButton.component.js'),
   ])
   .component('applicationSnapshotSection', {
     templateUrl: require('./applicationSnapshotSection.component.html'),

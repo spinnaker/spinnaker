@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.resizeAsgStage', [
-  require('../../../../core/application/modal/platformHealthOverride.directive.js'),
+  require('core/application/modal/platformHealthOverride.directive.js'),
   require('./resizeAsgExecutionDetails.controller.js'),
 ])
   .config(function(pipelineConfigProvider) {

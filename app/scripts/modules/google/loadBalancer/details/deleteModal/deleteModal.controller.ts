@@ -1,5 +1,5 @@
 import {module} from 'angular';
-import {Application} from '../../../../core/application/application.model';
+import {Application} from 'core/application/application.model';
 
 class Verification {
   verified: boolean = false;
@@ -90,8 +90,8 @@ const moduleName = 'spinnaker.gce.loadBalancer.deleteModal.controller';
 
 module(moduleName, [
     require('angular-ui-bootstrap'),
-    require('../../../../core/task/monitor/taskMonitorService.js'),
-    require('../../../../core/loadBalancer/loadBalancer.write.service.js'),
+    require('core/task/monitor/taskMonitorService.js'),
+    require('core/loadBalancer/loadBalancer.write.service.js'),
     require('../../configure/http/httpLoadBalancer.write.service.js'),
   ])
   .controller('gceLoadBalancerDeleteModalCtrl', DeleteLoadBalancerModalController);

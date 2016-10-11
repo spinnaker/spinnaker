@@ -7,14 +7,14 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
-  require('../../../core/instance/instance.write.service.js'),
-  require('../../../core/instance/instance.read.service.js'),
-  require('../../../core/confirmationModal/confirmationModal.service.js'),
-  require('../../../core/insight/insightFilterState.model.js'),
-  require('../../../core/history/recentHistory.service.js'),
-  require('../../../core/utils/selectOnDblClick.directive.js'),
-  require('../../../core/cloudProvider/cloudProvider.registry.js'),
-  require('../../../core/instance/details/instanceLinks.component'),
+  require('core/instance/instance.write.service.js'),
+  require('core/instance/instance.read.service.js'),
+  require('core/confirmationModal/confirmationModal.service.js'),
+  require('core/insight/insightFilterState.model.js'),
+  require('core/history/recentHistory.service.js'),
+  require('core/utils/selectOnDblClick.directive.js'),
+  require('core/cloudProvider/cloudProvider.registry.js'),
+  require('core/instance/details/instanceLinks.component'),
   require('../../loadBalancer/elSevenUtils.service.js')
 ])
   .controller('gceInstanceDetailsCtrl', function ($scope, $state, $uibModal, InsightFilterStateModel,

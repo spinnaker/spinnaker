@@ -9,7 +9,7 @@ describe('fastPropertyWizardMangagement.service', function () {
 
   beforeEach(window.module(
     require('./fastPropertyWizardManagement.service'),
-    require('../../../core/modal/wizard/modalWizard.service')
+    require('core/modal/wizard/modalWizard.service')
   ));
 
   beforeEach(

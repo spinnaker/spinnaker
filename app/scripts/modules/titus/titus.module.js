@@ -11,7 +11,7 @@ templates.keys().forEach(function(key) {
 });
 
 module.exports = angular.module('spinnaker.titus', [
-  require('../core/cloudProvider/cloudProvider.registry.js'),
+  require('core/cloudProvider/cloudProvider.registry.js'),
   require('./securityGroup/securityGroup.read.service'),
   require('./serverGroup/details/serverGroupDetails.titus.controller.js'),
   require('./serverGroup/configure/ServerGroupCommandBuilder.js'),

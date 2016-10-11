@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.keyPairs.read.service', [
-    require('../../core/api/api.service')
+    require('core/api/api.service')
   ])
   .factory('keyPairsReader', function ($q, API) {
 

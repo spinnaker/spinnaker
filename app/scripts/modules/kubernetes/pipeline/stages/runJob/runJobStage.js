@@ -5,11 +5,11 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.runJobStage', [
-  require('../../../../docker/image/dockerImageAndTagSelector.component.js'),
-  require('../../../container/commands.component.js'),
-  require('../../../container/arguments.component.js'),
-  require('../../../container/environmentVariables.component.js'),
-  require('../../../container/volumes.component.js'),
+  require('docker/image/dockerImageAndTagSelector.component.js'),
+  require('kubernetes/container/commands.component.js'),
+  require('kubernetes/container/arguments.component.js'),
+  require('kubernetes/container/environmentVariables.component.js'),
+  require('kubernetes/container/volumes.component.js'),
   require('./runJobExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {

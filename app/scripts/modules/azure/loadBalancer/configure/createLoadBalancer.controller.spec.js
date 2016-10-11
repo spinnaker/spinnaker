@@ -9,7 +9,7 @@ describe('Controller: azureCreateLoadBalancerCtrl', function () {
   beforeEach(
     window.module(
       require('./createLoadBalancer.controller'),
-      require('../../../core/api/api.service')
+      require('core/api/api.service')
     )
   );
 

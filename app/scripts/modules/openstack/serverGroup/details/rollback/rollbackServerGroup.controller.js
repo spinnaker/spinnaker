@@ -3,9 +3,9 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.serverGroup.details.rollback.controller', [
-      require('../../../../core/application/modal/platformHealthOverride.directive.js'),
-      require('../../../../core/serverGroup/serverGroup.write.service.js'),
-      require('../../../../core/task/monitor/taskMonitorService.js'),
+      require('core/application/modal/platformHealthOverride.directive.js'),
+      require('core/serverGroup/serverGroup.write.service.js'),
+      require('core/task/monitor/taskMonitorService.js'),
       require('../../../common/footer.directive.js'),
     ])
     .controller('openstackRollbackServerGroupCtrl', function ($scope, $uibModalInstance, serverGroupWriter,

@@ -4,7 +4,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.triggers.pipeline.options.directive', [
-    require('../../../../delivery/service/execution.service.js')
+    require('core/delivery/service/execution.service.js')
   ])
   .directive('pipelineTriggerOptions', function () {
     return {

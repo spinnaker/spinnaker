@@ -4,7 +4,7 @@ let angular = require('angular');
 
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', [
-  require('../../../../ci/jenkins/igor.service.js'),
+  require('core/ci/jenkins/igor.service.js'),
   require('../../pipelineConfigProvider.js'),
 ])
   .config(function(pipelineConfigProvider) {

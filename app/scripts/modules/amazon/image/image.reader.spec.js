@@ -23,7 +23,7 @@ describe('Service: aws Image Reader', function() {
   beforeEach(
     window.module(
       require('./image.reader.js'),
-      require('../../core/api/api.service')
+      require('core/api/api.service')
     )
   );
 

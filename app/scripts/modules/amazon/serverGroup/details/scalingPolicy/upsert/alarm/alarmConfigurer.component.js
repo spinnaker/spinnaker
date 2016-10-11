@@ -7,8 +7,8 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.aws.serverGroup.details.scalingPolicy.alarm.configurer', [
-    require('../../../../../../core/config/settings.js'),
-    require('../../../../../../core/serverGroup/metrics/cloudMetrics.read.service.js'),
+    require('core/config/settings.js'),
+    require('core/serverGroup/metrics/cloudMetrics.read.service.js'),
     require('./dimensionsEditor.component.js'),
   ])
   .component('awsAlarmConfigurer', {

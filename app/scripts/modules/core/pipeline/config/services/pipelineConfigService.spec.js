@@ -6,7 +6,7 @@ describe('pipelineConfigService', function () {
   beforeEach(
     window.module(
       require('./pipelineConfigService'),
-      require('../../../api/api.service')
+      require('core/api/api.service')
     )
   );
 

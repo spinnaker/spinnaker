@@ -7,8 +7,8 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.azure.securityGroup.write.service', [
     require('angular-ui-router'),
-    require('../../core/task/taskExecutor.js'),
-    require('../../core/cache/infrastructureCaches.js'),
+    require('core/task/taskExecutor.js'),
+    require('core/cache/infrastructureCaches.js'),
   ])
   .factory('azureSecurityGroupWriter', function (infrastructureCaches, taskExecutor) {
 

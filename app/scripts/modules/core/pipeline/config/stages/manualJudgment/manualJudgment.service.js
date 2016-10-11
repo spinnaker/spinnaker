@@ -4,8 +4,8 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.pipeline.stage.manualJudgment.service', [
-    require('../../../../config/settings.js'),
-    require('../../../../delivery/service/execution.service.js'),
+    require('core/config/settings.js'),
+    require('core/delivery/service/execution.service.js'),
   ])
   .factory('manualJudgmentService', function($http, $q, settings, executionService) {
 

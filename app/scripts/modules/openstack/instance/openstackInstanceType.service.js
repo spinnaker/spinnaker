@@ -5,10 +5,10 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.instanceType.service', [
-  require('../../core/api/api.service'),
-  require('../../core/cache/deckCacheFactory.js'),
-  require('../../core/config/settings.js'),
-  require('../../core/cache/infrastructureCaches.js'),
+  require('core/api/api.service'),
+  require('core/cache/deckCacheFactory.js'),
+  require('core/config/settings.js'),
+  require('core/cache/infrastructureCaches.js'),
 ])
   .factory('openstackInstanceTypeService', function ($http, $q, settings, API, infrastructureCaches) {
     var categories = [

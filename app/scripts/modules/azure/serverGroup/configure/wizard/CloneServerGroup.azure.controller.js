@@ -1,6 +1,6 @@
 'use strict';
 
-import modalWizardServiceModule from '../../../../core/modal/wizard/v2modalWizard.service';
+import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
 
 let angular = require('angular');
 
@@ -8,8 +8,8 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
   require('angular-ui-router'),
   require('../serverGroupConfiguration.service.js'),
   require('../../serverGroup.transformer.js'),
-  require('../../../../core/serverGroup/serverGroup.write.service.js'),
-  require('../../../../core/task/monitor/taskMonitorService.js'),
+  require('core/serverGroup/serverGroup.write.service.js'),
+  require('core/task/monitor/taskMonitorService.js'),
   modalWizardServiceModule,
 ])
   .controller('azureCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,

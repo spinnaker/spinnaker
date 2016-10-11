@@ -6,7 +6,7 @@ module.exports = angular
   .module('spinnaker.core.delivery.filter.executionFilter.model', [
     require('../../filterModel/filter.model.service.js'),
     require('../../navigation/urlParser.service.js'),
-    require('../../cache/viewStateCache.js')
+    require('core/cache/viewStateCache.js')
   ])
   .factory('ExecutionFilterModel', function($rootScope, filterModelService, urlParser, viewStateCache) {
 

@@ -1,17 +1,17 @@
 'use strict';
 
 import _ from 'lodash';
-import modalWizardServiceModule from '../../../core/modal/wizard/v2modalWizard.service';
+import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
 
 var angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.google.securityGroup.baseConfig.controller', [
     require('angular-ui-router'),
-    require('../../../core/task/monitor/taskMonitorService.js'),
-    require('../../../core/securityGroup/securityGroup.write.service.js'),
-    require('../../../core/account/account.service.js'),
-    require('../../../core/network/network.read.service.js'),
+    require('core/task/monitor/taskMonitorService.js'),
+    require('core/securityGroup/securityGroup.write.service.js'),
+    require('core/account/account.service.js'),
+    require('core/network/network.read.service.js'),
     modalWizardServiceModule,
   ])
   .controller('gceConfigSecurityGroupMixin', function ($scope,

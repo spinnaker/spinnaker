@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.image.reader', [
-  require('../../core/api/api.service')
+  require('core/api/api.service')
 ])
   .factory('azureImageReader', function ($q, API) {
 

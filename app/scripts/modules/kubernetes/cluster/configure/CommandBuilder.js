@@ -5,8 +5,8 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.service', [
-  require('../../../core/config/settings.js'),
-  require('../../../core/account/account.service.js'),
+  require('core/config/settings.js'),
+  require('core/account/account.service.js'),
 ])
   .factory('kubernetesClusterCommandBuilder', function (settings, accountService) {
     function attemptToSetValidAccount(application, defaultAccount, command) {

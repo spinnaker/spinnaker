@@ -3,12 +3,12 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.cache.initializer', [
-  require('../../core/account/account.service.js'),
-  require('../../core/loadBalancer/loadBalancer.read.service.js'),
-  require('../../core/instance/instanceTypeService.js'),
-  require('../../core/securityGroup/securityGroup.read.service.js'),
-  require('../../core/network/network.read.service.js'),
-  require('../../core/subnet/subnet.read.service.js'),
+  require('core/account/account.service.js'),
+  require('core/loadBalancer/loadBalancer.read.service.js'),
+  require('core/instance/instanceTypeService.js'),
+  require('core/securityGroup/securityGroup.read.service.js'),
+  require('core/network/network.read.service.js'),
+  require('core/subnet/subnet.read.service.js'),
 ])
   .factory('openstackCacheConfigurer', function (accountService, instanceTypeService, loadBalancerReader, networkReader, subnetReader) {
 

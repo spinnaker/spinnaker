@@ -5,7 +5,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.canary.canaryAnalysisNameSelector.directive', [
-    require('../../core/api/api.service')
+    require('core/api/api.service')
   ])
   .directive('canaryAnalysisNameSelector', () => {
     return {

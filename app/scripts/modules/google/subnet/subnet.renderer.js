@@ -5,7 +5,7 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.subnet.renderer', [
-  require('../../core/network/network.read.service.js'),
+  require('core/network/network.read.service.js'),
 ])
   .factory('gceSubnetRenderer', function ($q, networkReader) {
 

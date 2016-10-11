@@ -7,9 +7,9 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.fastProperty.scopeBuilder.service', [
     require('../fastProperty.read.service'),
-    require('../../../core/application/listExtractor/listExtractor.service'),
-    require('../../../core/application/service/applications.read.service.js'),
-    require('../../../core/config/settings.js'),
+    require('core/application/listExtractor/listExtractor.service'),
+    require('core/application/service/applications.read.service.js'),
+    require('core/config/settings.js'),
   ])
   .factory('fastPropertyScopeBuilderService', (appListExtractorService, applicationReader, settings, fastPropertyReader) => {
 

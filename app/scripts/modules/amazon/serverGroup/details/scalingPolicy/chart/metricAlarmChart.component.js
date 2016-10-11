@@ -13,7 +13,7 @@ require('./metricAlarmChart.component.less');
 
 module.exports = angular
   .module('spinnaker.aws.serverGroup.details.scalingPolicy.metricAlarmChart.component', [
-    require('../../../../../core/serverGroup/metrics/cloudMetrics.read.service.js'),
+    require('core/serverGroup/metrics/cloudMetrics.read.service.js'),
     require('exports?"n3-line-chart"!n3-charts/build/LineChart.js'),
   ])
   .component('metricAlarmChart', {

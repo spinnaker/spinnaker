@@ -4,8 +4,8 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.cf.resizeAsgStage', [
   require('./resizeAsgExecutionDetails.controller.js'),
-  require('../../../../core/account/account.service.js'),
-  require('../../../../core/pipeline/config/stages/stageConstants.js'),
+  require('core/account/account.service.js'),
+  require('core/pipeline/config/stages/stageConstants.js'),
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

@@ -3,11 +3,11 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.rollback.controller', [
-      require('../../../../core/account/account.service.js'),
-      require('../../../../core/application/modal/platformHealthOverride.directive.js'),
-      require('../../../../core/task/modal/reason.directive.js'),
-      require('../../../../core/serverGroup/serverGroup.write.service.js'),
-      require('../../../../core/task/monitor/taskMonitorService.js'),
+      require('core/account/account.service.js'),
+      require('core/application/modal/platformHealthOverride.directive.js'),
+      require('core/task/modal/reason.directive.js'),
+      require('core/serverGroup/serverGroup.write.service.js'),
+      require('core/task/monitor/taskMonitorService.js'),
     ])
     .controller('kubernetesRollbackServerGroupController', function ($scope, $uibModalInstance, serverGroupWriter,
                                                                      taskMonitorService,

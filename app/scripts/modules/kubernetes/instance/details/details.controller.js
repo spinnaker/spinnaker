@@ -7,13 +7,13 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller', [
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
-  require('../../../core/instance/instance.write.service.js'),
-  require('../../../core/instance/instance.read.service.js'),
-  require('../../../core/confirmationModal/confirmationModal.service.js'),
-  require('../../../core/insight/insightFilterState.model.js'),
-  require('../../../core/history/recentHistory.service.js'),
-  require('../../../core/utils/selectOnDblClick.directive.js'),
-  require('../../../core/cloudProvider/cloudProvider.registry.js'),
+  require('core/instance/instance.write.service.js'),
+  require('core/instance/instance.read.service.js'),
+  require('core/confirmationModal/confirmationModal.service.js'),
+  require('core/insight/insightFilterState.model.js'),
+  require('core/history/recentHistory.service.js'),
+  require('core/utils/selectOnDblClick.directive.js'),
+  require('core/cloudProvider/cloudProvider.registry.js'),
 ])
   .controller('kubernetesInstanceDetailsController', function ($scope, $state, $uibModal, InsightFilterStateModel,
                                                                instanceWriter, confirmationModalService, recentHistoryService,
@@ -32,7 +32,7 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
       $scope.userDataModalTitle = 'Pod YAML';
       $scope.userData = $scope.instance.yaml;
       $uibModal.open({
-        templateUrl: require('../../../core/serverGroup/details/userData.html'),
+        templateUrl: require('core/serverGroup/details/userData.html'),
         controller: 'CloseableModalCtrl',
         scope: $scope
       });

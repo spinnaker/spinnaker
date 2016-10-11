@@ -6,14 +6,14 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   require('./infrastructureSearch.service.js'),
-  require('../../history/recentHistory.service.js'),
+  require('core/history/recentHistory.service.js'),
   require('../searchResult/searchResult.directive.js'),
-  require('../../pageTitle/pageTitle.service.js'),
+  require('core/pageTitle/pageTitle.service.js'),
   require('./project/infrastructureProject.directive.js'),
   require('../searchRank.filter.js'),
-  require('../../cluster/filter/clusterFilter.service.js'),
-  require('../../cache/cacheInitializer.js'),
-  require('../../overrideRegistry/override.registry.js'),
+  require('core/cluster/filter/clusterFilter.service.js'),
+  require('core/cache/cacheInitializer.js'),
+  require('core/overrideRegistry/override.registry.js'),
 ])
   .controller('InfrastructureCtrl', function($scope, infrastructureSearchService, $stateParams, $location, searchService,
                                              cacheInitializer, overrideRegistry,

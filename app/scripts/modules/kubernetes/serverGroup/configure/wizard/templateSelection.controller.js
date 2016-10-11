@@ -5,7 +5,7 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.templateSelection.controller', [
-  require('../../../../core/serverGroup/serverGroup.read.service.js'),
+  require('core/serverGroup/serverGroup.read.service.js'),
   require('../CommandBuilder.js'),
 ])
   .controller('kubernetesServerGroupTemplateSelectionController', function($scope, kubernetesServerGroupCommandBuilder, serverGroupReader) {

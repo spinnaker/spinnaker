@@ -5,10 +5,10 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service', [
-  require('../../../core/account/account.service.js'),
-  require('../../../core/subnet/subnet.read.service.js'),
-  require('../../../core/instance/instanceTypeService.js'),
-  require('../../../core/naming/naming.service.js'),
+  require('core/account/account.service.js'),
+  require('core/subnet/subnet.read.service.js'),
+  require('core/instance/instanceTypeService.js'),
+  require('core/naming/naming.service.js'),
   require('./serverGroupConfiguration.service.js'),
 ])
   .factory('awsServerGroupCommandBuilder', function (settings, $q,

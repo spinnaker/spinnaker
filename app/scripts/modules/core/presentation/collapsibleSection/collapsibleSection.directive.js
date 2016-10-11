@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.presentation.collapsibleSection.directive', [
-  require('../../cache/collapsibleSectionStateCache.js')
+  require('core/cache/collapsibleSectionStateCache.js')
 ])
   .directive('collapsibleSection', function(collapsibleSectionStateCache) {
     return {

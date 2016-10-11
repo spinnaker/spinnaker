@@ -7,8 +7,8 @@ let angular = require('angular');
 require('./ci.less');
 
 module.exports = angular.module('spinnaker.netflix.ci.controller', [
-  require('../../core/authentication/authentication.service'),
-  require('../../core/application/service/applications.read.service'),
+  require('core/authentication/authentication.service'),
+  require('core/application/service/applications.read.service'),
   require('./build.read.service.js'),
   require('angular-ui-router'),
 ])

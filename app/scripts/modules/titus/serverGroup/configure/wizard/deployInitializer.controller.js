@@ -5,7 +5,7 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.titus.deployInitialization.controller', [
-  require('../../../../core/serverGroup/serverGroup.read.service.js'),
+  require('core/serverGroup/serverGroup.read.service.js'),
   require('../ServerGroupCommandBuilder.js'),
 ])
   .controller('titusDeployInitializerCtrl', function($scope, titusServerGroupCommandBuilder, serverGroupReader) {

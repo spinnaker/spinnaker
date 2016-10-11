@@ -5,9 +5,9 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.cloneServerGroupStage', [
-  require('../../../../core/application/modal/platformHealthOverride.directive.js'),
-  require('../../../../core/account/account.service.js'),
-  require('../../../../core/naming/naming.service.js'),
+  require('core/application/modal/platformHealthOverride.directive.js'),
+  require('core/account/account.service.js'),
+  require('core/naming/naming.service.js'),
   require('./cloneServerGroupExecutionDetails.controller.js'),
 ])
   .config(function(pipelineConfigProvider) {

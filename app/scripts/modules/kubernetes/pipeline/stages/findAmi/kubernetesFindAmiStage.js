@@ -3,9 +3,9 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.findAmiStage', [
-  require('../../../../core/application/listExtractor/listExtractor.service.js'),
+  require('core/application/listExtractor/listExtractor.service.js'),
   require('./findAmiExecutionDetails.controller.js'),
-  require('../../../../core/account/account.service.js'),
+  require('core/account/account.service.js'),
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

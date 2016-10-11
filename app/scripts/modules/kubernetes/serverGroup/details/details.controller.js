@@ -8,13 +8,13 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.controller', [
   require('angular-ui-router'),
   require('../configure/configure.kubernetes.module.js'),
-  require('../../../core/confirmationModal/confirmationModal.service.js'),
-  require('../../../core/serverGroup/configure/common/runningExecutions.service.js'),
-  require('../../../core/serverGroup/details/serverGroupWarningMessage.service.js'),
-  require('../../../core/serverGroup/serverGroup.read.service.js'),
-  require('../../../core/serverGroup/serverGroup.write.service.js'),
-  require('../../../core/insight/insightFilterState.model.js'),
-  require('../../../core/utils/selectOnDblClick.directive.js'),
+  require('core/confirmationModal/confirmationModal.service.js'),
+  require('core/serverGroup/configure/common/runningExecutions.service.js'),
+  require('core/serverGroup/details/serverGroupWarningMessage.service.js'),
+  require('core/serverGroup/serverGroup.read.service.js'),
+  require('core/serverGroup/serverGroup.write.service.js'),
+  require('core/insight/insightFilterState.model.js'),
+  require('core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('kubernetesServerGroupDetailsController', function ($scope, $state, app, serverGroup, InsightFilterStateModel,
                                                                   serverGroupReader, $uibModal, serverGroupWriter,
@@ -51,7 +51,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
       $scope.userDataModalTitle = 'Replication Controller YAML';
       $scope.userData = $scope.serverGroup.yaml;
       $uibModal.open({
-        templateUrl: require('../../../core/serverGroup/details/userData.html'),
+        templateUrl: require('core/serverGroup/details/userData.html'),
         controller: 'CloseableModalCtrl',
         scope: $scope
       });

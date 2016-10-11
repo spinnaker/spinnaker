@@ -3,8 +3,8 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.httpHealthCheck.reader', [
-  require('../../core/api/api.service'),
-  require('../../core/cache/infrastructureCaches.js'),
+  require('core/api/api.service'),
+  require('core/cache/infrastructureCaches.js'),
 ])
   .factory('gceHttpHealthCheckReader', function ($q, API, infrastructureCaches) {
 

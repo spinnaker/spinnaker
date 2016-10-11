@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.tableau.states', [
-    require('../../core/navigation/states.provider'),
+    require('core/navigation/states.provider'),
     require('./application/appTableau.controller'),
     require('./summary/summaryTableau.controller'),
     require('./tableau.dataSource'),

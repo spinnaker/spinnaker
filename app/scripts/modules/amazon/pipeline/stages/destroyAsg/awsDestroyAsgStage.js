@@ -5,7 +5,7 @@ let angular = require('angular');
 //BEN_TODO: where is this defined?
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.destroyAsgStage', [
-  require('../../../../core/pipeline/config/stages/stageConstants.js'),
+  require('core/pipeline/config/stages/stageConstants.js'),
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.destroyAsgSta
       alias: 'destroyAsg',
       cloudProvider: 'aws',
       templateUrl: require('./destroyAsgStage.html'),
-      executionDetailsUrl: require('../../../../core/pipeline/config/stages/destroyAsg/templates/destroyAsgExecutionDetails.template.html'),
+      executionDetailsUrl: require('core/pipeline/config/stages/destroyAsg/templates/destroyAsgExecutionDetails.template.html'),
       executionStepLabelUrl: require('./destroyAsgStepLabel.html'),
       validators: [
         {

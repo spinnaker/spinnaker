@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.pipeline.create.persistedPropertyList.component', [
-    require('../../../../../core/authentication/authentication.service')
+    require('core/authentication/authentication.service')
   ])
   .component('persistedPropertyCreateList', {
     bindings: {

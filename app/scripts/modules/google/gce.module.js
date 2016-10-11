@@ -13,14 +13,14 @@ templates.keys().forEach(function(key) {
 });
 
 module.exports = angular.module('spinnaker.gce', [
-  require('../core/cloudProvider/cloudProvider.registry.js'),
+  require('core/cloudProvider/cloudProvider.registry.js'),
   gceLoadBalancerSetTransformer,
   require('./serverGroup/details/serverGroup.details.gce.module.js'),
   require('./serverGroup/configure/serverGroupCommandBuilder.service.js'),
   require('./serverGroup/configure/wizard/cloneServerGroup.gce.controller.js'),
   require('./serverGroup/configure/serverGroup.configure.gce.module.js'),
   require('./serverGroup/serverGroup.transformer.js'),
-  require('../core/network/network.module.js'),
+  require('core/network/network.module.js'),
   require('./pipeline/stages/bake/gceBakeStage.js'),
   require('./pipeline/stages/cloneServerGroup/gceCloneServerGroupStage.js'),
   require('./pipeline/stages/destroyAsg/gceDestroyAsgStage.js'),

@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.deck.gce.upsertAutoscalingPolicy.moda
     require('../../../../autoscalingPolicy/autoscalingPolicy.write.service'),
     require('../../../../autoscalingPolicy/components/basicSettings/basicSettings.component.js'),
     require('../../../../autoscalingPolicy/components/metricSettings/metricSettings.component.js'),
-    require('../../../../../core/task/monitor/taskMonitorService.js')
+    require('core/task/monitor/taskMonitorService.js')
   ])
   .controller('gceUpsertAutoscalingPolicyModalCtrl', function (policy, application, serverGroup,
                                                                taskMonitorService,

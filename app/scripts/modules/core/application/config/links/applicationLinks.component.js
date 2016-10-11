@@ -10,7 +10,7 @@ module.exports = angular
   .module('spinnaker.core.application.config.applicationLinks.component', [
     require('../../service/applications.write.service'),
     require('./editLinks.modal.controller'),
-    require('../../../config/settings'),
+    require('core/config/settings'),
     require('angular-ui-bootstrap'),
   ])
   .component('applicationLinks', {

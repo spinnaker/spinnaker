@@ -8,9 +8,9 @@ module.exports = angular
   .module('spinnaker.core.delivery.group.executionGroup.execution.directive', [
     require('../../filter/executionFilter.service.js'),
     require('../../filter/executionFilter.model.js'),
-    require('../../../confirmationModal/confirmationModal.service.js'),
-    require('../../../navigation/urlParser.service.js'),
-    require('../../../scheduler/scheduler.factory'),
+    require('core/confirmationModal/confirmationModal.service.js'),
+    require('core/navigation/urlParser.service.js'),
+    require('core/scheduler/scheduler.factory'),
   ])
   .directive('execution', function() {
     return {

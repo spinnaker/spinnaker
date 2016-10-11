@@ -6,8 +6,8 @@ var angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.clone.controller', [
-    require('../../../core/account/account.service.js'),
-    require('../../../core/task/monitor/taskMonitorService.js'),
+    require('core/account/account.service.js'),
+    require('core/task/monitor/taskMonitorService.js'),
     require('../securityGroup.write.service.js'),
     require('../configure/CreateSecurityGroupCtrl.js')
   ])

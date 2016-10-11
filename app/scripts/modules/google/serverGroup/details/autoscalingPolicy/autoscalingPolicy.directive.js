@@ -3,9 +3,9 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.instance.details.scalingPolicy.directive', [
-  require('../../../../core/insight/insightFilterState.model.js'),
-  require('../../../../core/widgets/actionIcons/actionIcons.component.js'),
-  require('../../../../core/confirmationModal/confirmationModal.service.js'),
+  require('core/insight/insightFilterState.model.js'),
+  require('core/widgets/actionIcons/actionIcons.component.js'),
+  require('core/confirmationModal/confirmationModal.service.js'),
   require('angular-ui-bootstrap'),
   require('./../../../autoscalingPolicy/autoscalingPolicy.write.service.js'),
   require('./modal/upsertAutoscalingPolicy.modal.controller.js'),

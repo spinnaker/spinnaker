@@ -1,4 +1,4 @@
-import modelBuilderModule from '../../../../application/applicationModel.builder';
+import modelBuilderModule from 'core/application/applicationModel.builder';
 
 describe('Controller: deletePipelineModal', function() {
   const angular = require('angular');

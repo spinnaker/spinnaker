@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.kubernetes.serverGroup.details.autoscaler.write.service', [
-    require('../../core/task/taskExecutor.js')
+    require('core/task/taskExecutor.js')
   ])
   .factory('kubernetesAutoscalerWriter', function(taskExecutor) {
     function upsertAutoscaler(application, serverGroup, params = {}) {

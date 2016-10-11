@@ -6,8 +6,8 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.triggers.docker.options.directive', [
-    require('../../../../../core/config/settings.js'),
-    require('../../../../../docker/image/image.reader.js'),
+    require('core/config/settings.js'),
+    require('core/image/image.reader.js'),
   ])
   .directive('dockerTriggerOptions', function () {
     return {

@@ -1,5 +1,5 @@
 import { module } from 'angular';
-import { StageContext } from '../../../../domain/stageContext';
+import { StageContext } from 'core/domain/stageContext';
 
 const MODULE_NAME = 'spinnaker.core.pipeline.clusterName.filter';
 

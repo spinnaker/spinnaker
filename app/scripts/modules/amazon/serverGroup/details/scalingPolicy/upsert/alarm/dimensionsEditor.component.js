@@ -9,7 +9,7 @@ require('./dimensionsEditor.component.less');
 
 module.exports = angular
   .module('spinnaker.aws.serverGroup.details.scalingPolicy.dimensionEditor', [
-    require('../../../../../../core/serverGroup/metrics/cloudMetrics.read.service.js'),
+    require('core/serverGroup/metrics/cloudMetrics.read.service.js'),
   ])
   .component('dimensionsEditor', {
     bindings: {

@@ -3,9 +3,9 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.google.serverGroup.details.resize.controller', [
-  require('../../../../core/application/modal/platformHealthOverride.directive.js'),
-  require('../../../../core/task/modal/reason.directive.js'),
-  require('../../../../core/task/monitor/taskMonitorService.js'),
+  require('core/application/modal/platformHealthOverride.directive.js'),
+  require('core/task/modal/reason.directive.js'),
+  require('core/task/monitor/taskMonitorService.js'),
   require('./resizeCapacity.component.js'),
   require('./resizeAutoscalingPolicy.component.js'),
   require('../../../common/footer.directive.js'),

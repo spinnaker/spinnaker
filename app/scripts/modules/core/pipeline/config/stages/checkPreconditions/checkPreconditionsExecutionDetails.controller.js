@@ -1,13 +1,13 @@
 'use strict';
 
-import detailsSectionModule from '../../../../delivery/details/executionDetailsSection.service';
+import detailsSectionModule from 'core/delivery/details/executionDetailsSection.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.stage.checkPreconditions.executionDetails.controller', [
   require('angular-ui-router'),
   detailsSectionModule,
-  require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
+  require('core/delivery/details/executionDetailsSectionNav.directive.js'),
 ])
   .controller('CheckPreconditionsExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 

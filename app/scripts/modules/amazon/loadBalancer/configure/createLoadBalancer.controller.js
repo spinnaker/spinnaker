@@ -2,28 +2,28 @@
 
 import _ from 'lodash';
 
-import modalWizardServiceModule from '../../../core/modal/wizard/v2modalWizard.service';
+import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', [
   require('angular-ui-router'),
-  require('../../../core/loadBalancer/loadBalancer.write.service.js'),
-  require('../../../core/loadBalancer/loadBalancer.read.service.js'),
-  require('../../../core/account/account.service.js'),
+  require('core/loadBalancer/loadBalancer.write.service.js'),
+  require('core/loadBalancer/loadBalancer.read.service.js'),
+  require('core/account/account.service.js'),
   require('../loadBalancer.transformer.js'),
-  require('../../../core/securityGroup/securityGroup.read.service.js'),
+  require('core/securityGroup/securityGroup.read.service.js'),
   modalWizardServiceModule,
-  require('../../../core/task/monitor/taskMonitorService.js'),
-  require('../../../core/subnet/subnet.read.service.js'),
-  require('../../../core/cache/cacheInitializer.js'),
-  require('../../../core/cache/infrastructureCaches.js'),
-  require('../../../core/naming/naming.service.js'),
+  require('core/task/monitor/taskMonitorService.js'),
+  require('core/subnet/subnet.read.service.js'),
+  require('core/cache/cacheInitializer.js'),
+  require('core/cache/infrastructureCaches.js'),
+  require('core/naming/naming.service.js'),
   require('./loadBalancerAvailabilityZoneSelector.directive.js'),
-  require('../../../core/region/regionSelectField.directive.js'),
-  require('../../../core/account/accountSelectField.directive.js'),
+  require('core/region/regionSelectField.directive.js'),
+  require('core/account/accountSelectField.directive.js'),
   require('../../subnet/subnetSelectField.directive.js'),
-  require('../../../core/config/settings.js'),
+  require('core/config/settings.js'),
 ])
   .controller('awsCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
                                                     accountService, awsLoadBalancerTransformer, securityGroupReader,

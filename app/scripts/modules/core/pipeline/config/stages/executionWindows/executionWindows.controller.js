@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.controller', [
-  require('../../../../utils/timePicker.service.js')
+  require('core/utils/timePicker.service.js')
 ])
   .controller('ExecutionWindowsCtrl', function($scope, timePickerService) {
 

@@ -1,23 +1,23 @@
 'use strict';
 
-import modalWizardServiceModule from '../../../core/modal/wizard/v2modalWizard.service';
+import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller', [
   require('angular-ui-router'),
   require('../loadBalancer.write.service.js'),
-  require('../../../core/loadBalancer/loadBalancer.read.service.js'),
-  require('../../../core/account/account.service.js'),
+  require('core/loadBalancer/loadBalancer.read.service.js'),
+  require('core/account/account.service.js'),
   require('../loadBalancer.transformer.js'),
   modalWizardServiceModule,
-  require('../../../core/task/monitor/taskMonitorService.js'),
-  require('../../../core/cache/cacheInitializer.js'),
-  require('../../../core/cache/infrastructureCaches.js'),
-  require('../../../core/naming/naming.service.js'),
-  require('../../../core/region/regionSelectField.directive.js'),
-  require('../../../core/account/accountSelectField.directive.js'),
-  require('../../../core/network/network.read.service.js'),
+  require('core/task/monitor/taskMonitorService.js'),
+  require('core/cache/cacheInitializer.js'),
+  require('core/cache/infrastructureCaches.js'),
+  require('core/naming/naming.service.js'),
+  require('core/region/regionSelectField.directive.js'),
+  require('core/account/accountSelectField.directive.js'),
+  require('core/network/network.read.service.js'),
 ])
   .controller('azureCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
                                                     accountService, azureLoadBalancerTransformer,

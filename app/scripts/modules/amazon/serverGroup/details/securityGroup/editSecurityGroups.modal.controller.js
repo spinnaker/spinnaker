@@ -5,10 +5,10 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.aws.securityGroup.editSecurityGroups.modal.controller', [
-  require('../../../../core/task/monitor/taskMonitor.module.js'),
-  require('../../../../core/serverGroup/serverGroup.write.service'),
-  require('../../../../core/securityGroup/securityGroup.read.service'),
-  require('../../../../core/task/taskExecutor.js'),
+  require('core/task/monitor/taskMonitor.module.js'),
+  require('core/serverGroup/serverGroup.write.service'),
+  require('core/securityGroup/securityGroup.read.service'),
+  require('core/task/taskExecutor.js'),
 ])
   .controller('EditSecurityGroupsCtrl', function($scope, $uibModalInstance, taskMonitorService, taskExecutor,
                                                  serverGroupWriter, securityGroupReader,

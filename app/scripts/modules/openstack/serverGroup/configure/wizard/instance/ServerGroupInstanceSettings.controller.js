@@ -2,17 +2,17 @@
 
 import {Observable, Subject} from 'rxjs';
 
-import modalWizardServiceModule from '../../../../../core/modal/wizard/v2modalWizard.service';
+import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.openstack.instanceSettings', [
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
-  require('../../../../../core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
+  require('core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
   modalWizardServiceModule,
-  require('../../../../../core/image/image.reader.js'),
-  require('../../../../../core/naming/naming.service.js'),
+  require('core/image/image.reader.js'),
+  require('core/naming/naming.service.js'),
   require('../../../../instance/osInstanceTypeSelectField.directive.js'),
 ])
   .controller('openstackServerGroupInstanceSettingsCtrl', function($scope, $controller, $uibModalStack, $state,

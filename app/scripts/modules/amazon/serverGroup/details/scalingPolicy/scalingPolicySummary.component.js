@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.details.scalingPolicy
   require('./popover/scalingPolicyPopover.component.js'),
   require('./scalingPolicy.write.service.js'),
   require('./upsert/upsertScalingPolicy.controller.js'),
-  require('../../../../core/confirmationModal/confirmationModal.service.js'),
+  require('core/confirmationModal/confirmationModal.service.js'),
 ])
   .component('scalingPolicySummary', {
       bindings: {

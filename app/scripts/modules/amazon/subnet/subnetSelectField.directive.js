@@ -5,7 +5,7 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.subnet.subnetSelectField.directive', [
-  require('../../core/config/settings'),
+  require('core/config/settings'),
 ])
   .directive('subnetSelectField', function (settings) {
     return {

@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.kubernetes.image.reader', [
-  require('../../core/api/api.service')
+  require('core/api/api.service')
 ])
   .factory('kubernetesImageReader', function ($q, API) {
     function findImages(params) {

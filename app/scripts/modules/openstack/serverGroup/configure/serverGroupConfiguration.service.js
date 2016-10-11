@@ -6,12 +6,12 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.serverGroup.configure.configuration.service', [
   require('../../image/image.reader.js'),
-  require('../../../core/account/account.service.js'),
+  require('core/account/account.service.js'),
   require('../../../netflix/serverGroup/diff/diff.service.js'),
-  require('../../../core/naming/naming.service.js'),
-  require('../../../core/securityGroup/securityGroup.read.service.js'),
-  require('../../../core/loadBalancer/loadBalancer.read.service.js'),
-  require('../../../core/cache/cacheInitializer.js'),
+  require('core/naming/naming.service.js'),
+  require('core/securityGroup/securityGroup.read.service.js'),
+  require('core/loadBalancer/loadBalancer.read.service.js'),
+  require('core/cache/cacheInitializer.js'),
 ])
   .factory('openstackServerGroupConfigurationService', function($q, openstackImageReader, accountService, securityGroupReader,
                                                           cacheInitializer,

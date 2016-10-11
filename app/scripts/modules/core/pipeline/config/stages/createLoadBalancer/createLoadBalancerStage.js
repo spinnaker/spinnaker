@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.createLoadBalancerStage', [
-  require('../../../../cloudProvider/cloudProvider.registry.js'),
+  require('core/cloudProvider/cloudProvider.registry.js'),
 ])
   .config(function(pipelineConfigProvider, settings) {
 

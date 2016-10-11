@@ -7,7 +7,7 @@ require('./showHistory.less');
 module.exports = angular
   .module('spinnaker.core.pipeline.config.actions.history.controller', [
     require('../../services/pipelineConfigService'),
-    require('../../../../utils/jQuery'),
+    require('core/utils/jQuery'),
     require('./jsonDiff.service'),
     require('./diffSummary.component'),
     require('./diffView.component'),

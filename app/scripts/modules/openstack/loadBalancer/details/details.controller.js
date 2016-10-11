@@ -6,13 +6,13 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.openstack.details.controller', [
     require('angular-ui-router'),
-    require('../../../core/account/account.service.js'),
-    require('../../../core/confirmationModal/confirmationModal.service.js'),
-    require('../../../core/loadBalancer/loadBalancer.write.service.js'),
-    require('../../../core/loadBalancer/loadBalancer.read.service.js'),
-    require('../../../core/confirmationModal/confirmationModal.service.js'),
-    require('../../../core/insight/insightFilterState.model.js'),
-    require('../../../core/utils/selectOnDblClick.directive.js'),
+    require('core/account/account.service.js'),
+    require('core/confirmationModal/confirmationModal.service.js'),
+    require('core/loadBalancer/loadBalancer.write.service.js'),
+    require('core/loadBalancer/loadBalancer.read.service.js'),
+    require('core/confirmationModal/confirmationModal.service.js'),
+    require('core/insight/insightFilterState.model.js'),
+    require('core/utils/selectOnDblClick.directive.js'),
   ])
   .controller('openstackLoadBalancerDetailsController', function ($scope, $state, $uibModal, loadBalancer, app, InsightFilterStateModel,
                                                                   confirmationModalService, accountService, loadBalancerReader, loadBalancerWriter, subnetReader, $q) {

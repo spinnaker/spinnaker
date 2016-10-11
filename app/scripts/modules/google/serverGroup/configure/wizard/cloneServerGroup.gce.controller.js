@@ -4,10 +4,10 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServerGroup', [
   require('angular-ui-router'),
-  require('../../../../core/application/modal/platformHealthOverride.directive.js'),
+  require('core/application/modal/platformHealthOverride.directive.js'),
   require('./../../../instance/custom/customInstanceBuilder.gce.service.js'),
-  require('../../../../core/instance/instanceTypeService.js'),
-  require('../../../../core/modal/wizard/wizardSubFormValidation.service.js'),
+  require('core/instance/instanceTypeService.js'),
+  require('core/modal/wizard/wizardSubFormValidation.service.js'),
   require('./hiddenMetadataKeys.value.js'),
   require('./securityGroups/tagManager.service.js')
 ])

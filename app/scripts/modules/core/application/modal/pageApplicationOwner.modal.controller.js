@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pageApplicationOwner.modal.controller', [
   require('../service/applications.write.service.js'),
-  require('../../../core/task/monitor/taskMonitorService.js'),
+  require('core/task/monitor/taskMonitorService.js'),
 ])
   .controller('PageApplicationOwner', function ($scope, $uibModalInstance,
                                                 taskMonitorService, applicationWriter, application) {

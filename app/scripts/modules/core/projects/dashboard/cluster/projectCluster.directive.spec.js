@@ -3,7 +3,7 @@
 describe('Directives: projectCluster', function () {
 
   require('./projectCluster.directive.html');
-  require('../../../account/collapsibleAccountTag.directive.html');
+  require('core/account/collapsibleAccountTag.directive.html');
 
   beforeEach(
     window.module(

@@ -7,7 +7,7 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.google.serverGroup.configure.wizard.advancedSettings.selector.directive', [
     require('exports?"ui.select"!ui-select'),
-    require('../../../../../core/cache/infrastructureCaches.js'),
+    require('core/cache/infrastructureCaches.js'),
     require('../../serverGroupConfiguration.service.js'),
     require('../securityGroups/tagManager.service.js')
   ])

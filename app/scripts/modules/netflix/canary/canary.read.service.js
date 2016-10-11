@@ -5,7 +5,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.canary.read.service', [
-    require('../../core/api/api.service')
+    require('core/api/api.service')
   ])
   .factory('canaryReadService', function(API) {
 

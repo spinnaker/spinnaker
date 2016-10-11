@@ -4,8 +4,8 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.azure.subnet.read.service', [
-    require('../../core/api/api.service'),
-    require('../../core/cache/infrastructureCaches.js')
+    require('core/api/api.service'),
+    require('core/cache/infrastructureCaches.js')
   ])
   .factory('azureSubnetReader', function (API, infrastructureCaches) {
 

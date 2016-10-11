@@ -3,8 +3,8 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.gce.cacheRefresh.component', [
-    require('../../core/cache/cacheInitializer.js'),
-    require('../../core/cache/infrastructureCaches.js'),
+    require('core/cache/cacheInitializer.js'),
+    require('core/cache/infrastructureCaches.js'),
   ])
   .component('gceCacheRefresh', {
     bindings: {

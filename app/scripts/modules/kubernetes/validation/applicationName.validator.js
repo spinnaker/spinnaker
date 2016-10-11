@@ -4,7 +4,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.kubernetes.validation.applicationName', [
-    require('../../core/application/modal/validation/applicationName.validator.js'),
+    require('core/application/modal/validation/applicationName.validator.js'),
   ])
   .factory('kubernetesApplicationNameValidator', function () {
 

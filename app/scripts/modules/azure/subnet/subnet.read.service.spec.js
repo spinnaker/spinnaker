@@ -7,7 +7,7 @@ describe('azureSubnetReader', function() {
   beforeEach(
     window.module(
       require('./subnet.read.service.js'),
-      require('../../core/api/api.service')
+      require('core/api/api.service')
     )
   );
 

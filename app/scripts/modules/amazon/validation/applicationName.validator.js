@@ -6,8 +6,8 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.aws.validation.applicationName', [
-    require('../../core/application/modal/validation/applicationName.validator'),
-    require('../../core/config/settings'),
+    require('core/application/modal/validation/applicationName.validator'),
+    require('core/config/settings'),
   ])
   .factory('awsApplicationNameValidator', function (settings) {
 

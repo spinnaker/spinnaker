@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.actions.generate.score.controller', [
   require('angular-ui-router'),
-  require('../../../../../core/delivery/details/executionDetailsSectionNav.directive.js'),
+  require('core/delivery/details/executionDetailsSectionNav.directive.js'),
 ])
   .controller('GenerateScoreCtrl', function ($scope, $http, $uibModalInstance, settings, canaryId) {
 

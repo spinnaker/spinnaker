@@ -3,9 +3,9 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.service', [
-  require('../../../core/config/settings.js'),
-  require('../../../core/account/account.service.js'),
-  require('../../../core/naming/naming.service.js'),
+  require('core/config/settings.js'),
+  require('core/account/account.service.js'),
+  require('core/naming/naming.service.js'),
   require('../../cluster/cluster.kubernetes.module.js'),
 ])
   .factory('kubernetesServerGroupCommandBuilder', function (settings, $q, accountService, namingService,

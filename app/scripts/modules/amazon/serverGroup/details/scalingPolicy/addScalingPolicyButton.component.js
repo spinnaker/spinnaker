@@ -5,7 +5,7 @@ const angular = require('angular');
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.details.scalingPolicy.addButton', [
     require('angular-ui-bootstrap'),
-    require('../../../../core/utils/uuid.service.js'),
+    require('core/utils/uuid.service.js'),
   ])
   .component('addScalingPolicyButton', {
     bindings: {

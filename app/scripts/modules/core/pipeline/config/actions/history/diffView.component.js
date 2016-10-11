@@ -4,7 +4,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.diffView.component', [
-    require('../../../../utils/jQuery'),
+    require('core/utils/jQuery'),
   ])
   .component('diffView', {
     bindings: {

@@ -5,7 +5,7 @@ require('./feedback.less');
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.feedback.directive', [
-  require('../../core/config/settings')
+  require('core/config/settings')
 ])
   .directive('feedback', function($location, settings) {
     return {

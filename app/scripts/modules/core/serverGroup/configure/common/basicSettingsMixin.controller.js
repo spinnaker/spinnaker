@@ -8,7 +8,7 @@ module.exports = angular
   .module('spinnaker.core.serverGroup.basicSettings.controller', [
     require('angular-ui-bootstrap'),
     require('angular-ui-router'),
-    require('../../../naming/naming.service.js'),
+    require('core/naming/naming.service.js'),
     require('../../../image/image.reader.js')
   ])
   .controller('BasicSettingsMixin', function ($scope, imageReader, namingService, $uibModalStack, $state) {

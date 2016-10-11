@@ -4,10 +4,10 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.securityGroup.azure.edit.controller', [
   require('angular-ui-router'),
-  require('../../../core/account/account.service.js'),
-  require('../../../core/cache/infrastructureCaches.js'),
-  require('../../../core/cache/cacheInitializer.js'),
-  require('../../../core/task/monitor/taskMonitorService.js'),
+  require('core/account/account.service.js'),
+  require('core/cache/infrastructureCaches.js'),
+  require('core/cache/cacheInitializer.js'),
+  require('core/task/monitor/taskMonitorService.js'),
     require('../securityGroup.write.service.js'),
 ])
   .controller('azureEditSecurityGroupCtrl', function($scope, $uibModalInstance, $exceptionHandler, $state,

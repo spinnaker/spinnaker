@@ -3,8 +3,8 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.selector', [
-  require('../../../../account/account.service.js'),
-  require('../../../../application/listExtractor/listExtractor.service'),
+  require('core/account/account.service.js'),
+  require('core/application/listExtractor/listExtractor.service'),
 ])
   .directive('preconditionSelector', function() {
     return {
