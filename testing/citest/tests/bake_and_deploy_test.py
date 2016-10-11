@@ -501,7 +501,8 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     path = os.path.join('pipelines', self.TEST_APP, pipeline_id)
 
     builder = st.HttpContractBuilder(self.agent)
-    (builder.new_clause_builder('Has Pipeline')
+    (builder.new_clause_builder('Has Pipeline',
+                                retryable_for_secs=5)
        .get_url_path(
            'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
        .excludes_path_value('name', pipeline_id))
