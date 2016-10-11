@@ -63,6 +63,10 @@ module.exports = angular
       $uibModalInstance.close(vm.notification);
     };
 
+    vm.supportsCustomMessage = function(notification) {
+      return ['email', 'slack'].includes(notification.type);
+    };
+
     $scope.$watch('selectedWhenOptions', function (a, b) {
       if(a !== b) {
         vm.updateSelectedWhen();
