@@ -20,7 +20,6 @@ import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import groovy.transform.Canonical
 
 class TitusDeployDescription extends AbstractTitusCredentialsDescription implements DeployDescription {
-  String account
   String region
   String subnet
   List<String> zones

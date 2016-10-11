@@ -55,7 +55,6 @@ class TitusDeployHandlerSpec extends Specification {
       application: 'api',
       stack: 'test',
       freeFormDetails: '',
-      account: 'test',
       region: 'us-east-1',
       subnet: 'vpc0',
       imageId: 'api.server:master-201506020033-trusty-7366606',
