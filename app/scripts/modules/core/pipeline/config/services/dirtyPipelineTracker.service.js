@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.dirtyTr
     var dirtyPipelines = [];
 
     function add(name) {
-      if (dirtyPipelines.indexOf(name) === -1) {
+      if (!dirtyPipelines.includes(name)) {
         dirtyPipelines.push(name);
       }
     }

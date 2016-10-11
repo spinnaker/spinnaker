@@ -63,7 +63,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
     $scope.groupDependencyOptions = function(stage) {
       var requisiteStageRefIds = $scope.stage.requisiteStageRefIds || [];
       return stage.available ? 'Available' :
-        requisiteStageRefIds.indexOf(stage.refId) === -1 ? 'Downstream dependencies (unavailable)' : null;
+        requisiteStageRefIds.includes(stage.refId) ? null : 'Downstream dependencies (unavailable)';
     };
 
     $scope.updateAvailableDependencyStages = function() {
@@ -80,7 +80,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
       });
 
       $scope.pipeline.stages.forEach(function(stage) {
-        if (stage !== $scope.stage && availableDependencyStages.indexOf(stage) === -1) {
+        if (stage !== $scope.stage && !availableDependencyStages.includes(stage)) {
           $scope.options.dependencies.push({
             name: stage.name,
             refId: stage.refId,

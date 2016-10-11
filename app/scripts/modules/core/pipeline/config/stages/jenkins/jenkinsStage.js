@@ -76,7 +76,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', [
           $scope.viewState.jobsLoaded = true;
           $scope.viewState.jobsRefreshing = false;
           $scope.jobs = jobs;
-          if ($scope.jobs.indexOf($scope.stage.job) === -1) {
+          if (!$scope.jobs.includes($scope.stage.job)) {
             $scope.stage.job = '';
           }
         });

@@ -245,7 +245,7 @@ module.exports = angular.module('spinnaker.core.task.controller', [
     // the value on the scope
     $scope.$on('$stateChangeSuccess', function(event, toState, toParams) {
       var taskId = toParams.taskId;
-      if ($scope.viewState.expandedTasks.indexOf(taskId) === -1) {
+      if (!$scope.viewState.expandedTasks.includes(taskId)) {
         controller.toggleDetails(taskId);
       }
       $scope.viewState.nameFilter = taskId;

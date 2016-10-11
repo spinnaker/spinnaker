@@ -181,7 +181,7 @@ module.exports = angular
     function shouldShowInstance(instance) {
       if(isFilterable(ClusterFilterModel.sortFilter.availabilityZone)) {
         var checkedAvailabilityZones = filterModelService.getCheckValues(ClusterFilterModel.sortFilter.availabilityZone);
-        if (checkedAvailabilityZones.indexOf(instance.availabilityZone) === -1) {
+        if (!checkedAvailabilityZones.includes(instance.availabilityZone)) {
           return false;
         }
       }

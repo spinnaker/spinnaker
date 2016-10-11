@@ -20,7 +20,7 @@ module.exports = angular.module('spinnaker.core.validation.unique.directive', []
             options = options.map(function(option) { return option ? option.toLowerCase() : null; });
             test = value ? value.toLowerCase() : value;
           }
-          return options.indexOf(test) === -1;
+          return !options.includes(test);
         };
 
         ctrl.$validators.validateUnique = uniqueValidator;

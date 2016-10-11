@@ -187,12 +187,12 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
           return $scope.existingSecurityGroupNames.includes(defaultName);
         });
         $scope.loadBalancer.securityGroups.forEach(function(securityGroup) {
-          if ($scope.existingSecurityGroupNames.includes(securityGroup)) {
+          if (!$scope.existingSecurityGroupNames.includes(securityGroup)) {
             var matches = _.filter($scope.availableSecurityGroups, {id: securityGroup});
             if (matches.length) {
               existingNames.push(matches[0].name);
             } else {
-              if (defaultSecurityGroups.includes(securityGroup)) {
+              if (!defaultSecurityGroups.includes(securityGroup)) {
                 $scope.state.removedSecurityGroups.push(securityGroup);
               }
             }

@@ -286,7 +286,7 @@ module.exports = angular.module('spinnaker.core.navigation.urlBuilder.service', 
         });
       });
       if(parts.length > 0) {
-        url += ((url.indexOf('?') === -1) ? '?' : '&') + parts.join('&');
+        url += (url.includes('?') ? '&' : '?') + parts.join('&');
       }
       return url;
     }

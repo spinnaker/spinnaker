@@ -76,7 +76,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
         $scope.state.accountsLoaded = true;
 
         var accountNames = _.map($scope.accounts, 'name');
-        if (accountNames.length && accountNames.indexOf($scope.loadBalancer.account) === -1) {
+        if (accountNames.length && !accountNames.includes($scope.loadBalancer.account)) {
           $scope.loadBalancer.account = accountNames[0];
         }
 

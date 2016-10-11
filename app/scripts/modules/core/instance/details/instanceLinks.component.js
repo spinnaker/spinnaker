@@ -29,7 +29,7 @@ module.exports = angular
             url = $interpolate(url)(this.instance);
           }
           // handle relative paths
-          if (url.indexOf('//') === -1) {
+          if (!url.includes('//')) {
             url = `http://${this.address + port + url}`;
           }
           return {

@@ -92,7 +92,7 @@ module.exports = angular.module('spinnaker.core.forms.checklist.checklist.direct
         scope.$watch('items', function(newOptions, oldOptions) {
           if (oldOptions && oldOptions !== newOptions) {
             oldOptions.forEach(function(oldOption) {
-              if (newOptions.indexOf(oldOption) === -1) {
+              if (!newOptions.includes(oldOption)) {
                 delete scope.modelHolder[oldOption];
               }
             });

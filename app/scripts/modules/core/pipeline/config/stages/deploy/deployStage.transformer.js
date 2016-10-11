@@ -48,7 +48,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.transforme
         }
       });
       execution.stages = execution.stages.filter(function(stage) {
-        return stagesToRemove.indexOf(stage) === -1;
+        return !stagesToRemove.includes(stage);
       });
     }
 

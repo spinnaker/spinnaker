@@ -50,7 +50,7 @@ module.exports = angular
 
     function fromSecurityGroupsState(fromState) {
       return fromState.name.indexOf('home.applications.application.insight') === 0 &&
-        fromState.name.indexOf('home.applications.application.insight.securityGroups') === -1;
+        !fromState.name.includes('home.applications.application.insight.securityGroups');
     }
 
     // WHY??? Because, when the stateChangeStart event fires, the $location.search() will return whatever the query

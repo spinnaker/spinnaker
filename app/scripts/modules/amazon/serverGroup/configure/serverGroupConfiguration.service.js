@@ -168,7 +168,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
           .filter({account: command.credentials, region: command.region})
           .map('keyName')
           .value();
-        if (command.keyPair && filtered.length && filtered.indexOf(command.keyPair) === -1) {
+        if (command.keyPair && filtered.length && !filtered.includes(command.keyPair)) {
           var acct = command.backingData.credentialsKeyedByAccount[command.credentials] || {
               regions: [],
               defaultKeyPair: null
@@ -201,7 +201,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         if (command.virtualizationType) {
           filtered = awsInstanceTypeService.filterInstanceTypes(filtered, command.virtualizationType, !!command.vpcId);
         }
-        if (command.instanceType && filtered.indexOf(command.instanceType) === -1) {
+        if (command.instanceType && !filtered.includes(command.instanceType)) {
           result.dirty.instanceType = command.instanceType;
           command.instanceType = null;
         }

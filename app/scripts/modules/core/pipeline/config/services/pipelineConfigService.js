@@ -107,8 +107,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
       return pipeline.stages.filter(function(stageToTest) {
         return stage !== stageToTest &&
           stageToTest.requisiteStageRefIds &&
-          downstreamIds.indexOf(stageToTest.refId) === -1 &&
-          stage.requisiteStageRefIds.indexOf(stageToTest.refId) === -1;
+          !downstreamIds.includes(stageToTest.refId) &&
+          !stage.requisiteStageRefIds.includes(stageToTest.refId);
       });
     }
 

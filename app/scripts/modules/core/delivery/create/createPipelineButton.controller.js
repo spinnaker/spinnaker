@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.create.C
           application: () => this.application,
         }
       }).result.then((id) => {
-          if ($state.current.name.indexOf('.executions.execution') === -1) {
+          if (!$state.current.name.includes('.executions.execution')) {
             $state.go('^.pipelineConfig', { pipelineId: id });
           } else {
             $state.go('^.^.pipelineConfig', { pipelineId: id });

@@ -63,7 +63,7 @@ module.exports = angular
           this.configureAvailableVpcs();
         }
         this.availableSecurityGroups = availableSecurityGroups;
-        if (availableSecurityGroups.indexOf(this.rule.name) === -1 && !this.rule.existing) {
+        if (!availableSecurityGroups.includes(this.rule.name) && !this.rule.existing) {
           this.rule.name = null;
         }
       };

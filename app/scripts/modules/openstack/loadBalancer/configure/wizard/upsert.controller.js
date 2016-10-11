@@ -101,7 +101,7 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
         $scope.state.accountsLoaded = true;
 
         var accountNames = _.map($scope.accounts, 'name');
-        if (accountNames.length && accountNames.indexOf($scope.loadBalancer.account) === -1) {
+        if (accountNames.length && !accountNames.includes($scope.loadBalancer.account)) {
           $scope.loadBalancer.account = accountNames[0];
         }
 
@@ -162,7 +162,7 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
     this.newStatusCode = 200;
     this.addStatusCode = function() {
       var newCode = parseInt(this.newStatusCode);
-      if ($scope.loadBalancer.healthMonitor.expectedCodes.indexOf(newCode) === -1) {
+      if (!$scope.loadBalancer.healthMonitor.expectedCodes.includes(newCode)) {
         $scope.loadBalancer.healthMonitor.expectedCodes.push(newCode);
         $scope.loadBalancer.healthMonitor.expectedCodes.sort();
       }

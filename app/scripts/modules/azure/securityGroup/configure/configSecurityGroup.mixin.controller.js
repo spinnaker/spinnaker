@@ -166,7 +166,7 @@ module.exports = angular
     function clearInvalidSecurityGroups() {
       var removed = $scope.state.removedRules;
       $scope.securityGroup.securityGroupIngress = $scope.securityGroup.securityGroupIngress.filter(function(rule) {
-        if (rule.name && $scope.availableSecurityGroups.indexOf(rule.name) === -1 && removed.indexOf(rule.name) === -1) {
+        if (rule.name && !$scope.availableSecurityGroups.includes(rule.name) && !removed.includes(rule.name)) {
           removed.push(rule.name);
           return false;
         }

@@ -59,7 +59,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.validator.servic
 
         var parentTriggersToCheck = validationConfig.checkParentTriggers ? addPipelineTriggers(pipeline, stagesToTest) : [];
         return $q.all(parentTriggersToCheck).then(() => {
-          if (stagesToTest.every((stage) => stageTypes.indexOf(stage.type) === -1)) {
+          if (stagesToTest.every((stage) => !stageTypes.includes(stage.type))) {
             messages.push(validationConfig.message);
           }
         });
@@ -74,7 +74,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.validator.servic
         if (pipeline.parallel) {
           stagesToTest = pipelineConfigService.getAllUpstreamDependencies(pipeline, pipeline.stages[index]);
         }
-        if (stagesToTest.every((stage) => stageTypes.indexOf(stage.type) === -1)) {
+        if (stagesToTest.every((stage) => !stageTypes.includes(stage.type))) {
           messages.push(validationConfig.message);
         }
       },

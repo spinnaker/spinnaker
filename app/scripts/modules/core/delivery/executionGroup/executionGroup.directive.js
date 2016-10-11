@@ -37,7 +37,7 @@ module.exports = angular
       .some(this.showDetails);
 
     this.configure = (id) => {
-      if ($state.current.name.indexOf('.executions.execution') === -1) {
+      if (!$state.current.name.includes('.executions.execution')) {
         $state.go('^.pipelineConfig', { pipelineId: id });
       } else {
         $state.go('^.^.pipelineConfig', { pipelineId: id });

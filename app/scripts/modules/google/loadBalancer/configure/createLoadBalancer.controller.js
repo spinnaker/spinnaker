@@ -79,7 +79,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
         $scope.state.accountsLoaded = true;
 
         var accountNames = _.map($scope.accounts, 'name');
-        if (accountNames.length && accountNames.indexOf($scope.loadBalancer.credentials) === -1) {
+        if (accountNames.length && !accountNames.includes($scope.loadBalancer.credentials)) {
           $scope.loadBalancer.credentials = accountNames[0];
         }
 

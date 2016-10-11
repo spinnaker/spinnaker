@@ -227,7 +227,7 @@ module.exports = angular
         if (rule.accountName !== securityGroup.accountName || (rule.vpcId && rule.vpcId !== securityGroup.vpcId)) {
           return true;
         }
-        if (rule.name && $scope.availableSecurityGroups.indexOf(rule.name) === -1 && removed.indexOf(rule.name) === -1) {
+        if (rule.name && !$scope.availableSecurityGroups.includes(rule.name) && !removed.includes(rule.name)) {
           removed.push(rule.name);
           return false;
         }

@@ -52,7 +52,7 @@ module.exports = angular
 
     function fromLoadBalancersState(fromState) {
       return fromState.name.indexOf('home.applications.application.insight') === 0 &&
-        fromState.name.indexOf('home.applications.application.insight.loadBalancers') === -1;
+        !fromState.name.includes('home.applications.application.insight.loadBalancers');
     }
 
     // WHY??? Because, when the stateChangeStart event fires, the $location.search() will return whatever the query

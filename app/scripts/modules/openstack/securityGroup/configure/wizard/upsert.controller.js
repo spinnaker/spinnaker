@@ -83,7 +83,7 @@ module.exports = angular.module('spinnaker.securityGroup.openstack.create.contro
       }).then(function(backingData) {
         $scope.accounts = backingData.accounts;
         var accountNames = _.map($scope.accounts, 'name');
-        if (accountNames.length && accountNames.indexOf($scope.securityGroup.account) === -1) {
+        if (accountNames.length && !accountNames.includes($scope.securityGroup.account)) {
           $scope.securityGroup.account = accountNames[0];
         }
 

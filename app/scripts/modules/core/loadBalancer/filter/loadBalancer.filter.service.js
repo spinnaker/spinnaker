@@ -80,7 +80,7 @@ module.exports = angular
     function shouldShowInstance(instance) {
       if (isFilterable(LoadBalancerFilterModel.sortFilter.availabilityZone)) {
         var checkedAvailabilityZones = getCheckValues(LoadBalancerFilterModel.sortFilter.availabilityZone);
-        if (checkedAvailabilityZones.indexOf(instance.zone) === -1) {
+        if (!checkedAvailabilityZones.includes(instance.zone)) {
           return false;
         }
       }

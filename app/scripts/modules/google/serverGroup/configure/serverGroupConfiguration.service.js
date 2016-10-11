@@ -103,7 +103,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         if (command.network) {
           // Verify network is accounted for; otherwise, try refreshing networks cache.
           var networkNames = getNetworkNames(command);
-          if (networkNames.indexOf(command.network) === -1) {
+          if (!networkNames.includes(command.network)) {
             networkReloader = refreshNetworks(command);
           }
         }
@@ -581,7 +581,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
             // TODO(duftler): Remove this once we finish deprecating the old style regions/zones in clouddriver GCE credentials.
             backingData.filtered.regions = _.keys(regions);
           }
-          if (backingData.filtered.regions.indexOf(command.region) === -1) {
+          if (!backingData.filtered.regions.includes(command.region)) {
             command.region = null;
             result.dirty.region = true;
           } else {
@@ -589,7 +589,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
           }
 
           backingData.filtered.networks = getNetworkNames(command);
-          if (backingData.filtered.networks.indexOf(command.network) === -1) {
+          if (!backingData.filtered.networks.includes(command.network)) {
             command.network = null;
             result.dirty.network = true;
           } else {

@@ -31,7 +31,7 @@ module.exports =
 
     vm.getPropertyList = _.debounce((search) => {
       let newPropKeyList = vm.propertyList.map(prop => prop.key);
-      if (search && newPropKeyList.indexOf(search) === -1) {
+      if (search && !newPropKeyList.includes(search)) {
         newPropKeyList.unshift(search);
       }
       return _.uniq(newPropKeyList);

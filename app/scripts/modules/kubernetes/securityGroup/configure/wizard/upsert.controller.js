@@ -88,7 +88,7 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.contr
         $scope.state.accountsLoaded = true;
 
         var accountNames = _.map($scope.accounts, 'name');
-        if (accountNames.length && accountNames.indexOf($scope.securityGroup.account) === -1) {
+        if (accountNames.length && !accountNames.includes($scope.securityGroup.account)) {
           $scope.securityGroup.account = accountNames[0];
         }
 

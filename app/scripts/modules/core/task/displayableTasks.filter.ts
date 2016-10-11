@@ -6,10 +6,10 @@ export function displayableTaskFilter() {
   let blacklist = [
     'stageStart', 'stageEnd'
   ];
-  return function (input: TaskStep[]) {
+  return function (input: TaskStep[]): TaskStep[] {
     if (input) {
-      return input.filter(function (test: TaskStep) {
-        return blacklist.indexOf(test.name) === -1 ? input : null;
+      return input.filter((test: TaskStep) => {
+        return !blacklist.includes(test.name);
       });
     }
   };

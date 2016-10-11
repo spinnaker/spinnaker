@@ -40,7 +40,7 @@
                              ui-disable-choice="!option.available"
                              group-by="groupDependencyOptions"
             >
-            <span ng-if="stage.requisiteStageRefIds.indexOf(option.refId) === -1" ng-bind-html="option.name | highlight: $select.search"></span>
+            <span ng-if="!stage.requisiteStageRefIds.includes(option.refId)" ng-bind-html="option.name | highlight: $select.search"></span>
           </ui-select-choices>
         </ui-select>
       </stage-config-field>

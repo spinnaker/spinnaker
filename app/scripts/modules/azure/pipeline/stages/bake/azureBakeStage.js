@@ -54,7 +54,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.azure.bakeStage',
         $scope.regions = results.regions;
         if ($scope.regions.length === 1) {
           $scope.stage.region = $scope.regions[0];
-        } else if ($scope.regions.indexOf($scope.stage.region) === -1) {
+        } else if (!$scope.regions.includes($scope.stage.region)) {
           delete $scope.stage.region;
         }
         if (!$scope.stage.regions.length && $scope.application.defaultRegions.azure) {

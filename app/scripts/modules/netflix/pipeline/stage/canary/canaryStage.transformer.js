@@ -273,7 +273,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.transfo
             var canaryDeploymentId = deployment.canaryAnalysisResult ? deployment.canaryAnalysisResult.canaryDeploymentId : null;
             syntheticStagesToAdd.push(createSyntheticCanaryDeploymentStage(stage, deployment, status, deployParent, deploymentEndTime, canaryDeploymentId, execution));
           });
-          execution.stages = execution.stages.filter((stage) => deployStages.indexOf(stage) === -1);
+          execution.stages = execution.stages.filter((stage) => !deployStages.includes(stage));
         }
       });
       execution.stages = execution.stages.concat(syntheticStagesToAdd);

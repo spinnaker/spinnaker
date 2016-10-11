@@ -46,7 +46,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
       var result = { dirty: {} };
       if (command.region) {
         var filtered = cfInstanceTypeService.getAvailableTypesForRegions(command.backingData.instanceTypes, [command.region]);
-        if (command.instanceType && filtered.indexOf(command.instanceType) === -1) {
+        if (command.instanceType && !filtered.includes(command.instanceType)) {
           command.instanceType = null;
           result.dirty.instanceType = true;
         }
@@ -156,7 +156,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
         var backingData = command.backingData;
         if (command.credentials) {
           backingData.filtered.regions = Object.keys(backingData.credentialsKeyedByAccount[command.credentials].regions);
-          if (backingData.filtered.regions.indexOf(command.region) === -1) {
+          if (!backingData.filtered.regions.includes(command.region)) {
             command.region = null;
             result.dirty.region = true;
           } else {

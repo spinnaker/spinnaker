@@ -52,7 +52,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
       });
 
       execution.stages.forEach(function(stage) {
-        if (!stage.syntheticStageOwner && hiddenStageTypes.indexOf(stage.type) === -1) {
+        if (!stage.syntheticStageOwner && !hiddenStageTypes.includes(stage.type)) {
           let context = stage.context || {};
           stageSummaries.push({
             name: stage.name,
@@ -291,7 +291,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
       summary.stages = flattenAndFilter(summary);
       summary.stages.forEach(transformStage);
       summary.stages.forEach((stage) => delete stage.stages);
-      summary.masterStageIndex = summary.stages.indexOf(summary.masterStage) === -1 ? 0 : summary.stages.indexOf(summary.masterStage);
+      summary.masterStageIndex = summary.stages.includes(summary.masterStage) ? summary.stages.indexOf(summary.masterStage) : 0;
       transformStage(summary);
       styleStage(summary);
       orchestratedItemTransformer.defineProperties(summary);

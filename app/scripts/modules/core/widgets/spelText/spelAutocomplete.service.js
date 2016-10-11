@@ -259,7 +259,7 @@ module.exports = angular
         let hasJenkinsTriggerOrStage = trigger.type === 'jenkins' || pipeline.stages.some((stage) => stage.type === 'jenkins');
         codedHelperParamsCopy = hasJenkinsTriggerOrStage
           ? codedHelperParamsCopy
-          : codedHelperParamsCopy.filter((param) => param.name.indexOf('scmInfo') === -1);
+          : codedHelperParamsCopy.filter((param) => !param.name.includes('scmInfo'));
 
         pipeline.stages.forEach((stage) => {
           let newParam = {name: stage.name, type: stage.type};
