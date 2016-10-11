@@ -11,13 +11,6 @@
     "registry": "http://artifacts.netflix.com/api/npm/npm-local"
   },
   "dependencies": {
-    "@angular/common": "^2.0.0",
-    "@angular/compiler": "^2.0.0",
-    "@angular/core": "^2.0.0",
-    "@angular/http": "^2.0.0",
-    "@angular/platform-browser": "^2.0.0",
-    "@angular/platform-browser-dynamic": "^2.0.0",
-    "@angular/upgrade": "^2.0.0",
     "Select2": "git://github.com/select2/select2.git#3.4.8",
     "angular": "~1.5.8",
     "angular-animate": "~1.5.8",
@@ -43,7 +36,7 @@
     "loader-utils": "^0.2.11",
     "lodash": "^4.16.1",
     "moment-timezone": "^0.4.0",
-    "rxjs": "^5.0.0-beta.12",
+    "rxjs": "^5.0.0-rc.1",
     "select2-bootstrap-css": "git://github.com/t0m/select2-bootstrap-css.git#v1.3.1",
     "source-map": "^0.4.4",
     "source-sans-pro": "^2.0.10",
