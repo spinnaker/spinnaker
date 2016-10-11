@@ -115,7 +115,7 @@ module.exports = angular
       confirmationModalService.confirm({
           header: 'Really pause execution?',
           buttonText: 'Pause',
-          body: '<p>This will pause the pipeline for up to 12 hours.</p><p>After 12 hours the pipeline will automatically timeout and fail.</p>',
+          body: '<p>This will pause the pipeline for up to 72 hours.</p><p>After 72 hours the pipeline will automatically timeout and fail.</p>',
           submitMethod: () => executionService.pauseExecution(this.application, this.execution.id)
       });
     };
