@@ -83,8 +83,8 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
           status == 'complete' ? 'completed successfully' : status
         }"""
 
-      if (preference.message?."$status"?.text) {
-        body += "\n\n" + preference.message[status].text
+      if (preference.message?."$config.type.$status"?.text) {
+        body += "\n\n" + preference.message."$config.type.$status".text
       }
 
       String address = preference.address.startsWith('#') ? preference.address : "#${preference.address}"

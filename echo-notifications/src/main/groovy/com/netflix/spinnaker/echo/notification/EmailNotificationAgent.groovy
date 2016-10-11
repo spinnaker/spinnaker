@@ -79,7 +79,7 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
       config.type,
       status,
       config.link,
-      preference.message?."$status"?.text
+      preference.message?."$config.type.$status"?.text
     )
   }
 
