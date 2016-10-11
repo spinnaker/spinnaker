@@ -65,7 +65,7 @@ Kubernetes | kubectl | [See instructions](http://kubernetes.io/docs/user-guide/p
 citest is not yet published to a pip repository so you need to clone
 the citest repository and install it from there.
 ```
-# From the sibling directory to this repository, such as pushd ..
+# From another directoy, such as the sibling directory to this repository.
 git clone https://github.com/google/citest.git
 cd citest
 pip install -r requirements.txt

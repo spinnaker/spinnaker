@@ -249,9 +249,10 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Server Group Disabled', retryable_for_secs=90)
      .list_resource('instanceGroupManagers')
      .contains_path_value('baseInstanceName', self.__server_group_name)
-     .excludes_pred_list([
-         jp.PathContainsPredicate('baseInstanceName', self.__server_group_name),
-         jp.PathContainsPredicate('targetPools', 'https')]))
+     .excludes_match({
+          'baseInstanceName': jp.STR_SUBSTR(self.__server_group_name),
+          'targetPools': jp.LIST_MATCHES([jp.STR_SUBSTR('https')])
+          }))
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job, description='Server Group Test - disable server group',
@@ -279,9 +280,10 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Server Group Enabled', retryable_for_secs=90)
      .list_resource('instanceGroupManagers')
-     .contains_pred_list([
-         jp.PathContainsPredicate('baseInstanceName', self.__server_group_name),
-         jp.PathContainsPredicate('targetPools', 'https')]))
+     .contains_match({
+          'baseInstanceName': jp.STR_SUBSTR(self.__server_group_name),
+          'targetPools': jp.LIST_MATCHES([jp.STR_SUBSTR( 'https')])
+          }))
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job, description='Server Group Test - enable server group',
