@@ -71,7 +71,8 @@ class EmailNotificationAgentSpec extends Specification {
     event = new Event(content: [context: [stageDetails: [name: "foo-stage"]], execution: [name: "foo-pipeline"]])
   }
 
-  def "custom text is appended to email body"() {
+  @Unroll
+  def "custom text is appended to email body for #status notification"() {
     given:
     def email = new BlockingVariables()
     mailService.send(*_) >> { to, subject, text ->
@@ -96,7 +97,7 @@ class EmailNotificationAgentSpec extends Specification {
     )
 
     then:
-    context.get().get("message") == message[status].text
+    context.get().get("message") == message."$type.$status".text
 
     where:
     status     | _
@@ -111,7 +112,7 @@ class EmailNotificationAgentSpec extends Specification {
     stageName = "foo-stage"
     event = new Event(content: [context: [stageDetails: [name: "foo-stage"]], execution: [name: "foo-pipeline"]])
     message = ["complete", "starting", "failed"].collectEntries {
-      [(it): [text: "custom $it text"]]
+      [("$type.$it".toString()): [text: "custom $it text"]]
     }
   }
 

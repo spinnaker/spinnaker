@@ -80,7 +80,7 @@ class SlackNotificationAgentSpec extends Specification {
     event = new Event(content: [execution: [id: "1", name: "foo-pipeline"]])
     type = "pipeline"
     message = ["completed", "starting", "failed"].collectEntries {
-      [(it): [text: "Custom $it message"]]
+      [("$type.$it".toString()): [text: "Custom $it message"]]
     }
   }
 }
