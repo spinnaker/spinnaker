@@ -236,16 +236,15 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
          aws_module='elb',
          command='describe-load-balancers',
          args=['--load-balancer-names', load_balancer_name])
-     .contains_pred_list([
-         jp.PathContainsPredicate(
-             'LoadBalancerDescriptions/HealthCheck', health_check),
-         jp.PathPredicate(
-             'LoadBalancerDescriptions/AvailabilityZones{0}'.format(
-                 jp.DONT_ENUMERATE_TERMINAL),
-             jp.LIST_SIMILAR(expect_avail_zones)),
-         jp.PathElementsContainPredicate(
-             'LoadBalancerDescriptions/ListenerDescriptions', listener)
-         ])
+     .contains_path_match(
+        'LoadBalancerDescriptions',
+        {'HealthCheck': jp.DICT_MATCHES({
+              key: jp.EQUIVALENT(value) for key, value in health_check.items()}),
+         'AvailabilityZones': jp.LIST_SIMILAR(expect_avail_zones),
+         'ListenerDescriptions/Listener':
+             jp.DICT_MATCHES({key: jp.NUM_EQ(value)
+                              for key, value in listener['Listener'].items()})
+         })
     )
 
     title_decorator = '_with_vpc' if use_vpc else '_without_vpc'
@@ -365,7 +364,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
                                 retryable_for_secs=30)
      .collect_resources('autoscaling', 'describe-auto-scaling-groups',
                         args=['--auto-scaling-group-names', group_name])
-     .contains_path_value('AutoScalingGroups', {'MaxSize': 2}))
+     .contains_path_match('AutoScalingGroups', {'MaxSize': jp.NUM_EQ(2)}))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -402,7 +401,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
      .collect_resources('autoscaling', 'describe-auto-scaling-groups',
                         args=['--auto-scaling-group-names', group_name],
                         no_resources_ok=True)
-     .contains_path_value('AutoScalingGroups', {'MaxSize': 0}))
+     .contains_path_match('AutoScalingGroups', {'MaxSize': jp.NUM_EQ(0)}))
 
     (builder.new_clause_builder('Instances Are Removed',
                                 retryable_for_secs=30)

@@ -25,6 +25,7 @@ from citest.base import ExecutionContext
 import citest.base
 import citest.gcp_testing as gcp
 import citest.json_contract as jc
+import citest.json_predicate as jp
 import citest.service_testing as st
 
 # Spinnaker modules.
@@ -134,7 +135,8 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
                        '/'.join([self.BASE_PATH, 'applications', self.TEST_APP,
                                  'specification.json']),
                        transform=json.JSONDecoder().decode)
-     .contains_path_eq('', expect))
+     .contains_match({key: jp.EQUIVALENT(value)
+                      for key, value in expect.items()}))
     for clause in gcs_builder.build().clauses:
       contract.add_clause(clause)
 
@@ -155,7 +157,8 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
      .contains_path_value('name', self.TEST_APP.upper()))
     (f50_builder.new_clause_builder('Returns Application')
      .get_url_path('/'.join(['/default/applications/name', self.TEST_APP]))
-     .contains_path_value('', self.app_history[0]))
+     .contains_match({key: jp.EQUIVALENT(value)
+                      for key, value in self.app_history[0].items()}))
     for clause in f50_builder.build().clauses:
       contract.add_clause(clause)
 
@@ -208,7 +211,8 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
                        '/'.join([self.BASE_PATH, 'applications', self.TEST_APP,
                                  'specification.json']),
                        transform=json.JSONDecoder().decode)
-     .contains_path_value('', expectUpdate))
+     .contains_match({key: jp.EQUIVALENT(value)
+                      for key, value in expectUpdate.items()}))
 
     for clause in gcs_builder.build().clauses:
       contract.add_clause(clause)
@@ -217,8 +221,12 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     (f50_builder.new_clause_builder('History Records Changes')
      .get_url_path('/default/applications/{app}/history'
                    .format(app=self.TEST_APP))
-     .contains_path_value('[0]', self.app_history[0])
-     .contains_path_value('[1]', self.app_history[1]))
+     .contains_path_match(
+          '[0]', {key: jp.EQUIVALENT(value)
+                  for key, value in self.app_history[0].items()})
+     .contains_path_match(
+          '[1]', {key: jp.EQUIVALENT(value)
+                  for key, value in self.app_history[1].items()}))
 
     for clause in f50_builder.build().clauses:
       contract.add_clause(clause)
@@ -247,8 +255,12 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
                                     retryable_for_secs=5)
      .get_url_path('/default/applications/{app}/history'
                    .format(app=self.TEST_APP))
-     .contains_path_value('[0]', self.app_history[0])
-     .contains_path_value('[1]', self.app_history[1]))
+     .contains_path_match(
+          '[0]', {key: jp.EQUIVALENT(value)
+                  for key, value in self.app_history[0].items()})
+     .contains_path_match(
+          '[1]', {key: jp.EQUIVALENT(value)
+                  for key, value in self.app_history[1].items()}))
     for clause in f50_builder.build().clauses:
       contract.add_clause(clause)
 
@@ -286,7 +298,8 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
                        '/'.join([self.BASE_PATH, 'pipelines',
                                  self.TEST_PIPELINE_ID, 'specification.json']),
                        transform=json.JSONDecoder().decode)
-     .contains_path_eq('', expect))
+     .contains_match({key: jp.EQUIVALENT(value)
+                      for key, value in expect.items()}))
     for clause in gcs_builder.build().clauses:
       contract.add_clause(clause)
 
@@ -304,7 +317,9 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
      .contains_path_value('name', self.TEST_PIPELINE_NAME))
     (f50_builder.new_clause_builder('Returns Pipeline')
      .get_url_path('/pipelines/{id}/history'.format(id=self.TEST_PIPELINE_ID))
-     .contains_path_value('[0]', self.pipeline_history[0]))
+     .contains_path_match(
+          '[0]', {key: jp.EQUIVALENT(value)
+                  for key, value in self.pipeline_history[0].items()}))
     for clause in f50_builder.build().clauses:
       contract.add_clause(clause)
 
@@ -334,7 +349,9 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     (f50_builder.new_clause_builder('History Retains Pipeline',
                                     retryable_for_secs=5)
      .get_url_path('/pipelines/{id}/history'.format(id=self.TEST_PIPELINE_ID))
-     .contains_path_value('[0]', self.pipeline_history[0]))
+     .contains_path_match(
+          '[0]', {key: jp.EQUIVALENT(value)
+                  for key, value in self.pipeline_history[0].items()}))
     for clause in f50_builder.build().clauses:
       contract.add_clause(clause)
 

@@ -180,13 +180,13 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
         description='Create Load Balancer: ' + self.__lb_name,
         application=self.TEST_APP)
 
+    hc_match_spec = {key: jp.NUM_EQ(value) for key, value in spec.items()}
+    hc_match_spec['name'] = jp.STR_SUBSTR('%s-hc' % self.__lb_name)
     builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Health Check Added',
                                 retryable_for_secs=30)
      .list_resource('httpHealthChecks')
-     .contains_pred_list(
-         [jp.PathContainsPredicate('name', '%s-hc' % self.__lb_name),
-          jp.DICT_SUBSET(spec)]))
+     .contains_match(hc_match_spec))
     (builder.new_clause_builder('Target Pool Added',
                                 retryable_for_secs=30)
      .list_resource('targetPools')
@@ -194,9 +194,8 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Forwarding Rules Added',
                                 retryable_for_secs=30)
      .list_resource('forwardingRules')
-     .contains_pred_list([
-          jp.PathContainsPredicate('name', self.__lb_name),
-          jp.PathContainsPredicate('target', target_pool_name)]))
+     .contains_match({'name': jp.STR_SUBSTR(self.__lb_name),
+                      'target': jp.STR_SUBSTR(target_pool_name)}))
 
     return st.OperationContract(
         self.new_post_operation(

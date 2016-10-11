@@ -255,10 +255,10 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Server Group Tags Added')
         .inspect_resource('instanceGroupManagers', server_group_name)
-        .contains_pred_list(
-            [jp.PathContainsPredicate('name', server_group_name),
-             jp.PathContainsPredicate(
-                 "tags/items", ['test-tag-1', 'test-tag-2'])]))
+        .contains_match({
+            'name': jp.STR_SUBSTR(server_group_name),
+            'tags/items': jp.LIST_MATCHES(['test-tag-1', 'test-tag-2'])
+            }))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -318,35 +318,37 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
           'credentials': self.bindings['SPINNAKER_GOOGLE_ACCOUNT']
         })
 
+    hc_dict = dict(health_check)
+    del hc_dict['requestPath']
+    hc_match = {name: jp.NUM_EQ(value)
+                for name, value in health_check.items()}
+    hc_match['requestPath'] = jp.STR_EQ(path)
+    hc_match['name'] = jp.STR_SUBSTR(self.__use_http_lb_hc_name),
     builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Http Health Check Added')
         .list_resource('httpHealthChecks')
-        .contains_pred_list(
-            [jp.PathContainsPredicate('name', self.__use_http_lb_hc_name),
-             jp.PathContainsPredicate(None, health_check)]))
+        .contains_match(hc_match))
     (builder.new_clause_builder('Global Forwarding Rule Added',
                                 retryable_for_secs=15)
        .list_resource('globalForwardingRules')
-       .contains_pred_list(
-           [jp.PathContainsPredicate('name', self.__use_http_lb_fr_name),
-            jp.PathContainsPredicate('portRange', port_range)]))
+       .contains_match({
+          'name': jp.STR_SUBSTR(self.__use_http_lb_fr_name),
+          'portRante': jp.STR_EQ(port_range)}))
     (builder.new_clause_builder('Backend Service Added')
        .list_resource('backendServices')
-       .contains_pred_list(
-           [jp.PathContainsPredicate('name', self.__use_http_lb_bs_name),
-            jp.PathElementsContainPredicate(
-                'healthChecks', self.__use_http_lb_hc_name)]))
+       .contains_match({
+           'name': jp.STR_SUBSTR(self.__use_http_lb_bs_name),
+           'healthChecks': jp.STR_SUBSTR(self.__use_http_lb_hc_name)}))
     (builder.new_clause_builder('Url Map Added')
        .list_resource('urlMaps')
-       .contains_pred_list(
-           [jp.PathContainsPredicate('name', self.__use_http_lb_map_name),
-            jp.PathContainsPredicate(
-                'defaultService', self.__use_http_lb_bs_name)]))
+       .contains_match({
+          'name': jp.STR_SUBSTR(self.__use_http_lb_map_name),
+          'defaultService': jp.STR_SUBSTR(self.__use_http_lb_bs_name)}))
     (builder.new_clause_builder('Target Http Proxy Added')
        .list_resource('targetHttpProxies')
-       .contains_pred_list(
-           [jp.PathContainsPredicate('name', self.__use_http_lb_proxy_name),
-            jp.PathContainsPredicate('urlMap', self.__use_http_lb_map_name)]))
+       .contains_match({
+          'name': jp.STR_SUBSTR(self.__use_http_lb_proxy_name),
+          'urlMap': jp.STR_SUBSTR(self.__use_http_lb_map_name)}))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -428,11 +430,15 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
 
      # We list the resources here because the name isnt exact
      # and the list also returns the details we need.
+    hc_dict = dict(health_check)
+    del hc_dict['requestPath']
+
+    hc_match = {name: jp.NUM_EQ(value) for name, value in hc_dict.items()}
+    hc_match['requestPath'] = jp.STR_EQ(path)
+    hc_match['name'] = jp.STR_SUBSTR(self.__use_http_lb_hc_name),
     (builder.new_clause_builder('Health Check Added', retryable_for_secs=15)
        .list_resource('httpHealthChecks')
-       .contains_pred_list(
-           [jp.PathContainsPredicate('name', self.__use_lb_hc_name),
-            jp.PathContainsPredicate(None, health_check)]))
+       .contains_match(hc_match))
 
     return st.OperationContract(
       self.new_post_operation(
@@ -491,17 +497,16 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Instances in Target Pool',
                                 retryable_for_secs=15)
        .list_resource('targetPools')
-       .contains_pred_list(
-          [jp.PathContainsPredicate('name', self.__use_lb_tp_name),
-           jp.PathContainsPredicate('region', self.bindings['TEST_GCE_REGION']),
-           jp.PathElementsContainPredicate(
-              'instances', self.use_instance_names[0]),
-           jp.PathElementsContainPredicate(
-              'instances', self.use_instance_names[1])])
-       .excludes_pred_list(
-           [jp.PathContainsPredicate('name', self.__use_lb_tp_name),
-            jp.PathElementsContainPredicate(
-                'instances', self.use_instance_names[2])]))
+       .contains_match({
+          'name': jp.STR_SUBSTR(self.__use_lb_tp_name),
+          'instances': jp.LIST_MATCHES([
+              jp.STR_SUBSTR(self.use_instance_names[0]),
+              jp.STR_SUBSTR(self.use_instance_names[1])])
+          })
+       .excludes_match({
+          'name': jp.STR_SUBSTR(self.__use_lb_tp_name),
+          'instances': jp.LIST_MATCHES(
+              [jp.STR_SUBSTR(self.use_instance_names[2])])}))
 
     return st.OperationContract(
       self.new_post_operation(
@@ -536,12 +541,12 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
                                 retryable_for_secs=30)
        .list_resource(
           'targetPools', region=self.bindings['TEST_GCE_REGION'])
-       .excludes_pred_list(
-          [jp.PathContainsPredicate('name', self.__use_lb_tp_name),
-           jp.PathElementsContainPredicate(
-              'instances', self.use_instance_names[0]),
-           jp.PathElementsContainPredicate(
-              'instances', self.use_instance_names[1])]))
+       .excludes_match({
+          'name': jp.STR_SUBSTR(self.__use_lb_tp_name),
+          'instances': jp.LIST_MATCHES([
+              jp.STR_SUBSTR(self.use_instance_names[0]),
+              jp.STR_SUBSTR(self.use_instance_names[1])])
+          }))
 
     return st.OperationContract(
       self.new_post_operation(

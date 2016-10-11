@@ -152,17 +152,18 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
          aws_module='elb',
          command='describe-load-balancers',
          args=['--load-balancer-names', self.__use_lb_name])
-     .contains_pred_list([
-         jp.PathContainsPredicate(
-             'LoadBalancerDescriptions/HealthCheck', health_check),
-         jp.PathPredicate(
-             'LoadBalancerDescriptions/AvailabilityZones{0}'.format(
-                 jp.DONT_ENUMERATE_TERMINAL),
-             jp.LIST_SIMILAR(avail_zones)),
-         jp.PathElementsContainPredicate(
-             'LoadBalancerDescriptions/ListenerDescriptions', listener)
-         ])
+     .contains_path_match(
+        'LoadBalancerDescriptions', {
+            'HealthCheck': jp.DICT_MATCHES({key: jp.EQUIVALENT(value)
+                            for key, value in health_check.items()}),
+            'AvailabilityZones':
+                jp.LIST_MATCHES([jp.STR_SUBSTR(zone) for zone in avail_zones]),
+            'ListenerDescriptions/Listener': jp.DICT_MATCHES({
+                key: jp.EQUIVALENT(value)
+                     for key,value in listener['Listener'].items()})
+            })
     )
+
 
     return st.OperationContract(
         self.new_post_operation(
