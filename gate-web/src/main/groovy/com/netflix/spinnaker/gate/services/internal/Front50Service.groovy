@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.gate.services.internal
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonProperty
 import retrofit.client.Response
 import retrofit.http.*
 
@@ -95,8 +93,6 @@ interface Front50Service {
   //
   // Project-related
   //
-  @GET('/v2/projects')
-  HalList legacyGetAllProjects() //TODO: remove this when front50 is updated to return a list of POJO Projects
 
   @GET('/v2/projects')
   List<Map> getAllProjects()
@@ -112,10 +108,4 @@ interface Front50Service {
 
   @GET('/snapshots/{id}/history')
   List<Map> getSnapshotHistory(@Path("id") String id, @Query("limit") int limit)
-
-  @JsonIgnoreProperties(ignoreUnknown = true)
-  static class HalList {
-    @JsonProperty("_embedded")
-    Map<String, List<Map>> embedded
-  }
 }
