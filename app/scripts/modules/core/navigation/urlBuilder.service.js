@@ -209,7 +209,7 @@ module.exports = angular.module('spinnaker.core.navigation.urlBuilder.service', 
     function fromTask(task) {
       var desc = task.name || '';
       var contains = function(str) {
-        return desc.indexOf(str) !== -1;
+        return desc.includes(str);
       };
 
       switch (true) {

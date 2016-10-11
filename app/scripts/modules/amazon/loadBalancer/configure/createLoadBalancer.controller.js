@@ -180,19 +180,19 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
 
       if (account && region && allSecurityGroups[account] && allSecurityGroups[account].aws[region]) {
         $scope.availableSecurityGroups = _.filter(allSecurityGroups[account].aws[region], function(securityGroup) {
-          return availableVpcIds.indexOf(securityGroup.vpcId) !== -1;
+          return availableVpcIds.includes(securityGroup.vpcId);
         });
         $scope.existingSecurityGroupNames = _.map($scope.availableSecurityGroups, 'name');
         var existingNames = defaultSecurityGroups.filter(function(defaultName) {
-          return $scope.existingSecurityGroupNames.indexOf(defaultName) !== -1;
+          return $scope.existingSecurityGroupNames.includes(defaultName);
         });
         $scope.loadBalancer.securityGroups.forEach(function(securityGroup) {
-          if ($scope.existingSecurityGroupNames.indexOf(securityGroup) === -1) {
+          if ($scope.existingSecurityGroupNames.includes(securityGroup)) {
             var matches = _.filter($scope.availableSecurityGroups, {id: securityGroup});
             if (matches.length) {
               existingNames.push(matches[0].name);
             } else {
-              if (defaultSecurityGroups.indexOf(securityGroup) === -1) {
+              if (defaultSecurityGroups.includes(securityGroup)) {
                 $scope.state.removedSecurityGroups.push(securityGroup);
               }
             }
@@ -270,7 +270,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     function setSubnetTypeFromVpc(subnetOptions) {
       if ($scope.loadBalancer.vpcId) {
         var currentSelection = _.find(subnetOptions, function(option) {
-          return option.vpcIds.indexOf($scope.loadBalancer.vpcId) !== -1;
+          return option.vpcIds.includes($scope.loadBalancer.vpcId);
         });
         if (currentSelection) {
           $scope.loadBalancer.subnetType = currentSelection.purpose;

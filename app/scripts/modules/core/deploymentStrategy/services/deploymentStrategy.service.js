@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.core.deploymentStrategy.deploymentStr
     function listAvailableStrategies(provider) {
       var allStrategies = deploymentStrategyConfig.listStrategies();
       return allStrategies.filter(function (strategy) {
-        return !strategy.providers || !strategy.providers.length || strategy.providers.indexOf(provider) !== -1;
+        return !strategy.providers || !strategy.providers.length || strategy.providers.includes(provider);
       });
     }
 

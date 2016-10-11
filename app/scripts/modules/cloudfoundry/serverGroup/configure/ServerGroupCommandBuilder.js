@@ -28,11 +28,11 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
 
         if (application.accounts.length) {
           firstcfAccount = _.find(application.accounts, function (applicationAccount) {
-            return cfAccountNames.indexOf(applicationAccount) !== -1;
+            return cfAccountNames.includes(applicationAccount);
           });
         }
 
-        var defaultCredentialsAreValid = defaultCredentials && cfAccountNames.indexOf(defaultCredentials) !== -1;
+        var defaultCredentialsAreValid = defaultCredentials && cfAccountNames.includes(defaultCredentials);
 
         command.credentials =
             defaultCredentialsAreValid ? defaultCredentials : (firstcfAccount ? firstcfAccount : 'my-account-name');

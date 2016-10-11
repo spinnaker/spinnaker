@@ -102,7 +102,7 @@ module.exports = angular
     };
 
     vm.showPropertyDetails = (propertyId) => {
-      if($state.current.name.indexOf('.properties.propertyDetails') !== -1 ) {
+      if ($state.current.name.includes('.properties.propertyDetails')) {
         $state.go('^.propertyDetails', {propertyId: propertyId}, {inherit: true});
       } else {
         $state.go('.propertyDetails', {propertyId: propertyId}, {inherit: true});

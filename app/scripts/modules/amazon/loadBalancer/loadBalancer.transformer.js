@@ -79,7 +79,7 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
         serverGroup.account === loadBalancer.account &&
         serverGroup.region === loadBalancer.region &&
         (typeof loadBalancer.vpcId === 'undefined' || serverGroup.vpcId === loadBalancer.vpcId) &&
-        serverGroup.loadBalancers.indexOf(loadBalancer.name) !== -1;
+        serverGroup.loadBalancers.includes(loadBalancer.name);
     }
 
     function convertLoadBalancerForEditing(loadBalancer) {

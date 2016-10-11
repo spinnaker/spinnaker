@@ -91,7 +91,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
       var downstream = [];
       var children = pipeline.stages.filter(function(stageToTest) {
         return stageToTest.requisiteStageRefIds &&
-               stageToTest.requisiteStageRefIds.indexOf(stage.refId) !== -1;
+               stageToTest.requisiteStageRefIds.includes(stage.refId);
       });
       if (children.length) {
         downstream = _.map(children, 'refId');
@@ -116,7 +116,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
       var upstreamStages = [];
       if (stage.requisiteStageRefIds && stage.requisiteStageRefIds.length) {
         pipeline.stages.forEach(function(stageToTest) {
-          if (stage.requisiteStageRefIds.indexOf(stageToTest.refId) !== -1) {
+          if (stage.requisiteStageRefIds.includes(stageToTest.refId)) {
             upstreamStages.push(stageToTest);
             upstreamStages = upstreamStages.concat(getAllUpstreamDependencies(pipeline, stageToTest));
           }

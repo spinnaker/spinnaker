@@ -18,7 +18,7 @@ module.exports = angular.module('spinnaker.netflix.feedback.directive', [
 
         $scope.state = {
           showMenu: false,
-          isMac: navigator.platform.toLowerCase().indexOf('mac') !== -1,
+          isMac: navigator.platform.toLowerCase().includes('mac'),
         };
 
         $scope.toggleMenu = function() {

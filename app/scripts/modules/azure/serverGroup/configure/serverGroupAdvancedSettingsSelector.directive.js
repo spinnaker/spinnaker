@@ -26,7 +26,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.advancedS
     };
 
     this.processIsSuspended = function(process) {
-      return $scope.command.suspendedProcesses.indexOf(process) !== -1;
+      return $scope.command.suspendedProcesses.includes(process);
     };
 
   });

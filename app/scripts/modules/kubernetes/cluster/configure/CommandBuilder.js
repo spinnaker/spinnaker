@@ -16,13 +16,13 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
 
         if (application.accounts.length) {
           firstKubernetesAccount = _.find(application.accounts, function (applicationAccount) {
-            return kubernetesAccountNames.indexOf(applicationAccount) !== -1;
+            return kubernetesAccountNames.includes(applicationAccount);
           });
         } else if (kubernetesAccountNames.length) {
           firstKubernetesAccount = kubernetesAccountNames[0];
         }
 
-        var defaultAccountIsValid = defaultAccount && kubernetesAccountNames.indexOf(defaultAccount) !== -1;
+        var defaultAccountIsValid = defaultAccount && kubernetesAccountNames.includes(defaultAccount);
 
         command.account =
           defaultAccountIsValid ? defaultAccount : (firstKubernetesAccount ? firstKubernetesAccount : 'my-account-name');

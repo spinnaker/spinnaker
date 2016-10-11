@@ -53,7 +53,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
       };
 
       command.processIsSuspended = function(process) {
-        return command.suspendedProcesses.indexOf(process) !== -1;
+        return command.suspendedProcesses.includes(process);
       };
 
       command.onStrategyChange = function (strategy) {

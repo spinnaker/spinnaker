@@ -73,7 +73,7 @@ module.exports = angular.module('spinnaker.core.utils.stickyHeader', [
           }, 50);
 
           function resetHeaderWidth() {
-            if ($heading.get(0).className.indexOf('heading-sticky') !== -1) {
+            if ($heading.get(0).className.includes('heading-sticky')) {
               $heading.removeClass('heading-sticky').addClass('not-sticky').css({width: '' });
             }
           }

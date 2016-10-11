@@ -169,7 +169,7 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
     };
 
     this.processIsSuspended = function(process) {
-      return $scope.command.suspendedProcesses.indexOf(process) !== -1;
+      return $scope.command.suspendedProcesses.includes(process);
     };
 
     if (!$scope.state.requiresTemplateSelection) {

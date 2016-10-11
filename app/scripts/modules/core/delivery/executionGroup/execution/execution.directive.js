@@ -47,7 +47,7 @@ module.exports = angular
           $state.go('^');
         }
       } else {
-        if ($state.current.name.indexOf('.executions.execution') !== -1 || this.standalone) {
+        if ($state.current.name.includes('.executions.execution') || this.standalone) {
           $state.go('.', params);
         } else {
           $state.go('.execution', params);

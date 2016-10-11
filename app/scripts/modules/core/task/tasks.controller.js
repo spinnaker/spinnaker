@@ -69,7 +69,7 @@ module.exports = angular.module('spinnaker.core.task.controller', [
     };
 
     controller.isExpanded = function(taskId) {
-      return taskId && $scope.viewState.expandedTasks.indexOf(taskId) !== -1;
+      return taskId && $scope.viewState.expandedTasks.includes(taskId);
     };
 
     controller.sortTasksAndResetPaginator = function() {
@@ -83,12 +83,12 @@ module.exports = angular.module('spinnaker.core.task.controller', [
       if ($scope.viewState.nameFilter) {
         var normalizedSearch = $scope.viewState.nameFilter.toLowerCase();
         controller.sortedTasks = _.filter(joinedLists, function(task) {
-          return task.name.toLowerCase().indexOf(normalizedSearch) !== -1 ||
-            task.id.toLowerCase().indexOf(normalizedSearch) !== -1 ||
-            (task.getValueFor('credentials') || '').toLowerCase().indexOf(normalizedSearch) !== -1 ||
-            (task.getValueFor('region') || '').toLowerCase().indexOf(normalizedSearch) !== -1 ||
-            (task.getValueFor('regions') || []).join(' ').toLowerCase().indexOf(normalizedSearch) !== -1 ||
-            (task.getValueFor('user') || '').toLowerCase().indexOf(normalizedSearch) !== -1;
+          return task.name.toLowerCase().includes(normalizedSearch) ||
+            task.id.toLowerCase().includes(normalizedSearch) ||
+            (task.getValueFor('credentials') || '').toLowerCase().includes(normalizedSearch) ||
+            (task.getValueFor('region') || '').toLowerCase().includes(normalizedSearch) ||
+            (task.getValueFor('regions') || []).join(' ').toLowerCase().includes(normalizedSearch) ||
+            (task.getValueFor('user') || '').toLowerCase().includes(normalizedSearch);
         });
       }
       if ($scope.viewState.taskStateFilter) {
@@ -207,7 +207,7 @@ module.exports = angular.module('spinnaker.core.task.controller', [
     function findStageWithTaskInExecution(execution, stageName) {
       return _.chain(execution.stages).find(function(stage) {
         return _.some(stage.tasks, function(task) {
-          return stageName.indexOf(task.name) !== -1;
+          return stageName.includes(task.name);
         });
       }).value();
     }

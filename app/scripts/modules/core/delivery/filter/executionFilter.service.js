@@ -41,7 +41,7 @@ module.exports = angular
       }
       if (object instanceof Object) {
         return Object.keys(object).map((key) => {
-          if (blacklist.indexOf(key) !== -1) {
+          if (blacklist.includes(key)) {
             return '';
           }
           return getValuesAsString(object[key], blacklist);
@@ -68,7 +68,7 @@ module.exports = angular
         return true;
       }
       addSearchText(execution);
-      return execution.searchField.indexOf(filter) !== -1;
+      return execution.searchField.includes(filter);
     }
 
     function statusFilter(execution) {

@@ -72,28 +72,28 @@ module.exports = angular
       if (!filter) {
         return true;
       }
-      if (filter.indexOf('clusters:') !== -1) {
+      if (filter.includes('clusters:')) {
         var clusterNames = filter.split('clusters:')[1].replace(/\s/g, '').split(',');
-        return clusterNames.indexOf(serverGroup.cluster) !== -1;
+        return clusterNames.includes(serverGroup.cluster);
       }
 
-      if(filter.indexOf('vpc:') !== -1) {
+      if (filter.includes('vpc:')) {
         let [, vpcName] = filter.split('vpc:');
         return serverGroup.vpcName.toLowerCase() === vpcName.toLowerCase();
       }
 
-      if (filter.indexOf('detail:') !== -1) {
+      if (filter.includes('detail:')) {
         let [, detailName] = filter.split('detail:');
         return serverGroup.detail === detailName.toLowerCase();
       }
 
-      if(filter.indexOf('cluster:') !== -1) {
+      if (filter.includes('cluster:')) {
         let [, clusterName] = filter.split('cluster:');
         return serverGroup.cluster === clusterName;
       } else {
         addSearchField(serverGroup);
         return filter.split(' ').every(function(testWord) {
-          return serverGroup.searchField.indexOf(testWord) !== -1;
+          return serverGroup.searchField.includes(testWord);
         });
       }
     }
@@ -381,7 +381,7 @@ module.exports = angular
      * Utility method used to navigate to a specific cluster by setting filters
      */
     function overrideFiltersForUrl(result) {
-      if (result.href.indexOf('/clusters') !== -1) {
+      if (result.href.includes('/clusters')) {
         ClusterFilterModel.clearFilters();
         ClusterFilterModel.sortFilter.filter = result.serverGroup ? result.serverGroup :
           result.cluster ? 'cluster:' + result.cluster : '';

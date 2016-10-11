@@ -34,7 +34,7 @@ module.exports = angular.module('spinnaker.netflix.feedback.modal.controller', [
 
     function getUserNameFromContactInfo() {
       var email = getContactInfo();
-      if (email.indexOf('@') !== -1) {
+      if (email.includes('@')) {
         return email.split('@')[0];
       }
       return email;

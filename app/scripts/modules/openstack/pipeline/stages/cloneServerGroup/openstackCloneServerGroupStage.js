@@ -83,7 +83,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.cloneSe
     };
 
     this.processIsSuspended = (process) => {
-      return stage.suspendedProcesses && stage.suspendedProcesses.indexOf(process) !== -1;
+      return stage.suspendedProcesses && stage.suspendedProcesses.includes(process);
     };
   });
 

@@ -210,11 +210,11 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
         if (application.accounts.length) {
           firstGCEAccount = _.find(application.accounts, function (applicationAccount) {
-            return gceAccountNames.indexOf(applicationAccount) !== -1;
+            return gceAccountNames.includes(applicationAccount);
           });
         }
 
-        var defaultCredentialsAreValid = defaultCredentials && gceAccountNames.indexOf(defaultCredentials) !== -1;
+        var defaultCredentialsAreValid = defaultCredentials && gceAccountNames.includes(defaultCredentials);
 
         command.credentials =
           defaultCredentialsAreValid ? defaultCredentials : (firstGCEAccount ? firstGCEAccount : 'my-account-name');

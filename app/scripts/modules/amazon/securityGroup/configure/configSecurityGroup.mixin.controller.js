@@ -162,7 +162,7 @@ module.exports = angular
         }
 
         var match = _.find(available, function (vpc) {
-          return vpc.ids.indexOf($scope.securityGroup.vpcId) !== -1;
+          return vpc.ids.includes($scope.securityGroup.vpcId);
         });
         $scope.securityGroup.vpcId = match ? match.ids[0] : null;
         ctrl.vpcUpdated();

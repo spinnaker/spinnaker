@@ -155,7 +155,7 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
     function initializeCommand() {
       if (serverGroupCommand.viewState.imageId) {
         var foundImage = $scope.command.backingData.packageImages.filter(function(image) {
-          return image.amis[serverGroupCommand.region] && image.amis[serverGroupCommand.region].indexOf(serverGroupCommand.viewState.imageId) !== -1;
+          return image.amis[serverGroupCommand.region] && image.amis[serverGroupCommand.region].includes(serverGroupCommand.viewState.imageId);
         });
         if (foundImage.length) {
           serverGroupCommand.amiName = foundImage[0].imageName;

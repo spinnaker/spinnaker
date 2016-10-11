@@ -36,13 +36,13 @@ module.exports = angular
         return true;
       }
 
-      if(filter.indexOf('vpc:') !== -1) {
+      if (filter.includes('vpc:')) {
         let [, vpcName] = /vpc:([\w-]*)/.exec(filter);
         return loadBalancer.vpcName.toLowerCase() === vpcName.toLowerCase();
       }
       addSearchFields(loadBalancer);
       return filter.split(' ').every(function(testWord) {
-        return loadBalancer.searchField.indexOf(testWord) !== -1;
+        return loadBalancer.searchField.includes(testWord);
       });
     }
 

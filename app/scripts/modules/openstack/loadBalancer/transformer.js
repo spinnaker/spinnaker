@@ -54,7 +54,7 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', 
       return serverGroup.type === 'openstack' &&
         serverGroup.account === loadBalancer.account &&
         serverGroup.region === loadBalancer.region &&
-        serverGroup.loadBalancers.indexOf(loadBalancer.name) !== -1;
+        serverGroup.loadBalancers.includes(loadBalancer.name);
     }
 
     function constructNewLoadBalancerTemplate() {

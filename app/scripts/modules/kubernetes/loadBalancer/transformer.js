@@ -46,7 +46,7 @@ module.exports = angular.module('spinnaker.kubernetes.loadBalancer.transformer',
       return serverGroup.type === 'kubernetes' &&
         serverGroup.account === loadBalancer.account &&
         serverGroup.namespace === loadBalancer.namespace &&
-        serverGroup.loadBalancers.indexOf(loadBalancer.name) !== -1;
+        serverGroup.loadBalancers.includes(loadBalancer.name);
     }
 
     function constructNewLoadBalancerTemplate() {

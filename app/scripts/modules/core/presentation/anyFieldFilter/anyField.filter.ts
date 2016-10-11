@@ -24,7 +24,7 @@ export function anyFieldFilter() {
         for (let i = 0; i < keys.length; i++) {
           let prop: any = keys[i];
           let text: string = (<any>props)[prop].toLowerCase();
-          if (item[prop] && item[prop].toString().toLowerCase().indexOf(text) !== -1) {
+          if (item[prop] && item[prop].toString().toLowerCase().includes(text)) {
             itemMatches = true;
             break;
           }

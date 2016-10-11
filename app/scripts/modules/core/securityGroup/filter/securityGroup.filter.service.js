@@ -33,14 +33,14 @@ module.exports = angular
         return true;
       }
 
-      if(filter.indexOf('vpc:') !== -1) {
+      if (filter.includes('vpc:')) {
         let [, vpcName] = /vpc:([\w-]*)/.exec(filter);
         return securityGroup.vpcName.toLowerCase() === vpcName.toLowerCase();
       }
 
       addSearchFields(securityGroup);
       return filter.split(' ').every(function(testWord) {
-        return securityGroup.searchField.indexOf(testWord) !== -1;
+        return securityGroup.searchField.includes(testWord);
       });
     }
 

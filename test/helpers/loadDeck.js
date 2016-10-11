@@ -18,7 +18,7 @@ function loadDeck(config) {
       var settings = $injector.get('settings');
       if (config.generateUrls) {
         Object.keys(settings).forEach(function (key) {
-          if (key.indexOf('Url') !== -1) {
+          if (key.includes('Url')) {
             settings[key] = key;
           }
         });
