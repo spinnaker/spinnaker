@@ -186,11 +186,11 @@ class JedisExecutionRepository implements ExecutionRepository {
   }
 
   @Override
-  void resume(String id, String user) {
+  void resume(String id, String user, boolean ignoreCurrentStatus = false) {
     String key = fetchKey(id)
     withJedis(getJedisPoolForId(key)) { Jedis jedis ->
       def currentStatus = ExecutionStatus.valueOf(jedis.hget(key, "status"))
-      if (currentStatus != ExecutionStatus.PAUSED) {
+      if (!ignoreCurrentStatus && currentStatus != ExecutionStatus.PAUSED) {
         throw new IllegalStateException("Unable to resume pipeline that is not PAUSED (executionId: ${id}, currentStatus: ${currentStatus})")
       }
 

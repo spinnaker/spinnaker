@@ -128,6 +128,34 @@ class StageBuilderSpec extends Specification {
     pipeline.stages[2].tasks[0].status == ExecutionStatus.SUCCEEDED
   }
 
+  def "should resume a paused pipeline when restarting"() {
+    def executionRepository = Mock(ExecutionRepository)
+    def stageBuilder = new StageBuilder("bake", []) {
+      @Override
+      protected FlowBuilder buildInternal(FlowBuilder jobBuilder, Stage stage) {
+        throw new IllegalStateException("ignored")
+      }
+    }
+    stageBuilder.applicationContext = Stub(ApplicationContext)
+
+    def pipeline = new Pipeline()
+    pipeline.stages = [
+      new PipelineStage(pipeline, "1", [:])
+    ]
+
+    when:
+    pipeline.paused = new Execution.PausedDetails(pauseTime: 100)
+
+    then:
+    pipeline.paused.isPaused()
+
+    when:
+    stageBuilder.prepareStageForRestart(executionRepository, pipeline.stages[0])
+
+    then:
+    1 * executionRepository.resume(pipeline.id, "anonymous", true)
+  }
+
   Stage buildParent(Execution execution, String... parentStageIds) {
     def stages = [] as List<Stage>
 

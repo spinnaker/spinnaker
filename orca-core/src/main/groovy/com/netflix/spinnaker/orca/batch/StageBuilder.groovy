@@ -172,6 +172,11 @@ abstract class StageBuilder implements ApplicationContextAware {
     stage.endTime = null
     executionRepository.storeStage((PipelineStage) stage)
 
+    if (stage.execution.paused?.isPaused()) {
+      // pipeline appears to be PAUSED and should be resumed regardless of current TERMINAL status
+      executionRepository.resume(stage.execution.id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), true)
+    }
+
     return stage
   }
 
