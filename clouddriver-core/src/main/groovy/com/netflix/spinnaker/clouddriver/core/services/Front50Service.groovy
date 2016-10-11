@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.core.services
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonProperty
 import retrofit.client.Response
 import retrofit.http.*
 
@@ -35,9 +33,6 @@ interface Front50Service {
   Map getProject(@Path('project') String project)
 
   @GET('/v2/projects/search')
-  HalList legacySearchForProjects(@Query("q") String query) //TODO: remove this once front50 is live
-
-  @GET('/v2/projects/search')
   List<Map> searchForProjects(@Query("q") String query)
 
   @POST('/snapshots')
@@ -46,9 +41,4 @@ interface Front50Service {
   @GET('/snapshots/{id}/{timestamp}')
   Map getSnapshotVersion(@Path('id') String id, @Path('timestamp') String timestamp)
 
-  @JsonIgnoreProperties(ignoreUnknown = true)
-  static class HalList {
-    @JsonProperty("_embedded")
-    Map<String, List<Map>> embedded
-  }
 }
