@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipeline.persistence
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
@@ -433,6 +434,33 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     "pause"  | NOT_STARTED || RUNNING
     "resume" | RUNNING     || PAUSED
     "resume" | NOT_STARTED || PAUSED
+  }
+
+  @Unroll
+  def "should force resume an execution regardless of status"() {
+    given:
+    def execution = new Pipeline(buildTime: 0)
+    repository.store(execution)
+    repository.updateStatus(execution.id, RUNNING)
+
+    when:
+    repository.pause(execution.id, "user@netflix.com")
+    execution = repository.retrievePipeline(execution.id)
+
+    then:
+    execution.paused.isPaused()
+
+    when:
+    repository.updateStatus(execution.id, status)
+    repository.resume(execution.id, "user@netflix.com", true)
+    execution = repository.retrievePipeline(execution.id)
+
+    then:
+    execution.status == RUNNING
+    !execution.paused.isPaused()
+
+    where:
+    status << ExecutionStatus.values()
   }
 }
 

@@ -42,7 +42,7 @@ import static com.netflix.spinnaker.orca.pipeline.model.Stage.STAGE_TIMEOUT_OVER
 
 @CompileStatic
 class RetryableTaskTasklet extends TaskTasklet {
-  static final long MAX_PAUSE_TIME_MS = TimeUnit.HOURS.toMillis(12)
+  static final long MAX_PAUSE_TIME_MS = TimeUnit.DAYS.toMillis(3)
 
   private final Clock clock
   private final long timeoutMs

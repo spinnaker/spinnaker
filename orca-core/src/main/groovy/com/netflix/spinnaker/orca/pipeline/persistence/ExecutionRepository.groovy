@@ -34,6 +34,7 @@ interface ExecutionRepository {
 
   void pause(String id, String user)
   void resume(String id, String user)
+  void resume(String id, String user, boolean ignoreCurrentStatus)
 
   boolean isCanceled(String id)
   void updateStatus(String id, ExecutionStatus status)
