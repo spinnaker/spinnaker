@@ -66,7 +66,7 @@ module.exports = angular
       };
 
       ctrl.$onInit = () => {
-        ctrl.inputType = ctrl.model && ctrl.model.indexOf('${') > -1 ? textType : select;
+        ctrl.inputType = ctrl.model && ctrl.model.includes('${') ? textType : select;
         setState(ctrl.inputType);
       };
 

@@ -37,7 +37,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.triggerD
       var type = $scope.trigger.type,
           triggerScope = $scope.$new();
       if (type) {
-        if (this.disableAutoTriggering.indexOf(type) > -1) {
+        if (this.disableAutoTriggering.includes(type)) {
           $scope.trigger.enabled = false;
         }
         var triggerConfig = triggerTypes.filter(function(config) {

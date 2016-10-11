@@ -52,8 +52,8 @@ module.exports = angular
         }
         else {
           vm.filteredScopeResults = vm.scopeResults.filter(function (item) {
-            return item.primary.indexOf(query) > -1 || _.chain(item.secondary).some(function (scopeItem) {
-                return scopeItem.indexOf(query) > -1;
+            return item.primary.includes(query) || _.chain(item.secondary).some(function (scopeItem) {
+                return scopeItem.includes(query);
               }).value();
           });
         }

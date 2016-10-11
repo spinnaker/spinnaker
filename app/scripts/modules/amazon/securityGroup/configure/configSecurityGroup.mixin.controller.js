@@ -135,7 +135,7 @@ module.exports = angular
           });
           if (foundInAllRegions) {
             available.push({
-              ids: vpcsToTest.filter(t => regions.indexOf(t.region) > -1).map(vpc => vpc.id),
+              ids: vpcsToTest.filter(t => regions.includes(t.region)).map(vpc => vpc.id),
               label: label,
               deprecated: vpcsToTest[0].deprecated,
             });

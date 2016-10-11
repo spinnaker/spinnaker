@@ -33,7 +33,7 @@ module.exports = angular
     }
 
     function isChildState(stateName) {
-      return stateName.indexOf('securityGroups.') > -1;
+      return stateName.includes('securityGroups.');
     }
 
     function movingToSecurityGroupState(toState) {

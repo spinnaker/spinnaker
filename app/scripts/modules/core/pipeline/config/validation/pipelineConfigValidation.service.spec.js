@@ -687,7 +687,7 @@ describe('pipelineConfigValidator', () => {
                 {
                   type: 'custom',
                   validator: function(pipeline, stage, validator, config, messages) {
-                    if (stage.name.indexOf(' ') > -1) {
+                    if (stage.name.includes(' ')) {
                       messages.push('No spaces in targetCheck stage names');
                     }
                   }

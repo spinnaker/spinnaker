@@ -22,7 +22,7 @@ describe('Multiselect Model', function () {
       ClusterFilterModel.sortFilter.multiselect = true;
       this.result = null;
       this.currentStates = [];
-      spyOn($state, 'includes').and.callFake((substate) => this.currentStates.indexOf(substate) > -1);
+      spyOn($state, 'includes').and.callFake((substate) => this.currentStates.includes(substate));
       spyOn($state, 'go').and.callFake((newState) => this.result = newState);
       $state.params = {};
     });

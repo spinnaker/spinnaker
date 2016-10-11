@@ -36,8 +36,7 @@ module.exports = angular
     vm.openRolloutDetailsList = [];
 
     vm.isRolloutDetailsOpen = function(id) {
-      var idIndex = vm.openRolloutDetailsList.indexOf(id);
-      return idIndex > -1;
+      return vm.openRolloutDetailsList.includes(id);
     };
 
     vm.toggleRolloutDetails = function(promotion) {

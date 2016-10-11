@@ -27,7 +27,7 @@ module.exports = angular
     }
 
     function validateLoadBalancerCharacters(name, warnings) {
-      if (name.indexOf('.') > -1 || name.indexOf('_') > -1) {
+      if (name.includes('.') || name.includes('_')) {
         warnings.push(`If the application's name contains an underscore(_) or dot(.),
           you will not be able to create a load balancer,
           preventing it from being used as a front end service.`);

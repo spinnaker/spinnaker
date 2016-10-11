@@ -133,10 +133,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
                 this.scalingPolicies = this.serverGroup.scalingPolicies;
                 this.scalingPoliciesDisabled = this.scalingPolicies.length && this.autoScalingProcesses
                     .filter(p => !p.enabled)
-                    .some(p => ['Launch','Terminate','AlarmNotification'].indexOf(p.name) > -1);
+                    .some(p => ['Launch','Terminate','AlarmNotification'].includes(p.name));
                 this.scheduledActionsDisabled = this.serverGroup.scheduledActions.length && this.autoScalingProcesses
                     .filter(p => !p.enabled)
-                    .some(p => ['Launch','Terminate','ScheduledAction'].indexOf(p.name) > -1);
+                    .some(p => ['Launch','Terminate','ScheduledAction'].includes(p.name));
 
               } else {
                 autoClose();

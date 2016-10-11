@@ -139,7 +139,7 @@ module.exports = angular
               instanceGroup.instanceIds = filteredInstances.map((instance) => instance.id);
             } else {
               instanceGroup.instanceIds = filteredInstances
-                .filter((instance) => instanceGroup.instanceIds.indexOf(instance.id) > -1)
+                .filter((instance) => instanceGroup.instanceIds.includes(instance.id))
                 .map((instance) => instance.id);
             }
             instancesSelected += instanceGroup.instanceIds.length;

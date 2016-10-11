@@ -16,12 +16,12 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.waitForParentTask
           let waitStages = execution.stages.filter((candidate) => candidate.type === 'waitForRequisiteCompletion' &&
               candidate.context.requisiteIds &&
               candidate.context.requisiteIds.length === stage.requisiteStageRefIds.length &&
-              candidate.context.requisiteIds.every((reqId) => stage.requisiteStageRefIds.indexOf(reqId) > -1)
+              candidate.context.requisiteIds.every((reqId) => stage.requisiteStageRefIds.includes(reqId))
           );
           if (waitStages.length) {
             let waitStage = waitStages[0],
                 parentStages = execution.stages
-                  .filter((parent) => waitStage.context.requisiteIds.indexOf(parent.refId) > -1);
+                  .filter((parent) => waitStage.context.requisiteIds.includes(parent.refId));
             stagesToInject.push({
               parentTasks: parentStages,
               syntheticStageOwner: 'STAGE_BEFORE',

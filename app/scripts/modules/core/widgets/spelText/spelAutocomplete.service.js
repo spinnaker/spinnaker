@@ -91,7 +91,7 @@ module.exports = angular
     const listSearchFn = (list) => {
       return (term, callback) => {
         callback(list.filter((item) => {
-          if (item.leaf.indexOf(term) > -1) {
+          if (item.leaf.includes(term)) {
             return item;
           }
         }));
@@ -274,7 +274,7 @@ module.exports = angular
           index: 2,
           search: function (term, callback) {
             callback(codedHelperParamsCopy.filter((param) => {
-              if (param.name.indexOf(term) > -1 || param.type.indexOf(term) > -1) {
+              if (param.name.includes(term) || param.type.includes(term)) {
                 return param;
               }
             }));

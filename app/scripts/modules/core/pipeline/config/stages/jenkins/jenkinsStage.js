@@ -64,8 +64,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', [
       if ($scope.stage && $scope.stage.master) {
         let master = $scope.stage.master,
             job = $scope.stage.job || '';
-        $scope.viewState.masterIsParameterized = master.indexOf('${') > -1;
-        $scope.viewState.jobIsParameterized = job.indexOf('${') > -1;
+        $scope.viewState.masterIsParameterized = master.includes('${');
+        $scope.viewState.jobIsParameterized = job.includes('${');
         if ($scope.viewState.masterIsParameterized || $scope.viewState.jobIsParameterized) {
           $scope.viewState.jobsLoaded = true;
           return;

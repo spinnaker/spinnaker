@@ -12,7 +12,7 @@ module.exports = angular
       if (instanceList && instanceList.length) {
         return instanceList.filter(function (instance) {
           if (query.match('^i-')) {
-            if (instance.id.indexOf(query) > -1) {
+            if (instance.id.includes(query)) {
               return instance;
             }
           } else {

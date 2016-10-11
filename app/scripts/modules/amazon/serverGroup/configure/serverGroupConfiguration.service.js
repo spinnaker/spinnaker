@@ -176,7 +176,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
           if (acct.defaultKeyPair) {
             // {{region}} is the only supported substitution pattern
             let defaultKeyPair = acct.defaultKeyPair.replace('{{region}}', command.region);
-            if (isDefault && filtered.indexOf(defaultKeyPair) > -1) {
+            if (isDefault && filtered.includes(defaultKeyPair)) {
               command.keyPair = defaultKeyPair;
             } else {
               command.keyPair = null;

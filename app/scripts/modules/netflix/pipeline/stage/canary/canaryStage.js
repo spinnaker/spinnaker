@@ -61,7 +61,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
 
 
     this.updateWatchersList = () => {
-      if(this.recipients.indexOf('${') > -1) { //check if SpEL; we don't want to convert to array
+      if (this.recipients.includes('${')) { //check if SpEL; we don't want to convert to array
         $scope.stage.canary.watchers = this.recipients;
       } else {
         $scope.stage.canary.watchers = [];

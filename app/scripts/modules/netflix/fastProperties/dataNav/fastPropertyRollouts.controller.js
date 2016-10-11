@@ -21,7 +21,7 @@ module.exports = angular
     vm.filter = function() {
       if (!_.chain(vm.applicationFilter).isEmpty().value()) {
         vm.filteredPromotions = vm.promotions.filter(function(promotion) {
-          return promotion.scopes.from.appId.indexOf(vm.applicationFilter) > -1;
+          return promotion.scopes.from.appId.includes(vm.applicationFilter);
         });
       } else {
         vm.filteredPromotions = vm.promotions;

@@ -246,10 +246,10 @@ module.exports = angular.module('spinnaker.aws.instanceType.service', [
           return true;
         }
         let [family] = instanceType.split('.');
-        if (!vpcOnly && families.vpcOnly.indexOf(family) > -1) {
+        if (!vpcOnly && families.vpcOnly.includes(family)) {
           return false;
         }
-        return families[virtualizationType].indexOf(family) > -1;
+        return families[virtualizationType].includes(family);
       });
     }
 

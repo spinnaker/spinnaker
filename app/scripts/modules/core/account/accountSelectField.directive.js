@@ -59,11 +59,11 @@ module.exports = angular
     };
 
     this.groupBy = (account) => {
-      if (this.secondaryAccounts && this.secondaryAccounts.indexOf(account) > -1) {
+      if (this.secondaryAccounts && this.secondaryAccounts.includes(account)) {
         return '---------------';
       }
 
-      if (this.primaryAccounts.indexOf(account) > -1) {
+      if (this.primaryAccounts.includes(account)) {
         return undefined;
       }
     };

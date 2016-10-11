@@ -166,7 +166,7 @@ module.exports = angular
       }
       this.clearAllServerGroups();
       let group = this.getOrCreateInstanceGroup(serverGroup);
-      if (group.instanceIds.indexOf(instanceId) > -1) {
+      if (group.instanceIds.includes(instanceId)) {
         group.instanceIds.splice(group.instanceIds.indexOf(instanceId), 1);
         group.selectAll = false;
       } else {
@@ -189,7 +189,7 @@ module.exports = angular
 
     this.instanceIsSelected = (serverGroup, instanceId) => {
       let group = this.getOrCreateInstanceGroup(serverGroup);
-      return group.instanceIds.indexOf(instanceId) > -1;
+      return group.instanceIds.includes(instanceId);
     };
 
     let isClusterChildState = () => {

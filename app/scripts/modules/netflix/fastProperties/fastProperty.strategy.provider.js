@@ -17,7 +17,7 @@ module.exports = angular
         controller = 'unknown',
         controllerAs = 'unkown',
         enabled = false,
-        display = (screen) => this.wizardScreens.indexOf(screen) > -1
+        display = (screen) => this.wizardScreens.includes(screen)
       } = {} ) {
       strategies.push({
         key: key,

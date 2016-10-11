@@ -79,7 +79,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.validator.servic
         }
       },
       checkRequiredField: function(pipeline, stage, validationConfig, config, messages) {
-        if (pipeline.strategy === true && ['cluster', 'regions', 'zones', 'credentials'].indexOf(validationConfig.fieldName) > -1) {
+        if (pipeline.strategy === true && ['cluster', 'regions', 'zones', 'credentials'].includes(validationConfig.fieldName)) {
           return;
         }
 

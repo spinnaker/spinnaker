@@ -367,7 +367,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
       if (subnetPurpose) {
         $scope.loadBalancer.vpcId = availableVpcIds.length ? availableVpcIds[0] : null;
         if (!$scope.state.hideInternalFlag && !$scope.state.internalFlagToggled) {
-          $scope.loadBalancer.isInternal = subnetPurpose.indexOf('internal') > -1;
+          $scope.loadBalancer.isInternal = subnetPurpose.includes('internal');
         }
         $scope.availabilityZones = $scope.subnets
           .find(o => o.purpose === $scope.loadBalancer.subnetType)

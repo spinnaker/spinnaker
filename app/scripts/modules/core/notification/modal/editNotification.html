@@ -17,7 +17,7 @@
               name="when"
               value="{{wo}}"
               ng-model="selectedWhenOptions[wo]"
-              ng-checked="editNotification.notification.when.indexOf(wo) > -1">
+              ng-checked="editNotification.notification.when.includes(wo)">
             {{wo|notificationWhen:level}}
 
           </label>

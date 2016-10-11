@@ -31,7 +31,7 @@ let decorateFn = function ($delegate, jsonListBuilder, spelAutocomplete) {
 
       function listener (evt) {
 
-        let hasSpelPrefix = evt.target.value.indexOf('$') > -1;
+        let hasSpelPrefix = evt.target.value.includes('$');
         let hasLink = el.parent().nextAll('.spelLink');
 
         if (hasSpelPrefix) {

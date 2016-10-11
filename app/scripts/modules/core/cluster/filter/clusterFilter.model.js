@@ -42,7 +42,7 @@ module.exports = angular
     }
 
     function isChildState(stateName) {
-      return stateName.indexOf('clusters.') > -1;
+      return stateName.includes('clusters.');
     }
 
     function movingToClusterState(toState) {

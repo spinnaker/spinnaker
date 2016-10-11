@@ -36,12 +36,12 @@
 
           <td class="small-fp-scopes">
             <dl>
-              <dt ng-if="property.cluster" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('cluster') > -1}">Cluster</dt>
-              <dd ng-if="property.cluster" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('cluster') > -1}">
+              <dt ng-if="property.cluster" ng-class="{'error-message': !property.isValid && property.errors && property.errors.includes('cluster')}">Cluster</dt>
+              <dd ng-if="property.cluster" ng-class="{'error-message': !property.isValid && property.errors && property.errors.includes('cluster')}">
                 {{property.cluster}}
                 <i
                   class="error-message glyphicon glyphicon-exclamation-sign"
-                  ng-if="!property.isValid && property.errors.indexOf('cluster') > -1"
+                  ng-if="!property.isValid && property.errors.includes('cluster')"
                   style="display: inline; padding-left: 5px"
                   uib-tooltip="{{property.cluster}} is not in service"
                   tooltip-placement="right">
@@ -53,12 +53,12 @@
                 {{property.stack}}
               </dd>
 
-              <dt ng-if="property.asg" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('asg') > -1}">ASG</dt>
-              <dd ng-if="property.asg" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('asg') > -1}">
+              <dt ng-if="property.asg" ng-class="{'error-message': !property.isValid && property.errors && property.errors.includes('asg')}">ASG</dt>
+              <dd ng-if="property.asg" ng-class="{'error-message': !property.isValid && property.errors && property.errors.includes('asg')}">
                 {{property.asg}}
                 <i
                   class="error-message glyphicon glyphicon-exclamation-sign"
-                  ng-if="!property.isValid && property.errors.indexOf('asg') > -1"
+                  ng-if="!property.isValid && property.errors.includes('asg')"
                   style="display: inline; padding-left: 5px"
                   uib-tooltip="{{property.asg}} is not in service"
                   tooltip-placement="right">
@@ -70,12 +70,12 @@
                 {{property.zone}}
               </dd>
 
-              <dt ng-if="property.serverId" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('serverId') > -1 }">Instance</dt>
-              <dd ng-if="property.serverId" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('serverId') > -1 }">
+              <dt ng-if="property.serverId" ng-class="{'error-message': !property.isValid && property.errors && property.errors.includes('serverId') }">Instance</dt>
+              <dd ng-if="property.serverId" ng-class="{'error-message': !property.isValid && property.errors && property.errors.includes('serverId') }">
                 {{property.serverId}} {{property.errors.indexOf('serverId')}}
                 <i
                   class="error-message glyphicon glyphicon-exclamation-sign"
-                  ng-if="!property.isValid && property.errors.indexOf('serverId') > -1"
+                  ng-if="!property.isValid && property.errors.includes('serverId')"
                   style="display: inline; padding-left: 5px"
                   uib-tooltip="{{property.serverId}} is not in service"
                   tooltip-placement="right">

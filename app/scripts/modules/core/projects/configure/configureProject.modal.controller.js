@@ -60,7 +60,7 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
         .filter((cluster) => !cluster.useAllApplications)
         .forEach((cluster) => {
           cluster.applications = cluster.applications
-            .filter((app) => $scope.command.config.applications.indexOf(app) > -1);
+            .filter((app) => $scope.command.config.applications.includes(app));
       });
     };
 

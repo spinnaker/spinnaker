@@ -84,7 +84,7 @@ module.exports = angular
     }
 
     function isChildState(stateName) {
-      return stateName.indexOf('executions.execution') > -1;
+      return stateName.includes('executions.execution');
     }
 
     function movingToExecutionsState(toState) {

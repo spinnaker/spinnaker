@@ -35,7 +35,7 @@ module.exports = angular
     }
 
     function isChildState(stateName) {
-      return stateName.indexOf('loadBalancers.') > -1;
+      return stateName.includes('loadBalancers.');
     }
 
     function movingToLoadBalancerState(toState) {

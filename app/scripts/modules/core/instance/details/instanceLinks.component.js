@@ -25,7 +25,7 @@ module.exports = angular
           let port = link.path.indexOf(':') === 0 || !this.port ? '' : ':' + this.port;
           let url = link.path;
           // handle interpolated variables
-          if (url.indexOf('{{') > -1) {
+          if (url.includes('{{')) {
             url = $interpolate(url)(this.instance);
           }
           // handle relative paths

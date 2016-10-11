@@ -46,7 +46,7 @@ module.exports = angular
         return;
       }
       let reportData = reservationReportReader.extractReservations(this.report.reservations, this.account, this.region, this.instanceType);
-      this.reportData = reportData.filter((row) => this.zones.indexOf(row.availabilityZone) > -1);
+      this.reportData = reportData.filter((row) => this.zones.includes(row.availabilityZone));
       setVpc();
     };
 

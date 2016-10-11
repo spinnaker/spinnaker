@@ -49,7 +49,7 @@ module.exports = angular
       return function(target) {
         if (isFilterable(model.sortFilter.stack)) {
           var checkedStacks = getCheckValues(model.sortFilter.stack);
-          if (checkedStacks.indexOf('(none)') > -1) {
+          if (checkedStacks.includes('(none)')) {
             checkedStacks.push('');
           }
           return _.includes(checkedStacks, target.stack);
