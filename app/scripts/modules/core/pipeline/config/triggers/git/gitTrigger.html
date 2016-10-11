@@ -24,7 +24,7 @@
              ng-model="vm.trigger.project"
              name="project"
              required
-             placeholder="Enter your {{vm.trigger.source === 'stash' ? 'repository project' : 'organization or user'}} name, i.e. spinnaker for github.com/spinnaker/echo"
+             placeholder="{{vm.trigger.source === 'stash' ? 'Project' : 'Organization or user'}} name, i.e. {{vm.trigger.source === 'stash' ? 'SPKR for stash.mycorp.com/projects/SPKR/repos/echo' : 'spinnaker for github.com/spinnaker/echo'}}"
       />
     </div>
   </div>
@@ -38,7 +38,7 @@
              ng-model="vm.trigger.slug"
              name="slug"
              required
-             placeholder="Enter your {{vm.trigger.source === 'stash' ? 'source repository' : 'project'}} name (not the url), i.e, echo for github.com/spinnaker/echo"
+             placeholder="{{vm.trigger.source === 'stash' ? 'Repository' : 'Project'}} name (not the url), i.e, {{vm.trigger.source === 'stash' ? 'echo for stash.mycorp.com/projects/SPKR/repos/echo' : 'echo for github.com/spinnaker/echo' }}"
              pattern="^((?!\:\/\/).)*$"
       />
     </div>
