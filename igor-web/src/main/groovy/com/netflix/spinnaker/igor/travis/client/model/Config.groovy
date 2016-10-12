@@ -39,11 +39,11 @@ class Config {
     }
 
     public List<GenericParameterDefinition> getParameterDefinitionList() {
-        globalEnv? globalEnv.findAll{it instanceof String}.collect {
+        (globalEnv ? globalEnv.findAll{it instanceof String}.collect {
             String tmpGlobalEnv = (String) it
             def parts = tmpGlobalEnv.tokenize('=')
             new GenericParameterDefinition(parts[0], parts.drop(1).join('='))
-        } : []
+        } : []) as List<GenericParameterDefinition>
     }
 
     public List<Object> getSecrets() {
