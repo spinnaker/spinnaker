@@ -18,7 +18,7 @@ spec:
         load-balancer-spin-orca: "true"
     spec:
       containers:
-        - image: quay.io/spinnaker/orca:latest
+        - image: quay.io/spinnaker/orca:master
           name: orca
           ports:
             - containerPort: 8083

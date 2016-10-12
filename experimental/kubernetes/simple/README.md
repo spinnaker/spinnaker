@@ -15,7 +15,7 @@ don't trust the ones I provide.
 1. `gcr.io/kubernetes-spinnaker/redis-cluster:v2` can be rebuilt from
    `./images/redis`.
 
-2. `quay.io/spinnaker/SERVICE:latest` can be rebuilt at head of
+2. `quay.io/spinnaker/SERVICE:master` can be rebuilt at head of
    https://github.com/spinnaker/SERVICE
 
 ## Configuring Kubernetes

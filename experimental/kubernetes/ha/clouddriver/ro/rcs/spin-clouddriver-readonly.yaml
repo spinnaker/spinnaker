@@ -19,7 +19,7 @@ spec:
         load-balancer-spin-clouddriver-ro: "true"
     spec:
       containers:
-        - image: quay.io/spinnaker/clouddriver:latest
+        - image: quay.io/spinnaker/clouddriver:master
           name: clouddriver
           ports:
             - containerPort: 7002
