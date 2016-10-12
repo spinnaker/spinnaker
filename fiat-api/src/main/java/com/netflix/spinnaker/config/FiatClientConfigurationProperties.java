@@ -18,12 +18,16 @@ package com.netflix.spinnaker.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 @Data
+@Component
 @ConfigurationProperties("services.fiat")
 public class FiatClientConfigurationProperties {
 
   private boolean enabled;
+
+  private boolean autoConfig;
 
   private String baseUrl;
 }

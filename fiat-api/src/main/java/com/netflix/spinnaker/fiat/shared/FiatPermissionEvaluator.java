@@ -21,6 +21,7 @@ import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Authorizable;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
+import com.netflix.spinnaker.security.User;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -91,10 +92,12 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
 
   private String getUsername(Authentication authentication) {
     String username = "anonymous";
-    if (authentication instanceof PreAuthenticatedAuthenticationToken) {
-      PreAuthenticatedAuthenticationToken authToken = (PreAuthenticatedAuthenticationToken) authentication;
-      if (authToken.isAuthenticated() && authToken.getPrincipal() != null) {
-        username = authToken.getPrincipal().toString();
+    if (authentication.isAuthenticated() && authentication.getPrincipal() != null) {
+      Object principal = authentication.getPrincipal();
+      if (principal instanceof User) {
+        username = ((User) principal).getUsername();
+      } else if (StringUtils.isNotEmpty(principal.toString())){
+        username = principal.toString();
       }
     }
     return username;

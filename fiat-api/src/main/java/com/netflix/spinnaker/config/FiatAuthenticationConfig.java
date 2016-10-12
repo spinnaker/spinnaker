@@ -26,6 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.embedded.FilterRegistrationBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -46,6 +48,7 @@ import retrofit.converter.JacksonConverter;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @Configuration
 @EnableConfigurationProperties(FiatClientConfigurationProperties.class)
+@ConditionalOnExpression("${services.fiat.autoConfig:true}")
 @ComponentScan("com.netflix.spinnaker.fiat.shared")
 public class FiatAuthenticationConfig {
 
@@ -62,6 +65,7 @@ public class FiatAuthenticationConfig {
   private OkClient okClient;
 
   @Bean
+  @ConditionalOnMissingBean(FiatService.class) // Allows for override
   public FiatService fiatService(FiatClientConfigurationProperties fiatConfigurationProperties) {
     return new RestAdapter.Builder()
         .setEndpoint(Endpoints.newFixedEndpoint(fiatConfigurationProperties.getBaseUrl()))
