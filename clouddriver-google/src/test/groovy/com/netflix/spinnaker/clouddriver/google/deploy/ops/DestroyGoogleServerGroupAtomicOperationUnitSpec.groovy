@@ -31,7 +31,9 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DestroyGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
@@ -279,6 +281,75 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       true       | REGION   |  [new GoogleHttpLoadBalancer(name: 'spinnaker-http-load-balancer').view] | ['spinnaker-http-load-balancer']
       false      | ZONE     |  []                                                                      | []
       true       | REGION   |  []                                                                      | []
+  }
+
+  @Unroll
+  void "should delete internal loadbalancer backend if associated"() {
+    setup:
+    def googleClusterProviderMock = Mock(GoogleClusterProvider)
+    def loadBalancerNameList = lbNames
+    def serverGroup =
+      new GoogleServerGroup(
+        name: SERVER_GROUP_NAME,
+        region: REGION,
+        regional: isRegional,
+        zone: ZONE,
+        asg: [
+          (GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES): loadBalancerNameList,
+        ],
+        launchConfig: [
+          instanceTemplate: new InstanceTemplate(name: INSTANCE_TEMPLATE_NAME,
+            properties: [
+              'metadata': new Metadata(items: [
+                new Metadata.Items(
+                  key: (GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES),
+                  value: 'spinnaker-int-load-balancer'
+                )
+              ])
+            ])
+        ]).view
+    def computeMock = Mock(Compute)
+    def backendServicesMock = Mock(Compute.RegionBackendServices)
+    def backendSvcGetMock = Mock(Compute.RegionBackendServices.Get)
+    def backendUpdateMock = Mock(Compute.RegionBackendServices.Update)
+    def googleLoadBalancerProviderMock = Mock(GoogleLoadBalancerProvider)
+    googleLoadBalancerProviderMock.getApplicationLoadBalancers("") >> loadBalancerList
+    def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
+    def bs = isRegional ?
+      new BackendService(backends: lbNames.collect { new Backend(group: GCEUtil.buildZonalServerGroupUrl(PROJECT_NAME, ZONE, serverGroup.name)) }) :
+      new BackendService(backends: lbNames.collect { new Backend(group: GCEUtil.buildRegionalServerGroupUrl(PROJECT_NAME, REGION, serverGroup.name)) })
+
+    def description = new DestroyGoogleServerGroupDescription(serverGroupName: SERVER_GROUP_NAME,
+      region: REGION,
+      accountName: ACCOUNT_NAME,
+      credentials: credentials)
+    @Subject def operation = new DestroyGoogleServerGroupAtomicOperation(description)
+    operation.googleOperationPoller =
+      new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
+        threadSleeper: threadSleeperMock)
+    operation.googleClusterProvider = googleClusterProviderMock
+    operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
+
+    when:
+    def closure = operation.destroyInternalLoadBalancerBackends(computeMock, PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock)
+    closure()
+
+    then:
+    _ * computeMock.regionBackendServices() >> backendServicesMock
+    _ * backendServicesMock.get(PROJECT_NAME, REGION, 'backend-service') >> backendSvcGetMock
+    _ * backendSvcGetMock.execute() >> bs
+    _ * backendServicesMock.update(PROJECT_NAME, REGION, 'backend-service', bs) >> backendUpdateMock
+    _ * backendUpdateMock.execute()
+    bs.backends.size == 0
+
+    where:
+    isRegional | location | loadBalancerList                                                                                                                               | lbNames
+    false      | ZONE     | [new GoogleInternalLoadBalancer(name: 'spinnaker-int-load-balancer', backendService: new GoogleBackendService(name: 'backend-service')).view] | ['spinnaker-int-load-balancer']
+    true       | REGION   | [new GoogleInternalLoadBalancer(name: 'spinnaker-int-load-balancer', backendService: new GoogleBackendService(name: 'backend-service')).view] | ['spinnaker-int-load-balancer']
+    false      | ZONE     | [new GoogleInternalLoadBalancer(name: 'spinnaker-int-load-balancer', backendService: new GoogleBackendService(name: 'backend-service')).view] | ['spinnaker-int-load-balancer']
+    true       | REGION   | [new GoogleInternalLoadBalancer(name: 'spinnaker-int-load-balancer', backendService: new GoogleBackendService(name: 'backend-service')).view] | ['spinnaker-int-load-balancer']
+    false      | ZONE     | []                                                                                                                                             | []
+    true       | REGION   | []                                                                                                                                             | []
   }
 
   @Unroll

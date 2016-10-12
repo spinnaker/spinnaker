@@ -18,13 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.Compute
-import com.google.api.services.compute.model.ForwardingRule
-import com.google.api.services.compute.model.ForwardingRuleList
-import com.google.api.services.compute.model.InstanceGroupManager
-import com.google.api.services.compute.model.InstanceGroupsListInstances
-import com.google.api.services.compute.model.InstanceProperties
-import com.google.api.services.compute.model.InstanceTemplate
-import com.google.api.services.compute.model.InstanceWithNamedPorts
+import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -210,6 +204,6 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * forwardingRulesListMock.execute() >> forwardingRulesList2
 
       def exc = thrown GoogleResourceNotFoundException
-      exc.message == "Network load balancers [$FORWARDING_RULE_1, $FORWARDING_RULE_2] not found."
+      exc.message == "Regional load balancers [$FORWARDING_RULE_1, $FORWARDING_RULE_2] not found."
   }
 }

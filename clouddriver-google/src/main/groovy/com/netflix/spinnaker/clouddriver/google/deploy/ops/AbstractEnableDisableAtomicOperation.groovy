@@ -113,6 +113,18 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         SUCCESSFUL_ERROR_CODES
       )
 
+      task.updateStatus phaseName, "Deregistering server group from internal load balancers..."
+
+      voidRetry.doRetry(
+        destroyInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
+        "destroy",
+        "Internal load balancer backends",
+        task,
+        phaseName,
+        RETRY_ERROR_CODES,
+        SUCCESSFUL_ERROR_CODES
+      )
+
       task.updateStatus phaseName, "Deregistering server group from network load balancers..."
 
       currentTargetPoolUrls.each { targetPoolUrl ->
@@ -156,6 +168,18 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
         "add",
         "Http load balancer backends",
+        task,
+        phaseName,
+        RETRY_ERROR_CODES,
+        []
+      )
+
+      task.updateStatus phaseName, "Registering server group with Internal load balancers..."
+
+      voidRetry.doRetry(
+        addInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
+        "add",
+        "Internal load balancer backends",
         task,
         phaseName,
         RETRY_ERROR_CODES,
@@ -209,11 +233,11 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         }
       }
 
-      def forwardingRules = GCEUtil.queryForwardingRules(project, region, newForwardingRuleNames, compute, task, phaseName)
+      def forwardingRules = GCEUtil.queryRegionalForwardingRules(project, region, newForwardingRuleNames, compute, task, phaseName)
 
       newTargetPoolUrls = forwardingRules.collect { forwardingRule ->
         forwardingRule.target
-      }
+      } - null // Need to remove nulls that result from internal load balancers.
 
       newTargetPoolUrls.each { newTargetPoolUrl ->
         def targetPoolLocalName = GCEUtil.getLocalName(newTargetPoolUrl)
@@ -277,9 +301,23 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     }
   }
 
+  Closure destroyInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
+    return {
+      GCEUtil.destroyInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName)
+      null
+    }
+  }
+
   Closure addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
     return {
       GCEUtil.addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName)
+      null
+    }
+  }
+
+  Closure addInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
+    return {
+      GCEUtil.addInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName)
       null
     }
   }

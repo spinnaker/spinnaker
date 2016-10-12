@@ -40,10 +40,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.model.*
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerView
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancingPolicy
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
@@ -227,9 +224,9 @@ class GCEUtil {
     }
   }
 
-  static List<ForwardingRule> queryForwardingRules(
+  static List<ForwardingRule> queryRegionalForwardingRules(
           String projectName, String region, List<String> forwardingRuleNames, Compute compute, Task task, String phase) {
-    task.updateStatus phase, "Looking up network load balancers $forwardingRuleNames..."
+    task.updateStatus phase, "Looking up regional load balancers $forwardingRuleNames..."
 
     def forwardingRules = new SafeRetry<List<ForwardingRule>>().doRetry(
       { return compute.forwardingRules().list(projectName, region).execute().items },
@@ -249,7 +246,7 @@ class GCEUtil {
     } else {
       def foundNames = foundForwardingRules.collect { it.name }
 
-      updateStatusAndThrowNotFoundException("Network load balancers ${forwardingRuleNames - foundNames} not found.", task, phase)
+      updateStatusAndThrowNotFoundException("Regional load balancers ${forwardingRuleNames - foundNames} not found.", task, phase)
     }
   }
 
@@ -683,6 +680,41 @@ class GCEUtil {
         requestPath: healthCheckDescription.requestPath)
   }
 
+  static void addInternalLoadBalancerBackends(Compute compute,
+                                              String project,
+                                              GoogleServerGroup.View serverGroup,
+                                              GoogleLoadBalancerProvider googleLoadBalancerProvider,
+                                              Task task,
+                                              String phase) {
+    String serverGroupName = serverGroup.name
+    String region = serverGroup.region
+    Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
+    Map metadataMap = buildMapFromMetadata(instanceMetadata)
+    def regionalLoadBalancersInMetadata = metadataMap?.(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
+    def internalLoadBalancersToAddTo = queryAllLoadBalancers(googleLoadBalancerProvider, regionalLoadBalancersInMetadata, task, phase)
+      .findAll { it.loadBalancerType == GoogleLoadBalancerType.INTERNAL }
+
+    if (internalLoadBalancersToAddTo) {
+      internalLoadBalancersToAddTo.each { GoogleLoadBalancerView loadBalancerView ->
+        def ilbView = loadBalancerView as GoogleInternalLoadBalancer.View
+        def backendServiceName = ilbView.backendService.name
+        BackendService backendService = compute.regionBackendServices().get(project, region, backendServiceName).execute()
+        Backend backendToAdd = new Backend(balancingMode: 'CONNECTION')
+        if (serverGroup.regional) {
+          backendToAdd.setGroup(buildRegionalServerGroupUrl(project, region, serverGroupName))
+        } else {
+          backendToAdd.setGroup(buildZonalServerGroupUrl(project, serverGroup.zone, serverGroupName))
+        }
+        if (backendService.backends == null) {
+          backendService.backends = []
+        }
+        backendService.backends << backendToAdd
+        compute.regionBackendServices().update(project, region, backendServiceName, backendService).execute()
+        task.updateStatus phase, "Enabled backend for server group ${serverGroupName} in Internal load balancer backend service ${backendServiceName}."
+      }
+    }
+  }
+
   static void addHttpLoadBalancerBackends(Compute compute,
                                           ObjectMapper objectMapper,
                                           String project,
@@ -757,6 +789,34 @@ class GCEUtil {
         backend.maxUtilization : null,
       capacityScaler: backend.capacityScaler,
     )
+  }
+
+  static void destroyInternalLoadBalancerBackends(Compute compute,
+                                                  String project,
+                                                  GoogleServerGroup.View serverGroup,
+                                                  GoogleLoadBalancerProvider googleLoadBalancerProvider,
+                                                  Task task,
+                                                  String phase) {
+    def serverGroupName = serverGroup.name
+    def region = serverGroup.region
+    def foundInternalLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
+      it.name in serverGroup.loadBalancers && it.loadBalancerType == GoogleLoadBalancerType.INTERNAL
+    }
+    log.debug("Attempting to delete backends for ${serverGroup.name} from the following regional load balancers: ${foundInternalLoadBalancers.collect { it.name }}")
+
+    if (foundInternalLoadBalancers) {
+      foundInternalLoadBalancers.each { GoogleLoadBalancerView loadBalancerView ->
+        def ilbView = loadBalancerView as GoogleInternalLoadBalancer.View
+        String backendServiceName = ilbView.backendService.name
+        BackendService backendService = compute.regionBackendServices().get(project, region, backendServiceName).execute()
+        backendService?.backends?.removeAll { Backend backend ->
+          (getLocalName(backend.group) == serverGroupName) &&
+            (Utils.getRegionFromGroupUrl(backend.group) == region)
+        }
+        compute.regionBackendServices().update(project, region, backendServiceName, backendService).execute()
+        task.updateStatus phase, "Deleted backend for server group ${serverGroupName} from internal load balancer backend service ${backendServiceName}."
+      }
+    }
   }
 
   static void destroyHttpLoadBalancerBackends(Compute compute,

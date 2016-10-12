@@ -57,7 +57,7 @@ class RegisterInstancesWithGoogleLoadBalancerAtomicOperation implements AtomicOp
     def region = description.region
     def compute = description.credentials.compute
 
-    def forwardingRules = GCEUtil.queryForwardingRules(project, region, loadBalancerNames, compute, task, BASE_PHASE)
+    def forwardingRules = GCEUtil.queryRegionalForwardingRules(project, region, loadBalancerNames, compute, task, BASE_PHASE)
     def instanceUrls = GCEUtil.queryInstanceUrls(project, region, instanceIds, compute, task, BASE_PHASE)
 
     loadBalancerNames.each { lbName ->
