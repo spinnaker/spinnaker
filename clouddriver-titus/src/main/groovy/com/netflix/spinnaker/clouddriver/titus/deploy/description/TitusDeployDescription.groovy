@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.titus.deploy.description
 
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
+import com.netflix.spinnaker.clouddriver.titus.client.model.Efs
 import groovy.transform.Canonical
 
 class TitusDeployDescription extends AbstractTitusCredentialsDescription implements DeployDescription {
@@ -56,4 +57,7 @@ class TitusDeployDescription extends AbstractTitusCredentialsDescription impleme
     int[] ports
     boolean allocateIpAddress
   }
+
+  Efs efs
+
 }

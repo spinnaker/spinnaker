@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client.model;
 
-import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +70,7 @@ public class SubmitJobRequest {
     private int memory;
     private int disk;
     private int networkMbps;
+    private Efs efs;
     private int[] ports;
     private Map<String, String> env;
     private boolean allocateIpAddress;
@@ -205,7 +204,13 @@ public class SubmitJobRequest {
       return this;
     }
 
-    // Getters
+    public SubmitJobRequest withEfs(Efs efs) {
+      this.efs = efs;
+      return this;
+    }
+
+
+  // Getters
 
 
     public String getJobType() {
@@ -299,4 +304,7 @@ public class SubmitJobRequest {
     public JobDescription getJobDescription() {
         return new JobDescription(this);
     }
+
+    public Efs getEfs() { return efs; }
+
 }

@@ -52,6 +52,7 @@ public class JobDescription {
 
     private String entryPoint;
     private String iamProfile;
+    private Efs efs;
 
     //Soft/Hard constraints
 
@@ -89,6 +90,7 @@ public class JobDescription {
         iamProfile = request.getIamProfile();
         securityGroups = request.getSecurityGroups();
         inService = request.getInService();
+        efs = request.getEfs();
     }
 
     public String getName() {
@@ -164,15 +166,22 @@ public class JobDescription {
     }
 
     public int getNetworkMbps() {
-    return networkMbps;
+      return networkMbps;
+    }
+
+    public void setEfs(Efs efs) {
+    this.efs = efs;
   }
+
+    public Efs getEfs() {
+      return efs;
+    }
 
     public void setNetworkMbps(int networkMbps) {
-    this.networkMbps = networkMbps;
-  }
+      this.networkMbps = networkMbps;
+    }
 
-
-  public int[] getPorts() {
+    public int[] getPorts() {
         return ports;
     }
 
