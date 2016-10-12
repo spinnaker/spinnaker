@@ -234,7 +234,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
           'hostRules/hosts':
               jp.LIST_MATCHES([jp.STR_SUBSTR(host)
                                for host in hr['hostPatterns']]),
-          'pathMatchers': jp.DICT_MATCHES(path_matchers_spec),
+          'pathMatchers': jp.LIST_MATCHES([jp.DICT_MATCHES(path_matchers_spec)]),
           })
 
     port_string = '443-443'
