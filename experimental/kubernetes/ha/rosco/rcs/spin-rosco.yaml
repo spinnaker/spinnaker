@@ -18,7 +18,7 @@ spec:
         load-balancer-spin-rosco: "true"
     spec:
       containers:
-        - image: quay.io/spinnaker/rosco:latest
+        - image: quay.io/spinnaker/rosco:master
           name: rosco
           ports:
             - containerPort: 8087

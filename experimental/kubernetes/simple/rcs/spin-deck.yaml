@@ -18,7 +18,7 @@ spec:
         load-balancer-spin-deck: "true"
     spec:
       containers:
-        - image: quay.io/spinnaker/deck:latest
+        - image: quay.io/spinnaker/deck:master
           name: deck
           command:
             - /bin/bash

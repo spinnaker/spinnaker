@@ -18,7 +18,7 @@ spec:
         load-balancer-spin-igor: "true"
     spec:
       containers:
-        - image: quay.io/spinnaker/igor:latest
+        - image: quay.io/spinnaker/igor:master
           name: igor
           ports:
             - containerPort: 8088

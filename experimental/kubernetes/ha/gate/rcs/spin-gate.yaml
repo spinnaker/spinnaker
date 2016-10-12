@@ -18,7 +18,7 @@ spec:
         load-balancer-spin-gate: "true"
     spec:
       containers:
-        - image: quay.io/spinnaker/gate:latest
+        - image: quay.io/spinnaker/gate:master
           name: gate
           ports:
             - containerPort: 8084

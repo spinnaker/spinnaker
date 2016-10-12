@@ -18,7 +18,7 @@ spec:
         load-balancer-spin-echo: "true"
     spec:
       containers:
-        - image: quay.io/spinnaker/echo:latest
+        - image: quay.io/spinnaker/echo:master
           name: echo
           ports:
             - containerPort: 8089
