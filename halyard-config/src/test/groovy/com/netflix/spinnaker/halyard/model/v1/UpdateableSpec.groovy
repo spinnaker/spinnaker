@@ -33,7 +33,7 @@ public class UpdateableSpec extends Specification{
   void "should update my field name"() {
     when:
     def test = new Test(name: ORIGINAL_VALUE)
-    def res = test.update("name", GOOD_VALUE)
+    def res = test.update("name", GOOD_VALUE, String.class)
 
     then:
     res == []
@@ -43,7 +43,7 @@ public class UpdateableSpec extends Specification{
   void "should not update my field name"() {
     when:
     def test = new Test(name: ORIGINAL_VALUE)
-    def res = test.update("name", BAD_VALUE)
+    def res = test.update("name", BAD_VALUE, String.class)
 
     then:
     res == [ERROR_MESSAGE]
@@ -53,7 +53,7 @@ public class UpdateableSpec extends Specification{
   void "should update my field name due to skip"() {
     when:
     def test = new Test(name: ORIGINAL_VALUE)
-    def res = test.update("name", SKIP_VALUE)
+    def res = test.update("name", SKIP_VALUE, String.class)
 
     then:
     res == []

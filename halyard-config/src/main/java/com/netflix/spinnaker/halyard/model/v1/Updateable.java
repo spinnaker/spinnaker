@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 
 public interface Updateable {
   /* Attempts to update field to value, but will be rejected if the validation based on `context fails */
-  default public List<String> update(String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
+  default public List<String> update(String fieldName, Object value, Class<?> valueType) throws NoSuchFieldException, IllegalAccessException {
     Field field = this.getClass().getDeclaredField(fieldName);
     field.setAccessible(true);
     Object oldValue = field.get(this);
@@ -41,7 +41,7 @@ public interface Updateable {
         .flatMap(Stream::of)                                                   // Flatten the stream of lists
         .map(v -> {
           try {
-            return v.getConstructor(value.getClass()).newInstance(value);      // Construct the validators
+            return v.getConstructor(valueType).newInstance(value);             // Construct the validators
           } catch (Exception e) {
             throw new RuntimeException(e);
           }

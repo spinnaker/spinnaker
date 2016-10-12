@@ -17,11 +17,14 @@
 package com.netflix.spinnaker.halyard.model.v1.providers;
 
 import com.netflix.spinnaker.halyard.model.v1.Updateable;
+import com.netflix.spinnaker.halyard.validate.v1.ValidateField;
+import com.netflix.spinnaker.halyard.validate.v1.providers.ValidateAccountName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class Account implements Cloneable, Updateable {
+  @ValidateField(validators = {ValidateAccountName.class})
   String name;
 }
