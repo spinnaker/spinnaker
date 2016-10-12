@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.config
 
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.config.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
@@ -40,6 +41,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.embedded.FilterRegistrationBean
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
@@ -70,6 +72,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 @CompileStatic
 @Configuration
 @Slf4j
+@EnableConfigurationProperties(FiatClientConfigurationProperties)
 class GateConfig extends RedisHttpSessionConfiguration {
 
   @Value('${server.session.timeoutInSeconds:3600}')
