@@ -92,8 +92,11 @@ class AcaTaskStage extends LinearStage implements CancellableStage, RestartableS
   }
 
   Map cancelCanary(Stage stage, String reason)  {
-    def cancelCanaryResults = mineService.cancelCanary(stage.context.canary.id as String, reason)
-    log.info("Canceled canary in mine (canaryId: ${stage.context.canary.id}, stageId: ${stage.id}, executionId: ${stage.execution.id}): ${reason}")
-    return cancelCanaryResults
+    if(stage?.context?.canary?.id) {
+      def cancelCanaryResults = mineService.cancelCanary(stage.context.canary.id as String, reason)
+      log.info("Canceled canary in mine (canaryId: ${stage.context.canary.id}, stageId: ${stage.id}, executionId: ${stage.execution.id}): ${reason}")
+      return cancelCanaryResults
+    }
   }
+
 }
