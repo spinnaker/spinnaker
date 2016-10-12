@@ -14,13 +14,25 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.model.v1.providers.kubernetes;
+package com.netflix.spinnaker.halyard.validate.v1.providers.kubernetes;
 
-import com.netflix.spinnaker.halyard.model.v1.providers.Provider;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import com.netflix.spinnaker.halyard.validate.v1.Validator;
 
-@Data
-@EqualsAndHashCode(callSuper = false)
-public class KubernetesProvider extends Provider<KubernetesAccount> implements Cloneable {
+import java.util.stream.Stream;
+
+public class ValidateKubernetesContext extends Validator<String> {
+  private String description = "Validate that the chosen kubernetes context is set in the local ~/.kube/config file.";
+
+  public ValidateKubernetesContext(String context) {
+    super(context);
+  }
+
+  @Override
+  public Stream<String> validate() {
+    return null;
+  }
+
+  public boolean skip() {
+    return false;
+  }
 }

@@ -21,4 +21,10 @@ dependencies {
   compile spinnaker.dependency('lombok')
 }
 
+test {
+  testLogging {
+    showStandardStreams = true
+  }
+}
+
 tasks.bootRepackage.enabled = project.repackage

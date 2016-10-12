@@ -16,9 +16,12 @@
 
 package com.netflix.spinnaker.halyard.model.v1.providers;
 
+import com.netflix.spinnaker.halyard.model.v1.Updateable;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class Account {
+@EqualsAndHashCode(callSuper = false)
+public class Account implements Cloneable, Updateable {
   String name;
 }

@@ -17,13 +17,18 @@
 package com.netflix.spinnaker.halyard.model.v1.providers.kubernetes;
 
 import com.netflix.spinnaker.halyard.model.v1.providers.Account;
+import com.netflix.spinnaker.halyard.validate.v1.ValidateField;
+import com.netflix.spinnaker.halyard.validate.v1.providers.kubernetes.ValidateKubernetesContext;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class KubernetesAccount extends Account {
+@EqualsAndHashCode(callSuper = false)
+public class KubernetesAccount extends Account implements Cloneable {
+  @ValidateField(validators = {ValidateKubernetesContext.class})
   String context;
   String cluster;
   String user;

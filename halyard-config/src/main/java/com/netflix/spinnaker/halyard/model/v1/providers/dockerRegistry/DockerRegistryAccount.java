@@ -18,11 +18,13 @@ package com.netflix.spinnaker.halyard.model.v1.providers.dockerRegistry;
 
 import com.netflix.spinnaker.halyard.model.v1.providers.Account;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 public class DockerRegistryAccount extends Account {
   private String address;
   private String username;

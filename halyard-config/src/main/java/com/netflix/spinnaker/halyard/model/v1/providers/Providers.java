@@ -21,7 +21,7 @@ import com.netflix.spinnaker.halyard.model.v1.providers.kubernetes.KubernetesPro
 import lombok.Data;
 
 @Data
-public class Providers {
+public class Providers implements Cloneable {
   KubernetesProvider kubernetes;
   DockerRegistryProvider dockerRegistry;
 }

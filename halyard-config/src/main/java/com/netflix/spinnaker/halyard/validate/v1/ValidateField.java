@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.model.v1.providers.kubernetes;
+package com.netflix.spinnaker.halyard.validate.v1;
 
-import com.netflix.spinnaker.halyard.model.v1.providers.Provider;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-@Data
-@EqualsAndHashCode(callSuper = false)
-public class KubernetesProvider extends Provider<KubernetesAccount> implements Cloneable {
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface ValidateField {
+  Class<? extends Validator<?>>[] validators();
 }
