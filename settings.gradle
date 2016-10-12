@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-include 'kork-core', 'kork-cassandra', 'kork-jedis-test', 'kork-swagger', 'kork-security', 'kork-web', 'kork-hystrix', 'kork-stackdriver'
+include 'kork-core', 'kork-cassandra', 'kork-jedis-test', 'kork-swagger', 'kork-security', 'kork-web', 'kork-hystrix'
+//TODO(ewiseblatt) - fix for spectator 0.41.0: , 'kork-stackdriver'
 
 rootProject.name='kork'
 
