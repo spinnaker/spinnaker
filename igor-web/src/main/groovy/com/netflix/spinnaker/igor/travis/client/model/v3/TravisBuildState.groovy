@@ -14,25 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.igor.build.model
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.netflix.spinnaker.igor.jenkins.client.model.TestResults
+package com.netflix.spinnaker.igor.travis.client.model.v3
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-class GenericBuild {
-    boolean building
-    String fullDisplayName
-    String name
-    int number
-    Integer duration
-    String timestamp
-    Result result
-    List<GenericArtifact> artifacts
-    List<TestResults> testResults
-    String url
-    @JsonProperty("scm")
-    List<GenericGitRevision> genericGitRevisions
 
+enum TravisBuildState {
+    created,started,passed,canceled,failed,errored
 }

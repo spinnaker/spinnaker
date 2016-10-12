@@ -17,30 +17,31 @@
 package com.netflix.spinnaker.igor.travis.service
 
 import com.netflix.spinnaker.igor.build.model.Result
+import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildState
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
 @CompileStatic
 @Slf4j
 class TravisResultConverter {
-    static Result getResultFromTravisState(String state) {
+    static Result getResultFromTravisState(TravisBuildState state) {
         switch (state) {
-            case "created":
+            case TravisBuildState.created:
                 return Result.NOT_BUILT
                 break
-            case "started":
+            case TravisBuildState.started:
                 return Result.BUILDING
                 break
-            case "passed":
+            case TravisBuildState.passed:
                 return Result.SUCCESS
                 break
-            case "canceled":
+            case TravisBuildState.canceled:
                 return Result.ABORTED
                 break
-            case "failed":
+            case TravisBuildState.failed:
                 return Result.FAILURE
                 break
-            case "errored":
+            case TravisBuildState.errored:
                 return Result.FAILURE
                 break
             default:
@@ -50,12 +51,12 @@ class TravisResultConverter {
         }
     }
 
-    static Boolean running(String state) {
+    static Boolean running(TravisBuildState state) {
         switch (state) {
-            case "created":
+            case TravisBuildState.created:
                 return true
                 break
-            case "started":
+            case TravisBuildState.started:
                 return true
                 break
             default:

@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.igor.travis.client.model
+package com.netflix.spinnaker.igor.travis.client.model.v3
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.google.gson.annotations.SerializedName
-import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildState
 import groovy.transform.CompileStatic
 import org.simpleframework.xml.Default
 import org.simpleframework.xml.Root
@@ -27,25 +24,7 @@ import org.simpleframework.xml.Root
 @Default
 @CompileStatic
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Root(name = 'builds')
-class Build {
-    @SerializedName("commit_id")
-    int commitId
-    int duration
-    int id
-    @SerializedName("repository_id")
-    int repositoryId
-    int number
-    TravisBuildState state
-    @SerializedName("finished_at")
-    Date finishedAt
-    @SerializedName("pull_request")
-    Boolean pullRequest
-    @JsonProperty(value = "job_ids")
-    List <Integer> job_ids
-    Config config
-
-    long timestamp() {
-        return finishedAt.getTime()
-    }
+@Root(name = 'branch')
+class V3Branch {
+    String name
 }

@@ -86,7 +86,7 @@ class BuildControllerSpec extends Specification {
 
     void 'get the status of a build'() {
         given:
-        1 * service.getGenericBuild(JOB_NAME, BUILD_NUMBER) >> new GenericBuild(false, BUILD_NUMBER)
+        1 * service.getGenericBuild(JOB_NAME, BUILD_NUMBER) >> new GenericBuild(building: false, number: BUILD_NUMBER)
 
         when:
         MockHttpServletResponse response = mockMvc.perform(get("/builds/status/${BUILD_NUMBER}/${MASTER}/${JOB_NAME}")

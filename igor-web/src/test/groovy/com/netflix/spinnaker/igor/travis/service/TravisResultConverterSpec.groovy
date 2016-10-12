@@ -17,10 +17,11 @@
 package com.netflix.spinnaker.igor.travis.service
 
 import com.netflix.spinnaker.igor.build.model.Result
+import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildState
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class TravisResultConverterTest extends Specification {
+class TravisResultConverterSpec extends Specification {
 
     @Unroll
     def "convert travis build states to Result object state='#travisBuildState' should give Result=#expectedResult"() {
@@ -29,9 +30,9 @@ class TravisResultConverterTest extends Specification {
 
         where:
         travisBuildState || expectedResult
-        "started"        || Result.BUILDING
-        "passed"         || Result.SUCCESS
-        "errored"        || Result.FAILURE
+        TravisBuildState.started  || Result.BUILDING
+        TravisBuildState.passed   || Result.SUCCESS
+        TravisBuildState.errored  || Result.FAILURE
     }
 
     @Unroll
@@ -41,9 +42,9 @@ class TravisResultConverterTest extends Specification {
 
         where:
         travisBuildState || expectedResult
-        "started"        || true
-        "created"        || true
-        "passed"         || false
-        "errored"        || false
+        TravisBuildState.started  || true
+        TravisBuildState.created  || true
+        TravisBuildState.passed   || false
+        TravisBuildState.errored  || false
     }
 }

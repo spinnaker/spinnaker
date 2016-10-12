@@ -40,6 +40,8 @@ import com.netflix.spinnaker.igor.travis.client.model.Repo
 import com.netflix.spinnaker.igor.travis.client.model.RepoRequest
 import com.netflix.spinnaker.igor.travis.client.model.Repos
 import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse
+import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build
+import com.netflix.spinnaker.igor.travis.client.model.v3.V3Builds
 import groovy.util.logging.Slf4j
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -147,6 +149,12 @@ class TravisService implements BuildService {
     List<Build> getBuilds(Repo repo) {
         Builds builds = travisClient.builds(getAccessToken(), repo.id)
         log.debug "fetched " + builds.builds.size() + " builds"
+        return builds.builds
+    }
+
+    List<V3Build> getBuilds(Repo repo, int limit) {
+        V3Builds builds = travisClient.builds(getAccessToken(), repo.id, limit)
+        log.debug "fetched ${builds.builds.size()} builds"
         return builds.builds
     }
 

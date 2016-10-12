@@ -27,9 +27,8 @@ import com.netflix.spinnaker.igor.history.model.GenericBuildEvent
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.polling.PollingMonitor
 import com.netflix.spinnaker.igor.service.BuildMasters
-import com.netflix.spinnaker.igor.travis.client.model.Build
-import com.netflix.spinnaker.igor.travis.client.model.Commit
 import com.netflix.spinnaker.igor.travis.client.model.Repo
+import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build
 import com.netflix.spinnaker.igor.travis.service.TravisBuildConverter
 import com.netflix.spinnaker.igor.travis.service.TravisResultConverter
 import com.netflix.spinnaker.igor.travis.service.TravisService
@@ -147,29 +146,33 @@ class TravisBuildMonitor implements PollingMonitor{
 
         Observable.from(repos).subscribe(
             { Repo repo ->
-                boolean addToCache = false
-                Map cachedBuild = null
 
-                if (cachedRepoSlugs.contains(repo.slug)) {
-                    cachedBuild = buildCache.getLastBuild(master, repo.slug)
-                    if ((TravisResultConverter.running(repo.lastBuildState) != cachedBuild.lastBuildBuilding) ||
-                        (repo.lastBuildNumber != Integer.valueOf(cachedBuild.lastBuildLabel))) {
-                        addToCache = true
-                        log.info "Build changed: ${master}: ${repo.slug} : ${repo.lastBuildNumber} : ${repo.lastBuildState}"
-                        if (echoService) {
-                            pushEventsForMissingBuilds(repo, cachedBuild, master, travisService)
+                List<V3Build> builds = travisService.getBuilds(repo, 5)
+                for (V3Build build : builds) {
+                    boolean addToCache = false
+                    Map cachedBuild = null
+                    String branchedRepoSlug = build.branchedRepoSlug()
+                    if (cachedRepoSlugs.contains(branchedRepoSlug)) {
+                        cachedBuild = buildCache.getLastBuild(master, branchedRepoSlug)
+                        if (build.number > Integer.valueOf(cachedBuild.lastBuildLabel)) {
+                            addToCache = true
+                            log.info "New build: ${master}: ${branchedRepoSlug} : ${build.number}"
                         }
+                        if (buildStateHasChanged(build, cachedBuild)) {
+                            addToCache = true
+                        }
+                    } else {
+                        addToCache = true
                     }
-                } else {
-                    addToCache = true
-                }
-                if (addToCache) {
-                    log.info("Build update [${repo.slug}:${repo.lastBuildNumber}] [status:${repo.lastBuildState}] [running:${TravisResultConverter.running(repo.lastBuildState)}]")
-                    buildCache.setLastBuild(master, repo.slug, repo.lastBuildNumber, TravisResultConverter.running(repo.lastBuildState), buildCacheJobTTLSeconds())
-                    sendEventForBuild(repo, master, travisService)
-
-
-                    results << [previous: cachedBuild, current: repo]
+                    if (addToCache) {
+                        log.info("Build update [${branchedRepoSlug}:${build.number}] [status:${build.state}] [running:${TravisResultConverter.running(build.state)}]")
+                        buildCache.setLastBuild(master, branchedRepoSlug, build.number, TravisResultConverter.running(build.state), buildCacheJobTTLSeconds())
+                        buildCache.setLastBuild(master, build.repository.slug, build.number, TravisResultConverter.running(build.state), buildCacheJobTTLSeconds())
+                        if(!build.spinnakerTriggered()) {
+                            sendEventForBuild(build, branchedRepoSlug, master, travisService)
+                        }
+                        results << [previous: cachedBuild, current: repo]
+                    }
                 }
             }, {
             log.error("Error: ${it.message} (${master})")
@@ -185,54 +188,25 @@ class TravisBuildMonitor implements PollingMonitor{
 
     }
 
-    private void sendEventForBuild(Repo repo, String master, TravisService travisService) {
-        if (echoService) {
-            log.info "pushing event for ${master}:${repo.slug}:${repo.lastBuildNumber}"
+    private boolean buildStateHasChanged(V3Build build, Map cachedBuild) {
+        (TravisResultConverter.running(build.state) != cachedBuild.lastBuildBuilding) &&
+            (build.number == Integer.valueOf(cachedBuild.lastBuildLabel))
+    }
 
-            GenericProject project = new GenericProject(repo.slug, TravisBuildConverter.genericBuild(repo, travisService.baseUrl))
+    private void sendEventForBuild(V3Build build, String branchedSlug, String master, TravisService travisService) {
+        if (echoService) {
+            log.info "pushing event for ${master}:${build.repository.slug}:${build.number}"
+            GenericProject project = new GenericProject(build.repository.slug, TravisBuildConverter.genericBuild(build, travisService.baseUrl))
             echoService.postEvent(
                 new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis'))
             )
-
+            log.info "pushing event for ${master}:${branchedSlug}:${build.number}"
+            project = new GenericProject(branchedSlug, TravisBuildConverter.genericBuild(build, travisService.baseUrl))
+            echoService.postEvent(
+                new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis'))
+            )
         }
-        Commit commit = travisService.getCommit(repo.slug, repo.lastBuildNumber)
-        if (commit) {
-            String branchedSlug = travisService.branchedRepoSlug(repo.slug, repo.lastBuildNumber, commit)
 
-            if (branchedSlug != repo.slug) {
-                buildCache.setLastBuild(master, branchedSlug, repo.lastBuildNumber, TravisResultConverter.running(repo.lastBuildState), buildCacheJobTTLSeconds())
-                if (echoService) {
-                    log.info "pushing event for ${master}:${branchedSlug}:${repo.lastBuildNumber}"
-
-                    GenericProject project = new GenericProject(branchedSlug, TravisBuildConverter.genericBuild(repo, travisService.baseUrl))
-                    echoService.postEvent(
-                        new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis'))
-                    )
-
-                }
-            }
-        }
-    }
-
-    private void pushEventsForMissingBuilds(Repo repo, Map cachedBuild, String master, TravisService travisService) {
-        int currentBuild = repo.lastBuildNumber
-        int lastBuild = Integer.valueOf(cachedBuild.lastBuildLabel)
-        int nextBuild = lastBuild + NEW_BUILD_EVENT_THRESHOLD
-
-        if (nextBuild < currentBuild) {
-            log.info "sending build events for builds between ${lastBuild} and ${currentBuild}"
-
-            for (int buildNumber = nextBuild; buildNumber < currentBuild; buildNumber++) {
-                Build build = travisService.getBuild(repo, buildNumber) //rewrite to afterNumber list thing
-                if (build?.state) {
-                    log.info "pushing event for ${master}:${repo.slug}:${build.number}"
-                    String url = "${travisService.baseUrl}/${repo.slug}/builds/${build.id}"
-                    GenericProject project = new GenericProject(repo.slug, new GenericBuild((TravisResultConverter.running(build.state)), build.number, build.duration, TravisResultConverter.getResultFromTravisState(build.state), repo.slug, url))
-                    echoService.postEvent(
-                        new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis')))
-                }
-            }
-        }
     }
 
     private void setBuildCacheTTL() {
