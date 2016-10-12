@@ -21,6 +21,7 @@ import groovy.text.Template
 import org.codehaus.groovy.runtime.GStringImpl
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.yaml.snakeyaml.Yaml
 
 import java.util.concurrent.ConcurrentHashMap
@@ -70,12 +71,23 @@ class SpinnakerDependency {
                 return (Map) new Yaml().load(it)
             }
             dependencyConfig.clear()
-            dependencyConfig.putAll([
-                    dependencies: [:],
-                    versions: [:],
-                    groups: [:]
-            ])
+            def depKeys = ['dependencies', 'versions', 'groups']
+            for (String key : depKeys) {
+              dependencyConfig.put(key, [:])
+            }
             dependencyConfig.putAll(config)
+
+            def extExtension = project.extensions.getByType(ExtraPropertiesExtension)
+            if (extExtension) {
+              for (String key : depKeys) {
+                if (extExtension.has(key)) {
+                  def extVal = extExtension.get(key)
+                  if (extVal instanceof Map) {
+                    dependencyConfig.get(key).putAll(extVal)
+                  }
+                }
+              }
+            }
             configResolved.set(true)
 
             return dependencyConfig

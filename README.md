@@ -49,3 +49,19 @@ dependencies {
 }
 ```
 
+### Overriding resolved dependencies
+
+Values from the `ExtraPropertiesExtension` override values read from the `dependenciesYaml`.
+
+For example this:
+```
+ext {
+  versions = [
+    kork : '1.70.0'
+  ]
+}
+```
+
+Would pin the version of the `kork` library to `1.70.0` regardless of what version is defined
+in the dependency file.
+
