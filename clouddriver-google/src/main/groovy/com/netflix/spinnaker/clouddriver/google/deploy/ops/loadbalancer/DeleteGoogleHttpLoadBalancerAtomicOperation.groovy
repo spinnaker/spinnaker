@@ -16,14 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -161,7 +159,13 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
         new ArrayList<BackendServiceAsyncDeleteOperation>()
     for (String backendServiceUrl : backendServiceUrls) {
       def backendServiceName = GCEUtil.getLocalName(backendServiceUrl)
-      Operation deleteBackendServiceOp = GCEUtil.deleteBackendServiceIfNotInUse(compute, project, backendServiceName, task, BASE_PHASE)
+      Operation deleteBackendServiceOp = GCEUtil.deleteIfNotInUse(
+        { compute.backendServices().delete(project, backendServiceName).execute() },
+        "Backend service $backendServiceName",
+        project,
+        task,
+        BASE_PHASE
+      )
       if (deleteBackendServiceOp) {
         deleteBackendServiceAsyncOperations.add(new BackendServiceAsyncDeleteOperation(
           backendServiceName: backendServiceName,
@@ -181,7 +185,13 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
           new ArrayList<HealthCheckAsyncDeleteOperation>()
       for (String healthCheckUrl : healthCheckUrls) {
         def healthCheckName = GCEUtil.getLocalName(healthCheckUrl)
-        Operation deleteHealthCheckOp = GCEUtil.deleteHealthCheckIfNotInUse(compute, project, healthCheckName, task, BASE_PHASE)
+        Operation deleteHealthCheckOp = GCEUtil.deleteIfNotInUse(
+          { compute.httpHealthChecks().delete(project, healthCheckName).execute() },
+          "Http health check $healthCheckName",
+          project,
+          task,
+          BASE_PHASE
+        )
         if (deleteHealthCheckOp) {
           deleteHealthCheckAsyncOperations.add(new HealthCheckAsyncDeleteOperation(
             healthCheckName: healthCheckName,

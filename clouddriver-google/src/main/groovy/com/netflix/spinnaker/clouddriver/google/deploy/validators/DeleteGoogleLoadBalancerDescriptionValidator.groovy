@@ -37,9 +37,10 @@ class DeleteGoogleLoadBalancerDescriptionValidator extends
   void validate(List priorDescriptions, DeleteGoogleLoadBalancerDescription description, Errors errors) {
     def helper = new StandardGceAttributeValidator("deleteGoogleLoadBalancerDescription", errors)
 
+    def loadBalancerType = description.loadBalancerType
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
     helper.validateName(description.loadBalancerName, "loadBalancerName")
-    if (description.loadBalancerType == GoogleLoadBalancerType.NETWORK) {
+    if (loadBalancerType == GoogleLoadBalancerType.NETWORK || loadBalancerType == GoogleLoadBalancerType.INTERNAL) {
       helper.validateRegion(description.region, description.credentials)
     }
   }

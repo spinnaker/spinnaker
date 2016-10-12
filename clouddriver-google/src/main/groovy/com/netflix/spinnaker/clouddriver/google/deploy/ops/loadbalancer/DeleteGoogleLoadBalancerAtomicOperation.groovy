@@ -148,7 +148,13 @@ class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
           new ArrayList<HealthCheckAsyncDeleteOperation>()
       for (String healthCheckUrl : healthCheckUrls) {
         def healthCheckName = GCEUtil.getLocalName(healthCheckUrl)
-        Operation deleteHealthCheckOp = GCEUtil.deleteHealthCheckIfNotInUse(compute, project, healthCheckName, task, BASE_PHASE)
+        Operation deleteHealthCheckOp = GCEUtil.deleteIfNotInUse(
+          { compute.httpHealthChecks().delete(project, healthCheckName).execute() },
+          "Http health check $healthCheckName",
+          project,
+          task,
+          BASE_PHASE
+        )
         if (deleteHealthCheckOp) {
           deleteHealthCheckAsyncOperations.add(new HealthCheckAsyncDeleteOperation(
             healthCheckName: healthCheckName,

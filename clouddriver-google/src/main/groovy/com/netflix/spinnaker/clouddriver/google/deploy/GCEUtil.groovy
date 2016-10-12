@@ -992,36 +992,20 @@ class GCEUtil {
     }
   }
 
-  static Operation deleteBackendServiceIfNotInUse(Compute compute, String project, String backendServiceName, Task task, String phase) {
-    task.updateStatus phase, "Deleting backend service $backendServiceName for $project..."
-    Operation deleteBackendServiceOp
+  static Operation deleteIfNotInUse(Closure<Operation> closure, String component, String project, Task task, String phase) {
+    task.updateStatus phase, "Deleting $component for $project..."
+    Operation deleteOp
     try {
-      deleteBackendServiceOp = compute.backendServices().delete(project, backendServiceName).execute()
+      deleteOp = closure()
     } catch (GoogleJsonResponseException e) {
       if (e.details?.code == 400 && e.details?.errors?.getAt(0)?.reason == "resourceInUseByAnotherResource") {
-        log.warn("Could not delete backend service $backendServiceName for $project, it was in use by another resource.")
+        log.warn("Could not delete $component for $project, it was in use by another resource.")
         return null
       } else {
         throw e
       }
     }
-    return deleteBackendServiceOp
-  }
-
-  static Operation deleteHealthCheckIfNotInUse(Compute compute, String project, String healthCheckName, Task task, String phase) {
-    task.updateStatus phase, "Deleting health check $healthCheckName for $project..."
-    Operation deleteHealthCheckOp
-    try {
-      deleteHealthCheckOp = compute.httpHealthChecks().delete(project, healthCheckName).execute()
-    } catch (GoogleJsonResponseException e) {
-      if (e.details?.code == 400 && e.details?.errors?.getAt(0)?.reason == "resourceInUseByAnotherResource") {
-        log.warn("Could not delete health check $healthCheckName for $project, it was in use by another resource.")
-        return null
-      } else {
-        throw e
-      }
-    }
-    return deleteHealthCheckOp
+    return deleteOp
   }
 
   static Firewall buildFirewallRule(String accountName,
