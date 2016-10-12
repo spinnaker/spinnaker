@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security;
 
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
@@ -379,7 +380,26 @@ public class AmazonClientProvider {
       Constructor<T> constructor = impl.getConstructor(AWSCredentialsProvider.class, ClientConfiguration.class);
 
       ClientConfiguration clientConfiguration = new ClientConfiguration();
-      clientConfiguration.setRetryPolicy(retryPolicy);
+
+      if (awsCredentialsProvider instanceof NetflixSTSAssumeRoleSessionCredentialsProvider) {
+        RetryPolicy.RetryCondition delegatingRetryCondition = (originalRequest, exception, retriesAttempted) -> {
+          NetflixSTSAssumeRoleSessionCredentialsProvider stsCredentialsProvider = (NetflixSTSAssumeRoleSessionCredentialsProvider) awsCredentialsProvider;
+          if (exception instanceof AmazonServiceException) {
+            ((AmazonServiceException) exception).getHttpHeaders().put("targetAccountId", stsCredentialsProvider.getAccountId());
+          }
+          return retryPolicy.getRetryCondition().shouldRetry(originalRequest, exception, retriesAttempted);
+        };
+
+        RetryPolicy delegatingRetryPolicy = new RetryPolicy(
+          delegatingRetryCondition,
+          retryPolicy.getBackoffStrategy(),
+          retryPolicy.getMaxErrorRetry(),
+          retryPolicy.isMaxErrorRetryInClientConfigHonored()
+        );
+        clientConfiguration.setRetryPolicy(delegatingRetryPolicy);
+      } else {
+        clientConfiguration.setRetryPolicy(retryPolicy);
+      }
 
       if (proxy != null && proxy.isProxyConfigMode()) {
         proxy.apply(clientConfiguration);
