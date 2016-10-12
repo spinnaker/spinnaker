@@ -111,38 +111,4 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
     0 * _
   }
 
-  void "should sort all by instance type then size"() {
-    when:
-    def result = agent.loadData(providerCache)
-    then:
-    1 * ec2.describeReservedInstancesOfferings(new DescribeReservedInstancesOfferingsRequest()) >> new DescribeReservedInstancesOfferingsResult(
-      reservedInstancesOfferings: [
-        new ReservedInstancesOffering(reservedInstancesOfferingId: '1', instanceType: 'm4.2xlarge'),
-        new ReservedInstancesOffering(reservedInstancesOfferingId: '2', instanceType: 't2.nano'),
-        new ReservedInstancesOffering(reservedInstancesOfferingId: '3', instanceType: 't2.micro'),
-        new ReservedInstancesOffering(reservedInstancesOfferingId: '4', instanceType: 'm4.xlarge'),
-        new ReservedInstancesOffering(reservedInstancesOfferingId: '5', instanceType: 't2.medium'),
-        new ReservedInstancesOffering(reservedInstancesOfferingId: '6', instanceType: 'm4.4xlarge'),
-        new ReservedInstancesOffering(reservedInstancesOfferingId: '7', instanceType: 'm4.large'),
-        new ReservedInstancesOffering(reservedInstancesOfferingId: '8', instanceType: 'm4.16xlarge'),
-        new ReservedInstancesOffering(reservedInstancesOfferingId: '9', instanceType: 'm4.10xlarge'),
-        new ReservedInstancesOffering(reservedInstancesOfferingId: '10', instanceType: 't2.loltiny')
-      ]
-    )
-
-    with (result.cacheResults.get(Keys.Namespace.INSTANCE_TYPES.ns)) { List<CacheData> cd ->
-      cd.size() == 10
-      cd[0].id == Keys.getInstanceTypeKey('m4.16xlarge', region, account)
-      cd[1].id == Keys.getInstanceTypeKey('m4.10xlarge', region, account)
-      cd[2].id == Keys.getInstanceTypeKey('m4.4xlarge', region, account)
-      cd[3].id == Keys.getInstanceTypeKey('m4.2xlarge', region, account)
-      cd[4].id == Keys.getInstanceTypeKey('m4.xlarge', region, account)
-      cd[5].id == Keys.getInstanceTypeKey('m4.large', region, account)
-      cd[6].id == Keys.getInstanceTypeKey('t2.medium', region, account)
-      cd[7].id == Keys.getInstanceTypeKey('t2.micro', region, account)
-      cd[8].id == Keys.getInstanceTypeKey('t2.nano', region, account)
-      cd[9].id == Keys.getInstanceTypeKey('t2.loltiny', region, account)
-    }
-    0 * _
-  }
 }
