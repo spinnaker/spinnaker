@@ -435,7 +435,7 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
 
     hc_match = {name: jp.NUM_EQ(value) for name, value in hc_dict.items()}
     hc_match['requestPath'] = jp.STR_EQ(path)
-    hc_match['name'] = jp.STR_SUBSTR(self.__use_http_lb_hc_name),
+    hc_match['name'] = jp.STR_SUBSTR(self.__use_http_lb_hc_name)
     (builder.new_clause_builder('Health Check Added', retryable_for_secs=15)
        .list_resource('httpHealthChecks')
        .contains_match(hc_match))

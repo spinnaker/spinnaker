@@ -40,3 +40,9 @@ spinnaker:
     enabled: ${services.front50.s3.enabled:false}
     bucket: ${services.front50.storage_bucket:}
     rootFolder: ${services.front50.bucket_root:front50}
+
+stackdriver:
+  hints:
+    - name: controller.invocations
+      labels:
+      - application
