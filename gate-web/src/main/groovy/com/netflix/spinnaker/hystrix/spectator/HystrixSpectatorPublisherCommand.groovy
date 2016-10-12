@@ -27,7 +27,8 @@ import com.netflix.hystrix.util.HystrixRollingNumberEvent
 import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.ValueFunction
+
+import java.util.function.ToDoubleFunction
 
 class HystrixSpectatorPublisherCommand implements HystrixMetricsPublisherCommand {
   private final HystrixCommandKey key
@@ -57,16 +58,16 @@ class HystrixSpectatorPublisherCommand implements HystrixMetricsPublisherCommand
 
   @Override
   public void initialize() {
-    metricRegistry.gauge(createMetricName("isCircuitBreakerOpen"), circuitBreaker, new ValueFunction() {
+    metricRegistry.gauge(createMetricName("isCircuitBreakerOpen"), circuitBreaker, new ToDoubleFunction() {
       @Override
-      double apply(Object ref) {
+      double applyAsDouble(Object ref) {
         return ((HystrixCircuitBreaker) ref).isOpen() ? 1 : 0
       }
     })
 
-    metricRegistry.gauge(createMetricName("currentTime"), null, new ValueFunction() {
+    metricRegistry.gauge(createMetricName("currentTime"), null, new ToDoubleFunction() {
       @Override
-      double apply(Object ref) {
+      double applyAsDouble(Object ref) {
         return System.currentTimeMillis()
       }
     })
@@ -176,9 +177,9 @@ class HystrixSpectatorPublisherCommand implements HystrixMetricsPublisherCommand
   }
 
   void createGuageForMetrics(Id id, Closure<Double> closure) {
-    metricRegistry.gauge(id, metrics, new ValueFunction() {
+    metricRegistry.gauge(id, metrics, new ToDoubleFunction() {
       @Override
-      double apply(Object ref) {
+      double applyAsDouble(Object ref) {
         return closure.call(ref)
       }
     })
@@ -192,18 +193,18 @@ class HystrixSpectatorPublisherCommand implements HystrixMetricsPublisherCommand
   }
 
   protected void createCumulativeCountForEvent(String name, final HystrixRollingNumberEvent event) {
-    metricRegistry.gauge(createMetricName(name), event, new ValueFunction() {
+    metricRegistry.gauge(createMetricName(name), event, new ToDoubleFunction() {
       @Override
-      double apply(Object ref) {
+      double applyAsDouble(Object ref) {
         return metrics.getCumulativeCount((HystrixRollingNumberEvent) event)
       }
     })
   }
 
   protected void createRollingCountForEvent(String name, final HystrixRollingNumberEvent event) {
-    metricRegistry.gauge(createMetricName(name), event, new ValueFunction() {
+    metricRegistry.gauge(createMetricName(name), event, new ToDoubleFunction() {
       @Override
-      double apply(Object ref) {
+      double applyAsDouble(Object ref) {
         return metrics.getRollingCount((HystrixRollingNumberEvent) event)
       }
     })

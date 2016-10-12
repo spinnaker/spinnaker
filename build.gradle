@@ -7,7 +7,7 @@ buildscript {
     maven { url "http://spinnaker.bintray.com/gradle" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.5.0'
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.9.0'
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
   }
 }
@@ -17,10 +17,20 @@ allprojects {
   apply plugin: 'groovy'
 
   ext {
-    spinnakerDependenciesVersion = "0.54.0"
+    spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.57.0'
   }
 
-  if (spinnakerDependenciesVersion.indexOf('-dev') != -1) {
+  def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]
+  if (ext.has('versions')) {
+    def extVers = ext.get('versions')
+    if (extVers instanceof Map) {
+      checkLocalVersions.putAll(extVers)
+    }
+  }
+
+  def localVersions = checkLocalVersions.findAll { it.value.endsWith('-SNAPSHOT') }
+  if (localVersions) {
+    logger.info("Enabling mavenLocal repo for $localVersions")
     repositories {
       mavenLocal()
     }
@@ -34,16 +44,12 @@ allprojects {
     exclude group: 'javax.servlet', module: 'servlet-api'
     exclude group: 'javax.servlet', module: 'javax.servlet-api'
     resolutionStrategy {
-      force 'org.codehaus.groovy:groovy-all:2.4.5'
       eachDependency {
         if (it.requested.group == 'org.springframework.boot') {
           it.useVersion '1.2.8.RELEASE'
         }
         if (it.requested.group == 'org.springframework') {
           it.useVersion '4.1.9.RELEASE'
-        }
-        if (it.requested.group == 'org.spockframework') {
-          it.useVersion '1.1-groovy-2.4-rc-1'
         }
       }
     }
