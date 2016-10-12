@@ -32,18 +32,22 @@ class NetworkService {
   @Autowired
   ClouddriverService clouddriverService
 
-  private static <T extends List> HystrixCommand<T> command(String type, Closure<T> work) {
+  private static <T extends List> HystrixCommand<T> listCommand(String type, Closure<T> work) {
     (HystrixCommand<T>)HystrixFactory.newListCommand(GROUP, type, work)
   }
 
+  private static <T extends Map> HystrixCommand<T> mapCommand(String type, Closure<T> work) {
+    (HystrixCommand<T>)HystrixFactory.newMapCommand(GROUP, type, work)
+  }
+
   Map getNetworks() {
-    command("networks") {
+    mapCommand("networks") {
       clouddriverService.getNetworks()
     } execute()
   }
 
   List<Map> getNetworks(String cloudProvider) {
-    command("networks-$cloudProvider") {
+    listCommand("networks-$cloudProvider") {
       clouddriverService.getNetworks(cloudProvider)
     } execute()
   }

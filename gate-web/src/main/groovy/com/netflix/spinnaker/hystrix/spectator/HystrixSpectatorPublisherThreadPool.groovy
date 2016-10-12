@@ -23,7 +23,8 @@ import com.netflix.hystrix.HystrixThreadPoolProperties
 import com.netflix.hystrix.strategy.metrics.HystrixMetricsPublisherThreadPool
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.ValueFunction
+
+import java.util.function.ToDoubleFunction
 
 class HystrixSpectatorPublisherThreadPool implements HystrixMetricsPublisherThreadPool {
   private final HystrixThreadPoolKey key
@@ -47,65 +48,65 @@ class HystrixSpectatorPublisherThreadPool implements HystrixMetricsPublisherThre
 
   @Override
   public void initialize() {
-    metricRegistry.gauge(createMetricName("currentTime"), null, new ValueFunction() {
+    metricRegistry.gauge(createMetricName("currentTime"), null, new ToDoubleFunction() {
       @Override
-      double apply(Object ref) {
+      double applyAsDouble(Object ref) {
         return System.currentTimeMillis()
       }
     })
 
-    metricRegistry.gauge(createMetricName("threadActiveCount"), metrics, new ValueFunction() {
+    metricRegistry.gauge(createMetricName("threadActiveCount"), metrics, new ToDoubleFunction() {
       @Override
-      double apply(Object ref) {
+      double applyAsDouble(Object ref) {
         return ((HystrixThreadPoolMetrics)ref).getCurrentActiveCount()
       }
     })
 
-    metricRegistry.gauge(createMetricName("completedTaskCount"), metrics, new ValueFunction() {
+    metricRegistry.gauge(createMetricName("completedTaskCount"), metrics, new ToDoubleFunction() {
       @Override
-      double apply(Object ref) {
+      double applyAsDouble(Object ref) {
         return ((HystrixThreadPoolMetrics)ref).getCurrentCompletedTaskCount()
       }
     })
 
-    metricRegistry.gauge(createMetricName("largestPoolSize"), metrics, new ValueFunction() {
+    metricRegistry.gauge(createMetricName("largestPoolSize"), metrics, new ToDoubleFunction() {
       @Override
-      double apply(Object ref) {
+      double applyAsDouble(Object ref) {
         return ((HystrixThreadPoolMetrics)ref).getCurrentLargestPoolSize()
       }
     })
 
-    metricRegistry.gauge(createMetricName("totalTaskCount"), metrics, new ValueFunction() {
+    metricRegistry.gauge(createMetricName("totalTaskCount"), metrics, new ToDoubleFunction() {
       @Override
-      double apply(Object ref) {
+      double applyAsDouble(Object ref) {
         return ((HystrixThreadPoolMetrics)ref).getCurrentTaskCount()
       }
     })
 
-    metricRegistry.gauge(createMetricName("queueSize"), metrics, new ValueFunction() {
+    metricRegistry.gauge(createMetricName("queueSize"), metrics, new ToDoubleFunction() {
       @Override
-      double apply(Object ref) {
+      double applyAsDouble(Object ref) {
         return ((HystrixThreadPoolMetrics)ref).getCurrentQueueSize()
       }
     })
 
-    metricRegistry.gauge(createMetricName("rollingMaxActiveThreads"), metrics, new ValueFunction() {
+    metricRegistry.gauge(createMetricName("rollingMaxActiveThreads"), metrics, new ToDoubleFunction() {
       @Override
-      double apply(Object ref) {
+      double applyAsDouble(Object ref) {
         return ((HystrixThreadPoolMetrics)ref).getRollingMaxActiveThreads()
       }
     })
 
-    metricRegistry.gauge(createMetricName("countThreadsExecuted"), metrics, new ValueFunction() {
+    metricRegistry.gauge(createMetricName("countThreadsExecuted"), metrics, new ToDoubleFunction() {
       @Override
-      double apply(Object ref) {
+      double applyAsDouble(Object ref) {
         return ((HystrixThreadPoolMetrics)ref).getCumulativeCountThreadsExecuted()
       }
     })
 
-    metricRegistry.gauge(createMetricName("rollingCountThreadsExecuted"), metrics, new ValueFunction() {
+    metricRegistry.gauge(createMetricName("rollingCountThreadsExecuted"), metrics, new ToDoubleFunction() {
       @Override
-      double apply(Object ref) {
+      double applyAsDouble(Object ref) {
         return ((HystrixThreadPoolMetrics)ref).getRollingCountThreadsExecuted()
       }
     })
