@@ -28,46 +28,15 @@ import spock.lang.Specification
 
 class AcaTaskStageSpec extends Specification {
 
-  def "restart aca task should cancel cancel off the original canary and clean up the stage context"() {
+
+  def "restart aca task should cancel off the original canary and clean up the stage context"() {
     given:
     def executionRepository = Mock(ExecutionRepository)
     def pipeline = new Pipeline().builder().build()
 
-    def canary = [
-      id: 'foo',
-      launchDate: 1470062664495,
-      endDate: 1470070824033,
-      canaryConfig: [id: 1, application: "cadmium"],
-      canaryDeployments: [[id:2], [id:3]],
-      canaryResult: [overallResult: 20, overallScore: 89],
-      status: [status: "COMPLETED"],
-      health: [health: "UNKNOWN"]
-    ]
+    def canary = createCanary('123');
     def context = [canary: canary.clone()]
-    Stage stage = new PipelineStage(pipeline, "acaTask", "ACA Task", context)
-    stage.tasks = [
-        new DefaultTask(
-          id: "1",
-          name: "stageStart",
-          startTime: 1470062659330,
-          endTime: 1470062660513,
-          status: "SUCCEEDED"
-        ),
-        new DefaultTask(
-          id: "2",
-          name: "registerGenericCanary",
-          startTime: 1470062663868,
-          endTime: 1470062664805,
-          status: "SUCCEEDED"
-        ),
-        new DefaultTask(
-          id: "3",
-          name: "monitorGenericCanary",
-          startTime: 1470062668621,
-          endTime: 1470070825533,
-          status: "CANCELED"
-        ),
-    ]
+    Stage stage = createStage(pipeline, context)
     AcaTaskStage acaTaskStage = new AcaTaskStage(applicationContext: Stub(ApplicationContext))
     MineService mineService = Mock()
     acaTaskStage.mineService = mineService
@@ -100,6 +69,95 @@ class AcaTaskStageSpec extends Specification {
     and: "the canary should be cancelled"
     1 * mineService.cancelCanary(_, _)
 
+  }
+
+  def "restart aca task should not cancel off the original canary if there is no canary id and clean up the stage context"() {
+    given:
+    def executionRepository = Mock(ExecutionRepository)
+    def pipeline = new Pipeline().builder().build()
+
+    def canary = createCanary()
+    def context = [canary: canary.clone()]
+    Stage stage = createStage(pipeline, context)
+    AcaTaskStage acaTaskStage = new AcaTaskStage(applicationContext: Stub(ApplicationContext))
+    MineService mineService = Mock()
+    acaTaskStage.mineService = mineService
+
+    when:
+    Stage result = acaTaskStage.prepareStageForRestart(executionRepository, stage)
+
+    then: "canary should be copied to the restart details"
+    result.context.restartDetails.previousCanary == canary
+
+    and: "preserve the canary config"
+    result.context.canary.canaryConfig == canary.canaryConfig
+
+    and: "clean up the canary"
+    result.context.canary.id == null
+    result.context.canary.launchDate == null
+    result.context.canary.endDate == null
+    result.context.canary.canaryDeployments == null
+    result.context.canary.canaryResult == null
+    result.context.canary.status == null
+    result.context.canary.health == null
+
+    and: "reset the tasks"
+    stage.tasks.each { task ->
+      assert task.startTime == null
+      assert task.endTime == null
+      assert task.status == ExecutionStatus.NOT_STARTED
+    }
+
+    and: "the canceled call of the canary should not be called"
+    0 * mineService.cancelCanary(_, _)
 
   }
+
+
+  def createCanary(String id) {
+    def canary = [
+      launchDate: 1470062664495,
+      endDate: 1470070824033,
+      canaryConfig: [id: 1, application: "cadmium"],
+      canaryDeployments: [[id:2], [id:3]],
+      canaryResult: [overallResult: 20, overallScore: 89],
+      status: [status: "COMPLETED"],
+      health: [health: "UNKNOWN"]
+    ]
+
+    if(id) {
+      canary.id = id
+    }
+    canary
+  }
+
+  def createStage(pipeline, context) {
+    Stage stage = new PipelineStage(pipeline, "acaTask", "ACA Task", context)
+    stage.tasks = [
+      new DefaultTask(
+        id: "1",
+        name: "stageStart",
+        startTime: 1470062659330,
+        endTime: 1470062660513,
+        status: "SUCCEEDED"
+      ),
+      new DefaultTask(
+        id: "2",
+        name: "registerGenericCanary",
+        startTime: 1470062663868,
+        endTime: 1470062664805,
+        status: "SUCCEEDED"
+      ),
+      new DefaultTask(
+        id: "3",
+        name: "monitorGenericCanary",
+        startTime: 1470062668621,
+        endTime: 1470070825533,
+        status: "CANCELED"
+      ),
+    ]
+    stage
+  }
 }
+
+
