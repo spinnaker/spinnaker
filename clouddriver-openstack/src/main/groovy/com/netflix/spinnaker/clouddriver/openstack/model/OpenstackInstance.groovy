@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.openstack.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.consul.model.ConsulNode
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
@@ -42,9 +43,10 @@ class OpenstackInstance {
   String floatingIp
   List<OpenstackLoadBalancerHealth> loadBalancerHealths = []
   OpenstackInstanceHealth instanceHealth
+  ConsulNode consulNode
   List<String> securityGroups = []
 
-  static OpenstackInstance from(Server server, String account, String region) {
+  static OpenstackInstance from(Server server, ConsulNode consulNode, String account, String region) {
     //find first fixed v4 address
     Address fixedIpAddressV4 = server?.addresses?.addresses?.collectMany { it.value }?.find { it.type == 'fixed' && it.version == 4 }
     //find first fixed v6 address
@@ -65,7 +67,8 @@ class OpenstackInstance {
       , ipv4: fixedIpAddressV4?.addr
       , ipv6: fixedIpAddressV6?.addr
       , floatingIp: floatingIpAddress?.addr
-      , securityGroups: server.securityGroups?.collect { it.name })
+      , securityGroups: server.securityGroups?.collect { it.name }
+      , consulNode: consulNode)
   }
 
   @JsonIgnore
@@ -98,6 +101,7 @@ class OpenstackInstance {
         ["groupName": it, "groupId": it]
       }
     }
+    ConsulNode consulNode = OpenstackInstance.this.consulNode
 
     @Override
     List<Map<String, Object>> getHealth() {
@@ -112,7 +116,10 @@ class OpenstackInstance {
       //instance health
       healths << mapper.convertValue(instanceHealth?.view, OpenstackInfrastructureProvider.ATTRIBUTES)
 
-      //TODO derekolk - Add consul health
+      //consul health
+      consulNode?.healths?.each {
+        healths << mapper.convertValue(it, OpenstackInfrastructureProvider.ATTRIBUTES)
+      }
 
       healths
     }
@@ -127,8 +134,9 @@ class OpenstackInstance {
       if (instanceHealth) {
         allHealths << instanceHealth.view
       }
-
-      //TODO derekolk - Add consul health views
+      consulNode?.healths?.each {
+        allHealths << it
+      }
 
       allHealths
     }

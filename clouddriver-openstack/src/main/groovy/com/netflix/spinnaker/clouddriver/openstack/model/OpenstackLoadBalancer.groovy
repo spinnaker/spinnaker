@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
@@ -41,7 +42,12 @@ class OpenstackLoadBalancer implements LoadBalancerResolver {
   String algorithm
   Set<OpenstackLoadBalancerListener> listeners
   OpenstackHealthMonitor healthMonitor
-  List<OpenstackLoadBalancerHealth> healths
+  Set<OpenstackLoadBalancerHealth> healths
+  Set<LoadBalancerServerGroup> serverGroups
+  OpenstackFloatingIP floatingIP
+  OpenstackNetwork network
+  OpenstackSubnet subnet
+  Set<String> securityGroups
 
   static OpenstackLoadBalancer from(LoadBalancerV2 loadBalancer, Set<ListenerV2> listeners, LbPoolV2 pool,
                                     HealthMonitorV2 healthMonitor, String account, String region) {
@@ -66,6 +72,15 @@ class OpenstackLoadBalancer implements LoadBalancerResolver {
 
   Long getCreatedTime() {
     parseCreatedTime(description)
+  }
+
+  @JsonIgnore
+  View getView() {
+    new View(account: account, region: region, id: id, name: name,
+      description: description, status: status, algorithm: algorithm,
+      listeners: listeners, healthMonitor: healthMonitor, ip: floatingIP?.floatingIpAddress,
+      subnetId: subnet?.id, subnetName: subnet?.name, healths: healths, type: type,
+      networkId: network?.id, networkName: network?.name, serverGroups: serverGroups ?: [].toSet(), securityGroups: securityGroups ?: [].toSet())
   }
 
   @Canonical
@@ -101,8 +116,6 @@ class OpenstackLoadBalancer implements LoadBalancerResolver {
     String subnetName = ""
     String networkId = ""
     String networkName = ""
-    Set<LoadBalancerServerGroup> serverGroups = [].toSet()
-    Set<String> securityGroups = [].toSet()
 
     //oh groovy asts are fun - they bring insanity for everyone
     //we need this for creating sets

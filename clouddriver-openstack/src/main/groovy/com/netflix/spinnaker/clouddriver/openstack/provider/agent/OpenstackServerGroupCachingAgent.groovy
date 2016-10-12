@@ -344,7 +344,12 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
     result
   }
 
+  // TODO drmaas if we cache the load balancer status tree for each load balancer, we can do this calculation
+  // in the OpenstackClusterProvider instead.
   /**
+   * If no instances match load balancer members, or if there are no instanceKeys or load balancer statuses,
+   * then this will return true (disabled).
+   *
    * calculate server group healthStatus
    * @param statuses
    * @return
@@ -393,7 +398,7 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
       Stack stack = metricsSupport.readData {
         try {
           clientProvider.getStack(region, serverGroupName)
-        } catch (OpenstackProviderException ope) {
+        } catch (OpenstackProviderException e) {
           //Do nothing ... Exception is thrown if a stack isn't found
         }
       }

@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackFloatingIP
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLoadBalancer
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackNetwork
+import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackServerGroup
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackSubnet
 import redis.clients.jedis.exceptions.JedisException
 import spock.lang.Ignore
@@ -186,22 +187,12 @@ class OpenstackLoadBalancerProviderSpec extends Specification {
     OpenstackFloatingIP floatingIP = Stub(OpenstackFloatingIP)
     OpenstackNetwork network = Stub(OpenstackNetwork)
     OpenstackSubnet subnet = Stub(OpenstackSubnet)
-    ServerGroup serverGroup = Mock(ServerGroup) {
+    OpenstackServerGroup.View serverGroup = Mock(OpenstackServerGroup.View) {
       getName() >> { name }
       isDisabled() >> { false }
       getInstances() >> { [] }
     }
-    OpenstackLoadBalancer.View loadBalancer = Mock(OpenstackLoadBalancer.View) {
-      it.id >> { lbid }
-      it.account >> { account }
-      it.region >> { region }
-      it.ip >> { floatingIP.id }
-      it.subnetId >> { subnet.id }
-      it.subnetName >> { subnet.name }
-      it.networkId >> { network.id }
-      it.networkName >> { network.name }
-      it.serverGroups >> { [new LoadBalancerServerGroup(name: name)] }
-    }
+    OpenstackLoadBalancer loadBalancer = new OpenstackLoadBalancer(id: lbid, account: account, region: region, floatingIP: floatingIP, subnet: subnet, network: network, serverGroups: [new LoadBalancerServerGroup(name: name)] )
     OpenstackLoadBalancerProvider loadBalancerProvider = new OpenstackLoadBalancerProvider(cache, objectMapper, clusterProvider)
 
     when:
@@ -216,7 +207,7 @@ class OpenstackLoadBalancerProviderSpec extends Specification {
     1 * objectMapper.convertValue(_ as Map, OpenstackSubnet) >> subnet
     1 * objectMapper.convertValue(attributes, OpenstackLoadBalancer) >> loadBalancer
     1 * clusterProvider.getServerGroup(account, region, name) >> serverGroup
-    result == buildLoadBalancerView(loadBalancer, floatingIP, network, subnet)
+    result == loadBalancer.view
     noExceptionThrown()
   }
 
@@ -277,7 +268,7 @@ class OpenstackLoadBalancerProviderSpec extends Specification {
   @Ignore
   OpenstackLoadBalancer.View buildLoadBalancerView(OpenstackLoadBalancer loadBalancer, OpenstackFloatingIP floatingIP, OpenstackNetwork network, OpenstackSubnet subnet) {
     new OpenstackLoadBalancer.View(id: loadBalancer.id, name: loadBalancer.name, description: loadBalancer.description,
-      account: account, region: region,
+      account: account, region: region, type: loadBalancer.type,
       ip: floatingIP.id, subnetId: subnet.id,
       subnetName: subnet.name, networkId: network.id, networkName: network.name,
       serverGroups: [new LoadBalancerServerGroup(name: 'myapp-teststack-v002')])

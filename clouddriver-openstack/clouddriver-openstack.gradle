@@ -24,6 +24,7 @@ ext {
 dependencies {
   compile project(":clouddriver-core")
   compile project(":clouddriver-consul")
+
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
 

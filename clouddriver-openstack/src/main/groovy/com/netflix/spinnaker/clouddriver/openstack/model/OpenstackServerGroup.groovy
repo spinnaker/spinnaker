@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
@@ -29,7 +31,7 @@ import groovy.transform.builder.Builder
 
 @Builder
 @Canonical
-class OpenstackServerGroup implements ServerGroup, Serializable {
+class OpenstackServerGroup {
   String account
   String name
   String region
@@ -47,60 +49,91 @@ class OpenstackServerGroup implements ServerGroup, Serializable {
   String subnetId
   Map<String, Object> advancedConfig = [:]
   Map<String, String> tags
+  boolean discovery
 
-  @Override
-  Boolean isDisabled() { // Because groovy isn't smart enough to generate this method :-(
-    disabled
+  @JsonIgnore
+  View getView() {
+    new View()
   }
 
-  @Override
-  Set<String> getSecurityGroups() {
-    (launchConfig && launchConfig.containsKey('securityGroups')) ? (Set<String>) launchConfig.securityGroups : []
-  }
 
-  @Override
-  InstanceCounts getInstanceCounts() {
-    new InstanceCounts(total: instances ? instances.size() : 0,
-      up: filterInstancesByHealthState(instances, HealthState.Up)?.size() ?: 0,
-      down: filterInstancesByHealthState(instances, HealthState.Down)?.size() ?: 0,
-      unknown: filterInstancesByHealthState(instances, HealthState.Unknown)?.size() ?: 0,
-      starting: filterInstancesByHealthState(instances, HealthState.Starting)?.size() ?: 0,
-      outOfService: filterInstancesByHealthState(instances, HealthState.OutOfService)?.size() ?: 0)
-  }
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  @Canonical
+  class View implements ServerGroup {
 
-  @Override
-  Capacity getCapacity() {
-    scalingConfig ?
-      new Capacity(
-        min: scalingConfig.minSize ? scalingConfig.minSize as Integer : 0,
-        max: scalingConfig.maxSize ? scalingConfig.maxSize as Integer : 0,
-        desired: scalingConfig.desiredSize ? scalingConfig.desiredSize as Integer : 0)
-      : null
-  }
+    String account = OpenstackServerGroup.this.account
+    String name = OpenstackServerGroup.this.name
+    String region = OpenstackServerGroup.this.region
+    Set<String> zones = OpenstackServerGroup.this.zones
+    Set<OpenstackInstance.View> instances = OpenstackServerGroup.this.instances.collect { it?.view }
+    Set health = OpenstackServerGroup.this.health
+    Map<String, Object> image  = OpenstackServerGroup.this.image // Represented as map instead of OpenstackImage for convenience.
+    Map<String, Object> launchConfig = OpenstackServerGroup.this.launchConfig
+    Map<String, Object> scalingConfig = OpenstackServerGroup.this.scalingConfig
+    Long createdTime = OpenstackServerGroup.this.createdTime
+    Set<String> loadBalancers = OpenstackServerGroup.this.loadBalancers
+    Map<String, Object> buildInfo = OpenstackServerGroup.this.buildInfo
+    Boolean disabled = OpenstackServerGroup.this.disabled
+    String type = OpenstackServerGroup.this.type
+    String subnetId = OpenstackServerGroup.this.subnetId
+    Map<String, Object> advancedConfig = OpenstackServerGroup.this.advancedConfig
+    Map<String, String> tags = OpenstackServerGroup.this.tags
+    boolean discovery = OpenstackServerGroup.this.discovery
 
-  @Override
-  ImagesSummary getImagesSummary() {
-    new DefaultImagesSummary(summaries: [new DefaultImageSummary(serverGroupName: name, imageName: image?.name, imageId: image?.id, buildInfo: buildInfo, image: image)])
-  }
+    @Override
+    Boolean isDisabled() { // Because groovy isn't smart enough to generate this method :-(
+      disabled
+    }
 
-  @Override
-  ImageSummary getImageSummary() {
-    imagesSummary?.summaries?.getAt(0)
-  }
+    @Override
+    Set<String> getSecurityGroups() {
+      (launchConfig && launchConfig.containsKey('securityGroups')) ? (Set<String>) launchConfig.securityGroups : []
+    }
 
-  static Collection<Instance> filterInstancesByHealthState(Set<Instance> instances, HealthState healthState) {
-    instances.findAll { Instance it -> it.getHealthState() == healthState }
-  }
+    @Override
+    InstanceCounts getInstanceCounts() {
+      new InstanceCounts(total: instances ? instances.size() : 0,
+        up: filterInstancesByHealthState(instances, HealthState.Up)?.size() ?: 0,
+        down: filterInstancesByHealthState(instances, HealthState.Down)?.size() ?: 0,
+        unknown: filterInstancesByHealthState(instances, HealthState.Unknown)?.size() ?: 0,
+        starting: filterInstancesByHealthState(instances, HealthState.Starting)?.size() ?: 0,
+        outOfService: filterInstancesByHealthState(instances, HealthState.OutOfService)?.size() ?: 0)
+    }
 
-  static class DefaultImageSummary implements ImageSummary {
-    String serverGroupName
-    String imageId
-    String imageName
-    Map<String, Object> image
-    Map<String, Object> buildInfo
-  }
+    @Override
+    Capacity getCapacity() {
+      scalingConfig ?
+        new Capacity(
+          min: scalingConfig.minSize ? scalingConfig.minSize as Integer : 0,
+          max: scalingConfig.maxSize ? scalingConfig.maxSize as Integer : 0,
+          desired: scalingConfig.desiredSize ? scalingConfig.desiredSize as Integer : 0)
+        : null
+    }
 
-  static class DefaultImagesSummary implements ImagesSummary {
-    List<ImageSummary> summaries
+    @Override
+    ImagesSummary getImagesSummary() {
+      new DefaultImagesSummary(summaries: [new DefaultImageSummary(serverGroupName: name, imageName: image?.name, imageId: image?.id, buildInfo: buildInfo, image: image)])
+    }
+
+    @Override
+    ImageSummary getImageSummary() {
+      imagesSummary?.summaries?.getAt(0)
+    }
+
+    static Collection<Instance> filterInstancesByHealthState(Set<Instance> instances, HealthState healthState) {
+      instances.findAll { Instance it -> it.getHealthState() == healthState }
+    }
+
+    static class DefaultImageSummary implements ImageSummary {
+      String serverGroupName
+      String imageId
+      String imageName
+      Map<String, Object> image
+      Map<String, Object> buildInfo
+    }
+
+    static class DefaultImagesSummary implements ImagesSummary {
+      List<ImageSummary> summaries
+    }
   }
 }

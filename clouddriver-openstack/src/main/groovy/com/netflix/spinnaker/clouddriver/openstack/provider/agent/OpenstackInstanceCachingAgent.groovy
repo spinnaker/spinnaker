@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.openstack.provider.agent
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.agent.*
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.consul.model.ConsulNode
+import com.netflix.spinnaker.clouddriver.consul.provider.ConsulProviderUtils
 import com.netflix.spinnaker.clouddriver.openstack.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackInstance
@@ -62,7 +64,10 @@ class OpenstackInstanceCachingAgent extends AbstractOpenstackCachingAgent {
     clientProvider.getInstances(region)?.each { server ->
       String instanceKey = Keys.getInstanceKey(server.id, accountName, region)
 
-      Map<String, Object> instanceAttributes = objectMapper.convertValue(OpenstackInstance.from(server, accountName, region), ATTRIBUTES)
+      ConsulNode consulNode = account?.consulConfig?.enabled ?
+        ConsulProviderUtils.getHealths(account.consulConfig, server.name) : null
+
+      Map<String, Object> instanceAttributes = objectMapper.convertValue(OpenstackInstance.from(server, consulNode, accountName, region), ATTRIBUTES)
 
       cacheResultBuilder.namespace(INSTANCES.ns).keep(instanceKey).with {
         attributes = instanceAttributes

@@ -93,10 +93,16 @@ class OpenstackLoadBalancerProvider implements LoadBalancerProvider<OpenstackLoa
     OpenstackFloatingIP ip = getRelationshipData(cacheData, FLOATING_IPS.ns, OpenstackFloatingIP)
     OpenstackNetwork network = getRelationshipData(cacheData, NETWORKS.ns, OpenstackNetwork)
     OpenstackSubnet subnet = getRelationshipData(cacheData, SUBNETS.ns, OpenstackSubnet)
-    List<String> securityGroups = cacheData.relationships[SECURITY_GROUPS.ns]?.collect { Keys.parse(it)?.id }
+    Set<String> securityGroups = cacheData.relationships[SECURITY_GROUPS.ns]?.collect { Keys.parse(it)?.id }?.toSet()
 
     //build load balancer
     OpenstackLoadBalancer loadBalancer = objectMapper.convertValue(cacheData.attributes, OpenstackLoadBalancer)
+    loadBalancer.with {
+      it.floatingIP = ip
+      it.network = network
+      it.subnet = subnet
+      it.securityGroups = securityGroups ?: [].toSet()
+    }
 
     //build load balancer server groups
     Set<LoadBalancerServerGroup> serverGroups = cacheData.relationships[SERVER_GROUPS.ns]?.findResults { key ->
@@ -110,13 +116,10 @@ class OpenstackLoadBalancerProvider implements LoadBalancerProvider<OpenstackLoa
       }
       loadBalancerServerGroup
     }?.toSet()
+    loadBalancer.serverGroups = serverGroups ?: [].toSet()
 
     //construct view
-    new OpenstackLoadBalancer.View(account: loadBalancer.account, region: loadBalancer.region, id: loadBalancer.id, name: loadBalancer.name,
-      description: loadBalancer.description, status: loadBalancer.status, algorithm: loadBalancer.algorithm,
-      listeners: loadBalancer.listeners, healthMonitor: loadBalancer.healthMonitor, ip: ip?.floatingIpAddress,
-      subnetId: subnet?.id, subnetName: subnet?.name,
-      networkId: network?.id, networkName: network?.name, serverGroups: serverGroups ?: [].toSet(), securityGroups: securityGroups ?: [].toSet())
+    loadBalancer.view
   }
 
   private <T> T getRelationshipData(CacheData parent, String type, Class<T> clazz) {

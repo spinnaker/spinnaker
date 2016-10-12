@@ -19,11 +19,11 @@ package com.netflix.spinnaker.clouddriver.openstack.provider.view
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
-import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackCluster
+import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackInstance
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLoadBalancer
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackServerGroup
 import org.mockito.internal.util.collections.Sets
@@ -64,12 +64,12 @@ class OpenstackClusterProviderSpec extends Specification {
     Map<String, Object> attributes = [name: 'name', accountName: account]
 
     when:
-    Map<String, Set<OpenstackCluster>> result = provider.getClusters()
+    Map<String, Set<OpenstackCluster.View>> result = provider.clusters
 
     then:
     1 * cache.getAll(CLUSTERS.ns) >> [cacheData]
     1 * cacheData.attributes >> attributes
-    result == [(account): [new OpenstackCluster(attributes)].toSet()]
+    result == [(account): [new OpenstackCluster(attributes).view].toSet()]
     noExceptionThrown()
   }
 
@@ -96,10 +96,10 @@ class OpenstackClusterProviderSpec extends Specification {
     Collection<String> clusterKeys = Mock(Collection)
     CacheData clusterData = Mock(CacheData)
     Collection<CacheData> clusters = [clusterData]
-    OpenstackCluster cluster = Mock(OpenstackCluster)
+    OpenstackCluster.View cluster = Mock(OpenstackCluster.View)
 
     when:
-    Map<String, Set<OpenstackCluster>> result = provider.getClustersInternal(appName, details)
+    Map<String, Set<OpenstackCluster.View>> result = provider.getClustersInternal(appName, details)
 
     then:
     1 * cache.get(APPLICATIONS.ns, appKey) >> appCache
@@ -184,7 +184,7 @@ class OpenstackClusterProviderSpec extends Specification {
     String name = 'name'
 
     when:
-    OpenstackCluster result = provider.getCluster(appName, account, name)
+    OpenstackCluster.View result = provider.getCluster(appName, account, name)
 
     then:
     1 * provider.getClusters(appName, account) >> details
@@ -192,11 +192,11 @@ class OpenstackClusterProviderSpec extends Specification {
     noExceptionThrown()
 
     where:
-    testCase    | details                                          | expected
-    'normal'    | Sets.newSet(new OpenstackCluster(name: 'name'))  | new OpenstackCluster(name: 'name')
-    'missing'   | Sets.newSet(new OpenstackCluster(name: 'namez')) | null
-    'empty set' | Sets.newSet()                                    | null
-    'null set'  | null                                             | null
+    testCase    | details                                               | expected
+    'normal'    | Sets.newSet(new OpenstackCluster(name: 'name').view)  | new OpenstackCluster(name: 'name').view
+    'missing'   | Sets.newSet(new OpenstackCluster(name: 'namez').view) | null
+    'empty set' | Sets.newSet()                                         | null
+    'null set'  | null                                                  | null
   }
 
   void "test server group - #testCase"() {
@@ -206,7 +206,7 @@ class OpenstackClusterProviderSpec extends Specification {
     String serverGroupKey = Keys.getServerGroupKey(name, account, region)
 
     when:
-    ServerGroup result = provider.getServerGroup(account, region, name)
+    OpenstackServerGroup.View result = provider.getServerGroup(account, region, name)
 
     then:
     1 * cache.get(SERVER_GROUPS.ns, serverGroupKey, _) >> cacheData
@@ -218,7 +218,7 @@ class OpenstackClusterProviderSpec extends Specification {
 
     where:
     testCase  | cacheData       | expected
-    'normal'  | Mock(CacheData) | Mock(OpenstackServerGroup)
+    'normal'  | Mock(CacheData) | Mock(OpenstackServerGroup.View)
     'no data' | null            | null
   }
 
@@ -246,11 +246,11 @@ class OpenstackClusterProviderSpec extends Specification {
     Collection<String> serverGroupKeys = Mock(Collection)
     Map<String, Object> attributes = [accountName: account, name: 'name']
     CacheData serverGroupCache = Mock(CacheData)
-    OpenstackServerGroup openstackServerGroup = Mock(OpenstackServerGroup)
-    OpenstackLoadBalancer openstackLoadBalancer = Mock(OpenstackLoadBalancer)
+    OpenstackServerGroup.View openstackServerGroup = Mock(OpenstackServerGroup.View)
+    OpenstackLoadBalancer.View openstackLoadBalancer = Mock(OpenstackLoadBalancer.View)
 
     when:
-    OpenstackCluster result = provider.clusterFromCacheData(cacheData, details)
+    OpenstackCluster.View result = provider.clusterFromCacheData(cacheData, details)
 
     then:
     1 * cacheData.attributes >> attributes
@@ -261,7 +261,13 @@ class OpenstackClusterProviderSpec extends Specification {
     1 * provider.loadBalancersFromCacheData(serverGroupCache) >> [openstackLoadBalancer]
 
     and:
-    result == new OpenstackCluster(accountName: account, name: 'name', serverGroups: [openstackServerGroup].toSet(), loadBalancers: [openstackLoadBalancer].toSet())
+    result.with {
+      assert accountName == account
+      assert name == 'name'
+      assert serverGroups.size() == 1
+      assert loadBalancers.size() == 1
+      it
+    }
     noExceptionThrown()
   }
 
@@ -274,7 +280,7 @@ class OpenstackClusterProviderSpec extends Specification {
     Map<String, Object> attributes = [accountName: account, name: 'name']
 
     when:
-    OpenstackCluster result = provider.clusterFromCacheData(cacheData, details)
+    OpenstackCluster.View result = provider.clusterFromCacheData(cacheData, details)
 
     then:
     1 * cacheData.attributes >> attributes
@@ -282,7 +288,7 @@ class OpenstackClusterProviderSpec extends Specification {
     1 * relationships.get(SERVER_GROUPS.ns) >> serverGroupKeys
 
     and:
-    result == new OpenstackCluster(accountName: account, name: 'name')
+    result == new OpenstackCluster(accountName: account, name: 'name').view
     noExceptionThrown()
   }
 
@@ -317,7 +323,7 @@ class OpenstackClusterProviderSpec extends Specification {
     Map<String, Object> attributes = [account: account, name: 'name', region: 'region']
 
     when:
-    OpenstackServerGroup result = provider.serverGroupFromCacheData(cacheData)
+    OpenstackServerGroup.View result = provider.serverGroupFromCacheData(cacheData)
 
     then:
     1 * cacheData.attributes >> attributes
@@ -326,7 +332,7 @@ class OpenstackClusterProviderSpec extends Specification {
     0 * instanceProvider.getInstances(instanceKeys)
 
     and:
-    result == new OpenstackServerGroup(attributes)
+    result == new OpenstackServerGroup(attributes).view
     noExceptionThrown()
   }
 
@@ -336,12 +342,12 @@ class OpenstackClusterProviderSpec extends Specification {
     Map<String, Collection<String>> relationships = Mock(Map)
     Collection<String> instanceKeys = Mock(Collection)
     Map<String, Object> attributes = [account: account, name: 'name', region: 'region']
-    Instance instance = Mock(Instance)
-    Set<Instance> instances = [instance].toSet()
+    OpenstackInstance.View instance = Mock(OpenstackInstance.View)
+    Set<OpenstackInstance.View> instances = [instance].toSet()
     String zone = 'zone1'
 
     when:
-    OpenstackServerGroup result = provider.serverGroupFromCacheData(cacheData)
+    OpenstackServerGroup.View result = provider.serverGroupFromCacheData(cacheData)
 
     then:
     1 * cacheData.attributes >> attributes
@@ -351,7 +357,14 @@ class OpenstackClusterProviderSpec extends Specification {
     1 * instance.zone >> zone
 
     and:
-    result == new OpenstackServerGroup(account: account, name: 'name', region: 'region', instances: instances, zones: [zone].toSet())
+    result.with {
+      assert account == account
+      assert name == 'name'
+      assert region == 'region'
+      assert instances.size() == 1
+      assert zones == [zone].toSet()
+      it
+    }
     noExceptionThrown()
   }
 
@@ -385,7 +398,7 @@ class OpenstackClusterProviderSpec extends Specification {
     Map<String, Object> attributes = [account: account, name: 'name', region: 'region']
 
     when:
-    List<OpenstackLoadBalancer> result = provider.loadBalancersFromCacheData(cacheData)
+    Set<OpenstackLoadBalancer.View> result = provider.loadBalancersFromCacheData(cacheData)
 
     then:
     1 * cacheData.relationships >> relationships
@@ -401,8 +414,8 @@ class OpenstackClusterProviderSpec extends Specification {
 
     where:
     testCase       | loadbalancerKeys | expected
-    'no instances' | null             | []
-    'some'         | Mock(Collection) | [new OpenstackLoadBalancer(account: account, name: 'name', region: 'region')]
+    'no instances' | null             | [].toSet()
+    'some'         | Mock(Collection) | [new OpenstackLoadBalancer(account: account, name: 'name', region: 'region').view].toSet()
   }
 
   void "test load balancer from cache data"() {

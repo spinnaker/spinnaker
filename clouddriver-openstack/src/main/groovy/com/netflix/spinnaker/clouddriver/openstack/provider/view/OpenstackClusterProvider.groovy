@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.consul.provider.ConsulProviderUtils
 import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
@@ -35,16 +36,16 @@ import java.util.stream.Collectors
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.APPLICATIONS
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.CLUSTERS
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LOAD_BALANCERS
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.SERVER_GROUPS
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
 
 @Component
-class OpenstackClusterProvider implements ClusterProvider<OpenstackCluster> {
+class OpenstackClusterProvider implements ClusterProvider<OpenstackCluster.View> {
   final OpenstackCloudProvider openstackCloudProvider
   final Cache cacheView
   final ObjectMapper objectMapper
-  final Closure<String> clusterAccountMapper = { Cluster it -> it.getAccountName() }
+  final Closure<String> clusterAccountMapper = { Cluster it -> it.accountName }
   final OpenstackInstanceProvider instanceProvider
 
   @Autowired
@@ -59,13 +60,13 @@ class OpenstackClusterProvider implements ClusterProvider<OpenstackCluster> {
   }
 
   @Override
-  Map<String, Set<OpenstackCluster>> getClusters() {
-    Map<String, Set<OpenstackCluster>> result = Collections.emptyMap()
+  Map<String, Set<OpenstackCluster.View>> getClusters() {
+    Map<String, Set<OpenstackCluster.View>> result = Collections.emptyMap()
 
     final Collection<CacheData> cacheResults = cacheView.getAll(CLUSTERS.ns)
 
     if (cacheResults) {
-      result = cacheResults.stream().map { CacheData cacheData -> objectMapper.convertValue(cacheData.attributes, OpenstackCluster) }
+      result = cacheResults.stream().map { CacheData cacheData -> objectMapper.convertValue(cacheData.attributes, OpenstackCluster)?.view }
         .collect(Collectors.groupingBy(this.&clusterAccountMapper, Collectors.toSet()))
     }
 
@@ -73,27 +74,27 @@ class OpenstackClusterProvider implements ClusterProvider<OpenstackCluster> {
   }
 
   @Override
-  Map<String, Set<OpenstackCluster>> getClusterSummaries(final String application) {
+  Map<String, Set<OpenstackCluster.View>> getClusterSummaries(final String application) {
     getClustersInternal(application, false)
   }
 
   @Override
-  Map<String, Set<OpenstackCluster>> getClusterDetails(final String application) {
+  Map<String, Set<OpenstackCluster.View>> getClusterDetails(final String application) {
     getClustersInternal(application, true)
   }
 
   @Override
-  Set<OpenstackCluster> getClusters(final String application, final String account) {
+  Set<OpenstackCluster.View> getClusters(final String application, final String account) {
     getClusterDetails(application)?.get(account)
   }
 
   @Override
-  OpenstackCluster getCluster(final String application, final String account, final String name) {
+  OpenstackCluster.View getCluster(final String application, final String account, final String name) {
     getClusters(application, account)?.find { it.name == name }
   }
 
   @Override
-  ServerGroup getServerGroup(final String account, final String region, final String name) {
+  OpenstackServerGroup.View getServerGroup(final String account, final String region, final String name) {
     ServerGroup result = null
     CacheData cacheData = cacheView.get(SERVER_GROUPS.ns, Keys.getServerGroupKey(name, account, region),
       RelationshipCacheFilter.include(INSTANCES.ns, LOAD_BALANCERS.ns))
@@ -110,9 +111,9 @@ class OpenstackClusterProvider implements ClusterProvider<OpenstackCluster> {
     return openstackCloudProvider.id
   }
 
-  protected Map<String, Set<OpenstackCluster>> getClustersInternal(
+  protected Map<String, Set<OpenstackCluster.View>> getClustersInternal(
     final String applicationName, final boolean includeInstanceDetails) {
-    Map<String, Set<OpenstackCluster>> result = null
+    Map<String, Set<OpenstackCluster.View>> result = null
 
     CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName))
     if (application) {
@@ -126,8 +127,8 @@ class OpenstackClusterProvider implements ClusterProvider<OpenstackCluster> {
     result
   }
 
-  protected OpenstackCluster clusterFromCacheData(final CacheData cacheData, final boolean includeDetails = false) {
-    OpenstackCluster openstackCluster = objectMapper.convertValue(cacheData.attributes, OpenstackCluster)
+  protected OpenstackCluster.View clusterFromCacheData(final CacheData cacheData, final boolean includeDetails = false) {
+    OpenstackCluster.View openstackCluster = objectMapper.convertValue(cacheData.attributes, OpenstackCluster)?.view
 
     Collection<String> serverGroupKeys = cacheData.relationships[SERVER_GROUPS.ns]
     if (serverGroupKeys) {
@@ -142,8 +143,8 @@ class OpenstackClusterProvider implements ClusterProvider<OpenstackCluster> {
     openstackCluster
   }
 
-  protected OpenstackServerGroup serverGroupFromCacheData(final CacheData cacheData) {
-    OpenstackServerGroup serverGroup = objectMapper.convertValue(cacheData.attributes, OpenstackServerGroup)
+  protected OpenstackServerGroup.View serverGroupFromCacheData(final CacheData cacheData) {
+    OpenstackServerGroup.View serverGroup = objectMapper.convertValue(cacheData.attributes, OpenstackServerGroup)?.view
 
     Collection<String> instanceKeys = cacheData.relationships[INSTANCES.ns]
     if (instanceKeys) {
@@ -153,10 +154,23 @@ class OpenstackClusterProvider implements ClusterProvider<OpenstackCluster> {
       serverGroup.zones = serverGroup?.instances?.collect { it.zone }?.toSet()
     }
 
+    // Disabled status for Consul.
+    def consulNodes = serverGroup.instances?.collect { it.consulNode } ?: []
+    def consulDiscoverable = ConsulProviderUtils.consulServerGroupDiscoverable(consulNodes)
+    if (consulDiscoverable) {
+      // If the server group is disabled (members are disabled or there are no load balancers), but Consul isn't,
+      //  we say the server group is disabled and discoverable.
+      // If the server group isn't disabled, but Consul is, we say the server group is not disabled (can be reached via load balancer).
+      // If the server group and Consul are both disabled, the server group remains disabled.
+      // If the server group and Consul are both not disabled, the server group is not disabled.
+      serverGroup.disabled &= ConsulProviderUtils.serverGroupDisabled(consulNodes)
+      serverGroup.discovery = true
+    }
+
     serverGroup
   }
 
-  protected List<OpenstackLoadBalancer> loadBalancersFromCacheData(final CacheData cacheData) {
+  protected Set<OpenstackLoadBalancer.View> loadBalancersFromCacheData(final CacheData cacheData) {
     List<OpenstackLoadBalancer> result = []
     Collection<String> loadBalancerKeys = cacheData.relationships[LOAD_BALANCERS.ns]
     if (loadBalancerKeys) {
@@ -164,6 +178,6 @@ class OpenstackClusterProvider implements ClusterProvider<OpenstackCluster> {
         result << objectMapper.convertValue(it.attributes, OpenstackLoadBalancer)
       }
     }
-    result
+    result.findResults { it.view }
   }
 }

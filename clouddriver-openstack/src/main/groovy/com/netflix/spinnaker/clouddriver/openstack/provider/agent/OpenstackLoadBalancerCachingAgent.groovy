@@ -158,8 +158,8 @@ class OpenstackLoadBalancerCachingAgent extends AbstractOpenstackCachingAgent im
         OpenstackLoadBalancer openstackLoadBalancer = OpenstackLoadBalancer.from(loadBalancer, resultlisteners, pool, healthMonitor, accountName, region)
 
         // Populate load balancer healths and find instance ids which are members of the current lb via membership
-        List<OpenstackLoadBalancerHealth> healths = []
-        List<String> instanceKeys = []
+        Set<OpenstackLoadBalancerHealth> healths = []
+        Set<String> instanceKeys = []
 
         Map<String, String> memberStatusMap = statusTreeMap?.get(loadBalancer.id)?.loadBalancerV2Status?.listenerStatuses?.collectEntries { ListenerV2Status listenerStatus ->
           listenerStatus.lbPoolV2Statuses?.collectEntries { LbPoolV2Status poolStatus ->
