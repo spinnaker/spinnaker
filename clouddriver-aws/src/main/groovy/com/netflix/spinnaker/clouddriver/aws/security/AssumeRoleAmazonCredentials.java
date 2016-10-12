@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.aws.security;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
@@ -33,8 +32,12 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
     static final String DEFAULT_SESSION_NAME = "Spinnaker";
 
     static AWSCredentialsProvider createSTSCredentialsProvider(AWSCredentialsProvider credentialsProvider, String accountId, String assumeRole, String sessionName) {
-        return credentialsProvider == null ? null : new STSAssumeRoleSessionCredentialsProvider(credentialsProvider,
-                String.format("arn:aws:iam::%s:%s", Objects.requireNonNull(accountId, "accountId"), Objects.requireNonNull(assumeRole, "assumeRole")), Objects.requireNonNull(sessionName, "sessionName"));
+        return credentialsProvider == null ? null : new NetflixSTSAssumeRoleSessionCredentialsProvider(
+          credentialsProvider,
+          String.format("arn:aws:iam::%s:%s", Objects.requireNonNull(accountId, "accountId"), Objects.requireNonNull(assumeRole, "assumeRole")),
+          Objects.requireNonNull(sessionName, "sessionName"),
+          accountId
+        );
     }
 
     /**
