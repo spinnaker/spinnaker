@@ -96,7 +96,7 @@ class CloneOpenstackAtomicOperation implements AtomicOperation<DeploymentResult>
       scaleup = description.serverGroupParameters?.scaleup ?: ancestorParams.scaleup
       scaledown = description.serverGroupParameters?.scaledown ?: ancestorParams.scaledown
       tags = description.serverGroupParameters?.tags ?: ancestorParams.tags
-      asgResourceFilename = description.serverGroupParameters?.asgResourceFilename ?: ancestorParams.asgResourceFilename
+      resourceFilename = description.serverGroupParameters?.resourceFilename ?: ancestorParams.resourceFilename
     }
     deployDescription.userDataType = description.userDataType ?: ancestorParams.sourceUserDataType
     deployDescription.userData = description.userData ?: ancestorParams.sourceUserData

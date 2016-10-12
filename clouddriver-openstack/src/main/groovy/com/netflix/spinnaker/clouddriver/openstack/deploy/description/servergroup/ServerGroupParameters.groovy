@@ -50,7 +50,7 @@ class ServerGroupParameters {
   String sourceUserDataType
   String sourceUserData
   Map<String, String> tags
-  String asgResourceFilename
+  String resourceFilename
 
   static final ObjectMapper objectMapper = new ObjectMapper()
 
@@ -78,7 +78,7 @@ class ServerGroupParameters {
       source_user_data     : sourceUserData ?: null,
       tags                 : objectMapper.writeValueAsString(tags ?: [:]) ?: null,
       user_data            : rawUserData ?: null,
-      asg_resource_filename: asgResourceFilename ?: ServerGroupConstants.SUBTEMPLATE_FILE
+      resource_filename    : resourceFilename ?: ServerGroupConstants.SUBTEMPLATE_FILE
     ]
   }
 
@@ -110,7 +110,7 @@ class ServerGroupParameters {
       tags: unescapePythonUnicodeJsonMap(params.get('tags') ?: '{}'),
       sourceUserDataType: params.get('source_user_data_type'),
       sourceUserData: params.get('source_user_data'),
-      asgResourceFilename: params.get('asg_resource_filename')
+      resourceFilename: params.get('resource_filename')
     )
   }
 

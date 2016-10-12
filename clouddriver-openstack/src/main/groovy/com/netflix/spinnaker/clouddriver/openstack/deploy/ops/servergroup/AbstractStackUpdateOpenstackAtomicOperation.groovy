@@ -96,7 +96,7 @@ abstract class AbstractStackUpdateOpenstackAtomicOperation implements AtomicOper
       //pre update ops
       preUpdate(stack)
 
-      //we need to store subtemplate in asg output from create, as it is required to do an update and there is no native way of
+      //we need to store subtemplate in server group output from create, as it is required to do an update and there is no native way of
       //obtaining it from a stack
       String resourceFileName = stack.parameters?.get(ServerGroupConstants.SUBTEMPLATE_FILENAME)
 

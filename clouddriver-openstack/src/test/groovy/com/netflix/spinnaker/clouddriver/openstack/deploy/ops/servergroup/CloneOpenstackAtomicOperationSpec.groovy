@@ -91,7 +91,7 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
       scaleup: scaleup,
       scaledown: scaledown,
       tags: ['foo':'bar'],
-      asgResourceFilename: 'asg_resource'
+      resourceFilename: 'servergroup_resource'
     )
     new DeployOpenstackAtomicOperationDescription(
       stack: STACK,
@@ -122,7 +122,7 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
       scaleup: scaleup,
       scaledown: scaledown,
       tags: ["foo":"barbar"],
-      asgResourceFilename: 'asg_resource'
+      resourceFilename: 'servergroup_resource'
     )
     new DeployOpenstackAtomicOperationDescription(
       stack: STACK_N,

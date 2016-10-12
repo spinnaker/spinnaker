@@ -72,9 +72,9 @@ class ServerGroupParametersSpec extends Specification {
 
     where:
     input                                 | expected
-    '{"test":"test"}'                     | ['test':'test']
-    '{u\'test\':\'test\'}'                | ['test':'test']
-    '{u\'test\':u\'test\',u\'a\':u\'a\'}' | ['test':'test','a':'a']
+    '{"test":"test"}'                     | ['test': 'test']
+    '{u\'test\':\'test\'}'                | ['test': 'test']
+    '{u\'test\':u\'test\',u\'a\':u\'a\'}' | ['test': 'test', 'a': 'a']
   }
 
   @Ignore
@@ -86,17 +86,17 @@ class ServerGroupParametersSpec extends Specification {
       networkId: "net", subnetId: "sub", loadBalancers: ["poop"],
       securityGroups: ["sg1"],
       autoscalingType: ServerGroupParameters.AutoscalingType.CPU,
-      scaleup: scaleup, scaledown: scaledown, rawUserData: "echo foobar", tags: ["foo":"bar"],
-      sourceUserDataType: 'Text', sourceUserData: 'echo foobar', asgResourceFilename: 'asg_resource')
+      scaleup: scaleup, scaledown: scaledown, rawUserData: "echo foobar", tags: ["foo": "bar"],
+      sourceUserDataType: 'Text', sourceUserData: 'echo foobar', resourceFilename: 'servergroup_resource')
   }
 
   @Ignore
   def getMap() {
-    [flavor:'m1.medium', image:'image', max_size:5, min_size:3, desired_size:4,
-     network_id:'net', subnet_id:'sub', load_balancers:'poop', security_groups:'sg1', autoscaling_type:'cpu_util',
-     scaleup_cooldown:60, scaleup_adjustment:1, scaleup_period:60, scaleup_threshold:50,
-     scaledown_cooldown:60, scaledown_adjustment:-1, scaledown_period:600, scaledown_threshold:15,
-     source_user_data_type:'Text', source_user_data:'echo foobar', tags: '{"foo":"bar"}', user_data:"echo foobar", asg_resource_filename: 'asg_resource']
+    [flavor               : 'm1.medium', image: 'image', max_size: 5, min_size: 3, desired_size: 4,
+     network_id           : 'net', subnet_id: 'sub', load_balancers: 'poop', security_groups: 'sg1', autoscaling_type: 'cpu_util',
+     scaleup_cooldown     : 60, scaleup_adjustment: 1, scaleup_period: 60, scaleup_threshold: 50,
+     scaledown_cooldown   : 60, scaledown_adjustment: -1, scaledown_period: 600, scaledown_threshold: 15,
+     source_user_data_type: 'Text', source_user_data: 'echo foobar', tags: '{"foo":"bar"}', user_data: "echo foobar", resource_filename: 'servergroup_resource']
   }
 
 }

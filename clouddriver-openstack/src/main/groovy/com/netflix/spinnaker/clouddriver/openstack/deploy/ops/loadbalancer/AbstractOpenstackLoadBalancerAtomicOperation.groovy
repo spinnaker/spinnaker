@@ -65,7 +65,7 @@ abstract class AbstractOpenstackLoadBalancerAtomicOperation implements TaskStatu
       String template = provider.getHeatTemplate(region, stack.name, stack.id)
       task.updateStatus operation, "Successfully fetched current template for server group $stack.name."
 
-      //we need to store subtemplate in asg output from create, as it is required to do an update and there is no native way of
+      //we need to store subtemplate in server group output from create, as it is required to do an update and there is no native way of
       //obtaining it from a stack
       task.updateStatus operation, "Fetching subtemplates for server group $stack.name..."
       List<Map<String, Object>> outputs = stack.outputs

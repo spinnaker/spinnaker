@@ -144,7 +144,7 @@ class OpenstackOrchestrationV1Provider implements OpenstackOrchestrationProvider
       getRegionClient(region).heat().resources().list(stack.name, 10)
     }
     resources?.find {
-      it.type == ServerGroupConstants.HEAT_ASG_RESOURCE && it.resourceName == ServerGroupConstants.ASG_RESOURCE_NAME
+      it.type == ServerGroupConstants.HEAT_ASG_RESOURCE && it.resourceName == ServerGroupConstants.SERVERGROUP_RESOURCE_NAME
     }
   }
 

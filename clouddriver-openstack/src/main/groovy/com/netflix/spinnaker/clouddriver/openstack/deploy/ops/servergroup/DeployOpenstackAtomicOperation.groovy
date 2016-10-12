@@ -165,11 +165,11 @@ class DeployOpenstackAtomicOperation implements TaskStatusAware, AtomicOperation
 
       task.updateStatus BASE_PHASE, "Creating heat stack $stackName..."
       provider.deploy(description.region, stackName, template, subtemplates, description.serverGroupParameters.identity {
-        networkId = subnet.networkId
-        rawUserData = userData
-        sourceUserDataType = description.userDataType
-        sourceUserData = description.userData
-        asgResourceFilename = resourceFilename
+        it.networkId = subnet.networkId
+        it.rawUserData = userData
+        it.sourceUserDataType = description.userDataType
+        it.sourceUserData = description.userData
+        it.resourceFilename = resourceFilename
         it
       }, description.disableRollback, description.timeoutMins, description.serverGroupParameters.loadBalancers)
       task.updateStatus BASE_PHASE, "Finished creating heat stack $stackName."

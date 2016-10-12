@@ -53,7 +53,7 @@ class ResizeOpenstackAtomicOperationSpec extends Specification {
 
   def setup() {
     provider = Mock(OpenstackClientProvider)
-    GroovyMock(OpenstackProviderFactory, global : true)
+    GroovyMock(OpenstackProviderFactory, global: true)
     OpenstackNamedAccountCredentials creds = Mock(OpenstackNamedAccountCredentials)
     OpenstackProviderFactory.createProvider(creds) >> { provider }
     credentials = new OpenstackCredentials(creds)
@@ -66,7 +66,7 @@ class ResizeOpenstackAtomicOperationSpec extends Specification {
     @Subject def operation = new ResizeOpenstackAtomicOperation(description)
     Stack stack = Mock(Stack)
     String template = "foo: bar"
-    Map<String, String> sub = ['asg_resource.yaml':'foo: bar','asg_member.yaml':'foo: bar']
+    Map<String, String> sub = ['servergroup_resource.yaml': 'foo: bar', 'servergroup_resource_member.yaml': 'foo: bar']
     List<String> tags = ['lb123']
 
     when:
@@ -75,7 +75,7 @@ class ResizeOpenstackAtomicOperationSpec extends Specification {
     then:
     1 * provider.getStack(region, createdStackName) >> stack
     1 * provider.getHeatTemplate(region, createdStackName, stackId) >> template
-    1 * stack.getOutputs() >> [[output_key:ServerGroupConstants.SUBTEMPLATE_OUTPUT, output_value: sub['asg_resource.yaml']],[output_key:ServerGroupConstants.MEMBERTEMPLATE_OUTPUT, output_value: sub['asg_member.yaml']]]
+    1 * stack.getOutputs() >> [[output_key: ServerGroupConstants.SUBTEMPLATE_OUTPUT, output_value: sub['servergroup_resource.yaml']], [output_key: ServerGroupConstants.MEMBERTEMPLATE_OUTPUT, output_value: sub['servergroup_resource_member.yaml']]]
     _ * stack.getParameters() >> serverGroupParams.toParamsMap()
     _ * stack.getId() >> stackId
     _ * stack.getName() >> createdStackName
@@ -101,7 +101,7 @@ class ResizeOpenstackAtomicOperationSpec extends Specification {
     @Subject def operation = new ResizeOpenstackAtomicOperation(description)
     Stack stack = Mock(Stack)
     String template = "foo: bar"
-    Map<String, String> sub = ['asg_resource.yaml':'foo: bar','asg_member.yaml':'foo: bar']
+    Map<String, String> sub = ['servergroup_resource.yaml': 'foo: bar', 'servergroup_resource_member.yaml': 'foo: bar']
     List<String> tags = ['lb123']
 
     when:
@@ -110,12 +110,14 @@ class ResizeOpenstackAtomicOperationSpec extends Specification {
     then:
     1 * provider.getStack(region, createdStackName) >> stack
     1 * provider.getHeatTemplate(region, createdStackName, stackId) >> template
-    1 * stack.getOutputs() >> [[output_key:ServerGroupConstants.SUBTEMPLATE_OUTPUT, output_value: sub['asg_resource.yaml']],[output_key:ServerGroupConstants.MEMBERTEMPLATE_OUTPUT, output_value: sub['asg_member.yaml']]]
+    1 * stack.getOutputs() >> [[output_key: ServerGroupConstants.SUBTEMPLATE_OUTPUT, output_value: sub['servergroup_resource.yaml']], [output_key: ServerGroupConstants.MEMBERTEMPLATE_OUTPUT, output_value: sub['servergroup_resource_member.yaml']]]
     _ * stack.getParameters() >> serverGroupParams.toParamsMap()
     _ * stack.getId() >> stackId
     _ * stack.getName() >> createdStackName
     _ * stack.getTags() >> tags
-    1 * provider.updateStack(region, createdStackName, stackId, template, sub, _ as ServerGroupParameters, tags) >> { throw new OpenstackProviderException('foo') }
+    1 * provider.updateStack(region, createdStackName, stackId, template, sub, _ as ServerGroupParameters, tags) >> {
+      throw new OpenstackProviderException('foo')
+    }
     thrown(OpenstackOperationException)
   }
 }

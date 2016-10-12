@@ -69,7 +69,7 @@ trait StackPoolMemberAware {
     Map<String, Object> resources = memberData.collectEntries {
       [
         //unique per listener/app port pair. Behavior is unknown if multiple load balancers are attached to
-        //the asg and have the same port mapping. Don't do that.
+        //the server group and have the same port mapping. Don't do that.
         ("member-$it.externalPort-$it.internalPort"): [
           type      : "OS::Neutron::LBaaS::PoolMember",
           properties: [

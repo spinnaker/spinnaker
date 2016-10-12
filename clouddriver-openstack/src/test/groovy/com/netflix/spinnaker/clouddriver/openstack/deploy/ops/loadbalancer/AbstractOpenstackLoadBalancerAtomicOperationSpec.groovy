@@ -162,7 +162,7 @@ class AbstractOpenstackLoadBalancerAtomicOperationSpec extends Specification {
       getName() >> createdStackName
     }
     Stack detail = Mock(Stack)
-    Map<String, String> sub = ['asg_resource.yaml': 'foo: bar', 'asg_member.yaml': 'foo: bar']
+    Map<String, String> sub = ['servergroup_resource.yaml': 'foo: bar', 'servergroup_resource_member.yaml': 'foo: bar']
     List<String> tags = [loadBalancerId]
     ServerGroupParameters serverGroupParams = new ServerGroupParameters(loadBalancers: tags)
     LoadBalancerV2 loadBalancer = Mock(LoadBalancerV2)
@@ -183,7 +183,7 @@ class AbstractOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     1 * provider.listStacksWithLoadBalancers(region, [loadBalancerId]) >> [summary]
     1 * provider.getStack(region, createdStackName) >> detail
     1 * provider.getHeatTemplate(region, createdStackName, stackId) >> template
-    1 * detail.getOutputs() >> [[output_key: ServerGroupConstants.SUBTEMPLATE_OUTPUT, output_value: sub['asg_resource.yaml']], [output_key: ServerGroupConstants.MEMBERTEMPLATE_OUTPUT, output_value: sub['asg_member.yaml']]]
+    1 * detail.getOutputs() >> [[output_key: ServerGroupConstants.SUBTEMPLATE_OUTPUT, output_value: sub['servergroup_resource.yaml']], [output_key: ServerGroupConstants.MEMBERTEMPLATE_OUTPUT, output_value: sub['servergroup_resource_member.yaml']]]
     1 * detail.getParameters() >> serverGroupParams.toParamsMap()
     _ * detail.getId() >> stackId
     _ * detail.getName() >> createdStackName

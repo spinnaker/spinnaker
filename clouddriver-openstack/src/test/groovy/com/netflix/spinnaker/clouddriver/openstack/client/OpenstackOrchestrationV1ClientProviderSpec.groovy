@@ -55,7 +55,7 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
     String networkId = '1234'
     List<String> loadBalancerIds = ['5678']
     List<String> securityGroups = ['sg1']
-    String asgResourceFileName = 'asg_resource'
+    String resourceFileName = 'servergroup_resource'
     ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image,
       maxSize: maxSize, minSize: minSize, desiredSize: desiredSize,
       subnetId: subnetId, networkId: networkId, loadBalancers: loadBalancerIds, securityGroups: securityGroups,
@@ -63,10 +63,10 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
       scaleup: new ServerGroupParameters.Scaler(cooldown: 60, period: 60, adjustment: 1, threshold: 50),
       scaledown: new ServerGroupParameters.Scaler(cooldown: 60, period: 600, adjustment: -1, threshold: 15),
       rawUserData: 'echo foobar',
-      tags: ['foo':'bar'],
+      tags: ['foo': 'bar'],
       sourceUserDataType: 'Text',
       sourceUserData: 'echo foobar',
-      asgResourceFilename: asgResourceFileName
+      resourceFilename: resourceFileName
     )
     Map<String, String> params = [
       flavor               : parameters.instanceType,
@@ -91,7 +91,7 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
       source_user_data     : 'echo foobar',
       tags                 : '{"foo":"bar"}',
       user_data            : parameters.rawUserData,
-      asg_resource_filename: asgResourceFileName
+      resource_filename    : resourceFileName
     ]
     List<String> tags = loadBalancerIds.collect { "lb-${it}" }
     StackCreate stackCreate = Builders.stack().disableRollback(disableRollback).files(subtmpl).name(stackName).parameters(params).template(tmpl).timeoutMins(timeoutMins).tags(tags.join(',')).build()
@@ -341,11 +341,11 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
     String subnetId = '9999'
     List<String> loadBalancerIds = ['5678']
     List<String> securityGroups = ['sg1']
-    String asgResourceFileName = 'asg_resource'
+    String resourceFileName = 'servergroup_resource'
     ServerGroupParameters parameters = new ServerGroupParameters(instanceType: instanceType, image: image,
       maxSize: maxSize, minSize: minSize, desiredSize: desiredSize, networkId: networkId, subnetId: subnetId,
-      loadBalancers: loadBalancerIds, securityGroups: securityGroups, rawUserData: 'echo foobar', tags: ['foo':'bar'],
-      sourceUserDataType: 'Text', sourceUserData: 'echo foobar', asgResourceFilename: asgResourceFileName)
+      loadBalancers: loadBalancerIds, securityGroups: securityGroups, rawUserData: 'echo foobar', tags: ['foo': 'bar'],
+      sourceUserDataType: 'Text', sourceUserData: 'echo foobar', resourceFilename: resourceFileName)
     Map<String, String> params = [
       flavor               : parameters.instanceType,
       image                : parameters.image,
@@ -369,7 +369,7 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
       source_user_data     : 'echo foobar',
       tags                 : '{"foo":"bar"}',
       user_data            : parameters.rawUserData,
-      asg_resource_filename: asgResourceFileName
+      resource_filename    : resourceFileName
     ]
     String template = "foo: bar"
     Map<String, String> subtmpl = [sub: "foo: bar"]

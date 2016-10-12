@@ -20,7 +20,7 @@ import groovy.transform.Canonical
 
 /**
  * This is used to represent an OS::Neutron::LBaaS::PoolMember resource. These resources
- * are dynamically added to the heat template asg_member.yaml.
+ * are dynamically added to the heat template servergroup_resource_member.yaml.
  */
 @Canonical
 class MemberData {

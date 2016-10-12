@@ -81,18 +81,18 @@ parameters:
     type: string
     description: Raw base64-encoded string that will execute upon server boot, if cloud-init is installed
     default: ""
-  asg_resource_filename:
+  resource_filename:
     type: string
-    description: Member resource file name (i.e. asg_resource.yaml)
+    description: Member resource file name (i.e. servergroup_resource.yaml)
 resources:
-  asg:
+  servergroup:
     type: OS::Heat::AutoScalingGroup
     properties:
       min_size: {get_param: min_size}
       max_size: {get_param: max_size}
       desired_capacity: {get_param: desired_size}
       resource:
-        type: {get_param: asg_resource_filename}
+        type: {get_param: resource_filename}
         properties:
           flavor: {get_param: flavor}
           image: {get_param: image}
@@ -111,14 +111,14 @@ resources:
     type: OS::Heat::ScalingPolicy
     properties:
       adjustment_type: change_in_capacity
-      auto_scaling_group_id: {get_resource: asg}
+      auto_scaling_group_id: {get_resource: servergroup}
       cooldown: {get_param: scaleup_cooldown}
       scaling_adjustment: {get_param: scaleup_adjustment}
   web_server_scaledown_policy:
     type: OS::Heat::ScalingPolicy
     properties:
       adjustment_type: change_in_capacity
-      auto_scaling_group_id: {get_resource: asg}
+      auto_scaling_group_id: {get_resource: servergroup}
       cooldown: {get_param: scaledown_cooldown}
       scaling_adjustment: {get_param: scaledown_adjustment}
   meter_alarm_high:
@@ -149,17 +149,17 @@ resources:
       comparison_operator: lt
 outputs:
   OS::stack_id:
-    value: {get_resource: asg}
-  # we need to store subtemplate in asg output from create, as it is required to do an update and there is no native way
+    value: {get_resource: servergroup}
+  # we need to store subtemplate in servergroup output from create, as it is required to do an update and there is no native way
   # of obtaining it from a stack
-  asg_resource:
-    description: asg_resource_filename template value
-    value: {get_file: {get_param: asg_resource_filename} }
-  # we need to store subtemplate in asg output from create, as it is required to do an update and there is no native way
+  servergroup_resource:
+    description: resource_filename template value
+    value: {get_file: {get_param: resource_filename} }
+  # we need to store subtemplate in servergroup output from create, as it is required to do an update and there is no native way
   # of obtaining it from a stack
-  asg_member:
-    description: asg_member.yaml template value
-    value: {get_file: asg_member.yaml}
+  servergroup_member:
+    description: servergroup_member.yaml template value
+    value: {get_file: servergroup_member.yaml}
   scale_up_url:
     description: >
       This URL is the webhook to scale up the autoscaling group.  You
@@ -172,7 +172,7 @@ outputs:
       You can invoke the scale-down operation by doing an HTTP POST to
       this URL; no body nor extra headers are needed.
     value: {get_attr: [web_server_scaledown_policy, alarm_url]}
-  asg_size:
+  servergroup_size:
     description: >
       This is the current size of the auto scaling group.
-    value: {get_attr: [asg, current_size]}
+    value: {get_attr: [servergroup, current_size]}

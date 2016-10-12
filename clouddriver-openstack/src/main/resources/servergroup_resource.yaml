@@ -39,7 +39,7 @@ resources:
     properties:
       resource_def:
         # this is dynamically generated to associate a load balancer pool member from each listener to each server
-        type: asg_member.yaml
+        type: servergroup_resource_member.yaml
         properties:
           address: {get_attr: [server, first_address]}
 outputs:
