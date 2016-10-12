@@ -26,12 +26,18 @@ public class AwsMetricsSupport {
   static String[] buildExceptionTags(AmazonWebServiceRequest originalRequest, Exception exception) {
     final AmazonServiceException ase = amazonServiceException(exception);
 
+    String targetAccountId = DEFAULT_UNKNOWN;
+    if (ase.getHttpHeaders() != null) {
+      targetAccountId = ase.getHttpHeaders().get("targetAccountId");
+    }
+
     return new String[] {
       "requestType", originalRequest.getClass().getSimpleName(),
       "statusCode", Integer.toString(ase.getStatusCode()),
       "errorCode", Optional.ofNullable(ase.getErrorCode()).orElse(DEFAULT_UNKNOWN),
       "serviceName", Optional.ofNullable(ase.getServiceName()).orElse(DEFAULT_UNKNOWN),
-      "errorType", Optional.ofNullable(ase.getErrorType()).orElse(AmazonServiceException.ErrorType.Unknown).name()
+      "errorType", Optional.ofNullable(ase.getErrorType()).orElse(AmazonServiceException.ErrorType.Unknown).name(),
+      "accountId", Optional.ofNullable(targetAccountId).orElse(DEFAULT_UNKNOWN)
     };
   }
 
