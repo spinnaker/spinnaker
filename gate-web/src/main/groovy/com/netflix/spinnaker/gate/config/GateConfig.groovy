@@ -16,15 +16,21 @@
 
 package com.netflix.spinnaker.gate.config
 
-import org.springframework.session.data.redis.config.ConfigureRedisAction
-
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
+import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.EurekaLookupService
-import com.netflix.spinnaker.gate.services.internal.*
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.EchoService
+import com.netflix.spinnaker.gate.services.internal.Front50Service
+import com.netflix.spinnaker.gate.services.internal.IgorService
+import com.netflix.spinnaker.gate.services.internal.MineService
+import com.netflix.spinnaker.gate.services.internal.OrcaService
+import com.netflix.spinnaker.gate.services.internal.RoscoService
 import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -39,6 +45,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory
 import org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer
+import org.springframework.session.data.redis.config.ConfigureRedisAction
 import org.springframework.session.data.redis.config.annotation.web.http.RedisHttpSessionConfiguration
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
@@ -47,7 +54,12 @@ import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.converter.JacksonConverter
 
-import javax.servlet.*
+import javax.servlet.Filter
+import javax.servlet.FilterChain
+import javax.servlet.FilterConfig
+import javax.servlet.ServletException
+import javax.servlet.ServletRequest
+import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import java.util.concurrent.ExecutorService
@@ -117,7 +129,6 @@ class GateConfig extends RedisHttpSessionConfiguration {
   }
 
   @Bean
-  @ConditionalOnProperty("services.fiat.enabled")
   FiatService fiatService(OkHttpClient okHttpClient) {
     createClient "fiat", FiatService, okHttpClient
   }
@@ -232,6 +243,11 @@ class GateConfig extends RedisHttpSessionConfiguration {
     frb.order = 0
     frb.name = AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME
     return frb;
+  }
+
+  @Bean
+  FiatPermissionEvaluator fiatPermissionEvaluator() {
+    return new FiatPermissionEvaluator()
   }
 
   @Component

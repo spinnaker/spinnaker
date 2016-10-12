@@ -16,29 +16,41 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.spinnaker.gate.services.internal.FiatService
+import com.netflix.spinnaker.config.FiatClientConfigurationProperties
+import com.netflix.spinnaker.fiat.shared.FiatService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 class PermissionService {
 
-  @Autowired(required = false)
+  @Autowired
   FiatService fiatService
 
+  @Autowired
+  FiatClientConfigurationProperties fiatConfig
+
   void login(String userId) {
-    fiatService?.loginUser(userId, "")
+    if (fiatConfig.enabled) {
+      fiatService.loginUser(userId, "")
+    }
   }
 
   void loginSAML(String userId, Collection<String> roles) {
-    fiatService?.loginSAMLUser(userId, roles)
+    if (fiatConfig.enabled) {
+      fiatService.loginSAMLUser(userId, roles)
+    }
   }
 
   void logout(String userId) {
-    fiatService?.logoutUser(userId)
+    if (fiatConfig.enabled) {
+      fiatService.logoutUser(userId)
+    }
   }
 
   void sync() {
-    fiatService?.sync()
+    if (fiatConfig.enabled) {
+      fiatService.sync()
+    }
   }
 }

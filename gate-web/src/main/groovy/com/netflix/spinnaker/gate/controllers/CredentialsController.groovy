@@ -21,6 +21,8 @@ import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.security.User
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.access.prepost.PostFilter
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -33,11 +35,13 @@ class CredentialsController {
   @Autowired
   CredentialsService credentialsService
 
+  @PostFilter("hasPermission(filterObject.name, 'ACCOUNT', 'WRITE')")
   @RequestMapping(method = RequestMethod.GET)
   List<ClouddriverService.Account> getAccounts(@SpinnakerUser User user) {
     credentialsService.getAccounts(user.roles)
   }
 
+  @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'WRITE')")
   @RequestMapping(value = '/{account}', method = RequestMethod.GET)
   Map getAccount(@PathVariable("account") String account) {
     credentialsService.getAccount(account)

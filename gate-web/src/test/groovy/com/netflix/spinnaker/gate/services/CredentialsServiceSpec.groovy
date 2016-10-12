@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.services
 
+import com.netflix.spinnaker.config.FiatClientConfigurationProperties
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import spock.lang.Specification
 import spock.lang.Subject
@@ -29,7 +30,11 @@ class CredentialsServiceSpec extends Specification {
       ClouddriverService clouddriverService = Mock(ClouddriverService) {
         getAccounts() >> accounts
       }
-      @Subject CredentialsService credentialsService = new CredentialsService(clouddriverService: clouddriverService)
+      FiatClientConfigurationProperties fiatConfig = new FiatClientConfigurationProperties(enabled: false)
+
+      @Subject
+      CredentialsService credentialsService = new CredentialsService(clouddriverService: clouddriverService,
+                                                                     fiatConfig: fiatConfig)
 
     when:
       def allowedAccounts = credentialsService.getAccountNames(roles)

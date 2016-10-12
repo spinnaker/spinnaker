@@ -29,6 +29,8 @@ dependencies {
   compile spinnaker.dependency("korkWeb")
   compile spinnaker.dependency("frigga")
   compile spinnaker.dependency('cglib')
+  compile "com.netflix.spinnaker.fiat:fiat-api:0.12.0"
+
   compile('com.github.kstyrc:embedded-redis:0.6')
   compile('org.springframework.session:spring-session-data-redis:1.1.1.RELEASE')
   compile("org.springframework.cloud:spring-cloud-security:1.0.3.RELEASE")

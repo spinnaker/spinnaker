@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate
 
+import com.netflix.spinnaker.config.FiatClientConfigurationProperties
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.controllers.ApplicationController
 import com.netflix.spinnaker.gate.controllers.PipelineController
@@ -236,6 +237,11 @@ class FunctionalSpec extends Specification {
     @Bean
     ApplicationController applicationController() {
       new ApplicationController()
+    }
+
+    @Bean
+    FiatClientConfigurationProperties fiatClientConfigurationProperties() {
+      new FiatClientConfigurationProperties(enabled: false)
     }
   }
 }

@@ -35,6 +35,9 @@ services:
 # optional services:
   echo:
     enabled: false
+  fiat:
+    enabled: false
+    autoConfig: false
   flapjack:
     enabled: false
   igor:

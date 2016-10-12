@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.services
 
+import com.netflix.spinnaker.config.FiatClientConfigurationProperties
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import org.springframework.beans.factory.annotation.Autowired
@@ -27,6 +28,9 @@ class CredentialsService {
 
   @Autowired
   ClouddriverService clouddriverService
+
+  @Autowired
+  FiatClientConfigurationProperties fiatConfig
 
   Collection<String> getAccountNames() {
     getAccountNames([])
@@ -46,6 +50,10 @@ class CredentialsService {
   List<ClouddriverService.Account> getAccounts(Collection<String> userRoles) {
     HystrixFactory.newListCommand(GROUP, "getAccounts") {
       return clouddriverService.accounts.findAll { ClouddriverService.Account account ->
+        if (fiatConfig.enabled) {
+          return true // Returned list is filtered later.
+        }
+
         if (!account.requiredGroupMembership) {
           return true // anonymous account.
         }
