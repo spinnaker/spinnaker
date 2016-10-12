@@ -22,6 +22,11 @@ module.exports = angular
       if (command.resources.allocateIpAddress === true) {
         delete command.resources.ports;
       }
+
+      if (!command.efs.mountPoint || !command.efs.efsId || !command.efs.mountPerm) {
+        delete command.efs;
+      }
+
       delete command.viewState;
       delete command.backingData;
       delete command.selectedProvider;

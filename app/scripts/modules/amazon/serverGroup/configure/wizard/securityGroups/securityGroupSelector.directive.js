@@ -14,7 +14,6 @@ module.exports = angular
       scope: {},
       bindToController: {
         command: '=',
-        optional: '=',
         availableGroups: '<',
         hideLabel: '<',
         refresh: '&?',

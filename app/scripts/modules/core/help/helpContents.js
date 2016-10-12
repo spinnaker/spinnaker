@@ -464,4 +464,12 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'openstack.network.floatpool': 'The network from which to allocate a floating ip',
     'openstack.serverGroup.userData': '<p>Provides a script that will run when each server group instance starts.</p>',
     'openstack.serverGroup.tags': '<p>Key-value pairs of metadata that will be associate to each server group instance.</p>',
+    'titus.deploy.iamProfile': 'AWS IAM instance profile to assign to this service',
+    'titus.deploy.network': 'Amount of networking bandwidth to allocate in Mbps',
+    'titus.deploy.allocateIP': 'If selected, specifies an IP to be allocated for each of your job’s containers',
+    'titus.deploy.softConstraints': 'Soft constraints are enforced on a best efforts basis. For example, if tasks can’t be perfectly balanced across zones, the best available balance is achieved without keeping the tasks pending for execution.',
+    'titus.deploy.hardConstraints': 'Constraints must be met and tasks will not be launched if constraint can’t be perfectly met',
+    'titus.deploy.efs': 'if completed, allows you to specify an EFS volume to attach to each Task that gets created for the Job',
+    'titus.deploy.mountPoint': '(Required) A valid directory to mount the volume, e.g, <samp>/efs</samp>. Invalid locations are <samp>/</samp>, <samp>/data</samp>, and <samp>/logs</samp> as these are reserved directories.',
+    'titus.deploy.efsId': '(Required) The EFS file system ID, e.g. <samp> fs-0208c74b</samp>.',
   });
