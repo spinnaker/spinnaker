@@ -23,20 +23,27 @@ class ServerGroupConstants {
 
   final static String SUBTEMPLATE_FILENAME = 'resource_filename'
   final static String SUBTEMPLATE_SERVER_OUTPUT = 'servergroup_server'
+  final static String SUBTEMPLATE_SERVER_OUTPUT_FLOAT = 'servergroup_server_float'
   final static String SUBTEMPLATE_OUTPUT = 'servergroup_resource'
+  final static String SUBTEMPLATE_OUTPUT_FLOAT = 'servergroup_resource_float'
   final static String MEMBERTEMPLATE_OUTPUT = 'servergroup_resource_member'
 
   //this is the file name of the heat template used to create the auto scaling group,
   //and needs to be loaded into memory as a String
   final static String TEMPLATE_FILE = 'servergroup.yaml'
+  final static String TEMPLATE_FILE_FLOAT = 'servergroup_float.yaml'
 
   //this is the name of the subtemplate referenced by the template,
   //and needs to be loaded into memory as a String
   final static String SUBTEMPLATE_SERVER_FILE = "${SUBTEMPLATE_SERVER_OUTPUT}.yaml"
+  //with floating ip for each instance
+  final static String SUBTEMPLATE_SERVER_FILE_FLOAT = "${SUBTEMPLATE_SERVER_OUTPUT_FLOAT}.yaml"
 
   //this is the name of the subtemplate referenced by the template,
   //and needs to be loaded into memory as a String
   final static String SUBTEMPLATE_FILE = "${SUBTEMPLATE_OUTPUT}.yaml"
+  //with floating ip for each instance
+  final static String SUBTEMPLATE_FILE_FLOAT = "${SUBTEMPLATE_OUTPUT_FLOAT}.yaml"
 
   //this is the name of the member template referenced by the subtemplate,
   //and is contructed on the fly

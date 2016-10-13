@@ -90,6 +90,7 @@ class CloneOpenstackAtomicOperation implements AtomicOperation<DeploymentResult>
       minSize = description.serverGroupParameters?.minSize ?: ancestorParams.minSize
       desiredSize = description.serverGroupParameters?.desiredSize ?: ancestorParams.desiredSize
       subnetId = description.serverGroupParameters?.subnetId ?: ancestorParams.subnetId
+      floatingNetworkId = description.serverGroupParameters?.floatingNetworkId ?: ancestorParams.floatingNetworkId
       loadBalancers = description.serverGroupParameters?.loadBalancers ?: ancestorParams.loadBalancers
       securityGroups = description.serverGroupParameters?.securityGroups ?: ancestorParams.securityGroups
       autoscalingType = description.serverGroupParameters?.autoscalingType ?: ancestorParams.autoscalingType

@@ -71,6 +71,7 @@ class DeployOpenstackAtomicOperation implements TaskStatusAware, AtomicOperation
         "minSize": 3,
         "desiredSize": 4,
         "subnetId": "77bb3aeb-c1e2-4ce5-8d8f-b8e9128af651",
+        "floatingNetworkId: "99bb3aeb-c1e2-4ce5-8d8f-b8e9128af699",
         "loadBalancers": ["87077f97-83e7-4ea1-9ca9-40dc691846db"],
         "securityGroups": ["e56fa7eb-550d-42d4-8d3f-f658fbacd496"],
         "scaleup": {
@@ -117,11 +118,19 @@ class DeployOpenstackAtomicOperation implements TaskStatusAware, AtomicOperation
       String template = getTemplateFile(ServerGroupConstants.TEMPLATE_FILE)
       String resourceFilename = ServerGroupConstants.SUBTEMPLATE_FILE
 
+      if (description.serverGroupParameters.floatingNetworkId) {
+        template = getTemplateFile(ServerGroupConstants.TEMPLATE_FILE_FLOAT)
+      }
       if (description.serverGroupParameters.loadBalancers && !description.serverGroupParameters.loadBalancers.isEmpty()) {
         //look up all load balancer listeners -> pool ids and internal ports
         task.updateStatus BASE_PHASE, "Getting load balancer details for load balancers $description.serverGroupParameters.loadBalancers..."
         List<MemberData> memberDataList = buildMemberData(description.credentials, description.region, description.serverGroupParameters.subnetId, description.serverGroupParameters.loadBalancers, this.&parseListenerKey)
         task.updateStatus BASE_PHASE, "Finished getting load balancer details for load balancers $description.serverGroupParameters.loadBalancers."
+
+        //check for floating ip
+        if (description.serverGroupParameters.floatingNetworkId) {
+          resourceFilename = ServerGroupConstants.SUBTEMPLATE_FILE_FLOAT
+        }
 
         task.updateStatus BASE_PHASE, "Loading lbaas subtemplates..."
         String subtemplate = getTemplateFile(resourceFilename)
@@ -134,7 +143,14 @@ class DeployOpenstackAtomicOperation implements TaskStatusAware, AtomicOperation
         task.updateStatus BASE_PHASE, "Finished loading lbaas templates."
       } else {
         task.updateStatus BASE_PHASE, "Loading subtemplates..."
-        resourceFilename = ServerGroupConstants.SUBTEMPLATE_SERVER_FILE
+
+        //check for floating ip
+        if (description.serverGroupParameters.floatingNetworkId) {
+          resourceFilename = ServerGroupConstants.SUBTEMPLATE_SERVER_FILE_FLOAT
+        } else {
+          resourceFilename = ServerGroupConstants.SUBTEMPLATE_SERVER_FILE
+        }
+
         String subtemplate = getTemplateFile(resourceFilename)
         if (subtemplate) {
           subtemplates << [(resourceFilename): subtemplate]

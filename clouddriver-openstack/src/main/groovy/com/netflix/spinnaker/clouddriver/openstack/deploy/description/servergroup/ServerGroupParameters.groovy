@@ -51,11 +51,12 @@ class ServerGroupParameters {
   String sourceUserData
   Map<String, String> tags
   String resourceFilename
+  String floatingNetworkId
 
   static final ObjectMapper objectMapper = new ObjectMapper()
 
   Map<String, String> toParamsMap() {
-    [
+    def params = [
       flavor               : instanceType,
       image                : image,
       max_size             : maxSize?.toString() ?: null,
@@ -80,6 +81,10 @@ class ServerGroupParameters {
       user_data            : rawUserData ?: null,
       resource_filename    : resourceFilename ?: ServerGroupConstants.SUBTEMPLATE_FILE
     ]
+    if (floatingNetworkId) {
+      params << [floating_network_id: floatingNetworkId]
+    }
+    params
   }
 
   static ServerGroupParameters fromParamsMap(Map<String, String> params) {
@@ -89,6 +94,7 @@ class ServerGroupParameters {
       maxSize: params.get('max_size')?.toInteger(),
       minSize: params.get('min_size')?.toInteger(),
       desiredSize: params.get('desired_size')?.toInteger(),
+      floatingNetworkId: params.get('floating_network_id'),
       networkId: params.get('network_id'),
       subnetId: params.get('subnet_id'),
       loadBalancers: unescapePythonUnicodeJsonList(params.get('load_balancers')),

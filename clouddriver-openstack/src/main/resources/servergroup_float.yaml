@@ -4,6 +4,9 @@ parameters:
   flavor:
     type: string
     description: Flavor used by the web servers
+  floating_network_id:
+    type: string
+    description: Network used to allocate a floating IP for each server.
   image:
     type: string
     description: Image used for servers
@@ -95,6 +98,7 @@ resources:
         type: {get_param: resource_filename}
         properties:
           flavor: {get_param: flavor}
+          floating_network_id: {get_param: floating_network_id}
           image: {get_param: image}
           # metering.stack is used by ceilometer to autoscale against instances that are part of this stack
           # the others are user-specified
