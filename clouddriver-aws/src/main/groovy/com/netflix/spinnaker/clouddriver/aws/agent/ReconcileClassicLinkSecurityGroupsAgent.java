@@ -129,7 +129,7 @@ public class ReconcileClassicLinkSecurityGroupsAgent implements RunnableAgent, C
 
     RateLimiter apiRequestRateLimit = RateLimiter.create(5);
     final Map<String, ClassicLinkInstance> classicLinkInstances = new HashMap<>();
-    DescribeInstancesRequest describeInstances = new DescribeInstancesRequest().withMaxResults(1000);
+    DescribeInstancesRequest describeInstances = new DescribeInstancesRequest().withMaxResults(500);
     while (true) {
       apiRequestRateLimit.acquire();
       DescribeInstancesResult instanceResult = ec2.describeInstances(describeInstances);
