@@ -16,24 +16,17 @@
 
 package com.netflix.spinnaker.halyard.validate.v1;
 
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-public class ValidateFieldRegex extends Validator<String> {
-  final String pattern;
-  final String patternDescription;
-
-  protected ValidateFieldRegex(String subject, String pattern, String patternDescription) {
+public class ValidateNotNull extends Validator<Object> {
+  protected ValidateNotNull(Object subject) {
     super(subject);
-    this.pattern = pattern;
-    this.patternDescription = patternDescription;
   }
 
   @Override
   public Stream<String> validate() {
-    boolean matches = Pattern.matches(pattern, subject);
-    if (!matches) {
-      return Stream.of(String.format("%s (\"%s\" failed to match \"%s\")", patternDescription, subject, pattern));
+    if (subject == null) {
+      return Stream.of("Must not be null");
     } else {
       return null;
     }

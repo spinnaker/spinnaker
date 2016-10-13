@@ -46,7 +46,7 @@ public class UpdateableSpec extends Specification{
     def res = test.update("name", BAD_VALUE, String.class)
 
     then:
-    res == [ERROR_MESSAGE]
+    res[0].contains(ERROR_MESSAGE)
     test.name == ORIGINAL_VALUE
   }
 

@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.halyard.model.v1.providers.dockerRegistry;
 
 import com.netflix.spinnaker.halyard.model.v1.providers.Account;
+import com.netflix.spinnaker.halyard.validate.v1.ValidateField;
+import com.netflix.spinnaker.halyard.validate.v1.ValidateNotNull;
+import com.netflix.spinnaker.halyard.validate.v1.providers.ValidateFileExists;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -26,9 +29,11 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class DockerRegistryAccount extends Account {
+  @ValidateField(validators = {ValidateNotNull.class})
   private String address;
   private String username;
   private String password;
+  @ValidateField(validators = {ValidateFileExists.class})
   private String passwordFile;
   private String email;
   private List<String> repositories = new ArrayList<>();

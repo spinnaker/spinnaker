@@ -18,6 +18,8 @@ package com.netflix.spinnaker.halyard.model.v1.providers.kubernetes;
 
 import com.netflix.spinnaker.halyard.model.v1.providers.Account;
 import com.netflix.spinnaker.halyard.validate.v1.ValidateField;
+import com.netflix.spinnaker.halyard.validate.v1.ValidateNotNull;
+import com.netflix.spinnaker.halyard.validate.v1.providers.ValidateFileExists;
 import com.netflix.spinnaker.halyard.validate.v1.providers.kubernetes.ValidateKubernetesContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -32,6 +34,9 @@ public class KubernetesAccount extends Account implements Cloneable {
   String context;
   String cluster;
   String user;
+  @ValidateField(validators = {ValidateFileExists.class})
+  String kubeconfigFile;
   List<String> namespaces = new ArrayList<>();
+  @ValidateField(validators = {ValidateNotNull.class})
   List<DockerRegistryReference> dockerRegistries = new ArrayList<>();
 }

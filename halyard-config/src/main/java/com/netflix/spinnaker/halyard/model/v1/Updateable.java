@@ -47,6 +47,7 @@ public interface Updateable {
           }
         }).filter(v -> !v.skip())                                              // Ignore skippable validators
         .flatMap(Validator::validate)                                          // Run the validators & flatten results
+        .map(s -> String.format("Invalid field \"%s\": %s", fieldName, s))
         .collect(Collectors.toList());
 
     // Reset value after failure

@@ -16,27 +16,32 @@
 
 package com.netflix.spinnaker.halyard.validate.v1.providers;
 
-import com.netflix.spinnaker.halyard.validate.v1.ValidateFieldRegex;
+import com.netflix.spinnaker.halyard.validate.v1.Validator;
 
+import java.io.*;
 import java.util.stream.Stream;
 
-public class ValidateAccountName extends ValidateFieldRegex {
-  public ValidateAccountName(String subject) {
-    super(subject, "^[a-z0-9]+([-a-z0-9_]*[a-z0-9])?$",
-        "Must consist of alphanumeric characters optionally separated by dashes and underscores.");
+public class ValidateFileExists extends Validator<String> {
+  protected ValidateFileExists(String subject) {
+    super(subject);
   }
 
   @Override
   public Stream<String> validate() {
-    if (subject == null) {
-      return Stream.of("Must not be missing/null.");
+    try {
+      BufferedReader reader = new BufferedReader(new FileReader(new File(subject)));
+      reader.read();
+    } catch (FileNotFoundException e) {
+      return Stream.of(String.format("File \"%s\" not found.", subject));
+    } catch (IOException e) {
+      return Stream.of(String.format("Unable to read from file \"%s\".", subject));
     }
-
-    return super.validate();
+    return null;
   }
 
   @Override
   public boolean skip() {
-    return false;
+    // It's OK to remove a reference to a file.
+    return (subject == null || subject.isEmpty());
   }
 }

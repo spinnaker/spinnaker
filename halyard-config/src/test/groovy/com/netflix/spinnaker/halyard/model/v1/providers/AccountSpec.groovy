@@ -50,7 +50,7 @@ public class AccountSpec extends Specification {
     def errors = account.update("name", BAD_NAME_SPACE, String.class)
 
     then:
-    errors[0].contains("must consist of")
+    errors[0].contains("Must consist of")
     account.name == ORIGINAL_NAME
   }
 
@@ -60,7 +60,7 @@ public class AccountSpec extends Specification {
     def errors = account.update("name", BAD_NAME_CHARACTER, String.class)
 
     then:
-    errors[0].contains("must consist of")
+    errors[0].contains("Must consist of")
     account.name == ORIGINAL_NAME
   }
 }
