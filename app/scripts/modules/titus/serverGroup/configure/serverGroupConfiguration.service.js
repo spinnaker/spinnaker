@@ -1,5 +1,8 @@
 'use strict';
 
+import _ from 'lodash';
+import {Subject} from 'rxjs';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.titus.configuration.service', [
@@ -19,7 +22,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.configura
       return $q.all({
         credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('titus'),
         images: [],
-      }).then(function(backingData) {
+      }).then((backingData) => {
         backingData.accounts = _.keys(backingData.credentialsKeyedByAccount);
         backingData.filtered = {};
         backingData.filtered.regions = backingData.credentialsKeyedByAccount[command.credentials].regions;
@@ -36,25 +39,31 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.configura
     }
 
     function attachEventHandlers(command) {
-
+      command.viewState.accountChangedStream = new Subject();
+      command.viewState.regionChangedStream = new Subject();
+      command.viewState.groupsRemovedStream = new Subject();
+      command.viewState.removedGroups = [];
       command.credentialsChanged = function credentialsChanged() {
         var result = { dirty: {} };
         var backingData = command.backingData;
         configureZones(command);
         if (command.credentials) {
           backingData.filtered.regions = backingData.credentialsKeyedByAccount[command.credentials].regions;
-          if (!backingData.filtered.regions.includes(command.region)) {
+          if (!backingData.filtered.regions.some(r => r.name === command.region)) {
             command.region = null;
-            result.dirty.region = true;
+            command.regionChanged();
           }
         } else {
           command.region = null;
         }
-
         command.viewState.dirty = command.viewState.dirty || {};
         angular.extend(command.viewState.dirty, result.dirty);
-
+        command.viewState.accountChangedStream.next(null);
         return result;
+      };
+
+      command.regionChanged = () => {
+        command.viewState.regionChangedStream.next();
       };
     }
 

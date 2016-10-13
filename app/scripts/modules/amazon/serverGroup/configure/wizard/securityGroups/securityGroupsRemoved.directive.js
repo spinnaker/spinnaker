@@ -1,5 +1,7 @@
 'use strict';
 
+import {has} from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular
@@ -12,12 +14,18 @@ module.exports = angular
       scope: {},
       bindToController: {
         command: '=',
+        removed: '=',
       },
       controllerAs: 'vm',
       controller: 'awsServerGroupSecurityGroupsRemovedCtrl',
     };
   }).controller('awsServerGroupSecurityGroupsRemovedCtrl', function () {
     this.acknowledgeSecurityGroupRemoval = () => {
-      this.command.viewState.dirty.securityGroups = null;
+      if (has(this.command, 'viewState.dirty')) {
+        this.command.viewState.dirty.securityGroups = null;
+      }
+      if (this.removed && this.removed.length) {
+        this.removed.length = 0;
+      }
     };
   });

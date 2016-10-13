@@ -1,9 +1,11 @@
 <div class="form-group">
-  <div class="col-md-3 sm-label-right"><b>Security Groups</b></div>
+  <div class="col-md-3 sm-label-right" ng-if="!vm.hideLabel">
+    <b>Security Groups <span ng-if="vm.optional">(optional)</span></b>
+  </div>
   <div class="col-md-9">
-    <ui-select multiple ng-model="vm.command.securityGroups" class="form-control input-sm">
+    <ui-select multiple ng-model="vm.groupsToEdit" class="form-control input-sm">
       <ui-select-match>{{$item.name}} ({{$item.id}})</ui-select-match>
-      <ui-select-choices repeat="securityGroup.id as securityGroup in vm.command.backingData.filtered.securityGroups | anyFieldFilter: {name: $select.search, id: $select.search}">
+      <ui-select-choices repeat="securityGroup.id as securityGroup in vm.availableGroups | anyFieldFilter: {name: $select.search, id: $select.search}">
         <span ng-bind-html="securityGroup.name | highlight: $select.search"></span>
         (<span ng-bind-html="securityGroup.id  | highlight: $select.search"></span>)
       </ui-select-choices>
@@ -12,7 +14,7 @@
 </div>
 
 <div class="form-group small" style="margin-top: 20px">
-  <div class="col-md-9 col-md-offset-3">
+  <div class="col-md-{{vm.hideLabel ? 12 : 9}} col-md-offset-{{vm.hideLabel ? 0 : 3}}">
     <p>
       <span ng-if="vm.refreshing"><span class="small glyphicon glyphicon-refresh glyphicon-spinning"></span></span>
       Security groups

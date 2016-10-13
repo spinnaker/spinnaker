@@ -7,3 +7,6 @@ export * from './loadBalancer';
 export * from './serverGroupp';
 export * from './health';
 export * from './instanceCounts';
+export * from './ISecurityGroup';
+export * from './ICredentials';
+export * from './IVpc';

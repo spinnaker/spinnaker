@@ -1,5 +1,7 @@
-<div class="row">
+<div class="row" ng-if="state.loaded">
     <server-group-security-groups-removed command="command"></server-group-security-groups-removed>
     <netflix-security-group-diff command="command"></netflix-security-group-diff>
-    <server-group-security-group-selector command="command"></server-group-security-group-selector>
+    <server-group-security-group-selector command="command"
+                                          groups-to-edit="command.securityGroups"
+                                          available-groups="command.backingData.filtered.securityGroups"></server-group-security-group-selector>
 </div>

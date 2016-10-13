@@ -1,6 +1,7 @@
 <div ng-controller="titusRunJobStageCtrl as runJobCtrl" class="form-horizontal">
   <stage-config-field label="Account">
     <account-select-field component="stage" field="credentials" accounts="backingData.credentials"
+                          on-change="runJobCtrl.accountChanged()"
                           provider="'titus'"></account-select-field>
   </stage-config-field>
 
@@ -11,6 +12,7 @@
                            field="region"
                            account="stage.credentials"
                            regions="regions"
+                           on-change="runJobCtrl.regionChanged()"
                            provider="'titus'"></region-select-field>
     </div>
   </div>
@@ -69,8 +71,15 @@
     </stage-config-field>
 
     <stage-config-field label="Security Groups">
-      <input type="text" class="form-control input-sm" name="cpu" ng-model="stage.cluster.securityGroups"/>
-      (Comma separated list of ids)
+      <div ng-if="!stage.credentials || !stage.cluster.region">Select an account and region</div>
+      <titus-security-group-picker ng-if="runJobCtrl.loaded && stage.credentials && stage.cluster.region"
+                                   command="stage"
+                                   hide-label="true"
+                                   groups-to-edit="stage.cluster.securityGroups"
+                                   removed-groups="runJobCtrl.removedGroups"
+                                   groups-removed="runJobCtrl.groupsRemovedStream"
+                                   account-changed="runJobCtrl.accountChangedStream"
+                                   region-changed="runJobCtrl.regionChangedStream"></titus-security-group-picker></titus-security-group-picker>
     </stage-config-field>
 
     <stage-config-field label="Environment (optional)">

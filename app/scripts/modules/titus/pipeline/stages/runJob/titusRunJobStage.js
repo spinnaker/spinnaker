@@ -1,6 +1,7 @@
 'use strict';
 
 let angular = require('angular');
+import {Subject} from 'rxjs/Subject';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.titus.runJobStage', [
   require('./runJobExecutionDetails.controller.js')
@@ -30,10 +31,26 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.runJobStage
       stage.cluster = {};
     }
 
-    vm.updateRegions = function () {
+    this.loaded = false;
+    this.removedGroups = [];
+    this.groupsRemovedStream = new Subject();
+    this.accountChangedStream = new Subject();
+    this.regionChangedStream = new Subject();
+
+    this.accountChanged = () => {
+      this.accountChangedStream.next(null);
+      this.updateRegions();
+    };
+
+    this.regionChanged = () => {
+      this.regionChangedStream.next(null);
+    };
+
+    this.updateRegions = () => {
       if (stage.credentials) {
         $scope.regions = $scope.backingData.credentialsKeyedByAccount[stage.credentials].regions;
-        if (!_.includes(_.map($scope.regions, 'name'), stage.cluster.region)) {
+        if ($scope.regions.map(r => r.name).every(r => r !== stage.cluster.region)) {
+          this.regionChanged();
           delete stage.cluster.region;
         }
       } else {
@@ -57,6 +74,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.runJobStage
       stage.cloudProvider = 'titus';
     }
 
+    if (!stage.cluster.securityGroups) {
+      stage.cluster.securityGroups = [];
+    }
+
     if (!stage.cluster.capacity) {
       stage.cluster.capacity = {
         min: 1,
@@ -67,14 +88,14 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.runJobStage
 
     $q.all({
       credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('titus'),
-    }).then(function (backingData) {
-      backingData.credentials = _.keys(backingData.credentialsKeyedByAccount);
+    }).then((backingData) => {
+      backingData.credentials = Object.keys(backingData.credentialsKeyedByAccount);
       $scope.backingData = backingData;
-      return $q.all([]).then(function () {
+      return $q.all([]).then(() => {
         if (stage.credentials) {
           vm.updateRegions();
         }
-        $scope.$watch('stage.credentials', vm.updateRegions);
+        this.loaded = true;
       });
     });
 

@@ -14,6 +14,11 @@ module.exports = angular
       scope: {},
       bindToController: {
         command: '=',
+        optional: '=',
+        availableGroups: '<',
+        hideLabel: '<',
+        refresh: '&?',
+        groupsToEdit: '=',
       },
       controllerAs: 'vm',
       controller: 'awsServerGroupSecurityGroupsSelectorCtrl',
@@ -25,8 +30,12 @@ module.exports = angular
 
     this.refreshSecurityGroups = () => {
       this.refreshing = true;
-      awsServerGroupConfigurationService.refreshSecurityGroups(this.command).then(() => {
-        this.refreshing = false;
-      });
+      if (this.refresh) {
+        this.refresh().then(() => this.refreshing = false);
+      } else {
+        awsServerGroupConfigurationService.refreshSecurityGroups(this.command).then(() => {
+          this.refreshing = false;
+        });
+      }
     };
   });

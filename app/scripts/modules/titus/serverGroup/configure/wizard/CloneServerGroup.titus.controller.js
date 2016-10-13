@@ -1,9 +1,11 @@
 'use strict';
 
 let angular = require('angular');
+import securityGroupPickerModule from '../../../securityGroup/securityGroupPicker.component';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.titus.cloneServerGroup', [
   require('angular-ui-router'),
+  securityGroupPickerModule,
 ])
   .controller('titusCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
                                                   serverGroupWriter, v2modalWizardService, taskMonitorService,
@@ -14,6 +16,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.cloneServ
       basicSettings: require('./basicSettings.html'),
       resources: require('./resources.html'),
       capacity: require('./capacity.html'),
+      securityGroups: require('./securityGroups.html'),
       parameters: require('./parameters.html'),
     };
 
@@ -68,9 +71,12 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.cloneServ
       onTaskComplete: onTaskComplete,
     });
 
+    let securityGroupsRemoved = () => v2modalWizardService.markDirty('securityGroups');
+
     function configureCommand() {
       titusServerGroupConfigurationService.configureCommand(serverGroupCommand).then(function () {
         $scope.state.loaded = true;
+        serverGroupCommand.viewState.groupsRemovedStream.subscribe(securityGroupsRemoved);
       });
     }
 

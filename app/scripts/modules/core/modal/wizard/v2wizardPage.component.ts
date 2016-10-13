@@ -86,7 +86,7 @@ export class WizardPageController implements ng.IComponentController {
 
     this.state = {
       rendered: this.render,
-      done: this.done,
+      done: this.done || !this.mandatory,
       dirty: false,
       required: this.mandatory,
       markCompleteOnView: this.markCompleteOnView
