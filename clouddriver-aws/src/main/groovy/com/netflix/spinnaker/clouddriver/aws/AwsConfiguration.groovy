@@ -102,6 +102,9 @@ class AwsConfiguration {
   @Value('${aws.migration.infrastructureApplications}')
   List<String> infrastructureApplications
 
+  @Value('${aws.client.useGzip:true}')
+  boolean awsClientUseGzip
+
   @Autowired
   SpectatorMetricCollector spectatorMetricCollector
 
@@ -134,6 +137,7 @@ class AwsConfiguration {
       .maxConnectionsPerRoute(maxConnectionsPerRoute)
       .proxy(proxy)
       .eddaTimeoutConfig(eddaTimeoutConfig)
+      .useGzip(awsClientUseGzip)
       .build()
   }
 

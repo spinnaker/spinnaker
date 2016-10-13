@@ -73,6 +73,7 @@ public class AmazonClientProvider {
   private final List<RequestHandler2> requestHandlers;
   private final AWSProxy proxy;
   private final EddaTimeoutConfig eddaTimeoutConfig;
+  private final boolean useGzip;
 
   public static class Builder {
     private HttpClient httpClient;
@@ -86,6 +87,7 @@ public class AmazonClientProvider {
     private EddaTimeoutConfig eddaTimeoutConfig;
     private int maxConnections = 200;
     private int maxConnectionsPerRoute = 20;
+    private boolean uzeGzip = true;
 
     public Builder httpClient(HttpClient httpClient) {
       this.httpClient = httpClient;
@@ -142,6 +144,11 @@ public class AmazonClientProvider {
       return this;
     }
 
+    public Builder useGzip(boolean useGzip) {
+      this.uzeGzip = useGzip;
+      return this;
+    }
+
     public AmazonClientProvider build() {
       HttpClient client = this.httpClient;
       if (client == null) {
@@ -157,7 +164,7 @@ public class AmazonClientProvider {
       AWSProxy proxy = this.proxy;
       EddaTimeoutConfig eddaTimeoutConfig = this.eddaTimeoutConfig == null ? EddaTimeoutConfig.DEFAULT : this.eddaTimeoutConfig;
 
-      return new AmazonClientProvider(client, mapper, templater, policy, requestHandlers, proxy, eddaTimeoutConfig);
+      return new AmazonClientProvider(client, mapper, templater, policy, requestHandlers, proxy, eddaTimeoutConfig, uzeGzip);
     }
 
     private RetryPolicy buildPolicy() {
@@ -194,7 +201,8 @@ public class AmazonClientProvider {
       PredefinedRetryPolicies.getDefaultRetryPolicy(),
       Collections.emptyList(),
       null,
-      EddaTimeoutConfig.DEFAULT);
+      EddaTimeoutConfig.DEFAULT,
+      true);
   }
 
   public AmazonClientProvider(HttpClient httpClient,
@@ -203,7 +211,8 @@ public class AmazonClientProvider {
                               RetryPolicy retryPolicy,
                               List<RequestHandler2> requestHandlers,
                               AWSProxy proxy,
-                              EddaTimeoutConfig eddaTimeoutConfig) {
+                              EddaTimeoutConfig eddaTimeoutConfig,
+                              boolean useGzip) {
     this.httpClient = requireNonNull(httpClient, "httpClient");
     this.objectMapper = requireNonNull(objectMapper, "objectMapper");
     this.eddaTemplater = requireNonNull(eddaTemplater, "eddaTemplater");
@@ -211,6 +220,7 @@ public class AmazonClientProvider {
     this.requestHandlers = requestHandlers == null ? Collections.emptyList() : Collections.unmodifiableList(new ArrayList<>(requestHandlers));
     this.proxy = proxy;
     this.eddaTimeoutConfig = eddaTimeoutConfig;
+    this.useGzip = useGzip;
   }
 
   /**
@@ -404,6 +414,8 @@ public class AmazonClientProvider {
       if (proxy != null && proxy.isProxyConfigMode()) {
         proxy.apply(clientConfiguration);
       }
+
+      clientConfiguration.setUseGzip(useGzip);
 
       T delegate = constructor.newInstance(awsCredentialsProvider, clientConfiguration);
       for (RequestHandler2 requestHandler : requestHandlers) {
