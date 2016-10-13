@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.titus.model
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
+import com.netflix.spinnaker.clouddriver.titus.client.model.Efs
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState
 
@@ -105,20 +106,20 @@ class TitusInstance implements Instance {
   }
 
   private static boolean anyDown(List<Map<String, Object>> healthList) {
-    healthList.any { it.state == HealthState.Down.toString()}
+    healthList.any { it.state == HealthState.Down.toString() }
   }
 
   private static boolean someUpRemainingUnknown(List<Map<String, Object>> healthList) {
-    List<Map<String, Object>> knownHealthList = healthList.findAll{ it.state != HealthState.Unknown.toString() }
+    List<Map<String, Object>> knownHealthList = healthList.findAll { it.state != HealthState.Unknown.toString() }
     knownHealthList ? knownHealthList.every { it.state == HealthState.Up.toString() } : false
   }
 
   private static boolean anyStarting(List<Map<String, Object>> healthList) {
-    healthList.any { it.state == HealthState.Starting.toString()}
+    healthList.any { it.state == HealthState.Starting.toString() }
   }
 
   private static boolean anyOutOfService(List<Map<String, Object>> healthList) {
-    healthList.any { it.state == HealthState.OutOfService.toString()}
+    healthList.any { it.state == HealthState.OutOfService.toString() }
   }
 
   @Override

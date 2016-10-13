@@ -192,6 +192,7 @@ public class Job {
     private String jobGroupSequence;
     private List<String> hardConstraints;
     private List<String> softConstraints;
+    private Efs efs;
 
     public Job() {}
 
@@ -398,5 +399,9 @@ public class Job {
     public int getNetworkMbps() { return networkMbps; }
 
     public void setNetworkMbps(int networkMbps) { this.networkMbps = networkMbps; }
+
+    public Efs getEfs() { return efs; }
+
+    public void setEfs(Efs efs) { this.efs = efs; }
 
 }

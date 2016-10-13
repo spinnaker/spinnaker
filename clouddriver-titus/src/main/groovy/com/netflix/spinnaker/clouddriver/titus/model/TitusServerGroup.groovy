@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.titus.caching.Keys
+import com.netflix.spinnaker.clouddriver.titus.client.model.Efs
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 
 /**
@@ -50,6 +51,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
   TitusServerGroupResources resources = new TitusServerGroupResources()
   TitusServerGroupPlacement placement = new TitusServerGroupPlacement()
   boolean disabled
+  Efs efs
 
   TitusServerGroup() {}
 
@@ -78,6 +80,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
     securityGroups = job.securityGroups
     hardConstraints = job.hardConstraints
     softConstraints = job.softConstraints
+    efs = job.efs
   }
 
   @Override
