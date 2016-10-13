@@ -160,6 +160,9 @@ enum KubernetesVolumeSourceType {
   @JsonProperty("SECRET")
   Secret,
 
+  @JsonProperty("CONFIGMAP")
+  ConfigMap,
+
   @JsonProperty("UNSUPPORTED")
   Unsupported,
 }
@@ -181,6 +184,23 @@ class KubernetesVolumeSource {
   KubernetesEmptyDir emptyDir
   KubernetesPersistentVolumeClaim persistentVolumeClaim
   KubernetesSecretVolumeSource secret
+  KubernetesConfigMapVolumeSource configMap
+}
+
+@AutoClone
+@Canonical
+class KubernetesConfigMapVolumeSource {
+  String configMapName
+  List<KubernetesKeyToPath> items
+  Integer defaultMode
+}
+
+@AutoClone
+@Canonical
+class KubernetesKeyToPath {
+  String key
+  String path
+  Integer defaultMode
 }
 
 @AutoClone

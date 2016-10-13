@@ -126,6 +126,7 @@ class KubernetesApiConverter {
 
       case KubernetesVolumeSourceType.HostPath:
         def res = new HostPathVolumeSourceBuilder().withPath(volumeSource.hostPath.path)
+
         volume.hostPath = res.build()
         break
 
@@ -133,13 +134,25 @@ class KubernetesApiConverter {
         def res = new PersistentVolumeClaimVolumeSourceBuilder()
             .withClaimName(volumeSource.persistentVolumeClaim.claimName)
             .withReadOnly(volumeSource.persistentVolumeClaim.readOnly)
+
         volume.persistentVolumeClaim = res.build()
         break
 
       case KubernetesVolumeSourceType.Secret:
         def res = new SecretVolumeSourceBuilder()
             .withSecretName(volumeSource.secret.secretName)
+
         volume.secret = res.build()
+        break
+
+      case KubernetesVolumeSourceType.ConfigMap:
+        def res = new ConfigMapVolumeSourceBuilder().withName(volumeSource.configMap.configMapName)
+        def items = volumeSource.configMap.items?.collect { KubernetesKeyToPath item ->
+          new KeyToPath(key: item.key, path: item.path)
+        }
+
+        res = res.withItems(items)
+        volume.configMap = res.build()
         break
 
       default:
@@ -449,6 +462,12 @@ class KubernetesApiConverter {
     } else if (volume.secret) {
       res.type = KubernetesVolumeSourceType.Secret
       res.secret = new KubernetesSecretVolumeSource(secretName: volume.secret.secretName)
+    } else if (volume.configMap) {
+      res.type = KubernetesVolumeSourceType.ConfigMap
+      def items = volume.configMap.items?.collect { KeyToPath item ->
+        new KubernetesKeyToPath(key: item.key, path: item.path)
+      }
+      res.configMap = new KubernetesConfigMapVolumeSource(configMapName: volume.configMap.name, items: items)
     } else {
       res.type = KubernetesVolumeSourceType.Unsupported
     }
