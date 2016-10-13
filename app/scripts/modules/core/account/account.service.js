@@ -1,11 +1,12 @@
 'use strict';
 
 import _ from 'lodash';
+import {API_SERVICE} from 'core/api/api.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.account.service', [
-  require('../api/api.service'),
+  API_SERVICE,
   require('../cache/infrastructureCaches.js'),
   require('../config/settings.js'),
   require('../cloudProvider/cloudProvider.registry.js'),

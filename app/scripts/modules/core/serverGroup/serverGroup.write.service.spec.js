@@ -1,5 +1,7 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 describe('serverGroupWriter', function () {
   const angular = require('angular');
 
@@ -11,7 +13,7 @@ describe('serverGroupWriter', function () {
   beforeEach(
     window.module(
       require('./serverGroup.write.service.js'),
-      require('../api/api.service')
+      API_SERVICE
     )
   );
 

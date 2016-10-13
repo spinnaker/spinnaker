@@ -1,5 +1,7 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 describe('Controller: azureCreateLoadBalancerCtrl', function () {
 
   var $http;
@@ -9,7 +11,7 @@ describe('Controller: azureCreateLoadBalancerCtrl', function () {
   beforeEach(
     window.module(
       require('./createLoadBalancer.controller'),
-      require('core/api/api.service')
+      API_SERVICE
     )
   );
 

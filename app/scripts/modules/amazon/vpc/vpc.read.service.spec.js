@@ -1,5 +1,7 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 describe('vpcReader', function() {
 
   var service, $http, $scope, API;
@@ -7,7 +9,7 @@ describe('vpcReader', function() {
   beforeEach(
     window.module(
       require('./vpc.read.service.js'),
-      require('core/api/api.service')
+      API_SERVICE
     )
   );
 

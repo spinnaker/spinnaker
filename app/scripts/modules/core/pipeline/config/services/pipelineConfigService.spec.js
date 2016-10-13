@@ -1,12 +1,13 @@
 'use strict';
 
 import _ from 'lodash';
+import {API_SERVICE} from 'core/api/api.service';
 
 describe('pipelineConfigService', function () {
   beforeEach(
     window.module(
       require('./pipelineConfigService'),
-      require('core/api/api.service')
+      API_SERVICE
     )
   );
 

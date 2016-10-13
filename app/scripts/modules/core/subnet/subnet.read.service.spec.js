@@ -1,5 +1,7 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 describe('subnetReader', function() {
 
   var service, $http, $scope, API;
@@ -7,7 +9,7 @@ describe('subnetReader', function() {
   beforeEach(
     window.module(
       require('./subnet.read.service.js'),
-      require('../api/api.service')
+      API_SERVICE
     )
   );
 

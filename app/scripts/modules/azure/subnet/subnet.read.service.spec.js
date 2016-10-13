@@ -1,5 +1,7 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 describe('azureSubnetReader', function() {
 
   var service, $http, $scope, API;
@@ -7,7 +9,7 @@ describe('azureSubnetReader', function() {
   beforeEach(
     window.module(
       require('./subnet.read.service.js'),
-      require('core/api/api.service')
+      API_SERVICE
     )
   );
 

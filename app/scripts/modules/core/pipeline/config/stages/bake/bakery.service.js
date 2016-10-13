@@ -1,9 +1,11 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.bake.service', [
-  require('core/api/api.service'),
+  API_SERVICE,
   require('core/account/account.service.js'),
   require('core/config/settings.js'),
 ])

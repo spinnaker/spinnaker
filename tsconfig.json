@@ -9,6 +9,9 @@
     "noImplicitAny": true,
     "pretty": true,
     "removeComments": true,
+    "rootDirs": [
+      "app/scripts/modules"
+    ],
     "sourceMap": true,
     "outDir": "transpiled"
   },

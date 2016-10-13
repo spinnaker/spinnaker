@@ -1,5 +1,7 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 describe('Service: accountService ', function () {
 
   var accountService, $http, settings, cloudProviderRegistry, API;
@@ -7,7 +9,7 @@ describe('Service: accountService ', function () {
   beforeEach(
     window.module(
       require('./account.service'),
-      require('core/api/api.service')
+      API_SERVICE
     )
   );
 

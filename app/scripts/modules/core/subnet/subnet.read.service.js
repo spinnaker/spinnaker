@@ -1,12 +1,13 @@
 'use strict';
 
 import _ from 'lodash';
+import {API_SERVICE} from 'core/api/api.service';
 
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.subnet.read.service', [
-    require('../api/api.service'),
+    API_SERVICE,
     require('../cache/infrastructureCaches.js'),
   ])
   .factory('subnetReader', function ($q, API, infrastructureCaches) {

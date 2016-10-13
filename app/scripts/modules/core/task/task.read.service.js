@@ -1,10 +1,12 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.task.read.service', [
-    require('../api/api.service'),
+    API_SERVICE,
     require('../orchestratedItem/orchestratedItem.transformer.js')
   ])
   .factory('taskReader', function (API, $log, $q, $timeout, orchestratedItemTransformer) {

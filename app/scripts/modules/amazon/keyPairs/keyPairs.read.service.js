@@ -1,11 +1,11 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.keyPairs.read.service', [
-    require('core/api/api.service')
-  ])
+  .module('spinnaker.keyPairs.read.service', [API_SERVICE])
   .factory('keyPairsReader', function ($q, API) {
 
     function listKeyPairs() {

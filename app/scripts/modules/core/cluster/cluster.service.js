@@ -3,12 +3,13 @@
 /* eslint consistent-return:0 */
 
 import _ from 'lodash';
+import {API_SERVICE} from '../api/api.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.cluster.service', [
   require('../naming/naming.service.js'),
-  require('../api/api.service'),
+  API_SERVICE,
   require('../serverGroup/serverGroup.transformer.js'),
 ])
   .factory('clusterService', function ($q, API, serverGroupTransformer, namingService) {

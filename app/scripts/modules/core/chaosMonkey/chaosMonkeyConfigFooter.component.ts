@@ -12,7 +12,7 @@ export class ChaosMonkeyConfigFooterController implements ng.IComponentControlle
   public application: Application;
   public config: any;
 
-  static get inject() { return ['applicationWriter']; }
+  static get $inject() { return ['applicationWriter']; }
 
   public constructor(private applicationWriter: any) {}
 

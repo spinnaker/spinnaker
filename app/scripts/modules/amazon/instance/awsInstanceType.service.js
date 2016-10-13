@@ -1,11 +1,12 @@
 'use strict';
 
 import _ from 'lodash';
+import {API_SERVICE} from 'core/api/api.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.instanceType.service', [
-  require('core/api/api.service'),
+  API_SERVICE,
   require('core/cache/deckCacheFactory.js'),
   require('core/config/settings.js'),
   require('core/cache/infrastructureCaches.js'),

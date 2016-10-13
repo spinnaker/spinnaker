@@ -50,9 +50,9 @@
   },
   "scripts": {
     "preinstall": "npm install -g bower@1.4.1",
-    "build": "node ./node_modules/webpack/bin/webpack.js",
-    "start": "node ./node_modules/webpack-dev-server/bin/webpack-dev-server.js",
-    "test": "./node_modules/karma/bin/karma start",
+    "build": "webpack --bail",
+    "start": "webpack-dev-server",
+    "test": "karma start",
     "postinstall": "typings install",
     "int": "protractor protractor.conf.js"
   },

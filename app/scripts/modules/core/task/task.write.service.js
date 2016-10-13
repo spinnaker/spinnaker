@@ -1,10 +1,12 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.task.write.service', [
-    require('../api/api.service'),
+    API_SERVICE,
     require('./task.read.service.js'),
   ])
   .factory('taskWriter', function(API, taskReader, $q, $timeout) {

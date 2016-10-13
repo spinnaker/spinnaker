@@ -1,5 +1,7 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 let angular = require('angular');
 
 module.exports = angular
@@ -7,7 +9,7 @@ module.exports = angular
     require('../naming/naming.service.js'),
     require('../cache/infrastructureCaches.js'),
     require('./loadBalancer.transformer.js'),
-    require('../api/api.service')
+    API_SERVICE
   ])
   .factory('loadBalancerReader', function ($q, API, namingService,
                                            loadBalancerTransformer, infrastructureCaches) {

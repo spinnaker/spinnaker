@@ -1,10 +1,10 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.aws.image.reader', [
-  require('core/api/api.service')
-])
+module.exports = angular.module('spinnaker.aws.image.reader', [API_SERVICE])
   .factory('awsImageReader', function ($q, API) {
 
     function findImages(params) {

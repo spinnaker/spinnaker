@@ -1,34 +1,40 @@
-'use strict';
+import {AUTHENTICATION_INTERCEPTOR_SERVICE, AuthenticationInterceptor} from './authentication.interceptor.service';
+import {AuthenticationService} from './authentication.service';
 
 describe('authenticationInterceptor', function() {
 
-  var interceptor, settings, authenticationService, $rootScope;
+  let interceptor: AuthenticationInterceptor,
+    settings: any,
+    authenticationService: AuthenticationService,
+    $rootScope: ng.IRootScopeService;
+
+  beforeEach(angular.mock.module(require('../config/settings'), AUTHENTICATION_INTERCEPTOR_SERVICE));
 
   beforeEach(
-    window.module(
-      require('./authentication.interceptor.service.js')
-    )
-  );
-
-  beforeEach(window.inject(function(authenticationInterceptor, _settings_, _authenticationService_, _$rootScope_) {
-    interceptor = authenticationInterceptor;
-    settings = _settings_;
-    authenticationService = _authenticationService_;
-    $rootScope = _$rootScope_;
-  }));
+    angular.mock.inject(
+      function (_$q_: ng.IQService,
+                _settings_: any,
+                _authenticationService_: AuthenticationService,
+                _$rootScope_: ng.IRootScopeService,
+                _authenticationInterceptor_: AuthenticationInterceptor) {
+        settings = _settings_;
+        authenticationService = _authenticationService_;
+        $rootScope = _$rootScope_;
+        interceptor = _authenticationInterceptor_;
+      }));
 
   describe('non-intercepted requests', function() {
     it('resolves immediately for auth endpoint', function() {
-      var resolved = null;
-      var request = { url: settings.authEndpoint };
+      let resolved: ng.IRequestConfig = null;
+      const request: ng.IRequestConfig = { url: settings.authEndpoint, method: 'GET' };
       interceptor.request(request).then(function(result) { resolved = result; });
       $rootScope.$digest();
       expect(resolved).toBe(request);
     });
 
     it('resolves immediately for relative and non-http requests', function() {
-      var resolved = null;
-      var request = { url: '/something/relative' };
+      let resolved: ng.IRequestConfig = null;
+      const request: ng.IRequestConfig = { url: '/something/relative', method: 'GET' };
       interceptor.request(request).then(function(result) { resolved = result; });
       $rootScope.$digest();
       expect(resolved.url).toBe(request.url);
@@ -43,15 +49,13 @@ describe('authenticationInterceptor', function() {
   describe('intercepted requests', function () {
 
     it('registers event with authentication service and does not resolve when not authenticated', function () {
-      var resolved = null;
-      var request = { url: 'http://some-server.spinnaker.org' };
-
-      var pendingRequests = [];
+      let resolved: ng.IRequestConfig = null;
+      const request: ng.IRequestConfig = { url: 'http://some-server.spinnaker.org', method: 'GET' };
+      const pendingRequests: Function[] = [];
 
       spyOn(authenticationService, 'getAuthenticatedUser').and.returnValue({ authenticated: false });
-      spyOn(authenticationService, 'onAuthentication').and.callFake(function(pendingRequest) {
-        pendingRequests.push(pendingRequest);
-      });
+      spyOn(authenticationService, 'onAuthentication').and
+        .callFake((pendingRequest: Function) => pendingRequests.push(pendingRequest));
 
       interceptor.request(request).then(function(result) { resolved = result; });
       $rootScope.$digest();
@@ -65,16 +69,14 @@ describe('authenticationInterceptor', function() {
     });
 
     it('resolves immediately when authenticated', function () {
-      var resolved = null;
-      var request = { url: 'http://some-server.spinnaker.org' };
+      let resolved: ng.IRequestConfig = null;
+      const request: ng.IRequestConfig = { url: 'http://some-server.spinnaker.org', method: 'GET' };
 
       spyOn(authenticationService, 'getAuthenticatedUser').and.returnValue({ authenticated: true, lastAuthenticated: new Date().getTime() });
 
       interceptor.request(request).then(function(result) { resolved = result; });
       $rootScope.$digest();
       expect(resolved.url).toBe(request.url);
-
     });
   });
-
 });

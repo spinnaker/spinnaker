@@ -1,10 +1,12 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.ci.jenkins.igor.service', [
   require('../../config/settings.js'),
-  require('../../api/api.service'),
+  API_SERVICE,
 ])
   .factory('igorService', function (settings, API) {
 

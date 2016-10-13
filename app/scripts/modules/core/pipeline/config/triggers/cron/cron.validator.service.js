@@ -1,10 +1,10 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.trigger.cron.validation.service', [
-    require('core/api/api.service')
-  ])
+module.exports = angular.module('spinnaker.core.pipeline.trigger.cron.validation.service', [API_SERVICE])
   .factory('cronValidationService', function(API) {
 
     function validate(expression) {

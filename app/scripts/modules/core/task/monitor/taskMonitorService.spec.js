@@ -1,5 +1,7 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 describe('Service: taskMonitorService', function () {
 
   var taskMonitorService,
@@ -13,7 +15,7 @@ describe('Service: taskMonitorService', function () {
   beforeEach(
     window.module(
       require('./taskMonitorService'),
-      require('../../api/api.service')
+      API_SERVICE
     )
   );
 

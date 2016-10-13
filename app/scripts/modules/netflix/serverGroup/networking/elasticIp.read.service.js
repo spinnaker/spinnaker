@@ -1,11 +1,11 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.aws.serverGroup.details.elasticIp.read.service', [
-    require('core/api/api.service')
-  ])
+  .module('spinnaker.aws.serverGroup.details.elasticIp.read.service', [API_SERVICE])
   .factory('elasticIpReader', function (API, $log) {
     function getElasticIpsForCluster(application, account, clusterName, region) {
       return API.one('applications', application).all('clusters').all(account).all(clusterName).one('elasticIps').all(region)

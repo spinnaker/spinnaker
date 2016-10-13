@@ -1,6 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
+import {AUTHENTICATION_SERVICE} from 'core/authentication/authentication.service';
 
 let angular = require('angular');
 
@@ -12,7 +13,7 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
   require('../../pipeline/config/pipelineConfigProvider.js'),
   require('../../pipeline/config/services/pipelineConfigService'),
   require('../../notification/notification.service'),
-  require('../../authentication/authentication.service'),
+  AUTHENTICATION_SERVICE
 ])
   .controller('ManualPipelineExecutionCtrl', function ($uibModalInstance, pipeline, application, pipelineConfig,
                                                        notificationService, authenticationService,
