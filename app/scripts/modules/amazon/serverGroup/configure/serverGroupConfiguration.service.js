@@ -87,8 +87,8 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         backingData.filtered = {};
         backingData.scalingProcesses = autoScalingProcessService.listProcesses();
         command.backingData = backingData;
-        backingData.filtered.securityGroups = getRegionalSecurityGroups(command);
         configureVpcId(command);
+        backingData.filtered.securityGroups = getRegionalSecurityGroups(command);
         if (command.viewState.disableImageSelection) {
           configureInstanceTypes(command);
         }
