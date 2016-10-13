@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationTimedOutException
@@ -36,9 +37,6 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
-
-import static com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.DeleteGoogleLoadBalancerAtomicOperation.MAX_NUM_TARGET_POOL_RETRIES
-import static com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.DeleteGoogleLoadBalancerAtomicOperation.TARGET_POOL_RETRY_INTERVAL_SECONDS
 
 class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
@@ -58,6 +56,7 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
+    SafeRetry.SAFE_RETRY_INTERVAL_MILLIS = 1
   }
 
   void "should delete a Network Load Balancer with health checks"() {
@@ -426,7 +425,6 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       4 * computeMock.targetPools() >> targetPools
       4 * targetPools.delete(PROJECT_NAME, REGION, TARGET_POOL_NAME) >> targetPoolsDelete
       4 * targetPoolsDelete.execute() >> { throw googleJsonResponseException }
-      4 * operationRetryThreadSleeperMock.sleep(TARGET_POOL_RETRY_INTERVAL_SECONDS)
 
     then:
       // Now succeed.
@@ -507,13 +505,12 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
 
     then:
       // Throw "400/resourceNotReady" MAX_NUM_TARGET_POOL_RETRIES times and sleep all but the last iteration.
-      MAX_NUM_TARGET_POOL_RETRIES * computeMock.targetPools() >> targetPools
-      MAX_NUM_TARGET_POOL_RETRIES * targetPools.delete(PROJECT_NAME, REGION, TARGET_POOL_NAME) >> targetPoolsDelete
-      MAX_NUM_TARGET_POOL_RETRIES * targetPoolsDelete.execute() >> { throw googleJsonResponseException }
-      (MAX_NUM_TARGET_POOL_RETRIES - 1) * operationRetryThreadSleeperMock.sleep(TARGET_POOL_RETRY_INTERVAL_SECONDS)
+      10 * computeMock.targetPools() >> targetPools
+      10 * targetPools.delete(PROJECT_NAME, REGION, TARGET_POOL_NAME) >> targetPoolsDelete
+      10 * targetPoolsDelete.execute() >> { throw googleJsonResponseException }
 
     then:
       // Then give up and propagate the final exception.
-      thrown GoogleJsonResponseException
+      thrown GoogleOperationException
   }
 }

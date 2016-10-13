@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
@@ -54,6 +55,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
+    SafeRetry.SAFE_RETRY_INTERVAL_MILLIS = 1
   }
 
   void "should delete an Internal Load Balancer with http health check"() {
@@ -378,11 +380,11 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       1 * backendServices.delete(PROJECT_NAME, REGION, BS_NAME) >> backendServicesDelete
       1 * backendServicesDelete.execute() >> backendServicesDeleteOp
 
-      2 * computeMock.httpHealthChecks() >> healthChecks
+      11 * computeMock.httpHealthChecks() >> healthChecks
       1 * healthChecks.get(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksGet
       1 * healthChecksGet.execute() >> healthCheck
-      1 * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
-      1 * healthChecksDelete.execute() >> { throw googleJsonResponseException }
+      10 * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
+      10 * healthChecksDelete.execute() >> { throw googleJsonResponseException }
 
       2 * computeMock.regionOperations() >> regionOperations
       1 * regionOperations.get(PROJECT_NAME, REGION, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet
@@ -460,17 +462,17 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       1 * forwardingRules.delete(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesDelete
       1 * forwardingRulesDelete.execute() >> forwardingRulesDeleteOp
 
-      2 * computeMock.regionBackendServices() >> backendServices
+      11 * computeMock.regionBackendServices() >> backendServices
       1 * backendServices.get(PROJECT_NAME, REGION, BS_NAME) >> backendServicesGet
       1 * backendServicesGet.execute() >> backendService
-      1 * backendServices.delete(PROJECT_NAME, REGION, BS_NAME) >> backendServicesDelete
-      1 * backendServicesDelete.execute() >> { throw googleJsonResponseException }
+      10 * backendServices.delete(PROJECT_NAME, REGION, BS_NAME) >> backendServicesDelete
+      10 * backendServicesDelete.execute() >> { throw googleJsonResponseException }
 
-      2 * computeMock.httpHealthChecks() >> healthChecks
+      11 * computeMock.httpHealthChecks() >> healthChecks
       1 * healthChecks.get(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksGet
       1 * healthChecksGet.execute() >> healthCheck
-      1 * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
-      1 * healthChecksDelete.execute() >> { throw googleJsonResponseException } // If we can't delete the BS, we can't delete HC it's using.
+      10 * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
+      10 * healthChecksDelete.execute() >> { throw googleJsonResponseException } // If we can't delete the BS, we can't delete HC it's using.
 
       1 * computeMock.regionOperations() >> regionOperations
       1 * regionOperations.get(PROJECT_NAME, REGION, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet

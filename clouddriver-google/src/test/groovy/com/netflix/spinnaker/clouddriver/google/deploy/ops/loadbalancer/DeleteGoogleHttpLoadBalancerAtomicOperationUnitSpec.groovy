@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationTimedOutException
@@ -57,6 +58,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
+    SafeRetry.SAFE_RETRY_INTERVAL_MILLIS = 1
   }
 
   void "should delete Http Load Balancer with one backend service"() {

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.Operation
 import com.google.api.services.compute.model.TargetPool
@@ -25,15 +24,13 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "DELETE_LOAD_BALANCER"
-
-  static final int MAX_NUM_TARGET_POOL_RETRIES = 60
-  static final int TARGET_POOL_RETRY_INTERVAL_SECONDS = 1
 
   static class HealthCheckAsyncDeleteOperation {
     String healthCheckName
@@ -77,8 +74,16 @@ class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
 
     task.updateStatus BASE_PHASE, "Retrieving forwarding rule $forwardingRuleName in $region..."
 
-    ForwardingRule forwardingRule =
-        compute.forwardingRules().get(project, region, forwardingRuleName).execute()
+    SafeRetry<ForwardingRule> ruleRetry = new SafeRetry<ForwardingRule>()
+    ForwardingRule forwardingRule = ruleRetry.doRetry(
+      { compute.forwardingRules().get(project, region, forwardingRuleName).execute() },
+      'Get',
+      "Regional forwarding rule $forwardingRuleName",
+      task,
+      BASE_PHASE,
+      [400, 403, 412],
+      []
+    )
     if (forwardingRule == null) {
       GCEUtil.updateStatusAndThrowNotFoundException("Forwarding rule $forwardingRuleName not found in $region for $project",
           task, BASE_PHASE)
@@ -87,7 +92,16 @@ class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
 
     task.updateStatus BASE_PHASE, "Retrieving target pool $targetPoolName in $region..."
 
-    TargetPool targetPool = compute.targetPools().get(project, region, targetPoolName).execute()
+    SafeRetry<TargetPool> poolRetry = new SafeRetry<TargetPool>()
+    TargetPool targetPool = poolRetry.doRetry(
+      { compute.targetPools().get(project, region, targetPoolName).execute() },
+      'Get',
+      "Target pool $targetPoolName",
+      task,
+      BASE_PHASE,
+      [400, 403, 412],
+      []
+    )
     if (targetPool == null) {
       GCEUtil.updateStatusAndThrowNotFoundException("Target pool $targetPoolName not found in $region for $project",
           task, BASE_PHASE)
@@ -103,44 +117,35 @@ class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
 
     // Start deleting these objects. Wait between each delete operation for it to complete before continuing on to
     // delete its dependencies.
+    SafeRetry<Operation> deleteRetry = new SafeRetry<Operation>()
+
     task.updateStatus BASE_PHASE, "Deleting forwarding rule $forwardingRuleName in $region..."
-    Operation deleteForwardingRuleOperation =
-        compute.forwardingRules().delete(project, region, forwardingRuleName).execute()
+    Operation deleteForwardingRuleOperation = deleteRetry.doRetry(
+      { compute.forwardingRules().delete(project, region, forwardingRuleName).execute() },
+      'Delete',
+      "Regional forwarding rule $forwardingRuleName",
+      task,
+      BASE_PHASE,
+      [400, 403, 412],
+      [404]
+    )
 
     googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteForwardingRuleOperation.getName(),
         timeoutSeconds, task, "forwarding rule " + forwardingRuleName, BASE_PHASE)
 
-    def numAttempts = 0
-    def operationSucceeded = false
+    task.updateStatus BASE_PHASE, "Deleting target pool $targetPoolName in $region..."
+    Operation deleteTargetPoolOperation = deleteRetry.doRetry(
+      { compute.targetPools().delete(project, region, targetPoolName).execute() },
+      'Delete',
+      "Target pool $targetPoolName",
+      task,
+      BASE_PHASE,
+      [400, 403, 412],
+      [404]
+    )
 
-    while (!operationSucceeded && numAttempts++ < MAX_NUM_TARGET_POOL_RETRIES) {
-      try {
-        task.updateStatus BASE_PHASE, "Deleting target pool $targetPoolName in $region (attempt #$numAttempts)..."
-
-        Operation deleteTargetPoolOperation = compute.targetPools().delete(project, region, targetPoolName).execute()
-
-        operationSucceeded = true
-
-        googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteTargetPoolOperation.getName(),
-            timeoutSeconds, task, "target pool " + targetPoolName, BASE_PHASE)
-      } catch (GoogleJsonResponseException e) {
-        // 400/resourceNotReady is sometimes thrown when attempting to delete a target pool. It seems to occasionally
-        // happen immediately following deletion of a forwarding rule referring to the target pool. Any other exception
-        // needs to be propagated.
-        if (e.details?.code == 400 && e.details?.errors?.getAt(0)?.reason == "resourceNotReady") {
-          task.updateStatus BASE_PHASE, "While deleting target pool $targetPoolName in $region, received: " +
-              "${e.details?.errors?.getAt(0)?.message}"
-
-          if (numAttempts == MAX_NUM_TARGET_POOL_RETRIES) {
-            throw e
-          }
-
-          threadSleeper.sleep(TARGET_POOL_RETRY_INTERVAL_SECONDS)
-        } else {
-          throw e
-        }
-      }
-    }
+    googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteTargetPoolOperation.getName(),
+      timeoutSeconds, task, "target pool " + targetPoolName, BASE_PHASE)
 
     // Now make a list of the delete operations for health checks if the description says to do so.
     if (description.deleteHealthChecks) {

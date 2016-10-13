@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
+import com.google.api.client.json.GenericJson
 import com.google.api.services.compute.model.BackendService
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.Operation
@@ -24,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
@@ -71,8 +73,16 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
 
     task.updateStatus BASE_PHASE, "Retrieving forwarding rule $forwardingRuleName in $region..."
 
-    ForwardingRule forwardingRule =
-      compute.forwardingRules().get(project, region, forwardingRuleName).execute()
+    SafeRetry<ForwardingRule> ruleRetry = new SafeRetry<ForwardingRule>()
+    ForwardingRule forwardingRule = ruleRetry.doRetry(
+      { compute.forwardingRules().get(project, region, forwardingRuleName).execute() },
+      'Get',
+      "Regional forwarding rule $forwardingRuleName",
+      task,
+      BASE_PHASE,
+      [400, 403, 412],
+      []
+    )
     if (forwardingRule == null) {
       GCEUtil.updateStatusAndThrowNotFoundException("Forwarding rule $forwardingRuleName not found in $region for $project",
         task, BASE_PHASE)
@@ -82,7 +92,16 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
 
     task.updateStatus BASE_PHASE, "Retrieving backend service $backendServiceName in $region..."
 
-    BackendService backendService = compute.regionBackendServices().get(project, region, backendServiceName).execute()
+    SafeRetry<BackendService> serviceRetry = new SafeRetry<BackendService>()
+    BackendService backendService = serviceRetry.doRetry(
+      { compute.regionBackendServices().get(project, region, backendServiceName).execute() },
+      'Get',
+      "Region backend service $backendServiceName",
+      task,
+      BASE_PHASE,
+      [400, 403, 412],
+      []
+    )
     if (backendService == null) {
       GCEUtil.updateStatusAndThrowNotFoundException("Backend service $backendServiceName not found in $region for $project",
         task, BASE_PHASE)
@@ -91,21 +110,32 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
     def healthCheckUrl = backendService.healthChecks[0]
     def healthCheckName = GCEUtil.getLocalName(healthCheckUrl)
     def healthCheckType = Utils.getHealthCheckType(healthCheckUrl)
-    def healthCheck = null
+    def healthCheckGet = null
     switch (healthCheckType) {
       case "httpHealthChecks":
-        healthCheck = compute.httpHealthChecks().get(project, healthCheckName).execute()
+        healthCheckGet = { compute.httpHealthChecks().get(project, healthCheckName).execute() }
         break
       case "httpsHealthChecks":
-        healthCheck = compute.httpsHealthChecks().get(project, healthCheckName).execute()
+        healthCheckGet = { compute.httpsHealthChecks().get(project, healthCheckName).execute() }
         break
       case "healthChecks":
-        healthCheck = compute.healthChecks().get(project, healthCheckName).execute()
+        healthCheckGet = { compute.healthChecks().get(project, healthCheckName).execute() }
         break
       default:
         throw new IllegalStateException("Unknown health check type for health check named: ${healthCheckName}.")
         break
     }
+
+    SafeRetry<GenericJson> hcRetry = new SafeRetry<GenericJson>() // GenericJson is the only base class the health checks share...
+    def healthCheck = hcRetry.doRetry(
+      healthCheckGet,
+      'Get',
+      "Health check $healthCheckName",
+      task,
+      BASE_PHASE,
+      [400, 403, 412],
+      []
+    )
     if (healthCheck == null) {
       GCEUtil.updateStatusAndThrowNotFoundException("Health check $healthCheckName not found for $project",
         task, BASE_PHASE)
@@ -114,7 +144,17 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
     // Now delete all the components, waiting for each delete operation to finish.
     def timeoutSeconds = description.deleteOperationTimeoutSeconds
 
-    Operation deleteForwardingRuleOp = compute.forwardingRules().delete(project, region, forwardingRuleName).execute()
+    SafeRetry<Operation> deleteRetry = new SafeRetry<Operation>()
+    Operation deleteForwardingRuleOp = deleteRetry.doRetry(
+      { compute.forwardingRules().delete(project, region, forwardingRuleName).execute() },
+      'Delete',
+      "Regional forwarding rule $forwardingRuleName",
+      task,
+      BASE_PHASE,
+      [400, 412],
+      [404]
+    )
+
     if (deleteForwardingRuleOp) {
       googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteForwardingRuleOp.getName(),
         timeoutSeconds, task, "Regional forwarding rule $forwardingRuleName", BASE_PHASE)

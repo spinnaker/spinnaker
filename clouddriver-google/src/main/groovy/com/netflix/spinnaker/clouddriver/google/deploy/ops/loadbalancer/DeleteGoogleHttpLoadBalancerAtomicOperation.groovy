@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Google, Inc.
+ * Copyright 2014 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -129,7 +130,16 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
     for (String backendServiceUrl : backendServiceUrls) {
       def backendServiceName = GCEUtil.getLocalName(backendServiceUrl)
       task.updateStatus BASE_PHASE, "Retrieving backend service $backendServiceName..."
-      BackendService backendService = compute.backendServices().get(project, backendServiceName).execute()
+      SafeRetry<BackendService> bsRetry = new SafeRetry<BackendService>()
+      BackendService backendService = bsRetry.doRetry(
+        { compute.backendServices().get(project, backendServiceName).execute() },
+        'Get',
+        "Backend service $backendServiceName",
+        task,
+        BASE_PHASE,
+        [400, 403, 412],
+        []
+      )
       if (backendService?.backends) {
         task.updateStatus BASE_PHASE, "Server groups still associated with Http(s) load balancer ${description.loadBalancerName}. Failing..."
         throw new IllegalStateException("Server groups still associated with Http(s) load balancer: ${description.loadBalancerName}.")
@@ -148,8 +158,18 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
         timeoutSeconds, task, "listener " + ruleName, BASE_PHASE)
     }
 
+    SafeRetry<Operation> deleteRetry = new SafeRetry<Operation>()
+
     task.updateStatus BASE_PHASE, "Deleting URL map $urlMapName..."
-    Operation deleteUrlMapOperation = compute.urlMaps().delete(project, urlMapName).execute()
+    Operation deleteUrlMapOperation = deleteRetry.doRetry(
+      { compute.urlMaps().delete(project, urlMapName).execute() },
+      'Delete',
+      "Url map $urlMapName",
+      task,
+      BASE_PHASE,
+      [400, 403, 412],
+      [404]
+    )
 
     googleOperationPoller.waitForGlobalOperation(compute, project, deleteUrlMapOperation.getName(),
         timeoutSeconds, task, "url map " + urlMapName, BASE_PHASE)

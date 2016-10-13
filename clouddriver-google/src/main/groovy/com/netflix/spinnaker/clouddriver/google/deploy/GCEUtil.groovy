@@ -24,6 +24,7 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpHeaders
 import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
+import com.google.api.client.json.GenericJson
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.Compute.InstanceGroupManagers.AggregatedList
 import com.google.api.services.compute.model.*
@@ -922,20 +923,29 @@ class GCEUtil {
     String targetProxyType = Utils.getTargetProxyType(target)
     String targetProxyName = getLocalName(target)
 
-    def retrievedTargetProxy = null
-
+    def proxyGet = null
     switch (targetProxyType) {
       case "targetHttpProxies":
-        retrievedTargetProxy = compute.targetHttpProxies().get(project, targetProxyName).execute()
+        proxyGet = { compute.targetHttpProxies().get(project, targetProxyName).execute() }
         break
       case "targetHttpsProxies":
-        retrievedTargetProxy = compute.targetHttpsProxies().get(project, targetProxyName).execute()
+        proxyGet = { compute.targetHttpsProxies().get(project, targetProxyName).execute() }
         break
       default:
         log.warn("Unexpected target proxy type for $targetProxyName.")
-        retrievedTargetProxy = null
+        return null
         break
     }
+    SafeRetry<GenericJson> proxyRetry = new SafeRetry<GenericJson>()
+    def retrievedTargetProxy = proxyRetry.doRetry(
+      proxyGet,
+      'Get',
+      "Target proxy $targetProxyName",
+      null,
+      null,
+      [400, 403, 412],
+      []
+    )
     return retrievedTargetProxy
   }
 
@@ -996,7 +1006,16 @@ class GCEUtil {
     task.updateStatus phase, "Deleting $component for $project..."
     Operation deleteOp
     try {
-      deleteOp = closure()
+      SafeRetry<Operation> deleteRetry = new SafeRetry<Operation>()
+      deleteOp = deleteRetry.doRetry(
+        closure,
+        'Delete',
+        component,
+        task,
+        phase,
+        [400, 412],
+        [404]
+      )
     } catch (GoogleJsonResponseException e) {
       if (e.details?.code == 400 && e.details?.errors?.getAt(0)?.reason == "resourceInUseByAnotherResource") {
         log.warn("Could not delete $component for $project, it was in use by another resource.")
