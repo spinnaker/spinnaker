@@ -48,6 +48,20 @@ class BakeService {
     throw new IllegalArgumentException("Bake options for cloud provider ${cloudProvider} not found")
   }
 
+  String lookupLogs(String region, String statusId) {
+    if (roscoService) {
+      def logsMap = roscoService.lookupLogs(region, statusId)
+
+      if (logsMap?.logsContent) {
+        return "<pre>$logsMap.logsContent</pre>"
+      } else {
+        throw new IllegalArgumentException("Bake logs not found.")
+      }
+    } else {
+      throw new IllegalArgumentException("Bake logs retrieval not supported.")
+    }
+  }
+
   static class BakeOptions {
     String cloudProvider
     List<BaseImage> baseImages

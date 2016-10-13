@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import retrofit.RetrofitError
 
 @RequestMapping("/bakery")
 @RestController
@@ -43,9 +44,17 @@ class BakeController {
     bakeService.bakeOptions(cloudProvider)
   }
 
+  @RequestMapping(value = "/api/v1/{region}/logs/{statusId}", method = RequestMethod.GET)
+  def lookupLogs(@PathVariable("region") String region,
+                 @PathVariable("statusId") String statusId) {
+    bakeService.lookupLogs(region, statusId)
+  }
+
   @ExceptionHandler
   @ResponseStatus(HttpStatus.NOT_FOUND)
   Map handleBakeOptionsException(Exception e) {
-    [error: "bake.options.not.found", status: HttpStatus.NOT_FOUND, message: e.message]
+    def errorMsg = e instanceof RetrofitError && e.getUrl().contains("/logs/") ? "logs.not.found" : "bake.options.not.found"
+
+    return [error: errorMsg, status: HttpStatus.NOT_FOUND, message: e.message]
   }
 }

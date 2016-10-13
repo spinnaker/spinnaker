@@ -70,6 +70,7 @@ swagger:
     - .*vpcs.*
     - .*subnets.*
     - .*networks.*
+    - .*bakery.*
 
 hystrix:
   command:

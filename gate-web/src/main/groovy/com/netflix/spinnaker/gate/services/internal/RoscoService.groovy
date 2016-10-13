@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services.internal
 
 import retrofit.http.GET
+import retrofit.http.Headers
 import retrofit.http.Path
 
 interface RoscoService {
@@ -26,5 +27,9 @@ interface RoscoService {
 
   @GET("/bakeOptions/{cloudProvider}")
   Map bakeOptions(@Path("cloudProvider") String cloudProvider)
+
+  @Headers("Accept: application/json")
+  @GET("/api/v1/{region}/logs/{statusId}")
+  Map lookupLogs(@Path("region") String region, @Path("statusId") String statusId)
 
 }
