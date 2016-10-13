@@ -33,7 +33,30 @@ public interface Updateable {
     field.setAccessible(true);
     Object oldValue = field.get(this);
     field.set(this, value);
+    field.setAccessible(false);
 
+    List<String> errors = null
+    try {
+      errors = this.validate(fieldName, valueType);
+    } catch (Exception e) {
+      throw e;
+    } finally {
+      // Reset value after failure
+      if (!errors.isEmpty()) {
+        field.setAccessible(true);
+        field.set(this, oldValue);
+        field.setAccessible(false);
+      }
+    }
+
+    return errors;
+  }
+
+  default public List<String> validate(String fieldName, Class<?> valueType) throws IllegalAccessException, NoSuchFieldException {
+    Field field = this.getClass().getDeclaredField(fieldName);
+    field.setAccessible(true);
+    Object value = field.get(this);
+    field.setAccessible(false);
     List<String> errors = Arrays.stream(field.getDeclaredAnnotations())
         .filter(c -> c instanceof ValidateField)                               // Find all ValidateField annotations
         .map(v -> (ValidateField) v)
@@ -49,13 +72,6 @@ public interface Updateable {
         .flatMap(Validator::validate)                                          // Run the validators & flatten results
         .map(s -> String.format("Invalid field \"%s\": %s", fieldName, s))
         .collect(Collectors.toList());
-
-    // Reset value after failure
-    if (!errors.isEmpty()) {
-      field.set(this, oldValue);
-    }
-
-    field.setAccessible(false);
 
     return errors;
   }

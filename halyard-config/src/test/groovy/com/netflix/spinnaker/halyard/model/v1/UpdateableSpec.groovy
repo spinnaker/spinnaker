@@ -60,6 +60,16 @@ public class UpdateableSpec extends Specification{
     test.name == SKIP_VALUE
   }
 
+  void "should fail to validate my field "() {
+    when:
+    def test = new Test(name: BAD_VALUE)
+    def res = test.validate("name", String.class)
+
+    then:
+    res[0].contains(ERROR_MESSAGE)
+    test.name == BAD_VALUE
+  }
+
   @Data
   public class Test implements Updateable {
     @ValidateField(validators = [TestValidator.class])
