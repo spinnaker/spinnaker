@@ -18,12 +18,20 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
       templateUrl: require('./dockerTrigger.html'),
       popoverLabelUrl: require('./dockerPopoverLabel.html'),
       manualExecutionHandler: 'dockerTriggerExecutionHandler',
+      validators: [
+        { type: 'requiredField', fieldName: 'account',
+          message: '<strong>Registry</strong> is a required field for Docker Registry triggers.'},
+        { type: 'requiredField', fieldName: 'organization',
+          message: '<strong>Organization</strong> is a required field for Docker Registry triggers.' },
+        { type: 'requiredField', fieldName: 'repository',
+          message: '<strong>Image</strong> is a required field for Docker Registry triggers.'},
+      ],
     });
   })
   .factory('dockerTriggerExecutionHandler', function ($q) {
     return {
       formatLabel: (trigger) => {
-        return $q.when(`(Docker Registry) ${trigger.account}: ${trigger.repository}`);
+        return $q.when(`(Docker Registry) ${trigger.account ? trigger.account + ':' : ''} ${trigger.repository || ''}`);
       },
       selectorTemplate: require('./selectorTemplate.html'),
     };

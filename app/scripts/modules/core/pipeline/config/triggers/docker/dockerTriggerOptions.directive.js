@@ -1,6 +1,7 @@
 'use strict';
 
 import {Observable, Subject} from 'rxjs';
+import _ from 'lodash';
 
 const angular = require('angular');
 
@@ -80,7 +81,14 @@ module.exports = angular
       queryStream.next(formatQuery(query));
     };
 
-    let formatQuery = (query) => `*${this.command.trigger.repository.split('/').pop()}:${query}*`;
+    let formatQuery = (query) => {
+      let repository = _.get(this, 'command.trigger.repository');
+      if (repository) {
+        return `${this.command.trigger.repository.split('/').pop()}:${query}`;
+      } else {
+        return query;
+      }
+    };
 
     $scope.$watch(() => this.command.trigger, initialize);
   });

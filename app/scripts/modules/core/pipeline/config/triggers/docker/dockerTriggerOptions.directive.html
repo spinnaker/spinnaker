@@ -11,8 +11,7 @@
     <ui-select class="form-control input-sm"
                ng-model="vm.viewState.selectedTag"
                on-select="vm.updateSelectedTag($item)"
-               reset-search-input="false"
-               ng-if="vm.tags.length">
+               reset-search-input="false">
       <ui-select-match placeholder="Select...">
         <span>
           <strong>{{$select.selected}}</strong>
