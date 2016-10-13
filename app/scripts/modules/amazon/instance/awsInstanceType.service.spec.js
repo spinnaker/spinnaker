@@ -39,6 +39,16 @@ describe('Service: InstanceType', function () {
       {account: 'test', region: 'us-west-2', name: 'm2.xlarge', availabilityZone: 'us-west-2b'},
       {account: 'test', region: 'eu-west-1', name: 'hs1.8xlarge', availabilityZone: 'eu-west-1c'},
       {account: 'test', region: 'eu-west-1', name: 'm2.xlarge', availabilityZone: 'eu-west-1c'},
+      {account: 'test', region: 'us-east-1', name: 'm4.2xlarge', availabilityZone: 'us-east-1c'},
+      {account: 'test', region: 'us-east-1', name: 't2.nano', availabilityZone: 'us-east-1c'},
+      {account: 'test', region: 'us-east-1', name: 't2.micro', availabilityZone: 'us-east-1c'},
+      {account: 'test', region: 'us-east-1', name: 'm4.xlarge', availabilityZone: 'us-east-1c'},
+      {account: 'test', region: 'us-east-1', name: 'm4.4xlarge', availabilityZone: 'us-east-1c'},
+      {account: 'test', region: 'us-east-1', name: 't2.medium', availabilityZone: 'us-east-1c'},
+      {account: 'test', region: 'us-east-1', name: 'm4.large', availabilityZone: 'us-east-1c'},
+      {account: 'test', region: 'us-east-1', name: 'm4.16xlarge', availabilityZone: 'us-east-1c'},
+      {account: 'test', region: 'us-east-1', name: 'm4.10xlarge', availabilityZone: 'us-east-1c'},
+      {account: 'test', region: 'us-east-1', name: 't2.loltiny', availabilityZone: 'us-east-1c'},
     ];
 
     infrastructureCaches.createCache('instanceTypes', {});
@@ -120,6 +130,31 @@ describe('Service: InstanceType', function () {
       expect(service.filterInstanceTypes(types, 'hvm', false)).toEqual(['c3.a']);
       expect(service.filterInstanceTypes(types, 'paravirtual', true)).toEqual(['c3.a', 'c1.a']);
       expect(service.filterInstanceTypes(types, 'paravirtual', false)).toEqual(['c3.a', 'c1.a']);
+    });
+
+    it('sorts instance types by family then class size', function() {
+      this.$httpBackend.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
+
+      var results = null,
+          service = this.awsInstanceTypeService;
+
+      this.awsInstanceTypeService.getAllTypesByRegion().then(function(result) {
+        results = service.getAvailableTypesForRegions(result, ['us-east-1']);
+      });
+
+      this.$httpBackend.flush();
+      expect(results).toEqual([
+        'm4.large',
+        'm4.xlarge',
+        'm4.2xlarge',
+        'm4.4xlarge',
+        'm4.10xlarge',
+        'm4.16xlarge',
+        't2.nano',
+        't2.micro',
+        't2.medium',
+        't2.loltiny'
+      ]);
     });
 
   });

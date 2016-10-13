@@ -214,6 +214,55 @@ module.exports = angular.module('spinnaker.aws.instanceType.service', [
         });
     };
 
+    let instanceClassOrder = ['xlarge', 'large', 'medium', 'small', 'micro', 'nano'];
+
+    function sortTypesByFamilyAndSize(o1, o2) {
+      var type1 = o1.split('.'),
+          type2 = o2.split('.');
+
+      if (type1.length !== 2 || type2.length !== 2) {
+        return 0;
+      }
+
+      let [family1, class1] = type1;
+      let [family2, class2] = type2;
+
+      if (family1 !== family2) {
+        if (family1 > family2) {
+          return 1;
+        } else if (family1 < family2) {
+          return -1;
+        }
+        return 0;
+      }
+
+      let t1Idx = instanceClassOrder.findIndex(el => class1.endsWith(el));
+      let t2Idx = instanceClassOrder.findIndex(el => class2.endsWith(el));
+
+      if (t1Idx === -1 || t2Idx === -1) {
+        return 0;
+      }
+
+      if (t1Idx === 0 && t2Idx === 0) {
+        let size1 = parseInt(class1.replace('xlarge', '')) || 0;
+        let size2 = parseInt(class2.replace('xlarge', '')) || 0;
+
+        if (size2 < size1) {
+          return 1;
+        } else if (size2 > size1) {
+          return -1;
+        }
+        return 0;
+      }
+
+      if (t1Idx > t2Idx) {
+        return -1;
+      } else if (t1Idx < t2Idx) {
+        return 1;
+      }
+      return 0;
+    }
+
     function getAvailableTypesForRegions(availableRegions, selectedRegions) {
       selectedRegions = selectedRegions || [];
       var availableTypes = [];
@@ -230,7 +279,7 @@ module.exports = angular.module('spinnaker.aws.instanceType.service', [
         }
       });
 
-      return availableTypes.sort();
+      return availableTypes.sort(sortTypesByFamilyAndSize);
     }
 
     let families = {
