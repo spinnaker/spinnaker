@@ -95,7 +95,6 @@ echo '    HostName' $public_hostname
 echo '    IdentityFile /path/to/private/key'
 echo '    LocalForward 9000 127.0.0.1:9000'
 echo '    LocalForward 8084 127.0.0.1:8084'
-echo '    LocalForward 8087 127.0.0.1:8087'
 echo '    User ubuntu'
 echo
 echo 'If the ssh config file is new. Ensure it is chmod 400'
