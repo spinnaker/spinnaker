@@ -1,5 +1,7 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 describe('Service: taskWriter', function () {
 
   var taskWriter;
@@ -10,7 +12,7 @@ describe('Service: taskWriter', function () {
   beforeEach(
     window.module(
       require('./task.write.service'),
-      require('../api/api.service')
+      API_SERVICE
     )
   );
 

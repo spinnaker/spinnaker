@@ -1,6 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
+import {API_SERVICE} from 'core/api/api.service';
 
 let angular = require('angular');
 
@@ -11,7 +12,7 @@ module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
   require('../cache/infrastructureCaches.js'),
   require('./securityGroup.transformer.js'),
   require('../cloudProvider/serviceDelegate.service.js'),
-  require('../api/api.service')
+  API_SERVICE
 ])
   .factory('securityGroupReader', function ($q, $log, searchService, namingService, API,
                                             infrastructureCaches, securityGroupTransformer, serviceDelegate) {

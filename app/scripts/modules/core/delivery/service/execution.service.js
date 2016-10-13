@@ -1,6 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
+import {API_SERVICE} from 'core/api/api.service';
 
 let angular = require('angular');
 
@@ -10,7 +11,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
   require('../../config/settings.js'),
   require('../filter/executionFilter.model.js'),
   require('./executions.transformer.service.js'),
-  require('core/api/api.service'),
+  API_SERVICE
 ])
   .factory('executionService', function($http, API, $timeout, $q, $log, ExecutionFilterModel, $state,
                                         settings, appendTransform, executionsTransformer) {

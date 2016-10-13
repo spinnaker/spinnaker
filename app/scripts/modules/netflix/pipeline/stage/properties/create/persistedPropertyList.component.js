@@ -1,11 +1,11 @@
 'use strict';
 
+import {AUTHENTICATION_SERVICE} from 'core/authentication/authentication.service';
+
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.netflix.pipeline.create.persistedPropertyList.component', [
-    require('core/authentication/authentication.service')
-  ])
+  .module('spinnaker.netflix.pipeline.create.persistedPropertyList.component', [AUTHENTICATION_SERVICE])
   .component('persistedPropertyCreateList', {
     bindings: {
       stage: '=',

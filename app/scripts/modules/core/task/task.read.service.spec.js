@@ -1,5 +1,7 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 describe('Service: taskReader', function () {
 
   var service, $http, scope, timeout, task, API;
@@ -7,7 +9,7 @@ describe('Service: taskReader', function () {
   beforeEach(
     window.module(
       require('./task.read.service'),
-      require('../api/api.service')
+      API_SERVICE
     )
   );
 

@@ -1,12 +1,11 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
 
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.canary.canaryAnalysisNameSelector.directive', [
-    require('core/api/api.service')
-  ])
+  .module('spinnaker.core.canary.canaryAnalysisNameSelector.directive', [API_SERVICE])
   .directive('canaryAnalysisNameSelector', () => {
     return {
       restrict: 'E',

@@ -1,9 +1,11 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.gce.backendService.reader.service', [
-    require('core/api/api.service.js'),
+    API_SERVICE,
     require('core/cache/infrastructureCaches.js'),
   ])
   .factory('gceBackendServiceReader', function (API, infrastructureCaches) {

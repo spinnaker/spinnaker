@@ -1,13 +1,14 @@
 'use strict';
 
 import _ from 'lodash';
+import {AUTHENTICATION_SERVICE} from 'core/authentication/authentication.service';
 
 let angular = require('angular');
 
 require('./ci.less');
 
 module.exports = angular.module('spinnaker.netflix.ci.controller', [
-  require('core/authentication/authentication.service'),
+  AUTHENTICATION_SERVICE,
   require('core/application/service/applications.read.service'),
   require('./build.read.service.js'),
   require('angular-ui-router'),

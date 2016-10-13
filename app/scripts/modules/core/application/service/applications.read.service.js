@@ -1,4 +1,5 @@
 import dataSourceModule from './applicationDataSource.registry';
+import {API_SERVICE} from 'core/api/api.service';
 import {ApplicationDataSource, DataSourceConfig} from '../service/applicationDataSource';
 import {Application} from '../application.model';
 
@@ -7,7 +8,7 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.applications.read.service', [
     require('../../scheduler/scheduler.factory.js'),
-    require('../../api/api.service'),
+    API_SERVICE,
     dataSourceModule,
     require('../../presentation/robotToHumanFilter/robotToHuman.filter'),
   ])

@@ -1,9 +1,11 @@
 'use strict';
 
+import {AUTHENTICATION_SERVICE} from '../authentication/authentication.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.taskExecutor', [
-  require('../authentication/authentication.service.js'),
+  AUTHENTICATION_SERVICE,
   require('./task.read.service.js'),
   require('./task.write.service.js'),
 ])

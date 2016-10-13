@@ -1,10 +1,12 @@
 'use strict';
 
+import {AUTHENTICATION_SERVICE} from '../authentication.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.authentication.userMenu.directive', [
   require('../../config/settings.js'),
-  require('../authentication.service.js'),
+  AUTHENTICATION_SERVICE
 ])
   .directive('userMenu', function(settings, authenticationService) {
     return {

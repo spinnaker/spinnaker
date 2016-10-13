@@ -1,12 +1,11 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
 
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.netflix.canary.read.service', [
-    require('core/api/api.service')
-  ])
+  .module('spinnaker.netflix.canary.read.service', [API_SERVICE])
   .factory('canaryReadService', function(API) {
 
     let getCanaryById = (canaryId) => {

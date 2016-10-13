@@ -1,10 +1,10 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.netflix.pipeline.stages.canary.deployment.history.service', [
-  require('core/api/api.service')
-])
+module.exports = angular.module('spinnaker.netflix.pipeline.stages.canary.deployment.history.service', [API_SERVICE])
   .factory('canaryDeploymentHistoryService', function (API) {
 
     function getAnalysisHistory(canaryDeploymentId) {

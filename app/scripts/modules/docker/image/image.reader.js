@@ -1,10 +1,12 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.docker.image.reader', [
-    require('core/api/api.service'),
+    API_SERVICE,
     require('core/retry/retry.service.js')
   ])
   .factory('dockerImageReader', function ($q, API, retryService) {

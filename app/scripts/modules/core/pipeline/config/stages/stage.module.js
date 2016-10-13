@@ -1,11 +1,12 @@
 'use strict';
 
 import _ from 'lodash';
+import {API_SERVICE} from 'core/api/api.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
-  require('core/api/api.service'),
+  API_SERVICE,
   require('../pipelineConfigProvider.js'),
   require('../services/pipelineConfigService.js'),
   require('./overrideTimeout/overrideTimeout.directive.js'),

@@ -1,10 +1,12 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.ci.build.read.service', [
-    require('core/api/api.service'),
+    API_SERVICE,
     require('core/config/settings'),
     require('core/orchestratedItem/orchestratedItem.transformer'),
   ])

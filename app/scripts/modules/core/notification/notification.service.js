@@ -1,10 +1,10 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.notification.service', [
-  require('../api/api.service')
-])
+module.exports = angular.module('spinnaker.core.notification.service', [API_SERVICE])
   .factory('notificationService', function (settings, API) {
 
     function getNotificationsForApplication(applicationName) {

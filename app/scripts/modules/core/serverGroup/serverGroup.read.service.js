@@ -1,11 +1,11 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.serverGroup.read.service', [
-    require('../api/api.service')
-  ])
+  .module('spinnaker.core.serverGroup.read.service', [API_SERVICE])
   .factory('serverGroupReader', function (API, $log) {
 
     function getServerGroup(application, account, region, serverGroupName) {

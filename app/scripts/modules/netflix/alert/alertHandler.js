@@ -1,11 +1,13 @@
 'use strict';
 
+import {AUTHENTICATION_SERVICE} from 'core/authentication/authentication.service';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.alert.handler', [
     require('core/config/settings.js'),
-    require('core/authentication/authentication.service.js'),
+    AUTHENTICATION_SERVICE
   ])
   .config(function ($provide) {
     $provide.decorator('$exceptionHandler', function($delegate, settings, authenticationService, $injector) {

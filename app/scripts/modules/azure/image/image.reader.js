@@ -1,10 +1,10 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.azure.image.reader', [
-  require('core/api/api.service')
-])
+module.exports = angular.module('spinnaker.azure.image.reader', [API_SERVICE])
   .factory('azureImageReader', function ($q, API) {
 
     function findImages(params) {

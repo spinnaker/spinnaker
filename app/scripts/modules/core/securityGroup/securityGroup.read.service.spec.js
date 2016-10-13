@@ -1,3 +1,7 @@
+'use strict';
+
+import {API_SERVICE} from 'core/api/api.service';
+
 describe('Service: securityGroupReader', function () {
 
   var securityGroupReader,
@@ -9,7 +13,7 @@ describe('Service: securityGroupReader', function () {
   beforeEach(
     window.module(
       require('./securityGroup.read.service.js'),
-      require('../api/api.service')
+      API_SERVICE
     )
   );
 

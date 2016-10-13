@@ -1,13 +1,15 @@
 'use strict';
 
 import _ from 'lodash';
+import {AUTHENTICATION_SERVICE} from 'core/authentication/authentication.service';
+import {API_SERVICE} from 'core/api/api.service';
 
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.fastProperties.write.service', [
-    require('core/api/api.service'),
-    require('core/authentication/authentication.service.js')
+    API_SERVICE,
+    AUTHENTICATION_SERVICE
   ])
   .factory('fastPropertyWriter', function (API, authenticationService) {
 

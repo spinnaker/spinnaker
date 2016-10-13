@@ -1,11 +1,11 @@
 'use strict';
 
+import {API_SERVICE} from 'core/api/api.service';
+
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.instance.read.service', [
-    require('../api/api.service')
-  ])
+  .module('spinnaker.core.instance.read.service', [API_SERVICE])
   .factory('instanceReader', function (API) {
 
     function getInstanceDetails(account, region, id) {
