@@ -19,11 +19,9 @@ package com.netflix.spinnaker.clouddriver.azure.security
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureCustomImageStorage
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
-import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
 @Slf4j
-@CompileStatic
 public class AzureNamedAccountCredentials implements AccountCredentials<AzureCredentials> {
   private static final String CLOUD_PROVIDER = "azure"
   final String accountName

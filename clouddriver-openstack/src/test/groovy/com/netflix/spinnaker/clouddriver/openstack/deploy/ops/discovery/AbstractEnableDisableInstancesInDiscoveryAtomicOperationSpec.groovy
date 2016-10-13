@@ -52,7 +52,7 @@ class AbstractEnableDisableInstancesInDiscoveryAtomicOperationSpec extends Speci
     OpenstackClientProvider provider = Mock(OpenstackClientProvider)
     GroovyMock(OpenstackProviderFactory, global: true)
     ConsulConfig consulConfig = Mock(ConsulConfig) {
-      isEnabled() >> consulEnabled
+      getEnabled() >> consulEnabled
       applyDefaults() >> {}
     }
     OpenstackNamedAccountCredentials credz = new OpenstackNamedAccountCredentials("name", "test", "main", "user", "pw", "tenant", "domain", "endpoint", [], false, "", new OpenstackConfigurationProperties.LbaasConfig(pollTimeout: 60, pollInterval: 5), consulConfig)

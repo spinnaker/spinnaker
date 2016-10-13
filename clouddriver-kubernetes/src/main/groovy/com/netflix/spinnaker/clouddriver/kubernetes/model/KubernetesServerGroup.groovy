@@ -135,7 +135,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
     def bi = buildInfo
     return new ServerGroup.ImagesSummary() {
       @Override
-      List<ServerGroup.ImageSummary> getSummaries () {
+      List<? extends ServerGroup.ImageSummary> getSummaries () {
         deployDescription.containers.collect({ KubernetesContainerDescription it ->
           new ServerGroup.ImageSummary() {
             String serverGroupName = name
@@ -149,7 +149,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
 
             @Override
             Map<String, Object> getImage() {
-              return [
+              return (Map<String, Object>) [
                 container: it.name,
                 registry: it.imageDescription.registry,
                 tag: it.imageDescription.tag,

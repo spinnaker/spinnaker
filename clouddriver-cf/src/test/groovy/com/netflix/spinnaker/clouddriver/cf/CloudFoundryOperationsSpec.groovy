@@ -28,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvi
 import com.netflix.spinnaker.clouddriver.cf.deploy.handlers.CloudFoundryDeployHandler
 import com.netflix.spinnaker.clouddriver.cf.utils.CloudFoundryClientFactory
 import groovy.json.JsonSlurper
-import groovy.json.internal.Charsets
 import org.cloudfoundry.client.lib.CloudFoundryClient
 import org.cloudfoundry.client.lib.CloudFoundryOperations
 import org.cloudfoundry.client.lib.domain.*

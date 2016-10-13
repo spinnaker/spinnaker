@@ -42,7 +42,7 @@ public interface Task {
   /**
    * A comprehensive history of this task's execution.
    */
-  List<Status> getHistory()
+  List<? extends Status> getHistory()
 
   /**
    * This method is used to update the status of the Task with given phase and status strings.

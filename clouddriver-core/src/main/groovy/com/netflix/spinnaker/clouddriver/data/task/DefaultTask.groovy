@@ -51,7 +51,7 @@ public class DefaultTask implements Task {
     statusHistory.addLast(currentStatus().update(TaskState.COMPLETED))
   }
 
-  public List<Status> getHistory() {
+  public List<? extends Status> getHistory() {
     statusHistory.collect { new TaskDisplayStatus(it) }
   }
 

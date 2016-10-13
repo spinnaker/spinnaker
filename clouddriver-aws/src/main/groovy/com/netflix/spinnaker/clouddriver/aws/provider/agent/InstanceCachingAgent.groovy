@@ -107,7 +107,7 @@ class InstanceCachingAgent implements CachingAgent, AccountAware, DriftMetric {
     def amazonEC2 = amazonClientProvider.getAmazonEC2(account, region)
 
     Long start = null
-    def request = new DescribeInstancesRequest()
+    def request = new DescribeInstancesRequest().withMaxResults(500)
     List<Instance> awsInstances = []
     while (true) {
       def resp = amazonEC2.describeInstances(request)

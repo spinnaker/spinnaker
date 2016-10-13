@@ -22,7 +22,7 @@ import java.lang.annotation.Annotation
 
 @Component
 class AmazonCloudProvider implements CloudProvider {
-  static final String AWS = "aws"
+  public static final String AWS = "aws"
   final String id = AWS
   final String displayName = "Amazon"
   final Class<? extends Annotation> operationAnnotationType = AmazonOperation

@@ -58,8 +58,8 @@ trait OnDemandAware {
     onDemandData.each { String namespace, List<MutableCacheData> cacheDatas ->
       cacheDatas.each { MutableCacheData cacheData ->
         cacheResultBuilder.namespace(namespace).keep(cacheData.id).with {
-          attributes = cacheData.attributes
-          relationships = cacheData.relationships
+          it.attributes = cacheData.attributes
+          it.relationships = cacheData.relationships
         }
         cacheResultBuilder.onDemand.toKeep.remove(cacheData.id)
       }

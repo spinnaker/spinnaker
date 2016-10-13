@@ -203,7 +203,7 @@ interface ServerGroup {
    */
   @JsonInclude(JsonInclude.Include.NON_NULL)
   interface ImagesSummary extends Summary {
-    List<ImageSummary> getSummaries()
+    List<? extends ImageSummary> getSummaries()
   }
 
   static class SimpleServerGroup implements ServerGroup {

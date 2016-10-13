@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.aws.bastion
 
-import com.aestasit.ssh.SshOptions
-import com.aestasit.ssh.dsl.CommandOutput
-import com.aestasit.ssh.dsl.SshDslEngine
+import com.aestasit.infrastructure.ssh.SshOptions
+import com.aestasit.infrastructure.ssh.dsl.CommandOutput
+import com.aestasit.infrastructure.ssh.dsl.SshDslEngine
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.auth.BasicSessionCredentials
@@ -70,10 +70,11 @@ class BastionCredentialsProvider implements AWSCredentialsProvider {
   private AWSCredentials getRemoteCredentials() {
     SimpleDateFormat format = new SimpleDateFormat(
       "yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
-    def engine = new SshDslEngine(new SshOptions(defaultKeyFile: new File(sshKey)))
+    def engine = new SshDslEngine(new SshOptions(defaultKeyFile: new File(sshKey), trustUnknownHosts: true))
     def command = "oq-ssh -r ${proxyRegion} ${proxyCluster},0 'curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/${iamRole}'".toString()
-    CommandOutput output = engine.remoteSession("${user}@${host}:${port}") {
-      exec command: command
+    CommandOutput output
+    engine.remoteSession("${user}@${host}:${port}") {
+      output = exec command: command
     }
     def jsonText = output.output.substring(output.output.indexOf('{'))
     def json = slurper.parseText(jsonText) as Map
