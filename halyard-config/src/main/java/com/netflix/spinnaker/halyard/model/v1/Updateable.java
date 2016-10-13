@@ -35,7 +35,7 @@ public interface Updateable {
     field.set(this, value);
     field.setAccessible(false);
 
-    List<String> errors = null
+    List<String> errors = null;
     try {
       errors = this.validate(fieldName, valueType);
     } catch (Exception e) {
