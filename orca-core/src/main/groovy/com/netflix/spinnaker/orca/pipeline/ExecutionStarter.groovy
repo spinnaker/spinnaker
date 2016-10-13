@@ -52,7 +52,7 @@ abstract class ExecutionStarter<T extends Execution> {
   @Autowired protected String currentInstanceId
 
   T start(String configJson) {
-    Map<String, Serializable> config = mapper.readValue(configJson, Map)
+    Map<String, Serializable> config = (Map<String, Serializable>) mapper.readValue(configJson, Map)
     def subject = create(config)
     persistExecution(subject)
 

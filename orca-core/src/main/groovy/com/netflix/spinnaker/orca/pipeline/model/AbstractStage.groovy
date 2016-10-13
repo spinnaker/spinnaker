@@ -112,12 +112,12 @@ abstract class AbstractStage<T extends Execution<T>> implements Stage<T>, Serial
       ptr = rootNode.setAll(createAndMap(pointer, obj))
     }
     mergeCommit ptr, obj
-    context = objectMapper.convertValue(rootNode, LinkedHashMap)
+    context = (Map<String, Object>) objectMapper.convertValue(rootNode, LinkedHashMap)
   }
 
   @Override
   List<StageNavigator.Result> ancestors(BiFunction<Stage<T>, StageDefinitionBuilder, Boolean> matcher) {
-    return stageNavigator ? stageNavigator.findAll(this, matcher) :[]
+    return (List<StageNavigator.Result>) (stageNavigator ? stageNavigator.findAll(this, matcher) :[])
   }
 
   private JsonNode getPointer(String pointer, ObjectNode rootNode = contextToNode()) {

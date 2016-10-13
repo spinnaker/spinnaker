@@ -23,9 +23,7 @@ import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.ValueFunction
-import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
-import com.netflix.spinnaker.orca.batch.TaskTaskletAdapterImpl
+import java.util.function.ToDoubleFunction
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapterImpl
 import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler
@@ -37,15 +35,9 @@ import com.netflix.spinnaker.orca.listeners.CompositeStageListener
 import com.netflix.spinnaker.orca.listeners.ExecutionPropagationListener
 import com.netflix.spinnaker.orca.listeners.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.listeners.StageTaskPropagationListener
-import com.netflix.spinnaker.orca.listeners.ExecutionPropagationListener
-import com.netflix.spinnaker.orca.listeners.StageStatusPropagationListener
-import com.netflix.spinnaker.orca.listeners.StageTaskPropagationListener
 import com.netflix.spinnaker.orca.notifications.scheduling.SuspendedPipelinesNotificationHandler
 import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
 import com.netflix.spinnaker.orca.pipeline.PipelineStarterListener
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.Task
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStack
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStack
@@ -206,9 +198,9 @@ class OrcaConfiguration {
         .createId("threadpool.${name}" as String)
         .withTag("id", threadPoolName)
 
-      registry.gauge(id, executor, new ValueFunction() {
+      registry.gauge(id, executor, new ToDoubleFunction() {
         @Override
-        double apply(Object ref) {
+        double applyAsDouble(Object ref) {
           valueCallback(((ThreadPoolTaskExecutor) ref).threadPoolExecutor)
         }
       })

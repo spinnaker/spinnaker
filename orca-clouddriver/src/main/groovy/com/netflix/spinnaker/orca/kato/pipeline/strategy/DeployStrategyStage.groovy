@@ -40,7 +40,6 @@ import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDe
 /**
  * DEPRECATED - Use AbstractDeployStrategyStage instead.
  */
-@CompileStatic
 @Deprecated
 abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
 

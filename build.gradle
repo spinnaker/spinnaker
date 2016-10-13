@@ -21,8 +21,8 @@ buildscript {
     maven { url "https://plugins.gradle.org/m2/" }
   }
   dependencies {
-    classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.5.0"
-    classpath "org.springframework.boot:spring-boot-gradle-plugin:1.2.5.RELEASE"
+    classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.9.0"
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:1.2.8.RELEASE"
     classpath "io.franzbecker:gradle-lombok:1.6"
   }
 }
@@ -32,9 +32,30 @@ allprojects {
   apply plugin: 'groovy'
   group = "com.netflix.spinnaker.orca"
 
-  spinnaker {
-    dependenciesVersion = "0.49.0"
+  ext {
+    spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.57.0'
   }
+
+  def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]
+  if (ext.has('versions')) {
+    def extVers = ext.get('versions')
+    if (extVers instanceof Map) {
+      checkLocalVersions.putAll(extVers)
+    }
+  }
+
+  def localVersions = checkLocalVersions.findAll { it.value.endsWith('-SNAPSHOT') }
+  if (localVersions) {
+    logger.info("Enabling mavenLocal repo for $localVersions")
+    repositories {
+      mavenLocal()
+    }
+  }
+
+  spinnaker {
+    dependenciesVersion = spinnakerDependenciesVersion
+  }
+
   test {
     testLogging {
       exceptionFormat = 'full'
