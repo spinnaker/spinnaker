@@ -134,51 +134,6 @@ class AmazonInstanceTypeCachingAgent implements CachingAgent, CustomScheduledAge
       }
     }
     log.info("Caching ${data.size()} items in ${agentType}")
-    data.sort(new InstanceTypeComparator())
     new DefaultCacheResult([(INSTANCE_TYPES.ns): data])
-  }
-
-  private class InstanceTypeComparator implements Comparator<CacheData> {
-
-    final static String[] INSTANCE_SIZE_HIERARCHY = [
-      'xlarge',
-      'large',
-      'medium',
-      'small',
-      'micro',
-      'nano'
-    ]
-
-    @Override
-    int compare(CacheData o1, CacheData o2) {
-      def type1 = o1.attributes['name'].split(/\./)
-      def type2 = o2.attributes['name'].split(/\./)
-
-      if (type1.size() != 2 || type2.size() != 2) {
-        return 0
-      }
-
-      def (family1, class1) = type1
-      def (family2, class2) = type2
-
-      if (family1 != family2) {
-        return family1 <=> family2
-      }
-
-      def t1Idx = INSTANCE_SIZE_HIERARCHY.findIndexOf { class1.endsWith(it) }
-      def t2Idx = INSTANCE_SIZE_HIERARCHY.findIndexOf { class2.endsWith(it) }
-
-      if (t1Idx == -1 || t2Idx == -1) {
-        return 0
-      }
-
-      if (t1Idx == 0 && t2Idx == 0) {
-        def size1 = (class1.replaceFirst('xlarge', '') ?: '0').toInteger()
-        def size2 = (class2.replaceFirst('xlarge', '') ?: '0').toInteger()
-        return size2 <=> size1
-      }
-
-      return t1Idx <=> t2Idx
-    }
   }
 }
