@@ -22,6 +22,7 @@ import com.netflix.spinnaker.front50.model.project.Project
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.connection.RedisConnectionFactory
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory
 import org.springframework.data.redis.core.RedisTemplate
@@ -31,6 +32,12 @@ import org.springframework.data.redis.serializer.StringRedisSerializer
 @Configuration
 @ConditionalOnExpression('${spinnaker.redis.enabled:false}')
 class RedisConfig {
+
+  @Value('${spinnaker.redis.host:localhost}')
+  private String host;
+
+  @Value('${spinnaker.redis.port:6379}')
+  private Integer port;
 
   @Bean
   RedisApplicationDAO redisApplicationDAO(RedisTemplate<String, Application> template) {
@@ -59,7 +66,11 @@ class RedisConfig {
 
   @Bean
   RedisConnectionFactory jedisConnectionFactory() {
-    new JedisConnectionFactory()
+    JedisConnectionFactory factory = new JedisConnectionFactory()
+    factory.setHostName(host)
+    factory.setPort(port)
+
+    factory
   }
 
   @Bean
