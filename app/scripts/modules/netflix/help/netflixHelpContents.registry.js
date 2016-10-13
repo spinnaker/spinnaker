@@ -36,7 +36,15 @@ module.exports = angular
                      here
                    </a>.
                  </p>`
-      }
+      },
+      {
+        key: 'titus.deploy.securityGroups',
+        contents: 'AWS Security Groups to assign to this service'
+      },
+      {
+        key: 'titus.job.securityGroups',
+        contents: 'AWS Security Groups to assign to this job'
+      },
     ];
     if (settings.feature && settings.feature.netflixMode) {
       helpContents.forEach((entry) => helpContentsRegistry.registerOverride(entry.key, entry.contents));

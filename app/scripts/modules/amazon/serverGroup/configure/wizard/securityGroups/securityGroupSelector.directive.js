@@ -19,6 +19,7 @@ module.exports = angular
         hideLabel: '<',
         refresh: '&?',
         groupsToEdit: '=',
+        helpKey: '@'
       },
       controllerAs: 'vm',
       controller: 'awsServerGroupSecurityGroupsSelectorCtrl',

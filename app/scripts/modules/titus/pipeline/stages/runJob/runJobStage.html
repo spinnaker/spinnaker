@@ -70,8 +70,10 @@
              ng-model="stage.cluster.iamProfile"/>
     </stage-config-field>
 
-    <stage-config-field label="Security Groups">
-      <div ng-if="!stage.credentials || !stage.cluster.region">Select an account and region</div>
+    <stage-config-field label="Security Groups" help-key="titus.job.securityGroups">
+      <div ng-if="!stage.credentials || !stage.cluster.region">
+        Account and region must be selected before security groups can be added
+      </div>
       <titus-security-group-picker ng-if="runJobCtrl.loaded && stage.credentials && stage.cluster.region"
                                    command="stage"
                                    hide-label="true"
