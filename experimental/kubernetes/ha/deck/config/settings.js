@@ -2,7 +2,7 @@
 
 var feedbackUrl = 'http://localhost';
 var gateHost = 'http://localhost:8084';
-var bakeryDetailUrl = 'http://localhost:8087';
+var bakeryDetailUrl = gateHost + '/bakery/logs/global/{{context.status.id}}';
 
 window.spinnakerSettings = {
   defaultProviders: ['aws', 'gce', 'azure', 'cf', 'kubernetes', 'titan'],
