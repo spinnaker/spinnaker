@@ -26,6 +26,7 @@ import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
 import com.netflix.spinnaker.rosco.jobs.JobExecutor
 import com.netflix.spinnaker.rosco.jobs.JobRequest
+import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import io.swagger.annotations.ApiOperation
 import io.swagger.annotations.ApiParam
@@ -230,6 +231,22 @@ class BakeryController {
 
     throw new IllegalArgumentException("Unable to retrieve logs for '$statusId'.")
   }
+
+  @RequestMapping(value = "/api/v1/{region}/logs/{statusId}", produces = ["application/json"], method = RequestMethod.GET)
+  Map lookupLogsJson(@PathVariable("region") String region,
+                     @PathVariable("statusId") String statusId) {
+    Map logsContentMap = bakeStore.retrieveBakeLogsById(statusId)
+
+    if (logsContentMap?.logsContent) {
+      return logsContentMap
+    } else {
+      throw new LogsNotFoundException()
+    }
+  }
+
+  @InheritConstructors
+  @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Logs not found.")
+  static class LogsNotFoundException extends RuntimeException {}
 
   // TODO(duftler): Synchronize this with existing bakery api.
   @RequestMapping(value = '/api/v1/{region}/bake', method = RequestMethod.DELETE)
