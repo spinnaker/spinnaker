@@ -44,7 +44,7 @@ class BakeController {
     bakeService.bakeOptions(cloudProvider)
   }
 
-  @RequestMapping(value = "/api/v1/{region}/logs/{statusId}", method = RequestMethod.GET)
+  @RequestMapping(value = "/logs/{region}/{statusId}", method = RequestMethod.GET)
   def lookupLogs(@PathVariable("region") String region,
                  @PathVariable("statusId") String statusId) {
     bakeService.lookupLogs(region, statusId)
