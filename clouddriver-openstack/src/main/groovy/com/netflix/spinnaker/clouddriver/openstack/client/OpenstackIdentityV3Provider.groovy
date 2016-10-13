@@ -27,15 +27,16 @@ class OpenstackIdentityV3Provider implements OpenstackIdentityProvider, Openstac
 
   OpenstackNamedAccountCredentials credentials
   Token token = null
+  Config config = null
 
   OpenstackIdentityV3Provider(OpenstackNamedAccountCredentials credentials) {
     this.credentials = credentials
+    this.config = credentials?.insecure ? Config.newConfig().withSSLVerificationDisabled() : Config.newConfig()
   }
 
   @Override
   OSClient buildClient() {
     handleRequest {
-      Config config = credentials.insecure ? Config.newConfig().withSSLVerificationDisabled() : Config.newConfig()
       OSFactory.builderV3()
         .withConfig(config)
         .endpoint(credentials.authUrl)
@@ -54,7 +55,7 @@ class OpenstackIdentityV3Provider implements OpenstackIdentityProvider, Openstac
         }
       }
     }
-    OSFactory.clientFromToken(token)
+    OSFactory.clientFromToken(token, config)
   }
 
   @Override
