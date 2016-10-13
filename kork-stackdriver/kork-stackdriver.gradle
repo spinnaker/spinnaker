@@ -15,11 +15,16 @@
  */
 
 dependencies {
-  compile spinnaker.dependency('spectatorApi')
+  compile spinnaker.dependency('bootActuator')
+  compile spinnaker.dependency('bootDataRest')
+  compile spinnaker.dependency('rxJava')
 
-  // googleMonitoring is not yet in spinnaker-dependencies
-  // compile spinnaker.dependency('googleMonitoring')
-  compile compile('com.google.apis:google-api-services-monitoring:v3-rev9-1.22.0')
+  compile spinnaker.dependency('spectatorApi')
+  // TODO(ewiseblatt): need to update spinnaker-dependencies first
+  // compile spinnaker.dependency('spectatorWebSpring')
+  compile "com.netflix.spectator:spectator-web-spring:${spinnaker.version('spectator')}"
+
+  compile spinnaker.dependency('googleMonitoring')
 
   testCompile 'org.mockito:mockito-core:2.+'
   testCompile 'junit:junit:4.+'
