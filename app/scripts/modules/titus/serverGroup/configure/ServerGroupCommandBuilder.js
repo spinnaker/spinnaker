@@ -40,6 +40,8 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
         labels: {},
         cloudProvider: 'titus',
         selectedProvider: 'titus',
+        softConstraints: [],
+        hardConstraints: [],
         viewState: {
           useSimpleCapacity: true,
           usePreferredZones: true,
