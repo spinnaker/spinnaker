@@ -162,6 +162,67 @@ class KubernetesApiConverter {
     return volume
   }
 
+  static ExecAction toExecAction(KubernetesExecAction action) {
+    def execActionBuilder = new ExecActionBuilder()
+    execActionBuilder = execActionBuilder.withCommand(action.commands)
+    return execActionBuilder.build()
+  }
+
+  static TCPSocketAction toTcpSocketAction(KubernetesTcpSocketAction action) {
+    def tcpActionBuilder = new TCPSocketActionBuilder()
+    tcpActionBuilder = tcpActionBuilder.withNewPort(action.port)
+    return tcpActionBuilder.build()
+  }
+
+  static HTTPGetAction toHttpGetAction(KubernetesHttpGetAction action) {
+    def httpGetActionBuilder = new HTTPGetActionBuilder()
+
+    if (action.host) {
+      httpGetActionBuilder = httpGetActionBuilder.withHost(action.host)
+    }
+
+    if (action.path) {
+      httpGetActionBuilder = httpGetActionBuilder.withPath(action.path)
+    }
+
+    httpGetActionBuilder = httpGetActionBuilder.withPort(new IntOrString(action.port))
+
+    if (action.uriScheme) {
+      httpGetActionBuilder = httpGetActionBuilder.withScheme(action.uriScheme)
+    }
+
+    if (action.httpHeaders) {
+      def headers = action.httpHeaders.collect() {
+        def builder = new HTTPHeaderBuilder()
+        return builder.withName(it.name).withValue(it.value).build()
+      }
+
+      httpGetActionBuilder.withHttpHeaders(headers)
+    }
+
+    return httpGetActionBuilder.build()
+  }
+
+  static Handler toHandler(KubernetesHandler handler) {
+    def handlerBuilder = new HandlerBuilder()
+
+    switch (handler.type) {
+      case KubernetesHandlerType.EXEC:
+        handlerBuilder = handlerBuilder.withExec(toExecAction(handler.execAction))
+        break
+
+      case KubernetesHandlerType.TCP:
+        handlerBuilder = handlerBuilder.withTcpSocket(toTcpSocketAction(handler.tcpSocketAction))
+        break
+
+      case KubernetesHandlerType.HTTP:
+        handlerBuilder = handlerBuilder.withHttpGet(toHttpGetAction(handler.httpGetAction))
+        break
+    }
+
+    return handlerBuilder.build()
+  }
+
   static Container toContainer(KubernetesContainerDescription container) {
     KubernetesUtil.normalizeImageDescription(container.imageDescription)
     def imageId = KubernetesUtil.getImageId(container.imageDescription)
@@ -209,6 +270,8 @@ class KubernetesApiConverter {
           case 'readiness':
             containerBuilder = containerBuilder.withNewReadinessProbe()
             break
+          default:
+            throw new IllegalArgumentException("Probe type $k not supported")
         }
 
         containerBuilder = containerBuilder.withInitialDelaySeconds(probe.initialDelaySeconds)
@@ -231,41 +294,15 @@ class KubernetesApiConverter {
 
         switch (probe.handler.type) {
           case KubernetesHandlerType.EXEC:
-            containerBuilder = containerBuilder.withNewExec().withCommand(probe.handler.execAction.commands).endExec()
+            containerBuilder = containerBuilder.withExec(toExecAction(probe.handler.execAction))
             break
 
           case KubernetesHandlerType.TCP:
-            containerBuilder = containerBuilder.withNewTcpSocket().withNewPort(probe.handler.tcpSocketAction.port).endTcpSocket()
+            containerBuilder = containerBuilder.withTcpSocket(toTcpSocketAction(probe.handler.tcpSocketAction))
             break
 
           case KubernetesHandlerType.HTTP:
-            containerBuilder = containerBuilder.withNewHttpGet()
-            def get = probe.handler.httpGetAction
-
-            if (get.host) {
-              containerBuilder = containerBuilder.withHost(get.host)
-            }
-
-            if (get.path) {
-              containerBuilder = containerBuilder.withPath(get.path)
-            }
-
-            containerBuilder = containerBuilder.withPort(new IntOrString(get.port))
-
-            if (get.uriScheme) {
-              containerBuilder = containerBuilder.withScheme(get.uriScheme)
-            }
-
-            if (get.httpHeaders) {
-              def headers = get.httpHeaders.collect() {
-                def builder = new HTTPHeaderBuilder()
-                return builder.withName(it.name).withValue(it.value).build()
-              }
-
-              containerBuilder.withHttpHeaders(headers)
-            }
-
-            containerBuilder = containerBuilder.endHttpGet()
+            containerBuilder = containerBuilder.withHttpGet(toHttpGetAction(probe.handler.httpGetAction))
             break
         }
 
@@ -276,8 +313,21 @@ class KubernetesApiConverter {
           case 'readiness':
             containerBuilder = containerBuilder.endReadinessProbe()
             break
+          default:
+            throw new IllegalArgumentException("Probe type $k not supported")
         }
       }
+    }
+
+    if (container.lifecycle) {
+      containerBuilder = containerBuilder.withNewLifecycle()
+      if (container.lifecycle.postStart) {
+        containerBuilder = containerBuilder.withPostStart(toHandler(container.lifecycle.postStart))
+      }
+      if (container.lifecycle.preStop) {
+        containerBuilder = containerBuilder.withPostStart(toHandler(container.lifecycle.preStop))
+      }
+      containerBuilder = containerBuilder.endLifecycle()
     }
 
     containerBuilder = containerBuilder.withNewResources()
@@ -385,6 +435,16 @@ class KubernetesApiConverter {
               cpu: requests?.cpu?.amount,
               memory: requests?.memory?.amount
           ) : null
+    }
+
+    if (container.lifecycle) {
+      containerDescription.lifecycle = new KubernetesLifecycle()
+      if (container.lifecycle.postStart) {
+        containerDescription.lifecycle.postStart = fromHandler(container.lifecycle.postStart)
+      }
+      if (container.lifecycle.preStop) {
+        containerDescription.lifecycle.preStop = fromHandler(container.lifecycle.preStop)
+      }
     }
 
     containerDescription.ports = container.ports?.collect {
@@ -546,6 +606,26 @@ class KubernetesApiConverter {
     } ?: []
 
     return deployDescription
+  }
+
+  static KubernetesHandler fromHandler(Handler handler) {
+    def kubernetesHandler = new KubernetesHandler()
+    if (handler.exec) {
+      kubernetesHandler.execAction = fromExecAction(handler.exec)
+      kubernetesHandler.type = KubernetesHandlerType.EXEC
+    }
+
+    if (handler.tcpSocket) {
+      kubernetesHandler.tcpSocketAction = fromTcpSocketAction(handler.tcpSocket)
+      kubernetesHandler.type = KubernetesHandlerType.TCP
+    }
+
+    if (handler.httpGet) {
+      kubernetesHandler.httpGetAction = fromHttpGetAction(handler.httpGet)
+      kubernetesHandler.type = KubernetesHandlerType.HTTP
+    }
+
+    return kubernetesHandler
   }
 
   static KubernetesProbe fromProbe(Probe probe) {

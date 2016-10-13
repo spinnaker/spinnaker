@@ -80,11 +80,20 @@ class KubernetesContainerDescription {
   KubernetesProbe livenessProbe
   KubernetesProbe readinessProbe
 
+  KubernetesLifecycle lifecycle
+
   List<KubernetesVolumeMount> volumeMounts
   List<KubernetesEnvVar> envVars
 
   List<String> command
   List<String> args
+}
+
+@AutoClone
+@Canonical
+class KubernetesLifecycle {
+  KubernetesHandler postStart
+  KubernetesHandler preStop
 }
 
 @AutoClone
