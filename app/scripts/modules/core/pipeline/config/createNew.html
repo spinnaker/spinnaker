@@ -10,6 +10,11 @@
       <span class="caret"></span>
     </button>
     <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+        <li class="dropdown-header"
+            style="margin-top:0"
+            ng-if="!(application.pipelineConfigs.data.length || application.strategyConfigs.data.length)">
+          None yet, click <span style="margin-left: 2px;" class="glyphicon glyphicon-plus-sign"></span> New
+        </li>
         <li class="dropdown-header" style="margin-top:0" ng-if="application.pipelineConfigs.data.length">PIPELINES</li>
         <li ng-repeat="pipeline in application.pipelineConfigs.data">
           <a href
